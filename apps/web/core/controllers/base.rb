@@ -151,9 +151,9 @@ module Core
       # Returns the StrategyResult created by Otto's AuthenticationMiddleware
       #
       # This provides authenticated state and metadata from the auth strategy
-      # that executed for the current route (public, authenticated, colonel, etc.)
+      # that executed for the current route (public, authenticated, colonelsonly, etc.)
       #
-      # For routes with auth requirements (auth=publicly, auth=authenticated, etc.),
+      # For routes with auth requirements (auth=noauth, auth=authenticated, etc.),
       # Otto's AuthenticationMiddleware sets req.env['otto.strategy_result'].
       # If this is nil (shouldn't happen in normal operation), we create a fallback.
       #

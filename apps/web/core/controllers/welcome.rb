@@ -22,7 +22,7 @@ module Core
       # @return [HTTP 302] Redirects to the Stripe Payment Link for the selected plan
       #                    or to '/signup' if the plan configuration is not found
       #
-      # @note This endpoint is publicly accessible and handles both anonymous and
+      # @note This endpoint is noauth accessible and handles both anonymous and
       #       authenticated users. For authenticated users, it pre-fills the email
       #       in the Stripe checkout process.
       #
@@ -93,7 +93,7 @@ module Core
       #
       # @see V2::Logic::Welcome::FromStripePaymentLink For the business logic implementation
       #
-      # @note This endpoint is publicly accessible and sets a secure session cookie
+      # @note This endpoint is noauth accessible and sets a secure session cookie
       #       if the site is configured to use SSL
       #
       # e.g. https://staging.onetimesecret.com/welcome?checkout={CHECKOUT_SESSION_ID}

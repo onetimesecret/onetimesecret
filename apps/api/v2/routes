@@ -4,42 +4,42 @@
 # Using direct Logic class routing with authentication strategies
 
 # Account Management
-POST   /account/destroy                           V2::Logic::Account::DestroyAccount response=json auth=authenticated
-POST   /account/change-password                   V2::Logic::Account::UpdatePassword response=json auth=authenticated
-POST   /account/update-locale                     V2::Logic::Account::UpdateLocale response=json auth=authenticated
-POST   /account/apitoken                          V2::Logic::Account::GenerateAPIToken response=json auth=authenticated csrf=exempt
-GET    /account                                   V2::Logic::Account::GetAccount response=json auth=authenticated
+POST   /account/destroy                           V2::Logic::Account::DestroyAccount response=json auth=noauth
+POST   /account/change-password                   V2::Logic::Account::UpdatePassword response=json auth=noauth
+POST   /account/update-locale                     V2::Logic::Account::UpdateLocale response=json auth=noauth
+POST   /account/apitoken                          V2::Logic::Account::GenerateAPIToken response=json auth=noauth csrf=exempt
+GET    /account                                   V2::Logic::Account::GetAccount response=json auth=noauth
 
 # Domain Management
-POST   /domains/add                               V2::Logic::Domains::AddDomain response=json auth=authenticated
-POST   /domains/:domain/remove                    V2::Logic::Domains::RemoveDomain response=json auth=authenticated
-GET    /domains/:domain                           V2::Logic::Domains::GetDomain response=json auth=authenticated
-POST   /domains/:domain/verify                    V2::Logic::Domains::VerifyDomain response=json auth=authenticated
-PUT    /domains/:domain/brand                     V2::Logic::Domains::UpdateDomainBrand response=json auth=authenticated
-GET    /domains/:domain/brand                     V2::Logic::Domains::GetDomainBrand response=json auth=authenticated
-DELETE /domains/:domain/logo                      V2::Logic::Domains::RemoveDomainImage response=json auth=authenticated
-POST   /domains/:domain/logo                      V2::Logic::Domains::UpdateDomainImage response=json auth=authenticated
-GET    /domains/:domain/logo                      V2::Logic::Domains::GetDomainImage response=json auth=authenticated
-DELETE /domains/:domain/icon                      V2::Logic::Domains::RemoveDomainImage response=json auth=authenticated
-POST   /domains/:domain/icon                      V2::Logic::Domains::UpdateDomainImage response=json auth=authenticated
-GET    /domains/:domain/icon                      V2::Logic::Domains::GetDomainImage response=json auth=authenticated
-GET    /domains                                   V2::Logic::Domains::ListDomains response=json auth=authenticated
+POST   /domains/add                               V2::Logic::Domains::AddDomain response=json auth=noauth
+POST   /domains/:domain/remove                    V2::Logic::Domains::RemoveDomain response=json auth=noauth
+GET    /domains/:domain                           V2::Logic::Domains::GetDomain response=json auth=noauth
+POST   /domains/:domain/verify                    V2::Logic::Domains::VerifyDomain response=json auth=noauth
+PUT    /domains/:domain/brand                     V2::Logic::Domains::UpdateDomainBrand response=json auth=noauth
+GET    /domains/:domain/brand                     V2::Logic::Domains::GetDomainBrand response=json auth=noauth
+DELETE /domains/:domain/logo                      V2::Logic::Domains::RemoveDomainImage response=json auth=noauth
+POST   /domains/:domain/logo                      V2::Logic::Domains::UpdateDomainImage response=json auth=noauth
+GET    /domains/:domain/logo                      V2::Logic::Domains::GetDomainImage response=json auth=noauth
+DELETE /domains/:domain/icon                      V2::Logic::Domains::RemoveDomainImage response=json auth=noauth
+POST   /domains/:domain/icon                      V2::Logic::Domains::UpdateDomainImage response=json auth=noauth
+GET    /domains/:domain/icon                      V2::Logic::Domains::GetDomainImage response=json auth=noauth
+GET    /domains                                   V2::Logic::Domains::ListDomains response=json auth=noauth
 
 # Secrets - Private (Authenticated)
-GET    /receipt/recent                            V2::Logic::Secrets::ListMetadata response=json auth=authenticated
-POST   /receipt/:key/burn                         V2::Logic::Secrets::BurnSecret response=json auth=authenticated
-GET    /receipt/:key                              V2::Logic::Secrets::ShowMetadata response=json auth=authenticated
-GET    /private/recent                            V2::Logic::Secrets::ListMetadata response=json auth=authenticated
-POST   /private/:key/burn                         V2::Logic::Secrets::BurnSecret response=json auth=authenticated
-GET    /private/:key                              V2::Logic::Secrets::ShowMetadata response=json auth=authenticated
+GET    /receipt/recent                            V2::Logic::Secrets::ListMetadata response=json auth=noauth
+POST   /receipt/:key/burn                         V2::Logic::Secrets::BurnSecret response=json auth=noauth
+GET    /receipt/:key                              V2::Logic::Secrets::ShowMetadata response=json auth=noauth
+GET    /private/recent                            V2::Logic::Secrets::ListMetadata response=json auth=noauth
+POST   /private/:key/burn                         V2::Logic::Secrets::BurnSecret response=json auth=noauth
+GET    /private/:key                              V2::Logic::Secrets::ShowMetadata response=json auth=noauth
 
 # Secrets - Public (Anonymous allowed)
-GET    /secret/:key                               V2::Logic::Secrets::ShowSecret response=json auth=publicly
-GET    /secret/:key/status                        V2::Logic::Secrets::ShowSecretStatus response=json auth=publicly
-POST   /secret/status                             V2::Logic::Secrets::ListSecretStatus response=json auth=publicly
-POST   /secret/:key/reveal                        V2::Logic::Secrets::RevealSecret response=json auth=publicly csrf=exempt
-POST   /secret/generate                           V2::Logic::Secrets::GenerateSecret response=json auth=publicly csrf=exempt
-POST   /secret/conceal                            V2::Logic::Secrets::ConcealSecret response=json auth=publicly csrf=exempt
+GET    /secret/:key                               V2::Logic::Secrets::ShowSecret response=json auth=noauth
+GET    /secret/:key/status                        V2::Logic::Secrets::ShowSecretStatus response=json auth=noauth
+POST   /secret/status                             V2::Logic::Secrets::ListSecretStatus response=json auth=noauth
+POST   /secret/:key/reveal                        V2::Logic::Secrets::RevealSecret response=json auth=noauth csrf=exempt
+POST   /secret/generate                           V2::Logic::Secrets::GenerateSecret response=json auth=noauth csrf=exempt
+POST   /secret/conceal                            V2::Logic::Secrets::ConcealSecret response=json auth=noauth csrf=exempt
 
 # OPTIONS preflight for CORS (public)
 OPTIONS /secret/generate                          V2::Logic::Secrets::GenerateSecret response=json
@@ -49,11 +49,11 @@ OPTIONS /secret/conceal                           V2::Logic::Secrets::ConcealSec
 GET    /supported-locales                         V2::Logic::Meta.get_supported_locales response=json
 GET    /status                                    V2::Logic::Meta.system_status response=json
 GET    /version                                   V2::Logic::Meta.system_version response=json
-POST   /feedback                                  V2::Logic::ReceiveFeedback response=json auth=publicly
+POST   /feedback                                  V2::Logic::ReceiveFeedback response=json auth=noauth
 
 # Colonel/Admin endpoints
-GET    /colonel/info                              V2::Logic::Colonel::GetColonelInfo response=json auth=colonel
-GET    /colonel/stats                             V2::Logic::Colonel::GetColonelStats response=json auth=colonel
+GET    /colonel/info                              V2::Logic::Colonel::GetColonelInfo response=json auth=colonelsonly
+GET    /colonel/stats                             V2::Logic::Colonel::GetColonelStats response=json auth=colonelsonly
 
 # OTTO ADVANCED ROUTES SYNTAX - QUICK REFERENCE
 # ==============================================
@@ -98,7 +98,7 @@ GET    /colonel/stats                             V2::Logic::Colonel::GetColonel
 # Combine any parameters with spaces:
 #
 # GET  /api/admin    App#admin auth=role:admin response=json
-# POST /api/secure   App#secure auth=authenticated response=json csrf=exempt
+# POST /api/secure   App#secure auth=noauth response=json csrf=exempt
 #
 # NAMESPACED CLASSES
 # ------------------

@@ -2,16 +2,11 @@
 
 # Otto authentication strategies for V2 API (apps/api/v2).
 #
-# This module delegates to the centralized Onetime::Application::AuthStrategies
-# for consistency across all applications.
+# This module implements strategies defined in Onetime::Application::AuthStrategies.
 #
-# Usage in apps/api/v2/application.rb:
-#   V2::AuthStrategies.register_all(router)
 #
 # Usage in routes file:
-#   GET /account   Controller#action auth=authenticated
-#   GET /secret    Controller#action auth=publicly
-#   GET /colonel   Controller#action auth=colonel
+#   GET /api/v2/*   Controller#action auth=basicauth
 
 module V2
   module AuthStrategies

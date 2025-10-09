@@ -1,59 +1,59 @@
 # apps/web/core/routes
 
 # Public routes - accessible to everyone
-GET   /                                          Core::Controllers::Page#index auth=publicly
-GET   /feedback                                  Core::Controllers::Page#index auth=publicly
-GET   /404                                       Core::Controllers::Page#not_found auth=publicly
-GET   /500                                       Core::Controllers::Page#server_error auth=publicly
-GET   /robots.txt                                Core::Controllers::Page#robots_txt auth=publicly
+GET   /                                          Core::Controllers::Page#index auth=noauth
+GET   /feedback                                  Core::Controllers::Page#index auth=noauth
+GET   /404                                       Core::Controllers::Page#not_found auth=noauth
+GET   /500                                       Core::Controllers::Page#server_error auth=noauth
+GET   /robots.txt                                Core::Controllers::Page#robots_txt auth=noauth
 
 # Authentication System UI - Supports both Basic and Advanced modes
-GET   /signin                                    Core::Controllers::Page#index auth=publicly
-GET   /signup                                    Core::Controllers::Page#index auth=publicly
-GET   /signup/*                                  Core::Controllers::Page#index auth=publicly
-GET   /forgot                                    Core::Controllers::Page#index auth=publicly
-GET   /forgot/:key                               Core::Controllers::Page#index auth=publicly
-GET   /logout                                    Core::Controllers::Authentication#logout auth=authenticated
-POST  /logout                                    Core::Controllers::Authentication#logout auth=authenticated
+GET   /signin                                    Core::Controllers::Page#index auth=noauth
+GET   /signup                                    Core::Controllers::Page#index auth=noauth
+GET   /signup/*                                  Core::Controllers::Page#index auth=noauth
+GET   /forgot                                    Core::Controllers::Page#index auth=noauth
+GET   /forgot/:key                               Core::Controllers::Page#index auth=noauth
+GET   /logout                                    Core::Controllers::Authentication#logout auth=sessionauth
+POST  /logout                                    Core::Controllers::Authentication#logout auth=sessionauth
 
 # Authentication routes - handled here in basic mode, by Auth app in advanced
 # mode. The Vue frontend uses the same /auth/* endpoints regardless of which
 # mode is enabled. The Auth app provides many more routes in addition to these.
-POST  /auth/login                                Core::Controllers::Authentication#authenticate auth=publicly response=json
-POST  /auth/create-account                       Core::Controllers::Registration#create_account auth=publicly response=json
-POST  /auth/reset-password                       Core::Controllers::Registration#request_reset auth=publicly response=json
-POST  /auth/reset-password/:key                  Core::Controllers::Registration#request_reset auth=publicly response=json
+POST  /auth/login                                Core::Controllers::Authentication#authenticate auth=noauth response=json
+POST  /auth/create-account                       Core::Controllers::Registration#create_account auth=noauth response=json
+POST  /auth/reset-password                       Core::Controllers::Registration#request_reset auth=noauth response=json
+POST  /auth/reset-password/:key                  Core::Controllers::Registration#request_reset auth=noauth response=json
 
 # Data export/import - public for now (may need auth review)
-GET   /window                                    Core::Controllers::Page#export_window auth=publicly
+GET   /window                                    Core::Controllers::Page#export_window auth=noauth
 
 # Vue SPA catch-all routes - public (Vue handles auth client-side)
-GET   /private/*                                 Core::Controllers::Page#index auth=publicly
-GET   /receipt/*                                 Core::Controllers::Page#index auth=publicly
-GET   /secret/*                                  Core::Controllers::Page#index auth=publicly
-GET   /incoming                                  Core::Controllers::Page#index auth=publicly
-GET   /l/*                                       Core::Controllers::Page#index auth=publicly
-GET   /l                                         Core::Controllers::Page#index auth=publicly
-POST  /incoming                                  Core::Controllers::DataIncoming#create_incoming auth=publicly
+GET   /private/*                                 Core::Controllers::Page#index auth=noauth
+GET   /receipt/*                                 Core::Controllers::Page#index auth=noauth
+GET   /secret/*                                  Core::Controllers::Page#index auth=noauth
+GET   /incoming                                  Core::Controllers::Page#index auth=noauth
+GET   /l/*                                       Core::Controllers::Page#index auth=noauth
+GET   /l                                         Core::Controllers::Page#index auth=noauth
+POST  /incoming                                  Core::Controllers::DataIncoming#create_incoming auth=noauth
 
 # Authenticated routes - require valid session
-GET   /dashboard                                 Core::Controllers::Page#index auth=authenticated
-GET   /recent                                    Core::Controllers::Page#index auth=authenticated
-GET   /domains/*                                 Core::Controllers::Page#index auth=authenticated
-GET   /domains                                   Core::Controllers::Page#index auth=authenticated
-GET   /account/*                                 Core::Controllers::Page#index auth=authenticated
-GET   /account                                   Core::Controllers::Page#index auth=authenticated
+GET   /dashboard                                 Core::Controllers::Page#index auth=sessionauth
+GET   /recent                                    Core::Controllers::Page#index auth=sessionauth
+GET   /domains/*                                 Core::Controllers::Page#index auth=sessionauth
+GET   /domains                                   Core::Controllers::Page#index auth=sessionauth
+GET   /account/*                                 Core::Controllers::Page#index auth=sessionauth
+GET   /account                                   Core::Controllers::Page#index auth=sessionauth
 
 # Billing
-GET   /plans/:tier                               Core::Controllers::Welcome#plan_redirect auth=publicly
-GET   /plans/:tier/:billing_cycle                Core::Controllers::Welcome#plan_redirect auth=publicly
-GET   /welcome                                   Core::Controllers::Welcome#welcome auth=publicly
-POST  /welcome/stripe/webhook                    Core::Controllers::Welcome#welcome_webhook auth=publicly csrf=exempt
-GET   /account/billing_portal                    Core::Controllers::Welcome#customer_portal_redirect auth=authenticated
+GET   /plans/:tier                               Core::Controllers::Welcome#plan_redirect auth=noauth
+GET   /plans/:tier/:billing_cycle                Core::Controllers::Welcome#plan_redirect auth=noauth
+GET   /welcome                                   Core::Controllers::Welcome#welcome auth=noauth
+POST  /welcome/stripe/webhook                    Core::Controllers::Welcome#welcome_webhook auth=noauth csrf=exempt
+GET   /account/billing_portal                    Core::Controllers::Welcome#customer_portal_redirect auth=sessionauth
 
 # Colonel routes - require colonel role
-GET   /colonel                                   Core::Controllers::Page#index auth=colonel
-GET   /colonel/*                                 Core::Controllers::Page#index auth=colonel
+GET   /colonel                                   Core::Controllers::Page#index auth=colonelsonly
+GET   /colonel/*                                 Core::Controllers::Page#index auth=colonelsonly
 
 # Image generation - authenticated
-GET   /imagine/:custom_domain_id/:image_type.:image_ext  Core::Controllers::Page#imagine auth=authenticated
+GET   /imagine/:custom_domain_id/:image_type.:image_ext  Core::Controllers::Page#imagine auth=sessionauth

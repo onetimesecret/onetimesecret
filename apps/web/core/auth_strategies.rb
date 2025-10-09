@@ -6,12 +6,12 @@
 # for consistency across all applications.
 #
 # Usage in apps/web/core/application.rb:
-#   Core::AuthStrategies.register_all(router)
+#   Core::AuthStrategies.register_essential(router)
 #
 # Usage in routes file:
-#   GET /public   Controller#action auth=publicly
-#   GET /private  Controller#action auth=authenticated
-#   GET /admin    Controller#action auth=colonel
+#   GET /public   Controller#action auth=noauth
+#   GET /private  Controller#action auth=sessionauth
+#   GET /colonel  Controller#action auth=colonelsonly
 #
 # Keep this code in sync with:
 # @see docs/architecture/authentication.md#authstrategies

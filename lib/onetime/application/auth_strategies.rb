@@ -76,22 +76,24 @@ module Onetime
 
       # Public strategy - allows all requests, loads customer from session if available
       #
-      # Routes: auth=publicly
-      # Access: Everyone (anonymous or authenticated)
+      # Routes: auth=noauth
+      # Access: Everyone (including authenticated)
       # User: Customer.anonymous or authenticated Customer
       class PublicStrategy < Otto::Security::AuthStrategy
+        @auth_method_name = 'noauth'
+
         def authenticate(env, _requirement)
           session = env['rack.session']
 
           # Load customer from session or use anonymous
           cust = load_customer_from_session(session) || Onetime::Customer.anonymous
 
-          OT.ld "[onetime_public] Access granted (#{cust.anonymous? ? 'anonymous' : cust.custid})"
+          OT.ld "[onetime_public] Access granted (#{cust.anonymous? ? 'anonymous' : cust.objid})"
 
           success(
             session: session,
             user: cust,
-            auth_method: 'public',
+            auth_method: 'noauth',
             metadata: build_metadata(env),
           )
         end
@@ -103,8 +105,9 @@ module Onetime
       #
       # Provides common authentication logic for session-based auth.
       # Subclasses can override `additional_checks` for role/permission validation.
-      class BaseAuthenticatedStrategy < Otto::Security::AuthStrategy
+      class BaseSessionAuthStrategy < Otto::Security::AuthStrategy
         include Helpers
+        @auth_method_name = nil
 
         def authenticate(env, _requirement)
           session = env['rack.session']
@@ -158,7 +161,7 @@ module Onetime
         #
         # @return [String] Auth method name for StrategyResult
         def auth_method_name
-          'session'
+          @auth_method_name
         end
 
         # Override in subclasses to add metadata
@@ -173,7 +176,7 @@ module Onetime
         #
         # @param cust [Onetime::Customer] Authenticated customer
         def log_success(cust)
-          OT.ld "[onetime_authenticated] Authenticated '#{cust.custid}'"
+          OT.ld "[onetime_authenticated] Authenticated '#{cust.objid}'"
         end
 
         private
@@ -191,26 +194,24 @@ module Onetime
       # Routes: auth=authenticated
       # Access: Authenticated users only
       # User: Authenticated Customer
-      class AuthenticatedStrategy < BaseAuthenticatedStrategy
-        # Uses all base class defaults
+      class SessionAuthStrategy < BaseSessionAuthStrategy
+        @auth_method_name = 'sessionauth'
       end
 
       # Colonel strategy - requires authenticated user with colonel role
       #
-      # Routes: auth=colonel
+      # Routes: auth=colonelsonly
       # Access: Users with colonel role only
       # User: Authenticated Customer with :colonel role
-      class ColonelStrategy < BaseAuthenticatedStrategy
+      class ColonelStrategy < BaseSessionAuthStrategy
+        @auth_method_name = 'colonel'
+
         protected
 
         def additional_checks(cust, _env)
           return failure('[ROLE_COLONEL_REQUIRED] Colonel role required') unless cust.role?(:colonel)
 
           nil
-        end
-
-        def auth_method_name
-          'colonel'
         end
 
         def additional_metadata(_cust)
@@ -232,6 +233,7 @@ module Onetime
       # to prevent timing attacks that could enumerate valid usernames.
       class BasicAuthStrategy < Otto::Security::AuthStrategy
         include Helpers
+        @auth_method_name = 'basicauth'
 
         def authenticate(env, _requirement)
           # Extract credentials from Authorization header

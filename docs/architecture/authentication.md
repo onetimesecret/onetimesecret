@@ -119,7 +119,7 @@ Onetime Secret supports two authentication modes, configured via `AUTHENTICATION
 2. Core controller calls Logic class with `StrategyResult`
 3. Logic validates credentials, writes to `session`
 4. Redis persists session
-5. Future requests use PublicStrategy or AuthenticatedStrategy
+5. Future requests use PublicStrategy or SessionAuthStrategy
 
 ### Advanced Mode
 
@@ -141,16 +141,16 @@ Onetime Secret supports two authentication modes, configured via `AUTHENTICATION
 ### Centralized Strategies
 
 **Location:** `lib/onetime/application/auth_strategies.rb`
-**Registration:** All applications call `Onetime::Application::AuthStrategies.register_all(otto)`
+**Registration:** All applications call `Onetime::Application::AuthStrategies.register_essential(otto)`
 
 All Onetime applications (Web Core, V2 API) use the same centralized strategy implementations:
 
-#### PublicStrategy (`auth=publicly`)
+#### PublicStrategy (`auth=noauth`)
 
 ```ruby
 # Usage in routes files (all apps)
-GET / Core::Controllers::Page#index auth=publicly
-GET /api/v2/secret/:key V2::Logic::Secrets::ShowSecret response=json auth=publicly
+GET / Core::Controllers::Page#index auth=noauth
+GET /api/v2/secret/:key V2::Logic::Secrets::ShowSecret response=json auth=noauth
 
 # Strategy implementation (lib/onetime/application/auth_strategies.rb)
 class Onetime::Application::AuthStrategies::PublicStrategy < Otto::Security::AuthStrategy
@@ -172,7 +172,7 @@ end
 **User:** `Customer.anonymous` or authenticated Customer
 **Session Required:** No
 
-#### AuthenticatedStrategy (`auth=authenticated`)
+#### SessionAuthStrategy (`auth=sessionauth`)
 
 ```ruby
 # Usage in routes files (all apps)
@@ -180,7 +180,7 @@ GET /account Core::Controllers::Account#show auth=authenticated
 GET /api/v2/account V2::Logic::Account::GetAccount response=json auth=authenticated
 
 # Strategy implementation (lib/onetime/application/auth_strategies.rb)
-class Onetime::Application::AuthStrategies::AuthenticatedStrategy < Otto::Security::AuthStrategy
+class Onetime::Application::AuthStrategies::SessionAuthStrategy < Otto::Security::AuthStrategy
   def authenticate(env, _requirement)
     session = env['rack.session']
     return failure('Not authenticated') unless session['authenticated']
@@ -242,15 +242,15 @@ Both applications delegate to the centralized implementation:
 ```ruby
 # apps/web/core/auth_strategies.rb
 module Core::AuthStrategies
-  def self.register_all(otto)
-    Onetime::Application::AuthStrategies.register_all(otto)
+  def self.register_essential(otto)
+    Onetime::Application::AuthStrategies.register_essential(otto)
   end
 end
 
 # apps/api/v2/auth_strategies.rb
 module V2::AuthStrategies
-  def self.register_all(otto)
-    Onetime::Application::AuthStrategies.register_all(otto)
+  def self.register_essential(otto)
+    Onetime::Application::AuthStrategies.register_essential(otto)
   end
 end
 ```
@@ -558,18 +558,18 @@ end
 **Pattern:**
 1. All strategy implementations live in `Onetime::Application::AuthStrategies`
 2. Application-specific modules (`Core::AuthStrategies`, `V2::AuthStrategies`) delegate to centralized module
-3. Each application calls `Onetime::Application::AuthStrategies.register_all(otto)` in `build_router`
-4. Strategies use consistent names: `publicly`, `authenticated`, `colonel`
+3. Each application calls `Onetime::Application::AuthStrategies.register_essential(otto)` in `build_router`
+4. Strategies use consistent names: `noauth`, `authenticated`, `colonelsonly`, `basicauth`
 
 **Implementation:**
 ```ruby
 # Centralized (lib/onetime/application/auth_strategies.rb)
 module Onetime::Application::AuthStrategies
-  def self.register_all(otto)
+  def self.register_essential(otto)
     otto.enable_authentication!
-    otto.add_auth_strategy('publicly', PublicStrategy.new)
-    otto.add_auth_strategy('authenticated', AuthenticatedStrategy.new)
-    otto.add_auth_strategy('colonel', ColonelStrategy.new)
+    otto.add_auth_strategy('noauth', PublicStrategy.new)
+    otto.add_auth_strategy('sessionauth', SessionAuthStrategy.new)
+    otto.add_auth_strategy('colonelsonly', ColonelStrategy.new)
   end
 
   class PublicStrategy < Otto::Security::AuthStrategy
@@ -579,8 +579,8 @@ end
 
 # Application wrappers (apps/*/auth_strategies.rb)
 module Core::AuthStrategies
-  def self.register_all(otto)
-    Onetime::Application::AuthStrategies.register_all(otto)
+  def self.register_essential(otto)
+    Onetime::Application::AuthStrategies.register_essential(otto)
   end
 end
 ```
