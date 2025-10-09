@@ -47,21 +47,12 @@ module Onetime
 
       # Registers core Onetime authentication strategies with Otto
       #
-      # Registers session-based strategies (publicly, authenticated, colonel).
+      # Registers session-based strategies (noauth, authenticated, colonelsonly).
       # For BasicAuth, call register_basic_auth(otto) separately.
       #
       # @param otto [Otto] Otto router instance
-      def register_all(otto)
-        otto.enable_authentication!
-
-        # Public routes - allows everyone (anonymous or authenticated)
-        otto.add_auth_strategy('publicly', PublicStrategy.new)
-
-        # Authenticated routes - requires valid session
-        otto.add_auth_strategy('authenticated', AuthenticatedStrategy.new)
-
-        # Colonel routes - requires colonel role
-        otto.add_auth_strategy('colonel', ColonelStrategy.new)
+      def register_essential(otto)
+        raise NotImplementedError, 'Please implement this method'
       end
 
       # Registers HTTP Basic Authentication strategy (opt-in)
@@ -79,7 +70,7 @@ module Onetime
       # Routes: auth=noauth
       # Access: Everyone (including authenticated)
       # User: Customer.anonymous or authenticated Customer
-      class PublicStrategy < Otto::Security::AuthStrategy
+      class NoAuthStrategy < Otto::Security::AuthStrategy
         @auth_method_name = 'noauth'
 
         def authenticate(env, _requirement)
@@ -219,7 +210,7 @@ module Onetime
         end
 
         def log_success(cust)
-          OT.ld "[onetime_colonel] Colonel access granted '#{cust.custid}'"
+          OT.ld "[onetime_colonel] Colonel access granted '#{cust.objid}'"
         end
       end
 
@@ -272,7 +263,7 @@ module Onetime
             return failure('[CREDENTIALS_INVALID] Invalid credentials')
           end
 
-          OT.ld "[onetime_basic_auth] Authenticated '#{cust.custid}' via API key"
+          OT.ld "[onetime_basic_auth] Authenticated '#{cust.objid}' via API key"
 
           success(
             session: {},  # No session for Basic auth (stateless)

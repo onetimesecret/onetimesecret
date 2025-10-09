@@ -24,7 +24,7 @@ module V2
       router      = Otto.new(routes_path)
 
       # Register authentication strategies
-      V2::AuthStrategies.register_all(router)
+      V2::AuthStrategies.register_essential(router)
 
       # Default error responses
       headers             = { 'content-type' => 'application/json' }

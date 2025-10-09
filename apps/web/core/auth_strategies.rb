@@ -16,6 +16,8 @@
 # Keep this code in sync with:
 # @see docs/architecture/authentication.md#authstrategies
 
+require 'onetime/application/auth_strategies'
+
 module Core
   module AuthStrategies
     extend self
@@ -25,8 +27,17 @@ module Core
     # Delegates to centralized Onetime::Application::AuthStrategies
     #
     # @param otto [Otto] Otto router instance
-    def register_all(otto)
-      Onetime::Application::AuthStrategies.register_all(otto)
+    def register_essential(otto)
+      otto.enable_authentication!
+
+      # Public routes - allows everyone (anonymous or authenticated)
+      otto.add_auth_strategy('noauth', Onetime::Application::AuthStrategies::NoAuthStrategy.new)
+
+      # Authenticated routes - requires valid session
+      otto.add_auth_strategy('sessionauth', Onetime::Application::AuthStrategies::SessionAuthStrategy.new)
+
+      # Colonel routes - requires colonel role
+      otto.add_auth_strategy('colonelsonly', Onetime::Application::AuthStrategies::ColonelStrategy.new)
     end
   end
 end

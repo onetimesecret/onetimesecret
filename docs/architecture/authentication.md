@@ -119,7 +119,7 @@ Onetime Secret supports two authentication modes, configured via `AUTHENTICATION
 2. Core controller calls Logic class with `StrategyResult`
 3. Logic validates credentials, writes to `session`
 4. Redis persists session
-5. Future requests use PublicStrategy or SessionAuthStrategy
+5. Future requests use NoAuthStrategy or SessionAuthStrategy
 
 ### Advanced Mode
 
@@ -145,7 +145,7 @@ Onetime Secret supports two authentication modes, configured via `AUTHENTICATION
 
 All Onetime applications (Web Core, V2 API) use the same centralized strategy implementations:
 
-#### PublicStrategy (`auth=noauth`)
+#### NoAuthStrategy (`auth=noauth`)
 
 ```ruby
 # Usage in routes files (all apps)
@@ -153,7 +153,7 @@ GET / Core::Controllers::Page#index auth=noauth
 GET /api/v2/secret/:key V2::Logic::Secrets::ShowSecret response=json auth=noauth
 
 # Strategy implementation (lib/onetime/application/auth_strategies.rb)
-class Onetime::Application::AuthStrategies::PublicStrategy < Otto::Security::AuthStrategy
+class Onetime::Application::AuthStrategies::NoAuthStrategy < Otto::Security::AuthStrategy
   def authenticate(env, _requirement)
     session = env['rack.session']
     cust = load_customer_from_session(session) || Onetime::Customer.anonymous
@@ -567,12 +567,12 @@ end
 module Onetime::Application::AuthStrategies
   def self.register_essential(otto)
     otto.enable_authentication!
-    otto.add_auth_strategy('noauth', PublicStrategy.new)
+    otto.add_auth_strategy('noauth', NoAuthStrategy.new)
     otto.add_auth_strategy('sessionauth', SessionAuthStrategy.new)
     otto.add_auth_strategy('colonelsonly', ColonelStrategy.new)
   end
 
-  class PublicStrategy < Otto::Security::AuthStrategy
+  class NoAuthStrategy < Otto::Security::AuthStrategy
     # Implementation...
   end
 end

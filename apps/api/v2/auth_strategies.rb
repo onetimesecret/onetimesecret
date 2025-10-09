@@ -8,6 +8,8 @@
 # Usage in routes file:
 #   GET /api/v2/*   Controller#action auth=basicauth
 
+require 'onetime/application/auth_strategies'
+
 module V2
   module AuthStrategies
     extend self
@@ -17,8 +19,17 @@ module V2
     # Delegates to centralized Onetime::Application::AuthStrategies
     #
     # @param otto [Otto] Otto router instance
-    def register_all(otto)
-      Onetime::Application::AuthStrategies.register_all(otto)
+    def register_essential(otto)
+      otto.enable_authentication!
+
+      # Public routes - everyone allowed (including authenticated)
+      otto.add_auth_strategy('noauth', Onetime::Application::AuthStrategies::NoAuthStrategy.new)
+
+      # Authenticated routes - require valid session
+      otto.add_auth_strategy('sessionauth', Onetime::Application::AuthStrategies::SessionAuthStrategy.new)
+
+      # HTTP Basic Auth - require valid apikey and apisecretkey
+      otto.add_auth_strategy('basicauth', Onetime::Application::AuthStrategies::BasicAuthStrategy.new)
     end
   end
 end
