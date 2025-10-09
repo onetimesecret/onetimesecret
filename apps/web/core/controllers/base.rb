@@ -174,7 +174,7 @@ module Core
         Otto::Security::Authentication::StrategyResult.new(
           session: session,
           user: cust,
-          auth_method: 'anonymous',
+          auth_method: 'noauth',
           metadata: {
             ip: req.client_ipaddress,
             user_agent: req.user_agent,

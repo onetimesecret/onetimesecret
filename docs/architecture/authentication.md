@@ -3,7 +3,7 @@ labels: authstrategies
 ---
 # Authentication Architecture
 
-**Last Updated:** 2025-10-08
+**Last Updated:** 2025-10-09
 **Framework:** Otto v2.0.0-pre2
 **Session Store:** Redis via Rack::Session
 
@@ -138,12 +138,16 @@ Onetime Secret supports two authentication modes, configured via `AUTHENTICATION
 
 ## Otto Strategies
 
-### Centralized Strategies
+### Strategy Architecture
 
-**Location:** `lib/onetime/application/auth_strategies.rb`
-**Registration:** All applications call `Onetime::Application::AuthStrategies.register_essential(otto)`
+**Centralized Implementation:** `lib/onetime/application/auth_strategies.rb`
+**Application Wrappers:**
+- Web Core: `apps/web/core/auth_strategies.rb`
+- V2 API: `apps/api/v2/auth_strategies.rb`
 
-All Onetime applications (Web Core, V2 API) use the same centralized strategy implementations:
+**Pattern:** Application wrappers delegate to centralized `Onetime::Application::AuthStrategies` module, which provides shared strategy implementations used by all applications.
+
+**Registration:** Applications call `Core::AuthStrategies.register_essential(otto)` or `V2::AuthStrategies.register_essential(otto)`, which internally delegate to the centralized module.
 
 #### NoAuthStrategy (`auth=noauth`)
 
@@ -176,11 +180,11 @@ end
 
 ```ruby
 # Usage in routes files (all apps)
-GET /account Core::Controllers::Account#show auth=authenticated
-GET /api/v2/account V2::Logic::Account::GetAccount response=json auth=authenticated
+GET /account Core::Controllers::Account#show auth=sessionauth
+GET /api/v2/account V2::Logic::Account::GetAccount response=json auth=sessionauth
 
 # Strategy implementation (lib/onetime/application/auth_strategies.rb)
-class Onetime::Application::AuthStrategies::SessionAuthStrategy < Otto::Security::AuthStrategy
+class Onetime::Application::AuthStrategies::SessionAuthStrategy < BaseSessionAuthStrategy
   def authenticate(env, _requirement)
     session = env['rack.session']
     return failure('Not authenticated') unless session['authenticated']
@@ -202,15 +206,15 @@ end
 **User:** Authenticated Customer
 **Session Required:** Yes (`session['authenticated'] == true`)
 
-#### ColonelStrategy (`auth=colonel`)
+#### ColonelStrategy (`auth=colonelsonly`)
 
 ```ruby
 # Usage in routes files (all apps)
-GET /colonel Core::Controllers::Colonel#dashboard auth=colonel
-GET /api/v2/colonel/stats V2::Logic::Colonel::GetColonelStats response=json auth=colonel
+GET /colonel Core::Controllers::Colonel#dashboard auth=colonelsonly
+GET /api/v2/colonel/stats V2::Logic::Colonel::GetColonelStats response=json auth=colonelsonly
 
 # Strategy implementation (lib/onetime/application/auth_strategies.rb)
-class Onetime::Application::AuthStrategies::ColonelStrategy < Otto::Security::AuthStrategy
+class Onetime::Application::AuthStrategies::ColonelStrategy < BaseSessionAuthStrategy
   def authenticate(env, _requirement)
     session = env['rack.session']
     return failure('Not authenticated') unless session['authenticated']
@@ -232,30 +236,82 @@ end
 **User:** Authenticated Customer with `:colonel` role
 **Session Required:** Yes + role check
 
-### Application Delegation
+#### BasicAuthStrategy (`auth=basicauth`)
+
+```ruby
+# Usage in routes files (V2 API only)
+GET /api/v2/status V2::Controllers::Status#show auth=basicauth
+
+# Strategy implementation (lib/onetime/application/auth_strategies.rb)
+class Onetime::Application::AuthStrategies::BasicAuthStrategy < Otto::Security::AuthStrategy
+  def authenticate(env, _requirement)
+    # Extract and validate HTTP Basic Auth credentials
+    auth_header = env['HTTP_AUTHORIZATION']
+    # ... validation logic ...
+
+    # Security: Uses constant-time comparison for both username and API key
+    # to prevent timing attacks that could enumerate valid usernames
+    valid_apikey = if cust
+      cust.valid_apikey?(apikey)
+    else
+      # Perform same constant-time comparison with dummy value
+      # to prevent username enumeration via timing
+      Rack::Utils.secure_compare(dummy_hash, Digest::SHA256.hexdigest(apikey))
+      false  # Always fail for non-existent users
+    end
+  end
+end
+```
+
+**Access:** Valid API credentials via Authorization header
+**User:** Customer associated with API credentials
+**Session Required:** No (stateless)
+**Security:** Constant-time comparison prevents timing attacks
+
+### Application Delegation Pattern
 
 **Web Core:** `apps/web/core/auth_strategies.rb`
 **V2 API:** `apps/api/v2/auth_strategies.rb`
 
-Both applications delegate to the centralized implementation:
+Both applications delegate to centralized implementations:
 
 ```ruby
 # apps/web/core/auth_strategies.rb
 module Core::AuthStrategies
   def self.register_essential(otto)
-    Onetime::Application::AuthStrategies.register_essential(otto)
+    otto.enable_authentication!
+
+    # Register strategies from centralized module
+    otto.add_auth_strategy('noauth',
+      Onetime::Application::AuthStrategies::NoAuthStrategy.new)
+    otto.add_auth_strategy('sessionauth',
+      Onetime::Application::AuthStrategies::SessionAuthStrategy.new)
+    otto.add_auth_strategy('colonelsonly',
+      Onetime::Application::AuthStrategies::ColonelStrategy.new)
   end
 end
 
 # apps/api/v2/auth_strategies.rb
 module V2::AuthStrategies
   def self.register_essential(otto)
-    Onetime::Application::AuthStrategies.register_essential(otto)
+    otto.enable_authentication!
+
+    # V2 API registers additional BasicAuth strategy
+    otto.add_auth_strategy('noauth',
+      Onetime::Application::AuthStrategies::NoAuthStrategy.new)
+    otto.add_auth_strategy('sessionauth',
+      Onetime::Application::AuthStrategies::SessionAuthStrategy.new)
+    otto.add_auth_strategy('basicauth',
+      Onetime::Application::AuthStrategies::BasicAuthStrategy.new)
   end
 end
 ```
 
-This ensures all applications use identical authentication logic while maintaining clean separation.
+**Benefits:**
+- **Single Source of Truth:** All strategy implementations in `lib/onetime/application/auth_strategies.rb`
+- **Consistency:** Identical authentication logic across applications
+- **Flexibility:** Applications can selectively register strategies (e.g., BasicAuth only in V2 API)
+- **Maintainability:** Changes propagate to all applications automatically
 
 ## Controllers
 
@@ -267,8 +323,31 @@ This ensures all applications use identical authentication logic while maintaini
 module Core::Controllers
   module Base
     # Returns StrategyResult from Otto middleware
+    #
+    # Prefers middleware-provided result from Otto's AuthenticationMiddleware.
+    # Falls back to creating anonymous result if middleware didn't set one
+    # (which shouldn't happen in normal operation).
     def _strategy_result
       req.env['otto.strategy_result'] || fallback_strategy_result
+    end
+
+    # Creates fallback StrategyResult for edge cases
+    #
+    # Logs warning since this indicates Otto middleware didn't run properly.
+    # Used for backward compatibility during migration.
+    def fallback_strategy_result
+      OT.le "[base_controller] WARNING: otto.strategy_result not set, creating fallback"
+
+      Otto::Security::Authentication::StrategyResult.new(
+        session: session,
+        user: cust,
+        auth_method: 'noauth',
+        metadata: {
+          ip: req.client_ipaddress,
+          user_agent: req.user_agent,
+          fallback: true,
+        },
+      )
     end
 
     # Returns current customer from Otto middleware
@@ -287,9 +366,10 @@ end
 ```
 
 **Rules:**
-- Read from `req.env['otto.user']` or `req.env['otto.strategy_result']`
-- Never read from `session` directly
-- Never create `StrategyResult` manually (Otto middleware provides it)
+- ✅ **Correct:** Read from `req.env['otto.user']` or `req.env['otto.strategy_result']`
+- ✅ **Correct:** Use `_strategy_result` helper which reads from middleware
+- ❌ **Wrong:** Never read from `session` directly in controllers
+- ❌ **Wrong:** Never create `StrategyResult` manually (except fallback for edge cases)
 
 ### Example Controller
 
@@ -382,32 +462,59 @@ end
 ```ruby
 class CreateAccount < Base
   def raise_concerns
-    #  Correct - check authentication via StrategyResult
-    raise OT::FormError, "Already signed up" if @strategy_result.authenticated?
+    # ✅ Security: Check if user already authenticated via StrategyResult
+    raise OT::FormError, "You're already signed up" if @strategy_result.authenticated?
+
+    # ✅ Security: Prevent duplicate accounts
+    raise_form_error 'Please try another email address' if Onetime::Customer.exists?(email)
+
+    # ✅ Security: Validate email format
+    raise_form_error 'Is that a valid email address?' unless valid_email?(email)
+
+    # ✅ Security: Enforce minimum password length
+    raise_form_error 'Password is too short' unless password.size >= 6
+
+    # ✅ Security: Bot detection via honeypot field
+    return if skill.empty?
+    raise OT::Redirect.new('/?s=1')
   end
 
   def process
     # Create customer
-    cust = Onetime::Customer.create(email: @params[:email])
-    cust.update_passphrase(@params[:password])
+    cust = Onetime::Customer.create(email: email)
+    cust.update_passphrase(password)
 
-    #  Correct - write to session via StrategyResult
-    @sess['authenticated'] = true
-    @sess['identity_id'] = cust.custid
-    @sess['email'] = cust.email
-    @sess['authenticated_at'] = Time.now.to_i
+    # Set role (colonel if in config, otherwise customer)
+    colonels = OT.conf.dig('site', 'authentication', 'colonels')
+    cust.role = colonels&.member?(cust.custid) ? 'colonel' : 'customer'
+    cust.planid = planid
+    cust.verified = autoverify.to_s
+    cust.save
+
+    # ✅ Security: Don't auto-authenticate on signup
+    @sess['success_message'] = if autoverify
+      'Account created. Please sign in.'
+    else
+      "Verification email sent to #{cust.custid}."
+    end
 
     @cust = cust
   end
 end
 ```
 
+**Security Improvements (2025-10-09):**
+- **No Auto-Login:** Account creation no longer automatically authenticates users
+- **Bot Detection:** Honeypot field (`skill`) quietly redirects suspected bots
+- **Input Validation:** Email format, password length, duplicate account checks
+- **Proper State Check:** Uses `authenticated?` (not deprecated `success?` method)
+
 **Rules:**
--  Initialize with `StrategyResult`
--  Access session via `@strategy_result.session`
--  Access user via `@strategy_result.user`
--  Write to session on login/logout/registration only
-- L Never read from `env` directly (controllers handle that)
+- ✅ Initialize with `StrategyResult`
+- ✅ Access session via `@strategy_result.session`
+- ✅ Access user via `@strategy_result.user`
+- ✅ Write to session on login/logout only (not on registration)
+- ❌ Never read from `env` directly (controllers handle that)
 
 ## Integration with Rodauth (Advanced Mode)
 
