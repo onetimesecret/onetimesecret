@@ -108,11 +108,13 @@ module Core
       end
 
       # JSON response helpers
+      #
+      # These methods return Hash objects that will be serialized by Otto's JSONHandler
+      # when the route has response=json. Do not manually set res.body for JSON responses.
 
       def json_response(data, status: 200)
         res.status = status
-        res.headers['Content-Type'] = 'application/json'
-        res.body = data.to_json
+        data
       end
 
       def json_success(message, status: 200)
@@ -218,7 +220,7 @@ module Core
       # @param success_redirect [String] Path to redirect on success (HTML)
       # @param error_redirect [String, nil] Path to redirect on error (HTML), nil to re-raise
       # @yield Optional block for additional processing after logic.process
-      # @return [void]
+      # @return [Hash, nil] JSON response Hash for routes with response=json, nil otherwise
       def execute_with_error_handling(logic, success_message:, success_redirect: '/', error_redirect: nil)
         logic.raise_concerns
         logic.process
@@ -228,6 +230,7 @@ module Core
           json_success(success_message)
         else
           res.redirect success_redirect
+          nil
         end
       rescue OT::FormError => ex
         handle_form_error(ex, error_redirect)
@@ -238,7 +241,7 @@ module Core
       # @param ex [OT::FormError] The form error exception
       # @param redirect_path [String, nil] Path to redirect for HTML, nil to re-raise
       # @param field [String, nil] Field name for error, nil to infer from message
-      # @return [void]
+      # @return [Hash, nil] JSON error Hash for routes with response=json, nil otherwise
       def handle_form_error(ex, redirect_path = nil, field: nil)
         OT.le "Form error occurred: #{ex.message}"
         OT.ld ex.backtrace
@@ -248,6 +251,7 @@ module Core
         elsif redirect_path
           session['error_message'] = ex.message
           res.redirect redirect_path
+          nil
         else
           raise
         end

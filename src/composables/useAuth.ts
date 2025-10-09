@@ -3,6 +3,7 @@ import { inject, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useCsrfStore } from '@/stores/csrfStore';
+import { useNotificationsStore } from '@/stores/notificationsStore';
 import {
   isAuthError,
   type LoginResponse,
@@ -42,6 +43,7 @@ export function useAuth() {
   const router = useRouter();
   const authStore = useAuthStore();
   const csrfStore = useCsrfStore();
+  const notificationsStore = useNotificationsStore();
 
   const isLoading = ref(false);
   const error = ref<string | null>(null);
@@ -131,9 +133,11 @@ export function useAuth() {
         return false;
       }
 
-      // Success - update auth state and navigate
-      authStore.setAuthenticated(true);
-      await router.push('/');
+      // Success - account created but NOT authenticated yet
+      // User needs to either verify email or sign in
+      // Show success message and navigate to signin page
+      notificationsStore.show(validated.success, 'success', 'top');
+      await router.push('/signin');
       return true;
     } catch (err: any) {
       error.value = err.response?.data?.error || 'Account creation failed. Please try again.';

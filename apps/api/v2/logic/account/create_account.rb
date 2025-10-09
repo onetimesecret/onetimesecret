@@ -40,12 +40,6 @@ module V2::Logic
 
         cust.update_passphrase password
 
-        # Set up authentication in Rack session
-        @sess['identity_id'] = cust.objid
-        # @sess['email'] = cust.email
-        @sess['authenticated'] = true
-        @sess['authenticated_at'] = Time.now.to_i
-
         colonels       = OT.conf.dig('site', 'authentication', 'colonels')
         @customer_role = if colonels&.member?(cust.custid)
                            'colonel'
@@ -63,7 +57,7 @@ module V2::Logic
         OT.info "[new-customer] #{cust.objid} #{cust.role} #{ip_address} #{planid} #{session_id}"
 
         success_message = if autoverify
-                            'Account created.'
+                            'Account created. Please sign in.'
                           else
                             # TODO: Disable mail verification temporarily on feature/1787-dual-auth-modes branch
                             # send_verification_email

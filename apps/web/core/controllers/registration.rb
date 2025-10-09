@@ -14,14 +14,19 @@ module Core
 
         logic = V2::Logic::Account::CreateAccount.new(_strategy_result, req.params, locale)
 
+        # Determine success message based on autoverify setting
+        autoverify = OT.conf.dig('site', 'authentication', 'autoverify')
+        success_message = if autoverify.to_s == 'true'
+                            'Your account has been created. Please sign in.'
+                          else
+                            'A verification email has been sent to your email address.'
+                          end
+
         execute_with_error_handling(
           logic,
-          success_message: 'Your account has been created',
-          success_redirect: '/',
-        ) do
-          # Set authenticated_at for session validation consistency
-          session['authenticated_at'] = Time.now.to_i
-        end
+          success_message: success_message,
+          success_redirect: '/signin',
+        )
       end
 
       def request_reset
