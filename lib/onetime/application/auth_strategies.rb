@@ -45,7 +45,10 @@ module Onetime
         end
       end
 
-      # Registers all Onetime authentication strategies with Otto
+      # Registers core Onetime authentication strategies with Otto
+      #
+      # Registers session-based strategies (publicly, authenticated, colonel).
+      # For BasicAuth, call register_basic_auth(otto) separately.
       #
       # @param otto [Otto] Otto router instance
       def register_all(otto)
@@ -59,8 +62,15 @@ module Onetime
 
         # Colonel routes - requires colonel role
         otto.add_auth_strategy('colonel', ColonelStrategy.new)
+      end
 
-        # Basic auth routes - HTTP Basic Authentication
+      # Registers HTTP Basic Authentication strategy (opt-in)
+      #
+      # Only call this for apps that need API key authentication.
+      # Reduces attack surface by not exposing Basic auth on all apps.
+      #
+      # @param otto [Otto] Otto router instance
+      def register_basic_auth(otto)
         otto.add_auth_strategy('basicauth', BasicAuthStrategy.new)
       end
 
@@ -98,26 +108,26 @@ module Onetime
 
         def authenticate(env, _requirement)
           session = env['rack.session']
-          return failure('No session available') unless session
+          return failure('[SESSION_MISSING] No session available') unless session
 
           # Check if authentication is enabled
           unless authentication_enabled?
-            return failure('Authentication is disabled')
+            return failure('[AUTH_DISABLED] Authentication is disabled')
           end
 
           # Check if session is authenticated
           unless session['authenticated'] == true
-            return failure('Not authenticated')
+            return failure('[SESSION_NOT_AUTHENTICATED] Not authenticated')
           end
 
           identity_id = session['identity_id']
           if identity_id.to_s.empty?
-            return failure('No identity in session')
+            return failure('[IDENTITY_MISSING] No identity in session')
           end
 
           # Load customer
           cust = Onetime::Customer.load(identity_id)
-          return failure('Customer not found') unless cust
+          return failure('[CUSTOMER_NOT_FOUND] Customer not found') unless cust
 
           # Perform additional checks (role, permissions, etc.)
           check_result = additional_checks(cust, env)
@@ -194,7 +204,7 @@ module Onetime
         protected
 
         def additional_checks(cust, _env)
-          return failure('Colonel role required') unless cust.role?(:colonel)
+          return failure('[ROLE_COLONEL_REQUIRED] Colonel role required') unless cust.role?(:colonel)
 
           nil
         end
@@ -214,20 +224,23 @@ module Onetime
 
       # Basic auth strategy - HTTP Basic Authentication
       #
-      # Routes: auth=basic
+      # Routes: auth=basicauth
       # Access: Valid API credentials via Authorization header
       # User: Customer associated with API credentials
+      #
+      # Security: Uses constant-time comparison for both username and API key
+      # to prevent timing attacks that could enumerate valid usernames.
       class BasicAuthStrategy < Otto::Security::AuthStrategy
         include Helpers
 
         def authenticate(env, _requirement)
           # Extract credentials from Authorization header
           auth_header = env['HTTP_AUTHORIZATION']
-          return failure('No authorization header') unless auth_header
+          return failure('[AUTH_HEADER_MISSING] No authorization header') unless auth_header
 
           # Parse Basic auth
           unless auth_header.start_with?('Basic ')
-            return failure('Invalid authorization type')
+            return failure('[AUTH_TYPE_INVALID] Invalid authorization type')
           end
 
           # Decode credentials
@@ -235,21 +248,32 @@ module Onetime
           decoded          = Base64.decode64(encoded)
           username, apikey = decoded.split(':', 2)
 
-          return failure('Invalid credentials format') unless username && apikey
+          return failure('[CREDENTIALS_FORMAT_INVALID] Invalid credentials format') unless username && apikey
 
-          # Load customer by custid
+          # Load customer by custid (may be nil)
           cust = Onetime::Customer.load(username)
-          return failure('Invalid credentials') unless cust
 
-          # Validate API key (constant-time comparison)
-          unless cust.valid_apikey?(apikey)
-            return failure('Invalid credentials')
+          # Always validate API key to prevent timing attacks
+          # If customer doesn't exist, validate against dummy value
+          dummy_hash = Digest::SHA256.hexdigest("dummy:#{username}")
+          apikey_to_check = apikey
+          valid_apikey = if cust
+                           cust.valid_apikey?(apikey_to_check)
+                         else
+                           # Perform same constant-time comparison with dummy value
+                           # to prevent username enumeration via timing
+                           Rack::Utils.secure_compare(dummy_hash, Digest::SHA256.hexdigest(apikey_to_check))
+                           false  # Always fail for non-existent users
+                         end
+
+          unless valid_apikey
+            return failure('[CREDENTIALS_INVALID] Invalid credentials')
           end
 
           OT.ld "[onetime_basic_auth] Authenticated '#{cust.custid}' via API key"
 
           success(
-            session: {},  # No session for Basic auth
+            session: {},  # No session for Basic auth (stateless)
             user: cust,
             auth_method: 'basic_auth',
             metadata: build_metadata(env, { auth_type: 'basic' }),
