@@ -24,14 +24,21 @@ module Core
 
     # Registers Onetime authentication strategies with Otto router
     #
-    # Delegates to centralized Onetime::Application::AuthStrategies
+    # Delegates to centralized Onetime::Application::AuthStrategies.
+    # Always registers noauth strategy; only registers session-based strategies if enabled.
     #
     # @param otto [Otto] Otto router instance
     def register_essential(otto)
       otto.enable_authentication!
 
-      # Public routes - allows everyone (anonymous or authenticated)
+      # Public routes - always available (anonymous or authenticated)
       otto.add_auth_strategy('noauth', Onetime::Application::AuthStrategies::NoAuthStrategy.new)
+
+      # Check if authentication is enabled at initialization time
+      unless Onetime::Application::AuthStrategies.authentication_enabled?
+        OT.le "[Core::AuthStrategies] Authentication disabled in config - skipping session strategies"
+        return
+      end
 
       # Authenticated routes - requires valid session
       otto.add_auth_strategy('sessionauth', Onetime::Application::AuthStrategies::SessionAuthStrategy.new)

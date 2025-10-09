@@ -45,6 +45,16 @@ module Onetime
         end
       end
 
+      # Checks if authentication is enabled in configuration
+      #
+      # @return [Boolean] true if authentication is enabled
+      def authentication_enabled?
+        settings = OT.conf.dig('site', 'authentication')
+        return false unless settings
+
+        settings['enabled'] == true
+      end
+
       # Registers core Onetime authentication strategies with Otto
       #
       # Registers session-based strategies (noauth, authenticated, colonelsonly).
@@ -103,11 +113,6 @@ module Onetime
         def authenticate(env, _requirement)
           session = env['rack.session']
           return failure('[SESSION_MISSING] No session available') unless session
-
-          # Check if authentication is enabled
-          unless authentication_enabled?
-            return failure('[AUTH_DISABLED] Authentication is disabled')
-          end
 
           # Check if session is authenticated
           unless session['authenticated'] == true
@@ -168,15 +173,6 @@ module Onetime
         # @param cust [Onetime::Customer] Authenticated customer
         def log_success(cust)
           OT.ld "[onetime_authenticated] Authenticated '#{cust.objid}'"
-        end
-
-        private
-
-        def authentication_enabled?
-          settings = OT.conf.dig('site', 'authentication')
-          return false unless settings
-
-          settings['enabled'] == true
         end
       end
 

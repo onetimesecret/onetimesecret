@@ -2,32 +2,32 @@
 # Controls the authentication mode and related settings
 ---
 
-# Authentication mode: off, 'basic' (Redis-only) or 'advanced' (RDBMS+Redis)
+# Authentication mode: off, 'basic' (Redis-only) or 'advanced' (SQL + Redis)
 mode: basic
 
 # Shared session configuration (both modes)
 session:
   redis_url: "redis://localhost:6379/0"
-  expire_after: 86400  # 24 hours
+  expire_after: 86400       # 24 hours
   key: 'onetime.session'    # Unified cookie name
   secure: true              # Set based on SSL configuration
   httponly: true
-  same_site: lax
+  same_site: strict
   redis_prefix: 'session'
 
 # Mode-specific configurations
 basic:
   # Basic mode settings (Redis-only authentication)
   password_hash_cost: 12
-  session_timeout: 86400  # 24 hours
+  session_timeout: 86400    # 24 hours
 
 advanced:
   # Database connection for Advanced
   # database_url: "postgres://user:password@host:port/database"
   database_url: "sqlite://data/auth.db"
 
-  # Service URL (only used when deployment: service)
-  service_url: "http://localhost:9393/auth"
+  # Service URL (used for internal requests)
+  service_url: "http://127.0.0.1:9393/auth"
 
   # Advanced features to enable
   features:
@@ -37,17 +37,17 @@ advanced:
     - close_account
     - change_password
     - reset_password
-    - remember          # "Remember me" functionality
-    - verify_account     # Email verification (optional)
-    - lockout           # Brute force protection
-    - active_sessions   # Session tracking
-    - otp               # TOTP MFA (optional)
-    - recovery_codes    # MFA backup codes (optional)
+    - active_sessions       # Session tracking
+    - lockout               # Brute force protection
+    - remember              # "Remember me" functionality
+    - verify_account        # Email verification
+    - otp                   # MFA
+    - recovery_codes        # MFA backup codes
 
   # Security settings
   security:
     password_minimum_length: 8
     max_invalid_logins: 5
-    lockout_expiration: 3600  # 1 hour
+    lockout_expiration: 3600     # 1 hour
     session_expire_after: 86400  # 24 hours
     require_email_confirmation: false  # Set to true when email is configured
