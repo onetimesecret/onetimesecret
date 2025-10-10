@@ -49,8 +49,9 @@ module Onetime
       # Merge options with defaults
       options = DEFAULT_OPTIONS.merge(options)
 
-      # Somewhere in Rack we're getting a key passed in, the default
-      # `rack.session` so as a quick fix, we'll set our preferred key her.
+      # Force cookie name to 'onetime.session' for security (custom name prevents
+      # session fixation attacks). This overrides Rack's default 'rack.session'.
+      # The session key in env['rack.session'] remains standard for compatibility.
       options[:key] = 'onetime.session'
 
       # Configure Familia connection if redis_uri provided

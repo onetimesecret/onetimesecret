@@ -20,7 +20,19 @@ module Auth
           enable *features
 
           # 3. Basic configuration
-          hmac_secret ENV['HMAC_SECRET'] || ENV['AUTH_SECRET'] || 'dev-hmac-secret-change-in-prod'
+          # HMAC secret for session integrity - critical security parameter
+          hmac_secret_value = ENV['HMAC_SECRET'] || ENV['AUTH_SECRET']
+
+          if hmac_secret_value.nil? || hmac_secret_value.empty?
+            if Onetime.production?
+              raise 'HMAC_SECRET or AUTH_SECRET environment variable must be set in production'
+            else
+              OT.info '[rodauth] WARNING: Using default HMAC secret for development - DO NOT use in production'
+              hmac_secret_value = 'dev-hmac-secret-change-in-prod'
+            end
+          end
+
+          hmac_secret hmac_secret_value
 
           # Note: No prefix needed here - Auth app is already mounted at /auth
 

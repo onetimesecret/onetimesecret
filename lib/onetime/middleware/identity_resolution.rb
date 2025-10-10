@@ -34,6 +34,9 @@ module Onetime
       def call(env)
         request = Rack::Request.new(env)
 
+        # Initialize customer cache for this request to prevent multiple lookups
+        env['identity.customer_cache'] = {}
+
         # Resolve identity from available sources
         identity = resolve_identity(request, env)
 
@@ -46,6 +49,9 @@ module Onetime
         logger.debug "[IdentityResolution] Resolved identity from #{identity[:source]}"
 
         @app.call(env)
+      ensure
+        # Clean up cache after request
+        env.delete('identity.customer_cache') if env
       end
 
       private
@@ -77,8 +83,10 @@ module Onetime
           # Check for Advanced authentication markers
           return no_identity unless advanced_authenticated?(session)
 
-          # Lookup customer by derived extid
-          customer = Onetime::Customer.find_by_extid(session['account_external_id'])
+          # Lookup customer by derived extid with caching
+          customer = cached_customer_lookup(env, :extid, session['account_external_id']) do
+            Onetime::Customer.find_by_extid(session['account_external_id'])
+          end
           return no_identity unless customer
 
           {
@@ -134,8 +142,8 @@ module Onetime
         return no_identity unless session && session['identity_id']
 
         begin
-          # Load customer using identity_id from session
-          customer = load_customer_from_session(session)
+          # Load customer using identity_id from session (with caching)
+          customer = load_customer_from_session(session, env)
           return no_identity unless customer
 
           {
@@ -177,7 +185,25 @@ module Onetime
         request.cookies['ots_auth_token'] || request.cookies['sess']
       end
 
-      def load_customer_from_session(session)
+      # Cache customer lookups per request to prevent duplicate database/Redis queries
+      # Supports multiple lookup types (extid, identity_id) in a single request
+      def cached_customer_lookup(env, lookup_type, lookup_value)
+        return yield unless env && lookup_value
+
+        cache = env['identity.customer_cache']
+        cache_key = "#{lookup_type}:#{lookup_value}"
+
+        # Return cached customer if available
+        return cache[cache_key] if cache.key?(cache_key)
+
+        # Perform lookup and cache result (even if nil)
+        customer = yield
+        cache[cache_key] = customer
+        logger.debug "[IdentityResolution] Cached customer lookup: #{lookup_type}=#{lookup_value}"
+        customer
+      end
+
+      def load_customer_from_session(session, env = nil)
         # Use existing Customer model to load by identity_id
         return nil unless session['identity_id']
 
@@ -188,7 +214,14 @@ module Onetime
           # a Onetime model.
           require_relative '../onetime/models' unless defined?(Onetime::Customer)
 
-          Onetime::Customer.load(session['identity_id'])
+          # Use cache if env provided (during request processing)
+          if env
+            cached_customer_lookup(env, :identity_id, session['identity_id']) do
+              Onetime::Customer.load(session['identity_id'])
+            end
+          else
+            Onetime::Customer.load(session['identity_id'])
+          end
         rescue StandardError => ex
           logger.debug "[IdentityResolution] Could not load customer: #{ex.message}"
           nil
