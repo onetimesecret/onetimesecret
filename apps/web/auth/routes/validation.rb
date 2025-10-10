@@ -57,8 +57,8 @@ module Auth
           response.status = 409
           { error: 'Account already exists' }
       rescue StandardError => ex
-          puts "Error: #{ex.class} - #{ex.message}"
-          puts ex.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
+        Onetime.le "[auth-routes-validation] Error: #{ex.class} - #{ex.message}"
+        Onetime.le ex.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
 
           response.status = 500
           {
@@ -84,8 +84,8 @@ module Auth
             { valid: false, error: "Unknown authentication mode: #{auth_mode}" }
           end
       rescue StandardError => ex
-          puts "Error in session validation: #{ex.class} - #{ex.message}"
-          puts ex.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
+        Onetime.le "[auth-routes-validation] Error in session validation: #{ex.class} - #{ex.message}"
+        Onetime.le ex.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
 
           response.status = 500
           {
@@ -98,6 +98,7 @@ module Auth
       def validate_advanced_session(_r)
         # Use Rodauth for advanced mode
         if rodauth.logged_in?
+          response.status = 200
           account = rodauth.account
           # Return format compatible with frontend checkAuth schema
           {
@@ -141,7 +142,7 @@ module Auth
               },
             }
           rescue StandardError => ex
-            puts "Error serializing customer: #{ex.message}" if ENV['RACK_ENV'] == 'development'
+            Onetime.le "[auth-routes-validation] Error serializing customer: #{ex.message}" if ENV['RACK_ENV'] == 'development'
             response.status = 500
             {
               success: false,
