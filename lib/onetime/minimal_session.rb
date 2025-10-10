@@ -48,7 +48,11 @@ module Onetime
 
       # Merge options with defaults
       options = DEFAULT_OPTIONS.merge(options)
-      options[:key] = 'plop'
+
+      # Somewhere in Rack we're getting a key passed in, the default
+      # `rack.session` so as a quick fix, we'll set our preferred key her.
+      options[:key] = 'onetime.session'
+
       # Configure Familia connection if redis_uri provided
       @dbclient = options[:dbclient] || Familia.dbclient
 
