@@ -77,25 +77,28 @@ Both modes share the same session cookie (`onetime.session`) and Otto authentica
 ```ruby
 # Session lookup (lib/onetime/minimal_session.rb)
 def find_session(request, sid)
-  sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
-
+  # Validate session ID format
   unless sid_string && valid_session_id?(sid_string)
     return [generate_sid, {}]
   end
 
-  stringkey = get_stringkey(sid_string)
-  stored_data = stringkey.value if stringkey
-
   # Verify HMAC before deserializing
-  data, hmac = stored_data.split('--', 2)
   unless hmac && valid_hmac?(data, hmac)
     return [generate_sid, {}]  # Session tampered
   end
 
-  session_data = Familia::JsonSerializer.parse(Base64.decode64(data))
   [sid, session_data]
 end
 ```
+
+
+
+
+
+
+
+
+
 
 ### Environment: Request-Scoped State
 
@@ -196,53 +199,52 @@ end
 # apps/web/auth/config/rodauth_main.rb
 module Auth::Config::RodauthMain
   def self.configure
-    proc do
-      # Database and features
-      db Auth::Config::Database.connection
-      enable :json, :login, :logout, :create_account, :close_account,
-             :change_password, :reset_password, :verify_account
+    # Enabled features
+    enable :json, :login, :logout, :create_account, :close_account,
+           :change_password, :reset_password, :verify_account
 
-      # Session integration
-      session_key 'onetime.session'
+    # Session integration
+    session_key 'onetime.session'
+    only_json? true
 
-      # JSON-only responses for Vue frontend
-      json_response_success_key :success
-      json_response_error_key :error
-      only_json? true
-
-      # Otto integration methods
-      def create_otto_customer
-        customer = Onetime::Customer.create(account[:email])
-        db[:accounts].where(id: account_id).update(external_id: customer.extid)
-        customer
-      end
-
-      def sync_session_with_otto(customer = nil)
-        session['authenticated'] = true
-        session['authenticated_at'] = Time.now.to_i
-        session['identity_id'] = customer.custid if customer
-        session['account_external_id'] = account[:external_id]
-      end
-
-      # Lifecycle hooks
-      after_create_account { create_otto_customer }
-      after_login { sync_session_with_otto }
+    # Otto integration methods
+    def create_otto_customer
+      customer = Onetime::Customer.create(account[:email])
+      db[:accounts].where(id: account_id).update(external_id: customer.extid)
+      customer
     end
+
+    def sync_session_with_otto(customer = nil)
+      session['authenticated'] = true
+      session['authenticated_at'] = Time.now.to_i
+      session['identity_id'] = customer.custid if customer
+      session['account_external_id'] = account[:external_id]
+    end
+
+    # Lifecycle hooks
+    after_create_account { create_otto_customer }
+    after_login { sync_session_with_otto }
   end
 end
 ```
+
+
+
+
+
+
 
 **Use Cases**:
 - Multi-tenant deployments
 - Compliance requirements (audit logs, password policies)
 - Advanced features (MFA, WebAuthn, account verification)
 
-## Otto Authentication Strategies
 
+## Otto Authentication Strategies
 
 Strategies are centralized in `lib/onetime/application/auth_strategies.rb` and shared across all applications.
 
-### NoAuthStrategy (`auth=noauth`)
+### NoAuthStrategy (`auth=noauth`) - Complete Reference
 
 **Access**: Everyone (anonymous or authenticated)
 **User**: `nil` (anonymous) or `Customer` (authenticated)
@@ -260,6 +262,23 @@ class NoAuthStrategy < Otto::Security::AuthStrategy
       metadata: build_metadata(env)
     )
   end
+
+  private
+
+  def load_customer_from_session(session)
+    return nil unless session && session['authenticated'] == true
+    return nil if session['identity_id'].to_s.empty?
+
+    Onetime::Customer.load(session['identity_id'])
+  end
+
+  def build_metadata(env, additional = {})
+    {
+      ip: env['REMOTE_ADDR'],
+      user_agent: env['HTTP_USER_AGENT'],
+      timestamp: Time.now.to_i
+    }.merge(additional)
+  end
 end
 
 # Routes using this strategy:
@@ -272,12 +291,18 @@ GET /api/v2/secret/:key V2::Logic::Secrets::ShowSecret auth=noauth
 **Access**: Authenticated users only
 **User**: Authenticated `Customer`
 
+**Key Differences from NoAuthStrategy**:
+- **Strict authentication check**: `session['authenticated'] == true` or fail
+- **Required identity**: Must have valid `identity_id` and loadable customer
+- **No anonymous fallback**: Returns failure instead of anonymous user
+
 ```ruby
 class SessionAuthStrategy < BaseSessionAuthStrategy
   def authenticate(env, _requirement)
     session = env['rack.session']
     return failure('[SESSION_MISSING] No session') unless session
 
+    # Core difference: strict authentication requirement
     unless session['authenticated'] == true
       return failure('[SESSION_NOT_AUTHENTICATED] Not authenticated')
     end
@@ -307,6 +332,8 @@ GET /api/v2/account V2::Logic::Account::GetAccount auth=sessionauth
 **Access**: Users with `:colonel` role
 **User**: Authenticated `Customer` with admin role
 
+**Extends SessionAuthStrategy** with additional role validation:
+
 ```ruby
 class ColonelStrategy < BaseSessionAuthStrategy
   def additional_checks(cust, _env)
@@ -328,9 +355,16 @@ GET /colonel Core::Controllers::Colonel#dashboard auth=colonelsonly
 **Access**: Valid API credentials via HTTP Basic Auth
 **User**: `Customer` (stateless, no session)
 
+**Key Differences from Session-based Strategies**:
+- **Stateless**: No session dependency, reads from HTTP headers
+- **HTTP Basic Auth**: Parses `Authorization: Basic <encoded>` header
+- **Empty session**: Returns `session: {}` since no session persistence needed
+- **Timing attack protection**: Constant-time comparison with dummy hash
+
 ```ruby
 class BasicAuthStrategy < Otto::Security::AuthStrategy
   def authenticate(env, _requirement)
+    # Parse HTTP Authorization header instead of session
     auth_header = env['HTTP_AUTHORIZATION']
     return failure('[AUTH_HEADER_MISSING]') unless auth_header
 
@@ -344,20 +378,21 @@ class BasicAuthStrategy < Otto::Security::AuthStrategy
 
     cust = Onetime::Customer.load(username)
 
-    # Constant-time comparison to prevent timing attacks
+    # Timing attack prevention with dummy hash
     dummy_hash = Digest::SHA256.hexdigest("dummy:#{username}")
     valid_apikey = cust ? cust.valid_apikey?(apikey) : false
 
     return failure('[CREDENTIALS_INVALID]') unless valid_apikey
 
     success(
-      session: {},  # No session for Basic auth (stateless)
+      session: {},  # Stateless - no session for Basic auth
       user: cust,
       auth_method: 'basic_auth',
       metadata: build_metadata(env, { auth_type: 'basic' })
     )
   end
 end
+```
 
 # Routes using this strategy:
 GET /api/v2/status V2::Controllers::Status#show auth=basicauth
@@ -365,7 +400,7 @@ GET /api/v2/status V2::Controllers::Status#show auth=basicauth
 
 ### Application Delegation Pattern
 
-All applications delegate to centralized strategies:
+All applications delegate to centralized strategies with application-specific strategy sets:
 
 ```ruby
 # apps/web/core/auth_strategies.rb
@@ -385,20 +420,8 @@ module Core::AuthStrategies
   end
 end
 
-# apps/api/v2/auth_strategies.rb
-module V2::AuthStrategies
-  def self.register_essential(otto)
-    otto.add_auth_strategy('noauth',
-      Onetime::Application::AuthStrategies::NoAuthStrategy.new)
-
-    return unless Onetime::Application::AuthStrategies.authentication_enabled?
-
-    otto.add_auth_strategy('sessionauth',
-      Onetime::Application::AuthStrategies::SessionAuthStrategy.new)
-    otto.add_auth_strategy('basicauth',
-      Onetime::Application::AuthStrategies::BasicAuthStrategy.new)
-  end
-end
+# Core registers: noauth, sessionauth, colonelsonly
+# V2 registers: noauth, sessionauth, basicauth
 ```
 
 ## Controllers and Logic
@@ -471,11 +494,9 @@ module V2::Logic
 end
 ```
 
-### Authentication Logic
+### Session Write Pattern
 
-Logic classes are the **only** code that writes to session:
-
-#### AuthenticateSession
+Logic classes are the **only** code that writes to session. All authentication logic follows this pattern:
 
 ```ruby
 class AuthenticateSession < Base
@@ -483,7 +504,7 @@ class AuthenticateSession < Base
     cust = find_customer_by_email(@params[:u])
     raise OT::FormError unless cust.valid_passphrase?(@params[:p])
 
-    # Write to session
+    # Standard authentication session write
     @sess['authenticated'] = true
     @sess['identity_id'] = cust.custid
     @sess['email'] = cust.email
@@ -494,45 +515,23 @@ class AuthenticateSession < Base
 end
 ```
 
-#### DestroySession
+### Authentication Logic Classes
 
-```ruby
-class DestroySession < Base
-  def process
-    @sess.clear
-    { success: true, message: 'Logged out successfully' }
-  end
-end
-```
-
-### Account Logic
+#### AuthenticateSession
+- **Purpose**: Log in existing user
+- **Session Fields**: `authenticated`, `identity_id`, `email`, `authenticated_at`, `ip_address`, `user_agent`
 
 #### CreateAccount
+- **Purpose**: Create new account and log in
+- **Session Fields**: `authenticated`, `identity_id`, `email`, `authenticated_at`
 
-```ruby
-class CreateAccount < Base
-  def raise_concerns
-    raise OT::FormError, 'Email required' if @params[:email].to_s.empty?
-    raise OT::FormError, 'Password required' if @params[:password].to_s.empty?
+#### DestroySession
+- **Purpose**: Log out user
+- **Session Fields**: Clears all fields via `@sess.clear`
 
-    existing = Onetime::Customer.load(@params[:email])
-    raise OT::FormError, 'Account exists' if existing
-  end
-
-  def process
-    cust = Onetime::Customer.create(@params[:email])
-    cust.update_passphrase(@params[:password])
-
-    # Write authentication to session
-    @sess['authenticated'] = true
-    @sess['identity_id'] = cust.custid
-    @sess['email'] = cust.email
-    @sess['authenticated_at'] = Time.now.to_i
-
-    { success: true, customer: cust.safe_attributes }
-  end
-end
-```
+#### UpdateAccount
+- **Purpose**: Modify account settings
+- **Session Fields**: `email` (if changed)
 
 ## Integration with Rodauth (Advanced Mode)
 
@@ -596,51 +595,28 @@ end
 
 ### Controller Tests
 
-```ruby
-RSpec.describe Core::Controllers::Account do
-  it 'loads authenticated customer from env' do
-    customer = Onetime::Customer.create(email: 'test@example.com')
+**Pattern**: Mock Otto environment variables to simulate authenticated/anonymous states
 
-    # Mock environment with authenticated user
-    env = {
-      'otto.user' => customer,
-      'otto.strategy_result' => Otto::Security::Authentication::StrategyResult.new(
-        session: { 'authenticated' => true },
-        user: customer,
-        auth_method: 'sessionauth',
-        metadata: {}
-      )
-    }
+**Key Assertions**:
+- Controller reads from `env['otto.user']` (not session directly)
+- Authenticated routes return expected status codes
+- Anonymous users are handled appropriately
+- Strategy result is accessible via `_strategy_result`
 
-    get '/account', {}, env
-    expect(last_response.status).to eq(200)
-  end
-end
-```
+**Test Approach**: Set `env['otto.user']` and `env['otto.strategy_result']` to simulate different authentication states
 
 ### Logic Tests
 
-```ruby
-RSpec.describe V2::Logic::Authentication::AuthenticateSession do
-  it 'writes authentication to session' do
-    strategy_result = Otto::Security::Authentication::StrategyResult.new(
-      session: {},
-      user: Onetime::Customer.anonymous,
-      auth_method: 'noauth',
-      metadata: {}
-    )
+**Pattern**: Create `StrategyResult` objects with session state, test session mutations
 
-    logic = described_class.new(
-      strategy_result,
-      { u: 'test@example.com', p: 'password' }
-    )
-    logic.process
+**Key Assertions**:
+- Logic writes correct session keys after authentication
+- Session is cleared on logout
+- Customer objects are properly loaded/created
+- Error conditions raise appropriate exceptions
 
-    expect(strategy_result.session['authenticated']).to be true
-    expect(strategy_result.session['identity_id']).to eq('test@example.com')
-  end
-end
-```
+**Test Approach**: Initialize Logic classes with `StrategyResult` objects, verify session changes via `strategy_result.session`
+
 
 ## Configuration
 
@@ -650,7 +626,7 @@ end
 # lib/onetime/application/middleware_stack.rb
 builder.use Onetime::MinimalSession, {
   secret: Onetime.auth_config.session['secret'],
-  expire_after: 86_400,                    # 24 hours
+  expire_after: expire_after,
   key: 'onetime.session',                  # Cookie name
   secure: Onetime.conf&.dig('site', 'ssl'),
   httponly: true,
@@ -672,7 +648,7 @@ DATABASE_URL=...           # PostgreSQL (advanced mode only)
 authentication:
   mode: basic
   session:
-    expire_after: 86400
+    expire_after: expire_after
     key: onetime.session
   colonels:
     - admin@example.com
