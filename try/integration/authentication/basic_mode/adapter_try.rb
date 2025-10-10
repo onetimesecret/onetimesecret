@@ -1,26 +1,31 @@
-# try/93_auth_adapter_integration_try.rb
-# Test to verify hybrid authentication mode functionality
+# try/integration/authentication/basic_mode/adapter_try.rb
+# Test to verify Auth app adapter behavior in basic mode
 #
 # This test verifies:
 # 1. Basic mode works without SQL database
 # 2. Conditional loading of Rodauth
-# 3. Proper request forwarding to Core app
+# 3. Auth app returns 404 for Rodauth routes in basic mode
+#
+# REQUIRES: Basic mode
+
+# Skip if not in basic mode
+require_relative '../../../support/auth_mode_config'
+Object.new.extend(AuthModeConfig).skip_unless_mode :basic
 
 # Setup - Load the real application
 ENV['RACK_ENV'] = 'test'
-ENV['AUTHENTICATION_MODE'] = 'basic'  # Force basic mode before boot
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../..')).freeze
+ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../../..')).freeze
 
 # Load the Onetime application and configuration
-require_relative '../../../lib/onetime'
-require_relative '../../../lib/onetime/config'
+require_relative '../../../../lib/onetime'
+require_relative '../../../../lib/onetime/config'
 
 # Initialize configuration before loading Auth app
 Onetime.boot! :cli
 
-require_relative '../../../lib/onetime/auth_config'
-require_relative '../../../lib/onetime/middleware'
-require_relative '../../../apps/web/auth/application'
+require_relative '../../../../lib/onetime/auth_config'
+require_relative '../../../../lib/onetime/middleware'
+require_relative '../../../../apps/web/auth/application'
 
 # Require Rack test helpers
 require 'rack/test'
@@ -60,11 +65,11 @@ require_relative '../../../apps/web/auth/config/database'
 Auth::Config::Database.connection
 #=> nil
 
-## The login endpoint should be accessible (forwarding works but Core app errors)
+## The login endpoint returns 404 in basic mode (Rodauth not loaded)
 @test.post '/auth/login', { u: 'test@example.com', p: 'password' }
-# Expecting 500 - the Core app is receiving the request but encountering an error
+# In basic mode, Auth app has no Rodauth routes, so returns 404
 @test.last_response.status
-#=> 500
+#=> 404
 
 ## Check that we're getting an error response
 # The Core app is erroring internally during processing
@@ -79,21 +84,21 @@ content_type = @test.last_response.headers['Content-Type']
 content_type && content_type.include?('application/json')
 #=> true
 
-## The create account endpoint should be accessible (forwarding works)
+## The create account endpoint returns 404 in basic mode
 @test.post '/auth/create-account', { u: 'new@example.com', p: 'password' }
-# Accept 500 since Core app is erroring during processing
-[200, 302, 400, 401, 403, 500, 503].include?(@test.last_response.status)
-#=> true
+# In basic mode, no Rodauth routes exist
+@test.last_response.status
+#=> 404
 
-## The password reset endpoint should be accessible (forwarding works)
+## The password reset endpoint returns 404 in basic mode
 @test.post '/auth/reset-password', { u: 'reset@example.com' }
-[200, 302, 400, 401, 403, 500, 503].include?(@test.last_response.status)
-#=> true
+@test.last_response.status
+#=> 404
 
-## The reset password with token endpoint should be accessible (forwarding works)
+## The reset password with token endpoint returns 404 in basic mode
 @test.post '/auth/reset-password/testkey123', { p: 'newpassword' }
-[200, 302, 400, 401, 403, 500, 503].include?(@test.last_response.status)
-#=> true
+@test.last_response.status
+#=> 404
 
 ## The logout endpoint should be accessible (forwarding works)
 @test.post '/auth/logout'

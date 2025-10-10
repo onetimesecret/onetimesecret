@@ -1,7 +1,7 @@
-# try/94_dual_auth_mode_integration_try.rb
-# Comprehensive integration tests for dual authentication mode (basic/advanced)
+# try/integration/authentication/basic_mode/core_auth_try.rb
+# Integration tests for basic authentication mode
 #
-# Tests the complete authentication flow in both modes:
+# Tests the complete authentication flow via Core app:
 # - Login (valid/invalid credentials)
 # - Signup (new account creation)
 # - Logout (session destruction)
@@ -9,22 +9,27 @@
 # - Session persistence
 # - Error handling
 # - JSON response format
+#
+# REQUIRES: Basic mode (Core app handles /auth/* routes)
+
+# Skip if not in basic mode
+require_relative '../../../support/auth_mode_config'
+Object.new.extend(AuthModeConfig).skip_unless_mode :basic
 
 # Setup - Load the real application
 ENV['RACK_ENV'] = 'test'
-ENV['AUTHENTICATION_MODE'] = 'basic'  # Start with basic mode
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../..')).freeze
+ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../../..')).freeze
 
 # Load the Onetime application and configuration
-require_relative '../../../lib/onetime'
-require_relative '../../../lib/onetime/config'
+require_relative '../../../../lib/onetime'
+require_relative '../../../../lib/onetime/config'
 
 # Initialize configuration
 Onetime.boot! :test
 
-require_relative '../../../lib/onetime/auth_config'
-require_relative '../../../lib/onetime/middleware'
-require_relative '../../../lib/onetime/application/registry'
+require_relative '../../../../lib/onetime/auth_config'
+require_relative '../../../../lib/onetime/middleware'
+require_relative '../../../../lib/onetime/application/registry'
 
 # Prepare the application registry
 Onetime::Application::Registry.prepare_application_registry

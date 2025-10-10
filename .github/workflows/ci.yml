@@ -137,13 +137,28 @@ jobs:
             $(find ./spec -name '*_spec.rb' ! -name 'spec_helper.rb'))" >> $GITHUB_STEP_SUMMARY
           echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results.json)" >> $GITHUB_STEP_SUMMARY
 
-      - name: Run tryouts
+      - name: Run tryouts (basic mode)
         continue-on-error: ${{ matrix.continue-on-error }}
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'basic'
         run: |
-          bundle exec tryouts -vf try
+          echo "Testing basic authentication mode..."
+          bundle exec tryouts -vf try/unit try/system
+          bundle exec tryouts -vf try/integration/authentication/basic_mode
+          bundle exec tryouts -vf try/integration/authentication/common
+
+      - name: Run tryouts (disabled mode)
+        continue-on-error: ${{ matrix.continue-on-error }}
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'disabled'
+        run: |
+          echo "Testing disabled authentication mode..."
+          bundle exec tryouts -vf try/integration/authentication/disabled_mode
+          bundle exec tryouts -vf try/integration/authentication/common
 
   test-typescript:
     timeout-minutes: 15
