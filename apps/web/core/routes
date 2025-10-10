@@ -13,12 +13,14 @@ GET   /signup                                    Core::Controllers::Page#index a
 GET   /signup/*                                  Core::Controllers::Page#index auth=noauth
 GET   /forgot                                    Core::Controllers::Page#index auth=noauth
 GET   /forgot/:key                               Core::Controllers::Page#index auth=noauth
-GET   /logout                                    Core::Controllers::Authentication#logout auth=sessionauth
-POST  /logout                                    Core::Controllers::Authentication#logout auth=sessionauth
 
 # Authentication routes - handled here in basic mode, by Auth app in advanced
 # mode. The Vue frontend uses the same /auth/* endpoints regardless of which
 # mode is enabled. The Auth app provides many more routes in addition to these.
+GET   /logout                                    Core::Controllers::Authentication#logout auth=sessionauth
+#POST  /logout                                    Core::Controllers::Authentication#logout auth=sessionauth
+GET  /auth/logout                               Core::Controllers::Authentication#logout auth=noauth response=json
+POST  /auth/logout                               Core::Controllers::Authentication#logout auth=noauth response=json
 POST  /auth/login                                Core::Controllers::Authentication#authenticate auth=noauth response=json
 POST  /auth/create-account                       Core::Controllers::Registration#create_account auth=noauth response=json
 POST  /auth/reset-password                       Core::Controllers::Registration#request_reset auth=noauth response=json

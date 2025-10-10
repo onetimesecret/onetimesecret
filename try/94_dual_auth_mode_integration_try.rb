@@ -50,7 +50,18 @@ end
 
 # Helper to check if response is JSON
 def @test.json_response?
-  last_response.headers['Content-Type']&.include?('application/json')
+  puts "DEBUG: last_response class: #{last_response.class}"
+  puts "DEBUG: last_response headers: #{last_response.headers.inspect}"
+  puts "DEBUG: last_response headers keys: #{last_response.headers.keys.inspect}"
+  puts "DEBUG: content-type header (direct): #{last_response.headers['content-type'].inspect}"
+  puts "DEBUG: Content-Type header (capitalized): #{last_response.headers['Content-Type'].inspect}"
+
+  # Try both common variations of content-type header
+  content_type = last_response.headers['content-type'] || last_response.headers['Content-Type']
+  puts "DEBUG: resolved content-type: #{content_type.inspect}"
+
+  # Rack::MockResponse
+  content_type&.include?('application/json')
 end
 
 # -------------------------------------------------------------------
@@ -79,12 +90,13 @@ Onetime::Application::Registry.mount_mappings.key?('/')
 
 ## Login with JSON request - invalid credentials returns 401
 @test.post '/auth/login',
-  { u: 'nonexistent@example.com', p: 'wrongpassword' },
-  { 'HTTP_ACCEPT' => 'application/json' }
+  { u: 'nonexistent@example.com', p: 'wrongpassword' }.to_json,
+  { 'HTTP_ACCEPT' => 'application/json', 'CONTENT_TYPE' => 'application/json' }
 @test.last_response.status
 #=> 401
 
 ## Login error returns JSON format
+
 @test.json_response?
 #=> true
 
@@ -116,8 +128,8 @@ end
 
 ## Create account with JSON request - missing parameters
 @test.post '/auth/create-account',
-  { u: 'incomplete@example.com' },
-  { 'HTTP_ACCEPT' => 'application/json' }
+  { u: 'incomplete@example.com' }.to_json,
+  { 'HTTP_ACCEPT' => 'application/json', 'CONTENT_TYPE' => 'application/json' }
 # Should fail with validation error (400 or 401)
 [400, 401, 422].include?(@test.last_response.status)
 #=> true
@@ -135,9 +147,10 @@ end
 
 ## Logout with JSON request - no active session
 @test.post '/auth/logout',
-  {},
-  { 'HTTP_ACCEPT' => 'application/json' }
+  {}.to_json,
+  { 'HTTP_ACCEPT' => 'application/json', 'CONTENT_TYPE' => 'application/json' }
 # Logout should work even without session (idempotent)
+puts "DEBUG: Logout status = #{@test.last_response.status}"
 [200, 302].include?(@test.last_response.status)
 #=> true
 
@@ -155,9 +168,11 @@ end
 
 ## Request password reset with JSON
 @test.post '/auth/reset-password',
-  { u: 'reset@example.com' },
-  { 'HTTP_ACCEPT' => 'application/json' }
+  { u: 'reset@example.com' }.to_json,
+  { 'HTTP_ACCEPT' => 'application/json', 'CONTENT_TYPE' => 'application/json' }
 # Should accept the request (200) or fail validation (400/422)
+puts "DEBUG: Reset password status = #{@test.last_response.status}"
+puts "DEBUG: Reset password content-type = #{@test.last_response.headers['Content-Type']}"
 [200, 400, 422].include?(@test.last_response.status)
 #=> true
 
@@ -167,8 +182,8 @@ end
 
 ## Reset password with token and JSON request
 @test.post '/auth/reset-password/testtoken123',
-  { p: 'newpassword123', password_confirm: 'newpassword123' },
-  { 'HTTP_ACCEPT' => 'application/json' }
+  { p: 'newpassword123', password_confirm: 'newpassword123' }.to_json,
+  { 'HTTP_ACCEPT' => 'application/json', 'CONTENT_TYPE' => 'application/json' }
 # Should fail validation or token not found (400/404/422)
 [400, 404, 422].include?(@test.last_response.status)
 #=> true
@@ -185,6 +200,8 @@ end
 @test.post '/auth/login',
   { u: 'test@example.com', p: 'password' }
 # Should redirect (302) or return error page (401/500)
+puts "DEBUG: Login (no JSON) status = #{@test.last_response.status}"
+puts "DEBUG: Login (no JSON) content-type = #{@test.last_response.headers['Content-Type']}"
 [302, 401, 500].include?(@test.last_response.status)
 #=> true
 
