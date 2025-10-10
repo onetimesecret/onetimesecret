@@ -126,34 +126,22 @@ module Auth
 
       def validate_basic_session(r)
         # Use Redis session for basic mode
-        session = r.env['rack.session']
+        # Get customer from IdentityResolution middleware to avoid duplicate lookup
+        customer = r.env['identity.resolved']
+        authenticated = r.env['identity.authenticated']
 
-        if session && session['identity_id'] && session['authenticated']
+        if customer && !customer.anonymous? && authenticated
           begin
-            # Load customer from session
-            require_relative '../../../lib/onetime' unless defined?(Onetime::Customer)
-            customer = Onetime::Customer.load(session['identity_id'])
-
-            if customer && !customer.anonymous?
-              # Return format compatible with frontend checkAuth schema
-              {
-                success: true,
-                record: customer.safe_dump,
-                details: {
-                  authenticated: true,
-                },
-              }
-            else
-              response.status = 401
-              {
-                success: false,
-                error: 'Invalid session',
-                record: nil,
-                details: { authenticated: false },
-              }
-            end
+            # Return format compatible with frontend checkAuth schema
+            {
+              success: true,
+              record: customer.safe_dump,
+              details: {
+                authenticated: true,
+              },
+            }
           rescue StandardError => ex
-            puts "Error loading customer: #{ex.message}" if ENV['RACK_ENV'] == 'development'
+            puts "Error serializing customer: #{ex.message}" if ENV['RACK_ENV'] == 'development'
             response.status = 500
             {
               success: false,
