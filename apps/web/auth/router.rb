@@ -31,9 +31,11 @@ module Auth
     plugin :halt
     plugin :status_handler
 
-    # Activate Rodauth with configuration from RodauthMain
-    plugin :rodauth do
-      instance_eval(&Auth::Config::RodauthMain.configure)
+    # Activate Rodauth with configuration from RodauthMain (advanced mode only)
+    if Onetime.auth_config.advanced_enabled?
+      plugin :rodauth do
+        instance_eval(&Auth::Config::RodauthMain.configure)
+      end
     end
 
     # Status handlers
@@ -61,7 +63,7 @@ module Auth
 
       # All Rodauth routes (login, logout, create-account, reset-password, etc.)
       # Rodauth handles all /auth/* routes when advanced mode is enabled
-      r.rodauth
+      r.rodauth if Onetime.auth_config.advanced_enabled?
 
       # Additional custom routes can be added here
       handle_custom_routes(r)
