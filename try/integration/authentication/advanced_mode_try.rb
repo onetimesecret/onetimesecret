@@ -10,18 +10,18 @@
 # Setup - Load in advanced mode
 ENV['RACK_ENV'] = 'test'
 ENV['AUTHENTICATION_MODE'] = 'advanced'
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..')).freeze
+ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../..')).freeze
 
 # Load the Onetime application and configuration
-require_relative '../lib/onetime'
-require_relative '../lib/onetime/config'
+require_relative '../../../lib/onetime'
+require_relative '../../../lib/onetime/config'
 
 # Initialize configuration
 Onetime.boot! :test
 
-require_relative '../lib/onetime/auth_config'
-require_relative '../lib/onetime/middleware'
-require_relative '../lib/onetime/application/registry'
+require_relative '../../../lib/onetime/auth_config'
+require_relative '../../../lib/onetime/middleware'
+require_relative '../../../lib/onetime/application/registry'
 
 # Prepare the application registry
 Onetime::Application::Registry.prepare_application_registry

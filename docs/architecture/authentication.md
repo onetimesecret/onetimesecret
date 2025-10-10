@@ -462,13 +462,13 @@ Both authentication modes require Redis/Valkey for session storage and data pers
 **Test Commands**:
 ```bash
 # Basic mode integration tests (Tryouts)
-AUTHENTICATION_MODE=basic FAMILIA_DEBUG=0 bundle exec try --agent try/94_dual_auth_mode_integration_try.rb
+AUTHENTICATION_MODE=basic FAMILIA_DEBUG=0 bundle exec try --agent try/integration/authentication/dual_mode_try.rb
 
 # Advanced mode integration tests (RSpec)
 AUTHENTICATION_MODE=advanced bundle exec rspec spec/integration/advanced_auth_mode_spec.rb
 
 # Debug specific test failures
-bundle exec try --verbose --fails --stack try/94_dual_auth_mode_integration_try.rb:169-180
+bundle exec try --verbose --fails --stack try/integration/authentication/dual_mode_try.rb:169-180
 ```
 
 ### Controller Tests
