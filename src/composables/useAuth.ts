@@ -94,8 +94,21 @@ export function useAuth() {
         return false;
       }
 
-      // Success - update auth state and navigate
+      // Success - update auth state
       authStore.setAuthenticated(true);
+
+      // Fetch updated window state with authenticated customer data
+      try {
+        const windowResponse = await $api.get('/window');
+        if (window.__ONETIME_STATE__ && windowResponse.data) {
+          // Update window state with fresh authenticated data
+          window.__ONETIME_STATE__ = windowResponse.data;
+        }
+      } catch (windowErr) {
+        console.warn('Failed to update window state after login:', windowErr);
+        // Non-critical - proceed with navigation
+      }
+
       await router.push('/');
       return true;
     } catch (err: any) {
