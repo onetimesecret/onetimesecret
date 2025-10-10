@@ -464,6 +464,9 @@ Both authentication modes require Redis/Valkey for session storage and data pers
 # Basic mode integration tests (Tryouts)
 AUTHENTICATION_MODE=basic FAMILIA_DEBUG=0 bundle exec try --agent try/integration/authentication/dual_mode_try.rb
 
+# Advanced mode integration tests (Tryouts)
+FAMILIA_DEBUG=0 bundle exec try --agent try/integration/authentication/advanced_mode_try.rb
+
 # Advanced mode integration tests (RSpec)
 AUTHENTICATION_MODE=advanced bundle exec rspec spec/integration/advanced_auth_mode_spec.rb
 
@@ -528,8 +531,9 @@ bundle exec try --verbose --fails --stack try/integration/authentication/dual_mo
 
 2. **Password reset returns 500**
    - **Symptom**: `/auth/reset-password` endpoint returns 500 Internal Server Error
-   - **Cause**: Missing Redis connection or undefined variables in Logic classes
-   - **Solution**: Ensure Redis is running and check for `@objid` vs `@custid` consistency
+   - **Cause**: Missing Redis connection or undefined instance variables (e.g., `@custid` when only `@objid` is set)
+   - **Solution**: Ensure Redis is running; verify Logic classes use consistent variable names in `process_params`, `raise_concerns`, and `process` methods
+   - **Fixed in**: apps/api/v2/logic/authentication/reset_password_request.rb (changed `@custid` → `@objid`)
 
 3. **JSON responses return HTML**
    - **Symptom**: Tests expect JSON but receive `text/html` responses
