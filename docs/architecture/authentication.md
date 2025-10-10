@@ -437,6 +437,40 @@ end
 
 ## Testing Patterns
 
+### Test Environment Requirements
+
+Both authentication modes require Redis/Valkey for session storage and data persistence.
+
+**Required Services**:
+- **Redis/Valkey**: Session storage, customer data, secrets
+  ```bash
+  # Start test database (port 2121)
+  pnpm run test:database:start
+
+  # Check status
+  pnpm run test:database:status
+
+  # Stop when done
+  pnpm run test:database:stop
+  ```
+
+**Optional Services** (for password reset testing):
+- **Mailpit**: SMTP server for email delivery in dev/test
+  - Default: `localhost:1025`
+  - Environment: `MAILPIT_SMTP_HOST`, `MAILPIT_SMTP_PORT`
+
+**Test Commands**:
+```bash
+# Basic mode integration tests (Tryouts)
+AUTHENTICATION_MODE=basic FAMILIA_DEBUG=0 bundle exec try --agent try/94_dual_auth_mode_integration_try.rb
+
+# Advanced mode integration tests (RSpec)
+AUTHENTICATION_MODE=advanced bundle exec rspec spec/integration/advanced_auth_mode_spec.rb
+
+# Debug specific test failures
+bundle exec try --verbose --fails --stack try/94_dual_auth_mode_integration_try.rb:169-180
+```
+
 ### Controller Tests
 
 **Pattern**: Mock Otto environment variables to simulate authenticated/anonymous states
@@ -482,6 +516,35 @@ end
 - `authentication.mode`: Authentication strategy
 - `authentication.session`: Session parameters
 - `authentication.colonels`: Admin users list
+
+### Troubleshooting
+
+**Common Test Failures**:
+
+1. **Connection refused / Redis errors**
+   - **Symptom**: Tests fail with "Connection refused" or Redis connection errors
+   - **Solution**: Start test database with `pnpm run test:database:start`
+   - **Verify**: `pnpm run test:database:status` should return `PONG`
+
+2. **Password reset returns 500**
+   - **Symptom**: `/auth/reset-password` endpoint returns 500 Internal Server Error
+   - **Cause**: Missing Redis connection or undefined variables in Logic classes
+   - **Solution**: Ensure Redis is running and check for `@objid` vs `@custid` consistency
+
+3. **JSON responses return HTML**
+   - **Symptom**: Tests expect JSON but receive `text/html` responses
+   - **Cause**: Route configuration missing `response=json` or controller error before JSON rendering
+   - **Solution**: Verify route definition includes `:response => 'json'` and check for exceptions in controller
+
+4. **Session not persisting across requests**
+   - **Symptom**: Login succeeds but subsequent requests show unauthenticated
+   - **Cause**: Test helper not preserving cookies between requests
+   - **Solution**: Use `@test.last_response.headers['Set-Cookie']` in subsequent requests or verify `Rack::Test` session handling
+
+5. **Undefined constant errors in Advanced mode**
+   - **Symptom**: `NameError: uninitialized constant` for Rodauth classes
+   - **Cause**: Auth application not loaded or DATABASE_URL not configured
+   - **Solution**: Set `AUTHENTICATION_MODE=advanced` and verify PostgreSQL connection
 
 ## Security Considerations
 
