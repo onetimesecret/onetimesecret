@@ -53,7 +53,10 @@ module Auth
           raise e if Onetime.development?
         end
       else
-        OT.info "Auth running in basic mode (no database required)"
+        OT.le "[Auth::Application] WARNING: Auth application should not be mounted in basic mode"
+        OT.le "  The Auth app is designed for advanced mode only."
+        OT.le "  In basic mode, authentication is handled by Core app at /auth/*"
+        OT.le "  Check your application registry configuration."
       end
     end
 

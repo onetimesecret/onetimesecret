@@ -36,6 +36,12 @@ module Auth
       plugin :rodauth do
         instance_eval(&Auth::Config::RodauthMain.configure)
       end
+    else
+      # Warn if Auth app is loaded in basic mode - it shouldn't be mounted at all
+      OT.le "[Auth::Router] WARNING: Auth application loaded in basic mode"
+      OT.le "  The Auth app is designed for advanced mode only."
+      OT.le "  In basic mode, authentication routes should be handled by Core app."
+      OT.le "  This app will return 404 for all Rodauth routes."
     end
 
     # Status handlers
