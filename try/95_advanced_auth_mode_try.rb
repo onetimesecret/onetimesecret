@@ -30,11 +30,18 @@ Onetime::Application::Registry.prepare_application_registry
 require 'rack/test'
 require 'json'
 
-# Create test helper that extends main to include Rack::Test
-include Rack::Test::Methods
+# Create test instance for the full application (all mounted apps)
+@test = Object.new
+@test.extend Rack::Test::Methods
 
-def app
+# Define the app method for Rack::Test
+def @test.app
   Onetime::Application::Registry.generate_rack_url_map
+end
+
+# Helper method to access JSON responses
+def @test.json_response
+  JSON.parse(last_response.body)
 end
 
 # -------------------------------------------------------------------
@@ -70,41 +77,41 @@ auth_index && core_index && auth_index < core_index
 # -------------------------------------------------------------------
 
 ## Auth app responds at /auth
-get '/auth'
-last_response.status
+@test.get '/auth'
+@test.last_response.status
 #=> 200
 
 ## Auth app returns JSON
-get '/auth'
-last_response.headers['Content-Type']&.include?('application/json')
+@test.get '/auth'
+@test.last_response.headers['Content-Type']&.include?('application/json')
 #=> true
 
 ## Auth app response includes version info
-get '/auth'
-response = JSON.parse(last_response.body)
+@test.get '/auth'
+response = JSON.parse(@test.last_response.body)
 response.key?('message') && response.key?('version')
 #=> true
 
 ## Health endpoint works
-get '/auth/health'
-last_response.status
+@test.get '/auth/health'
+@test.last_response.status
 #=> 200
 
 ## Health endpoint returns JSON
-get '/auth/health'
-last_response.headers['Content-Type']&.include?('application/json')
+@test.get '/auth/health'
+@test.last_response.headers['Content-Type']&.include?('application/json')
 #=> true
 
 ## Health response includes status and mode
-get '/auth/health'
-health = JSON.parse(last_response.body)
+@test.get '/auth/health'
+health = JSON.parse(@test.last_response.body)
 health['status'] == 'ok' && health['mode'] == 'advanced'
 #=> true
 
 ## Admin stats endpoint exists
-get '/auth/admin/stats'
+@test.get '/auth/admin/stats'
 # Should return 200 or auth required
-[200, 401, 403].include?(last_response.status)
+[200, 401, 403].include?(@test.last_response.status)
 #=> true
 
 # -------------------------------------------------------------------
@@ -112,33 +119,33 @@ get '/auth/admin/stats'
 # -------------------------------------------------------------------
 
 ## Login endpoint exists
-post '/auth/login',
+@test.post '/auth/login',
   { login: 'test@example.com', password: 'password123' }.to_json,
   { 'CONTENT_TYPE' => 'application/json' }
 # Should return 401 (invalid credentials) or 400 (validation error)
-[400, 401, 422].include?(last_response.status)
+[400, 401, 422].include?(@test.last_response.status)
 #=> true
 
 ## Login response is JSON
-post '/auth/login',
+@test.post '/auth/login',
   { login: 'test@example.com', password: 'password123' }.to_json,
   { 'CONTENT_TYPE' => 'application/json' }
-last_response.headers['Content-Type']&.include?('application/json')
+@test.last_response.headers['Content-Type']&.include?('application/json')
 #=> true
 
 ## Create account endpoint exists
-post '/auth/create-account',
+@test.post '/auth/create-account',
   { login: 'new@example.com', password: 'password123' }.to_json,
   { 'CONTENT_TYPE' => 'application/json' }
 # Should return 400/422 (validation) or 201/200 (success)
-[200, 201, 400, 422].include?(last_response.status)
+[200, 201, 400, 422].include?(@test.last_response.status)
 #=> true
 
 ## Create account response is JSON
-post '/auth/create-account',
+@test.post '/auth/create-account',
   { login: 'new@example.com', password: 'password123' }.to_json,
   { 'CONTENT_TYPE' => 'application/json' }
-last_response.headers['Content-Type']&.include?('application/json')
+@test.last_response.headers['Content-Type']&.include?('application/json')
 #=> true
 
 # -------------------------------------------------------------------
@@ -146,7 +153,7 @@ last_response.headers['Content-Type']&.include?('application/json')
 # -------------------------------------------------------------------
 
 ## Core app still handles root
-get '/'
+@test.get '/'
 # Should return 200 or 500 (domain validation issues in test)
-[200, 500].include?(last_response.status)
+[200, 500].include?(@test.last_response.status)
 #=> true
