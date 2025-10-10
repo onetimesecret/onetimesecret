@@ -39,6 +39,11 @@ module Onetime
           end
 
           def passphrase?(val)
+            # Immediately return false if there's no passphrase to compare against.
+            # This prevents a DoS vector where an attacker could trigger exceptions
+            # by attempting to verify passphrases on accounts that don't have one.
+            return false if passphrase.to_s.empty?
+
             # Constant-time comparison prevents timing attacks that could leak
             # the hash prefix by measuring how long the comparison takes to fail.
             BCrypt::Password.new(passphrase) == val
