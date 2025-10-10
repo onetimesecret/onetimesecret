@@ -50,15 +50,11 @@ end
 
 # Helper to check if response is JSON
 def @test.json_response?
-  puts "DEBUG: last_response class: #{last_response.class}"
-  puts "DEBUG: last_response headers: #{last_response.headers.inspect}"
-  puts "DEBUG: last_response headers keys: #{last_response.headers.keys.inspect}"
-  puts "DEBUG: content-type header (direct): #{last_response.headers['content-type'].inspect}"
-  puts "DEBUG: Content-Type header (capitalized): #{last_response.headers['Content-Type'].inspect}"
+
 
   # Try both common variations of content-type header
   content_type = last_response.headers['content-type'] || last_response.headers['Content-Type']
-  puts "DEBUG: resolved content-type: #{content_type.inspect}"
+
 
   # Rack::MockResponse
   content_type&.include?('application/json')
@@ -149,7 +145,7 @@ end
   {}.to_json,
   { 'HTTP_ACCEPT' => 'application/json', 'CONTENT_TYPE' => 'application/json' }
 # Logout should work even without session (idempotent)
-puts "DEBUG: Logout status = #{@test.last_response.status}"
+
 [200, 302].include?(@test.last_response.status)
 #=> true
 
@@ -170,8 +166,7 @@ end
   { u: 'reset@example.com' }.to_json,
   { 'HTTP_ACCEPT' => 'application/json', 'CONTENT_TYPE' => 'application/json' }
 # Should accept the request (200) or fail validation (400/422)
-puts "DEBUG: Reset password status = #{@test.last_response.status}"
-puts "DEBUG: Reset password content-type = #{@test.last_response.headers['Content-Type']}"
+
 [200, 400, 422].include?(@test.last_response.status)
 #=> true
 
@@ -199,9 +194,7 @@ puts "DEBUG: Reset password content-type = #{@test.last_response.headers['Conten
 @test.post '/auth/login',
   { u: 'test@example.com', p: 'password' }
 
-puts "DEBUG: HTTP_ACCEPT header = #{@test.last_request.env['HTTP_ACCEPT'].inspect}"
-puts "DEBUG: Login (no JSON) status = #{@test.last_response.status}"
-puts "DEBUG: Login (no JSON) content-type = #{@test.last_response.headers['Content-Type']}"
+
 
 # Should redirect (302) or return error page (401/500)
 [302, 401, 500].include?(@test.last_response.status)
