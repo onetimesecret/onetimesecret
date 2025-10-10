@@ -9,6 +9,8 @@ module Core
     # complexities of CSS bundling and font preloading.
     #
     module ViteManifest
+      # Public directory for web assets
+      PUBLIC_DIR = File.join(ENV.fetch('ONETIME_HOME', '.'), 'public', 'web').freeze
       # Generates HTML tags for all required Vite assets.
       #
       # @param nonce [String, nil] Content Security Policy nonce
