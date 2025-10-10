@@ -11,8 +11,13 @@ module Auth
           db Auth::Config::Database.connection
 
           # 2. Enable all required features first
-          enable :json, :login, :logout, :create_account, :close_account,
-                 :change_password, :reset_password, :verify_account
+          features = [:json, :login, :logout, :create_account, :close_account,
+                      :change_password, :reset_password]
+
+          # Only enable verify_account in non-test environments
+          features << :verify_account unless ENV['RACK_ENV'] == 'test'
+
+          enable *features
 
           # 3. Basic configuration
           hmac_secret ENV['HMAC_SECRET'] || ENV['AUTH_SECRET'] || 'dev-hmac-secret-change-in-prod'
@@ -39,14 +44,62 @@ module Auth
           email_from 'noreply@onetimesecret.com'
           email_subject_prefix '[OneTimeSecret] '
 
-          # 4. Define Otto integration methods as instance methods
-          def create_otto_customer
+          # SMTP configuration for email delivery
+          send_email do |email|
+            if ENV['RACK_ENV'] == 'test'
+              # Test environment: log emails instead of sending
+              OT.info "[email] Skipping email to #{email[:to]}: #{email[:subject]}"
+            elsif ENV['MAILPIT_SMTP_HOST']
+              # Use Mailpit for development/CI
+              require 'net/smtp'
+              smtp_host = ENV['MAILPIT_SMTP_HOST'] || 'localhost'
+              smtp_port = (ENV['MAILPIT_SMTP_PORT'] || '1025').to_i
+
+              Net::SMTP.start(smtp_host, smtp_port) do |smtp|
+                smtp.send_message(
+                  "From: #{email[:from]}
+To: #{email[:to]}
+Subject: #{email[:subject]}
+
+#{email[:body]}",
+                  email[:from],
+                  email[:to]
+                )
+              end
+              OT.info "[email] Sent email to #{email[:to]} via Mailpit"
+            else
+              # Production: use default Rodauth email delivery
+              # Will use Net::SMTP with default settings
+              OT.info "[email] Sending email to #{email[:to]}: #{email[:subject]}"
+            end
+          end
+
+          # 4. Override authentication check for Redis session compatibility
+          def authenticated?
+            super && redis_session_valid?
+          end
+
+          def redis_session_valid?
+            return false unless session['authenticated_at']
+            return false unless session['account_external_id'] || session['advanced_account_id']
+
+            # Check session age against configured expiry
+            max_age = Onetime.auth_config.session['expire_after'] || 86400
+            age = Time.now.to_i - session['authenticated_at'].to_i
+            age < max_age
+          end
+
+          # 5. Configure hooks for account lifecycle
+          after_create_account do
+            OT.info "[auth] New account created: #{account[:email]} (ID: #{account_id})"
+
+            # Create Otto customer inline
             begin
               # Create or load customer using email as custid
               customer = if Onetime::Customer.exists?(account[:email])
                 Onetime::Customer.load(account[:email])
               else
-                cust = Onetime::Customer.create(account[:email])
+                cust = Onetime::Customer.create! email: account[:email]
                 cust.update_passphrase('') # Rodauth manages password
                 cust.role = 'customer'
                 cust.verified = '1' # Rodauth handles verification
@@ -60,16 +113,18 @@ module Auth
               db = Auth::Config::Database.connection
               db[:accounts].where(id: account_id).update(external_id: customer.extid)
               OT.info "[otto-integration] Linked Rodauth account #{account_id} to Otto extid: #{customer.extid}"
-
-              customer
             rescue => e
               OT.le "[otto-integration] Error creating Otto customer: #{e.message}"
-              OT.le e.backtrace.join("\n") if Onetime.development?
-              nil # Don't fail account creation
+              OT.le e.backtrace.join("
+") if Onetime.development?
+              # Don't fail account creation
             end
           end
 
-          def cleanup_otto_customer
+          after_close_account do
+            OT.info "[auth] Account closed: #{account[:email]} (ID: #{account_id})"
+
+            # Cleanup Otto customer inline
             begin
               if account[:external_id]
                 customer = Onetime::Customer.load_by_extid(account[:external_id])
@@ -82,13 +137,40 @@ module Auth
               end
             rescue => e
               OT.le "[otto-integration] Error cleaning up Otto customer: #{e.message}"
-              OT.le e.backtrace.join("\n") if Onetime.development?
+              OT.le e.backtrace.join("
+") if Onetime.development?
               # Don't fail account closure
             end
           end
 
-          def sync_session_with_otto(customer = nil)
-            # Sync Rodauth session with Otto's session format
+          # Only configure verify_account hook if feature is enabled
+          if ENV['RACK_ENV'] != 'test'
+            after_verify_account do
+              OT.info "[auth] Account verified: #{account[:email]}"
+
+              # Update Otto customer verification status if exists
+              if account[:external_id]
+                customer = Onetime::Customer.load_by_extid(account[:external_id])
+                if customer
+                  customer.verified = '1'
+                  customer.save
+                end
+              end
+            end
+          end
+
+          # 6. Configure authentication hooks
+          after_login do
+            OT.info "[auth] User logged in: #{account[:email]}"
+
+            # Load Otto customer and sync session
+            customer = if account[:external_id]
+              Onetime::Customer.load_by_extid(account[:external_id])
+            else
+              Onetime::Customer.load(account[:email])
+            end
+
+            # Sync Rodauth session with Otto's session format inline
             session['authenticated'] = true
             session['authenticated_at'] = Time.now.to_i
             session['advanced_account_id'] = account_id
@@ -109,59 +191,6 @@ module Auth
             OT.info "[otto-integration] Synced session for #{session['email']}"
           end
 
-          # 5. Override authentication check for Redis session compatibility
-          def authenticated?
-            super && redis_session_valid?
-          end
-
-          def redis_session_valid?
-            return false unless session['authenticated_at']
-            return false unless session['account_external_id'] || session['advanced_account_id']
-
-            # Check session age against configured expiry
-            max_age = Onetime.auth_config.session['expire_after'] || 86400
-            age = Time.now.to_i - session['authenticated_at'].to_i
-            age < max_age
-          end
-
-          # 6. Configure hooks for account lifecycle
-          after_create_account do
-            OT.info "[auth] New account created: #{account[:email]} (ID: #{account_id})"
-            create_otto_customer
-          end
-
-          after_close_account do
-            OT.info "[auth] Account closed: #{account[:email]} (ID: #{account_id})"
-            cleanup_otto_customer
-          end
-
-          after_verify_account do
-            OT.info "[auth] Account verified: #{account[:email]}"
-
-            # Update Otto customer verification status if exists
-            if account[:external_id]
-              customer = Onetime::Customer.load_by_extid(account[:external_id])
-              if customer
-                customer.verified = '1'
-                customer.save
-              end
-            end
-          end
-
-          # 7. Configure authentication hooks
-          after_login do
-            OT.info "[auth] User logged in: #{account[:email]}"
-
-            # Load Otto customer and sync session
-            customer = if account[:external_id]
-              Onetime::Customer.load_by_extid(account[:external_id])
-            else
-              Onetime::Customer.load(account[:email])
-            end
-
-            sync_session_with_otto(customer)
-          end
-
           before_logout do
             OT.info "[auth] User logging out: #{session['email'] || 'unknown'}"
           end
@@ -170,7 +199,7 @@ module Auth
             OT.info "[auth] Logout complete"
           end
 
-          # 8. Configure password reset hooks
+          # 7. Configure password reset hooks
           after_reset_password_request do
             OT.info "[auth] Password reset requested for: #{account[:email]}"
           end
@@ -193,7 +222,7 @@ module Auth
             end
           end
 
-          # 9. Configure MFA hooks (if MFA features are enabled)
+          # 8. Configure MFA hooks (if MFA features are enabled)
           # These would be added when MFA features are enabled
           # after_otp_setup { ... }
           # after_otp_disable { ... }

@@ -200,7 +200,8 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
       end
 
       it 'responds with success or error' do
-        expect([200, 400, 422]).to include(last_response.status)
+        # 401 is returned for non-existent accounts (prevents account enumeration)
+        expect([200, 400, 401, 422]).to include(last_response.status)
       end
 
       it 'returns JSON response' do
