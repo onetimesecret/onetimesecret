@@ -6,9 +6,9 @@ require 'sequel'
 require 'logger'
 require 'json'
 
-require_relative 'account'
-require_relative 'admin'
-require_relative 'health'
+require_relative 'routes/account'
+require_relative 'routes/admin'
+require_relative 'routes/health'
 require_relative 'routes/validation'
 
 module Auth
