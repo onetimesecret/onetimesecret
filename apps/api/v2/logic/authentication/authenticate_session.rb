@@ -27,13 +27,13 @@ module V2::Logic
         return unless @cust.nil?
 
         @cust ||= Onetime::Customer.anonymous
-        raise_form_error 'Try again'
+        raise OT::Unauthorized, 'Invalid email or password'
       end
 
       def process
         unless success?
           OT.ld "[login-failure] #{sess} #{cust.obscure_email} #{cust.role} (failed)"
-          raise_form_error 'Try again'
+          raise OT::Unauthorized, 'Invalid email or password'
         end
 
         if cust.pending?

@@ -63,12 +63,12 @@ module Core
             res.redirect '/colonel/'
           end
         end
-      rescue OT::FormError => ex
-        # Override error message for authentication
+      rescue OT::Unauthorized => ex
+        # Authentication failures return 401 (unauthorized)
         if json_requested?
-          json_error('Invalid email or password', field_error: %w[email invalid], status: 401)
+          json_error(ex.message, field_error: %w[email invalid], status: 401)
         else
-          session['error_message'] = 'Invalid email or password'
+          session['error_message'] = ex.message
           res.redirect '/signin'
         end
       end
