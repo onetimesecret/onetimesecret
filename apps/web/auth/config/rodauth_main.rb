@@ -101,7 +101,28 @@ Subject: #{email[:subject]}
             age < max_age
           end
 
-          # 5. Configure hooks for account lifecycle
+          # 5. Configure validation hooks
+          before_create_account do
+            # Email validation using Truemail
+            email = param('login') || param('email')
+
+            unless email && !email.to_s.strip.empty?
+              throw_error_status(422, 'login', 'Email is required')
+            end
+
+            begin
+              validator = Truemail.validate(email)
+              unless validator.result.valid?
+                OT.info "[auth] Invalid email rejected: #{OT::Utils.obscure_email(email)}"
+                throw_error_status(422, 'login', 'Please enter a valid email address')
+              end
+            rescue StandardError => ex
+              OT.le "[auth] Email validation error: #{ex.message}"
+              throw_error_status(422, 'login', 'Email validation failed')
+            end
+          end
+
+          # 6. Configure hooks for account lifecycle
           after_create_account do
             OT.info "[auth] New account created: #{account[:email]} (ID: #{account_id})"
 
@@ -171,9 +192,51 @@ Subject: #{email[:subject]}
             end
           end
 
-          # 6. Configure authentication hooks
+          # 6. Configure rate limiting hooks
+          before_login_attempt do
+            email = param('login') || param('email')
+            rate_limit_key = "login_attempts:#{email}"
+
+            redis = Familia.redis(db: 0)
+            attempts = redis.incr(rate_limit_key).to_i
+
+            # Set expiry on first attempt (5 minute window)
+            redis.expire(rate_limit_key, 300) if attempts == 1
+
+            # Allow 5 attempts per 5 minutes
+            if attempts > 5
+              remaining_ttl = redis.ttl(rate_limit_key)
+              minutes = (remaining_ttl / 60.0).ceil
+
+              OT.info "[auth] Rate limit exceeded for #{OT::Utils.obscure_email(email)}: #{attempts} attempts"
+              throw_error_status(429, 'login', "Too many login attempts. Please try again in #{minutes} minute#{'s' if minutes != 1}.")
+            end
+          end
+
+          after_login_failure do
+            email = param('login') || param('email')
+            ip = request.ip
+
+            rate_limit_key = "login_attempts:#{email}"
+            redis = Familia.redis(db: 0)
+            attempts = redis.get(rate_limit_key).to_i
+
+            OT.info "[auth] Failed login attempt #{attempts}/5 for #{OT::Utils.obscure_email(email)} from #{ip}"
+
+            # Alert on potential brute force (4th failed attempt)
+            if attempts >= 4
+              OT.le "[security] Potential brute force attack: #{attempts} failed attempts for #{OT::Utils.obscure_email(email)} from #{ip}"
+            end
+          end
+
+          # 7. Configure authentication hooks
           after_login do
             OT.info "[auth] User logged in: #{account[:email]}"
+
+            # Clear rate limiting on successful login
+            rate_limit_key = "login_attempts:#{account[:email]}"
+            redis = Familia.redis(db: 0)
+            redis.del(rate_limit_key)
 
             # Load Otto customer and sync session
             customer = if account[:external_id]
@@ -211,7 +274,7 @@ Subject: #{email[:subject]}
             OT.info "[auth] Logout complete"
           end
 
-          # 7. Configure password reset hooks
+          # 8. Configure password reset hooks
           after_reset_password_request do
             OT.info "[auth] Password reset requested for: #{account[:email]}"
           end
@@ -234,7 +297,7 @@ Subject: #{email[:subject]}
             end
           end
 
-          # 8. Configure MFA hooks (if MFA features are enabled)
+          # 9. Configure MFA hooks (if MFA features are enabled)
           # These would be added when MFA features are enabled
           # after_otp_setup { ... }
           # after_otp_disable { ... }
