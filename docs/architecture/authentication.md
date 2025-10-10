@@ -16,11 +16,13 @@ Onetime Secret uses Otto's post-routing authentication pattern following standar
 ```
 1. Request arrives
 
-2. Session Middleware (Rack::Session::Abstract::Persisted)
+2. Session Middleware (Rack::Session::Abstract::PersistedSecure)
    Location: lib/onetime/application/middleware_stack.rb
-   Class: Onetime::Session (wraps Rack::Session::Redis)
+   Class: Onetime::MinimalSession (extends Rack::Session::Abstract::PersistedSecure)
+   Backend: Familia::StringKey (Redis)
    Sets: env['rack.session']
    Cookie: 'onetime.session'
+   Security: HMAC verification, SessionId objects
 
 3. Otto Router
    Location: Otto gem (lib/otto/core/router.rb)
@@ -533,24 +535,50 @@ Bridges Rodauth and Otto by reading session and setting env:
 ```ruby
 class IdentityResolution
   def call(env)
+    request = Rack::Request.new(env)
     session = env['rack.session']
 
-    # Check Rodauth session (advanced mode)
-    if session['account_external_id']
-      identity = resolve_from_rodauth(session)
-      env['identity.resolved'] = identity
-      env['identity.authenticated'] = true
-      env['identity.source'] = 'advanced'
+    # Resolve identity from available sources
+    identity = resolve_identity(request, env)
 
-    # Check Redis session (basic mode)
-    elsif session['authenticated']
-      identity = resolve_from_redis(session)
-      env['identity.resolved'] = identity
-      env['identity.authenticated'] = true
-      env['identity.source'] = 'basic'
-    end
+    # Store resolved identity in environment
+    env['identity.resolved']      = identity[:user]       # Customer object
+    env['identity.source']        = identity[:source]     # 'advanced'|'basic'|'anonymous'
+    env['identity.authenticated'] = identity[:authenticated]
+    env['identity.metadata']      = identity[:metadata]
 
     @app.call(env)
+  end
+
+  private
+
+  def resolve_identity(request, env)
+    # Priority order: advanced → basic → anonymous
+    advanced_identity = resolve_advanced_identity(request, env)
+    return advanced_identity if advanced_identity[:user]
+
+    basic_identity = resolve_basic_identity(request, env)
+    return basic_identity if basic_identity[:user]
+
+    resolve_anonymous_identity(request, env)
+  end
+
+  def resolve_basic_identity(request, env)
+    session = env['rack.session']
+    return no_identity unless session && session['identity_id']
+
+    customer = load_customer_from_session(session)
+    return no_identity unless customer
+
+    {
+      user: customer,  # Returns Customer object directly (not BasicUser)
+      source: 'basic',
+      authenticated: session['authenticated'] == true,
+      metadata: {
+        session_id: session.id&.private_id,
+        expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86_400 : nil,
+      }
+    }
   end
 end
 ```
@@ -605,12 +633,14 @@ end
 **Location:** `lib/onetime/application/middleware_stack.rb`
 
 ```ruby
-builder.use Onetime::Session, {
-  expire_after: 86_400,           # 24 hours
-  key: 'onetime.session',         # Cookie name
-  secure: Onetime.conf.dig('site', 'ssl'),
-  httponly: true,
-  same_site: :strict,
+builder.use Onetime::MinimalSession, {
+  secret: Onetime.auth_config.session['secret'],  # HMAC key derivation
+  expire_after: 86_400,                           # 24 hours
+  key: 'onetime.session',                         # Cookie name
+  namespace: 'session',                           # Redis key prefix
+  secure: Onetime.conf&.dig('site', 'ssl'),      # HTTPS only
+  httponly: true,                                 # No JavaScript access
+  same_site: :strict,                             # CSRF protection
 }
 ```
 
