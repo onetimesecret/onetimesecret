@@ -41,7 +41,7 @@ module Core
         end
 
         OT.info "[middleware] ErrorHandling: Redirecting to #{ex.location} (#{ex.status})"
-        [ex.status, { 'Location' => ex.location }, []]
+        [ex.status, { 'location' => ex.location }, []]
       end
 
       def handle_unauthorized(env, ex)

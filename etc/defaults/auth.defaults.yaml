@@ -7,13 +7,11 @@ mode: basic
 
 # Shared session configuration (both modes)
 session:
-  redis_url: "redis://localhost:6379/0"
+  secret: ENV['SESSION_SECRET']
   expire_after: 86400       # 24 hours
-  key: 'onetime.session'    # Unified cookie name
+  key: 'ots.session'        # Unified cookie name
   secure: true              # Set based on SSL configuration
-  httponly: true
   same_site: strict
-  redis_prefix: 'session'
 
 # Mode-specific configurations
 basic:

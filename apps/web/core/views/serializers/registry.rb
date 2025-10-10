@@ -78,7 +78,7 @@ module Core
               end
             end
 
-            OT.ld "[SerializerRegistry] Executing serializer: #{serializer}"
+            #OT.ld "[SerializerRegistry] Executing serializer:", serializer
             result.merge(output)
           end
         end

@@ -89,7 +89,7 @@ module Onetime
           # Load customer from session or use anonymous
           cust = load_customer_from_session(session) || Onetime::Customer.anonymous
 
-          OT.ld "[onetime_public] Access granted (#{cust.anonymous? ? 'anonymous' : cust.objid})"
+          OT.ld "[noauth] Access granted (#{cust.anonymous? ? 'anonymous' : cust.objid})"
 
           success(
             session: session,

@@ -6,7 +6,7 @@ require 'rack/parser'
 require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
-require 'onetime/session'
+require 'onetime/minimal_session'
 
 module Onetime
   module Application
@@ -32,13 +32,11 @@ module Onetime
           builder.use Rack::Parser, parsers: @parsers
 
           # Add session middleware early in the stack (before other middleware)
-          builder.use Onetime::Session, {
+          builder.use Onetime::MinimalSession, {
+            secret: Onetime.auth_config.session['secret'],
             expire_after: 86_400, # 24 hours
-            key: 'onetime.session',
             secure: Onetime.conf&.dig('site', 'ssl'),
-            httponly: true,
             same_site: :strict,
-            redis_prefix: 'session'
           }
 
           # Identity resolution middleware (after session)

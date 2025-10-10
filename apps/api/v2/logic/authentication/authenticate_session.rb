@@ -47,7 +47,7 @@ module V2::Logic
 
         @greenlighted = true
 
-        OT.info "[login-success] #{sess} #{cust.obscure_email} #{cust.role}"
+        OT.info "[login-success] #{sess.id} #{cust.obscure_email} #{cust.role}"
 
         # Set session authentication data
         sess['identity_id'] = cust.objid
