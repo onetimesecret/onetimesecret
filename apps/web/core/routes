@@ -58,4 +58,4 @@ GET   /colonel                                   Core::Controllers::Page#index a
 GET   /colonel/*                                 Core::Controllers::Page#index auth=colonelsonly
 
 # Image generation - authenticated
-GET   /imagine/:custom_domain_id/:image_type.:image_ext  Core::Controllers::Page#imagine auth=sessionauth
+GET   /imagine/:custom_domain_id/:image_type.:image_ext  Core::Controllers::Page#imagine auth=noauth
