@@ -65,7 +65,10 @@ Onetime Secret uses Otto's post-routing authentication pattern following standar
 
 **Cookie Name:** `onetime.session`
 **Environment Key:** `env['rack.session']`
-**Storage:** Redis (via `Rack::Session::Redis`)
+**Storage:** Redis (via `Familia::StringKey`)
+**Implementation:** `Onetime::MinimalSession` (lib/onetime/minimal_session.rb)
+**Parent Class:** `Rack::Session::Abstract::PersistedSecure`
+**Security:** HMAC-based integrity verification, SessionId wrapping
 
 Session stores authentication state that persists across requests:
 
@@ -88,6 +91,53 @@ session['advanced_account_id'] = account.id        # Rodauth account ID
 
 **Write Pattern:** Only authentication Logic classes write to session
 **Read Pattern:** Only auth strategies read from session (controllers never read directly)
+
+### SessionId Objects
+
+**Location:** `Rack::Session::SessionId` (rack-session gem)
+**Parent Class:** `Rack::Session::Abstract::PersistedSecure`
+
+SessionId provides security features for session management:
+
+```ruby
+# SessionId object structure
+session_id = Rack::Session::SessionId.new(public_id)
+
+session_id.public_id    # => "abc123..."  (sent in cookie)
+session_id.private_id   # => "2::hash..." (stored internally)
+session_id.cookie_value # => "abc123..."  (alias for public_id)
+```
+
+**MinimalSession Integration:**
+
+```ruby
+# MinimalSession handles SessionId objects transparently
+def find_session(request, sid)
+  # sid may be SessionId object or nil
+  sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
+
+  # Use string for Redis lookups
+  stringkey = get_stringkey(sid_string)
+  # ...
+
+  # Return SessionId object (parent class requirement)
+  [sid, session_data]
+end
+
+def write_session(_request, sid, session_data, _options)
+  # Extract string from SessionId for storage
+  sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
+  # ...
+
+  # Return SessionId object (parent class wraps in cookie)
+  sid
+end
+```
+
+**Benefits:**
+- **Versioned IDs:** `private_id` includes version prefix for future rotation
+- **Consistent Interface:** `cookie_value` method for cookie serialization
+- **Security:** Separates public cookie value from internal representation
 
 ### Environment: Request-Scoped State
 
