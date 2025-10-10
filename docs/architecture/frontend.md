@@ -11,7 +11,7 @@ labels: frontend, vue3, pinia, architecture
 
 ## Overview
 
-The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeScript. State management uses Pinia stores, and data flows from Ruby backend ’ window state ’ Vue components.
+The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeScript. State management uses Pinia stores, and data flows from Ruby backendwindow stateVue components.
 
 ## Architecture Pattern: Backend-to-Frontend Bridge
 
@@ -80,7 +80,7 @@ const windowProps = computed(() => WindowService.getMultiple([
 
 **State Refresh:**
 - **Endpoint:** `GET /window` (apps/web/core/routes:28)
-- **Frequency:** Every 15 minutes (±90s jitter)
+- **Frequency:** Every 15 minutes (Â±90s jitter)
 - **Triggers:**
   - Automatic: `authStore.checkWindowStatus()` timer
   - Manual: After login via `useAuth.login()`
@@ -164,12 +164,12 @@ router.beforeEach(async (to) => {
   // 1. Process query params
   processQueryParams(to.query);
 
-  // 2. Root redirect (/ ’ /dashboard if authenticated)
+  // 2. Root redirect (//dashboard if authenticated)
   if (to.path === '/') {
     return authStore.isAuthenticated ? { name: 'Dashboard' } : true;
   }
 
-  // 3. Auth route redirect (authenticated users ’ dashboard)
+  // 3. Auth route redirect (authenticated usersdashboard)
   if (isAuthRoute(to) && authStore.isAuthenticated) {
     return { name: 'Dashboard' };
   }
@@ -397,7 +397,7 @@ pnpm run preview
 - **Location:** `vite.config.ts`
 - **Features:**
   - Vue plugin with JSX support
-  - Path aliases (`@/` ’ `src/`)
+  - Path aliases (`@/``src/`)
   - CSS preprocessing
   - Build optimization
 
