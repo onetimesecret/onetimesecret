@@ -44,13 +44,10 @@ Both modes share the same session cookie (`onetime.session`) and Otto authentica
 
 5. **RouteAuthWrapper** (Authentication Enforcement)
    - **Location**: Otto gem (`lib/otto/security/authentication/route_auth_wrapper.rb`)
-   - Reads `auth_requirement` from `route_definition`
-   - Executes matching auth strategy
-   - Strategy reads `env['rack.session']` and `route_definition`
-   - Creates `StrategyResult`
-   - Sets `env['otto.strategy_result']`, `env['otto.user']`, `env['otto.user_context']`
-   - **On success**: calls wrapped handler
-   - **On failure**: returns 401/redirect
+   - Reads `auth_requirement` from route definition
+   - Executes matching auth strategy → Creates `StrategyResult`
+   - Sets: `env['otto.strategy_result']`, `env['otto.user']`
+   - On success: calls handler | On failure: returns 401/redirect
 
 6. **Application Controllers**
    - **Location**: `apps/web/core/controllers/*`, `apps/api/v2/logic/*`
@@ -78,46 +75,26 @@ Both modes share the same session cookie (`onetime.session`) and Otto authentica
 # Session lookup (lib/onetime/minimal_session.rb)
 def find_session(request, sid)
   # Validate session ID format
-  unless sid_string && valid_session_id?(sid_string)
-    return [generate_sid, {}]
-  end
-
-  # Verify HMAC before deserializing
-  unless hmac && valid_hmac?(data, hmac)
-    return [generate_sid, {}]  # Session tampered
-  end
-
-  [sid, session_data]
+  # Validates session ID format
+  # Verifies HMAC integrity
+  # Returns: [sid, session_data] or [new_sid, {}]
 end
 ```
-
-
-
-
-
-
-
-
-
 
 ### Environment: Request-Scoped State
 
 **Purpose**: Request-specific authentication state
 **Access**: Read-only from Controllers
-**Keys**:
 
-```ruby
-# Set by Identity Resolution Middleware
-env['identity.resolved']      # Customer object or nil
-env['identity.source']        # 'basic', 'advanced', or 'anonymous'
-env['identity.authenticated'] # Boolean
-env['identity.metadata']      # Hash with customer_id, external_id, etc.
-
-# Set by Otto RouteAuthWrapper
-env['otto.user']              # Customer object (authenticated) or nil
-env['otto.strategy_result']   # StrategyResult object with session, user, metadata
-env['otto.route_definition']  # Current route definition
-```
+| Environment Key | Set By | Contains |
+|----------------|--------|----------|
+| `identity.resolved` | Identity Middleware | Customer or nil |
+| `identity.source` | Identity Middleware | 'basic', 'advanced', or 'anonymous' |
+| `identity.authenticated` | Identity Middleware | Boolean |
+| `identity.metadata` | Identity Middleware | Hash with customer_id, external_id |
+| `otto.user` | RouteAuthWrapper | Authenticated Customer |
+| `otto.strategy_result` | RouteAuthWrapper | StrategyResult object |
+| `otto.route_definition` | Otto Router | Current route definition |
 
 ## Authentication Modes
 
@@ -128,20 +105,8 @@ env['otto.route_definition']  # Current route definition
 **Stack**:
 - Core app handles `/auth/*` routes
 - V2 Logic classes manage authentication
-- Redis
- session storage only
+- Redis session storage only
 - No external database required
-
-**Session Keys**:
-```ruby
-session['authenticated']      = true
-session['identity_id']        = customer.custid
-session['email']              = customer.email
-session['authenticated_at']   = Time.now.to_i
-session['ip_address']         = request.ip
-session['user_agent']         = request.user_agent
-session['locale']             = 'en'
-```
 
 **Use Cases**:
 - Single deployments
@@ -158,12 +123,19 @@ session['locale']             = 'en'
 - Redis for unified session management
 - Otto strategies bridge Rodauth → Otto
 
-**Session Keys** (extends Basic Mode):
-```ruby
-# Basic mode keys plus:
-session['account_external_id'] = account.id  # Rodauth account external_id
-session['advanced_account_id'] = account.id  # Rodauth account ID
-```
+**Session Keys Comparison**:
+
+| Session Key | Basic Mode | Advanced Mode | Purpose |
+|------------|------------|---------------|---------|
+| `authenticated` | ✓ | ✓ | Auth state flag |
+| `identity_id` | ✓ | ✓ | Customer ID |
+| `email` | ✓ | ✓ | User email |
+| `authenticated_at` | ✓ | ✓ | Timestamp |
+| `ip_address` | ✓ | ✓ | Client IP |
+| `user_agent` | ✓ | ✓ | Browser info |
+| `locale` | ✓ | ✓ | User locale |
+| `account_external_id` | - | ✓ | Rodauth account link |
+| `advanced_account_id` | - | ✓ | Rodauth account ID |
 
 **Application
  Architecture**:
@@ -198,33 +170,10 @@ end
 ```ruby
 # apps/web/auth/config/rodauth_main.rb
 module Auth::Config::RodauthMain
-  def self.configure
-    # Enabled features
-    enable :json, :login, :logout, :create_account, :close_account,
-           :change_password, :reset_password, :verify_account
-
-    # Session integration
-    session_key 'onetime.session'
-    only_json? true
-
-    # Otto integration methods
-    def create_otto_customer
-      customer = Onetime::Customer.create(account[:email])
-      db[:accounts].where(id: account_id).update(external_id: customer.extid)
-      customer
-    end
-
-    def sync_session_with_otto(customer = nil)
-      session['authenticated'] = true
-      session['authenticated_at'] = Time.now.to_i
-      session['identity_id'] = customer.custid if customer
-      session['account_external_id'] = account[:external_id]
-    end
-
-    # Lifecycle hooks
-    after_create_account { create_otto_customer }
-    after_login { sync_session_with_otto }
-  end
+  # Features: json, login, logout, create_account, change_password, reset_password
+  # Integration points: create_otto_customer, sync_session_with_otto
+  # Hooks: after_create_account, after_login
+  # Session key: 'onetime.session' (shared with basic mode)
 end
 ```
 
@@ -299,26 +248,8 @@ GET /api/v2/secret/:key V2::Logic::Secrets::ShowSecret auth=noauth
 ```ruby
 class SessionAuthStrategy < BaseSessionAuthStrategy
   def authenticate(env, _requirement)
-    session = env['rack.session']
-    return failure('[SESSION_MISSING] No session') unless session
-
-    # Core difference: strict authentication requirement
-    unless session['authenticated'] == true
-      return failure('[SESSION_NOT_AUTHENTICATED] Not authenticated')
-    end
-
-    identity_id = session['identity_id']
-    return failure('[IDENTITY_MISSING] No identity') if identity_id.to_s.empty?
-
-    cust = Onetime::Customer.load(identity_id)
-    return failure('[CUSTOMER_NOT_FOUND] Customer not found') unless cust
-
-    success(
-      session: session,
-      user: cust,
-      auth_method: 'sessionauth',
-      metadata: build_metadata(env)
-    )
+    # Core validation: session['authenticated'] == true
+    # Returns: failure or success with Customer object
   end
 end
 
@@ -332,23 +263,7 @@ GET /api/v2/account V2::Logic::Account::GetAccount auth=sessionauth
 **Access**: Users with `:colonel` role
 **User**: Authenticated `Customer` with admin role
 
-**Extends SessionAuthStrategy** with additional role validation:
-
-```ruby
-class ColonelStrategy < BaseSessionAuthStrategy
-  def additional_checks(cust, _env)
-    return failure('[ROLE_COLONEL_REQUIRED] Colonel role required') unless cust.role?(:colonel)
-    nil
-  end
-
-  def additional_metadata(_cust)
-    { role: 'colonel' }
-  end
-end
-
-# Routes using this strategy:
-GET /colonel Core::Controllers::Colonel#dashboard auth=colonelsonly
-```
+Extends `SessionAuthStrategy` with `role?(:colonel)` check.
 
 ### BasicAuthStrategy (`auth=basicauth`)
 
@@ -364,32 +279,9 @@ GET /colonel Core::Controllers::Colonel#dashboard auth=colonelsonly
 ```ruby
 class BasicAuthStrategy < Otto::Security::AuthStrategy
   def authenticate(env, _requirement)
-    # Parse HTTP Authorization header instead of session
-    auth_header = env['HTTP_AUTHORIZATION']
-    return failure('[AUTH_HEADER_MISSING]') unless auth_header
-
-    unless auth_header.start_with?('Basic ')
-      return failure('[AUTH_TYPE_INVALID]')
-    end
-
-    encoded = auth_header.sub('Basic ', '')
-    decoded = Base64.decode64(encoded)
-    username, apikey = decoded.split(':', 2)
-
-    cust = Onetime::Customer.load(username)
-
-    # Timing attack prevention with dummy hash
-    dummy_hash = Digest::SHA256.hexdigest("dummy:#{username}")
-    valid_apikey = cust ? cust.valid_apikey?(apikey) : false
-
-    return failure('[CREDENTIALS_INVALID]') unless valid_apikey
-
-    success(
-      session: {},  # Stateless - no session for Basic auth
-      user: cust,
-      auth_method: 'basic_auth',
-      metadata: build_metadata(env, { auth_type: 'basic' })
-    )
+    # Reads: HTTP Authorization header
+    # Validates: Basic auth credentials with timing attack prevention
+    # Returns: success with empty session (stateless)
   end
 end
 ```
@@ -397,32 +289,21 @@ end
 # Routes using this strategy:
 GET /api/v2/status V2::Controllers::Status#show auth=basicauth
 ```
+### Strategy Comparison
 
-### Application Delegation Pattern
+| Strategy | Auth Check | State | Session | Use Case |
+|----------|-----------|-------|---------|----------|
+| `noauth` | None | Stateless | Read-only | Public endpoints |
+| `sessionauth` | `session['authenticated']` | Stateful | Read/Write | Web UI |
+| `colonelsonly` | `sessionauth` + `:colonel` role | Stateful | Read/Write | Admin UI |
+| `basicauth` | HTTP Basic Auth | Stateless | Empty `{}` | API endpoints |
 
-All applications delegate to centralized strategies with application-specific strategy sets:
+### Application Registration
 
-```ruby
-# apps/web/core/auth_strategies.rb
-module Core::AuthStrategies
-  def self.register_essential(otto)
-    # Always register public strategy
-    otto.add_auth_strategy('noauth',
-      Onetime::Application::AuthStrategies::NoAuthStrategy.new)
-
-    return unless Onetime::Application::AuthStrategies.authentication_enabled?
-
-    # Register session-based strategies
-    otto.add_auth_strategy('sessionauth',
-      Onetime::Application::AuthStrategies::SessionAuthStrategy.new)
-    otto.add_auth_strategy('colonelsonly',
-      Onetime::Application::AuthStrategies::ColonelStrategy.new)
-  end
-end
-
-# Core registers: noauth, sessionauth, colonelsonly
-# V2 registers: noauth, sessionauth, basicauth
-```
+| Application | Registered Strategies | Purpose |
+|------------|----------------------|---------|
+| Core | `noauth`, `sessionauth`, `colonelsonly` | Web UI routes |
+| V2 | `noauth`, `sessionauth`, `basicauth` | API endpoints |
 
 ## Controllers and Logic
 
@@ -540,54 +421,17 @@ end
 ```ruby
 class IdentityResolution
   def call(env)
-    request = Rack::Request.new(env)
-    identity = resolve_identity(request, env)
-
-    # Store resolved identity in environment
-    env['identity.resolved']      = identity[:user]
-    env['identity.source']        = identity[:source]
-    env['identity.authenticated'] = identity[:authenticated]
-    env['identity.metadata']      = identity[:metadata]
-
-    @app.call(env)
+    # Resolves identity based on auth mode
+    # Sets env['identity.*'] keys
+    # Delegates to @app
   end
 
   private
-
-  def resolve_identity(request, env)
-    auth_mode = detect_auth_mode
-
-    case auth_mode
-    when 'advanced'
-      resolve_advanced_identity(request, env)
-    when 'basic'
-      resolve_basic_identity(request, env)
-    else
-      resolve_anonymous_identity(request, env)
-    end
-  end
-
-  def resolve_advanced_identity(_request, env)
-    session = env['rack.session']
-    return no_identity unless session
-    return no_identity unless session['authenticated'] == true
-
-    # Lookup customer by external_id from Rodauth
-    customer = Onetime::Customer.find_by_extid(session['account_external_id'])
-    return no_identity unless customer
-
-    {
-      user: customer,
-      source: 'advanced',
-      authenticated: true,
-      metadata: {
-        customer_id: customer.objid,
-        external_id: customer.extid,
-        account_id: session['advanced_account_id'],
-        authenticated_at: session['authenticated_at']
-      }
-    }
-  end
+  # Key decisions:
+  # - Check session['authenticated'] == true
+  # - Advanced mode: lookup via session['account_external_id']
+  # - Basic mode: lookup via session['identity_id']
+  # - Returns identity hash with user, source, authenticated, metadata
 end
 ```
 
@@ -622,105 +466,45 @@ end
 
 ### Session Middleware
 
-```ruby
-# lib/onetime/application/middleware_stack.rb
-builder.use Onetime::MinimalSession, {
-  secret: Onetime.auth_config.session['secret'],
-  expire_after: expire_after,
-  key: 'onetime.session',                  # Cookie name
-  secure: Onetime.conf&.dig('site', 'ssl'),
-  httponly: true,
-  same_site: :strict
-}
-```
+- **Class**: `Onetime::MinimalSession`
+- **Cookie**: `onetime.session`
+- **Security flags**: `secure`, `httponly`, `same_site: :strict`
+- **Backend**: Redis via HMAC-signed storage
 
 ### Authentication Mode
 
-```bash
-# Environment variables
-AUTHENTICATION_MODE=basic   # or 'advanced'
-HMAC_SECRET=...            # For session integrity
-DATABASE_URL=...           # PostgreSQL (advanced mode only)
-```
+**Environment Variables**:
+- `AUTHENTICATION_MODE`: `basic` or `advanced`
+- `HMAC_SECRET`: Session integrity
+- `DATABASE_URL`: PostgreSQL (advanced mode only)
 
-```yaml
-# etc/config.yaml
-authentication:
-  mode: basic
-  session:
-    expire_after: expire_after
-    key: onetime.session
-  colonels:
-    - admin@example.com
-```
+**Configuration** (`etc/config.yaml`):
+- `authentication.mode`: Authentication strategy
+- `authentication.session`: Session parameters
+- `authentication.colonels`: Admin users list
 
 ## Security Considerations
 
 ### Session Security
 
-- **Cookie Attributes**:
-  - `secure: true` (HTTPS only in production)
-  - `httponly: true` (no JavaScript access)
-  - `same_site: :strict` (CSRF protection)
-- **Session Validation**:
-  - 24-hour expiration with sliding window
-  - HMAC-based integrity verification
-  - Automatic cleanup of expired sessions
-- **Session Storage**:
-  - Redis with HMAC-signed + Base64-encoded data
-  - No sensitive data in cookies (only session ID)
+- **Cookie Security**: `secure`, `httponly`, `same_site: :strict`
+- **Session Protection**: HMAC integrity, 24-hour expiration, Redis storage
+- **No sensitive data in cookies** - only session ID
 
 ### Authentication Security
 
-- **Password Hashing**:
-  - BCrypt via `Customer#update_passphrase`
-  - Automatic salt generation
-  - Work factor configured for security/performance balance
-- **API Key Security**:
-  - Constant-time comparison to prevent timing attacks
-  - Separate API keys from passwords
-  - Rate limiting on authentication endpoints
-- **Timing Attack Prevention**:
-  - Dummy hash comparison for non-existent users
-  - Consistent execution time regardless of user existence
+- **Password Hashing**: BCrypt with automatic salt generation
+- **API Key Separation**: Distinct from passwords, constant-time comparison
+- **Rate Limiting**: Protection on authentication endpoints
+- **Timing Attack Prevention**: Consistent execution time for all attempts
 
 ## Architecture Benefits
 
-### Post-Routing Authentication
-
-- Full route context available during authentication
-- Clean separation of routing and authorization
-- Flexible per-route authentication requirements
-- No middleware order dependencies
-
-### Single Source of Truth
-
-- Session data centralized in Redis
-- Environment keys for request-scoped state
-- Clear read/write boundaries
-- No state duplication
-
-### Separation of Concerns
-
-- **Session Middleware**: Persistence layer (Redis I/O)
-- **Identity Resolution**: Mode detection and identity loading
-- **Otto Strategies**: Authorization enforcement
-- **Controllers**: Read authentication state
-- **Logic Classes**: Write authentication state
-
-### Testability
-
-- Controllers testable with mocked environment
-- Logic classes testable with StrategyResult objects
-- Strategies testable in isolation
-- No global state dependencies
-
-### Framework Alignment
-
-- Otto's post-routing authentication provides full route context
-- Rodauth's Roda integration preserves Rack conventions
-- Shared session ensures state consistency
-- Clean integration points between frameworks
+- **Post-Routing**: Full route context available during authentication
+- **Single Source of Truth**: Redis session, clear read/write boundaries
+- **Separation of Concerns**: Middleware → Identity → Strategies → Controllers → Logic
+- **Testability**: Mockable environment, isolated components, no global state
+- **Framework Alignment**: Otto + Rodauth + Rack work in harmony
 
 ## References
 
