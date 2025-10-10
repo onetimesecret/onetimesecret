@@ -5,28 +5,15 @@ module Auth
     module Hooks
       module Authentication
         def self.configure(rodauth_config)
-          rodauth_config.instance_eval do
-            # Custom login logic with Otto integration
-            after_login do
-              puts "User logged in: #{account[:email]} from #{request.ip}"
-
-              # Track login analytics or update last login time
-              DB[:accounts].where(id: account_id).update(
-                last_login_at: Sequel::CURRENT_TIMESTAMP,
-                last_login_ip: request.ip
-              )
-
-              # Store identity information in session for Otto integration
-              session['advanced_account_id'] = account_id
-              session['account_external_id'] = account[:external_id]
-              session['authenticated_at'] = Familia.now
-            end
-
-            # Handle login failures
-            after_login_failure do
-              puts "Login failure for: #{param('email')} from #{request.ip}"
-            end
-          end
+          # Hooks have been moved to rodauth_main.rb for better method visibility
+          # This file is kept for organizational reference but no longer configures hooks
+          # See rodauth_main.rb for all authentication hooks:
+          # - after_login
+          # - before_logout
+          # - after_logout
+          # - after_reset_password_request
+          # - after_reset_password
+          # - after_change_password
         end
       end
     end
