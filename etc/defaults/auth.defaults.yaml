@@ -9,7 +9,7 @@ mode: basic
 session:
   secret: <%= ENV['SESSION_SECRET'] %>
   expire_after: 86400       # 24 hours
-  key: 'ots.session'        # Unified cookie name
+  key: 'onetime.session'        # Unified cookie name
   secure: true              # Set based on SSL configuration
   same_site: strict
 
