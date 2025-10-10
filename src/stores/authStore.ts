@@ -59,6 +59,7 @@ export type AuthStore = {
   init: () => { needsCheck: boolean; isInitialized: boolean };
   checkWindowStatus: () => Promise<boolean>;
   refreshAuthState: () => Promise<boolean>;
+  setAuthenticated: (value: boolean) => Promise<void>;
   logout: () => Promise<void>;
   $scheduleNextCheck: () => void;
   $stopAuthCheck: () => Promise<void>;
@@ -272,17 +273,17 @@ export const useAuthStore = defineStore('auth', () => {
    *
    * @param value - The authentication state to set
    */
-  function setAuthenticated(value: boolean) {
+  async function setAuthenticated(value: boolean) {
     isAuthenticated.value = value;
 
     if (value) {
-      lastCheckTime.value = Date.now();
-      $scheduleNextCheck();
+      // Fetch fresh window state immediately to get customer data
+      await checkWindowStatus();
     } else {
-      $stopAuthCheck();
+      await $stopAuthCheck();
     }
 
-    // Sync window state
+    // Sync window state flag
     if (window.__ONETIME_STATE__) {
       window.__ONETIME_STATE__.authenticated = value;
     }
