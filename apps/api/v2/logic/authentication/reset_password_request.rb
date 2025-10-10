@@ -29,7 +29,7 @@ module V2::Logic
           return set_info_message(msg)
         end
 
-        secret                    = Onetime::Secret.create @objid, [@objid]
+        secret                    = Onetime::Secret.create! @objid, [@objid]
         secret.default_expiration = 24.hours
         secret.verification       = 'true'
         secret.save

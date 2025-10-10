@@ -144,9 +144,9 @@ class AuthService < Roda
 
         # Create or load customer using email as custid
         customer = if Onetime::Customer.exists?(account[:email])
-          Onetime::Customer.load(account[:email])
+          Onetime::Customer.find_by_email(account[:email])
         else
-          Onetime::Customer.create(account[:email])
+          Onetime::Customer.create!(account[:email])
         end
         puts "Created Otto customer: #{customer.custid} with extid: #{customer.extid}"
 

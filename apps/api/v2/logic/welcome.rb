@@ -64,7 +64,7 @@ module V2
             else
               OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with new user #{checkout_email}"
 
-              cust          = Onetime::Customer.create(checkout_email)
+              cust          = Onetime::Customer.create!(checkout_email)
               cust.planid   = 'identity'
               cust.verified = 'true'
               cust.role     = 'customer'

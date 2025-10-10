@@ -224,7 +224,6 @@ module Core
       # @return [Hash, nil] JSON error Hash for routes with response=json, nil otherwise
       def handle_form_error(ex, redirect_path = nil, field: nil)
         OT.le "Form error occurred: #{ex.message}"
-        OT.ld ex.backtrace
         if json_requested?
           field ||= ex.message.downcase.include?('password') ? 'password' : 'email'
           json_error(ex.message, field_error: [field, ex.message.downcase], status: 400)

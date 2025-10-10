@@ -32,7 +32,7 @@ module Onetime
   class MinimalSession < Rack::Session::Abstract::PersistedSecure
     unless defined?(DEFAULT_OPTIONS)
       DEFAULT_OPTIONS = {
-        key: 'rack.session',
+        key: 'onetime.session',
         expire_after: 86_400, # 24 hours default
         namespace: 'session',
         sidbits: 256,  # Required by Rack::Session::Abstract::Persisted
@@ -48,11 +48,11 @@ module Onetime
 
       # Merge options with defaults
       options = DEFAULT_OPTIONS.merge(options)
-
+      options[:key] = 'plop'
       # Configure Familia connection if redis_uri provided
       @dbclient = options[:dbclient] || Familia.dbclient
 
-      super
+      super(app, options)
 
       @secret = options[:secret]
       @expire_after = options[:expire_after]
@@ -92,6 +92,7 @@ module Onetime
       # Additional security checks could go here
       true
     end
+
 
     def valid_hmac?(data, hmac)
       expected = compute_hmac(data)

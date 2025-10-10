@@ -93,7 +93,7 @@ module Onetime
 
           success(
             session: session,
-            user: cust,
+            user: cust.anonymous? ? nil : cust,  # Pass nil for anonymous users
             auth_method: 'noauth',
             metadata: build_metadata(env),
           )

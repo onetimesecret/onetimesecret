@@ -33,7 +33,7 @@ module V2::Logic
       def process
         @greenlighted  = true
         OT.ld "[AddDomain] Processing #{@display_domain}"
-        @custom_domain = Onetime::CustomDomain.create(@display_domain, @cust.custid)
+        @custom_domain = Onetime::CustomDomain.create!(@display_domain, @cust.custid)
 
         begin
           # Create the approximated vhost for this domain. Approximated provides a

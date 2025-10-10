@@ -18,7 +18,7 @@ module Auth
                 customer = if Onetime::Customer.exists?(account[:email])
                   Onetime::Customer.load(account[:email])
                 else
-                  Onetime::Customer.create(account[:email])
+                  Onetime::Customer.create!(account[:email])
                 end
                 puts "Created Otto customer: #{customer.custid} with extid: #{customer.extid}"
 
