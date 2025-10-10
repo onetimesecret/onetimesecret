@@ -56,7 +56,7 @@ module Onetime
         end
 
         config.transaction_mode = :warn
-        config.pipeline_mode    = :warn
+        config.pipelined_mode    = :warn
       end
 
       # Verify connectivity using pool (tests first connection + reconnection config)
