@@ -8,52 +8,18 @@ module Auth
   module Config
     def self.configure
         proc do
-          # 1. Database connection
-          db Auth::Config::Database.connection
+          # 1. Load base configuration (database, session, JSON mode)
+          Features::Base.configure(self)
 
-          # 2. Enable all required features first
-          features = [:json, :login, :logout, :create_account, :close_account,
-                      :change_password, :reset_password]
+          # 2. Load feature configurations
+          Features::Authentication.configure(self)
+          Features::AccountManagement.configure(self)
 
-          # Only enable verify_account in non-test environments
-          features << :verify_account unless ENV['RACK_ENV'] == 'test'
+          # Optional features (conditionally enabled)
+          Features::Security.configure(self) if ENV['ENABLE_SECURITY_FEATURES'] != 'false'
+          Features::MFA.configure(self) if ENV['ENABLE_MFA'] == 'true'
 
-          enable *features
-
-          # 3. Basic configuration
-          # HMAC secret for session integrity - critical security parameter
-          hmac_secret_value = ENV['HMAC_SECRET'] || ENV['AUTH_SECRET']
-
-          if hmac_secret_value.nil? || hmac_secret_value.empty?
-            if Onetime.production?
-              raise 'HMAC_SECRET or AUTH_SECRET environment variable must be set in production'
-            else
-              OT.info '[rodauth] WARNING: Using default HMAC secret for development - DO NOT use in production'
-              hmac_secret_value = 'dev-hmac-secret-change-in-prod'
-            end
-          end
-
-          hmac_secret hmac_secret_value
-
-          # Note: No prefix needed here - Auth app is already mounted at /auth
-
-          # JSON-only mode configuration
-          json_response_success_key :success
-          json_response_error_key :error
-          only_json? true
-
-          # Account configuration
-          account_id_column :id
-          login_column :email
-          login_label 'Email'
-
-          # Session configuration (unified with other apps)
-          session_key 'onetime.session'
-
-          # Password requirements
-          password_minimum_length 8
-
-          # Email configuration
+          # 3. Email configuration
           email_from 'noreply@onetimesecret.com'
           email_subject_prefix '[OneTimeSecret] '
 
@@ -87,22 +53,7 @@ Subject: #{email[:subject]}
             end
           end
 
-          # 4. Override authentication check for Redis session compatibility
-          def authenticated?
-            super && redis_session_valid?
-          end
-
-          def redis_session_valid?
-            return false unless session['authenticated_at']
-            return false unless session['account_external_id'] || session['advanced_account_id']
-
-            # Check session age against configured expiry
-            max_age = Onetime.auth_config.session['expire_after'] || 86400
-            age = Time.now.to_i - session['authenticated_at'].to_i
-            age < max_age
-          end
-
-          # 5. Load and configure all hooks from modular files
+          # 4. Load and configure all hooks from modular files
           [
             Hooks::Validation.configure,
             Hooks::RateLimiting.configure,
@@ -112,11 +63,6 @@ Subject: #{email[:subject]}
           ].each do |hook_proc|
             instance_eval(&hook_proc)
           end
-
-          # 6. Configure MFA hooks (if MFA features are enabled)
-          # These would be added when MFA features are enabled
-          # after_otp_setup { ... }
-          # after_otp_disable { ... }
         end
       end
     end
