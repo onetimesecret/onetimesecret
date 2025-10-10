@@ -216,8 +216,9 @@ module Onetime
       end
 
       def build_basic_user(customer, session)
-        # Build user object from customer and session data
-        BasicUser.new(customer, session)
+        # Return the customer object directly
+        # Session metadata is already available in identity[:metadata]
+        customer
       end
 
       def build_anonymous_user(request)

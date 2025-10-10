@@ -26,6 +26,8 @@ require 'familia'
 #     expire_after: 3600*24,  # 24 hours
 #     secure: true,  # HTTPS only
 #
+# @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/abstract/id.rb
+# @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/encryptor.rb
 module Onetime
   class MinimalSession < Rack::Session::Abstract::PersistedSecure
     unless defined?(DEFAULT_OPTIONS)
@@ -74,20 +76,13 @@ module Onetime
     end
 
     def delete_session(_request, sid, _options)
-      if stringkey = get_stringkey(sid)
+      # Extract string ID from SessionId object if needed
+      sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
+
+      if stringkey = get_stringkey(sid_string)
         stringkey.del
       end
       generate_sid
-    end
-
-    # Extract and validate session ID from request
-    def extract_session_id(request)
-      sid = request.cookies[@key]
-
-      # Validate the session ID format/signature
-      return nil unless valid_session_id?(sid)
-
-      sid
     end
 
     def valid_session_id?(sid)
@@ -112,10 +107,17 @@ module Onetime
     end
 
     def find_session(request, sid)
-      sid = extract_session_id(request) || generate_sid
+      # Parent class already extracts sid from cookies
+      # sid may be a SessionId object or nil
+      sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
+
+      # Only generate new sid if none provided or invalid
+      unless sid_string && valid_session_id?(sid_string)
+        return [generate_sid, {}]
+      end
 
       begin
-        stringkey = get_stringkey(sid)
+        stringkey = get_stringkey(sid_string)
         stored_data = stringkey.value if stringkey
 
         # If no data stored, return empty session
@@ -136,7 +138,7 @@ module Onetime
         [sid, session_data]
       rescue StandardError => e
         # Log error in development/debugging
-        Familia.ld "[MinimalSession] Error reading session #{sid}: #{e.message}"
+        Familia.ld "[MinimalSession] Error reading session #{sid_string}: #{e.message}"
 
         # Return new session on any error
         [generate_sid, {}]
@@ -144,13 +146,16 @@ module Onetime
     end
 
     def write_session(_request, sid, session_data, _options)
+      # Extract string ID from SessionId object if needed
+      sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
+
       # Serialize and sign the data
       encoded = Base64.encode64(Familia::JsonSerializer.dump(session_data)).delete("\n")
       hmac = compute_hmac(encoded)
       signed_data = "#{encoded}--#{hmac}"
 
       # Get or create StringKey for this session
-      stringkey = get_stringkey(sid)
+      stringkey = get_stringkey(sid_string)
 
       # Save the session data
       stringkey.set(signed_data)
@@ -158,18 +163,14 @@ module Onetime
       # Update expiration if configured
       stringkey.update_expiration(expiration: @expire_after) if @expire_after && @expire_after > 0
 
+      # Return the original sid (may be SessionId object)
       sid
     rescue StandardError => e
       # Log error in development/debugging
-      Familia.ld "[MinimalSession] Error writing session #{sid}: #{e.message}"
+      Familia.ld "[MinimalSession] Error writing session #{sid_string}: #{e.message}"
 
       # Return false to indicate failure
       false
-    end
-
-    def generate_sid
-      # Generate cryptographically secure session ID
-      SecureRandom.hex(32)
     end
 
     # Clean up expired sessions (optional, can be called periodically)

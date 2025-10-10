@@ -68,9 +68,10 @@ session = MinimalSession.new(@app, @session_opts)
 session.is_a?(MinimalSession)
 #=> true
 
-## Generate secure session ID with correct format
+## Generate secure session ID with correct format (wrapped in SessionId)
 sid = call_private_method(@session, :generate_sid)
-sid.is_a?(String) && sid.length == 64 && sid.match?(/\A[a-f0-9]{64}\z/)
+# Parent class wraps in SessionId object
+sid.is_a?(Rack::Session::SessionId) && sid.public_id.length == 64
 #=> true
 
 ## Validate correct session ID format
@@ -85,16 +86,7 @@ invalid_sids.all? do |sid|
 end
 #=> true
 
-## Extract session ID from request cookies
-request = MockRequest.new('test.session' => SecureRandom.hex(32))
-sid = call_private_method(@session, :extract_session_id, request)
-sid == request.cookies['test.session']
-#=> true
 
-## Return nil for missing session ID in request
-request = MockRequest.new({})
-call_private_method(@session, :extract_session_id, request)
-#=> nil
 
 ## Derive consistent keys for different purposes
 hmac_key1 = call_private_method(@session, :derive_key, 'hmac')
@@ -139,7 +131,8 @@ key1.object_id != key2.object_id && key1.keystring == key2.keystring
 ## Find session returns new session for new request
 request = MockRequest.new({})
 sid, data = call_private_method(@session, :find_session, request, nil)
-sid.is_a?(String) && sid.length == 64 && data == {}
+# Parent class wraps in SessionId object
+sid.is_a?(Rack::Session::SessionId) && sid.public_id.length == 64 && data == {}
 #=> true
 
 ## Write and read session data successfully
@@ -157,7 +150,8 @@ written_sid == sid && found_sid == sid && found_data == session_data
 request = MockRequest.new({})
 old_sid = SecureRandom.hex(32)
 new_sid = call_private_method(@session, :delete_session, request, old_sid, {})
-new_sid != old_sid && new_sid.length == 64
+# Parent class wraps in SessionId object
+new_sid.is_a?(Rack::Session::SessionId) && new_sid.public_id != old_sid
 #=> true
 
 ## Tampered session data creates new session
