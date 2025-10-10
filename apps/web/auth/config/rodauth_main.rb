@@ -39,30 +39,6 @@ module Auth
           email_from 'noreply@onetimesecret.com'
           email_subject_prefix '[OneTimeSecret] '
 
-          # Disable email sending in test/development to avoid SMTP errors
-          if ENV['RACK_ENV'] == 'test' || Onetime.development?
-            # Skip email requirements for development/test
-            skip_status_checks? true
-
-            # Override email sending methods to no-ops
-            def create_account_email
-              # No-op in test/development - avoid SMTP errors
-            end
-
-            def reset_password_email
-              # No-op in test/development - avoid SMTP errors
-            end
-
-            def verify_account_email
-              # No-op in test/development - avoid SMTP errors
-            end
-
-            def send_email(email)
-              # No-op in test/development - avoid SMTP errors
-              OT.ld "[rodauth] Skipping email send in #{ENV['RACK_ENV']} environment"
-            end
-          end
-
           # 4. Define Otto integration methods as instance methods
           def create_otto_customer
             begin

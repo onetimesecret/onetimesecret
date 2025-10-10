@@ -51,14 +51,12 @@ module Auth
         OT.ld "  SCRIPT_NAME: '#{r.env['SCRIPT_NAME']}'"
       end
 
-      # Handle empty path (when accessed as /auth without trailing slash)
-      if r.path_info == ''
-        { message: 'OneTimeSecret Authentication Service', version: Onetime::VERSION }
-      end
-
-      # Home page - JSON API info
-      r.root do
-        { message: 'OneTimeSecret Authentication Service', version: Onetime::VERSION }
+      # Root path - Auth app info
+      # When mounted at /auth, this handles requests to /auth and /auth/
+      r.is do
+        r.get do
+          { message: 'OneTimeSecret Authentication Service', version: Onetime::VERSION }
+        end
       end
 
       # All Rodauth routes (login, logout, create-account, reset-password, etc.)
