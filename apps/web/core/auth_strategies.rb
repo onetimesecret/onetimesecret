@@ -29,7 +29,8 @@ module Core
     #
     # @param otto [Otto] Otto router instance
     def register_essential(otto)
-      otto.enable_authentication!
+      # Note: enable_authentication! is not needed - RouteAuthWrapper handles it
+      # Authentication now happens via post-routing handler wrapping (not middleware)
 
       # Public routes - always available (anonymous or authenticated)
       otto.add_auth_strategy('noauth', Onetime::Application::AuthStrategies::NoAuthStrategy.new)

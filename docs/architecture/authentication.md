@@ -9,9 +9,9 @@ labels: authstrategies
 
 ## Overview
 
-Onetime Secret uses Otto's authentication framework following standard Rack conventions. This document describes our concrete implementation of Otto's prescribed architecture for session and environment management.
+Onetime Secret uses Otto's post-routing authentication pattern following standard Rack conventions. Authentication strategies execute after route matching but before controller execution, providing access to both route requirements and session state.
 
-## Architecture Pattern: Otto Prescribed Flow
+## Architecture Pattern: Post-Routing Authentication
 
 ```
 1. Request arrives
@@ -22,33 +22,38 @@ Onetime Secret uses Otto's authentication framework following standard Rack conv
    Sets: env['rack.session']
    Cookie: 'onetime.session'
 
-3. Identity Resolution Middleware (Optional - Advanced Mode Only)
-   Location: lib/onetime/middleware/identity_resolution.rb
-   Class: Onetime::Middleware::IdentityResolution
-   Reads: env['rack.session']
-   Sets: env['identity.resolved'], env['identity.authenticated'], env['identity.source']
+3. Otto Router
+   Location: Otto gem (lib/otto/core/router.rb)
+   - Matches route based on path and method
+   - Sets env['otto.route_definition']
 
-4. Otto's AuthenticationMiddleware
-   Location: otto gem (lib/otto/security/authentication/authentication_middleware.rb)
-   Class: Otto::Security::Authentication::AuthenticationMiddleware
-   - Reads env['otto.route_definition'] (set by Otto router)
-   - Selects strategy based on route's auth requirement
-   - Strategy.authenticate(env, requirement) reads env['rack.session']
+4. Route Handler Factory
+   Location: Otto gem (lib/otto/route_handlers/factory.rb)
+   - Creates appropriate handler (Instance, Class, Logic)
+   - Wraps with RouteAuthWrapper if auth_requirement exists
+
+5. RouteAuthWrapper (Authentication Enforcement)
+   Location: Otto gem (lib/otto/security/authentication/route_auth_wrapper.rb)
+   - Reads auth_requirement from route_definition
+   - Executes matching auth strategy
+   - Strategy reads env['rack.session'] and route_definition
    - Creates StrategyResult
    - Sets env['otto.strategy_result'], env['otto.user'], env['otto.user_context']
+   - On success: calls wrapped handler
+   - On failure: returns 401/redirect
 
-5. Application Controllers
+6. Application Controllers
    Location: apps/web/core/controllers/*, apps/api/v2/controllers/*
    Pattern: req.env['otto.user'], req.env['otto.strategy_result']
    - Read from env, never from session directly
 
-6. Logic Classes (on auth state changes)
+7. Logic Classes (on auth state changes)
    Location: apps/api/v2/logic/authentication/*, apps/api/v2/logic/account/*
    Pattern: @strategy_result.session['key'] = value
    - Write to session via StrategyResult.session attribute
    - Only on login/logout/registration
 
-7. Session Middleware persists to Redis
+8. Session Middleware persists to Redis
    Same middleware as step 2
 ```
 
@@ -65,13 +70,13 @@ Session stores authentication state that persists across requests:
 ```ruby
 # Written by Logic classes on login/registration
 # Location: apps/api/v2/logic/authentication/authenticate_session.rb
-session['authenticated']      = true          # Boolean flag
-session['identity_id']        = customer.custid  # Customer ID
-session['email']              = customer.email   # Email
-session['authenticated_at']   = Time.now.to_i    # Login timestamp
-session['ip_address']         = ip               # Client IP
-session['user_agent']         = user_agent       # Client UA
-session['locale']             = locale           # User locale
+session['authenticated']      = true               # Boolean flag
+session['identity_id']        = customer.custid    # Customer ID
+session['email']              = customer.email     # Email
+session['authenticated_at']   = Time.now.to_i      # Login timestamp
+session['ip_address']         = ip                 # Client IP
+session['user_agent']         = user_agent         # Client UA
+session['locale']             = locale             # User locale
 
 # Advanced mode adds (written by Rodauth)
 # Location: apps/web/auth/config/features/*.rb
@@ -80,24 +85,18 @@ session['advanced_account_id'] = account.id        # Rodauth account ID
 ```
 
 **Write Pattern:** Only authentication Logic classes write to session
-**Read Pattern:** Only middleware reads from session (controllers never read directly)
+**Read Pattern:** Only auth strategies read from session (controllers never read directly)
 
 ### Environment: Request-Scoped State
 
-Otto's AuthenticationMiddleware reads from `env['rack.session']` once per request and populates `env`:
+Otto's RouteAuthWrapper reads from `env['rack.session']` once per request and populates `env`:
 
 ```ruby
-# Set by Otto's AuthenticationMiddleware
+# Set by Otto's RouteAuthWrapper
 env['otto.strategy_result']   # StrategyResult object
 env['otto.user']              # User object (Customer instance)
 env['otto.user_context']      # User context hash
-env['otto.route_definition']  # Current route definition
-
-# Set by IdentityResolution middleware (advanced mode only)
-env['identity.resolved']      # Resolved identity (Customer or Account)
-env['identity.authenticated'] # Boolean
-env['identity.source']        # 'advanced', 'basic', or 'redis'
-env['identity.metadata']      # Additional metadata
+env['otto.route_definition']  # Current route definition (set by router)
 ```
 
 **Single Source of Truth:** All application code reads from `env`, never from session
@@ -130,11 +129,11 @@ Onetime Secret supports two authentication modes, configured via `AUTHENTICATION
 **Use Case:** Multi-tenant, external authentication, compliance requirements
 
 **Flow:**
-1. User submits credentials to Auth app (`/auth/login`Rodauth)
+1. User submits credentials to Auth app (`/auth/login` via Rodauth)
 2. Rodauth validates credentials, writes to PostgreSQL + session
 3. Redis persists session
-4. IdentityResolution middleware loads Customer from session
-5. Future requests use OnetimeAdvancedStrategy
+4. Future requests use auth strategies to read session
+5. Strategies load Customer from session data
 
 ## Otto Strategies
 
@@ -165,7 +164,7 @@ class Onetime::Application::AuthStrategies::NoAuthStrategy < Otto::Security::Aut
     success(
       session: session,
       user: cust,  # Customer instance or anonymous
-      auth_method: 'public',
+      auth_method: 'noauth',
       metadata: { ip: env['REMOTE_ADDR'], user_agent: env['HTTP_USER_AGENT'] }
     )
   end
@@ -187,15 +186,15 @@ GET /api/v2/account V2::Logic::Account::GetAccount response=json auth=sessionaut
 class Onetime::Application::AuthStrategies::SessionAuthStrategy < BaseSessionAuthStrategy
   def authenticate(env, _requirement)
     session = env['rack.session']
-    return failure('Not authenticated') unless session['authenticated']
+    return failure('[SESSION_NOT_AUTHENTICATED] Not authenticated') unless session['authenticated']
 
     cust = Onetime::Customer.load(session['identity_id'])
-    return failure('Customer not found') unless cust
+    return failure('[CUSTOMER_NOT_FOUND] Customer not found') unless cust
 
     success(
       session: session,
       user: cust,
-      auth_method: 'session',
+      auth_method: 'sessionauth',
       metadata: { ip: env['REMOTE_ADDR'], user_agent: env['HTTP_USER_AGENT'] }
     )
   end
@@ -217,16 +216,17 @@ GET /api/v2/colonel/stats V2::Logic::Colonel::GetColonelStats response=json auth
 class Onetime::Application::AuthStrategies::ColonelStrategy < BaseSessionAuthStrategy
   def authenticate(env, _requirement)
     session = env['rack.session']
-    return failure('Not authenticated') unless session['authenticated']
+    return failure('[SESSION_NOT_AUTHENTICATED] Not authenticated') unless session['authenticated']
 
     cust = Onetime::Customer.load(session['identity_id'])
-    return failure('Colonel role required') unless cust.role?(:colonel)
+    return failure('[CUSTOMER_NOT_FOUND] Customer not found') unless cust
+    return failure('[ROLE_COLONEL_REQUIRED] Colonel role required') unless cust.role?(:colonel)
 
     success(
       session: session,
       user: cust,
       auth_method: 'colonel',
-      metadata: { ip: env['REMOTE_ADDR'], role: 'colonel' }
+      metadata: { ip: env['REMOTE_ADDR'], user_agent: env['HTTP_USER_AGENT'], role: 'colonel' }
     )
   end
 end
@@ -247,7 +247,11 @@ class Onetime::Application::AuthStrategies::BasicAuthStrategy < Otto::Security::
   def authenticate(env, _requirement)
     # Extract and validate HTTP Basic Auth credentials
     auth_header = env['HTTP_AUTHORIZATION']
-    # ... validation logic ...
+    return failure('[AUTH_HEADER_MISSING] No authorization header') unless auth_header
+
+    # Parse and validate credentials
+    username, apikey = parse_basic_auth(auth_header)
+    cust = Onetime::Customer.load(username)
 
     # Security: Uses constant-time comparison for both username and API key
     # to prevent timing attacks that could enumerate valid usernames
@@ -259,6 +263,15 @@ class Onetime::Application::AuthStrategies::BasicAuthStrategy < Otto::Security::
       Rack::Utils.secure_compare(dummy_hash, Digest::SHA256.hexdigest(apikey))
       false  # Always fail for non-existent users
     end
+
+    return failure('[CREDENTIALS_INVALID] Invalid credentials') unless valid_apikey
+
+    success(
+      session: {},  # No session for Basic auth (stateless)
+      user: cust,
+      auth_method: 'basicauth',
+      metadata: { ip: env['REMOTE_ADDR'], user_agent: env['HTTP_USER_AGENT'], auth_type: 'basic' }
+    )
   end
 end
 ```
@@ -279,8 +292,6 @@ Both applications delegate to centralized implementations:
 # apps/web/core/auth_strategies.rb
 module Core::AuthStrategies
   def self.register_essential(otto)
-    otto.enable_authentication!
-
     # Register strategies from centralized module
     otto.add_auth_strategy('noauth',
       Onetime::Application::AuthStrategies::NoAuthStrategy.new)
@@ -294,8 +305,6 @@ end
 # apps/api/v2/auth_strategies.rb
 module V2::AuthStrategies
   def self.register_essential(otto)
-    otto.enable_authentication!
-
     # V2 API registers additional BasicAuth strategy
     otto.add_auth_strategy('noauth',
       Onetime::Application::AuthStrategies::NoAuthStrategy.new)
@@ -322,35 +331,19 @@ end
 ```ruby
 module Core::Controllers
   module Base
-    # Returns StrategyResult from Otto middleware
+    # Returns StrategyResult from Otto's RouteAuthWrapper
     #
-    # Prefers middleware-provided result from Otto's AuthenticationMiddleware.
-    # Falls back to creating anonymous result if middleware didn't set one
-    # (which shouldn't happen in normal operation).
+    # RouteAuthWrapper (post-routing authentication) executes the strategy and sets
+    # req.env['otto.strategy_result'] before the controller handler runs.
     def _strategy_result
-      req.env['otto.strategy_result'] || fallback_strategy_result
+      req.env['otto.strategy_result']
     end
 
-    # Creates fallback StrategyResult for edge cases
-    #
-    # Logs warning since this indicates Otto middleware didn't run properly.
-    # Used for backward compatibility during migration.
-    def fallback_strategy_result
-      OT.le "[base_controller] WARNING: otto.strategy_result not set, creating fallback"
+    # Note: Otto v2.0.0-pre2 Migration
+    # The fallback pattern below handles cases where Otto's authentication
+    # middleware may not have run or set the strategy result properly.
 
-      Otto::Security::Authentication::StrategyResult.new(
-        session: session,
-        user: cust,
-        auth_method: 'noauth',
-        metadata: {
-          ip: req.client_ipaddress,
-          user_agent: req.user_agent,
-          fallback: true,
-        },
-      )
-    end
-
-    # Returns current customer from Otto middleware
+    # Returns current customer from Otto's RouteAuthWrapper
     def load_current_customer
       user = req.env['otto.user']
       return user if user.is_a?(Onetime::Customer)
@@ -367,9 +360,9 @@ end
 
 **Rules:**
 - ✅ **Correct:** Read from `req.env['otto.user']` or `req.env['otto.strategy_result']`
-- ✅ **Correct:** Use `_strategy_result` helper which reads from middleware
+- ✅ **Correct:** Use `_strategy_result` helper which reads from RouteAuthWrapper
 - ❌ **Wrong:** Never read from `session` directly in controllers
-- ❌ **Wrong:** Never create `StrategyResult` manually (except fallback for edge cases)
+- ❌ **Wrong:** Never create `StrategyResult` manually
 
 ### Example Controller
 
@@ -379,13 +372,13 @@ module Core::Controllers
     include Base
 
     def show
-      #  Correct - read from env
+      # ✅ Correct - read from env
       customer = req.env['otto.user']
 
-      #  Correct - use helper
+      # ✅ Correct - use helper
       strategy_result = _strategy_result
 
-      # L Wrong - don't read from session
+      # ❌ Wrong - don't read from session
       # customer_id = session['identity_id']  # NEVER DO THIS
 
       view = Core::Views::Account.new(req, session, customer, locale)
@@ -430,7 +423,7 @@ class AuthenticateSession < Base
     cust = find_customer_by_email(@params[:u])
     raise OT::FormError, 'Try again' unless cust.valid_passphrase?(@params[:p])
 
-    #  Correct - write to session via StrategyResult
+    # ✅ Correct - write to session via StrategyResult
     @sess['authenticated'] = true
     @sess['identity_id'] = cust.custid
     @sess['email'] = cust.email
@@ -447,7 +440,7 @@ end
 ```ruby
 class DestroySession < Base
   def process
-    #  Correct - clear session via StrategyResult
+    # ✅ Correct - clear session via StrategyResult
     @sess.clear
   end
 end
@@ -502,12 +495,6 @@ class CreateAccount < Base
   end
 end
 ```
-
-**Security Improvements (2025-10-09):**
-- **No Auto-Login:** Account creation no longer automatically authenticates users
-- **Bot Detection:** Honeypot field (`skill`) quietly redirects suspected bots
-- **Input Validation:** Email format, password length, duplicate account checks
-- **Proper State Check:** Uses `authenticated?` (not deprecated `success?` method)
 
 **Rules:**
 - ✅ Initialize with `StrategyResult`
@@ -569,9 +556,9 @@ end
 ```
 
 **Rules:**
--  Read from `env['rack.session']`
--  Write to `env['identity.*']`
--  Run before Otto's AuthenticationMiddleware
+- ✅ Read from `env['rack.session']`
+- ✅ Write to `env['identity.*']`
+- ✅ Run before Otto's AuthenticationMiddleware
 
 ## Testing Patterns
 
@@ -598,7 +585,7 @@ RSpec.describe V2::Logic::Authentication::AuthenticateSession do
     strategy_result = Otto::Security::Authentication::StrategyResult.new(
       session: {},
       user: Onetime::Customer.anonymous,
-      auth_method: 'public',
+      auth_method: 'noauth',
       metadata: {}
     )
 
@@ -610,94 +597,6 @@ RSpec.describe V2::Logic::Authentication::AuthenticateSession do
   end
 end
 ```
-
-## Migration from Legacy Patterns
-
-### Anti-Patterns to Avoid
-
-```ruby
-# L WRONG - Manual StrategyResult creation
-def _strategy_result
-  Otto::Security::Authentication::StrategyResult.new(
-    session: session,
-    user: cust,
-    auth_method: 'session',  # Hardcoded - loses semantic meaning
-  )
-end
-
-# L WRONG - Reading from session in controllers
-def show
-  customer_id = session['identity_id']  # Don't do this
-end
-
-# L WRONG - Using env['onetime.session']
-def authenticate(env, requirement)
-  session = env['onetime.session']  # Wrong key
-end
-```
-
-### Correct Patterns
-
-```ruby
-#  CORRECT - Use middleware-provided result
-def _strategy_result
-  req.env['otto.strategy_result']
-end
-
-#  CORRECT - Read from env in controllers
-def show
-  customer = req.env['otto.user']
-end
-
-#  CORRECT - Use env['rack.session'] in strategies
-def authenticate(env, requirement)
-  session = env['rack.session']
-end
-```
-
-### Current Architecture (As of v2.0)
-
-**Strategy Organization:**
-- `lib/onetime/application/auth_strategies.rb` - Centralized strategy implementations and registration
-- `apps/web/core/auth_strategies.rb` - Thin delegation wrapper for Web Core
-- `apps/api/v2/auth_strategies.rb` - Thin delegation wrapper for V2 API
-
-**Pattern:**
-1. All strategy implementations live in `Onetime::Application::AuthStrategies`
-2. Application-specific modules (`Core::AuthStrategies`, `V2::AuthStrategies`) delegate to centralized module
-3. Each application calls `Onetime::Application::AuthStrategies.register_essential(otto)` in `build_router`
-4. Strategies use consistent names: `noauth`, `authenticated`, `colonelsonly`, `basicauth`
-
-**Implementation:**
-```ruby
-# Centralized (lib/onetime/application/auth_strategies.rb)
-module Onetime::Application::AuthStrategies
-  def self.register_essential(otto)
-    otto.enable_authentication!
-    otto.add_auth_strategy('noauth', NoAuthStrategy.new)
-    otto.add_auth_strategy('sessionauth', SessionAuthStrategy.new)
-    otto.add_auth_strategy('colonelsonly', ColonelStrategy.new)
-  end
-
-  class NoAuthStrategy < Otto::Security::AuthStrategy
-    # Implementation...
-  end
-end
-
-# Application wrappers (apps/*/auth_strategies.rb)
-module Core::AuthStrategies
-  def self.register_essential(otto)
-    Onetime::Application::AuthStrategies.register_essential(otto)
-  end
-end
-```
-
-**Benefits:**
-- **Single Source of Truth:** One implementation for all applications
-- **DRY:** Zero duplication of strategy logic
-- **Consistency:** Guaranteed identical behavior across apps
-- **Maintainability:** Changes in one place affect all apps
-- **Extensibility:** Apps can subclass strategies if needed
 
 ## Configuration
 
@@ -745,7 +644,7 @@ authentication:
 3. **Session Validation**
    - Strategies validate `session['authenticated']`
    - Strategies load and verify customer exists
-   - Identity middleware checks session integrity
+   - Failed authentication returns 401 or redirect
 
 ### Authentication Security
 
@@ -758,10 +657,18 @@ authentication:
    - Token stored hashed in Redis
 
 3. **Timing Attack Protection**
-   - Auth adapters use timing-safe operations
+   - Auth strategies use timing-safe operations
    - Invalid credentials take same time as valid
 
 ## Architecture Benefits
+
+### Post-Routing Authentication
+
+Authentication happens AFTER routing but BEFORE handler execution:
+- **Strategies have route context:** Know which auth requirement to enforce
+- **Strategies have session access:** Can read/write authentication state
+- **No chicken-and-egg problem:** Route definition available when strategy executes
+- **Clean separation:** Routing → Authentication → Handler
 
 ### Single Source of Truth
 
@@ -769,10 +676,11 @@ authentication:
 
 ### Separation of Concerns
 
-- **Middleware:** Read session -> populate env
-- **Controllers:** Read envpass to Logic
+- **Routing:** Otto router matches routes
+- **Authentication:** RouteAuthWrapper enforces auth requirements
+- **Controllers:** Read from env, pass to Logic
 - **Logic:** Business rules + write session
-- **Middleware:** Persist sessionRedis
+- **Middleware:** Persist session to Redis
 
 ### Testability
 
@@ -780,12 +688,21 @@ Mock `env` in tests, not session. Test strategies independently.
 
 ### Framework Alignment
 
-Follows Rack conventions, Otto patterns, matches Warden/Devise architecture.
+Otto's design aligns with OneTime Secret's request-response cycle, ensuring authentication decisions are made with full route context.
+
+## Migration Notes
+
+### Otto v2.0.0-pre2 Changes
+
+The following changes were made during the Otto v2.0.0-pre2 migration:
+
+- **Removed Methods**: The `.success?` and `.failure?` methods from `StrategyResult` are no longer available
+- **Fallback Pattern**: Added fallback handling in `load_current_customer` for cases where Otto's authentication middleware doesn't set `otto.user`
+- **Strategy Result Access**: Direct access to strategy results through `req.env['otto.strategy_result']` remains unchanged
 
 ## References
 
 - **Otto Framework:** https://github.com/delano/otto
 - **Otto v2.0.0-pre2 Migration Guide:** `.serena/memories/otto-v2.0.0-pre2-migrating-guide.md`
-- **Otto Session Prescription:** `.serena/memories/2510/otto-auth-session-prescription.md`
 - **Rack Session Specification:** https://github.com/rack/rack/blob/main/SPEC.rdoc
 - **Rodauth Documentation:** https://rodauth.jeremyevans.net/
