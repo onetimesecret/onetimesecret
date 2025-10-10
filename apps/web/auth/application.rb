@@ -4,7 +4,7 @@ require 'onetime/application'
 
 # Load auth dependencies first
 require_relative 'config/database'
-require_relative 'config/rodauth_main'
+require_relative 'config'
 require_relative 'helpers/session_validation'
 require_relative 'routes/health'
 require_relative 'routes/validation'

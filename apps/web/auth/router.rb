@@ -6,7 +6,7 @@ require 'sequel'
 require 'logger'
 require 'json'
 
-require_relative 'config/rodauth_main'
+require_relative 'config'
 require_relative 'routes/account'
 require_relative 'routes/admin'
 require_relative 'routes/health'
@@ -31,10 +31,10 @@ module Auth
     plugin :halt
     plugin :status_handler
 
-    # Activate Rodauth with configuration from RodauthMain (advanced mode only)
+    # Activate Rodauth with configuration (advanced mode only)
     if Onetime.auth_config.advanced_enabled?
       plugin :rodauth do
-        instance_eval(&Auth::Config::RodauthMain.configure)
+        instance_eval(&Auth::Config.configure)
       end
     else
       # Warn if Auth app is loaded in basic mode - it shouldn't be mounted at all

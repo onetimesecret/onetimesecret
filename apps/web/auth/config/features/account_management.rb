@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# apps/web/auth/config/features/account_management.rb
 
 module Auth
   module Config

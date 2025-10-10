@@ -154,7 +154,7 @@ end
 # apps/web/auth/router.rb
 class Auth::Router < Roda
   plugin :rodauth do
-    instance_eval(&Auth::Config::RodauthMain.configure)
+    instance_eval(&Auth::Config.configure)
   end
 
   route do |r|
@@ -168,8 +168,8 @@ end
 
 **Rodauth Configuration**:
 ```ruby
-# apps/web/auth/config/rodauth_main.rb
-module Auth::Config::RodauthMain
+# apps/web/auth/config.rb
+module Auth::Config
   # Features: json, login, logout, create_account, change_password, reset_password
   # Integration points: create_otto_customer, sync_session_with_otto
   # Hooks: after_create_account, after_login
