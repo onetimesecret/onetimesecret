@@ -119,7 +119,7 @@ end
 
 **Stack**:
 - Auth app (Roda + Rodauth) mounted at `/auth`
-- PostgreSQL for Rodauth account storage
+- SQL database (PostgreSQL or SQLite) for Rodauth account storage
 - Redis for unified session management
 - Otto strategies bridge Rodauth → Otto
 
@@ -437,66 +437,47 @@ end
 
 ## Testing Patterns
 
-### Test Environment Requirements
+### Test Organization
 
-Both authentication modes require Redis/Valkey for session storage and data persistence.
+Authentication tests are organized by mode to prevent false failures and improve CI efficiency.
 
-**Required Services**:
-- **Redis/Valkey**: Session storage, customer data, secrets
-  ```bash
-  # Start test database (port 2121)
-  pnpm run test:database:start
+**Complete documentation**: See `try/integration/authentication/README.md`
 
-  # Check status
-  pnpm run test:database:status
-
-  # Stop when done
-  pnpm run test:database:stop
-  ```
-
-**Optional Services** (for password reset testing):
-- **Mailpit**: SMTP server for email delivery in dev/test
-  - Default: `localhost:1025`
-  - Environment: `MAILPIT_SMTP_HOST`, `MAILPIT_SMTP_PORT`
-
-**Test Commands**:
-```bash
-# Basic mode integration tests (Tryouts)
-AUTHENTICATION_MODE=basic FAMILIA_DEBUG=0 bundle exec try --agent try/integration/authentication/dual_mode_try.rb
-
-# Advanced mode integration tests (Tryouts)
-FAMILIA_DEBUG=0 bundle exec try --agent try/integration/authentication/advanced_mode_try.rb
-
-# Advanced mode integration tests (RSpec)
-AUTHENTICATION_MODE=advanced bundle exec rspec spec/integration/advanced_auth_mode_spec.rb
-
-# Debug specific test failures
-bundle exec try --verbose --fails --stack try/integration/authentication/dual_mode_try.rb:169-180
+**Directory Structure**:
+```
+try/integration/authentication/
+├── basic_mode/      # Redis-based auth tests (AUTHENTICATION_MODE=basic)
+├── advanced_mode/   # Rodauth tests (AUTHENTICATION_MODE=advanced)
+├── disabled_mode/   # No-auth tests (AUTHENTICATION_MODE=disabled)
+└── common/          # Tests that work in any mode
 ```
 
-### Controller Tests
+**Test Environment**:
+- **Required**: Redis/Valkey on port 2121 (`pnpm run test:database:start`)
+- **Optional**: Mailpit for email testing (`localhost:1025`)
 
-**Pattern**: Mock Otto environment variables to simulate authenticated/anonymous states
+**Running Tests**:
+```bash
+# Mode-specific tests (auto-skip if wrong mode)
+AUTHENTICATION_MODE=basic bundle exec try --agent try/integration/authentication/basic_mode/
+AUTHENTICATION_MODE=advanced bundle exec try --agent try/integration/authentication/advanced_mode/
+AUTHENTICATION_MODE=disabled bundle exec try --agent try/integration/authentication/disabled_mode/
 
-**Key Assertions**:
-- Controller reads from `env['otto.user']` (not session directly)
-- Authenticated routes return expected status codes
-- Anonymous users are handled appropriately
-- Strategy result is accessible via `_strategy_result`
+# Common tests (work in any mode)
+bundle exec try --agent try/integration/authentication/common/
+```
 
-**Test Approach**: Set `env['otto.user']` and `env['otto.strategy_result']` to simulate different authentication states
+### Test Patterns
 
-### Logic Tests
+**Controllers**: Mock `env['otto.user']` and `env['otto.strategy_result']` - never read session directly
 
-**Pattern**: Create `StrategyResult` objects with session state, test session mutations
+**Logic Classes**: Use `StrategyResult` objects with session state, verify session writes via `strategy_result.session`
 
-**Key Assertions**:
-- Logic writes correct session keys after authentication
-- Session is cleared on logout
-- Customer objects are properly loaded/created
-- Error conditions raise appropriate exceptions
-
-**Test Approach**: Initialize Logic classes with `StrategyResult` objects, verify session changes via `strategy_result.session`
+**Key Principles**:
+- Controllers read from environment only
+- Logic classes write to session only
+- Tests simulate authentication via environment variables
+- Mode-specific tests auto-skip in wrong mode
 
 
 ## Configuration
@@ -513,7 +494,9 @@ bundle exec try --verbose --fails --stack try/integration/authentication/dual_mo
 **Environment Variables**:
 - `AUTHENTICATION_MODE`: `basic` or `advanced`
 - `HMAC_SECRET`: Session integrity
-- `DATABASE_URL`: PostgreSQL (advanced mode only)
+- `DATABASE_URL`: SQL database connection (advanced mode only)
+  - PostgreSQL: `postgresql://user:pass@host/database`
+  - SQLite: `sqlite://path/to/db.sqlite`
 
 **Configuration** (`etc/config.yaml`):
 - `authentication.mode`: Authentication strategy
@@ -522,33 +505,17 @@ bundle exec try --verbose --fails --stack try/integration/authentication/dual_mo
 
 ### Troubleshooting
 
-**Common Test Failures**:
+#### Common Issues
 
-1. **Connection refused / Redis errors**
-   - **Symptom**: Tests fail with "Connection refused" or Redis connection errors
-   - **Solution**: Start test database with `pnpm run test:database:start`
-   - **Verify**: `pnpm run test:database:status` should return `PONG`
+1. **Redis connection errors**: Start test database with `pnpm run test:database:start`
 
-2. **Password reset returns 500**
-   - **Symptom**: `/auth/reset-password` endpoint returns 500 Internal Server Error
-   - **Cause**: Missing Redis connection or undefined instance variables (e.g., `@custid` when only `@objid` is set)
-   - **Solution**: Ensure Redis is running; verify Logic classes use consistent variable names in `process_params`, `raise_concerns`, and `process` methods
-   - **Fixed in**: apps/api/v2/logic/authentication/reset_password_request.rb (changed `@custid` → `@objid`)
+2. **Tests fail in wrong mode**: Use mode-specific test directories (see `try/integration/authentication/README.md`)
 
-3. **JSON responses return HTML**
-   - **Symptom**: Tests expect JSON but receive `text/html` responses
-   - **Cause**: Route configuration missing `response=json` or controller error before JSON rendering
-   - **Solution**: Verify route definition includes `:response => 'json'` and check for exceptions in controller
+3. **Session not persisting**: Verify `Rack::Test` preserves cookies via `last_response.headers['Set-Cookie']`
 
-4. **Session not persisting across requests**
-   - **Symptom**: Login succeeds but subsequent requests show unauthenticated
-   - **Cause**: Test helper not preserving cookies between requests
-   - **Solution**: Use `@test.last_response.headers['Set-Cookie']` in subsequent requests or verify `Rack::Test` session handling
+4. **Advanced mode errors**: Requires `AUTHENTICATION_MODE=advanced` and SQL database `DATABASE_URL` (PostgreSQL or SQLite)
 
-5. **Undefined constant errors in Advanced mode**
-   - **Symptom**: `NameError: uninitialized constant` for Rodauth classes
-   - **Cause**: Auth application not loaded or DATABASE_URL not configured
-   - **Solution**: Set `AUTHENTICATION_MODE=advanced` and verify PostgreSQL connection
+5. **Logic class variable errors**: Use consistent instance variables (`@objid`, not `@custid`) across `process_params`, `raise_concerns`, and `process`
 
 ## Security Considerations
 
