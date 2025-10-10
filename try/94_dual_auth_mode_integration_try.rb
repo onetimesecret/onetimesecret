@@ -96,7 +96,6 @@ Onetime::Application::Registry.mount_mappings.key?('/')
 #=> 401
 
 ## Login error returns JSON format
-
 @test.json_response?
 #=> true
 
@@ -199,19 +198,18 @@ puts "DEBUG: Reset password content-type = #{@test.last_response.headers['Conten
 ## POST without JSON Accept header redirects or returns HTML
 @test.post '/auth/login',
   { u: 'test@example.com', p: 'password' }
-# Should redirect (302) or return error page (401/500)
+
+puts "DEBUG: HTTP_ACCEPT header = #{@test.last_request.env['HTTP_ACCEPT'].inspect}"
 puts "DEBUG: Login (no JSON) status = #{@test.last_response.status}"
 puts "DEBUG: Login (no JSON) content-type = #{@test.last_response.headers['Content-Type']}"
+
+# Should redirect (302) or return error page (401/500)
 [302, 401, 500].include?(@test.last_response.status)
 #=> true
 
 ## Response without JSON Accept is not JSON
-if @test.last_response.status == 302
-  !@test.json_response?
-else
-  true  # Allow JSON for error responses
-end
-#=> true
+@test.json_response?
+#=> false
 
 # -------------------------------------------------------------------
 # ROUTE ACCESSIBILITY TESTS
