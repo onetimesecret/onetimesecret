@@ -3,7 +3,7 @@ labels: authstrategies
 ---
 # Authentication Architecture
 
-**Last Updated:** 2025-10-09
+**Last Updated:** 2025-10-10
 **Framework:** Otto v2.0.0-pre2
 **Session Store:** Redis via Rack::Session
 
@@ -215,17 +215,18 @@ class Onetime::Application::AuthStrategies::NoAuthStrategy < Otto::Security::Aut
 
     success(
       session: session,
-      user: cust,  # Customer instance or anonymous
+      user: cust.anonymous? ? nil : cust,  # nil for anonymous, Customer for authenticated
       auth_method: 'noauth',
-      metadata: { ip: env['REMOTE_ADDR'], user_agent: env['HTTP_USER_AGENT'] }
+      metadata: build_metadata(env)
     )
   end
 end
 ```
 
 **Access:** Everyone (anonymous or authenticated)
-**User:** `Customer.anonymous` or authenticated Customer
+**User:** `nil` (anonymous) or authenticated `Customer` instance
 **Session Required:** No
+**Authentication Contract:** Returns `nil` for anonymous users to maintain Otto's authentication contract (`authenticated? == !user.nil?`)
 
 #### SessionAuthStrategy (`auth=sessionauth`)
 
@@ -391,10 +392,6 @@ module Core::Controllers
       req.env['otto.strategy_result']
     end
 
-    # Note: Otto v2.0.0-pre2 Migration
-    # The fallback pattern below handles cases where Otto's authentication
-    # middleware may not have run or set the strategy result properly.
-
     # Returns current customer from Otto's RouteAuthWrapper
     def load_current_customer
       user = req.env['otto.user']
@@ -511,7 +508,7 @@ class CreateAccount < Base
     raise OT::FormError, "You're already signed up" if @strategy_result.authenticated?
 
     # ✅ Security: Prevent duplicate accounts
-    raise_form_error 'Please try another email address' if Onetime::Customer.exists?(email)
+    raise_form_error 'Please try another email address' if Onetime::Customer.email_exists?(email)
 
     # ✅ Security: Validate email format
     raise_form_error 'Is that a valid email address?' unless valid_email?(email)
@@ -769,16 +766,6 @@ Mock `env` in tests, not session. Test strategies independently.
 ### Framework Alignment
 
 Otto's design aligns with OneTime Secret's request-response cycle, ensuring authentication decisions are made with full route context.
-
-## Migration Notes
-
-### Otto v2.0.0-pre2 Changes
-
-The following changes were made during the Otto v2.0.0-pre2 migration:
-
-- **Removed Methods**: The `.success?` and `.failure?` methods from `StrategyResult` are no longer available
-- **Fallback Pattern**: Added fallback handling in `load_current_customer` for cases where Otto's authentication middleware doesn't set `otto.user`
-- **Strategy Result Access**: Direct access to strategy results through `req.env['otto.strategy_result']` remains unchanged
 
 ## References
 
