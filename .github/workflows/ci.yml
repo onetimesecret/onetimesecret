@@ -249,9 +249,54 @@ jobs:
             --add-host=host.docker.internal:host-gateway \
             onetime-test
 
+      - name: Show initial container status
+        run: |
+          echo "Container status:"
+          docker ps -a | grep onetime-test-container || true
+          echo ""
+          echo "Initial container logs:"
+          docker logs onetime-test-container 2>&1 || true
+
       - name: Wait for service to be ready
         run: |
-          timeout 60 bash -c 'until curl -f http://localhost:3000/ > /dev/null 2>&1; do sleep 2; done'
+          echo "Waiting for service to respond on http://localhost:3000/"
+
+          max_attempts=30
+          attempt=0
+
+          while [ $attempt -lt $max_attempts ]; do
+            attempt=$((attempt + 1))
+            echo "Attempt $attempt/$max_attempts..."
+
+            if curl -f -s -o /dev/null http://localhost:3000/; then
+              echo "✅ Service is ready!"
+              exit 0
+            fi
+
+            # Show container status every 10 attempts
+            if [ $((attempt % 10)) -eq 0 ]; then
+              echo ""
+              echo "Container status at attempt $attempt:"
+              docker ps -a | grep onetime-test-container || true
+              echo ""
+              echo "Recent container logs:"
+              docker logs --tail 20 onetime-test-container 2>&1 || true
+              echo ""
+            fi
+
+            sleep 2
+          done
+
+          echo ""
+          echo "❌ Service failed to start within $((max_attempts * 2)) seconds"
+          echo ""
+          echo "Final container status:"
+          docker ps -a | grep onetime-test-container || true
+          echo ""
+          echo "Full container logs:"
+          docker logs onetime-test-container 2>&1 || true
+
+          exit 1
 
       - name: Test homepage loads
         run: |
