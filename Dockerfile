@@ -142,7 +142,6 @@ WORKDIR ${APP_DIR}
 
 # Copy application source
 COPY public ./public
-COPY templates ./templates
 COPY src ./src
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts \
      postcss.config.mjs tailwind.config.ts eslint.config.ts ./
@@ -192,7 +191,6 @@ COPY --from=dependencies /usr/local/bundle /usr/local/bundle
 
 # Copy application files
 COPY --from=build ${APP_DIR}/public ./public
-COPY --from=build ${APP_DIR}/templates ./templates
 COPY --from=build ${APP_DIR}/src ./src
 COPY --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
 
