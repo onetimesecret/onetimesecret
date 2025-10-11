@@ -219,6 +219,7 @@ ENV RACK_ENV=production \
 # those changes from being overwritten.
 RUN set -eux && \
     cp --preserve --no-clobber etc/defaults/config.defaults.yaml etc/config.yaml && \
+    cp --preserve --no-clobber etc/defaults/auth.defaults.yaml etc/auth.yaml && \
     chmod +x bin/entrypoint.sh bin/update-version.sh
 
 EXPOSE 3000
