@@ -8,11 +8,12 @@ module V2::Logic
       def process_params; end
 
       def raise_concerns
-        OT.info "[destroy-session] #{@custid} #{@sess.ipaddress}"
+        OT.info "[destroy-session] #{@custid} #{@sess.inspect}"
       end
 
       def process
-        sess.destroy!
+        # Rack session doesn't have destroy! - use clear to remove all data
+        sess.clear
       end
     end
   end

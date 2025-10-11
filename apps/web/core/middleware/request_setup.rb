@@ -34,7 +34,7 @@ module Core
       # Set locale from request (used by views and controllers)
       env['ots.locale'] = extract_locale(env)
 
-      OT.ld "[middleware] RequestSetup: nonce=#{nonce[0, 8]}... locale=#{env['ots.locale']}" if OT.debug?
+      OT.ld "[middleware] RequestSetup: locale=#{env['ots.locale']} nonce=#{nonce[0, 8]}..." if OT.debug?
     end
 
     def finalize_response(status, headers, body, env)

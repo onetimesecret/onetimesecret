@@ -46,7 +46,7 @@ module V2
       end
 
       def format_feedback_message
-        identifier = cust.anonymous? ? sess.ipaddress : cust.custid
+        identifier = cust.anonymous? ? sess.inspect : cust.objid
         "#{msg} [#{identifier}] [TZ: #{tz}] [v#{version}]"
       end
       private :format_feedback_message

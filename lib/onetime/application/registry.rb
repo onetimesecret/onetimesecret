@@ -4,7 +4,14 @@ module Onetime
   module Application
     # Application Registry
     #
-    # Discovers and manages Rack applications for URL mapping
+    # Discovers and manages Rack applications for URL mapping.
+    #
+    # Mount order must be handled carefully to resolve endpoint conflicts:
+    # - Auth app (when enabled) should take over auth endpoints from the core web app
+    # - More specific paths are mounted before general ones to avoid shadowing
+    # - Rack uses "first match wins" principle based on mounting order
+    # - Applications are processed sequentially in config.ru order
+    #
     module Registry
       # These class instance vars are populated at start-time and then readonly.
       # rubocop:disable ThreadSafety/MutableClassInstanceVariable
@@ -30,8 +37,17 @@ module Onetime
           Onetime.not_ready!
         end
 
+        # Generate Rack::URLMap with proper mount ordering
+        #
+        # Applications are ordered to ensure proper endpoint resolution:
+        # 1. More specific paths first to avoid being shadowed by general ones
+        # 2. Auth app (when present) mounted before core web app to take over auth endpoints
+        # 3. Rack processes mounts sequentially using "first match wins"
         def generate_rack_url_map
-          mappings = mount_mappings.transform_values { |app_class| app_class.new }
+          # Sort mappings by path specificity (longer/more specific paths first)
+          sorted_mappings = mount_mappings.sort_by { |path, _| [-path.length, path] }.to_h
+
+          mappings = sorted_mappings.transform_values { |app_class| app_class.new }
           Rack::URLMap.new(mappings)
         end
 
@@ -40,6 +56,15 @@ module Onetime
         def find_application_files
           apps_root = File.join(ENV['ONETIME_HOME'] || File.expand_path('../../..', __dir__), 'apps')
           filepaths = Dir.glob(File.join(apps_root, '**/application.rb'))
+
+          # Skip auth app in basic mode - auth endpoints handled by Core Web App
+          if Onetime.auth_config.mode == 'basic'
+            filepaths.reject! { |f| f.include?('/web/auth/') }
+            OT.ld '[registry] Skipping auth app (basic mode)'
+          else
+            OT.ld '[registry] Including auth app - will take over auth endpoints from core web app'
+          end
+
           OT.ld "[registry] Scan found #{filepaths.size} application(s)"
           filepaths.each { |f| require f }
         end

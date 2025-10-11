@@ -169,7 +169,7 @@ Onetime::Customer.find_by_email(email)
 #=> nil
 
 ## Customer find by email, when the record exists
-cust = Onetime::Customer.create(@find_by_email_address)
+cust = Onetime::Customer.create!(@find_by_email_address)
 Onetime::Customer.find_by_email(@find_by_email_address)
 #=:> Onetime::Customer
 

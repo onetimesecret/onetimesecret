@@ -148,9 +148,9 @@ module V2::Logic
       def validate_recipient
         return if recipient.empty?
 
-        raise_form_error 'An account is required to send emails.' if cust.anonymous?
+        raise_form_error 'An account is required to send emails.', field: 'recipient', error_type: 'requires_account' if cust.anonymous?
         recipient.each do |recip|
-          raise_form_error "Undeliverable email address: #{recip}" unless valid_email?(recip)
+          raise_form_error "Undeliverable email address: #{recip}", field: 'recipient', error_type: 'invalid_email' unless valid_email?(recip)
         end
       end
 

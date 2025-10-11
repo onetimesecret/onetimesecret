@@ -24,34 +24,36 @@ module Onetime
           end
 
           def update_passphrase!(val)
-            passphrase_encryption! '1'
-            # Hold the unencrypted passphrase in memory for a short time
-            # (which will basically be until this instance is garbage
-            # collected) in case we need to repeat the save attempt on
-            # error. TODO: Move to calling code in specific cases.
-            @passphrase_temp = val
             update_passphrase(val)
-            passphrase! @passphrase
+              .save_fields(:passphrase_encryption, :passphrase)
           end
 
-          # Allow for chaining API e.g. cust.update_passphrase('plop').custid
           def update_passphrase(val)
-            @passphrase = BCrypt::Password.create(val, cost: 12).to_s
+            self.passphrase_encryption = '1'
+            self.passphrase = BCrypt::Password.create(val, cost: 12).to_s
+            self  # Enable chaining
           end
 
           def has_passphrase?
             !passphrase.to_s.empty?
           end
 
-          def passphrase?(guess)
-            ret              = BCrypt::Password.new(passphrase) == guess
-            @passphrase_temp = guess if ret # used to decrypt the value
-            ret
+          def passphrase?(val)
+            # Immediately return false if there's no passphrase to compare against.
+            # This prevents a DoS vector where an attacker could trigger exceptions
+            # by attempting to verify passphrases on accounts that don't have one.
+            return false if passphrase.to_s.empty?
+
+            # Constant-time comparison prevents timing attacks that could leak
+            # the hash prefix by measuring how long the comparison takes to fail.
+            BCrypt::Password.new(passphrase) == val
+
           rescue BCrypt::Errors::InvalidHash => ex
             prefix = '[passphrase?]'
             OT.li "#{prefix} Invalid passphrase hash: #{ex.message}"
-            (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
+            false
           end
+
         end
       end
     end

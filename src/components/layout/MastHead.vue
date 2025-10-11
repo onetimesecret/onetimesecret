@@ -17,20 +17,21 @@ import { shallowRef } from 'vue';
     colonel: false,
   });
 
-  const windowProps = WindowService.getMultiple([
+  // Make window properties reactive by using computed
+  const windowProps = computed(() => WindowService.getMultiple([
     'authentication',
     'authenticated',
     'cust',
     'ui',
-  ]);
+  ]));
 
-  const isColonel = computed(() => windowProps.cust?.role === 'colonel');
+  const isColonel = computed(() => windowProps.value.cust?.role === 'colonel');
 
   // i18n setup
   const { t } = useI18n();
 
   // Header configuration
-  const headerConfig = computed(() => windowProps.ui?.header);
+  const headerConfig = computed(() => windowProps.value.ui?.header);
 
   // Default logo component for fallback
   const DEFAULT_LOGO = 'DefaultLogo.vue';

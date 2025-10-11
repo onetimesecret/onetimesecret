@@ -49,7 +49,7 @@ module Core
       router.enable_csp_with_nonce!(debug: OT.debug?)
 
       # Register authentication strategies for Web Core
-      Core::AuthStrategies.register_all(router)
+      Core::AuthStrategies.register_essential(router)
 
       # Default error responses
       headers             = { 'content-type' => 'text/html' }

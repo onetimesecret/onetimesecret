@@ -4,4 +4,4 @@ require_relative 'test_models'
 
 require 'onetime/logic'
 
-Logic = TestVersion::Logic
+Logic = V2::Logic

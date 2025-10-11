@@ -327,9 +327,8 @@ module V1
     end
 
     def no_cache!
-      res.headers['cache-control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-      res.headers['expires']       = 'Mon, 7 Nov 2011 00:00:00 UTC'
-      res.headers['pragma']        = 'no-cache'
+      # @see https://www.rubydoc.info/gems/rack/Rack/Response/Helpers#do_not_cache!-instance_method
+      res.do_not_cache!
     end
 
     def app_path *paths

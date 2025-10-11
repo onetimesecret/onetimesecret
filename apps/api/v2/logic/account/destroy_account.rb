@@ -14,11 +14,11 @@ module V2::Logic
         @raised_concerns_was_called = true
 
         if @confirmation&.empty?
-          raise_form_error 'Password confirmation is required.'
+          raise_form_error 'Password confirmation is required.', field: 'confirmation', error_type: 'required'
         else
           OT.info "[destroy-account] Passphrase check attempt cid/#{cust.custid} r/#{cust.role} ipa/#{session_ipaddress}"
 
-          raise_form_error 'Please check the password.' unless cust.passphrase?(@confirmation)
+          raise_form_error 'Please check the password.', field: 'confirmation', error_type: 'incorrect' unless cust.passphrase?(@confirmation)
         end
       end
 

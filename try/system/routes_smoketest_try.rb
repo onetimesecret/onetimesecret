@@ -34,7 +34,7 @@ response.status
 
 ## Can access the dashboard
 response = @mock_request.get('/dashboard')
-[response.status, response.headers["Location"]]
+[response.status, response.headers["location"]]
 #=> [302, "/"]
 
 ## Can access the feedback page

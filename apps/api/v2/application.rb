@@ -5,6 +5,7 @@ require 'onetime/middleware'
 require 'onetime/models'
 
 require_relative 'logic'
+require_relative 'auth_strategies'
 
 module V2
   class Application < Onetime::Application::Base
@@ -23,7 +24,7 @@ module V2
       router      = Otto.new(routes_path)
 
       # Register authentication strategies
-      Onetime::Application::AuthStrategies.register_all(router)
+      V2::AuthStrategies.register_essential(router)
 
       # Default error responses
       headers             = { 'content-type' => 'application/json' }

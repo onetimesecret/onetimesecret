@@ -1,118 +1,268 @@
 // src/composables/useAuth.ts
+import { inject, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore';
+import { useCsrfStore } from '@/stores/csrfStore';
+import { useNotificationsStore } from '@/stores/notificationsStore';
+import {
+  isAuthError,
+  type LoginResponse,
+  type CreateAccountResponse,
+  type LogoutResponse,
+  type ResetPasswordRequestResponse,
+  type ResetPasswordResponse,
+} from '@/schemas/api/endpoints/auth';
+import {
+  loginResponseSchema,
+  createAccountResponseSchema,
+  logoutResponseSchema,
+  resetPasswordRequestResponseSchema,
+  resetPasswordResponseSchema,
+} from '@/schemas/api/endpoints/auth';
+import type { AxiosInstance } from 'axios';
 
-import { ref, computed } from 'vue'
-
-interface User {
-  id: string
-  email: string
-  created_at: string
-  status: number
-  email_verified: boolean
-  mfa_enabled: boolean
-  recovery_codes_count: number
-}
-
-interface AuthState {
-  user: User | null
-  authenticated: boolean
-  loading: boolean
-}
-
-const state = ref<AuthState>({
-  user: null,
-  authenticated: false,
-  loading: false
-})
-
-// Helper to map API record to User interface
-function mapRecordToUser(record: any): User {
-  return {
-    id: record.objid || record.id,
-    email: record.custid || record.email,
-    created_at: record.created || record.created_at,
-    status: record.status || 1,
-    email_verified: record.email_verified || true,
-    mfa_enabled: record.mfa_enabled || false,
-    recovery_codes_count: record.recovery_codes_count || 0
-  }
-}
-
-// Helper to check if auth response is valid
-function isValidAuthResponse(data: any): boolean {
-  return data.success && data.details?.authenticated && data.record
-}
-
-// Helper to clear authentication state
-function clearAuthState(): void {
-  state.value.user = null
-  state.value.authenticated = false
-}
-
+/**
+ * Authentication composable for handling login, signup, logout, and password reset
+ *
+ * Works with both basic and advanced authentication modes - backend returns
+ * Rodauth-compatible JSON format in both cases.
+ *
+ * @example
+ * ```ts
+ * const { login, signup, logout, isLoading, error } = useAuth();
+ *
+ * // Login
+ * const success = await login('user@example.com', 'password');
+ * if (!success && error.value) {
+ *   console.log(error.value); // Display error message
+ * }
+ * ```
+ */
 export function useAuth() {
-  const isAuthenticated = computed(() => state.value.authenticated)
-  const user = computed(() => state.value.user)
-  const loading = computed(() => state.value.loading)
+  const $api = inject('api') as AxiosInstance;
+  const router = useRouter();
+  const authStore = useAuthStore();
+  const csrfStore = useCsrfStore();
+  const notificationsStore = useNotificationsStore();
 
-  async function checkAuth(): Promise<void> {
-    state.value.loading = true
+  const isLoading = ref(false);
+  const error = ref<string | null>(null);
+  const fieldError = ref<[string, string] | null>(null);
+
+  /**
+   * Clears error state
+   */
+  function clearErrors() {
+    error.value = null;
+    fieldError.value = null;
+  }
+
+  /**
+   * Sets error from auth response
+   */
+  function setError(response: LoginResponse | CreateAccountResponse | ResetPasswordRequestResponse | ResetPasswordResponse) {
+    if (isAuthError(response)) {
+      error.value = response.error;
+      fieldError.value = response['field-error'] || null;
+    }
+  }
+
+  /**
+   * Logs in a user with email and password
+   *
+   * @param email - User's email address
+   * @param password - User's password
+   * @param rememberMe - Whether to keep session alive (optional)
+   * @returns true if login successful, false otherwise
+   */
+  async function login(email: string, password: string, rememberMe: boolean = false): Promise<boolean> {
+    clearErrors();
+    isLoading.value = true;
 
     try {
-      const response = await fetch('/auth/validate', {
-        method: 'GET',
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' }
-      })
+      const response = await $api.post<LoginResponse>('/auth/login', {
+        u: email,
+        p: password,
+        shrimp: csrfStore.shrimp,
+        'remember-me': rememberMe,
+      });
 
-      if (response.ok) {
-        const data = await response.json()
-        if (isValidAuthResponse(data)) {
-          state.value.user = mapRecordToUser(data.record)
-          state.value.authenticated = true
-        } else {
-          clearAuthState()
-        }
-      } else {
-        clearAuthState()
+      const validated = loginResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        setError(validated);
+        return false;
       }
-    } catch (error) {
-      console.error('Auth check failed:', error)
-      clearAuthState()
+
+      // Success - update auth state (this fetches fresh window state)
+      await authStore.setAuthenticated(true);
+
+      await router.push('/');
+      return true;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Login failed. Please try again.';
+      return false;
     } finally {
-      state.value.loading = false
+      isLoading.value = false;
     }
   }
 
-  function login(): void {
-    const authUrl = (import.meta as any).env.VITE_AUTH_URL || '/auth'
-    const returnTo = encodeURIComponent(window.location.href)
-    window.location.href = `${authUrl}/login?return_to=${returnTo}`
-  }
+  /**
+   * Creates a new user account
+   *
+   * @param email - User's email address
+   * @param password - User's password
+   * @param termsAgreed - Whether user agreed to terms (optional)
+   * @returns true if account created successfully, false otherwise
+   */
+  async function signup(email: string, password: string, termsAgreed: boolean = true): Promise<boolean> {
+    clearErrors();
+    isLoading.value = true;
 
-  async function logout(): Promise<void> {
     try {
-      const authUrl = (import.meta as any).env.VITE_AUTH_URL || '/auth'
-      await fetch(`${authUrl}/logout`, { method: 'POST', credentials: 'include' })
-      clearAuthState()
-      window.location.href = '/'
-    } catch (error) {
-      console.error('Logout failed:', error)
+      const response = await $api.post<CreateAccountResponse>('/auth/create-account', {
+        u: email,
+        p: password,
+        agree: termsAgreed,
+        shrimp: csrfStore.shrimp,
+      });
+
+      const validated = createAccountResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        setError(validated);
+        return false;
+      }
+
+      // Success - account created but NOT authenticated yet
+      // User needs to either verify email or sign in
+      // Show success message and navigate to signin page
+      notificationsStore.show(validated.success, 'success', 'top');
+      await router.push('/signin');
+      return true;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Account creation failed. Please try again.';
+      return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 
-  function initialize(): Promise<void> {
-    return checkAuth()
+  /**
+   * Logs out the current user
+   *
+   * @returns true if logout successful
+   */
+  async function logout(): Promise<boolean> {
+    clearErrors();
+    isLoading.value = true;
+
+    try {
+      const response = await $api.post<LogoutResponse>('/auth/logout', {
+        shrimp: csrfStore.shrimp,
+      });
+
+      const validated = logoutResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        setError(validated);
+        return false;
+      }
+
+      // Success - clear auth state and navigate
+      await authStore.logout();
+      await router.push('/');
+      return true;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Logout failed.';
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /**
+   * Requests a password reset email
+   *
+   * @param email - User's email address
+   * @returns true if request successful
+   */
+  async function requestPasswordReset(email: string): Promise<boolean> {
+    clearErrors();
+    isLoading.value = true;
+
+    try {
+      const response = await $api.post<ResetPasswordRequestResponse>('/auth/reset-password', {
+        u: email,
+        shrimp: csrfStore.shrimp,
+      });
+
+      const validated = resetPasswordRequestResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        setError(validated);
+        return false;
+      }
+
+      return true;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Password reset request failed.';
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /**
+   * Resets password using a reset key
+   *
+   * @param key - Password reset key from email
+   * @param newPassword - New password
+   * @param confirmPassword - Password confirmation
+   * @returns true if reset successful
+   */
+  async function resetPassword(key: string, newPassword: string, confirmPassword: string): Promise<boolean> {
+    clearErrors();
+    isLoading.value = true;
+
+    try {
+      const response = await $api.post<ResetPasswordResponse>(`/auth/reset-password/${key}`, {
+        key,
+        newp: newPassword,
+        newp2: confirmPassword,
+        shrimp: csrfStore.shrimp,
+      });
+
+      const validated = resetPasswordResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        setError(validated);
+        return false;
+      }
+
+      // Success - navigate to signin
+      await router.push('/signin');
+      return true;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Password reset failed.';
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   return {
     // State
-    isAuthenticated,
-    user,
-    loading,
+    isLoading,
+    error,
+    fieldError,
 
     // Actions
-    checkAuth,
     login,
+    signup,
     logout,
-    initialize
-  }
+    requestPasswordReset,
+    resetPassword,
+    clearErrors,
+  };
 }

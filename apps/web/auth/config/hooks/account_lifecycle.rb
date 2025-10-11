@@ -1,63 +1,81 @@
-# frozen_string_literal: true
+# apps/web/auth/config/hooks/account_lifecycle.rb
 
 module Auth
   module Config
     module Hooks
       module AccountLifecycle
-        def self.configure(rodauth_config)
-          rodauth_config.instance_eval do
-            # Custom account creation logic with Otto integration
+        def self.configure
+          proc do
+            # Create Otto customer when Rodauth account is created
             after_create_account do
-              puts "New account created: #{account[:email]} (ID: #{account_id})"
-              create_otto_customer
-            end
+              OT.info "[auth] New account created: #{account[:email]} (ID: #{account_id})"
 
-            # Account closure with Otto customer cleanup
-            after_close_account do
-              puts "Account closed: #{account[:email]} (ID: #{account_id})"
-              cleanup_otto_customer
-            end
-          end
-        end
+              # Create Otto customer inline
+              begin
+                # Create or load customer using email as custid
+                customer = if Onetime::Customer.exists?(account[:email])
+                  Onetime::Customer.load(account[:email])
+                else
+                  cust = Onetime::Customer.create! email: account[:email]
+                  cust.update_passphrase('') # Rodauth manages password
+                  cust.role = 'customer'
+                  cust.verified = '1' # Rodauth handles verification
+                  cust.save
+                  cust
+                end
 
-        private
+                OT.info "[otto-integration] Created/loaded customer: #{customer.custid}"
 
-        def create_otto_customer
-          begin
-            # Create or load customer using email as custid
-            customer = if Onetime::Customer.exists?(account[:email])
-              Onetime::Customer.load(account[:email])
-            else
-              Onetime::Customer.create(account[:email])
-            end
-            puts "Created Otto customer: #{customer.custid} with extid: #{customer.extid}"
-
-            # Store Otto's derived extid in Rodauth (NOT the objid!)
-            DB[:accounts].where(id: account_id).update(external_id: customer.extid)
-            puts "Linked Rodauth account #{account_id} to Otto extid: #{customer.extid}"
-
-          rescue => e
-            puts "Error creating Otto customer: #{e.message}"
-            puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
-            # Don't fail account creation, but log the issue
-          end
-        end
-
-        def cleanup_otto_customer
-          begin
-            if account[:external_id]
-              customer = Onetime::Customer.find_by_extid(account[:external_id])
-              if customer
-                customer.destroy!
-                puts "Deleted Otto customer: #{customer.custid} (extid: #{customer.extid})"
-              else
-                puts "Otto customer not found for extid: #{account[:external_id]}"
+                # Store Otto's derived extid in Rodauth
+                db = Auth::Config::Database.connection
+                db[:accounts].where(id: account_id).update(external_id: customer.extid)
+                OT.info "[otto-integration] Linked Rodauth account #{account_id} to Otto extid: #{customer.extid}"
+              rescue => e
+                OT.le "[otto-integration] Error creating Otto customer: #{e.message}"
+                OT.le e.backtrace.join("
+") if Onetime.development?
+                # Don't fail account creation
               end
             end
-          rescue => e
-            puts "Error cleaning up Otto customer: #{e.message}"
-            puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
-            # Don't fail account closure, but log the issue
+
+            # Cleanup Otto customer when Rodauth account is closed
+            after_close_account do
+              OT.info "[auth] Account closed: #{account[:email]} (ID: #{account_id})"
+
+              # Cleanup Otto customer inline
+              begin
+                if account[:external_id]
+                  customer = Onetime::Customer.load_by_extid(account[:external_id])
+                  if customer
+                    customer.destroy!
+                    OT.info "[otto-integration] Deleted Otto customer: #{customer.custid} (extid: #{customer.extid})"
+                  else
+                    OT.info "[otto-integration] Otto customer not found for extid: #{account[:external_id]}"
+                  end
+                end
+              rescue => e
+                OT.le "[otto-integration] Error cleaning up Otto customer: #{e.message}"
+                OT.le e.backtrace.join("
+") if Onetime.development?
+                # Don't fail account closure
+              end
+            end
+
+            # Only configure verify_account hook if feature is enabled
+            if ENV['RACK_ENV'] != 'test'
+              after_verify_account do
+                OT.info "[auth] Account verified: #{account[:email]}"
+
+                # Update Otto customer verification status if exists
+                if account[:external_id]
+                  customer = Onetime::Customer.load_by_extid(account[:external_id])
+                  if customer
+                    customer.verified = '1'
+                    customer.save
+                  end
+                end
+              end
+            end
           end
         end
       end

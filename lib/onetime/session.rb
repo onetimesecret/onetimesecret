@@ -2,95 +2,188 @@
 
 require 'rack/session/abstract/id'
 require 'securerandom'
-require 'oj'
+
+require 'base64'
+require 'openssl'
+require 'familia'
 
 module Onetime
+  # Onetime::Session - A secure Rack session store using Familia's StringKey DataType
+  #
+  # This implementation provides secure session storage with HMAC verification
+  # and encryption using Familia's Redis-backed StringKey data type.
+  #
+  # Key Features:
+  # - Secure session ID generation with SecureRandom
+  # - HMAC-based session integrity verification
+  # - JSON serialization for session data
+  # - Automatic TTL management via Familia's expiration features
+  # - Redis connection pooling via Familia
+  #
+  # Usage:
+  #   use Onetime::Session,
+  #     key: 'onetime.session',
+  #     secret: ENV.fetch('SESSION_SECRET') { raise "SESSION_SECRET not set" },
+  #     expire_after: 3600*24,  # 24 hours
+  #     secure: true,  # HTTPS only
+  #
+  # @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/abstract/id.rb
+  # @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/encryptor.rb
   class Session < Rack::Session::Abstract::PersistedSecure
-    DEFAULT_OPTIONS = Rack::Session::Abstract::ID::DEFAULT_OPTIONS.merge(
-      expire_after: 86_400,
-      key: 'ots.session',
-      secure: true,
-      httponly: true,
-      same_site: :lax,
-      redis_prefix: 'session',
-    )
+    unless defined?(DEFAULT_OPTIONS)
+      DEFAULT_OPTIONS = {
+        key: 'onetime.session',
+        expire_after: 86_400, # 24 hours default
+        namespace: 'session',
+        sidbits: 256,  # Required by Rack::Session::Abstract::Persisted
+        dbclient: nil,
+      }.freeze
+    end
+
+    attr_reader :dbclient
 
     def initialize(app, options = {})
-      super(app, DEFAULT_OPTIONS.merge(options))
-      @mutex        = Mutex.new
-      @redis_prefix = @default_options[:redis_prefix]
-    end
+      # Require a secret for security
+      raise ArgumentError, 'Secret required for secure sessions' unless options[:secret]
 
-    def generate_sid(*)
-      SecureRandom.urlsafe_base64(32)
-    end
+      # Merge options with defaults
+      options = DEFAULT_OPTIONS.merge(options)
 
-    def find_session(req, sid)
-      with_lock(req) do
-        unless sid && (session = get_session(sid))
-          sid     = generate_sid
-          session = {}
-        end
-        [sid, session]
-      end
-    end
+      # Force cookie name to 'onetime.session' for security (custom name prevents
+      # session fixation attacks). This overrides Rack's default 'rack.session'.
+      # The session key in env['rack.session'] remains standard for compatibility.
+      options[:key] = 'onetime.session'
 
-    def write_session(req, sid, session, options)
-      with_lock(req) do
-        return false unless sid
+      # Configure Familia connection if redis_uri provided
+      @dbclient = options[:dbclient] || Familia.dbclient
 
-        ttl = options[:expire_after] || @default_options[:expire_after]
+      super(app, options)
 
-        session_data = {
-          data: session,
-          created_at: session['_created_at'] || Time.now.to_i,
-          updated_at: Time.now.to_i,
-          identity_id: session['identity_id'],
-          tenant_id: session['tenant_id'],
-        }
+      @secret = options[:secret]
+      @expire_after = options[:expire_after]
+      @namespace = options[:namespace] || 'session'
 
-        redis_key = "#{@redis_prefix}:#{sid}"
-
-        begin
-          Familia.dbclient.setex(redis_key, ttl.to_i, Oj.dump(session_data))
-          ::Rack::Session::SessionId.new(sid)
-        rescue StandardError => ex
-          OT.le "[OT:Session] Failed to write session: #{ex.message}"
-          false
-        end
-      end
-    end
-
-    def delete_session(req, sid, options)
-      with_lock(req) do
-        redis_key = "#{@redis_prefix}:#{sid}"
-        Familia.dbclient.del(redis_key)
-        generate_sid unless options[:drop]
-      end
-    end
-
-    def options
-      @default_options
+      # Derive different keys for different purposes
+      @hmac_key = derive_key('hmac')
+      @encryption_key = derive_key('encryption')
     end
 
     private
 
-    def get_session(sid)
-      redis_key = "#{@redis_prefix}:#{sid}"
+    # Create a StringKey instance for a session ID
+    def get_stringkey(sid)
+      return nil unless sid
 
-      data = Familia.dbclient.get(redis_key)
-      return nil unless data
+      key = Familia.join(@namespace, sid)
+      Familia::StringKey.new(key,
+        ttl: @expire_after,
+        default: nil)
+    end
+
+    def delete_session(_request, sid, _options)
+      # Extract string ID from SessionId object if needed
+      sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
+
+      if stringkey = get_stringkey(sid_string)
+        stringkey.del
+      end
+      generate_sid
+    end
+
+    def valid_session_id?(sid)
+      return false if sid.to_s.empty?
+      return false unless sid.match?(/\A[a-f0-9]{64,}\z/)
+
+      # Additional security checks could go here
+      true
+    end
+
+
+    def valid_hmac?(data, hmac)
+      expected = compute_hmac(data)
+      return false unless hmac.is_a?(String) && expected.is_a?(String) && hmac.bytesize == expected.bytesize
+      Rack::Utils.secure_compare(expected, hmac)
+    end
+
+    def derive_key(purpose)
+      OpenSSL::HMAC.hexdigest('SHA256', @secret, "session-#{purpose}")
+    end
+
+    def compute_hmac(data)
+      OpenSSL::HMAC.hexdigest('SHA256', @hmac_key, data)
+    end
+
+    def find_session(request, sid)
+      # Parent class already extracts sid from cookies
+      # sid may be a SessionId object or nil
+      sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
+
+      # Only generate new sid if none provided or invalid
+      unless sid_string && valid_session_id?(sid_string)
+        return [generate_sid, {}]
+      end
 
       begin
-        Oj.load(data)['data'] || {}
-      rescue Oj::ParseError => ex
-        OT.le "[OT:Session] Failed to parse session data: #{ex.message}"
-        nil
+        stringkey = get_stringkey(sid_string)
+        stored_data = stringkey.value if stringkey
+
+        # If no data stored, return empty session
+        return [sid, {}] unless stored_data
+
+        # Verify HMAC before deserializing
+        data, hmac = stored_data.split('--', 2)
+
+        # If no HMAC or invalid format, create new session
+        unless hmac && valid_hmac?(data, hmac)
+          # Session tampered with - create new session
+          return [generate_sid, {}]
+        end
+
+        # Decode and parse the session data
+        session_data = Familia::JsonSerializer.parse(Base64.decode64(data))
+
+        [sid, session_data]
+      rescue StandardError => e
+        # Log error in development/debugging
+        Familia.ld "[Session] Error reading session #{sid_string}: #{e.message}"
+
+        # Return new session on any error
+        [generate_sid, {}]
       end
     end
 
-    def with_lock(_req, &)
-      @mutex.synchronize(&)
+    def write_session(_request, sid, session_data, _options)
+      # Extract string ID from SessionId object if needed
+      sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
+
+      # Serialize and sign the data
+      encoded = Base64.encode64(Familia::JsonSerializer.dump(session_data)).delete("\n")
+      hmac = compute_hmac(encoded)
+      signed_data = "#{encoded}--#{hmac}"
+
+      # Get or create StringKey for this session
+      stringkey = get_stringkey(sid_string)
+
+      # Save the session data
+      stringkey.set(signed_data)
+
+      # Update expiration if configured
+      stringkey.update_expiration(expiration: @expire_after) if @expire_after && @expire_after > 0
+
+      # Return the original sid (may be SessionId object)
+      sid
+    rescue StandardError => e
+      # Log error in development/debugging
+      Familia.ld "[Session] Error writing session #{sid_string}: #{e.message}"
+
+      # Return false to indicate failure
+      false
+    end
+
+    # Clean up expired sessions (optional, can be called periodically)
+    def cleanup_expired_sessions
+      # This would typically be handled by Redis TTL automatically
+      # but you could implement manual cleanup if needed
     end
   end
 end

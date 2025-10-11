@@ -22,7 +22,8 @@ source 'https://rubygems.org/'
 # Web framework and routing
 # Authentication framework
 gem 'rodauth', '~> 2.0'
-gem 'otto', '~> 2.0.0.pre1'
+# gem 'otto', git: 'https://github.com/delano/otto.git', branch: 'delano/next' # '~> 2.0.0.pre2'
+gem 'otto', path: '../../d/otto'
 gem 'roda', '~> 3.0'
 
 
@@ -61,7 +62,7 @@ gem 'truemail'
 # ====================================
 
 # ORMs and database drivers
-gem 'familia', '~> 2.0.0.pre18'
+gem 'familia', git: 'https://github.com/delano/familia.git', branch: 'fix/157-heinz-atomicity' #'~> 2.0.0.pre19'
 gem 'sequel', '~> 5.0'
 
 database_adapter = ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase

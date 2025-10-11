@@ -20,7 +20,6 @@ module V2
         end
 
         def process_statistics
-          @session_count  = Onetime::Session.recent(15.minutes).size
           @customer_count = Onetime::Customer.instances.size
           @metadata_count = Onetime::Metadata.new.dbclient.keys('metadata*:object').count
           @secret_count   = Onetime::Secret.new.dbclient.keys('secret*:object').count

@@ -8,68 +8,70 @@ module Core
       include Controllers::Base
 
       def authenticate # rubocop:disable Metrics/AbcSize
-        unless _auth_settings['enabled'] && _auth_settings['signin']
+        unless signin_enabled?
           raise OT::Redirect.new('/')
         end
 
         # Prevent browser refresh re-submission
-        res.no_cache!
-
-        strategy_result = Otto::Security::Authentication::StrategyResult.new(
-          session: session,
-          user: cust,
-          auth_method: 'session',
-          metadata: {
-            ip: req.client_ipaddress,
-            user_agent: req.user_agent
-          }
-        )
-
-        logic = V2::Logic::Authentication::AuthenticateSession.new(strategy_result, req.params, locale)
+        res.do_not_cache!
 
         if authenticated?
-          session['info_message'] = 'You are already logged in.'
-          res.redirect '/'
+          handle_already_authenticated
         elsif req.post?
-          logic.raise_concerns
-          logic.process
-          sess = logic.sess
-          cust_after = logic.cust
-
-          # Session cookie handled by Rack::Session middleware
-
-          if cust_after.role?(:colonel)
-            res.redirect '/colonel/'
-          else
-            res.redirect '/'
-          end
+          perform_authentication
         end
       end
 
       def logout
-        res.no_cache!
+        res.do_not_cache!
 
-        strategy_result = Otto::Security::Authentication::StrategyResult.new(
-          session: session,
-          user: cust,
-          auth_method: 'session',
-          metadata: {
-            ip: req.client_ipaddress,
-            user_agent: req.user_agent
-          }
+        logic = V2::Logic::Authentication::DestroySession.new(_strategy_result, req.params, locale)
+        execute_with_error_handling(
+          logic,
+          success_message: 'You have been logged out',
+          success_redirect: res.app_path('/'),
         )
-
-        logic = V2::Logic::Authentication::DestroySession.new(strategy_result, req.params, locale)
-        logic.raise_concerns
-        logic.process
-
-        res.redirect res.app_path('/')
       end
 
       private
 
-      def _auth_settings
-        OT.conf.dig('site', 'authentication')
+      def handle_already_authenticated
+        if json_requested?
+          json_success('You are already logged in')
+        else
+          session['info_message'] = 'You are already logged in.'
+          res.redirect '/'
+        end
+      end
+
+      def perform_authentication
+        logic = V2::Logic::Authentication::AuthenticateSession.new(_strategy_result, req.params, locale)
+
+        execute_with_error_handling(
+          logic,
+          success_message: 'You have been logged in',
+          success_redirect: '/',
+          error_redirect: '/signin',
+          error_status: 401,
+        ) do
+          cust_after = logic.cust
+
+          # Set authenticated_at for session validation consistency
+          session['authenticated_at'] = Time.now.to_i
+
+          # Override redirect for colonel role
+          if !json_requested? && cust_after.role?(:colonel)
+            res.redirect '/colonel/'
+          end
+        end
+      rescue OT::Unauthorized => ex
+        # Fallback for other unauthorized errors
+        if json_requested?
+          json_error(ex.message, field_error: %w[email invalid], status: 401)
+        else
+          session['error_message'] = ex.message
+          res.redirect '/signin'
+        end
       end
     end
   end

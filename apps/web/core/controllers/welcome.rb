@@ -22,7 +22,7 @@ module Core
       # @return [HTTP 302] Redirects to the Stripe Payment Link for the selected plan
       #                    or to '/signup' if the plan configuration is not found
       #
-      # @note This endpoint is publicly accessible and handles both anonymous and
+      # @note This endpoint is noauth accessible and handles both anonymous and
       #       authenticated users. For authenticated users, it pre-fills the email
       #       in the Stripe checkout process.
       #
@@ -93,31 +93,21 @@ module Core
       #
       # @see V2::Logic::Welcome::FromStripePaymentLink For the business logic implementation
       #
-      # @note This endpoint is publicly accessible and sets a secure session cookie
+      # @note This endpoint is noauth accessible and sets a secure session cookie
       #       if the site is configured to use SSL
       #
       # e.g. https://staging.onetimesecret.com/welcome?checkout={CHECKOUT_SESSION_ID}
       #
       def welcome
-          strategy_result = Otto::Security::Authentication::StrategyResult.new(
-            session: session,
-            user: cust,
-            auth_method: 'session',
-            metadata: {
-              ip: req.client_ipaddress,
-              user_agent: req.user_agent
-            }
-          )
+        logic = V2::Logic::Welcome::FromStripePaymentLink.new(_strategy_result, req.params, locale)
+        logic.raise_concerns
+        logic.process
 
-          logic = V2::Logic::Welcome::FromStripePaymentLink.new strategy_result, req.params, locale
-          logic.raise_concerns
-          logic.process
+        @cust = logic.cust
 
-          @cust = logic.cust
+        # Session cookie handled by Rack::Session middleware
 
-          # Session cookie handled by Rack::Session middleware
-
-          res.redirect '/account'
+        res.redirect '/account'
       end
 
       # Receives users from the Stripe Webhook after a successful payment for a new
@@ -130,23 +120,13 @@ module Core
       #
       def welcome_webhook
         # CSRF exemption handled by route parameter csrf=exempt
-          strategy_result = Otto::Security::Authentication::StrategyResult.new(
-            session: session,
-            user: cust,
-            auth_method: 'session',
-            metadata: {
-              ip: req.client_ipaddress,
-              user_agent: req.user_agent
-            }
-          )
+        logic = V2::Logic::Welcome::StripeWebhook.new(_strategy_result, req.params, locale)
+        logic.stripe_signature = req.env['HTTP_STRIPE_SIGNATURE']
+        logic.payload = req.body.read
+        logic.raise_concerns
+        logic.process
 
-          logic                  = V2::Logic::Welcome::StripeWebhook.new strategy_result, req.params, locale
-          logic.stripe_signature = req.env['HTTP_STRIPE_SIGNATURE']
-          logic.payload          = req.body.read
-          logic.raise_concerns
-          logic.process
-
-          res.status = 200
+        res.status = 200
       end
 
       # Redirects authenticated users to the Stripe Customer Portal
@@ -171,32 +151,31 @@ module Core
       # @raise [OT::FormError] If there's an error creating the Stripe session or an unexpected error occurs
       #
       def customer_portal_redirect
-        res.no_cache!
-            # Get the Stripe Customer ID from our customer instance
-            customer_id = cust.stripe_customer_id
+        res.do_not_cache!
 
-            site_host  = Onetime.conf['site']['host']
-            is_secure  = Onetime.conf['site']['ssl']
-            return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
+        # Get the Stripe Customer ID from our customer instance
+        customer_id = cust.stripe_customer_id
 
-            # Create a Stripe Customer Portal session
-            stripe_session = Stripe::BillingPortal::Session.create({
-              customer: customer_id,
-              return_url: return_url,
-            },
-                                                           )
+        site_host   = Onetime.conf['site']['host']
+        is_secure   = Onetime.conf['site']['ssl']
+        return_url  = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
 
-            # Continue the redirect
-            res.redirect stripe_session.url
-        rescue Stripe::StripeError => ex
+        # Create a Stripe Customer Portal session
+        stripe_session = Stripe::BillingPortal::Session.create({
+          customer: customer_id,
+          return_url: return_url,
+        })
+
+        # Continue the redirect
+        res.redirect stripe_session.url
+
+      rescue Stripe::StripeError => ex
             OT.le "[customer_portal_redirect] Stripe error: #{ex.message}"
             raise_form_error(ex.message)
-        rescue StandardError => ex
+      rescue StandardError => ex
             OT.le "[customer_portal_redirect] Unexpected error: #{ex.message}"
             raise_form_error('An unexpected error occurred')
       end
-
-
     end
   end
 end

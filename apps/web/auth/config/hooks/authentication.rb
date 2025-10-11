@@ -1,30 +1,34 @@
-# frozen_string_literal: true
+# apps/web/auth/config/hooks/authentication.rb
 
 module Auth
   module Config
     module Hooks
       module Authentication
-        def self.configure(rodauth_config)
-          rodauth_config.instance_eval do
-            # Custom login logic with Otto integration
-            after_login do
-              puts "User logged in: #{account[:email]} from #{request.ip}"
-
-              # Track login analytics or update last login time
-              DB[:accounts].where(id: account_id).update(
-                last_login_at: Sequel::CURRENT_TIMESTAMP,
-                last_login_ip: request.ip
-              )
-
-              # Store identity information in session for Otto integration
-              session['advanced_account_id'] = account_id
-              session['account_external_id'] = account[:external_id]
-              session['authenticated_at'] = Familia.now
+        def self.configure
+          proc do
+            # Password reset request hook
+            after_reset_password_request do
+              OT.info "[auth] Password reset requested for: #{account[:email]}"
             end
 
-            # Handle login failures
-            after_login_failure do
-              puts "Login failure for: #{param('email')} from #{request.ip}"
+            # Password reset completion hook
+            after_reset_password do
+              OT.info "[auth] Password reset for: #{account[:email]}"
+            end
+
+            # Password change hook - track metadata in Otto
+            after_change_password do
+              OT.info "[auth] Password changed for: #{account[:email]}"
+
+              # Update Otto customer password hash if needed
+              # Note: Rodauth manages passwords, so Otto just tracks metadata
+              if account[:external_id]
+                customer = Onetime::Customer.load_by_extid(account[:external_id])
+                if customer
+                  customer.passphrase_updated = Time.now.to_i
+                  customer.save
+                end
+              end
             end
           end
         end

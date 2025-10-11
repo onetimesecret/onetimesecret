@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# apps/web/auth/routes/validation.rb
 
 module Auth
   module Routes
@@ -19,8 +19,8 @@ module Auth
       private
 
       def handle_token_validation(r)
-        # Original token-based validation logic
-        begin
+          # Original token-based validation logic
+
           token = r.params['token'] || r.params['session_id']
 
           unless token
@@ -39,40 +39,39 @@ module Auth
                 email: session_info[:email],
                 created_at: session_info[:created_at],
                 roles: session_info[:roles] || [],
-                features: session_info[:features] || []
+                features: session_info[:features] || [],
               },
-              expires_at: session_info[:expires_at]
+              expires_at: session_info[:expires_at],
             }
           else
             response.status = 401
             {
               valid: false,
-              error: 'Invalid or expired token'
+              error: 'Invalid or expired token',
             }
           end
-        rescue Sequel::ValidationFailed => e
+      rescue Sequel::ValidationFailed => ex
           response.status = 400
-          { error: 'Validation failed', details: e.errors }
-        rescue Sequel::UniqueConstraintViolation => e
+          { error: 'Validation failed', details: ex.errors }
+      rescue Sequel::UniqueConstraintViolation
           response.status = 409
           { error: 'Account already exists' }
-        rescue => e
-          puts "Error: #{e.class} - #{e.message}"
-          puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
+      rescue StandardError => ex
+        Onetime.le "[auth-routes-validation] Error: #{ex.class} - #{ex.message}"
+        Onetime.le ex.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
 
           response.status = 500
           {
             valid: false,
             error: 'Token validation failed',
-            details: ENV['RACK_ENV'] == 'development' ? e.message : nil
+            details: ENV['RACK_ENV'] == 'development' ? ex.message : nil,
           }
-        end
       end
 
       def handle_session_validation(r)
-        # Session-based validation for frontend auth checks
-        # Works with both basic and advanced auth modes
-        begin
+          # Session-based validation for frontend auth checks
+          # Works with both basic and advanced auth modes
+
           auth_mode = Onetime.auth_config.mode
 
           case auth_mode
@@ -84,22 +83,22 @@ module Auth
             response.status = 503
             { valid: false, error: "Unknown authentication mode: #{auth_mode}" }
           end
-        rescue => e
-          puts "Error in session validation: #{e.class} - #{e.message}"
-          puts e.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
+      rescue StandardError => ex
+        Onetime.le "[auth-routes-validation] Error in session validation: #{ex.class} - #{ex.message}"
+        Onetime.le ex.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
 
           response.status = 500
           {
             valid: false,
             error: 'Session validation failed',
-            details: ENV['RACK_ENV'] == 'development' ? e.message : nil
+            details: ENV['RACK_ENV'] == 'development' ? ex.message : nil,
           }
-        end
       end
 
-      def validate_advanced_session(r)
+      def validate_advanced_session(_r)
         # Use Rodauth for advanced mode
         if rodauth.logged_in?
+          response.status = 200
           account = rodauth.account
           # Return format compatible with frontend checkAuth schema
           {
@@ -112,8 +111,8 @@ module Auth
               # Add other customer fields as needed
             },
             details: {
-              authenticated: true
-            }
+              authenticated: true,
+            },
           }
         else
           response.status = 401
@@ -121,47 +120,35 @@ module Auth
             success: false,
             error: 'Not authenticated',
             record: nil,
-            details: { authenticated: false }
+            details: { authenticated: false },
           }
         end
       end
 
       def validate_basic_session(r)
         # Use Redis session for basic mode
-        session = r.env['rack.session']
+        # Get customer from IdentityResolution middleware to avoid duplicate lookup
+        customer = r.env['identity.resolved']
+        authenticated = r.env['identity.authenticated']
 
-        if session && session['identity_id'] && session['authenticated']
+        if customer && !customer.anonymous? && authenticated
           begin
-            # Load customer from session
-            require_relative '../../../lib/onetime' unless defined?(Onetime::Customer)
-            customer = Onetime::Customer.load(session['identity_id'])
-
-            if customer && !customer.anonymous?
-              # Return format compatible with frontend checkAuth schema
-              {
-                success: true,
-                record: customer.safe_dump,
-                details: {
-                  authenticated: true
-                }
-              }
-            else
-              response.status = 401
-              {
-                success: false,
-                error: 'Invalid session',
-                record: nil,
-                details: { authenticated: false }
-              }
-            end
-          rescue StandardError => e
-            puts "Error loading customer: #{e.message}" if ENV['RACK_ENV'] == 'development'
+            # Return format compatible with frontend checkAuth schema
+            {
+              success: true,
+              record: customer.safe_dump,
+              details: {
+                authenticated: true,
+              },
+            }
+          rescue StandardError => ex
+            Onetime.le "[auth-routes-validation] Error serializing customer: #{ex.message}" if ENV['RACK_ENV'] == 'development'
             response.status = 500
             {
               success: false,
               error: 'Session validation failed',
               record: nil,
-              details: { authenticated: false }
+              details: { authenticated: false },
             }
           end
         else
@@ -170,7 +157,7 @@ module Auth
             success: false,
             error: 'No valid session',
             record: nil,
-            details: { authenticated: false }
+            details: { authenticated: false },
           }
         end
       end

@@ -15,12 +15,12 @@ module V2::Logic
       end
 
       def raise_concerns
-        raise_form_error 'Not a valid email address' unless valid_email?(@custid)
-        raise_form_error 'No account found' unless Onetime::Customer.exists?(@custid)
+    raise_form_error 'Not a valid email address', field: 'email', error_type: 'invalid' unless valid_email?(@objid)
+    raise_form_error 'No account found', field: 'email', error_type: 'not_found' unless Onetime::Customer.exists?(@objid)
       end
 
       def process
-        cust = Onetime::Customer.load @custid
+    cust = Onetime::Customer.load @objid
 
         if cust.pending?
           OT.li "[ResetPasswordRequest] Resending verification email to #{cust.objid}"
@@ -29,7 +29,7 @@ module V2::Logic
           return set_info_message(msg)
         end
 
-        secret                    = Onetime::Secret.create @objid, [@objid]
+        secret                    = Onetime::Secret.create! @objid, [@objid]
         secret.default_expiration = 24.hours
         secret.verification       = 'true'
         secret.save
@@ -47,7 +47,7 @@ module V2::Logic
           OT.le "Error sending password reset email: #{ex.message}"
           set_error_message(errmsg)
         else
-          OT.info "Password reset email sent to #{@objid} for sess=#{short_session_id}"
+          OT.info "Password reset email sent to #{@objid} for sess=#{sess}"
           set_info_message "We sent instructions to #{cust.objid}"
         end
       end

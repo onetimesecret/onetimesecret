@@ -13,8 +13,8 @@ module Core
       attr_reader :req, :res, :locale
 
       def initialize(req, res)
-        @req = req
-        @res = res
+        @req    = req
+        @res    = res
         @locale = req.env['ots.locale'] || 'en'
       end
 
@@ -107,6 +107,26 @@ module Core
         res.body   = view.render  # Render the entrypoint HTML
       end
 
+      # JSON response helpers
+      #
+      # These methods return Hash objects that will be serialized by Otto's JSONHandler
+      # when the route has response=json. Do not manually set res.body for JSON responses.
+
+      def json_response(data, status: 200)
+        res.status = status
+        data
+      end
+
+      def json_success(message, status: 200)
+        json_response({ success: message }, status: status)
+      end
+
+      def json_error(message, field_error: nil, status: 400)
+        body = { error: message }
+        body['field-error'] = field_error if field_error
+        json_response(body, status: status)
+      end
+
       # Common page rendering methods
 
       def index
@@ -114,19 +134,34 @@ module Core
         res.body = view.render
       end
 
-      def customers_only
-        res.no_cache!
-        view     = Core::Views::VuePoint.new(req, session, cust, locale)
-        res.body = view.render
+      protected
+
+      def signin_enabled?
+        _auth_settings['enabled'] && _auth_settings['signin']
       end
 
-      def colonels_only
-        res.no_cache!
-        view     = Core::Views::VuePoint.new(req, session, cust, locale)
-        res.body = view.render
+      def signup_enabled?
+        _auth_settings['enabled'] && _auth_settings['signup']
       end
 
       private
+
+      def _auth_settings
+        OT.conf.dig('site', 'authentication')
+      end
+
+      # Returns the StrategyResult created by Otto's RouteAuthWrapper
+      #
+      # This provides authenticated state and metadata from the auth strategy
+      # that executed for the current route (noauth, sessionauth, colonelsonly, etc.)
+      #
+      # RouteAuthWrapper (post-routing authentication) executes the strategy and sets
+      # req.env['otto.strategy_result'] before the controller handler runs.
+      #
+      # @return [Otto::Security::Authentication::StrategyResult]
+      def _strategy_result
+        req.env['otto.strategy_result']
+      end
 
       def load_current_customer
         # Try Otto auth result first (set by auth middleware)
@@ -149,6 +184,59 @@ module Core
         authentication_enabled = OT.conf['site']['authentication']['enabled'] rescue false # rubocop:disable Style/RescueModifier
         signin_enabled         = OT.conf['site']['authentication']['signin'] rescue false # rubocop:disable Style/RescueModifier
         authentication_enabled && signin_enabled
+      end
+
+      # Checks if the request accepts JSON responses
+      #
+      # @return [Boolean] True if the Accept header includes application/json
+      def json_requested?
+        req.env['HTTP_ACCEPT']&.include?('application/json')
+      end
+
+      # Executes logic with standardized error handling for both JSON and HTML responses
+      #
+      # @param logic [Object] Logic object to execute
+      # @param success_message [String] Success message for JSON responses
+      # @param success_redirect [String] Path to redirect on success (HTML)
+      # @param error_redirect [String, nil] Path to redirect on error (HTML), nil to re-raise
+      # @yield Optional block for additional processing after logic.process
+      # @return [Hash, nil] JSON response Hash for routes with response=json, nil otherwise
+      def execute_with_error_handling(logic, success_message:, success_redirect: '/', error_redirect: nil, error_status: 400)
+        logic.raise_concerns
+        logic.process
+        yield if block_given?
+
+        if json_requested?
+          json_success(success_message)
+        else
+          res.redirect success_redirect
+          nil
+        end
+      rescue OT::FormError => ex
+        handle_form_error(ex, error_redirect, status: error_status)
+      end
+
+      # Handles form errors with appropriate JSON or HTML response
+      #
+      # @param ex [OT::FormError] The form error exception
+      # @param redirect_path [String, nil] Path to redirect for HTML, nil to re-raise
+      # @param field [String, nil] Field name for error, nil to infer from message
+      # @return [Hash, nil] JSON error Hash for routes with response=json, nil otherwise
+      def handle_form_error(ex, redirect_path = nil, field: nil, status: 400)
+        OT.le "Form error occurred: #{ex.message}"
+        if json_requested?
+          # FormError must provide field and error_type
+          field ||= ex.field
+          error_type = ex.error_type || ex.message.downcase
+
+          json_error(ex.message, field_error: [field, error_type], status: status)
+        elsif redirect_path
+          session['error_message'] = ex.message
+          res.redirect redirect_path
+          nil
+        else
+          raise
+        end
       end
 
       # Sentry error tracking

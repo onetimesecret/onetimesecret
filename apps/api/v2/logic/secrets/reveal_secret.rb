@@ -78,7 +78,7 @@ module V2::Logic
           end
 
         elsif secret.has_passphrase? && !correct_passphrase
-          OT.le "[reveal_secret] Failed passphrase attempt for secret #{secret.shortkey} #{short_session_id}"
+          OT.le "[reveal_secret] Failed passphrase attempt for secret #{secret.shortkey} #{sess}"
 
           message = i18n.dig(:web, :COMMON, :incorrect_passphrase) || 'Incorrect passphrase'
           raise_form_error message

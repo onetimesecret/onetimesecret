@@ -11,7 +11,6 @@ module Onetime
     # bridges between the basic (e.g. Redis) and advanced authentication
     # services (e.g., Advanced with PostgreSQL/SQLite).
     #
-    #
     # ### Usage
     #
     # ```ruby
@@ -19,9 +18,27 @@ module Onetime
     # ```
     #
     # The middleware sets the following env variables:
-    # - `env['identity.resolved']` - The resolved identity object
+    # - `env['identity.resolved']` - The resolved identity object (Customer instance)
     # - `env['identity.source']` - Source of identity ('advanced', 'basic', 'anonymous')
     # - `env['identity.authenticated']` - Boolean authentication status
+    # - `env['identity.metadata']` - Additional metadata about the identity
+    #
+    # ### Performance Optimization
+    #
+    # **IMPORTANT**: To prevent duplicate customer lookups per request, downstream
+    # code should always use `env['identity.resolved']` instead of calling
+    # `Customer.load()` or `Customer.find_by_extid()` directly.
+    #
+    # Good:
+    # ```ruby
+    # customer = env['identity.resolved']
+    # authenticated = env['identity.authenticated']
+    # ```
+    #
+    # Bad (causes duplicate lookup):
+    # ```ruby
+    # customer = Onetime::Customer.load(session['identity_id'])  # Already loaded by middleware!
+    # ```
     #
     class IdentityResolution
       attr_reader :logger
@@ -37,7 +54,9 @@ module Onetime
         # Resolve identity from available sources
         identity = resolve_identity(request, env)
 
-        # Store resolved identity in environment
+        # Store resolved identity in environment for downstream code to use
+        # IMPORTANT: Downstream code should use env['identity.resolved'] instead of
+        # calling Customer.load() directly to avoid duplicate lookups per request
         env['identity.resolved']      = identity[:user]
         env['identity.source']        = identity[:source]
         env['identity.authenticated'] = identity[:authenticated]
@@ -216,8 +235,9 @@ module Onetime
       end
 
       def build_basic_user(customer, session)
-        # Build user object from customer and session data
-        BasicUser.new(customer, session)
+        # Return the customer object directly
+        # Session metadata is already available in identity[:metadata]
+        customer
       end
 
       def build_anonymous_user(request)

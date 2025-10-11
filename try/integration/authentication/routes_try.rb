@@ -37,17 +37,17 @@ response.status
 
 ## With default configuration, can try to sign-in
 response = @mock_request.post('/signin', lint: true)
-[response.status, response.headers["Location"]]
+[response.status, response.headers["location"]]
 ##=> [302, "/"]
 
 ### With default configuration, can try to sign-up
 response = @mock_request.post('/signup', lint: true)
-[response.status, response.headers["Location"]]
+[response.status, response.headers["location"]]
 ##=> [302, nil]
 
 ## With default configuration, dashboard redirects to sign-in
 response = @mock_request.get('/dashboard')
-[response.status, response.headers["Location"]]
+[response.status, response.headers["location"]]
 #=> [302, "/"]
 
 # Web Routes (authentication disabled)
@@ -84,12 +84,12 @@ response.status
 
 ## With auth disabled, can try to sign-in
 response = @mock_request.post('/signin')
-[response.status, response.headers["Location"]]
+[response.status, response.headers["location"]]
 ##=> 404
 
 ### With auth disabled, can try to sign-up
 response = @mock_request.post('/signup')
-[response.status, response.headers["Location"]]
+[response.status, response.headers["location"]]
 ##=> 404
 
 ## With auth disabled, dashboard returns 401

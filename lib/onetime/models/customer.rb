@@ -1,6 +1,9 @@
 # lib/onetime/models/customer.rb
 
 require 'rack/utils'
+require 'bcrypt'
+
+require_relative 'features'
 
 module Onetime
   # Customer
@@ -159,11 +162,16 @@ module Onetime
         OT.li "[Customer.create] email=#{email&.class} kwargs=#{kwargs.keys}"
         loggable_email = OT::Utils.obscure_email(email)
         raise Familia::Problem, 'email is required' if email.to_s.empty?
+
         raise Familia::RecordExistsError, "Customer exists #{loggable_email}" if email_exists?(email)
 
         # Ensure email is in kwargs for super
         kwargs[:email] = email
         super(**kwargs)
+      end
+
+      def email_exists?(email)
+        Customer.email_index.key?(email)
       end
 
       def anonymous
@@ -176,8 +184,12 @@ module Onetime
       # Create a dummy customer with realistic passphrase for timing consistency
       def dummy
         @dummy ||= begin
-          passphrase = Onetime::Mixins::Passphrase.create_passphrase(SecureRandom.hex(16))
-          new(role: 'anon', passphrase: passphrase).freeze
+          # Create a dummy customer with a proper BCrypt hash
+          # This ensures constant-time comparison in passphrase? method
+          dummy_cust = new(role: 'anon')
+          dummy_cust.passphrase_encryption = '1'
+          dummy_cust.passphrase = BCrypt::Password.create(SecureRandom.hex(16), cost: 12).to_s
+          dummy_cust.freeze
         end
       end
     end

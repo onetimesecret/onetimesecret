@@ -57,7 +57,7 @@ module V2::Logic
       end
 
       def log_update
-        OT.info "[update-account] #{field_name.to_s.capitalize} updated cid/#{cust.custid} r/#{cust.role} ipa/#{sess.ipaddress}"
+        OT.info "[update-account] #{field_name.to_s.capitalize} updated cid/#{cust.objid} r/#{cust.role}"
       end
     end
   end

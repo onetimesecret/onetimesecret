@@ -5,6 +5,13 @@ import {
   checkAuthDetailsSchema,
 } from '@/schemas/api/endpoints/account';
 import {
+  loginResponseSchema,
+  createAccountResponseSchema,
+  logoutResponseSchema,
+  resetPasswordRequestResponseSchema,
+  resetPasswordResponseSchema,
+} from '@/schemas/api/endpoints/auth';
+import {
   systemSettingsDetailsSchema,
   colonelInfoDetailsSchema,
   colonelStatsDetailsSchema,
@@ -63,6 +70,13 @@ export const responseSchemas = {
     isValid: z.boolean(),
     shrimp: z.string(),
   }),
+
+  // Authentication responses (Rodauth-compatible format)
+  login: loginResponseSchema,
+  createAccount: createAccountResponseSchema,
+  logout: logoutResponseSchema,
+  resetPasswordRequest: resetPasswordRequestResponseSchema,
+  resetPassword: resetPasswordResponseSchema,
 } as const;
 
 // Single source of truth for response types
@@ -89,3 +103,8 @@ export type MetadataListResponse = ResponseTypes['metadataList'];
 export type MetadataResponse = ResponseTypes['metadata'];
 export type SecretListResponse = ResponseTypes['secretList'];
 export type SecretResponse = ResponseTypes['secret'];
+export type LoginResponse = ResponseTypes['login'];
+export type CreateAccountResponse = ResponseTypes['createAccount'];
+export type LogoutResponse = ResponseTypes['logout'];
+export type ResetPasswordRequestResponse = ResponseTypes['resetPasswordRequest'];
+export type ResetPasswordResponse = ResponseTypes['resetPassword'];

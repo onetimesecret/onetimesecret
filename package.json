@@ -175,11 +175,7 @@
     "onlyBuiltDependencies": [
       "@sentry/cli",
       "esbuild",
-      "pg-query-native",
       "unrs-resolver"
-    ],
-    "overrides": {
-      "pg-query-native": "npm:pg-query-emscripten@5.1.0"
-    }
+    ]
   }
 }
