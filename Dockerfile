@@ -64,6 +64,7 @@ RUN set -eux && \
         libssl-dev \
         libffi-dev \
         libyaml-dev \
+        pkg-config \
         git \
         curl && \
     apt-get clean && \
