@@ -95,9 +95,8 @@ module V2
         raise ex
       end
 
-      def raise_form_error(msg)
-        ex             = OT::FormError.new
-        ex.message     = msg
+      def raise_form_error(msg, field: nil, error_type: nil)
+        ex             = OT::FormError.new(msg, field: field, error_type: error_type)
         ex.form_fields = form_fields if respond_to?(:form_fields)
         raise ex
       end

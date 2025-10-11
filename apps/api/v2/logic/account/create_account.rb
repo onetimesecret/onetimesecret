@@ -23,9 +23,9 @@ module V2::Logic
       def raise_concerns
         raise OT::FormError, "You're already signed up" if @strategy_result.authenticated?
 
-        raise_form_error 'Please try another email address' if Onetime::Customer.email_exists?(email)
-        raise_form_error 'Is that a valid email address?' unless valid_email?(email)
-        raise_form_error 'Password is too short' unless password.size >= 6
+        raise_form_error 'Please try another email address', field: 'email', error_type: 'already_exists' if Onetime::Customer.email_exists?(email)
+        raise_form_error 'Is that a valid email address?', field: 'email', error_type: 'invalid' unless valid_email?(email)
+        raise_form_error 'Password is too short', field: 'password', error_type: 'too_short' unless password.size >= 6
 
         @planid ||= 'basic'
 

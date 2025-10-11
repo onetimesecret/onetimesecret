@@ -201,7 +201,7 @@ module Core
       # @param error_redirect [String, nil] Path to redirect on error (HTML), nil to re-raise
       # @yield Optional block for additional processing after logic.process
       # @return [Hash, nil] JSON response Hash for routes with response=json, nil otherwise
-      def execute_with_error_handling(logic, success_message:, success_redirect: '/', error_redirect: nil)
+      def execute_with_error_handling(logic, success_message:, success_redirect: '/', error_redirect: nil, error_status: 400)
         logic.raise_concerns
         logic.process
         yield if block_given?
@@ -213,7 +213,7 @@ module Core
           nil
         end
       rescue OT::FormError => ex
-        handle_form_error(ex, error_redirect)
+        handle_form_error(ex, error_redirect, status: error_status)
       end
 
       # Handles form errors with appropriate JSON or HTML response
@@ -222,11 +222,17 @@ module Core
       # @param redirect_path [String, nil] Path to redirect for HTML, nil to re-raise
       # @param field [String, nil] Field name for error, nil to infer from message
       # @return [Hash, nil] JSON error Hash for routes with response=json, nil otherwise
-      def handle_form_error(ex, redirect_path = nil, field: nil)
+      def handle_form_error(ex, redirect_path = nil, field: nil, status: 400)
         OT.le "Form error occurred: #{ex.message}"
         if json_requested?
+          # Use field from exception if available, otherwise fall back to inference
+          field ||= ex.field if ex.respond_to?(:field)
           field ||= ex.message.downcase.include?('password') ? 'password' : 'email'
-          json_error(ex.message, field_error: [field, ex.message.downcase], status: 400)
+
+          # Use error_type from exception if available, otherwise derive from message
+          error_type = ex.respond_to?(:error_type) && ex.error_type ? ex.error_type : ex.message.downcase
+
+          json_error(ex.message, field_error: [field, error_type], status: status)
         elsif redirect_path
           session['error_message'] = ex.message
           res.redirect redirect_path

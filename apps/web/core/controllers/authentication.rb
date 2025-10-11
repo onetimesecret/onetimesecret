@@ -52,6 +52,7 @@ module Core
           success_message: 'You have been logged in',
           success_redirect: '/',
           error_redirect: '/signin',
+          error_status: 401,
         ) do
           cust_after = logic.cust
 
@@ -64,7 +65,7 @@ module Core
           end
         end
       rescue OT::Unauthorized => ex
-        # Authentication failures return 401 (unauthorized)
+        # Fallback for other unauthorized errors
         if json_requested?
           json_error(ex.message, field_error: %w[email invalid], status: 401)
         else

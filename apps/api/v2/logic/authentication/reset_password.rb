@@ -17,8 +17,8 @@ module V2::Logic
         raise OT::MissingSecret if secret.nil?
         raise OT::MissingSecret if secret.custid.to_s == 'anon'
 
-        raise_form_error 'New passwords do not match' unless is_confirmed
-        raise_form_error 'New password is too short' unless @newp.size >= 6
+        raise_form_error 'New passwords do not match', field: 'newp2', error_type: 'mismatch' unless is_confirmed
+        raise_form_error 'New password is too short', field: 'newp', error_type: 'too_short' unless @newp.size >= 6
       end
 
       def process

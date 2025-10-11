@@ -15,8 +15,8 @@ module V2::Logic
       end
 
       def raise_concerns
-    raise_form_error 'Not a valid email address' unless valid_email?(@objid)
-    raise_form_error 'No account found' unless Onetime::Customer.exists?(@objid)
+    raise_form_error 'Not a valid email address', field: 'email', error_type: 'invalid' unless valid_email?(@objid)
+    raise_form_error 'No account found', field: 'email', error_type: 'not_found' unless Onetime::Customer.exists?(@objid)
       end
 
       def process
