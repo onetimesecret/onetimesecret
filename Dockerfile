@@ -208,6 +208,7 @@ COPY package.json config.ru Gemfile Gemfile.lock ./
 ENV RACK_ENV=production \
     ONETIME_HOME=${APP_DIR} \
     RUBY_YJIT_ENABLE=1 \
+    SERVER_TYPE=puma \
     PATH=${APP_DIR}/bin:$PATH
 
 # Ensure config files exist (preserve existing if mounted)
