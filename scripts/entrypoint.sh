@@ -142,8 +142,17 @@ if [ "$ONETIME_DEBUG" = "true" ] || [ "$ONETIME_DEBUG" = "1" ]; then
 
   # Simple connectivity test using basic tools
   if command -v nc >/dev/null 2>&1; then
-    REDIS_HOST=$(echo "$REDIS_TEST_URL" | sed 's|redis://||' | cut -d'@' -f2 | cut -d':' -f1)
-    REDIS_PORT=$(echo "$REDIS_TEST_URL" | sed 's|redis://||' | cut -d'@' -f2 | cut -d':' -f2 | cut -d'/' -f1)
+    # Remove redis:// prefix and handle URLs with or without auth
+    REDIS_URL_CLEAN=$(echo "$REDIS_TEST_URL" | sed 's|redis://||')
+
+    # If URL contains @, extract host after @, otherwise use full cleaned URL
+    if echo "$REDIS_URL_CLEAN" | grep -q '@'; then
+      REDIS_HOST=$(echo "$REDIS_URL_CLEAN" | cut -d'@' -f2 | cut -d':' -f1)
+      REDIS_PORT=$(echo "$REDIS_URL_CLEAN" | cut -d'@' -f2 | cut -d':' -f2 | cut -d'/' -f1)
+    else
+      REDIS_HOST=$(echo "$REDIS_URL_CLEAN" | cut -d':' -f1)
+      REDIS_PORT=$(echo "$REDIS_URL_CLEAN" | cut -d':' -f2 | cut -d'/' -f1)
+    fi
 
     # Default to standard Redis port if parsing fails
     REDIS_HOST=${REDIS_HOST:-127.0.0.1}
