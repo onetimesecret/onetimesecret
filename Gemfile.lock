@@ -14,6 +14,19 @@ GIT
       uri-valkey (~> 1.4)
 
 GIT
+  remote: https://github.com/delano/otto.git
+  revision: ba77ed30bf97c93ca7d7a3cc7950781a9fca9988
+  branch: delano/next
+  specs:
+    otto (2.0.0.pre2)
+      facets (~> 3.1)
+      logger (~> 1, < 2.0)
+      loofah (~> 2.20)
+      rack (~> 3.1, < 4.0)
+      rack-parser (~> 0.7)
+      rexml (>= 3.3.6)
+
+GIT
   remote: https://github.com/rspec/rspec
   revision: ce23a3ad7c8a418259eaddd46785476218adfc1b
   specs:
@@ -54,16 +67,6 @@ GIT
   glob: rspec-support/rspec-support.gemspec
   specs:
     rspec-support (4.0.0.pre)
-
-PATH
-  remote: ../../d/otto
-  specs:
-    otto (2.0.0.pre2)
-      facets (~> 3.1)
-      loofah (~> 2.20)
-      rack (~> 3.1, < 4.0)
-      rack-parser (~> 0.7)
-      rexml (>= 3.3.6)
 
 GEM
   remote: https://rubygems.org/
