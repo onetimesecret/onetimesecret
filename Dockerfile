@@ -199,7 +199,6 @@ COPY bin ./bin
 COPY apps ./apps
 COPY etc/ ./etc/
 COPY lib ./lib
-COPY migrations ./migrations
 COPY scripts/entrypoint.sh ./bin/
 COPY scripts/update-version.sh ./bin/
 COPY package.json config.ru Gemfile Gemfile.lock ./
