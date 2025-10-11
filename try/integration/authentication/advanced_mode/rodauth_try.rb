@@ -7,11 +7,17 @@
 # - Session bridging with Otto Customer model
 # - JSON-only responses
 #
-# REQUIRES: Advanced mode with PostgreSQL database
+# REQUIRES: Advanced mode with SQL database (PostgreSQL or SQLite)
 
 # Skip if not in advanced mode
 require_relative '../../../support/auth_mode_config'
 Object.new.extend(AuthModeConfig).skip_unless_mode :advanced
+
+# Ensure database URL is configured for advanced mode
+if ENV['DATABASE_URL'].to_s.strip.empty?
+  puts "SKIPPING: Advanced mode requires DATABASE_URL (PostgreSQL or SQLite)."
+  exit 0
+end
 
 # Setup - Load in advanced mode
 ENV['RACK_ENV'] = 'test'

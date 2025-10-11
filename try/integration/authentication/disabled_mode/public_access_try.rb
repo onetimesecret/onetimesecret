@@ -121,12 +121,10 @@ Onetime::Application::Registry.mount_mappings.key?('/')
 # SESSION BEHAVIOR
 # -------------------------------------------------------------------
 
-## Sessions may still be created for tracking (optional)
+## Homepage is accessible without authentication
 @test.get '/'
-has_cookie = @test.last_response.headers['Set-Cookie']
-# Session cookies are optional in disabled mode
-true  # Always pass - sessions are optional
-#=> true
+@test.last_response.status
+#=> 200
 
 # -------------------------------------------------------------------
 # TEARDOWN
