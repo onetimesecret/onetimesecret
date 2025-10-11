@@ -225,12 +225,9 @@ module Core
       def handle_form_error(ex, redirect_path = nil, field: nil, status: 400)
         OT.le "Form error occurred: #{ex.message}"
         if json_requested?
-          # Use field from exception if available, otherwise fall back to inference
-          field ||= ex.field if ex.respond_to?(:field)
-          field ||= ex.message.downcase.include?('password') ? 'password' : 'email'
-
-          # Use error_type from exception if available, otherwise derive from message
-          error_type = ex.respond_to?(:error_type) && ex.error_type ? ex.error_type : ex.message.downcase
+          # FormError must provide field and error_type
+          field ||= ex.field
+          error_type = ex.error_type || ex.message.downcase
 
           json_error(ex.message, field_error: [field, error_type], status: status)
         elsif redirect_path
