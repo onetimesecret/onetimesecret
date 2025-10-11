@@ -62,12 +62,16 @@ module V2
         OT.ld "[valid_email?] Guess: #{loggable_guess}"
 
         begin
-          validator = Truemail.validate(guess)
-        rescue StandardError => ex
-          OT.le "Email validation error (#{loggable_guess}): #{ex.message}"
-          OT.le ex.backtrace
-          false
-        end
+        validator = Truemail.validate(guess)
+        valid = validator.result.valid?
+        validation_str = validator.as_json
+        OT.info "[valid_email?] Address is valid (#{valid}): #{validation_str}"
+        valid
+      rescue StandardError => ex
+        OT.le "Email validation error (#{loggable_guess}): #{ex.message}"
+        OT.le ex.backtrace
+        false
+      end
       end
 
       def success_data

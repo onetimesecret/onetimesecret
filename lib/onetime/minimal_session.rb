@@ -101,7 +101,8 @@ module Onetime
 
     def valid_hmac?(data, hmac)
       expected = compute_hmac(data)
-      Rack::Utils.secure_compare(hmac, expected)
+      return false unless hmac.is_a?(String) && expected.is_a?(String) && hmac.bytesize == expected.bytesize
+      Rack::Utils.secure_compare(expected, hmac)
     end
 
     def derive_key(purpose)

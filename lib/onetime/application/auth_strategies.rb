@@ -257,7 +257,7 @@ module Onetime
           target_cust = cust || Onetime::Customer.dummy
 
           # Always validate credentials using BCrypt (constant-time comparison)
-          # Note: This assumes API uses passphrase for authentication
+          # Note: This uses passphrase? for API key authentication (API key stored as passphrase)
           valid_credentials = target_cust.passphrase?(apikey)
 
           # Only succeed if we have a real customer AND valid credentials
