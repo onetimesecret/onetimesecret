@@ -38,6 +38,7 @@ import type { AxiosInstance } from 'axios';
  * }
  * ```
  */
+/* eslint-disable max-lines-per-function */
 export function useAuth() {
   const $api = inject('api') as AxiosInstance;
   const router = useRouter();

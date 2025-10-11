@@ -1,6 +1,5 @@
 // src/stores/authStore.ts
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
-import { responseSchemas } from '@/schemas/api';
 import { loggingService } from '@/services/logging.service';
 import { WindowService } from '@/services/window.service';
 import { AxiosInstance } from 'axios';
