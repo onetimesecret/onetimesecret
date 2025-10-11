@@ -59,7 +59,7 @@ jobs:
           docker run -d \
             --name onetime-test-container \
             -p 3000:3000 \
-            -e REDIS_URL=redis://host.docker.internal:6379/0 \
+            -e VALKEY_URL=redis://host.docker.internal:6379/0 \
             -e SECRET=$(openssl rand -hex 32) \
             -e ONETIME_DEBUG=1 \
             -e RUBY_UNBUFFERED=1 \
