@@ -212,14 +212,18 @@ ENV RACK_ENV=production \
     PATH=${APP_DIR}/bin:$PATH
 
 # Ensure config files exist (preserve existing if mounted)
-# Copies the default config files into place if they don't
-# already exist. If a file does exist, nothing happens. For
-# example, if the config file has been previously copied
-# (and modified) the "--no-clobber" argument prevents
-# those changes from being overwritten.
+# Copies all default config files from etc/defaults/*.defaults.* to etc/*
+# removing the .defaults suffix. For example:
+#   etc/defaults/config.defaults.yaml -> etc/config.yaml
+#   etc/defaults/auth.defaults.yaml -> etc/auth.yaml
+# The --no-clobber flag ensures existing files are not overwritten.
 RUN set -eux && \
-    cp --preserve --no-clobber etc/defaults/config.defaults.yaml etc/config.yaml && \
-    cp --preserve --no-clobber etc/defaults/auth.defaults.yaml etc/auth.yaml && \
+    for file in etc/defaults/*.defaults.*; do \
+        if [ -f "$file" ]; then \
+            target="etc/$(basename "$file" | sed 's/\.defaults//')"; \
+            cp --preserve --no-clobber "$file" "$target"; \
+        fi; \
+    done && \
     chmod +x bin/entrypoint.sh bin/update-version.sh
 
 EXPOSE 3000
