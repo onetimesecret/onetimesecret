@@ -67,6 +67,13 @@ jobs:
             --add-host=host.docker.internal:host-gateway \
             onetime-test
 
+          # Give container a moment to start logging
+          sleep 2
+
+          echo ""
+          echo "=== Initial container logs (first 100 lines) ==="
+          docker logs onetime-test-container 2>&1 | head -n 100 || true
+
       - name: Show container status and environment
         run: |
           echo "=== Container status ==="
