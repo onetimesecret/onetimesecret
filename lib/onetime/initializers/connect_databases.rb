@@ -20,6 +20,16 @@ module Onetime
       OT.ld "[init] Connect database: uri: #{uri}"
       OT.ld "[init] Connect database: models: #{Familia.members.map(&:to_s)}"
 
+      # Early validation: Check if Redis URI is properly configured
+      if uri.nil? || uri.empty? || uri.include?('CHANGEME')
+        OT.le "[init] ERROR: Redis URI not properly configured!"
+        OT.le "[init] Current URI: #{uri || '<nil>'}"
+        OT.le "[init] Environment variables:"
+        OT.le "[init]   REDIS_URL: #{ENV['REDIS_URL'] || '<not set>'}"
+        OT.le "[init]   VALKEY_URL: #{ENV['VALKEY_URL'] || '<not set>'}"
+        raise Onetime::Problem, 'Redis URI not configured. Set REDIS_URL or VALKEY_URL environment variable.'
+      end
+
       # Validate that models have been loaded
       if Familia.members.empty?
         raise Onetime::Problem, 'No known Familia members. Models need to load before calling boot!'

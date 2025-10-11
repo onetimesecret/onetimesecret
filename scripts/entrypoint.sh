@@ -30,6 +30,14 @@
 # Stop at the first sign of trouble
 set -e
 
+# Enable immediate output for better debugging
+export RUBY_UNBUFFERED=1
+if [ "$STDOUT_SYNC" = "1" ] || [ "$ONETIME_DEBUG" = "1" ]; then
+  # Force stdout/stderr to be unbuffered for real-time logging
+  stdbuf -oL -eL bash -c 'exec "$@"' -- "$@" &
+  wait $!
+fi
+
 # Set PORT to the existing value or default to 3000
 PORT=${PORT:-3000}
 
@@ -58,6 +66,16 @@ basename=$(basename "${location}")
 
 # Drop a line in the build logs (including any error msgs)
 >&2 echo "[${datestamp}] INFO: Running ${basename}..."
+
+# Immediate environment debugging for Redis connection issues
+if [ "$ONETIME_DEBUG" = "true" ] || [ "$ONETIME_DEBUG" = "1" ]; then
+  >&2 echo "[${datestamp}] DEBUG: Environment variables:"
+  >&2 echo "  REDIS_URL=${REDIS_URL:-<not set>}"
+  >&2 echo "  VALKEY_URL=${VALKEY_URL:-<not set>}"
+  >&2 echo "  SECRET=${SECRET:+<set>}"
+  >&2 echo "  SERVER_TYPE=${SERVER_TYPE}"
+  >&2 echo "  RACK_ENV=${RACK_ENV:-<not set>}"
+fi
 
 # Leave nothing but footprints
 unset datestamp location basename
@@ -115,6 +133,35 @@ if [ -d "/mnt/public" ]; then
   cp -r public/web /mnt/public/
 fi
 
+# Test Redis connectivity early to fail fast
+if [ "$ONETIME_DEBUG" = "true" ] || [ "$ONETIME_DEBUG" = "1" ]; then
+  >&2 echo "[${datestamp}] DEBUG: Testing Redis connectivity..."
+
+  # Extract host and port from REDIS_URL or VALKEY_URL
+  REDIS_TEST_URL="${VALKEY_URL:-${REDIS_URL:-redis://127.0.0.1:6379}}"
+
+  # Simple connectivity test using basic tools
+  if command -v nc >/dev/null 2>&1; then
+    REDIS_HOST=$(echo "$REDIS_TEST_URL" | sed 's|redis://||' | cut -d'@' -f2 | cut -d':' -f1)
+    REDIS_PORT=$(echo "$REDIS_TEST_URL" | sed 's|redis://||' | cut -d'@' -f2 | cut -d':' -f2 | cut -d'/' -f1)
+
+    # Default to standard Redis port if parsing fails
+    REDIS_HOST=${REDIS_HOST:-127.0.0.1}
+    REDIS_PORT=${REDIS_PORT:-6379}
+
+    >&2 echo "[${datestamp}] DEBUG: Testing connection to ${REDIS_HOST}:${REDIS_PORT}"
+
+    if ! nc -zv "$REDIS_HOST" "$REDIS_PORT" 2>&1; then
+      >&2 echo "[${datestamp}] WARNING: Cannot connect to Redis at ${REDIS_HOST}:${REDIS_PORT}"
+      >&2 echo "[${datestamp}] WARNING: Application may fail to start"
+    else
+      >&2 echo "[${datestamp}] DEBUG: Redis connectivity test passed"
+    fi
+  else
+    >&2 echo "[${datestamp}] DEBUG: nc not available, skipping connectivity test"
+  fi
+fi
+
 # Run the command configured for the docker compose service
 # in the docker-compose.yaml file, or a default if none is
 # provided. See Dockerfile for more details.
@@ -127,10 +174,12 @@ if [ $# -eq 0 ]; then
   # Choose server based on SERVER_TYPE environment variable
   if [ "$SERVER_TYPE" = "puma" ]; then
     >&2 echo "Starting Puma server on port $PORT with $PUMA_WORKERS workers ($PUMA_MIN_THREADS-$PUMA_MAX_THREADS threads)"
-    RUBY_YJIT_ENABLE=1 exec bundle exec puma -R config.ru -p $PORT -t $PUMA_MIN_THREADS:$PUMA_MAX_THREADS -w $PUMA_WORKERS
+    # Enable real-time logging for Ruby applications
+    RUBY_YJIT_ENABLE=1 RUBY_UNBUFFERED=1 exec stdbuf -oL -eL bundle exec puma -R config.ru -p $PORT -t $PUMA_MIN_THREADS:$PUMA_MAX_THREADS -w $PUMA_WORKERS
   else
     >&2 echo "Starting Thin server on port $PORT"
-    exec bundle exec thin -R config.ru -p $PORT start
+    # Enable real-time logging for Ruby applications
+    RUBY_UNBUFFERED=1 exec stdbuf -oL -eL bundle exec thin -R config.ru -p $PORT start
   fi
 else
   exec bundle exec "$@"
