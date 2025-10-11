@@ -5,22 +5,21 @@ name: CI
 # Main CI workflow that runs Ruby tests using RSpec and tryouts, plus TypeScript
 # tests using Vitest and validation steps (linting, type-checking).
 #
-# Triggers:
-# - Push to main/develop branches
-# - Pull requests targeting main/develop/feature/* (opened, updated, reopened)
-# - Manual workflow dispatch
+# The workflow is triggered by push events on branches starting with "fix/" or
+# "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
 #
-# Jobs:
+# The workflow has jobs for:
 # - Ruby testing (RSpec and tryouts) across multiple Ruby versions
 # - TypeScript testing (Vitest) and validation (linting, type-checking)
+#
+# This workflow ensures comprehensive testing across the full stack.
 
 on:
   push:
     branches:
-      - main
-      - develop
+      - fix/*
+      - rel/*
   pull_request:
-    types: [opened, synchronize, reopened]
     branches:
       - main
       - develop
