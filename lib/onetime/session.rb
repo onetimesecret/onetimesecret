@@ -29,7 +29,7 @@ require 'familia'
 # @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/abstract/id.rb
 # @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/encryptor.rb
 module Onetime
-  class MinimalSession < Rack::Session::Abstract::PersistedSecure
+  class Session < Rack::Session::Abstract::PersistedSecure
     unless defined?(DEFAULT_OPTIONS)
       DEFAULT_OPTIONS = {
         key: 'onetime.session',
@@ -145,7 +145,7 @@ module Onetime
         [sid, session_data]
       rescue StandardError => e
         # Log error in development/debugging
-        Familia.ld "[MinimalSession] Error reading session #{sid_string}: #{e.message}"
+        Familia.ld "[Session] Error reading session #{sid_string}: #{e.message}"
 
         # Return new session on any error
         [generate_sid, {}]
@@ -174,7 +174,7 @@ module Onetime
       sid
     rescue StandardError => e
       # Log error in development/debugging
-      Familia.ld "[MinimalSession] Error writing session #{sid_string}: #{e.message}"
+      Familia.ld "[Session] Error writing session #{sid_string}: #{e.message}"
 
       # Return false to indicate failure
       false

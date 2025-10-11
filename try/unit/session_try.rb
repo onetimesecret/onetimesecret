@@ -1,6 +1,6 @@
 # try/unit/minimal_session_try.rb
 #
-# MinimalSession Test Suite
+# Session Test Suite
 #
 
 # Setup - Load the real application
@@ -14,11 +14,11 @@ require 'ostruct'
 require_relative '../support/test_helpers'
 
 require 'onetime'
-require 'onetime/minimal_session'
+require 'onetime/session'
 
 OT.boot! :test, false
 
-MinimalSession = Onetime::MinimalSession
+Session = Onetime::Session
 
 
 
@@ -47,25 +47,25 @@ end
   expire_after: 3600,
   namespace: 'testsession'
 }
-@session = MinimalSession.new(@app, @session_opts)
+@session = Session.new(@app, @session_opts)
 
 # Helper method to access private methods for testing
 def call_private_method(obj, method_name, *args)
   obj.send(method_name, *args)
 end
 
-## MinimalSession initializes with required secret
+## Session initializes with required secret
 begin
-  MinimalSession.new(@app, { key: 'test' })
+  Session.new(@app, { key: 'test' })
   false
 rescue ArgumentError => e
   e.message.include?("Secret required")
 end
 #=> true
 
-## MinimalSession initializes successfully with secret
-session = MinimalSession.new(@app, @session_opts)
-session.is_a?(MinimalSession)
+## Session initializes successfully with secret
+session = Session.new(@app, @session_opts)
+session.is_a?(Session)
 #=> true
 
 ## Generate secure session ID with correct format (wrapped in SessionId)
@@ -200,8 +200,8 @@ result == false
 #=> true
 
 ## Session without redis_uri still initializes
-session_no_redis = MinimalSession.new(@app, { secret: @secret })
-session_no_redis.is_a?(MinimalSession)
+session_no_redis = Session.new(@app, { secret: @secret })
+session_no_redis.is_a?(Session)
 #=> true
 
 # Note: Redis TTL will automatically clean up test sessions
