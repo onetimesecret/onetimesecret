@@ -1,4 +1,4 @@
-# lib/minimal_session.rb
+# lib/onetime/session.rb
 
 require 'rack/session/abstract/id'
 require 'securerandom'
@@ -7,28 +7,28 @@ require 'base64'
 require 'openssl'
 require 'familia'
 
-# MinimalSession - A secure Rack session store using Familia's StringKey DataType
-#
-# This implementation provides secure session storage with HMAC verification
-# and encryption using Familia's Redis-backed StringKey data type.
-#
-# Key Features:
-# - Secure session ID generation with SecureRandom
-# - HMAC-based session integrity verification
-# - JSON serialization for session data
-# - Automatic TTL management via Familia's expiration features
-# - Redis connection pooling via Familia
-#
-# Usage:
-#   use MinimalSession,
-#     key: 'app.session',
-#     secret: ENV.fetch('SESSION_SECRET') { raise "SESSION_SECRET not set" },
-#     expire_after: 3600*24,  # 24 hours
-#     secure: true,  # HTTPS only
-#
-# @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/abstract/id.rb
-# @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/encryptor.rb
 module Onetime
+  # Onetime::Session - A secure Rack session store using Familia's StringKey DataType
+  #
+  # This implementation provides secure session storage with HMAC verification
+  # and encryption using Familia's Redis-backed StringKey data type.
+  #
+  # Key Features:
+  # - Secure session ID generation with SecureRandom
+  # - HMAC-based session integrity verification
+  # - JSON serialization for session data
+  # - Automatic TTL management via Familia's expiration features
+  # - Redis connection pooling via Familia
+  #
+  # Usage:
+  #   use Onetime::Session,
+  #     key: 'onetime.session',
+  #     secret: ENV.fetch('SESSION_SECRET') { raise "SESSION_SECRET not set" },
+  #     expire_after: 3600*24,  # 24 hours
+  #     secure: true,  # HTTPS only
+  #
+  # @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/abstract/id.rb
+  # @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/encryptor.rb
   class Session < Rack::Session::Abstract::PersistedSecure
     unless defined?(DEFAULT_OPTIONS)
       DEFAULT_OPTIONS = {

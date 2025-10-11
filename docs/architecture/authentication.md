@@ -25,7 +25,7 @@ Both modes share the same session cookie (`onetime.session`) and Otto authentica
 
 2. **Session Middleware** (`Rack::Session::Abstract::PersistedSecure`)
    - **Location**: `lib/onetime/application/middleware_stack.rb`
-   - **Class**: `Onetime::MinimalSession` (extends `Rack::Session::Abstract::PersistedSecure`)
+   - **Class**: `Onetime::Session` (extends `Rack::Session::Abstract::PersistedSecure`)
    - **Backend**: `Familia::StringKey` (Redis)
    - **Sets**: `env['rack.session']`
    - **Cookie**: `'onetime.session'`
@@ -69,10 +69,10 @@ Both modes share the same session cookie (`onetime.session`) and Otto authentica
 
 **Purpose**: Long-term storage across requests
 **Access**: Write-only from Logic classes
-**Implementation**: `Onetime::MinimalSession` extends `Rack::Session::Abstract::PersistedSecure`
+**Implementation**: `Onetime::Session` extends `Rack::Session::Abstract::PersistedSecure`
 
 ```ruby
-# Session lookup (lib/onetime/minimal_session.rb)
+# Session lookup (lib/onetime/session.rb)
 def find_session(request, sid)
   # Validate session ID format
   # Validates session ID format
@@ -503,7 +503,7 @@ bundle exec try --verbose --fails --stack try/integration/authentication/dual_mo
 
 ### Session Middleware
 
-- **Class**: `Onetime::MinimalSession`
+- **Class**: `Onetime::Session`
 - **Cookie**: `onetime.session`
 - **Security flags**: `secure`, `httponly`, `same_site: :strict`
 - **Backend**: Redis via HMAC-signed storage
