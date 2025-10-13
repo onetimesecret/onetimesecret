@@ -46,17 +46,17 @@ module Auth
         begin
           require_relative 'migrator'
           Auth::Migrator.run_if_needed
-          OT.info "Auth database migrations completed (advanced mode)"
-        rescue StandardError => e
-          OT.le "Failed to run auth database migrations: #{e.message}"
+          OT.info 'Auth database migrations completed (advanced mode)'
+        rescue StandardError => ex
+          OT.le "Failed to run auth database migrations: #{ex.message}"
           # Don't fail startup in production, log the error
-          raise e if Onetime.development?
+          raise ex if Onetime.development?
         end
       else
-        OT.le "[Auth::Application] WARNING: Auth application should not be mounted in basic mode"
-        OT.le "  The Auth app is designed for advanced mode only."
-        OT.le "  In basic mode, authentication is handled by Core app at /auth/*"
-        OT.le "  Check your application registry configuration."
+        OT.le '[Auth::Application] WARNING: Auth application should not be mounted in basic mode'
+        OT.le '  The Auth app is designed for advanced mode only.'
+        OT.le '  In basic mode, authentication is handled by Core app at /auth/*'
+        OT.le '  Check your application registry configuration.'
       end
     end
 

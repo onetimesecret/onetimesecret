@@ -42,7 +42,7 @@ Subject: #{email[:subject]}
 
 #{email[:body]}",
                   email[:from],
-                  email[:to]
+                  email[:to],
                 )
               end
               OT.info "[email] Sent email to #{email[:to]} via Mailpit"
@@ -59,11 +59,11 @@ Subject: #{email[:subject]}
             Hooks::RateLimiting.configure,
             Hooks::AccountLifecycle.configure,
             Hooks::Authentication.configure,
-            Hooks::OttoIntegration.configure
+            Hooks::OttoIntegration.configure,
           ].each do |hook_proc|
             instance_eval(&hook_proc)
           end
         end
-      end
+    end
     end
   end
