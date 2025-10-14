@@ -19,11 +19,8 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
-# Web framework and routing
-# Authentication framework
+gem 'otto', '~> 2.0.0.pre2'
 gem 'rodauth', '~> 2.0'
-gem 'otto', git: 'https://github.com/delano/otto.git', branch: 'delano/next' # '~> 2.0.0.pre2'
-# gem 'otto', path: '../../d/otto'  # Local development only
 gem 'roda', '~> 3.0'
 
 
@@ -62,11 +59,10 @@ gem 'truemail'
 # ====================================
 
 # ORMs and database drivers
-gem 'familia', git: 'https://github.com/delano/familia.git', branch: 'fix/157-heinz-atomicity' #'~> 2.0.0.pre19'
+gem 'familia', '~> 2.0.0.pre19'
 gem 'sequel', '~> 5.0'
 
-database_adapter = ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase
-case database_adapter
+case ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase
 when 'postgresql', 'pg', 'postgres'
   gem 'pg', '~> 1.4'
 else
@@ -83,8 +79,8 @@ gem 'uri-valkey', '~> 1.4.0'
 
 gem 'bcrypt', '~> 3.1'
 gem 'encryptor', '= 1.1.3'
-gem 'rqrcode', '~> 3.1'
 gem 'rotp', '~> 6.2'
+gem 'rqrcode', '~> 3.1'
 gem 'webauthn', '~> 3.0'
 
 # ====================================
