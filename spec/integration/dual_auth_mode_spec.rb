@@ -3,7 +3,7 @@
 # Integration tests for dual authentication mode (basic/advanced)
 #
 # @note: You can add `DEBUG_DATABASE=1` when running rspec or tryouts
-# tests to see the redis commands in stderr. Be careful how many tests
+# tests to see the database commands in stderr. Be careful how many tests
 # you run at one time: it is a lot of output for small context windows.
 
 require 'spec_helper'
@@ -19,16 +19,8 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       # Setup environment
       ENV['RACK_ENV'] = 'test'
       ENV['AUTHENTICATION_MODE'] = 'basic'
-      ENV['REDIS_URL'] = 'redis://127.0.0.1:2121/0'
 
-      # Boot application
-      require_relative '../../lib/onetime'
-      require_relative '../../lib/onetime/config'
       Onetime.boot! :test
-
-      require_relative '../../lib/onetime/auth_config'
-      require_relative '../../lib/onetime/middleware'
-      require_relative '../../lib/onetime/application/registry'
 
       # Prepare registry
       Onetime::Application::Registry.prepare_application_registry
@@ -52,20 +44,12 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     { 'HTTP_ACCEPT' => 'application/json' }
   end
 
-  let(:redis) do
-    require 'redis'
-    Redis.new(url: 'redis://127.0.0.1:2121/0')
+  let(:dbclient) do
+    Familia.dbclient
   end
 
   let(:test_email) { 'testuser@example.com' }
   let(:test_password) { 'SecureP@ssw0rd123' }
-
-  before(:all) do
-    # Clear Redis before tests
-    require 'redis'
-    redis = Redis.new(url: 'redis://127.0.0.1:2121/0')
-    redis.flushdb
-  end
 
   # Helper to create a test customer
   def create_test_customer(email: test_email, password: test_password)
@@ -249,8 +233,8 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     end
 
     before(:each) do
-      # Clear Redis to ensure clean state for each test
-      redis.flushdb
+      # Clear database to ensure clean state for each test
+      dbclient.flushdb
 
       # Create test customer for each test
       @test_cust = create_test_customer
@@ -259,8 +243,8 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     after(:each) do
       # Clean up test customer
       @test_cust&.destroy! if @test_cust
-      # Ensure Redis is clean after test
-      redis.flushdb
+      # Ensure database is clean after test
+      dbclient.flushdb
     end
 
     context 'successful authentication' do
@@ -337,20 +321,20 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       end
     end
 
-    context 'Redis session storage' do
-      it 'stores session in Redis after login' do
+    context 'Session storage' do
+      it 'stores session in kv database after login' do
         post '/auth/login',
           { u: test_email, p: test_password },
           json_request_headers
 
         expect(last_response.status).to eq(200)
 
-        # Check Redis for session keys
-        session_keys = redis.keys('*session*')
+        # Check kv database for session keys
+        session_keys = dbclient.keys('*session*')
         expect(session_keys).not_to be_empty
       end
 
-      it 'removes session from Redis after logout' do
+      it 'removes session from kv database after logout' do
         # Login
         post '/auth/login',
           { u: test_email, p: test_password },
@@ -358,8 +342,8 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
 
         cookie = last_response.headers['Set-Cookie']
 
-        # Verify session exists in Redis
-        session_keys_before = redis.keys('*session*')
+        # Verify session exists in kv database
+        session_keys_before = dbclient.keys('*session*')
         expect(session_keys_before).not_to be_empty
 
         # Logout
@@ -367,14 +351,14 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
           {},
           json_request_headers.merge('HTTP_COOKIE' => cookie)
 
-        # Verify session removed from Redis
+        # Verify session removed from kv database
         # Note: Rack session middleware might keep empty session, so check for authenticated data
-        session_keys_after = redis.keys('*session*')
+        session_keys_after = dbclient.keys('*session*')
 
         # Session should either be deleted or cleared (no authenticated_at)
         if session_keys_after.any?
           session_keys_after.each do |key|
-            session_data = redis.get(key)
+            session_data = dbclient.get(key)
             expect(session_data).not_to include('authenticated_at') if session_data
           end
         end

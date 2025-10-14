@@ -64,7 +64,6 @@ end
 OT.mode = :test
 OT::Config.path = File.join(Onetime::HOME, 'spec', 'config.test.yaml')
 
-
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
     # Use default expectations configuration
