@@ -79,7 +79,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     end
 
     # Create customer
-    cust = Onetime::Customer.create(email)
+    cust = Onetime::Customer.create!(email)
 
     # Set password (BCrypt hash)
     cust.passphrase = BCrypt::Password.create(password).to_s

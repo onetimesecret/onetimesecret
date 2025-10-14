@@ -389,7 +389,7 @@ module Onetime
       # unqualified term "domain" on its own since there's so much
       # room for confusion.
       #
-      def create(input, custid)
+      def create!(input, custid)
         obj = parse(input, custid)
 
         dbclient.watch(obj.dbkey) do

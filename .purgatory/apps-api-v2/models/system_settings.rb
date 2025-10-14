@@ -209,7 +209,7 @@ module V2
 
       # Creates a new record
       #
-      def create(**kwargs)
+      def create!(**kwargs)
         obj = new(**kwargs)
 
         # Fail fast if invalid fields are provided

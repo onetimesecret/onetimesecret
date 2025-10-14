@@ -13,7 +13,7 @@ module Onetime
   # Now we use user_type='anonymous' as the primary indicator.
   #
   # USAGE:
-  # - Authenticated: Customer.create(custid, email)
+  # - Authenticated: Customer.create!(custid, email)
   # - Anonymous: Customer.anonymous
   # - Explicit: Customer.new(custid: 'email', user_type: 'authenticated')
   #
@@ -150,12 +150,12 @@ module Onetime
         return nil unless objid
 
         load(objid)
-      rescue => e
-        OT.le "[Customer.find_by_extid] Error: #{e.message}"
+      rescue Familia::HorreumError => ex
+        OT.le "[Customer.find_by_extid] Error: #{ex.message}"
         nil
       end
 
-      def create(email = nil, **kwargs)
+      def create!(email = nil, **kwargs)
         # Handle both positional email argument (legacy) and keyword argument
         email ||= kwargs[:email] || kwargs['email']
 
