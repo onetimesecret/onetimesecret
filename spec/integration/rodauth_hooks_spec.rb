@@ -10,16 +10,8 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
     # Set advanced mode before loading the application
     ENV['RACK_ENV'] = 'test'
     ENV['AUTHENTICATION_MODE'] = 'advanced'
-    ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../..'))
 
-    # Load the application
-    require 'onetime'
-    require 'onetime/config'
     Onetime.boot! :test
-
-    require 'onetime/auth_config'
-    require 'onetime/middleware'
-    require 'onetime/application/registry'
 
     # Prepare the application registry
     Onetime::Application::Registry.prepare_application_registry
@@ -29,18 +21,18 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
     Onetime::Application::Registry.generate_rack_url_map
   end
 
-  let(:redis) { Familia.dbclient(0) }
+  let(:dbclient) { Familia.dbclient(0) }
   let(:test_email) { "test-#{SecureRandom.hex(8)}@example.com" }
   let(:valid_password) { 'SecureP@ss123' }
 
   before do
     # Clear any existing rate limit data
-    redis.keys('login_attempts:*').each { |key| redis.del(key) }
+    dbclient.keys('login_attempts:*').each { |key| dbclient.del(key) }
   end
 
   after do
     # Cleanup
-    redis.keys('login_attempts:*').each { |key| redis.del(key) }
+    dbclient.keys('login_attempts:*').each { |key| dbclient.del(key) }
   end
 
   describe 'before_create_account hook' do
@@ -118,15 +110,15 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
         expect(json['error']).to match(/too many.*attempts/i)
       end
 
-      it 'sets Redis key with TTL' do
+      it 'sets DB key with TTL' do
         post '/auth/login', {
           login: test_email,
           password: 'wrong-password'
         }, { 'HTTP_ACCEPT' => 'application/json' }
 
         rate_limit_key = "login_attempts:#{test_email}"
-        expect(redis.exists(rate_limit_key)).to eq(1)
-        ttl = redis.ttl(rate_limit_key)
+        expect(dbclient.exists(rate_limit_key)).to eq(1)
+        ttl = dbclient.ttl(rate_limit_key)
         expect(ttl).to be > 0
         expect(ttl).to be <= 300 # 5 minutes
       end
@@ -146,7 +138,7 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
         end
 
         rate_limit_key = "login_attempts:#{test_email}"
-        attempts_before = redis.get(rate_limit_key).to_i
+        attempts_before = dbclient.get(rate_limit_key).to_i
         expect(attempts_before).to eq(2)
 
         # Note: This would require a valid account to test properly
