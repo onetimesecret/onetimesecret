@@ -99,7 +99,7 @@ module Core
       # e.g. https://staging.onetimesecret.com/welcome?checkout={CHECKOUT_SESSION_ID}
       #
       def welcome
-        logic = V2::Logic::Welcome::FromStripePaymentLink.new(_strategy_result, req.params, locale)
+        logic = V2::Logic::Welcome::FromStripePaymentLink.new(strategy_result, req.params, locale)
         logic.raise_concerns
         logic.process
 
@@ -120,7 +120,7 @@ module Core
       #
       def welcome_webhook
         # CSRF exemption handled by route parameter csrf=exempt
-        logic = V2::Logic::Welcome::StripeWebhook.new(_strategy_result, req.params, locale)
+        logic = V2::Logic::Welcome::StripeWebhook.new(strategy_result, req.params, locale)
         logic.stripe_signature = req.env['HTTP_STRIPE_SIGNATURE']
         logic.payload = req.body.read
         logic.raise_concerns

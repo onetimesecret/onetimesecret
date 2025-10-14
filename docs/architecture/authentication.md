@@ -316,7 +316,7 @@ Controllers read authentication state from `env`, never from session:
 module Core::Controllers
   module Base
     # Gets the strategy result from Otto
-    def _strategy_result
+    def strategy_result
       req.env['otto.strategy_result']
     end
 
@@ -334,7 +334,7 @@ module Core::Controllers
 
     # Checks if request is authenticated
     def authenticated?
-      _strategy_result&.authenticated?
+      strategy_result&.authenticated?
     end
   end
 end
@@ -349,7 +349,7 @@ module Core::Controllers
 
     def show
       customer = req.env['otto.user']           # ✅ Correct
-      strategy_result = _strategy_result         # ✅ Correct
+      strategy_result = strategy_result         # ✅ Correct
       # customer_id = session['identity_id']    # ❌ Wrong - never read session
 
       view = Core::Views::Account.new(req, session, customer, locale)

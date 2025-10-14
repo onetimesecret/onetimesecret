@@ -137,16 +137,16 @@ module Core
       protected
 
       def signin_enabled?
-        _auth_settings['enabled'] && _auth_settings['signin']
+        auth_settings['enabled'] && auth_settings['signin']
       end
 
       def signup_enabled?
-        _auth_settings['enabled'] && _auth_settings['signup']
+        auth_settings['enabled'] && auth_settings['signup']
       end
 
       private
 
-      def _auth_settings
+      def auth_settings
         OT.conf.dig('site', 'authentication')
       end
 
@@ -159,7 +159,7 @@ module Core
       # req.env['otto.strategy_result'] before the controller handler runs.
       #
       # @return [Otto::Security::Authentication::StrategyResult]
-      def _strategy_result
+      def strategy_result
         req.env['otto.strategy_result']
       end
 
