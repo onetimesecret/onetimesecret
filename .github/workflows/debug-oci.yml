@@ -6,10 +6,18 @@ name: Debug OCI Image
 # This can be deleted once the main ci.yml is fixed
 
 on:
-  push:
+  pull_request:
     branches:
-      - feature/1787-tests-a-la-mode
+      - feature/*
+      - rel/*
+      - develop
   workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
 
 permissions:
   contents: read
