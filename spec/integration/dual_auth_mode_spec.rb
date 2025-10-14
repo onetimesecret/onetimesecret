@@ -25,8 +25,8 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       # Prepare registry
       Onetime::Application::Registry.prepare_application_registry
 
-      # Return Core app (handles /auth/* in basic mode)
-      Onetime::Application::Registry.mount_mappings['/'].new
+      # Return full Rack app with middleware stack (including session middleware)
+      Onetime::Application::Registry.generate_rack_url_map
     end
   end
 
@@ -164,22 +164,104 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     end
   end
 
-  describe 'POST /logout' do
-    it 'accepts logout request' do
+  describe 'POST /logout (without authentication)' do
+    it 'succeeds gracefully (idempotent)' do
       post '/logout', {}, json_request_headers
 
-      # Success or redirect (no active session)
+      # Logout is idempotent - succeeds even if not authenticated
+      expect(last_response.status).to eq(200).or eq(302)
+    end
+  end
+
+  describe 'POST /logout (WITH authentication)' do
+    before(:each) do
+      # Clear database and create test customer
+      dbclient.flushdb
+      @test_cust = create_test_customer
+
+      # Login to establish authenticated session
+      post '/auth/login',
+        { u: test_email, p: test_password },
+        json_request_headers
+
+      @session_cookie = last_response.headers['Set-Cookie']
+    end
+
+    after(:each) do
+      @test_cust&.destroy! if @test_cust
+      dbclient.flushdb
+    end
+
+    it 'successfully logs out with valid session' do
+      post '/logout', {}, json_request_headers.merge('HTTP_COOKIE' => @session_cookie)
+
+      # Should succeed with 200 or 302
+      expect(last_response.status).to eq(200).or eq(302)
+    end
+
+    it 'is idempotent - second logout succeeds gracefully' do
+      # First logout
+      post '/logout', {}, json_request_headers.merge('HTTP_COOKIE' => @session_cookie)
+      expect(last_response.status).to eq(200).or eq(302)
+
+      # Second logout with same cookie should succeed (idempotent)
+      post '/logout', {}, json_request_headers.merge('HTTP_COOKIE' => @session_cookie)
+      expect(last_response.status).to eq(200).or eq(302)
+    end
+  end
+
+  describe 'POST /auth/logout (without authentication)' do
+    it 'succeeds gracefully (idempotent)' do
+      post '/auth/logout', {}, json_request_headers
+
+      # Logout is idempotent - succeeds even if not authenticated
       expect(last_response.status).to eq(200).or eq(302)
     end
 
     context 'with JSON request' do
-      it 'returns JSON response on success' do
-        post '/logout', {}, json_request_headers
+      it 'returns JSON success response' do
+        post '/auth/logout', {}, json_request_headers
 
-        if last_response.status == 200
-          expect(last_response.headers['Content-Type']).to include('application/json')
-        end
+        expect(last_response.status).to eq(200).or eq(302)
+        expect(last_response.headers['Content-Type']).to include('application/json')
       end
+    end
+  end
+
+  describe 'POST /auth/logout (WITH authentication)' do
+    before(:each) do
+      # Clear database and create test customer
+      dbclient.flushdb
+      @test_cust = create_test_customer
+
+      # Login to establish authenticated session
+      post '/auth/login',
+        { u: test_email, p: test_password },
+        json_request_headers
+
+      @session_cookie = last_response.headers['Set-Cookie']
+    end
+
+    after(:each) do
+      @test_cust&.destroy! if @test_cust
+      dbclient.flushdb
+    end
+
+    it 'successfully logs out with valid session' do
+      post '/auth/logout', {}, json_request_headers.merge('HTTP_COOKIE' => @session_cookie)
+
+      # Should succeed with 200 or 302
+      expect(last_response.status).to eq(200).or eq(302)
+    end
+
+    it 'is idempotent - second logout succeeds gracefully' do
+      # First logout
+      post '/auth/logout', {}, json_request_headers.merge('HTTP_COOKIE' => @session_cookie)
+      expect(last_response.status).to eq(200).or eq(302)
+
+      # Second logout with same cookie should succeed (idempotent)
+      post '/auth/logout', {}, json_request_headers.merge('HTTP_COOKIE' => @session_cookie)
+      expect(last_response.status).to eq(200).or eq(302)
     end
   end
 
@@ -288,7 +370,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
         expect(cookie).not_to be_nil
 
         # Step 2: Logout with the session cookie
-        post '/logout',
+        post '/auth/logout',
           {},
           json_request_headers.merge('HTTP_COOKIE' => cookie)
 
@@ -305,18 +387,18 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
         cookie = last_response.headers['Set-Cookie']
 
         # Step 2: Logout
-        post '/logout',
+        post '/auth/logout',
           {},
           json_request_headers.merge('HTTP_COOKIE' => cookie)
 
         expect(last_response.status).to eq(200).or eq(302)
 
-        # Step 3: Try to logout again with old cookie (should still work but session is cleared)
-        post '/logout',
+        # Step 3: Try to logout again with old cookie (should be idempotent)
+        post '/auth/logout',
           {},
           json_request_headers.merge('HTTP_COOKIE' => cookie)
 
-        # Second logout should succeed (no-op on already cleared session)
+        # Second logout succeeds (idempotent behavior)
         expect(last_response.status).to eq(200).or eq(302)
       end
     end
@@ -347,7 +429,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
         expect(session_keys_before).not_to be_empty
 
         # Logout
-        post '/logout',
+        post '/auth/logout',
           {},
           json_request_headers.merge('HTTP_COOKIE' => cookie)
 
