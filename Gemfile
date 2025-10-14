@@ -20,9 +20,8 @@ source 'https://rubygems.org/'
 # ====================================
 
 gem 'otto', '~> 2.0.0.pre2'
-gem 'rodauth', '~> 2.0'
 gem 'roda', '~> 3.0'
-
+gem 'rodauth', '~> 2.0'
 
 # Web server and middleware
 gem 'puma', '~> 6.6'
