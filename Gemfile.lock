@@ -308,6 +308,7 @@ GEM
       eventmachine (~> 1.0, >= 1.0.4)
       logger
       rack (>= 1, < 4)
+    tilt (2.6.1)
     timeout (0.4.3)
     tpm-key_attestation (0.14.1)
       bindata (~> 2.4)
@@ -406,6 +407,7 @@ DEPENDENCIES
   stripe
   syntax_tree
   thin
+  tilt
   truemail
   tryouts (~> 3.6.0)
   tty-table (~> 0.12)

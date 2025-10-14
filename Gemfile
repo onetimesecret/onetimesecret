@@ -45,6 +45,7 @@ gem 'fastimage', '~> 2.4'
 gem 'mail'
 gem 'mustache'
 gem 'public_suffix'
+gem 'tilt'
 gem 'tty-table', '~> 0.12'
 
 # HTTP client
@@ -97,8 +98,8 @@ gem 'stringio', '~> 3.1.6'
 # Third-Party Service Integrations
 # ====================================
 
-gem 'aws-sdk-sesv2', '~> 1.74'
-gem 'sendgrid-ruby'
+gem 'aws-sdk-sesv2', '~> 1.74', require: false
+gem 'sendgrid-ruby', require: false
 gem 'sentry-ruby', require: false
 gem 'stripe', require: false
 
