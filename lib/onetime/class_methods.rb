@@ -58,7 +58,7 @@ module Onetime
     # from Ruby's Time object. This method converts the high-precision
     # floating-point time representation to an integer microsecond count.
     #
-    # Uses Time.now.utc.to_f which returns seconds as a Float with subsecond
+    # Uses Familia.now.utc.to_f which returns seconds as a Float with subsecond
     # precision, then multiplies by 1,000,000 and converts to integer. While
     # generally reliable, this approach may have slight performance overhead
     # compared to direct system clock access and could theoretically suffer
@@ -68,18 +68,18 @@ module Onetime
     # @return [Integer] Microseconds since Unix epoch (January 1, 1970
     #   00:00:00 UTC)
     #   Range: Same as hnowµs but computed via different path
-    #   Precision: Limited by Time.now precision and floating-point
+    #   Precision: Limited by Familia.now precision and floating-point
     #   conversion
     #
     # @note This method is suitable for:
     #   - General-purpose timestamping where maximum precision isn't critical
-    #   - Legacy code compatibility where Time.now patterns are established
+    #   - Legacy code compatibility where Familia.now patterns are established
     #   - Situations where Process.clock_gettime isn't available (very old
     #     Ruby versions)
     #
     # @note Considerations:
     #   - Slightly slower than hnowµs due to floating-point arithmetic
-    #   - Precision depends on Time.now implementation (usually microsecond
+    #   - Precision depends on Familia.now implementation (usually microsecond
     #     or better)
     #   - Result should be identical to hnowµs under normal circumstances
     #   - May show small variations from hnowµs due to different code paths
@@ -88,9 +88,9 @@ module Onetime
     #   nowµs  #=> 1716825600123456
     #   nowµs  #=> 1716825600123458 (called shortly after)
     #
-    # @see Time.now Ruby documentation for underlying time source
+    # @see Familia.now Ruby documentation for underlying time source
     def nowµs
-      (Time.now.utc.to_f * 1_000_000).to_i
+      (Familia.now * 1_000_000).to_i
     end
 
     # Returns the current time as a Time object in UTC timezone. This is the
@@ -125,11 +125,11 @@ module Onetime
     #   now  #=> 2024-05-27 14:26:40.123456 UTC
     #   now.to_i  #=> 1716825600 (seconds since epoch)
     #   now.usec  #=> 123456 (microsecond component)
-    #   now.strftime('%Y-%m-%d %H:%M:%S')  #=> "2024-05-27 14:26:40"
+    #Time now.strftime('%Y-%m-%d %H:%M:%S')  #=> "2024-05-27 14:26:40"
     #
     # @see Time Ruby documentation for full Time object capabilities
     def now
-      Time.now.utc
+      Familia.now
     end
 
     # Returns the current wall clock time as a floating-point number of
@@ -196,7 +196,7 @@ module Onetime
     def stdout(prefix, msg)
       return if STDOUT.closed?
 
-      stamp   = Time.now.to_i
+      stamp   = Familia.now.to_i
       logline = format('%s(%s): %s', prefix, stamp, msg)
       STDOUT.puts(logline)
     end
@@ -204,7 +204,7 @@ module Onetime
     def stderr(prefix, msg)
       return if STDERR.closed?
 
-      stamp   = Time.now.to_i
+      stamp   = Familia.now.to_i
       logline = format('%s(%s): %s', prefix, stamp, msg)
       warn(logline)
     end

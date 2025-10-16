@@ -3,6 +3,7 @@
 import { Jurisdiction } from '@/schemas/models';
 import { useAuth } from '@/composables/useAuth';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 export interface Props {
   enabled?: boolean;
@@ -18,6 +19,8 @@ withDefaults(defineProps<Props>(), {
 })
 
 const { signup, isLoading, error, clearErrors } = useAuth();
+
+const { t } = useI18n();
 
 const email = ref('');
 const password = ref('');
@@ -65,7 +68,7 @@ const handleSubmit = async () => {
       <div>
         <label
           for="email-address"
-          class="sr-only">{{ $t('email-address') }}</label>
+          class="sr-only">{{ t('email-address') }}</label>
         <input
           id="email-address"
           name="email"
@@ -84,7 +87,7 @@ const handleSubmit = async () => {
                       disabled:opacity-50 disabled:cursor-not-allowed
                       dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                       dark:focus:border-brand-500 dark:focus:ring-brand-500"
-          :placeholder="$t('web.COMMON.email_placeholder')"
+          :placeholder="t('web.COMMON.email_placeholder')"
           v-model="email"
         />
       </div>
@@ -93,7 +96,7 @@ const handleSubmit = async () => {
       <div class="relative">
         <label
           for="password"
-          class="sr-only">{{ $t('web.COMMON.field_password') }}</label>
+          class="sr-only">{{ t('web.COMMON.field_password') }}</label>
         <input
           id="password"
           :type="showPassword ? 'text' : 'password'"
@@ -111,7 +114,7 @@ const handleSubmit = async () => {
                  disabled:opacity-50 disabled:cursor-not-allowed
                  dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                  dark:focus:border-brand-500 dark:focus:ring-brand-500"
-          :placeholder="$t('web.COMMON.password_placeholder')"
+          :placeholder="t('web.COMMON.password_placeholder')"
           v-model="password"
         />
         <button
@@ -168,19 +171,19 @@ const handleSubmit = async () => {
         <label
           for="terms-agreement"
           class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
-          {{ $t('i-agree-to-the') }}
+          {{ t('i-agree-to-the') }}
           <router-link
             to="/info/terms"
             class="font-medium text-brand-600 hover:text-brand-500
                      dark:text-brand-500 dark:hover:text-brand-400">
-            {{ $t('terms-of-service') }}
+            {{ t('terms-of-service') }}
           </router-link>
           and
           <router-link
             to="/info/privacy"
             class="font-medium text-brand-600 hover:text-brand-500
                      dark:text-brand-500 dark:hover:text-brand-400">
-            {{ $t('privacy-policy') }}
+            {{ t('privacy-policy') }}
           </router-link>
         </label>
       </div>
@@ -200,8 +203,8 @@ const handleSubmit = async () => {
                      focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
                      disabled:opacity-50 disabled:cursor-not-allowed
                      dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800">
-        <span v-if="isLoading">{{ $t('web.COMMON.processing') || 'Processing...' }}</span>
-        <span v-else>{{ $t('create-account') }}</span>
+        <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
+        <span v-else>{{ t('create-account') }}</span>
       </button>
     </div>
   </form>

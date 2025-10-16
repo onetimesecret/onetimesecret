@@ -47,7 +47,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
 
       # Step 3: Attempt authentication with correct credentials
       auth_logic = V2::Logic::Authentication::AuthenticateSession.new(
-        session, customer, { u: customer_email, p: initial_password }
+        session, customer, { login: customer_email, password: initial_password }
       )
 
       auth_logic.process_params
@@ -78,7 +78,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
 
       # Attempt authentication with wrong password
       auth_logic = V2::Logic::Authentication::AuthenticateSession.new(
-        session, customer, { u: customer_email, p: 'wrong_password' }
+        session, customer, { login: customer_email, password: 'wrong_password' }
       )
 
       auth_logic.process_params
@@ -114,7 +114,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
     it 'completes full password reset workflow' do
       # Step 1: Request password reset
       reset_request_logic = V2::Logic::Authentication::ResetPasswordRequest.new(
-        session, customer, { u: customer_email }
+        session, customer, { login: customer_email }
       )
 
       # Mock email delivery
@@ -159,14 +159,14 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
 
       # Step 5: Verify old password no longer works for authentication
       auth_logic_old = V2::Logic::Authentication::AuthenticateSession.new(
-        session, reloaded_customer, { u: customer_email, p: initial_password }
+        session, reloaded_customer, { login: customer_email, password: initial_password }
       )
       auth_logic_old.process_params
       expect(auth_logic_old.success?).to be false
 
       # Step 6: Verify new password works for authentication
       auth_logic_new = V2::Logic::Authentication::AuthenticateSession.new(
-        session, reloaded_customer, { u: customer_email, p: new_password }
+        session, reloaded_customer, { login: customer_email, password: new_password }
       )
       auth_logic_new.process_params
       expect(auth_logic_new.success?).to be true
@@ -228,7 +228,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
     it 'completes login to logout journey' do
       # Step 1: Authenticate user
       auth_logic = V1::Logic::Authentication::AuthenticateSession.new(
-        session, customer, { u: customer_email, p: initial_password }
+        session, customer, { login: customer_email, password: initial_password }
       )
 
       auth_logic.process_params
@@ -292,7 +292,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
 
     it 'grants colonel privileges on authentication' do
       auth_logic = V2::Logic::Authentication::AuthenticateSession.new(
-        session, customer, { u: colonel_email, p: initial_password }
+        session, customer, { login: colonel_email, password: initial_password }
       )
 
       auth_logic.process_params
@@ -325,7 +325,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
     it 'handles pending customer authentication' do
       # Create the authentication logic instance
       auth_logic = V1::Logic::Authentication::AuthenticateSession.new(
-        session, pending_customer, { u: customer_email, p: initial_password }
+        session, pending_customer, { login: customer_email, password: initial_password }
       )
 
       # Mock verification email sending and i18n for this instance only
@@ -369,14 +369,14 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
     it 'maintains consistent authentication behavior across API versions' do
       # Test V1 authentication
       v1_auth = V1::Logic::Authentication::AuthenticateSession.new(
-        v1_session, v1_customer, { u: customer_email, p: initial_password }
+        v1_session, v1_customer, { login: customer_email, password: initial_password }
       )
       v1_auth.process_params
       v1_success = v1_auth.success?
 
       # Test V2 authentication
       onetime_auth = V2::Logic::Authentication::AuthenticateSession.new(
-        onetime_session, onetime_customer, { u: customer_email, p: initial_password }
+        onetime_session, onetime_customer, { login: customer_email, password: initial_password }
       )
       onetime_auth.process_params
       onetime_success = onetime_auth.success?

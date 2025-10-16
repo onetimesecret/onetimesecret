@@ -10,7 +10,7 @@ require_relative '../../support/test_models'
 OT.boot! :test, false
 
 @unique_string = "Tryouts+27+#{SecureRandom.uuid}"
-@customer = V1::Customer.create "#{@unique_string}@onetimesecret.com"
+@customer = Onetime::Customer.create!(email: "#{@unique_string}@onetimesecret.com")
 @domain = "#{@unique_string}.example.com"
 
 ## Base update_expiration accepts default_expiration parameter (Familia 2: ttl→default_expiration)

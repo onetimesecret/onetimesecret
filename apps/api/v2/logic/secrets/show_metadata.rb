@@ -2,7 +2,6 @@
 
 module V2::Logic
   module Secrets
-
     using Familia::Refinements::TimeLiterals
 
     class ShowMetadata < V2::Logic::Base
@@ -20,12 +19,12 @@ module V2::Logic
         :metadata_url, :burn_url, :display_lines
 
       def process_params
-        @key      = params[:key].to_s
+        @key      = params['key'].to_s
         @metadata = Onetime::Metadata.load key
       end
 
       def raise_concerns
-        raise OT::MissingSecret if metadata.nil?
+        raise OT::MissingSecret, "key: #{key}" if metadata.nil?
       end
 
       def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
@@ -86,6 +85,10 @@ module V2::Logic
             # a secret we can show the received contents on the "/receipt/metadata_key"
             # page one time. Particularly for generated passwords which are not
             # shown any other time.
+            #
+            # TODO: There's a bug here. If the UI that created this secret+metadata
+            # records doesn't immediately load the metadata/reciept page the metadata
+            # record stays in state=new allowing the next request through.
             if can_decrypt && metadata.state?(:new)
               begin
                 OT.ld "[show_metadata] m:#{metadata_key} s:#{secret_key} Decrypting for first and only creator viewing"

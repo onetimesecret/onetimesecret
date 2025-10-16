@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
+
+# apps/web/auth/migrate.rb
+#
 # Database migration engine for Rodauth authentication
 #
 # Environment variables:

@@ -24,7 +24,7 @@ module Auth
 
               # Sync Rodauth session with Otto's session format inline
               session['authenticated'] = true
-              session['authenticated_at'] = Time.now.to_i
+              session['authenticated_at'] = Familia.now.to_i
               session['advanced_account_id'] = account_id
               session['account_external_id'] = account[:external_id]
 

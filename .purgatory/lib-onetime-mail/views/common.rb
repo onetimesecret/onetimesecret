@@ -126,7 +126,7 @@ module Onetime
       end
 
       def subject
-        stamp = OT.now.strftime('%b %d, %Y') # in UTC
+        stamp = Time.now.strftime('%b %d, %Y') # in UTC
         "Feedback on #{stamp} via #{display_domain} (#{domain_strategy})"
       end
     end

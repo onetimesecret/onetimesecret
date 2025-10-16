@@ -19,13 +19,14 @@ require 'securerandom'
 OT.boot! :test, false
 
 # Setup common test variables
-@now = DateTime.now
+@now = Familia.now
 # Generate a unique email address using a UUID
 @unique_email = lambda {"test_#{SecureRandom.uuid}@onetimesecret.com"}
 
 # Assign the unique email address
 @email = @unique_email.call
-@sess = V2::Session.new '255.255.255.254', 'anon'
+@session = {}
+@strategy_result = MockStrategyResult.new(session: @session, user: nil)
 
 
 # Create a customer for update tests
@@ -36,13 +37,13 @@ OT.boot! :test, false
 
 ## Test account creation
 @create_params = {
-  u: @unique_email.call,
-  p: 'testpass123',
-  p2: 'testpass123',
+  login: @unique_email.call,
+  password: 'testpass123',
+  password2: 'testpass123',
   planid: 'anonymous',
   skill: '' # honeypot field should be empty
 }
-logic = V2::Logic::Account::CreateAccount.new @sess, nil, @create_params
+logic = V2::Logic::Account::CreateAccount.new @strategy_result, @create_params
 logic.raise_concerns
 logic.process
 [
@@ -58,30 +59,31 @@ logic.process
 ## Test password update
 @update_params = {
   current: 'testpass123',
-  p1: 'newpass123',
-  p2: 'newpass123'
+  newp1: 'newpass123',
+  newp2: 'newpass123'
 }
-logic = V2::Logic::Account::UpdatePassword.new @sess, @cust, @update_params
+@strategy_result_with_cust = MockStrategyResult.new(session: @session, user: @cust)
+logic = V2::Logic::Account::UpdatePassword.new @strategy_result_with_cust, @update_params
 logic.instance_variables.include?(:@modified)
 #=> true
 
 # UpdateLocale Tests
 
 ## Test locale update
-@locale_params = { locale: 'es', u: @email }
-logic = V2::Logic::Account::UpdateLocale.new @sess, @cust, @locale_params
+@locale_params = { locale: 'es', login: @email }
+logic = V2::Logic::Account::UpdateLocale.new @strategy_result_with_cust, @locale_params
 logic.instance_variables.include?(:@modified)
 #=> true
 
 # GenerateAPIToken Tests
 
 ## Test API token generation, but nothing happens without calling process
-logic = V2::Logic::Account::GenerateAPIToken.new @sess, @cust
+logic = V2::Logic::Account::GenerateAPIToken.new @strategy_result_with_cust, {}
 [logic.apitoken.nil?, logic.greenlighted]
 #=> [true, nil]
 
 ## Test API token generation
-logic = V2::Logic::Account::GenerateAPIToken.new @sess, @cust
+logic = V2::Logic::Account::GenerateAPIToken.new @strategy_result_with_cust, {}
 #logic.raise_concerns
 logic.process
 [logic.apitoken.nil?, logic.greenlighted]
@@ -90,14 +92,14 @@ logic.process
 # GetAccount Tests
 
 ## Test account retrieval
-logic = V2::Logic::Account::GetAccount.new @sess, @cust, {}
+logic = V2::Logic::Account::GetAccount.new @strategy_result_with_cust, {}
 [logic.billing_enabled, logic.stripe_customer, logic.stripe_subscription]
 #=> [false, nil, nil]
 
 # DestroyAccount Tests
 
 ## Test account deletion
-logic = V2::Logic::Account::DestroyAccount.new @sess, @cust
+logic = V2::Logic::Account::DestroyAccount.new @strategy_result_with_cust, {}
 [
   logic.raised_concerns_was_called,
   logic.greenlighted,

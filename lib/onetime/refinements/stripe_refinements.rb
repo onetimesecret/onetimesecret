@@ -32,11 +32,11 @@ module Onetime::StripeRefinements
       } },
 
       { current_period_remaining: lambda { |sub|
-        (Time.at(sub.current_period_end) - Time.now).to_i
+        (Time.at(sub.current_period_end) - Familia.now).to_i
       } },
 
       { on_trial: lambda { |sub|
-        sub.trial_end && Time.now < Time.at(sub.trial_end)
+        sub.trial_end && Familia.now < Time.at(sub.trial_end)
       } },
 
       { plan: lambda { |sub|

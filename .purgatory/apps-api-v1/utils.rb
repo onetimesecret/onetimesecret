@@ -74,7 +74,7 @@ module V1
       def natural_time(time_in_s)
         return if time_in_s.nil?
 
-        val = Time.now.utc.to_i - time_in_s.to_i
+        val = Familia.now.to_i - time_in_s.to_i
 
         if val < 10
           result = 'a moment ago'

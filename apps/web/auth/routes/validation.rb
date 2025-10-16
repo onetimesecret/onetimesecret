@@ -60,12 +60,12 @@ module Auth
         Onetime.le "[auth-routes-validation] Error: #{ex.class} - #{ex.message}"
         Onetime.le ex.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
 
-          response.status = 500
-          {
-            valid: false,
-            error: 'Token validation failed',
-            details: ENV['RACK_ENV'] == 'development' ? ex.message : nil,
-          }
+        response.status = 500
+        {
+          valid: false,
+          error: 'Token validation failed',
+          details: ENV['RACK_ENV'] == 'development' ? ex.message : nil,
+        }
       end
 
       def handle_session_validation(r)
@@ -87,19 +87,19 @@ module Auth
         Onetime.le "[auth-routes-validation] Error in session validation: #{ex.class} - #{ex.message}"
         Onetime.le ex.backtrace.join("\n") if ENV['RACK_ENV'] == 'development'
 
-          response.status = 500
-          {
-            valid: false,
-            error: 'Session validation failed',
-            details: ENV['RACK_ENV'] == 'development' ? ex.message : nil,
-          }
+        response.status = 500
+        {
+          valid: false,
+          error: 'Session validation failed',
+          details: ENV['RACK_ENV'] == 'development' ? ex.message : nil,
+        }
       end
 
       def validate_advanced_session(_r)
         # Use Rodauth for advanced mode
         if rodauth.logged_in?
           response.status = 200
-          account = rodauth.account
+          account         = rodauth.account
           # Return format compatible with frontend checkAuth schema
           {
             success: true,
@@ -128,7 +128,7 @@ module Auth
       def validate_basic_session(r)
         # Use Redis session for basic mode
         # Get customer from IdentityResolution middleware to avoid duplicate lookup
-        customer = r.env['identity.resolved']
+        customer      = r.env['identity.resolved']
         authenticated = r.env['identity.authenticated']
 
         if customer && !customer.anonymous? && authenticated

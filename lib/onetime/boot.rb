@@ -66,7 +66,7 @@ module Onetime
         check_global_banner
       end
 
-      # print_log_banner if $stdout.tty? && !mode?(:test) && !mode?(:cli)
+      print_log_banner if $stdout.tty? && !mode?(:test) && !mode?(:cli)
 
       @ready = true
 

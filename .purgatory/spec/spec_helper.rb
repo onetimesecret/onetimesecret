@@ -29,7 +29,6 @@ begin
   require 'onetime/models'
 
   require 'onetime/logic'
-  require 'onetime/controllers'
   require 'onetime/views'
 rescue LoadError => e
   warn "Load failed: #{e.message}"

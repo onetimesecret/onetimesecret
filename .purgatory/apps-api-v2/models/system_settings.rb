@@ -209,7 +209,7 @@ module V2
 
       # Creates a new record
       #
-      def create(**kwargs)
+      def create!(**kwargs)
         obj = new(**kwargs)
 
         # Fail fast if invalid fields are provided
@@ -232,8 +232,8 @@ module V2
               multi.hset(obj.rediskey, key, serialized_value) if serialized_value
             end
             multi.hset(obj.rediskey, :configid, obj.identifier)
-            multi.hset(obj.rediskey, :created_at, Time.now.to_i)
-            multi.hset(obj.rediskey, :updated_at, Time.now.to_i)
+            multi.hset(obj.rediskey, :created_at, Familia.now.to_i)
+            multi.hset(obj.rediskey, :updated_at, Familia.now.to_i)
             add(obj.identifier, multi) # keep track of instances via class_list :values
           end
         end
@@ -345,7 +345,7 @@ module V2
       # Float timestamps provide microsecond precision, virtually eliminating the
       # possibility of score collisions even with rapid sequential operations.
       def now
-        OT.hnow # use precision scores
+        Onetime.hnow # use precision scores
       end
     end
 

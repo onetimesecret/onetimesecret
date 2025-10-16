@@ -8,10 +8,10 @@ module Core
       include Controllers::Base
 
       def create_incoming
-        return res.redirect '/' unless _is_enabled
+        return res.redirect '/' unless is_enabled
 
         # TODO: Remove from web/core completely
-        logic = V2::Logic::Incoming::CreateIncoming.new(_strategy_result, req.params, locale)
+        logic = V2::Logic::Incoming::CreateIncoming.new(strategy_result, req.params, locale)
         logic.raise_concerns
         logic.process
         req.params.clear
@@ -20,7 +20,7 @@ module Core
         res.body = view.render
       end
 
-      def _is_enabled
+      def is_enabled
         OT.conf.dig('incoming', 'enabled') || false
       end
     end

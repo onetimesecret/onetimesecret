@@ -619,16 +619,16 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "u": {
+                  "login": {
                     "type": "string",
                     "format": "email",
                     "description": "User's email address (used as username)"
                   },
-                  "p": {
+                  "password": {
                     "type": "string",
                     "description": "User's password"
                   },
-                  "p2": {
+                  "password2": {
                     "type": "string",
                     "description": "Password confirmation"
                   },
@@ -641,7 +641,7 @@
                     "description": "Hidden field for bot detection (should be empty)"
                   }
                 },
-                "required": ["u", "p", "p2", "planid"]
+                "required": ["login", "password", "password2", "planid"]
               }
             }
           }
@@ -681,17 +681,17 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "u": {
+                  "login": {
                     "type": "string",
                     "format": "email",
                     "description": "User's email address"
                   },
-                  "p": {
+                  "password": {
                     "type": "string",
                     "description": "User's password"
                   }
                 },
-                "required": ["u", "p"]
+                "required": ["login", "password"]
               }
             }
           }
@@ -900,13 +900,13 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "u": {
+                  "login": {
                     "type": "string",
                     "format": "email",
                     "description": "User's email address"
                   }
                 },
-                "required": ["u"]
+                "required": ["login"]
               }
             }
           }

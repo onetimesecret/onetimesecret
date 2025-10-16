@@ -11,12 +11,7 @@ module V1::Logic
       attr_reader :records, :since, :now, :query_results
       attr_reader :received, :notreceived, :has_items
 
-      def process_params
-        # Calculate the timestamp for 30 days ago
-        @now = Time.now
-        @since = (Time.now - 30*24*60*60).to_i
-
-      end
+Familia
 
       def raise_concerns
 

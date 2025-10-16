@@ -33,7 +33,7 @@ module Onetime
     end
 
     class << self
-      def create(display_name = nil, contact_email = nil)
+      def create!(display_name = nil, contact_email = nil)
         raise Onetime::Problem, 'Organization exists for that email address' if contact_email && exists?(contact_email)
 
         org = new display_name: display_name, contact_email: contact_email

@@ -190,7 +190,7 @@ module Onetime
 
           # Track progress and statistics
           moved_count      = 0
-          last_report_time = Time.now
+          last_report_time = Familia.now
 
           statistics = migrator.migrate_keys(plan[:pattern]) do |phase, idx, type, key, ttl|
             case phase
@@ -200,7 +200,7 @@ module Onetime
               end
             when :migrate
               moved_count  = idx + 1
-              current_time = Time.now
+              current_time = Familia.now
 
               if global.verbose > 0
                 puts "   #{moved_count.to_s.rjust(4)} (#{type.to_s.rjust(10)}, #{ttl.to_s.rjust(4)}): #{key}"

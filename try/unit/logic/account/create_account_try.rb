@@ -16,8 +16,8 @@ require 'securerandom'
 # Load the app with test configuration
 OT.boot! :test, false
 
-# Helper to create unique email addresses
-@unique_email = lambda { "test_#{SecureRandom.uuid}@onetimesecret.com" }
+# Helper to create unique email addresses (use example.com for regex validation in tests)
+@unique_email = lambda { "test_#{SecureRandom.uuid}@example.com" }
 
 ## Anonymous user can create account
 @strategy_result = Otto::Security::Authentication::StrategyResult.new(
@@ -27,8 +27,8 @@ OT.boot! :test, false
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
 )
 @params = {
-  u: @unique_email.call,
-  p: 'validpass123',
+  login: @unique_email.call,
+  password: 'validpass123',
   agree: true,
   skill: ''
 }
@@ -49,8 +49,8 @@ OT.boot! :test, false
   metadata: { ip: '127.0.0.1' }
 )
 @signup_params = {
-  u: @unique_email.call,
-  p: 'validpass123',
+  login: @unique_email.call,
+  password: 'validpass123',
   agree: true,
   skill: ''
 }
@@ -75,8 +75,8 @@ end
   metadata: {}
 )
 @duplicate_params = {
-  u: @duplicate_email,
-  p: 'validpass123',
+  login: @duplicate_email,
+  password: 'validpass123',
   agree: true,
   skill: ''
 }
@@ -97,8 +97,8 @@ true
 
 ## Password too short validation
 @short_pass_params = {
-  u: @unique_email.call,
-  p: '12345',
+  login: @unique_email.call,
+  password: '12345',
   agree: true,
   skill: ''
 }
@@ -114,8 +114,8 @@ end
 
 ## Bot detection (honeypot field)
 @bot_params = {
-  u: @unique_email.call,
-  p: 'validpass123',
+  login: @unique_email.call,
+  password: 'validpass123',
   agree: true,
   skill: 'I am a bot'
 }

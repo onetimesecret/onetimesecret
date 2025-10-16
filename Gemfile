@@ -19,13 +19,9 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
-# Web framework and routing
-# Authentication framework
-gem 'rodauth', '~> 2.0'
-# gem 'otto', git: 'https://github.com/delano/otto.git', branch: 'delano/next' # '~> 2.0.0.pre2'
-gem 'otto', path: '../../d/otto'
+gem 'otto', '~> 2.0.0.pre3'
 gem 'roda', '~> 3.0'
-
+gem 'rodauth', '~> 2.0'
 
 # Web server and middleware
 gem 'puma', '~> 6.6'
@@ -49,6 +45,7 @@ gem 'fastimage', '~> 2.4'
 gem 'mail'
 gem 'mustache'
 gem 'public_suffix'
+gem 'tilt'
 gem 'tty-table', '~> 0.12'
 
 # HTTP client
@@ -62,11 +59,10 @@ gem 'truemail'
 # ====================================
 
 # ORMs and database drivers
-gem 'familia', git: 'https://github.com/delano/familia.git', branch: 'fix/157-heinz-atomicity' #'~> 2.0.0.pre19'
+gem 'familia', '~> 2.0.0.pre19'
 gem 'sequel', '~> 5.0'
 
-database_adapter = ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase
-case database_adapter
+case ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase
 when 'postgresql', 'pg', 'postgres'
   gem 'pg', '~> 1.4'
 else
@@ -83,8 +79,8 @@ gem 'uri-valkey', '~> 1.4.0'
 
 gem 'bcrypt', '~> 3.1'
 gem 'encryptor', '= 1.1.3'
-gem 'rqrcode', '~> 3.1'
 gem 'rotp', '~> 6.2'
+gem 'rqrcode', '~> 3.1'
 gem 'webauthn', '~> 3.0'
 
 # ====================================
@@ -102,8 +98,8 @@ gem 'stringio', '~> 3.1.6'
 # Third-Party Service Integrations
 # ====================================
 
-gem 'aws-sdk-sesv2', '~> 1.74'
-gem 'sendgrid-ruby'
+gem 'aws-sdk-sesv2', '~> 1.74', require: false
+gem 'sendgrid-ruby', require: false
 gem 'sentry-ruby', require: false
 gem 'stripe', require: false
 
@@ -127,11 +123,11 @@ group :development do
   gem 'stackprof', require: false
 
   # Code quality and language server
-  gem 'rubocop', '~> 1.79', require: false
+  gem 'rubocop', '~> 1.81.1', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-thread_safety', require: false
-  gem 'solargraph', require: false
+  gem 'ruby-lsp', require: false
   gem 'syntax_tree', require: false
 end
 
@@ -140,7 +136,7 @@ group :test do
   gem 'rack-test', require: false
   gem 'rspec', git: 'https://github.com/rspec/rspec'
   gem 'simplecov', require: false
-  gem 'tryouts', '~> 3.6.0', require: false
+  gem 'tryouts', '~> 3.7.1', require: false
 
   # RSpec components
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|

@@ -105,9 +105,23 @@ module V2
         domain_strategy.to_s == 'custom'
       end
 
+      # Session message helpers for user feedback
+      def set_info_message(message)
+        # In test environment, sess might be a plain hash
+        sess['info_message'] = message if sess.respond_to?(:[]=)
+      end
+
+      def set_error_message(message)
+        # In test environment, sess might be a plain hash
+        sess['error_message'] = message if sess.respond_to?(:[]=)
+      end
+
       # Requires the implementing class to have cust and session fields
       def send_verification_email(token = nil)
         _, secret = Onetime::Secret.spawn_pair cust.custid, token
+
+        OT.lw "[send_verification_email] DISABLED"
+        return
 
         msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
 

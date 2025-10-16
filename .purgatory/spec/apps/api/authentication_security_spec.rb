@@ -23,7 +23,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
 
         # Test multiple failed attempts
         10.times do |i|
-          params = { u: 'security@example.com', p: "wrong_password_#{i}" }
+          params = { login: 'security@example.com', password: "wrong_password_#{i}" }
           logic = V1::Logic::Authentication::AuthenticateSession.new(session, customer, params)
           logic.process_params
           expect(logic.success?).to be false
@@ -34,7 +34,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
         allow(V1::Customer).to receive(:load).and_return(nil)
 
         start_time = Time.now
-        params = { u: 'nonexistent@example.com', p: 'any_password' }
+        params = { login: 'nonexistent@example.com', password: 'any_password' }
         logic = V1::Logic::Authentication::AuthenticateSession.new(session, customer, params)
         logic.process_params
         end_time = Time.now
@@ -46,7 +46,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
 
       it 'handles extremely long passwords safely' do
         long_password = 'a' * 10000
-        params = { u: 'security@example.com', p: long_password }
+        params = { login: 'security@example.com', password: long_password }
 
         expect {
           V1::Logic::Authentication::AuthenticateSession.new(session, customer, params)
@@ -67,7 +67,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
       malicious_usernames.each do |malicious_username|
         allow(V1::Customer).to receive(:load).with(malicious_username.downcase.strip).and_return(nil)
 
-        params = { u: malicious_username, p: 'any_password' }
+        params = { login: malicious_username, password: 'any_password' }
         logic = V1::Logic::Authentication::AuthenticateSession.new(session, customer, params)
 
         expect { logic.process_params }.not_to raise_error
@@ -87,7 +87,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
       allow(customer).to receive(:passphrase?).and_return(false)
 
       malicious_passwords.each do |malicious_password|
-        params = { u: 'security@example.com', p: malicious_password }
+        params = { login: 'security@example.com', password: malicious_password }
         logic = V1::Logic::Authentication::AuthenticateSession.new(session, customer, params)
 
         expect { logic.process_params }.not_to raise_error
@@ -153,7 +153,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
       allow(customer).to receive(:passphrase?).and_return(true)
       allow(customer).to receive(:pending?).and_return(false)
 
-      params = { u: 'security@example.com', p: 'correct_password' }
+      params = { login: 'security@example.com', password: 'correct_password' }
       logic = V1::Logic::Authentication::AuthenticateSession.new(session, customer, params)
 
       expect(session).to receive(:replace!)
@@ -166,13 +166,13 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
     it 'does not reveal whether user exists through error messages' do
       # Test with non-existent user
       allow(V1::Customer).to receive(:load).and_return(nil)
-      params1 = { u: 'nonexistent@example.com', p: 'any_password' }
+      params1 = { login: 'nonexistent@example.com', password: 'any_password' }
       logic1 = V1::Logic::Authentication::AuthenticateSession.new(session, customer, params1)
 
       # Test with existing user but wrong password
       allow(V1::Customer).to receive(:load).and_return(customer)
       allow(customer).to receive(:passphrase?).and_return(false)
-      params2 = { u: 'existing@example.com', p: 'wrong_password' }
+      params2 = { login: 'existing@example.com', password: 'wrong_password' }
       logic2 = V1::Logic::Authentication::AuthenticateSession.new(session, customer, params2)
 
       # Both should fail with same generic message
@@ -188,7 +188,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
       allow(customer).to receive(:passphrase?).and_return(true)
       allow(customer).to receive(:pending?).and_return(false)
 
-      params = { u: 'security@example.com', p: 'correct_password' }
+      params = { login: 'security@example.com', password: 'correct_password' }
       logic = V1::Logic::Authentication::AuthenticateSession.new(session, customer, params)
 
       expect(OT).to receive(:info).with(a_string_matching(/se\*\*\*@example\.com/))
@@ -197,7 +197,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
     end
 
     it 'does not log sensitive information like passwords' do
-      params = { u: 'security@example.com', p: 'sensitive_password_123' }
+      params = { login: 'security@example.com', password: 'sensitive_password_123' }
       logic = V1::Logic::Authentication::AuthenticateSession.new(session, customer, params)
 
       expect(OT).not_to receive(:info).with(a_string_matching(/sensitive_password_123/))
@@ -218,11 +218,11 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
   describe 'denial of service protection' do
     it 'handles malformed parameters gracefully' do
       malformed_params = [
-        { u: nil, p: 'password' },
-        { u: 'user@example.com', p: nil },
-        { u: '', p: '' },
-        { u: ['array'], p: 'password' },
-        { u: { hash: 'value' }, p: 'password' }
+        { login: nil, password: 'password' },
+        { login: 'user@example.com', password: nil },
+        { login: '', password: '' },
+        { login: ['array'], password: 'password' },
+        { login: { hash: 'value' }, password: 'password' }
       ]
 
       malformed_params.each do |params|
@@ -259,7 +259,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
       allow(customer).to receive(:passphrase?).and_return(true)
       allow(customer).to receive(:pending?).and_return(false)
 
-      params = { u: 'security@example.com', p: 'correct_password' }
+      params = { login: 'security@example.com', password: 'correct_password' }
 
       # Simulate concurrent authentication attempts
       threads = 5.times.map do
@@ -280,7 +280,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
       let(:reset_request_logic) { V2::Logic::Authentication::ResetPasswordRequest.new(session, customer, params) }
 
       it 'validates email format before checking existence' do
-        params = { u: 'invalid-email-format' }
+        params = { login: 'invalid-email-format' }
         allow(reset_request_logic).to receive(:valid_email?).and_return(false)
 
         expect(reset_request_logic).to receive(:raise_form_error).with('Not a valid email address')
@@ -288,7 +288,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
       end
 
       it 'protects against email enumeration through error messages' do
-        params = { u: 'nonexistent@example.com' }
+        params = { login: 'nonexistent@example.com' }
         allow(reset_request_logic).to receive(:valid_email?).and_return(true)
         allow(Onetime::Customer).to receive(:exists?).and_return(false)
 

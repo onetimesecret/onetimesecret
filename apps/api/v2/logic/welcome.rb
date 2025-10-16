@@ -79,7 +79,7 @@ module V2
               # Set session authentication data
               sess['identity_id'] = cust.custid
               sess['authenticated'] = true
-              sess['authenticated_at'] = Time.now.to_i
+              sess['authenticated_at'] = Familia.now.to_i
 
             end
 

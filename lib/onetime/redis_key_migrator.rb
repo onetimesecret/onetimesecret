@@ -131,7 +131,7 @@ module Onetime
       end
 
       # Initialize adaptive progress tracking
-      @last_progress_time = Time.now
+      @last_progress_time = Familia.now
       @adaptive_progress_interval = @options[:progress_interval]
     end
 
@@ -320,7 +320,7 @@ module Onetime
 
       source_client = create_redis_client(@source_uri)
 
-      @statistics[:start_time] = Time.now
+      @statistics[:start_time] = Familia.now
 
       loop do
         begin
@@ -406,7 +406,7 @@ module Onetime
 
     ensure
       source_client&.disconnect!
-      @statistics[:end_time] = Time.now
+      @statistics[:end_time] = Familia.now
     end
 
     def migrate_using_copy_command(keys, &progress_block)
@@ -439,7 +439,7 @@ module Onetime
 
     ensure
       source_client&.disconnect!
-      @statistics[:end_time] = Time.now
+      @statistics[:end_time] = Familia.now
     end
 
     def migrate_using_dump_restore(keys, &progress_block)
@@ -488,7 +488,7 @@ module Onetime
     ensure
       source_client&.disconnect!
       target_client&.disconnect!
-      @statistics[:end_time] = Time.now
+      @statistics[:end_time] = Familia.now
     end
 
     def handle_batch_error(batch, error, source_client = nil, target_client = nil, &progress_block)
@@ -682,7 +682,7 @@ module Onetime
       source_client = create_redis_client(@source_uri)
       target_client = create_redis_client(@target_uri) unless strategy == :migrate
 
-      @statistics[:start_time] = Time.now
+      @statistics[:start_time] = Familia.now
       cursor = 0
       migrated_count = 0
       batch_buffer = []
@@ -740,7 +740,7 @@ module Onetime
     ensure
       source_client&.disconnect!
       target_client&.disconnect!
-      @statistics[:end_time] = Time.now
+      @statistics[:end_time] = Familia.now
     end
 
     # Process a batch of keys in streaming mode

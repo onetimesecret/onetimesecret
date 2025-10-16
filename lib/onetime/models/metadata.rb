@@ -77,7 +77,7 @@ module Onetime
     end
 
     def age
-      @age ||= Time.now.utc.to_i - updated
+      @age ||= Familia.now.to_i - updated
       @age
     end
 
@@ -112,7 +112,7 @@ module Onetime
     end
 
     def secret_expired?
-      Time.now.utc.to_i >= (secret_expiration || 0)
+      Familia.now.to_i >= (secret_expiration || 0)
     end
 
     def older_than?(seconds)
@@ -177,7 +177,7 @@ module Onetime
       return unless state?(:new)
 
       self.state  = 'viewed'
-      self.viewed = Time.now.utc.to_i
+      self.viewed = Familia.now.to_i
       # The nuance bewteen being "viewed" vs "received" or "burned" is
       # that the secret link page has been requested (via GET)
       # but the "View Secret" button hasn't been clicked yet (i.e. we haven't
@@ -196,7 +196,7 @@ module Onetime
       return unless state?(:new) || state?(:viewed)
 
       self.state      = 'received'
-      self.received   = Time.now.utc.to_i
+      self.received   = Familia.now.to_i
       self.secret_key = ''
       save update_expiration: false
     end
@@ -212,7 +212,7 @@ module Onetime
       return unless state?(:new) || state?(:viewed) # only new or viewed secrets can be orphaned
 
       self.state      = 'orphaned'
-      self.updated    = Time.now.utc.to_i
+      self.updated    = Familia.now.to_i
       self.secret_key = ''
       save update_expiration: false
     end
@@ -222,7 +222,7 @@ module Onetime
       return unless state?(:new) || state?(:viewed)
 
       self.state      = 'burned'
-      self.burned     = Time.now.utc.to_i
+      self.burned     = Familia.now.to_i
       self.secret_key = ''
       save update_expiration: false
     end
@@ -233,7 +233,7 @@ module Onetime
       return unless secret_expired?
 
       self.state      = 'expired'
-      self.updated    = Time.now.utc.to_i
+      self.updated    = Familia.now.to_i
       self.secret_key = ''
       save update_expiration: false
     end

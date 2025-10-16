@@ -34,15 +34,19 @@ module Auth
               smtp_host = ENV['MAILPIT_SMTP_HOST'] || 'localhost'
               smtp_port = (ENV['MAILPIT_SMTP_PORT'] || '1025').to_i
 
+              message = <<~EMAIL
+                From: #{email[:from]}
+                To: #{email[:to]}
+                Subject: #{email[:subject]}
+
+                #{email[:body]}
+              EMAIL
+
               Net::SMTP.start(smtp_host, smtp_port) do |smtp|
                 smtp.send_message(
-                  "From: #{email[:from]}
-To: #{email[:to]}
-Subject: #{email[:subject]}
-
-#{email[:body]}",
+                  message,
                   email[:from],
-                  email[:to]
+                  email[:to],
                 )
               end
               OT.info "[email] Sent email to #{email[:to]} via Mailpit"
@@ -59,11 +63,11 @@ Subject: #{email[:subject]}
             Hooks::RateLimiting.configure,
             Hooks::AccountLifecycle.configure,
             Hooks::Authentication.configure,
-            Hooks::OttoIntegration.configure
+            Hooks::OttoIntegration.configure,
           ].each do |hook_proc|
             instance_eval(&hook_proc)
           end
         end
-      end
+    end
     end
   end

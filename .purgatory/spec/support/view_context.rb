@@ -51,7 +51,7 @@ RSpec.shared_context "view_test_context" do
       email: 'test@example.com',
       anonymous?: false,
       planid: 'basic',
-      created: Time.now.to_i,
+      created: Familia.now.to_i,
       safe_dump: {
         'identifier' => 'test@example.com',
         'role' => 'customer',

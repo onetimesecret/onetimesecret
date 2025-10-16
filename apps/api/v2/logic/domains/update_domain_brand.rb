@@ -75,7 +75,7 @@ module V2::Logic
           custom_domain.brand[key.to_s] = value.to_s # everything in the database is a string
         end
 
-        custom_domain.updated = Time.now.to_i
+        custom_domain.updated = Familia.now.to_i
         custom_domain.save
       end
 

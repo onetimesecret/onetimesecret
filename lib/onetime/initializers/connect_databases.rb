@@ -20,6 +20,12 @@ module Onetime
       OT.ld "[init] Connect database: uri: #{uri}"
       OT.ld "[init] Connect database: models: #{Familia.members.map(&:to_s)}"
 
+      # Early validation: Check if Redis URI is properly configured
+      if uri.nil? || uri.empty? || uri.include?('CHANGEME')
+        OT.le "[init] Current URI: #{uri || '<nil>'}"
+        raise Onetime::Problem, "Redis URI not configured (#{uri})"
+      end
+
       # Validate that models have been loaded
       if Familia.members.empty?
         raise Onetime::Problem, 'No known Familia members. Models need to load before calling boot!'
@@ -40,8 +46,9 @@ module Onetime
             0.20, # 200ms for 2nd
             1,    # 1000ms
             2,    # wait a full 2000s for final retry
-          ]
-        ))
+          ],
+        ),
+                 )
       end
 
       # Configure Familia
@@ -51,12 +58,12 @@ module Onetime
         # Provider pattern: Familia calls this lambda to get connections
         # Returns pooled connection, pool.with handles checkout/checkin automatically
         # Reconnection handled at pool + Redis level prevents "idle connection death"
-        config.connection_provider = ->(provided_uri) do
+        config.connection_provider = ->(_provided_uri) do
           OT.database_pool.with { |conn| conn }
         end
 
         config.transaction_mode = :warn
-        config.pipelined_mode    = :warn
+        config.pipelined_mode   = :warn
       end
 
       # Verify connectivity using pool (tests first connection + reconnection config)

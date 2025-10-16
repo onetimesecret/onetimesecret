@@ -3,7 +3,7 @@
 # Integration tests for dual authentication mode (basic/advanced)
 #
 # @note: You can add `DEBUG_DATABASE=1` when running rspec or tryouts
-# tests to see the redis commands in stderr. Be careful how many tests
+# tests to see the database commands in stderr. Be careful how many tests
 # you run at one time: it is a lot of output for small context windows.
 
 require 'spec_helper'
@@ -19,22 +19,14 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       # Setup environment
       ENV['RACK_ENV'] = 'test'
       ENV['AUTHENTICATION_MODE'] = 'basic'
-      ENV['REDIS_URL'] = 'redis://127.0.0.1:2121/0'
 
-      # Boot application
-      require_relative '../../lib/onetime'
-      require_relative '../../lib/onetime/config'
       Onetime.boot! :test
-
-      require_relative '../../lib/onetime/auth_config'
-      require_relative '../../lib/onetime/middleware'
-      require_relative '../../lib/onetime/application/registry'
 
       # Prepare registry
       Onetime::Application::Registry.prepare_application_registry
 
-      # Return Core app (handles /auth/* in basic mode)
-      Onetime::Application::Registry.mount_mappings['/'].new
+      # Return full Rack app with middleware stack (including session middleware)
+      Onetime::Application::Registry.generate_rack_url_map
     end
   end
 
@@ -52,20 +44,12 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     { 'HTTP_ACCEPT' => 'application/json' }
   end
 
-  let(:redis) do
-    require 'redis'
-    Redis.new(url: 'redis://127.0.0.1:2121/0')
+  let(:dbclient) do
+    Familia.dbclient
   end
 
   let(:test_email) { 'testuser@example.com' }
   let(:test_password) { 'SecureP@ssw0rd123' }
-
-  before(:all) do
-    # Clear Redis before tests
-    require 'redis'
-    redis = Redis.new(url: 'redis://127.0.0.1:2121/0')
-    redis.flushdb
-  end
 
   # Helper to create a test customer
   def create_test_customer(email: test_email, password: test_password)
@@ -79,7 +63,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     end
 
     # Create customer
-    cust = Onetime::Customer.create(email)
+    cust = Onetime::Customer.create!(email)
 
     # Set password (BCrypt hash)
     cust.passphrase = BCrypt::Password.create(password).to_s
@@ -117,7 +101,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     context 'with invalid credentials' do
       it 'returns 401 status' do
         post '/auth/login',
-          { u: 'nonexistent@example.com', p: 'wrongpassword' },
+          { login: 'nonexistent@example.com', password: 'wrongpassword' },
           json_request_headers
 
         expect(last_response.status).to eq(401)
@@ -125,7 +109,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
 
       it 'returns JSON response' do
         post '/auth/login',
-          { u: 'nonexistent@example.com', p: 'wrongpassword' },
+          { login: 'nonexistent@example.com', password: 'wrongpassword' },
           json_request_headers
 
         expect(last_response.headers['Content-Type']).to include('application/json')
@@ -133,7 +117,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
 
       it 'returns error structure' do
         post '/auth/login',
-          { u: 'nonexistent@example.com', p: 'wrongpassword' },
+          { login: 'nonexistent@example.com', password: 'wrongpassword' },
           json_request_headers
 
         response = json_response
@@ -143,7 +127,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
 
       it 'returns field-error tuple' do
         post '/auth/login',
-          { u: 'nonexistent@example.com', p: 'wrongpassword' },
+          { login: 'nonexistent@example.com', password: 'wrongpassword' },
           json_request_headers
 
         response = json_response
@@ -158,7 +142,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     context 'without JSON Accept header' do
       it 'redirects on authentication failure' do
         post '/auth/login',
-          { u: 'test@example.com', p: 'password' }
+          { login: 'test@example.com', password: 'password' }
 
         # Should redirect or return 401, but never 500 (server error)
         expect(last_response.status).to eq(302).or eq(401)
@@ -170,7 +154,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     context 'with incomplete data' do
       it 'returns validation error (400 or 422)' do
         post '/auth/create-account',
-          { u: 'incomplete@example.com' },
+          { login: 'incomplete@example.com' },
           json_request_headers
 
         # Missing password should return 400 (bad request) or 422 (unprocessable)
@@ -180,29 +164,111 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     end
   end
 
-  describe 'POST /logout' do
-    it 'accepts logout request' do
+  describe 'POST /logout (without authentication)' do
+    it 'succeeds gracefully (idempotent)' do
       post '/logout', {}, json_request_headers
 
-      # Success or redirect (no active session)
+      # Logout is idempotent - succeeds even if not authenticated
+      expect(last_response.status).to eq(200).or eq(302)
+    end
+  end
+
+  describe 'POST /logout (WITH authentication)' do
+    before(:each) do
+      # Clear database and create test customer
+      dbclient.flushdb
+      @test_cust = create_test_customer
+
+      # Login to establish authenticated session
+      post '/auth/login',
+        { login: test_email, password: test_password },
+        json_request_headers
+
+      @session_cookie = last_response.headers['Set-Cookie']
+    end
+
+    after(:each) do
+      @test_cust&.destroy! if @test_cust
+      dbclient.flushdb
+    end
+
+    it 'successfully logs out with valid session' do
+      post '/logout', {}, json_request_headers.merge('HTTP_COOKIE' => @session_cookie)
+
+      # Should succeed with 200 or 302
+      expect(last_response.status).to eq(200).or eq(302)
+    end
+
+    it 'is idempotent - second logout succeeds gracefully' do
+      # First logout
+      post '/logout', {}, json_request_headers.merge('HTTP_COOKIE' => @session_cookie)
+      expect(last_response.status).to eq(200).or eq(302)
+
+      # Second logout with same cookie should succeed (idempotent)
+      post '/logout', {}, json_request_headers.merge('HTTP_COOKIE' => @session_cookie)
+      expect(last_response.status).to eq(200).or eq(302)
+    end
+  end
+
+  describe 'POST /auth/logout (without authentication)' do
+    it 'succeeds gracefully (idempotent)' do
+      post '/auth/logout', {}, json_request_headers
+
+      # Logout is idempotent - succeeds even if not authenticated
       expect(last_response.status).to eq(200).or eq(302)
     end
 
     context 'with JSON request' do
-      it 'returns JSON response on success' do
-        post '/logout', {}, json_request_headers
+      it 'returns JSON success response' do
+        post '/auth/logout', {}, json_request_headers
 
-        if last_response.status == 200
-          expect(last_response.headers['Content-Type']).to include('application/json')
-        end
+        expect(last_response.status).to eq(200).or eq(302)
+        expect(last_response.headers['Content-Type']).to include('application/json')
       end
+    end
+  end
+
+  describe 'POST /auth/logout (WITH authentication)' do
+    before(:each) do
+      # Clear database and create test customer
+      dbclient.flushdb
+      @test_cust = create_test_customer
+
+      # Login to establish authenticated session
+      post '/auth/login',
+        { login: test_email, password: test_password },
+        json_request_headers
+
+      @session_cookie = last_response.headers['Set-Cookie']
+    end
+
+    after(:each) do
+      @test_cust&.destroy! if @test_cust
+      dbclient.flushdb
+    end
+
+    it 'successfully logs out with valid session' do
+      post '/auth/logout', {}, json_request_headers.merge('HTTP_COOKIE' => @session_cookie)
+
+      # Should succeed with 200 or 302
+      expect(last_response.status).to eq(200).or eq(302)
+    end
+
+    it 'is idempotent - second logout succeeds gracefully' do
+      # First logout
+      post '/auth/logout', {}, json_request_headers.merge('HTTP_COOKIE' => @session_cookie)
+      expect(last_response.status).to eq(200).or eq(302)
+
+      # Second logout with same cookie should succeed (idempotent)
+      post '/auth/logout', {}, json_request_headers.merge('HTTP_COOKIE' => @session_cookie)
+      expect(last_response.status).to eq(200).or eq(302)
     end
   end
 
   describe 'POST /auth/reset-password' do
     it 'accepts password reset request' do
       post '/auth/reset-password',
-        { u: 'reset@example.com' },
+        { login: 'reset@example.com' },
         json_request_headers
 
       # Could be success (200), bad request (400), or validation error (422)
@@ -226,7 +292,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
   describe 'Response Format Compatibility' do
     it 'uses Rodauth-compatible JSON format for errors' do
       post '/auth/login',
-        { u: 'test@example.com', p: 'wrong' },
+        { login: 'test@example.com', password: 'wrong' },
         json_request_headers
 
       response = json_response
@@ -249,8 +315,8 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     end
 
     before(:each) do
-      # Clear Redis to ensure clean state for each test
-      redis.flushdb
+      # Clear database to ensure clean state for each test
+      dbclient.flushdb
 
       # Create test customer for each test
       @test_cust = create_test_customer
@@ -259,14 +325,14 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     after(:each) do
       # Clean up test customer
       @test_cust&.destroy! if @test_cust
-      # Ensure Redis is clean after test
-      redis.flushdb
+      # Ensure database is clean after test
+      dbclient.flushdb
     end
 
     context 'successful authentication' do
       it 'login returns 200 with success message' do
         post '/auth/login',
-          { u: test_email, p: test_password },
+          { login: test_email, password: test_password },
           json_request_headers
 
         expect(last_response.status).to eq(200)
@@ -279,7 +345,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
 
       it 'sets session cookie on successful login' do
         post '/auth/login',
-          { u: test_email, p: test_password },
+          { login: test_email, password: test_password },
           json_request_headers
 
         expect(last_response.status).to eq(200)
@@ -294,7 +360,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       it 'session persists across requests' do
         # Step 1: Login
         post '/auth/login',
-          { u: test_email, p: test_password },
+          { login: test_email, password: test_password },
           json_request_headers
 
         expect(last_response.status).to eq(200)
@@ -304,7 +370,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
         expect(cookie).not_to be_nil
 
         # Step 2: Logout with the session cookie
-        post '/logout',
+        post '/auth/logout',
           {},
           json_request_headers.merge('HTTP_COOKIE' => cookie)
 
@@ -315,66 +381,66 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       it 'logout destroys the session' do
         # Step 1: Login
         post '/auth/login',
-          { u: test_email, p: test_password },
+          { login: test_email, password: test_password },
           json_request_headers
 
         cookie = last_response.headers['Set-Cookie']
 
         # Step 2: Logout
-        post '/logout',
+        post '/auth/logout',
           {},
           json_request_headers.merge('HTTP_COOKIE' => cookie)
 
         expect(last_response.status).to eq(200).or eq(302)
 
-        # Step 3: Try to logout again with old cookie (should still work but session is cleared)
-        post '/logout',
+        # Step 3: Try to logout again with old cookie (should be idempotent)
+        post '/auth/logout',
           {},
           json_request_headers.merge('HTTP_COOKIE' => cookie)
 
-        # Second logout should succeed (no-op on already cleared session)
+        # Second logout succeeds (idempotent behavior)
         expect(last_response.status).to eq(200).or eq(302)
       end
     end
 
-    context 'Redis session storage' do
-      it 'stores session in Redis after login' do
+    context 'Session storage' do
+      it 'stores session in kv database after login' do
         post '/auth/login',
-          { u: test_email, p: test_password },
+          { login: test_email, password: test_password },
           json_request_headers
 
         expect(last_response.status).to eq(200)
 
-        # Check Redis for session keys
-        session_keys = redis.keys('*session*')
+        # Check kv database for session keys
+        session_keys = dbclient.keys('*session*')
         expect(session_keys).not_to be_empty
       end
 
-      it 'removes session from Redis after logout' do
+      it 'removes session from kv database after logout' do
         # Login
         post '/auth/login',
-          { u: test_email, p: test_password },
+          { login: test_email, password: test_password },
           json_request_headers
 
         cookie = last_response.headers['Set-Cookie']
 
-        # Verify session exists in Redis
-        session_keys_before = redis.keys('*session*')
+        # Verify session exists in kv database
+        session_keys_before = dbclient.keys('*session*')
         expect(session_keys_before).not_to be_empty
 
         # Logout
-        post '/logout',
+        post '/auth/logout',
           {},
           json_request_headers.merge('HTTP_COOKIE' => cookie)
 
-        # Verify session removed from Redis
+        # Verify session removed from kv database
         # Note: Rack session middleware might keep empty session, so check for authenticated data
-        session_keys_after = redis.keys('*session*')
+        session_keys_after = dbclient.keys('*session*')
 
         # Session should either be deleted or cleared (no authenticated_at)
         if session_keys_after.any?
           session_keys_after.each do |key|
-            session_data = redis.get(key)
+            session_data = dbclient.get(key)
             expect(session_data).not_to include('authenticated_at') if session_data
           end
         end
@@ -384,7 +450,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     context 'session authentication state' do
       it 'sets authenticated_at timestamp on login' do
         post '/auth/login',
-          { u: test_email, p: test_password },
+          { login: test_email, password: test_password },
           json_request_headers
 
         expect(last_response.status).to eq(200)

@@ -60,7 +60,7 @@ module V1
     end
 
     def age
-      @age ||= Time.now.utc.to_i-self.updated
+      @age ||= Familia.now.to_i-self.updated
       @age
     end
 

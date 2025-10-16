@@ -25,7 +25,7 @@ module Core
       def logout
         res.do_not_cache!
 
-        logic = V2::Logic::Authentication::DestroySession.new(_strategy_result, req.params, locale)
+        logic = V2::Logic::Authentication::DestroySession.new(strategy_result, req.params, locale)
         execute_with_error_handling(
           logic,
           success_message: 'You have been logged out',
@@ -45,7 +45,7 @@ module Core
       end
 
       def perform_authentication
-        logic = V2::Logic::Authentication::AuthenticateSession.new(_strategy_result, req.params, locale)
+        logic = V2::Logic::Authentication::AuthenticateSession.new(strategy_result, req.params, locale)
 
         execute_with_error_handling(
           logic,
@@ -56,8 +56,12 @@ module Core
         ) do
           cust_after = logic.cust
 
-          # Set authenticated_at for session validation consistency
-          session['authenticated_at'] = Time.now.to_i
+          # Sync session data from logic class to Rack session
+          # The logic class modifies its own @sess copy, so we need to copy those changes
+          # to the actual Rack session for persistence
+          session['identity_id'] = cust_after.objid
+          session['authenticated'] = true
+          session['authenticated_at'] = Familia.now
 
           # Override redirect for colonel role
           if !json_requested? && cust_after.role?(:colonel)

@@ -45,6 +45,11 @@ module Core
       routes_path = File.join(__dir__, 'routes')
       router      = Otto.new(routes_path)
 
+      # IP privacy is enabled globally in common middleware stack for public
+      # addresses. Must be enabled specifically for private and localhost
+      # addresses. See Otto::Middleware::IPPrivacy for details
+      router.enable_full_ip_privacy!
+
       # Enable CSP nonce support for enhanced security
       router.enable_csp_with_nonce!(debug: OT.debug?)
 

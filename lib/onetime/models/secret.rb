@@ -58,7 +58,7 @@ module Onetime
     end
 
     def age
-      @age ||= Time.now.utc.to_i - updated
+      @age ||= Familia.now.to_i - updated
       @age
     end
 

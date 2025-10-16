@@ -12,8 +12,8 @@ module V2::Logic
 
       def process_params
         # Calculate the timestamp for 30 days ago
-        @now   = Time.now
-        @since = (Time.now - (30 * 24 * 60 * 60)).to_i
+        @now   = Familia.now
+        @since = (Familia.now - (30 * 24 * 60 * 60)).to_i
       end
 
       def raise_concerns; end

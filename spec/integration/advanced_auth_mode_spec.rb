@@ -12,14 +12,7 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
     ENV['AUTHENTICATION_MODE'] = 'advanced'
     ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../..'))
 
-    # Load the application
-    require 'onetime'
-    require 'onetime/config'
     Onetime.boot! :test
-
-    require 'onetime/auth_config'
-    require 'onetime/middleware'
-    require 'onetime/application/registry'
 
     # Prepare the application registry
     Onetime::Application::Registry.prepare_application_registry
@@ -138,7 +131,7 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
     describe 'POST /auth/create-account' do
       let(:signup_params) do
         {
-          login: "test_#{Time.now.to_i}@example.com",
+          login: "test_#{Familia.now.to_i}@example.com",
           password: 'password123',
           'password-confirm' => 'password123'
         }

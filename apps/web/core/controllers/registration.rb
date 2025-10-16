@@ -12,7 +12,7 @@ module Core
           raise OT::Redirect.new('/')
         end
 
-        logic = V2::Logic::Account::CreateAccount.new(_strategy_result, req.params, locale)
+        logic = V2::Logic::Account::CreateAccount.new(strategy_result, req.params, locale)
 
         # Determine success message based on autoverify setting
         autoverify = OT.conf.dig('site', 'authentication', 'autoverify')
@@ -49,7 +49,7 @@ module Core
       private
 
       def reset_password_with_token
-        logic = V2::Logic::Authentication::ResetPassword.new(_strategy_result, req.params, locale)
+        logic = V2::Logic::Authentication::ResetPassword.new(strategy_result, req.params, locale)
         execute_with_error_handling(
           logic,
           success_message: 'Your password has been reset',
@@ -59,7 +59,7 @@ module Core
       end
 
       def request_password_reset_email
-        logic = V2::Logic::Authentication::ResetPasswordRequest.new(_strategy_result, req.params, locale)
+        logic = V2::Logic::Authentication::ResetPasswordRequest.new(strategy_result, req.params, locale)
         execute_with_error_handling(
           logic,
           success_message: 'An email has been sent to you with a link to reset the password for your account',

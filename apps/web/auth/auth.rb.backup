@@ -209,7 +209,7 @@ class AuthService < Roda
   route do |r|
     # Debug logging
     if ENV['RACK_ENV'] == 'development'
-      puts "[#{Time.now}] #{r.request_method} #{r.path_info}"
+      puts "[#{Familia.now}] #{r.request_method} #{r.path_info}"
       puts "  PATH_INFO: '#{r.env['PATH_INFO']}'"
       puts "  REQUEST_URI: '#{r.env['REQUEST_URI']}'"
       puts "  SCRIPT_NAME: '#{r.env['SCRIPT_NAME']}'"
@@ -408,7 +408,7 @@ class AuthService < Roda
 
     # Check if session is still valid (not expired)
     session_expiry = session_data[:last_use] + (30 * 24 * 60 * 60)  # 30 days
-    return nil if Time.now > session_expiry
+    return nil if Familia.now > session_expiry
 
     # Check if MFA is enabled for this account
     mfa_enabled = DB[:account_otp_keys].where(id: session_data[:account_id]).count > 0
@@ -438,7 +438,7 @@ class AuthService < Roda
     else
       # Default: log to file in production
       File.open('log/emails.log', 'a') do |f|
-        f.puts "#{Time.now.utc.iso8601}: #{email.inspect}"
+        f.puts "#{Familia.now.utc.iso8601}: #{email.inspect}"
       end
     end
   end

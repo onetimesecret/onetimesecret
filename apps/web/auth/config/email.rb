@@ -37,7 +37,7 @@ module Auth
         else
           # Default: log to file in production
           File.open('log/emails.log', 'a') do |f|
-            f.puts "#{Time.now.utc.iso8601}: #{email.inspect}"
+            f.puts "#{Familia.now.utc.iso8601}: #{email.inspect}"
           end
         end
       end

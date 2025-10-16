@@ -38,10 +38,10 @@ module Auth
       end
     else
       # Warn if Auth app is loaded in basic mode - it shouldn't be mounted at all
-      OT.le "[Auth::Router] WARNING: Auth application loaded in basic mode"
-      OT.le "  The Auth app is designed for advanced mode only."
-      OT.le "  In basic mode, authentication routes should be handled by Core app."
-      OT.le "  This app will return 404 for all Rodauth routes."
+      OT.le '[Auth::Router] WARNING: Auth application loaded in basic mode'
+      OT.le '  The Auth app is designed for advanced mode only.'
+      OT.le '  In basic mode, authentication routes should be handled by Core app.'
+      OT.le '  This app will return 404 for all Rodauth routes.'
     end
 
     # Status handlers
@@ -86,7 +86,6 @@ module Auth
       # Health check endpoint
       r.on('health') do
         r.get do
-          begin
             # Test database connection if in advanced mode
             db_status = if Onetime.auth_config.advanced_enabled? && Auth::Config::Database.connection
               Auth::Config::Database.connection.test_connection ? 'ok' : 'error'
@@ -96,19 +95,18 @@ module Auth
 
             {
               status: 'ok',
-              timestamp: Time.now.to_i,
+              timestamp: Familia.now.to_i,
               database: db_status,
               version: Onetime::VERSION,
-              mode: Onetime.auth_config.mode
+              mode: Onetime.auth_config.mode,
             }
-          rescue => e
+          rescue StandardError => ex
             response.status = 503
             {
               status: 'error',
-              error: e.message,
-              timestamp: Time.now.to_i
+              error: ex.message,
+              timestamp: Familia.now.to_i,
             }
-          end
         end
       end
 
@@ -116,7 +114,6 @@ module Auth
       r.on('admin') do
         # Add admin authentication here
         r.get('stats') do
-          begin
             if Onetime.auth_config.advanced_enabled? && Auth::Config::Database.connection
               db = Auth::Config::Database.connection
               {
@@ -124,19 +121,18 @@ module Auth
                 verified_accounts: db[:accounts].where(status_id: 2).count,
                 active_sessions: db[:account_active_session_keys].count,
                 mfa_enabled_accounts: db[:account_otp_keys].count,
-                mode: 'advanced'
+                mode: 'advanced',
               }
             else
               {
                 mode: 'basic',
-                message: 'Stats not available in basic mode'
+                message: 'Stats not available in basic mode',
               }
             end
-          rescue => e
-            OT.le "Error: #{e.class} - #{e.message}"
+          rescue StandardError => ex
+            OT.le "Error: #{ex.class} - #{ex.message}"
             response.status = 500
             { error: 'Internal server error' }
-          end
         end
       end
     end

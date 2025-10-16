@@ -7,6 +7,7 @@ require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
 require 'onetime/session'
+require 'otto'
 
 module Onetime
   module Application
@@ -16,12 +17,18 @@ module Onetime
     module MiddlewareStack
       @parsers = {
         'application/json' => proc { |body| Familia::JsonSerializer.parse(body) },
-        'application/x-www-form-urlencoded' => proc { |body| Rack::Utils.parse_nested_query(body) }
-        }.freeze
+        'application/x-www-form-urlencoded' => proc { |body| Rack::Utils.parse_nested_query(body) },
+      }.freeze
 
       class << self
         def configure(builder, application_context: nil)
-          Onetime.ld "[middleware] MiddlewareStack: Configuring common middleware"
+          Onetime.ld '[middleware] MiddlewareStack: Configuring common middleware'
+
+          # IP Privacy FIRST - masks public IPs before logging/monitoring
+          # Private/localhost IPs are automatically exempted for development
+          # Uses Otto's privacy middleware as a standalone Rack component
+          Onetime.ld '[middleware] MiddlewareStack: Setting up IP Privacy (masks public IPs)'
+          builder.use Otto::Security::Middleware::IPPrivacyMiddleware
 
           builder.use Rack::ContentLength
           builder.use Onetime::Middleware::StartupReadiness
@@ -47,7 +54,7 @@ module Onetime
 
           # Load the logger early so it's ready to log request errors
           unless Onetime.conf&.dig(:logging, :http_requests).eql?(false)
-            Onetime.ld "[middleware] MiddlewareStack: Setting up CommonLogger"
+            Onetime.ld '[middleware] MiddlewareStack: Setting up CommonLogger'
             builder.use Rack::CommonLogger
           end
 

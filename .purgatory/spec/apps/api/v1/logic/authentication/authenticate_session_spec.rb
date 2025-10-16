@@ -7,7 +7,7 @@ RSpec.xdescribe V1::Logic::Authentication::AuthenticateSession do
   let(:session) { double('Session', short_identifier: 'abc123', set_info_message: nil, replace!: nil, save: nil, :"custid=" => nil, :"authenticated=" => nil, :"default_expiration=" => nil) }
   let(:customer) { double('Customer', custid: 'test@example.com', anonymous?: false, passphrase?: true, pending?: false, role: :customer, role?: true, obscure_email: 'te***@example.com', save: nil) }
   let(:anonymous_customer) { double('Customer', anonymous?: true) }
-  let(:params) { { u: 'test@example.com', p: 'password123' } }
+  let(:params) { { login: 'test@example.com', password: 'password123' } }
   let(:locale) { 'en' }
 
   subject { described_class.new(session, customer, params, locale) }

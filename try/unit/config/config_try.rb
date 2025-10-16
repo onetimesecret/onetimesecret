@@ -42,7 +42,7 @@ Onetime.global_secret.nil?
 
 ## Has default global secret
 Onetime.global_secret
-#=> 'SuP0r_53cRU7'
+#=> 'SuP0r_53cRU7_t3st_0nly'
 
 ## Config.mapped_key takens an internal key and returns the corresponding external key
 Onetime::Config.mapped_key('example_internal_key')

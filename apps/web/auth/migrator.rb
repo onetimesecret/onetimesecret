@@ -19,14 +19,14 @@ module Auth
         begin
           # Check if migrations are needed
           if needs_migration?
-            OT.info "Running auth database migrations..."
+            OT.info 'Running auth database migrations...'
             run_migrations
-            OT.info "Auth database migrations completed"
+            OT.info 'Auth database migrations completed'
           else
-            OT.ld "Auth database schema is up to date"
+            OT.ld 'Auth database schema is up to date'
           end
-        rescue StandardError => e
-          OT.le "Auth migration error: #{e.message}"
+        rescue StandardError => ex
+          OT.le "Auth migration error: #{ex.message}"
           raise
         end
       end
@@ -35,9 +35,9 @@ module Auth
       def run!
         return unless database_connection
 
-        OT.info "Force running auth database migrations..."
+        OT.info 'Force running auth database migrations...'
         run_migrations
-        OT.info "Auth database migrations completed"
+        OT.info 'Auth database migrations completed'
       end
 
       private
@@ -55,7 +55,7 @@ module Auth
         return true unless database_connection.table_exists?(:schema_migrations)
 
         # Check if there are pending migrations
-        current_version = database_connection[:schema_migrations].max(:filename)
+        current_version      = database_connection[:schema_migrations].max(:filename)
         available_migrations = Dir[File.join(migrations_dir, '*.rb')].map { |f| File.basename(f) }
 
         # If no migrations have been run or there are new migrations
@@ -67,7 +67,7 @@ module Auth
         Sequel::Migrator.run(
           database_connection,
           migrations_dir,
-          use_transactions: true
+          use_transactions: true,
         )
       end
     end

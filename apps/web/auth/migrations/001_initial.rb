@@ -2,6 +2,7 @@
 
 MIGRATION_ROOT = __dir__
 
+# rubocop:disable Lint/ConstantDefinitionInBlock
 Sequel.migration do
   DB_TYPE       = DB.adapter_scheme            # :sqlite or :postgres
   SCHEMA_FILE   = File.join(MIGRATION_ROOT, 'schemas', DB_TYPE.to_s, '001_initial.sql')
@@ -21,3 +22,4 @@ Sequel.migration do
     run File.read(ROLLBACK_FILE)
   end
 end
+# rubocop:enable Lint/ConstantDefinitionInBlock

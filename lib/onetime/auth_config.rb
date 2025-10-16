@@ -1,4 +1,5 @@
 # lib/onetime/auth_config.rb
+
 # Authentication configuration loader for Otto's Derived Identity Architecture
 
 require 'yaml'
@@ -20,7 +21,8 @@ module Onetime
     # Main authentication mode: 'basic' or 'advanced'
     def mode
       # Environment variable takes precedence
-      return ENV['AUTHENTICATION_MODE'] if ENV['AUTHENTICATION_MODE'] && %w[basic advanced].include?(ENV['AUTHENTICATION_MODE'])
+      env_mode = ENV['AUTHENTICATION_MODE']
+      return env_mode if env_mode&.match?(/\A(?:basic|advanced)\z/)
 
       # Check configuration file
       auth_config['mode'] || 'basic'

@@ -38,6 +38,7 @@ import type { AxiosInstance } from 'axios';
  * }
  * ```
  */
+/* eslint-disable max-lines-per-function */
 export function useAuth() {
   const $api = inject('api') as AxiosInstance;
   const router = useRouter();
@@ -81,8 +82,8 @@ export function useAuth() {
 
     try {
       const response = await $api.post<LoginResponse>('/auth/login', {
-        u: email,
-        p: password,
+        login: email,
+        password: password,
         shrimp: csrfStore.shrimp,
         'remember-me': rememberMe,
       });
@@ -121,8 +122,8 @@ export function useAuth() {
 
     try {
       const response = await $api.post<CreateAccountResponse>('/auth/create-account', {
-        u: email,
-        p: password,
+        login: email,
+        password: password,
         agree: termsAgreed,
         shrimp: csrfStore.shrimp,
       });
@@ -193,7 +194,7 @@ export function useAuth() {
 
     try {
       const response = await $api.post<ResetPasswordRequestResponse>('/auth/reset-password', {
-        u: email,
+        login: email,
         shrimp: csrfStore.shrimp,
       });
 

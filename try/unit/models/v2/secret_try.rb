@@ -80,7 +80,7 @@ metadata.destroy!
 metadata, secret = Onetime::Secret.spawn_pair 'anon', :tryouts
 metadata.viewed!
 [metadata.viewed, metadata.state]
-#=> [Time.now.utc.to_i, 'viewed']
+#=> [Familia.now.to_i, 'viewed']
 
 ## Can set shared secret to viewed state
 metadata, secret = Onetime::Secret.spawn_pair 'anon', :tryouts
@@ -89,7 +89,7 @@ secret.received!
 # NOTE: The secret no longer keeps a reference to the metadata
 #metadata = secret.load_metadata
 [metadata.shared, metadata.state, secret.received, secret.state]
-##=> [Time.now.utc.to_i, 'shared', Time.now.utc.to_i, 'received']
+##=> [Familia.now.to_i, 'shared', Familia.now.to_i, 'received']
 
 ## Secrets have a counter for views
 @secret_with_counter = Onetime::Secret.new state: :shared
