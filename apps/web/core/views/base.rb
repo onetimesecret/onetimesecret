@@ -1,6 +1,6 @@
 # apps/web/core/views/base.rb
 
-require 'chimera'
+require 'rhales'
 
 require 'onetime/middleware'
 
@@ -19,7 +19,7 @@ require_relative 'serializers'
 #
 module Core
   module Views
-    class BaseView < Chimera
+    class BaseView
       extend Core::Views::InitializeViewVars
       include Core::Views::SanitizerHelpers
       include Core::Views::I18nHelpers
@@ -27,16 +27,12 @@ module Core
       include Onetime::Utils::TimeUtils
       # include Onetime::Helpers::ShrimpHelpers
 
-      self.template_path      = File.join(__dir__, '..', 'templates')
-      self.template_extension = 'html.erb'
-      self.view_namespace     = Core::Views
-      self.view_path          = File.join(__dir__)
+      TEMPLATE_PATH = File.join(__dir__, '..', 'templates')
 
       attr_accessor :req, :sess, :cust, :locale, :form_fields, :pagename
       attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
 
       def initialize(req, sess = nil, cust = nil, locale_override = nil, *)
-        # require 'debug'; debugger
         @req  = req
         @sess = sess
         @cust = cust || Onetime::Customer.anonymous
@@ -59,28 +55,14 @@ module Core
         @i18n_instance = i18n
         @messages      = []
 
-        update_view_vars
-
-        init(*) if respond_to?(:init)
-
-        update_serialized_data
-      end
-
-      def update_serialized_data
-        @serialized_data = run_serializers
-      end
-
-      def update_view_vars
+        # Initialize view variables for use in rendering
         @view_vars = self.class.initialize_view_vars(req, sess, cust, locale, i18n_instance)
 
-        # Make the view-relevant variables available to the view and HTML
-        # template. We're intentionally not calling self[key.to_s] here as
-        # a defensive measure b/c it can obscure situations where the key
-        # is not a string, it's "corrected" here, but may not be in another
-        # part of the code.
-        @view_vars.each do |key, value|
-          self[key] = value
-        end
+        # Call subclass init hook if defined
+        init(*) if respond_to?(:init)
+
+        # Run serializers to prepare data for frontend
+        @serialized_data = run_serializers
       end
 
       # Add notification message to be displayed in StatusBar component
@@ -109,6 +91,36 @@ module Core
       # @return [Hash] The serialized data
       def run_serializers
         SerializerRegistry.run(self.class.serializers, view_vars, i18n_instance)
+      end
+
+      # Render the view using Rhales
+      #
+      # Creates props hash from serialized data and view vars, then renders
+      # the template using Rhales framework.
+      #
+      # @param template_name [String] Optional template name (defaults to 'index')
+      # @return [String] Rendered HTML
+      def render(template_name = 'index')
+        # Build props hash from serialized data and additional view vars
+        props = serialized_data.merge(
+          'page_title' => view_vars['page_title'],
+          'description' => view_vars['description'],
+          'keywords' => view_vars['keywords'],
+          'baseuri' => view_vars['baseuri'],
+          'site_host' => view_vars['site_host'],
+          'no_cache' => view_vars['no_cache'],
+          'vite_assets_html' => vite_assets(
+            nonce: view_vars['nonce'],
+            development: view_vars['frontend_development']
+          )
+        )
+
+        # Wrap session to provide authenticated? method that Rhales expects
+        adapted_session = OnetimeSessionAdapter.new(sess)
+
+        # Create Rhales view with props and render
+        rhales_view = Rhales::View.new(req, adapted_session, cust, locale, props: props)
+        rhales_view.render(template_name)
       end
 
       class << self

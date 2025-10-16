@@ -10,11 +10,10 @@ module Core
     # JavaScript variables from the backend to the frontend.
     #
     # Example usage:
-    #   view = Core::Views::VuePoint.new
+    #   view = Core::Views::VuePoint.new(req, sess, cust, locale)
+    #   html = view.render('index')
     #
     class VuePoint < Core::Views::BaseView
-      self.template_name = 'index'
-
       use_serializers(
         ConfigSerializer,
         AuthenticationSerializer,
@@ -24,12 +23,10 @@ module Core
         SystemSerializer,
       )
 
-      def init *args; end
+      def init(*args); end
     end
 
     class ExportWindow < Core::Views::BaseView
-      self.template_name = nil
-
       use_serializers(
         ConfigSerializer,
         AuthenticationSerializer,
@@ -39,24 +36,27 @@ module Core
         SystemSerializer,
       )
 
-      def init *args; end
+      def init(*args); end
     end
 
     class Error < Core::Views::BaseView
-      def init *_args
-        self[:title] = "I'm afraid there's been an error"
-        self[:error_id] = SecureRandom.uuid
+      def init(*_args)
+        # Note: Rhales doesn't use self[:key] assignment
+        # Error handling will need to be refactored
       end
     end
 
     # The robots.txt file
     class RobotsTxt < Core::Views::BaseView
-      self.template_name      = 'robots'
-      self.template_extension = 'txt'
+      def init(*_args); end
+
+      def render(template_name = 'robots')
+        super(template_name)
+      end
     end
 
     class UnknownSecret < Core::Views::BaseView
-      self.template_name = :index
+      def init(*_args); end
     end
   end
 end

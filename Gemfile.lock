@@ -40,6 +40,11 @@ GIT
   specs:
     rspec-support (4.0.0.pre)
 
+PATH
+  remote: ../rhales
+  specs:
+    rhales (0.4.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -386,6 +391,7 @@ DEPENDENCIES
   rdoc
   redis (~> 5.4.0)
   rerun (~> 0.14)
+  rhales!
   roda (~> 3.0)
   rodauth (~> 2.0)
   rotp (~> 6.2)

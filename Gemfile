@@ -20,6 +20,7 @@ source 'https://rubygems.org/'
 # ====================================
 
 gem 'otto', '~> 2.0.0.pre3'
+gem 'rhales', path: '../rhales'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
 
