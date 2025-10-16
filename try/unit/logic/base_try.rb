@@ -20,7 +20,7 @@ OT.boot! :test, false
 @email = 'test@onetimesecret.com'
 @session = {}
 @cust = Customer.new email: @email
-@strategy_result = MockStrategyResult.new(@session, @cust)
+@strategy_result = MockStrategyResult.new(session: @session, user: @cust)
 @params = { test: 'value' }
 @locale = 'en'
 
@@ -70,7 +70,7 @@ end
 #=> ['password', 'a' * 128, '']
 
 ## Plan defaults to anonymous for nil customer
-@strategy_result_no_cust = MockStrategyResult.new(@session, nil)
+@strategy_result_no_cust = MockStrategyResult.new(session: @session, user: nil)
 @obj_no_cust = TestLogic.new(@strategy_result_no_cust, {})
 @obj_no_cust.planid
 #=> nil

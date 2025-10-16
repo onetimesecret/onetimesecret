@@ -26,7 +26,7 @@ OT.boot! :test, false
 # Assign the unique email address
 @email = @unique_email.call
 @session = {}
-@strategy_result = MockStrategyResult.new(@session, nil)
+@strategy_result = MockStrategyResult.new(session: @session, user: nil)
 
 
 # Create a customer for update tests
@@ -62,7 +62,7 @@ logic.process
   newp1: 'newpass123',
   newp2: 'newpass123'
 }
-@strategy_result_with_cust = MockStrategyResult.new(@session, @cust)
+@strategy_result_with_cust = MockStrategyResult.new(session: @session, user: @cust)
 logic = V2::Logic::Account::UpdatePassword.new @strategy_result_with_cust, @update_params
 logic.instance_variables.include?(:@modified)
 #=> true

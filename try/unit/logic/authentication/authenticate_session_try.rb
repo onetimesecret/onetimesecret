@@ -18,7 +18,7 @@ OT.boot! :test, true
 @now = Familia.now
 @email = "tryouts+#{Familia.now.to_i}@onetimesecret.com"
 @session = {}
-@strategy_result = MockStrategyResult.new(@session, nil)
+@strategy_result = MockStrategyResult.new(session: @session, user: nil)
 @cust = Customer.create!(email: @email)
 @cust.update_passphrase @testpass
 @cust.save
@@ -80,7 +80,7 @@ OT.boot! :test, true
   newp: 'newpass123',
   newp2: 'newpass123'
 }
-@strategy_result_with_cust = MockStrategyResult.new(@session, @cust)
+@strategy_result_with_cust = MockStrategyResult.new(session: @session, user: @cust)
 @reset = Logic::Authentication::ResetPassword.new @strategy_result_with_cust, @reset_params
 # NOTE: Most V2 logic is directly subclassed from V1. See note in ResetPassword
 # about whether we can drop the V1 prefix inside the apps/api/v1. That would

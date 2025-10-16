@@ -19,7 +19,7 @@ OT.boot! :test, false
 @now = Familia.now
 @email = "tryouts+#{Familia.now.to_i}@onetimesecret.com"
 @session = {}
-@strategy_result = MockStrategyResult.new(@session, nil)
+@strategy_result = MockStrategyResult.new(session: @session, user: nil)
 @cust = Customer.create!(email: @email)
 @secret = Secret.new
 @secret.generate_id
@@ -46,7 +46,7 @@ secret.generate_id
   ttl: '7200',
   recipient: 'recipient@example.com',
 }
-@strategy_result_with_cust = MockStrategyResult.new(@session, @cust)
+@strategy_result_with_cust = MockStrategyResult.new(session: @session, user: @cust)
 logic = Logic::Secrets::ConcealSecret.new @strategy_result_with_cust, {secret: @secret_params}
 [
   logic.secret_value,

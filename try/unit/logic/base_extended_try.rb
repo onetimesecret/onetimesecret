@@ -27,7 +27,7 @@ OT.boot! :test, false
 @from_address = OT.conf.dig('emailer', 'from')
 @email_address = "tryouts+#{Familia.now.to_i}@onetimesecret.com"
 @session = {}
-@strategy_result = MockStrategyResult.new(@session, nil)
+@strategy_result = MockStrategyResult.new(session: @session, user: nil)
 @cust = Customer.new email: @email_address
 @params = {}
 @locale = 'en'

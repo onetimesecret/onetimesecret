@@ -26,7 +26,7 @@ OT.boot! :test, true
 @model_class = Onetime::Feedback
 @email_address = "tryouts+#{@now}@onetimesecret.com"
 @session = {}
-@strategy_result = MockStrategyResult.new(@session, nil)
+@strategy_result = MockStrategyResult.new(session: @session, user: nil)
 @cust = Onetime::Customer.new email: @email_address
 @params = {
   msg: 'This is a test feedback'
@@ -36,7 +36,7 @@ OT.boot! :test, true
 # TRYOUTS
 
 ## Can create ReceiveFeedback instance
-@strategy_result_with_cust = MockStrategyResult.new(@session, @cust)
+@strategy_result_with_cust = MockStrategyResult.new(session: @session, user: @cust)
 obj = V2::Logic::ReceiveFeedback.new @strategy_result_with_cust, {}
 obj.class
 #=> V2::Logic::ReceiveFeedback

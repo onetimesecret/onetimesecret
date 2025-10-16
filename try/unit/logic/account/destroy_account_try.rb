@@ -24,7 +24,7 @@ OT.boot! :test, false
 @now = Familia.now
 @session = {}
 @cust = Onetime::Customer.new email: @email_address
-@strategy_result = MockStrategyResult.new(@session, @cust)
+@strategy_result = MockStrategyResult.new(session: @session, user: @cust)
 @params = {
   confirmation: 'pa55w0rd'
 }
@@ -76,7 +76,7 @@ end
 
 ## Raises an error if the password is incorrect
 cust = Onetime::Customer.new email: generate_random_email
-strategy_result = MockStrategyResult.new(@session, cust)
+strategy_result = MockStrategyResult.new(session: @session, user: cust)
 obj = V2::Logic::Account::DestroyAccount.new strategy_result, @params
 cust.update_passphrase 'wrong password'
 begin
@@ -90,7 +90,7 @@ end
 ## No errors are raised as long as the password is correct
 cust = Onetime::Customer.new email: generate_random_email
 password_guess = @params[:confirmation]
-strategy_result = MockStrategyResult.new(@session, cust)
+strategy_result = MockStrategyResult.new(session: @session, user: cust)
 obj = V2::Logic::Account::DestroyAccount.new strategy_result, @params
 cust.update_passphrase password_guess # update the password to be correct
 obj.raise_concerns
@@ -109,7 +109,7 @@ end
 
 ## Process the request and destroy the account
 cust = Onetime::Customer.new email: generate_random_email
-strategy_result = MockStrategyResult.new(@session, cust)
+strategy_result = MockStrategyResult.new(session: @session, user: cust)
 obj = V2::Logic::Account::DestroyAccount.new strategy_result, @params
 cust.update_passphrase @params[:confirmation] # set the passphrase
 obj.raise_concerns
@@ -130,7 +130,7 @@ end
 ## Destroyed account gets a new api key
 cust = Onetime::Customer.new email: generate_random_email
 first_token = cust.regenerate_apitoken  # first we need to set an api key
-strategy_result = MockStrategyResult.new(@session, cust)
+strategy_result = MockStrategyResult.new(session: @session, user: cust)
 obj = V2::Logic::Account::DestroyAccount.new strategy_result, @params
 cust.update_passphrase @params[:confirmation]
 obj.raise_concerns
