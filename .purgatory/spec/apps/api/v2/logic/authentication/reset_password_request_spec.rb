@@ -7,7 +7,7 @@ RSpec.xdescribe V2::Logic::Authentication::ResetPasswordRequest do
   let(:session) { double('Session', set_info_message: nil, set_success_message: nil, set_error_message: nil, short_identifier: 'xyz789') }
   let(:customer) { double('Customer', custid: 'test@example.com', pending?: false, :"reset_secret=" => nil) }
   let(:secret) { double('Secret', key: 'secret_key_456', save: nil, :"default_expiration=" => nil, :"verification=" => nil) }
-  let(:params) { { u: 'test@example.com' } }
+  let(:params) { { login: 'test@example.com' } }
   let(:locale) { 'en' }
   let(:mail_view) { double('PasswordRequest', deliver_email: true) }
 

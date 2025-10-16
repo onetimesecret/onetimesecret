@@ -24,8 +24,8 @@ module V2::Logic
       def raise_concerns
         raise OT::FormError, "You're already signed up" if @strategy_result.authenticated?
 
-        raise_form_error 'Please try another email address', field: 'email', error_type: 'already_exists' if Onetime::Customer.email_exists?(email)
-        raise_form_error 'Is that a valid email address?', field: 'email', error_type: 'invalid' unless valid_email?(email)
+        raise_form_error 'Please try another email address', field: 'login', error_type: 'already_exists' if Onetime::Customer.email_exists?(email)
+        raise_form_error 'Is that a valid email address?', field: 'login', error_type: 'invalid' unless valid_email?(email)
         raise_form_error 'Password is too short', field: 'password', error_type: 'too_short' unless password.size >= 6
 
         @planid ||= 'basic'
@@ -53,8 +53,8 @@ module V2::Logic
         cust.role      = @customer_role.to_s
         cust.save
 
-        session_id = @sess.respond_to?(:id) ? @sess.id.to_s[0..10] : 'unknown'
-        ip_address = @strategy_result.metadata[:ip] || @sess['ip_address'] || 'unknown'
+        session_id = @strategy_result.session[:id] || 'unknown'
+        ip_address = @strategy_result.metadata[:ip] || 'unknown'
         OT.info "[new-customer] #{cust.objid} #{cust.role} #{ip_address} #{planid} #{session_id}"
 
         success_message = if autoverify

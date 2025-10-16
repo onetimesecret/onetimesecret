@@ -293,8 +293,8 @@ const $api = inject('api') as AxiosInstance;
 
 // Make request
 const response = await $api.post('/auth/login', {
-  u: email,
-  p: password,
+  login: email,
+  password: password,
   shrimp: csrfStore.shrimp,
 });
 ```

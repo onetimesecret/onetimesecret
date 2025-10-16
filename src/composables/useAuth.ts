@@ -194,7 +194,7 @@ export function useAuth() {
 
     try {
       const response = await $api.post<ResetPasswordRequestResponse>('/auth/reset-password', {
-        u: email,
+        login: email,
         shrimp: csrfStore.shrimp,
       });
 

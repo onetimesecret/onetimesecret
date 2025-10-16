@@ -68,7 +68,7 @@ Auth::Config::Database.connection
 #=> nil
 
 ## The login endpoint returns 404 in basic mode (Rodauth not loaded)
-@test.post '/auth/login', { u: 'test@example.com', p: 'password' }
+@test.post '/auth/login', { login: 'test@example.com', password: 'password' }
 # In basic mode, Auth app has no Rodauth routes, so returns 404
 @test.last_response.status
 #=> 404
@@ -80,20 +80,20 @@ Auth::Config::Database.connection
 
 ## Verify JSON response when Accept header is set for login
 @test.post '/auth/login',
-  { u: 'test@example.com', p: 'invalid' },
+  { login: 'test@example.com', password: 'invalid' },
   { 'HTTP_ACCEPT' => 'application/json' }
 content_type = @test.last_response.headers['Content-Type']
 content_type && content_type.include?('application/json')
 #=> true
 
 ## The create account endpoint returns 404 in basic mode
-@test.post '/auth/create-account', { u: 'new@example.com', p: 'password' }
+@test.post '/auth/create-account', { login: 'new@example.com', password: 'password' }
 # In basic mode, no Rodauth routes exist
 @test.last_response.status
 #=> 404
 
 ## The password reset endpoint returns 404 in basic mode
-@test.post '/auth/reset-password', { u: 'reset@example.com' }
+@test.post '/auth/reset-password', { login: 'reset@example.com' }
 @test.last_response.status
 #=> 404
 

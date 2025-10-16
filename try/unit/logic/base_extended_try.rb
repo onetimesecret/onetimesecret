@@ -40,9 +40,9 @@ OT.boot! :test, false
   pword = 'loopersucks'
   {
     planid: :individual_v1,
-    u: email,
-    p: pword,
-    p2: pword,
+    login: email,
+    password: pword,
+    password2: pword,
 
     # This is a hidden field, so it should be empty. If it has a value, it's
     skill: '',

@@ -23,8 +23,8 @@ OT.boot! :test, true
 @cust.update_passphrase @testpass
 @cust.save
 @auth_params = {
-  u: @email,
-  p: @testpass,
+  login: @email,
+  password: @testpass,
   stay: 'true'
 }
 
@@ -42,8 +42,8 @@ OT.boot! :test, true
 
 ## Test authentication with invalid credentials
 @auth_params = {
-  u: @email,
-  p: 'bogus',
+  login: @email,
+  password: 'bogus',
 }
 @auth = Logic::Authentication::AuthenticateSession.new @strategy_result, @auth_params
 [@auth.potential_email_address, @auth.objid, @auth.stay]
@@ -57,13 +57,13 @@ OT.boot! :test, true
 # ResetPasswordRequest Tests
 
 ## Test password reset request
-@reset_params = { u: @email }
+@reset_params = { login: @email }
 @reset = Logic::Authentication::ResetPasswordRequest.new @strategy_result, @reset_params
 @reset.objid
 #=> @email
 
 ## Test invalid email handling
-@reset_params = { u: 'invalid@email' }
+@reset_params = { login: 'invalid@email' }
 @reset = Logic::Authentication::ResetPasswordRequest.new @strategy_result, @reset_params
 @reset.valid_email?(@reset.objid)
 #=> false

@@ -32,7 +32,7 @@ RSpec.xdescribe 'Session Authentication Integration', :allow_redis do
   describe 'session lifecycle' do
     it 'creates authenticated session for valid credentials' do
       auth_logic = V1::Logic::Authentication::AuthenticateSession.new(
-        session, customer, { u: valid_custid, p: valid_password }
+        session, customer, { login: valid_custid, password: valid_password }
       )
 
       auth_logic.process_params
@@ -46,7 +46,7 @@ RSpec.xdescribe 'Session Authentication Integration', :allow_redis do
 
     it 'rejects authentication for invalid credentials' do
       auth_logic = V1::Logic::Authentication::AuthenticateSession.new(
-        session, customer, { u: valid_custid, p: 'wrong_password' }
+        session, customer, { login: valid_custid, password: 'wrong_password' }
       )
 
       auth_logic.process_params
@@ -74,7 +74,7 @@ RSpec.xdescribe 'Session Authentication Integration', :allow_redis do
       original_sessid = session.sessid
 
       auth_logic = V1::Logic::Authentication::AuthenticateSession.new(
-        session, customer, { u: valid_custid, p: valid_password }
+        session, customer, { login: valid_custid, password: valid_password }
       )
 
       allow(session).to receive(:replace!) do
@@ -89,7 +89,7 @@ RSpec.xdescribe 'Session Authentication Integration', :allow_redis do
 
     it 'sets appropriate session expiration' do
       auth_logic = V1::Logic::Authentication::AuthenticateSession.new(
-        session, customer, { u: valid_custid, p: valid_password }
+        session, customer, { login: valid_custid, password: valid_password }
       )
 
       auth_logic.process_params
@@ -170,7 +170,7 @@ RSpec.xdescribe 'Session Authentication Integration', :allow_redis do
 
     it 'assigns colonel role to configured users' do
       auth_logic = V1::Logic::Authentication::AuthenticateSession.new(
-        session, customer, { u: valid_custid, p: valid_password }
+        session, customer, { login: valid_custid, password: valid_password }
       )
 
       auth_logic.process_params
@@ -190,7 +190,7 @@ RSpec.xdescribe 'Session Authentication Integration', :allow_redis do
       allow_any_instance_of(V1::Logic::Authentication::AuthenticateSession).to receive(:send_verification_email)
 
       auth_logic = V1::Logic::Authentication::AuthenticateSession.new(
-        session, customer, { u: valid_custid, p: valid_password }
+        session, customer, { login: valid_custid, password: valid_password }
       )
 
       auth_logic.process_params

@@ -67,12 +67,12 @@ Onetime::Application::Registry.mount_mappings.key?('/')
 # -------------------------------------------------------------------
 
 ## Login endpoint does not exist
-@test.post '/auth/login', { u: 'test@example.com', p: 'password' }
+@test.post '/auth/login', { login: 'test@example.com', password: 'password' }
 @test.last_response.status
 #=> 404
 
 ## Signup endpoint does not exist
-@test.post '/auth/create-account', { u: 'new@example.com', p: 'password' }
+@test.post '/auth/create-account', { login: 'new@example.com', password: 'password' }
 @test.last_response.status
 #=> 404
 
@@ -82,7 +82,7 @@ Onetime::Application::Registry.mount_mappings.key?('/')
 #=> 404
 
 ## Reset password endpoint does not exist
-@test.post '/auth/reset-password', { u: 'test@example.com' }
+@test.post '/auth/reset-password', { login: 'test@example.com' }
 @test.last_response.status
 #=> 404
 

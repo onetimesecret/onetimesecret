@@ -37,9 +37,9 @@ OT.boot! :test, false
 
 ## Test account creation
 @create_params = {
-  u: @unique_email.call,
-  p: 'testpass123',
-  p2: 'testpass123',
+  login: @unique_email.call,
+  password: 'testpass123',
+  password2: 'testpass123',
   planid: 'anonymous',
   skill: '' # honeypot field should be empty
 }
@@ -59,8 +59,8 @@ logic.process
 ## Test password update
 @update_params = {
   current: 'testpass123',
-  p1: 'newpass123',
-  p2: 'newpass123'
+  newp1: 'newpass123',
+  newp2: 'newpass123'
 }
 @strategy_result_with_cust = MockStrategyResult.new(@session, @cust)
 logic = V2::Logic::Account::UpdatePassword.new @strategy_result_with_cust, @update_params
@@ -70,7 +70,7 @@ logic.instance_variables.include?(:@modified)
 # UpdateLocale Tests
 
 ## Test locale update
-@locale_params = { locale: 'es', u: @email }
+@locale_params = { locale: 'es', login: @email }
 logic = V2::Logic::Account::UpdateLocale.new @strategy_result_with_cust, @locale_params
 logic.instance_variables.include?(:@modified)
 #=> true

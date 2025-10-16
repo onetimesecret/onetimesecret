@@ -101,7 +101,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     context 'with invalid credentials' do
       it 'returns 401 status' do
         post '/auth/login',
-          { u: 'nonexistent@example.com', p: 'wrongpassword' },
+          { login: 'nonexistent@example.com', password: 'wrongpassword' },
           json_request_headers
 
         expect(last_response.status).to eq(401)
@@ -109,7 +109,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
 
       it 'returns JSON response' do
         post '/auth/login',
-          { u: 'nonexistent@example.com', p: 'wrongpassword' },
+          { login: 'nonexistent@example.com', password: 'wrongpassword' },
           json_request_headers
 
         expect(last_response.headers['Content-Type']).to include('application/json')
@@ -117,7 +117,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
 
       it 'returns error structure' do
         post '/auth/login',
-          { u: 'nonexistent@example.com', p: 'wrongpassword' },
+          { login: 'nonexistent@example.com', password: 'wrongpassword' },
           json_request_headers
 
         response = json_response
@@ -127,7 +127,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
 
       it 'returns field-error tuple' do
         post '/auth/login',
-          { u: 'nonexistent@example.com', p: 'wrongpassword' },
+          { login: 'nonexistent@example.com', password: 'wrongpassword' },
           json_request_headers
 
         response = json_response
@@ -142,7 +142,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     context 'without JSON Accept header' do
       it 'redirects on authentication failure' do
         post '/auth/login',
-          { u: 'test@example.com', p: 'password' }
+          { login: 'test@example.com', password: 'password' }
 
         # Should redirect or return 401, but never 500 (server error)
         expect(last_response.status).to eq(302).or eq(401)
@@ -154,7 +154,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     context 'with incomplete data' do
       it 'returns validation error (400 or 422)' do
         post '/auth/create-account',
-          { u: 'incomplete@example.com' },
+          { login: 'incomplete@example.com' },
           json_request_headers
 
         # Missing password should return 400 (bad request) or 422 (unprocessable)
@@ -181,7 +181,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
 
       # Login to establish authenticated session
       post '/auth/login',
-        { u: test_email, p: test_password },
+        { login: test_email, password: test_password },
         json_request_headers
 
       @session_cookie = last_response.headers['Set-Cookie']
@@ -236,7 +236,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
 
       # Login to establish authenticated session
       post '/auth/login',
-        { u: test_email, p: test_password },
+        { login: test_email, password: test_password },
         json_request_headers
 
       @session_cookie = last_response.headers['Set-Cookie']
@@ -268,7 +268,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
   describe 'POST /auth/reset-password' do
     it 'accepts password reset request' do
       post '/auth/reset-password',
-        { u: 'reset@example.com' },
+        { login: 'reset@example.com' },
         json_request_headers
 
       # Could be success (200), bad request (400), or validation error (422)
@@ -292,7 +292,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
   describe 'Response Format Compatibility' do
     it 'uses Rodauth-compatible JSON format for errors' do
       post '/auth/login',
-        { u: 'test@example.com', p: 'wrong' },
+        { login: 'test@example.com', password: 'wrong' },
         json_request_headers
 
       response = json_response
@@ -332,7 +332,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     context 'successful authentication' do
       it 'login returns 200 with success message' do
         post '/auth/login',
-          { u: test_email, p: test_password },
+          { login: test_email, password: test_password },
           json_request_headers
 
         expect(last_response.status).to eq(200)
@@ -345,7 +345,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
 
       it 'sets session cookie on successful login' do
         post '/auth/login',
-          { u: test_email, p: test_password },
+          { login: test_email, password: test_password },
           json_request_headers
 
         expect(last_response.status).to eq(200)
@@ -360,7 +360,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       it 'session persists across requests' do
         # Step 1: Login
         post '/auth/login',
-          { u: test_email, p: test_password },
+          { login: test_email, password: test_password },
           json_request_headers
 
         expect(last_response.status).to eq(200)
@@ -381,7 +381,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       it 'logout destroys the session' do
         # Step 1: Login
         post '/auth/login',
-          { u: test_email, p: test_password },
+          { login: test_email, password: test_password },
           json_request_headers
 
         cookie = last_response.headers['Set-Cookie']
@@ -406,7 +406,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     context 'Session storage' do
       it 'stores session in kv database after login' do
         post '/auth/login',
-          { u: test_email, p: test_password },
+          { login: test_email, password: test_password },
           json_request_headers
 
         expect(last_response.status).to eq(200)
@@ -419,7 +419,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       it 'removes session from kv database after logout' do
         # Login
         post '/auth/login',
-          { u: test_email, p: test_password },
+          { login: test_email, password: test_password },
           json_request_headers
 
         cookie = last_response.headers['Set-Cookie']
@@ -450,7 +450,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     context 'session authentication state' do
       it 'sets authenticated_at timestamp on login' do
         post '/auth/login',
-          { u: test_email, p: test_password },
+          { login: test_email, password: test_password },
           json_request_headers
 
         expect(last_response.status).to eq(200)
