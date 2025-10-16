@@ -51,6 +51,41 @@ module Onetime
           Rack::URLMap.new(mappings)
         end
 
+        # Reset registry state (for testing and development)
+        #
+        # Clears all mappings and classes, then re-registers any classes
+        # that are already loaded in memory. This is necessary because Ruby's
+        # require is idempotent - once a file is loaded, subsequent requires
+        # do nothing.
+        #
+        # In production, this is called during boot. In tests, it's called
+        # between test runs to ensure clean state.
+        def reset!
+          @mount_mappings = {}
+          @application_classes = []
+
+          # Re-register classes that are already loaded in memory
+          reregister_loaded_applications
+        end
+
+        # Re-register application classes that are already in memory
+        def reregister_loaded_applications
+          # Check for Core app
+          if defined?(Core::Application)
+            register_application_class(Core::Application)
+          end
+
+          # Check for V2 API app
+          if defined?(V2::Application)
+            register_application_class(V2::Application)
+          end
+
+          # Only re-register Auth app if advanced mode
+          if defined?(Auth::Application) && Onetime.auth_config.mode == 'advanced'
+            register_application_class(Auth::Application)
+          end
+        end
+
         private
 
         def find_application_files
@@ -59,7 +94,7 @@ module Onetime
 
           # Skip auth app in basic mode - auth endpoints handled by Core Web App
           if Onetime.auth_config.mode == 'basic'
-            filepaths.reject! { |f| f.include?('/web/auth/') }
+            filepaths.reject! { |f| f.include?('web/auth/') }
             OT.ld '[registry] Skipping auth app (basic mode)'
           else
             OT.ld '[registry] Including auth app - will take over auth endpoints from core web app'
@@ -92,6 +127,7 @@ module Onetime
         def register(path, app_class)
           @mount_mappings[path] = app_class
         end
+
       end
     end
   end
