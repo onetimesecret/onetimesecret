@@ -161,7 +161,9 @@ module Onetime
 
     # Builds authentication section rows
     def build_auth_section(site_config, colonels)
-      auth_rows = []
+      auth_rows = [
+        ['Auth Mode', OT.auth_config.mode]
+      ]
 
       auth_rows << if colonels.empty?
         ['Colonels', 'No colonels configured ⚠️']
