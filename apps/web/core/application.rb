@@ -45,6 +45,9 @@ module Core
       routes_path = File.join(__dir__, 'routes')
       router      = Otto.new(routes_path)
 
+      # IP privacy is enabled globally in common middleware stack
+      # (see lib/onetime/application/middleware_stack.rb)
+
       # Enable CSP nonce support for enhanced security
       router.enable_csp_with_nonce!(debug: OT.debug?)
 

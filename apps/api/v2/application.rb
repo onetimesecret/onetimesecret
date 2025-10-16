@@ -12,7 +12,7 @@ module V2
     @uri_prefix = '/api/v2'.freeze
 
     # API v2 specific middleware (common middleware is in MiddlewareStack)
-    use Rack::JSONBodyParser
+    use Rack::JSONBodyParser # TODO: Remove since we pass: builder.use Rack::Parser, parsers: @parsers
 
     warmup do
     end

@@ -345,7 +345,7 @@ module V2
       # Float timestamps provide microsecond precision, virtually eliminating the
       # possibility of score collisions even with rapid sequential operations.
       def now
-        OT.hnow # use precision scores
+        Onetime.hnow # use precision scores
       end
     end
 

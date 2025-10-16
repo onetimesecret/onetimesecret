@@ -56,7 +56,11 @@ module Core
         ) do
           cust_after = logic.cust
 
-          # Set authenticated_at for session validation consistency
+          # Sync session data from logic class to Rack session
+          # The logic class modifies its own @sess copy, so we need to copy those changes
+          # to the actual Rack session for persistence
+          session['identity_id'] = cust_after.objid
+          session['authenticated'] = true
           session['authenticated_at'] = Time.now.to_i
 
           # Override redirect for colonel role
