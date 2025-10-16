@@ -22,7 +22,7 @@ OT.boot! :test, false
 # Setup some variables for these tryouts
 @email_address = 'changeme@example.com'
 @now = Familia.now
-@sess = V2::Session.new '255.255.255.255', 'anon'
+@sess = MockSession.new
 @cust = Onetime::Customer.new email: @email_address
 @params = {
   confirmation: 'pa55w0rd'

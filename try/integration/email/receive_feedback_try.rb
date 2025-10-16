@@ -25,7 +25,7 @@ OT.boot! :test, true
 @now = Familia.now
 @model_class = Onetime::Feedback
 @email_address = "tryouts+#{@now}@onetimesecret.com"
-@sess = V2::Session.new '255.255.255.255', 'anon'
+@sess = MockSession.new
 @cust = Onetime::Customer.new email: @email_address
 @params = {
   msg: 'This is a test feedback'

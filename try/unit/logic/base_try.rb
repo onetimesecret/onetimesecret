@@ -18,7 +18,7 @@ OT.boot! :test, false
 # Setup common test variables
 @now = Familia.now
 @email = 'test@onetimesecret.com'
-@sess = Session.new '255.255.255.255', 'anon'
+@sess = MockSession.new
 @cust = Customer.new email: @email
 @params = { test: 'value' }
 @locale = 'en'

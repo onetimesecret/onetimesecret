@@ -32,7 +32,7 @@ end
 
 @now = Familia.now
 @email = "test+#{Familia.now.to_i}@onetimesecret.com"
-@sess = V2::Session.new '255.255.255.255', 'anon'
+@sess = MockSession.new
 @cust = Onetime::Customer.new email: @email
 @cust.save
 @domain_input = "test#{Familia.now.to_i}.example.com"

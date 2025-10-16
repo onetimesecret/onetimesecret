@@ -26,7 +26,7 @@ OT.boot! :test, false
 @now = Familia.now
 @from_address = OT.conf.dig('emailer', 'from')
 @email_address = 'tryouts@onetimesecret.com'
-@sess = Session.new '255.255.255.255', 'anon'
+@sess = MockSession.new
 @cust = Customer.new email: @email_address
 @params = {}
 @locale = 'en'

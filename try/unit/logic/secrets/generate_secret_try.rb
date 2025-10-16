@@ -9,6 +9,7 @@
 # 3. Secret metadata (ShowMetadata, ListMetadata)
 # 4. Secret deletion (BurnSecret)
 
+require_relative '../../../support/test_helpers'
 require_relative '../../../support/test_logic'
 
 # Load the app with test configuration
@@ -17,7 +18,7 @@ OT.boot! :test, false
 # Setup common test variables
 @now = Familia.now
 @email = 'test@onetimesecret.com'
-@sess = Session.new '255.255.255.255', 'anon'
+@sess = Onetime::Session.new(nil, secret: '123456789')
 @cust = Customer.new email: @email
 @cust.save
 @secret = Secret.new

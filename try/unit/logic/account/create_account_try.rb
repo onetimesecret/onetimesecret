@@ -16,8 +16,8 @@ require 'securerandom'
 # Load the app with test configuration
 OT.boot! :test, false
 
-# Helper to create unique email addresses
-@unique_email = lambda { "test_#{SecureRandom.uuid}@onetimesecret.com" }
+# Helper to create unique email addresses (use example.com for regex validation in tests)
+@unique_email = lambda { "test_#{SecureRandom.uuid}@example.com" }
 
 ## Anonymous user can create account
 @strategy_result = Otto::Security::Authentication::StrategyResult.new(
