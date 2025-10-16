@@ -24,3 +24,58 @@ def generate_random_email
   # Combine to form an email address
   "#{username}@#{domain}"
 end
+
+# Mock StrategyResult for testing Logic classes
+# Logic::Base now expects a StrategyResult object instead of separate session/customer
+class MockStrategyResult
+  attr_reader :session, :user
+
+  def initialize(session = nil, user = nil)
+    @session = session || {}
+    @user = user
+  end
+
+  def authenticated?
+    @session['authenticated'] == true || @user != nil
+  end
+end
+
+# Legacy MockSession for backward compatibility
+# Use MockStrategyResult for new Logic tests
+class MockSession
+  def authenticated?
+    true
+  end
+
+  def short_identifier
+    "mock_short_identifier"
+  end
+
+  def ipaddress
+    "mock_ipaddress"
+  end
+
+  def add_shrimp
+    "mock_shrimp"
+  end
+
+  def get_error_messages
+    []
+  end
+
+  def get_info_messages
+    []
+  end
+
+  def get_form_fields!
+    {}
+  end
+
+  def [](key)
+    nil
+  end
+
+  def []=(key, value)
+    value
+  end
+end

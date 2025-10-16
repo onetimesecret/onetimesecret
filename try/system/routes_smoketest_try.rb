@@ -16,7 +16,7 @@ require 'rack/mock'
 
 builder = Rack::Builder.parse_file('config.ru')
 @app = builder
-mapped = AppRegistry.generate_rack_url_map
+mapped = Onetime::Application::Registry.generate_rack_url_map
 @mock_request = Rack::MockRequest.new(mapped)
 
 # NOTE: Careful when flushing the Redis database, as it will remove

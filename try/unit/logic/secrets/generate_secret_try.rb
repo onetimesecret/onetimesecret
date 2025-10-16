@@ -17,10 +17,10 @@ OT.boot! :test, false
 
 # Setup common test variables
 @now = Familia.now
-@email = 'test@onetimesecret.com'
-@sess = Onetime::Session.new(nil, secret: '123456789')
-@cust = Customer.new email: @email
-@cust.save
+@email = "tryouts+#{Familia.now.to_i}@onetimesecret.com"
+@session = {}
+@strategy_result = MockStrategyResult.new(@session, nil)
+@cust = Customer.create!(email: @email)
 @secret = Secret.new
 @secret.generate_id
 @metadata = Metadata.new
@@ -46,7 +46,8 @@ secret.generate_id
   ttl: '7200',
   recipient: 'recipient@example.com',
 }
-logic = Logic::Secrets::ConcealSecret.new @sess, @cust, {secret: @secret_params}
+@strategy_result_with_cust = MockStrategyResult.new(@session, @cust)
+logic = Logic::Secrets::ConcealSecret.new @strategy_result_with_cust, {secret: @secret_params}
 [
   logic.secret_value,
   logic.passphrase,
@@ -68,40 +69,40 @@ logic = Logic::Secrets::ConcealSecret.new @sess, @cust, {secret: @secret_params}
   key: @secret.key, # Key converted to symbol
   passphrase: 'testpass123', # Key converted to symbol
 }
-logic = Logic::Secrets::ShowSecret.new @sess, @cust, @view_params
+logic = Logic::Secrets::ShowSecret.new @strategy_result_with_cust, @view_params
 [logic.key, logic.passphrase]
 #=> [@secret.key, 'testpass123']
 
 # RevealSecret Tests
 
 ## Test secret revealing (v2 API)
-logic = V2::Logic::Secrets::RevealSecret.new @sess, @cust, @view_params
+logic = V2::Logic::Secrets::RevealSecret.new @strategy_result_with_cust, @view_params
 [logic.key, logic.passphrase]
 #=> [@secret.key, 'testpass123']
 
 # ShowMetadata Tests
 
 ## Test metadata viewing
-logic = Logic::Secrets::ShowMetadata.new @sess, @cust, { key: @metadata.key }
+logic = Logic::Secrets::ShowMetadata.new @strategy_result_with_cust, { key: @metadata.key }
 [logic.instance_variables.include?(:@key), logic.instance_variables.include?(:@metadata_key), logic.instance_variables.include?(:@secret_key), logic.secret_key, logic.key]
 #=> [true, false, false, nil, @metadata.key]
 
 # ListMetadata Tests
 
 ## Note that process_params is not run unless params are passed in
-logic = Logic::Secrets::ListMetadata.new @sess, @cust
+logic = Logic::Secrets::ListMetadata.new @strategy_result_with_cust, {}
 [logic.since, logic.now]
 #=> [nil, nil]
 
 ## Test metadata list viewing
-logic = Logic::Secrets::ListMetadata.new @sess, @cust, {}
+logic = Logic::Secrets::ListMetadata.new @strategy_result_with_cust, {}
 [logic.records.class, logic.since.class, logic.now.class]
 #=> [NilClass, Integer, Time]
 
 # BurnSecret Tests
 
 ## Test secret burning
-logic = Logic::Secrets::BurnSecret.new @sess, @cust, @view_params
+logic = Logic::Secrets::BurnSecret.new @strategy_result_with_cust, @view_params
 [logic.key, logic.passphrase]
 #=> [@secret.key, 'testpass123']
 

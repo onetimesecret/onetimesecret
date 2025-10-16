@@ -16,10 +16,10 @@ OT.boot! :test, true
 
 # Setup common test variables
 @now = Familia.now
-@email = 'test@onetimesecret.com'
-@testpass = 'testpass123'
-@sess = MockSession.new
-@cust = Customer.new email: @email
+@email = "tryouts+#{Familia.now.to_i}@onetimesecret.com"
+@session = {}
+@strategy_result = MockStrategyResult.new(@session, nil)
+@cust = Customer.create!(email: @email)
 @cust.update_passphrase @testpass
 @cust.save
 @auth_params = {
@@ -31,12 +31,12 @@ OT.boot! :test, true
 # AuthenticateSession Tests
 
 ## Test authentication with nil customer
-@auth = Logic::Authentication::AuthenticateSession.new @sess, nil, {}
+@auth = Logic::Authentication::AuthenticateSession.new @strategy_result, {}
 [@auth.potential_email_address, @auth.objid, @auth.stay]
 #=> ['', nil, true]
 
 ## Test authentication with valid credentials
-@auth = Logic::Authentication::AuthenticateSession.new @sess, nil, @auth_params
+@auth = Logic::Authentication::AuthenticateSession.new @strategy_result, @auth_params
 [@auth.potential_email_address, @auth.objid, @auth.stay]
 #=> [@cust.email, @cust.objid, true]
 
@@ -45,12 +45,12 @@ OT.boot! :test, true
   u: @email,
   p: 'bogus',
 }
-@auth = Logic::Authentication::AuthenticateSession.new @sess, nil, @auth_params
+@auth = Logic::Authentication::AuthenticateSession.new @strategy_result, @auth_params
 [@auth.potential_email_address, @auth.objid, @auth.stay]
 #=> [@email, nil, true]
 
 ## Test authentication with remember me option
-@auth = Logic::Authentication::AuthenticateSession.new @sess, nil, @auth_params.merge('stay' => 'false')
+@auth = Logic::Authentication::AuthenticateSession.new @strategy_result, @auth_params.merge('stay' => 'false')
 @auth.stay # currently hardcoded to stay true
 #=> true
 
@@ -58,13 +58,13 @@ OT.boot! :test, true
 
 ## Test password reset request
 @reset_params = { u: @email }
-@reset = Logic::Authentication::ResetPasswordRequest.new @sess, nil, @reset_params
+@reset = Logic::Authentication::ResetPasswordRequest.new @strategy_result, @reset_params
 @reset.objid
 #=> @email
 
 ## Test invalid email handling
 @reset_params = { u: 'invalid@email' }
-@reset = Logic::Authentication::ResetPasswordRequest.new @sess, nil, @reset_params
+@reset = Logic::Authentication::ResetPasswordRequest.new @strategy_result, @reset_params
 @reset.valid_email?(@reset.objid)
 #=> false
 
@@ -80,7 +80,8 @@ OT.boot! :test, true
   newp: 'newpass123',
   newp2: 'newpass123'
 }
-@reset = Logic::Authentication::ResetPassword.new @sess, @cust, @reset_params
+@strategy_result_with_cust = MockStrategyResult.new(@session, @cust)
+@reset = Logic::Authentication::ResetPassword.new @strategy_result_with_cust, @reset_params
 # NOTE: Most V2 logic is directly subclassed from V1. See note in ResetPassword
 # about whether we can drop the V1 prefix inside the apps/api/v1. That would
 # allow us to simply use Customer and Ruby will resolve to the nearest class
@@ -94,7 +95,7 @@ OT.boot! :test, true
 # DestroySession Tests
 
 ## Test session destruction
-@destroy = Logic::Authentication::DestroySession.new @sess, @cust
+@destroy = Logic::Authentication::DestroySession.new @strategy_result_with_cust, {}
 @destroy.processed_params
 #=> {}
 

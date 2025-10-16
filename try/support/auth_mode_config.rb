@@ -37,7 +37,7 @@ module AuthModeConfig
   def skip_unless_mode(required_mode, message = nil)
     unless auth_mode == required_mode.to_s
       msg = message || "Test requires #{required_mode} mode (current: #{auth_mode})"
-      puts "SKIPPING: #{msg}"
+      OT.ld "SKIPPING: #{msg}"
       # Exit cleanly to avoid test failures
       exit 0
     end
@@ -47,7 +47,7 @@ module AuthModeConfig
   def skip_if_mode(excluded_mode, message = nil)
     if auth_mode == excluded_mode.to_s
       msg = message || "Test skipped in #{excluded_mode} mode"
-      puts "SKIPPING: #{msg}"
+      OT.ld "SKIPPING: #{msg}"
       exit 0
     end
   end
@@ -100,10 +100,10 @@ module AuthModeConfig
 
   # Log which mode is active (for debugging)
   def log_auth_mode
-    puts "=" * 60
-    puts "AUTH MODE: #{auth_mode}"
-    puts "Auth App Mounted: #{auth_app_mounted?}"
-    puts "Core Handles Auth: #{core_handles_auth?}"
-    puts "=" * 60
+    OT.ld "=" * 60
+    OT.ld "AUTH MODE: #{auth_mode}"
+    OT.ld "Auth App Mounted: #{auth_app_mounted?}"
+    OT.ld "Core Handles Auth: #{core_handles_auth?}"
+    OT.ld "=" * 60
   end
 end

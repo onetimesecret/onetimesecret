@@ -7,7 +7,11 @@
 #
 # REQUIRES: Disabled authentication mode
 
+# Set authentication mode before skip check
+ENV['AUTHENTICATION_MODE'] = 'disabled'
+
 # Skip if not in disabled mode
+require_relative '../../../support/test_helpers'
 require_relative '../../../support/auth_mode_config'
 Object.new.extend(AuthModeConfig).skip_unless_mode :disabled
 
@@ -16,15 +20,15 @@ ENV['RACK_ENV'] = 'test'
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../../..')).freeze
 
 # Load the Onetime application and configuration
-require_relative '../../../../lib/onetime'
-require_relative '../../../../lib/onetime/config'
+require 'onetime'
+require 'onetime/config'
 
 # Initialize configuration
 Onetime.boot! :test
 
-require_relative '../../../../lib/onetime/auth_config'
-require_relative '../../../../lib/onetime/middleware'
-require_relative '../../../../lib/onetime/application/registry'
+require 'onetime/auth_config'
+require 'onetime/middleware'
+require 'onetime/application/registry'
 
 # Prepare the application registry
 Onetime::Application::Registry.prepare_application_registry
@@ -125,6 +129,11 @@ Onetime::Application::Registry.mount_mappings.key?('/')
 @test.get '/'
 @test.last_response.status
 #=> 200
+
+## No session cookie is set in disabled mode
+@test.get '/'
+@test.last_response['Set-Cookie']
+#=> nil
 
 # -------------------------------------------------------------------
 # TEARDOWN
