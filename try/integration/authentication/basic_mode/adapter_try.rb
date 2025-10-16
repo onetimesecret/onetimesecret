@@ -1,4 +1,5 @@
 # try/integration/authentication/basic_mode/adapter_try.rb
+
 # Test to verify Auth app adapter behavior in basic mode
 #
 # This test verifies:
@@ -9,6 +10,7 @@
 # REQUIRES: Basic mode
 
 # Skip if not in basic mode
+require_relative '../../../support/test_helpers'
 require_relative '../../../support/auth_mode_config'
 Object.new.extend(AuthModeConfig).skip_unless_mode :basic
 
@@ -17,15 +19,15 @@ ENV['RACK_ENV'] = 'test'
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../../..')).freeze
 
 # Load the Onetime application and configuration
-require_relative '../../../../lib/onetime'
-require_relative '../../../../lib/onetime/config'
+require 'onetime'
+require 'onetime/config'
 
 # Initialize configuration before loading Auth app
 Onetime.boot! :cli
 
-require_relative '../../../../lib/onetime/auth_config'
-require_relative '../../../../lib/onetime/middleware'
-require_relative '../../../../apps/web/auth/application'
+require 'onetime/auth_config'
+require 'onetime/middleware'
+require 'web/auth/application'
 
 # Require Rack test helpers
 require 'rack/test'
@@ -61,7 +63,7 @@ Onetime.auth_config.advanced_enabled?
 #=> false
 
 ## Verify database connection returns nil in basic mode
-require_relative '../../../apps/web/auth/config/database'
+require 'web/auth/config/database'
 Auth::Config::Database.connection
 #=> nil
 

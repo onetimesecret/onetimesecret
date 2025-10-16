@@ -10,6 +10,7 @@
 # REQUIRES: Advanced mode with SQL database (PostgreSQL or SQLite)
 
 # Skip if not in advanced mode
+require_relative '../../../support/test_helpers'
 require_relative '../../../support/auth_mode_config'
 Object.new.extend(AuthModeConfig).skip_unless_mode :advanced
 
@@ -24,15 +25,15 @@ ENV['RACK_ENV'] = 'test'
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../../..')).freeze
 
 # Load the Onetime application and configuration
-require_relative '../../../../lib/onetime'
-require_relative '../../../../lib/onetime/config'
+require 'onetime'
+require 'onetime/config'
 
 # Initialize configuration
 Onetime.boot! :test
 
-require_relative '../../../../lib/onetime/auth_config'
-require_relative '../../../../lib/onetime/middleware'
-require_relative '../../../../lib/onetime/application/registry'
+require 'onetime/auth_config'
+require 'onetime/middleware'
+require 'onetime/application/registry'
 
 # Prepare the application registry
 Onetime::Application::Registry.prepare_application_registry
