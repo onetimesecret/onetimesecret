@@ -30,12 +30,12 @@ OT.boot! :test, false
   puts
 end
 
-@now = DateTime.now
-@email = "test+#{Time.now.to_i}@onetimesecret.com"
+@now = Familia.now
+@email = "test+#{Familia.now.to_i}@onetimesecret.com"
 @sess = V2::Session.new '255.255.255.255', 'anon'
 @cust = Onetime::Customer.new email: @email
 @cust.save
-@domain_input = "test#{Time.now.to_i}.example.com"
+@domain_input = "test#{Familia.now.to_i}.example.com"
 @custom_domain = CustomDomain.create @domain_input, @cust.custid
 
 @cust.add_custom_domain(@custom_domain)

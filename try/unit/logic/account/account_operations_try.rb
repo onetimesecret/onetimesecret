@@ -19,7 +19,7 @@ require 'securerandom'
 OT.boot! :test, false
 
 # Setup common test variables
-@now = DateTime.now
+@now = Familia.now
 # Generate a unique email address using a UUID
 @unique_email = lambda {"test_#{SecureRandom.uuid}@onetimesecret.com"}
 

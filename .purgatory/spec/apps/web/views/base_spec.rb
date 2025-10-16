@@ -283,7 +283,7 @@ RSpec.describe Core::Views::BaseView do
           email: nil,
           anonymous?: true,
           planid: 'anonymous',
-          created: Time.now.to_i,
+          created: Familia.now.to_i,
           safe_dump: {
             "identifier" => "anon",
             "custid" => "anon",

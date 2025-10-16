@@ -9,9 +9,9 @@ require_relative '../../support/test_models'
 # Load the app
 OT.boot! :test, false
 
-@email = "Tryouts+27+#{Time.now.to_i}@onetimesecret.com"
-@email2 = "Tryouts+27b+#{Time.now.to_i}@onetimesecret.com"
-@customer = V1::Customer.create @email
+@email = "Tryouts+27+#{Familia.now.to_i}@onetimesecret.com"
+@email2 = "Tryouts+27b+#{Familia.now.to_i}@onetimesecret.com"
+@customer = Onetime::Customer.create!(email: @email)
 @valid_domain = 'another.subdomain.onetimesecret.com'
 @input_domains = [
   'example.com',

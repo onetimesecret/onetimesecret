@@ -16,10 +16,6 @@
 
 require_relative '../../../support/test_models'
 
-require 'onetime/controllers'
-
-require 'v1/refinements'
-
 
 OT.boot! :test, false
 

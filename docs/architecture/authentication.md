@@ -225,7 +225,7 @@ class NoAuthStrategy < Otto::Security::AuthStrategy
     {
       ip: env['REMOTE_ADDR'],
       user_agent: env['HTTP_USER_AGENT'],
-      timestamp: Time.now.to_i
+      timestamp: Familia.now.to_i
     }.merge(additional)
   end
 end
@@ -389,7 +389,7 @@ class AuthenticateSession < Base
     @sess['authenticated'] = true
     @sess['identity_id'] = cust.custid
     @sess['email'] = cust.email
-    @sess['authenticated_at'] = Time.now.to_i
+    @sess['authenticated_at'] = Familia.now.to_i
     @sess['ip_address'] = @strategy_result.metadata[:ip]
     @sess['user_agent'] = @strategy_result.metadata[:user_agent]
   end

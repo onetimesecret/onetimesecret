@@ -131,7 +131,7 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
     describe 'POST /auth/create-account' do
       let(:signup_params) do
         {
-          login: "test_#{Time.now.to_i}@example.com",
+          login: "test_#{Familia.now.to_i}@example.com",
           password: 'password123',
           'password-confirm' => 'password123'
         }

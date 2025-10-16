@@ -24,7 +24,7 @@ require 'truemail'
 require_relative 'support/test_helpers'
 OT.boot! :test, false
 
-@now = DateTime.now
+@now = Familia.now
 @unique_random_inbox = Digest::SHA2.hexdigest(@now.to_s)
 
 @from_address = OT.conf['emailer']['from']

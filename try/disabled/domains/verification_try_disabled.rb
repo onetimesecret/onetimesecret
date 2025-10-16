@@ -24,9 +24,9 @@ end
 
 OT.boot! :test, false
 
-@now = Time.now
+@now = Familia.now
 @customer_email = "tryouts28+#{@now.to_i}@onetimesecret.com"
-@customer = V1::Customer.create(@customer_email)
+@customer = Onetime::Customer.create!(@customer_email)
 @apex_domain = "example.com"
 @valid_domain = "valid-domain-#{SecureRandom.hex(4)}.example.com"
 @invalid_domain = "invalid_domain_with_no_tld"
@@ -188,7 +188,7 @@ custom_domain.destroy!(@customer)
 ## Can create a custom domain with a domain already associated to another
 ## customer; each custom has a different TXT verification record.
 @other_customer_email = "tryouts+other+#{SecureRandom.hex(4)}@onetimesecret.com"
-@other_customer = V1::Customer.create(@other_customer_email)
+@other_customer = Onetime::Customer.create!(@other_customer_email)
 conflicting_domain = "conflict-domain-#{SecureRandom.hex(4)}.example.com"
 # First, create the domain with the original customer
 cd1 = Onetime::CustomDomain.create(conflicting_domain, @customer.custid)

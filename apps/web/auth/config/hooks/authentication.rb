@@ -25,7 +25,7 @@ module Auth
               if account[:external_id]
                 customer = Onetime::Customer.load_by_extid(account[:external_id])
                 if customer
-                  customer.passphrase_updated = Time.now.to_i
+                  customer.passphrase_updated = Familia.now.to_i
                   customer.save
                 end
               end

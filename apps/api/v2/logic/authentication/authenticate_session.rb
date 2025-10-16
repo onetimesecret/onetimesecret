@@ -54,7 +54,7 @@ module V2::Logic
         # Set session authentication data
         sess['identity_id'] = cust.objid
         sess['authenticated'] = true
-        sess['authenticated_at'] = Time.now.to_i
+        sess['authenticated_at'] = Familia.now.to_i
         cust.save
 
         colonels = OT.conf.dig('site', 'authentication', 'colonels') || []

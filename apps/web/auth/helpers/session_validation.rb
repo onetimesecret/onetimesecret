@@ -25,7 +25,7 @@ module Auth
 
         # Check if session is still valid (not expired)
         session_expiry = session_data[:last_use] + (30 * 24 * 60 * 60)  # 30 days
-        return nil if Time.now > session_expiry
+        return nil if Familia.now > session_expiry
 
         # Check if MFA is enabled for this account
         mfa_enabled = db[:account_otp_keys].where(id: session_data[:account_id]).count > 0

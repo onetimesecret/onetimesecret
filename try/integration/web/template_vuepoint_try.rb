@@ -20,8 +20,8 @@ require 'core/views'
 
 OT.boot! :test, false
 
-@email = "tryouts+42+#{Time.now.to_i}@onetimesecret.com"
-@cust = Onetime::Customer.create @email
+@email = "tryouts+42+#{Familia.now.to_i}@onetimesecret.com"
+@cust = Onetime::Customer.create!(email: @email)
 @metadata = Onetime::Metadata.create
 @secret = Onetime::Secret.create value: "This is a secret message"
 @metadata.secret_key = @secret.key

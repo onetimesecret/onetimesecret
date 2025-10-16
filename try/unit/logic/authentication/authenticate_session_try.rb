@@ -15,7 +15,7 @@ require_relative '../../../support/test_logic'
 OT.boot! :test, true
 
 # Setup common test variables
-@now = DateTime.now
+@now = Familia.now
 @email = 'test@onetimesecret.com'
 @testpass = 'testpass123'
 @sess = Session.new '255.255.255.255', 'anon'

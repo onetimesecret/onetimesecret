@@ -21,7 +21,7 @@ OT.boot! :test, false
 
 # Setup some variables for these tryouts
 @email_address = 'changeme@example.com'
-@now = DateTime.now
+@now = Familia.now
 @sess = V2::Session.new '255.255.255.255', 'anon'
 @cust = Onetime::Customer.new email: @email_address
 @params = {

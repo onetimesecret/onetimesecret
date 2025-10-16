@@ -251,7 +251,7 @@ module Onetime
 
         # Check session age against configured expiry
         max_age = Onetime.auth_config.session['expire_after'] || 86_400
-        age     = Time.now.to_i - session['authenticated_at'].to_i
+        age     = Familia.now.to_i - session['authenticated_at'].to_i
         age < max_age
       end
 

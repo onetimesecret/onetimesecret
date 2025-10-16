@@ -242,7 +242,7 @@ module Onetime
                   "New Email: #{new_email}",
                   "Realm: #{realm}",
                   "Domains: #{domains.map { |d| d[:domain] }.join(', ')}",
-                  "Timestamp: #{Time.now}",
+                  "Timestamp: #{Familia.now}",
                   '=====================',
                   'LOG ENTRIES:']
         report.concat(log_entries)
@@ -253,7 +253,7 @@ module Onetime
       # @return [String] The key where the report was stored
       def save_report_to_db
         report_text = generate_report
-        timestamp   = Time.now.to_i
+        timestamp   = Familia.now.to_i
         report_key  = "change_email:#{old_email}:#{new_email}:#{timestamp}"
 
         # Save to the database DB 0 for audit logs

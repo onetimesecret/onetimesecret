@@ -99,7 +99,7 @@ class SimpleRedisKeyMigrator
 
   def discover_keys(pattern)
     source_client = create_redis_client(@source_uri)
-    @statistics[:start_time] = Time.now
+    @statistics[:start_time] = Familia.now
     keys = source_client.keys(pattern)  # Simple implementation for test
     @statistics[:total_keys] = keys.size
     keys
@@ -110,19 +110,19 @@ class SimpleRedisKeyMigrator
   def migrate_using_copy_command(keys, &progress_block)
     # Mock implementation for testing - simulate COPY command
     @statistics[:migrated_keys] = keys.size
-    @statistics[:end_time] = Time.now
+    @statistics[:end_time] = Familia.now
   end
 
   def migrate_using_migrate_command(keys, &progress_block)
     # Mock implementation for testing
     @statistics[:migrated_keys] = keys.size
-    @statistics[:end_time] = Time.now
+    @statistics[:end_time] = Familia.now
   end
 
   def migrate_using_dump_restore(keys, &progress_block)
     # Mock implementation for testing
     @statistics[:migrated_keys] = keys.size
-    @statistics[:end_time] = Time.now
+    @statistics[:end_time] = Familia.now
   end
 
   def create_redis_client(uri)

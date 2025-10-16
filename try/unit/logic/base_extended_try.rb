@@ -23,7 +23,7 @@ require_relative '../../support/test_logic'
 OT.boot! :test, false
 
 # Setup some variables for these tryouts
-@now = DateTime.now
+@now = Familia.now
 @from_address = OT.conf.dig('emailer', 'from')
 @email_address = 'tryouts@onetimesecret.com'
 @sess = Session.new '255.255.255.255', 'anon'

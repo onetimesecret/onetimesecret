@@ -19,7 +19,7 @@ require 'securerandom'
 OT.boot! :test, false
 
 # Setup common test variables
-@now = DateTime.now
+@now = Familia.now
 @email = "test#{SecureRandom.uuid}@onetimesecret.com"
 @sess = V2::Session.new '255.255.255.255', 'anon'
 @cust = Onetime::Customer.new email: @email

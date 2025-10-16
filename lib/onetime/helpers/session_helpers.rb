@@ -25,7 +25,7 @@ module Onetime
         session['identity_id'] = customer.custid
         session['email'] = customer.email
         session['authenticated'] = true
-        session['authenticated_at'] = Time.now.to_i
+        session['authenticated_at'] = Familia.now.to_i
         session['ip_address'] = request.ip
         session['user_agent'] = request.user_agent
 
@@ -48,7 +48,7 @@ module Onetime
         return Onetime::Customer.anonymous unless customer
 
         # Update last seen timestamp
-        session['last_seen'] = Time.now.to_i
+        session['last_seen'] = Familia.now.to_i
 
         customer
       end

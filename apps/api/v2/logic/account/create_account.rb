@@ -37,7 +37,7 @@ module V2::Logic
       end
 
       def process
-        @cust = Onetime::Customer.create! email: email
+        @cust = Onetime::Customer.create!(email: email)
 
         cust.update_passphrase password
 

@@ -61,7 +61,7 @@ module Core
           # to the actual Rack session for persistence
           session['identity_id'] = cust_after.objid
           session['authenticated'] = true
-          session['authenticated_at'] = Time.now.to_i
+          session['authenticated_at'] = Familia.now
 
           # Override redirect for colonel role
           if !json_requested? && cust_after.role?(:colonel)

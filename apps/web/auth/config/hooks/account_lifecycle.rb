@@ -16,7 +16,7 @@ module Auth
                 customer = if Onetime::Customer.exists?(account[:email])
                   Onetime::Customer.load(account[:email])
                 else
-                  cust = Onetime::Customer.create! email: account[:email], role: 'customer', verified: '1'
+                  cust = Onetime::Customer.create!(email: account[:email], role: 'customer', verified: '1')
                   cust
                 end
 

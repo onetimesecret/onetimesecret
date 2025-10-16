@@ -95,7 +95,7 @@ module Auth
 
             {
               status: 'ok',
-              timestamp: Time.now.to_i,
+              timestamp: Familia.now.to_i,
               database: db_status,
               version: Onetime::VERSION,
               mode: Onetime.auth_config.mode,
@@ -105,7 +105,7 @@ module Auth
             {
               status: 'error',
               error: ex.message,
-              timestamp: Time.now.to_i,
+              timestamp: Familia.now.to_i,
             }
         end
       end

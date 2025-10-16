@@ -30,7 +30,7 @@ RSpec.xdescribe Core::Views::BaseView, "JSON Output" do
           'email' => nil,
           'anonymous?' => true,
           'planid' => 'anonymous',
-          'created' => Time.now.to_i,
+          'created' => Familia.now.to_i,
           'safe_dump' => nil,
           'verified?' => false,
           'active?' => false,

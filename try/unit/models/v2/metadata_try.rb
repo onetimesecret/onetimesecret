@@ -58,7 +58,7 @@ unique_values.size
 #=> @iterations
 
 ## Doesn't exist yet
-@metadata = Onetime::Metadata.new :metadata, [OT.instance, Time.now.to_f, SecureRandom.hex]
+@metadata = Onetime::Metadata.new :metadata, [OT.instance, Familia.now.to_f, SecureRandom.hex]
 @metadata.exists?
 #=> false
 

@@ -22,7 +22,7 @@ require 'v2/logic/feedback'
 OT.boot! :test, true
 
 # Setup some variables for these tryouts
-@now = DateTime.now
+@now = Familia.now
 @model_class = Onetime::Feedback
 @email_address = "tryouts+#{@now}@onetimesecret.com"
 @sess = V2::Session.new '255.255.255.255', 'anon'
