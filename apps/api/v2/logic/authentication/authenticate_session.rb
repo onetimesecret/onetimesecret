@@ -9,8 +9,9 @@ module V2::Logic
 
       # cust is only populated if the passphrase matches
       def process_params
-        @potential_email_address = params[:u].to_s.downcase.strip
-        @passwd                  = self.class.normalize_password(params[:p])
+        # NOTE: The parameter names should match what rodauth uses.
+        @potential_email_address = params[:login].to_s.downcase.strip
+        @passwd                  = self.class.normalize_password(params[:password])
         @stay                    = true # Keep sessions alive by default
         @session_ttl             = (stay ? 30.days : 20.minutes).to_i
 
@@ -39,6 +40,7 @@ module V2::Logic
         if cust.pending?
           OT.info "[login-pending-customer] #{sess} #{cust.objid} #{cust.role} (pending)"
           OT.li "[ResetPasswordRequest] Resending verification email to #{cust.objid}"
+
           send_verification_email nil
 
           msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."

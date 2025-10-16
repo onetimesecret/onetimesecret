@@ -82,8 +82,8 @@ export function useAuth() {
 
     try {
       const response = await $api.post<LoginResponse>('/auth/login', {
-        u: email,
-        p: password,
+        login: email,
+        password: password,
         shrimp: csrfStore.shrimp,
         'remember-me': rememberMe,
       });
@@ -122,8 +122,8 @@ export function useAuth() {
 
     try {
       const response = await $api.post<CreateAccountResponse>('/auth/create-account', {
-        u: email,
-        p: password,
+        login: email,
+        password: password,
         agree: termsAgreed,
         shrimp: csrfStore.shrimp,
       });

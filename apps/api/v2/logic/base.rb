@@ -109,6 +109,9 @@ module V2
       def send_verification_email(token = nil)
         _, secret = Onetime::Secret.spawn_pair cust.custid, token
 
+        OT.lw "[send_verification_email] DISABLED"
+        return
+
         msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
 
         secret.encrypt_value msg

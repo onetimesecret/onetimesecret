@@ -7,9 +7,10 @@ module V2::Logic
       def process_params
         OT.ld "[CreateAccount#process_params] param keys: #{params.keys.sort}"
         @planid = params[:planid].to_s
-        @email = params[:u].to_s.downcase.strip
 
-        @password = self.class.normalize_password(params[:p])
+        # NOTE: The parameter names should match what rodauth uses.
+        @email = params[:login].to_s.downcase.strip
+        @password = self.class.normalize_password(params[:password])
 
         autoverify_setting = site.dig('authentication', 'autoverify')
         @autoverify        = autoverify_setting.to_s.eql?('true') || false
