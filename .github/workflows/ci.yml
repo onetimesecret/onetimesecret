@@ -160,6 +160,19 @@ jobs:
           bundle exec tryouts -vf try/integration/authentication/disabled_mode
           bundle exec tryouts -vf try/integration/authentication/common
 
+      - name: Run tryouts (advanced mode)
+        continue-on-error: ${{ matrix.continue-on-error }}
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'advanced'
+          # Advanced mode requires a database. Using in-memory SQLite for CI.
+          DATABASE_URL: 'sqlite::memory:'
+        run: |
+          echo "Testing advanced authentication mode..."
+          bundle exec tryouts -vf try/integration/authentication/advanced_mode
+          bundle exec tryouts -vf try/integration/authentication/common
+
   test-typescript:
     timeout-minutes: 15
     runs-on: ubuntu-24.04
