@@ -11,6 +11,9 @@ import {
   type LogoutResponse,
   type ResetPasswordRequestResponse,
   type ResetPasswordResponse,
+  type VerifyAccountResponse,
+  type ChangePasswordResponse,
+  type CloseAccountResponse,
 } from '@/schemas/api/endpoints/auth';
 import {
   loginResponseSchema,
@@ -18,6 +21,9 @@ import {
   logoutResponseSchema,
   resetPasswordRequestResponseSchema,
   resetPasswordResponseSchema,
+  verifyAccountResponseSchema,
+  changePasswordResponseSchema,
+  closeAccountResponseSchema,
 } from '@/schemas/api/endpoints/auth';
 import type { AxiosInstance } from 'axios';
 
@@ -61,7 +67,7 @@ export function useAuth() {
   /**
    * Sets error from auth response
    */
-  function setError(response: LoginResponse | CreateAccountResponse | ResetPasswordRequestResponse | ResetPasswordResponse) {
+  function setError(response: LoginResponse | CreateAccountResponse | ResetPasswordRequestResponse | ResetPasswordResponse | VerifyAccountResponse | ChangePasswordResponse | CloseAccountResponse) {
     if (isAuthError(response)) {
       error.value = response.error;
       fieldError.value = response['field-error'] || null;
@@ -252,6 +258,117 @@ export function useAuth() {
     }
   }
 
+  /**
+   * Verifies a user account with a verification key
+   *
+   * @param key - Account verification key from email
+   * @returns true if verification successful
+   */
+  async function verifyAccount(key: string): Promise<boolean> {
+    clearErrors();
+    isLoading.value = true;
+
+    try {
+      const response = await $api.post<VerifyAccountResponse>('/auth/verify-account', {
+        key,
+      });
+
+      const validated = verifyAccountResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        setError(validated);
+        return false;
+      }
+
+      // Success - show notification and navigate to signin
+      notificationsStore.show(validated.success, 'success', 'top');
+      await router.push('/signin');
+      return true;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Account verification failed.';
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /**
+   * Changes the authenticated user's password
+   *
+   * @param currentPassword - Current password
+   * @param newPassword - New password
+   * @param confirmPassword - Password confirmation
+   * @returns true if password changed successfully
+   */
+  async function changePassword(
+    currentPassword: string,
+    newPassword: string,
+    confirmPassword: string
+  ): Promise<boolean> {
+    clearErrors();
+    isLoading.value = true;
+
+    try {
+      const response = await $api.post<ChangePasswordResponse>('/auth/change-password', {
+        password: currentPassword,
+        newp: newPassword,
+        newp2: confirmPassword,
+        shrimp: csrfStore.shrimp,
+      });
+
+      const validated = changePasswordResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        setError(validated);
+        return false;
+      }
+
+      // Success - show notification
+      notificationsStore.show(validated.success, 'success', 'top');
+      return true;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Password change failed.';
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /**
+   * Closes the authenticated user's account (permanent deletion)
+   *
+   * @param password - Current password for confirmation
+   * @returns true if account closed successfully
+   */
+  async function closeAccount(password: string): Promise<boolean> {
+    clearErrors();
+    isLoading.value = true;
+
+    try {
+      const response = await $api.post<CloseAccountResponse>('/auth/close-account', {
+        password,
+        shrimp: csrfStore.shrimp,
+      });
+
+      const validated = closeAccountResponseSchema.parse(response.data);
+
+      if (isAuthError(validated)) {
+        setError(validated);
+        return false;
+      }
+
+      // Success - logout and redirect to home
+      await authStore.logout();
+      await router.push('/');
+      return true;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Account closure failed.';
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   return {
     // State
     isLoading,
@@ -264,6 +381,9 @@ export function useAuth() {
     logout,
     requestPasswordReset,
     resetPassword,
+    verifyAccount,
+    changePassword,
+    closeAccount,
     clearErrors,
   };
 }
