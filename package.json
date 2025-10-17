@@ -6,6 +6,9 @@
   "scripts": {
     "build": "vite build --config vite.config.ts",
     "build:local": "vite build --config vite.config.local.ts",
+    "build:schemas": "ruby -I ../rhales/lib -r rake -e \"load 'Rakefile'; Rake.application.run\" -- rhales:schema:generate TEMPLATES_DIR=./apps/web/core/templates OUTPUT_DIR=./public/schemas",
+    "build:schemas:stats": "ruby -I ../rhales/lib -r rake -e \"load 'Rakefile'; Rake.application.run\" -- rhales:schema:stats TEMPLATES_DIR=./apps/web/core/templates",
+    "build:schemas:validate": "ruby -I ../rhales/lib -r rake -e \"load 'Rakefile'; Rake.application.run\" -- rhales:schema:validate OUTPUT_DIR=./public/schemas",
     "clean": "rimraf public/web/dist",
     "config:validate": "yamale -s etc/config.schema.yaml etc/config.yaml",
     "dev": "vite --host",

@@ -44,6 +44,7 @@ PATH
   remote: ../rhales
   specs:
     rhales (0.4.0)
+      json_schemer (~> 2.3)
 
 GEM
   remote: https://rubygems.org/
@@ -380,7 +381,7 @@ DEPENDENCIES
   psych (~> 5.2.3)
   public_suffix
   puma (~> 6.6)
-  rack (>= 3.1.16, < 4.0)
+  rack (>= 3.2, < 4.0)
   rack-contrib (~> 2.5.0)
   rack-protection (~> 4.1)
   rack-proxy

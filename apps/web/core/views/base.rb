@@ -25,6 +25,7 @@ module Core
       include Core::Views::I18nHelpers
       include Core::Views::ViteManifest
       include Onetime::Utils::TimeUtils
+
       # include Onetime::Helpers::ShrimpHelpers
 
       TEMPLATE_PATH = File.join(__dir__, '..', 'templates')
@@ -95,14 +96,24 @@ module Core
 
       # Render the view using Rhales
       #
-      # Creates props hash from serialized data and view vars, then renders
-      # the template using Rhales framework.
+      # Separates data into two categories:
+      # 1. Window state (serialized_data) - goes into window.__ONETIME_STATE__
+      # 2. Template vars - used for HTML rendering only
       #
       # @param template_name [String] Optional template name (defaults to 'index')
       # @return [String] Rendered HTML
       def render(template_name = 'index')
-        # Build props hash from serialized data and additional view vars
-        props = serialized_data.merge(
+        # TODO(rhales): Rhales currently serializes ALL props to window.__ONETIME_STATE__,
+        # not just fields defined in the schema. This means template-only variables
+        # like page_title, vite_assets_html, etc. are being unnecessarily sent to the client.
+        #
+        # Ideally, Rhales should:
+        # 1. Filter props by schema definition (only send schema-defined fields to window)
+        # 2. OR provide an app_data parameter to add template-only vars to context.app
+        #
+        # For now, we merge everything and accept the overhead. The schema validator
+        # will catch type errors if these fields are accidentally used client-side.
+        template_vars = {
           'page_title' => view_vars['page_title'],
           'description' => view_vars['description'],
           'keywords' => view_vars['keywords'],
@@ -113,13 +124,23 @@ module Core
             nonce: view_vars['nonce'],
             development: view_vars['frontend_development']
           )
-        )
+        }
+
+        all_props = serialized_data.merge(template_vars)
 
         # Wrap session to provide authenticated? method that Rhales expects
         adapted_session = OnetimeSessionAdapter.new(sess)
 
-        # Create Rhales view with props and render
-        rhales_view = Rhales::View.new(req, adapted_session, cust, locale, props: props)
+        # Create Rhales view with global configuration
+        rhales_view = Rhales::View.new(
+          req,
+          adapted_session,
+          cust,
+          locale,
+          props: all_props,
+          config: Rhales.configuration
+        )
+
         rhales_view.render(template_name)
       end
 

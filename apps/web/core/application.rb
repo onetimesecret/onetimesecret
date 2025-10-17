@@ -25,6 +25,33 @@ module Core
       # Enable development-specific middleware when in development mode
       # This handles code validation and frontend development server integration
       use Core::Middleware::ViteProxy
+
+      # Schema validation middleware validates that hydration data matches
+      # the JSON schemas generated from <schema> sections in .rue templates.
+      #
+      # To generate/update schemas, run:
+      #   pnpm run build:schemas
+      #
+      # Or directly with rake:
+      #   ruby -I ../rhales/lib -r rake -e "load 'Rakefile'; Rake.application.run" -- rhales:schema:generate TEMPLATES_DIR=./apps/web/core/templates OUTPUT_DIR=./public/schemas
+      schemas_dir = File.expand_path('../../../../public/schemas', __dir__)
+      if File.exist?(File.join(schemas_dir, 'index.json'))
+        begin
+          require 'rhales/middleware/schema_validator'
+          use Rhales::Middleware::SchemaValidator,
+            schemas_dir: schemas_dir,
+            fail_on_error: true,  # Fail loudly in development
+            skip_paths: [
+              '/assets',
+              '/api',
+              '/public'
+            ]
+          OT.ld "[Rhales] Schema validation middleware enabled"
+        rescue LoadError => e
+          warn "Warning: Could not load schema validation middleware: #{e.message}"
+          warn "This is expected if json_schemer gem is not available."
+        end
+      end
     end
 
     Onetime.production? do
