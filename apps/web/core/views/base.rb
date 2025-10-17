@@ -103,16 +103,8 @@ module Core
       # @param template_name [String] Optional template name (defaults to 'index')
       # @return [String] Rendered HTML
       def render(template_name = 'index')
-        # TODO(rhales): Rhales currently serializes ALL props to window.__ONETIME_STATE__,
-        # not just fields defined in the schema. This means template-only variables
-        # like page_title, vite_assets_html, etc. are being unnecessarily sent to the client.
-        #
-        # Ideally, Rhales should:
-        # 1. Filter props by schema definition (only send schema-defined fields to window)
-        # 2. OR provide an app_data parameter to add template-only vars to context.app
-        #
-        # For now, we merge everything and accept the overhead. The schema validator
-        # will catch type errors if these fields are accidentally used client-side.
+        # Template-only variables (NOT serialized to window.__ONETIME_STATE__)
+        # These are available in templates via {{variable}} but won't reach the client
         template_vars = {
           'page_title' => view_vars['page_title'],
           'description' => view_vars['description'],
@@ -126,18 +118,19 @@ module Core
           )
         }
 
-        all_props = serialized_data.merge(template_vars)
-
-        # Wrap session to provide authenticated? method that Rhales expects
+        # Wrap session to provide authenticated? method
         adapted_session = OnetimeSessionAdapter.new(sess)
 
-        # Create Rhales view with global configuration
+        # Create Rhales view with separated data
+        # - client: Data from serializers that goes to window.__ONETIME_STATE__
+        # - server: Template-only variables that don't get serialized to client
         rhales_view = Rhales::View.new(
           req,
           adapted_session,
           cust,
           locale,
-          props: all_props,
+          client: serialized_data,      # Only this goes to window state
+          server: template_vars,        # Available in templates, NOT serialized
           config: Rhales.configuration
         )
 
