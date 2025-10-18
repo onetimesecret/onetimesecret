@@ -41,7 +41,7 @@ module Auth
               # Cleanup customer inline
               begin
                 if account[:external_id]
-                  customer = Onetime::Customer.load_by_extid(account[:external_id])
+                  customer = Onetime::Customer.find_by_extid(account[:external_id])
                   if customer
                     customer.destroy!
                     OT.info "[account-lifecycle] Deleted customer: #{customer.custid} (extid: #{customer.extid})"
@@ -63,7 +63,7 @@ module Auth
 
                 # Update customer verification status if exists
                 if account[:external_id]
-                  customer = Onetime::Customer.load_by_extid(account[:external_id])
+                  customer = Onetime::Customer.find_by_extid(account[:external_id])
                   if customer
                     customer.verified = '1'
                     customer.save

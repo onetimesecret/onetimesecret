@@ -1,12 +1,12 @@
-# apps/web/auth/config/hooks/otto_integration.rb
+# apps/web/auth/config/hooks/session_integration.rb
 
 module Auth
   module Config
     module Hooks
-      module OttoIntegration
+      module SessionIntegration
         def self.configure
           proc do
-            # Clear rate limit and sync Otto session on successful login
+            # Clear rate limit and sync application session on successful login
             after_login do
               OT.info "[auth] User logged in: #{account[:email]}"
 
@@ -15,14 +15,14 @@ module Auth
               redis = Familia.redis(db: 0)
               redis.del(rate_limit_key)
 
-              # Load Otto customer and sync session
+              # Load customer for session sync
               customer = if account[:external_id]
-                Onetime::Customer.load_by_extid(account[:external_id])
+                Onetime::Customer.find_by_extid(account[:external_id])
               else
                 Onetime::Customer.load(account[:email])
               end
 
-              # Sync Rodauth session with Otto's session format inline
+              # Sync Rodauth session with application session format
               session['authenticated'] = true
               session['authenticated_at'] = Familia.now.to_i
               session['advanced_account_id'] = account_id
@@ -40,7 +40,7 @@ module Auth
               session['ip_address'] = request.ip
               session['user_agent'] = request.user_agent
 
-              OT.info "[otto-integration] Synced session for #{session['email']}"
+              OT.info "[session-integration] Synced session for #{session['email']}"
             end
 
             before_logout do

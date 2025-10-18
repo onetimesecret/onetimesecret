@@ -2,6 +2,6 @@
 
 require_relative 'hooks/account_lifecycle'
 require_relative 'hooks/authentication'
-require_relative 'hooks/otto_integration'
+require_relative 'hooks/session_integration'
 require_relative 'hooks/rate_limiting'
 require_relative 'hooks/validation'

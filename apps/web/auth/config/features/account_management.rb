@@ -16,6 +16,10 @@ module Auth
 
             # Password requirements
             password_minimum_length 8
+
+            # Password is set during account creation, not during verification
+            # This prevents verify_account from requiring password fields
+            verify_account_set_password? false
           end
         end
       end

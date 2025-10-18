@@ -103,10 +103,9 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/verify-account/:key',
+    path: '/verify-account',
     name: 'Verify Account',
     component: () => import('@/views/auth/VerifyAccount.vue'),
-    props: true,
     meta: {
       requiresAuth: false,
       isAuthRoute: true,

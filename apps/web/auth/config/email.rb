@@ -243,24 +243,62 @@ module Auth
         end
 
         def deliver_email(email)
-          # Add configured defaults to email
-          email = email.merge(
-            from: email[:from] || @from_address,
-            subject: "#{@subject_prefix}#{email[:subject]}"
-          )
+          # Convert Mail::Message to hash format if needed
+          email_hash = normalize_email(email)
 
           case ENV['EMAIL_DELIVERY_MODE']&.downcase
           when 'async'
             # Future: implement async delivery
-            @delivery_strategy.deliver(email)
+            @delivery_strategy.deliver(email_hash)
           when 'test'
-            Delivery::Logger.new.deliver(email)
+            Delivery::Logger.new.deliver(email_hash)
           else
-            @delivery_strategy.deliver(email)
+            @delivery_strategy.deliver(email_hash)
           end
         end
 
         private
+
+        def normalize_email(email)
+          if email.respond_to?(:to) && email.respond_to?(:from) && email.respond_to?(:subject)
+            # It's a Mail::Message object from Rodauth
+            # Rodauth already handles email_from and email_subject_prefix configuration
+            {
+              to: safe_extract_email_address(email.to),
+              from: safe_extract_email_address(email.from),
+              subject: safe_extract_string(email.subject),
+              body: safe_extract_string(email.body)
+            }
+          else
+            # It's already a hash, ensure basic structure
+            email_hash = email.is_a?(Hash) ? email : {}
+            {
+              to: email_hash[:to]&.to_s || "",
+              from: email_hash[:from]&.to_s || @from_address,
+              subject: email_hash[:subject]&.to_s || "",
+              body: email_hash[:body]&.to_s || ""
+            }
+          end
+        end
+
+        private
+
+        def safe_extract_email_address(field)
+          return "" if field.nil?
+
+          if field.respond_to?(:first) && field.respond_to?(:empty?)
+            # It's an array-like object
+            field.empty? ? "" : field.first.to_s
+          else
+            # It's a string or string-like object
+            field.to_s
+          end
+        end
+
+        def safe_extract_string(field)
+          return "" if field.nil?
+          field.to_s
+        end
 
         def determine_provider
           provider = ENV['EMAIL_PROVIDER']&.downcase

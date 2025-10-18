@@ -13,8 +13,8 @@ const verificationComplete = ref(false);
 const verificationSuccess = ref(false);
 
 onMounted(async () => {
-  // Extract key from route params
-  verificationKey.value = route.params.key as string;
+  // Extract key from query params (Rodauth sends ?key=...)
+  verificationKey.value = route.query.key as string;
 
   // Auto-submit verification on mount
   if (verificationKey.value) {
