@@ -7,6 +7,7 @@ import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import {
   isAuthError,
+  lockoutErrorSchema,
   type LoginResponse,
   type CreateAccountResponse,
   type LogoutResponse,
@@ -27,6 +28,7 @@ import {
   closeAccountResponseSchema,
 } from '@/schemas/api/endpoints/auth';
 import type { AxiosInstance } from 'axios';
+import type { LockoutStatus } from '@/types/auth';
 
 /**
  * Authentication composable for handling login, signup, logout, and password reset
@@ -57,6 +59,7 @@ export function useAuth() {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const fieldError = ref<[string, string] | null>(null);
+  const lockoutStatus = ref<LockoutStatus | null>(null);
 
   /**
    * Clears error state
@@ -64,6 +67,7 @@ export function useAuth() {
   function clearErrors() {
     error.value = null;
     fieldError.value = null;
+    lockoutStatus.value = null;
   }
 
   /**
@@ -73,6 +77,16 @@ export function useAuth() {
     if (isAuthError(response)) {
       error.value = response.error;
       fieldError.value = response['field-error'] || null;
+
+      // Try to parse lockout information if present
+      try {
+        const lockoutParsed = lockoutErrorSchema.safeParse(response);
+        if (lockoutParsed.success && lockoutParsed.data.lockout) {
+          lockoutStatus.value = lockoutParsed.data.lockout;
+        }
+      } catch {
+        // Lockout info not present, which is fine
+      }
     }
   }
 
@@ -376,6 +390,7 @@ export function useAuth() {
     isLoading,
     error,
     fieldError,
+    lockoutStatus,
 
     // Actions
     login,

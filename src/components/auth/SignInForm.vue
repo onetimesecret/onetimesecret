@@ -1,6 +1,7 @@
 <!-- src/components/auth/SignInForm.vue -->
 <script setup lang="ts">
 import { useAuth } from '@/composables/useAuth';
+import LockoutAlert from '@/components/auth/LockoutAlert.vue';
 import { ref } from 'vue';
 
 export interface Props {
@@ -13,7 +14,7 @@ withDefaults(defineProps<Props>(), {
   locale: 'en',
 })
 
-const { login, isLoading, error, clearErrors } = useAuth();
+const { login, isLoading, error, lockoutStatus, clearErrors } = useAuth();
 
 const email = ref('');
 const password = ref('');
@@ -35,9 +36,12 @@ const handleSubmit = async () => {
   <form
     @submit.prevent="handleSubmit"
     class="mt-8 space-y-6">
-    <!-- Error message -->
+    <!-- Lockout alert (takes precedence over generic error) -->
+    <LockoutAlert :lockout="lockoutStatus" />
+
+    <!-- Generic error message (shown when not a lockout error) -->
     <div
-      v-if="error"
+      v-if="error && !lockoutStatus"
       class="rounded-md bg-red-50 p-4 dark:bg-red-900/20"
       role="alert">
       <p class="text-sm text-red-800 dark:text-red-200">
