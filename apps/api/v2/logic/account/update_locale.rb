@@ -12,12 +12,8 @@ module V2::Logic
       end
 
       def raise_concerns
-        # TODO: if new_locale == old_locale, no update needed
-        authenticated = @sess['authenticated'] == true
-        return unless !authenticated || cust.anonymous?
-
-        OT.le "[UpdateLocale#raise-concerns] sess.authenticated?=#{authenticated} cust.anonymous?=#{cust.anonymous?}"
-        raise_form_error "Sorry, we don't support that"
+        # Allow both authenticated and anonymous users to update locale
+        # Anonymous users update session only; authenticated users update their account
       end
 
       def success_data
@@ -42,7 +38,16 @@ module V2::Logic
       end
 
       def perform_update
-        cust.locale!(new_locale) # update the single field
+        # Always update session locale (works for both anonymous and authenticated)
+        OT.ld "[UpdateLocale#perform_update] Setting session['locale'] = #{new_locale}"
+        OT.ld "[UpdateLocale#perform_update] Session before: #{sess.inspect}"
+        sess['locale'] = new_locale
+        OT.ld "[UpdateLocale#perform_update] Session after: #{sess.inspect}"
+
+        # Only update customer record if authenticated
+        unless cust.anonymous?
+          cust.locale!(new_locale)
+        end
       end
 
       def valid_locale?(locale)
@@ -50,7 +55,12 @@ module V2::Logic
       end
 
       def log_update
-        OT.info "[update-account] Locale updated cid/#{cust.custid} r/#{cust.role} ipa/#{session_ipaddress} old/#{old_locale} new/#{new_locale}"
+        session_id = sess['session_id'] || sess[:session_id] || 'unknown'
+        if cust.anonymous?
+          OT.info "[update-locale] Anonymous session locale updated sid/#{session_id} old/#{old_locale} new/#{new_locale}"
+        else
+          OT.info "[update-locale] Customer locale updated cid/#{cust.objid} r/#{cust.role} sid/#{session_id} old/#{old_locale} new/#{new_locale}"
+        end
       end
     end
   end

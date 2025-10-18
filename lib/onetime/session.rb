@@ -57,14 +57,14 @@ module Onetime
       # Configure Familia connection if redis_uri provided
       @dbclient = options[:dbclient] || Familia.dbclient
 
-      super(app, options)
+      super
 
-      @secret = options[:secret]
+      @secret       = options[:secret]
       @expire_after = options[:expire_after]
-      @namespace = options[:namespace] || 'session'
+      @namespace    = options[:namespace] || 'session'
 
       # Derive different keys for different purposes
-      @hmac_key = derive_key('hmac')
+      @hmac_key       = derive_key('hmac')
       @encryption_key = derive_key('encryption')
     end
 
@@ -77,7 +77,8 @@ module Onetime
       key = Familia.join(@namespace, sid)
       Familia::StringKey.new(key,
         ttl: @expire_after,
-        default: nil)
+        default: nil,
+      )
     end
 
     def delete_session(_request, sid, _options)
@@ -98,10 +99,10 @@ module Onetime
       true
     end
 
-
     def valid_hmac?(data, hmac)
       expected = compute_hmac(data)
       return false unless hmac.is_a?(String) && expected.is_a?(String) && hmac.bytesize == expected.bytesize
+
       Rack::Utils.secure_compare(expected, hmac)
     end
 
@@ -113,7 +114,7 @@ module Onetime
       OpenSSL::HMAC.hexdigest('SHA256', @hmac_key, data)
     end
 
-    def find_session(request, sid)
+    def find_session(_request, sid)
       # Parent class already extracts sid from cookies
       # sid may be a SessionId object or nil
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
@@ -124,7 +125,7 @@ module Onetime
       end
 
       begin
-        stringkey = get_stringkey(sid_string)
+        stringkey   = get_stringkey(sid_string)
         stored_data = stringkey.value if stringkey
 
         # If no data stored, return empty session
@@ -143,9 +144,9 @@ module Onetime
         session_data = Familia::JsonSerializer.parse(Base64.decode64(data))
 
         [sid, session_data]
-      rescue StandardError => e
+      rescue StandardError => ex
         # Log error in development/debugging
-        Familia.ld "[Session] Error reading session #{sid_string}: #{e.message}"
+        Familia.ld "[Session] Error reading session #{sid_string}: #{ex.message}"
 
         # Return new session on any error
         [generate_sid, {}]
@@ -157,8 +158,8 @@ module Onetime
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
 
       # Serialize and sign the data
-      encoded = Base64.encode64(Familia::JsonSerializer.dump(session_data)).delete("\n")
-      hmac = compute_hmac(encoded)
+      encoded     = Base64.encode64(Familia::JsonSerializer.dump(session_data)).delete("\n")
+      hmac        = compute_hmac(encoded)
       signed_data = "#{encoded}--#{hmac}"
 
       # Get or create StringKey for this session
@@ -172,9 +173,9 @@ module Onetime
 
       # Return the original sid (may be SessionId object)
       sid
-    rescue StandardError => e
+    rescue StandardError => ex
       # Log error in development/debugging
-      Familia.ld "[Session] Error writing session #{sid_string}: #{e.message}"
+      Familia.ld "[Session] Error writing session #{sid_string}: #{ex.message}"
 
       # Return false to indicate failure
       false
