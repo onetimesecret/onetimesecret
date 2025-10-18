@@ -3,7 +3,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
-import BaseLayout from '@/components/BaseLayout.vue';
+import BaseLayout from '@/layouts/BaseLayout.vue';
 
 const route = useRoute();
 const { verifyAccount, isLoading, error, fieldError } = useAuth();

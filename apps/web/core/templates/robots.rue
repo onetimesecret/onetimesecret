@@ -1,8 +1,13 @@
+<template layout="">
 User-agent: *
+Sitemap: {{baseuri}}/sitemap.xml
 Disallow: /private
+Disallow: /receipt
 Disallow: /secret
 Disallow: /shared
 Disallow: /account
+Disallow: /domains
 Disallow: /dashboard
 Disallow: /colonel
 Disallow: /admin
+</template>

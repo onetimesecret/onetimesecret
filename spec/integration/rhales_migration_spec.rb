@@ -8,12 +8,24 @@ RSpec.describe 'Rhales Migration Integration' do
   let(:customer) { Onetime::Customer.anonymous }
   let(:locale) { 'en' }
   let(:nonce) { SecureRandom.base64(32) }
+
+  # Mock Otto StrategyResult
+  let(:strategy_result) do
+    double('StrategyResult',
+      session: session,
+      user: customer,
+      authenticated?: false,
+      metadata: {}
+    )
+  end
+
   let(:request) do
     double('Request',
       env: {
         'onetime.nonce' => nonce,
-        'ots.locale' => locale,
-        'rack.session' => session
+        'otto.locale' => locale,
+        'rack.session' => session,
+        'otto.strategy_result' => strategy_result
       }
     )
   end
