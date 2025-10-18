@@ -54,12 +54,14 @@ module Auth
             username = @config[:username] || ENV['SMTP_USERNAME']
             password = @config[:password] || ENV['SMTP_PASSWORD']
             use_tls = @config[:tls].nil? ? (ENV['SMTP_TLS'] != 'false') : @config[:tls]
+            auth_method = @config[:auth_method] || ENV['SMTP_AUTH_METHOD'] || 'plain'
 
             message = build_message(email)
 
-            Net::SMTP.start(smtp_host, smtp_port, 'localhost', username, password,
-                           use_tls ? :plain : nil) do |smtp|
-              smtp.send_message(message, email[:from], email[:to])
+            smtp = Net::SMTP.new(smtp_host, smtp_port)
+            smtp.enable_starttls_auto if use_tls
+            smtp.start('localhost', username, password, auth_method.to_sym) do |smtp_session|
+              smtp_session.send_message(message, email[:from], email[:to])
             end
 
             log_delivery(email, 'sent', 'SMTP')
@@ -188,8 +190,9 @@ module Auth
 
         class Mailpit < Base
           def deliver(email)
-            smtp_host = @config[:host] || ENV['MAILPIT_HOST'] || 'localhost'
-            smtp_port = (@config[:port] || ENV['MAILPIT_PORT'] || '1025').to_i
+            # Support legacy MAILPIT_SMTP_HOST for backward compatibility
+            smtp_host = @config[:host] || ENV['MAILPIT_HOST'] || ENV['MAILPIT_SMTP_HOST'] || 'localhost'
+            smtp_port = (@config[:port] || ENV['MAILPIT_PORT'] || ENV['MAILPIT_SMTP_PORT'] || '1025').to_i
 
             message = <<~EMAIL
               From: #{email[:from]}
@@ -262,7 +265,7 @@ module Auth
               'sendgrid'
             elsif ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']
               'ses'
-            elsif ENV['MAILPIT_HOST'] || ENV.key?('MAILPIT_PORT')
+            elsif ENV['MAILPIT_HOST'] || ENV.key?('MAILPIT_PORT') || ENV['MAILPIT_SMTP_HOST']
               'mailpit'
             elsif ENV['SMTP_HOST']
               'smtp'
@@ -316,19 +319,19 @@ module Auth
       end
 
       def self.configure(rodauth_config)
-        email_config = Configuration.new
-
         rodauth_config.instance_eval do
-          # Configure Rodauth email settings
-          email_from email_config.from_address
-          email_subject_prefix email_config.subject_prefix
+          # Configure Rodauth email settings - use lazy evaluation
+          email_from ENV['EMAIL_FROM'] || 'noreply@onetimesecret.com'
+          email_subject_prefix ENV['EMAIL_SUBJECT_PREFIX'] || '[OneTimeSecret] '
 
-          # Configure email delivery
+          # Configure email delivery with lazy initialization
           send_email do |email|
             if ENV['RACK_ENV'] == 'test'
               OT.info "[email] Skipping email delivery in test environment: #{email[:subject]}"
             else
               begin
+                # Create email config at delivery time to avoid early loading issues
+                email_config = Configuration.new
                 email_config.deliver_email(email)
               rescue StandardError => e
                 OT.le "[email] Failed to deliver email: #{e.message}"
@@ -340,8 +343,31 @@ module Auth
           end
         end
 
-        OT.info "[email] Configured email delivery using #{email_config.provider} provider"
-        email_config
+        # Log the provider that will be used without creating the config
+        provider = determine_provider_for_logging
+        OT.info "[email] Email delivery will use #{provider} provider"
+      end
+
+      private_class_method def self.determine_provider_for_logging
+        provider = ENV['EMAIL_PROVIDER']&.downcase
+
+        if provider.nil?
+          if ENV['RACK_ENV'] == 'test'
+            'logger'
+          elsif ENV['SENDGRID_API_KEY']
+            'sendgrid'
+          elsif ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']
+            'ses'
+          elsif ENV['MAILPIT_HOST'] || ENV.key?('MAILPIT_PORT') || ENV['MAILPIT_SMTP_HOST']
+            'mailpit'
+          elsif ENV['SMTP_HOST']
+            'smtp'
+          else
+            'logger'
+          end
+        else
+          provider
+        end
       end
     end
   end
