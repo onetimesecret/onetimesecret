@@ -102,6 +102,24 @@ const routes: Array<RouteRecordRaw> = [
       window.location.href = '/logout';
     },
   },
+  {
+    path: '/verify-account/:key',
+    name: 'Verify Account',
+    component: () => import('@/views/auth/VerifyAccount.vue'),
+    props: true,
+    meta: {
+      requiresAuth: false,
+      isAuthRoute: true,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: false,
+      },
+    },
+  },
 ];
 
 export default routes;

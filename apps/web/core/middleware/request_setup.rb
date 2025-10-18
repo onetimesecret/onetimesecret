@@ -3,7 +3,7 @@
 # RequestSetup middleware handles request-level initialization for Web Core.
 #
 # Responsibilities:
-# - Generate CSP nonce and make available to views via req.env['ots.nonce']
+# - Generate CSP nonce and make available to views via req.env['onetime.nonce']
 # - Set default Content-Type if not already set
 # - Initialize locale from request
 #
@@ -29,7 +29,7 @@ module Core
     def setup_request(env)
       # Generate unique nonce for CSP headers (used by views)
       nonce = SecureRandom.base64(16)
-      env['ots.nonce'] = nonce
+      env['onetime.nonce'] = nonce
 
       # Set locale from request (used by views and controllers)
       env['ots.locale'] = extract_locale(env)

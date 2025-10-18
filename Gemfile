@@ -20,12 +20,13 @@ source 'https://rubygems.org/'
 # ====================================
 
 gem 'otto', '~> 2.0.0.pre3'
+gem 'rhales', path: '../rhales'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
 
 # Web server and middleware
 gem 'puma', '~> 6.6'
-gem 'rack', '>= 3.1.16', '< 4.0'
+gem 'rack', '>= 3.2', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
 gem 'rack-protection', '~> 4.1'
 gem 'rack-session', '~> 2.1.1'

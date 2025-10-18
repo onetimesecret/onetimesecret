@@ -46,11 +46,23 @@ export const resetPasswordResponseSchema = authResponseSchema;
 export type ResetPasswordResponse = z.infer<typeof resetPasswordResponseSchema>;
 
 // Type guard to check if response is an error
-export function isAuthError(response: LoginResponse | CreateAccountResponse | LogoutResponse | ResetPasswordRequestResponse | ResetPasswordResponse): response is z.infer<typeof authErrorSchema> {
+export function isAuthError(response: LoginResponse | CreateAccountResponse | LogoutResponse | ResetPasswordRequestResponse | ResetPasswordResponse | VerifyAccountResponse | ChangePasswordResponse | CloseAccountResponse): response is z.infer<typeof authErrorSchema> {
   return 'error' in response;
 }
 
+// Verify account response
+export const verifyAccountResponseSchema = authResponseSchema;
+export type VerifyAccountResponse = z.infer<typeof verifyAccountResponseSchema>;
+
+// Change password response
+export const changePasswordResponseSchema = authResponseSchema;
+export type ChangePasswordResponse = z.infer<typeof changePasswordResponseSchema>;
+
+// Close account response
+export const closeAccountResponseSchema = authResponseSchema;
+export type CloseAccountResponse = z.infer<typeof closeAccountResponseSchema>;
+
 // Type guard to check if response is a success
-export function isAuthSuccess(response: LoginResponse | CreateAccountResponse | LogoutResponse | ResetPasswordRequestResponse | ResetPasswordResponse): response is z.infer<typeof authSuccessSchema> {
+export function isAuthSuccess(response: LoginResponse | CreateAccountResponse | LogoutResponse | ResetPasswordRequestResponse | ResetPasswordResponse | VerifyAccountResponse | ChangePasswordResponse | CloseAccountResponse): response is z.infer<typeof authSuccessSchema> {
   return 'success' in response;
 }

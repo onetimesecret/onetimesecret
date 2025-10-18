@@ -130,7 +130,7 @@ module Onetime
 
           # Perform additional checks (role, permissions, etc.)
           check_result = additional_checks(cust, env)
-          return check_result if check_result.is_a?(Otto::Security::Authentication::FailureResult)
+          return check_result if check_result.is_a?(Otto::Security::Authentication::AuthFailure)
 
           log_success(cust)
 
@@ -148,7 +148,7 @@ module Onetime
         #
         # @param cust [Onetime::Customer] Authenticated customer
         # @param env [Hash] Rack environment
-        # @return [Otto::Security::Authentication::FailureResult, nil] Failure if check fails, nil if passes
+        # @return [Otto::Security::Authentication::AuthFailure, nil] Failure if check fails, nil if passes
         def additional_checks(_cust, _env)
           nil
         end

@@ -14,9 +14,39 @@ module Core
       # Generates HTML tags for all required Vite assets.
       #
       # @param nonce [String, nil] Content Security Policy nonce
+      # @param development [Boolean] Whether to use development mode
       # @return [String] HTML tags for all required assets
-      def vite_assets(nonce: nil)
-        nonce       ||= self['nonce'] # we allow overriding the nonce for testing
+      def vite_assets(nonce: nil, development: nil)
+        nonce ||= self['nonce'] if respond_to?(:[]) # we allow overriding the nonce for testing
+        development = self['frontend_development'] if development.nil? && respond_to?(:[])
+
+        # Development mode: direct Vite dev server links
+        if development
+          return build_dev_assets(nonce)
+        end
+
+        # Production mode: use manifest
+        build_prod_assets(nonce)
+      end
+
+      private
+
+      # Builds development mode asset tags (Vite dev server)
+      #
+      # @param nonce [String] Content Security Policy nonce
+      # @return [String] HTML tags for dev assets
+      def build_dev_assets(nonce)
+        <<~HTML.chomp
+          <script type="module" nonce="#{nonce}" src="/dist/main.ts"></script>
+          <script type="module" nonce="#{nonce}" src="/dist/@vite/client"></script>
+        HTML
+      end
+
+      # Builds production mode asset tags (from manifest)
+      #
+      # @param nonce [String] Content Security Policy nonce
+      # @return [String] HTML tags for production assets
+      def build_prod_assets(nonce)
         manifest_path = File.join(PUBLIC_DIR, 'dist', '.vite', 'manifest.json')
 
         unless File.exist?(manifest_path)
@@ -49,8 +79,6 @@ module Core
         assets.concat(build_font_preloads(@manifest_cache, nonce))
         assets.join("\n")
       end
-
-      private
 
       # Builds a script tag for JavaScript assets.
       #

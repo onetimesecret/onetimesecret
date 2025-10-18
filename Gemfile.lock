@@ -40,6 +40,13 @@ GIT
   specs:
     rspec-support (4.0.0.pre)
 
+PATH
+  remote: ../rhales
+  specs:
+    rhales (0.5.0)
+      json_schemer (~> 2.3)
+      tilt (~> 2)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -375,7 +382,7 @@ DEPENDENCIES
   psych (~> 5.2.3)
   public_suffix
   puma (~> 6.6)
-  rack (>= 3.1.16, < 4.0)
+  rack (>= 3.2, < 4.0)
   rack-contrib (~> 2.5.0)
   rack-protection (~> 4.1)
   rack-proxy
@@ -386,6 +393,7 @@ DEPENDENCIES
   rdoc
   redis (~> 5.4.0)
   rerun (~> 0.14)
+  rhales!
   roda (~> 3.0)
   rodauth (~> 2.0)
   rotp (~> 6.2)

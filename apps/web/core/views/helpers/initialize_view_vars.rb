@@ -23,12 +23,9 @@ module Core
       # values that the serializers want can be derived from here.
       #
       # @param req [Rack::Request] Current request object
-      # @param sess [Session] Current session
-      # @param cust [Customer] Current customer
-      # @param locale [String] Current locale
       # @param i18n_instance [I18n] Current I18n instance
       # @return [Hash] Collection of initialized variables
-      def initialize_view_vars(req, sess, cust, locale, i18n_instance)
+      def initialize_view_vars(req, i18n_instance)
         # Extract the top-level keys from the YAML configuration.
         #
         # SECURITY: This implementation follows an opt-in approach for configuration filtering.
@@ -60,7 +57,7 @@ module Core
           end
 
           # Perform deep copy to prevent unintended mutations to the original config
-          hash[field] = Marshal.load(Marshal.dump(site_config[field_str]))
+          hash[field] = OT::Config.deep_clone(site_config[field_str])
         end
 
         # Additional filtering for nested sensitive data
@@ -75,14 +72,19 @@ module Core
         incoming = features['incoming']
 
         # Extract values from session
-        # messages = sess.nil? ? [] : sess.get_messages
-        shrimp        = sess.nil? ? nil : sess['_csrf_token']
-        authenticated = sess && sess['authenticated'] == true && sess['identity_id'].to_s.length > 0 && !cust.anonymous?
+
+        strategy_result = req.env.fetch('otto.strategy_result', nil) # should always have a value
+        sess = strategy_result.session
+        cust = strategy_result.user || Onetime::Customer.anonymous
+        shrimp        = sess&.[]('_csrf_token')
+
+        authenticated = strategy_result.authenticated? || false # never nil
 
         # Extract values from rack request object
-        nonce           = req.env.fetch('ots.nonce', nil) # TODO: Rename to onetime.nonce
+        nonce           = req.env.fetch('onetime.nonce', nil)
         domain_strategy = req.env.fetch('onetime.domain_strategy', :default)
         display_domain  = req.env.fetch('onetime.display_domain', nil)
+        locale          = req.env.fetch('otto.locale', OT.default_locale)
 
         # HTML Tag vars. These are meant for the view templates themselves
         # and not the onetime state window data passed on to the Vue app (
@@ -115,7 +117,7 @@ module Core
           'incoming' => incoming,
           'keywords' => keywords,
           'locale' => locale,
-          'messages' => nil, # messages,
+          'messages' => nil,
           'no_cache' => no_cache,
           'nonce' => nonce,
           'page_title' => page_title,

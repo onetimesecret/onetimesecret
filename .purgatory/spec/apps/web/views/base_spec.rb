@@ -195,7 +195,7 @@ RSpec.describe Core::Views::BaseView do
   context 'with security headers' do
     let(:rack_request) do
       super().tap do |req|
-        req.env['ots.nonce'] = 'test-nonce-123'
+        req.env['onetime.nonce'] = 'test-nonce-123'
       end
     end
 

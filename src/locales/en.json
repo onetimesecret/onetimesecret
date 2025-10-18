@@ -103,7 +103,15 @@
       "button_create_incoming": "Create Incoming",
       "faq_title": "F.A.Q.",
       "verification_not_valid": "Verification is not valid",
-      "verification_already_logged_in": "Cannot verify an account when you're already logged in"
+      "verification_already_logged_in": "Cannot verify an account when you're already logged in",
+      "show-password": "Show password",
+      "hide-password": "Hide password",
+      "minimum_8_characters": "Password must be at least 8 characters",
+      "passwords_do_not_match": "Passwords do not match",
+      "redirecting": "Redirecting...",
+      "continue": "Continue",
+      "are_you_sure": "Are you sure?",
+      "danger_zone": "Danger Zone"
     },
     "LABELS": {
       "view_toggle": {
@@ -361,6 +369,10 @@
       "incoming_button_creating": "Creating"
     },
     "account": {
+      "settings": "Account Settings",
+      "change-password": "Change Password",
+      "close-account": "Close Account",
+      "verify-account": "Verify Account",
       "subscription_title": "Subscription",
       "manage_subscription": "Manage Subscription",
       "customer_information": "Customer Information",
@@ -382,6 +394,32 @@
       },
       "timezone": "Timezone",
       "customer-id": "Customer ID"
+    },
+    "auth": {
+      "verify": {
+        "title": "Verify Your Account",
+        "success": "Your account has been verified successfully",
+        "invalid-key": "Invalid or expired verification key",
+        "check-email": "Please check your email for a verification link",
+        "error": "Account verification failed. Please check your verification link or request a new one."
+      },
+      "change-password": {
+        "title": "Change Password",
+        "current-password": "Current Password",
+        "new-password": "New Password",
+        "confirm-password": "Confirm New Password",
+        "success": "Your password has been changed successfully",
+        "error": "Password change failed. Please verify your current password and try again."
+      },
+      "close-account": {
+        "title": "Close Account",
+        "warning": "This action cannot be undone. All your secrets will be permanently deleted.",
+        "confirm": "I understand this action is permanent",
+        "password": "Enter your password to confirm",
+        "button": "Permanently Close Account",
+        "cancel": "Cancel",
+        "error": "Unable to close account. Please verify your password and try again or contact support."
+      }
     },
     "colonel": {
       "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",

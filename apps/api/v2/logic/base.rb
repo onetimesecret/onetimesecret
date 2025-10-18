@@ -8,7 +8,6 @@ require_relative 'helpers'
 
 module V2
   module Logic
-
     using Familia::Refinements::TimeLiterals
 
     class Base
@@ -26,12 +25,12 @@ module V2
 
       def initialize(strategy_result, params, locale = nil)
         @strategy_result = strategy_result
-        @params = params
+        @params          = params
 
         # Extract session and user from StrategyResult
-        @sess = strategy_result.session
-        @cust = strategy_result.user
-        @locale = locale || @params[:locale] || @sess[:locale] || 'en'
+        @sess   = strategy_result.session
+        @cust   = strategy_result.user
+        @locale = @params[:locale] || OT.default_locale
 
         @processed_params ||= {} # TODO: Remove
         process_settings
@@ -40,7 +39,7 @@ module V2
         if @cust.nil?
           @cust = Onetime::Customer.anonymous
         elsif @cust.is_a?(String)
-          OT.li "[#{self.class}] Friendly reminder to pass in a Customer instance instead of a custid"
+          OT.li "[#{self.class}] Friendly reminder to pass in a Customer instance instead of a objid"
           @cust = Onetime::Customer.load(@cust)
         end
         # If @cust is already a Onetime::Customer instance, use it as-is
@@ -62,16 +61,16 @@ module V2
         OT.ld "[valid_email?] Guess: #{loggable_guess}"
 
         begin
-        validator = Truemail.validate(guess)
-        valid = validator.result.valid?
+        validator      = Truemail.validate(guess)
+        valid          = validator.result.valid?
         validation_str = validator.as_json
         OT.info "[valid_email?] Address is valid (#{valid}): #{validation_str}"
         valid
-      rescue StandardError => ex
+        rescue StandardError => ex
         OT.le "Email validation error (#{loggable_guess}): #{ex.message}"
         OT.le ex.backtrace
         false
-      end
+        end
       end
 
       def success_data
@@ -106,21 +105,21 @@ module V2
       end
 
       # Session message helpers for user feedback
-      def set_info_message(message)
+      def set_info_message(_message)
         # In test environment, sess might be a plain hash
-        sess['info_message'] = message if sess.respond_to?(:[]=)
+        warn %q!sess['info_message'] = message if sess.respond_to?(:[]=)!
       end
 
-      def set_error_message(message)
+      def set_error_message(_message)
         # In test environment, sess might be a plain hash
-        sess['error_message'] = message if sess.respond_to?(:[]=)
+        warn %q!sess['error_message'] = message if sess.respond_to?(:[]=)!
       end
 
       # Requires the implementing class to have cust and session fields
       def send_verification_email(token = nil)
         _, secret = Onetime::Secret.spawn_pair cust.custid, token
 
-        OT.lw "[send_verification_email] DISABLED"
+        OT.lw '[send_verification_email] DISABLED'
         return
 
         msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune

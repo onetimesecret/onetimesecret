@@ -1,0 +1,125 @@
+<schema lang="js-zod" version="2" window="__ONETIME_STATE__">
+import { z } from 'zod';
+
+const schema = z.object({
+  // ConfigSerializer fields
+  authentication: z.object({}).nullable(),
+  d9s_enabled: z.boolean().nullable(),
+  diagnostics: z.object({
+    sentry: z.object({}).optional()
+  }).nullable(),
+  domains: z.object({}).optional(),
+  domains_enabled: z.boolean(),
+  frontend_development: z.boolean(),
+  frontend_host: z.string(),
+  incoming_recipient: z.string().nullable(),
+  billing_enabled: z.boolean(),
+  regions: z.object({}).optional(),
+  regions_enabled: z.boolean(),
+  secret_options: z.object({}),
+  site_host: z.string(),
+  ui: z.object({}),
+
+  // AuthenticationSerializer fields
+  authenticated: z.boolean(),
+  custid: z.string().nullable(),
+  cust: z.object({}),
+  email: z.string().nullable(),
+  customer_since: z.number().nullable(),
+
+  // DomainSerializer fields
+  canonical_domain: z.string().nullable(),
+  custom_domains: z.array(z.string()).nullable(),
+  display_domain: z.string().nullable(),
+  domain_branding: z.object({}).nullable(),
+  domain_id: z.string().nullable(),
+  domain_locale: z.string().nullable(),
+  domain_logo: z.object({}).nullable(),
+  domain_strategy: z.string().nullable(),
+
+  // I18nSerializer fields
+  locale: z.string(),
+  default_locale: z.string(),
+  fallback_locale: z.string(),
+  supported_locales: z.array(z.string()),
+  i18n_enabled: z.boolean(),
+
+  // MessagesSerializer fields
+  messages: z.array(z.object({
+    type: z.string(),
+    content: z.string()
+  })).nullable(),
+  global_banner: z.string().nullable(),
+
+  // SystemSerializer fields
+  ot_version: z.string(),
+  ot_version_long: z.string(),
+  ruby_version: z.string(),
+  shrimp: z.string().nullable(),
+  nonce: z.string().nullable(),
+
+  // Additional fields from BaseView.render (for window.__ONETIME_STATE__)
+  // Note: page_title, description, keywords, baseuri, no_cache, and vite_assets_html
+  // are template-only props and not included in window.__ONETIME_STATE__
+});
+</schema>
+
+
+<template layout="">
+<!doctype html>
+<html lang="{{locale}}" class="light">
+  <head>
+    <script nonce="{{app.nonce}}">
+      (() => {
+        var { matches: isRestMode } = window.matchMedia('(prefers-color-scheme: dark)');
+        var hasHumanOverride = (typeof localStorage !== 'undefined' && localStorage.getItem('restMode') !== null);
+        var humanElement = document.documentElement;
+        var nightVision = 'rgb(17 24 39)';
+        var dayVision = '#ffffff';
+
+        var visualSettings = {
+          true: {
+            bgColor: nightVision,
+            textColor: dayVision,
+            removeClass: 'light',
+            addClass: 'dark'
+          },
+          false: {
+            bgColor: dayVision,
+            textColor: nightVision,
+            removeClass: 'dark',
+            addClass: 'light'
+          }
+        };
+
+        var config = visualSettings[isRestMode];
+        window.enjoyTheVue = hasHumanOverride; // Set a flag to indicate when Vue has taken control
+
+        // Function to adjust the visual environment
+        function adjustVisualEnvironment() {
+          if (window.enjoyTheVue) return;
+
+          humanElement.style.setProperty('--bg-color', config.bgColor);
+          humanElement.style.setProperty('--text-color', config.textColor);
+          humanElement.classList.remove(config.removeClass);
+          humanElement.classList.add(config.addClass);
+        }
+
+        // Initial adjustment
+        adjustVisualEnvironment();
+
+        // Re-adjust on system color scheme change
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+          isRestMode = e.matches;
+          config = visualSettings[isRestMode];
+          adjustVisualEnvironment();
+        });
+      })();
+    </script>
+    {{> partials/head}}
+  </head>
+  <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div id="app"><router-view></router-view></div>
+  </body>
+</html>
+</template>
