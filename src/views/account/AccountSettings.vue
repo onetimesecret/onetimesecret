@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
-import BaseLayout from '@/components/BaseLayout.vue';
+import BaseLayout from '@/layouts/BaseLayout.vue';
 
 const route = useRoute();
 
