@@ -55,11 +55,10 @@ module V2::Logic
       end
 
       def log_update
-        session_id = sess['session_id'] || sess[:session_id] || 'unknown'
         if cust.anonymous?
-          OT.info "[update-locale] Anonymous session locale updated sid/#{session_id} old/#{old_locale} new/#{new_locale}"
+          OT.info "[update-locale] Anonymous session locale updated sid/#{session_sid} old/#{old_locale} new/#{new_locale}"
         else
-          OT.info "[update-locale] Customer locale updated cid/#{cust.objid} r/#{cust.role} sid/#{session_id} old/#{old_locale} new/#{new_locale}"
+          OT.info "[update-locale] Customer locale updated cid/#{cust.objid} r/#{cust.role} sid/#{session_sid} old/#{old_locale} new/#{new_locale}"
         end
       end
     end

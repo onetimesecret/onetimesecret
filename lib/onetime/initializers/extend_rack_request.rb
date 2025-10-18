@@ -133,15 +133,9 @@ class Rack::Request
 
   # Check if request is AJAX
   #
+  # Delegates to Rack's built-in xhr? method
   # @return [Boolean] true if X-Requested-With: XMLHttpRequest
   def ajax?
-    env['HTTP_X_REQUESTED_WITH'].to_s.downcase == 'xmlhttprequest'
-  end
-
-  # Get User-Agent header
-  #
-  # @return [String, nil] User agent string
-  def user_agent
-    env['HTTP_USER_AGENT']
+    xhr?
   end
 end
