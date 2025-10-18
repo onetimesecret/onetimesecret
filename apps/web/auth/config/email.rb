@@ -60,8 +60,16 @@ module Auth
 
             smtp = Net::SMTP.new(smtp_host, smtp_port)
             smtp.enable_starttls_auto if use_tls
-            smtp.start('localhost', username, password, auth_method.to_sym) do |smtp_session|
-              smtp_session.send_message(message, email[:from], email[:to])
+
+            # Handle authentication - only authenticate if username is provided
+            if username && password
+              smtp.start('localhost', username, password, auth_method.to_sym) do |smtp_session|
+                smtp_session.send_message(message, email[:from], email[:to])
+              end
+            else
+              smtp.start do |smtp_session|
+                smtp_session.send_message(message, email[:from], email[:to])
+              end
             end
 
             log_delivery(email, 'sent', 'SMTP')
