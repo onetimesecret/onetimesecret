@@ -254,6 +254,79 @@ describe('Language Store', () => {
     });
   });
 
+  describe('Locale Normalization', () => {
+    let store: ReturnType<typeof useLanguageStore>;
+
+    beforeEach(() => {
+      // Mock WindowService.get with locales that include region variants
+      vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
+        if (key === 'supported_locales') return ['en', 'it_IT', 'fr_FR', 'fr_CA', 'de', 'de_AT'];
+        if (key === 'cust') return undefined;
+        return undefined;
+      });
+
+      store = useLanguageStore();
+      store.supportedLocales = ['en', 'it_IT', 'fr_FR', 'fr_CA', 'de', 'de_AT'];
+    });
+
+    it('should handle exact match with underscores (it_IT)', () => {
+      store.setCurrentLocale('it_IT');
+      expect(store.currentLocale).toBe('it_IT');
+    });
+
+    it('should handle case-insensitive exact match (IT_IT -> it_IT)', () => {
+      store.setCurrentLocale('IT_IT');
+      expect(store.currentLocale).toBe('it_IT');
+    });
+
+    it('should normalize hyphen to underscore (it-IT -> it_IT)', () => {
+      store.setCurrentLocale('it-IT');
+      expect(store.currentLocale).toBe('it_IT');
+    });
+
+    it('should handle simple locale (en)', () => {
+      store.setCurrentLocale('en');
+      expect(store.currentLocale).toBe('en');
+    });
+
+    it('should handle exact match with different case (fr-ca -> fr_CA)', () => {
+      store.setCurrentLocale('fr-ca');
+      expect(store.currentLocale).toBe('fr_CA');
+    });
+
+    it('should fallback to primary language match (de-CH -> de)', () => {
+      // de-CH not in list, but 'de' is, so should match to 'de'
+      store.setCurrentLocale('de-CH');
+      expect(store.currentLocale).toBe('de');
+    });
+
+    it('should prefer exact match over primary match when both exist (fr_CA)', () => {
+      // Both fr_CA and fr_FR exist, fr_CA should match exactly
+      store.setCurrentLocale('fr_CA');
+      expect(store.currentLocale).toBe('fr_CA');
+    });
+
+    it('should handle updateLanguage with region locales', async () => {
+      axiosMock.onPost('/api/v2/account/update-locale').reply(200, {});
+
+      await store.updateLanguage('it_IT');
+      expect(axiosMock.history.post[0].data).toBe(JSON.stringify({ locale: 'it_IT' }));
+    });
+
+    it('should handle updateLanguage with hyphenated input (it-IT -> it_IT)', async () => {
+      axiosMock.onPost('/api/v2/account/update-locale').reply(200, {});
+
+      await store.updateLanguage('it-IT');
+      // Should normalize to it_IT before sending to server
+      expect(axiosMock.history.post[0].data).toBe(JSON.stringify({ locale: 'it_IT' }));
+    });
+
+    it('should reject unsupported locale', async () => {
+      // 'ja' not in supportedLocales
+      await expect(store.updateLanguage('ja')).rejects.toThrow('Unsupported locale: ja');
+    });
+  });
+
   describe('Language Headers', () => {
     let store: ReturnType<typeof useLanguageStore>;
 

@@ -170,10 +170,56 @@ export const useLanguageStore = defineStore('language', () => {
   }
 
   // Private methods
+  /**
+   * Validates and normalizes a locale string against available locales.
+   *
+   * This function implements custom locale matching logic because:
+   * 1. Vue-i18n doesn't provide locale negotiation/matching utilities
+   * 2. The Intl.LocaleMatcher proposal (TC39) is not yet standardized (as of 2025)
+   *    @see https://github.com/tc39/proposal-intl-localematcher
+   * 3. Our server uses underscores (it_IT) while browsers often use hyphens (it-IT)
+   * 4. Locale codes may have different casing (IT_IT vs it_IT)
+   *
+   * Matching strategy:
+   * 1. First attempts exact case-insensitive match (it-IT → it_IT)
+   * 2. Falls back to matching primary language code (de-CH → de if de_CH unavailable)
+   * 3. Returns server's exact format to maintain consistency
+   *
+   * @param locale - Locale string to validate (e.g., 'en', 'it_IT', 'fr-CA')
+   * @returns Normalized locale matching server's format, or original if no match found
+   *
+   * @example
+   * // Server has: ['en', 'it_IT', 'fr_FR']
+   * validateAndNormalizeLocale('it-IT')  // → 'it_IT' (case-insensitive, separator normalized)
+   * validateAndNormalizeLocale('IT_IT')  // → 'it_IT' (case normalized)
+   * validateAndNormalizeLocale('de-CH')  // → 'de' if 'de' available, 'de-CH' otherwise
+   */
   const validateAndNormalizeLocale = (locale: string): string => {
     const validatedLocale = localeSchema.parse(locale);
-    // Normalize by taking the primary language code (e.g., 'fr-FR' -> 'fr')
-    return validatedLocale.split('-')[0].toLowerCase();
+
+    // Normalize separators for comparison (both hyphen and underscore → underscore)
+    const normalizeForComparison = (loc: string) => loc.toLowerCase().replace('-', '_');
+
+    // Strategy 1: Find exact match (case-insensitive, separator-agnostic)
+    // Handles: it-IT → it_IT, IT_IT → it_IT, fr-CA → fr_CA
+    const normalizedInput = normalizeForComparison(validatedLocale);
+    const exactMatch = supportedLocales.value.find(
+      (supported) => normalizeForComparison(supported) === normalizedInput
+    );
+
+    if (exactMatch) {
+      return exactMatch; // Return server's exact format
+    }
+
+    // Strategy 2: Match primary language code only
+    // Handles: de-CH → de (if de_CH unavailable but 'de' is)
+    // This provides graceful degradation when exact regional variant isn't available
+    const primaryCode = validatedLocale.split(/[_-]/)[0].toLowerCase();
+    const primaryMatch = supportedLocales.value.find(
+      (supported) => supported.toLowerCase().split(/[_-]/)[0] === primaryCode
+    );
+
+    return primaryMatch || validatedLocale;
   };
 
   const loadSupportedLocales = () => {
