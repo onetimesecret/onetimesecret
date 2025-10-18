@@ -21,6 +21,54 @@ module Onetime
       }.freeze
 
       class << self
+        # Build locale map for Otto::Locale::Middleware
+        #
+        # Creates a hash mapping locale codes to language names for all
+        # supported locales. Uses English locale file names as the source.
+        #
+        # @return [Hash<String, String>] Locale code to language name mapping
+        def build_available_locales
+          # Map of locale codes to language names
+          # This could be loaded from locale files in the future
+          locale_names = {
+            'en' => 'English',
+            'ar' => 'العربية',
+            'bg' => 'Български',
+            'ca_ES' => 'Català',
+            'cs' => 'Čeština',
+            'da' => 'Dansk',
+            'da_DK' => 'Dansk (Danmark)',
+            'de' => 'Deutsch',
+            'de_AT' => 'Deutsch (Österreich)',
+            'el_GR' => 'Ελληνικά',
+            'es' => 'Español',
+            'fr_CA' => 'Français (Canada)',
+            'fr_FR' => 'Français (France)',
+            'he' => 'עברית',
+            'hu' => 'Magyar',
+            'it_IT' => 'Italiano',
+            'ja' => '日本語',
+            'ko' => '한국어',
+            'mi_NZ' => 'Te Reo Māori',
+            'nl' => 'Nederlands',
+            'pl' => 'Polski',
+            'pt_BR' => 'Português (Brasil)',
+            'pt_PT' => 'Português (Portugal)',
+            'ru' => 'Русский',
+            'sl_SI' => 'Slovenščina',
+            'sv_SE' => 'Svenska',
+            'tr' => 'Türkçe',
+            'uk' => 'Українська',
+            'vi' => 'Tiếng Việt',
+            'zh' => '中文',
+          }
+
+          # Return only locales that are in OT.supported_locales
+          OT.supported_locales.each_with_object({}) do |locale, result|
+            result[locale] = locale_names.fetch(locale, locale)
+          end
+        end
+
         def configure(builder, application_context: nil)
           Onetime.ld '[middleware] MiddlewareStack: Configuring common middleware'
 
@@ -48,6 +96,14 @@ module Onetime
 
           # Identity resolution middleware (after session)
           builder.use Onetime::Middleware::IdentityResolution
+
+          # Locale detection middleware (after session, before domain strategy)
+          # Sets env['otto.locale'] based on URL param, session, Accept-Language header
+          Onetime.ld '[middleware] MiddlewareStack: Setting up Locale detection'
+          builder.use Otto::Locale::Middleware,
+            available_locales: build_available_locales,
+            default_locale: OT.default_locale,
+            debug: OT.debug?
 
           # Domain strategy middleware (after identity)
           builder.use Onetime::Middleware::DomainStrategy, application_context: application_context
