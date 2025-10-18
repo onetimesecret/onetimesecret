@@ -99,6 +99,29 @@ onMounted(async () => {
           </span>
         </div>
       </div>
+
+      <!-- Quick actions for account management -->
+      <div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
+        <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          {{ $t('web.auth.account.quick-actions') }}
+        </h3>
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <router-link
+            to="/account/settings/sessions"
+            class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700"
+          >
+            <i class="fas fa-desktop text-brand-600 dark:text-brand-400"></i>
+            <span class="text-sm font-medium dark:text-white">{{ $t('web.auth.account.manage-sessions') }}</span>
+          </router-link>
+          <router-link
+            to="/account/settings/password"
+            class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700"
+          >
+            <i class="fas fa-lock text-brand-600 dark:text-brand-400"></i>
+            <span class="text-sm font-medium dark:text-white">{{ $t('web.auth.account.change-password') }}</span>
+          </router-link>
+        </div>
+      </div>
     </div>
 
     <!-- Loading state for account info -->

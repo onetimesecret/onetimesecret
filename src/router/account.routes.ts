@@ -44,6 +44,14 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
+        path: 'sessions',
+        name: 'Active Sessions',
+        component: () => import('@/views/account/ActiveSessions.vue'),
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
         path: 'close',
         name: 'Close Account',
         component: () => import('@/views/account/CloseAccount.vue'),
