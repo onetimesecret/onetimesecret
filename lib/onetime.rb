@@ -53,6 +53,9 @@ module Onetime
 
   # Load application framework components
   require_relative 'onetime/application'
+
+  # Extend Rack::Request with Otto and Onetime-specific methods
+  require_relative 'onetime/initializers/extend_rack_request'
 end
 
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from

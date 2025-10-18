@@ -4,6 +4,39 @@ require 'spec_helper'
 require 'nokogiri'
 
 RSpec.describe 'Rhales Migration Integration' do
+  # Initialize OT configuration for views
+  before(:all) do
+    # Set minimal OT locale data
+    OT.instance_variable_set(:@locales, {
+      'en' => {
+        web: {
+          COMMON: {
+            title: 'Onetime Secret',
+            tagline: 'Keep sensitive info out of your email & chat logs.'
+          }
+        }
+      }
+    })
+    OT.instance_variable_set(:@default_locale, 'en')
+    OT.instance_variable_set(:@supported_locales, ['en'])
+
+    # Set minimal OT configuration
+    mock_config = {
+      'site' => {
+        'host' => 'localhost:7143',
+        'domain' => 'localhost',
+        'ssl' => false
+      },
+      'features' => {
+        'incoming' => { 'email' => 'support@localhost' }
+      },
+      'development' => { 'enabled' => false },
+      'diagnostics' => {},
+      'billing' => { 'enabled' => false }
+    }
+    OT.instance_variable_set(:@conf, mock_config)
+  end
+
   let(:session) { {} }
   let(:customer) { Onetime::Customer.anonymous }
   let(:locale) { 'en' }
@@ -20,14 +53,25 @@ RSpec.describe 'Rhales Migration Integration' do
   end
 
   let(:request) do
+    env_hash = {
+      'onetime.nonce' => nonce,
+      'otto.locale' => locale,
+      'rack.session' => session,
+      'otto.strategy_result' => strategy_result
+    }
+
     double('Request',
-      env: {
-        'onetime.nonce' => nonce,
-        'otto.locale' => locale,
-        'rack.session' => session,
-        'otto.strategy_result' => strategy_result
-      }
-    )
+      env: env_hash,
+      locale: locale,
+      user: customer,
+      session: session,
+      authenticated?: false,
+      nonce: nonce,
+      strategy_result: strategy_result
+    ).tap do |req|
+      # Allow env to respond to fetch for i18n helpers
+      allow(req.env).to receive(:fetch).and_call_original
+    end
   end
 
   describe 'VuePoint rendering with Rhales' do
@@ -250,21 +294,21 @@ RSpec.describe 'Rhales Migration Integration' do
         expect(doc.css('html').first['class']).to include('light')
       end
     end
-  end
 
-  describe 'Backward Compatibility' do
-    it 'maintains same HTML structure' do
-      # Verify essential structure elements
-      expect(doc.css('html')).to have(1).item
-      expect(doc.css('head')).to have(1).item
-      expect(doc.css('body')).to have(1).item
-      expect(doc.css('#app')).to have(1).item
-    end
+    context 'Backward Compatibility' do
+      it 'maintains same HTML structure' do
+        # Verify essential structure elements
+        expect(doc.css('html')).to have(1).item
+        expect(doc.css('head')).to have(1).item
+        expect(doc.css('body')).to have(1).item
+        expect(doc.css('#app')).to have(1).item
+      end
 
-    it 'preserves all meta tags from original template' do
-      # Count meta tags (should match original count)
-      meta_tags = doc.css('meta')
-      expect(meta_tags.length).to be >= 15  # Original has 15+ meta tags
+      it 'preserves all meta tags from original template' do
+        # Count meta tags (should match original count)
+        meta_tags = doc.css('meta')
+        expect(meta_tags.length).to be >= 15  # Original has 15+ meta tags
+      end
     end
   end
 end

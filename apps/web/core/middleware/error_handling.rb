@@ -66,18 +66,20 @@ module Core
       end
 
       def serve_vue_entry_point(env, status: 200)
-        session = env['rack.session'] || {}
-        cust = load_customer(env)
-        locale = env['ots.locale'] || 'en'
+        req = build_rack_request(env)
+        session = req.session
+        cust = load_customer(req)
+        locale = req.locale
 
-        view = Core::Views::VuePoint.new(build_rack_request(env), session, cust, locale)
+        view = Core::Views::VuePoint.new(req, session, cust, locale)
 
         [status, default_headers, [view.render]]
       end
 
-      def load_customer(env)
-        # Try Otto auth result first
-        return env['otto.user'] if env['otto.user'].is_a?(Onetime::Customer)
+      def load_customer(req)
+        # Use Rack::Request extension method
+        user = req.user
+        return user if user&.is_a?(Onetime::Customer)
 
         # Fallback to anonymous
         Onetime::Customer.anonymous

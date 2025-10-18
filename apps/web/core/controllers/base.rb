@@ -15,7 +15,7 @@ module Core
       def initialize(req, res)
         @req    = req
         @res    = res
-        @locale = req.env['ots.locale'] || 'en'
+        @locale = req.locale
       end
 
       # Access the current customer from Otto auth middleware or session
@@ -164,11 +164,9 @@ module Core
       end
 
       def load_current_customer
-        # Try Otto auth result first (set by auth middleware)
-        if req.env['otto.user']
-          user = req.env['otto.user']
-          return user if user.is_a?(Onetime::Customer)
-        end
+        # Use Rack::Request extension method (delegates to strategy_result.user)
+        user = req.user
+        return user if user.is_a?(Onetime::Customer)
 
         # Fallback to anonymous
         Onetime::Customer.anonymous

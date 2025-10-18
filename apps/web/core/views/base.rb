@@ -46,7 +46,7 @@ module Core
         # 1. Explicitly provided locale
         # 2. Locale from request environment (if available)
         # 3. Application default locale as set in yaml configuration
-        @locale = req.env['otto.locale'] || OT.default_locale
+        @locale = req.locale
 
         @i18n_instance = i18n
         @messages      = []

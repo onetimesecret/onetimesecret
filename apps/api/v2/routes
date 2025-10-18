@@ -6,7 +6,7 @@
 # Account Management
 POST   /account/destroy                           V2::Logic::Account::DestroyAccount response=json auth=sessionauth
 POST   /account/change-password                   V2::Logic::Account::UpdatePassword response=json auth=sessionauth
-POST   /account/update-locale                     V2::Logic::Account::UpdateLocale response=json auth=sessionauth
+POST   /account/update-locale                     V2::Logic::Account::UpdateLocale response=json auth=noauth
 POST   /account/apitoken                          V2::Logic::Account::GenerateAPIToken response=json auth=sessionauth csrf=exempt
 GET    /account                                   V2::Logic::Account::GetAccount response=json auth=sessionauth
 

@@ -52,8 +52,8 @@ module V2
       end
 
       # Extract IP address from session for logging purposes
-      def session_ipaddress
-        sess&.[]('ip_address') || sess&.[](:ip_address) || 'unknown'
+      def session_sid
+        sess&.[]('sid') || sess&.[](:sid) || 'unknown'
       end
     end
   end
