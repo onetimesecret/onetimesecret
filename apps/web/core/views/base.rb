@@ -30,13 +30,14 @@ module Core
 
       TEMPLATE_PATH = File.join(__dir__, '..', 'templates')
 
-      attr_accessor :req, :sess, :cust, :locale, :form_fields, :pagename
+      attr_accessor :req, :form_fields, :pagename, :strategy_result, :locale, :sess, :cust
       attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
 
-      def initialize(req, sess = nil, cust = nil, locale_override = nil, *)
+      def initialize(req, *)
         @req  = req
-        @sess = sess
-        @cust = cust || Onetime::Customer.anonymous
+        @strategy_result = req.env['otto.strategy_result']
+        @sess = strategy_result.session
+        @cust = strategy_result.user  || Onetime::Customer.anonymous
 
         # We determine locale here because it's used for i18n. Otherwise we couldn't
         # determine the i18n messages until inside or after initialize_view_vars.
@@ -45,19 +46,13 @@ module Core
         # 1. Explicitly provided locale
         # 2. Locale from request environment (if available)
         # 3. Application default locale as set in yaml configuration
-        @locale = if locale_override
-                    locale_override
-                  elsif !req.nil? && req.env['ots.locale']
-                    req.env['ots.locale']
-                  else
-                    OT.default_locale
-                  end
+        @locale = req.env['otto.locale'] || OT.default_locale
 
         @i18n_instance = i18n
         @messages      = []
 
         # Initialize view variables for use in rendering
-        @view_vars = self.class.initialize_view_vars(req, sess, cust, locale, i18n_instance)
+        @view_vars = self.class.initialize_view_vars(req, i18n_instance)
 
         # Call subclass init hook if defined
         init(*) if respond_to?(:init)
@@ -114,24 +109,21 @@ module Core
           'no_cache' => view_vars['no_cache'],
           'vite_assets_html' => vite_assets(
             nonce: view_vars['nonce'],
-            development: view_vars['frontend_development']
-          )
+            development: view_vars['frontend_development'],
+          ),
         }
 
         # Wrap session to provide authenticated? method
-        adapted_session = OnetimeSessionAdapter.new(sess)
+        # adapted_session = OnetimeSessionAdapter.new(sess)
 
         # Create Rhales view with separated data
         # - client: Data from serializers that goes to window.__ONETIME_STATE__
         # - server: Template-only variables that don't get serialized to client
         rhales_view = Rhales::View.new(
           req,
-          adapted_session,
-          cust,
-          locale,
           client: serialized_data,      # Only this goes to window state
           server: template_vars,        # Available in templates, NOT serialized
-          config: Rhales.configuration
+          config: Rhales.configuration,
         )
 
         rhales_view.render(template_name)

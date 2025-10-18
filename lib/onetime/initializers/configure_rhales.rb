@@ -24,7 +24,7 @@ end
 Rhales.configure do |config|
   # Use existing nonce from Onetime Secret middleware
   # This ensures all script tags use the same CSP nonce
-  config.nonce_header_name = 'ots.nonce'
+  config.nonce_header_name = 'onetime.nonce'
 
   # Inject hydration scripts in <head> before Vue.js initialization
   # :earliest ensures window.__ONETIME_STATE__ is available when Vue mounts
@@ -38,4 +38,4 @@ Rhales.configure do |config|
   config.template_paths = [templates_dir]
 end
 
-OT.ld "[Rhales] Configured with nonce_header: ots.nonce, injection: :earliest" if defined?(OT)
+OT.ld "[Rhales] Configured with nonce_header: onetime.nonce, injection: :earliest" if defined?(OT)

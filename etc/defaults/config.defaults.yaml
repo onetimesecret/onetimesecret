@@ -528,7 +528,7 @@ experimental:
   # prevent any content loading from other origins. In regular production mode,
   # a secure nonce will be included with the headers and unsafe-inline content
   # is completely blocked. The nonce can be accessed via the rack request object
-  # `req.env['ots.nonce']`. The backend views grab it from there to add it to
+  # `req.env['onetime.nonce']`. The backend views grab it from there to add it to
   # all front-end script and style assets automatically. You'd only need to use
   # the none if you're adding new script or style dependencies.
   # When disabled, no csp headers are included in any environment.

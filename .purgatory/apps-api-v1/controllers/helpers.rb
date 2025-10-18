@@ -36,7 +36,7 @@ module V1
       add_response_headers(content_type, nonce)
 
       # Make the nonce available to the view
-      req.env['ots.nonce'] = nonce
+      req.env['onetime.nonce'] = nonce
 
       return_value = yield
 

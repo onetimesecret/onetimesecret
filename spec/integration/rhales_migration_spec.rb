@@ -11,7 +11,7 @@ RSpec.describe 'Rhales Migration Integration' do
   let(:request) do
     double('Request',
       env: {
-        'ots.nonce' => nonce,
+        'onetime.nonce' => nonce,
         'ots.locale' => locale,
         'rack.session' => session
       }
