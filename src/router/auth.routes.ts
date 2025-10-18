@@ -120,6 +120,24 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
   },
+  {
+    path: '/mfa-verify',
+    name: 'MFA Verify',
+    component: () => import('@/views/auth/MfaVerify.vue'),
+    meta: {
+      requiresAuth: false,
+      isAuthRoute: true,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: false,
+        displayToggles: true,
+      },
+    },
+  },
 ];
 
 export default routes;

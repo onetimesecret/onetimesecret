@@ -52,6 +52,22 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
+        path: 'mfa',
+        name: 'Multi-Factor Authentication',
+        component: () => import('@/views/account/MfaSettings.vue'),
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
+        path: 'recovery-codes',
+        name: 'Recovery Codes',
+        component: () => import('@/views/account/RecoveryCodes.vue'),
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
         path: 'close',
         name: 'Close Account',
         component: () => import('@/views/account/CloseAccount.vue'),

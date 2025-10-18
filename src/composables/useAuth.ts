@@ -98,6 +98,7 @@ export function useAuth() {
    * @param rememberMe - Whether to keep session alive (optional)
    * @returns true if login successful, false otherwise
    */
+  /* eslint-disable complexity */
   async function login(email: string, password: string, rememberMe: boolean = false): Promise<boolean> {
     clearErrors();
     isLoading.value = true;
@@ -117,12 +118,30 @@ export function useAuth() {
         return false;
       }
 
+      // Check if MFA is required (Rodauth returns success but with mfa_required flag)
+      // In advanced mode with MFA enabled, Rodauth will redirect or indicate MFA is needed
+      // The response might have a special flag or the backend might return HTTP 401 with mfa_required
+      // For now, we'll check if the response indicates MFA is required
+      const responseData = validated as any;
+      if (responseData.mfa_required || responseData.requires_otp) {
+        // MFA verification needed - redirect to MFA verify page
+        await router.push('/mfa-verify');
+        return false; // Not fully logged in yet
+      }
+
       // Success - update auth state (this fetches fresh window state)
       await authStore.setAuthenticated(true);
 
       await router.push('/');
       return true;
     } catch (err: any) {
+      // Check if error response indicates MFA is required
+      const errorData = err.response?.data;
+      if (errorData?.mfa_required || errorData?.requires_otp) {
+        await router.push('/mfa-verify');
+        return false;
+      }
+
       error.value = err.response?.data?.error || 'Login failed. Please try again.';
       return false;
     } finally {

@@ -107,6 +107,13 @@ onMounted(async () => {
         </h3>
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <router-link
+            to="/account/settings/mfa"
+            class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700"
+          >
+            <i class="fas fa-shield-alt text-brand-600 dark:text-brand-400"></i>
+            <span class="text-sm font-medium dark:text-white">{{ $t('web.auth.account.manage-mfa') }}</span>
+          </router-link>
+          <router-link
             to="/account/settings/sessions"
             class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700"
           >
