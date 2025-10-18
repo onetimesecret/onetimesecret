@@ -113,9 +113,6 @@ module Core
           ),
         }
 
-        # Wrap session to provide authenticated? method
-        # adapted_session = OnetimeSessionAdapter.new(sess)
-
         # Create Rhales view with separated data
         # - client: Data from serializers that goes to window.__ONETIME_STATE__
         # - server: Template-only variables that don't get serialized to client

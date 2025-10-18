@@ -1,6 +1,7 @@
 // src/composables/useAuth.ts
 import { inject, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/authStore';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
@@ -48,6 +49,7 @@ import type { AxiosInstance } from 'axios';
 export function useAuth() {
   const $api = inject('api') as AxiosInstance;
   const router = useRouter();
+  const { t } = useI18n();
   const authStore = useAuthStore();
   const csrfStore = useCsrfStore();
   const notificationsStore = useNotificationsStore();
@@ -285,7 +287,7 @@ export function useAuth() {
       await router.push('/signin');
       return true;
     } catch (err: any) {
-      error.value = err.response?.data?.error || 'Account verification failed.';
+      error.value = err.response?.data?.error || t('web.auth.verify.error');
       return false;
     } finally {
       isLoading.value = false;
@@ -327,7 +329,7 @@ export function useAuth() {
       notificationsStore.show(validated.success, 'success', 'top');
       return true;
     } catch (err: any) {
-      error.value = err.response?.data?.error || 'Password change failed.';
+      error.value = err.response?.data?.error || t('web.auth.change-password.error');
       return false;
     } finally {
       isLoading.value = false;
@@ -362,7 +364,7 @@ export function useAuth() {
       await router.push('/');
       return true;
     } catch (err: any) {
-      error.value = err.response?.data?.error || 'Account closure failed.';
+      error.value = err.response?.data?.error || t('web.auth.close-account.error');
       return false;
     } finally {
       isLoading.value = false;

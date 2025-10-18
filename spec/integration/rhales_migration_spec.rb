@@ -31,7 +31,7 @@ RSpec.describe 'Rhales Migration Integration' do
   end
 
   describe 'VuePoint rendering with Rhales' do
-    let(:view) { Core::Views::VuePoint.new(request, session, customer, locale) }
+    let(:view) { Core::Views::VuePoint.new(request) }
     let(:rendered_html) { view.render('index') }
     let(:doc) { Nokogiri::HTML(rendered_html) }
 

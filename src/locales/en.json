@@ -400,14 +400,16 @@
         "title": "Verify Your Account",
         "success": "Your account has been verified successfully",
         "invalid-key": "Invalid or expired verification key",
-        "check-email": "Please check your email for a verification link"
+        "check-email": "Please check your email for a verification link",
+        "error": "Account verification failed. Please check your verification link or request a new one."
       },
       "change-password": {
         "title": "Change Password",
         "current-password": "Current Password",
         "new-password": "New Password",
         "confirm-password": "Confirm New Password",
-        "success": "Your password has been changed successfully"
+        "success": "Your password has been changed successfully",
+        "error": "Password change failed. Please verify your current password and try again."
       },
       "close-account": {
         "title": "Close Account",
@@ -415,7 +417,8 @@
         "confirm": "I understand this action is permanent",
         "password": "Enter your password to confirm",
         "button": "Permanently Close Account",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "error": "Unable to close account. Please verify your password and try again or contact support."
       }
     },
     "colonel": {

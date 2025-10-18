@@ -73,15 +73,15 @@ module Core
 
         # Extract values from session
 
-        shrimp        = nil # TODO
         strategy_result = req.env.fetch('otto.strategy_result', nil) # should always have a value
         sess = strategy_result.session
         cust = strategy_result.user || Onetime::Customer.anonymous
+        shrimp        = sess&.[]('_csrf_token')
 
         authenticated = strategy_result.authenticated? || false # never nil
 
         # Extract values from rack request object
-        nonce           = req.env.fetch('onetime.nonce', nil) # TODO: Rename to onetime.nonce or use rhales.nonce
+        nonce           = req.env.fetch('onetime.nonce', nil)
         domain_strategy = req.env.fetch('onetime.domain_strategy', :default)
         display_domain  = req.env.fetch('onetime.display_domain', nil)
         locale          = req.env.fetch('otto.locale', OT.default_locale)

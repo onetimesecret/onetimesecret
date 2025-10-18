@@ -35,8 +35,8 @@ const handleFinalSubmit = async () => {
 };
 
 const handleCancel = () => {
-  showConfirmation.value = false;
   password.value = '';
+  showConfirmation.value = false;
   confirmationChecked.value = false;
   clearErrors();
 };

@@ -69,7 +69,7 @@ const schema = z.object({
 <!doctype html>
 <html lang="{{locale}}" class="light">
   <head>
-    <script nonce="{{app.nonce}}" language="javascript" type="text/javascript">
+    <script nonce="{{app.nonce}}">
       (() => {
         var { matches: isRestMode } = window.matchMedia('(prefers-color-scheme: dark)');
         var hasHumanOverride = (typeof localStorage !== 'undefined' && localStorage.getItem('restMode') !== null);
