@@ -30,7 +30,6 @@ module Auth
             Hooks::AccountLifecycle.configure,
             Hooks::Authentication.configure,
             Hooks::SessionIntegration.configure,
-            Hooks::ErrorLogging.configure,
           ].each do |hook_proc|
             instance_eval(&hook_proc)
           end

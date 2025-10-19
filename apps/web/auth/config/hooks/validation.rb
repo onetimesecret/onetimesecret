@@ -24,6 +24,12 @@ module Auth
                 OT.le "[auth] Email validation error: #{ex.message}"
                 throw_error_status(422, 'login', 'Email validation failed')
               end
+
+              # Log duplicate email blocks
+              existing = db[:accounts].where(email: email, status_id: [1, 2]).first
+              if existing
+                OT.li "[auth] Account creation blocked - duplicate email: #{OT::Utils.obscure_email(email)}"
+              end
             end
           end
         end

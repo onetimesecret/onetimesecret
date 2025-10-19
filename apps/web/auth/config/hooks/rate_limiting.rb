@@ -9,6 +9,10 @@ module Auth
             # Rate limiting: 5 login attempts per 5 minutes
             before_login_attempt do
               email = param('login') || param('email')
+
+              # Log login attempt
+              OT.li "[auth] Login attempt: #{OT::Utils.obscure_email(email)}"
+
               rate_limit_key = "login_attempts:#{email}"
 
               client = Familia.dbclient
