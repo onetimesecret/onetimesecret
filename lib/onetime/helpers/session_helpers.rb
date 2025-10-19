@@ -6,7 +6,7 @@ module Onetime
 
       def authenticated?
         session['authenticated'] == true &&
-        session['identity_id'].to_s.length > 0 &&
+        session['external_id'].to_s.length > 0 &&
         authentication_enabled?
       end
 
@@ -22,7 +22,7 @@ module Onetime
         request.session_options[:renew] = true if request.respond_to?(:session_options)
 
         # Set authentication data
-        session['identity_id'] = customer.custid
+        session['external_id'] = customer.extid
         session['email'] = customer.email
         session['authenticated'] = true
         session['authenticated_at'] = Familia.now.to_i
@@ -44,7 +44,7 @@ module Onetime
       def load_current_customer
         return Onetime::Customer.anonymous unless authenticated?
 
-        customer = Onetime::Customer.load(session['identity_id'])
+        customer = Onetime::Customer.find_by_extid(session['external_id'])
         return Onetime::Customer.anonymous unless customer
 
         # Update last seen timestamp

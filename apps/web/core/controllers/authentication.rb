@@ -59,7 +59,7 @@ module Core
           # Sync session data from logic class to Rack session
           # The logic class modifies its own @sess copy, so we need to copy those changes
           # to the actual Rack session for persistence
-          session['identity_id'] = cust_after.objid
+          session['external_id'] = cust_after.extid
           session['authenticated'] = true
           session['authenticated_at'] = Familia.now
 

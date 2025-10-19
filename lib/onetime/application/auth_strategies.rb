@@ -23,10 +23,10 @@ module Onetime
           return nil unless session
           return nil unless session['authenticated'] == true
 
-          identity_id = session['identity_id']
-          return nil if identity_id.to_s.empty?
+          external_id = session['external_id']
+          return nil if external_id.to_s.empty?
 
-          Onetime::Customer.load(identity_id)
+          Onetime::Customer.find_by_extid(external_id)
         rescue StandardError => ex
           OT.le "[auth_strategy] Failed to load customer: #{ex.message}"
           nil
@@ -119,13 +119,13 @@ module Onetime
             return failure('[SESSION_NOT_AUTHENTICATED] Not authenticated')
           end
 
-          identity_id = session['identity_id']
-          if identity_id.to_s.empty?
+          external_id = session['external_id']
+          if external_id.to_s.empty?
             return failure('[IDENTITY_MISSING] No identity in session')
           end
 
           # Load customer
-          cust = Onetime::Customer.load(identity_id)
+          cust = Onetime::Customer.find_by_extid(external_id)
           return failure('[CUSTOMER_NOT_FOUND] Customer not found') unless cust
 
           # Perform additional checks (role, permissions, etc.)

@@ -9,8 +9,8 @@ require 'rhales'
 # interface that Rhales needs.
 class OnetimeSessionAdapter < SimpleDelegator
   def authenticated?
-    # Otto authentication logic: requires session['authenticated'] == true AND identity_id present
-    self['authenticated'] == true && self['identity_id'].to_s.length > 0
+    # Otto authentication logic: requires session['authenticated'] == true AND external_id present
+    self['authenticated'] == true && self['external_id'].to_s.length > 0
   end
 end
 

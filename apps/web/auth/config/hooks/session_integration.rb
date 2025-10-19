@@ -36,7 +36,7 @@ module Auth::Config::Hooks::SessionIntegration
       session['account_external_id'] = account[:external_id]
 
       if customer
-        session['identity_id'] = customer.custid
+        session['external_id'] = customer.extid
         session['email'] = customer.email
         session['locale'] = customer.locale || 'en'
       else
@@ -48,7 +48,7 @@ module Auth::Config::Hooks::SessionIntegration
       session['user_agent'] = request.user_agent
 
       OT.info "[session-integration] AFTER WRITE - Session synced for #{session['email']}"
-      OT.info "[session-integration] AFTER WRITE - authenticated=#{session['authenticated']}, identity_id=#{session['identity_id']}"
+      OT.info "[session-integration] AFTER WRITE - authenticated=#{session['authenticated']}, external_id=#{session['external_id']}"
       OT.info "[session-integration] AFTER WRITE - Session ID: #{session.id.public_id rescue session.id rescue 'no-id'}"
       OT.info "[session-integration] AFTER WRITE - Session keys: #{session.keys.join(', ') rescue 'error'}"
     end

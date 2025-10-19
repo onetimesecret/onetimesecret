@@ -13,8 +13,8 @@ module Core
         logic.raise_concerns
         logic.process
 
-        res['content-type'] = logic.content_type
-        res['Content-Length'] = logic.content_length
+        res['content-type']   = logic.content_type
+        res['content-length'] = logic.content_length
         res.write(logic.image_data)
         res.finish
       end
@@ -24,7 +24,7 @@ module Core
         OT.ld "[export_window] Session class: #{rack_session.class}"
         OT.ld "[export_window] Session ID: #{rack_session.id.public_id rescue 'no-id'}"
         OT.ld "[export_window] Session keys: #{rack_session.keys.join(', ') rescue 'no-keys'}"
-        OT.ld "[export_window] authenticated=#{rack_session['authenticated']}, identity_id=#{rack_session['identity_id']}"
+        OT.ld "[export_window] authenticated=#{rack_session['authenticated']}, external_id=#{rack_session['external_id']}"
         OT.ld "[export_window] authenticated? #{authenticated?}"
         view = Core::Views::ExportWindow.new(req, session, cust, locale)
         res.headers['content-type'] = 'application/json; charset=utf-8'
@@ -34,7 +34,7 @@ module Core
       def robots_txt
         view = Core::Views::RobotsTxt.new(request, session, cust, locale)
         res.headers['content-type'] = 'text/plain'
-        res.body = view.render
+        res.body                    = view.render
       end
     end
   end

@@ -37,7 +37,7 @@ module Onetime
     #
     # Bad (causes duplicate lookup):
     # ```ruby
-    # customer = Onetime::Customer.load(session['identity_id'])  # Already loaded by middleware!
+    # customer = Onetime::Customer.find_by_extid(session['external_id'])  # Already loaded by middleware!
     # ```
     #
     class IdentityResolution
@@ -153,10 +153,10 @@ module Onetime
       def resolve_basic_identity(request, env)
         # Use Rack::Session from middleware
         session = env['rack.session']
-        return no_identity unless session && session['identity_id']
+        return no_identity unless session && session['external_id']
 
         begin
-          # Load customer using identity_id from session
+          # Load customer using external_id from session
           customer = load_customer_from_session(session)
           return no_identity unless customer
 
@@ -200,8 +200,8 @@ module Onetime
       end
 
       def load_customer_from_session(session)
-        # Use existing Customer model to load by identity_id
-        return nil unless session['identity_id']
+        # Use existing Customer model to load by external_id
+        return nil unless session['external_id']
 
         begin
           # Load Onetime::Customer if not already loaded
@@ -210,7 +210,7 @@ module Onetime
           # a Onetime model.
           require_relative '../onetime/models' unless defined?(Onetime::Customer)
 
-          Onetime::Customer.load(session['identity_id'])
+          Onetime::Customer.find_by_extid(session['external_id'])
         rescue StandardError => ex
           logger.debug "[IdentityResolution] Could not load customer: #{ex.message}"
           nil

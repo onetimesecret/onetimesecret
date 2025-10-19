@@ -5,7 +5,7 @@
 #
 # Tests cover:
 # 1. Anonymous users (no session) -> user should be nil
-# 2. Authenticated users (session with identity_id) -> user should be Customer
+# 2. Authenticated users (session with external_id) -> user should be Customer
 # 3. StrategyResult#authenticated? returns correct values
 # 4. Strategy always succeeds (noauth allows everyone)
 
@@ -37,7 +37,7 @@ OT.boot! :test, false
 @env_auth = {
   'rack.session' => {
     'authenticated' => true,
-    'identity_id' => @test_customer.custid,
+    'external_id' => @test_customer.extid,
     'email' => @test_customer.email
   },
   'REMOTE_ADDR' => '127.0.0.1',
@@ -57,7 +57,7 @@ OT.boot! :test, false
 @env_missing = {
   'rack.session' => {
     'authenticated' => true,
-    'identity_id' => 'nonexistent@example.com',
+    'external_id' => 'nonexistent@example.com',
     'email' => 'nonexistent@example.com'
   },
   'REMOTE_ADDR' => '127.0.0.1',
@@ -74,7 +74,7 @@ OT.boot! :test, false
 ## Test 4: Strategy always succeeds (returns StrategyResult, never fails)
 @results = [
   @strategy.authenticate({'rack.session' => {}}, nil),
-  @strategy.authenticate({'rack.session' => {'identity_id' => 'fake'}}, nil)
+  @strategy.authenticate({'rack.session' => {'external_id' => 'fake'}}, nil)
 ]
 @results.all? { |r| r.is_a?(Otto::Security::Authentication::StrategyResult) }
 #=> true

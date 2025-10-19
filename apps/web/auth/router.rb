@@ -143,8 +143,8 @@ module Auth
     # Returns the current customer from session or anonymous
     # @return [Onetime::Customer]
     def current_customer
-      if session['identity_id']
-        Onetime::Customer.find(session['identity_id'])
+      if session['external_id']
+        Onetime::Customer.find_by_extid(session['external_id'])
       else
         Onetime::Customer.anonymous
       end
