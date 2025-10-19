@@ -142,7 +142,13 @@ export function useAuth() {
         return false;
       }
 
-      error.value = err.response?.data?.error || 'Login failed. Please try again.';
+      // Handle error responses (4xx, 5xx)
+      if (errorData) {
+        error.value = errorData.error || 'Login failed. Please try again.';
+        fieldError.value = errorData['field-error'] || null;
+      } else {
+        error.value = 'Login failed. Please try again.';
+      }
       return false;
     } finally {
       isLoading.value = false;
@@ -183,7 +189,14 @@ export function useAuth() {
       await router.push('/signin');
       return true;
     } catch (err: any) {
-      error.value = err.response?.data?.error || 'Account creation failed. Please try again.';
+      // Handle error responses (4xx, 5xx)
+      if (err.response?.data) {
+        const errorData = err.response.data;
+        error.value = errorData.error || 'Account creation failed. Please try again.';
+        fieldError.value = errorData['field-error'] || null;
+      } else {
+        error.value = 'Account creation failed. Please try again.';
+      }
       return false;
     } finally {
       isLoading.value = false;
