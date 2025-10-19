@@ -78,6 +78,7 @@ end
 
 require_relative 'onetime/alias'
 require_relative 'onetime/errors'
+require_relative 'onetime/error_handler'
 require_relative 'onetime/utils'
 require_relative 'onetime/version'
 require_relative 'onetime/config'
