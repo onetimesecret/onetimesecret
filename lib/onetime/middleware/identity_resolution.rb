@@ -91,6 +91,9 @@ module Onetime
       def resolve_advanced_identity(_request, env)
           # Get session from Redis session middleware
           session = env['rack.session']
+          logger.debug "[IdentityResolution] Advanced - Session: #{session.class}, keys: #{session.keys.join(', ') rescue 'none'}"
+          logger.debug "[IdentityResolution] Advanced - authenticated=#{session['authenticated']}, account_external_id=#{session['account_external_id']}"
+
           return no_identity unless session
 
           # Check for Advanced authentication markers

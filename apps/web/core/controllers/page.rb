@@ -20,6 +20,11 @@ module Core
       end
 
       def export_window
+        rack_session = req.env['rack.session']
+        OT.ld "[export_window] Session class: #{rack_session.class}"
+        OT.ld "[export_window] Session ID: #{rack_session.id.public_id rescue 'no-id'}"
+        OT.ld "[export_window] Session keys: #{rack_session.keys.join(', ') rescue 'no-keys'}"
+        OT.ld "[export_window] authenticated=#{rack_session['authenticated']}, identity_id=#{rack_session['identity_id']}"
         OT.ld "[export_window] authenticated? #{authenticated?}"
         view = Core::Views::ExportWindow.new(req, session, cust, locale)
         res.headers['content-type'] = 'application/json; charset=utf-8'

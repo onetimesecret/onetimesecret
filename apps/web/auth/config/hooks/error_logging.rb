@@ -81,6 +81,45 @@ module Auth
               # Fires: After successful authentication
               # Logs: "Login successful: user@example.com"
               OT.li "[auth] Login successful: #{account[:email]}"
+
+              # Session integration (merged from session_integration.rb)
+              # Clear rate limiting on successful login
+              rate_limit_key = "login_attempts:#{account[:email]}"
+              client = Familia.dbclient
+              client.del(rate_limit_key)
+
+              # Load customer for session sync
+              OT.info "[session-integration] Looking up customer: external_id=#{account[:external_id]}, email=#{account[:email]}"
+
+              # Try extid first, fallback to email
+              customer = if account[:external_id]
+                Onetime::Customer.find_by_extid(account[:external_id])
+              end
+
+              # Fallback to email if extid lookup failed
+              customer ||= Onetime::Customer.load(account[:email])
+
+              OT.info "[session-integration] Customer found: #{customer&.custid || 'nil'}"
+
+              # Sync Rodauth session with application session format
+              session['authenticated'] = true
+              session['authenticated_at'] = Familia.now.to_i
+              session['advanced_account_id'] = account_id
+              session['account_external_id'] = account[:external_id]
+
+              if customer
+                session['identity_id'] = customer.custid
+                session['email'] = customer.email
+                session['locale'] = customer.locale || 'en'
+              else
+                session['email'] = account[:email]
+              end
+
+              # Track metadata
+              session['ip_address'] = request.ip
+              session['user_agent'] = request.user_agent
+
+              OT.info "[session-integration] Session synced: authenticated=#{session['authenticated']}, identity_id=#{session['identity_id']}"
             end
 
             after_login_failure do
