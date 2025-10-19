@@ -353,7 +353,10 @@
     },
     "signup": {
       "create-your-account": "Create Your Account",
-      "have_an_account": "Or, sign in to your account"
+      "have_an_account": "Or, sign in to your account",
+      "error_title": "Account Creation Error",
+      "password_error": "Password",
+      "email_error": "Email"
     },
     "incoming": {
       "tagline1": "Paste a password, secret message or private link below.",

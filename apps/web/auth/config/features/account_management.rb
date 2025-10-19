@@ -17,6 +17,10 @@ module Auth
             # Password requirements
             password_minimum_length 8
 
+            # Disable password confirmation field requirement
+            # UI sends single password field, not password + confirmation
+            require_password_confirmation? false
+
             # Password is set during account creation, not during verification
             # This prevents verify_account from requiring password fields
             verify_account_set_password? false
