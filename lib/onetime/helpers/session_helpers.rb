@@ -1,4 +1,23 @@
 # lib/onetime/helpers/session_helpers.rb
+#
+# Session-based authentication helpers that minimize database/Redis lookups.
+#
+# Performance Pattern:
+# - Authentication checks use session data only (no DB/Redis hit)
+# - Customer object is lazy-loaded only when actually needed
+# - Role checks use session data for common permission checks
+#
+# Session Data Stored:
+# - external_id: Links to Customer.extid (Redis primary key)
+# - email: User's email address
+# - role: User's role (customer, colonel, etc.) for quick permission checks
+# - authenticated: Boolean flag
+# - authenticated_at: Unix timestamp
+#
+# Usage:
+#   authenticated?      # Fast - checks session only
+#   has_role?(:colonel) # Fast - checks session only
+#   current_customer    # Slow - loads from Redis (use sparingly)
 
 module Onetime
   module Helpers
@@ -8,6 +27,16 @@ module Onetime
         session['authenticated'] == true &&
         session['external_id'].to_s.length > 0 &&
         authentication_enabled?
+      end
+
+      # Check user role without loading Customer (uses session data)
+      def has_role?(role_name)
+        return false unless authenticated?
+        session['role'].to_s == role_name.to_s
+      end
+
+      def colonel?
+        has_role?(:colonel)
       end
 
       def current_customer
@@ -24,6 +53,7 @@ module Onetime
         # Set authentication data
         session['external_id'] = customer.extid
         session['email'] = customer.email
+        session['role'] = customer.role  # Store role for permission checks
         session['authenticated'] = true
         session['authenticated_at'] = Familia.now.to_i
         session['ip_address'] = request.ip
@@ -47,7 +77,8 @@ module Onetime
         customer = Onetime::Customer.find_by_extid(session['external_id'])
         return Onetime::Customer.anonymous unless customer
 
-        # Update last seen timestamp
+        # Update cached session data if it changed
+        session['role'] = customer.role if session['role'] != customer.role
         session['last_seen'] = Familia.now.to_i
 
         customer

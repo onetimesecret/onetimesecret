@@ -18,11 +18,29 @@ module Auth::Config::Hooks::SessionIntegration
       client.del(rate_limit_key)
 
       # Load customer for session sync
-      customer = if account[:external_id]
-        Onetime::Customer.find_by_extid(account[:external_id])
-      else
-        Onetime::Customer.load(account[:email])
+      # Try extid lookup first, then fallback to email
+      customer = Onetime::Customer.find_by_extid(account[:external_id]) if account[:external_id]
+      customer ||= Onetime::Customer.find_by_email(account[:email])
+
+      # If Customer doesn't exist in Redis, create it
+      # This can happen if Redis was cleared or account created before Customer integration
+      unless customer
+        OT.info "[session-integration] Customer not found - creating from Rodauth account"
+        customer = Onetime::Customer.create!(
+          email: account[:email],
+          role: 'customer',
+          verified: account[:status_id] == 2 ? '1' : '0'  # 2 = Verified status
+        )
+
+        # Update Rodauth account with new extid
+        Auth::Config::Database.connection[:accounts]
+          .where(id: account_id)
+          .update(external_id: customer.extid)
+
+        OT.info "[session-integration] Created Customer: #{customer.custid}, extid: #{customer.extid}"
       end
+
+      OT.info "[session-integration] Customer lookup: extid=#{account[:external_id]&.slice(0,10)}..., email=#{account[:email]}, found=#{!customer.nil?}"
 
       # Sync Rodauth session with application session format
       # Now that we're using :rack_session plugin, Rodauth's session
@@ -38,9 +56,11 @@ module Auth::Config::Hooks::SessionIntegration
       if customer
         session['external_id'] = customer.extid
         session['email'] = customer.email
+        session['role'] = customer.role  # Store role for permission checks
         session['locale'] = customer.locale || 'en'
       else
         session['email'] = account[:email]
+        session['role'] = 'customer'  # Default role
       end
 
       # Track metadata

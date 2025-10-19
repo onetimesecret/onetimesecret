@@ -171,6 +171,10 @@ module Onetime
       # Update expiration if configured
       stringkey.update_expiration(expiration: @expire_after) if @expire_after && @expire_after > 0
 
+      # Debug logging
+      Familia.ld "[Session] Wrote session #{sid_string}: #{session_data.keys.join(', ')}"
+      Familia.ld "[Session] Session TTL: #{stringkey.ttl}"
+
       # Return the original sid (may be SessionId object)
       sid
     rescue StandardError => ex

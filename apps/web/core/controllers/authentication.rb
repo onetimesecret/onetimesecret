@@ -60,8 +60,12 @@ module Core
           # The logic class modifies its own @sess copy, so we need to copy those changes
           # to the actual Rack session for persistence
           session['external_id'] = cust_after.extid
+          session['email'] = cust_after.email
+          session['role'] = cust_after.role
           session['authenticated'] = true
-          session['authenticated_at'] = Familia.now
+          session['authenticated_at'] = Familia.now.to_i
+
+          OT.info "[auth] Session updated for #{cust_after.obscure_email}: external_id=#{cust_after.extid}, session_id=#{session.id&.public_id rescue 'unknown'}"
 
           # Override redirect for colonel role
           if !json_requested? && cust_after.role?(:colonel)
