@@ -1,3 +1,6 @@
+[1-9]+/
+[1-9]*/*
+
 [A-Z]*.md
 
 # Docs - File naming conventions and structure
