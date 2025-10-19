@@ -12,8 +12,8 @@ module Auth
 
               # Clear rate limiting on successful login
               rate_limit_key = "login_attempts:#{account[:email]}"
-              redis = Familia.redis(db: 0)
-              redis.del(rate_limit_key)
+              client = Familia.dbclient
+              client.del(rate_limit_key)
 
               # Load customer for session sync
               customer = if account[:external_id]

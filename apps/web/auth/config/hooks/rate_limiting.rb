@@ -11,15 +11,15 @@ module Auth
               email = param('login') || param('email')
               rate_limit_key = "login_attempts:#{email}"
 
-              redis = Familia.redis(db: 0)
-              attempts = redis.incr(rate_limit_key).to_i
+              client = Familia.dbclient
+              attempts = client.incr(rate_limit_key).to_i
 
               # Set expiry on first attempt (5 minute window)
-              redis.expire(rate_limit_key, 300) if attempts == 1
+              client.expire(rate_limit_key, 300) if attempts == 1
 
               # Allow 5 attempts per 5 minutes
               if attempts > 5
-                remaining_ttl = redis.ttl(rate_limit_key)
+                remaining_ttl = client.ttl(rate_limit_key)
                 minutes = (remaining_ttl / 60.0).ceil
 
                 OT.info "[auth] Rate limit exceeded for #{OT::Utils.obscure_email(email)}: #{attempts} attempts"
@@ -33,8 +33,8 @@ module Auth
               ip = request.ip
 
               rate_limit_key = "login_attempts:#{email}"
-              redis = Familia.redis(db: 0)
-              attempts = redis.get(rate_limit_key).to_i
+              client = Familia.dbclient
+              attempts = client.get(rate_limit_key).to_i
 
               OT.info "[auth] Failed login attempt #{attempts}/5 for #{OT::Utils.obscure_email(email)} from #{ip}"
 

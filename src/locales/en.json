@@ -400,8 +400,19 @@
         "title": "Verify Your Account",
         "success": "Your account has been verified successfully",
         "invalid-key": "Invalid or expired verification key",
+        "expired-key": "This verification link has expired. Please request a new one.",
+        "already-verified": "This account has already been verified. You can sign in now.",
+        "unable-to-verify": "Unable to verify account. Please try again or contact support.",
         "check-email": "Please check your email for a verification link",
-        "error": "Account verification failed. Please check your verification link or request a new one."
+        "error": "Account verification failed. Please check your verification link or request a new one.",
+        "error-title": "Verification Failed",
+        "what-to-do": "What should I do?",
+        "check-email-help": "Check your email for the most recent verification link",
+        "check-spam": "Check your spam/junk folder if you can't find the email",
+        "contact-support": "Contact support if you continue to have issues",
+        "missing-key-title": "Verification Link Required",
+        "missing-key-message": "Please use the verification link sent to your email address to verify your account.",
+        "create-new-account": "Create New Account"
       },
       "change-password": {
         "title": "Change Password",

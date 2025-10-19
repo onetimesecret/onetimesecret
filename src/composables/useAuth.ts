@@ -306,6 +306,7 @@ export function useAuth() {
     try {
       const response = await $api.post<VerifyAccountResponse>('/auth/verify-account', {
         key,
+        shrimp: csrfStore.shrimp,
       });
 
       const validated = verifyAccountResponseSchema.parse(response.data);
