@@ -91,7 +91,7 @@ module Onetime
             secret: Onetime.auth_config.session['secret'],
             expire_after: 86_400, # 24 hours
             secure: Onetime.conf&.dig('site', 'ssl'),
-            same_site: :strict,
+            same_site: :lax,
           }
 
           # Identity resolution middleware (after session)
