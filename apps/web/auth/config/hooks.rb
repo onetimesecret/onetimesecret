@@ -32,9 +32,15 @@
 #
 # Logs authentication events for debugging and security monitoring.
 # Emails obscured. No passwords, tokens, or keys logged.
-#
-require_relative 'hooks/account_lifecycle'
-require_relative 'hooks/authentication'
-require_relative 'hooks/session_integration'
-require_relative 'hooks/rate_limiting'
-require_relative 'hooks/validation'
+
+module Auth
+  module Config
+    module Hooks
+      require_relative 'hooks/account_lifecycle'
+      require_relative 'hooks/authentication'
+      require_relative 'hooks/session_integration'
+      require_relative 'hooks/rate_limiting'
+      require_relative 'hooks/validation'
+    end
+  end
+end
