@@ -43,7 +43,7 @@ OT.boot! :test, false
 @existing_customer = Onetime::Customer.new(email: @unique_email.call)
 @existing_customer.save
 @auth_strategy_result = Otto::Security::Authentication::StrategyResult.new(
-  session: { 'authenticated' => true, 'identity_id' => @existing_customer.custid },
+  session: { 'authenticated' => true, 'external_id' => @existing_customer.extid },
   user: @existing_customer,
   auth_method: 'sessionauth',
   metadata: { ip: '127.0.0.1' }

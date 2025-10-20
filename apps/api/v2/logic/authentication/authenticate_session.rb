@@ -52,7 +52,7 @@ module V2::Logic
         OT.info "[login-success] #{sess.id} #{cust.obscure_email} #{cust.role}"
 
         # Set session authentication data
-        sess['identity_id'] = cust.objid
+        sess['external_id'] = cust.extid
         sess['authenticated'] = true
         sess['authenticated_at'] = Familia.now.to_i
         cust.save

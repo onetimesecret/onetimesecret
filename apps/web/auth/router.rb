@@ -31,17 +31,20 @@ module Auth
     plugin :halt
     plugin :status_handler
 
-    # Activate Rodauth with configuration (advanced mode only)
-    if Onetime.auth_config.advanced_enabled?
-      plugin :rodauth do
-        instance_eval(&Auth::Config.configure)
-      end
-    else
+    # Activate Rodauth with configuration but print a warning
+    # to the logs if we're actually in basic mode. This in
+    # meant to be prevented when composing the rack app at
+    # load time but this is a secondary check..
+    unless Onetime.auth_config.advanced_enabled?
       # Warn if Auth app is loaded in basic mode - it shouldn't be mounted at all
       OT.le '[Auth::Router] WARNING: Auth application loaded in basic mode'
       OT.le '  The Auth app is designed for advanced mode only.'
       OT.le '  In basic mode, authentication routes should be handled by Core app.'
       OT.le '  This app will return 404 for all Rodauth routes.'
+    end
+
+    plugin :rodauth do
+      instance_eval(&Auth::Config.configure)
     end
 
     # Status handlers
@@ -69,7 +72,7 @@ module Auth
 
       # All Rodauth routes (login, logout, create-account, reset-password, etc.)
       # Rodauth handles all /auth/* routes when advanced mode is enabled
-      r.rodauth if Onetime.auth_config.advanced_enabled?
+      r.rodauth
 
       # Additional custom routes can be added here
       handle_custom_routes(r)
@@ -87,7 +90,7 @@ module Auth
       r.on('health') do
         r.get do
             # Test database connection if in advanced mode
-            db_status = if Onetime.auth_config.advanced_enabled? && Auth::Config::Database.connection
+            db_status = if Auth::Config::Database.connection
               Auth::Config::Database.connection.test_connection ? 'ok' : 'error'
             else
               'not_required'
@@ -114,8 +117,8 @@ module Auth
       r.on('admin') do
         # Add admin authentication here
         r.get('stats') do
-            if Onetime.auth_config.advanced_enabled? && Auth::Config::Database.connection
-              db = Auth::Config::Database.connection
+            db = Auth::Config::Database.connection
+            if db
               {
                 total_accounts: db[:accounts].count,
                 verified_accounts: db[:accounts].where(status_id: 2).count,
@@ -126,7 +129,7 @@ module Auth
             else
               {
                 mode: 'basic',
-                message: 'Stats not available in basic mode',
+                message: 'Stats not available',
               }
             end
           rescue StandardError => ex
@@ -140,8 +143,8 @@ module Auth
     # Returns the current customer from session or anonymous
     # @return [Onetime::Customer]
     def current_customer
-      if session['identity_id']
-        Onetime::Customer.find(session['identity_id'])
+      if session['external_id']
+        Onetime::Customer.find_by_extid(session['external_id'])
       else
         Onetime::Customer.anonymous
       end

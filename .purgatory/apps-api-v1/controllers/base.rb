@@ -53,7 +53,7 @@ module V1
 
         # Second line, check for session cookie. We allow this in certain cases
         # like API requests coming from hybrid Vue components.
-        elsif req.cookie?(:sess) || session['identity_id']
+        elsif req.cookie?(:sess) || session['external_id']
 
           setup_request_context if respond_to?(:setup_request_context)
 

@@ -32,6 +32,7 @@ gem 'rack-protection', '~> 4.1'
 gem 'rack-session', '~> 2.1.1'
 gem 'rackup'
 gem 'rack-utf8_sanitizer'
+gem 'semantic_logger', '~> 4.17'
 
 # ====================================
 # Data Processing & Utilities

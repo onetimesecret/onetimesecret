@@ -28,6 +28,7 @@ INSERT INTO account_statuses (id, name) VALUES
 -- Main accounts table
 CREATE TABLE accounts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    external_id VARCHAR(64) UNIQUE,
     email VARCHAR(255) NOT NULL COLLATE NOCASE,
     status_id INTEGER NOT NULL DEFAULT 1 REFERENCES account_statuses(id),
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

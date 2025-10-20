@@ -79,14 +79,14 @@ repos:
 
   # Commit message issue tracking integration
   - repo: https://github.com/avilaton/add-msg-issue-prefix-hook
-    rev: v0.0.11
+    rev: v0.0.13
     hooks:
       - id: add-msg-issue-prefix
         stages: [prepare-commit-msg]
         description: Automatically prefix commits with issue numbers
         args:
           - '--default='
-          - '--pattern=(?:i18n(?=\/)|[a-zA-Z0-9]{0,10}-?[0-9]{1,5})'
+          - '--pattern=(i18n(?=/)|([a-zA-Z0-9]{0,10}-?[0-9]{1,5}))'
           - '--template=[#{}]'
 
   # Local JavaScript linting: quick syntax checks

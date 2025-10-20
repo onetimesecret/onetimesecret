@@ -77,7 +77,7 @@ module V2
               OT.info "[FromStripePaymentLink:login-success] #{sess} #{cust.obscure_email} #{cust.role}"
 
               # Set session authentication data
-              sess['identity_id'] = cust.custid
+              sess['external_id'] = cust.extid
               sess['authenticated'] = true
               sess['authenticated_at'] = Familia.now.to_i
 

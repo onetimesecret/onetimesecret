@@ -7,6 +7,7 @@ import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import {
   isAuthError,
+  lockoutErrorSchema,
   type LoginResponse,
   type CreateAccountResponse,
   type LogoutResponse,
@@ -27,6 +28,7 @@ import {
   closeAccountResponseSchema,
 } from '@/schemas/api/endpoints/auth';
 import type { AxiosInstance } from 'axios';
+import type { LockoutStatus } from '@/types/auth';
 
 /**
  * Authentication composable for handling login, signup, logout, and password reset
@@ -57,6 +59,7 @@ export function useAuth() {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const fieldError = ref<[string, string] | null>(null);
+  const lockoutStatus = ref<LockoutStatus | null>(null);
 
   /**
    * Clears error state
@@ -64,6 +67,7 @@ export function useAuth() {
   function clearErrors() {
     error.value = null;
     fieldError.value = null;
+    lockoutStatus.value = null;
   }
 
   /**
@@ -73,6 +77,16 @@ export function useAuth() {
     if (isAuthError(response)) {
       error.value = response.error;
       fieldError.value = response['field-error'] || null;
+
+      // Try to parse lockout information if present
+      try {
+        const lockoutParsed = lockoutErrorSchema.safeParse(response);
+        if (lockoutParsed.success && lockoutParsed.data.lockout) {
+          lockoutStatus.value = lockoutParsed.data.lockout;
+        }
+      } catch {
+        // Lockout info not present, which is fine
+      }
     }
   }
 
@@ -84,6 +98,7 @@ export function useAuth() {
    * @param rememberMe - Whether to keep session alive (optional)
    * @returns true if login successful, false otherwise
    */
+  /* eslint-disable complexity */
   async function login(email: string, password: string, rememberMe: boolean = false): Promise<boolean> {
     clearErrors();
     isLoading.value = true;
@@ -103,13 +118,37 @@ export function useAuth() {
         return false;
       }
 
+      // Check if MFA is required (Rodauth returns success but with mfa_required flag)
+      // In advanced mode with MFA enabled, Rodauth will redirect or indicate MFA is needed
+      // The response might have a special flag or the backend might return HTTP 401 with mfa_required
+      // For now, we'll check if the response indicates MFA is required
+      const responseData = validated as any;
+      if (responseData.mfa_required || responseData.requires_otp) {
+        // MFA verification needed - redirect to MFA verify page
+        await router.push('/mfa-verify');
+        return false; // Not fully logged in yet
+      }
+
       // Success - update auth state (this fetches fresh window state)
       await authStore.setAuthenticated(true);
 
       await router.push('/');
       return true;
     } catch (err: any) {
-      error.value = err.response?.data?.error || 'Login failed. Please try again.';
+      // Check if error response indicates MFA is required
+      const errorData = err.response?.data;
+      if (errorData?.mfa_required || errorData?.requires_otp) {
+        await router.push('/mfa-verify');
+        return false;
+      }
+
+      // Handle error responses (4xx, 5xx)
+      if (errorData) {
+        error.value = errorData.error || 'Login failed. Please try again.';
+        fieldError.value = errorData['field-error'] || null;
+      } else {
+        error.value = 'Login failed. Please try again.';
+      }
       return false;
     } finally {
       isLoading.value = false;
@@ -150,7 +189,14 @@ export function useAuth() {
       await router.push('/signin');
       return true;
     } catch (err: any) {
-      error.value = err.response?.data?.error || 'Account creation failed. Please try again.';
+      // Handle error responses (4xx, 5xx)
+      if (err.response?.data) {
+        const errorData = err.response.data;
+        error.value = errorData.error || 'Account creation failed. Please try again.';
+        fieldError.value = errorData['field-error'] || null;
+      } else {
+        error.value = 'Account creation failed. Please try again.';
+      }
       return false;
     } finally {
       isLoading.value = false;
@@ -273,6 +319,7 @@ export function useAuth() {
     try {
       const response = await $api.post<VerifyAccountResponse>('/auth/verify-account', {
         key,
+        shrimp: csrfStore.shrimp,
       });
 
       const validated = verifyAccountResponseSchema.parse(response.data);
@@ -376,6 +423,7 @@ export function useAuth() {
     isLoading,
     error,
     fieldError,
+    lockoutStatus,
 
     // Actions
     login,

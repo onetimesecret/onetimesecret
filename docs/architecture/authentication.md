@@ -128,7 +128,7 @@ end
 | Session Key | Basic Mode | Advanced Mode | Purpose |
 |------------|------------|---------------|---------|
 | `authenticated` | ✓ | ✓ | Auth state flag |
-| `identity_id` | ✓ | ✓ | Customer ID |
+| `external_id` | ✓ | ✓ | Customer ID |
 | `email` | ✓ | ✓ | User email |
 | `authenticated_at` | ✓ | ✓ | Timestamp |
 | `ip_address` | ✓ | ✓ | Client IP |
@@ -216,9 +216,9 @@ class NoAuthStrategy < Otto::Security::AuthStrategy
 
   def load_customer_from_session(session)
     return nil unless session && session['authenticated'] == true
-    return nil if session['identity_id'].to_s.empty?
+    return nil if session['external_id'].to_s.empty?
 
-    Onetime::Customer.load(session['identity_id'])
+    Onetime::Customer.load(session['external_id'])
   end
 
   def build_metadata(env, additional = {})
@@ -242,7 +242,7 @@ GET /api/v2/secret/:key V2::Logic::Secrets::ShowSecret auth=noauth
 
 **Key Differences from NoAuthStrategy**:
 - **Strict authentication check**: `session['authenticated'] == true` or fail
-- **Required identity**: Must have valid `identity_id` and loadable customer
+- **Required identity**: Must have valid `external_id` and loadable customer
 - **No anonymous fallback**: Returns failure instead of anonymous user
 
 ```ruby
@@ -350,7 +350,7 @@ module Core::Controllers
     def show
       customer = req.env['otto.user']           # ✅ Correct
       strategy_result = strategy_result         # ✅ Correct
-      # customer_id = session['identity_id']    # ❌ Wrong - never read session
+      # customer_id = session['external_id']    # ❌ Wrong - never read session
 
       view = Core::Views::Account.new(req, session, customer, locale)
       res.body = view.render
@@ -387,7 +387,7 @@ class AuthenticateSession < Base
 
     # Standard authentication session write
     @sess['authenticated'] = true
-    @sess['identity_id'] = cust.custid
+    @sess['external_id'] = cust.custid
     @sess['email'] = cust.email
     @sess['authenticated_at'] = Familia.now.to_i
     @sess['ip_address'] = @strategy_result.metadata[:ip]
@@ -400,11 +400,11 @@ end
 
 #### AuthenticateSession
 - **Purpose**: Log in existing user
-- **Session Fields**: `authenticated`, `identity_id`, `email`, `authenticated_at`, `ip_address`, `user_agent`
+- **Session Fields**: `authenticated`, `external_id`, `email`, `authenticated_at`, `ip_address`, `user_agent`
 
 #### CreateAccount
 - **Purpose**: Create new account and log in
-- **Session Fields**: `authenticated`, `identity_id`, `email`, `authenticated_at`
+- **Session Fields**: `authenticated`, `external_id`, `email`, `authenticated_at`
 
 #### DestroySession
 - **Purpose**: Log out user
@@ -430,7 +430,7 @@ class IdentityResolution
   # Key decisions:
   # - Check session['authenticated'] == true
   # - Advanced mode: lookup via session['account_external_id']
-  # - Basic mode: lookup via session['identity_id']
+  # - Basic mode: lookup via session['external_id']
   # - Returns identity hash with user, source, authenticated, metadata
 end
 ```

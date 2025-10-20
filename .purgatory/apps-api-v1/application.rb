@@ -18,8 +18,8 @@ module V1
       key: 'onetime.session',
       secure: OT.conf&.dig('site', 'ssl') || false,
       httponly: true,
-      same_site: :lax,
-      redis_prefix: 'session'
+      same_site: :strict,
+      redis_prefix: 'session',
     }
 
     # Common middleware stack

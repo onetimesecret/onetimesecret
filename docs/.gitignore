@@ -1,0 +1,53 @@
+[1-9]+/
+[1-9]*/*
+
+[A-Z]*.md
+
+# Docs - File naming conventions and structure
+#
+# docs/
+# ├── architecture/
+# │   ├── overview.md
+# │   ├── system-design.md
+# │   ├── data-flow.md
+# │   └── decision-records/       # ADRs - ESSENTIAL
+# │       ├── 001-choice-of-database.md
+# │       ├── 002-authentication-strategy.md
+# │       └── 003-microservices-vs-monolith.md
+# ├── internal-apis/
+# │   ├── service-a.md
+# │   └── service-b.md
+# ├── database/
+# │   ├── schema.md
+# │   ├── migrations.md
+# │   └── queries.md
+# ├── infrastructure/
+# │   ├── ci-cd.md
+# │   ├── monitoring.md
+# │   └── logging.md
+# └── onboarding/
+#     ├── new-developers.md
+#     └── codebase-tour.md
+#
+# The arrow character (→) is helpful.
+#
+# ### Common File Naming Conventions
+#
+# - Lowercase with hyphens: system-architecture.md, getting-started.md
+# - Descriptive names: Avoid abbreviations; be explicit
+# - Numbered ADRs: 001-decision-title.md, 002-next-decision.md
+# - Index files: index.md or README.md in each directory for navigation
+#
+# ### Standard Top-Level Files
+#
+# Essential Files
+# - index.md - Documentation landing page with navigation
+# - ARCHITECTURE.md or architecture/overview.md - High-level system design
+# - CONTRIBUTING.md - Often in root, but detailed guides in /docs/contributing/
+# - DEVELOPMENT.md - Developer setup and workflow
+#
+# Common Additions
+# - TESTING.md - Testing strategy and guidelines
+# - DEPLOYMENT.md - Deployment procedures
+# - SECURITY.md - Security considerations and practices
+# - TROUBLESHOOTING.md - Common issues and solutions

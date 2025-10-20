@@ -97,7 +97,7 @@ module Onetime
       # uuid_v4, hex, etc.) in @objid_generator_used for provenance tracking.
       # Accessing @objid directly bypasses the lazy generation mechanism and
       # skips provenance tracking, causing ExternalIdentifier derivation to fail.
-      self.custid ||= self.objid
+      self.custid ||= objid
       self.role   ||= 'customer'
 
       # When an instance is first created, any field that doesn't have a
@@ -142,19 +142,6 @@ module Onetime
     class << self
       attr_reader :values, :dummy
 
-      def find_by_extid(external_id)
-        return nil unless external_id
-
-        # Use extid_lookup hashkey provided by external_identifier feature
-        objid = extid_lookup[external_id]
-        return nil unless objid
-
-        load(objid)
-      rescue Familia::HorreumError => ex
-        OT.le "[Customer.find_by_extid] Error: #{ex.message}"
-        nil
-      end
-
       def create!(email = nil, **kwargs)
         # Handle both positional email argument (legacy) and keyword argument
         email ||= kwargs[:email] || kwargs['email']
@@ -167,7 +154,13 @@ module Onetime
 
         # Ensure email is in kwargs for super
         kwargs[:email] = email
-        super(**kwargs)
+        cust           = super(**kwargs)
+
+        # We need to explicitly call save which is obviously duplicative. The
+        # built-in create! uses save_if_not_exists which for some reason is not
+        # updating all unique indexes (only objid?). Likely an upstream bug.
+        cust.save
+        cust
       end
 
       def email_exists?(email)
@@ -186,9 +179,9 @@ module Onetime
         @dummy ||= begin
           # Create a dummy customer with a proper BCrypt hash
           # This ensures constant-time comparison in passphrase? method
-          dummy_cust = new(role: 'anon')
+          dummy_cust                       = new(role: 'anon')
           dummy_cust.passphrase_encryption = '1'
-          dummy_cust.passphrase = BCrypt::Password.create(SecureRandom.hex(16), cost: 12).to_s
+          dummy_cust.passphrase            = BCrypt::Password.create(SecureRandom.hex(16), cost: 12).to_s
           dummy_cust.freeze
         end
       end

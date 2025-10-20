@@ -37,7 +37,7 @@ module Onetime
     #
     # Bad (causes duplicate lookup):
     # ```ruby
-    # customer = Onetime::Customer.load(session['identity_id'])  # Already loaded by middleware!
+    # customer = Onetime::Customer.find_by_extid(session['external_id'])  # Already loaded by middleware!
     # ```
     #
     class IdentityResolution
@@ -91,6 +91,9 @@ module Onetime
       def resolve_advanced_identity(_request, env)
           # Get session from Redis session middleware
           session = env['rack.session']
+          logger.debug "[IdentityResolution] Advanced - Session: #{session.class}, keys: #{session.keys.join(', ') rescue 'none'}"
+          logger.debug "[IdentityResolution] Advanced - authenticated=#{session['authenticated']}, account_external_id=#{session['account_external_id']}"
+
           return no_identity unless session
 
           # Check for Advanced authentication markers
@@ -150,27 +153,33 @@ module Onetime
       def resolve_basic_identity(request, env)
         # Use Rack::Session from middleware
         session = env['rack.session']
-        return no_identity unless session && session['identity_id']
+        logger.debug "[IdentityResolution] Basic mode - Session class: #{session.class}, ID: #{session.id&.public_id rescue 'none'}"
+        logger.debug "[IdentityResolution] Basic mode - authenticated=#{session['authenticated']}, external_id=#{session['external_id']&.slice(0,10)}..."
 
-        begin
-          # Load customer using identity_id from session
-          customer = load_customer_from_session(session)
-          return no_identity unless customer
+        # Don't require external_id - just check authenticated flag
+        return no_identity unless session && session['authenticated'] == true
 
-          {
-            user: build_basic_user(customer, session),
-            source: 'basic',
-            authenticated: session['authenticated'] == true,
-            metadata: {
-              session_id: session.id&.private_id,
-              expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86_400 : nil,
-              ip_address: session['ip_address'] || request.ip,
-            },
-          }
-        rescue StandardError => ex
-          logger.error "[IdentityResolution] Redis session error: #{ex.message}"
-          no_identity
+        # Check session expiry
+        if session['authenticated_at']
+          max_age = Onetime.auth_config.session['expire_after'] || 86_400
+          age = Familia.now.to_i - session['authenticated_at'].to_i
+          return no_identity if age >= max_age
         end
+
+        # Return identity WITHOUT loading Customer from Redis
+        # Controllers will lazy-load via SessionHelpers#current_customer when needed
+        {
+          user: nil,  # Don't load here - let controllers use SessionHelpers
+          source: 'basic',
+          authenticated: true,
+          metadata: {
+            external_id: session['external_id'],
+            email: session['email'],
+            session_id: session.id&.private_id,
+            expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86_400 : nil,
+            ip_address: session['ip_address'] || request.ip,
+          },
+        }
       end
 
       def resolve_anonymous_identity(request, _env)
@@ -197,8 +206,8 @@ module Onetime
       end
 
       def load_customer_from_session(session)
-        # Use existing Customer model to load by identity_id
-        return nil unless session['identity_id']
+        # Use existing Customer model to load by external_id
+        return nil unless session['external_id']
 
         begin
           # Load Onetime::Customer if not already loaded
@@ -207,7 +216,7 @@ module Onetime
           # a Onetime model.
           require_relative '../onetime/models' unless defined?(Onetime::Customer)
 
-          Onetime::Customer.load(session['identity_id'])
+          Onetime::Customer.find_by_extid(session['external_id'])
         rescue StandardError => ex
           logger.debug "[IdentityResolution] Could not load customer: #{ex.message}"
           nil

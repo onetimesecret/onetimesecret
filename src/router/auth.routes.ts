@@ -103,10 +103,9 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/verify-account/:key',
+    path: '/verify-account',
     name: 'Verify Account',
     component: () => import('@/views/auth/VerifyAccount.vue'),
-    props: true,
     meta: {
       requiresAuth: false,
       isAuthRoute: true,
@@ -117,6 +116,24 @@ const routes: Array<RouteRecordRaw> = [
         displayFooterLinks: false,
         displayFeedback: false,
         displayVersion: false,
+      },
+    },
+  },
+  {
+    path: '/mfa-verify',
+    name: 'MFA Verify',
+    component: () => import('@/views/auth/MfaVerify.vue'),
+    meta: {
+      requiresAuth: false,
+      isAuthRoute: true,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: false,
+        displayToggles: true,
       },
     },
   },
