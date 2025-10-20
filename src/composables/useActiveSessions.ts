@@ -65,6 +65,7 @@ export function useActiveSessions() {
    */
   async function removeSession(sessionId: string): Promise<boolean> {
     clearError();
+    isLoading.value = true;
 
     try {
       const response = await $api.delete<RemoveSessionResponse>(
@@ -91,6 +92,8 @@ export function useActiveSessions() {
     } catch (err: any) {
       error.value = err.response?.data?.error || 'Failed to remove session';
       return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 

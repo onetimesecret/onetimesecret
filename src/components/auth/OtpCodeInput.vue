@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, watch } from 'vue';
+import { ref, nextTick } from 'vue';
 
 interface Props {
   disabled?: boolean;
@@ -110,19 +110,6 @@ const checkComplete = () => {
     emit('complete', code);
   }
 };
-
-// Watch for external code clearing
-watch(
-  () => props.disabled,
-  (newVal) => {
-    if (newVal) {
-      // Clear all digits when disabled
-      digitValues.forEach((d) => {
-        d.value = '';
-      });
-    }
-  }
-);
 
 // Public method to clear the input
 const clear = () => {
