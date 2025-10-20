@@ -210,6 +210,7 @@ END;
 CREATE VIEW accounts_with_status AS
 SELECT
     a.id,
+    a.external_id,
     a.email,
     s.name as status_name,
     a.status_id,
@@ -231,6 +232,7 @@ SELECT
     ask.session_id,
     ask.created_at,
     ask.last_use,
+    a.external_id,
     a.email,
     CASE
         WHEN datetime(ask.last_use, '+30 days') > datetime('now') THEN 'Active'

@@ -262,6 +262,7 @@ $$ LANGUAGE plpgsql;
 CREATE VIEW accounts_with_status AS
 SELECT
     a.id,
+    a.external_id,
     a.email,
     s.name as status_name,
     a.status_id,
@@ -283,6 +284,7 @@ SELECT
     ask.session_id,
     ask.created_at,
     ask.last_use,
+    a.external_id,
     a.email,
     CASE
         WHEN ask.last_use + INTERVAL '30 days' > NOW() THEN 'Active'

@@ -2,24 +2,22 @@
 
 MIGRATION_ROOT = __dir__
 
-# rubocop:disable Lint/ConstantDefinitionInBlock
 Sequel.migration do
-  DB_TYPE       = DB.adapter_scheme            # :sqlite or :postgres
-  SCHEMA_FILE   = File.join(MIGRATION_ROOT, 'schemas', DB_TYPE.to_s, '001_initial.sql')
-  ROLLBACK_FILE = File.join(MIGRATION_ROOT, 'schemas', DB_TYPE.to_s, '001_initial_down.sql')
-
   up do
-    return if SCHEMA_FILE.nil?
-    raise "SQL file not found: #{SCHEMA_FILE}" unless File.exist?(SCHEMA_FILE)
+    db_type       = adapter_scheme            # :sqlite or :postgres
+    schema_file   = File.join(MIGRATION_ROOT, 'schemas', db_type.to_s, '001_initial.sql')
 
-    run File.read(SCHEMA_FILE)
+    raise "SQL file not found: #{schema_file}" unless File.exist?(schema_file)
+
+    run File.read(schema_file)
   end
 
   down do
-    return if ROLLBACK_FILE.nil?
-    raise "SQL file not found: #{ROLLBACK_FILE}" unless File.exist?(ROLLBACK_FILE)
+    db_type       = adapter_scheme            # :sqlite or :postgres
+    rollback_file = File.join(MIGRATION_ROOT, 'schemas', db_type.to_s, '001_initial_down.sql')
 
-    run File.read(ROLLBACK_FILE)
+    raise "SQL file not found: #{rollback_file}" unless File.exist?(rollback_file)
+
+    run File.read(rollback_file)
   end
 end
-# rubocop:enable Lint/ConstantDefinitionInBlock
