@@ -1,0 +1,67 @@
+# etc/defaults/logging.defaults.yaml
+#
+# Onetime Secret - Logging Configuration
+#
+# Strategic categories for debugging and operational instrumentation:
+#   Auth     - Authentication/authorization flows
+#   Session  - Session lifecycle management
+#   HTTP     - HTTP requests, responses, and middleware
+#   Familia  - Redis operations via Familia ORM
+#   Otto     - Otto framework operations
+#   Rhales   - Rhales template rendering (future)
+#   Secret   - Core business value (create/view/burn)
+#   App      - Default fallback for application-level logging
+#
+# Environment variable overrides:
+#   LOG_LEVEL=debug              - Set global log level
+#   DEBUG_LOGGERS=Auth:debug,Secret:trace - Set specific logger levels
+#   DEBUG_AUTH=1                 - Quick debug flag for Auth
+#   DEBUG_SESSION=1              - Quick debug flag for Session
+#   DEBUG_HTTP=1                 - Quick debug flag for HTTP
+#   DEBUG_SECRET=1               - Quick debug flag for Secret
+
+# Global default log level
+# Options: trace, debug, info, warn, error, fatal
+default_level: info
+
+# Output formatter
+# Options: default, color, json
+# Use 'json' for production log shipping, 'color' for development
+formatter: color
+
+# Named logger levels
+# Each category can be configured independently
+loggers:
+  Auth: info      # Authentication/authorization flows
+  Session: info   # Session lifecycle (create, update, destroy)
+  HTTP: warn      # HTTP requests and middleware operations
+  Familia: warn   # Redis/Familia ORM operations
+  Otto: warn      # Otto framework operations
+  Rhales: warn    # Rhales template rendering (when integrated)
+  Secret: info    # Secret lifecycle (create, view, burn)
+  App: info       # Default application logger
+
+# HTTP request logging configuration
+http:
+  enabled: true
+  level: info
+
+  # Capture mode determines what data is logged per request
+  # Options: minimal, standard, debug
+  #   minimal:  method, path, status, duration
+  #   standard: + request_id, ip
+  #   debug:    + params, headers, session_id
+  capture: standard
+
+  # Threshold for logging slow requests as warnings (milliseconds)
+  slow_request_ms: 1000
+
+  # Paths to ignore (glob patterns)
+  ignore_paths:
+    - /api/v1/status
+    - /api/v2/status
+    - /health
+    - /healthcheck
+    - /favicon.ico
+    - /_vite/*
+    - /assets/*

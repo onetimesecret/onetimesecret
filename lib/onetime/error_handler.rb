@@ -30,6 +30,7 @@ module Onetime
 
     class << self
       private
+
       # Logs error details with operation context
       def log_error(operation, ex, context)
         OT.le "[error-handler] #{operation} failed (#{ex.class}): #{ex.message}"

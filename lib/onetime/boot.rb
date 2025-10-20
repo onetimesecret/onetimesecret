@@ -52,6 +52,7 @@ module Onetime
       # NOTE: We could benefit from tsort to make sure these
       # initializers are loaded in the correct order.
       load_locales
+      configure_logging
       set_global_secret
       set_rotated_secrets
       setup_diagnostics
