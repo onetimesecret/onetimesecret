@@ -20,15 +20,22 @@ module Onetime
         # @param session [Hash] Rack session
         # @return [Onetime::Customer, nil] Customer if found, nil otherwise
         def load_customer_from_session(session)
+          OT.ld "[load_customer_from_session] Session present: #{!session.nil?}"
           return nil unless session
+
+          OT.ld "[load_customer_from_session] authenticated=#{session['authenticated'].inspect} (type: #{session['authenticated'].class})"
           return nil unless session['authenticated'] == true
 
           external_id = session['external_id']
+          OT.ld "[load_customer_from_session] external_id=#{external_id.inspect}"
           return nil if external_id.to_s.empty?
 
-          Onetime::Customer.find_by_extid(external_id)
+          customer = Onetime::Customer.find_by_extid(external_id)
+          OT.ld "[load_customer_from_session] Found customer: #{customer&.custid || 'nil'}"
+          customer
         rescue StandardError => ex
           OT.le "[auth_strategy] Failed to load customer: #{ex.message}"
+          OT.ld ex.backtrace.first(3).join("\n")
           nil
         end
 

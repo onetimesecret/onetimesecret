@@ -125,6 +125,23 @@ class OT::CLI::Definition
   option :c, :custid, String, 'Customer ID to revalidate'
   command revalidate_domains: OT::DomainsCommand
 
+  usage 'ots session <subcommand>'
+  about 'Session inspection and debugging tools'
+  about 'Subcommands:'
+  about '  inspect <session-id>       - Show detailed session information'
+  about '  list [--limit N]           - List active sessions'
+  about '  search <email-or-custid>   - Find sessions for a user'
+  about '  delete <session-id>        - Delete a session'
+  about '  clean                      - Remove expired sessions'
+  option :l, :limit, Integer, 'Limit number of results'
+  option :f, :force, 'Force operation without confirmation'
+  command :session  => OT::SessionCommand
+  command inspect: OT::SessionCommand
+  command list: OT::SessionCommand
+  command search: OT::SessionCommand
+  command delete: OT::SessionCommand
+  command clean: OT::SessionCommand
+
   # usage 'ots initializers [--dependencies]'
   # about 'Display boot-time initializers in order'
   # about 'Use global --verbose for full module names'

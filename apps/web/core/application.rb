@@ -26,6 +26,8 @@ module Core
       # This handles code validation and frontend development server integration
       use Core::Middleware::ViteProxy
 
+      use ::Middleware::SessionDebugger if ENV['DEBUG_SESSION']
+
       # Schema validation middleware validates that hydration data matches
       # the JSON schemas generated from <schema> sections in .rue templates.
       #
@@ -44,12 +46,12 @@ module Core
             skip_paths: [
               '/assets',
               '/api',
-              '/public'
+              '/public',
             ]
-          OT.ld "[Rhales] Schema validation middleware enabled"
-        rescue LoadError => e
-          warn "Warning: Could not load schema validation middleware: #{e.message}"
-          warn "This is expected if json_schemer gem is not available."
+          OT.ld '[Rhales] Schema validation middleware enabled'
+        rescue LoadError => ex
+          warn "Warning: Could not load schema validation middleware: #{ex.message}"
+          warn 'This is expected if json_schemer gem is not available.'
         end
       end
     end
@@ -63,7 +65,6 @@ module Core
 
     warmup do
       # Expensive initialization tasks go here
-
     end
 
     protected
