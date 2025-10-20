@@ -136,11 +136,6 @@ class OT::CLI::Definition
   option :l, :limit, Integer, 'Limit number of results'
   option :f, :force, 'Force operation without confirmation'
   command :session  => OT::SessionCommand
-  command inspect: OT::SessionCommand
-  command list: OT::SessionCommand
-  command search: OT::SessionCommand
-  command delete: OT::SessionCommand
-  command clean: OT::SessionCommand
 
   # usage 'ots initializers [--dependencies]'
   # about 'Display boot-time initializers in order'

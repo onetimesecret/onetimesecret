@@ -39,25 +39,25 @@ module Onetime
         return
       end
 
-      puts "=" * 80
+      puts '=' * 80
       puts "Session Inspector: #{session_id}"
-      puts "=" * 80
+      puts '=' * 80
       puts
 
       # Try to find session in Redis using common patterns
-      redis = Familia.dbclient
+      redis        = Familia.dbclient
       session_data = find_session_in_redis(redis, session_id)
 
       unless session_data
-        puts "❌ Session not found in Redis"
+        puts '❌ Session not found in Redis'
         puts
-        puts "Searched patterns:"
+        puts 'Searched patterns:'
         session_key_patterns(session_id).each do |pattern|
           puts "  - #{pattern}"
         end
         puts
-        puts "Available session keys (first 10):"
-        all_keys = redis.keys("*session*").first(10)
+        puts 'Available session keys (first 10):'
+        all_keys = redis.keys('*session*').first(10)
         all_keys.each { |key| puts "  - #{key}" }
         return
       end
@@ -71,54 +71,55 @@ module Onetime
       limit = option.limit || 20
 
       puts "Active Sessions (limit: #{limit})"
-      puts "-" * 80
+      puts '-' * 80
 
-      redis = Familia.dbclient
-      session_keys = redis.keys("*session*").first(limit)
+      redis        = Familia.dbclient
+      session_keys = redis.scan_each(match: '*session*').first(limit)
 
       if session_keys.empty?
-        puts "No sessions found"
+        puts 'No sessions found'
         return
       end
 
-      puts format("%-40s %-25s %-15s", "Session ID", "Authenticated As", "Created")
-      puts "-" * 80
+      puts format('%-40s %-25s %-15s', 'Session ID', 'Authenticated As', 'Created')
+      puts '-' * 80
 
       session_keys.each do |key|
         session_data = load_session_data(redis, key)
         next unless session_data
 
         session_id = extract_session_id_from_key(key)
-        email = session_data['email'] || 'anonymous'
-        auth = session_data['authenticated'] ? '✓' : '✗'
+        email      = session_data['email'] || 'anonymous'
+        external_id= session_data['external_id'] || '<n/a>'
+        auth       = session_data['authenticated'] ? '✓' : '✗'
         created_at = session_data['authenticated_at']
 
-        if created_at
-          time_str = Time.at(created_at).strftime('%Y-%m-%d %H:%M')
+        time_str = if created_at
+          Time.at(created_at).strftime('%Y-%m-%d %H:%M')
         else
-          time_str = 'unknown'
+          'unknown'
         end
 
-        display_email = email.length > 23 ? "#{email[0..20]}..." : email
-        puts format("%-40s %-25s %s", session_id[0..39], "#{auth} #{display_email}", time_str)
+        display_email = OT::Utils.obscure_email(email)
+        puts format('%-40s %-25s %s', session_id[0..39], "#{auth} #{display_email} #{external_id}", time_str)
       end
     end
 
-    # ots session search <email-or-custid>
+    # ots session search <email-or-external_id>
     def search
       search_term = argv.first
       unless search_term
         puts 'Error: Email or customer ID required'
-        puts 'Usage: ots session search <email-or-custid>'
+        puts 'Usage: ots session search <email-or-external_id>'
         return
       end
 
       puts "Searching for sessions matching: #{search_term}"
-      puts "-" * 80
+      puts '-' * 80
 
-      redis = Familia.dbclient
-      session_keys = redis.keys("*session*")
-      found = []
+      redis        = Familia.dbclient
+      session_keys = redis.scan_each(match: '*session*').to_a
+      found        = []
 
       session_keys.each do |key|
         session_data = load_session_data(redis, key)
@@ -157,7 +158,7 @@ module Onetime
         return
       end
 
-      redis = Familia.dbclient
+      redis       = Familia.dbclient
       session_key = find_session_key(redis, session_id)
 
       unless session_key
@@ -167,33 +168,33 @@ module Onetime
 
       # Show session info before deleting
       session_data = load_session_data(redis, session_key)
-      puts "Session to delete:"
+      puts 'Session to delete:'
       puts "  ID: #{session_id}"
       puts "  Email: #{session_data['email']}" if session_data
       puts "  Authenticated: #{session_data['authenticated']}" if session_data
       puts
 
       unless option.force
-        print "Delete this session? (y/N): "
+        print 'Delete this session? (y/N): '
         response = $stdin.gets.chomp
         unless response.downcase == 'y'
-          puts "Cancelled"
+          puts 'Cancelled'
           return
         end
       end
 
       redis.del(session_key)
-      puts "✓ Session deleted"
+      puts '✓ Session deleted'
     end
 
     # ots session clean
     def clean
-      puts "Cleaning expired sessions..."
+      puts 'Cleaning expired sessions...'
       redis = Familia.dbclient
 
-      session_keys = redis.keys("*session*")
-      expired = 0
-      active = 0
+      session_keys = redis.scan_each(match: '*session*').to_a
+      expired      = 0
+      active       = 0
 
       session_keys.each do |key|
         ttl = redis.ttl(key)
@@ -210,7 +211,7 @@ module Onetime
         end
       end
 
-      puts "Summary:"
+      puts 'Summary:'
       puts "  Active sessions: #{active}"
       puts "  Expired sessions removed: #{expired}"
     end
@@ -222,7 +223,7 @@ module Onetime
         "session:#{session_id}",
         "rack:session:#{session_id}",
         session_id,
-        "session:rack:session:#{session_id}"
+        "session:rack:session:#{session_id}",
       ]
     end
 
@@ -264,57 +265,57 @@ module Onetime
     end
 
     def display_session_info(data, session_id)
-      puts "Session Data:"
-      puts "-" * 80
+      puts 'Session Data:'
+      puts '-' * 80
 
       # Core session info
       puts "Session ID: #{session_id}"
       puts
 
       # Authentication status
-      puts "Authentication:"
+      puts 'Authentication:'
       if data['authenticated']
-        puts "  ✓ Authenticated"
+        puts '  ✓ Authenticated'
         puts "  Email: #{data['email']}"
         puts "  External ID: #{data['external_id'] || data['account_external_id']}"
         puts "  Role: #{data['role']}" if data['role']
         puts "  Authenticated at: #{format_timestamp(data['authenticated_at'])}"
         puts "  Authenticated by: #{data['authenticated_by']}" if data['authenticated_by']
       else
-        puts "  ✗ Not authenticated"
+        puts '  ✗ Not authenticated'
       end
       puts
 
       # Advanced auth info (if using Rodauth)
       if data['advanced_account_id']
-        puts "Advanced Auth (Rodauth):"
+        puts 'Advanced Auth (Rodauth):'
         puts "  Account ID: #{data['advanced_account_id']}"
         puts "  Active Session ID: #{data['active_session_id']}" if data['active_session_id']
         puts
       end
 
       # Locale and user agent
-      puts "Session Details:"
+      puts 'Session Details:'
       puts "  Locale: #{data['locale']}" if data['locale']
       puts "  IP Address: #{data['ip_address']}" if data['ip_address']
       puts "  User Agent: #{data['user_agent'][0..60]}..." if data['user_agent']
       puts
 
       # Redis info
-      redis = Familia.dbclient
+      redis       = Familia.dbclient
       session_key = find_session_key(redis, session_id)
       if session_key
         ttl = redis.ttl(session_key)
-        puts "Redis Info:"
+        puts 'Redis Info:'
         puts "  Key: #{session_key}"
         if ttl > 0
-          hours = ttl / 3600
+          hours   = ttl / 3600
           minutes = (ttl % 3600) / 60
           puts "  TTL: #{ttl}s (#{hours}h #{minutes}m remaining)"
         elsif ttl == -1
-          puts "  TTL: No expiration"
+          puts '  TTL: No expiration'
         else
-          puts "  TTL: Expired"
+          puts '  TTL: Expired'
         end
         puts
       end
@@ -322,7 +323,7 @@ module Onetime
       # All session keys
       puts "All Session Keys (#{data.keys.size}):"
       data.keys.sort.each do |key|
-        value = data[key]
+        value         = data[key]
         display_value = value.is_a?(String) && value.length > 50 ? "#{value[0..47]}..." : value.inspect
         puts "  #{key.ljust(30)}: #{display_value}"
       end
@@ -333,7 +334,7 @@ module Onetime
       [
         session_data['email'],
         session_data['external_id'],
-        session_data['account_external_id']
+        session_data['account_external_id'],
       ].compact.any? { |field| field.downcase.include?(search_term_lower) }
     end
 
