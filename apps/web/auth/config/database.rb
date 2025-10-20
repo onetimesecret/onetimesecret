@@ -22,8 +22,8 @@ module Auth
       #     key: 'onetime.session',  # Unified cookie name
       #     secure: ENV['RACK_ENV'] == 'production',
       #     httponly: true,
-      #     same_site: :lax,
-      #     redis_prefix: 'session'
+      #     same_site: :strict,
+      #     redis_prefix: 'session',
       #   }
       # end
 
