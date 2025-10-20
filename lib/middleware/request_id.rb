@@ -73,9 +73,13 @@ module Rack
     #   request_id = env['HTTP_X_REQUEST_ID']
     #
     def call(env)
-      env[HEADER]              = env.key?(HEADER) ? env[HEADER] : @generator.call
-      status, headers, body    = @app.call(env)
-      headers[RESPONSE_HEADER] = env[HEADER]
+      incoming = env[HEADER].to_s
+      # Accept only visible ASCII, no control chars; max length 200
+      valid = incoming.match?(/\A[\x20-\x7E]{1,200}\z/)
+      request_id = valid ? incoming : @generator.call.to_s
+      env[HEADER] = request_id
+      status, headers, body = @app.call(env)
+      headers[RESPONSE_HEADER] = request_id
       [status, headers, body]
     end
   end
