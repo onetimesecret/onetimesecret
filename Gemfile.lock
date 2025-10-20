@@ -293,6 +293,8 @@ GEM
     ruby_http_client (3.5.5)
     safety_net_attestation (0.5.0)
       jwt (>= 2.0, < 4.0)
+    semantic_logger (4.17.0)
+      concurrent-ruby (~> 1.0)
     sendgrid-ruby (6.7.0)
       ruby_http_client (~> 3.4)
     sentry-ruby (5.28.0)
@@ -414,6 +416,7 @@ DEPENDENCIES
   rubocop-rspec
   rubocop-thread_safety
   ruby-lsp
+  semantic_logger (~> 4.17)
   sendgrid-ruby
   sentry-ruby
   sequel (~> 5.0)

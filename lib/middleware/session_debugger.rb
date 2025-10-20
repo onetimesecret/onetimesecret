@@ -12,9 +12,9 @@
 # - Session data before and after request processing
 # - Redis storage verification
 #
-require 'json'
+require 'oj'
 
-module Middleware
+module Rack
   class SessionDebugger
     def initialize(app)
       @app     = app
@@ -148,7 +148,7 @@ module Middleware
       if auth_data.empty?
         log_warning('No authentication data in session')
       else
-        log_info('Auth data', JSON.pretty_generate(auth_data))
+        log_info('Auth data', Oj.dump(auth_data, indent: 2))
       end
 
       # Log total number of keys

@@ -1,3 +1,5 @@
+# lib/middleware/detect_host.rb
+
 module Rack
   require 'ipaddr'
 

@@ -84,6 +84,13 @@ module Onetime
           # Host detection and identity resolution (common to all apps)
           builder.use Rack::DetectHost
 
+          require 'semantic_logger'
+          SemanticLogger.add_appender(io: $stdout, formatter: :color)
+
+          # adds env['HTTP_X_REQUEST_ID']
+          require 'middleware/request_id'
+          builder.use Middleware::RequestId, id_generator: -> { Familia.generate_trace_id }
+
           builder.use Rack::Parser, parsers: @parsers
 
           # Add session middleware early in the stack (before other middleware)
