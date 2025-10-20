@@ -27,7 +27,7 @@ module Auth::Config::Hooks::AccountLifecycle
     def self.create_customer(account_id, account, db)
       # Use the account email as the customer identifier (custid).
       customer = if Onetime::Customer.exists?(account[:email])
-                    Onetime::Customer.load(account[:email])
+                    Onetime::Customer.find_by_email(account[:email])
                   else
                     props = { email: account[:email], role: 'customer', verified: '1' }
                     Onetime::Customer.create!(**props)

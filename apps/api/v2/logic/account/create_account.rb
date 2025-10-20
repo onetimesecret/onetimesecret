@@ -9,7 +9,7 @@ module V2::Logic
         @planid = params[:planid].to_s
 
         # NOTE: The parameter names should match what rodauth uses.
-        @email = params[:login].to_s.downcase.strip
+        @email    = params[:login].to_s.downcase.strip
         @password = self.class.normalize_password(params[:password])
 
         autoverify_setting = site.dig('authentication', 'autoverify')
@@ -49,8 +49,8 @@ module V2::Logic
                          end
 
         cust.planid    = planid
-        cust.verified  = @autoverify.to_s
-        cust.role      = @customer_role.to_s
+        cust.verified  = @autoverify
+        cust.role      = @customer_role
         cust.save
 
         session_id = @strategy_result.session[:id] || 'unknown'
