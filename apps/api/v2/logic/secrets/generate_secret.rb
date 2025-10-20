@@ -28,7 +28,11 @@ module V2::Logic
         # Build character set options from merged configuration
         char_sets = merged_options['character_sets'] || {}
 
-        OT.ld "[GenerateSecret] Using the character sets: #{char_sets.inspect}"
+        secret_logger.debug "Generating secret",
+          user_id: cust&.custid,
+          length: length,
+          char_sets: char_sets.keys,
+          action: 'generate'
         # Use the configurable password generation method
         @secret_value = Onetime::Utils.strand(length, char_sets)
       end

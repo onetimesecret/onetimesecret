@@ -30,6 +30,9 @@ module Onetime
       # Environment variable overrides
       apply_environment_overrides
 
+      # Configure external library loggers
+      configure_external_loggers
+
       Onetime.ld "[Logging] Initialized SemanticLogger (level: #{SemanticLogger.default_level})"
     end
 
@@ -69,7 +72,42 @@ module Onetime
       SemanticLogger['Familia'].level = :debug if ENV['DEBUG_FAMILIA']
       SemanticLogger['Otto'].level    = :debug if ENV['DEBUG_OTTO']
       SemanticLogger['Rhales'].level  = :debug if ENV['DEBUG_RHALES']
+      SemanticLogger['Sequel'].level  = :debug if ENV['DEBUG_SEQUEL']
       SemanticLogger['Secret'].level  = :debug if ENV['DEBUG_SECRET']
+    end
+
+    # Configure external library loggers to use SemanticLogger
+    #
+    # Integrates third-party libraries with our SemanticLogger infrastructure,
+    # ensuring consistent formatting and centralized log level control.
+    #
+    # Libraries configured:
+    # - Familia: Redis ORM with SemanticLogger['Familia']
+    # - Otto: Router framework with SemanticLogger['Otto']
+    # - Sequel: Database connections with SemanticLogger['Sequel']
+    #
+    # Note: Some libraries don't support custom loggers (e.g., Rhales, standard
+    # Redis gem). For those, we rely on our own logging within wrapper code.
+    #
+    def configure_external_loggers
+      # Familia Redis ORM - supports Familia.logger =
+      if defined?(Familia)
+        Familia.logger = SemanticLogger['Familia']
+      end
+
+      # Otto router - supports Otto.logger =
+      if defined?(Otto)
+        Otto.logger = SemanticLogger['Otto']
+      end
+
+      # Sequel database - configure logger on database instances
+      # This is typically done when creating the connection, but we can
+      # set a default for any existing connections
+      if defined?(Sequel) && defined?(Auth::Config::Database)
+        # Note: Database logger is configured per-connection in
+        # apps/web/auth/config/database.rb using db.loggers array
+        # We'll update that file to use SemanticLogger instead of Logger.new
+      end
     end
   end
 end

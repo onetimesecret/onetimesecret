@@ -35,8 +35,12 @@ module Auth
 
         db = Sequel.connect(database_url)
 
-        # Enable SQL logging in development
-        if ENV['RACK_ENV'] == 'development'
+        # Enable SQL logging using SemanticLogger
+        # Sequel's logger array accepts any Logger-compatible object
+        if defined?(SemanticLogger)
+          db.loggers << SemanticLogger['Sequel']
+        elsif ENV['RACK_ENV'] == 'development'
+          # Fallback to standard logger if SemanticLogger not available
           db.loggers << Logger.new($stdout)
         end
 

@@ -30,6 +30,7 @@ module Onetime
   # factory methods above to avoid state inconsistencies.
   #
   class Customer < Familia::Horreum
+    include Onetime::Logging
     require_relative 'customer/features'
 
     using Familia::Refinements::TimeLiterals
@@ -146,11 +147,16 @@ module Onetime
         # Handle both positional email argument (legacy) and keyword argument
         email ||= kwargs[:email] || kwargs['email']
 
-        OT.li "[Customer.create] email=#{email&.class} kwargs=#{kwargs.keys}"
         loggable_email = OT::Utils.obscure_email(email)
         raise Familia::Problem, 'email is required' if email.to_s.empty?
 
         raise Familia::RecordExistsError, "Customer exists #{loggable_email}" if email_exists?(email)
+
+        auth_logger = SemanticLogger['Auth']
+        auth_logger.info "Creating customer",
+          email: loggable_email,
+          kwargs: kwargs.keys,
+          action: 'create'
 
         # Ensure email is in kwargs for super
         kwargs[:email] = email
@@ -160,6 +166,14 @@ module Onetime
         # built-in create! uses save_if_not_exists which for some reason is not
         # updating all unique indexes (only objid?). Likely an upstream bug.
         cust.save
+
+        auth_logger.info "Customer created successfully",
+          customer_id: cust.custid,
+          email: loggable_email,
+          role: cust.role,
+          action: 'create',
+          result: :success
+
         cust
       end
 

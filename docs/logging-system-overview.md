@@ -9,11 +9,12 @@ The Onetime Secret logging system has been enhanced with structured logging capa
 1. **Auth** - Authentication/authorization flows
 2. **Session** - Session lifecycle management
 3. **HTTP** - HTTP requests, responses, and middleware
-4. **Familia** - Redis operations via Familia ORM (pass logger instance)
-5. **Otto** - Otto framework operations (pass logger instance)
-6. **Rhales** - Rhales template rendering (pass logger instance, future)
-7. **Secret** - Core business value (create/view/burn)
-8. **App** - Default fallback for application-level logging
+4. **Familia** - Redis operations via Familia ORM (configured via `Familia.logger =`)
+5. **Otto** - Otto framework operations (configured via `Otto.logger =`)
+6. **Rhales** - Rhales template rendering (pass logger instance, no native support)
+7. **Sequel** - Database queries and operations (configured via `db.loggers <<`)
+8. **Secret** - Core business value (create/view/burn)
+9. **App** - Default fallback for application-level logging
 
 ## Key Features
 
@@ -58,6 +59,7 @@ end
 # Enable debug logging for specific categories
 DEBUG_AUTH=1 bundle exec puma
 DEBUG_SECRET=1 DEBUG_SESSION=1 bundle exec puma
+DEBUG_FAMILIA=1 DEBUG_SEQUEL=1 bundle exec puma
 
 # Or use fine-grained control
 DEBUG_LOGGERS=Auth:debug,Secret:trace bundle exec puma
@@ -106,6 +108,8 @@ http:
 - `lib/onetime/boot.rb` - Added `configure_logging` call
 - `lib/onetime/class_methods.rb` - Enhanced li/le/lw/ld with structured logging
 - `lib/onetime/initializers.rb` - Loads semantic_logger initializer
+- `lib/onetime/initializers/semantic_logger.rb` - Added external library logger configuration
+- `apps/web/auth/config/database.rb` - Updated to use SemanticLogger for Sequel
 
 ### Logging Flow
 
@@ -114,6 +118,7 @@ http:
    - Initialize SemanticLogger appenders
    - Configure named logger levels
    - Apply environment variable overrides
+   - Configure external library loggers (Familia, Otto, Sequel)
 
 2. **Runtime**
    - Legacy calls use simple stdout/stderr output
@@ -196,9 +201,10 @@ end
 DEBUG_AUTH=1       # Set Auth logger to debug
 DEBUG_SESSION=1    # Set Session logger to debug
 DEBUG_HTTP=1       # Set HTTP logger to debug
-DEBUG_FAMILIA=1    # Set Familia logger to debug
-DEBUG_OTTO=1       # Set Otto logger to debug
-DEBUG_RHALES=1     # Set Rhales logger to debug
+DEBUG_FAMILIA=1    # Set Familia logger to debug (Redis operations)
+DEBUG_OTTO=1       # Set Otto logger to debug (router operations)
+DEBUG_RHALES=1     # Set Rhales logger to debug (template rendering)
+DEBUG_SEQUEL=1     # Set Sequel logger to debug (database queries)
 DEBUG_SECRET=1     # Set Secret logger to debug
 ```
 
@@ -253,7 +259,7 @@ formatter: json
 
 Default configuration uses conservative levels:
 - **info** - Auth, Session, Secret, App
-- **warn** - HTTP, Familia, Otto, Rhales
+- **warn** - HTTP, Familia, Otto, Rhales, Sequel
 
 Adjust based on your monitoring needs.
 
@@ -263,24 +269,45 @@ Adjust based on your monitoring needs.
 - Structured data more efficient than string interpolation
 - SemanticLogger supports async appenders for high-throughput
 
-## Integration Notes
+## External Library Integration
 
-### Familia, Otto, Rhales
+The logging system automatically configures external libraries to use SemanticLogger for consistent formatting and centralized control.
 
-These libraries should receive our logger instance for consistent formatting:
+### Libraries with Native Logger Support
+
+These libraries are automatically configured during boot:
 
 ```ruby
-# TODO: Pass logger to Familia
+# Familia Redis ORM - configured in lib/onetime/initializers/semantic_logger.rb
 Familia.logger = SemanticLogger['Familia']
 
-# TODO: Pass logger to Otto
+# Otto router - configured in lib/onetime/initializers/semantic_logger.rb
 Otto.logger = SemanticLogger['Otto']
 
-# TODO: Pass logger to Rhales (when integrated)
-Rhales.logger = SemanticLogger['Rhales']
+# Sequel database - configured per-connection in apps/web/auth/config/database.rb
+db.loggers << SemanticLogger['Sequel']
 ```
 
-**Note:** If a library doesn't support custom logger yet, document for future enhancement.
+### Libraries Without Native Logger Support
+
+These libraries don't support custom loggers, so we use SemanticLogger directly in our wrapper code:
+
+- **Rhales** - No native logger support; use `SemanticLogger['Rhales']` in templates/views
+- **Redis** - No native logger support; use `SemanticLogger['Familia']` for Redis operations via Familia
+- **Standard Library** - Use appropriate category logger for stdlib integrations
+
+### Debug Flags for External Libraries
+
+```bash
+# Enable detailed Redis operation logging
+DEBUG_FAMILIA=1 bundle exec puma
+
+# Enable detailed router operation logging
+DEBUG_OTTO=1 bundle exec puma
+
+# Enable detailed database query logging
+DEBUG_SEQUEL=1 bundle exec puma
+```
 
 ### Middleware
 

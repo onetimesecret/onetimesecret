@@ -2,6 +2,7 @@
 
 module Onetime
   class Metadata < Familia::Horreum
+    include Onetime::Logging
 
     using Familia::Refinements::TimeLiterals
 
@@ -143,19 +144,43 @@ module Onetime
       template ||= Onetime::Email::SecretLink
 
       if eaddrs.nil? || eaddrs.empty?
-        OT.info "[deliver-by-email] #{cust.obscure_email} #{secret.key} No addresses specified"
+        secret_logger.info "No email addresses specified for delivery",
+          metadata_key: key,
+          secret_key: secret.key,
+          user: cust.obscure_email,
+          action: 'deliver_email'
+        return
       end
 
-      OT.info "[deliver-by-email2] #{cust.obscure_email} #{secret.key} (token/#{token})"
+      secret_logger.debug "Preparing email delivery",
+        metadata_key: key,
+        secret_key: secret.key,
+        user: cust.obscure_email,
+        token: token.nil? ? nil : 'present',
+        action: 'deliver_email'
+
       eaddrs = [eaddrs].flatten.compact[0..9] # Max 10
 
       eaddrs_safe     = eaddrs.collect { |e| OT::Utils.obscure_email(e) }
       eaddrs_safe_str = eaddrs_safe.join(', ')
 
-      OT.info "[deliver-by-email3] #{cust.obscure_email} #{secret.key} (#{eaddrs_safe.size}) #{eaddrs_safe_str}"
+      secret_logger.info "Delivering secret by email",
+        metadata_key: key,
+        secret_key: secret.key,
+        user: cust.obscure_email,
+        recipient_count: eaddrs_safe.size,
+        recipients: eaddrs_safe_str,
+        action: 'deliver_email'
       recipients! eaddrs_safe_str
 
-      OT.lw "SECRET HAS MORE THAN ONE RECIPIENT #{eaddrs.size}" if eaddrs.size > 1
+      if eaddrs.size > 1
+        secret_logger.warn "Multiple recipients detected",
+          metadata_key: key,
+          secret_key: secret.key,
+          recipient_count: eaddrs.size,
+          action: 'deliver_email'
+      end
+
       eaddrs.each do |email_address|
         view                  = template.new cust, locale, secret, email_address
         view.ticketno         = ticketno if ticketno
@@ -188,6 +213,13 @@ module Onetime
       # API by allowing a GET (or OPTIONS) for the secret as a check that it
       # is still valid -- that should set the state to viewed as well.
       save update_expiration: false
+
+      secret_logger.info "Metadata state transition to viewed",
+        metadata_key: shortkey,
+        secret_key: secret_shortkey,
+        previous_state: 'new',
+        new_state: 'viewed',
+        timestamp: viewed
     end
 
     def received!
@@ -195,10 +227,18 @@ module Onetime
       # that we don't support going from received back to something else.
       return unless state?(:new) || state?(:viewed)
 
+      previous_state = state
       self.state      = 'received'
       self.received   = Familia.now.to_i
       self.secret_key = ''
       save update_expiration: false
+
+      secret_logger.info "Metadata state transition to received",
+        metadata_key: shortkey,
+        secret_key: secret_shortkey,
+        previous_state: previous_state,
+        new_state: 'received',
+        timestamp: received
     end
 
     # We use this method in special cases where a metadata record exists with
@@ -211,20 +251,36 @@ module Onetime
       return if secret_key.to_s.empty?
       return unless state?(:new) || state?(:viewed) # only new or viewed secrets can be orphaned
 
+      previous_state = state
       self.state      = 'orphaned'
       self.updated    = Familia.now.to_i
       self.secret_key = ''
       save update_expiration: false
+
+      secret_logger.warn "Metadata state transition to orphaned",
+        metadata_key: shortkey,
+        secret_key: secret_shortkey,
+        previous_state: previous_state,
+        new_state: 'orphaned',
+        timestamp: updated
     end
 
     def burned!
       # See guard comment on `received!`
       return unless state?(:new) || state?(:viewed)
 
+      previous_state = state
       self.state      = 'burned'
       self.burned     = Familia.now.to_i
       self.secret_key = ''
       save update_expiration: false
+
+      secret_logger.info "Metadata state transition to burned",
+        metadata_key: shortkey,
+        secret_key: secret_shortkey,
+        previous_state: previous_state,
+        new_state: 'burned',
+        timestamp: burned
     end
 
     def expired!
@@ -232,10 +288,20 @@ module Onetime
       # expire secrets that are actually old enough to be expired.
       return unless secret_expired?
 
+      previous_state = state
       self.state      = 'expired'
       self.updated    = Familia.now.to_i
       self.secret_key = ''
       save update_expiration: false
+
+      secret_logger.info "Metadata state transition to expired",
+        metadata_key: shortkey,
+        secret_key: secret_shortkey,
+        previous_state: previous_state,
+        new_state: 'expired',
+        timestamp: updated,
+        secret_ttl: secret_ttl,
+        age_seconds: age
     end
 
     def state?(guess)
