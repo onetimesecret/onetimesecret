@@ -1,6 +1,6 @@
 # lib/middleware/header_logger_middleware.rb
 
-require 'logger'
+require_relative 'logging'
 
 # Rack::HeaderLoggerMiddleware
 #
@@ -28,10 +28,11 @@ require 'logger'
 #     use HeaderLoggerMiddleware
 #
 class Rack::HeaderLoggerMiddleware
+  include Middleware::Logging
+
   def initialize(app, logger: nil)
-    @app    = app
-    @logger = logger || Logger.new($stdout)
-    @logger.debug('HeaderLoggerMiddleware initialized')
+    @app           = app
+    @custom_logger = logger
   end
 
   def call(env)
@@ -39,16 +40,20 @@ class Rack::HeaderLoggerMiddleware
     @app.call(env)
   end
 
+  # Override logger to allow custom logger injection
+  def logger
+    @custom_logger || super
+  end
+
   private
 
   def log_headers(env)
-    @logger.info("Request Headers for #{env['REQUEST_METHOD']} #{env['PATH_INFO']}:")
+    logger.info "Request Headers for #{env['REQUEST_METHOD']} #{env['PATH_INFO']}"
     env.each do |key, value|
       if key.start_with?('HTTP_')
         header_name = key.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
-        @logger.info(">  #{header_name}: #{value}")
+        logger.info "  #{header_name}: #{value}"
       end
     end
-    @logger.info("\n")  # Add a blank line for readability between requests
   end
 end
