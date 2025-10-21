@@ -110,8 +110,7 @@ module Onetime
           # IP Privacy FIRST - masks public IPs before logging/monitoring
           # Private/localhost IPs are automatically exempted for development
           # Uses Otto's privacy middleware as a standalone Rack component
-          logger.debug "Setting up IP Privacy middleware",
-            note: "masks public IPs"
+          logger.debug "Setting up IP Privacy middleware", note: "masks public IPs"
           builder.use Otto::Security::Middleware::IPPrivacyMiddleware
 
           builder.use Rack::ContentLength
