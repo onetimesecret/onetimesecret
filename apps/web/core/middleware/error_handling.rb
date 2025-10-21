@@ -15,6 +15,8 @@
 module Core
   module Middleware
     class ErrorHandling
+      include Onetime::Logging
+
       def initialize(app)
         @app = app
       end
@@ -36,16 +38,25 @@ module Core
 
         # Prevent infinite redirect loops
         if req.get? && ex.location.to_s == req.path
-          OT.le "[middleware] ErrorHandling: Redirect loop detected: #{req.path} -> #{ex.location}"
+          http_logger.error "Redirect loop detected",
+            exception: ex,
+            path: req.path,
+            target: ex.location
           ex.instance_variable_set(:@location, '/500')
         end
 
-        OT.info "[middleware] ErrorHandling: Redirecting to #{ex.location} (#{ex.status})"
+        http_logger.info "Redirecting",
+          location: ex.location,
+          status: ex.status
         [ex.status, { 'location' => ex.location }, []]
       end
 
       def handle_unauthorized(env, ex)
-        OT.info "[middleware] ErrorHandling: Unauthorized: #{ex.message}"
+        req = Rack::Request.new(env)
+        http_logger.info "Unauthorized access",
+          exception: ex,
+          url: req.url,
+          ip: req.ip
 
         # Serve Vue entry point - let Vue show login prompt
         serve_vue_entry_point(env, status: 401)
@@ -54,9 +65,12 @@ module Core
       def handle_error(env, ex)
         req = Rack::Request.new(env)
 
-        # Log the error
-        OT.le "[middleware] ErrorHandling: #{ex.class}: #{ex.message} -- #{req.url} -- #{req.ip}"
-        OT.le ex.backtrace.join("\n") if OT.debug?
+        # Log the error with structured context
+        http_logger.error "Request processing failed",
+          exception: ex,
+          url: req.url,
+          method: req.request_method,
+          ip: req.ip
 
         # Track in Sentry if diagnostics enabled
         capture_error(ex, env) if OT.d9s_enabled
@@ -84,7 +98,8 @@ module Core
         # Fallback to anonymous
         Onetime::Customer.anonymous
       rescue StandardError => ex
-        OT.le "[middleware] ErrorHandling: Failed to load customer: #{ex.message}"
+        http_logger.error "Failed to load customer",
+          exception: ex
         Onetime::Customer.anonymous
       end
 
@@ -113,7 +128,8 @@ module Core
           Sentry.capture_exception(error)
         end
       rescue StandardError => ex
-        OT.le "[middleware] ErrorHandling: Sentry error: #{ex.class}: #{ex.message}"
+        http_logger.error "Sentry capture failed",
+          exception: ex
       end
     end
   end
