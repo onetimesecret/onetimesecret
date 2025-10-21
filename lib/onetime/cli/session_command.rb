@@ -14,20 +14,34 @@ require 'json'
 module Onetime
   class SessionCommand < Onetime::CLI
     def session
-      puts 'Session Inspector'
-      puts 'Usage: ots session <subcommand>'
-      puts
-      puts 'Subcommands:'
-      puts '  inspect <session-id>       - Show detailed session information'
-      puts '  list [--limit N]           - List active sessions'
-      puts '  search <email-or-custid>   - Find sessions for a user'
-      puts '  delete <session-id>        - Delete a session'
-      puts '  clean                      - Remove expired sessions'
-      puts
-      puts 'Examples:'
-      puts '  ots session inspect 40b536f31d425980'
-      puts '  ots session search delano@solutious.com'
-      puts '  ots session list --limit 10'
+      subcommand = argv.shift
+      case subcommand
+      when 'inspect'
+        inspect
+      when 'list'
+        list
+      when 'search'
+        search
+      when 'delete'
+        delete
+      when 'clean'
+        clean
+      else
+        puts 'Session Inspector'
+        puts 'Usage: ots session <subcommand>'
+        puts
+        puts 'Subcommands:'
+        puts '  inspect <session-id>       - Show detailed session information'
+        puts '  list [--limit N]           - List active sessions'
+        puts '  search <email-or-custid>   - Find sessions for a user'
+        puts '  delete <session-id>        - Delete a session'
+        puts '  clean                      - Remove expired sessions'
+        puts
+        puts 'Examples:'
+        puts '  ots session inspect 40b536f31d425980'
+        puts '  ots session search delano@solutious.com'
+        puts '  ots session list --limit 10'
+      end
     end
 
     # ots session inspect <session-id>
