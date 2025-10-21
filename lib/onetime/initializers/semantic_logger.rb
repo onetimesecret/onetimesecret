@@ -57,6 +57,17 @@ module Onetime
         SemanticLogger.default_level = ENV['LOG_LEVEL'].to_sym
       end
 
+      # ONETIME_DEBUG=1 enables debug logging for all application categories
+      # Similar to FAMILIA_DEBUG for Familia or OTTO_DEBUG for Otto
+      if ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
+        SemanticLogger.default_level    = :debug
+        SemanticLogger['Auth'].level    = :debug
+        SemanticLogger['Session'].level = :debug
+        SemanticLogger['HTTP'].level    = :debug
+        SemanticLogger['Secret'].level  = :debug
+        SemanticLogger['App'].level     = :debug
+      end
+
       # Parse DEBUG_LOGGERS: "Auth:debug,Secret:trace"
       if ENV['DEBUG_LOGGERS']
         ENV['DEBUG_LOGGERS'].split(',').each do |spec|
@@ -65,7 +76,7 @@ module Onetime
         end
       end
 
-      # Quick debug flags for application categories only
+      # Quick debug flags for individual application categories
       # External libraries (Familia, Otto) use their own debug flags
       SemanticLogger['Auth'].level    = :debug if ENV['DEBUG_AUTH']
       SemanticLogger['Session'].level = :debug if ENV['DEBUG_SESSION']
