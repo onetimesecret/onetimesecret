@@ -46,14 +46,14 @@ module Onetime
     end
 
     # Category-specific logger accessors for explicit context
-    def auth_logger;    SemanticLogger['Auth'];    end
-    def session_logger; SemanticLogger['Session']; end
-    def http_logger;    SemanticLogger['HTTP'];    end
-    def familia_logger; SemanticLogger['Familia']; end
-    def otto_logger;    SemanticLogger['Otto'];    end
-    def rhales_logger;  SemanticLogger['Rhales'];  end
-    def secret_logger;  SemanticLogger['Secret'];  end
-    def app_logger;     SemanticLogger['App'];     end
+    def auth_logger = SemanticLogger.[]('Auth')
+    def session_logger = SemanticLogger.[]('Session')
+    def http_logger = SemanticLogger.[]('HTTP')
+    def familia_logger = SemanticLogger.[]('Familia')
+    def otto_logger = SemanticLogger.[]('Otto')
+    def rhales_logger = SemanticLogger.[]('Rhales')
+    def secret_logger = SemanticLogger.[]('Secret')
+    def app_logger = SemanticLogger.[]('App')
 
     # Execute block with a specific log category via thread-local variable.
     # Useful for scoping logs within a specific operation context.
@@ -67,7 +67,7 @@ module Onetime
     #   end
     #
     def with_log_category(category)
-      old_category = Thread.current[:log_category]
+      old_category                  = Thread.current[:log_category]
       Thread.current[:log_category] = category.to_s
       yield
     ensure
@@ -85,13 +85,13 @@ module Onetime
       class_name = self.class.name
 
       # Check for strategic category patterns in class name
-      return 'Auth'    if class_name =~ /Authentication|Auth(?!or)/
-      return 'Session' if class_name =~ /Session/
-      return 'HTTP'    if class_name =~ /HTTP|Request|Response|Controller/
-      return 'Familia' if class_name =~ /Familia/
-      return 'Otto'    if class_name =~ /Otto/
-      return 'Rhales'  if class_name =~ /Rhales/
-      return 'Secret'  if class_name =~ /Secret|Metadata/
+      return 'Auth'    if class_name =~ /Authentication|Auth(?!or)/i
+      return 'Session' if class_name =~ /Session/i
+      return 'HTTP'    if class_name =~ /HTTP|Request|Response|Controller/i
+      return 'Familia' if class_name =~ /Familia/i
+      return 'Otto'    if class_name =~ /Otto/i
+      return 'Rhales'  if class_name =~ /Rhales/i
+      return 'Secret'  if class_name =~ /Secret|Metadata/i
 
       # Default fallback
       'App'

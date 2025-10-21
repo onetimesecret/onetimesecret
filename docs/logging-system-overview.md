@@ -369,9 +369,33 @@ From most to least verbose:
 
 ### Formatters
 
-- **color** - Human-readable with ANSI colors (development)
-- **json** - Structured JSON (production, log shipping)
-- **default** - Plain text
+Three output formatters available via `etc/logging.yaml`:
+
+**color** (recommended for development):
+```
+2025-10-20 18:35:41.002112 I [60785:2424] Sequel -- (0.000038s) SELECT * FROM users
+2025-10-20 18:35:41.003456 I [60785:2424] Auth -- Login successful {user_id: 123, ip: "192.168.1.1"}
+2025-10-20 18:35:41.004789 W [60785:2424] Secret -- Passphrase failed {secret_key: "abc123", attempts: 3}
+```
+- Human-readable with ANSI colors for level highlighting
+- Precise timestamps with microsecond resolution
+- Process ID and thread ID for debugging concurrency issues
+- Structured payload in curly braces
+- Great for local development and debugging
+
+**json** (recommended for production):
+```json
+{"timestamp":"2025-10-20T18:35:41.002Z","level":"info","name":"Sequel","message":"Query executed","duration_ms":2.4}
+{"timestamp":"2025-10-20T18:35:41.003Z","level":"info","name":"Auth","message":"Login successful","user_id":123,"ip":"192.168.1.1"}
+```
+- Structured JSON with all fields
+- Easy parsing by log aggregation tools (Splunk, ELK, Datadog)
+- Machine-readable for automated analysis
+- Preserves all metadata and structured payloads
+
+**default**:
+- Same structure as color formatter without ANSI escape codes
+- Use when colors aren't supported or desired
 
 ## Future Enhancements
 

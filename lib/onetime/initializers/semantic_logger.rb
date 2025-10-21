@@ -19,7 +19,7 @@ module Onetime
       SemanticLogger.default_level = config['default_level']&.to_sym || :info
       SemanticLogger.add_appender(
         io: $stdout,
-        formatter: config['formatter']&.to_sym || :color,
+        formatter: config['formatter']&.to_sym || :color
       )
 
       # Configure named loggers from config
@@ -137,21 +137,25 @@ module Onetime
       end
 
       # Redis command performance tracking
-      Familia.on_command do |cmd, duration_ms, context|
-        familia_logger.debug "Redis command",
-          command: cmd,
-          duration_ms: duration_ms,
-          context: context
-      end if Familia.respond_to?(:on_command)
+      if Familia.respond_to?(:on_command)
+        Familia.on_command do |cmd, duration_ms, context|
+          familia_logger.debug 'Redis command',
+            command: cmd,
+            duration_ms: duration_ms,
+            context: context
+        end
+      end
 
       # Familia object lifecycle events (always logged, not sampled)
+      return unless Familia.respond_to?(:on_lifecycle)
+
       Familia.on_lifecycle do |event, instance, context|
-        familia_logger.debug "Familia lifecycle",
+        familia_logger.debug 'Familia lifecycle',
           event: event,
           class: instance.class.name,
           identifier: instance.respond_to?(:identifier) ? instance.identifier : nil,
           context: context
-      end if Familia.respond_to?(:on_lifecycle)
+      end
     end
   end
 end

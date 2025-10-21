@@ -62,7 +62,7 @@ end
 # trying to send events over the network when we're shutting down via ctrl-c.
 trap('SIGINT') do
   OT.li 'Shutting down gracefully...'
-  if OT.d9s_enabled
+  OT.with_diagnostics do
     begin
       Sentry.close  # Attempt graceful shutdown with a short timeout
     rescue ThreadError => ex

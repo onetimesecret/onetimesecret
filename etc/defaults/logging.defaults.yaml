@@ -1,5 +1,3 @@
-# etc/defaults/logging.defaults.yaml
-#
 # Onetime Secret - Logging Configuration
 #
 # Strategic categories for debugging and operational instrumentation:
@@ -9,24 +7,36 @@
 #   Familia  - Redis operations via Familia ORM
 #   Otto     - Otto framework operations
 #   Rhales   - Rhales template rendering (future)
+#   Sequel   - Database queries and operations
 #   Secret   - Core business value (create/view/burn)
 #   App      - Default fallback for application-level logging
 #
 # Environment variable overrides:
-#   LOG_LEVEL=debug              - Set global log level
+#   LOG_LEVEL=debug                       - Set global log level
 #   DEBUG_LOGGERS=Auth:debug,Secret:trace - Set specific logger levels
-#   DEBUG_AUTH=1                 - Quick debug flag for Auth
-#   DEBUG_SESSION=1              - Quick debug flag for Session
-#   DEBUG_HTTP=1                 - Quick debug flag for HTTP
-#   DEBUG_SECRET=1               - Quick debug flag for Secret
+#
+# Application category quick flags:
+#   DEBUG_AUTH=1                          - Quick debug flag for Auth
+#   DEBUG_SESSION=1                       - Quick debug flag for Session
+#   DEBUG_HTTP=1                          - Quick debug flag for HTTP
+#   DEBUG_SECRET=1                        - Quick debug flag for Secret
+#
+# External library debug flags (use library's own flags):
+#   FAMILIA_DEBUG=1                       - Familia's built-in debug flag
+#   FAMILIA_SAMPLE_RATE=0.01              - Familia command sampling (0.0-1.0)
+#
+# For libraries without built-in flags, use DEBUG_LOGGERS:
+#   DEBUG_LOGGERS=Sequel:debug,Rhales:trace
 
 # Global default log level
 # Options: trace, debug, info, warn, error, fatal
 default_level: info
 
 # Output formatter
-# Options: default, color, json
-# Use 'json' for production log shipping, 'color' for development
+# Options: color, json, default
+# - color: Human-readable with ANSI colors, timestamps, PID/thread (recommended)
+# - json: Structured JSON for production log shipping
+# - default: Plain text without colors
 formatter: color
 
 # Named logger levels
@@ -38,6 +48,7 @@ loggers:
   Familia: warn   # Redis/Familia ORM operations
   Otto: warn      # Otto framework operations
   Rhales: warn    # Rhales template rendering (when integrated)
+  Sequel: warn    # Database queries and operations
   Secret: info    # Secret lifecycle (create, view, burn)
   App: info       # Default application logger
 
