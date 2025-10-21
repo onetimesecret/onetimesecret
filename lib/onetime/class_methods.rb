@@ -224,7 +224,11 @@ module Onetime
     #   logger.info "Processing login"  # Uses SemanticLogger['Auth']
     #
     def logger
-      SemanticLogger[Thread.current[:log_category] || 'App']
+      # Lazy-load SemanticLogger to avoid initialization order issues
+      return @logger if defined?(@logger) && @logger
+
+      require 'semantic_logger' unless defined?(::SemanticLogger)
+      ::SemanticLogger[Thread.current[:log_category] || 'App']
     end
 
     def with_diagnostics(&)
