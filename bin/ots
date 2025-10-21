@@ -135,7 +135,7 @@ class OT::CLI::Definition
   about '  clean                      - Remove expired sessions'
   option :l, :limit, Integer, 'Limit number of results'
   option :f, :force, 'Force operation without confirmation'
-  command :session  => OT::SessionCommand
+  command session: OT::SessionCommand
 
   # usage 'ots initializers [--dependencies]'
   # about 'Display boot-time initializers in order'
