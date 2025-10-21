@@ -18,14 +18,19 @@ The Onetime Secret logging system has been enhanced with structured logging capa
 
 ## Key Features
 
-### 1. Backward Compatible
+### 1. SemanticLogger Integration
 
-Existing `Onetime.li/le/lw/ld` methods continue to work:
+All `Onetime.li/le/lw/ld` methods now use SemanticLogger:
 
 ```ruby
-Onetime.li "User logged in"
+Onetime.li "User logged in"  # Uses SemanticLogger['App']
 Onetime.le "Authentication failed"
 Onetime.ld "Debug message"
+```
+
+Output format:
+```
+2025-10-20 19:29:55.028 I [86617:2384] App -- User logged in
 ```
 
 ### 2. Structured Logging
@@ -106,9 +111,15 @@ http:
 
 **Modified Files:**
 - `lib/onetime/boot.rb` - Added `configure_logging` call
-- `lib/onetime/class_methods.rb` - Enhanced li/le/lw/ld with structured logging
+- `lib/onetime/class_methods.rb` - Removed workaround, all methods use SemanticLogger
 - `lib/onetime/initializers.rb` - Loads semantic_logger initializer
 - `apps/web/auth/config/database.rb` - Updated to use SemanticLogger for Sequel
+- `lib/onetime/application/base.rb` - Structured application initialization logging
+- `lib/onetime/application/middleware_stack.rb` - Structured middleware setup logging
+- `lib/onetime/middleware/domain_strategy.rb` - Structured domain strategy logging
+- `lib/onetime/error_handler.rb` - Exception logging with structured context
+- `apps/web/core/middleware/error_handling.rb` - HTTP error logging
+- `apps/web/core/controllers/base.rb` - Controller error patterns
 
 **Migrated Files (using `include Onetime::Logging`):**
 - `lib/onetime/session.rb` - Session store with session_logger
@@ -132,8 +143,8 @@ http:
    - Configure external library loggers (Familia, Otto, Rhales, Sequel)
 
 2. **Runtime**
-   - Legacy calls without payload use simple stdout/stderr output
-   - Calls with payload use SemanticLogger with categories
+   - All OT.l* calls use SemanticLogger with category routing
+   - Structured data via keyword arguments
    - Thread-local category can override defaults
 
 3. **Category Detection**
@@ -263,7 +274,7 @@ VALKEY_URL='valkey://127.0.0.1:2121/0' bundle exec try --agent try/system/loggin
 - ✅ External library integration (Familia, Otto, Rhales, Sequel)
 - ✅ Test suite (`try/system/logging_simple_try.rb`)
 
-### Phase 2: High-Value Business Logic (Completed)
+### Phase 2: Core Infrastructure & Error Handling (Completed)
 - ✅ **Authentication logic** (5 files):
   - `apps/api/v2/logic/authentication/authenticate_session.rb` - Login/logout with audit trail
   - `apps/api/v2/logic/authentication/destroy_session.rb` - Session termination
