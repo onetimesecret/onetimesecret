@@ -216,6 +216,11 @@ DEBUG_LOGGERS=Auth:debug,Secret:trace,HTTP:info
 
 # Global level override
 LOG_LEVEL=debug
+
+# Familia command sampling (reduce high-traffic log volume)
+FAMILIA_SAMPLE_RATE=0.01   # Log 1% of Redis commands (production)
+FAMILIA_SAMPLE_RATE=0.1    # Log 10% of Redis commands (development)
+FAMILIA_SAMPLE_RATE=1.0    # Log all Redis commands (debugging)
 ```
 
 ## Testing
@@ -302,12 +307,32 @@ These libraries don't support custom loggers, so we use SemanticLogger directly 
 # Enable detailed Redis operation logging
 DEBUG_FAMILIA=1 bundle exec puma
 
+# Control Familia command sampling (default: 1% in prod, 10% in dev, 100% in test)
+FAMILIA_SAMPLE_RATE=0.01 bundle exec puma  # Production: 1% sampling
+FAMILIA_SAMPLE_RATE=0.1 bundle exec puma   # Development: 10% sampling
+FAMILIA_SAMPLE_RATE=1.0 bundle exec puma   # Debugging: log everything
+
 # Enable detailed router operation logging
 DEBUG_OTTO=1 bundle exec puma
 
 # Enable detailed database query logging
 DEBUG_SEQUEL=1 bundle exec puma
 ```
+
+### Familia Hooks
+
+Familia provides operational hooks for audit trails:
+
+**Command Performance Tracking:**
+- Logs Redis command, duration, and context
+- Subject to sampling configuration
+- Debug level logging
+
+**Lifecycle Events:**
+- Logs Familia::Horreum save/destroy operations
+- Always logged (not sampled)
+- Debug level logging
+- Includes class, identifier, and context
 
 ### Middleware
 

@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# lib/onetime/initializers/semantic_logger.rb
 
 require 'yaml'
 require 'semantic_logger'
@@ -40,7 +40,7 @@ module Onetime
 
     def load_logging_config
       # Get site path, fallback to current directory for tests
-      site_path = Onetime.conf.dig(:site, :path) || Dir.pwd
+      site_path   = Onetime.conf.dig(:site, :path) || Dir.pwd
       config_path = File.join(site_path, 'etc', 'logging.yaml')
 
       if File.exist?(config_path)
@@ -60,7 +60,7 @@ module Onetime
       # Parse DEBUG_LOGGERS: "Auth:debug,Secret:trace"
       if ENV['DEBUG_LOGGERS']
         ENV['DEBUG_LOGGERS'].split(',').each do |spec|
-          logger_name, level = spec.split(':')
+          logger_name, level                = spec.split(':')
           SemanticLogger[logger_name].level = level.to_sym
         end
       end
@@ -69,11 +69,11 @@ module Onetime
       SemanticLogger['Auth'].level    = :debug if ENV['DEBUG_AUTH']
       SemanticLogger['Session'].level = :debug if ENV['DEBUG_SESSION']
       SemanticLogger['HTTP'].level    = :debug if ENV['DEBUG_HTTP']
-      SemanticLogger['Familia'].level = :debug if ENV['DEBUG_FAMILIA']
-      SemanticLogger['Otto'].level    = :debug if ENV['DEBUG_OTTO']
-      SemanticLogger['Rhales'].level  = :debug if ENV['DEBUG_RHALES']
-      SemanticLogger['Sequel'].level  = :debug if ENV['DEBUG_SEQUEL']
       SemanticLogger['Secret'].level  = :debug if ENV['DEBUG_SECRET']
+      # SemanticLogger['Familia'].level = :debug if ENV['DEBUG_FAMILIA']
+      # SemanticLogger['Otto'].level    = :debug if ENV['DEBUG_OTTO']
+      # SemanticLogger['Rhales'].level  = :debug if ENV['DEBUG_RHALES']
+      # SemanticLogger['Sequel'].level  = :debug if ENV['DEBUG_SEQUEL']
     end
 
     # Configure external library loggers to use SemanticLogger
@@ -84,30 +84,74 @@ module Onetime
     # Libraries configured:
     # - Familia: Redis ORM with SemanticLogger['Familia']
     # - Otto: Router framework with SemanticLogger['Otto']
+    # - Rhales: Ruby SFC framework with SemanticLogger['Rhales']
     # - Sequel: Database connections with SemanticLogger['Sequel']
     #
-    # Note: Some libraries don't support custom loggers (e.g., Rhales, standard
-    # Redis gem). For those, we rely on our own logging within wrapper code.
+    # Note: Some libraries don't support custom loggers (e.g., standard Redis gem).
+    # For those, we rely on our own logging within wrapper code.
     #
     def configure_external_loggers
-      # Familia Redis ORM - supports Familia.logger =
-      if defined?(Familia)
-        Familia.logger = SemanticLogger['Familia']
-      end
+      # Familia Redis ORM - also responds to FAMILIA_DEBUG
+      Familia.logger = SemanticLogger['Familia']
 
-      # Otto router - supports Otto.logger =
-      if defined?(Otto)
-        Otto.logger = SemanticLogger['Otto']
-      end
+      # Otto router - also responds to OTTO_DEBUG
+      Otto.logger = SemanticLogger['Otto']
+
+      # Rhales manifold
+      Rhales.logger = SemanticLogger['Rhales']
 
       # Sequel database - configure logger on database instances
       # This is typically done when creating the connection, but we can
       # set a default for any existing connections
-      if defined?(Sequel) && defined?(Auth::Config::Database)
-        # Note: Database logger is configured per-connection in
-        # apps/web/auth/config/database.rb using db.loggers array
-        # We'll update that file to use SemanticLogger instead of Logger.new
+      nil unless defined?(Sequel) && defined?(Auth::Config::Database)
+      # NOTE: Database logger is configured per-connection in
+      # apps/web/auth/config/database.rb using db.loggers array
+      # We'll update that file to use SemanticLogger instead of Logger.new
+
+      configure_familia_hooks if defined?(Familia)
+    end
+
+    # Configure Familia audit hooks for operational visibility
+    #
+    # Registers hooks to capture Redis operations and Familia::Horreum lifecycle
+    # events for audit trails and performance monitoring.
+    #
+    # Uses sampling in production to reduce log volume while preserving command
+    # capture for tests.
+    #
+    def configure_familia_hooks
+      familia_logger = SemanticLogger['Familia']
+
+      # Configure sampling based on environment
+      # - Development/Test: Log everything (nil = 100%)
+      # - Production: Sample 1% of commands to reduce volume
+      if defined?(Familia::DatabaseLogger)
+        Familia::DatabaseLogger.sample_rate = case Onetime.conf[:environment]
+        when 'production'
+          ENV['FAMILIA_SAMPLE_RATE']&.to_f || 0.01  # 1% default
+        when 'development'
+          ENV['FAMILIA_SAMPLE_RATE']&.to_f || 0.1   # 10% default
+        else
+          nil  # Log everything in test
+        end
       end
+
+      # Redis command performance tracking
+      Familia.on_command do |cmd, duration_ms, context|
+        familia_logger.debug "Redis command",
+          command: cmd,
+          duration_ms: duration_ms,
+          context: context
+      end if Familia.respond_to?(:on_command)
+
+      # Familia object lifecycle events (always logged, not sampled)
+      Familia.on_lifecycle do |event, instance, context|
+        familia_logger.debug "Familia lifecycle",
+          event: event,
+          class: instance.class.name,
+          identifier: instance.respond_to?(:identifier) ? instance.identifier : nil,
+          context: context
+      end if Familia.respond_to?(:on_lifecycle)
     end
   end
 end
