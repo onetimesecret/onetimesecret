@@ -69,8 +69,8 @@ importers:
         specifier: 7.6.5
         version: 7.6.5
       focus-trap-vue:
-        specifier: 4.0.3
-        version: 4.0.3(focus-trap@7.6.5)(vue@3.5.22(typescript@5.8.3))
+        specifier: 4.1.0
+        version: 4.1.0(focus-trap@7.6.5)(vue@3.5.22(typescript@5.8.3))
       highlight.js:
         specifier: 11.11.1
         version: 11.11.1
@@ -2309,8 +2309,8 @@ packages:
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
 
-  focus-trap-vue@4.0.3:
-    resolution: {integrity: sha512-cIX5rybkCAlNZ4IHYJ3nCFIsipDDljJHHjtTO2IgYWkVYg7X9ipUVdab3HzYp88kmHgMwjcB71LYnXRRsF6ZqQ==}
+  focus-trap-vue@4.1.0:
+    resolution: {integrity: sha512-RvK28mED+4fqoqnJQyadfoiKZU2G/QEez+EnJtdsg83DjiuKetimvDGas9ot4p5bn1J09rDmKLtKFMBkwQc+JA==}
     peerDependencies:
       focus-trap: ^7.0.0
       vue: ^3.0.0
@@ -6599,7 +6599,7 @@ snapshots:
 
   flatted@3.3.3: {}
 
-  focus-trap-vue@4.0.3(focus-trap@7.6.5)(vue@3.5.22(typescript@5.8.3)):
+  focus-trap-vue@4.1.0(focus-trap@7.6.5)(vue@3.5.22(typescript@5.8.3)):
     dependencies:
       focus-trap: 7.6.5
       vue: 3.5.22(typescript@5.8.3)
