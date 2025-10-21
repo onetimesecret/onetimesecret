@@ -58,8 +58,8 @@ module Onetime
       end
 
       # ONETIME_DEBUG=1 enables debug logging for all application categories
-      # Similar to FAMILIA_DEBUG for Familia or OTTO_DEBUG for Otto
-      if ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
+      # Uses Onetime.debug? for consistent environment variable parsing
+      Onetime.debug? do
         SemanticLogger.default_level    = :debug
         SemanticLogger['Auth'].level    = :debug
         SemanticLogger['Session'].level = :debug

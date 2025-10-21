@@ -220,7 +220,10 @@ end
 ### Quick Debug Flags
 
 ```bash
-# Application category debug flags
+# Global application debug (all app categories)
+ONETIME_DEBUG=1    # Enable debug for Auth, Session, HTTP, Secret, App
+
+# Individual application category debug flags
 DEBUG_AUTH=1       # Set Auth logger to debug
 DEBUG_SESSION=1    # Set Session logger to debug
 DEBUG_HTTP=1       # Set HTTP logger to debug
@@ -292,14 +295,27 @@ VALKEY_URL='valkey://127.0.0.1:2121/0' bundle exec try --agent try/system/loggin
   - `lib/onetime/models/metadata.rb` - State transitions (viewed, burned, expired, orphaned, received)
   - `lib/onetime/models/customer.rb` - Customer creation with auth_logger
 
-### Phase 3: Remaining Areas (Planned)
+### Phase 3: General-Purpose Middleware (Completed)
+- ✅ **lib/middleware/** - All general middleware now use `Middleware::Logging`:
+  - `detect_host.rb` - Host detection with HTTP category
+  - `handle_invalid_percent_encoding.rb` - URI validation with HTTP category
+  - `handle_invalid_utf8.rb` - UTF-8 validation with HTTP category
+  - `header_logger_middleware.rb` - Header debugging with HTTP category
+  - `session_debugger.rb` - Session debugging (already using module)
+  - `request_id.rb` - No logging needed (ID generation only)
+- ✅ **Middleware::Logging module** enhanced:
+  - Public `logger` method for middleware use
+  - Auto-detection of HTTP, Session, Auth categories
+  - Support for custom logger injection via initializer
+  - All middleware controlled via `DEBUG_HTTP=1` or `DEBUG_LOGGERS=HTTP:debug`
+
+### Phase 4: Application-Specific Areas (Planned)
 - ⏳ **Additional secret logic files** (6 remaining in `apps/api/v2/logic/secrets/`):
   - `conceal_secret.rb`, `show_secret.rb`, `show_secret_status.rb`
   - `list_secret_status.rb`, `show_metadata.rb`, `list_metadata.rb`
-- ⏳ **Middleware and HTTP** (`lib/onetime/middleware/`, `lib/middleware/`):
+- ⏳ **Onetime-specific middleware** (`lib/onetime/middleware/`):
   - `identity_resolution.rb` - Uses raw Logger, needs migration
   - `security.rb`, `static_files.rb` - Have basic logging
-  - `middleware_stack.rb` - Middleware initialization logging
 - ⏳ **Web controllers** (`apps/web/core/controllers/`):
   - `base.rb` - Error handling and request logging
   - Additional controllers as needed
@@ -307,7 +323,7 @@ VALKEY_URL='valkey://127.0.0.1:2121/0' bundle exec try --agent try/system/loggin
 - ⏳ **Additional models** in `lib/onetime/models/`
 - ⏳ **Background jobs** and scheduled tasks (if any)
 
-### Phase 4: Cleanup and Enhancement (Optional)
+### Phase 5: Cleanup and Enhancement (Optional)
 - ⏳ Migrate remaining `Onetime.li/le/lw/ld` calls to structured logging
 - ⏳ Add performance metrics integration
 - ⏳ Implement async appenders for production
@@ -319,10 +335,11 @@ See `docs/logging-migration-guide.md` for detailed examples.
 
 **Recommended approach:**
 
-1. **Phase 1** - High-value areas (Auth, Secret, Session) ✅ **COMPLETE**
-2. **Phase 2** - Infrastructure (HTTP, Middleware) ✅ **COMPLETE**
-3. **Phase 3** - Remaining areas ⏳ **IN PROGRESS**
-4. **Phase 4** - Cleanup (optional) ⏳ **PLANNED**
+1. **Phase 1** - Core infrastructure & configuration ✅ **COMPLETE**
+2. **Phase 2** - High-value areas (Auth, Secret, Session) ✅ **COMPLETE**
+3. **Phase 3** - General-purpose middleware ✅ **COMPLETE**
+4. **Phase 4** - Application-specific areas ⏳ **IN PROGRESS**
+5. **Phase 5** - Cleanup (optional) ⏳ **PLANNED**
 
 No breaking changes required - migrate incrementally at your own pace.
 
