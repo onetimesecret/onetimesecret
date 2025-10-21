@@ -166,13 +166,17 @@ module Onetime
 
     # Logging methods with backward compatibility and structured logging support
     #
-    # Legacy usage (still supported):
+    # Legacy usage (still supported, but will show deprecation warning in development):
     #   Onetime.li "User logged in"
     #   Onetime.le "Authentication failed"
     #
-    # Structured logging (new):
+    # Structured logging (recommended):
     #   Onetime.li "User logged in", user_id: user.id, ip: request.ip
     #   Onetime.le "Auth failed", reason: :invalid_password
+    #
+    # Exception logging (new):
+    #   Onetime.le "Operation failed", exception: ex, context: value
+    #   Onetime.le "Login failed", exception: ex, email: email, ip: ip
     #
     # Category-aware logging via thread-local:
     #   Thread.current[:log_category] = 'Auth'
@@ -207,8 +211,15 @@ module Onetime
       end
     end
 
-    def le(*msgs, **payload)
-      if payload.empty?
+    def le(*msgs, exception: nil, **payload)
+      # If exception is provided, use SemanticLogger's exception handling
+      if exception.is_a?(Exception)
+        msg = msgs.join(' ')
+        msg = "#{exception.class.name}" if msg.empty?
+        logger.error(msg, exception, payload)
+      elsif payload.empty? && exception.nil?
+        # Legacy path - will be deprecated
+        warn_about_legacy_logging if Onetime.development?
         msg = msgs.join("#{$/}")
         stderr('E', msg)
       else
@@ -265,6 +276,20 @@ module Onetime
       warn(logline)
     end
     private :stderr
+
+    # Warn about legacy logging usage (only once per file to avoid spam)
+    def warn_about_legacy_logging
+      caller_file = caller(2..2).first&.split(':')&.first
+      @legacy_log_warnings ||= Set.new
+
+      return if @legacy_log_warnings.include?(caller_file)
+      @legacy_log_warnings << caller_file
+
+      logger.warn "Legacy logging detected - use keyword arguments for structured logging",
+        file: caller_file,
+        migration_guide: 'docs/logging-migration-guide.md'
+    end
+    private :warn_about_legacy_logging
 
     # Returns debug status and optionally executes block if enabled.
     #
