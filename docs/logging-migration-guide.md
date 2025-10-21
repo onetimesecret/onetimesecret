@@ -280,40 +280,54 @@ end
 
 ### Example 4: Middleware Logging
 
-**Before:**
+**For general-purpose middleware (lib/middleware/), use the Middleware::Logging module:**
+
 ```ruby
-class SecurityMiddleware
-  def call(env)
-    Onetime.ld "Security check: #{env['PATH_INFO']}"
-    # ... security checks ...
-    Onetime.ld "Security check passed"
-    @app.call(env)
-  end
-end
-```
+# lib/middleware/session_debugger.rb
+require_relative 'logging'
 
-**After:**
-```ruby
-class SecurityMiddleware
-  include Onetime::Logging
+module Rack
+  class SessionDebugger
+    include Middleware::Logging
 
-  def call(env)
-    with_log_category('HTTP') do
-      logger.debug "Security check initiated",
-        path: env['PATH_INFO'],
-        method: env['REQUEST_METHOD'],
-        ip: env['REMOTE_ADDR']
-
-      # ... security checks ...
-
-      logger.debug "Security check passed",
-        path: env['PATH_INFO']
+    def initialize(app)
+      @app = app
+      @enabled = ENV['DEBUG_SESSION'].to_s.match?(/^(true|1|yes)$/i)
     end
 
-    @app.call(env)
+    def call(env)
+      return @app.call(env) unless @enabled
+
+      logger.debug "Session debug start",
+        method: env['REQUEST_METHOD'],
+        path: env['PATH_INFO']
+
+      status, headers, body = @app.call(env)
+
+      logger.debug "Session debug complete", status: status
+
+      [status, headers, body]
+    rescue StandardError => ex
+      logger.error "Session debugging failed",
+        error: ex.message,
+        backtrace: ex.backtrace.first(3)
+      [500, {}, []]
+    end
   end
 end
 ```
+
+**Benefits:**
+- Automatic logger selection (SemanticLogger when available, stdlib Logger as fallback)
+- Category inference from middleware class name (SessionDebugger → 'Session')
+- Structured logging with consistent interface
+- Portable middleware (works outside Onetime context)
+
+**Category Inference Rules:**
+- `/Session/` → 'Session'
+- `/Auth/` → 'Auth'
+- `/Security|CSRF|IPPrivacy/` → 'HTTP'
+- Default → 'App'
 
 ## Environment Variable Usage
 
