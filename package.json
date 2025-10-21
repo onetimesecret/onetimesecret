@@ -137,7 +137,7 @@
     "eslint-import-resolver-typescript": "4.4.4",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-tailwindcss": "3.18.2",
-    "eslint-plugin-vue": "10.3.0",
+    "eslint-plugin-vue": "10.5.1",
     "globals": "16.2.0",
     "happy-dom": "17.4.9",
     "jiti": "2.4.2",
