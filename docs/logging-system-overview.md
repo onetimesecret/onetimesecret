@@ -198,29 +198,34 @@ end
 ### Quick Debug Flags
 
 ```bash
+# Application category debug flags
 DEBUG_AUTH=1       # Set Auth logger to debug
 DEBUG_SESSION=1    # Set Session logger to debug
 DEBUG_HTTP=1       # Set HTTP logger to debug
-DEBUG_FAMILIA=1    # Set Familia logger to debug (Redis operations)
-DEBUG_OTTO=1       # Set Otto logger to debug (router operations)
-DEBUG_RHALES=1     # Set Rhales logger to debug (template rendering)
-DEBUG_SEQUEL=1     # Set Sequel logger to debug (database queries)
 DEBUG_SECRET=1     # Set Secret logger to debug
+```
+
+### External Library Debug Flags
+
+```bash
+# Libraries use their own debug flags
+FAMILIA_DEBUG=1           # Familia's built-in debug flag (Redis operations)
+FAMILIA_SAMPLE_RATE=0.01  # Log 1% of Redis commands (production)
+FAMILIA_SAMPLE_RATE=0.1   # Log 10% of Redis commands (development)
+FAMILIA_SAMPLE_RATE=1.0   # Log all Redis commands (debugging)
+
+# For libraries without built-in flags, use DEBUG_LOGGERS
+DEBUG_LOGGERS=Sequel:debug,Rhales:trace
 ```
 
 ### Fine-Grained Control
 
 ```bash
 # Multiple loggers with different levels
-DEBUG_LOGGERS=Auth:debug,Secret:trace,HTTP:info
+DEBUG_LOGGERS=Auth:debug,Secret:trace,HTTP:info,Sequel:debug
 
 # Global level override
 LOG_LEVEL=debug
-
-# Familia command sampling (reduce high-traffic log volume)
-FAMILIA_SAMPLE_RATE=0.01   # Log 1% of Redis commands (production)
-FAMILIA_SAMPLE_RATE=0.1    # Log 10% of Redis commands (development)
-FAMILIA_SAMPLE_RATE=1.0    # Log all Redis commands (debugging)
 ```
 
 ## Testing
@@ -301,22 +306,28 @@ These libraries don't support custom loggers, so we use SemanticLogger directly 
 - **Redis** - No native logger support; use `SemanticLogger['Familia']` for Redis operations via Familia
 - **Standard Library** - Use appropriate category logger for stdlib integrations
 
-### Debug Flags for External Libraries
+### External Library Logging Control
+
+**Use library's own debug flags when available:**
 
 ```bash
-# Enable detailed Redis operation logging
-DEBUG_FAMILIA=1 bundle exec puma
+# Familia (Redis ORM) - uses built-in FAMILIA_DEBUG flag
+FAMILIA_DEBUG=1 bundle exec puma
 
 # Control Familia command sampling (default: 1% in prod, 10% in dev, 100% in test)
 FAMILIA_SAMPLE_RATE=0.01 bundle exec puma  # Production: 1% sampling
 FAMILIA_SAMPLE_RATE=0.1 bundle exec puma   # Development: 10% sampling
 FAMILIA_SAMPLE_RATE=1.0 bundle exec puma   # Debugging: log everything
+```
 
-# Enable detailed router operation logging
-DEBUG_OTTO=1 bundle exec puma
+**For libraries without built-in debug flags, use DEBUG_LOGGERS:**
 
-# Enable detailed database query logging
-DEBUG_SEQUEL=1 bundle exec puma
+```bash
+# Sequel (database) and Rhales (templates)
+DEBUG_LOGGERS=Sequel:debug,Rhales:trace bundle exec puma
+
+# Or combine with application categories
+DEBUG_LOGGERS=Auth:debug,Sequel:debug bundle exec puma
 ```
 
 ### Familia Hooks

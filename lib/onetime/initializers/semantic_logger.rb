@@ -65,15 +65,15 @@ module Onetime
         end
       end
 
-      # Quick debug flags for each strategic category
+      # Quick debug flags for application categories only
+      # External libraries (Familia, Otto) use their own debug flags
       SemanticLogger['Auth'].level    = :debug if ENV['DEBUG_AUTH']
       SemanticLogger['Session'].level = :debug if ENV['DEBUG_SESSION']
       SemanticLogger['HTTP'].level    = :debug if ENV['DEBUG_HTTP']
       SemanticLogger['Secret'].level  = :debug if ENV['DEBUG_SECRET']
-      # SemanticLogger['Familia'].level = :debug if ENV['DEBUG_FAMILIA']
-      # SemanticLogger['Otto'].level    = :debug if ENV['DEBUG_OTTO']
-      # SemanticLogger['Rhales'].level  = :debug if ENV['DEBUG_RHALES']
-      # SemanticLogger['Sequel'].level  = :debug if ENV['DEBUG_SEQUEL']
+
+      # For external library logging levels, use DEBUG_LOGGERS instead:
+      # DEBUG_LOGGERS=Sequel:debug,Rhales:trace
     end
 
     # Configure external library loggers to use SemanticLogger
