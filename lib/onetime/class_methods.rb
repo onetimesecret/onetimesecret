@@ -164,17 +164,20 @@ module Onetime
       Process.clock_gettime(Process::CLOCK_REALTIME, :float_second)
     end
 
-    # Logging methods with backward compatibility and structured logging support
+    # Logging methods using SemanticLogger for structured logging
     #
-    # Legacy usage (still supported, but will show deprecation warning in development):
-    #   Onetime.li "User logged in"
+    # All methods now use SemanticLogger with consistent output format.
+    # Messages without payload will log with empty payload hash.
+    #
+    # Basic usage:
+    #   Onetime.li "User logged in"  # -> SemanticLogger with empty payload
     #   Onetime.le "Authentication failed"
     #
     # Structured logging (recommended):
     #   Onetime.li "User logged in", user_id: user.id, ip: request.ip
     #   Onetime.le "Auth failed", reason: :invalid_password
     #
-    # Exception logging (new):
+    # Exception logging:
     #   Onetime.le "Operation failed", exception: ex, context: value
     #   Onetime.le "Login failed", exception: ex, email: email, ip: ip
     #
@@ -185,30 +188,15 @@ module Onetime
     def info(*msgs, **payload)
       return unless mode?(:app) || mode?(:cli) # can reduce output in tryouts
 
-      if payload.empty?
-        msg = msgs.join("#{$/}")
-        stdout('I', msg)
-      else
-        logger.info(msgs.join(' '), payload)
-      end
+      logger.info(msgs.join(' '), payload)
     end
 
     def li(*msgs, **payload)
-      if payload.empty?
-        msg = msgs.join("#{$/}")
-        stdout('I', msg)
-      else
-        logger.info(msgs.join(' '), payload)
-      end
+      logger.info(msgs.join(' '), payload)
     end
 
     def lw(*msgs, **payload)
-      if payload.empty?
-        msg = msgs.join("#{$/}")
-        stdout('W', msg)
-      else
-        logger.warn(msgs.join(' '), payload)
-      end
+      logger.warn(msgs.join(' '), payload)
     end
 
     def le(*msgs, exception: nil, **payload)
@@ -217,11 +205,6 @@ module Onetime
         msg = msgs.join(' ')
         msg = "#{exception.class.name}" if msg.empty?
         logger.error(msg, exception, payload)
-      elsif payload.empty? && exception.nil?
-        # Legacy path - will be deprecated
-        warn_about_legacy_logging if Onetime.development?
-        msg = msgs.join("#{$/}")
-        stderr('E', msg)
       else
         logger.error(msgs.join(' '), payload)
       end
@@ -230,12 +213,7 @@ module Onetime
     def ld(*msgs, **payload)
       return unless Onetime.debug
 
-      if payload.empty?
-        msg = msgs.join("#{$/}")
-        stderr('D', msg)
-      else
-        logger.debug(msgs.join(' '), payload)
-      end
+      logger.debug(msgs.join(' '), payload)
     end
 
     # Returns the appropriate SemanticLogger instance for the current context.

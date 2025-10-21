@@ -77,14 +77,16 @@ result
 #=> :ok
 
 ## Backward Compatibility - Legacy string message (no kwargs)
-# Should still work without exception parameter
-OT.le "Legacy error message"
-#=> nil
+# Now uses SemanticLogger with empty payload (returns false when suppressed)
+result = OT.le "Legacy error message"
+result
+#=> false
 
 ## Backward Compatibility - Legacy multi-message
-# Should still work with multiple string arguments
-OT.le "Error:", "Something went wrong"
-#=> nil
+# Now uses SemanticLogger with empty payload (returns false when suppressed)
+result = OT.le "Error:", "Something went wrong"
+result
+#=> false
 
 ## Structured Logging - With payload but no exception
 # Should work with structured data without exception (returns false when log level suppresses output)

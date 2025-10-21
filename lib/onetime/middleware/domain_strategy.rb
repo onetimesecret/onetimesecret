@@ -1,6 +1,7 @@
 # lib/onetime/middleware/domain_strategy.rb
 
 require 'public_suffix'
+require_relative '../logging'
 
 module Onetime
   module Middleware
@@ -21,6 +22,8 @@ module Onetime
     #
     # @note Errors are logged but do not halt request processing.
     class DomainStrategy
+      include Onetime::Logging
+
       @canonical_domain        = nil
       @domains_enabled         = nil
       @canonical_domain_parsed = nil
@@ -39,7 +42,9 @@ module Onetime
         @application_context = application_context
         site_config = OT.conf&.dig('site') || {}
         self.class.initialize_from_config(site_config)
-        OT.info "[middleware]: app_context=#{@application_context} canonical_domain=#{canonical_domain}"
+        app_logger.info "DomainStrategy initialized",
+          app_context: @application_context,
+          canonical_domain: canonical_domain
       end
 
       # Processes the incoming request and classifies the domain.
@@ -59,7 +64,9 @@ module Onetime
         env['onetime.display_domain']  = display_domain
         env['onetime.domain_strategy'] = domain_strategy || :invalid # make sure never nil
 
-        OT.ld "[middleware] DomainStrategy: host=#{display_domain.inspect} strategy=#{domain_strategy}"
+        app_logger.debug "Domain strategy determined",
+          host: display_domain,
+          strategy: domain_strategy
 
         @app.call(env)
       end
@@ -93,12 +100,15 @@ module Onetime
             when ->(d) { known_custom_domain?(d.name) }       then :custom
             end
           rescue PublicSuffix::DomainInvalid => ex
-            OT.ld "[middleware] DomainStrategy: Invalid domain #{request_domain} #{ex.message}"
+            SemanticLogger['App'].debug "Invalid domain in strategy selection",
+              exception: ex,
+              request_domain: request_domain
             nil
           rescue StandardError => ex
-            OT.le "[middleware] DomainStrategy: Unhandled error: #{ex.message} (backtrace: " \
-                  "#{ex.backtrace[0..2].join("\n")}) (args: #{request_domain.inspect}, " \
-                  "#{canonical_domain.inspect})"
+            SemanticLogger['App'].error "Unhandled error in domain strategy",
+              exception: ex,
+              request_domain: request_domain,
+              canonical_domain: canonical_domain
             nil
           end
 
@@ -214,10 +224,15 @@ module Onetime
         def initialize_from_config(config)
           raise ArgumentError, 'Configuration cannot be nil' if config.nil?
 
-          OT.ld "[middleware] DomainStrategy: Initializing from config (before): #{@domains_enabled} "
+          SemanticLogger['App'].debug "DomainStrategy initializing from config",
+            domains_enabled_before: @domains_enabled
+
           @domains_enabled  = config.dig('domains', 'enabled') || false
           @canonical_domain = get_canonical_domain(config)
-          OT.ld "[middleware] DomainStrategy: Initializing from config: #{@domains_enabled} "
+
+          SemanticLogger['App'].debug "DomainStrategy config loaded",
+            domains_enabled: @domains_enabled,
+            canonical_domain: @canonical_domain
 
           # We don't need to get into any domain parsing if domains are disabled
           return unless domains_enabled?
