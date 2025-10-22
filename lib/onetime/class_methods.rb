@@ -164,6 +164,55 @@ module Onetime
       Process.clock_gettime(Process::CLOCK_REALTIME, :float_second)
     end
 
+    # Returns the current monotonic time in microseconds for duration
+    # measurements. Uses CLOCK_MONOTONIC which is immune to system clock
+    # adjustments (NTP, DST, manual changes) making it ideal for measuring
+    # elapsed time intervals.
+    #
+    # Delegates to Familia.now_in_μs which uses Process.clock_gettime with
+    # CLOCK_MONOTONIC. This clock always moves forward at a constant rate
+    # and is perfect for performance measurements, timeouts, and duration
+    # tracking.
+    #
+    # @return [Integer] Monotonic time in microseconds
+    #   Range: Arbitrary starting point (typically system boot time), only
+    #     meaningful for computing time differences
+    #   Precision: 1 microsecond (1/1,000,000 second)
+    #
+    # @note This method is optimal for:
+    #   - Measuring request/operation duration
+    #   - Performance profiling and benchmarking
+    #   - Timeout calculations
+    #   - Rate limiting with time windows
+    #   - Any scenario requiring reliable time differences
+    #
+    # @note DO NOT use for:
+    #   - Timestamps that need to represent actual wall clock time
+    #   - Values that need to be stored and compared across system reboots
+    #   - Synchronization with external systems or databases
+    #
+    # @note Key differences from hnowµs:
+    #   - hnowµs: CLOCK_REALTIME (wall clock) - for timestamps
+    #   - now_in_μs: CLOCK_MONOTONIC (steady clock) - for durations
+    #
+    # @example Measuring operation duration
+    #   start = Onetime.now_in_μs
+    #   # ... perform operation ...
+    #   duration = Onetime.now_in_μs - start  # microseconds elapsed
+    #
+    # @example Request timing in middleware
+    #   start = Onetime.now_in_μs
+    #   status, headers, body = @app.call(env)
+    #   duration = Onetime.now_in_μs - start
+    #   logger.info "Request completed", duration: duration
+    #
+    # @see Familia.now_in_μs Underlying implementation
+    # @see Process.clock_gettime Ruby documentation for clock types
+    def now_in_μs
+      Familia.now_in_μs
+    end
+    alias now_in_microseconds now_in_μs
+
     # Logging methods using SemanticLogger for structured logging
     #
     # All methods now use SemanticLogger with consistent output format.
