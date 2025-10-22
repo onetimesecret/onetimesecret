@@ -134,6 +134,7 @@ jobs:
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
+          SESSION_SECRET: 'test-session-secret-for-ci-only-do-not-use-in-production'
         run: |
           mkdir tmp && bundle exec rspec \
             --format progress \
@@ -156,6 +157,7 @@ jobs:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'basic'
+          SESSION_SECRET: 'test-session-secret-for-ci-only-do-not-use-in-production'
         run: |
           echo "Testing basic authentication mode..."
           bundle exec tryouts -vf try/unit try/system
@@ -168,6 +170,7 @@ jobs:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'disabled'
+          SESSION_SECRET: 'test-session-secret-for-ci-only-do-not-use-in-production'
         run: |
           echo "Testing disabled authentication mode..."
           bundle exec tryouts -vf try/integration/authentication/disabled_mode
@@ -179,6 +182,7 @@ jobs:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'advanced'
+          SESSION_SECRET: 'test-session-secret-for-ci-only-do-not-use-in-production'
           # Advanced mode requires a database. Using in-memory SQLite for CI.
           DATABASE_URL: 'sqlite::memory:'
         run: |

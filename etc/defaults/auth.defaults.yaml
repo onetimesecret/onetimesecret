@@ -7,7 +7,7 @@ mode: basic
 
 # Shared session configuration (both modes)
 session:
-  secret: <%= ENV['SESSION_SECRET'] || '619551c6df23c4be74ce9705abbf46ffbbe6bb1541442ac1faa174fa11da9ba3' %>
+  secret: <%= ENV['SESSION_SECRET'] %>
   expire_after: 86400       # 24 hours
   key: 'onetime.session'        # Unified cookie name
   secure: true              # Set based on SSL configuration
