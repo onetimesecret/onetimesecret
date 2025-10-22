@@ -90,7 +90,7 @@ module Onetime
               method: req.request_method,
               path: req.path,
               status: res.status,
-              duration: duration,
+              duration: "#{duration}μs",  # Duration in microseconds
               user_id: user_id,
               auth_strategy: auth_strategy,
               ip: req.ip,
