@@ -52,7 +52,7 @@ CREATE INDEX accounts_last_login_at_idx ON accounts(last_login_at);
 
 -- Password hashes (stored separately for security)
 CREATE TABLE account_password_hashes (
-    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     password_hash VARCHAR(255) NOT NULL
 );
 
@@ -62,7 +62,7 @@ CREATE TABLE account_password_hashes (
 
 -- Email verification keys
 CREATE TABLE account_verification_keys (
-    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     key VARCHAR(255) NOT NULL UNIQUE,
     requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email_last_sent DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -74,7 +74,7 @@ CREATE TABLE account_verification_keys (
 
 -- Password reset keys
 CREATE TABLE account_password_reset_keys (
-    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     key VARCHAR(255) NOT NULL UNIQUE,
     deadline DATETIME NOT NULL,
     email_last_sent DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -86,13 +86,13 @@ CREATE TABLE account_password_reset_keys (
 
 -- Login failure tracking
 CREATE TABLE account_login_failures (
-    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     number INTEGER NOT NULL DEFAULT 1
 );
 
 -- Account lockout management
 CREATE TABLE account_lockouts (
-    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     key VARCHAR(255) NOT NULL UNIQUE,
     deadline DATETIME NOT NULL,
     email_last_sent DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -104,7 +104,7 @@ CREATE TABLE account_lockouts (
 
 -- Remember me tokens
 CREATE TABLE account_remember_keys (
-    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     key VARCHAR(255) NOT NULL UNIQUE,
     deadline DATETIME NOT NULL
 );
@@ -131,7 +131,7 @@ CREATE INDEX account_active_session_keys_last_use_idx ON account_active_session_
 
 -- OTP (TOTP) secret keys for Google Authenticator, etc.
 CREATE TABLE account_otp_keys (
-    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     key VARCHAR(255) NOT NULL,
     num_failures INTEGER NOT NULL DEFAULT 0,
     last_use DATETIME DEFAULT CURRENT_TIMESTAMP
