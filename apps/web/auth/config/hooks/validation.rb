@@ -43,11 +43,10 @@ module Auth
                   throw_error_status(422, 'login', 'Please enter a valid email address')
                 end
               rescue StandardError => ex
-                OT.le "Email validation error",
+                SemanticLogger['Auth'].error "Email validation service failed - failing open to allow signup",
                   email: OT::Utils.obscure_email(email),
                   exception: ex,
-                  context: "auth",
-                  note: "Failing open on validation errors - consider hard failure for higher security"
+                  note: "Consider hard failure for higher security"
                 # Fail open on validation errors, but notify for investigation.
                 # For higher security, this could be changed to a hard failure.
                 throw_error_status(422, 'login', 'There was a problem validating your email. Please try again.')

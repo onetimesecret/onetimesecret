@@ -1,6 +1,7 @@
 # apps/web/auth/application.rb
 
 require 'onetime/application'
+require 'onetime/logging'
 
 # Load auth dependencies first
 require_relative 'config/database'
@@ -16,6 +17,8 @@ require_relative 'router'
 
 module Auth
   class Application < Onetime::Application::Base
+    include Onetime::Logging
+
     @uri_prefix = '/auth'.freeze
 
     # Auth app specific middleware (common middleware is in MiddlewareStack)
@@ -48,20 +51,17 @@ module Auth
           Auth::Migrator.run_if_needed
           OT.info 'Auth database migrations completed (advanced mode)'
         rescue StandardError => ex
-          OT.le "Failed to run auth database migrations", exception: ex
+          auth_logger.error "Auth database migrations failed during startup", exception: ex
           # Don't fail startup in production, log the error
           raise ex if Onetime.development?
         end
       else
-        OT.le "Auth application should not be mounted in basic mode",
+        auth_logger.error "Auth application mounted in basic mode - this is a configuration error. "\
+          "The Auth app is designed for advanced mode only. In basic mode, authentication "\
+          "is handled by Core app at /auth/*. Check your application registry configuration.",
           app: "Auth::Application",
           mode: "basic",
-          expected_mode: "advanced",
-          notes: [
-            "The Auth app is designed for advanced mode only",
-            "In basic mode, authentication is handled by Core app at /auth/*",
-            "Check your application registry configuration"
-          ]
+          expected_mode: "advanced"
       end
     end
 

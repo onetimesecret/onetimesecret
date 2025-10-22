@@ -8,9 +8,12 @@
 
 require 'sequel'
 require 'logger'
+require 'onetime/logging'
 
 module Auth
   module Migrator
+    extend Onetime::Logging
+
     class << self
       # Run migrations if needed (called during warmup in advanced mode)
       # Sequel::Migrator.run automatically skips already-run migrations
@@ -18,11 +21,13 @@ module Auth
         return unless database_connection
 
         begin
-          OT.ld "Checking auth database migrations", context: "Auth::Migrator"
+          SemanticLogger['Sequel'].debug "Checking auth database migrations"
           run_migrations
-          OT.ld "Auth database schema is up to date", context: "Auth::Migrator"
+          SemanticLogger['Sequel'].debug "Auth database schema is up to date"
         rescue StandardError => ex
-          OT.le "Auth migration error", exception: ex, context: "Auth::Migrator"
+          SemanticLogger['Sequel'].error "Auth database migration failed",
+            exception: ex,
+            migrations_dir: migrations_dir
           raise
         end
       end
