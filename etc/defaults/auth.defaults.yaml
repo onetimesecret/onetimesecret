@@ -41,6 +41,8 @@ advanced:
     - verify_account        # Email verification
     - otp                   # MFA
     - recovery_codes        # MFA backup codes
+    - email_auth            # Magic links (passwordless email login)
+    - webauthn              # Biometric/security key authentication
 
   # Security settings
   security:
