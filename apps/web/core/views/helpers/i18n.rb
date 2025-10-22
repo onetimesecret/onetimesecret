@@ -1,5 +1,7 @@
 # apps/web/core/views/helpers/i18n.rb
 
+require 'onetime/logging'
+
 # I18nHelpers provides localization functionality for view templates.
 #
 # This module implements a caching mechanism for translations with
@@ -14,6 +16,8 @@
 module Core
   module Views
     module I18nHelpers
+      include Onetime::Logging
+
       attr_reader :i18n_enabled
 
       # Retrieves localized content for the view, implementing fallback behavior
@@ -44,7 +48,7 @@ module Core
 
         # Fall back to default locale if translations not available
         if messages.empty?
-          SemanticLogger['App'].warn "Locale not found, falling back to default",
+          app_logger.warn "Locale not found, falling back to default",
             requested_locale: locale,
             available_locales: OT.locales.keys,
             supported_locales: OT.supported_locales,

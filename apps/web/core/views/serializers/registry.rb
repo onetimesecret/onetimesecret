@@ -1,6 +1,7 @@
 # apps/web/core/views/serializers/registry.rb
 
 require 'tsort'
+require 'onetime/logging'
 
 # Dependencies-aware registry for view serializers
 #
@@ -24,6 +25,7 @@ module Core
   module Views
     class SerializerRegistry
       extend TSort
+      extend Onetime::Logging
 
       @serializers  = []
       @dependencies = {}
@@ -54,7 +56,7 @@ module Core
           ordered.reduce({}) do |result, serializer|
             output = serializer.serialize(vars, i18n)
             if output.nil?
-              SemanticLogger['App'].warn "Serializer returned nil",
+              app_logger.warn "Serializer returned nil",
                 serializer: serializer.to_s,
                 module: "SerializerRegistry"
               next result
@@ -63,7 +65,7 @@ module Core
             output.each_key do |key|
               # Detect keys that are not defined in the serializer output_template
               unless serializer.output_template.key?(key)
-                SemanticLogger['App'].warn "Serializer key not in output template",
+                app_logger.warn "Serializer key not in output template",
                   key: key,
                   serializer: serializer.to_s,
                   module: "SerializerRegistry"
@@ -71,7 +73,7 @@ module Core
 
               # Detect key collisions with output from previous serializers
               if seen_keys.key?(key)
-                SemanticLogger['App'].warn "Serializer key collision detected",
+                app_logger.warn "Serializer key collision detected",
                   key: key,
                   first_defined_by: seen_keys[key].to_s,
                   then_defined_by: serializer.to_s,
