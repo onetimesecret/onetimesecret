@@ -1,129 +1,10 @@
-# Rodauth 2.41 Patterns & Architecture Cheatsheet
+# Rodauth 2.41 Complete Configuration Reference
 
 **Version**: Rodauth 2.41.0
-**Primary Usage**: JSON API mode for headless authentication
 **Documentation**: http://rodauth.jeremyevans.net
 **Context7**: `/jeremyevans/rodauth`
 
-## Core Architecture
-
-### Feature-Based System
-
-Rodauth operates as a modular authentication framework where all capabilities require explicit enablement. Nothing is available until explicitly enabled.
-
-**Configuration Hierarchy**:
-```
-Base Feature (shared configuration)
-├── Email Base (email-sending features)
-├── Login/Password Requirements Base
-├── Two Factor Base
-└── Individual Features (login, logout, create_account, etc.)
-```
-
-**Enablement Pattern**:
-```ruby
-plugin :rodauth do
-  enable :base, :login, :logout, :create_account, :verify_account
-  # Configuration methods become available AFTER features are enabled
-end
-```
-
-### Request/Response Lifecycle
-
-1. **Request Processing**: Rodauth routes handle authentication endpoints
-2. **Hook Execution**: before_rodauth → CSRF check → feature-specific before hooks
-3. **Feature Logic**: Authentication, validation, database operations
-4. **Session Management**: update_session or clear_session
-5. **Hook Execution**: after hooks execute
-6. **Response**: redirect (HTML) or JSON response body
-
-### Integration Modes
-
-**Three Primary Patterns**:
-
-1. **HTML Forms** (default): Traditional web form-based flows with redirects
-2. **JSON API**: RESTful endpoints with JSON request/response (our primary usage)
-3. **JWT Support**: Token-based authentication with separate access/refresh tokens
-
-**Internal Request Pattern**: Call Rodauth methods programmatically without HTTP layer
-
-## JSON API Mode Configuration
-
-### Essential JSON Settings
-
-```ruby
-plugin :rodauth do
-  enable :json  # Must be enabled for JSON mode
-
-  # Request validation
-  json_check_accept? true                          # Validate Accept header (default: true)
-  json_accept_regexp /(?:^|[,\s])*application\/json(?:$|[,\s]*)*/  # Accept header pattern
-  json_request_content_type_regexp /application\/json/  # Content-Type validation
-
-  # Response configuration
-  json_response_content_type 'application/json'    # Response MIME type
-  json_response_success_key 'success'              # Success message key
-  json_response_error_key 'error'                  # Error message key
-  json_response_field_error_key 'field-error'      # Field error array key
-
-  # HTTP status codes
-  json_response_custom_error_status? true          # Enable custom error statuses
-  json_response_error_status 400                   # Default error status
-
-  # Mode restrictions
-  only_json? false                                 # Restrict to JSON-only requests
-end
-```
-
-### JSON Request Format
-
-**ALL requests use POST method**. Non-POST requests return `405 Method Not Allowed`.
-
-```ruby
-# Login request example
-POST /login
-Content-Type: application/json
-
-{
-  "login": "user@example.com",
-  "password": "secure_password"
-}
-```
-
-### JSON Response Patterns
-
-**Success Response**:
-```json
-{
-  "success": "You have been logged in"
-}
-```
-
-**Error Response**:
-```json
-{
-  "error": "There was an error logging in",
-  "field-error": ["login", "invalid login"]
-}
-```
-
-**Custom Response Modification**:
-```ruby
-# Modify json_response hash during request processing
-json_response['reason'] = 'account_locked'
-json_response['unlock_url'] = unlock_account_url
-```
-
-### CSRF Handling in JSON Mode
-
-**Default Behavior**: CSRF protection disabled for JSON requests by default
-
-**HTML Mode**: CSRF remains active when using HTML rendering alongside JSON
-
-```ruby
-check_csrf? true                    # Enable CSRF checking
-check_csrf_opts {}                  # Options passed to Roda's check_csrf!
-```
+> For quick conceptual overview and architecture patterns, see `cheatsheet-rodauth-patterns.md`
 
 ## Base Configuration Methods
 
@@ -131,7 +12,7 @@ check_csrf_opts {}                  # Options passed to Roda's check_csrf!
 
 ```ruby
 # Account retrieval
-account_from_id(id, status_id=nil)  # Fetch account by ID and optional status
+account_from_id(id, status_id=nil)   # Fetch account by ID and optional status
 account_from_login(login)            # Fetch account by login credential
 account_from_session                 # Get current session's account
 
@@ -158,7 +39,7 @@ clear_session                        # Remove all session data
 account_session_value                # Value to store in session (defaults to account_id)
 
 # Authentication checks
-authenticated?                       # True only if MFA requirements met
+authenticated?                      # True only if MFA requirements met
 logged_in?                          # True if session contains account_id
 require_login                       # Enforce authentication gate
 login_required                      # Action when login required but not authenticated
@@ -229,7 +110,7 @@ set_notice_flash(message)           # Set next success notification
 set_redirect_error_flash(message)   # Set error for post-redirect display
 ```
 
-## Feature Configuration Patterns
+## Feature Configuration Reference
 
 ### Login Feature
 
@@ -373,11 +254,11 @@ enable :change_password
 # Requires current password verification before allowing change
 
 # Route configuration
-change_password_route 'change-password'           # Password change endpoint
-change_password_redirect '/'                      # Post-change destination
+change_password_route 'change-password'               # Password change endpoint
+change_password_redirect '/'                          # Post-change destination
 
 # Validation
-require_password_confirmation? true               # Confirm new password
+require_password_confirmation? true                   # Confirm new password
 same_as_existing_password_message 'same as existing'  # Error for identical password
 
 # Generated methods
@@ -646,6 +527,84 @@ webauthn_login_route 'webauthn-login'             # Passwordless login endpoint
 # 4. Session established
 
 # Requires same webauthn_origin, webauthn_rp_id, webauthn_rp_name settings
+```
+
+## JSON API Mode Configuration
+
+### Essential JSON Settings
+
+```ruby
+plugin :rodauth do
+  enable :json  # Must be enabled for JSON mode
+
+  # Request validation
+  json_check_accept? true                          # Validate Accept header (default: true)
+  json_accept_regexp /(?:^|[,\s])*application\/json(?:$|[,\s]*)*/  # Accept header pattern
+  json_request_content_type_regexp /application\/json/  # Content-Type validation
+
+  # Response configuration
+  json_response_content_type 'application/json'    # Response MIME type
+  json_response_success_key 'success'              # Success message key
+  json_response_error_key 'error'                  # Error message key
+  json_response_field_error_key 'field-error'      # Field error array key
+
+  # HTTP status codes
+  json_response_custom_error_status? true          # Enable custom error statuses
+  json_response_error_status 400                   # Default error status
+
+  # Mode restrictions
+  only_json? false                                 # Restrict to JSON-only requests
+end
+```
+
+### JSON Request Format
+
+**ALL requests use POST method**. Non-POST requests return `405 Method Not Allowed`.
+
+```ruby
+# Login request example
+POST /login
+Content-Type: application/json
+
+{
+  "login": "user@example.com",
+  "password": "secure_password"
+}
+```
+
+### JSON Response Patterns
+
+**Success Response**:
+```json
+{
+  "success": "You have been logged in"
+}
+```
+
+**Error Response**:
+```json
+{
+  "error": "There was an error logging in",
+  "field-error": ["login", "invalid login"]
+}
+```
+
+**Custom Response Modification**:
+```ruby
+# Modify json_response hash during request processing
+json_response['reason'] = 'account_locked'
+json_response['unlock_url'] = unlock_account_url
+```
+
+### CSRF Handling in JSON Mode
+
+**Default Behavior**: CSRF protection disabled for JSON requests by default
+
+**HTML Mode**: CSRF remains active when using HTML rendering alongside JSON
+
+```ruby
+check_csrf? true                    # Enable CSRF checking
+check_csrf_opts {}                  # Options passed to Roda's check_csrf!
 ```
 
 ## Official Plugin Ecosystem
@@ -971,7 +930,7 @@ enable :password_expiration
 require_password_change_after_account_creation? true
 ```
 
-## Common Patterns for OneTimeSecret
+## Common OneTimeSecret Implementation Patterns
 
 ### JSON API Configuration
 
@@ -1055,14 +1014,3 @@ plugin :rodauth do
   end
 end
 ```
-
----
-
-**Key Takeaways**:
-1. All features require explicit enablement
-2. JSON mode uses POST-only requests with structured responses
-3. Configuration methods become available only after features are enabled
-4. Override methods for customization, use hooks for side effects
-5. Security settings (hmac_secret, session config) are critical
-6. Email delivery requires custom send_email implementation
-7. Feature interdependencies handled automatically (e.g., verify_account modifies create_account behavior)
