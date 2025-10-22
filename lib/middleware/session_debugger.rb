@@ -214,8 +214,9 @@ module Rack
       cookies.each do |cookie|
         next unless cookie&.start_with?('rack.session')
 
-        # Parse cookie attributes
+        # Parse cookie attributes (skip first part which contains the value)
         parts = cookie.split(';').map(&:strip)
+        _cookie_name_value = parts[0] # Intentionally discarded to avoid logging session data
         attributes = {}
         parts[1..].each do |part|
           if part.include?('=')

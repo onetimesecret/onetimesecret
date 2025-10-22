@@ -71,8 +71,8 @@ module Onetime
 
       def redact_params(params)
         sensitive = %w[password secret token api_key passphrase access_token refresh_token]
-        params.transform_values do |v|
-          sensitive.any? { |k| params.key?(k) } ? '[REDACTED]' : v
+        params.each_with_object({}) do |(k, v), result|
+          result[k] = sensitive.include?(k.to_s.downcase) ? '[REDACTED]' : v
         end
       end
 
