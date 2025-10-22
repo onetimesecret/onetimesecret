@@ -66,7 +66,7 @@ export function useWebAuthn() {
    */
   async function registerWebAuthn(): Promise<boolean> {
     if (!supported.value) {
-      error.value = t('auth.webauthn.notSupported');
+      error.value = t('web.auth.webauthn.notSupported');
       return false;
     }
 
@@ -110,11 +110,11 @@ export function useWebAuthn() {
     } catch (err: any) {
       // Handle WebAuthn errors
       if (err.name === 'NotAllowedError') {
-        error.value = t('auth.webauthn.cancelled');
+        error.value = t('web.auth.webauthn.cancelled');
       } else if (err.response?.data) {
-        error.value = err.response.data.error || t('auth.webauthn.setupFailed');
+        error.value = err.response.data.error || t('web.auth.webauthn.setupFailed');
       } else {
-        error.value = err.message || t('auth.webauthn.setupFailed');
+        error.value = err.message || t('web.auth.webauthn.setupFailed');
       }
       return false;
     } finally {
@@ -130,7 +130,7 @@ export function useWebAuthn() {
    */
   async function authenticateWebAuthn(email?: string): Promise<boolean> {
     if (!supported.value) {
-      error.value = t('auth.webauthn.notSupported');
+      error.value = t('web.auth.webauthn.notSupported');
       return false;
     }
 
@@ -178,11 +178,11 @@ export function useWebAuthn() {
     } catch (err: any) {
       // Handle WebAuthn errors
       if (err.name === 'NotAllowedError') {
-        error.value = t('auth.webauthn.cancelled');
+        error.value = t('web.auth.webauthn.cancelled');
       } else if (err.response?.data) {
-        error.value = err.response.data.error || t('auth.webauthn.authFailed');
+        error.value = err.response.data.error || t('web.auth.webauthn.authFailed');
       } else {
-        error.value = err.message || t('auth.webauthn.authFailed');
+        error.value = err.message || t('web.auth.webauthn.authFailed');
       }
       return false;
     } finally {

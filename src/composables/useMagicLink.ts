@@ -86,10 +86,10 @@ export function useMagicLink() {
       // Handle error responses
       if (err.response?.data) {
         const errorData = err.response.data;
-        error.value = errorData.error || t('auth.magicLink.requestFailed');
+        error.value = errorData.error || t('web.auth.magicLink.requestFailed');
         fieldError.value = errorData['field-error'] || null;
       } else {
-        error.value = t('auth.magicLink.networkError');
+        error.value = t('web.auth.magicLink.networkError');
       }
       return false;
     } finally {

@@ -36,15 +36,15 @@ const selectedMethod = ref<AuthMethod>(defaultMethod);
 // Available methods based on feature flags
 const availableMethods = computed(() => {
   const methods: Array<{ key: AuthMethod; label: string }> = [
-    { key: 'password', label: 'auth.methods.password' },
+    { key: 'password', label: 'web.auth.methods.password' },
   ];
 
   if (magicLinksEnabled) {
-    methods.push({ key: 'magicLink', label: 'auth.methods.magicLink' });
+    methods.push({ key: 'magicLink', label: 'web.auth.methods.magicLink' });
   }
 
   if (webauthnEnabled) {
-    methods.push({ key: 'webauthn', label: 'auth.methods.webauthn' });
+    methods.push({ key: 'webauthn', label: 'web.auth.methods.webauthn' });
   }
 
   return methods;
