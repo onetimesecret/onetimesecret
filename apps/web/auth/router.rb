@@ -16,6 +16,7 @@ require_relative 'routes/validation'
 module Auth
   # This is the Roda application, which handles all routing for the auth service.
   class Router < Roda
+    include Onetime::Logging
 
     # Include session validation helpers
     # TODO: Implement these modules

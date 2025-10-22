@@ -10,6 +10,11 @@ const schema = z.object({
   }).nullable(),
   domains: z.object({}).optional(),
   domains_enabled: z.boolean(),
+  features: z.object({
+    magic_links: z.boolean(),
+    email_auth: z.boolean(),
+    webauthn: z.boolean()
+  }),
   frontend_development: z.boolean(),
   frontend_host: z.string(),
   incoming_recipient: z.string().nullable(),
