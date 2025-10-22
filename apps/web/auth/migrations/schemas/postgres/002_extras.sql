@@ -31,7 +31,7 @@ CREATE TABLE account_password_change_times (
 CREATE TABLE account_email_auth_keys (
     account_id BIGINT PRIMARY KEY,
     key VARCHAR NOT NULL,
-    deadline TIMESTAMPTZ NOT NULL,
+    deadline TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '1 day'),
     email_last_sent TIMESTAMPTZ,
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );

@@ -76,7 +76,7 @@ CREATE TABLE account_verification_keys (
 CREATE TABLE account_password_reset_keys (
     account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     key VARCHAR(255) NOT NULL UNIQUE,
-    deadline DATETIME NOT NULL,
+    deadline DATETIME NOT NULL DEFAULT (datetime('now', '+1 day')),
     email_last_sent DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -106,7 +106,7 @@ CREATE TABLE account_lockouts (
 CREATE TABLE account_remember_keys (
     account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     key VARCHAR(255) NOT NULL UNIQUE,
-    deadline DATETIME NOT NULL
+    deadline DATETIME NOT NULL DEFAULT (datetime('now', '+1 day'))
 );
 
 -- ================================================================
