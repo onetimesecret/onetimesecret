@@ -151,7 +151,7 @@ module Rack
       return unless defined?(Familia)
 
       begin
-        redis = Familia.dbclient
+        dbclient = Familia.dbclient
 
         # Try common session key patterns
         key_patterns = [
@@ -161,10 +161,10 @@ module Rack
         ]
 
         key_patterns.each do |key|
-          next unless redis.exists(key) > 0
+          next unless dbclient.exists(key) > 0
 
-          ttl  = redis.ttl(key)
-          data = redis.get(key)
+          ttl  = dbclient.ttl(key)
+          data = dbclient.get(key)
 
           # Try to parse session data
           parsed = begin
@@ -194,7 +194,7 @@ module Rack
           searched_keys: key_patterns
 
         # List available session keys for debugging
-        all_session_keys = redis.keys('*session*')
+        all_session_keys = dbclient.keys('*session*')
         if all_session_keys.any?
           logger.debug "Available Redis session keys",
             sample: all_session_keys.first(5),

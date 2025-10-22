@@ -153,10 +153,10 @@ module Onetime
       def execute!
         # Get the db connection via the model to make sure we're
         # connected to the correct DB where customer records live.
-        redis = Onetime::Customer.dbclient
+        dbclient = Onetime::Customer.dbclient
 
         log "EXECUTION: Starting email change process for #{old_email} -> #{new_email}"
-        log "Using Redis database #{dbclient.connection[:db]}"
+        log "Using database #{dbclient.connection[:db]}"
 
         begin
           dbclient.multi do |multi|

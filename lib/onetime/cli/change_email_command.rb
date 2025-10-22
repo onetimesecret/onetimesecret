@@ -12,11 +12,11 @@ module Onetime
       puts '=' * 50
 
       # Connect to the database DB 0 where audit logs are stored
-      redis = Familia.dbclient
+      dbclient = Familia.dbclient
 
       # Get keys matching the pattern
       pattern = email_filter ? "change_email:#{email_filter}:*" : 'change_email:*'
-      keys    = redis.keys(pattern).sort_by { |k| k.split(':').last.to_i }.reverse.first(limit.to_i)
+      keys    = dbclient.keys(pattern).sort_by { |k| k.split(':').last.to_i }.reverse.first(limit.to_i)
 
       if keys.empty?
         puts "No email change reports found#{" for #{email_filter}" if email_filter}."
@@ -34,7 +34,7 @@ module Onetime
         next unless option.verbose
 
         # Show full report in verbose mode
-        report = redis.get(key)
+        report = dbclient.get(key)
         if report
           puts '-' * 40
           puts report
@@ -216,8 +216,8 @@ module Onetime
     # @param key [String] The database key for the report
     # @return [String, nil] The report text or nil if not found
     def get_change_email_report(key)
-      redis = Familia.dbclient
-      redis.get(key)
+      dbclient = Familia.dbclient
+      dbclient.get(key)
     end
   end
 end

@@ -59,8 +59,8 @@ module Onetime
       puts
 
       # Try to find session in Redis using common patterns
-      redis        = Familia.dbclient
-      session_data = find_session_in_redis(redis, session_id)
+      dbclient     = Familia.dbclient
+      session_data = find_session_in_redis(dbclient, session_id)
 
       unless session_data
         puts '❌ Session not found in Redis'
@@ -71,7 +71,7 @@ module Onetime
         end
         puts
         puts 'Available session keys (first 10):'
-        all_keys = redis.keys('*session*').first(10)
+        all_keys = dbclient.keys('*session*').first(10)
         all_keys.each { |key| puts "  - #{key}" }
         return
       end
@@ -87,8 +87,8 @@ module Onetime
       puts "Active Sessions (limit: #{limit})"
       puts '-' * 80
 
-      redis        = Familia.dbclient
-      session_keys = redis.scan_each(match: '*session*').first(limit)
+      dbclient     = Familia.dbclient
+      session_keys = dbclient.scan_each(match: '*session*').first(limit)
 
       if session_keys.empty?
         puts 'No sessions found'
@@ -99,7 +99,7 @@ module Onetime
       puts '-' * 80
 
       session_keys.each do |key|
-        session_data = load_session_data(redis, key)
+        session_data = load_session_data(dbclient, key)
         next unless session_data
 
         session_id = extract_session_id_from_key(key)
@@ -131,12 +131,12 @@ module Onetime
       puts "Searching for sessions matching: #{search_term}"
       puts '-' * 80
 
-      redis        = Familia.dbclient
-      session_keys = redis.scan_each(match: '*session*').to_a
+      dbclient     = Familia.dbclient
+      session_keys = dbclient.scan_each(match: '*session*').to_a
       found        = []
 
       session_keys.each do |key|
-        session_data = load_session_data(redis, key)
+        session_data = load_session_data(dbclient, key)
         next unless session_data
 
         if matches_search?(session_data, search_term)
@@ -172,8 +172,8 @@ module Onetime
         return
       end
 
-      redis       = Familia.dbclient
-      session_key = find_session_key(redis, session_id)
+      dbclient    = Familia.dbclient
+      session_key = find_session_key(dbclient, session_id)
 
       unless session_key
         puts "❌ Session not found: #{session_id}"
@@ -181,7 +181,7 @@ module Onetime
       end
 
       # Show session info before deleting
-      session_data = load_session_data(redis, session_key)
+      session_data = load_session_data(dbclient, session_key)
       puts 'Session to delete:'
       puts "  ID: #{session_id}"
       puts "  Email: #{session_data['email']}" if session_data
@@ -197,21 +197,20 @@ module Onetime
         end
       end
 
-      redis.del(session_key)
+      dbclient.del(session_key)
       puts '✓ Session deleted'
     end
 
     # ots session clean
     def clean
       puts 'Cleaning expired sessions...'
-      redis = Familia.dbclient
-
-      session_keys = redis.scan_each(match: '*session*').to_a
+      dbclient     = Familia.dbclient
+      session_keys = dbclient.scan_each(match: '*session*').to_a
       expired      = 0
       active       = 0
 
       session_keys.each do |key|
-        ttl = redis.ttl(key)
+        ttl = dbclient.ttl(key)
         if ttl == -2 # Key doesn't exist
           next
         elsif ttl == -1 # Key exists but has no expiry
@@ -220,7 +219,7 @@ module Onetime
           active += 1
         else
           # Shouldn't happen, but clean it anyway
-          redis.del(key)
+          dbclient.del(key)
           expired += 1
         end
       end
@@ -241,24 +240,24 @@ module Onetime
       ]
     end
 
-    def find_session_in_redis(redis, session_id)
+    def find_session_in_redis(dbclient, session_id)
       session_key_patterns(session_id).each do |pattern|
-        if redis.exists(pattern) > 0
-          return load_session_data(redis, pattern)
+        if dbclient.exists(pattern) > 0
+          return load_session_data(dbclient, pattern)
         end
       end
       nil
     end
 
-    def find_session_key(redis, session_id)
+    def find_session_key(dbclient, session_id)
       session_key_patterns(session_id).each do |pattern|
-        return pattern if redis.exists(pattern) > 0
+        return pattern if dbclient.exists(pattern) > 0
       end
       nil
     end
 
-    def load_session_data(redis, key)
-      raw_data = redis.get(key)
+    def load_session_data(dbclient, key)
+      raw_data = dbclient.get(key)
       return nil unless raw_data
 
       # Try different deserializations
@@ -316,10 +315,10 @@ module Onetime
       puts
 
       # Redis info
-      redis       = Familia.dbclient
-      session_key = find_session_key(redis, session_id)
+      dbclient    = Familia.dbclient
+      session_key = find_session_key(dbclient, session_id)
       if session_key
-        ttl = redis.ttl(session_key)
+        ttl = dbclient.ttl(session_key)
         puts 'Redis Info:'
         puts "  Key: #{session_key}"
         if ttl > 0
