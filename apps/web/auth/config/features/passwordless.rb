@@ -3,7 +3,11 @@
 module Auth
   module Config
     module Features
+      # Passwordless (Email Magic Links) feature configuration
+      #
       module Passwordless
+        using Familia::Refinements::TimeLiterals
+
         def self.configure(rodauth_config)
           rodauth_config.instance_eval do
             # Email Auth (Magic Links)
@@ -17,9 +21,10 @@ module Auth
             email_auth_deadline_column :deadline
             email_auth_email_last_sent_column :email_last_sent
 
-            # Email auth configuration
-            email_auth_deadline_interval 86400  # 24 hours
-            email_auth_skip_resend_email_within 300  # 5 minutes
+            # Magic links are only valid for a short period so we also keep
+            # the resend interval short to avoid user frustration.
+            email_auth_deadline_interval 15.minutes
+            email_auth_skip_resend_email_within 1.minutes
 
             # Email content for magic links
             email_auth_email_subject 'Login Link'
@@ -58,17 +63,26 @@ module Auth
 
             # Hook: Before handling email auth route (form submission)
             before_email_auth_route do
-              SemanticLogger['Auth::EmailAuth'].debug 'Processing magic link authentication',
-                account_id: account[:id]
+              SemanticLogger['Auth'].debug 'Processing magic link authentication'
+              # No arguments are passed to the block.
+              # You can access request parameters using Rodauth methods like 'param'.
+              auth_token = param('key')
+
+              if auth_token.nil? || auth_token.empty?
+                msg = 'The email authentication token is missing.'
+                SemanticLogger['Auth'].error msg
+                set_error_flash msg
+                redirect login_path
+              end
             end
 
             # Hook: After sending magic link email
             after_email_auth_request do
-              SemanticLogger['Auth::EmailAuth'].info 'Magic link email sent',
+              SemanticLogger['Auth'].info 'Magic link email sent',
                 account_id: account[:id],
                 email: account[:email]
 
-              # Note: Successful login is tracked via session middleware
+              # NOTE: Successful login is tracked via session middleware
               # Set session values in base after_login hook
             end
           end
