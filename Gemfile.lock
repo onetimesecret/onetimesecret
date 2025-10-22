@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/delano/familia
-  revision: b9c1424619cdb85038a9ad56e0e07a51af0e3ce8
+  revision: e3a649efb4991da4aa65bd514a1c90a1d99e4472
   specs:
-    familia (2.0.0.pre20)
+    familia (2.0.0.pre21)
       benchmark (~> 0.4)
       connection_pool (~> 2.5)
       csv (~> 3.3)
