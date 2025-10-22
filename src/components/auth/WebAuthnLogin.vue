@@ -1,6 +1,9 @@
 <!-- src/components/auth/WebAuthnLogin.vue -->
 <script setup lang="ts">
 import { useWebAuthn } from '@/composables/useWebAuthn';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const { supported, authenticateWebAuthn, isLoading, error } = useWebAuthn();
 
@@ -29,10 +32,10 @@ const handleWebAuthnLogin = async () => {
         </svg>
         <div class="ml-3">
           <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-            {{ $t('web.auth.webauthn.notSupported') }}
+            {{ t('web.auth.webauthn.notSupported') }}
           </h3>
           <p class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
-            {{ $t('web.auth.webauthn.requiresModernBrowser') }}
+            {{ t('web.auth.webauthn.requiresModernBrowser') }}
           </p>
         </div>
       </div>
@@ -53,7 +56,7 @@ const handleWebAuthnLogin = async () => {
       <!-- Description -->
       <div class="mb-6 text-center">
         <p class="text-sm text-gray-600 dark:text-gray-400">
-          {{ $t('web.auth.webauthn.description') }}
+          {{ t('web.auth.webauthn.description') }}
         </p>
       </div>
 
@@ -106,14 +109,14 @@ const handleWebAuthnLogin = async () => {
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
         </svg>
 
-        <span v-if="isLoading">{{ $t('web.auth.webauthn.processing') }}</span>
-        <span v-else>{{ $t('web.auth.webauthn.signIn') }}</span>
+        <span v-if="isLoading">{{ t('web.auth.webauthn.processing') }}</span>
+        <span v-else>{{ t('web.auth.webauthn.signIn') }}</span>
       </button>
 
       <!-- Help text -->
       <div class="mt-4 text-center">
         <p class="text-xs text-gray-500 dark:text-gray-400">
-          {{ $t('web.auth.webauthn.supportedMethods') }}
+          {{ t('web.auth.webauthn.supportedMethods') }}
         </p>
       </div>
     </div>
