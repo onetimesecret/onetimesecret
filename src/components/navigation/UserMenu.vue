@@ -5,12 +5,15 @@ import OIcon from '@/components/icons/OIcon.vue';
 import { Customer } from '@/schemas/models';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   cust: Customer;
   colonel?: boolean;
   showUpgrade?: boolean;
 }>();
+
+const { t } = useI18n();
 
 const router = useRouter();
 const isOpen = ref(false);
@@ -78,7 +81,7 @@ onUnmounted(() => {
         dark:focus:ring-offset-gray-900"
       :aria-expanded="isOpen"
       aria-haspopup="true"
-      :aria-label="$t('web.COMMON.user_menu')">
+      :aria-label="t('web.COMMON.user_menu')">
       <!-- Avatar Circle -->
       <div
         class="flex size-8 items-center justify-center rounded-full
@@ -119,7 +122,7 @@ onUnmounted(() => {
           rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5
           focus:outline-none dark:bg-gray-800 dark:ring-gray-700"
         role="menu"
-        :aria-label="$t('web.COMMON.user_menu')">
+        :aria-label="t('web.COMMON.user_menu')">
         <!-- User Info Header -->
         <div
           class="border-b border-gray-200 px-4 py-3
@@ -132,7 +135,7 @@ onUnmounted(() => {
           <p
             v-if="cust.custid"
             class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {{ $t('web.account.customer-id') }}: {{ cust.custid }}
+            {{ t('web.account.customer-id') }}: {{ cust.custid }}
           </p>
         </div>
 
@@ -151,7 +154,7 @@ onUnmounted(() => {
               name="cog-6-tooth-solid"
               class="size-5 text-gray-400 dark:text-gray-500"
               aria-hidden="true" />
-            {{ $t('web.account.settings') }}
+            {{ t('web.account.settings') }}
           </button>
 
           <!-- Security -->
@@ -167,7 +170,7 @@ onUnmounted(() => {
               name="shield-check-solid"
               class="size-5 text-gray-400 dark:text-gray-500"
               aria-hidden="true" />
-            {{ $t('web.COMMON.security') }}
+            {{ t('web.COMMON.security') }}
           </button>
 
           <!-- Active Sessions -->
@@ -183,7 +186,7 @@ onUnmounted(() => {
               name="computer-desktop-solid"
               class="size-5 text-gray-400 dark:text-gray-500"
               aria-hidden="true" />
-            {{ $t('web.auth.sessions.title') }}
+            {{ t('web.auth.sessions.title') }}
           </button>
 
           <!-- Divider -->
@@ -203,7 +206,7 @@ onUnmounted(() => {
               name="bolt-solid"
               class="size-5 text-brand-500 dark:text-brand-400"
               aria-hidden="true" />
-            {{ $t('web.LABELS.pricing') }}
+            {{ t('web.LABELS.pricing') }}
           </button>
 
           <!-- Colonel (conditional) -->
@@ -220,7 +223,7 @@ onUnmounted(() => {
               name="star"
               class="size-5 text-brand-400"
               aria-hidden="true" />
-            {{ $t('web.colonel.dashboard') }}
+            {{ t('web.colonel.dashboard') }}
           </button>
 
           <!-- Divider -->
@@ -241,7 +244,7 @@ onUnmounted(() => {
               name="arrow-right-on-rectangle-solid"
               class="size-5 text-red-500 dark:text-red-400"
               aria-hidden="true" />
-            {{ $t('web.COMMON.header_logout') }}
+            {{ t('web.COMMON.header_logout') }}
           </button>
         </div>
       </div>

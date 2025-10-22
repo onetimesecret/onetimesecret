@@ -1,15 +1,13 @@
 <!-- src/components/layout/Masthead.vue -->
 
 <script setup lang="ts">
-  import OIcon from '@/components/icons/OIcon.vue';
   import UserMenu from '@/components/navigation/UserMenu.vue';
-  import SettingsModal from '@/components/modals/SettingsModal.vue';
   import DefaultLogo from '@/components/logos/DefaultLogo.vue';
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { computed, ref, watch, type Component } from 'vue';
+  import { computed, watch, type Component } from 'vue';
   import { useI18n } from 'vue-i18n';
-import { shallowRef } from 'vue';
+  import { shallowRef } from 'vue';
 
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
@@ -23,6 +21,7 @@ import { shallowRef } from 'vue';
     'authenticated',
     'cust',
     'ui',
+    'domains_enabled',
   ]));
 
   const isColonel = computed(() => windowProps.value.cust?.role === 'colonel');
@@ -114,18 +113,6 @@ import { shallowRef } from 'vue';
   // Watch for changes to logoUrl and load Vue component if needed
   watch(() => logoConfig.value.url, loadLogoComponent, { immediate: true });
 
-  // Reactive state
-  const isSettingsModalOpen = ref(false);
-
-  // Methods
-  const openSettingsModal = () => {
-    isSettingsModalOpen.value = true;
-  };
-
-  const closeSettingsModal = () => {
-    isSettingsModalOpen.value = false;
-  };
-
 </script>
 
 <template>
@@ -169,24 +156,6 @@ import { shallowRef } from 'vue';
         class="flex flex-wrap items-center justify-center gap-4
           font-brand text-sm sm:justify-end sm:text-base">
         <template v-if="windowProps.authenticated && windowProps.cust">
-          <!-- Settings Button -->
-          <button
-            @click="openSettingsModal"
-            class="text-xl text-gray-600 transition-colors duration-200
-              hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
-            :aria-label="t('web.COMMON.header_settings')"
-            :title="t('web.COMMON.header_settings')">
-            <OIcon
-              class="size-5"
-              collection="material-symbols"
-              name="settings-outline"
-              aria-hidden="true" />
-          </button>
-
-          <SettingsModal
-            :is-open="isSettingsModalOpen"
-            @close="closeSettingsModal" />
-
           <!-- User Menu Dropdown -->
           <UserMenu
             :cust="windowProps.cust"
