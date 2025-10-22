@@ -24,29 +24,29 @@ module Onetime
         start = Time.now
 
         status, headers, body = @app.call(env)
-        duration_ms = ((Time.now - start) * 1000).round(2)
+        duration = ((Time.now - start) * 1000).round(2)
 
-        log_request(request, status, duration_ms)
+        log_request(request, status, duration)
 
         [status, headers, body]
       end
 
       private
 
-      def log_request(request, status, duration_ms)
-        payload = build_payload(request, status, duration_ms)
-        level = determine_level(status, duration_ms)
+      def log_request(request, status, duration)
+        payload = build_payload(request, status, duration)
+        level = determine_level(status, duration)
 
         @logger.send(level, 'HTTP Request', payload)
       end
 
-      def build_payload(request, status, duration_ms)
+      def build_payload(request, status, duration)
         payload = {}
 
         payload[:method] = request.request_method if capture?(:method)
         payload[:path] = request.path if capture?(:path)
         payload[:status] = status if capture?(:status)
-        payload[:duration_ms] = duration_ms if capture?(:duration)
+        payload[:duration] = duration if capture?(:duration)
         payload[:request_id] = request.env['HTTP_X_REQUEST_ID'] if capture?(:request_id)
         payload[:ip] = request.ip if capture?(:ip)
         payload[:params] = redact_params(request.params) if capture?(:params)
@@ -63,9 +63,9 @@ module Onetime
         @capture.include?(field)
       end
 
-      def determine_level(status, duration_ms)
+      def determine_level(status, duration)
         return :error if status >= 500
-        return :warn if status >= 400 || duration_ms > @config['slow_request_ms']
+        return :warn if status >= 400 || duration > @config['slow_request_ms']
         @config['level']&.to_sym || :info
       end
 

@@ -84,10 +84,10 @@ module Rack
       verify_redis_state(session_id_after, 'after') if session_id_after
 
       # Log response info
-      duration_ms = ((Time.now - request_time) * 1000).round(2)
+      duration = ((Time.now - request_time) * 1000).round(2)
       logger.debug "Session debug complete",
         status: status,
-        duration_ms: duration_ms
+        duration: duration
 
       [status, headers, body]
     end

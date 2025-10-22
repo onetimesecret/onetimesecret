@@ -189,7 +189,7 @@ def process_request(req)
   Thread.current[:log_category] = 'HTTP'
   Onetime.ld "Request received", path: req.path, method: req.request_method
   # ... processing ...
-  Onetime.ld "Response sent", status: status, duration_ms: duration
+  Onetime.ld "Response sent", status: status, duration: duration
 ensure
   Thread.current[:log_category] = nil
 end

@@ -167,7 +167,7 @@ Onetime.le "Error occurred"
 Onetime.li "Request processed",
   path: req.path,
   method: req.request_method,
-  duration_ms: duration
+  duration: duration
 ```
 
 ### Pattern 3: Category-Aware Class
@@ -467,7 +467,7 @@ Three output formatters available via `etc/logging.yaml`:
 
 **json** (recommended for production):
 ```json
-{"timestamp":"2025-10-20T18:35:41.002Z","level":"info","name":"Sequel","message":"Query executed","duration_ms":2.4}
+{"timestamp":"2025-10-20T18:35:41.002Z","level":"info","name":"Sequel","message":"Query executed","duration":2.4}
 {"timestamp":"2025-10-20T18:35:41.003Z","level":"info","name":"Auth","message":"Login successful","user_id":123,"ip":"192.168.1.1"}
 ```
 - Structured JSON with all fields

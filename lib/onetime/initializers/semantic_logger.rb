@@ -149,10 +149,10 @@ module Onetime
 
       # Redis command performance tracking
       if Familia.respond_to?(:on_command)
-        Familia.on_command do |cmd, duration_ms, context|
+        Familia.on_command do |cmd, duration, context|
           familia_logger.debug 'Redis command',
             command: cmd,
-            duration_ms: duration_ms,
+            duration: duration,
             context: context
         end
       end
