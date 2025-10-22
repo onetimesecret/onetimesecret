@@ -12,9 +12,13 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
     ENV['AUTHENTICATION_MODE'] = 'advanced'
     ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../..'))
 
+    # Reset registry to clear any apps loaded during spec_helper
+    Onetime::Application::Registry.reset!
+
+    # Boot application (which will configure but not yet load apps)
     Onetime.boot! :test
 
-    # Prepare the application registry
+    # Now prepare registry with advanced mode ENV set
     Onetime::Application::Registry.prepare_application_registry
   end
 

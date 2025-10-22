@@ -26,7 +26,7 @@ module Core
       # This handles code validation and frontend development server integration
       use Core::Middleware::ViteProxy
 
-      use ::Middleware::SessionDebugger if ENV['DEBUG_SESSION']
+      use Rack::SessionDebugger if ENV['DEBUG_SESSION']
 
       # Schema validation middleware validates that hydration data matches
       # the JSON schemas generated from <schema> sections in .rue templates.

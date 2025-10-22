@@ -5,6 +5,7 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class AuthenticateSession < V2::Logic::Base
+      include Onetime::Logging
       attr_reader :objid, :stay, :greenlighted, :session_ttl, :potential_email_address
 
       # cust is only populated if the passphrase matches
@@ -33,13 +34,27 @@ module V2::Logic
 
       def process
         unless success?
-          OT.ld "[login-failure] #{sess} #{cust.obscure_email} #{cust.role} (failed)"
+          auth_logger.warn "Login failed",
+            email: cust.obscure_email,
+            role: cust.role,
+            session_id: sess&.id,
+            ip: @strategy_result.metadata[:ip],
+            reason: :invalid_credentials
+
           raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
         end
 
         if cust.pending?
-          OT.info "[login-pending-customer] #{sess} #{cust.objid} #{cust.role} (pending)"
-          OT.li "[ResetPasswordRequest] Resending verification email to #{cust.objid}"
+          auth_logger.info "Login pending customer verification",
+            customer_id: cust.objid,
+            email: cust.obscure_email,
+            role: cust.role,
+            session_id: sess&.id,
+            status: :pending
+
+          auth_logger.info "Resending verification email",
+            customer_id: cust.objid,
+            email: cust.obscure_email
 
           send_verification_email nil
 
@@ -48,8 +63,6 @@ module V2::Logic
         end
 
         @greenlighted = true
-
-        OT.info "[login-success] #{sess.id} #{cust.obscure_email} #{cust.role}"
 
         # Set session authentication data
         sess['external_id'] = cust.extid
@@ -63,6 +76,15 @@ module V2::Logic
         else
           :customer
         end
+
+        auth_logger.info "Login successful",
+          user_id: cust.custid,
+          email: cust.obscure_email,
+          role: cust.role,
+          session_id: sess.id,
+          ip: @strategy_result.metadata[:ip],
+          stay: stay,
+          session_ttl: session_ttl
       end
 
       def success?

@@ -7,6 +7,8 @@ require 'base64'
 require 'openssl'
 require 'familia'
 
+require_relative 'logging'
+
 module Onetime
   # Onetime::Session - A secure Rack session store using Familia's StringKey DataType
   #
@@ -30,6 +32,7 @@ module Onetime
   # @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/abstract/id.rb
   # @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/encryptor.rb
   class Session < Rack::Session::Abstract::PersistedSecure
+    include Onetime::Logging
     unless defined?(DEFAULT_OPTIONS)
       DEFAULT_OPTIONS = {
         key: 'onetime.session',
@@ -145,8 +148,12 @@ module Onetime
 
         [sid, session_data]
       rescue StandardError => ex
-        # Log error in development/debugging
-        Familia.ld "[Session] Error reading session #{sid_string}: #{ex.message}"
+        # Log error with structured context
+        session_logger.error "Error reading session",
+          session_id: sid_string,
+          error: ex.message,
+          error_class: ex.class.name,
+          operation: 'read'
 
         # Return new session on any error
         [generate_sid, {}]
@@ -171,15 +178,30 @@ module Onetime
       # Update expiration if configured
       stringkey.update_expiration(expiration: @expire_after) if @expire_after && @expire_after > 0
 
-      # Debug logging
-      Familia.ld "[Session] Wrote session #{sid_string}: #{session_data.keys.join(', ')}"
-      Familia.ld "[Session] Session TTL: #{stringkey.ttl}"
+      # Calculate session data metrics for logging
+      data_size = signed_data.bytesize
+      ttl_value = stringkey.ttl
+      expires_at = ttl_value > 0 ? Time.now + ttl_value : nil
+
+      # Structured debug logging
+      session_logger.debug "Session saved",
+        session_id: sid_string,
+        session_keys: session_data.keys,
+        ttl: ttl_value,
+        data_size: data_size,
+        expires_at: expires_at,
+        operation: 'write'
 
       # Return the original sid (may be SessionId object)
       sid
     rescue StandardError => ex
-      # Log error in development/debugging
-      Familia.ld "[Session] Error writing session #{sid_string}: #{ex.message}"
+      # Log error with structured context
+      session_logger.error "Error writing session",
+        session_id: sid_string,
+        session_keys: session_data&.keys,
+        error: ex.message,
+        error_class: ex.class.name,
+        operation: 'write'
 
       # Return false to indicate failure
       false

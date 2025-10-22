@@ -6,6 +6,7 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class BaseSecretAction < V2::Logic::Base
+      include Onetime::Logging
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted, :metadata,
         :secret, :share_domain, :custom_domain, :payload
       attr_accessor :token
@@ -132,13 +133,21 @@ module V2::Logic
         return if potential_domain.empty?
 
         unless Onetime::CustomDomain.valid?(potential_domain)
-          return OT.info "[BaseSecretAction] Invalid share domain #{potential_domain}"
+          secret_logger.info "Invalid share domain",
+            domain: potential_domain,
+            action: 'validate_share_domain',
+            result: :invalid
+          return
         end
 
         # If the given domain is the same as the site's host domain, then
         # we simply skip the share domain stuff altogether.
         if Onetime::CustomDomain.default_domain?(potential_domain)
-          return OT.info "[BaseSecretAction] Ignoring default share domain: #{potential_domain}"
+          secret_logger.info "Ignoring default share domain",
+            domain: potential_domain,
+            action: 'validate_share_domain',
+            result: :default_domain_skipped
+          return
         end
 
         # Otherewise, it's good to go.
@@ -291,14 +300,12 @@ module V2::Logic
         domain_record = Onetime::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?
 
-        OT.ld <<~DEBUG
-          [BaseSecretAction]
-            class:     #{self.class}
-            share_domain:   #{@share_domain}
-            custom_domain?:  #{custom_domain?}
-            allow_public?:   #{domain_record.allow_public_homepage?}
-            owner?:          #{domain_record.owner?(@cust)}
-        DEBUG
+        secret_logger.debug "Validating domain access",
+          domain: domain,
+          custom_domain: custom_domain?,
+          allow_public: domain_record.allow_public_homepage?,
+          is_owner: domain_record.owner?(@cust),
+          user_id: @cust&.custid
 
         validate_domain_permissions(domain_record)
       end
@@ -318,12 +325,21 @@ module V2::Logic
         if custom_domain?
           return if domain_record.allow_public_homepage?
 
+          secret_logger.warn "Public sharing disabled for domain",
+            domain: share_domain,
+            user_id: @cust&.custid,
+            action: 'validate_domain_permissions',
+            result: :access_denied
           raise_form_error "Public sharing disabled for domain: #{share_domain}"
         end
 
         return if domain_record.owner?(@cust)
 
-        OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
+        secret_logger.info "Non-owner attempted domain access",
+          domain: share_domain,
+          user_id: cust.custid,
+          action: 'validate_domain_permissions',
+          result: :non_owner
       end
     end
   end

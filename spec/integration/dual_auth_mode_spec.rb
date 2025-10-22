@@ -20,9 +20,12 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       ENV['RACK_ENV'] = 'test'
       ENV['AUTHENTICATION_MODE'] = 'basic'
 
+      # Reset registry to clear any apps loaded during spec_helper
+      Onetime::Application::Registry.reset!
+
       Onetime.boot! :test
 
-      # Prepare registry
+      # Prepare registry with basic mode ENV set
       Onetime::Application::Registry.prepare_application_registry
 
       # Return full Rack app with middleware stack (including session middleware)

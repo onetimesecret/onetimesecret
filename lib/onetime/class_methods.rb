@@ -164,49 +164,78 @@ module Onetime
       Process.clock_gettime(Process::CLOCK_REALTIME, :float_second)
     end
 
-    def info(*msgs)
+    # Logging methods with backward compatibility and structured logging support
+    #
+    # Legacy usage (still supported):
+    #   Onetime.li "User logged in"
+    #   Onetime.le "Authentication failed"
+    #
+    # Structured logging (new):
+    #   Onetime.li "User logged in", user_id: user.id, ip: request.ip
+    #   Onetime.le "Auth failed", reason: :invalid_password
+    #
+    # Category-aware logging via thread-local:
+    #   Thread.current[:log_category] = 'Auth'
+    #   Onetime.ld "Processing login", email: email
+    #
+    def info(*msgs, **payload)
       return unless mode?(:app) || mode?(:cli) # can reduce output in tryouts
 
-      msg = msgs.join("#{$/}")
-      stdout('I', msg)
+      if payload.empty?
+        msg = msgs.join("#{$/}")
+        stdout('I', msg)
+      else
+        logger.info(msgs.join(' '), payload)
+      end
     end
 
-    def li(*msgs)
-      msg = msgs.join("#{$/}")
-      stdout('I', msg)
+    def li(*msgs, **payload)
+      if payload.empty?
+        msg = msgs.join("#{$/}")
+        stdout('I', msg)
+      else
+        logger.info(msgs.join(' '), payload)
+      end
     end
 
-    def lw(*msgs)
-      msg = msgs.join("#{$/}")
-      stdout('W', msg)
+    def lw(*msgs, **payload)
+      if payload.empty?
+        msg = msgs.join("#{$/}")
+        stdout('W', msg)
+      else
+        logger.warn(msgs.join(' '), payload)
+      end
     end
 
-    def le(*msgs)
-      msg = msgs.join("#{$/}")
-      stderr('E', msg)
+    def le(*msgs, **payload)
+      if payload.empty?
+        msg = msgs.join("#{$/}")
+        stderr('E', msg)
+      else
+        logger.error(msgs.join(' '), payload)
+      end
     end
 
-    def ld(*msgs)
+    def ld(*msgs, **payload)
       return unless Onetime.debug
 
-      msg = msgs.join("#{$/}")
-      stderr('D', msg)
+      if payload.empty?
+        msg = msgs.join("#{$/}")
+        stderr('D', msg)
+      else
+        logger.debug(msgs.join(' '), payload)
+      end
     end
 
-    def stdout(prefix, msg)
-      return if STDOUT.closed?
-
-      stamp   = Familia.now.to_i
-      logline = format('%s(%s): %s', prefix, stamp, msg)
-      STDOUT.puts(logline)
-    end
-
-    def stderr(prefix, msg)
-      return if STDERR.closed?
-
-      stamp   = Familia.now.to_i
-      logline = format('%s(%s): %s', prefix, stamp, msg)
-      warn(logline)
+    # Returns the appropriate SemanticLogger instance for the current context.
+    # Defaults to 'App' category unless overridden via thread-local variable.
+    #
+    # @example
+    #   Thread.current[:log_category] = 'Auth'
+    #   logger.info "Processing login"  # Uses SemanticLogger['Auth']
+    #
+    def logger
+      SemanticLogger[Thread.current[:log_category] || 'App']
     end
 
     def with_diagnostics(&)
@@ -218,6 +247,24 @@ module Onetime
     def debug
       @debug ||= ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
     end
+
+    def stdout(prefix, msg)
+      return if STDOUT.closed?
+
+      stamp   = Familia.now.to_i
+      logline = format('%s(%s): %s', prefix, stamp, msg)
+      STDOUT.puts(logline)
+    end
+    private :stdout
+
+    def stderr(prefix, msg)
+      return if STDERR.closed?
+
+      stamp   = Familia.now.to_i
+      logline = format('%s(%s): %s', prefix, stamp, msg)
+      warn(logline)
+    end
+    private :stderr
 
     # Returns debug status and optionally executes block if enabled.
     #

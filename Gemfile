@@ -61,7 +61,7 @@ gem 'truemail'
 # ====================================
 
 # ORMs and database drivers
-gem 'familia', '~> 2.0.0.pre19'
+gem 'familia', git: 'https://github.com/delano/familia'
 gem 'sequel', '~> 5.0'
 
 case ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase

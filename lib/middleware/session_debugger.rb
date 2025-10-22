@@ -13,9 +13,12 @@
 # - Redis storage verification
 #
 require 'oj'
+require_relative 'logging'
 
 module Rack
   class SessionDebugger
+    include Middleware::Logging
+
     def initialize(app)
       @app     = app
       @enabled = ENV['DEBUG_SESSION'].to_s.match?(/^(true|1|yes)$/i) # rubocop:disable ThreadSafety/RackMiddlewareInstanceVariable
@@ -28,9 +31,10 @@ module Rack
       begin
         debug_request(env)
       rescue StandardError => ex
-        puts "\n❌ SessionDebugger Error: #{ex.message}"
-        puts "   #{ex.backtrace.first(3).join("\n   ")}"
-        puts "   Continuing with request...\n"
+        logger.error "SessionDebugger failed",
+          error: ex.message,
+          error_class: ex.class.name,
+          backtrace: ex.backtrace.first(3)
         # If debugging fails, still process the request
         @app.call(env)
       end
@@ -45,23 +49,17 @@ module Rack
       request_time = Time.now
 
       # Log incoming request
-      log_separator("REQUEST START: #{method} #{path}")
-
-      # Capture incoming cookie
-      incoming_cookie = env['HTTP_COOKIE']
-      log_info('Incoming Cookie header present', incoming_cookie&.include?('rack.session') || false)
+      logger.debug "Session debug start",
+        method: method,
+        path: path,
+        has_cookie: env['HTTP_COOKIE']&.include?('rack.session') || false
 
       # Get session before processing
       session_before    = env['rack.session']
       session_id_before = extract_session_id(session_before)
 
-      log_section('SESSION STATE - BEFORE REQUEST')
       log_session_state(session_before, session_id_before, 'before')
-
-      # Verify what's in Redis if we have a session ID
-      if session_id_before
-        log_redis_state(session_id_before, 'before')
-      end
+      verify_redis_state(session_id_before, 'before') if session_id_before
 
       # Process request
       status, headers, body = @app.call(env)
@@ -70,36 +68,26 @@ module Rack
       session_after    = env['rack.session']
       session_id_after = extract_session_id(session_after)
 
-      log_section('SESSION STATE - AFTER REQUEST')
       log_session_state(session_after, session_id_after, 'after')
 
       # Check for session ID changes
       if session_id_before != session_id_after
-        log_warning("SESSION ID CHANGED: #{session_id_before} -> #{session_id_after}")
+        logger.warn "Session ID changed",
+          before: session_id_before,
+          after: session_id_after
       end
 
       # Log Set-Cookie header
-      set_cookie = headers['Set-Cookie']
-      log_section('RESPONSE COOKIES')
-      if set_cookie
-        if set_cookie.is_a?(Array)
-          set_cookie.each { |cookie| log_cookie_details(cookie) }
-        else
-          log_cookie_details(set_cookie)
-        end
-      else
-        log_warning('No Set-Cookie header in response')
-      end
+      log_cookies(headers['Set-Cookie'])
 
       # Verify what's in Redis after
-      if session_id_after
-        log_redis_state(session_id_after, 'after')
-      end
+      verify_redis_state(session_id_after, 'after') if session_id_after
 
       # Log response info
-      duration = ((Time.now - request_time) * 1000).round(2)
-      log_separator("REQUEST END: #{status} (#{duration}ms)")
-      puts # Blank line for readability
+      duration_ms = ((Time.now - request_time) * 1000).round(2)
+      logger.debug "Session debug complete",
+        status: status,
+        duration_ms: duration_ms
 
       [status, headers, body]
     end
@@ -118,173 +106,133 @@ module Rack
         end
       end
     rescue StandardError => ex
-      log_error("Failed to extract session ID: #{ex.message}")
+      logger.error "Failed to extract session ID", error: ex.message
       nil
     end
 
-    def log_session_state(session, session_id, _phase)
+    def log_session_state(session, session_id, phase)
       if session.nil?
-        log_warning('Session is nil')
+        logger.warn "Session is nil", phase: phase
         return
       end
 
-      log_info('Session ID', session_id || 'NONE')
-      log_info('Session class', session.class.name)
-
-      # Log key authentication-related session data
+      # Extract authentication-related session data
       auth_keys = %w[
         authenticated authenticated_at authenticated_by
         external_id account_external_id advanced_account_id
-        email role locale
-        active_session_id
+        email role locale active_session_id
       ]
 
       auth_data = {}
       auth_keys.each do |key|
-        value          = session[key]
+        value = session[key]
         auth_data[key] = value if value
       end
 
-      if auth_data.empty?
-        log_warning('No authentication data in session')
-      else
-        log_info('Auth data', Oj.dump(auth_data, indent: 2))
-      end
-
-      # Log total number of keys
+      # Log session state
       begin
-        total_keys = session.keys.size
-        log_info('Total session keys', total_keys)
-        log_info('All keys', session.keys.join(', '))
+        logger.debug "Session state",
+          phase: phase,
+          session_id: session_id || 'NONE',
+          session_class: session.class.name,
+          auth_data: auth_data,
+          total_keys: session.keys.size,
+          all_keys: session.keys.join(', ')
+
+        logger.warn "No auth data in session", phase: phase if auth_data.empty?
       rescue StandardError => ex
-        log_error("Could not read session keys: #{ex.message}")
+        logger.error "Could not read session keys",
+          phase: phase,
+          error: ex.message
       end
     end
 
-    def log_redis_state(session_id, phase)
-      return unless defined?(Familia) && Familia.respond_to?(:redis)
-
-      log_section("REDIS STATE - #{phase.upcase}")
+    def verify_redis_state(session_id, phase)
+      return unless defined?(Familia)
 
       begin
-        redis = Familia.dbclient
+        dbclient = Familia.dbclient
 
         # Try common session key patterns
         key_patterns = [
           "session:#{session_id}",
           "rack:session:#{session_id}",
-          session_id,
+          session_id
         ]
 
-        found = false
         key_patterns.each do |key|
-          next unless redis.exists(key) > 0
+          next unless dbclient.exists(key) > 0
 
-          ttl  = redis.ttl(key)
-          data = redis.get(key)
-
-          log_info('Redis key', key)
-          log_info('TTL', "#{ttl} seconds")
+          ttl  = dbclient.ttl(key)
+          data = dbclient.get(key)
 
           # Try to parse session data
-          begin
-            begin
-                parsed = begin
-                         Marshal.load(data)
-                rescue StandardError
-                         JSON.parse(data)
-                end
-            rescue StandardError
-                data
-            end
-            if parsed.is_a?(Hash)
-              log_info('Session data', JSON.pretty_generate(parsed))
-            else
-              log_info('Session data (raw)', data[0..200])
-            end
+          parsed = begin
+            Marshal.load(data)
           rescue StandardError
-            log_info('Session data (raw)', data[0..200])
+            begin
+              JSON.parse(data)
+            rescue StandardError
+              data
+            end
           end
 
-          found = true
-          break
+          logger.debug "Redis session found",
+            phase: phase,
+            key: key,
+            ttl: ttl,
+            data_size: data&.bytesize,
+            parsed: parsed.is_a?(Hash)
+
+          return
         end
 
-        unless found
-          log_warning("No Redis data found for session ID: #{session_id}")
-          log_info('Searched keys', key_patterns.join(', '))
+        # Not found in any pattern
+        logger.warn "Redis session missing",
+          phase: phase,
+          session_id: session_id,
+          searched_keys: key_patterns
 
-          # List all session keys for debugging
-          all_session_keys = redis.keys('*session*')
-          if all_session_keys.any?
-            log_info('Available session keys in Redis', all_session_keys.first(5).join(', '))
-            log_info('Total session keys', all_session_keys.size)
-          end
+        # List available session keys for debugging
+        all_session_keys = dbclient.keys('*session*')
+        if all_session_keys.any?
+          logger.debug "Available Redis session keys",
+            sample: all_session_keys.first(5),
+            total: all_session_keys.size
         end
       rescue StandardError => ex
-        log_error("Redis inspection failed: #{ex.message}")
+        logger.error "Redis inspection failed",
+          phase: phase,
+          error: ex.message
       end
     end
 
-    def log_cookie_details(cookie_string)
-      return unless cookie_string
+    def log_cookies(set_cookie)
+      return logger.warn "No Set-Cookie header" unless set_cookie
 
-      # Parse cookie attributes
-      parts             = cookie_string.split(';').map(&:strip)
-      cookie_name_value = parts.first
+      cookies = [set_cookie].flatten
+      cookies.each do |cookie|
+        next unless cookie&.start_with?('rack.session')
 
-      return unless cookie_name_value&.start_with?('rack.session')
-
-      log_info('Session cookie', 'PRESENT')
-
-      # Log cookie attributes
-      attributes = {}
-      parts[1..].each do |part|
-        if part.include?('=')
-          key, value               = part.split('=', 2)
-          attributes[key.downcase] = value
-        else
-          attributes[part.downcase] = true
+        # Parse cookie attributes (skip first part which contains the value)
+        parts = cookie.split(';').map(&:strip)
+        _cookie_name_value = parts[0] # Intentionally discarded to avoid logging session data
+        attributes = {}
+        parts[1..].each do |part|
+          if part.include?('=')
+            key, value = part.split('=', 2)
+            attributes[key.downcase] = value
+          else
+            attributes[part.downcase] = true
+          end
         end
+
+        logger.debug "Session cookie set", attributes: attributes
+
+        # Check for common issues
+        logger.warn "Cookie missing HttpOnly" unless attributes['httponly']
+        logger.warn "Cookie missing SameSite" unless attributes['samesite']
       end
-
-      log_info('Cookie attributes', attributes.inspect)
-
-      # Check for common issues
-      log_warning('Cookie missing HttpOnly flag') unless attributes['httponly']
-      log_warning('Cookie missing SameSite attribute') unless attributes['samesite']
-      log_warning('Cookie has Secure flag but not in HTTPS') if attributes['secure'] && !https_request?
-    end
-
-    def https_request?
-      # This would need access to the request env
-      # For now, we'll skip this check
-      false
-    end
-
-    # Logging helpers
-    def log_separator(message)
-      puts "\n" + ('=' * 80)
-      puts "  #{message}"
-      puts '=' * 80
-    end
-
-    def log_section(message)
-      puts "\n" + ('-' * 80)
-      puts "  #{message}"
-      puts '-' * 80
-    end
-
-    def log_info(label, value)
-      puts "  #{label.ljust(25)}: #{value}"
-    end
-
-    def log_warning(message)
-      puts "  ⚠️  WARNING: #{message}"
-    end
-
-    def log_error(message)
-      puts "  ❌ ERROR: #{message}"
     end
   end
 end

@@ -117,6 +117,19 @@ jobs:
           bundle config path vendor/bundle
           bundle install --jobs 4 --retry 3
 
+      - name: Setup test configuration
+        run: |
+          # Copy default config files if they don't exist
+          for file in etc/defaults/*.defaults.*; do
+            if [ -f "$file" ]; then
+              target="etc/$(basename "$file" | sed 's/\.defaults//')"
+              if [ ! -f "$target" ]; then
+                cp "$file" "$target"
+                echo "Created $target from defaults"
+              fi
+            fi
+          done
+
       - name: Run test specs
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'

@@ -79,7 +79,7 @@ module Onetime
           advanced_identity = resolve_advanced_identity(request, env)
           return advanced_identity if advanced_identity[:user]
         when 'basic'
-          # Use basic (Redis-only) authentication
+          # Use basic (Valkey/Redis-only) authentication
           basic_identity = resolve_basic_identity(request, env)
           return basic_identity if basic_identity[:user]
         end
@@ -89,7 +89,7 @@ module Onetime
       end
 
       def resolve_advanced_identity(_request, env)
-          # Get session from Redis session middleware
+          # Get session from Valkey/Redis session middleware
           session = env['rack.session']
           logger.debug "[IdentityResolution] Advanced - Session: #{session.class}, keys: #{session.keys.join(', ') rescue 'none'}"
           logger.debug "[IdentityResolution] Advanced - authenticated=#{session['authenticated']}, account_external_id=#{session['account_external_id']}"
@@ -111,7 +111,6 @@ module Onetime
               customer_id: customer.objid,
               external_id: customer.extid,
               account_id: session['advanced_account_id'],
-              tenant_id: customer.primary_org_id,
               auth_method: 'advanced',
               authenticated_at: session['authenticated_at'],
               expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86_400 : nil,
@@ -238,18 +237,18 @@ module Onetime
         nil # Placeholder
       end
 
-      def build_advanced_user(customer, session)
+      def build_advanced_user(customer, _session)
         # Build user object from Advanced-authenticated customer
-        AdvancedUser.new(customer, session)
+        customer
       end
 
-      def build_basic_user(customer, session)
+      def build_basic_user(customer, _session)
         # Return the customer object directly
         # Session metadata is already available in identity[:metadata]
         customer
       end
 
-      def build_anonymous_user(request)
+      def build_anonymous_user(_request)
         # Return static, frozen anonymous customer
         Onetime::Customer.anonymous
       end

@@ -69,8 +69,41 @@ module Onetime
           end
         end
 
+        # Configure Otto request completion hook for operational metrics
+        #
+        # Logs every completed request with timing, status, and authentication context.
+        # This provides a centralized audit trail for all HTTP requests through Otto.
+        #
+        def configure_otto_request_hook
+          return unless defined?(Otto)
+
+          Otto.on_request_complete do |req, res, duration|
+            # Use HTTP logger for request lifecycle events
+            logger = SemanticLogger['HTTP']
+
+            # Extract auth context if available
+            user_id = req.env['otto.user']&.[](:id)
+            strategy_result = req.env['otto.strategy_result']
+            auth_strategy = strategy_result&.strategy_name
+
+            logger.info "Request completed",
+              method: req.request_method,
+              path: req.path,
+              status: res.status,
+              duration_ms: duration,
+              user_id: user_id,
+              auth_strategy: auth_strategy,
+              ip: req.ip,
+              user_agent: req.user_agent&.slice(0, 100)
+          end
+        end
+
         def configure(builder, application_context: nil)
           Onetime.ld '[middleware] MiddlewareStack: Configuring common middleware'
+
+          # Configure Otto request completion hook for operational metrics
+          # This provides centralized request logging with timing, status, and auth context
+          configure_otto_request_hook
 
           # IP Privacy FIRST - masks public IPs before logging/monitoring
           # Private/localhost IPs are automatically exempted for development
@@ -84,12 +117,13 @@ module Onetime
           # Host detection and identity resolution (common to all apps)
           builder.use Rack::DetectHost
 
-          require 'semantic_logger'
-          SemanticLogger.add_appender(io: $stdout, formatter: :color)
+          # TODO: Replace with RequestLogger?
+          # require 'semantic_logger'
+          # SemanticLogger.add_appender(io: $stdout, formatter: :color)
 
           # adds env['HTTP_X_REQUEST_ID']
           require 'middleware/request_id'
-          builder.use Middleware::RequestId, id_generator: -> { Familia.generate_trace_id }
+          builder.use Rack::RequestId, generator: -> { Familia.generate_trace_id }
 
           builder.use Rack::Parser, parsers: @parsers
 
