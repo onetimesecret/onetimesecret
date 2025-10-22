@@ -24,7 +24,7 @@ module Onetime
         start = Onetime.now_in_μs
 
         status, headers, body = @app.call(env)
-        duration = Onetime.now_in_μs - start
+        duration = Onetime.now_in_μs - start  # Duration in microseconds
 
         log_request(request, status, duration)
 
@@ -46,7 +46,8 @@ module Onetime
         payload[:method] = request.request_method if capture?(:method)
         payload[:path] = request.path if capture?(:path)
         payload[:status] = status if capture?(:status)
-        payload[:duration] = duration if capture?(:duration)
+        # Duration in microseconds - SemanticLogger will format with units
+        payload[:duration] = "#{duration}μs" if capture?(:duration)
         payload[:request_id] = request.env['HTTP_X_REQUEST_ID'] if capture?(:request_id)
         payload[:ip] = request.ip if capture?(:ip)
         payload[:params] = redact_params(request.params) if capture?(:params)
@@ -65,8 +66,9 @@ module Onetime
 
       def determine_level(status, duration)
         return :error if status >= 500
-        # Convert microseconds to milliseconds for comparison with config
-        duration_ms = duration / 1000.0
+        # Duration is in microseconds (μs), slow_request_ms is in milliseconds
+        # Convert microseconds to milliseconds for threshold comparison
+        duration_ms = duration / 1000
         return :warn if status >= 400 || duration_ms > @config['slow_request_ms']
         @config['level']&.to_sym || :info
       end
