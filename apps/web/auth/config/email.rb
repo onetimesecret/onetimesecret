@@ -29,8 +29,12 @@ module Auth
           end
 
           def log_error(email, error, provider = nil)
-            provider_info = provider ? " via #{provider}" : ""
-            OT.le "[email] Failed to send email to #{email[:to]}#{provider_info}: #{error.message}"
+            OT.le "Failed to send email",
+              to: email[:to],
+              subject: email[:subject],
+              provider: provider,
+              error: error.message,
+              context: "email"
           end
         end
 
@@ -336,7 +340,10 @@ module Auth
           when 'logger'
             Delivery::Logger.new
           else
-            OT.le "[email] Unknown email provider '#{@provider}', falling back to logger"
+            OT.le "Unknown email provider, falling back to logger",
+              provider: @provider,
+              fallback: "logger",
+              context: "email"
             Delivery::Logger.new
           end
         end
@@ -357,8 +364,10 @@ module Auth
           # Validate the delivery strategy
           @delivery_strategy # This will raise if configuration is invalid
         rescue ArgumentError => e
-          OT.le "[email] Configuration error: #{e.message}"
-          OT.le "[email] Falling back to logger for email delivery"
+          OT.le "Email configuration error, falling back to logger",
+            error: e.message,
+            fallback_provider: "logger",
+            context: "email"
           @delivery_strategy = Delivery::Logger.new
           @provider = 'logger'
         end
@@ -380,7 +389,11 @@ module Auth
                 email_config = Configuration.new
                 email_config.deliver_email(email)
               rescue StandardError => e
-                OT.le "[email] Failed to deliver email: #{e.message}"
+                OT.le "Failed to deliver email",
+                  subject: email[:subject],
+                  to: email[:to],
+                  exception: e,
+                  context: "email"
                 # In production, we might want to queue for retry or use a fallback
                 # For now, we'll just log the error
                 raise e unless ENV['RACK_ENV'] == 'production'

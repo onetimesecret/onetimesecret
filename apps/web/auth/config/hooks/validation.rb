@@ -43,7 +43,11 @@ module Auth
                   throw_error_status(422, 'login', 'Please enter a valid email address')
                 end
               rescue StandardError => ex
-                OT.le "[auth] Email validation error: #{ex.message}"
+                OT.le "Email validation error",
+                  email: OT::Utils.obscure_email(email),
+                  exception: ex,
+                  context: "auth",
+                  note: "Failing open on validation errors - consider hard failure for higher security"
                 # Fail open on validation errors, but notify for investigation.
                 # For higher security, this could be changed to a hard failure.
                 throw_error_status(422, 'login', 'There was a problem validating your email. Please try again.')

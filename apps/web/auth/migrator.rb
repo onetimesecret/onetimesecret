@@ -18,11 +18,11 @@ module Auth
         return unless database_connection
 
         begin
-          OT.ld 'Checking auth database migrations...'
+          OT.ld "Checking auth database migrations", context: "Auth::Migrator"
           run_migrations
-          OT.ld 'Auth database schema is up to date'
+          OT.ld "Auth database schema is up to date", context: "Auth::Migrator"
         rescue StandardError => ex
-          OT.le "Auth migration error: #{ex.message}"
+          OT.le "Auth migration error", exception: ex, context: "Auth::Migrator"
           raise
         end
       end

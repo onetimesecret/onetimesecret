@@ -37,10 +37,15 @@ module Auth
     # load time but this is a secondary check..
     unless Onetime.auth_config.advanced_enabled?
       # Warn if Auth app is loaded in basic mode - it shouldn't be mounted at all
-      OT.le '[Auth::Router] WARNING: Auth application loaded in basic mode'
-      OT.le '  The Auth app is designed for advanced mode only.'
-      OT.le '  In basic mode, authentication routes should be handled by Core app.'
-      OT.le '  This app will return 404 for all Rodauth routes.'
+      OT.le "Auth application loaded in basic mode",
+        app: "Auth::Router",
+        mode: "basic",
+        expected_mode: "advanced",
+        behavior: "will_return_404_for_rodauth_routes",
+        notes: [
+          "The Auth app is designed for advanced mode only",
+          "In basic mode, authentication routes should be handled by Core app"
+        ]
     end
 
     plugin :rodauth do
@@ -56,10 +61,12 @@ module Auth
     route do |r|
       # Debug logging for development
       Onetime.development? do
-        OT.ld "[auth] #{r.request_method} #{r.path_info}"
-        OT.ld "  PATH_INFO: '#{r.env['PATH_INFO']}'"
-        OT.ld "  REQUEST_URI: '#{r.env['REQUEST_URI']}'"
-        OT.ld "  SCRIPT_NAME: '#{r.env['SCRIPT_NAME']}'"
+        OT.ld "Auth router request",
+          method: r.request_method,
+          path_info: r.path_info,
+          request_uri: r.env['REQUEST_URI'],
+          script_name: r.env['SCRIPT_NAME'],
+          context: "auth"
       end
 
       # Root path - Auth app info
@@ -133,7 +140,7 @@ module Auth
               }
             end
           rescue StandardError => ex
-            OT.le "Error: #{ex.class} - #{ex.message}"
+            OT.le "Auth stats endpoint error", exception: ex, context: "auth"
             response.status = 500
             { error: 'Internal server error' }
         end
@@ -149,7 +156,7 @@ module Auth
         Onetime::Customer.anonymous
       end
     rescue StandardError => ex
-      OT.le "Failed to load customer: #{ex.message}"
+      OT.le "Failed to load customer", exception: ex, context: "auth"
       Onetime::Customer.anonymous
     end
 
