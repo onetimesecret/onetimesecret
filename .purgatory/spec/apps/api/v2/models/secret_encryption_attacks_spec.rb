@@ -50,18 +50,18 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       # Measure correct passphrase
       correct_times = []
       10.times do
-        start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        start_time = Onetime.now_in_μs
         secret.passphrase?(passphrase)
-        end_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        end_time = Onetime.now_in_μs
         correct_times << (end_time - start_time)
       end
 
       # Measure incorrect passphrase
       incorrect_times = []
       10.times do
-        start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        start_time = Onetime.now_in_μs
         secret.passphrase?("wrong-passphrase")
-        end_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        end_time = Onetime.now_in_μs
         incorrect_times << (end_time - start_time)
       end
 
