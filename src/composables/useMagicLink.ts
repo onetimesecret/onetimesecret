@@ -1,6 +1,8 @@
 // src/composables/useMagicLink.ts
 import { inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore';
 import { useCsrfStore } from '@/stores/csrfStore';
 import type { AxiosInstance } from 'axios';
 
@@ -39,6 +41,8 @@ function isError(response: MagicLinkResponse): response is MagicLinkErrorRespons
 export function useMagicLink() {
   const $api = inject('api') as AxiosInstance;
   const { t } = useI18n();
+  const router = useRouter();
+  const authStore = useAuthStore();
   const csrfStore = useCsrfStore();
 
   const isLoading = ref(false);
@@ -97,6 +101,49 @@ export function useMagicLink() {
     }
   }
 
+  /**
+   * Verifies a magic link with the provided key
+   *
+   * @param key - Magic link key from URL
+   * @returns true if verification successful
+   */
+  async function verifyMagicLink(key: string): Promise<boolean> {
+    clearState();
+    isLoading.value = true;
+
+    try {
+      const response = await $api.post<MagicLinkResponse>('/auth/email-login', {
+        key,
+        shrimp: csrfStore.shrimp,
+      });
+
+      const data = response.data;
+
+      if (isError(data)) {
+        error.value = data.error;
+        fieldError.value = data['field-error'] || null;
+        return false;
+      }
+
+      // Success - update auth state and navigate
+      await authStore.setAuthenticated(true);
+      await router.push('/');
+      return true;
+    } catch (err: any) {
+      // Handle error responses
+      if (err.response?.data) {
+        const errorData = err.response.data;
+        error.value = errorData.error || t('web.auth.magicLink.loginFailed');
+        fieldError.value = errorData['field-error'] || null;
+      } else {
+        error.value = t('web.auth.magicLink.networkError');
+      }
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   return {
     // State
     isLoading,
@@ -106,6 +153,7 @@ export function useMagicLink() {
 
     // Actions
     requestMagicLink,
+    verifyMagicLink,
     clearState,
   };
 }

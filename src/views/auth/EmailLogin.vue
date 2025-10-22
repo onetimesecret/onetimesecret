@@ -1,55 +1,28 @@
-<!-- eslint-disable vue/multi-word-component-names -->\n<!-- src/views/auth/EmailLogin.vue -->
+<!-- eslint-disable vue/multi-word-component-names -->
+<!-- src/views/auth/EmailLogin.vue -->
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/authStore';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { inject } from 'vue';
-import type { AxiosInstance } from 'axios';
+import { useRoute } from 'vue-router';
+import { useMagicLink } from '@/composables/useMagicLink';
 import { useI18n } from 'vue-i18n';
 
 const route = useRoute();
-const router = useRouter();
 const { t } = useI18n();
-const authStore = useAuthStore();
-const csrfStore = useCsrfStore();
-const $api = inject('api') as AxiosInstance;
+const { verifyMagicLink, isLoading, error } = useMagicLink();
 
-const isLoading = ref(true);
-const error = ref<string | null>(null);
+const hasError = ref(false);
 
 onMounted(async () => {
   const key = route.query.key as string;
 
   if (!key) {
-    error.value = t('web.auth.magicLink.invalidLink');
-    isLoading.value = false;
+    hasError.value = true;
     return;
   }
 
-  try {
-    // Complete magic link authentication
-    const response = await $api.post('/auth/email-login', {
-      key,
-      shrimp: csrfStore.shrimp,
-    });
-
-    const data = response.data;
-
-    if (data.error) {
-      error.value = data.error;
-      isLoading.value = false;
-      return;
-    }
-
-    // Success - update auth state and navigate
-    await authStore.setAuthenticated(true);
-    await router.push('/');
-  } catch (err: any) {
-    error.value =
-      err.response?.data?.error ||
-      t('web.auth.magicLink.loginFailed');
-    isLoading.value = false;
+  const success = await verifyMagicLink(key);
+  if (!success) {
+    hasError.value = true;
   }
 });
 </script>
@@ -89,7 +62,7 @@ onMounted(async () => {
 
       <!-- Error state -->
       <div
-        v-else
+        v-else-if="hasError"
         class="rounded-md bg-red-50 p-6 dark:bg-red-900/20">
         <div class="flex">
           <svg
@@ -109,7 +82,7 @@ onMounted(async () => {
               {{ $t('web.auth.magicLink.error') }}
             </h3>
             <div class="mt-2 text-sm text-red-700 dark:text-red-300">
-              <p>{{ error }}</p>
+              <p>{{ error || $t('web.auth.magicLink.invalidLink') }}</p>
             </div>
             <div class="mt-4">
               <router-link
