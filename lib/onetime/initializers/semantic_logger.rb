@@ -13,17 +13,19 @@ module Onetime
     # overrides for flexible development and production use.
     #
     def configure_logging
+      Onetime.ld '[Logging] Initializing SemanticLogger'
       config = load_logging_config
 
       # Base configuration
       SemanticLogger.default_level = config['default_level']&.to_sym || :info
       SemanticLogger.add_appender(
         io: $stdout,
-        formatter: config['formatter']&.to_sym || :color
+        formatter: config['formatter']&.to_sym || :color,
       )
 
       # Configure named loggers from config
       config['loggers']&.each do |name, level|
+        Onetime.ld "[Logging] Setting logger '#{name}' level to #{level}"
         SemanticLogger[name].level = level.to_sym
       end
 
@@ -53,9 +55,7 @@ module Onetime
 
     def apply_environment_overrides
       # Global level override
-      if ENV['LOG_LEVEL']
-        SemanticLogger.default_level = ENV['LOG_LEVEL'].to_sym
-      end
+      SemanticLogger.default_level = ENV['LOG_LEVEL'].to_sym if ENV['LOG_LEVEL']
 
       # ONETIME_DEBUG=1 enables debug logging for all application categories
       # Uses Onetime.debug? for consistent environment variable parsing
@@ -114,7 +114,13 @@ module Onetime
       # Sequel database - configure logger on database instances
       # This is typically done when creating the connection, but we can
       # set a default for any existing connections
-      nil unless defined?(Sequel) && defined?(Auth::Config::Database)
+      unless defined?(Sequel) && defined?(Auth::Config::Database)
+        Onetime.ld '[Logging] Sequel or Auth::Config::Database not defined, skipping Sequel logger configuration'
+        Sequel::DATABASES.each do |db|
+          Onetime.ld "[Logging] Configuring Sequel database logger for #{db}"
+          db.logger = SemanticLogger['Sequel']
+        end
+      end
       # NOTE: Database logger is configured per-connection in
       # apps/web/auth/config/database.rb using db.loggers array
       # We'll update that file to use SemanticLogger instead of Logger.new
@@ -143,7 +149,7 @@ module Onetime
         when 'development'
           ENV['FAMILIA_SAMPLE_RATE']&.to_f || 0.1   # 10% default
         else
-          nil  # Log everything in test
+          # Log everything in test
         end
       end
 

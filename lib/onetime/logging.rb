@@ -56,14 +56,27 @@ module Onetime
     def app_logger = SemanticLogger.[]('App')
 
     # Execute block with a specific log category via thread-local variable.
-    # Useful for scoping logs within a specific operation context.
+    #
+    # Enables shared utilities and cross-cutting concerns to log under
+    # appropriate operational categories without coupling to specific loggers.
+    # Thread-safe - each request/thread maintains independent category context.
     #
     # @param category [String, Symbol] The log category to use
     # @yield Block to execute with the specified category
     #
-    # @example
-    #   with_log_category('Auth') do
-    #     logger.debug "Validating session"
+    # @example Cross-cutting concerns logging under appropriate categories
+    #   class RequestProcessor
+    #     def handle_auth_request
+    #       with_log_category('Auth') do
+    #         logger.info "Processing authentication"  # → Auth logs
+    #       end
+    #     end
+    #
+    #     def handle_session_request
+    #       with_log_category('Session') do
+    #         logger.info "Processing session"  # → Session logs
+    #       end
+    #     end
     #   end
     #
     def with_log_category(category)
@@ -77,9 +90,13 @@ module Onetime
     private
 
     # Infer log category from class name by checking for known patterns.
-    # Maps class names to strategic logging categories.
     #
-    # @return [String] The inferred category name
+    # Maps class names to strategic operational categories, enabling automatic
+    # log categorization without manual wiring. Supports monitoring, debugging,
+    # and compliance requirements by routing logs to appropriate operational
+    # contexts.
+    #
+    # @return [String] The inferred category name ('App' if no pattern matches)
     #
     def infer_category
       class_name = self.class.name
