@@ -400,6 +400,42 @@
       "timezone": "Timezone",
       "customer-id": "Customer ID"
     },
+    "settings": {
+      "title": "Settings",
+      "description": "Manage your account settings and preferences",
+      "manage_your_account_settings_and_preferences": "Manage your account settings and preferences",
+      "general": "General",
+      "profile": "Profile",
+      "security": "Security",
+      "appearance": "Appearance",
+      "theme": {
+        "title": "Theme",
+        "description": "Choose light or dark theme",
+        "choose_light_or_dark_theme": "Choose light or dark theme"
+      },
+      "language": {
+        "title": "Language",
+        "description": "Select your preferred language",
+        "select_your_preferred_language": "Select your preferred language"
+      },
+      "security_settings_description": "Manage authentication and account security",
+      "profile_settings_description": "Manage your account information",
+      "sessions": {
+        "title": "Active Sessions",
+        "description": "Manage your active sessions",
+        "manage_active_sessions": "Manage your active sessions"
+      },
+      "password": {
+        "title": "Password",
+        "description": "Update your account password",
+        "update_account_password": "Update your account password"
+      },
+      "delete_account": {
+        "title": "Delete Account",
+        "description": "Permanently delete your account and all data",
+        "permanently_delete_your_account": "Permanently delete your account and all data"
+      }
+    },
     "auth": {
       "methods": {
         "password": "Password",
