@@ -5,7 +5,7 @@
 require_relative '../../../lib/onetime'
 require_relative 'email'
 
-puts "Testing Email Configuration..."
+puts 'Testing Email Configuration...'
 
 # Test different providers
 providers_to_test = %w[logger smtp sendgrid ses]
@@ -15,7 +15,7 @@ providers_to_test.each do |provider|
 
   begin
     ENV['EMAILER_MODE'] = provider
-    config = Auth::Config::Email::Configuration.new
+    config              = Auth::Config::Email::Configuration.new
 
     puts "✓ Provider: #{config.provider}"
     puts "✓ From: #{config.from_address}"
@@ -26,15 +26,14 @@ providers_to_test.each do |provider|
     test_email = {
       to: 'test@example.com',
       subject: 'Test Email',
-      body: 'This is a test email from the OneTimeSecret auth system.'
+      body: 'This is a test email from the OneTimeSecret auth system.',
     }
 
-    puts "✓ Attempting delivery..."
+    puts '✓ Attempting delivery...'
     config.deliver_email(test_email)
-    puts "✓ Email delivery successful"
-
-  rescue => e
-    puts "✗ Error: #{e.message}"
+    puts '✓ Email delivery successful'
+  rescue StandardError => ex
+    puts "✗ Error: #{ex.message}"
   end
 end
 

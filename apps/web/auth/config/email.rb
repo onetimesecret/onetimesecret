@@ -24,12 +24,12 @@ module Auth
           end
 
           def log_delivery(email, status = 'sent', provider = nil)
-            provider_info = provider ? " via #{provider}" : ""
+            provider_info = provider ? " via #{provider}" : ''
             OT.info "[email] #{status.capitalize} email to #{email[:to]}#{provider_info}: #{email[:subject]}"
           end
 
           def log_error(email, error, provider = nil)
-            SemanticLogger['Auth'].error "Email delivery failed",
+            SemanticLogger['Auth'].error 'Email delivery failed',
               to: email[:to],
               subject: email[:subject],
               provider: provider,
@@ -40,7 +40,7 @@ module Auth
         class Logger < Base
           def deliver(email)
             puts "\n=== EMAIL DEBUG ==="
-            puts "Provider: Logger"
+            puts 'Provider: Logger'
             puts "To: #{email[:to]}"
             puts "From: #{email[:from]}"
             puts "Subject: #{email[:subject]}"
@@ -52,12 +52,12 @@ module Auth
 
         class SMTP < Base
           def deliver(email)
-            smtp_host = @config[:host] || ENV['SMTP_HOST'] || 'localhost'
-            smtp_port = (@config[:port] || ENV['SMTP_PORT'] || '587').to_i
-            username = @config[:username] || ENV['SMTP_USERNAME']
-            password = @config[:password] || ENV['SMTP_PASSWORD']
-            use_tls = @config[:tls].nil? ? (ENV['SMTP_TLS'] != 'false') : @config[:tls]
-            auth_method = @config[:auth_method] || ENV['SMTP_AUTH'] || 'plain'
+            smtp_host   = @config[:host] || ENV['SMTP_HOST'] || 'localhost'
+            smtp_port   = (@config[:port] || ENV['SMTP_PORT'] || '587').to_i
+            username    = @config[:username] || ENV.fetch('SMTP_USERNAME', nil)
+            password    = @config[:password] || ENV.fetch('SMTP_PASSWORD', nil)
+            use_tls     = @config[:tls].nil? ? (ENV['SMTP_TLS'] != 'false') : @config[:tls]
+            auth_method = nil # @config[:auth_method] || ENV['SMTP_AUTH'] || 'login'
 
             message = build_message(email)
 
@@ -67,15 +67,15 @@ module Auth
             # Handle authentication - only authenticate if username is provided
             if username && password
               begin
-                smtp.start('localhost', username, password, auth_method.to_sym) do |smtp_session|
+                smtp.start('localhost', username, password, auth_method) do |smtp_session|
                   smtp_session.send_message(message, email[:from], email[:to])
                 end
-              rescue Net::SMTPAuthenticationError => auth_error
+              rescue Net::SMTPAuthenticationError => ex
                 # Server doesn't support authentication - try without auth
-                SemanticLogger['Auth'].debug "SMTP authentication not supported, sending without auth",
+                SemanticLogger['Auth'].debug 'SMTP authentication not supported, sending without auth',
                   host: smtp_host,
                   port: smtp_port,
-                  error: auth_error.message
+                  error: ex.message
 
                 smtp.start do |smtp_session|
                   smtp_session.send_message(message, email[:from], email[:to])
@@ -88,16 +88,16 @@ module Auth
             end
 
             log_delivery(email, 'sent', 'SMTP')
-          rescue StandardError => e
-            log_error(email, e, 'SMTP')
-            raise e
+          rescue StandardError => ex
+            log_error(email, ex, 'SMTP')
+            raise ex
           end
 
           protected
 
           def validate_config!
-            host = @config[:host] || ENV['SMTP_HOST']
-            raise ArgumentError, "SMTP host must be configured" if host.nil? || host.empty?
+            host = @config[:host] || ENV.fetch('SMTP_HOST', nil)
+            raise ArgumentError, 'SMTP host must be configured' if host.nil? || host.empty?
           end
 
           def build_message(email)
@@ -117,46 +117,44 @@ module Auth
             require 'net/http'
             require 'json'
 
-            api_key = @config[:api_key] || ENV['SENDGRID_API_KEY']
+            api_key = @config[:api_key] || ENV.fetch('SENDGRID_API_KEY', nil)
 
             payload = {
               personalizations: [{
                 to: [{ email: email[:to] }],
-                subject: email[:subject]
+                subject: email[:subject],
               }],
               from: { email: email[:from] },
               content: [{
                 type: 'text/plain',
-                value: email[:body]
-              }]
+                value: email[:body],
+              }],
             }
 
-            uri = URI('https://api.sendgrid.com/v3/mail/send')
-            http = Net::HTTP.new(uri.host, uri.port)
+            uri          = URI('https://api.sendgrid.com/v3/mail/send')
+            http         = Net::HTTP.new(uri.host, uri.port)
             http.use_ssl = true
 
-            request = Net::HTTP::Post.new(uri)
+            request                  = Net::HTTP::Post.new(uri)
             request['Authorization'] = "Bearer #{api_key}"
-            request['Content-Type'] = 'application/json'
-            request.body = payload.to_json
+            request['Content-Type']  = 'application/json'
+            request.body             = payload.to_json
 
             response = http.request(request)
 
-            if response.code.to_i >= 200 && response.code.to_i < 300
-              log_delivery(email, 'sent', 'SendGrid')
-            else
-              raise "SendGrid API error: #{response.code} #{response.body}"
-            end
-          rescue StandardError => e
-            log_error(email, e, 'SendGrid')
-            raise e
+            raise "SendGrid API error: #{response.code} #{response.body}" unless response.code.to_i >= 200 && response.code.to_i < 300
+
+            log_delivery(email, 'sent', 'SendGrid')
+          rescue StandardError => ex
+            log_error(email, ex, 'SendGrid')
+            raise ex
           end
 
           protected
 
           def validate_config!
-            api_key = @config[:api_key] || ENV['SENDGRID_API_KEY']
-            raise ArgumentError, "SendGrid API key must be configured" if api_key.nil? || api_key.empty?
+            api_key = @config[:api_key] || ENV.fetch('SENDGRID_API_KEY', nil)
+            raise ArgumentError, 'SendGrid API key must be configured' if api_key.nil? || api_key.empty?
           end
         end
 
@@ -164,73 +162,65 @@ module Auth
           def deliver(email)
             require 'aws-sdk-ses'
 
-            region = @config[:region] || ENV['AWS_REGION'] || 'us-east-1'
-            access_key = @config[:access_key_id] || ENV['AWS_ACCESS_KEY_ID']
-            secret_key = @config[:secret_access_key] || ENV['AWS_SECRET_ACCESS_KEY']
+            region     = @config[:region] || ENV['AWS_REGION'] || 'us-east-1'
+            access_key = @config[:access_key_id] || ENV.fetch('AWS_ACCESS_KEY_ID', nil)
+            secret_key = @config[:secret_access_key] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)
 
             client = Aws::SES::Client.new(
               region: region,
               access_key_id: access_key,
-              secret_access_key: secret_key
+              secret_access_key: secret_key,
             )
 
             client.send_email({
               source: email[:from],
               destination: {
-                to_addresses: [email[:to]]
+                to_addresses: [email[:to]],
               },
               message: {
                 subject: {
                   data: email[:subject],
-                  charset: 'UTF-8'
+                  charset: 'UTF-8',
                 },
                 body: {
                   text: {
                     data: email[:body],
-                    charset: 'UTF-8'
-                  }
-                }
-              }
-            })
+                    charset: 'UTF-8',
+                  },
+                },
+              },
+            },
+                             )
 
             log_delivery(email, 'sent', 'SES')
-          rescue StandardError => e
-            log_error(email, e, 'SES')
-            raise e
+          rescue StandardError => ex
+            log_error(email, ex, 'SES')
+            raise ex
           end
 
           protected
 
           def validate_config!
-            access_key = @config[:access_key_id] || ENV['AWS_ACCESS_KEY_ID']
-            secret_key = @config[:secret_access_key] || ENV['AWS_SECRET_ACCESS_KEY']
+            access_key = @config[:access_key_id] || ENV.fetch('AWS_ACCESS_KEY_ID', nil)
+            secret_key = @config[:secret_access_key] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)
 
             if access_key.nil? || access_key.empty? || secret_key.nil? || secret_key.empty?
-              raise ArgumentError, "AWS credentials must be configured for SES"
+              raise ArgumentError, 'AWS credentials must be configured for SES'
             end
           end
         end
-
       end
 
       class Configuration
-        attr_reader :provider, :delivery_strategy
+        attr_reader :provider, :delivery_strategy, :from_address, :subject_prefix
 
         def initialize
-          @provider = determine_provider
+          @provider          = determine_provider
           @delivery_strategy = create_delivery_strategy
-          @from_address = determine_from_address
-          @subject_prefix = determine_subject_prefix
+          @from_address      = determine_from_address
+          @subject_prefix    = determine_subject_prefix
 
           validate_configuration!
-        end
-
-        def from_address
-          @from_address
-        end
-
-        def subject_prefix
-          @subject_prefix
         end
 
         def deliver_email(email)
@@ -258,28 +248,26 @@ module Auth
               to: safe_extract_email_address(email.to),
               from: safe_extract_email_address(email.from),
               subject: safe_extract_string(email.subject),
-              body: safe_extract_string(email.body)
+              body: safe_extract_string(email.body),
             }
           else
             # It's already a hash, ensure basic structure
             email_hash = email.is_a?(Hash) ? email : {}
             {
-              to: email_hash[:to]&.to_s || "",
+              to: email_hash[:to]&.to_s || '',
               from: email_hash[:from]&.to_s || @from_address,
-              subject: email_hash[:subject]&.to_s || "",
-              body: email_hash[:body]&.to_s || ""
+              subject: email_hash[:subject]&.to_s || '',
+              body: email_hash[:body]&.to_s || '',
             }
           end
         end
 
-        private
-
         def safe_extract_email_address(field)
-          return "" if field.nil?
+          return '' if field.nil?
 
           if field.respond_to?(:first) && field.respond_to?(:empty?)
             # It's an array-like object
-            field.empty? ? "" : field.first.to_s
+            field.empty? ? '' : field.first.to_s
           else
             # It's a string or string-like object
             field.to_s
@@ -287,7 +275,8 @@ module Auth
         end
 
         def safe_extract_string(field)
-          return "" if field.nil?
+          return '' if field.nil?
+
           field.to_s
         end
 
@@ -296,11 +285,11 @@ module Auth
           mode = ENV['EMAILER_MODE']&.downcase
 
           # Debug logging
-          SemanticLogger['Auth'].debug "Email provider detection",
+          SemanticLogger['Auth'].debug 'Email provider detection',
             emailer_mode: mode,
-            smtp_host: ENV['SMTP_HOST'],
+            smtp_host: ENV.fetch('SMTP_HOST', nil),
             sendgrid_api_key: ENV['SENDGRID_API_KEY'] ? 'configured' : nil,
-            aws_credentials: (ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']) ? 'configured' : nil
+            aws_credentials: ENV.fetch('AWS_ACCESS_KEY_ID', nil) && ENV.fetch('AWS_SECRET_ACCESS_KEY', nil) ? 'configured' : nil
 
           # Auto-detect based on available configuration
           if mode.nil?
@@ -331,9 +320,9 @@ module Auth
           when 'logger'
             Delivery::Logger.new
           else
-            SemanticLogger['Auth'].warn "Unknown email provider configured, falling back to logger",
+            SemanticLogger['Auth'].warn 'Unknown email provider configured, falling back to logger',
               provider: @provider,
-              fallback: "logger"
+              fallback: 'logger'
             Delivery::Logger.new
           end
         end
@@ -348,17 +337,17 @@ module Auth
 
         def validate_configuration!
           if @from_address.nil? || @from_address.empty?
-            raise ArgumentError, "Email from address must be configured"
+            raise ArgumentError, 'Email from address must be configured'
           end
 
           # Validate the delivery strategy
           @delivery_strategy # This will raise if configuration is invalid
-        rescue ArgumentError => e
-          Onetime.auth_logger.error "Email configuration invalid, falling back to logger delivery",
-            error: e.message,
-            fallback_provider: "logger"
+        rescue ArgumentError => ex
+          Onetime.auth_logger.error 'Email configuration invalid, falling back to logger delivery',
+            error: ex.message,
+            fallback_provider: 'logger'
           @delivery_strategy = Delivery::Logger.new
-          @provider = 'logger'
+          @provider          = 'logger'
         end
       end
 
@@ -370,10 +359,10 @@ module Auth
 
           # Configure email delivery with lazy initialization
           send_email do |email|
-            Onetime.auth_logger.debug "send_email hook called",
+            Onetime.auth_logger.debug 'send_email hook called',
               subject: email.subject.to_s,
               to: email.to.to_s,
-              rack_env: ENV['RACK_ENV']
+              rack_env: ENV.fetch('RACK_ENV', nil)
 
             if ENV['RACK_ENV'] == 'test'
               OT.info "[email] Skipping email delivery in test environment: #{email[:subject]}"
@@ -382,24 +371,24 @@ module Auth
                 # Create email config at delivery time to avoid early loading issues
                 email_config = Configuration.new
                 email_config.deliver_email(email)
-              rescue Errno::ECONNREFUSED => e
+              rescue Errno::ECONNREFUSED => ex
                 # Connection refused - likely no mail server configured
                 # Normalize the email object first
                 normalized = normalize_email(email)
-                Onetime.auth_logger.warn "Email delivery failed - no mail server available, using logger fallback",
+                Onetime.auth_logger.warn 'Email delivery failed - no mail server available, using logger fallback',
                   subject: normalized[:subject],
                   to: normalized[:to],
-                  error: e.message
+                  error: ex.message
                 # Fallback to logger delivery for development
                 Delivery::Logger.new.deliver(normalized)
-              rescue StandardError => e
-                Onetime.auth_logger.error "Email delivery failed in send_email hook",
+              rescue StandardError => ex
+                Onetime.auth_logger.error 'Email delivery failed in send_email hook',
                   subject: email[:subject],
                   to: email[:to],
-                  exception: e
+                  exception: ex
                 # In production, we might want to queue for retry or use a fallback
                 # For now, we'll just log the error
-                raise e unless ENV['RACK_ENV'] == 'production'
+                raise ex unless ENV['RACK_ENV'] == 'production'
               end
             end
           end
