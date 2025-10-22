@@ -1,8 +1,9 @@
 # lib/middleware/detect_host.rb
 
-module Rack
-  require 'ipaddr'
+require 'ipaddr'
+require_relative 'logging'
 
+module Rack
   # Middleware to accurately detect the client's host in a Rack application.
   #
   # This middleware examines incoming HTTP requests and attempts to determine
@@ -75,6 +76,8 @@ module Rack
   # by trusted components.
   #
   class DetectHost
+    include Middleware::Logging
+
     # NOTE: CF-Visitor header only contains scheme information { "scheme": "https" }
     # and is not used for host detection
     unless defined?(HEADER_PRECEDENCE)
@@ -98,8 +101,6 @@ module Rack
       ].freeze
     end
 
-    attr_reader :logger
-
     # Class-level setting initialized from ENV variable
     @result_field_name = ENV['DETECTED_HOST'] || 'rack.detected_host'
 
@@ -110,16 +111,16 @@ module Rack
     # Initializes the middleware with the application and logging options.
     #
     # @param app [#call] The Rack application
-    # @param io [IO] IO object for logging (defaults to stderr)
+    # @param logger [Logger, nil] Optional logger instance to use
     # @return [void]
-    def initialize(app, io: $stderr)
-      @app      = app
-      log_level = ::Logger::INFO
-      # Override with DEBUG level only when conditions are met
-      if defined?(OT) && OT.respond_to?(:debug?) && OT.debug?
-        log_level = ::Logger::DEBUG
-      end
-      @logger   = ::Logger.new(io, level: log_level)
+    def initialize(app, logger: nil)
+      @app           = app
+      @custom_logger = logger
+    end
+
+    # Override logger to allow custom logger injection
+    def logger
+      @custom_logger || super
     end
 
     # Processes the request and determines the appropriate host.

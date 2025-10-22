@@ -2,20 +2,27 @@
 
 require 'rack'
 require 'familia/json_serializer'
+require_relative '../logging'
 
 module Onetime
   module Application
     class Base
+      include Onetime::Logging
+
       attr_reader :options, :router, :rack_app
 
       def initialize(options = {})
-        OT.ld "[app] #{self.class}: Initializing with options: #{options.inspect}"
+        app_logger.debug "Initializing",
+          application: self.class.name,
+          options: options
         @options  = options
 
-        OT.ld "[app] #{self.class}: Building router"
+        app_logger.debug "Building router",
+          application: self.class.name
         @router   = build_router
 
-        OT.ld "[app] #{self.class}: Building rack app"
+        app_logger.debug "Building rack app",
+          application: self.class.name
         @rack_app = build_rack_app
 
       end
@@ -53,7 +60,11 @@ module Onetime
 
           # Invoke the warmup block if it is defined
           builder.warmup(&base_klass.warmup)
-          OT.ld "[app] #{app_context[:name]}: Warmup completed"
+
+          # Log warmup completion using a temporary logger instance
+          # (can't use instance method here due to Rack::Builder context)
+          SemanticLogger['App'].debug "Warmup completed",
+            application: app_context[:name]
 
           builder.run router_instance
         end.to_app
@@ -71,7 +82,8 @@ module Onetime
         def inherited(subclass)
           # Keep track subclasses without immediate registration
           Registry.register_application_class(subclass)
-          OT.ld "[app] #{subclass} registered"
+          SemanticLogger['App'].debug "Application registered",
+            application: subclass.name
         end
 
         def use(klass, *args, &block)

@@ -1,5 +1,7 @@
 # apps/web/core/views/helpers/initialize_view_vars.rb
 
+require 'onetime/logging'
+
 module Core
   module Views
     # InitializeViewVars
@@ -8,6 +10,7 @@ module Core
     # initialize_view_vars takes the arguments it does instead of relying on
     # instance variables and their attr_reader methods.
     module InitializeViewVars
+      extend Onetime::Logging
       # Define fields that are safe to expose to the frontend
       # Explicitly excluding :secret and :authenticity which contain sensitive data
       @safe_site_fields = %w[
@@ -52,7 +55,9 @@ module Core
         safe_site = InitializeViewVars.safe_site_fields.each_with_object({}) do |field, hash|
           field_str = field.to_s
           unless site_config.key?(field_str)
-            OT.ld "[view_vars] Site config is missing field: #{field_str}"
+            app_logger.debug "Site config missing expected field",
+              field: field_str,
+              module: "InitializeViewVars"
             next
           end
 

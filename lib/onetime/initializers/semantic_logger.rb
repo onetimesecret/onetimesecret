@@ -57,6 +57,17 @@ module Onetime
         SemanticLogger.default_level = ENV['LOG_LEVEL'].to_sym
       end
 
+      # ONETIME_DEBUG=1 enables debug logging for all application categories
+      # Uses Onetime.debug? for consistent environment variable parsing
+      Onetime.debug? do
+        SemanticLogger.default_level    = :debug
+        SemanticLogger['Auth'].level    = :debug
+        SemanticLogger['Session'].level = :debug
+        SemanticLogger['HTTP'].level    = :debug
+        SemanticLogger['Secret'].level  = :debug
+        SemanticLogger['App'].level     = :debug
+      end
+
       # Parse DEBUG_LOGGERS: "Auth:debug,Secret:trace"
       if ENV['DEBUG_LOGGERS']
         ENV['DEBUG_LOGGERS'].split(',').each do |spec|
@@ -65,7 +76,7 @@ module Onetime
         end
       end
 
-      # Quick debug flags for application categories only
+      # Quick debug flags for individual application categories
       # External libraries (Familia, Otto) use their own debug flags
       SemanticLogger['Auth'].level    = :debug if ENV['DEBUG_AUTH']
       SemanticLogger['Session'].level = :debug if ENV['DEBUG_SESSION']
@@ -138,10 +149,10 @@ module Onetime
 
       # Redis command performance tracking
       if Familia.respond_to?(:on_command)
-        Familia.on_command do |cmd, duration_ms, context|
+        Familia.on_command do |cmd, duration, context|
           familia_logger.debug 'Redis command',
             command: cmd,
-            duration_ms: duration_ms,
+            duration: duration,
             context: context
         end
       end

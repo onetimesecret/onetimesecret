@@ -1,5 +1,7 @@
 # apps/web/core/views/helpers/vite_manifest.rb
 
+require 'onetime/logging'
+
 module Core
   module Views
     # ViteManifest handles asset loading for Vite-managed frontend assets.
@@ -9,6 +11,8 @@ module Core
     # complexities of CSS bundling and font preloading.
     #
     module ViteManifest
+      include Onetime::Logging
+
       # Public directory for web assets
       PUBLIC_DIR = File.join(ENV.fetch('ONETIME_HOME', '.'), 'public', 'web').freeze
       # Generates HTML tags for all required Vite assets.
@@ -50,9 +54,10 @@ module Core
         manifest_path = File.join(PUBLIC_DIR, 'dist', '.vite', 'manifest.json')
 
         unless File.exist?(manifest_path)
-          msg = 'Vite %s not found. Run `pnpm run build`'
-          OT.le msg % manifest_path
-          return error_script(nonce, msg % 'manifest.json')
+          app_logger.error "Vite manifest not found - frontend assets unavailable",
+            manifest_path: manifest_path,
+            instruction: "Run `pnpm run build` to generate assets"
+          return error_script(nonce, 'Vite manifest.json not found. Run `pnpm run build`')
         end
 
         @manifest_cache ||= Familia::JsonSerializer.parse(File.read(manifest_path))

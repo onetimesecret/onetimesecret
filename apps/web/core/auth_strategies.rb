@@ -17,10 +17,12 @@
 # @see docs/architecture/authentication.md#authstrategies
 
 require 'onetime/application/auth_strategies'
+require 'onetime/logging'
 
 module Core
   module AuthStrategies
     extend self
+    extend Onetime::Logging
 
     # Registers Onetime authentication strategies with Otto router
     #
@@ -37,7 +39,8 @@ module Core
 
       # Check if authentication is enabled at initialization time
       unless Onetime::Application::AuthStrategies.authentication_enabled?
-        OT.le "[Core::AuthStrategies] Authentication disabled in config - skipping session strategies"
+        auth_logger.warn "Authentication disabled in config - skipping session strategy registration",
+          module: "Core::AuthStrategies"
         return
       end
 

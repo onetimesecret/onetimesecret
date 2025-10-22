@@ -4,7 +4,7 @@ import { ApplicationError } from '@/schemas/errors';
 import { mockDomains, newDomainData } from '@/tests/fixtures/domains.fixture';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ref, defineComponent } from 'vue';
+import { ref, computed, defineComponent } from 'vue';
 import { mount } from '@vue/test-utils';
 
 import type { MockDependencies } from '../types.d';
@@ -26,17 +26,27 @@ const mockDependencies: MockDependencies = {
     })),
   },
   domainsStore: {
+    init: vi.fn(),
     records: ref(mockDomains),
     details: ref({}),
+    count: ref(mockDomains.length),
+    domains: computed(() => mockDomains),
+    initialized: false,
+    recordCount: vi.fn(() => mockDomains.length),
     addDomain: vi.fn(),
     deleteDomain: vi.fn(),
-    refreshRecords: vi.fn(),
-    recordCount: vi.fn(() => mockDomains.length),
-    isLoading: ref(false),
-    error: ref(null),
-    fetchList: vi.fn(),
     getDomain: vi.fn(),
     verifyDomain: vi.fn(),
+    updateDomain: vi.fn(),
+    updateDomainBrand: vi.fn(),
+    getBrandSettings: vi.fn(),
+    updateBrandSettings: vi.fn(),
+    uploadLogo: vi.fn(),
+    fetchLogo: vi.fn(),
+    removeLogo: vi.fn(),
+    fetchList: vi.fn(),
+    refreshRecords: vi.fn(),
+    $reset: vi.fn(),
   },
   notificationsStore: {
     show: vi.fn(),

@@ -164,15 +164,71 @@ module Onetime
       Process.clock_gettime(Process::CLOCK_REALTIME, :float_second)
     end
 
-    # Logging methods with backward compatibility and structured logging support
+    # Returns the current monotonic time in microseconds for duration
+    # measurements. Uses CLOCK_MONOTONIC which is immune to system clock
+    # adjustments (NTP, DST, manual changes) making it ideal for measuring
+    # elapsed time intervals.
     #
-    # Legacy usage (still supported):
-    #   Onetime.li "User logged in"
+    # Delegates to Familia.now_in_μs which uses Process.clock_gettime with
+    # CLOCK_MONOTONIC. This clock always moves forward at a constant rate
+    # and is perfect for performance measurements, timeouts, and duration
+    # tracking.
+    #
+    # @return [Integer] Monotonic time in microseconds
+    #   Range: Arbitrary starting point (typically system boot time), only
+    #     meaningful for computing time differences
+    #   Precision: 1 microsecond (1/1,000,000 second)
+    #
+    # @note This method is optimal for:
+    #   - Measuring request/operation duration
+    #   - Performance profiling and benchmarking
+    #   - Timeout calculations
+    #   - Rate limiting with time windows
+    #   - Any scenario requiring reliable time differences
+    #
+    # @note DO NOT use for:
+    #   - Timestamps that need to represent actual wall clock time
+    #   - Values that need to be stored and compared across system reboots
+    #   - Synchronization with external systems or databases
+    #
+    # @note Key differences from hnowµs:
+    #   - hnowµs: CLOCK_REALTIME (wall clock) - for timestamps
+    #   - now_in_μs: CLOCK_MONOTONIC (steady clock) - for durations
+    #
+    # @example Measuring operation duration
+    #   start = Onetime.now_in_μs
+    #   # ... perform operation ...
+    #   duration = Onetime.now_in_μs - start  # microseconds elapsed
+    #
+    # @example Request timing in middleware
+    #   start = Onetime.now_in_μs
+    #   status, headers, body = @app.call(env)
+    #   duration = Onetime.now_in_μs - start
+    #   logger.info "Request completed", duration: duration
+    #
+    # @see Familia.now_in_μs Underlying implementation
+    # @see Process.clock_gettime Ruby documentation for clock types
+    def now_in_μs
+      Familia.now_in_μs
+    end
+    alias now_in_microseconds now_in_μs
+
+    # Logging methods using SemanticLogger for structured logging
+    #
+    # All methods now use SemanticLogger with consistent output format.
+    # Messages without payload will log with empty payload hash.
+    #
+    # Basic usage:
+    #   Onetime.li "User logged in"  # -> SemanticLogger with empty payload
     #   Onetime.le "Authentication failed"
     #
-    # Structured logging (new):
+    # Structured logging (recommended):
     #   Onetime.li "User logged in", user_id: user.id, ip: request.ip
     #   Onetime.le "Auth failed", reason: :invalid_password
+    #
+    # Exception logging:
+    #   Onetime.le "Operation failed", exception: ex, context: value
+    #   Onetime.le "Login failed", exception: ex, email: email, ip: ip
     #
     # Category-aware logging via thread-local:
     #   Thread.current[:log_category] = 'Auth'
@@ -181,36 +237,23 @@ module Onetime
     def info(*msgs, **payload)
       return unless mode?(:app) || mode?(:cli) # can reduce output in tryouts
 
-      if payload.empty?
-        msg = msgs.join("#{$/}")
-        stdout('I', msg)
-      else
-        logger.info(msgs.join(' '), payload)
-      end
+      logger.info(msgs.join(' '), payload)
     end
 
     def li(*msgs, **payload)
-      if payload.empty?
-        msg = msgs.join("#{$/}")
-        stdout('I', msg)
-      else
-        logger.info(msgs.join(' '), payload)
-      end
+      logger.info(msgs.join(' '), payload)
     end
 
     def lw(*msgs, **payload)
-      if payload.empty?
-        msg = msgs.join("#{$/}")
-        stdout('W', msg)
-      else
-        logger.warn(msgs.join(' '), payload)
-      end
+      logger.warn(msgs.join(' '), payload)
     end
 
-    def le(*msgs, **payload)
-      if payload.empty?
-        msg = msgs.join("#{$/}")
-        stderr('E', msg)
+    def le(*msgs, exception: nil, **payload)
+      # If exception is provided, use SemanticLogger's exception handling
+      if exception.is_a?(Exception)
+        msg = msgs.join(' ')
+        msg = "#{exception.class.name}" if msg.empty?
+        logger.error(msg, exception, payload)
       else
         logger.error(msgs.join(' '), payload)
       end
@@ -219,12 +262,7 @@ module Onetime
     def ld(*msgs, **payload)
       return unless Onetime.debug
 
-      if payload.empty?
-        msg = msgs.join("#{$/}")
-        stderr('D', msg)
-      else
-        logger.debug(msgs.join(' '), payload)
-      end
+      logger.debug(msgs.join(' '), payload)
     end
 
     # Returns the appropriate SemanticLogger instance for the current context.
@@ -235,7 +273,11 @@ module Onetime
     #   logger.info "Processing login"  # Uses SemanticLogger['Auth']
     #
     def logger
-      SemanticLogger[Thread.current[:log_category] || 'App']
+      # Lazy-load SemanticLogger to avoid initialization order issues
+      return @logger if defined?(@logger) && @logger
+
+      require 'semantic_logger' unless defined?(::SemanticLogger)
+      ::SemanticLogger[Thread.current[:log_category] || 'App']
     end
 
     def with_diagnostics(&)
@@ -265,6 +307,20 @@ module Onetime
       warn(logline)
     end
     private :stderr
+
+    # Warn about legacy logging usage (only once per file to avoid spam)
+    def warn_about_legacy_logging
+      caller_file = caller(2..2).first&.split(':')&.first
+      @legacy_log_warnings ||= Set.new
+
+      return if @legacy_log_warnings.include?(caller_file)
+      @legacy_log_warnings << caller_file
+
+      logger.warn "Legacy logging detected - use keyword arguments for structured logging",
+        file: caller_file,
+        migration_guide: 'docs/logging-migration-guide.md'
+    end
+    private :warn_about_legacy_logging
 
     # Returns debug status and optionally executes block if enabled.
     #

@@ -90,7 +90,7 @@ module Onetime
               method: req.request_method,
               path: req.path,
               status: res.status,
-              duration_ms: duration,
+              duration: duration / 1_000_000.0,  # Convert microseconds to seconds for SemanticLogger
               user_id: user_id,
               auth_strategy: auth_strategy,
               ip: req.ip,
@@ -99,7 +99,9 @@ module Onetime
         end
 
         def configure(builder, application_context: nil)
-          Onetime.ld '[middleware] MiddlewareStack: Configuring common middleware'
+          logger = SemanticLogger['App']
+          logger.debug "Configuring common middleware",
+            application: application_context&.[](:name)
 
           # Configure Otto request completion hook for operational metrics
           # This provides centralized request logging with timing, status, and auth context
@@ -108,7 +110,7 @@ module Onetime
           # IP Privacy FIRST - masks public IPs before logging/monitoring
           # Private/localhost IPs are automatically exempted for development
           # Uses Otto's privacy middleware as a standalone Rack component
-          Onetime.ld '[middleware] MiddlewareStack: Setting up IP Privacy (masks public IPs)'
+          logger.debug "Setting up IP Privacy middleware", note: "masks public IPs"
           builder.use Otto::Security::Middleware::IPPrivacyMiddleware
 
           builder.use Rack::ContentLength
@@ -140,7 +142,7 @@ module Onetime
 
           # Locale detection middleware (after session, before domain strategy)
           # Sets env['otto.locale'] based on URL param, session, Accept-Language header
-          Onetime.ld '[middleware] MiddlewareStack: Setting up Locale detection'
+          logger.debug "Setting up Locale detection middleware"
           builder.use Otto::Locale::Middleware,
             available_locales: build_available_locales,
             default_locale: OT.default_locale,
@@ -151,7 +153,7 @@ module Onetime
 
           # Load the logger early so it's ready to log request errors
           unless Onetime.conf&.dig(:logging, :http_requests).eql?(false)
-            Onetime.ld '[middleware] MiddlewareStack: Setting up CommonLogger'
+            logger.debug "Setting up CommonLogger middleware"
             builder.use Rack::CommonLogger
           end
 
@@ -159,21 +161,23 @@ module Onetime
           # Add Sentry exception tracking when available
           # This block only executes if Sentry was successfully initialized
           Onetime.with_diagnostics do |diagnostics_conf|
-            Onetime.ld "[middleware] MiddlewareStack: Sentry enabled #{diagnostics_conf}"
+            logger.debug "Sentry enabled",
+              config: diagnostics_conf
             # Position Sentry middleware early to capture exceptions throughout the stack
             builder.use Sentry::Rack::CaptureExceptions
           end
 
           # Security Middleware Configuration
           # Configures security-related middleware components based on application settings
-          Onetime.ld '[middleware] MiddlewareStack: Setting up Security middleware'
+          logger.debug "Setting up Security middleware"
           builder.use Onetime::Middleware::Security
 
           # Performance Optimization
           # Support running with code frozen in production-like environments
           # This reduces memory usage and prevents runtime modifications
           if Onetime.conf&.dig(:experimental, :freeze_app).eql?(true)
-            Onetime.li "[middleware] MiddlewareStack: Freezing app by request (env: #{Onetime.env})"
+            logger.info "Freezing app by request",
+              env: Onetime.env
             builder.freeze_app
           end
         end

@@ -44,9 +44,9 @@ module Rack
 
     def debug_request(env)
       # Capture request info
-      method       = env['REQUEST_METHOD']
-      path         = env['PATH_INFO']
-      request_time = Time.now
+      method = env['REQUEST_METHOD']
+      path   = env['PATH_INFO']
+      start  = Onetime.now_in_μs
 
       # Log incoming request
       logger.debug "Session debug start",
@@ -84,10 +84,10 @@ module Rack
       verify_redis_state(session_id_after, 'after') if session_id_after
 
       # Log response info
-      duration_ms = ((Time.now - request_time) * 1000).round(2)
+      duration = Onetime.now_in_μs - start
       logger.debug "Session debug complete",
         status: status,
-        duration_ms: duration_ms
+        duration: duration
 
       [status, headers, body]
     end

@@ -4,16 +4,89 @@ This guide shows how to migrate from legacy logging methods to the new structure
 
 ## Quick Reference
 
-### 6 Strategic Categories
+### 8 Strategic Categories
 
 1. **Auth** - Authentication/authorization flows
 2. **Session** - Session lifecycle management
 3. **HTTP** - HTTP requests, responses, and middleware
-4. **Familia** - Redis operations via Familia ORM (pass logger instance)
-5. **Otto** - Otto framework operations (pass logger instance)
-6. **Rhales** - Rhales template rendering (pass logger instance, future)
-7. **Secret** - Core business value (create/view/burn)
-8. **App** - Default fallback for application-level logging
+4. **Familia** - Redis operations via Familia ORM (configured via `Familia.logger =`)
+5. **Otto** - Otto framework operations (configured via `Otto.logger =`)
+6. **Rhales** - Rhales template rendering (pass logger instance)
+7. **Sequel** - Database queries and operations (configured via `db.loggers <<`)
+8. **Secret** - Core business value (create/view/burn)
+9. **App** - Default fallback for application-level logging
+
+## Exception Logging (NEW)
+
+The `OT.le` method now supports a dedicated `exception:` parameter for proper exception handling with SemanticLogger. This replaces the old pattern of multiple log calls for exception details.
+
+### Before (Old Pattern - Multiple Calls)
+
+```ruby
+begin
+  dangerous_operation
+rescue StandardError => ex
+  OT.le "#{ex.class}: #{ex.message}"
+  OT.le ex.backtrace.join("\n")
+end
+```
+
+**Problems:**
+- Requires 2-3 separate log calls per exception
+- Backtrace logged as raw string (hard to parse)
+- No structured context
+- String interpolation (less efficient)
+
+### After (New Pattern - Single Call)
+
+```ruby
+begin
+  dangerous_operation
+rescue StandardError => ex
+  OT.le "Operation failed", exception: ex, operation: :create, user_id: user.id
+end
+```
+
+**Benefits:**
+- Single log call with all exception details
+- SemanticLogger automatically formats exception and backtrace
+- Structured context preserved for log aggregation
+- Compatible with error tracking systems (Sentry)
+- More efficient (no string interpolation needed)
+
+### Exception Logging Patterns
+
+```ruby
+# Basic exception logging
+rescue StandardError => ex
+  OT.le "Unexpected error", exception: ex
+end
+
+# Exception with structured context
+rescue Redis::ConnectionError => ex
+  OT.le "Redis operation failed",
+    exception: ex,
+    operation: :save,
+    key: identifier
+end
+
+# Exception with sanitized user data
+rescue ArgumentError => ex
+  OT.le "Validation failed",
+    exception: ex,
+    field: :email,
+    input: sanitized_input
+end
+
+# Exception in authentication flow
+rescue SecurityError => ex
+  OT.le "Authentication failed",
+    exception: ex,
+    email: sanitized_email,
+    ip: request.ip,
+    attempt_count: attempts
+end
+```
 
 ## Migration Patterns
 
@@ -116,7 +189,7 @@ def process_request(req)
   Thread.current[:log_category] = 'HTTP'
   Onetime.ld "Request received", path: req.path, method: req.request_method
   # ... processing ...
-  Onetime.ld "Response sent", status: status, duration_ms: duration
+  Onetime.ld "Response sent", status: status, duration: duration
 ensure
   Thread.current[:log_category] = nil
 end
@@ -379,6 +452,21 @@ TestAuth.new.logger.name #=> 'Auth'
 
 ## Common Pitfalls
 
+### ❌ Don't use multiple calls for exception logging
+
+```ruby
+# Bad - Multiple calls, string interpolation
+rescue StandardError => ex
+  OT.le "#{ex.class}: #{ex.message}"
+  OT.le ex.backtrace.join("\n")
+end
+
+# Good - Single call with exception parameter
+rescue StandardError => ex
+  OT.le "Operation failed", exception: ex, context: value
+end
+```
+
 ### ❌ Don't interpolate sensitive data
 
 ```ruby
@@ -397,6 +485,16 @@ logger.info "User #{user.id} logged in", status: :success
 
 # Good
 logger.info "User logged in", user_id: user.id, status: :success
+```
+
+### ❌ Don't interpolate exception details into message string
+
+```ruby
+# Bad - Loses structured data and backtrace
+logger.error "Error: #{ex.message} at #{ex.backtrace.first}"
+
+# Good - Preserves full exception with context
+logger.error "Operation failed", exception: ex, operation: :save
 ```
 
 ### ❌ Don't forget to set category for cross-cutting concerns

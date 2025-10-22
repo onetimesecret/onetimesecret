@@ -5,6 +5,7 @@ require 'rodauth'
 require 'sequel'
 require 'logger'
 require 'json'
+require 'onetime/logging'
 
 require_relative 'config'
 require_relative 'routes/account'
@@ -15,6 +16,8 @@ require_relative 'routes/validation'
 module Auth
   # This is the Roda application, which handles all routing for the auth service.
   class Router < Roda
+    include Onetime::Logging
+
     # Include session validation helpers
     # TODO: Implement these modules
     # include Auth::Helpers::SessionValidation
@@ -37,10 +40,12 @@ module Auth
     # load time but this is a secondary check..
     unless Onetime.auth_config.advanced_enabled?
       # Warn if Auth app is loaded in basic mode - it shouldn't be mounted at all
-      OT.le '[Auth::Router] WARNING: Auth application loaded in basic mode'
-      OT.le '  The Auth app is designed for advanced mode only.'
-      OT.le '  In basic mode, authentication routes should be handled by Core app.'
-      OT.le '  This app will return 404 for all Rodauth routes.'
+      auth_logger.error "Auth router loaded in basic mode - this is a configuration error. "\
+        "The Auth router is designed for advanced mode only. In basic mode, authentication "\
+        "routes should be handled by Core app. This router will return 404 for all Rodauth routes.",
+        app: "Auth::Router",
+        mode: "basic",
+        expected_mode: "advanced"
     end
 
     plugin :rodauth do
@@ -56,10 +61,11 @@ module Auth
     route do |r|
       # Debug logging for development
       Onetime.development? do
-        OT.ld "[auth] #{r.request_method} #{r.path_info}"
-        OT.ld "  PATH_INFO: '#{r.env['PATH_INFO']}'"
-        OT.ld "  REQUEST_URI: '#{r.env['REQUEST_URI']}'"
-        OT.ld "  SCRIPT_NAME: '#{r.env['SCRIPT_NAME']}'"
+        http_logger.debug "Auth router request",
+          method: r.request_method,
+          path_info: r.path_info,
+          request_uri: r.env['REQUEST_URI'],
+          script_name: r.env['SCRIPT_NAME']
       end
 
       # Root path - Auth app info
@@ -133,7 +139,7 @@ module Auth
               }
             end
           rescue StandardError => ex
-            OT.le "Error: #{ex.class} - #{ex.message}"
+            auth_logger.error "Auth stats endpoint error", exception: ex
             response.status = 500
             { error: 'Internal server error' }
         end
@@ -149,7 +155,7 @@ module Auth
         Onetime::Customer.anonymous
       end
     rescue StandardError => ex
-      OT.le "Failed to load customer: #{ex.message}"
+      auth_logger.error "Failed to load customer from session", exception: ex
       Onetime::Customer.anonymous
     end
 

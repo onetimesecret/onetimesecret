@@ -7,6 +7,7 @@ require 'onetime/helpers/shrimp_helpers'
 module Core
   module Controllers
     module Base
+      include Onetime::Logging
       include Onetime::Helpers::SessionHelpers
       include Onetime::Helpers::ShrimpHelpers
 
@@ -41,9 +42,11 @@ module Core
         begin
           # Attempt to parse the URL
           uri = URI.parse(url)
-        rescue URI::InvalidURIError
+        rescue URI::InvalidURIError => ex
           # Log an error message if the URL is invalid
-          OT.le "[validate_url] Invalid URI: #{uri}"
+          http_logger.error "Invalid URI in URL validation",
+            exception: ex,
+            url: url
         else
           # Set a default host if the host is missing
           uri.host ||= OT.conf['site']['host']
@@ -171,7 +174,8 @@ module Core
         # Fallback to anonymous
         Onetime::Customer.anonymous
       rescue StandardError => ex
-        OT.le "[base_controller] Failed to load customer: #{ex.message}"
+        http_logger.error "Failed to load customer",
+          exception: ex
         Onetime::Customer.anonymous
       end
 
@@ -221,7 +225,10 @@ module Core
       # @param field [String, nil] Field name for error, nil to infer from message
       # @return [Hash, nil] JSON error Hash for routes with response=json, nil otherwise
       def handle_form_error(ex, redirect_path = nil, field: nil, status: 400)
-        OT.le "Form error occurred: #{ex.message}"
+        http_logger.error "Form error occurred",
+          exception: ex,
+          field: field,
+          redirect_path: redirect_path
         if json_requested?
           # FormError must provide field and error_type
           field ||= ex.field
@@ -247,18 +254,19 @@ module Core
         begin
           if defined?(req) && req.respond_to?(:env)
             headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
-            OT.ld "[capture_error] Request headers: #{headers.inspect}"
+            http_logger.debug "Capturing error to Sentry with request headers",
+              headers: headers
           end
 
           Sentry.capture_exception(error, level: level, &)
         rescue NoMethodError => ex
           raise unless ex.message.include?('start_with?')
 
-          OT.le "[capture_error] Sentry error: #{ex.message}"
-          OT.ld ex.backtrace.join("\n")
+          http_logger.error "Sentry capture error (NoMethodError)",
+            exception: ex
         rescue StandardError => ex
-          OT.le "[capture_error] #{ex.class}: #{ex.message}"
-          OT.ld ex.backtrace.join("\n")
+          http_logger.error "Sentry capture error",
+            exception: ex
         end
       end
 
@@ -267,8 +275,9 @@ module Core
 
         Sentry.capture_message(message, level: level, &)
       rescue StandardError => ex
-        OT.le "[capture_message] #{ex.class}: #{ex.message}"
-        OT.ld ex.backtrace.join("\n")
+        http_logger.error "Sentry capture_message error",
+          exception: ex,
+          message: message
       end
     end
   end

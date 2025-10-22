@@ -23,6 +23,11 @@ module V2
       routes_path = File.join(__dir__, 'routes')
       router      = Otto.new(routes_path)
 
+      # IP privacy is enabled globally in common middleware stack for public
+      # addresses. Must be enabled specifically for private and localhost
+      # addresses. See Otto::Middleware::IPPrivacy for details
+      router.enable_full_ip_privacy!
+
       # Register authentication strategies
       V2::AuthStrategies.register_essential(router)
 

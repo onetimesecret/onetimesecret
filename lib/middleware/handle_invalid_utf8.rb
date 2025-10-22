@@ -1,5 +1,5 @@
-require 'logger'
 require 'rack'
+require_relative 'logging'
 
 # Rack::HandleInvalidUTF8
 #
@@ -7,6 +7,8 @@ require 'rack'
 # raising an exception and returning a 400 Bad Request response.
 #
 class Rack::HandleInvalidUTF8
+  include Middleware::Logging
+
   @default_content_type = 'application/json'
   @default_charset      = 'utf-8'
   @default_exception    = Encoding::InvalidByteSequenceError
@@ -33,12 +35,15 @@ class Rack::HandleInvalidUTF8
       :input_sources
   end
 
-  attr_reader :logger
-
-  def initialize(app, io: $stdout, check_enabled: nil)
+  def initialize(app, logger: nil, check_enabled: nil)
     @app           = app
-    @logger        = Logger.new(io, level: :info)
+    @custom_logger = logger
     @check_enabled = check_enabled  # override the check_enabled? method
+  end
+
+  # Override logger to allow custom logger injection
+  def logger
+    @custom_logger || super
   end
 
   def call(env)

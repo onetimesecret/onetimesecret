@@ -70,7 +70,11 @@ module Auth
               # On the 4th (and subsequent) failed attempts, log a high-priority
               # security event to alert on potential brute-force activity.
               if attempts >= 4
-                OT.le "[security] Potential brute force attack: #{attempts} failed attempts for #{OT::Utils.obscure_email(email)} from #{ip}"
+                SemanticLogger['Auth'].error "Potential brute force attack detected on login endpoint",
+                  attempts: attempts,
+                  email: OT::Utils.obscure_email(email),
+                  ip: ip,
+                  threshold: 4
               end
             end
           end

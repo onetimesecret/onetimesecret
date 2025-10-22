@@ -22,8 +22,6 @@ module Middleware
       @logger ||= initialize_logger
     end
 
-    private
-
     def initialize_logger
       if defined?(SemanticLogger)
         category = infer_category
@@ -45,6 +43,8 @@ module Middleware
       when /Auth/
         'Auth'
       when /Security/, /CSRF/, /IPPrivacy/
+        'HTTP'
+      when /DetectHost/, /RequestId/, /HandleInvalid/, /HeaderLogger/
         'HTTP'
       else
         'App'
