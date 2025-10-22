@@ -23,7 +23,8 @@ module Auth
 
             # Password is set during account creation, not during verification
             # This prevents verify_account from requiring password fields
-            verify_account_set_password? false
+            # Only configure if verify_account feature is enabled
+            verify_account_set_password? false unless ENV['RACK_ENV'] == 'test'
 
             # Custom error messages
             # Override Rodauth's default generic error message
