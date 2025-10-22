@@ -36,14 +36,6 @@ module Auth
 
     plugin :rodauth do
       instance_eval(&Auth::Config.configure)
-    rescue StandardError => ex
-        # This log gets swallowed up b/c the loggers aren't setup until boot starts
-        # and the `configure_logging` initializer is run. Look in log output
-        # for "Initialized SemanticLogger" which will appears right after
-        # this error message output from $stderr.
-        #
-        # Onetime.auth_logger.error "Failed to configure Rodauth", exception: ex
-        $stderr.puts 'Failed to configure Rodauth in Auth::Router', exception: ex # rubocop:disable Style/StderrPuts
     end
 
     # Status handlers

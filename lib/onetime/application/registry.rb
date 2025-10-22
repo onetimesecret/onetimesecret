@@ -31,10 +31,10 @@ module Onetime
           find_application_files
           create_mount_mappings
         rescue StandardError => ex
-          OT.le "[Application::Registry] ERROR: #{ex.class}: #{ex.message}"
-          OT.ld ex.backtrace.join("\n")
+          $stderr.puts "[#{name}] ERROR: #{ex.class}: #{ex.message}"
+          $stderr.puts ex.backtrace.join("\n") if Onetime.debug?
 
-          Onetime.not_ready!
+          Onetime.not_ready
         end
 
         # Generate Rack::URLMap with proper mount ordering
@@ -97,11 +97,18 @@ module Onetime
             filepaths.reject! { |f| f.include?('web/auth/') }
             $stderr.puts '[registry] Skipping auth app (basic mode)'
           else
-            $stderr.puts '[registry] Including auth app - will take over auth endpoints from core web app'
+            $stderr.puts '[registry] Including auth app (advanced mode)'
           end
 
           $stderr.puts "[registry] Scan found #{filepaths.size} application(s)"
-          filepaths.each { |f| require f }
+          filepaths.each { |f|
+            $stderr.puts "[registry] Loading application file: #{f}" if Onetime.debug?
+            begin
+              require f
+            rescue LoadError => ex
+              $stderr.puts "[registry] ERROR loading application file #{f}: #{ex.class}: #{ex.message}"
+            end
+          }
         end
 
         # Maps all discovered application classes to their URL routes
