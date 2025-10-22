@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
-  import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
+  import UserMenu from '@/components/navigation/UserMenu.vue';
   import SettingsModal from '@/components/modals/SettingsModal.vue';
   import DefaultLogo from '@/components/logos/DefaultLogo.vue';
   import { WindowService } from '@/services/window.service';
@@ -64,6 +64,9 @@ import { shallowRef } from 'vue';
   const navigationEnabled = computed(() =>
     headerConfig.value?.navigation?.enabled !== false
   );
+
+  // Check if domains are enabled for upgrade CTA
+  const domainsEnabled = computed(() => windowProps.value.domains_enabled);
 
   // Logo component handling
   const isVueComponent = computed(() => logoConfig.value.url.endsWith('.vue'));
@@ -166,10 +169,7 @@ import { shallowRef } from 'vue';
         class="flex flex-wrap items-center justify-center gap-4
           font-brand text-sm sm:justify-end sm:text-base">
         <template v-if="windowProps.authenticated && windowProps.cust">
-          <HeaderUserNav
-            :cust="windowProps.cust"
-            :colonel="isColonel" />
-          <!-- prettier-ignore-attribute class -->
+          <!-- Settings Button -->
           <button
             @click="openSettingsModal"
             class="text-xl text-gray-600 transition-colors duration-200
@@ -185,27 +185,13 @@ import { shallowRef } from 'vue';
 
           <SettingsModal
             :is-open="isSettingsModalOpen"
-
             @close="closeSettingsModal" />
 
-          <span
-            class="text-gray-400"
-            role="separator">
-            |
-          </span>
-          <!-- prettier-ignore-attribute class -->
-          <router-link
-            to="/logout"
-            class="text-gray-600 transition-colors duration-200
-              hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
-            :title="t('web.COMMON.header_logout')"
-            :aria-label="t('web.COMMON.header_logout')">
-            <OIcon
-              class="size-5"
-              collection="heroicons"
-              name="arrow-right-on-rectangle-solid"
-              aria-hidden="true" />
-          </router-link>
+          <!-- User Menu Dropdown -->
+          <UserMenu
+            :cust="windowProps.cust"
+            :colonel="isColonel"
+            :show-upgrade="domainsEnabled" />
         </template>
 
         <template v-else>

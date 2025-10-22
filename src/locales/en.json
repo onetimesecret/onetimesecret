@@ -111,7 +111,9 @@
       "redirecting": "Redirecting...",
       "continue": "Continue",
       "are_you_sure": "Are you sure?",
-      "danger_zone": "Danger Zone"
+      "danger_zone": "Danger Zone",
+      "user_menu": "User menu",
+      "security": "Security"
     },
     "LABELS": {
       "view_toggle": {
