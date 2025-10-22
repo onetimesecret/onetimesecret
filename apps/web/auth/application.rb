@@ -17,7 +17,7 @@ require_relative 'router'
 
 module Auth
   class Application < Onetime::Application::Base
-    include Onetime::Logging
+    # include Onetime::Logging # call Onetime.auth_logger directly due to all the blocks
 
     @uri_prefix = '/auth'.freeze
 
@@ -43,21 +43,13 @@ module Auth
     end
 
     warmup do
-      # Auto-run migrations in advanced mode
-      # This ensures the database schema is ready when Rodauth is enabled
+      # Migrations are run in build_router before loading the Router class
+      # This warmup block can be used for other initialization tasks if needed
       if Onetime.auth_config.advanced_enabled?
-        begin
-          require_relative 'migrator'
-          Auth::Migrator.run_if_needed
-          OT.info 'Auth database migrations completed (advanced mode)'
-        rescue StandardError => ex
-          auth_logger.error "Auth database migrations failed during startup", exception: ex
-          # Don't fail startup in production, log the error
-          raise ex if Onetime.development?
-        end
+        Onetime.auth_logger.info 'Auth application initialized (advanced mode)'
       else
-        auth_logger.error "Auth application mounted in basic mode - this is a configuration error. "\
-          "The Auth app is designed for advanced mode only. In basic mode, authentication "\
+        Onetime.auth_logger.error "Auth application mounted in basic mode - this is a configuration error. " \
+          "The Auth app is designed for advanced mode only. In basic mode, authentication " \
           "is handled by Core app at /auth/*. Check your application registry configuration.",
           app: "Auth::Application",
           mode: "basic",
@@ -68,6 +60,19 @@ module Auth
     protected
 
     def build_router
+      # Run migrations BEFORE loading the Router class
+      # This ensures database tables exist when Rodauth validates features during plugin load
+      if Onetime.auth_config.advanced_enabled?
+        begin
+          require_relative 'migrator'
+          Auth::Migrator.run_if_needed
+          Onetime.auth_logger.debug 'Auth database migrations completed before router load'
+        rescue StandardError => ex
+          Onetime.auth_logger.error "Auth database migrations failed before router load", exception: ex
+          raise ex if Onetime.development?
+        end
+      end
+
       # Return the Roda app instance
       # Unlike Otto apps, Roda apps are classes that respond to call
       Auth::Router

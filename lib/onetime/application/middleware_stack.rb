@@ -6,7 +6,7 @@ require 'rack/parser'
 require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
-require 'onetime/session'
+require_relative '../session'
 require 'otto'
 
 module Onetime

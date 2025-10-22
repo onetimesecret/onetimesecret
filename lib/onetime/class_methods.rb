@@ -1,5 +1,7 @@
 # lib/onetime/class_methods.rb
 
+require_relative 'logging'
+
 # Usage:
 # module Onetime
 #   extend EnvironmentHelper
@@ -8,6 +10,8 @@
 # Environment detection and normalization
 module Onetime
   module ClassMethods
+    include Onetime::Logging
+
     @env   = nil
     @mode  ||= :app
     @debug = nil
