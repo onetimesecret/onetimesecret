@@ -104,8 +104,7 @@ module Onetime
       OT.le "Cannot connect to the database #{Familia.uri} (#{ex.class})"
       raise ex unless mode?(:cli)
     rescue StandardError => ex
-      OT.le "Unexpected error `#{ex}` (#{ex.class})"
-      OT.ld ex.backtrace.join("\n")
+      OT.le "Unexpected error", exception: ex
       raise ex unless mode?(:cli)
     end
 
