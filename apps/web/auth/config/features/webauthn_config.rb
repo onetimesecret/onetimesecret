@@ -36,15 +36,19 @@ module Auth
             webauthn_user_ids_webauthn_id_column :webauthn_id
 
             # WebAuthn challenge configuration
-            webauthn_timeout 60_000  # 60 seconds for user interaction
+            webauthn_setup_timeout 60_000  # 60 seconds for user interaction during setup
+            webauthn_auth_timeout 60_000   # 60 seconds for user interaction during auth
 
             # User verification: preferred (use if available, but don't require)
             # This enables Face ID, Touch ID, Windows Hello
             webauthn_user_verification 'preferred'
 
-            # Authenticator attachment: cross-platform allows both built-in and external
-            # (Face ID AND YubiKey)
-            webauthn_authenticator_selection_authenticator_attachment nil
+            # Authenticator selection: allows both platform and cross-platform
+            # (Face ID, Touch ID, Windows Hello AND YubiKey)
+            # Setting to nil allows both types
+            webauthn_authenticator_selection do
+              { authenticatorAttachment: nil }
+            end
 
             # Routes (relative to /auth mount point)
             webauthn_setup_route 'webauthn-setup'
@@ -52,13 +56,16 @@ module Auth
             webauthn_remove_route 'webauthn-remove'
 
             # JSON API response configuration
+            # In JSON mode, flash methods automatically become JSON responses
             webauthn_setup_error_flash 'Error setting up biometric/security key'
             webauthn_auth_error_flash 'Biometric/security key authentication failed'
-            webauthn_invalid_webauthn_id_message 'Invalid security key credential'
+            webauthn_invalid_remove_param_message 'Invalid security key credential'
+            webauthn_invalid_auth_param_message 'Invalid authentication data'
+            webauthn_invalid_setup_param_message 'Invalid registration data'
 
-            # Allow passwordless WebAuthn login
+            # Note: Passwordless WebAuthn login is enabled by default
             # Users can sign in with ONLY their biometric/security key
-            webauthn_autofill? true
+            # Autofill can be configured via webauthn_auth_js customization if needed
 
             # Hook: After successful WebAuthn registration
             after_webauthn_setup do
@@ -74,22 +81,20 @@ module Auth
                 .update(webauthn_keys_last_use_column => Sequel::CURRENT_TIMESTAMP)
             end
 
-            # Hook: After successful WebAuthn authentication
-            after_webauthn_auth do
-              SemanticLogger['Auth::WebAuthn'].info 'WebAuthn login successful',
+            # Hook: Before WebAuthn authentication
+            before_webauthn_auth do
+              SemanticLogger['Auth::WebAuthn'].debug 'Processing WebAuthn authentication',
+                account_id: account[:id]
+
+              # Note: Successful login is tracked via session middleware
+              # Set session values in base after_login hook
+            end
+
+            # Hook: After failed WebAuthn authentication
+            after_webauthn_auth_failure do
+              SemanticLogger['Auth::WebAuthn'].warn 'WebAuthn authentication failed',
                 account_id: account[:id],
                 email: account[:email]
-
-              # Sync with Redis session
-              session['authenticated_at'] = Familia.now
-              session['account_external_id'] = account[:external_id]
-              session['authentication_method'] = 'webauthn'
-
-              # Update last_use timestamp for the credential
-              db[webauthn_keys_table]
-                .where(webauthn_keys_account_id_column => account_id,
-                       webauthn_keys_webauthn_id_column => param(webauthn_auth_webauthn_id_param))
-                .update(webauthn_keys_last_use_column => Sequel::CURRENT_TIMESTAMP)
             end
 
             # Hook: Before WebAuthn credential removal

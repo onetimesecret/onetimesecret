@@ -42,10 +42,11 @@ module Auth
             end
 
             # JSON API response configuration
+            # In JSON mode, flash methods automatically become JSON responses
             email_auth_request_error_flash 'Error requesting login link'
-            email_auth_email_sent_notice 'Login link sent to your email'
+            email_auth_email_sent_notice_flash 'Login link sent to your email'
             email_auth_email_recently_sent_error_flash 'Login link was recently sent, please check your email'
-            email_auth_deadline_passed_error_flash 'Login link has expired'
+            email_auth_error_flash 'Login link has expired or is invalid'
 
             # Routes (relative to /auth mount point)
             email_auth_route 'email-login'
@@ -54,24 +55,20 @@ module Auth
             # Session key for storing token during auth flow
             email_auth_session_key 'email_auth_key'
 
-            # Hook: After successful email auth login
-            after_email_auth do
-              # Track login in audit log
-              SemanticLogger['Auth::EmailAuth'].info 'Magic link login successful',
-                account_id: account[:id],
-                email: account[:email]
-
-              # Sync with Redis session if needed
-              session['authenticated_at'] = Familia.now
-              session['account_external_id'] = account[:external_id]
-              session['authentication_method'] = 'email_auth'
+            # Hook: Before handling email auth route (form submission)
+            before_email_auth_route do
+              SemanticLogger['Auth::EmailAuth'].debug 'Processing magic link authentication',
+                account_id: account[:id]
             end
 
-            # Hook: Before sending magic link email
-            before_email_auth_email_send do
-              SemanticLogger['Auth::EmailAuth'].info 'Sending magic link',
+            # Hook: After sending magic link email
+            after_email_auth_request do
+              SemanticLogger['Auth::EmailAuth'].info 'Magic link email sent',
                 account_id: account[:id],
                 email: account[:email]
+
+              # Note: Successful login is tracked via session middleware
+              # Set session values in base after_login hook
             end
           end
         end
