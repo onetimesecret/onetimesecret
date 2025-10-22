@@ -44,7 +44,11 @@ module Core
 
         # Fall back to default locale if translations not available
         if messages.empty?
-          OT.le "[#{pagename}.i18n] #{locale} not found in #{OT.locales.keys} (#{OT.supported_locales})"
+          SemanticLogger['App'].warn "Locale not found, falling back to default",
+            requested_locale: locale,
+            available_locales: OT.locales.keys,
+            supported_locales: OT.supported_locales,
+            page: pagename
           messages = OT.locales.fetch(OT.default_locale, {})
         end
 

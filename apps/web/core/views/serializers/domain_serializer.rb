@@ -54,7 +54,10 @@ module Core
               # have some visibility which customers this will affect. We've made
               # the verification more stringent so currently many existing domains
               # would return obj.ready? == false.
-              OT.li "[custom_domains] Allowing unverified domain: #{obj.display_domain} (#{obj.verified}/#{obj.resolving})"
+              SemanticLogger['App'].info "Allowing unverified custom domain",
+                domain: obj.display_domain,
+                verified: obj.verified,
+                resolving: obj.resolving
             end
 
             obj.display_domain

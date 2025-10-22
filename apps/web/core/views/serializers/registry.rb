@@ -54,31 +54,33 @@ module Core
           ordered.reduce({}) do |result, serializer|
             output = serializer.serialize(vars, i18n)
             if output.nil?
-              OT.le "[SerializerRegistry] Warning: #{serializer} returned nil"
+              SemanticLogger['App'].warn "Serializer returned nil",
+                serializer: serializer.to_s,
+                module: "SerializerRegistry"
               next result
             end
 
             output.each_key do |key|
               # Detect keys that are not defined in the serializer output_template
               unless serializer.output_template.key?(key)
-                OT.le "[SerializerRegistry] Warning: Key '#{key}' not defined in #{serializer}"
+                SemanticLogger['App'].warn "Serializer key not in output template",
+                  key: key,
+                  serializer: serializer.to_s,
+                  module: "SerializerRegistry"
               end
 
               # Detect key collisions with output from previous serializers
               if seen_keys.key?(key)
-                collision_msg = <<~MSG
-                  [SerializerRegistry] Warning: Key collision detected
-                  Key: '#{key}'
-                  First defined by: #{seen_keys[key]}
-                  Then defined by: #{serializer}
-                MSG
-                OT.le collision_msg
+                SemanticLogger['App'].warn "Serializer key collision detected",
+                  key: key,
+                  first_defined_by: seen_keys[key].to_s,
+                  then_defined_by: serializer.to_s,
+                  module: "SerializerRegistry"
               else
                 seen_keys[key] = serializer
               end
             end
 
-            #OT.ld "[SerializerRegistry] Executing serializer:", serializer
             result.merge(output)
           end
         end

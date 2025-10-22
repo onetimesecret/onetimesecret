@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'onetime/logging'
+
 # RequestSetup middleware handles request-level initialization for Web Core.
 #
 # Responsibilities:
@@ -13,6 +15,8 @@
 module Core
   module Middleware
     class RequestSetup
+      include Onetime::Logging
+
       def initialize(app, default_content_type: 'text/html; charset=utf-8')
         @app = app
         @default_content_type = default_content_type
@@ -34,7 +38,7 @@ module Core
       # Locale is handled by Otto::Locale::Middleware
       # Available via env['otto.locale']
 
-      OT.ld "[middleware] RequestSetup: nonce=#{nonce[0, 8]}..." if OT.debug?
+      http_logger.debug "Request setup complete", nonce: nonce[0, 8] if OT.debug?
     end
 
     def finalize_response(status, headers, body, env)

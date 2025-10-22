@@ -52,7 +52,9 @@ module Core
         safe_site = InitializeViewVars.safe_site_fields.each_with_object({}) do |field, hash|
           field_str = field.to_s
           unless site_config.key?(field_str)
-            OT.ld "[view_vars] Site config is missing field: #{field_str}"
+            SemanticLogger['App'].debug "Site config missing expected field",
+              field: field_str,
+              module: "InitializeViewVars"
             next
           end
 

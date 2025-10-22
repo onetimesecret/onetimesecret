@@ -2,6 +2,7 @@
 
 require 'onetime/application'
 require 'onetime/middleware'
+require 'onetime/logging'
 
 require_relative 'middleware/request_setup'
 require_relative 'middleware/error_handling'
@@ -12,6 +13,8 @@ require_relative 'auth_strategies'
 
 module Core
   class Application < Onetime::Application::Base
+    include Onetime::Logging
+
     @uri_prefix = '/'.freeze
 
     # Initialize request context (nonce, locale) before other processing
@@ -48,10 +51,10 @@ module Core
               '/api',
               '/public',
             ]
-          OT.ld '[Rhales] Schema validation middleware enabled'
+          rhales_logger.debug "Schema validation middleware enabled"
         rescue LoadError => ex
-          warn "Warning: Could not load schema validation middleware: #{ex.message}"
-          warn 'This is expected if json_schemer gem is not available.'
+          rhales_logger.warn "Could not load schema validation middleware - json_schemer gem not available",
+            exception: ex
         end
       end
     end
