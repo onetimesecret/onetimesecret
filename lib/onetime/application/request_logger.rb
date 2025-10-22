@@ -46,8 +46,8 @@ module Onetime
         payload[:method] = request.request_method if capture?(:method)
         payload[:path] = request.path if capture?(:path)
         payload[:status] = status if capture?(:status)
-        # Duration in microseconds - SemanticLogger will format with units
-        payload[:duration] = "#{duration}μs" if capture?(:duration)
+        # Convert microseconds to seconds for SemanticLogger's duration formatting
+        payload[:duration] = duration / 1_000_000.0 if capture?(:duration)
         payload[:request_id] = request.env['HTTP_X_REQUEST_ID'] if capture?(:request_id)
         payload[:ip] = request.ip if capture?(:ip)
         payload[:params] = redact_params(request.params) if capture?(:params)
