@@ -44,6 +44,9 @@ importers:
       '@sentry/vue':
         specifier: 9.17.0
         version: 9.17.0(pinia@3.0.3(typescript@5.8.3)(vue@3.5.22(typescript@5.8.3)))(vue@3.5.22(typescript@5.8.3))
+      '@simplewebauthn/browser':
+        specifier: ^13.2.2
+        version: 13.2.2
       '@types/jsdom':
         specifier: 21.1.7
         version: 21.1.7
@@ -1082,6 +1085,9 @@ packages:
     peerDependenciesMeta:
       pinia:
         optional: true
+
+  '@simplewebauthn/browser@13.2.2':
+    resolution: {integrity: sha512-FNW1oLQpTJyqG5kkDg5ZsotvWgmBaC6jCHR7Ej0qUNep36Wl9tj2eZu7J5rP+uhXgHaLk+QQ3lqcw2vS5MX1IA==}
 
   '@sindresorhus/merge-streams@4.0.0':
     resolution: {integrity: sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ==}
@@ -5146,6 +5152,8 @@ snapshots:
       vue: 3.5.22(typescript@5.8.3)
     optionalDependencies:
       pinia: 3.0.3(typescript@5.8.3)(vue@3.5.22(typescript@5.8.3))
+
+  '@simplewebauthn/browser@13.2.2': {}
 
   '@sindresorhus/merge-streams@4.0.0': {}
 

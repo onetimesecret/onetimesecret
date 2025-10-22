@@ -91,6 +91,7 @@
     "@sentry/browser": "9.17.0",
     "@sentry/core": "9.17.0",
     "@sentry/vue": "9.17.0",
+    "@simplewebauthn/browser": "^13.2.2",
     "@types/jsdom": "21.1.7",
     "@vueuse/integrations": "13.6.0",
     "axios": "1.12.2",
