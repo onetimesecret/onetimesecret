@@ -57,7 +57,7 @@ module Auth
             username = @config[:username] || ENV['SMTP_USERNAME']
             password = @config[:password] || ENV['SMTP_PASSWORD']
             use_tls = @config[:tls].nil? ? (ENV['SMTP_TLS'] != 'false') : @config[:tls]
-            auth_method = @config[:auth_method] || ENV['SMTP_AUTH_METHOD'] || 'plain'
+            auth_method = @config[:auth_method] || ENV['SMTP_AUTH'] || 'plain'
 
             message = build_message(email)
 
@@ -66,8 +66,20 @@ module Auth
 
             # Handle authentication - only authenticate if username is provided
             if username && password
-              smtp.start('localhost', username, password, auth_method.to_sym) do |smtp_session|
-                smtp_session.send_message(message, email[:from], email[:to])
+              begin
+                smtp.start('localhost', username, password, auth_method.to_sym) do |smtp_session|
+                  smtp_session.send_message(message, email[:from], email[:to])
+                end
+              rescue Net::SMTPAuthenticationError => auth_error
+                # Server doesn't support authentication - try without auth
+                SemanticLogger['Auth'].debug "SMTP authentication not supported, sending without auth",
+                  host: smtp_host,
+                  port: smtp_port,
+                  error: auth_error.message
+
+                smtp.start do |smtp_session|
+                  smtp_session.send_message(message, email[:from], email[:to])
+                end
               end
             else
               smtp.start do |smtp_session|
@@ -199,30 +211,6 @@ module Auth
           end
         end
 
-        class Mailpit < Base
-          def deliver(email)
-            # Support legacy MAILPIT_SMTP_HOST for backward compatibility
-            smtp_host = @config[:host] || ENV['MAILPIT_HOST'] || ENV['MAILPIT_SMTP_HOST'] || 'localhost'
-            smtp_port = (@config[:port] || ENV['MAILPIT_PORT'] || ENV['MAILPIT_SMTP_PORT'] || '1025').to_i
-
-            message = <<~EMAIL
-              From: #{email[:from]}
-              To: #{email[:to]}
-              Subject: #{email[:subject]}
-
-              #{email[:body]}
-            EMAIL
-
-            Net::SMTP.start(smtp_host, smtp_port) do |smtp|
-              smtp.send_message(message, email[:from], email[:to])
-            end
-
-            log_delivery(email, 'sent', 'Mailpit')
-          rescue StandardError => e
-            log_error(email, e, 'Mailpit')
-            raise e
-          end
-        end
       end
 
       class Configuration
@@ -304,25 +292,31 @@ module Auth
         end
 
         def determine_provider
-          provider = ENV['EMAIL_PROVIDER']&.downcase
+          # Use EMAILER_MODE consistent with Onetime patterns
+          mode = ENV['EMAILER_MODE']&.downcase
+
+          # Debug logging
+          SemanticLogger['Auth'].debug "Email provider detection",
+            emailer_mode: mode,
+            smtp_host: ENV['SMTP_HOST'],
+            sendgrid_api_key: ENV['SENDGRID_API_KEY'] ? 'configured' : nil,
+            aws_credentials: (ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']) ? 'configured' : nil
 
           # Auto-detect based on available configuration
-          if provider.nil?
+          if mode.nil?
             if ENV['RACK_ENV'] == 'test'
               'logger'
             elsif ENV['SENDGRID_API_KEY']
               'sendgrid'
             elsif ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']
               'ses'
-            elsif ENV['MAILPIT_HOST'] || ENV.key?('MAILPIT_PORT') || ENV['MAILPIT_SMTP_HOST']
-              'mailpit'
             elsif ENV['SMTP_HOST']
               'smtp'
             else
               'logger'
             end
           else
-            provider
+            mode
           end
         end
 
@@ -334,8 +328,6 @@ module Auth
             Delivery::SendGrid.new
           when 'ses'
             Delivery::SES.new
-          when 'mailpit'
-            Delivery::Mailpit.new
           when 'logger'
             Delivery::Logger.new
           else
@@ -378,6 +370,11 @@ module Auth
 
           # Configure email delivery with lazy initialization
           send_email do |email|
+            Onetime.auth_logger.debug "send_email hook called",
+              subject: email.subject.to_s,
+              to: email.to.to_s,
+              rack_env: ENV['RACK_ENV']
+
             if ENV['RACK_ENV'] == 'test'
               OT.info "[email] Skipping email delivery in test environment: #{email[:subject]}"
             else
@@ -385,6 +382,16 @@ module Auth
                 # Create email config at delivery time to avoid early loading issues
                 email_config = Configuration.new
                 email_config.deliver_email(email)
+              rescue Errno::ECONNREFUSED => e
+                # Connection refused - likely no mail server configured
+                # Normalize the email object first
+                normalized = normalize_email(email)
+                Onetime.auth_logger.warn "Email delivery failed - no mail server available, using logger fallback",
+                  subject: normalized[:subject],
+                  to: normalized[:to],
+                  error: e.message
+                # Fallback to logger delivery for development
+                Delivery::Logger.new.deliver(normalized)
               rescue StandardError => e
                 Onetime.auth_logger.error "Email delivery failed in send_email hook",
                   subject: email[:subject],
@@ -404,24 +411,22 @@ module Auth
       end
 
       private_class_method def self.determine_provider_for_logging
-        provider = ENV['EMAIL_PROVIDER']&.downcase
+        mode = ENV['EMAILER_MODE']&.downcase
 
-        if provider.nil?
+        if mode.nil?
           if ENV['RACK_ENV'] == 'test'
             'logger'
           elsif ENV['SENDGRID_API_KEY']
             'sendgrid'
           elsif ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']
             'ses'
-          elsif ENV['MAILPIT_HOST'] || ENV.key?('MAILPIT_PORT') || ENV['MAILPIT_SMTP_HOST']
-            'mailpit'
           elsif ENV['SMTP_HOST']
             'smtp'
           else
             'logger'
           end
         else
-          provider
+          mode
         end
       end
     end

@@ -8,13 +8,13 @@ require_relative 'email'
 puts "Testing Email Configuration..."
 
 # Test different providers
-providers_to_test = %w[logger smtp sendgrid ses mailpit]
+providers_to_test = %w[logger smtp sendgrid ses]
 
 providers_to_test.each do |provider|
   puts "\n--- Testing #{provider.upcase} provider ---"
 
   begin
-    ENV['EMAIL_PROVIDER'] = provider
+    ENV['EMAILER_MODE'] = provider
     config = Auth::Config::Email::Configuration.new
 
     puts "✓ Provider: #{config.provider}"
@@ -40,7 +40,7 @@ end
 
 # Test auto-detection
 puts "\n--- Testing Auto-Detection ---"
-ENV.delete('EMAIL_PROVIDER')
+ENV.delete('EMAILER_MODE')
 config = Auth::Config::Email::Configuration.new
 puts "Auto-detected provider: #{config.provider}"
 
