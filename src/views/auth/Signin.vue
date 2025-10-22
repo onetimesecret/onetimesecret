@@ -2,7 +2,7 @@
 <!-- src/views/auth/Signin.vue -->
 <script setup lang="ts">
 import AuthView from '@/components/auth/AuthView.vue';
-import SignInForm from '@/components/auth/SignInForm.vue';
+import AuthMethodSelector from '@/components/auth/AuthMethodSelector.vue';
 import { useLanguageStore } from '@/stores/languageStore';
 import { useI18n } from 'vue-i18n';
 
@@ -18,7 +18,7 @@ const languageStore = useLanguageStore();
     heading-id="signin-heading"
     :with-subheading="true">
     <template #form>
-      <SignInForm
+      <AuthMethodSelector
         :locale="languageStore.currentLocale ?? ''" />
       <div class="mt-6 text-center">
         <ul class="space-y-2">
