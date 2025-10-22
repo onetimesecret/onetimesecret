@@ -35,6 +35,11 @@ module Auth
             login_column :email
             login_label 'Email'
 
+            # Table column configurations
+            # All Rodauth tables use account_id as FK, not id
+            password_hash_table :account_password_hashes
+            password_hash_id_column :account_id
+
             # Configure which columns to load from accounts table
             # IMPORTANT: Include external_id for Redis-SQL synchronization
             account_select [:id, :email, :status_id, :external_id]

@@ -9,16 +9,17 @@ module Auth
             # Email Auth (Magic Links)
             enable :email_auth
 
-            # Email auth configuration
-            email_auth_deadline_interval 86400  # 24 hours
-            email_auth_skip_resend_email_within 300  # 5 minutes
-
             # Table and column configuration
+            # All Rodauth tables use account_id as FK, not id
             email_auth_table :account_email_auth_keys
             email_auth_id_column :account_id
             email_auth_key_column :key
             email_auth_deadline_column :deadline
             email_auth_email_last_sent_column :email_last_sent
+
+            # Email auth configuration
+            email_auth_deadline_interval 86400  # 24 hours
+            email_auth_skip_resend_email_within 300  # 5 minutes
 
             # Email content for magic links
             email_auth_email_subject 'Login Link'

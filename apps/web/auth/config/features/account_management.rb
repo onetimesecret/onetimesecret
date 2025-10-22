@@ -14,6 +14,13 @@ module Auth
 
             enable *features
 
+            # Table column configurations
+            # All Rodauth tables use account_id as FK, not id
+            verify_account_table :account_verification_keys
+            verify_account_id_column :account_id
+            reset_password_table :account_password_reset_keys
+            reset_password_id_column :account_id
+
             # Password requirements
             password_minimum_length 8
 
