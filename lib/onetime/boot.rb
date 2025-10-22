@@ -70,7 +70,7 @@ module Onetime
 
       print_log_banner if $stdout.tty? && !mode?(:test) && !mode?(:cli)
 
-      @ready = true
+      @ready = true if @ready.nil?
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -119,7 +119,7 @@ module Onetime
       @ready == true
     end
 
-    def not_ready!
+    def not_ready
       @ready = false
     end
 
