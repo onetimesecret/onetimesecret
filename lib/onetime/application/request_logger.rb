@@ -21,10 +21,10 @@ module Onetime
         return @app.call(env) if ignored?(env['PATH_INFO'])
 
         request = Rack::Request.new(env)
-        start = Time.now
+        start = Onetime.now_in_μs
 
         status, headers, body = @app.call(env)
-        duration = ((Time.now - start) * 1000).round(2)
+        duration = Onetime.now_in_μs - start
 
         log_request(request, status, duration)
 
@@ -65,7 +65,9 @@ module Onetime
 
       def determine_level(status, duration)
         return :error if status >= 500
-        return :warn if status >= 400 || duration > @config['slow_request_ms']
+        # Convert microseconds to milliseconds for comparison with config
+        duration_ms = duration / 1000.0
+        return :warn if status >= 400 || duration_ms > @config['slow_request_ms']
         @config['level']&.to_sym || :info
       end
 
