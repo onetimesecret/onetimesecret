@@ -25,7 +25,7 @@ module Onetime
 
       # Configure named loggers from config
       config['loggers']&.each do |name, level|
-        Onetime.ld "[Logging] Setting logger '#{name}' level to #{level}"
+        $stderr.puts "[Logging] Setting level '#{name}' to #{level}"
         SemanticLogger[name].level = level.to_sym
       end
 
@@ -82,6 +82,7 @@ module Onetime
       SemanticLogger['Session'].level = :debug if ENV['DEBUG_SESSION']
       SemanticLogger['HTTP'].level    = :debug if ENV['DEBUG_HTTP']
       SemanticLogger['Secret'].level  = :debug if ENV['DEBUG_SECRET']
+      SemanticLogger['Sequel'].level  = :debug if ENV['DEBUG_SECRET']
 
       # For external library logging levels, use DEBUG_LOGGERS instead:
       # DEBUG_LOGGERS=Sequel:debug,Rhales:trace
@@ -110,17 +111,8 @@ module Onetime
 
       # Rhales manifold
       Rhales.logger = SemanticLogger['Rhales']
+      # Rhales.logger.level = :fatal
 
-      # Sequel database - configure logger on database instances
-      # This is typically done when creating the connection, but we can
-      # set a default for any existing connections
-      unless defined?(Sequel) && defined?(Auth::Config::Database)
-        Onetime.ld '[Logging] Sequel or Auth::Config::Database not defined, skipping Sequel logger configuration'
-        Sequel::DATABASES.each do |db|
-          Onetime.ld "[Logging] Configuring Sequel database logger for #{db}"
-          db.logger = SemanticLogger['Sequel']
-        end
-      end
       # NOTE: Database logger is configured per-connection in
       # apps/web/auth/config/database.rb using db.loggers array
       # We'll update that file to use SemanticLogger instead of Logger.new

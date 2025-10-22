@@ -28,9 +28,8 @@ require 'onetime'
 Onetime::Application::Registry.prepare_application_registry
 
 # Bootstrap the Application
-# Applications must be loaded before boot to ensure all Familia models
-# are properly registered. This sequence is critical for establishing
-# database connections for all model classes.
+# NOTE: Proper semantic logging comes online during boot. Any logging
+# prior to this needs to be output directly via STDOUT/STDERR.
 Onetime.boot! :app
 
 # Mount and run Rack applications

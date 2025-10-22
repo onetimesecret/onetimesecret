@@ -53,9 +53,10 @@ module Onetime
       # initializers are loaded in the correct order.
       load_locales
       configure_logging
+      setup_diagnostics
+      run_migrations
       set_global_secret
       set_rotated_secrets
-      setup_diagnostics
       configure_domains
       configure_truemail
       load_fortunes

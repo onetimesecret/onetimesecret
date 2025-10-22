@@ -95,12 +95,12 @@ module Onetime
           # Skip auth app in basic mode - auth endpoints handled by Core Web App
           if Onetime.auth_config.mode == 'basic'
             filepaths.reject! { |f| f.include?('web/auth/') }
-            OT.ld '[registry] Skipping auth app (basic mode)'
+            $stderr.puts '[registry] Skipping auth app (basic mode)'
           else
-            OT.ld '[registry] Including auth app - will take over auth endpoints from core web app'
+            $stderr.puts '[registry] Including auth app - will take over auth endpoints from core web app'
           end
 
-          OT.ld "[registry] Scan found #{filepaths.size} application(s)"
+          $stderr.puts "[registry] Scan found #{filepaths.size} application(s)"
           filepaths.each { |f| require f }
         end
 

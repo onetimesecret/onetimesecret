@@ -3,6 +3,8 @@
 require 'sequel'
 require 'logger'
 
+require_relative '../migrator'
+
 module Auth
   module Config
     module Database
@@ -27,22 +29,17 @@ module Auth
       #   }
       # end
 
-      private_class_method def self.create_connection
+      def self.create_connection
+        $stdout.puts '[Database] Creating Auth database connection'
+
         # Get database URL from auth config or environment
         database_url = Onetime.auth_config.database_url ||
                       ENV['DATABASE_URL'] ||
                       'sqlite://data/auth.db'
 
-        db = Sequel.connect(database_url)
+        db = Sequel.connect(database_url, logger: SemanticLogger['Sequel'])
 
-        # Enable SQL logging using SemanticLogger
-        # Sequel's logger array accepts any Logger-compatible object
-        if defined?(SemanticLogger)
-          db.loggers << SemanticLogger['Sequel']
-        elsif ENV['RACK_ENV'] == 'development'
-          # Fallback to standard logger if SemanticLogger not available
-          db.loggers << Logger.new($stdout)
-        end
+        # db.loggers << SemanticLogger['Sequel']
 
         db
       end
