@@ -140,7 +140,7 @@
     "eslint-plugin-vue": "10.3.0",
     "globals": "16.2.0",
     "happy-dom": "17.4.9",
-    "jiti": "2.4.2",
+    "jiti": "2.5.1",
     "jsdom": "26.1.0",
     "playwright": "1.52.0",
     "postcss": "8.5.6",
