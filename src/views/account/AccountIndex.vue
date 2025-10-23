@@ -97,7 +97,7 @@ onMounted(async () => {
               </div>
             </div>
 
-            <div class="border-t border-gray-200 dark:border-gray-700" />
+            <div class="border-t border-gray-200 dark:border-gray-700" ></div>
 
             <div class="py-3">
               <p class="text-sm font-medium text-gray-700 dark:text-gray-300">

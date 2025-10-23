@@ -78,6 +78,9 @@ module Auth
 
     # Handle any custom routes beyond standard Rodauth endpoints
     def handle_custom_routes(r)
+      # Account routes (mfa-status, account info)
+      handle_account_routes(r)
+
       # Health check endpoint
       r.on('health') do
         r.get do
