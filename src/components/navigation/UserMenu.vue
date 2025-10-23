@@ -135,7 +135,7 @@ onUnmounted(() => {
         <nav class="py-1" role="navigation">
           <!-- Account Settings -->
           <router-link
-            to="/account/settings/profile"
+            to="/account"
             class="group flex items-center gap-3 px-4 py-2
               text-sm text-gray-700 transition-colors
               hover:bg-gray-100 dark:text-gray-300

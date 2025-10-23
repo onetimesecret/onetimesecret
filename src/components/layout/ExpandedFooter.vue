@@ -1,6 +1,7 @@
-<!-- src/components/layout/DefaultFooter.vue -->
+<!-- src/components/layout/ExpandedFooter.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import FeedbackToggle from '@/components/FeedbackToggle.vue';
   import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
   import LanguageToggle from '@/components/LanguageToggle.vue';
@@ -8,8 +9,6 @@
   import ThemeToggle from '@/components/ThemeToggle.vue';
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { useI18n } from 'vue-i18n';
-
 
   withDefaults(defineProps<LayoutProps>(), {
     displayFeedback: true,
@@ -39,7 +38,7 @@
     py-16 transition-all
     duration-300 dark:bg-gray-800"
     :aria-label="t('site-footer')">
-    <div class="container mx-auto max-w-2xl px-4">
+    <div class="container mx-auto px-4">
       <!-- Footer Links Section -->
       <FooterLinks v-if="displayFooterLinks" />
 

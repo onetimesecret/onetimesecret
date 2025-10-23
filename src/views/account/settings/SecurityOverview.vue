@@ -6,9 +6,9 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAccount } from '@/composables/useAccount';
 import OIcon from '@/components/icons/OIcon.vue';
-import SettingsLayout from '@/components/layouts/SettingsLayout.vue';
+import SettingsLayout from '@/components/layout/SettingsLayout.vue';
 
-const router = useRouter();
+
 const { t } = useI18n();
 const { accountInfo, fetchAccountInfo } = useAccount();
 
