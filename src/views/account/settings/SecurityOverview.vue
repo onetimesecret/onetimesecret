@@ -175,7 +175,7 @@ onMounted(async () => {
               'h-full transition-all duration-500',
               progressBarColorClasses[securityLevel.color],
             ]"
-            :style="{ width: `${securityScore}%` }" />
+            :style="{ width: `${securityScore}%` }" ></div>
         </div>
       </div>
 

@@ -90,6 +90,7 @@
       "word_received": "received",
       "word_confirm": "Confirm",
       "word_cancel": "Cancel",
+      "back": "Back",
       "feedback_text": "Share your thoughts, ideas, or experiences...",
       "button_send_feedback": "Send Feedback",
       "verification_sent_to": "A verification was sent to",
@@ -161,7 +162,8 @@
       "create-link-short": "Create Link",
       "create-link": "Create Secret Link",
       "create-request-short": "Create Request",
-      "create-request": "Create Request Link"
+      "create-request": "Create Request Link",
+      "related-settings": "Related Settings"
     },
     "STATUS": {
       "new": "New",
@@ -612,7 +614,8 @@
         "confirm-remove-all": "This will log you out from all other devices. Are you sure?",
         "no-sessions": "No other active sessions",
         "removed-success": "Session removed successfully",
-        "removed-all-success": "All other sessions have been logged out"
+        "removed-all-success": "All other sessions have been logged out",
+        "link-title": "Active Sessions"
       },
       "mfa": {
         "title": "Two-Factor Authentication",
@@ -635,7 +638,21 @@
         "last-used": "Last used: {time}",
         "never-used": "Never used",
         "use-recovery-code": "Use a recovery code instead",
-        "back-to-code": "Back to authentication code"
+        "back-to-code": "Back to authentication code",
+        "loading-status": "Loading MFA status...",
+        "protected-description": "Your account is protected with two-factor authentication",
+        "enable-description": "Protect your account with an additional layer of security",
+        "benefit-unauthorized": "Prevent unauthorized access even if your password is compromised",
+        "benefit-apps": "Works with Google Authenticator, Authy, and other TOTP apps",
+        "benefit-recovery": "Backup recovery codes for emergency access",
+        "password-placeholder": "Enter your password",
+        "disabling": "Disabling...",
+        "disable-button": "Disable 2FA",
+        "generating-qr": "Generating QR code...",
+        "supported-apps": "Use Google Authenticator, Authy, or any TOTP app",
+        "continue-verification": "Continue to Verification",
+        "enter-code-description": "Enter the 6-digit code from your authenticator app",
+        "complete-setup": "Complete Setup"
       },
       "recovery-codes": {
         "title": "Recovery Codes",
@@ -651,7 +668,8 @@
         "code-unused": "Unused",
         "remaining": "{count} recovery code(s) remaining",
         "none-remaining": "No recovery codes remaining",
-        "generate-success": "New recovery codes have been generated"
+        "generate-success": "New recovery codes have been generated",
+        "link-title": "Recovery Codes"
       },
       "account": {
         "title": "Account Information",

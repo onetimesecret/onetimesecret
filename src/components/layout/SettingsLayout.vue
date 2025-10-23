@@ -74,9 +74,7 @@ const navigationSections = computed<NavigationItem[]>(() => {
   return sections;
 });
 
-const isActiveRoute = (path: string): boolean => {
-  return route.path === path || route.path.startsWith(path + '/');
-};
+const isActiveRoute = (path: string): boolean => route.path === path || route.path.startsWith(path + '/');
 
 const isParentActive = (item: NavigationItem): boolean => {
   if (isActiveRoute(item.to)) return true;
@@ -179,7 +177,7 @@ const isParentActive = (item: NavigationItem): boolean => {
 
       <!-- Main Content Area -->
       <main class="min-w-0 flex-1">
-        <slot />
+        <slot ></slot>
       </main>
     </div>
   </div>
