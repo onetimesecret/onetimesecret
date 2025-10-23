@@ -45,7 +45,23 @@ module Auth
             account_select [:id, :email, :status_id, :external_id]
 
             # Session configuration (unified with other apps)
-            session_key 'onetime.session'
+            # The session_key config is for the session cookie name
+            session_key 'account_id'
+
+            # Override session methods to use the Core app's session structure
+            # # Core app stores account ID in session[:account_id]
+            # session_value do
+            #   session[:account_id]
+            # end
+
+            # set_session_value do |id|
+            #   session[:account_id] = id
+            # end
+
+            # clear_session do
+            #   session.delete(:account_id)
+            #   super()
+            # end
           end
         end
       end

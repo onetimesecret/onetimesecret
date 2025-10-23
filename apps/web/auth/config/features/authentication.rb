@@ -16,7 +16,7 @@ module Auth
 
             def redis_session_valid?
               return false unless session['authenticated_at']
-              return false unless session['account_external_id'] || session['advanced_account_id']
+              return false unless session['external_id'] || session['account_id']
 
               # Check session age against configured expiry
               max_age = Onetime.auth_config.session['expire_after'] || 86400

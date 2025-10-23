@@ -24,7 +24,7 @@ module Auth
             # Magic links are only valid for a short period so we also keep
             # the resend interval short to avoid user frustration.
             email_auth_deadline_interval 15.minutes
-            email_auth_skip_resend_email_within 1.minutes
+            email_auth_skip_resend_email_within 30.seconds
 
             # Email content for magic links
             email_auth_email_subject 'Login Link'
@@ -38,7 +38,7 @@ module Auth
 
                 #{email_auth_email_link}
 
-                This link will expire in 24 hours.
+                This link will expire in 15 minutes.
 
                 If you didn't request this, you can safely ignore this email.
 

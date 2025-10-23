@@ -63,8 +63,8 @@ module Auth
 
             session['authenticated']       = true
             session['authenticated_at']    = Familia.now.to_i
-            session['advanced_account_id'] = account_id
-            session['account_external_id'] = account[:external_id]
+            session['account_id'] = account_id
+            session['external_id'] = account[:external_id]
 
             if customer
               session['external_id'] = customer.extid

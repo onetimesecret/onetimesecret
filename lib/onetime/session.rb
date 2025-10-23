@@ -186,7 +186,7 @@ module Onetime
       # Structured debug logging
       session_logger.debug "Session saved",
         session_id: sid_string,
-        session_keys: session_data.keys,
+        session_keys: session_data,
         ttl: ttl_value,
         data_size: data_size,
         expires_at: expires_at,

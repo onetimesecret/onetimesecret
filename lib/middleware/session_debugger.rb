@@ -119,7 +119,7 @@ module Rack
       # Extract authentication-related session data
       auth_keys = %w[
         authenticated authenticated_at authenticated_by
-        external_id account_external_id advanced_account_id
+        external_id account_id
         email role locale active_session_id
       ]
 
