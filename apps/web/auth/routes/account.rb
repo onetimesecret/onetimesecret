@@ -45,6 +45,8 @@ module Auth
               next { error: 'Authentication required' }
             end
 
+            account = rodauth.account_from_session
+
             # Check if MFA features are enabled
             enabled = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
 
@@ -85,7 +87,7 @@ module Auth
               next { error: 'Authentication required' }
             end
 
-            account = rodauth.account
+            account = rodauth.account_from_session
 
             # Check if MFA features are enabled before calling methods
             mfa_enabled = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?

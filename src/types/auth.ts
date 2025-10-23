@@ -27,11 +27,14 @@ export interface LockoutStatus {
 
 /**
  * OTP setup data from backend
+ * When HMAC is enabled, includes otp_setup and otp_raw_secret
  */
 export interface OtpSetupData {
   qr_code: string;
   secret: string;
   provisioning_uri: string;
+  otp_setup?: string; // HMAC'd secret (when HMAC enabled)
+  otp_raw_secret?: string; // Raw secret (when HMAC enabled)
 }
 
 /**

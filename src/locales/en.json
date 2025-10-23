@@ -533,7 +533,7 @@
         "sendLink": "Send Login Link",
         "checkEmail": "Check your email",
         "sentTo": "We sent a login link to {email}",
-        "linkExpiresIn": "This link will expire in 24 hours",
+        "linkExpiresIn": "This link will expire in 15 minutes",
         "tryDifferentEmail": "Try a different email",
         "noPasswordNeeded": "No password needed — just click the link in your email",
         "networkError": "Network error. Please try again.",

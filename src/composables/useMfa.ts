@@ -115,9 +115,20 @@ export function useMfa() {
     isLoading.value = true;
 
     try {
-      const response = await $api.post<OtpToggleResponse>('/auth/otp-setup', {
+      // Build request payload
+      const payload: Record<string, string> = {
         otp_code: otpCode,
-      });
+      };
+
+      // Include HMAC parameters if they were provided in setup response
+      if (setupData.value?.otp_setup) {
+        payload.otp_setup = setupData.value.otp_setup;
+      }
+      if (setupData.value?.otp_raw_secret) {
+        payload.otp_raw_secret = setupData.value.otp_raw_secret;
+      }
+
+      const response = await $api.post<OtpToggleResponse>('/auth/otp-setup', payload);
 
       const validated = otpToggleResponseSchema.parse(response.data);
 
