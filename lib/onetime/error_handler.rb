@@ -9,6 +9,7 @@
 module Onetime
   module ErrorHandler
     extend Onetime::Logging
+
     # Executes a block and logs any errors without re-raising.
     # Useful for side-effects that shouldn't break critical operations.
     #
@@ -72,7 +73,7 @@ module Onetime
 
       # Check if error tracking is available
       def trackable?
-        defined?(Familia.dbclient) && Familia.dbclient
+        !Familia.dbclient.nil?
       end
 
       # Check if Sentry is configured

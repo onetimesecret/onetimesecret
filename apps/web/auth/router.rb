@@ -5,6 +5,7 @@ require 'rodauth'
 require 'sequel'
 require 'logger'
 require 'json'
+
 require 'onetime/logging'
 
 require_relative 'config'
@@ -34,9 +35,9 @@ module Auth
     plugin :halt
     plugin :status_handler
 
-    plugin :rodauth do
-      instance_eval(&Auth::Config.configure)
-    end
+    # All Rodauth configuration is now in apps/web/auth/config.rb
+    # Use its Config class for all authentication configuration.
+    plugin :rodauth, auth_class: Auth::Config
 
     # Status handlers
     status_handler(404) do
