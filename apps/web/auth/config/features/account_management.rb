@@ -32,6 +32,7 @@ module Auth
           auth.create_account_error_flash 'Unable to create account'
 
         end
+
       end
     end
   end
