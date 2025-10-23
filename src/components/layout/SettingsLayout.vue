@@ -1,4 +1,4 @@
-<!-- src/components/layouts/SettingsLayout.vue -->
+<!-- src/components/layout/SettingsLayout.vue -->
 
 <script setup lang="ts">
 import { computed } from 'vue';

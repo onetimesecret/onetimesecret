@@ -5,10 +5,9 @@ import { useI18n } from 'vue-i18n';
 import { WindowService } from '@/services/window.service';
 import OIcon from '@/components/icons/OIcon.vue';
 import AccountDeleteButtonWithModalForm from '@/components/account/AccountDeleteButtonWithModalForm.vue';
-import SettingsLayout from '@/components/layouts/SettingsLayout.vue';
+import SettingsLayout from '@/components/layout/SettingsLayout.vue';
 
 const { t } = useI18n();
-
 const windowProps = WindowService.getMultiple(['cust']);
 </script>
 

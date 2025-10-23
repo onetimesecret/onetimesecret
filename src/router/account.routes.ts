@@ -2,7 +2,9 @@
 
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
-import SettingsLayout from '@/components/layouts/SettingsLayout.vue';
+import ExpandedHeader from '@/components/layout/ExpandedHeader.vue';
+import ExpandedFooter from '@/components/layout/ExpandedFooter.vue';
+import AccountLayout from '@/layouts/AccountLayout.vue';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
@@ -10,12 +12,13 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account',
     name: 'Account',
     components: {
-      default: () => import('@/views/account/AccountIndex.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      default: () => import('@/views/account/settings/ProfileSettings.vue'),
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
     },
     meta: {
       requiresAuth: true,
+      layout: AccountLayout,
       layoutProps: {
         displayPoweredBy: false,
       },
@@ -26,8 +29,8 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Data Region',
     components: {
       default: () => import('@/views/account/DataRegion.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
     },
     meta: {
       requiresAuth: true,
@@ -45,15 +48,15 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Profile Settings',
     components: {
       default: () => import('@/views/account/settings/ProfileSettings.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
     },
     meta: {
       requiresAuth: true,
+      layout: AccountLayout,
       layoutProps: {
         displayPoweredBy: false,
       },
-      useSettingsLayout: true,
     },
   },
   {
@@ -61,15 +64,15 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Security Overview',
     components: {
       default: () => import('@/views/account/settings/SecurityOverview.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
     },
     meta: {
       requiresAuth: true,
+      layout: AccountLayout,
       layoutProps: {
         displayPoweredBy: false,
       },
-      useSettingsLayout: true,
     },
   },
   {
@@ -77,15 +80,15 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Change Password',
     components: {
       default: () => import('@/views/account/ChangePassword.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
     },
     meta: {
       requiresAuth: true,
+      layout: AccountLayout,
       layoutProps: {
         displayPoweredBy: false,
       },
-      useSettingsLayout: true,
     },
   },
   {
@@ -93,15 +96,15 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Multi-Factor Authentication',
     components: {
       default: () => import('@/views/account/MfaSettings.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
     },
     meta: {
       requiresAuth: true,
+      layout: AccountLayout,
       layoutProps: {
         displayPoweredBy: false,
       },
-      useSettingsLayout: true,
     },
   },
   {
@@ -109,15 +112,15 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Active Sessions',
     components: {
       default: () => import('@/views/account/ActiveSessions.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
     },
     meta: {
       requiresAuth: true,
+      layout: AccountLayout,
       layoutProps: {
         displayPoweredBy: false,
       },
-      useSettingsLayout: true,
     },
   },
   {
@@ -125,15 +128,15 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Recovery Codes',
     components: {
       default: () => import('@/views/account/RecoveryCodes.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
     },
     meta: {
       requiresAuth: true,
+      layout: AccountLayout,
       layoutProps: {
         displayPoweredBy: false,
       },
-      useSettingsLayout: true,
     },
   },
   {
@@ -141,15 +144,15 @@ const routes: Array<RouteRecordRaw> = [
     name: 'API Settings',
     components: {
       default: () => import('@/views/account/settings/ApiSettings.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
     },
     meta: {
       requiresAuth: true,
+      layout: AccountLayout,
       layoutProps: {
         displayPoweredBy: false,
       },
-      useSettingsLayout: true,
     },
   },
   {
@@ -157,15 +160,15 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Advanced Settings',
     components: {
       default: () => import('@/views/account/settings/AdvancedSettings.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
     },
     meta: {
       requiresAuth: true,
+      layout: AccountLayout,
       layoutProps: {
         displayPoweredBy: false,
       },
-      useSettingsLayout: true,
     },
   },
   // Legacy route for backward compatibility

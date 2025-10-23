@@ -18,7 +18,7 @@ const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdict
 const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
 
 onMounted(async () => {
-  await jurisdictionStore.fetchJurisdictions();
+  // await jurisdictionStore.init();
 });
 </script>
 

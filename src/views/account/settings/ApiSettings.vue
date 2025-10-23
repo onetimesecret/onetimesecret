@@ -7,7 +7,7 @@ import { useAccountStore } from '@/stores/accountStore';
 import { storeToRefs } from 'pinia';
 import OIcon from '@/components/icons/OIcon.vue';
 import APIKeyForm from '@/components/account/APIKeyForm.vue';
-import SettingsLayout from '@/components/layouts/SettingsLayout.vue';
+import SettingsLayout from '@/components/layout/SettingsLayout.vue';
 
 const { t } = useI18n();
 const accountStore = useAccountStore();

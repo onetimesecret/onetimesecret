@@ -1,14 +1,14 @@
 <!-- src/views/account/settings/ProfileSettings.vue -->
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAccount } from '@/composables/useAccount';
 import { WindowService } from '@/services/window.service';
 import OIcon from '@/components/icons/OIcon.vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
-import SettingsLayout from '@/components/layouts/SettingsLayout.vue';
+import SettingsLayout from '@/components/layout/SettingsLayout.vue';
 
 const { t } = useI18n();
 const { accountInfo, fetchAccountInfo } = useAccount();
