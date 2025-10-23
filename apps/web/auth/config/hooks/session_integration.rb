@@ -102,11 +102,43 @@ module Auth
             after_login do
               OT.info "[auth] User logged in: #{account[:email]}"
 
-              Onetime::ErrorHandler.safe_execute('sync_session_after_login',
-                account_id: account_id,
-                email: account[:email],
-              ) do
-                Handlers.sync_session_after_login(account, account_id, session, request)
+              # Check if user is in partially authenticated state (has password but needs MFA)
+              # Rodauth's two_factor_base provides this method automatically
+              if two_factor_partially_authenticated?
+                OT.info "[auth] MFA required for #{account[:email]}, deferring full session sync"
+                # Only set minimal session data, full sync happens after MFA
+                session['account_id'] = account_id
+                session['email'] = account[:email]
+                session['mfa_pending'] = true
+              else
+                OT.info "[auth] No MFA required or MFA completed, syncing session"
+                Onetime::ErrorHandler.safe_execute('sync_session_after_login',
+                  account_id: account_id,
+                  email: account[:email],
+                ) do
+                  Handlers.sync_session_after_login(account, account_id, session, request)
+                end
+              end
+            end
+
+            #
+            # Hook: After OTP Authentication
+            #
+            # This hook is triggered after successful two-factor (OTP) authentication.
+            # Complete the full session sync that was deferred during login.
+            #
+            after_otp_auth do
+              OT.info "[auth] OTP authentication successful for: #{account[:email]}"
+
+              if session['mfa_pending']
+                OT.info "[auth] Completing deferred session sync after MFA"
+                Onetime::ErrorHandler.safe_execute('sync_session_after_mfa',
+                  account_id: account_id,
+                  email: account[:email],
+                ) do
+                  Handlers.sync_session_after_login(account, account_id, session, request)
+                  session.delete('mfa_pending')
+                end
               end
             end
 
