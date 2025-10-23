@@ -4,7 +4,6 @@
 import OIcon from '@/components/icons/OIcon.vue';
 import { Customer } from '@/schemas/models';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
@@ -15,7 +14,6 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-const router = useRouter();
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
 
@@ -48,12 +46,6 @@ const handleClickOutside = (event: MouseEvent) => {
   if (menuRef.value && !menuRef.value.contains(event.target as Node)) {
     closeMenu();
   }
-};
-
-// Navigate to route
-const navigateTo = (path: string) => {
-  closeMenu();
-  router.push(path);
 };
 
 // Lifecycle hooks
@@ -140,91 +132,125 @@ onUnmounted(() => {
         </div>
 
         <!-- Menu Items -->
-        <div class="py-1">
+        <nav class="py-1" role="navigation">
           <!-- Account Settings -->
-          <button
-            @click="navigateTo('/account/settings')"
-            class="flex w-full items-center gap-3 px-4 py-2
-              text-left text-sm text-gray-700 transition-colors
+          <router-link
+            to="/account/settings/profile"
+            class="group flex items-center gap-3 px-4 py-2
+              text-sm text-gray-700 transition-colors
               hover:bg-gray-100 dark:text-gray-300
               dark:hover:bg-gray-700"
+            @click="closeMenu"
             role="menuitem">
             <OIcon
               collection="heroicons"
               name="cog-6-tooth-solid"
-              class="size-5 text-gray-400 dark:text-gray-500"
+              class="size-5 text-gray-400 transition-colors
+                group-hover:text-gray-600 dark:text-gray-500
+                dark:group-hover:text-gray-300"
               aria-hidden="true" />
             {{ t('web.account.settings') }}
-          </button>
+          </router-link>
 
           <!-- Security -->
-          <button
-            @click="navigateTo('/account/settings/mfa')"
-            class="flex w-full items-center gap-3 px-4 py-2
-              text-left text-sm text-gray-700 transition-colors
+          <router-link
+            to="/account/settings/security"
+            class="group flex items-center gap-3 px-4 py-2
+              text-sm text-gray-700 transition-colors
               hover:bg-gray-100 dark:text-gray-300
               dark:hover:bg-gray-700"
+            @click="closeMenu"
             role="menuitem">
             <OIcon
               collection="heroicons"
               name="shield-check-solid"
-              class="size-5 text-gray-400 dark:text-gray-500"
+              class="size-5 text-gray-400 transition-colors
+                group-hover:text-gray-600 dark:text-gray-500
+                dark:group-hover:text-gray-300"
               aria-hidden="true" />
             {{ t('web.COMMON.security') }}
-          </button>
+          </router-link>
 
           <!-- Active Sessions -->
-          <button
-            @click="navigateTo('/account/settings/sessions')"
-            class="flex w-full items-center gap-3 px-4 py-2
-              text-left text-sm text-gray-700 transition-colors
+          <router-link
+            to="/account/settings/security/sessions"
+            class="group flex items-center gap-3 px-4 py-2
+              text-sm text-gray-700 transition-colors
               hover:bg-gray-100 dark:text-gray-300
               dark:hover:bg-gray-700"
+            @click="closeMenu"
             role="menuitem">
             <OIcon
               collection="heroicons"
               name="computer-desktop-solid"
-              class="size-5 text-gray-400 dark:text-gray-500"
+              class="size-5 text-gray-400 transition-colors
+                group-hover:text-gray-600 dark:text-gray-500
+                dark:group-hover:text-gray-300"
               aria-hidden="true" />
             {{ t('web.auth.sessions.title') }}
-          </button>
+          </router-link>
+
+          <!-- Data Region -->
+          <router-link
+            to="/account/region"
+            class="group flex items-center gap-3 px-4 py-2
+              text-sm text-gray-700 transition-colors
+              hover:bg-gray-100 dark:text-gray-300
+              dark:hover:bg-gray-700"
+            @click="closeMenu"
+            role="menuitem">
+            <OIcon
+              collection="heroicons"
+              name="globe-alt-solid"
+              class="size-5 text-gray-400 transition-colors
+                group-hover:text-gray-600 dark:text-gray-500
+                dark:group-hover:text-gray-300"
+              aria-hidden="true" />
+            {{ t('web.account.region') }}
+          </router-link>
 
           <!-- Divider -->
           <div class="my-1 border-t border-gray-200 dark:border-gray-700"></div>
 
-          <!-- Upgrade (conditional) -->
-          <button
+          <!-- Upgrade \(conditional\) -->
+          <router-link
             v-if="showUpgrade"
-            @click="navigateTo('/pricing')"
-            class="flex w-full items-center gap-3 px-4 py-2
-              text-left text-sm text-brand-600 transition-colors
+            to="/pricing"
+            class="group flex items-center gap-3 px-4 py-2
+              text-sm text-brand-600 transition-colors
               hover:bg-brand-50 dark:text-brand-400
               dark:hover:bg-brand-900/20"
+            @click="closeMenu"
             role="menuitem">
             <OIcon
               collection="heroicons"
               name="bolt-solid"
-              class="size-5 text-brand-500 dark:text-brand-400"
+              class="size-5 text-brand-500 transition-colors
+                group-hover:text-brand-600 dark:text-brand-400
+                dark:group-hover:text-brand-300"
               aria-hidden="true" />
             {{ t('web.LABELS.pricing') }}
-          </button>
+          </router-link>
 
           <!-- Colonel (conditional) -->
-          <button
+          <router-link
             v-if="colonel"
-            @click="navigateTo('/colonel')"
-            class="flex w-full items-center gap-3 px-4 py-2
-              text-left text-sm text-gray-700 transition-colors
+            to="/colonel"
+            class="group flex items-center gap-3 px-4 py-2
+              text-sm text-gray-700 transition-colors
               hover:bg-gray-100 dark:text-gray-300
               dark:hover:bg-gray-700"
+            @click="closeMenu"
             role="menuitem">
             <OIcon
               collection="mdi"
               name="star"
-              class="size-5 text-brand-400"
+              class="size-5 text-brand-400 transition-colors
+                group-hover:text-brand-500 dark:text-brand-400
+                dark:group-hover:text-brand-300"
               aria-hidden="true" />
             {{ t('web.colonel.dashboard') }}
-          </button>
+          </router-link>
 
           <!-- Divider -->
           <div
@@ -232,21 +258,24 @@ onUnmounted(() => {
             class="my-1 border-t border-gray-200 dark:border-gray-700"></div>
 
           <!-- Logout -->
-          <button
-            @click="navigateTo('/logout')"
-            class="flex w-full items-center gap-3 px-4 py-2
-              text-left text-sm text-red-600 transition-colors
+          <router-link
+            to="/logout"
+            class="group flex items-center gap-3 px-4 py-2
+              text-sm text-red-600 transition-colors
               hover:bg-red-50 dark:text-red-400
               dark:hover:bg-red-900/20"
+            @click="closeMenu"
             role="menuitem">
             <OIcon
               collection="heroicons"
               name="arrow-right-on-rectangle-solid"
-              class="size-5 text-red-500 dark:text-red-400"
+              class="size-5 text-red-500 transition-colors
+                group-hover:text-red-600 dark:text-red-400
+                dark:group-hover:text-red-300"
               aria-hidden="true" />
             {{ t('web.COMMON.header_logout') }}
-          </button>
-        </div>
+          </router-link>
+        </nav>
       </div>
     </Transition>
   </div>

@@ -2,6 +2,7 @@
 
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
+import SettingsLayout from '@/components/layouts/SettingsLayout.vue';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
@@ -21,10 +22,10 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/account/settings',
-    name: 'Account Settings',
+    path: '/account/region',
+    name: 'Data Region',
     components: {
-      default: () => import('@/views/account/AccountSettingsIndex.vue'),
+      default: () => import('@/views/account/DataRegion.vue'),
       header: DefaultHeader,
       footer: DefaultFooter,
     },
@@ -36,7 +37,43 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/account/settings/password',
+    path: '/account/settings',
+    redirect: '/account/settings/profile',
+  },
+  {
+    path: '/account/settings/profile',
+    name: 'Profile Settings',
+    components: {
+      default: () => import('@/views/account/settings/ProfileSettings.vue'),
+      header: DefaultHeader,
+      footer: DefaultFooter,
+    },
+    meta: {
+      requiresAuth: true,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+      useSettingsLayout: true,
+    },
+  },
+  {
+    path: '/account/settings/security',
+    name: 'Security Overview',
+    components: {
+      default: () => import('@/views/account/settings/SecurityOverview.vue'),
+      header: DefaultHeader,
+      footer: DefaultFooter,
+    },
+    meta: {
+      requiresAuth: true,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+      useSettingsLayout: true,
+    },
+  },
+  {
+    path: '/account/settings/security/password',
     name: 'Change Password',
     components: {
       default: () => import('@/views/account/ChangePassword.vue'),
@@ -48,25 +85,11 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayPoweredBy: false,
       },
+      useSettingsLayout: true,
     },
   },
   {
-    path: '/account/settings/sessions',
-    name: 'Active Sessions',
-    components: {
-      default: () => import('@/views/account/ActiveSessions.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
-    },
-    meta: {
-      requiresAuth: true,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
-    },
-  },
-  {
-    path: '/account/settings/mfa',
+    path: '/account/settings/security/mfa',
     name: 'Multi-Factor Authentication',
     components: {
       default: () => import('@/views/account/MfaSettings.vue'),
@@ -78,10 +101,27 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayPoweredBy: false,
       },
+      useSettingsLayout: true,
     },
   },
   {
-    path: '/account/settings/recovery-codes',
+    path: '/account/settings/security/sessions',
+    name: 'Active Sessions',
+    components: {
+      default: () => import('@/views/account/ActiveSessions.vue'),
+      header: DefaultHeader,
+      footer: DefaultFooter,
+    },
+    meta: {
+      requiresAuth: true,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+      useSettingsLayout: true,
+    },
+  },
+  {
+    path: '/account/settings/security/recovery-codes',
     name: 'Recovery Codes',
     components: {
       default: () => import('@/views/account/RecoveryCodes.vue'),
@@ -93,13 +133,14 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayPoweredBy: false,
       },
+      useSettingsLayout: true,
     },
   },
   {
-    path: '/account/settings/close',
-    name: 'Close Account',
+    path: '/account/settings/api',
+    name: 'API Settings',
     components: {
-      default: () => import('@/views/account/CloseAccount.vue'),
+      default: () => import('@/views/account/settings/ApiSettings.vue'),
       header: DefaultHeader,
       footer: DefaultFooter,
     },
@@ -108,7 +149,29 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayPoweredBy: false,
       },
+      useSettingsLayout: true,
     },
+  },
+  {
+    path: '/account/settings/advanced',
+    name: 'Advanced Settings',
+    components: {
+      default: () => import('@/views/account/settings/AdvancedSettings.vue'),
+      header: DefaultHeader,
+      footer: DefaultFooter,
+    },
+    meta: {
+      requiresAuth: true,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+      useSettingsLayout: true,
+    },
+  },
+  // Legacy route for backward compatibility
+  {
+    path: '/account/settings/close',
+    redirect: '/account/settings/advanced',
   },
 ];
 

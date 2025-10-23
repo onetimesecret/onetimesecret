@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import AccountBillingSection from '@/components/account/AccountBillingSection.vue';
-import AccountChangePasswordForm from '@/components/account/AccountChangePasswordForm.vue';
-import AccountDeleteButtonWithModalForm from '@/components/account/AccountDeleteButtonWithModalForm.vue';
-import APIKeyForm from '@/components/account/APIKeyForm.vue';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import { WindowService } from '@/services/window.service';
 import { onMounted, computed } from 'vue';
@@ -10,26 +7,20 @@ import { useAccountStore } from '@/stores/accountStore';
 import { storeToRefs } from 'pinia';
 import { useAccount } from '@/composables/useAccount';
 import { useI18n } from 'vue-i18n';
+import OIcon from '@/components/icons/OIcon.vue';
 
 const { t } = useI18n();
 
-// Grabbing values from the window properties is a convenient way to get
-// preformatted template variables (i.e. the serialized_data from Core::Views::BaseView)
-// rather than re-implement them here in Vue. We'll replace all of them
-// eventually, but for now, this is a good way to keep momentum going.
 const windowProps = WindowService.getMultiple({
   cust: null,
   customer_since: null,
 });
 
-
 const accountStore = useAccountStore();
 const { account } = storeToRefs(accountStore);
 
-// New account info composable
 const { accountInfo, isLoading: isLoadingAccountInfo, fetchAccountInfo } = useAccount();
 
-// Computed properties for account info display
 const accountCreatedDate = computed(() => {
   if (!accountInfo.value?.created_at) return '';
   return new Date(accountInfo.value.created_at).toLocaleDateString();
@@ -49,142 +40,233 @@ const mfaStatus = computed(() => {
     : t('web.auth.account.mfa-disabled');
 });
 
+const securityScore = computed(() => {
+  if (!accountInfo.value) return 0;
+
+  let score = 0;
+  if (accountInfo.value.email_verified) score += 25;
+  if (accountInfo.value.mfa_enabled) score += 50;
+  if (accountInfo.value.recovery_codes_count > 0) score += 25;
+
+  return score;
+});
+
+const securityLevel = computed(() => {
+  const score = securityScore.value;
+  if (score >= 90) return { label: t('web.settings.security.excellent'), color: 'green' };
+  if (score >= 70) return { label: t('web.settings.security.good'), color: 'blue' };
+  if (score >= 50) return { label: t('web.settings.security.fair'), color: 'yellow' };
+  return { label: t('web.settings.security.weak'), color: 'red' };
+});
+
 onMounted(async () => {
   await accountStore.fetch();
   await fetchAccountInfo();
 });
-
 </script>
 
 <template>
-  <div>
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
     <DashboardTabNav />
 
-    <h1 class="mb-6 text-3xl font-bold dark:text-white">
-      {{ $t('your-account') }}
-    </h1>
-    <p class="mb-4 text-lg dark:text-gray-300">
-      {{ $t('account-type-windowprops-plan-options-name', [windowProps.cust?.planid]) }}
-    </p>
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+        {{ $t('your-account') }}
+      </h1>
+      <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">
+        {{ $t('account-type-windowprops-plan-options-name', [windowProps.cust?.planid]) }}
+      </p>
+    </div>
 
-    <!-- ACCOUNT INFORMATION -->
-    <div v-if="accountInfo" class="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-      <h2 class="mb-4 flex items-center text-xl font-semibold dark:text-white">
-        <i class="fas fa-user-circle mr-2"></i>
-        <span class="flex-1">{{ $t('web.auth.account.title') }}</span>
-      </h2>
-      <div class="space-y-3 pl-3">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-          <span class="font-medium dark:text-gray-300 sm:w-1/3">{{ $t('web.auth.account.email') }}:</span>
-          <span class="dark:text-gray-400">{{ accountInfo.email }}</span>
+    <div class="space-y-6">
+      <!-- Account Overview Cards -->
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <!-- Account Info Card -->
+        <div
+          class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+          <div class="flex items-center gap-3">
+            <OIcon
+              collection="heroicons"
+              name="user-circle-solid"
+              class="size-8 text-brand-600 dark:text-brand-400"
+              aria-hidden="true" />
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {{ $t('web.auth.account.email') }}
+              </p>
+              <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                {{ accountInfo?.email || '...' }}
+              </p>
+            </div>
+          </div>
+          <div class="mt-4 flex items-center gap-2">
+            <OIcon
+              v-if="accountInfo?.email_verified"
+              collection="heroicons"
+              name="check-circle-solid"
+              class="size-5 text-green-600 dark:text-green-400"
+              aria-hidden="true" />
+            <span
+              :class="[
+                'text-sm',
+                accountInfo?.email_verified
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-gray-500 dark:text-gray-400',
+              ]">
+              {{ emailVerificationStatus }}
+            </span>
+          </div>
         </div>
-        <div class="flex flex-col sm:flex-row sm:items-center">
-          <span class="font-medium dark:text-gray-300 sm:w-1/3">{{ $t('web.auth.account.created') }}:</span>
-          <span class="dark:text-gray-400">{{ accountCreatedDate }}</span>
+
+        <!-- Security Status Card -->
+        <div
+          class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {{ $t('web.settings.security.security-score') }}
+              </p>
+              <p class="mt-1 text-3xl font-bold text-gray-900 dark:text-white">
+                {{ securityScore }}
+              </p>
+              <p class="mt-1 text-sm font-medium text-gray-600 dark:text-gray-400">
+                {{ securityLevel.label }}
+              </p>
+            </div>
+            <OIcon
+              collection="heroicons"
+              name="shield-check-solid"
+              class="size-12 text-brand-600 dark:text-brand-400"
+              aria-hidden="true" />
+          </div>
+          <div class="mt-4">
+            <router-link
+              to="/account/settings/security"
+              class="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+              {{ $t('web.settings.security.view-details') }} →
+            </router-link>
+          </div>
         </div>
-        <div class="flex flex-col sm:flex-row sm:items-center">
-          <span class="font-medium dark:text-gray-300 sm:w-1/3">{{ $t('web.auth.account.verified') }}:</span>
-          <span class="flex items-center gap-2">
-            <i v-if="accountInfo.email_verified" class="fas fa-check-circle text-green-500"></i>
-            <i v-else class="fas fa-times-circle text-red-500"></i>
-            <span class="dark:text-gray-400">{{ emailVerificationStatus }}</span>
-          </span>
-        </div>
-        <div class="flex flex-col sm:flex-row sm:items-center">
-          <span class="font-medium dark:text-gray-300 sm:w-1/3">{{ $t('web.auth.account.mfa-status') }}:</span>
-          <span class="flex items-center gap-2">
-            <i v-if="accountInfo.mfa_enabled" class="fas fa-shield-alt text-green-500"></i>
-            <i v-else class="fas fa-shield-alt text-gray-400"></i>
-            <span class="dark:text-gray-400">{{ mfaStatus }}</span>
-          </span>
+
+        <!-- Member Since Card -->
+        <div
+          class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+          <div class="flex items-center gap-3">
+            <OIcon
+              collection="heroicons"
+              name="calendar-solid"
+              class="size-8 text-brand-600 dark:text-brand-400"
+              aria-hidden="true" />
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {{ $t('web.auth.account.created') }}
+              </p>
+              <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                {{ accountCreatedDate }}
+              </p>
+            </div>
+          </div>
+          <div class="mt-4">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              {{
+                $t('created-windowprops-cust-secrets_created-secrets', [
+                  windowProps.cust?.secrets_created,
+                  windowProps.customer_since,
+                ])
+              }}
+            </p>
+          </div>
         </div>
       </div>
 
-      <!-- Quick actions for account management -->
-      <div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
-        <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-          {{ $t('web.auth.account.quick-actions') }}
-        </h3>
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <!-- Quick Actions -->
+      <div
+        class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ $t('web.auth.account.quick-actions') }}
+          </h2>
+        </div>
+        <div class="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-4">
           <router-link
-            to="/account/settings/mfa"
-            class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700"
-          >
-            <i class="fas fa-shield-alt text-brand-600 dark:text-brand-400"></i>
-            <span class="text-sm font-medium dark:text-white">{{ $t('web.auth.account.manage-mfa') }}</span>
+            to="/account/settings/security"
+            class="flex flex-col items-center gap-3 rounded-lg border border-gray-200 p-4 text-center transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+            <OIcon
+              collection="heroicons"
+              name="shield-check-solid"
+              class="size-8 text-brand-600 dark:text-brand-400"
+              aria-hidden="true" />
+            <div>
+              <p class="font-medium text-gray-900 dark:text-white">
+                {{ $t('web.COMMON.security') }}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                {{ $t('web.settings.security_settings_description') }}
+              </p>
+            </div>
           </router-link>
+
           <router-link
-            to="/account/settings/sessions"
-            class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700"
-          >
-            <i class="fas fa-desktop text-brand-600 dark:text-brand-400"></i>
-            <span class="text-sm font-medium dark:text-white">{{ $t('web.auth.account.manage-sessions') }}</span>
+            to="/account/settings/profile"
+            class="flex flex-col items-center gap-3 rounded-lg border border-gray-200 p-4 text-center transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+            <OIcon
+              collection="heroicons"
+              name="user-circle-solid"
+              class="size-8 text-brand-600 dark:text-brand-400"
+              aria-hidden="true" />
+            <div>
+              <p class="font-medium text-gray-900 dark:text-white">
+                {{ $t('web.settings.profile') }}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                {{ $t('web.settings.profile_settings_description') }}
+              </p>
+            </div>
           </router-link>
+
           <router-link
-            to="/account/settings/password"
-            class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700"
-          >
-            <i class="fas fa-lock text-brand-600 dark:text-brand-400"></i>
-            <span class="text-sm font-medium dark:text-white">{{ $t('web.auth.account.change-password') }}</span>
+            to="/account/settings/api"
+            class="flex flex-col items-center gap-3 rounded-lg border border-gray-200 p-4 text-center transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+            <OIcon
+              collection="heroicons"
+              name="code-bracket-solid"
+              class="size-8 text-brand-600 dark:text-brand-400"
+              aria-hidden="true" />
+            <div>
+              <p class="font-medium text-gray-900 dark:text-white">
+                {{ $t('api-key') }}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                {{ $t('web.settings.api.manage_api_keys') }}
+              </p>
+            </div>
+          </router-link>
+
+          <router-link
+            to="/account/settings"
+            class="flex flex-col items-center gap-3 rounded-lg border border-gray-200 p-4 text-center transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+            <OIcon
+              collection="heroicons"
+              name="cog-6-tooth-solid"
+              class="size-8 text-brand-600 dark:text-brand-400"
+              aria-hidden="true" />
+            <div>
+              <p class="font-medium text-gray-900 dark:text-white">
+                {{ $t('web.account.settings') }}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                {{ $t('web.settings.manage_your_account_settings_and_preferences') }}
+              </p>
+            </div>
           </router-link>
         </div>
       </div>
+
+      <!-- Billing Section -->
+      <AccountBillingSection
+        v-if="account && account.stripe_customer"
+        :stripe-customer="account.stripe_customer"
+        :stripe-subscriptions="account.stripe_subscriptions" />
     </div>
-
-    <!-- Loading state for account info -->
-    <div v-else-if="isLoadingAccountInfo" class="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-      <div class="flex items-center justify-center py-4">
-        <i class="fas fa-spinner fa-spin mr-2 text-gray-400"></i>
-        <span class="text-gray-600 dark:text-gray-400">Loading account information...</span>
-      </div>
-    </div>
-
-    <!-- API KEY -->
-    <div class="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-      <h2 class="mb-4 flex items-center text-xl font-semibold dark:text-white">
-        <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>
-        <span class="flex-1">{{ $t('api-key') }}</span>
-      </h2>
-      <div class="pl-3">
-        <APIKeyForm :apitoken="account?.apitoken" />
-      </div>
-    </div>
-
-    <!-- BILLING INFO -->
-    <AccountBillingSection
-      v-if="account && account.stripe_customer"
-      :stripe-customer="account.stripe_customer"
-      :stripe-subscriptions="account.stripe_subscriptions"
-    />
-
-    <!-- PASSWORD CHANGE -->
-    <div class="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-      <h2 class="mb-4 flex items-center text-xl font-semibold dark:text-white">
-        <i class="fas fa-lock mr-2"></i> {{ $t('web.account.changePassword.updatePassword') }}
-      </h2>
-      <div class="pl-3">
-        <AccountChangePasswordForm />
-      </div>
-    </div>
-
-    <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-      <h2 class="mb-4 flex items-center text-xl font-semibold dark:text-white">
-        <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>
-        <span class="flex-1">{{ $t('delete-account') }}</span>
-      </h2>
-      <div class="pl-3">
-        <!-- Added padding-left to align with the title text -->
-
-        <!-- Ensure cust is not null or undefined before rendering the component -->
-        <AccountDeleteButtonWithModalForm
-          v-if="windowProps.cust"
-          :cust="windowProps.cust"
-        />
-      </div>
-    </div>
-
-    <p class="mt-6 text-sm text-gray-600 dark:text-gray-400">
-      {{ $t('created-windowprops-cust-secrets_created-secrets', [windowProps.cust?.secrets_created, windowProps.customer_since]) }}
-    </p>
   </div>
 </template>
