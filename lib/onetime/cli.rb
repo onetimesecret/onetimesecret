@@ -32,6 +32,7 @@ end
 require_relative 'cli/migrate_command'
 require_relative 'cli/change_email_command'
 require_relative 'cli/migrate_redis_data_command'
+require_relative 'cli/sync_auth_accounts_command'
 require_relative 'cli/customers_command'
 require_relative 'cli/domains_command'
 require_relative 'cli/session_command'

@@ -108,6 +108,11 @@ module Auth::Config::Hooks
           if json_request?
             json_response[:mfa_required] = true
             json_response[:mfa_auth_url] = "/#{otp_auth_route}"
+
+            Onetime.auth_logger.info '[MFA Login] JSON response indicates MFA required',
+              account_id: account_id,
+              email: account[:email],
+              json_response_keys: json_response.keys
           end
         else
           # No MFA required - proceed with full session sync
