@@ -11,6 +11,8 @@ Documents that capture important architectural decisions along with their contex
 ### Keys to Success
 
 - **Be courteous**: ADRs should be readable in 2-3 minutes, so focus on why. The decision itself is less important than the reasoning.
+- **Avoid formulaic sections**: Don't force content into rigid templates. If your core argument is complete in Context and Decision, stop there. Skip sections that merely reorganize the same points.
+- **Combine related content**: Merge rationale directly into the Decision section. Trade-offs are optional—only include them when they add genuine insight.
 - **Immutable**: Once accepted, don't edit the decision; that's like re-writing history. Use Implementation Notes or create another ADR to supersede.
 - **Numbered sequentially**: Makes referencing easy (`ADR-001`, `ADR-002`, etc.)
 - **One decision per ADR**: Don't bundle multiple choices together
