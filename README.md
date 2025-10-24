@@ -6,6 +6,13 @@ A onetime secret is a link that can be viewed only once. A single-use URL.
 
 **Try it out**: [OnetimeSecret.com](https://onetimesecret.com/)
 
+
+
+> [!NOTE]
+> **Branch Information**: You're viewing the `main` branch (stable production release). For the latest features and active development, check out the [`develop` branch](https://github.com/onetimesecret/onetimesecret/tree/develop). Note that `develop` may contain work-in-progress features as we prepare for the next major release.
+
+
+
 ## Why use Onetime Secret?
 
 When you send sensitive info like passwords via email or chat, copies persist in many places. Onetime links self-destruct after viewing, ensuring only the intended recipient sees the information.
