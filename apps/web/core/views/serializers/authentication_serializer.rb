@@ -18,14 +18,17 @@ module Core
         output = output_template
 
         output['authenticated'] = view_vars['authenticated']
+        output['awaiting_mfa']  = view_vars['awaiting_mfa'] || false
         cust                    = view_vars['cust'] || Onetime::Customer.anonymous
 
         output['cust'] = cust.safe_dump
 
-        if output['authenticated']
+        # When awaiting_mfa is true, user has passed first factor (email/password)
+        # but needs to complete second factor (TOTP/WebAuthn) before full access
+        if output['authenticated'] || output['awaiting_mfa']
           output['custid']         = cust.custid
           output['email']          = cust.email
-          output['customer_since'] = OT::Utils::TimeUtils.epochdom(cust.created)
+          output['customer_since'] = OT::Utils::TimeUtils.epochdom(cust.created) if cust.created
         end
 
         output
@@ -38,6 +41,7 @@ module Core
         def output_template
           {
             'authenticated' => nil,
+            'awaiting_mfa' => false,
             'custid' => nil,
             'cust' => nil,
             'email' => nil,

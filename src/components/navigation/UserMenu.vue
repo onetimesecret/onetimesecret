@@ -10,6 +10,7 @@ const props = defineProps<{
   cust: Customer;
   colonel?: boolean;
   showUpgrade?: boolean;
+  awaitingMfa?: boolean;
 }>();
 
 const { t } = useI18n();
@@ -19,7 +20,8 @@ const menuRef = ref<HTMLElement | null>(null);
 
 // Truncate email for display
 const truncatedEmail = computed(() => {
-  const email = props.cust.email;
+  const email = props.cust?.email;
+  if (!email) return 'User';
   if (email.length <= 20) return email;
   const [local, domain] = email.split('@');
   return `${local.slice(0, 8)}...@${domain}`;
@@ -27,7 +29,8 @@ const truncatedEmail = computed(() => {
 
 // Get user initials for avatar
 const userInitials = computed(() => {
-  const email = props.cust.email;
+  const email = props.cust?.email;
+  if (!email) return '?';
   return email.charAt(0).toUpperCase();
 });
 
@@ -74,12 +77,26 @@ onUnmounted(() => {
       :aria-expanded="isOpen"
       aria-haspopup="true"
       :aria-label="t('web.COMMON.user_menu')">
-      <!-- Avatar Circle -->
-      <div
-        class="flex size-8 items-center justify-center rounded-full
-          bg-brand-500 text-sm font-semibold text-white
-          dark:bg-brand-600">
-        {{ userInitials }}
+      <!-- Avatar Circle with MFA indicator -->
+      <div class="relative">
+        <div
+          :class="[
+            'flex size-8 items-center justify-center rounded-full',
+            'text-sm font-semibold text-white transition-colors',
+            awaitingMfa
+              ? 'bg-amber-500 dark:bg-amber-600'
+              : 'bg-brand-500 dark:bg-brand-600'
+          ]">
+          {{ userInitials }}
+        </div>
+        <!-- MFA Pending Badge -->
+        <div
+          v-if="awaitingMfa"
+          class="absolute -right-0.5 -top-0.5 size-2.5 rounded-full
+            bg-amber-400 ring-2 ring-white dark:bg-amber-300 dark:ring-gray-900"
+          :title="t('web.auth.mfa_required')"
+          aria-label="MFA verification required">
+        </div>
       </div>
 
       <!-- Email & Chevron -->
@@ -129,10 +146,48 @@ onUnmounted(() => {
             class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
             {{ cust.extid }}
           </p>
+          <!-- MFA Required Notice -->
+          <div
+            v-if="awaitingMfa"
+            class="mt-2 flex items-center gap-2 rounded-md
+              bg-amber-50 px-2 py-1.5 dark:bg-amber-900/20">
+            <OIcon
+              collection="heroicons"
+              name="shield-exclamation-solid"
+              class="size-4 text-amber-600 dark:text-amber-400"
+              aria-hidden="true" />
+            <span class="text-xs font-medium text-amber-700 dark:text-amber-300">
+              {{ t('web.auth.mfa_verification_required') }}
+            </span>
+          </div>
         </div>
 
         <!-- Menu Items -->
         <nav class="py-1" role="navigation">
+          <!-- Complete MFA (when awaiting) -->
+          <router-link
+            v-if="awaitingMfa"
+            to="/auth/mfa-verify"
+            class="group flex items-center gap-3 px-4 py-2
+              text-sm font-semibold text-amber-600 transition-colors
+              hover:bg-amber-50 dark:text-amber-400
+              dark:hover:bg-amber-900/20"
+            @click="closeMenu"
+            role="menuitem">
+            <OIcon
+              collection="heroicons"
+              name="shield-check-solid"
+              class="size-5 text-amber-500 transition-colors
+                group-hover:text-amber-600 dark:text-amber-400
+                dark:group-hover:text-amber-300"
+              aria-hidden="true" />
+            {{ t('web.auth.complete_mfa_verification') }}
+          </router-link>
+
+          <!-- Divider after MFA prompt -->
+          <div
+            v-if="awaitingMfa"
+            class="my-1 border-t border-gray-200 dark:border-gray-700"></div>
           <!-- Account Settings -->
           <router-link
             to="/account"

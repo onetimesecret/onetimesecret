@@ -19,12 +19,20 @@
   const windowProps = computed(() => WindowService.getMultiple([
     'authentication',
     'authenticated',
+    'awaiting_mfa',
     'cust',
     'ui',
     'domains_enabled',
   ]));
 
   const isColonel = computed(() => windowProps.value.cust?.role === 'colonel');
+
+  // User is partially or fully authenticated
+  // Partially: email verified but awaiting MFA (awaiting_mfa = true)
+  // Fully: all authentication steps complete (authenticated = true)
+  const isUserPresent = computed(() =>
+    (windowProps.value.authenticated || windowProps.value.awaiting_mfa) && windowProps.value.cust
+  );
 
   // i18n setup
   const { t } = useI18n();
@@ -155,12 +163,13 @@
         :aria-label="t('main-navigation')"
         class="flex flex-wrap items-center justify-center gap-4
           font-brand text-sm sm:justify-end sm:text-base">
-        <template v-if="windowProps.authenticated && windowProps.cust">
+        <template v-if="isUserPresent">
           <!-- User Menu Dropdown -->
           <UserMenu
             :cust="windowProps.cust"
             :colonel="isColonel"
-            :show-upgrade="domainsEnabled" />
+            :show-upgrade="domainsEnabled"
+            :awaiting-mfa="windowProps.awaiting_mfa" />
         </template>
 
         <template v-else>
