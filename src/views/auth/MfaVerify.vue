@@ -110,6 +110,16 @@
             </p>
           </div>
 
+          <!-- Verify button -->
+          <button
+            @click="handleVerifyOtp"
+            :disabled="otpCode.length !== 6 || isLoading"
+            type="button"
+            class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mb-4">
+            <span v-if="isLoading">{{ $t('web.COMMON.processing') || 'Processing...' }}</span>
+            <span v-else>{{ $t('web.auth.mfa.verify') }}</span>
+          </button>
+
           <!-- Switch to recovery code -->
           <div class="space-y-2 text-center">
             <button

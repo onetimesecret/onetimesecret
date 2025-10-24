@@ -96,6 +96,14 @@ class OT::CLI::Definition
   option :h, :help, 'Show detailed help message'
   command migrate_redis_data: OT::MigrateRedisDataCommand
 
+  usage 'ots sync-auth-accounts [--run]'
+  about 'Synchronize customer records from Redis to Auth SQL database'
+  about 'Primary use case: switching from auth mode=basic to mode=advanced'
+  about 'By default, runs in dry-run mode to preview changes'
+  option :r, :run, 'Execute synchronization (required for actual operation)'
+  option :h, :help, 'Show detailed help message'
+  command sync_auth_accounts: OT::SyncAuthAccountsCommand
+
   usage 'ots customers'
   option :l, :list, 'List customer domains (by count)'
   option :c, :check, 'Show customer records where custid and email do not match (obscured)'

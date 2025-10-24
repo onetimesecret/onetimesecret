@@ -55,13 +55,10 @@ module Auth::Config::Features
 
       # Require second factor during login if user has MFA setup
       #
-      # TODO: Fix this NoMethodError. It's the correct method name but
-      # we're obviously not calling it the right way.
-      #
-      # auth.require_two_factor_authenticated do
-      #   # Check if account has OTP configured
-      #   db[otp_keys_table].where(otp_keys_id_column => account_id).count > 0
-      # end
+      # NOTE: The require_two_factor_authenticated method is called in route blocks,
+      # not in configuration. The login flow already handles MFA detection via the
+      # after_login hook in apps/web/auth/config/hooks/login.rb which checks
+      # uses_two_factor_authentication? and sets json_response[:mfa_required] = true
     end
   end
 end
