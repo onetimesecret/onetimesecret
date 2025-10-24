@@ -27,6 +27,10 @@ module Auth::Config::Features
       auth.otp_setup_raw_param 'otp_raw_secret'
       auth.otp_auth_param 'otp_code'
 
+      # If this is disabled after having been enabled, existing OTP
+      # keys will be invalidated.
+      auth.otp_keys_use_hmac? true
+
       # auth.otp_setup_redirect ''
 
       # Password requirements for MFA modifications
