@@ -9,20 +9,24 @@ module V2::Logic
     class ResetPasswordRequest < V2::Logic::Base
       include Onetime::Logging
 
-      attr_reader :objid
+      attr_reader :login_or_email
       attr_accessor :token
 
       def process_params
-        @objid = params[:u].to_s.downcase
+        @login_or_email = params[:u].to_s.downcase
       end
 
       def raise_concerns
-        raise_form_error 'Not a valid email address', field: 'email', error_type: 'invalid' unless valid_email?(@objid)
-        raise_form_error 'No account found', field: 'email', error_type: 'not_found' unless Onetime::Customer.exists?(@objid)
+        raise_form_error 'Not a valid email address', field: 'email', error_type: 'invalid' unless valid_email?(@login_or_email)
+        raise_form_error 'No account found', field: 'email', error_type: 'not_found' unless Onetime::Customer.exists?(@login_or_email)
       end
 
       def process
-        cust = Onetime::Customer.load @objid
+        # Important: don't store the customer record as an instance variable
+        # which obviously makes it available to other methods and potentially
+        # leaks data. This reset password request logic is sensitive and not
+        # authenticated, so be careful about what is returned or logged.
+        cust = Onetime::Customer.load @login_or_email
 
         if cust.pending?
           auth_logger.info 'Resending verification email for pending customer',
@@ -35,7 +39,7 @@ module V2::Logic
           return set_info_message(msg)
         end
 
-        secret                    = Onetime::Secret.create! @objid, [@objid]
+        secret                    = Onetime::Secret.create! @login_or_email, [@login_or_email]
         secret.default_expiration = 24.hours
         secret.verification       = 'true'
         secret.save
