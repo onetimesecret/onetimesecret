@@ -12,6 +12,7 @@ require_relative 'config'
 require_relative 'routes/account'
 require_relative 'routes/admin'
 require_relative 'routes/health'
+require_relative 'routes/mfa_recovery'
 require_relative 'routes/validation'
 
 module Auth
@@ -28,6 +29,7 @@ module Auth
     include Auth::Routes::Validation
     include Auth::Routes::Account
     include Auth::Routes::Admin
+    include Auth::Routes::MfaRecovery
 
     # Session middleware is now configured globally in MiddlewareStack
 
@@ -79,6 +81,9 @@ module Auth
 
     # Handle any custom routes beyond standard Rodauth endpoints
     def handle_custom_routes(r)
+      # MFA recovery routes
+      handle_mfa_recovery_routes(r)
+
       # Account routes (mfa-status, account info)
       handle_account_routes(r)
 

@@ -85,6 +85,7 @@ module Core
 
         authenticated = strategy_result.authenticated? || false # never nil
         awaiting_mfa  = sess&.[]('awaiting_mfa') || sess&.[](:'awaiting_mfa') || false
+        mfa_recovery_completed = sess&.[]('mfa_recovery_completed') || sess&.[](:'mfa_recovery_completed') || false
 
         # When awaiting_mfa is true, user has NOT completed authentication
         # Do NOT load customer from Redis - they don't have access yet
@@ -117,6 +118,7 @@ module Core
         {
           'authenticated' => authenticated,
           'awaiting_mfa' => awaiting_mfa,
+          'mfa_recovery_completed' => mfa_recovery_completed,
           'baseuri' => baseuri,
           'cust' => cust,
           'description' => description,

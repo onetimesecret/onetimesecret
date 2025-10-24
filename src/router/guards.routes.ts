@@ -3,6 +3,7 @@
 import { WindowService } from '@/services/window.service';
 import { useAuthStore } from '@/stores/authStore';
 import { useLanguageStore } from '@/stores/languageStore';
+import { useNotificationsStore } from '@/stores/notificationsStore';
 import { RouteLocationNormalized, Router } from 'vue-router';
 import { processQueryParams } from './queryParams.handler';
 
@@ -42,6 +43,23 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     }
 
     return true; // Always return true for non-auth routes
+  });
+
+  // After navigation hook to check for MFA recovery completion
+  router.afterEach(() => {
+    const mfaRecoveryCompleted = WindowService.get('mfa_recovery_completed');
+
+    if (mfaRecoveryCompleted) {
+      const notificationsStore = useNotificationsStore();
+      notificationsStore.show(
+        'Two-factor authentication has been disabled due to account recovery. Please re-enable it from your account settings.',
+        'warning',
+        'top'
+      );
+
+      // Clear the flag so notification only shows once
+      WindowService.set('mfa_recovery_completed', false);
+    }
   });
 }
 

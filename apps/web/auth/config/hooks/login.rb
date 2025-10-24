@@ -57,7 +57,39 @@ module Auth::Config::Hooks
         # is logged in, the account has setup two factor authentication,
         # but has not yet authenticated with a second factor.
         #
-        if uses_two_factor_authentication?
+        # Check if this was an MFA recovery request via email auth
+        if session[:mfa_recovery_mode]
+          SemanticLogger['Auth'].warn 'MFA recovery initiated via email auth',
+            account_id: account[:id],
+            email: account[:email]
+
+          # Disable OTP for this account
+          Onetime::ErrorHandler.safe_execute('mfa_recovery_disable_otp',
+            account_id: account_id,
+            email: account[:email],
+          ) do
+            # Remove OTP authentication failures tracking
+            _otp_remove_auth_failures if respond_to?(:_otp_remove_auth_failures)
+
+            # Remove OTP key from database
+            _otp_remove_key(account_id) if respond_to?(:_otp_remove_key)
+
+            # Also clear recovery codes
+            db[recovery_codes_table].where(recovery_codes_id_column => account_id).delete if defined?(recovery_codes_table)
+
+            SemanticLogger['Auth'].info 'MFA disabled via recovery flow',
+              account_id: account_id,
+              email: account[:email]
+          end
+
+          # Clear recovery mode flag
+          session.delete(:mfa_recovery_mode)
+
+          # Set flag for frontend notification
+          session[:mfa_recovery_completed] = true
+
+          # Continue with normal login flow (no MFA required now)
+        elsif uses_two_factor_authentication?
           # MFA required - defer full session sync until after second factor
           OT.info "[auth] MFA required for #{account[:email]}, deferring full session sync"
 
@@ -86,7 +118,21 @@ module Auth::Config::Hooks
             account_id: account_id,
             email: account[:email],
           ) do
-            Handlers.sync_session_after_login(account, account_id, session, request)
+            Auth::Operations::SyncSession.call(account, account_id, session, request)
+          end
+
+          # Clear MFA recovery completion flag after first successful login
+          # This ensures the notification only shows once.
+          #
+          # MFA RECOVERY SCENARIO:
+          # If user requested MFA recovery (can't access authenticator), we:
+          # 1. Detect mfa_recovery_mode session flag
+          # 2. Disable OTP authentication for the account
+          # 3. Clear MFA recovery flag
+          # 4. Let normal authentication flow continue (without MFA requirement)
+          #
+          if session[:mfa_recovery_completed]
+            session.delete(:mfa_recovery_completed)
           end
         end
       end
