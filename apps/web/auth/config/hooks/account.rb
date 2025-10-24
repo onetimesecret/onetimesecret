@@ -46,7 +46,6 @@ module Auth
             end
           end
 
-
           #
           # Hook: After Account Creation
           #
@@ -60,6 +59,28 @@ module Auth
               Handlers.create_customer(account_id, account, Auth::Config::Database.connection)
             end
           end
+
+          #
+          # Hook: After Account Verification
+          #
+          # This hook is triggered when a user verifies their account (e.g., by
+          # clicking a link in an email). It updates the verification status of
+          # the associated Onetime::Customer record.
+          #
+          # Note: This hook is disabled in the 'test' environment to simplify
+          # testing scenarios that do not require email verification flows.
+          #
+
+            auth.after_verify_account do
+              OT.info "[auth] Account verified: #{account[:extid]}"
+
+              # In test, skipping the verification simplifies the onboarding flow
+              if ENV['RACK_ENV'] != 'test'
+                Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:extid]) do
+                  Handlers.verify_customer(account)
+                end
+              end
+            end
 
           #
           # Hook: After Password Reset Request
@@ -108,26 +129,6 @@ module Auth
 
             Onetime::ErrorHandler.safe_execute('delete_customer', account_id: account_id, extid: account[:extid]) do
               Handlers.delete_customer(account)
-            end
-          end
-
-          #
-          # Hook: After Account Verification
-          #
-          # This hook is triggered when a user verifies their account (e.g., by
-          # clicking a link in an email). It updates the verification status of
-          # the associated Onetime::Customer record.
-          #
-          # Note: This hook is disabled in the 'test' environment to simplify
-          # testing scenarios that do not require email verification flows.
-          #
-          if ENV['RACK_ENV'] != 'test'
-            auth.after_verify_account do
-              OT.info "[auth] Account verified: #{account[:extid]}"
-
-              Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:extid]) do
-                Handlers.verify_customer(account)
-              end
             end
           end
 
