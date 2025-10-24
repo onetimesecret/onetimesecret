@@ -4,32 +4,29 @@ module Auth
   module Routes
     # MFA Recovery Routes
     #
-    # Handles the recovery flow for users who cannot complete MFA verification
-    # due to lost authenticator access or invalidated OTP keys.
+    # Provides a recovery mechanism for users stuck in MFA verification.
+    # Follows Rodauth's design by delegating to the email_auth feature.
     #
-    # ## Problem Scenario
+    # ## Rodauth-Aligned Design
     #
-    # Users can become stuck in MFA verification when:
-    # - OTP keys are invalidated (e.g., config changes to otp_keys_use_hmac)
-    # - Authenticator device lost or broken
-    # - Recovery codes unavailable or lost
+    # This implementation works WITH Rodauth instead of around it:
+    # 1. Sets mfa_recovery_mode flag in session
+    # 2. Returns email auth endpoint for frontend to call
+    # 3. Frontend POSTs to Rodauth's /auth/email-login-request
+    # 4. Rodauth handles token generation, storage, and email sending
+    # 5. User clicks link → after_login hook disables MFA
     #
-    # The user is in `awaiting_mfa` state but cannot provide valid credentials,
-    # creating an infinite loop with no escape route.
+    # This avoids manual database manipulation or calling private methods.
     #
-    # ## Solution
-    #
-    # This recovery mechanism leverages the existing email_auth (magic link)
-    # infrastructure to provide a secure escape path:
-    #
-    # 1. User requests recovery while stuck on /mfa-verify
-    # 2. System sends magic link with special recovery flag
-    # 3. Clicking link authenticates AND disables MFA automatically
-    # 4. User can re-enable MFA from account settings after login
-    #
-    # #### Flow Diagram
+    # ## Flow Diagram
     #
     # ```
+    # User clicks "Can't access authenticator?"
+    #          ↓
+    # POST /auth/mfa-recovery-request (sets recovery flag)
+    #          ↓
+    # POST /auth/email-login-request (Rodauth sends magic link)
+    #          ↓
     # User clicks magic link
     #          ↓
     # Email auth validates token
@@ -45,36 +42,33 @@ module Auth
     #                 └── NO  → Complete session sync normally
     # ```
     #
-    # The key insight is that email_auth completes by triggering the standard
-    # login flow, so the `after_login` hook in login.rb naturally intercepts
-    # the recovery flow before the normal MFA check occurs.
+    # ## Key Architectural Points
+    #
+    # 1. **Rodauth Integration**: Uses Rodauth's email_auth feature natively
+    # 2. **Two-Step Process**: Backend sets flag, frontend calls Rodauth
+    # 3. **Hook-Based Logic**: after_login hook handles recovery detection
+    # 4. **Multi-App Aware**: Uses Auth::Application.uri_prefix for routing
     #
     # ## Security
     #
-    # - Recovery requires email access (same security level as password reset)
-    # - Uses cryptographically secure, single-use, time-limited tokens (15min)
-    # - Only works when user is in partial auth state (email/password verified)
+    # - Recovery requires email access (same security as password reset)
+    # - Uses Rodauth's cryptographic token generation
+    # - Single-use, time-limited tokens (15 min default)
     # - All recovery attempts logged via SemanticLogger
-    # - MFA can be immediately re-enabled from account settings
+    #
+    # @see docs/authentication/magic-link-mfa-flow.md for full documentation
     module MfaRecovery
       def handle_mfa_recovery_routes(r)
-        # MFA Recovery Request Endpoint
+        # MFA Recovery Initiation
         #
-        # Sends a recovery email to users stuck in MFA verification state.
-        # Uses email_auth infrastructure to send a magic link that will
-        # disable MFA and complete authentication.
-        #
-        # Request: POST /auth/mfa-recovery-request
-        # Auth: Requires awaiting_mfa session state
-        # Response: { success: "message" } or { error: "message" }
+        # Sets recovery mode and returns email auth route.
+        # Frontend will then use Rodauth's email-auth-request endpoint.
         r.post 'mfa-recovery-request' do
-          # Verify user is actually in MFA waiting state
           unless session[:awaiting_mfa]
             response.status = 400
             next { error: 'MFA recovery not applicable' }
           end
 
-          # Verify account exists and has email
           account_id = session['account_id']
           email = session['email']
 
@@ -87,40 +81,26 @@ module Auth
             account_id: account_id,
             email: OT::Utils.obscure_email(email)
 
-          # Set recovery mode flag
+          # Set flag for after_login hook to detect
           session[:mfa_recovery_mode] = true
 
-          # Trigger email auth request flow
-          # This will send a magic link to the user's email
-          Onetime::ErrorHandler.safe_execute('mfa_recovery_send_email',
-            account_id: account_id,
-            email: email
-          ) do
-            # Use Rodauth's email_auth methods
-            # _email_auth_key_insert generates and stores the token
-            rodauth._email_auth_key_insert(account_id)
+          # Build the full email auth route
+          # Use Auth::Application.uri_prefix since rodauth.prefix is empty
+          # (Rodauth doesn't know about the /auth mount point)
+          email_auth_route = "#{Auth::Application.uri_prefix}/#{rodauth.email_auth_request_route}"
 
-            # send_email_auth_email sends the email with the magic link
-            rodauth.send_email_auth_email
-
-            SemanticLogger['Auth'].info 'MFA recovery email sent',
-              account_id: account_id,
-              email: OT::Utils.obscure_email(email)
-          end
-
-          # Return success response
           response.status = 200
           {
-            success: 'Recovery email sent. Please check your email for a login link.'
+            success: 'MFA recovery initiated',
+            email_auth_route: email_auth_route,
+            email: email
           }
         rescue StandardError => ex
-          SemanticLogger['Auth'].error 'MFA recovery request failed',
-            account_id: account_id,
-            email: OT::Utils.obscure_email(email),
+          SemanticLogger['Auth'].error 'MFA recovery failed',
             exception: ex
-
+          session.delete(:mfa_recovery_mode)
           response.status = 500
-          { error: 'Failed to send recovery email' }
+          { error: 'Failed to initiate recovery' }
         end
       end
     end

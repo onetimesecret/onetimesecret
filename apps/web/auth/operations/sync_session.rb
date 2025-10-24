@@ -25,6 +25,17 @@ module Auth
         @db = db || Auth::Database.connection
       end
 
+      # Convenience class method for direct calls
+      # @param account [Hash] The Rodauth account hash
+      # @param account_id [Integer] The ID of the Rodauth account
+      # @param session [Hash] The Rack session
+      # @param request [Rack::Request] The request object
+      # @param db [Sequel::Database] Optional database connection
+      # @return [Onetime::Customer] The customer associated with this session
+      def self.call(account:, account_id:, session:, request:, db: nil)
+        new(account: account, account_id: account_id, session: session, request: request, db: db).call
+      end
+
       # Executes the session sync operation
       # @return [Onetime::Customer] The customer associated with this session
       def call

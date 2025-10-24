@@ -295,45 +295,6 @@ export function useMfa() {
     }
   }
 
-  /**
-   * Requests MFA recovery via email magic link
-   * Used when user is stuck in MFA verification but can't access authenticator
-   *
-   * @returns true if recovery email sent successfully
-   */
-  async function requestMfaRecovery(): Promise<boolean> {
-    clearError();
-    isLoading.value = true;
-
-    try {
-      const response = await $api.post<{ success: string } | { error: string }>(
-        '/auth/mfa-recovery-request',
-        {}
-      );
-
-      if ('error' in response.data) {
-        error.value = response.data.error;
-        return false;
-      }
-
-      notificationsStore.show(
-        response.data.success || 'Recovery email sent. Check your inbox.',
-        'success',
-        'top'
-      );
-      return true;
-    } catch (err: any) {
-      console.error('[useMfa] requestMfaRecovery error:', {
-        status: err.response?.status,
-        data: err.response?.data,
-      });
-      error.value = err.response?.data?.error || 'Failed to send recovery email';
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
   return {
     // State
     isLoading,
@@ -351,7 +312,6 @@ export function useMfa() {
     fetchRecoveryCodes,
     generateNewRecoveryCodes,
     verifyRecoveryCode,
-    requestMfaRecovery,
     clearError,
   };
 }

@@ -118,7 +118,12 @@ module Auth::Config::Hooks
             account_id: account_id,
             email: account[:email],
           ) do
-            Auth::Operations::SyncSession.call(account, account_id, session, request)
+            Auth::Operations::SyncSession.call(
+              account: account,
+              account_id: account_id,
+              session: session,
+              request: request
+            )
           end
 
           # Clear MFA recovery completion flag after first successful login

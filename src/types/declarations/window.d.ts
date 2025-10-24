@@ -92,14 +92,6 @@ export interface OnetimeWindow {
    * The user menu will appear with an amber badge during this state.
    */
   awaiting_mfa: boolean;
-
-  /**
-   * MFA was disabled via recovery flow.
-   * When true, indicates the user completed MFA recovery and their
-   * two-factor authentication has been disabled. A notification should
-   * be shown to prompt them to re-enable MFA from account settings.
-   */
-  mfa_recovery_completed: boolean;
   baseuri: string;
   cust: Customer | null;
   custid: string;
