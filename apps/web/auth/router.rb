@@ -10,6 +10,7 @@ require 'onetime/logging'
 
 require_relative 'config'
 require_relative 'routes/account'
+require_relative 'routes/active_sessions'
 require_relative 'routes/admin'
 require_relative 'routes/health'
 require_relative 'routes/mfa_recovery'
@@ -28,6 +29,7 @@ module Auth
     include Auth::Routes::Health
     include Auth::Routes::Validation
     include Auth::Routes::Account
+    include Auth::Routes::ActiveSessions
     include Auth::Routes::Admin
     include Auth::Routes::MfaRecovery
 
@@ -86,6 +88,9 @@ module Auth
 
       # Account routes (mfa-status, account info)
       handle_account_routes(r)
+
+      # Active sessions routes
+      handle_active_sessions_routes(r)
 
       # Health check endpoint
       r.on('health') do

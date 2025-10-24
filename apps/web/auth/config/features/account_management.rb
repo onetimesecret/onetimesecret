@@ -6,8 +6,17 @@ module Auth::Config::Features
 
       # Table column configurations
       # All Rodauth tables use account_id as FK, not id
-      auth.verify_account_table :account_verification_keys
-      auth.verify_account_id_column :account_id
+
+      # Only configure verify_account if the feature is enabled (disabled in test)
+      unless ENV['RACK_ENV'] == 'test'
+        auth.verify_account_table :account_verification_keys
+        auth.verify_account_id_column :account_id
+
+        # Password is set during account creation, not during verification
+        # This prevents verify_account from requiring password fields
+        auth.verify_account_set_password? false
+      end
+
       auth.reset_password_table :account_password_reset_keys
       auth.reset_password_id_column :account_id
 
@@ -17,11 +26,6 @@ module Auth::Config::Features
       # Disable password confirmation field requirement
       # UI sends single password field, not password + confirmation
       auth.require_password_confirmation? false
-
-      # Password is set during account creation, not during verification
-      # This prevents verify_account from requiring password fields
-      # Only configure if verify_account feature is enabled
-      auth.verify_account_set_password? false unless ENV['RACK_ENV'] == 'test'
 
       # Custom error messages
       # Override Rodauth's default generic error message
