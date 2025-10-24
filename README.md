@@ -6,6 +6,13 @@ A onetime secret is a link that can be viewed only once. A single-use URL.
 
 **Try it out**: [OnetimeSecret.com](https://onetimesecret.com/)
 
+
+
+> [!NOTE]
+> **Branch Information**: You're viewing the `main` branch (stable production release). For the latest features and active development, check out the [`develop` branch](https://github.com/onetimesecret/onetimesecret/tree/develop). Note that `develop` may contain work-in-progress features as we prepare for the next major release.
+
+
+
 ## Why use Onetime Secret?
 
 When you send sensitive info like passwords via email or chat, copies persist in many places. Onetime links self-destruct after viewing, ensuring only the intended recipient sees the information.
@@ -183,8 +190,7 @@ This section provides an overview of services similar to our project, highlighti
 | <https://pwpush.com/>              | Password Pusher    | A tool that uses browser cookies to help you share passwords and other sensitive information.                                                                   | Temporary, self-destructing links for password sharing            |
 | <https://scrt.link/en>             | Share a Secret     | A service that allows you to share sensitive information anonymously. Crucial for journalists, lawyers, politicians, whistleblowers, and oppressed individuals. | Anonymous, self-destructing message sharing                       |
 | <https://cryptgeon.com/>           | Cryptgeon          | A service for sharing secrets and passwords securely.                                                                                                           | Offers a secret generator, password generator, and secret vault   |
-| <https://www.vanish.so/>           | Vanish             | A service for sharing secrets and passwords securely.
-                                                                                                           | Self-destructing messages with strong encryption                  |
+| <https://www.vanish.so/>           | Vanish             | A service for sharing secrets and passwords securely.                                                                                                           | Self-destructing messages with strong encryption                  |
 | <https://password.link/en>         | Password.link      | A service for securely sending and receiving sensitive information.                                                                                             | Secure link creation for sensitive information sharing            |
 | <https://www.sharesecret.co/>      | ShareSecret        | A service for securely sharing passwords in Slack and email.                                                                                                    | Secure password sharing with Slack and email integration          |
 | <https://teampassword.com/>        | TeamPassword       | A password manager for teams.                                                                                                                                   | Fast, easy-to-use, and secure team password management            |
