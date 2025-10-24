@@ -23,12 +23,16 @@ module Core
 
         output['cust'] = cust.safe_dump
 
-        # When awaiting_mfa is true, user has passed first factor (email/password)
-        # but needs to complete second factor (TOTP/WebAuthn) before full access
-        if output['authenticated'] || output['awaiting_mfa']
+        # When authenticated, provide full customer data
+        if output['authenticated']
           output['custid']         = cust.custid
           output['email']          = cust.email
           output['customer_since'] = OT::Utils::TimeUtils.epochdom(cust.created) if cust.created
+
+        # When awaiting MFA, provide minimal data from session (no customer access yet)
+        elsif output['awaiting_mfa']
+          output['email'] = view_vars['session_email']  # From session, not customer
+          # Do NOT provide custid or customer object - user doesn't have access yet
         end
 
         output

@@ -20,6 +20,7 @@
     'authentication',
     'authenticated',
     'awaiting_mfa',
+    'email',
     'cust',
     'ui',
     'domains_enabled',
@@ -28,11 +29,12 @@
   const isColonel = computed(() => windowProps.value.cust?.role === 'colonel');
 
   // User is partially or fully authenticated
-  // Partially: email verified but awaiting MFA (awaiting_mfa = true)
-  // Fully: all authentication steps complete (authenticated = true)
-  const isUserPresent = computed(() =>
-    (windowProps.value.authenticated || windowProps.value.awaiting_mfa) && windowProps.value.cust
-  );
+  // Partially: email verified but awaiting MFA (awaiting_mfa = true, has email but no cust)
+  // Fully: all authentication steps complete (authenticated = true, has cust)
+  const isUserPresent = computed(() => {
+    const { authenticated, awaiting_mfa, cust, email } = windowProps.value;
+    return (authenticated && cust) || (awaiting_mfa && email);
+  });
 
   // i18n setup
   const { t } = useI18n();
@@ -167,6 +169,7 @@
           <!-- User Menu Dropdown -->
           <UserMenu
             :cust="windowProps.cust"
+            :email="windowProps.email"
             :colonel="isColonel"
             :show-upgrade="domainsEnabled"
             :awaiting-mfa="windowProps.awaiting_mfa" />
