@@ -17,7 +17,7 @@ module Auth
       enable :login, :logout, :otp, :webauthn, ...
 
       # 2. Base configuration (database, HMAC, JSON, session)
-      db Auth::Config::Database.connection
+      db Auth::Database.connection
       hmac_secret ENV['HMAC_SECRET']
       # ... base config
 
@@ -126,7 +126,7 @@ end
 module Auth::Config::Base
   def self.configure(auth)
     # Database
-    auth.db Auth::Config::Database.connection
+    auth.db Auth::Database.connection
 
     # HMAC secret
     hmac_value = ENV['HMAC_SECRET'] || ENV['AUTH_SECRET']

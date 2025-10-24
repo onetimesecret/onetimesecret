@@ -9,7 +9,7 @@ module Auth
           # Add admin authentication here
 
           r.get 'stats' do
-              db = Auth::Config::Database.connection
+              db = Auth::Database.connection
               {
                 total_accounts: db[:accounts].count,
                 verified_accounts: db[:accounts].where(status_id: 2).count,

@@ -1,5 +1,7 @@
 # apps/web/auth/routes/validation.rb
 
+require_relative '../helpers/session_validation'
+
 module Auth
   module Routes
     module Validation

@@ -14,13 +14,6 @@ require_relative 'routes/admin'
 require_relative 'routes/health'
 require_relative 'routes/validation'
 
-# Operations
-require_relative 'operations/sync_session'
-require_relative 'operations/update_password_metadata'
-require_relative 'operations/create_customer'
-require_relative 'operations/delete_customer'
-require_relative 'operations/verify_customer'
-
 module Auth
   # This is the Roda application, which handles all routing for the auth service.
   class Router < Roda
@@ -93,8 +86,8 @@ module Auth
       r.on('health') do
         r.get do
             # Test database connection if in advanced mode
-            db_status = if Auth::Config::Database.connection
-              Auth::Config::Database.connection.test_connection ? 'ok' : 'error'
+            db_status = if Auth::Database.connection
+              Auth::Database.connection.test_connection ? 'ok' : 'error'
             else
               'not_required'
             end
@@ -120,7 +113,7 @@ module Auth
       r.on('admin') do
         # Add admin authentication here
         r.get('stats') do
-            db = Auth::Config::Database.connection
+            db = Auth::Database.connection
             if db
               {
                 total_accounts: db[:accounts].count,

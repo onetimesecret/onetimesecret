@@ -3,22 +3,14 @@
 require 'onetime/application'
 require 'onetime/logging'
 
-# Load auth dependencies first
-require_relative 'config/database'
+# Load Rodauth configuration first
 require_relative 'config'
-require_relative 'helpers/session_validation'
-require_relative 'routes/health'
-require_relative 'routes/validation'
-require_relative 'routes/account'
-require_relative 'routes/admin'
 
 # Load Roda app
 require_relative 'router'
 
 module Auth
   class Application < Onetime::Application::Base
-    # include Onetime::Logging # call Onetime.auth_logger directly due to all the blocks
-
     @uri_prefix = '/auth'.freeze
 
     # Auth app specific middleware (common middleware is in MiddlewareStack)

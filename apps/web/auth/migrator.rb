@@ -8,7 +8,9 @@
 
 require 'sequel'
 require 'logger'
+
 require 'onetime/logging'
+require_relative 'database'
 
 module Auth
   module Migrator
@@ -44,7 +46,7 @@ module Auth
       private
 
       def database_connection
-        @database_connection ||= Auth::Config::Database.connection
+        @database_connection ||= Auth::Database.connection
       end
 
       def migrations_dir

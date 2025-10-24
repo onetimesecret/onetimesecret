@@ -14,7 +14,7 @@ module Auth
       def initialize(account_id:, account:, db: nil)
         @account_id = account_id
         @account = account
-        @db = db || Auth::Config::Database.connection
+        @db = db || Auth::Database.connection
       end
 
       # Executes the customer creation/loading operation

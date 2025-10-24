@@ -1,9 +1,9 @@
-# apps/web/auth/config/database.rb
+# apps/web/auth/database.rb
 
 require 'sequel'
 require 'logger'
 
-require_relative '../migrator'
+require_relative 'migrator'
 
 module Auth
   module Database
