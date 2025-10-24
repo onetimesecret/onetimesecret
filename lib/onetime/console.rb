@@ -108,8 +108,12 @@ banner << "└#{'─' * (content_width + 2)}┘"
 puts banner
 
 # Boot up
-unless ENV['DELAY_BOOT'].to_s.match?(/^(true|1)$/i)
+unless Onetime::Utils.yes?(ENV['DELAY_BOOT'])
   Onetime.boot! :cli
+
+  # Loads the rack applications without mounting them. Makes it
+  # possible to run Auth::Operations Service objects from the console.
+  Onetime::Application::Registry.prepare_application_registry
 
   puts <<~BANNER
 
