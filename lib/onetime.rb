@@ -30,13 +30,24 @@ Warning[:deprecated] = %w[development dev test testing].include?(ENV['RACK_ENV']
 #
 # NOTE: Use STDOUT the immuntable constant here, not $stdout (global var).
 #
-STDOUT.sync = ENV.fetch('STDOUT_SYNC', nil) && %w[true yes 1].include?(ENV.fetch('STDOUT_SYNC', nil))
+
 
 # Onetime is the core of the Onetime Secret application.
 # It contains the core classes and modules that make up
 # the app. It is the main namespace for the application.
 #
 module Onetime
+  require_relative 'onetime/utils'
+  if Onetime::Utils.yes?(ENV.fetch('STDOUT_SYNC', false))
+    $stdout.sync = true
+    $stderr.sync = true
+    $stderr.puts <<~NOTICE # rubocop:disable Style/StderrPuts
+      [onetime] STDOUT and STDERR sync mode enabled. Output will be unbuffered
+      which is useful for real-time logging visibility but is not recommended
+      for production. It makes the process IO bound which can impact performance.
+    NOTICE
+  end
+
   unless defined?(Onetime::HOME)
     HOME = File.expand_path(File.join(File.dirname(__FILE__), '..'))
   end
@@ -79,7 +90,6 @@ end
 require_relative 'onetime/alias'
 require_relative 'onetime/errors'
 require_relative 'onetime/error_handler'
-require_relative 'onetime/utils'
 require_relative 'onetime/version'
 require_relative 'onetime/config'
 require_relative 'onetime/auth_config'

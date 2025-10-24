@@ -20,6 +20,10 @@ module Auth
           Features::Security.configure(self) if ENV['ENABLE_SECURITY_FEATURES'] != 'false'
           Features::MFA.configure(self) if ENV['ENABLE_MFA'] == 'true'
 
+          # Passwordless authentication features (conditionally enabled)
+          Features::Passwordless.configure(self) if ENV['ENABLE_MAGIC_LINKS'] == 'true'
+          Features::WebAuthnConfig.configure(self) if ENV['ENABLE_WEBAUTHN'] == 'true'
+
           # 3. Email configuration
           Email.configure(self)
 

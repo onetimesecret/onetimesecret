@@ -13,17 +13,19 @@ module Onetime
     # overrides for flexible development and production use.
     #
     def configure_logging
+      Onetime.ld '[Logging] Initializing SemanticLogger'
       config = load_logging_config
 
       # Base configuration
       SemanticLogger.default_level = config['default_level']&.to_sym || :info
       SemanticLogger.add_appender(
         io: $stdout,
-        formatter: config['formatter']&.to_sym || :color
+        formatter: config['formatter']&.to_sym || :color,
       )
 
       # Configure named loggers from config
       config['loggers']&.each do |name, level|
+        $stderr.puts "[Logging] Setting level '#{name}' to #{level}"
         SemanticLogger[name].level = level.to_sym
       end
 
@@ -53,9 +55,7 @@ module Onetime
 
     def apply_environment_overrides
       # Global level override
-      if ENV['LOG_LEVEL']
-        SemanticLogger.default_level = ENV['LOG_LEVEL'].to_sym
-      end
+      SemanticLogger.default_level = ENV['LOG_LEVEL'].to_sym if ENV['LOG_LEVEL']
 
       # ONETIME_DEBUG=1 enables debug logging for all application categories
       # Uses Onetime.debug? for consistent environment variable parsing
@@ -82,6 +82,7 @@ module Onetime
       SemanticLogger['Session'].level = :debug if ENV['DEBUG_SESSION']
       SemanticLogger['HTTP'].level    = :debug if ENV['DEBUG_HTTP']
       SemanticLogger['Secret'].level  = :debug if ENV['DEBUG_SECRET']
+      SemanticLogger['Sequel'].level  = :debug if ENV['DEBUG_SECRET']
 
       # For external library logging levels, use DEBUG_LOGGERS instead:
       # DEBUG_LOGGERS=Sequel:debug,Rhales:trace
@@ -110,11 +111,8 @@ module Onetime
 
       # Rhales manifold
       Rhales.logger = SemanticLogger['Rhales']
+      # Rhales.logger.level = :fatal
 
-      # Sequel database - configure logger on database instances
-      # This is typically done when creating the connection, but we can
-      # set a default for any existing connections
-      nil unless defined?(Sequel) && defined?(Auth::Config::Database)
       # NOTE: Database logger is configured per-connection in
       # apps/web/auth/config/database.rb using db.loggers array
       # We'll update that file to use SemanticLogger instead of Logger.new
@@ -143,7 +141,7 @@ module Onetime
         when 'development'
           ENV['FAMILIA_SAMPLE_RATE']&.to_f || 0.1   # 10% default
         else
-          nil  # Log everything in test
+          # Log everything in test
         end
       end
 

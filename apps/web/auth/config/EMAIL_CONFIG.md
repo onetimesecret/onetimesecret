@@ -4,70 +4,70 @@ The Auth application uses a flexible email delivery system that supports multipl
 
 ## Configuration
 
-Email delivery is configured via environment variables. The system will auto-detect the appropriate provider based on available configuration, or you can explicitly set the provider.
+Email delivery is configured via environment variables. The system will auto-detect the appropriate provider based on available configuration, or you can explicitly set the provider using `EMAILER_MODE`.
 
 ### Core Settings
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `EMAIL_PROVIDER` | Force a specific provider (`smtp`, `sendgrid`, `ses`, `mailpit`, `logger`) | Auto-detected |
-| `EMAIL_FROM` | Default sender email address | `noreply@onetimesecret.com` |
-| `EMAIL_SUBJECT_PREFIX` | Prefix for all email subjects | `[OneTimeSecret] ` |
-| `EMAIL_DELIVERY_MODE` | Delivery mode (`sync`, `async`, `test`) | `sync` |
+| Variable               | Description                                                     | Default                     |
+| ---------------------- | --------------------------------------------------------------- | --------------------------- |
+| `EMAILER_MODE`         | Force a specific provider (`smtp`, `sendgrid`, `ses`, `logger`) | Auto-detected               |
+| `EMAIL_FROM`           | Default sender email address                                    | `noreply@onetimesecret.com` |
+| `EMAIL_SUBJECT_PREFIX` | Prefix for all email subjects                                   | `[OneTimeSecret] `          |
+| `EMAIL_DELIVERY_MODE`  | Delivery mode (`sync`, `async`, `test`)                         | `sync`                      |
 
 ### Provider-Specific Settings
 
 #### SMTP (Generic)
+
+Use for any SMTP server including Mailpit, Mailtrap, or production SMTP services.
+
 ```bash
-EMAIL_PROVIDER=smtp
+EMAILER_MODE=smtp
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USERNAME=user@example.com
 SMTP_PASSWORD=password123
-SMTP_TLS=true  # Use TLS (default: true)
+SMTP_TLS=true    # Use TLS (default: true)
+SMTP_AUTH=plain  # Authentication method (default: plain)
 ```
 
 #### SendGrid
+
 ```bash
-EMAIL_PROVIDER=sendgrid
+EMAILER_MODE=sendgrid
 SENDGRID_API_KEY=SG.abc123...
 ```
 
 #### AWS SES
+
 ```bash
-EMAIL_PROVIDER=ses
+EMAILER_MODE=ses
 AWS_ACCESS_KEY_ID=AKIA...
 AWS_SECRET_ACCESS_KEY=abc123...
 AWS_REGION=us-east-1
 ```
 
-#### Mailpit (Development)
-```bash
-EMAIL_PROVIDER=mailpit
-MAILPIT_HOST=localhost  # default: localhost
-MAILPIT_PORT=1025      # default: 1025
-```
-
 #### Logger (Testing/Development)
+
 ```bash
-EMAIL_PROVIDER=logger
+EMAILER_MODE=logger
 # No additional configuration needed
 ```
 
 ## Auto-Detection Logic
 
-When `EMAIL_PROVIDER` is not set, the system detects the provider in this order:
+When `EMAILER_MODE` is not set, the system detects the provider in this order:
 
 1. **Test Environment**: Uses `logger`
 2. **SendGrid**: If `SENDGRID_API_KEY` is present
 3. **AWS SES**: If `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are present
-4. **Mailpit**: If `MAILPIT_HOST` or `MAILPIT_PORT` are set
-5. **SMTP**: If `SMTP_HOST` is present
-6. **Fallback**: Uses `logger`
+4. **SMTP**: If `SMTP_HOST` is present
+5. **Fallback**: Uses `logger`
 
 ## Examples
 
 ### Production with SendGrid
+
 ```bash
 EMAIL_FROM=support@yourcompany.com
 EMAIL_SUBJECT_PREFIX="[YourApp] "
@@ -75,6 +75,7 @@ SENDGRID_API_KEY=SG.your_api_key_here
 ```
 
 ### Production with AWS SES
+
 ```bash
 EMAIL_FROM=noreply@yourcompany.com
 AWS_ACCESS_KEY_ID=AKIA123456789
@@ -82,14 +83,22 @@ AWS_SECRET_ACCESS_KEY=your_secret_key
 AWS_REGION=us-west-2
 ```
 
-### Development with Mailpit
+### Development with Mailpit (Local SMTP Server)
+
 ```bash
-MAILPIT_HOST=localhost
-MAILPIT_PORT=1025
+# Mailpit is just an SMTP server - use SMTP mode
+EMAILER_MODE=smtp
+SMTP_HOST=localhost
+SMTP_PORT=1025
+SMTP_TLS=false
+# IMPORTANT: Do NOT set SMTP_USERNAME or SMTP_PASSWORD
+# Mailpit does not support authentication
 ```
 
-### Development with External SMTP
+### Development with Mailtrap
+
 ```bash
+EMAILER_MODE=smtp
 SMTP_HOST=smtp.mailtrap.io
 SMTP_PORT=2525
 SMTP_USERNAME=your_username
@@ -113,6 +122,7 @@ To add a new email provider:
 4. Add the provider to the `create_delivery_strategy` method in `Configuration`
 
 Example:
+
 ```ruby
 class CustomProvider < Base
   def deliver(email)

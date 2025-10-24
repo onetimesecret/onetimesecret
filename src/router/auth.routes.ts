@@ -137,6 +137,24 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
   },
+  {
+    path: '/email-login',
+    name: 'Email Login',
+    component: () => import('@/views/auth/EmailLogin.vue'),
+    meta: {
+      requiresAuth: false,
+      isAuthRoute: true,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayToggles: true,
+      },
+    },
+  },
 ];
 
 export default routes;

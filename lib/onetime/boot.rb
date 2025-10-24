@@ -53,9 +53,10 @@ module Onetime
       # initializers are loaded in the correct order.
       load_locales
       configure_logging
+      setup_diagnostics
+      run_migrations
       set_global_secret
       set_rotated_secrets
-      setup_diagnostics
       configure_domains
       configure_truemail
       load_fortunes
@@ -69,7 +70,7 @@ module Onetime
 
       print_log_banner if $stdout.tty? && !mode?(:test) && !mode?(:cli)
 
-      @ready = true
+      @ready = true if @ready.nil?
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -118,7 +119,7 @@ module Onetime
       @ready == true
     end
 
-    def not_ready!
+    def not_ready
       @ready = false
     end
 

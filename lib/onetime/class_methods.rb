@@ -1,5 +1,9 @@
 # lib/onetime/class_methods.rb
 
+require 'semantic_logger'
+
+require_relative 'logging'
+
 # Usage:
 # module Onetime
 #   extend EnvironmentHelper
@@ -8,9 +12,12 @@
 # Environment detection and normalization
 module Onetime
   module ClassMethods
+    prepend Onetime::Logging
+
     @env   = nil
     @mode  ||= :app
     @debug = nil
+    @logger = nil
 
     attr_accessor :mode, :env
     attr_writer :debug
@@ -104,8 +111,7 @@ module Onetime
     # operations.
     #
     # @return [Time] Time object representing current UTC time
-    #   Precision: Full system precision (accessible via #nsec, #usec
-    #   methods)
+    #   Precision: Full system precision (accessible via #nsec, #usec methods)
     #   Timezone: Always UTC (Coordinated Universal Time)
     #
     # @note This method is optimal for:
@@ -113,8 +119,7 @@ module Onetime
     #   - Date/time arithmetic operations (adding days, months, etc.)
     #   - Time zone conversions and calculations
     #   - Integration with Rails/ActiveSupport time helpers
-    #   - Situations requiring Time object methods (#strftime, #year,
-    #     #month, etc.)
+    #   - Situations requiring Time object methods (#strftime, #year, #month, etc.)
     #
     # @note Avoid for:
     #   - Redis sorted set scores (use hnowµs or nowµs instead)
@@ -125,7 +130,6 @@ module Onetime
     #   now  #=> 2024-05-27 14:26:40.123456 UTC
     #   now.to_i  #=> 1716825600 (seconds since epoch)
     #   now.usec  #=> 123456 (microsecond component)
-    #Time now.strftime('%Y-%m-%d %H:%M:%S')  #=> "2024-05-27 14:26:40"
     #
     # @see Time Ruby documentation for full Time object capabilities
     def now
@@ -268,16 +272,28 @@ module Onetime
     # Returns the appropriate SemanticLogger instance for the current context.
     # Defaults to 'App' category unless overridden via thread-local variable.
     #
+    # Used by Onetime.ld/le/li/lw methods for bootstrap and early-stage logging
+    # before all loggers are configured. Defaults to 'App' category unless
+    # overridden via thread-local variable.
+    #
+    # Note: This is distinct from Onetime::Logging#logger which provides
+    # automatic category inference for instance methods in classes.
+    #
+    # @example Module-level logging
+    #   Onetime.ld "Bootstrap message"  # → SemanticLogger['App']
+    #
+    # @example With thread-local override
+    #   Thread.current[:log_category] = 'Auth'
+    #   Onetime.li "Auth message"  # → SemanticLogger['Auth']
+    #
     # @example
     #   Thread.current[:log_category] = 'Auth'
     #   logger.info "Processing login"  # Uses SemanticLogger['Auth']
     #
     def logger
-      # Lazy-load SemanticLogger to avoid initialization order issues
-      return @logger if defined?(@logger) && @logger
+      return @logger if @logger
 
-      require 'semantic_logger' unless defined?(::SemanticLogger)
-      ::SemanticLogger[Thread.current[:log_category] || 'App']
+      super # i.e. Logging#logger
     end
 
     def with_diagnostics(&)

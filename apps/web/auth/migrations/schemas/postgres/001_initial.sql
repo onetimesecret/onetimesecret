@@ -83,7 +83,7 @@ CREATE TABLE account_verification_keys (
 CREATE TABLE account_password_reset_keys (
     account_id BIGINT PRIMARY KEY,
     key VARCHAR NOT NULL UNIQUE,
-    deadline TIMESTAMPTZ NOT NULL,
+    deadline TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '1 day'),
     email_last_sent TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
@@ -103,7 +103,7 @@ CREATE TABLE account_login_failures (
 CREATE TABLE account_lockouts (
     account_id BIGINT PRIMARY KEY,
     key VARCHAR NOT NULL UNIQUE,
-    deadline TIMESTAMPTZ NOT NULL,
+    deadline TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '1 day'),
     email_last_sent TIMESTAMPTZ DEFAULT NOW(),
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
@@ -116,7 +116,7 @@ CREATE TABLE account_lockouts (
 CREATE TABLE account_remember_keys (
     account_id BIGINT PRIMARY KEY,
     key VARCHAR NOT NULL UNIQUE,
-    deadline TIMESTAMPTZ NOT NULL,
+    deadline TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '21 days'),
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 

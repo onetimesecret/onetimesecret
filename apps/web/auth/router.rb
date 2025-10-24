@@ -34,20 +34,6 @@ module Auth
     plugin :halt
     plugin :status_handler
 
-    # Activate Rodauth with configuration but print a warning
-    # to the logs if we're actually in basic mode. This in
-    # meant to be prevented when composing the rack app at
-    # load time but this is a secondary check..
-    unless Onetime.auth_config.advanced_enabled?
-      # Warn if Auth app is loaded in basic mode - it shouldn't be mounted at all
-      auth_logger.error "Auth router loaded in basic mode - this is a configuration error. "\
-        "The Auth router is designed for advanced mode only. In basic mode, authentication "\
-        "routes should be handled by Core app. This router will return 404 for all Rodauth routes.",
-        app: "Auth::Router",
-        mode: "basic",
-        expected_mode: "advanced"
-    end
-
     plugin :rodauth do
       instance_eval(&Auth::Config.configure)
     end
@@ -61,7 +47,7 @@ module Auth
     route do |r|
       # Debug logging for development
       Onetime.development? do
-        http_logger.debug "Auth router request",
+        http_logger.debug 'Auth router request',
           method: r.request_method,
           path_info: r.path_info,
           request_uri: r.env['REQUEST_URI'],
@@ -139,7 +125,7 @@ module Auth
               }
             end
           rescue StandardError => ex
-            auth_logger.error "Auth stats endpoint error", exception: ex
+            auth_logger.error 'Auth stats endpoint error', exception: ex
             response.status = 500
             { error: 'Internal server error' }
         end
@@ -155,7 +141,7 @@ module Auth
         Onetime::Customer.anonymous
       end
     rescue StandardError => ex
-      auth_logger.error "Failed to load customer from session", exception: ex
+      auth_logger.error 'Failed to load customer from session', exception: ex
       Onetime::Customer.anonymous
     end
 

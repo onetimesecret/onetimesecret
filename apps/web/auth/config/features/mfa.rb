@@ -9,11 +9,13 @@ module Auth
             # Multi-Factor Authentication
             enable :otp  # Time-based One-Time Password (TOTP)
             enable :recovery_codes  # Backup codes for MFA
-            enable :remember  # "Remember me" functionality
-            enable :verify_account  # Disabled until email is properly configured
 
-            # Remember cookie configuration (requires remember feature)
-            remember_cookie_key 'onetime.remembers'
+            # Table column configurations
+            # All Rodauth tables use account_id as FK, not id
+            otp_keys_table :account_otp_keys
+            otp_keys_id_column :account_id
+            recovery_codes_table :account_recovery_codes
+            recovery_codes_id_column :account_id
 
             # MFA Configuration
             otp_issuer 'OneTimeSecret'

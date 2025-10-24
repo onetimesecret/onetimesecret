@@ -17,7 +17,7 @@ require_relative 'router'
 
 module Auth
   class Application < Onetime::Application::Base
-    include Onetime::Logging
+    # include Onetime::Logging # call Onetime.auth_logger directly due to all the blocks
 
     @uri_prefix = '/auth'.freeze
 
@@ -43,33 +43,30 @@ module Auth
     end
 
     warmup do
-      # Auto-run migrations in advanced mode
-      # This ensures the database schema is ready when Rodauth is enabled
+      # Migrations are run in build_router before loading the Router class
+      # This warmup block can be used for other initialization tasks if needed
       if Onetime.auth_config.advanced_enabled?
-        begin
-          require_relative 'migrator'
-          Auth::Migrator.run_if_needed
-          OT.info 'Auth database migrations completed (advanced mode)'
-        rescue StandardError => ex
-          auth_logger.error "Auth database migrations failed during startup", exception: ex
-          # Don't fail startup in production, log the error
-          raise ex if Onetime.development?
-        end
+        Onetime.auth_logger.info 'Auth application initialized (advanced mode)'
       else
-        auth_logger.error "Auth application mounted in basic mode - this is a configuration error. "\
-          "The Auth app is designed for advanced mode only. In basic mode, authentication "\
-          "is handled by Core app at /auth/*. Check your application registry configuration.",
-          app: "Auth::Application",
-          mode: "basic",
-          expected_mode: "advanced"
+        Onetime.auth_logger.error 'Auth application mounted in basic mode - this is a configuration error. ' \
+                                  'The Auth app is designed for advanced mode only. In basic mode, authentication ' \
+                                  'is handled by Core app at /auth/*. Check your application registry configuration.',
+          app: 'Auth::Application',
+          mode: 'basic',
+          expected_mode: 'advanced'
       end
     end
 
     protected
 
     def build_router
-      # Return the Roda app instance
-      # Unlike Otto apps, Roda apps are classes that respond to call
+
+      # NOTE: Make sure that migrations BEFORE we get here to load the Router
+      # class. This ensures database tables exist when Rodauth validates
+      # features during plugin load.
+
+      # Unlike Otto apps, Roda apps are classes that respond to call so
+      # we return the class itself here.
       Auth::Router
     end
   end

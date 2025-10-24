@@ -399,6 +399,43 @@
       "customer-id": "Customer ID"
     },
     "auth": {
+      "methods": {
+        "password": "Password",
+        "magicLink": "Email Link",
+        "webauthn": "Biometric"
+      },
+      "magicLink": {
+        "title": "Sign in with Email",
+        "description": "We'll send you a secure login link",
+        "emailPlaceholder": "Enter your email",
+        "sendLink": "Send Login Link",
+        "checkEmail": "Check your email",
+        "sentTo": "We sent a login link to {email}",
+        "linkExpiresIn": "This link will expire in 24 hours",
+        "tryDifferentEmail": "Try a different email",
+        "noPasswordNeeded": "No password needed — just click the link in your email",
+        "networkError": "Network error. Please try again.",
+        "requestFailed": "Failed to send login link. Please try again.",
+        "invalidLink": "Invalid or missing login link",
+        "loginFailed": "Login failed. Please try again.",
+        "signingYouIn": "Signing you in...",
+        "pleaseWait": "Please wait while we verify your link",
+        "error": "Authentication Error",
+        "backToSignin": "Back to Sign In"
+      },
+      "webauthn": {
+        "signIn": "Sign in with Face ID / Touch ID",
+        "setup": "Set up biometric login",
+        "notSupported": "Biometric authentication is not supported in this browser",
+        "requiresModernBrowser": "Please use a modern browser that supports WebAuthn (Chrome, Safari, Firefox, or Edge)",
+        "setupSuccess": "Biometric login has been enabled",
+        "setupFailed": "Failed to set up biometric login",
+        "authFailed": "Biometric authentication failed. Please try again.",
+        "cancelled": "Authentication was cancelled",
+        "processing": "Authenticating...",
+        "description": "Use your fingerprint, face, or security key to sign in",
+        "supportedMethods": "Supports Face ID, Touch ID, Windows Hello, and security keys"
+      },
       "verify": {
         "title": "Verify Your Account",
         "success": "Your account has been verified successfully",
