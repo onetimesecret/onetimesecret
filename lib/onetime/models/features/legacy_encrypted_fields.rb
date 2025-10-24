@@ -1,0 +1,86 @@
+# lib/onetime/models/customer/features/legacy_encrypted_fields.rb
+
+module Onetime
+  module Models
+    module Features
+      module LegacyEncryptedFields
+        Familia::Base.add_feature self, :legacy_encrypted_fields
+
+        def self.included(base)
+          OT.ld "[features] #{base}: #{name}"
+          base.extend ClassMethods
+          base.include InstanceMethods
+          base.field :passphrase
+          base.field :passphrase_encryption
+          base.attr_reader :passphrase_temp
+        end
+
+        module ClassMethods
+        end
+
+        module InstanceMethods
+          def encryption_key
+            Onetime::Secret.encryption_key OT.global_secret, custid
+          end
+
+          def update_passphrase!(val)
+            update_passphrase(val)
+              .save_fields(:passphrase_encryption, :passphrase)
+          end
+
+          def update_passphrase(val)
+            self.passphrase_encryption = '1'
+            self.passphrase = BCrypt::Password.create(val, cost: 12).to_s
+            self  # Enable chaining
+          end
+
+          def has_passphrase?
+            !passphrase.to_s.empty?
+          end
+
+          def passphrase?(val)
+            # Immediately return false if there's no passphrase to compare against.
+            # This prevents a DoS vector where an attacker could trigger exceptions
+            # by attempting to verify passphrases on accounts that don't have one.
+            return false if passphrase.to_s.empty?
+
+            # Constant-time comparison prevents timing attacks that could leak
+            # the hash prefix by measuring how long the comparison takes to fail.
+            BCrypt::Password.new(passphrase) == val
+
+          rescue BCrypt::Errors::InvalidHash => ex
+            prefix = '[passphrase?]'
+            OT.li "#{prefix} Invalid passphrase hash: #{ex.message}"
+            false
+          end
+
+        end
+      end
+    end
+  end
+end
+
+__END__
+
+require 'bcrypt'
+require 'benchmark'
+
+# Sample password
+password =  '58ww8zwt5tvt40cvmbmpqk4f7sklk4prk032dh3gwvbn6jkavk3elvb9qtrasa5'
+
+# Define the range of cost factors to test
+# cost factor 12: 0.285811 seconds
+# cost factor 13: 0.565042 seconds
+# cost factor 14: 1.125720 seconds
+# cost factor 15: 2.241410 seconds
+# cost factor 16: 4.488586 seconds
+cost_factors = (12..16)
+
+# Run the benchmark for each cost factor
+puts "Using password: #{password}"
+cost_factors.each do |cost|
+  time = Benchmark.measure do
+    passphrase = BCrypt::Password.create(password, cost: cost).to_s
+  end
+  puts "Cost factor #{cost}: #{time.real} seconds"
+end

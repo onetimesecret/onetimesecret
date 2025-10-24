@@ -1,87 +1,32 @@
-# apps/web/core/controllers/base.rb
+# frozen_string_literal: true
 
-require_relative 'helpers'
-require 'v2/controllers/class_settings'
+require_relative '../views'
+require 'onetime/helpers/session_helpers'
+require 'onetime/helpers/shrimp_helpers'
 
 module Core
   module Controllers
     module Base
-      include Core::ControllerHelpers
-      include V2::Controllers::ClassSettings
+      include Onetime::Logging
+      include Onetime::Helpers::SessionHelpers
+      include Onetime::Helpers::ShrimpHelpers
 
-      attr_reader :req, :res, :sess, :cust, :locale, :ignoreshrimp
+      attr_reader :req, :res, :locale
 
       def initialize(req, res)
-        @req = req
-        @res = res
+        @req    = req
+        @res    = res
+        @locale = req.locale
       end
 
-      def publically(redirect = nil)
-        carefully(redirect) do
-          check_session!     # 1. Load or create the session, load customer (or anon)
-          check_locale!      # 2. Check the request for the desired locale
-          check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
-          check_referrer!    # 4. Check referrers for public requests
-          # Generate the response
-          yield
-        end
+      # Access the current customer from Otto auth middleware or session
+      def cust
+        @cust ||= load_current_customer
       end
 
-      def authenticated(redirect = nil)
-        carefully(redirect) do
-          res.no_cache!
-          check_session!     # 1. Load or create the session, load customer (or anon)
-          check_locale!      # 2. Check the request for the desired locale
-
-          # We need the session so that cust is set to anonymous (and not
-          # nil); we want locale too so that we know what language to use.
-          # If this is a POST request, we don't need to check the shrimp
-          # since it wouldn't change our response either way.
-          return disabled_response(req.path) unless authentication_enabled?
-
-          sess.authenticated? ? yield : res.redirect('/')
-          check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session and auth check)
-        end
-      end
-
-      def colonels(redirect = nil)
-        carefully(redirect) do
-          res.no_cache!
-          check_session!     # 1. Load or create the session, load customer (or anon)
-          check_locale!      # 2. Check the request for the desired locale
-
-          # We need the session so that cust is set to anonymous (and not
-          # nil); we want locale too so that we know what language to use.
-          # If this is a POST request, we don't need to check the shrimp
-          # since it wouldn't change our response either way.
-          return disabled_response(req.path) unless authentication_enabled?
-
-          check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
-
-          is_allowed = sess.authenticated? && cust.role?(:colonel)
-          is_allowed ? yield : res.redirect('/')
-        end
-      end
-
-      def check_referrer!
-        return if @check_referrer_ran
-
-        @check_referrer_ran = true
-        unless req.referrer.nil?
-          OT.ld("[check-referrer] #{req.referrer} (#{req.referrer.class}) - #{req.path}")
-        end
-        return if req.referrer.nil? || req.referrer.match(Onetime.conf['site']['host'])
-
-        sess.referrer     ||= req.referrer
-
-        # Don't allow a pesky error here from preventing the
-        # request. Typically we don't want to be so hush hush
-        # but this method is partiaularly important for receuving
-        # redirects back from 3rd-party workflows like a new Stripe
-        # subscription.
-      rescue StandardError => ex
-        backtrace = ex.backtrace.join("\n")
-        OT.le "[check_referrer!] Caught error but continuing #{ex}: #{backtrace}"
+      # Access the current session
+      def session
+        req.env['rack.session']
       end
 
       # Validates a given URL and ensures it can be safely redirected to.
@@ -97,9 +42,11 @@ module Core
         begin
           # Attempt to parse the URL
           uri = URI.parse(url)
-        rescue URI::InvalidURIError
+        rescue URI::InvalidURIError => ex
           # Log an error message if the URL is invalid
-          OT.le "[validate_url] Invalid URI: #{uri}"
+          http_logger.error "Invalid URI in URL validation",
+            exception: ex,
+            url: url
         else
           # Set a default host if the host is missing
           uri.host ||= OT.conf['site']['host']
@@ -117,24 +64,8 @@ module Core
         uri
       end
 
-      def handle_form_error(ex, redirect)
-        # We store the form fields temporarily in the session so
-        # that the form can be pre-populated after the redirect.
-        sess.set_form_fields ex.form_fields
-        sess.set_error_message ex.message
-        res.redirect redirect
-      end
-
-      def secret_not_found_response
-        view       = Core::Views::UnknownSecret.new req, sess, cust, locale
-        res.status = 404
-        res.body   = view.render
-      end
-
       def not_found
-        publically do
-          not_found_response ''
-        end
+        not_found_response ''
       end
 
       def server_error(status = 500, _message = nil)
@@ -155,10 +86,6 @@ module Core
         HTML
       end
 
-      def disabled_response(path)
-        error_response "#{path} is not available"
-      end
-
       # Handles requests for routes that don't match any defined server-side
       # routes. Instead of returning a 404 status, it serves the entrypoint
       # HTML for the Vue.js SPA.
@@ -177,29 +104,180 @@ module Core
       # - Simplifies server configuration and maintenance.
       # - Allows for proper handling of 404s within the Vue.js application.
       def not_found_response(message, **)
-        view       = Core::Views::VuePoint.new(req, sess, cust, locale)
+        view       = Core::Views::VuePoint.new(req, session, cust, locale)
         view.add_error(message) unless message&.empty?
         res.status = 404
         res.body   = view.render  # Render the entrypoint HTML
       end
 
-      def not_authorized_error(_hsh = {})
-        view       = Core::Views::Error.new req, sess, cust, locale
-        view.add_error 'Not authorized'
-        res.status = 401
-        res.body   = view.render
+      # JSON response helpers
+      #
+      # These methods return Hash objects that will be serialized by Otto's JSONHandler
+      # when the route has response=json. Do not manually set res.body for JSON responses.
+
+      def json_response(data, status: 200)
+        res.status = status
+        data
       end
 
-      def error_response(message, **)
-        # By default we ignore any additional arguments, but the v1 and v2
-        # implementations of this method use them. For example, in certain
-        # cases a server-side error occurs that isn't the fault of the
-        # client, and in those cases we want to provide a fresh shrimp
-        # so that the client can try again (without a full page refresh).
-        view       = Core::Views::Error.new req, sess, cust, locale
-        view.add_error message
-        res.status = 400
-        res.body   = view.render
+      def json_success(message, status: 200)
+        json_response({ success: message }, status: status)
+      end
+
+      def json_error(message, field_error: nil, status: 400)
+        body = { error: message }
+        body['field-error'] = field_error if field_error
+        json_response(body, status: status)
+      end
+
+      # Common page rendering methods
+
+      def index
+        view     = Core::Views::VuePoint.new(req, session, cust, locale)
+        res.body = view.render
+      end
+
+      protected
+
+      def signin_enabled?
+        auth_settings['enabled'] && auth_settings['signin']
+      end
+
+      def signup_enabled?
+        auth_settings['enabled'] && auth_settings['signup']
+      end
+
+      private
+
+      def auth_settings
+        OT.conf.dig('site', 'authentication')
+      end
+
+      # Returns the StrategyResult created by Otto's RouteAuthWrapper
+      #
+      # This provides authenticated state and metadata from the auth strategy
+      # that executed for the current route (noauth, sessionauth, colonelsonly, etc.)
+      #
+      # RouteAuthWrapper (post-routing authentication) executes the strategy and sets
+      # req.env['otto.strategy_result'] before the controller handler runs.
+      #
+      # @return [Otto::Security::Authentication::StrategyResult]
+      def strategy_result
+        req.env['otto.strategy_result']
+      end
+
+      def load_current_customer
+        # Use Rack::Request extension method (delegates to strategy_result.user)
+        user = req.user
+        return user if user.is_a?(Onetime::Customer)
+
+        # Fallback to anonymous
+        Onetime::Customer.anonymous
+      rescue StandardError => ex
+        http_logger.error "Failed to load customer",
+          exception: ex
+        Onetime::Customer.anonymous
+      end
+
+      # Checks if authentication is enabled for the site.
+      #
+      # @return [Boolean] True if authentication and sign-in are enabled, false otherwise.
+      def authentication_enabled?
+        authentication_enabled = OT.conf['site']['authentication']['enabled'] rescue false # rubocop:disable Style/RescueModifier
+        signin_enabled         = OT.conf['site']['authentication']['signin'] rescue false # rubocop:disable Style/RescueModifier
+        authentication_enabled && signin_enabled
+      end
+
+      # Checks if the request accepts JSON responses
+      #
+      # @return [Boolean] True if the Accept header includes application/json
+      def json_requested?
+        req.env['HTTP_ACCEPT']&.include?('application/json')
+      end
+
+      # Executes logic with standardized error handling for both JSON and HTML responses
+      #
+      # @param logic [Object] Logic object to execute
+      # @param success_message [String] Success message for JSON responses
+      # @param success_redirect [String] Path to redirect on success (HTML)
+      # @param error_redirect [String, nil] Path to redirect on error (HTML), nil to re-raise
+      # @yield Optional block for additional processing after logic.process
+      # @return [Hash, nil] JSON response Hash for routes with response=json, nil otherwise
+      def execute_with_error_handling(logic, success_message:, success_redirect: '/', error_redirect: nil, error_status: 400)
+        logic.raise_concerns
+        logic.process
+        yield if block_given?
+
+        if json_requested?
+          json_success(success_message)
+        else
+          res.redirect success_redirect
+          nil
+        end
+      rescue OT::FormError => ex
+        handle_form_error(ex, error_redirect, status: error_status)
+      end
+
+      # Handles form errors with appropriate JSON or HTML response
+      #
+      # @param ex [OT::FormError] The form error exception
+      # @param redirect_path [String, nil] Path to redirect for HTML, nil to re-raise
+      # @param field [String, nil] Field name for error, nil to infer from message
+      # @return [Hash, nil] JSON error Hash for routes with response=json, nil otherwise
+      def handle_form_error(ex, redirect_path = nil, field: nil, status: 400)
+        http_logger.error "Form error occurred",
+          exception: ex,
+          field: field,
+          redirect_path: redirect_path
+        if json_requested?
+          # FormError must provide field and error_type
+          field ||= ex.field
+          error_type = ex.error_type || ex.message.downcase
+
+          json_error(ex.message, field_error: [field, error_type], status: status)
+        elsif redirect_path
+          session['error_message'] = ex.message
+          res.redirect redirect_path
+          nil
+        else
+          raise
+        end
+      end
+
+      # Sentry error tracking
+      #
+      # Available levels are :fatal, :error, :warning, :log, :info, and :debug.
+      # The Sentry default, if not specified, is :error.
+      def capture_error(error, level = :error, &)
+        return unless OT.d9s_enabled
+
+        begin
+          if defined?(req) && req.respond_to?(:env)
+            headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
+            http_logger.debug "Capturing error to Sentry with request headers",
+              headers: headers
+          end
+
+          Sentry.capture_exception(error, level: level, &)
+        rescue NoMethodError => ex
+          raise unless ex.message.include?('start_with?')
+
+          http_logger.error "Sentry capture error (NoMethodError)",
+            exception: ex
+        rescue StandardError => ex
+          http_logger.error "Sentry capture error",
+            exception: ex
+        end
+      end
+
+      def capture_message(message, level = :log, &)
+        return unless OT.d9s_enabled
+
+        Sentry.capture_message(message, level: level, &)
+      rescue StandardError => ex
+        http_logger.error "Sentry capture_message error",
+          exception: ex,
+          message: message
       end
     end
   end

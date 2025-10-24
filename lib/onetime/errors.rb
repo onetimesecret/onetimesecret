@@ -33,7 +33,13 @@ module Onetime
   end
 
   class FormError < Problem
-    attr_accessor :form_fields
+    attr_accessor :form_fields, :field, :error_type
+
+    def initialize(message = nil, field: nil, error_type: nil)
+      super(message)
+      @field = field
+      @error_type = error_type
+    end
   end
 
   class BadShrimp < Problem

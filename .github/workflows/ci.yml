@@ -5,26 +5,26 @@ name: CI
 # Main CI workflow that runs Ruby tests using RSpec and tryouts, plus TypeScript
 # tests using Vitest and validation steps (linting, type-checking).
 #
-# Triggers:
-# - Push to main/develop branches
-# - Pull requests targeting main/develop/feature/* (opened, updated, reopened)
-# - Manual workflow dispatch
+# The workflow is triggered by push events on branches starting with "fix/" or
+# "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
 #
-# Jobs:
+# The workflow has jobs for:
 # - Ruby testing (RSpec and tryouts) across multiple Ruby versions
 # - TypeScript testing (Vitest) and validation (linting, type-checking)
+#
+# This workflow ensures comprehensive testing across the full stack.
 
 on:
   push:
     branches:
-      - main
-      - develop
+      - fix/*
+      - rel/*
   pull_request:
-    types: [opened, synchronize, reopened]
     branches:
       - main
       - develop
       - feature/*
+      - rel/*
   workflow_dispatch:
     inputs:
       debug_enabled:
@@ -117,10 +117,24 @@ jobs:
           bundle config path vendor/bundle
           bundle install --jobs 4 --retry 3
 
+      - name: Setup test configuration
+        run: |
+          # Copy default config files if they don't exist
+          for file in etc/defaults/*.defaults.*; do
+            if [ -f "$file" ]; then
+              target="etc/$(basename "$file" | sed 's/\.defaults//')"
+              if [ ! -f "$target" ]; then
+                cp "$file" "$target"
+                echo "Created $target from defaults"
+              fi
+            fi
+          done
+
       - name: Run test specs
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
+          SESSION_SECRET: 'test-session-secret-for-ci-only-do-not-use-in-production'
         run: |
           mkdir tmp && bundle exec rspec \
             --format progress \
@@ -137,13 +151,44 @@ jobs:
             $(find ./spec -name '*_spec.rb' ! -name 'spec_helper.rb'))" >> $GITHUB_STEP_SUMMARY
           echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results.json)" >> $GITHUB_STEP_SUMMARY
 
-      - name: Run tryouts
+      - name: Run tryouts (basic mode)
         continue-on-error: ${{ matrix.continue-on-error }}
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'basic'
+          SESSION_SECRET: 'test-session-secret-for-ci-only-do-not-use-in-production'
         run: |
-          bundle exec tryouts -vf try
+          echo "Testing basic authentication mode..."
+          bundle exec tryouts -vf try/unit try/system
+          bundle exec tryouts -vf try/integration/authentication/basic_mode
+          bundle exec tryouts -vf try/integration/authentication/common
+
+      - name: Run tryouts (disabled mode)
+        continue-on-error: ${{ matrix.continue-on-error }}
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'disabled'
+          SESSION_SECRET: 'test-session-secret-for-ci-only-do-not-use-in-production'
+        run: |
+          echo "Testing disabled authentication mode..."
+          bundle exec tryouts -vf try/integration/authentication/disabled_mode
+          bundle exec tryouts -vf try/integration/authentication/common
+
+      - name: Run tryouts (advanced mode)
+        continue-on-error: ${{ matrix.continue-on-error }}
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'advanced'
+          SESSION_SECRET: 'test-session-secret-for-ci-only-do-not-use-in-production'
+          # Advanced mode requires a database. Using in-memory SQLite for CI.
+          DATABASE_URL: 'sqlite::memory:'
+        run: |
+          echo "Testing advanced authentication mode..."
+          bundle exec tryouts -vf try/integration/authentication/advanced_mode
+          bundle exec tryouts -vf try/integration/authentication/common
 
   test-typescript:
     timeout-minutes: 15
@@ -235,9 +280,54 @@ jobs:
             --add-host=host.docker.internal:host-gateway \
             onetime-test
 
+      - name: Show initial container status
+        run: |
+          echo "Container status:"
+          docker ps -a | grep onetime-test-container || true
+          echo ""
+          echo "Initial container logs:"
+          docker logs onetime-test-container 2>&1 || true
+
       - name: Wait for service to be ready
         run: |
-          timeout 60 bash -c 'until curl -f http://localhost:3000/ > /dev/null 2>&1; do sleep 2; done'
+          echo "Waiting for service to respond on http://localhost:3000/"
+
+          max_attempts=30
+          attempt=0
+
+          while [ $attempt -lt $max_attempts ]; do
+            attempt=$((attempt + 1))
+            echo "Attempt $attempt/$max_attempts..."
+
+            if curl -f -s -o /dev/null http://localhost:3000/; then
+              echo "✅ Service is ready!"
+              exit 0
+            fi
+
+            # Show container status every 10 attempts
+            if [ $((attempt % 10)) -eq 0 ]; then
+              echo ""
+              echo "Container status at attempt $attempt:"
+              docker ps -a | grep onetime-test-container || true
+              echo ""
+              echo "Recent container logs:"
+              docker logs --tail 20 onetime-test-container 2>&1 || true
+              echo ""
+            fi
+
+            sleep 2
+          done
+
+          echo ""
+          echo "❌ Service failed to start within $((max_attempts * 2)) seconds"
+          echo ""
+          echo "Final container status:"
+          docker ps -a | grep onetime-test-container || true
+          echo ""
+          echo "Full container logs:"
+          docker logs onetime-test-container 2>&1 || true
+
+          exit 1
 
       - name: Test homepage loads
         run: |

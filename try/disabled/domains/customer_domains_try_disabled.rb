@@ -21,7 +21,7 @@ end
 
 OT.boot! :test, true # if this is false, all models will have db 0
 
-@now = Time.now
+@now = Familia.now
 @email_address = "tryouts29+#{@now.to_i}@onetimesecret.com"
 @cust = Customer.new email: @email_address
 
@@ -87,7 +87,7 @@ custom_domain.owner?('anothercustomer@onetimesecret.com')
 #=> false
 
 ## A custom domain has an owner (via different customer)
-cust = Customer.create("anothercustome+#{@now.to_i}r@onetimesecret.com")
+cust = Onetime::Customer.create!("anothercustome+#{@now.to_i}r@onetimesecret.com")
 custom_domain = CustomDomain.new(@valid_domain, @cust.custid)
 custom_domain.owner?(cust)
 #=> false

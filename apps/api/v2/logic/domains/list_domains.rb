@@ -17,6 +17,8 @@ module V2::Logic
         @custom_domains = cust.custom_domains_list.map do |domain|
           domain.safe_dump
         end
+
+        success_data
       end
 
       def success_data

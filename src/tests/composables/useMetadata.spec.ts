@@ -43,15 +43,17 @@ describe('useMetadata', () => {
 
   describe('lifecycle', () => {
     const store = {
+      init: vi.fn(),
       fetch: vi.fn().mockResolvedValue(mockMetadataRecord),
+      burn: vi.fn().mockResolvedValue(undefined),
       record: ref(null),
       details: ref(null),
-      isLoading: ref(false),
+      canBurn: ref(false),
       $reset: vi.fn(),
     };
 
     beforeEach(() => {
-      vi.mocked(useMetadataStore).mockReturnValue(store);
+      vi.mocked(useMetadataStore).mockReturnValue(store as ReturnType<typeof useMetadataStore>);
     });
 
     it('should initialize with empty state', () => {
@@ -77,7 +79,7 @@ describe('useMetadata', () => {
   describe('lifecycle', () => {
     it('should handle error state reset', () => {
       const { error, reset } = useMetadata('test-key');
-      error.value = { message: 'Test error', type: 'human', severity: 'error' };
+      error.value = { name: 'ApplicationError' as const, message: 'Test error', type: 'human', severity: 'error', code: null };
       reset();
       expect(error.value).toBeNull();
     });

@@ -1,0 +1,15 @@
+*
+!.gitignore
+!api/
+!api/*
+!architecture/OVERVIEW.md
+!architecture/
+!architecture/error-handling.md
+!architecture/config-vs-settings.md
+!architecture/type-safety.md
+!architecture/frontend-architecture.md
+!auth/
+!auth/auth-db-notes.md
+!DEVELOPMENT*.md
+!DOCKER*.md
+!README*.md

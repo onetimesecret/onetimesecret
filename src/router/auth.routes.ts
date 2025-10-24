@@ -102,6 +102,59 @@ const routes: Array<RouteRecordRaw> = [
       window.location.href = '/logout';
     },
   },
+  {
+    path: '/verify-account',
+    name: 'Verify Account',
+    component: () => import('@/views/auth/VerifyAccount.vue'),
+    meta: {
+      requiresAuth: false,
+      isAuthRoute: true,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: false,
+      },
+    },
+  },
+  {
+    path: '/mfa-verify',
+    name: 'MFA Verify',
+    component: () => import('@/views/auth/MfaVerify.vue'),
+    meta: {
+      requiresAuth: false,
+      isAuthRoute: true,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: false,
+        displayToggles: true,
+      },
+    },
+  },
+  {
+    path: '/email-login',
+    name: 'Email Login',
+    component: () => import('@/views/auth/EmailLogin.vue'),
+    meta: {
+      requiresAuth: false,
+      isAuthRoute: true,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayToggles: true,
+      },
+    },
+  },
 ];
 
 export default routes;

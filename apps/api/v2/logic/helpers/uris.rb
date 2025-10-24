@@ -50,6 +50,11 @@ module V2
       def local?
         req.local?
       end
+
+      # Extract IP address from session for logging purposes
+      def session_sid
+        sess&.[]('sid') || sess&.[](:sid) || 'unknown'
+      end
     end
   end
 end

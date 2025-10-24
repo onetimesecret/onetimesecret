@@ -58,7 +58,7 @@ module V2::Logic
         raise_form_error 'Domain is required' if @domain_input.empty?
 
         # Check if the domain exists and belongs to the current customer
-        @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
+        @custom_domain = Onetime::CustomDomain.load(@domain_input, @cust.custid)
         raise_form_error 'Invalid Domain' unless @custom_domain
 
         @display_domain = @domain_input
@@ -101,6 +101,8 @@ module V2::Logic
         _image_field['width']        = width
         _image_field['ratio']        = ratio
         _image_field['bytes']        = @bytes
+
+        success_data
       end
 
       def success_data

@@ -1,3 +1,9 @@
 #!/bin/bash
 
-irb -Ilib -r onetime -Iapps/api -Iapps/web -Itry/support -r test_helpers -r test_models -r test_logic
+# Loads models, applications, logic, and test helpers. Unlike running
+# `bin/ots console`, does not boot or run any initialization code.
+
+irb -Ilib -r onetime -r onetime/models -r onetime/middleware \
+    -Iapps/api -r v2/application \
+    -Iapps/web -r core/application -r auth/application \
+    -Itry/support -r test_helpers -r test_models -r test_logic

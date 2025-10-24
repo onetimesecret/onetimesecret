@@ -7,29 +7,39 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ResetPasswordRequest < V2::Logic::Base
-      attr_reader :objid
+      include Onetime::Logging
+
+      attr_reader :login_or_email
       attr_accessor :token
 
       def process_params
-        @objid = params[:u].to_s.downcase
+        @login_or_email = params[:u].to_s.downcase
       end
 
       def raise_concerns
-        raise_form_error 'Not a valid email address' unless valid_email?(@objid)
-        raise_form_error 'No account found' unless V2::Customer.exists?(@objid)
+        raise_form_error 'Not a valid email address', field: 'email', error_type: 'invalid' unless valid_email?(@login_or_email)
+        raise_form_error 'No account found', field: 'email', error_type: 'not_found' unless Onetime::Customer.exists?(@login_or_email)
       end
 
       def process
-        cust = V2::Customer.load @objid
+        # Important: don't store the customer record as an instance variable
+        # which obviously makes it available to other methods and potentially
+        # leaks data. This reset password request logic is sensitive and not
+        # authenticated, so be careful about what is returned or logged.
+        cust = Onetime::Customer.load @login_or_email
 
         if cust.pending?
-          OT.li "[ResetPasswordRequest] Resending verification email to #{cust.objid}"
+          auth_logger.info 'Resending verification email for pending customer',
+            customer_id: cust.objid,
+            email: cust.obscure_email,
+            status: :pending
+
           send_verification_email
           msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."
-          return sess.set_info_message msg
+          return set_info_message(msg)
         end
 
-        secret                    = V2::Secret.create @objid, [@objid]
+        secret                    = Onetime::Secret.create! @login_or_email, [@login_or_email]
         secret.default_expiration = 24.hours
         secret.verification       = 'true'
         secret.save
@@ -38,22 +48,38 @@ module V2::Logic
 
         view = OT::Mail::PasswordRequest.new cust, locale, secret
 
-        OT.ld "Calling deliver_email with token=(#{token})"
+        auth_logger.debug 'Delivering password reset email',
+          customer_id: cust.objid,
+          email: cust.obscure_email,
+          secret_key: secret.key,
+          token: token&.slice(0, 8) # Only log first 8 chars for debugging
 
         begin
           view.deliver_email token
         rescue StandardError => ex
           errmsg = "Couldn't send the notification email. Let know below."
-          OT.le "Error sending password reset email: #{ex.message}"
-          sess.set_error_message errmsg
+          auth_logger.error 'Password reset email delivery failed',
+            customer_id: cust.objid,
+            email: cust.obscure_email,
+            error: ex.message,
+            session_id: sess&.id
+
+          set_error_message(errmsg)
         else
-          OT.info "Password reset email sent to #{@objid} for sess=#{sess.short_identifier}"
-          sess.set_success_message "We sent instructions to #{cust.objid}"
+          auth_logger.info 'Password reset email sent',
+            customer_id: cust.objid,
+            email: cust.obscure_email,
+            session_id: sess&.id,
+            secret_key: secret.key
+
+          set_info_message "We sent instructions to #{cust.objid}"
         end
+
+        success_data
       end
 
       def success_data
-        { objid: @cust.objid }
+        { objid: nil, sent: true }
       end
     end
   end

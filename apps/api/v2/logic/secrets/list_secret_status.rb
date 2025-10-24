@@ -12,7 +12,7 @@ module V2::Logic
         @secrets = keys.map do |key|
           next unless key
 
-          record = V2::Secret.load(key)
+          record = Onetime::Secret.load(key)
           next unless record
 
           record.safe_dump
@@ -24,6 +24,8 @@ module V2::Logic
       def process
         # We don't get the actual TTL value for batches of secrets
         # since that would double the calls to the database.
+
+        success_data
       end
 
       def success_data

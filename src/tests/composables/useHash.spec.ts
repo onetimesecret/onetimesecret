@@ -114,7 +114,6 @@ describe('useHash', () => {
   it('should reject invalid hash algorithms', async () => {
     const { generateHash, error } = useHash();
 
-    // @ts-expect-error - Testing invalid algorithm which TypeScript would normally prevent
     const result = await generateHash('test', 'INVALID-ALGORITHM' as HashAlgorithm);
 
     expect(result).toBeNull();

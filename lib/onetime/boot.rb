@@ -52,13 +52,13 @@ module Onetime
       # NOTE: We could benefit from tsort to make sure these
       # initializers are loaded in the correct order.
       load_locales
+      configure_logging
+      setup_diagnostics
+      run_migrations
       set_global_secret
       set_rotated_secrets
-      setup_authentication
-      setup_diagnostics
       configure_domains
       configure_truemail
-      prepare_emailers
       load_fortunes
       setup_database_logging # meant to run regardless of db connection
 
@@ -70,7 +70,7 @@ module Onetime
 
       print_log_banner if $stdout.tty? && !mode?(:test) && !mode?(:cli)
 
-      @ready = true
+      @ready = true if @ready.nil?
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -105,8 +105,7 @@ module Onetime
       OT.le "Cannot connect to the database #{Familia.uri} (#{ex.class})"
       raise ex unless mode?(:cli)
     rescue StandardError => ex
-      OT.le "Unexpected error `#{ex}` (#{ex.class})"
-      OT.ld ex.backtrace.join("\n")
+      OT.le "Unexpected error", exception: ex
       raise ex unless mode?(:cli)
     end
 
@@ -120,7 +119,7 @@ module Onetime
       @ready == true
     end
 
-    def not_ready!
+    def not_ready
       @ready = false
     end
 
@@ -133,4 +132,6 @@ module Onetime
       @conf = value
     end
   end
+
+  extend Initializers
 end

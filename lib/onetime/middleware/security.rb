@@ -97,6 +97,21 @@ Onetime::Middleware::Security.middleware_components = {
     klass: Rack::UTF8Sanitizer,
     options: { sanitize_null_bytes: true },
   },
+  # CSRF Protection via authenticity tokens
+  'AuthenticityToken' => {
+    key: :authenticity_token,
+    klass: Rack::Protection::AuthenticityToken,
+    options: {
+      # Skip CSRF for API requests with JSON content-type
+      allow_if: lambda { |env|
+        req = Rack::Request.new(env)
+        # Skip for API endpoints or JSON requests
+        req.path.start_with?('/api/') ||
+        req.media_type == 'application/json' ||
+        req.get_header('HTTP_ACCEPT')&.include?('application/json')
+      }
+    }
+  },
   # Protection against CSRF attacks
   'HttpOrigin' => {
     key: :http_origin,

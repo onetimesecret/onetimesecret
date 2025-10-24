@@ -19,7 +19,7 @@
 require_relative '../../support/test_models'
 OT.boot! :test, false
 
-@email = "tryouts+40+#{Time.now.to_i}@onetimesecret.com"
+@email = "tryouts+40+#{Familia.now.to_i}@onetimesecret.com"
 @cust = V1::Customer.new custid: @email # wrong, use spawn instead
 @secret = V1::Secret.new # wrong and does generate secret key
 @locale = 'es'

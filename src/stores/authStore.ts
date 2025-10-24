@@ -1,6 +1,5 @@
 // src/stores/authStore.ts
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
-import { responseSchemas } from '@/schemas/api';
 import { loggingService } from '@/services/logging.service';
 import { WindowService } from '@/services/window.service';
 import { AxiosInstance } from 'axios';
@@ -8,24 +7,34 @@ import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';
 
 /**
- * Configuration for authentication check behavior.
+ * Configuration for window state refresh behavior.
  *
  * The timing strategy uses two mechanisms:
  * 1. Base interval (15 minutes) for regular checks
  * 2. Random jitter (±90 seconds) to prevent synchronized client requests
  *    across multiple browser sessions, reducing server load spikes
  *
+ * The /window endpoint provides complete state refresh including:
+ * - Authentication status and customer data
+ * - CSRF token (shrimp) refresh
+ * - Configuration and feature flags
+ * - i18n and domain settings
+ *
  * Note: Exponential backoff was intentionally removed in favor of a simpler
  * "3 strikes" model because:
  * 1. Immediate logout after 3 failures provides clearer UX
  * 2. The 15-minute base interval already provides adequate spacing
  * 3. Backoff could mask serious issues by waiting longer between retries
+ *
+ * @note We created a new src/composables/useAuth.ts for auth operations (login,
+ * signup, logout, password reset) and are keeping this authStore.ts focused
+ * on session state management and periodic window state refresh.
  */
 export const AUTH_CHECK_CONFIG = {
   INTERVAL: 15 * 60 * 1000,
   JITTER: 90 * 1000,
   MAX_FAILURES: 3,
-  ENDPOINT: '/api/v2/authcheck',
+  ENDPOINT: '/window',
 } as const;
 
 interface StoreOptions extends PiniaPluginOptions {}
@@ -47,8 +56,9 @@ export type AuthStore = {
 
   // Actions
   init: () => { needsCheck: boolean; isInitialized: boolean };
-  checkAuthStatus: () => Promise<boolean>;
+  checkWindowStatus: () => Promise<boolean>;
   refreshAuthState: () => Promise<boolean>;
+  setAuthenticated: (value: boolean) => Promise<void>;
   logout: () => Promise<void>;
   $scheduleNextCheck: () => void;
   $stopAuthCheck: () => Promise<void>;
@@ -136,15 +146,20 @@ export const useAuthStore = defineStore('auth', () => {
    *
    * @returns Current authentication state
    */
-  async function checkAuthStatus() {
+  async function checkWindowStatus() {
     if (!isAuthenticated.value) return false;
     try {
       const response = await $api.get(AUTH_CHECK_CONFIG.ENDPOINT);
-      const validated = responseSchemas.checkAuth.parse(response.data);
 
-      isAuthenticated.value = (validated.details as any).authenticated;
+      // Update entire window state with fresh data
+      if (window.__ONETIME_STATE__ && response.data) {
+        window.__ONETIME_STATE__ = response.data;
+      }
+
+      // Update local auth state from refreshed window data
+      isAuthenticated.value = response.data.authenticated || false;
       failureCount.value = 0;
-      lastCheckTime.value = Date.now(); // This exists but isn't getting called
+      lastCheckTime.value = Date.now();
 
       return isAuthenticated.value;
     } catch {
@@ -157,11 +172,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Forces an immediate auth check and reschedules next check.
-   * Useful when the application needs to ensure fresh auth state.
+   * Forces an immediate window state refresh and reschedules next check.
+   * Useful when the application needs to ensure fresh auth and config state.
    */
   async function refreshAuthState() {
-    return checkAuthStatus().then(() => {
+    return checkWindowStatus().then(() => {
       $scheduleNextCheck();
     });
   }
@@ -185,8 +200,8 @@ export const useAuthStore = defineStore('auth', () => {
     const nextCheck = AUTH_CHECK_CONFIG.INTERVAL + jitter;
 
     authCheckTimer.value = setTimeout(async () => {
-      await checkAuthStatus(); // Make sure to await this
-      $scheduleNextCheck(); // Schedule next check after current one completes
+      await checkWindowStatus();
+      $scheduleNextCheck();
     }, nextCheck);
   }
 
@@ -252,6 +267,27 @@ export const useAuthStore = defineStore('auth', () => {
     _initialized.value = false;
   }
 
+  /**
+   * Sets the authenticated state and updates window state
+   *
+   * @param value - The authentication state to set
+   */
+  async function setAuthenticated(value: boolean) {
+    isAuthenticated.value = value;
+
+    if (value) {
+      // Fetch fresh window state immediately to get customer data
+      await checkWindowStatus();
+    } else {
+      await $stopAuthCheck();
+    }
+
+    // Sync window state flag
+    if (window.__ONETIME_STATE__) {
+      window.__ONETIME_STATE__.authenticated = value;
+    }
+  }
+
   return {
     // State
     isAuthenticated,
@@ -266,9 +302,10 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Actions
     init,
-    checkAuthStatus,
+    checkWindowStatus,
     refreshAuthState,
     logout,
+    setAuthenticated,
 
     $scheduleNextCheck,
     $stopAuthCheck,

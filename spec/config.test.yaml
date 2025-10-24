@@ -3,7 +3,7 @@ site:
   host: '127.0.0.1:3000'
   # Turns https/http on or off when generating links
   ssl: true
-  secret: SuP0r_53cRU7
+  secret: <%= ENV['SITE_SECRET'] || 'SuP0r_53cRU7_t3st_0nly' %>
   interface:
     # Controls whether the web user interface is available. When disabled, the
     # homepage becomes a basic, readonly page with the logo and a brief

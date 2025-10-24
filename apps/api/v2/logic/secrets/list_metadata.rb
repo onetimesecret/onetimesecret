@@ -12,8 +12,8 @@ module V2::Logic
 
       def process_params
         # Calculate the timestamp for 30 days ago
-        @now   = Time.now
-        @since = (Time.now - (30 * 24 * 60 * 60)).to_i
+        @now   = Familia.now
+        @since = (Familia.now - (30 * 24 * 60 * 60)).to_i
       end
 
       def raise_concerns; end
@@ -24,27 +24,29 @@ module V2::Logic
 
         # Get the safe fields for each record
         @records = query_results.filter_map do |identifier|
-          md = V2::Metadata.find_by_identifier(identifier)
+          md = Onetime::Metadata.find_by_identifier(identifier)
           md&.safe_dump
         end
 
         @has_items              = records.any?
         records.sort! { |a, b| b[:updated] <=> a[:updated] }
         @received, @notreceived = *records.partition { |m| m[:is_destroyed] }
+
+        success_data
       end
 
       def success_data
         {
-          custid: cust.custid,
-          count: records.count,
-          records: records,
-          details: {
-            type: 'list', # Add the type discriminator
-            since: since,
-            now: now,
-            has_items: has_items,
-            received: received,
-            notreceived: notreceived,
+          "custid" => cust.custid,
+          "count" => records.count,
+          "records" => records,
+          "details" => {
+            "type" => 'list', # Add the type discriminator
+            "since" => since,
+            "now" => now,
+            "has_items" => has_items,
+            "received" => received,
+            "notreceived" => notreceived,
           },
         }
       end

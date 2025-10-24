@@ -1,0 +1,181 @@
+# .github/workflows/debug-oci.yml
+
+name: Debug OCI Image
+
+# Temporary workflow for fast debugging of check-oci-image job
+# This can be deleted once the main ci.yml is fixed
+
+on:
+  pull_request:
+    branches:
+      - feature/*
+      - rel/*
+      - develop
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  debug-oci-build:
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+
+    services:
+      valkey:
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+          --memory=4g
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
+        with:
+          version: latest
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build assets
+        run: pnpm run build
+
+      - name: Build Docker image
+        run: docker build -t onetime-test .
+
+      - name: Start container with debug output
+        run: |
+          docker run -d \
+            --name onetime-test-container \
+            -p 3000:3000 \
+            -e VALKEY_URL=redis://host.docker.internal:6379/0 \
+            -e SECRET=$(openssl rand -hex 32) \
+            -e ONETIME_DEBUG=1 \
+            -e RUBY_UNBUFFERED=1 \
+            -e STDOUT_SYNC=1 \
+            --add-host=host.docker.internal:host-gateway \
+            onetime-test
+
+          # Give container a moment to start logging
+          sleep 2
+
+          echo ""
+          echo "=== Initial container logs (first 100 lines) ==="
+          docker logs onetime-test-container 2>&1 | head -n 100 || true
+
+      - name: Show container status and environment
+        run: |
+          echo "=== Container status ==="
+          docker ps -a | grep onetime-test-container || true
+
+          echo ""
+          echo "=== Environment variables inside container ==="
+          docker exec onetime-test-container env | grep -E "(REDIS|VALKEY|SECRET|DEBUG)" || true
+
+          echo ""
+          echo "=== Container logs (first 50 lines) ==="
+          docker logs onetime-test-container 2>&1 | head -n 50 || true
+
+      - name: Wait for service with enhanced debugging
+        run: |
+          echo "Waiting for service to respond on http://localhost:3000/"
+
+          max_attempts=30
+          attempt=0
+
+          while [ $attempt -lt $max_attempts ]; do
+            attempt=$((attempt + 1))
+            echo "Attempt $attempt/$max_attempts..."
+
+            # Check if container is still running
+            if ! docker ps --filter "name=onetime-test-container" --filter "status=running" -q | grep -q .; then
+              echo "❌ Container has stopped running!"
+              docker ps -a | grep onetime-test-container || true
+              echo ""
+              echo "Container logs:"
+              docker logs onetime-test-container 2>&1 || true
+              exit 1
+            fi
+
+            if curl -f -s -o /dev/null http://localhost:3000/; then
+              echo "✅ Service is ready!"
+              exit 0
+            fi
+
+            # Show detailed status every 5 attempts (faster feedback)
+            if [ $((attempt % 5)) -eq 0 ]; then
+              echo ""
+              echo "=== Status at attempt $attempt ==="
+              docker ps -a | grep onetime-test-container || true
+
+              echo ""
+              echo "=== Recent logs (last 10 lines) ==="
+              docker logs --tail 10 onetime-test-container 2>&1 || true
+
+              echo ""
+              echo "=== Environment check ==="
+              docker exec onetime-test-container printenv REDIS_URL || echo "REDIS_URL not set"
+
+              echo ""
+              echo "=== Network connectivity test from container ==="
+              docker exec onetime-test-container sh -c 'nc -zv host.docker.internal 6379 || echo "Cannot reach Redis"' || true
+              echo ""
+            fi
+
+            sleep 2
+          done
+
+          echo ""
+          echo "❌ Service failed to start within $((max_attempts * 2)) seconds"
+          echo ""
+          echo "=== Final diagnostics ==="
+          docker ps -a | grep onetime-test-container || true
+          echo ""
+          echo "=== Full container logs ==="
+          docker logs onetime-test-container 2>&1 | tail -100 || true
+          echo ""
+          echo "=== Container environment ==="
+          docker exec onetime-test-container env | grep -E "(REDIS|VALKEY|SECRET|DEBUG)" || true
+
+          exit 1
+
+      - name: Test homepage loads
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/)
+          if [ "$response" != "200" ]; then
+            echo "Homepage failed to load. HTTP status: $response"
+            docker logs onetime-test-container
+            exit 1
+          fi
+          echo "✅ Homepage loaded successfully with HTTP status: $response"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          echo "Final logs before cleanup:"
+          docker logs onetime-test-container 2>&1 || true
+          docker stop onetime-test-container || true
+          docker rm onetime-test-container || true

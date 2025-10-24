@@ -14,11 +14,11 @@ module V2::Logic
         @raised_concerns_was_called = true
 
         if @confirmation&.empty?
-          raise_form_error 'Password confirmation is required.'
+          raise_form_error 'Password confirmation is required.', field: 'confirmation', error_type: 'required'
         else
-          OT.info "[destroy-account] Passphrase check attempt cid/#{cust.custid} r/#{cust.role} ipa/#{sess.ipaddress}"
+          OT.info "[destroy-account] Passphrase check attempt cid/#{cust.objid} r/#{cust.role} ipa/#{session_sid}"
 
-          raise_form_error 'Please check the password.' unless cust.passphrase?(@confirmation)
+          raise_form_error 'Please check the password.', field: 'confirmation', error_type: 'incorrect' unless cust.passphrase?(@confirmation)
         end
       end
 
@@ -36,7 +36,7 @@ module V2::Logic
         # TODO: Limit to dev as well
         if Onetime.debug?
           cust.destroy_requested # not saved
-          OT.ld "[destroy-account] Simulated account destruction #{cust.custid} #{cust.role} #{sess.ipaddress}"
+          OT.ld "[destroy-account] Simulated account destruction #{cust.objid} #{cust.role} #{session_sid}"
 
           # Since we intentionally don't call Customer#destroy_requested!
           # when running in debug mode (to simulate the destruction but
@@ -48,21 +48,23 @@ module V2::Logic
           # that we made it to this point in the logic. Otherwise, they
           # might not know if the action was successful or not since we
           # don't actually destroy the account in debug mode.
-          sess.set_info_message 'Account deleted'
+          set_info_message('Account deleted')
 
         else
           cust.destroy_requested!
 
           # Log the event immediately after saving the change to
           # to minimize the chance of the event not being logged.
-          OT.info "[destroy-account] Account destroyed. #{cust.custid} #{cust.role} #{sess.ipaddress}"
+          OT.info "[destroy-account] Account destroyed. #{cust.objid} #{cust.role} #{session_sid}"
         end
 
         # We replace the session and session ID and then add a message
         # for the user so that when the page they're directed to loads
         # (i.e. the homepage), they'll see it and remember what they did.
-        sess.replace!
-        sess.set_info_message 'Account deleted'
+        sess.clear
+        set_info_message('Account deleted')
+
+        success_data
       end
 
       def modified?(guess)

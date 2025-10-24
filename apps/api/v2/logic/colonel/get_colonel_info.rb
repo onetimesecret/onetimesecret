@@ -25,13 +25,15 @@ module V2
 
         def process
           @title         = 'Home'
-          @session_count = V2::Session.recent(15.minutes).size
+          @session_count = 0 # Session tracking now handled by Rack::Session middleware
 
           process_feedback
           process_customers
           process_statistics
 
           @redis_info = redis_info
+
+          success_data
         end
 
         def process_feedback
@@ -40,7 +42,7 @@ module V2
           @yesterday_feedback = process_feedback_for_period(48.hours, now - 24.hours)
           @older_feedback     = process_feedback_for_period(14.days, now - 48.hours)
 
-          @feedback_count           = V2::Feedback.instances.size
+          @feedback_count           = Onetime::Feedback.values.size
           @today_feedback_count     = @today_feedback.size
           @yesterday_feedback_count = @yesterday_feedback.size
           @older_feedback_count     = @older_feedback.size
@@ -48,14 +50,14 @@ module V2
         private :process_feedback
 
         def process_feedback_for_period(period, end_time)
-          V2::Feedback.recent(period, end_time).collect do |k, v|
+          Onetime::Feedback.recent(period, end_time).collect do |k, v|
             { msg: k, stamp: natural_time(v) }
           end.reverse
         end
         private :process_feedback_for_period
 
         def process_customers
-          @recent_customers = V2::Customer.recent.collect do |this_cust|
+          @recent_customers = Onetime::Customer.recent.collect do |this_cust|
             next if this_cust.nil?
 
             {
@@ -70,19 +72,19 @@ module V2
             }
           end.compact.reverse
 
-          @customer_count        = V2::Customer.instances.size
+          @customer_count        = Onetime::Customer.values.size
           @recent_customer_count = @recent_customers.size
         end
         private :process_customers
 
         def process_statistics
-          @metadata_count  = V2::Metadata.new.dbclient.keys('metadata*:object').count
-          @secret_count    = V2::Secret.new.dbclient.keys('secret*:object').count
+          @metadata_count  = Onetime::Metadata.new.dbclient.keys('metadata*:object').count
+          @secret_count    = Onetime::Secret.new.dbclient.keys('secret*:object').count
           # TODO:
-          # @secrets_created = V2::Customer.global.secrets_created.to_s
-          # @secrets_shared  = V2::Customer.global.secrets_shared.to_s
-          # @secrets_burned  = V2::Customer.global.secrets_burned.to_s
-          # @emails_sent     = V2::Customer.global.emails_sent.to_s
+          # @secrets_created = Onetime::Customer.global.secrets_created.to_s
+          # @secrets_shared  = Onetime::Customer.global.secrets_shared.to_s
+          # @secrets_burned  = Onetime::Customer.global.secrets_burned.to_s
+          # @emails_sent     = Onetime::Customer.global.emails_sent.to_s
         end
         private :process_statistics
 

@@ -32,7 +32,7 @@ module V2
         end
 
         def process
-          @metadata, @secret       = V2::Secret.spawn_pair cust.custid, token
+          @metadata, @secret       = Onetime::Secret.spawn_pair cust.custid, token
           unless passphrase.empty?
             secret.update_passphrase passphrase
             metadata.passphrase = secret.passphrase
@@ -49,13 +49,23 @@ module V2
               cust.increment :secrets_created
             end
             # TODO:
-            # V2::Customer.global.increment :secrets_created
+            # Onetime::Customer.global.increment :secrets_created
             unless recipient.nil? || recipient.empty?
               metadata.deliver_by_email cust, locale, secret, recipient.first, Onetime::Mail::IncomingSupport, ticketno
             end
           else
             raise_form_error 'Could not store your secret'
           end
+
+          success_data
+        end
+
+        def success_data
+          {
+            metadata_key: metadata.key,
+            secret_key: secret.key,
+            ticket: ticketno
+          }
         end
       end
     end

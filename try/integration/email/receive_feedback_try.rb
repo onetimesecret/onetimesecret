@@ -22,11 +22,12 @@ require 'v2/logic/feedback'
 OT.boot! :test, true
 
 # Setup some variables for these tryouts
-@now = DateTime.now
-@model_class = V2::Feedback
+@now = Familia.now
+@model_class = Onetime::Feedback
 @email_address = "tryouts+#{@now}@onetimesecret.com"
-@sess = V2::Session.new '255.255.255.255', 'anon'
-@cust = V2::Customer.new email: @email_address
+@session = {}
+@strategy_result = MockStrategyResult.new(session: @session, user: nil)
+@cust = Onetime::Customer.new email: @email_address
 @params = {
   msg: 'This is a test feedback'
 }
@@ -35,27 +36,28 @@ OT.boot! :test, true
 # TRYOUTS
 
 ## Can create ReceiveFeedback instance
-obj = V2::Logic::ReceiveFeedback.new @sess, @cust
+@strategy_result_with_cust = MockStrategyResult.new(session: @session, user: @cust)
+obj = V2::Logic::ReceiveFeedback.new @strategy_result_with_cust, {}
 obj.class
 #=> V2::Logic::ReceiveFeedback
 
 ## Can create ReceiveFeedback instance w/ params
-obj = V2::Logic::ReceiveFeedback.new @sess, @cust, @params
+obj = V2::Logic::ReceiveFeedback.new @strategy_result_with_cust, @params
 obj.params.keys
 #=> [:msg]
 
 ## Can create ReceiveFeedback instance w/ params and locale
-obj = V2::Logic::ReceiveFeedback.new @sess, @cust, @params, @locale
+obj = V2::Logic::ReceiveFeedback.new @strategy_result_with_cust, @params, @locale
 obj.locale
 #=> 'en'
 
 ## Params are processed
-obj = V2::Logic::ReceiveFeedback.new @sess, @cust, @params
+obj = V2::Logic::ReceiveFeedback.new @strategy_result_with_cust, @params
 obj.msg
 #=> 'This is a test feedback'
 
 ## Concerns can be raised when no message is given
-obj = V2::Logic::ReceiveFeedback.new @sess, @cust, {}
+obj = V2::Logic::ReceiveFeedback.new @strategy_result_with_cust, {}
 begin
   obj.raise_concerns
 rescue Onetime::FormError => e
@@ -64,20 +66,20 @@ end
 #=> [Onetime::FormError, "You can be more original than that!"]
 
 ## Concerns are not raised when a message is given
-obj = V2::Logic::ReceiveFeedback.new @sess, @cust, @params
+obj = V2::Logic::ReceiveFeedback.new @strategy_result_with_cust, @params
 obj.raise_concerns
 #=> nil
 
 ## Sending feedback provides a UI message
-obj = V2::Logic::ReceiveFeedback.new @sess, @cust, @params
+obj = V2::Logic::ReceiveFeedback.new @strategy_result_with_cust, @params
 obj.process
-[@sess.get_info_messages, obj.success_data] # Since 0.18.3
+[@session[:info_messages] || [], obj.success_data] # Since 0.18.3
 #=> [[], {:success=>true, :record=>{}, :details=>{:message=>"Message received. Send as much as you like!"}}]
 
 ## Sending the same feedback from the same customer does not
 ## increment the count. A feature of using a redis set.
 count_before = @model_class.recent.count
-obj = V2::Logic::ReceiveFeedback.new @sess, @cust, @params
+obj = V2::Logic::ReceiveFeedback.new @strategy_result_with_cust, @params
 obj.process
 count_after = @model_class.recent.count
 count_after - count_before

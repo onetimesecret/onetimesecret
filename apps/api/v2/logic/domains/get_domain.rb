@@ -12,13 +12,13 @@ module V2::Logic
 
       def raise_concerns
         raise_form_error 'Please enter a domain' if @domain_input.empty?
-        raise_form_error 'Not a valid public domain' unless V2::CustomDomain.valid?(@domain_input)
+        raise_form_error 'Not a valid public domain' unless Onetime::CustomDomain.valid?(@domain_input)
 
         # Getting the domain record based on `req.params[:domain]` (which is
         # the display_domain). That way we need to combine with the custid
         # in order to find it. It's a way of proving ownership. Vs passing the
         # domainid in the URL path which gives up the goods.
-        @custom_domain = V2::CustomDomain.load(@domain_input, @cust.custid)
+        @custom_domain = Onetime::CustomDomain.load(@domain_input, @cust.custid)
 
         raise_form_error 'Domain not found' unless @custom_domain
       end
@@ -27,6 +27,8 @@ module V2::Logic
         OT.ld "[GetDomain] Processing #{@custom_domain.display_domain}"
         @greenlighted   = true
         @display_domain = @custom_domain.display_domain
+
+        success_data
       end
 
       def success_data

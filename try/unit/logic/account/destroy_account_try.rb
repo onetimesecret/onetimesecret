@@ -21,9 +21,10 @@ OT.boot! :test, false
 
 # Setup some variables for these tryouts
 @email_address = 'changeme@example.com'
-@now = DateTime.now
-@sess = V2::Session.new '255.255.255.255', 'anon'
-@cust = V2::Customer.new email: @email_address
+@now = Familia.now
+@session = {}
+@cust = Onetime::Customer.new email: @email_address
+@strategy_result = MockStrategyResult.new(session: @session, user: @cust)
 @params = {
   confirmation: 'pa55w0rd'
 }
@@ -31,30 +32,30 @@ OT.boot! :test, false
 # TRYOUTS
 
 ## Can create DestroyAccount instance
-obj = V2::Logic::Account::DestroyAccount.new @sess, @cust, @params
+obj = V2::Logic::Account::DestroyAccount.new @strategy_result, @params
 obj.params[:confirmation]
 #=> @params[:confirmation]
 
 ## Processing params removes leading and trailing whitespace
 ## from current password, but not in the middle.
 password_guess = '   padded p455   '
-obj = V2::Logic::Account::DestroyAccount.new @sess, @cust, confirmation: password_guess
+obj = V2::Logic::Account::DestroyAccount.new @strategy_result, {confirmation: password_guess}
 obj.process_params
 #=> 'padded p455'
 
 
 ## Raises an error if no params are passed at all
-obj = V2::Logic::Account::DestroyAccount.new @sess, @cust
+obj = V2::Logic::Account::DestroyAccount.new @strategy_result, {}
 begin
   obj.raise_concerns
 rescue => e
   [e.class, e.message]
 end
-#=> [Onetime::FormError, 'Please check the password.']
+#=> [Onetime::FormError, 'Password confirmation is required.']
 
 
 ## Raises an error if the current password is nil
-obj = V2::Logic::Account::DestroyAccount.new @sess, @cust, confirmation: nil
+obj = V2::Logic::Account::DestroyAccount.new @strategy_result, {confirmation: nil}
 begin
   obj.raise_concerns
 rescue => e
@@ -64,7 +65,7 @@ end
 
 
 ## Raises an error if the current password is empty
-obj = V2::Logic::Account::DestroyAccount.new @sess, @cust, confirmation: ''
+obj = V2::Logic::Account::DestroyAccount.new @strategy_result, {confirmation: ''}
 begin
   obj.raise_concerns
 rescue => e
@@ -74,8 +75,9 @@ end
 
 
 ## Raises an error if the password is incorrect
-cust = V2::Customer.new email: generate_random_email
-obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
+cust = Onetime::Customer.new email: generate_random_email
+strategy_result = MockStrategyResult.new(session: @session, user: cust)
+obj = V2::Logic::Account::DestroyAccount.new strategy_result, @params
 cust.update_passphrase 'wrong password'
 begin
   obj.raise_concerns
@@ -86,9 +88,10 @@ end
 
 
 ## No errors are raised as long as the password is correct
-cust = V2::Customer.new email: generate_random_email
+cust = Onetime::Customer.new email: generate_random_email
 password_guess = @params[:confirmation]
-obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
+strategy_result = MockStrategyResult.new(session: @session, user: cust)
+obj = V2::Logic::Account::DestroyAccount.new strategy_result, @params
 cust.update_passphrase password_guess # update the password to be correct
 obj.raise_concerns
 #=> nil
@@ -96,7 +99,7 @@ obj.raise_concerns
 ## Attempt to process the request without calling raise_concerns first
 
 password_guess = @params[:confirmation]
-obj = V2::Logic::Account::DestroyAccount.new @sess, @cust, @params
+obj = V2::Logic::Account::DestroyAccount.new @strategy_result, @params
 begin
   obj.process
 rescue => e
@@ -105,14 +108,15 @@ end
 #=> [Onetime::FormError, "We have concerns about that request."]
 
 ## Process the request and destroy the account
-cust = V2::Customer.new email: generate_random_email
-obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
+cust = Onetime::Customer.new email: generate_random_email
+strategy_result = MockStrategyResult.new(session: @session, user: cust)
+obj = V2::Logic::Account::DestroyAccount.new strategy_result, @params
 cust.update_passphrase @params[:confirmation] # set the passphrase
 obj.raise_concerns
 obj.process
 
 # NOTE: When running in debug mode, we intentionally don't call
-# V2::Customer#destroy_requested! so the passphrase doesn't get
+# Onetime::Customer#destroy_requested! so the passphrase doesn't get
 # cleared out, causing this test to fail.
 # See DestroyAccount for more details.
 post_destroy_passphrase = if Onetime.debug
@@ -124,9 +128,10 @@ end
 #=> ['user_deleted_self', 'false', '']
 
 ## Destroyed account gets a new api key
-cust = V2::Customer.new email: generate_random_email
+cust = Onetime::Customer.new email: generate_random_email
 first_token = cust.regenerate_apitoken  # first we need to set an api key
-obj = V2::Logic::Account::DestroyAccount.new @sess, cust, @params
+strategy_result = MockStrategyResult.new(session: @session, user: cust)
+obj = V2::Logic::Account::DestroyAccount.new strategy_result, @params
 cust.update_passphrase @params[:confirmation]
 obj.raise_concerns
 obj.process

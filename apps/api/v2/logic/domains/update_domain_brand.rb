@@ -75,8 +75,10 @@ module V2::Logic
           custom_domain.brand[key.to_s] = value.to_s # everything in the database is a string
         end
 
-        custom_domain.updated = Time.now.to_i
+        custom_domain.updated = Familia.now.to_i
         custom_domain.save
+
+        success_data
       end
 
       # Validate URL format
@@ -95,7 +97,7 @@ module V2::Logic
           raise_form_error 'Please provide a domain ID'
         end
 
-        @custom_domain = V2::CustomDomain.load(@domain_id, @cust.custid)
+        @custom_domain = Onetime::CustomDomain.load(@domain_id, @cust.custid)
         return if custom_domain&.exists?
 
         OT.ld "[UpdateDomainBrand] Error: Domain #{@domain_id} not found for customer #{@cust.custid}"

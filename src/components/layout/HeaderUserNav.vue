@@ -35,7 +35,7 @@
         id="userEmail"
         :class="{ 'animate-pulse': isNewFeature }"
         class="group-hover:text-gray-300">
-        {{ cust.custid }}
+        {{ cust.email }}
       </span>
     </router-link>
 

@@ -27,7 +27,7 @@ module V2
         end
 
         def process
-          if sess.authenticated?
+          if @sess['authenticated'] == true
             # If the user is already authenticated, we can associate the checkout
             # session with their account.
 
@@ -49,7 +49,7 @@ module V2
             # If the user is not authenticated, check if the email address is already
             # associated with an account. If not, we can create a new account for them
             # using the email address from the checkout session.
-            cust = V2::Customer.load(checkout_email)
+            cust = Onetime::Customer.load(checkout_email)
 
             if cust
               # If the email address is already associated with an account, we can
@@ -64,7 +64,7 @@ module V2
             else
               OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with new user #{checkout_email}"
 
-              cust          = V2::Customer.create(checkout_email)
+              cust          = Onetime::Customer.create!(checkout_email)
               cust.planid   = 'identity'
               cust.verified = 'true'
               cust.role     = 'customer'
@@ -74,17 +74,22 @@ module V2
               # Create a completely new session, new id, new everything (incl
               # cookie which the controllor will implicitly do above when it
               # resends the cookie with the new session id).
-              sess.replace!
+              OT.info "[FromStripePaymentLink:login-success] #{sess} #{cust.obscure_email} #{cust.role}"
 
-              OT.info "[FromStripePaymentLink:login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (new sessid)"
-
-              sess.apply_fields custid: cust.custid, authenticated: 'true'
-              sess.default_expiration = session_ttl if @stay # TODO
-              sess.save
+              # Set session authentication data
+              sess['external_id'] = cust.extid
+              sess['authenticated'] = true
+              sess['authenticated_at'] = Familia.now.to_i
 
             end
 
           end
+
+          success_data
+        end
+
+        def success_data
+          { checkout_session_id: checkout_session_id }
         end
       end
 
@@ -136,6 +141,10 @@ module V2
             OT.info "[webhook: #{event.type}] Unhandled event"
           end
 
+          success_data
+        end
+
+        def success_data
           response_status  = 200
           response_headers = { 'content-type' => 'application/json' }
           response_content = { welcome: 'thank you' }

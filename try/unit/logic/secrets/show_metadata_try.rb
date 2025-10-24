@@ -16,13 +16,16 @@ require_relative '../../../support/test_logic'
 
 OT.boot! :test, false
 
-@email = "tryouts+#{Time.now.to_i}@onetimesecret.com"
-@cust = Customer.create @email
+@email = "tryouts+#{Familia.now.to_i}@onetimesecret.com"
+@cust = Onetime::Customer.create!(email: @email)
 
 # Define a lambda to create and return a new metadata instance
 @create_metadata = lambda {
-  metadata = Metadata.create
-  secret = Secret.create(value: "This is a secret message")
+  metadata = Metadata.new
+  metadata.save
+  secret = Secret.new
+  secret.value = "This is a secret message"
+  secret.save
   metadata.secret_key = secret.key
   metadata.save
   metadata
@@ -36,25 +39,6 @@ class MockRequest
   attr_reader :env
   def initialize
     @env = {'ots.locale' => 'en'}
-  end
-end
-
-# Mock session object
-class MockSession
-  def authenticated?
-    true
-  end
-  def add_shrimp
-    "mock_shrimp"
-  end
-  def get_error_messages
-    []
-  end
-  def get_info_messages
-    []
-  end
-  def get_form_fields!
-    {}
   end
 end
 
@@ -246,8 +230,16 @@ logic.process
 #=> [false, nil]
 
 ## Correctly determines if secret is NOT a one-liner if the secret is readable
-metadata = Metadata.create
-secret = Secret.create value: "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
+metadata = Metadata.new
+metadata.save
+secret = Secret.new
+secret.value = "Line 1
+Line 2
+Line 3
+Line4
+Line5
+Line6"
+secret.save
 metadata.secret_key = secret.key
 metadata.save
 params = {
@@ -259,8 +251,16 @@ logic.process
 #=> [true, false]
 
 ## Correctly determines display lines for multi-line secrets
-metadata = Metadata.create
-secret = Secret.create value: "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
+metadata = Metadata.new
+metadata.save
+secret = Secret.new
+secret.value = "Line 1
+Line 2
+Line 3
+Line4
+Line5
+Line6"
+secret.save
 metadata.secret_key = secret.key
 metadata.save
 params = {

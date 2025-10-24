@@ -22,11 +22,11 @@ class TestSecretAction < V2::Logic::Secrets::BaseSecretAction
   end
 
   def cust
-    V2::Customer.anonymous
+    Onetime::Customer.anonymous
   end
 
   def plan
-    V2::Customer.anonymous.plan
+    Onetime::Customer.anonymous.plan
   end
 
   # Override the validate_passphrase method to use test config

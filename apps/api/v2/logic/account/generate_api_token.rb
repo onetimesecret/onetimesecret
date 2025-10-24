@@ -8,7 +8,8 @@ module V2::Logic
       end
 
       def raise_concerns
-        return unless !sess.authenticated? || cust.anonymous?
+        authenticated = @sess['authenticated'] == true
+        return unless !authenticated || cust.anonymous?
 
         raise_form_error "Sorry, we don't support that"
       end
@@ -16,7 +17,11 @@ module V2::Logic
       def process
         @greenlighted = true
         @apitoken     = cust.regenerate_apitoken
+
+        success_data
       end
+
+      private
 
       # The data returned from this method is passed back to the client.
       def success_data

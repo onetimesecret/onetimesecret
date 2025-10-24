@@ -28,6 +28,8 @@ module V2::Logic
         # TODO: Run in the database transaction
         perform_update
         @modified << field_name
+
+        success_data
       end
 
       def modified?(field_name)
@@ -57,7 +59,7 @@ module V2::Logic
       end
 
       def log_update
-        OT.info "[update-account] #{field_name.to_s.capitalize} updated cid/#{cust.custid} r/#{cust.role} ipa/#{sess.ipaddress}"
+        OT.info "[update-account] #{field_name.to_s.capitalize} updated cid/#{cust.objid} r/#{cust.role}"
       end
     end
   end

@@ -19,7 +19,7 @@ AllCops:
   MaxFilesInCache: 1000
   TargetRubyVersion: 3.4
   Exclude:
-    - 'migrate/**/*'
+    - 'migrations/**/*'
     # The V1 API is in maintenance mode. No changes allowed 🚭
     - 'apps/api/v1/**/*'
     - 'bin/bundle'
@@ -142,11 +142,7 @@ Style/BlockDelimiters:
   Enabled: true
 
 Naming/PredicateMethod:
-  Enabled: true
-  Mode: 'conservative'
-  AllowedMethods:
-    - validate!
-    - migrate
+  Enabled: false
 
 # We use class instance variables quite a bit, mostly for readonly values set
 # at boot time. Except for our models with have redis-rb Redis instances

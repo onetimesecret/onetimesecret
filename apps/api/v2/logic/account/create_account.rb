@@ -1,17 +1,18 @@
 module V2::Logic
   module Account
     class CreateAccount < V2::Logic::Base
-      attr_reader :cust, :autoverify, :customer_role, :planid, :custid, :password, :skill
+      attr_reader :cust, :autoverify, :customer_role, :planid, :email, :password, :skill
       attr_accessor :token
 
       def process_params
-        OT.ld "[CreateAccount#process_params] params: #{params.inspect}"
+        OT.ld "[CreateAccount#process_params] param keys: #{params.keys.sort}"
         @planid = params[:planid].to_s
-        @custid = params[:u].to_s.downcase.strip
 
-        @password = self.class.normalize_password(params[:p])
+        # NOTE: The parameter names should match what rodauth uses.
+        @email    = params[:login].to_s.downcase.strip
+        @password = self.class.normalize_password(params[:password])
 
-        autoverify_setting = OT.conf&.dig('site', 'authentication', 'autoverify')
+        autoverify_setting = site.dig('authentication', 'autoverify')
         @autoverify        = autoverify_setting.to_s.eql?('true') || false
 
         # This is a hidden field, so it should be empty. If it has a value, it's
@@ -21,11 +22,11 @@ module V2::Logic
       end
 
       def raise_concerns
-        raise OT::FormError, "You're already signed up" if sess.authenticated?
+        raise OT::FormError, "You're already signed up" if @strategy_result.authenticated?
 
-        raise_form_error 'Please try another email address' if V2::Customer.exists?(custid)
-        raise_form_error 'Is that a valid email address?' unless valid_email?(custid)
-        raise_form_error 'Password is too short' unless password.size >= 6
+        raise_form_error 'Please try another email address', field: 'login', error_type: 'already_exists' if Onetime::Customer.email_exists?(email)
+        raise_form_error 'Is that a valid email address?', field: 'login', error_type: 'invalid' unless valid_email?(email)
+        raise_form_error 'Password is too short', field: 'password', error_type: 'too_short' unless password.size >= 6
 
         @planid ||= 'basic'
 
@@ -36,11 +37,9 @@ module V2::Logic
       end
 
       def process
-        @cust = V2::Customer.create custid
+        @cust = Onetime::Customer.create!(email: email)
 
         cust.update_passphrase password
-        sess.custid = cust.custid
-        sess.save
 
         colonels       = OT.conf.dig('site', 'authentication', 'colonels')
         @customer_role = if colonels&.member?(cust.custid)
@@ -50,27 +49,37 @@ module V2::Logic
                          end
 
         cust.planid    = planid
-        cust.verified  = @autoverify.to_s
-        cust.role      = @customer_role.to_s
+        cust.verified  = @autoverify
+        cust.role      = @customer_role
         cust.save
 
-        OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{planid} #{sess.short_identifier}"
+        session_id = @strategy_result.session[:id] || 'unknown'
+        ip_address = @strategy_result.metadata[:ip] || 'unknown'
+        OT.info "[new-customer] #{cust.objid} #{cust.role} #{ip_address} #{planid} #{session_id}"
 
         success_message = if autoverify
-                            'Account created.'
+                            'Account created. Please sign in.'
                           else
-                            send_verification_email
+                            # TODO: Disable mail verification temporarily on feature/1787-dual-auth-modes branch
+                            # send_verification_email
 
+                            # NOTE: Intentionally left as symbols for i18n keys
                             "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
                           end
 
-        sess.set_success_message success_message
+        @sess['success_message'] = success_message
+
+        success_data
+      end
+
+      def success_data
+        { custid: cust.custid, email: cust.email, role: customer_role }
       end
 
       private
 
       def form_fields
-        { planid: planid, custid: custid }
+        { planid: planid, email: email }
       end
     end
   end

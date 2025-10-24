@@ -56,6 +56,10 @@ module Core
           }
         end
 
+        # Feature flags for authentication methods
+        # Only available in advanced mode (Rodauth)
+        output['features'] = build_feature_flags
+
         output
       end
 
@@ -70,6 +74,7 @@ module Core
             'diagnostics' => nil,
             'domains' => nil,
             'domains_enabled' => nil,
+            'features' => nil,
             'frontend_development' => nil,
             'frontend_host' => nil,
             'incoming_recipient' => nil,
@@ -80,6 +85,31 @@ module Core
             'site_host' => nil,
             'ui' => nil,
           }
+        end
+
+        # Build feature flags for authentication methods
+        #
+        # Feature flags indicate which authentication methods are available
+        # based on the current authentication mode (basic vs advanced).
+        #
+        # @return [Hash] Feature flags for frontend consumption
+        def build_feature_flags
+          features = {
+            'magic_links' => false,
+            'email_auth' => false,
+            'webauthn' => false,
+          }
+
+          # Passwordless features only available in advanced mode
+          if Onetime.auth_config.advanced_enabled?
+            # Check if email_auth is in the advanced features list
+            advanced_features = Onetime.auth_config.advanced.fetch('features', [])
+            features['magic_links'] = advanced_features.include?('email_auth')
+            features['email_auth'] = advanced_features.include?('email_auth')
+            features['webauthn'] = advanced_features.include?('webauthn')
+          end
+
+          features
         end
       end
 

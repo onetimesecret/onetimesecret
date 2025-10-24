@@ -9,13 +9,15 @@ module V2::Logic
 
       def process_params
         @key    = params[:key].to_s
-        @secret = V2::Secret.load key
+        @secret = Onetime::Secret.load key
       end
 
       def raise_concerns; end
 
       def process
         @current_expiration = secret.current_expiration unless secret.nil?
+
+        success_data
       end
 
       def success_data
