@@ -19,6 +19,7 @@ module Core
 
         output['authenticated'] = view_vars['authenticated']
         output['awaiting_mfa']  = view_vars['awaiting_mfa'] || false
+        output['mfa_recovery_completed'] = view_vars['mfa_recovery_completed'] || false
         cust                    = view_vars['cust'] || Onetime::Customer.anonymous
 
         output['cust'] = cust.safe_dump
@@ -46,6 +47,7 @@ module Core
           {
             'authenticated' => nil,
             'awaiting_mfa' => false,
+            'mfa_recovery_completed' => false,
             'custid' => nil,
             'cust' => nil,
             'email' => nil,
