@@ -20,6 +20,8 @@ module V2::Logic
 
         refresh_vhost
         refresh_txt_record_status
+
+        success_data
       end
 
       def refresh_vhost

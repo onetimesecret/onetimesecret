@@ -22,6 +22,8 @@ module V2::Logic
       def process
         OT.ld "[GetDomainBrand] Processing #{@custom_domain.display_domain}"
         @display_domain = @custom_domain.display_domain
+
+        success_data
       end
 
       def success_data

@@ -28,6 +28,8 @@ module V2::Logic
         # TODO: Run in the database transaction
         perform_update
         @modified << field_name
+
+        success_data
       end
 
       def modified?(field_name)

@@ -24,6 +24,12 @@ module V2::Logic
           customer_id: @custid,
           session_id: sess&.id,
           ip: @strategy_result&.metadata&.dig(:ip)
+
+        success_data
+      end
+
+      def success_data
+        {}
       end
     end
   end

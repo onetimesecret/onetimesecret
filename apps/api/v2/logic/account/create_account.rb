@@ -68,6 +68,12 @@ module V2::Logic
                           end
 
         @sess['success_message'] = success_message
+
+        success_data
+      end
+
+      def success_data
+        { custid: cust.custid, email: cust.email, role: customer_role }
       end
 
       private

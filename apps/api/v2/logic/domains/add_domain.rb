@@ -44,6 +44,8 @@ module V2::Logic
           OT.le format('[AddDomain.create_vhost error] %s %s %s', @cust.custid, @display_domain, ex)
           # Continue processing despite vhost error
         end
+
+        success_data
       end
 
       def create_vhost

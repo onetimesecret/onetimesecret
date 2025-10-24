@@ -43,6 +43,8 @@ module V2
         end
 
         Onetime::Feedback.add @msg
+
+        success_data
       end
 
       def format_feedback_message

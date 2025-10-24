@@ -32,6 +32,8 @@ module V2
           process_statistics
 
           @redis_info = redis_info
+
+          success_data
         end
 
         def process_feedback

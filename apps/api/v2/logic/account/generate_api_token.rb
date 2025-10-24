@@ -17,7 +17,11 @@ module V2::Logic
       def process
         @greenlighted = true
         @apitoken     = cust.regenerate_apitoken
+
+        success_data
       end
+
+      private
 
       # The data returned from this method is passed back to the client.
       def success_data

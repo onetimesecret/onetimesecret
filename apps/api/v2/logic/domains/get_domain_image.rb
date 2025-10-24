@@ -33,6 +33,8 @@ module V2::Logic
         OT.ld "[#{self.class}] Logo for #{custom_domain.display_domain}"
 
         image[:content_type] ||= 'application/octet-stream' # ¯\_(ツ)_/¯
+
+        success_data
       end
 
       def success_data

@@ -84,6 +84,12 @@ module V2
             end
 
           end
+
+          success_data
+        end
+
+        def success_data
+          { checkout_session_id: checkout_session_id }
         end
       end
 
@@ -135,6 +141,10 @@ module V2
             OT.info "[webhook: #{event.type}] Unhandled event"
           end
 
+          success_data
+        end
+
+        def success_data
           response_status  = 200
           response_headers = { 'content-type' => 'application/json' }
           response_content = { welcome: 'thank you' }

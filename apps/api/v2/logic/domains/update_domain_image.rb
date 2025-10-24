@@ -101,6 +101,8 @@ module V2::Logic
         _image_field['width']        = width
         _image_field['ratio']        = ratio
         _image_field['bytes']        = @bytes
+
+        success_data
       end
 
       def success_data

@@ -167,6 +167,8 @@ module V2::Logic
         # We mark the metadata record viewed so that we can support showing the
         # secret link on the metadata page, just the one time.
         metadata.viewed! if metadata.state?(:new)
+
+        success_data
       end
 
       def one_liner

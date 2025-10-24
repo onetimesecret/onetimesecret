@@ -34,6 +34,8 @@ module V2::Logic
       def process
         _image_field.delete! # delete the entire db hash key
         @custom_domain.save
+
+        success_data
       end
 
       def success_data

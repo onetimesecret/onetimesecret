@@ -73,8 +73,12 @@ module V2
         end
       end
 
+      def process
+        raise NotImplementedError, 'process not implemented'
+      end
+
       def success_data
-        raise NotImplementedError
+        raise NotImplementedError, 'success_data not implemented'
       end
 
       protected

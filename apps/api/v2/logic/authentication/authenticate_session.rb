@@ -59,7 +59,8 @@ module V2::Logic
           send_verification_email nil
 
           msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."
-          return set_info_message(msg)
+          set_info_message(msg)
+          return success_data
         end
 
         @greenlighted = true
@@ -85,6 +86,12 @@ module V2::Logic
           ip: @strategy_result.metadata[:ip],
           stay: stay,
           session_ttl: session_ttl
+
+        success_data
+      end
+
+      def success_data
+        {success: success?, objid: cust.objid, role: cust.role}
       end
 
       def success?

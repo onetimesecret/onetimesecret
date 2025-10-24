@@ -56,6 +56,16 @@ module V2
           else
             raise_form_error 'Could not store your secret'
           end
+
+          success_data
+        end
+
+        def success_data
+          {
+            metadata_key: metadata.key,
+            secret_key: secret.key,
+            ticket: ticketno
+          }
         end
       end
     end

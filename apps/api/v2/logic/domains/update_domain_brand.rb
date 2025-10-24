@@ -77,6 +77,8 @@ module V2::Logic
 
         custom_domain.updated = Familia.now.to_i
         custom_domain.save
+
+        success_data
       end
 
       # Validate URL format
