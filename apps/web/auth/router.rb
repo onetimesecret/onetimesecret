@@ -14,6 +14,13 @@ require_relative 'routes/admin'
 require_relative 'routes/health'
 require_relative 'routes/validation'
 
+# Operations
+require_relative 'operations/sync_session'
+require_relative 'operations/update_password_metadata'
+require_relative 'operations/create_customer'
+require_relative 'operations/delete_customer'
+require_relative 'operations/verify_customer'
+
 module Auth
   # This is the Roda application, which handles all routing for the auth service.
   class Router < Roda
