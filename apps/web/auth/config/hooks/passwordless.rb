@@ -8,7 +8,7 @@
 # link (also known as "Magic Link" authentication). Users can log in without
 # entering a password by clicking a unique link sent to their email.
 #
-# USER FLOW:
+# USER FLOW (WITHOUT MFA):
 #
 # 1. USER REQUESTS MAGIC LINK
 #    - User visits login page and enters email address
@@ -20,20 +20,47 @@
 # 2. USER RECEIVES EMAIL
 #    - User opens email client
 #    - Sees "Log in to OneTime" email with prominent button/link
-#    - Link contains time-limited authentication token (typically 15-30 min)
+#    - Link contains time-limited authentication token (default: 15 min)
 #
 # 3. USER CLICKS MAGIC LINK
 #    - Browser opens: GET /email-auth?key=TOKEN
 #    - before_email_auth_route hook fires to validate token presence
 #    - Rodauth validates token exists and hasn't expired
-#    - If valid: User automatically logged in
+#    - If valid: User authenticated via email verification
 #    - If invalid/expired: Error message, user can request new link
 #
 # 4. AUTHENTICATED SESSION
-#    - Session established with full authentication
+#    - Session established with email authentication
 #    - Token consumed (one-time use only)
 #    - User redirected to dashboard or intended destination
 #    - Standard after_login hooks fire (session sync, logging)
+#
+# USER FLOW (WITH MFA ENABLED):
+#
+# Steps 1-3 are identical to above, then:
+#
+# 4. MFA REQUIRED
+#    - After successful email verification (step 3)
+#    - after_login hook detects user has MFA configured
+#    - Session marked with awaiting_mfa = true
+#    - User redirected to MFA verification page
+#    - Frontend shows partial authentication state
+#
+# 5. USER COMPLETES MFA
+#    - User enters TOTP code or uses WebAuthn device
+#    - POST /auth/otp-auth or POST /auth/webauthn-auth
+#    - If valid: session[:awaiting_mfa] = false
+#    - User now fully authenticated
+#
+# 6. FULLY AUTHENTICATED SESSION
+#    - Multi-factor authentication complete
+#    - User has proven: email access + device possession
+#    - Full access to account granted
+#
+# DEFENSE IN DEPTH:
+# When MFA is enabled, magic link provides the first factor (email ownership)
+# but the user must still complete the second factor (TOTP/WebAuthn).
+# This protects against compromised email accounts
 #
 # SECURITY CONSIDERATIONS:
 # - Tokens are single-use and time-limited

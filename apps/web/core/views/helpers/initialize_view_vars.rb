@@ -84,6 +84,13 @@ module Core
         shrimp        = sess&.[]('_csrf_token')
 
         authenticated = strategy_result.authenticated? || false # never nil
+        awaiting_mfa  = sess&.[]('awaiting_mfa') || sess&.[](:'awaiting_mfa') || false
+
+        # When awaiting MFA, user isn't in strategy_result but session has their info
+        # Load customer from session to show user menu during MFA flow
+        if awaiting_mfa && cust.anonymous? && sess&.[]('external_id')
+          cust = Onetime::Customer.find_by_extid(sess['external_id']) || cust
+        end
 
         # Extract values from rack request object
         nonce           = req.env.fetch('onetime.nonce', nil)
@@ -110,6 +117,7 @@ module Core
         # Return all view variables as a hash
         {
           'authenticated' => authenticated,
+          'awaiting_mfa' => awaiting_mfa,
           'baseuri' => baseuri,
           'cust' => cust,
           'description' => description,

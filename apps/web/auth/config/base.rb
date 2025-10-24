@@ -47,5 +47,7 @@ module Auth::Config::Base
         hmac_secret_value = 'dev-hmac-secret-change-in-prod'
       end
     end
+
+    hmac_secret_value
   end
 end
