@@ -31,6 +31,8 @@ module V2::Logic
         @has_items              = records.any?
         records.sort! { |a, b| b[:updated] <=> a[:updated] }
         @received, @notreceived = *records.partition { |m| m[:is_destroyed] }
+
+        success_data
       end
 
       def success_data

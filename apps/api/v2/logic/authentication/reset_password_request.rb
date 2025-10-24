@@ -8,6 +8,7 @@ module V2::Logic
 
     class ResetPasswordRequest < V2::Logic::Base
       include Onetime::Logging
+
       attr_reader :objid
       attr_accessor :token
 
@@ -16,15 +17,15 @@ module V2::Logic
       end
 
       def raise_concerns
-    raise_form_error 'Not a valid email address', field: 'email', error_type: 'invalid' unless valid_email?(@objid)
-    raise_form_error 'No account found', field: 'email', error_type: 'not_found' unless Onetime::Customer.exists?(@objid)
+        raise_form_error 'Not a valid email address', field: 'email', error_type: 'invalid' unless valid_email?(@objid)
+        raise_form_error 'No account found', field: 'email', error_type: 'not_found' unless Onetime::Customer.exists?(@objid)
       end
 
       def process
-    cust = Onetime::Customer.load @objid
+        cust = Onetime::Customer.load @objid
 
         if cust.pending?
-          auth_logger.info "Resending verification email for pending customer",
+          auth_logger.info 'Resending verification email for pending customer',
             customer_id: cust.objid,
             email: cust.obscure_email,
             status: :pending
@@ -43,7 +44,7 @@ module V2::Logic
 
         view = OT::Mail::PasswordRequest.new cust, locale, secret
 
-        auth_logger.debug "Delivering password reset email",
+        auth_logger.debug 'Delivering password reset email',
           customer_id: cust.objid,
           email: cust.obscure_email,
           secret_key: secret.key,
@@ -53,7 +54,7 @@ module V2::Logic
           view.deliver_email token
         rescue StandardError => ex
           errmsg = "Couldn't send the notification email. Let know below."
-          auth_logger.error "Password reset email delivery failed",
+          auth_logger.error 'Password reset email delivery failed',
             customer_id: cust.objid,
             email: cust.obscure_email,
             error: ex.message,
@@ -61,7 +62,7 @@ module V2::Logic
 
           set_error_message(errmsg)
         else
-          auth_logger.info "Password reset email sent",
+          auth_logger.info 'Password reset email sent',
             customer_id: cust.objid,
             email: cust.obscure_email,
             session_id: sess&.id,

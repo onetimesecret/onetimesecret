@@ -80,6 +80,8 @@ module V2::Logic
         @one_liner      = one_liner
 
         secret.viewed! if secret.state?(:new)
+
+        success_data
       end
 
       def success_data

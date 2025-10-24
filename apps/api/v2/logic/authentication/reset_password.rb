@@ -80,6 +80,8 @@ module V2::Logic
             secret_key: secret&.key,
             ip: @strategy_result&.metadata&.dig(:ip)
         end
+
+        success?
       end
 
       def success_data

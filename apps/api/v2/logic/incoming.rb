@@ -56,6 +56,8 @@ module V2
           else
             raise_form_error 'Could not store your secret'
           end
+
+          success_data
         end
       end
     end

@@ -100,6 +100,8 @@ module V2::Logic
             end
             @is_truncated   = secret.truncated?
           end
+
+          success_data
         end
 
         # Show the secret if it exists and hasn't been seen yet.

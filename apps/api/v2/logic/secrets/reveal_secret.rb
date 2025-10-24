@@ -134,6 +134,8 @@ module V2::Logic
         @has_passphrase = @secret.has_passphrase?
         @display_lines  = calculate_display_lines
         @one_liner      = one_liner
+
+        success_data
       end
 
       def success_data

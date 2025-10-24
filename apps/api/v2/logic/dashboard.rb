@@ -10,7 +10,7 @@ module V2
 
         def raise_concerns; end
 
-        def process; end
+        def process = success_data
       end
 
       # FYI: this class is used by v1 API
@@ -25,7 +25,7 @@ module V2
           raise V2::MissingSecret if metadata.nil?
         end
 
-        def process; end
+        def process = success_data
       end
     end
   end

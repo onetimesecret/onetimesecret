@@ -68,6 +68,8 @@ module V2::Logic
                           end
 
         @sess['success_message'] = success_message
+
+        success_data
       end
 
       private

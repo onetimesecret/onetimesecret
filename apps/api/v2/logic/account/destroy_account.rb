@@ -63,6 +63,8 @@ module V2::Logic
         # (i.e. the homepage), they'll see it and remember what they did.
         sess.clear
         set_info_message('Account deleted')
+
+        success_data
       end
 
       def modified?(guess)

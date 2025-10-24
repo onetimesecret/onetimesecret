@@ -28,6 +28,8 @@ module V2::Logic
         # it's all or nothing. It does not delete the external approximated
         # vhost record.
         @custom_domain.destroy!(@cust)
+
+        success_data
       end
 
       def delete_vhost

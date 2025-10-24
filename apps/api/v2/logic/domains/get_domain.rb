@@ -27,6 +27,8 @@ module V2::Logic
         OT.ld "[GetDomain] Processing #{@custom_domain.display_domain}"
         @greenlighted   = true
         @display_domain = @custom_domain.display_domain
+
+        success_data
       end
 
       def success_data

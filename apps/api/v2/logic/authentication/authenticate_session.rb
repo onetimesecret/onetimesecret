@@ -85,6 +85,8 @@ module V2::Logic
           ip: @strategy_result.metadata[:ip],
           stay: stay,
           session_ttl: session_ttl
+
+        {success: success?, objid: cust.objid, role: cust.role}
       end
 
       def success?

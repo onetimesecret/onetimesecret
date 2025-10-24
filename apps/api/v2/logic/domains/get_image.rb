@@ -56,6 +56,8 @@ module V2::Logic
         # Decode the base64 content back to binary
         @image_data     = Base64.strict_decode64(encoded_content)
         @content_length = @image_data&.bytesize.to_s || '0'
+
+        @image_data
       end
 
       # e.g. custom_domain.logo

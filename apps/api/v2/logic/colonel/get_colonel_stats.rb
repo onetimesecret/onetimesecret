@@ -17,6 +17,8 @@ module V2
 
         def process
           process_statistics
+
+          success_data
         end
 
         def process_statistics

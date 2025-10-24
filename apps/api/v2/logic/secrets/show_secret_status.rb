@@ -16,6 +16,8 @@ module V2::Logic
 
       def process
         @current_expiration = secret.current_expiration unless secret.nil?
+
+        success_data
       end
 
       def success_data

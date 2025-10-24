@@ -46,6 +46,8 @@ module V2::Logic
         end
 
         cust.save
+
+        success_data
       end
 
       def show_stripe_section?

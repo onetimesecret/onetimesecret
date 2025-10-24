@@ -69,6 +69,8 @@ module V2::Logic
           raise_form_error message
 
         end
+
+        success_data
       end
 
       def success_data
