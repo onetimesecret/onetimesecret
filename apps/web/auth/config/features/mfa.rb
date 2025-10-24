@@ -38,6 +38,17 @@ module Auth::Config::Features
       # since the user must already be authenticated to access these routes
       auth.two_factor_modifications_require_password? false
 
+      # OTP Lockout Configuration
+      # Default is 5 attempts with permanent lockout - too harsh for production
+      # Industry standard: 10-20 attempts before lockout, with time-based reset
+      #
+      # We use a higher threshold because:
+      # - Users make legitimate mistakes (typos, wrong app, clock sync)
+      # - Recovery codes provide the primary escape mechanism
+      # - Our MFA recovery flow provides email-based reset
+      # - Too-strict lockout creates support burden
+      auth.otp_auth_failures_limit 10  # Up from default 5
+
       # Recovery codes configuration
       auth.recovery_codes_column :code
       auth.auto_add_recovery_codes? true  # Automatically generate recovery codes

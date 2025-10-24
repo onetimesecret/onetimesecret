@@ -14,7 +14,7 @@
 #    - User visits login page and enters email address
 #    - Clicks "Send Magic Link" button
 #    - System generates unique token and stores in database
-#    - Email sent with link: https://app.com/email-auth?key=TOKEN
+#    - Email sent with link: https://example.com/email-auth?key=TOKEN
 #    - after_email_auth_request hook fires
 #
 # 2. USER RECEIVES EMAIL
