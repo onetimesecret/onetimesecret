@@ -1,4 +1,49 @@
 # apps/web/auth/config/hooks/mfa.rb
+#
+# ==============================================================================
+# USER JOURNEY: MULTI-FACTOR AUTHENTICATION (MFA) SETUP AND VERIFICATION
+# ==============================================================================
+#
+# This file configures Rodauth hooks that intercept and customize the MFA flow
+# for JSON API requests. The user's journey through MFA setup follows this path:
+#
+# 1. USER INITIATES MFA SETUP (before_otp_setup_route - Step 1)
+#    - User requests POST /otp-setup without an OTP code
+#    - Server generates a new TOTP secret (base32 encoded, 16 chars)
+#    - If HMAC is enabled, server creates HMAC-secured version of secret
+#    - Both secrets stored in session: :otp_setup_raw and :otp_setup_hmac
+#    - Response includes:
+#      * raw secret (for manual entry)
+#      * provisioning URI (otpauth://totp/...)
+#      * QR code SVG (visual representation)
+#      * HMAC parameters (if enabled)
+#    - User receives QR code and secret to configure authenticator app
+#
+# 2. USER SCANS QR CODE
+#    - User opens authenticator app (Google Authenticator, Authy, etc.)
+#    - Scans QR code or manually enters the raw secret
+#    - Authenticator begins generating 6-digit codes every 30 seconds
+#
+# 3. USER VERIFIES SETUP (before_otp_setup_route - Step 2)
+#    - User submits POST /otp-setup WITH an OTP code from authenticator
+#    - Server validates HMAC parameters against session (if enabled)
+#    - Server retrieves raw secret from session
+#    - Rodauth validates OTP code against raw secret using ROTP library
+#    - If valid, Rodauth stores HMAC secret to database
+#    - Flow continues to after_otp_setup hook
+#
+# 4. CLEANUP (after_otp_setup)
+#    - Server removes temporary session data
+#    - MFA setup complete - user's account now requires 2FA for login
+#
+# 5. FUTURE LOGINS (after_otp_auth - currently disabled)
+#    - User provides username/password → partial authentication
+#    - System prompts for OTP code
+#    - User enters current 6-digit code from authenticator
+#    - Server validates code against stored HMAC secret
+#    - On success, completes session sync and grants full access
+#
+# ==============================================================================
 
 module Auth::Config::Hooks
 
@@ -16,12 +61,25 @@ module Auth::Config::Hooks
   module MFA
     def self.configure(auth)
 
+      # ========================================================================
+      # HOOK: After Successful OTP Authentication (Currently Disabled)
+      # ========================================================================
       #
-      # Hook: After successful OTP authentication
+      # USER JOURNEY CONTEXT:
+      # This hook would fire after a user successfully enters their 6-digit
+      # OTP code during login. It's the final step in the authentication flow:
       #
-      # This hook is triggered after successful two-factor (OTP) authentication.
-      # Complete the full session sync that was deferred during login and mark
-      # as fully authenticated.
+      # Login Flow with MFA:
+      # 1. User submits username/password → basic auth succeeds
+      # 2. System detects MFA enabled → sets session['mfa_pending'] = true
+      # 3. User redirected to OTP verification page
+      # 4. User enters 6-digit code from authenticator app
+      # 5. **THIS HOOK FIRES** → completes session sync and grants full access
+      #
+      # Purpose:
+      # - Completes deferred session synchronization from initial login
+      # - Removes 'mfa_pending' flag from session
+      # - Marks user as fully authenticated with all permissions
       #
       # auth.after_otp_auth do
       #   OT.info "[auth] OTP authentication successful for: #{account[:email]}"
@@ -38,63 +96,116 @@ module Auth::Config::Hooks
       #   end
       # end
 
-      # Customize the route handling to support JSON API
+      # ========================================================================
+      # HOOK: Before OTP Setup Route (Handles Both Setup Steps)
+      # ========================================================================
+      #
+      # USER JOURNEY CONTEXT:
+      # This single hook handles BOTH steps of MFA setup for JSON API clients.
+      # It determines which step based on presence of OTP code in request.
+      #
+      # The hook customizes Rodauth's default HTML form-based flow to work
+      # with JSON API requests from the Vue frontend.
+      #
       auth.before_otp_setup_route do
         if json_request?
-          # Check if this is step 1 (no OTP code) or step 2 (with OTP code)
+          # Determine which step based on presence of OTP code parameter
+          # param_or_nil(otp_auth_param) checks for the "otp" field
           if param_or_nil(otp_auth_param).nil?
-            # Step 1: Initial setup request - generate secret and return setup data
+            # ================================================================
+            # STEP 1: INITIAL SETUP REQUEST
+            # ================================================================
+            #
+            # USER ACTION: User clicks "Enable 2FA" button in settings
+            # REQUEST: POST /otp-setup (no OTP code in body)
+            #
+            # WHAT HAPPENS:
+            # 1. Generate cryptographic secret for TOTP algorithm
+            # 2. Store secrets in session for verification in step 2
+            # 3. Create QR code containing secret and account info
+            # 4. Return setup data to frontend for display
+            #
+            # USER SEES: QR code, manual entry code, instructions
 
-            # Check session for existing setup in progress
+            # Check for existing setup in progress (handles page refresh)
             raw_secret = session[:otp_setup_raw]
 
-            # Generate new secret if none in session
+            # Generate new secret if none exists in session
             unless raw_secret
+              # Create base32-encoded secret (16 chars, ~80 bits entropy)
+              # Example: "JBSWY3DPEHPK3PXP"
               raw_secret = otp_new_secret
               session[:otp_setup_raw] = raw_secret
 
-              # Generate HMAC version if HMAC is enabled
+              # Security layer: Generate HMAC version if enabled
+              # HMAC prevents secret tampering and provides additional validation
               if otp_keys_use_hmac?
                 hmac_secret = otp_hmac_secret(raw_secret)
                 session[:otp_setup_hmac] = hmac_secret
               end
             end
 
-            # Set temporary key for Rodauth validation
-            # This must be the raw secret, as that's what ROTP validates against
+            # Configure Rodauth's internal OTP validation
+            # CRITICAL: Must use raw secret - ROTP validates against this
             otp_tmp_key(raw_secret)
 
-            # Build response with setup data
+            # Prepare JSON response for frontend
             response.status = 200
             response.headers['Content-Type'] = 'application/json'
 
-            # Generate provisioning URI and QR code with raw secret
-            # The authenticator needs the raw secret to generate codes
+            # Generate data for authenticator app configuration:
+            # 1. Provisioning URI: otpauth://totp/OneTime:user@email.com?secret=...
+            #    Contains secret, issuer, account name for one-click setup
+            # 2. QR Code SVG: Visual encoding of provisioning URI
+            #    User scans this with authenticator app camera
             prov_uri = otp_provisioning_uri
             qr_code_svg = otp_qr_code
 
+            # Build response payload
             result = {
-              secret: raw_secret,
-              provisioning_uri: prov_uri,
-              qr_code: qr_code_svg
+              secret: raw_secret,              # For manual entry
+              provisioning_uri: prov_uri,      # For authenticator parsing
+              qr_code: qr_code_svg            # SVG for visual display
             }
 
-            # Include HMAC parameters if HMAC is enabled
+            # Include HMAC security parameters if enabled
+            # These will be validated in step 2 to ensure session integrity
             if otp_keys_use_hmac?
               result[otp_setup_param] = session[:otp_setup_hmac]
               result[otp_setup_raw_param] = raw_secret
             end
 
+            # Send response and stop Rodauth's default processing
             response.write(result.to_json)
-            request.halt
+            request.halt  # Prevents Rodauth from rendering HTML form
           else
-            # Step 2: Verification request - validate HMAC parameters if enabled
+            # ================================================================
+            # STEP 2: VERIFICATION REQUEST
+            # ================================================================
+            #
+            # USER ACTION: User enters 6-digit code from authenticator app
+            # REQUEST: POST /otp-setup with body: { "otp": "123456", ... }
+            #
+            # WHAT HAPPENS:
+            # 1. Validate HMAC parameters match session (prevents tampering)
+            # 2. Retrieve raw secret from session
+            # 3. Rodauth validates OTP code using ROTP library
+            # 4. If valid, Rodauth stores HMAC secret to database
+            # 5. Cleanup hook removes temporary session data
+            #
+            # VALIDATION FLOW:
+            # - ROTP generates expected code from raw secret + current time
+            # - Compares user's code with expected code (allows ±1 time step)
+            # - Success: MFA enabled, user sees confirmation
+            # - Failure: Error message, user can retry
+            #
             if otp_keys_use_hmac? && session[:otp_setup_raw]
-              # Ensure the client sent back the correct HMAC values
+              # Security check: Validate client sent correct HMAC parameters
+              # This ensures the request matches the session that initiated setup
               provided_raw = param_or_nil(otp_setup_raw_param)
               provided_hmac = param_or_nil(otp_setup_param)
 
-              # Debug logging
+              # Log validation attempt for debugging
               Onetime.auth_logger.debug '[MFA] OTP verification attempt',
                 session_raw: session[:otp_setup_raw],
                 session_hmac: session[:otp_setup_hmac],
@@ -102,15 +213,17 @@ module Auth::Config::Hooks
                 provided_hmac: provided_hmac,
                 params_match: (provided_raw == session[:otp_setup_raw] && provided_hmac == session[:otp_setup_hmac])
 
-              # If parameters are missing or don't match session, fail
+              # Verify HMAC parameters match session
+              # If mismatch, fall through to Rodauth's error handling
               unless provided_raw == session[:otp_setup_raw] &&
                       provided_hmac == session[:otp_setup_hmac]
-                # Let Rodauth's normal error handling take over
-                # This will generate proper error response
+                # Rodauth will handle error response generation
+                # User will see "Invalid setup parameters" or similar
               end
 
-              # Set the temporary key for Rodauth's validation
-              # CRITICAL: This must be the raw secret for OTP validation
+              # Configure Rodauth for OTP validation
+              # CRITICAL: Use raw secret - ROTP library validates against this
+              # The HMAC version will be stored to database after validation
               otp_tmp_key(session[:otp_setup_raw])
 
               Onetime.auth_logger.debug '[MFA] Set otp_tmp_key for validation',
@@ -121,7 +234,25 @@ module Auth::Config::Hooks
         end
       end
 
-      # Clear the setup session data after successful setup
+      # ========================================================================
+      # HOOK: After OTP Setup Complete
+      # ========================================================================
+      #
+      # USER JOURNEY CONTEXT:
+      # This hook fires immediately after Rodauth successfully validates the
+      # OTP code and stores the HMAC secret to the database.
+      #
+      # At this point:
+      # - User's OTP code was correct (matched ROTP validation)
+      # - HMAC secret has been written to accounts.otp_key column
+      # - User's account is now MFA-enabled
+      #
+      # Purpose: Clean up temporary session data used during setup
+      # - Remove raw secret (no longer needed, HMAC version in DB)
+      # - Remove HMAC secret (no longer needed, already persisted)
+      #
+      # USER EXPERIENCE: User sees "2FA enabled successfully" message
+      #
       auth.after_otp_setup do
         session.delete(:otp_setup_raw)
         session.delete(:otp_setup_hmac)
