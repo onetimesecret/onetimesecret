@@ -7,7 +7,8 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
-  cust: Customer;
+  cust: Customer | null;
+  email?: string;  // Used when awaiting MFA (no customer object yet)
   colonel?: boolean;
   showUpgrade?: boolean;
   awaitingMfa?: boolean;
@@ -18,9 +19,12 @@ const { t } = useI18n();
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
 
+// Get email from either customer object or direct prop (when awaiting MFA)
+const userEmail = computed(() => props.cust?.email || props.email || '');
+
 // Truncate email for display
 const truncatedEmail = computed(() => {
-  const email = props.cust?.email;
+  const email = userEmail.value;
   if (!email) return 'User';
   if (email.length <= 20) return email;
   const [local, domain] = email.split('@');
@@ -29,7 +33,7 @@ const truncatedEmail = computed(() => {
 
 // Get user initials for avatar
 const userInitials = computed(() => {
-  const email = props.cust?.email;
+  const email = userEmail.value;
   if (!email) return '?';
   return email.charAt(0).toUpperCase();
 });
@@ -167,7 +171,7 @@ onUnmounted(() => {
           <!-- Complete MFA (when awaiting) -->
           <router-link
             v-if="awaitingMfa"
-            to="/auth/mfa-verify"
+            to="/mfa-verify"
             class="group flex items-center gap-3 px-4 py-2
               text-sm font-semibold text-amber-600 transition-colors
               hover:bg-amber-50 dark:text-amber-400
@@ -188,6 +192,9 @@ onUnmounted(() => {
           <div
             v-if="awaitingMfa"
             class="my-1 border-t border-gray-200 dark:border-gray-700"></div>
+
+          <!-- Regular menu items (hidden when awaiting MFA) -->
+          <template v-if="!awaitingMfa">
           <!-- Account Settings -->
           <router-link
             to="/account"
@@ -311,8 +318,9 @@ onUnmounted(() => {
           <div
             v-if="showUpgrade || colonel"
             class="my-1 border-t border-gray-200 dark:border-gray-700"></div>
+          </template>
 
-          <!-- Logout -->
+          <!-- Logout (always show) -->
           <router-link
             to="/logout"
             class="group flex items-center gap-3 px-4 py-2

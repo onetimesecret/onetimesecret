@@ -170,6 +170,15 @@ module Auth::Config::Hooks
       rate_limit_key = "login_attempts:#{account[:email]}"
       Familia.dbclient.del(rate_limit_key)
 
+      # two_factor_partially_authenticated?
+      # (two_factor_base feature) Returns true if the session is logged in, the
+      # account has setup two factor authentication, but has not yet
+      # authenticated with a second factor.
+      #
+      # uses_two_factor_authentication?
+      # (two_factor_base feature) Whether the account for the current session has setup two factor authentication.
+      #
+      # @see https://github.com/jeremyevans/rodauth/blob/2.41.0/README.rdoc
       if two_factor_partially_authenticated?
         # MFA required - defer session sync
         session['account_id'] = account_id

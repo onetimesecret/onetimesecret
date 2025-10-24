@@ -521,6 +521,9 @@
       "trust-description": "You know exactly where your data resides and which laws govern its protection"
     },
     "auth": {
+      "mfa_required": "MFA verification required",
+      "mfa_verification_required": "MFA verification required to access your account",
+      "complete_mfa_verification": "Complete MFA Verification",
       "methods": {
         "password": "Password",
         "magicLink": "Email Link",

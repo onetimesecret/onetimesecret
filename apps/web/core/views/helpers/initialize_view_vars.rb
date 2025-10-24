@@ -86,11 +86,10 @@ module Core
         authenticated = strategy_result.authenticated? || false # never nil
         awaiting_mfa  = sess&.[]('awaiting_mfa') || sess&.[](:'awaiting_mfa') || false
 
-        # When awaiting MFA, user isn't in strategy_result but session has their info
-        # Load customer from session to show user menu during MFA flow
-        if awaiting_mfa && cust.anonymous? && sess&.[]('external_id')
-          cust = Onetime::Customer.find_by_extid(sess['external_id']) || cust
-        end
+        # When awaiting_mfa is true, user has NOT completed authentication
+        # Do NOT load customer from Redis - they don't have access yet
+        # The frontend will show minimal MFA prompt using email from session
+        session_email = sess&.[]('email')
 
         # Extract values from rack request object
         nonce           = req.env.fetch('onetime.nonce', nil)
@@ -135,6 +134,7 @@ module Core
           'nonce' => nonce,
           'page_title' => page_title,
           'script_element_id' => script_element_id,
+          'session_email' => session_email,
           'shrimp' => shrimp,
           'site' => safe_site,
           'site_host' => site_host,

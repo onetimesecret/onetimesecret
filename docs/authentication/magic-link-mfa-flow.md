@@ -136,10 +136,14 @@ session['authenticated']     # true/false (only true after all factors)
 ```ruby
 # apps/web/auth/config/hooks/login.rb
 auth.after_login do
-  if db[otp_keys_table].where(otp_keys_id_column => account_id).count > 0
-    session[:awaiting_mfa] = true  # MFA configured
+  # Use Rodauth's built-in two_factor_base method
+  # Returns true if: logged_in? && !two_factor_authenticated? && uses_two_factor_authentication?
+  if two_factor_partially_authenticated?
+    session[:awaiting_mfa] = true
+    # Defer session sync until MFA complete
   else
-    session[:awaiting_mfa] = false # No MFA
+    session[:awaiting_mfa] = false
+    # Sync session immediately (no MFA required)
   end
 end
 

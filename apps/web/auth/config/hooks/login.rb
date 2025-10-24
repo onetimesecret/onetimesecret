@@ -42,19 +42,46 @@ module Auth::Config::Hooks
       # This hook is triggered after a user successfully authenticates. It's
       # the primary integration point for syncing the application session.
       #
+      # After successful authentication (password OR passwordless), check MFA requirement
+      # BEFORE syncing session to prevent granting full access prematurely
       auth.after_login do
         OT.info "[auth] User logged in: #{account[:email]}"
 
-        # Check if user is in partially authenticated state (has password but needs MFA)
-        # Rodauth's two_factor_base provides this method automatically
-        if two_factor_partially_authenticated?
+        # Use Rodauth's built-in method to check if MFA is required for this user.
+        #
+        # NOTE: The subtle (yet not so subtle) difference between the two methods:
+        # `uses_two_factor_authentication?` -> Whether the account for the
+        # current session has setup two factor authentication.
+        #
+        # `two_factor_partially_authenticated?` -> Returns true if the session
+        # is logged in, the account has setup two factor authentication,
+        # but has not yet authenticated with a second factor.
+        #
+        if uses_two_factor_authentication?
+          # MFA required - defer full session sync until after second factor
           OT.info "[auth] MFA required for #{account[:email]}, deferring full session sync"
-          # Only set minimal session data, full sync happens after MFA
+
+          # Set minimal session data for MFA flow
+          session[:awaiting_mfa] = true
           session['account_id'] = account_id
           session['email'] = account[:email]
-          session['mfa_pending'] = true
+
+          # Store external_id so frontend can display user email during MFA
+          # (but user won't have full access until MFA complete)
+          if account[:external_id]
+            session['external_id'] = account[:external_id]
+          end
+
+          # For JSON mode, indicate MFA is required
+          if json_request?
+            json_response[:mfa_required] = true
+            json_response[:mfa_auth_url] = "/#{otp_auth_route}"
+          end
         else
-          OT.info "[auth] No MFA required or MFA completed, syncing session"
+          # No MFA required - proceed with full session sync
+          OT.info "[auth] No MFA required, syncing session"
+          session[:awaiting_mfa] = false
+
           Onetime::ErrorHandler.safe_execute('sync_session_after_login',
             account_id: account_id,
             email: account[:email],
@@ -63,37 +90,6 @@ module Auth::Config::Hooks
           end
         end
       end
-
-
-      # Require second factor during login if user has MFA setup
-      #
-      # TODO: Fix this NoMethodError. It's the correct method name but
-      # we're obviously not calling it the right way.
-      #
-      # auth.require_two_factor_authenticated do
-      #   # Check if account has OTP configured
-      #   db[otp_keys_table].where(otp_keys_id_column => account_id).count > 0
-      # end
-
-      # After successful password authentication, check for MFA
-      auth.after_login do
-        # If user has MFA enabled, don't mark as fully authenticated yet
-        if db[otp_keys_table].where(otp_keys_id_column => account_id).count > 0
-          # Set flag that second factor is required
-          session[:awaiting_mfa] = true
-
-          # For JSON mode, return different success message
-          if json_request?
-            json_response[:mfa_required] = true
-            json_response[:mfa_auth_url] = "/#{otp_auth_route}"
-            # Don't set authenticated_at yet
-          end
-        else
-          # No MFA, proceed normally
-          session[:awaiting_mfa] = false
-        end
-      end
-
 
       #
       # Hook: After Login Failure
