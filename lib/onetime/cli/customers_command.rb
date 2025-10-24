@@ -1,7 +1,7 @@
 # lib/onetime/cli/customers_command.rb
 
 module Onetime
-  class CustomersCommand < Drydock::Command
+  class CustomersCommand < Onetime::CLI
     def customers
       puts format('%d customers', Onetime::Customer.values.size)
       if option.list

@@ -1,7 +1,7 @@
 # lib/onetime/cli/change_email_command.rb
 
 module Onetime
-  class ChangeEmailCommand < Drydock::Command
+  class ChangeEmailCommand < Onetime::CLI
     # CLI command to view email change reports
     def change_email_log
       # Default limit is 10 reports, can be overridden with --limit or -n option

@@ -63,6 +63,16 @@ class OT::CLI::Definition
     # IRB.start(__FILE__)
   end
 
+  usage 'ots server [options]'
+  about 'Start the web server (Puma or Thin)'
+  option :s, :server, String, 'Server type: puma or thin (default: puma)'
+  option :p, :port, Integer, 'Port to bind to (default: 7143)'
+  option :e, :environment, String, 'Environment to run in (default: development)'
+  option :t, :threads, String, 'Thread pool size for Puma (default: 2:4)'
+  option :w, :workers, Integer, 'Number of workers for Puma (default: 0)'
+  option :b, :bind, String, 'Bind address for Thin (default: 0.0.0.0)'
+  command server: OT::ServerCommand
+
   usage 'ots version'
   command :version do
     puts format('Onetime %s', OT::VERSION.inspect)
