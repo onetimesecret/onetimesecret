@@ -108,8 +108,8 @@ importers:
         specifier: 1.3.15
         version: 1.3.15(jiti@2.4.2)(prettier@3.5.3)(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
       vue-i18n:
-        specifier: 11.1.3
-        version: 11.1.3(vue@3.5.13(typescript@5.8.3))
+        specifier: 11.1.10
+        version: 11.1.10(vue@3.5.13(typescript@5.8.3))
       zod:
         specifier: 3.24.3
         version: 3.24.3
@@ -196,8 +196,8 @@ importers:
         specifier: 16.1.0
         version: 16.1.0
       happy-dom:
-        specifier: 17.4.6
-        version: 17.4.6
+        specifier: 20.0.2
+        version: 20.0.2
       jiti:
         specifier: 2.4.2
         version: 2.4.2
@@ -254,7 +254,7 @@ importers:
         version: 3.2.2(vite@5.4.19(@types/node@22.15.21)(terser@5.39.0))
       vitest:
         specifier: 2.1.9
-        version: 2.1.9(@types/node@22.15.21)(@vitest/ui@2.1.9)(happy-dom@17.4.6)(jsdom@26.1.0)(terser@5.39.0)
+        version: 2.1.9(@types/node@22.15.21)(@vitest/ui@2.1.9)(happy-dom@20.0.2)(jsdom@26.1.0)(terser@5.39.0)
       vue-eslint-parser:
         specifier: ^10.2.0
         version: 10.2.0(eslint@9.35.0(jiti@2.4.2))
@@ -808,12 +808,12 @@ packages:
     resolution: {integrity: sha512-xeO57FpIu4p1Ri3Jq/EXq4ClRm86dVF2z/+kvFnyqVYRavTZmaFaUBbWCOuuTh0o/g7DSsk6kc2vrS4Vl5oPOQ==}
     engines: {node: '>=18.18'}
 
-  '@intlify/core-base@11.1.11':
-    resolution: {integrity: sha512-1Z0N8jTfkcD2Luq9HNZt+GmjpFe4/4PpZF3AOzoO1u5PTtSuXZcfhwBatywbfE2ieB/B5QHIoOFmCXY2jqVKEQ==}
+  '@intlify/core-base@11.1.10':
+    resolution: {integrity: sha512-JhRb40hD93Vk0BgMgDc/xMIFtdXPHoytzeK6VafBNOj6bb6oUZrGamXkBKecMsmGvDQQaPRGG2zpa25VCw8pyw==}
     engines: {node: '>= 16'}
 
-  '@intlify/core-base@11.1.3':
-    resolution: {integrity: sha512-cMuHunYO7LE80azTitcvEbs1KJmtd6g7I5pxlApV3Jo547zdO3h31/0uXpqHc+Y3RKt1wo2y68RGSx77Z1klyA==}
+  '@intlify/core-base@11.1.11':
+    resolution: {integrity: sha512-1Z0N8jTfkcD2Luq9HNZt+GmjpFe4/4PpZF3AOzoO1u5PTtSuXZcfhwBatywbfE2ieB/B5QHIoOFmCXY2jqVKEQ==}
     engines: {node: '>= 16'}
 
   '@intlify/core-base@11.1.5':
@@ -838,12 +838,12 @@ packages:
     peerDependencies:
       eslint: ^8.0.0 || ^9.0.0-0
 
-  '@intlify/message-compiler@11.1.11':
-    resolution: {integrity: sha512-7PC6neomoc/z7a8JRjPBbu0T2TzR2MQuY5kn2e049MP7+o32Ve7O8husylkA7K9fQRe4iNXZWTPnDJ6vZdtS1Q==}
+  '@intlify/message-compiler@11.1.10':
+    resolution: {integrity: sha512-TABl3c8tSLWbcD+jkQTyBhrnW251dzqW39MPgEUCsd69Ua3ceoimsbIzvkcPzzZvt1QDxNkenMht+5//V3JvLQ==}
     engines: {node: '>= 16'}
 
-  '@intlify/message-compiler@11.1.3':
-    resolution: {integrity: sha512-7rbqqpo2f5+tIcwZTAG/Ooy9C8NDVwfDkvSeDPWUPQW+Dyzfw2o9H103N5lKBxO7wxX9dgCDjQ8Umz73uYw3hw==}
+  '@intlify/message-compiler@11.1.11':
+    resolution: {integrity: sha512-7PC6neomoc/z7a8JRjPBbu0T2TzR2MQuY5kn2e049MP7+o32Ve7O8husylkA7K9fQRe4iNXZWTPnDJ6vZdtS1Q==}
     engines: {node: '>= 16'}
 
   '@intlify/message-compiler@11.1.5':
@@ -854,12 +854,12 @@ packages:
     resolution: {integrity: sha512-vcyCLiVRN628U38c3PbahrhbbXrckrM9zpy0KZVlDk2Z0OnGwv8uQNNXP3twwGtfLsCf4gu3ci6FMIZnPaqZsw==}
     engines: {node: '>= 16'}
 
-  '@intlify/shared@11.1.11':
-    resolution: {integrity: sha512-RIBFTIqxZSsxUqlcyoR7iiC632bq7kkOwYvZlvcVObHfrF4NhuKc4FKvu8iPCrEO+e3XsY7/UVpfgzg+M7ETzA==}
+  '@intlify/shared@11.1.10':
+    resolution: {integrity: sha512-6ZW/f3Zzjxfa1Wh0tYQI5pLKUtU+SY7l70pEG+0yd0zjcsYcK0EBt6Fz30Dy0tZhEqemziQQy2aNU3GJzyrMUA==}
     engines: {node: '>= 16'}
 
-  '@intlify/shared@11.1.3':
-    resolution: {integrity: sha512-pTFBgqa/99JRA2H1qfyqv97MKWJrYngXBA/I0elZcYxvJgcCw3mApAoPW3mJ7vx3j+Ti0FyKUFZ4hWxdjKaxvA==}
+  '@intlify/shared@11.1.11':
+    resolution: {integrity: sha512-RIBFTIqxZSsxUqlcyoR7iiC632bq7kkOwYvZlvcVObHfrF4NhuKc4FKvu8iPCrEO+e3XsY7/UVpfgzg+M7ETzA==}
     engines: {node: '>= 16'}
 
   '@intlify/shared@11.1.5':
@@ -1234,6 +1234,9 @@ packages:
   '@types/mdurl@2.0.0':
     resolution: {integrity: sha512-RGdgjQUZba5p6QEFAVx2OGb8rQDL/cPRG7GiedRzMcJ1tYnUANBncjbSB1NRGwbvjcPeikRABz2nshyPk1bhWg==}
 
+  '@types/node@20.19.23':
+    resolution: {integrity: sha512-yIdlVVVHXpmqRhtyovZAcSy0MiPcYWGkoO4CGe/+jpP0hmNuihm4XhHbADpK++MsiLHP5MVlv+bcgdF99kSiFQ==}
+
   '@types/node@22.15.21':
     resolution: {integrity: sha512-EV/37Td6c+MgKAbkcLG6vqZ2zEYHD7bvSrzqqs2RIhbA6w3x+Dqz8MZM3sP6kGTeLrdoOgKZe+Xja7tUB2DNkQ==}
 
@@ -1245,6 +1248,9 @@ packages:
 
   '@types/web-bluetooth@0.0.21':
     resolution: {integrity: sha512-oIQLCGWtcFZy2JW77j9k8nHzAOpqMHLQejDA48XXMWH6tjCQHz5RCFz1bzsmROyL6PUm+LLnUiI4BCn221inxA==}
+
+  '@types/whatwg-mimetype@3.0.2':
+    resolution: {integrity: sha512-c2AKvDT8ToxLIOUlN51gTiHXflsfIFisS4pO7pDPoKouJCESkhZnEy623gwP9laCy5lnLDAw1vAzu2vM2YLOrA==}
 
   '@typescript-eslint/eslint-plugin@8.32.1':
     resolution: {integrity: sha512-6u6Plg9nP/J1GRpe/vcjjabo6Uc5YQPAMxsgQyGC/I0RuukiG1wIe3+Vtg3IrSCVJDmqK3j8adrtzXSENRtFgg==}
@@ -2378,9 +2384,9 @@ packages:
     resolution: {integrity: sha512-5v6yZd4JK3eMI3FqqCouswVqwugaA9r4dNZB1wwcmrD02QkV5H0y7XBQW8QwQqEaZY1pM9aqORSORhJRdNK44Q==}
     engines: {node: '>=6.0'}
 
-  happy-dom@17.4.6:
-    resolution: {integrity: sha512-OEV1hDe9i2rFr66+WZNiwy1S8rAJy6bRXmXql68YJDjdfHBRbN76om+qVh68vQACf6y5Bcr90e/oK53RQxsDdg==}
-    engines: {node: '>=18.0.0'}
+  happy-dom@20.0.2:
+    resolution: {integrity: sha512-pYOyu624+6HDbY+qkjILpQGnpvZOusItCk+rvF5/V+6NkcgTKnbOldpIy22tBnxoaLtlM9nXgoqAcW29/B7CIw==}
+    engines: {node: '>=20.0.0'}
 
   has-bigints@1.1.0:
     resolution: {integrity: sha512-R3pbpkcIqv2Pm3dUwgjclDRVmWpTJW2DcMzcIhEXEx1oh/CEMObMm3KLmRJOdvhM7o4uQBnwr8pzRK2sJWIqfg==}
@@ -3788,8 +3794,8 @@ packages:
     peerDependencies:
       eslint: '>=6.0.0'
 
-  vue-i18n@11.1.3:
-    resolution: {integrity: sha512-Pcylh9z9S5+CJAqgbRZ3EKxFIBIrtY5YUppU722GIT65+Nukm0TCqiQegZnNLCZkXGthxe0cpqj0AoM51H+6Gw==}
+  vue-i18n@11.1.10:
+    resolution: {integrity: sha512-C+IwnSg8QDSOAox0gdFYP5tsKLx5jNWxiawNoiNB/Tw4CReXmM1VJMXbduhbrEzAFLhreqzfDocuSVjGbxQrag==}
     engines: {node: '>= 16'}
     peerDependencies:
       vue: ^3.0.0
@@ -4415,15 +4421,15 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.2': {}
 
+  '@intlify/core-base@11.1.10':
+    dependencies:
+      '@intlify/message-compiler': 11.1.10
+      '@intlify/shared': 11.1.10
+
   '@intlify/core-base@11.1.11':
     dependencies:
       '@intlify/message-compiler': 11.1.11
       '@intlify/shared': 11.1.11
-
-  '@intlify/core-base@11.1.3':
-    dependencies:
-      '@intlify/message-compiler': 11.1.3
-      '@intlify/shared': 11.1.3
 
   '@intlify/core-base@11.1.5':
     dependencies:
@@ -4470,14 +4476,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@intlify/message-compiler@11.1.10':
+    dependencies:
+      '@intlify/shared': 11.1.10
+      source-map-js: 1.2.1
+
   '@intlify/message-compiler@11.1.11':
     dependencies:
       '@intlify/shared': 11.1.11
-      source-map-js: 1.2.1
-
-  '@intlify/message-compiler@11.1.3':
-    dependencies:
-      '@intlify/shared': 11.1.3
       source-map-js: 1.2.1
 
   '@intlify/message-compiler@11.1.5':
@@ -4490,9 +4496,9 @@ snapshots:
       '@intlify/shared': 9.14.4
       source-map-js: 1.2.1
 
-  '@intlify/shared@11.1.11': {}
+  '@intlify/shared@11.1.10': {}
 
-  '@intlify/shared@11.1.3': {}
+  '@intlify/shared@11.1.11': {}
 
   '@intlify/shared@11.1.5': {}
 
@@ -4840,6 +4846,10 @@ snapshots:
 
   '@types/mdurl@2.0.0': {}
 
+  '@types/node@20.19.23':
+    dependencies:
+      undici-types: 6.21.0
+
   '@types/node@22.15.21':
     dependencies:
       undici-types: 6.21.0
@@ -4850,6 +4860,8 @@ snapshots:
     optional: true
 
   '@types/web-bluetooth@0.0.21': {}
+
+  '@types/whatwg-mimetype@3.0.2': {}
 
   '@typescript-eslint/eslint-plugin@8.32.1(@typescript-eslint/parser@8.32.1(eslint@9.35.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.35.0(jiti@2.4.2))(typescript@5.8.3)':
     dependencies:
@@ -5000,7 +5012,7 @@ snapshots:
       std-env: 3.9.0
       test-exclude: 7.0.1
       tinyrainbow: 1.2.0
-      vitest: 2.1.9(@types/node@22.15.21)(@vitest/ui@2.1.9)(happy-dom@17.4.6)(jsdom@26.1.0)(terser@5.39.0)
+      vitest: 2.1.9(@types/node@22.15.21)(@vitest/ui@2.1.9)(happy-dom@20.0.2)(jsdom@26.1.0)(terser@5.39.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -5047,7 +5059,7 @@ snapshots:
       sirv: 3.0.1
       tinyglobby: 0.2.13
       tinyrainbow: 1.2.0
-      vitest: 2.1.9(@types/node@22.15.21)(@vitest/ui@2.1.9)(happy-dom@17.4.6)(jsdom@26.1.0)(terser@5.39.0)
+      vitest: 2.1.9(@types/node@22.15.21)(@vitest/ui@2.1.9)(happy-dom@20.0.2)(jsdom@26.1.0)(terser@5.39.0)
 
   '@vitest/utils@2.1.9':
     dependencies:
@@ -6180,9 +6192,10 @@ snapshots:
       section-matter: 1.0.0
       strip-bom-string: 1.0.0
 
-  happy-dom@17.4.6:
+  happy-dom@20.0.2:
     dependencies:
-      webidl-conversions: 7.0.0
+      '@types/node': 20.19.23
+      '@types/whatwg-mimetype': 3.0.2
       whatwg-mimetype: 3.0.0
 
   has-bigints@1.1.0: {}
@@ -6756,6 +6769,7 @@ snapshots:
       '@babel/helpers': 7.27.1
       '@codemirror/lang-json': 6.0.1
       '@codemirror/lang-yaml': 6.1.2
+      '@codemirror/state': 6.5.2
       '@codemirror/theme-one-dark': 6.1.2
       '@codemirror/view': 6.37.1
       '@headlessui/vue': 1.7.23(vue@3.5.13(typescript@5.8.3))
@@ -6785,7 +6799,7 @@ snapshots:
       stripe: 17.7.0
       vue: 3.5.13(typescript@5.8.3)
       vue-codemirror6: 1.3.15(jiti@2.4.2)(prettier@3.5.3)(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
-      vue-i18n: 11.1.3(vue@3.5.13(typescript@5.8.3))
+      vue-i18n: 11.1.10(vue@3.5.13(typescript@5.8.3))
       zod: 3.24.3
       zod-validation-error: 3.4.0(zod@3.24.3)
     transitivePeerDependencies:
@@ -7589,7 +7603,7 @@ snapshots:
       fsevents: 2.3.3
       terser: 5.39.0
 
-  vitest@2.1.9(@types/node@22.15.21)(@vitest/ui@2.1.9)(happy-dom@17.4.6)(jsdom@26.1.0)(terser@5.39.0):
+  vitest@2.1.9(@types/node@22.15.21)(@vitest/ui@2.1.9)(happy-dom@20.0.2)(jsdom@26.1.0)(terser@5.39.0):
     dependencies:
       '@vitest/expect': 2.1.9
       '@vitest/mocker': 2.1.9(vite@5.4.19(@types/node@22.15.21)(terser@5.39.0))
@@ -7614,7 +7628,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.15.21
       '@vitest/ui': 2.1.9(vitest@2.1.9)
-      happy-dom: 17.4.6
+      happy-dom: 20.0.2
       jsdom: 26.1.0
     transitivePeerDependencies:
       - less
@@ -7690,10 +7704,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  vue-i18n@11.1.3(vue@3.5.13(typescript@5.8.3)):
+  vue-i18n@11.1.10(vue@3.5.13(typescript@5.8.3)):
     dependencies:
-      '@intlify/core-base': 11.1.3
-      '@intlify/shared': 11.1.3
+      '@intlify/core-base': 11.1.10
+      '@intlify/shared': 11.1.10
       '@vue/devtools-api': 6.6.4
       vue: 3.5.13(typescript@5.8.3)
 
