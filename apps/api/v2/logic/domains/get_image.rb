@@ -57,6 +57,10 @@ module V2::Logic
         @image_data     = Base64.strict_decode64(encoded_content)
         @content_length = @image_data&.bytesize.to_s || '0'
 
+        success_data
+      end
+
+      def success_data
         @image_data
       end
 

@@ -70,10 +70,12 @@ module V2::Logic
 
           set_info_message "We sent instructions to #{cust.objid}"
         end
+
+        success_data
       end
 
       def success_data
-        { objid: @cust.objid }
+        { objid: nil, sent: true }
       end
     end
   end

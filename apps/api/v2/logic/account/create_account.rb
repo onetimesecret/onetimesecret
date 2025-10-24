@@ -72,6 +72,10 @@ module V2::Logic
         success_data
       end
 
+      def success_data
+        { custid: cust.custid, email: cust.email, role: customer_role }
+      end
+
       private
 
       def form_fields
