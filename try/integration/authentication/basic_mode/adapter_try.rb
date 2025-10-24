@@ -64,7 +64,7 @@ Onetime.auth_config.advanced_enabled?
 
 ## Verify database connection returns nil in basic mode
 require 'web/auth/config/database'
-Auth::Config::Database.connection
+Auth::Database.connection
 #=> nil
 
 ## The login endpoint returns 404 in basic mode (Rodauth not loaded)

@@ -16,13 +16,13 @@ module Auth
       # @param account_id [Integer] The ID of the Rodauth account
       # @param session [Hash] The Rack session
       # @param request [Rack::Request] The request object
-      # @param db [Sequel::Database] The database connection (optional, uses Auth::Config::Database if not provided)
+      # @param db [Sequel::Database] The database connection (optional, uses Auth::Database if not provided)
       def initialize(account:, account_id:, session:, request:, db: nil)
         @account = account
         @account_id = account_id
         @session = session
         @request = request
-        @db = db || Auth::Config::Database.connection
+        @db = db || Auth::Database.connection
       end
 
       # Executes the session sync operation

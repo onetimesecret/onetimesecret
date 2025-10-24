@@ -1,13 +1,18 @@
 # apps/web/auth/config.rb
 
-require_relative 'base'
-require_relative 'database'
-require_relative 'mailer'
-require_relative 'config/features'
-require_relative 'config/hooks'
+require 'rodauth'
 
 module Auth
   class Config < Rodauth::Auth
+
+    require_relative 'database'
+    require_relative 'mailer'
+    require_relative 'operations'
+    require_relative 'config/base'
+    require_relative 'config/email'
+    require_relative 'config/features'
+    require_relative 'config/hooks'
+
     configure do
       # =====================================================================
       # 1. ENABLE FEATURES (configuration methods become available after)
@@ -50,23 +55,31 @@ module Auth
       # 3. FEATURE CONFIGURATION
       # =====================================================================
       Features::AccountManagement.configure(self)
-      Features::Security.configure(self) if ENV['ENABLE_SECURITY_FEATURES'] != 'false'
-      Features::MFA.configure(self) if ENV['ENABLE_MFA'] == 'true'
-      Features::Passwordless.configure(self) if ENV['ENABLE_MAGIC_LINKS'] == 'true'
-      Features::WebAuthnConfig.configure(self) if ENV['ENABLE_WEBAUTHN'] == 'true'
 
+      Hooks::Account.configure(self)
+      Hooks::Login.configure(self)
+      Hooks::Logout.configure(self)
+      Hooks::Password.configure(self)
 
-
-      # 4. Load and configure all hooks from modular files
-      [
-        Hooks::Validation.configure,
-        Hooks::RateLimiting.configure,
-        Hooks::AccountLifecycle.configure,
-        Hooks::Authentication.configure,
-        Hooks::SessionIntegration.configure,
-      ].each do |hook_proc|
-        instance_eval(&hook_proc)
+      if ENV['ENABLE_SECURITY_FEATURES'] != 'false'
+        Features::Security.configure(self)
       end
+
+      if ENV['ENABLE_MFA'] == 'true'
+        Features::MFA.configure(self)
+        Hooks::MFA.configure(self)
+      end
+
+      if ENV['ENABLE_MAGIC_LINKS'] == 'true'
+        Features::Passwordless.configure(self)
+        Hooks::Passwordless.configure(self)
+      end
+
+      if ENV['ENABLE_WEBAUTHN'] == 'true'
+        Features::WebAuthn.configure(self)
+        Hooks::WebAuthn.configure(self)
+      end
+
     end
   end
 end
