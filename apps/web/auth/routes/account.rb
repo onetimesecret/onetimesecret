@@ -21,6 +21,11 @@ module Auth
               0
             end
 
+            # Get active sessions count
+            active_sessions_count = rodauth.db[:account_active_session_keys]
+              .where(account_id: account[:id])
+              .count
+
             {
               id: account[:id],
               email: account[:email],
@@ -29,6 +34,7 @@ module Auth
               email_verified: account[:status_id] == 2,  # Assuming 2 is verified
               mfa_enabled: mfa_enabled,
               recovery_codes_count: recovery_codes_count,
+              active_sessions_count: active_sessions_count,
             }
           rescue StandardError => ex
             puts "Error: #{ex.class} - #{ex.message}"
@@ -97,6 +103,11 @@ module Auth
               0
             end
 
+            # Get active sessions count
+            active_sessions_count = rodauth.db[:account_active_session_keys]
+              .where(account_id: account[:id])
+              .count
+
             {
               id: account[:id],
               email: account[:email],
@@ -105,6 +116,7 @@ module Auth
               email_verified: account[:status_id] == 2,  # Assuming 2 is verified
               mfa_enabled: mfa_enabled,
               recovery_codes_count: recovery_codes_count,
+              active_sessions_count: active_sessions_count,
             }
           rescue StandardError => ex
             puts "Error: #{ex.class} - #{ex.message}"
