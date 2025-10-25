@@ -3,11 +3,13 @@
 *.log
 *.rdb
 *.txt
+.*.json
 .byebug*
 .ruby-version
 spoom_*
 .commit_hash.txt
 *.sublime-*
+.yardoc
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -25,44 +27,50 @@ pnpm-debug.log*
 .prompts*
 .pytest_cache/
 .ruby-lsp/
+.serena/
 .vscode/
 .idea/
 .cache/
 .temp/
-
+.zed/
 .appendonlydir/
 .bundle/
 .rspec
+.rspec_status
 appendonlydir/
 data/
+doc/
 node_modules/
 vendor/
 log/
 tmp/
-etc/caddy/
 coverage/
 dist/
 public/web/dist/
+public/doc
 !tests/data
 
 # Files
 .DS_Store
-!pr_agent.toml
-etc/config*
-!etc/config.example.yaml
-!etc/config.schema.yaml
-etc/system_settings*
-!etc/system_settings.example.yaml
-!fly.toml
+!.pr_agent.toml
 .github/*md
 .eslintcache
 .claude
 .rspec*
 .qodo
 .continuerc.json
+.mcp.json
+bin/bundle
+bin/rspec
+bin/rubocop
+!fly.toml
+support/schemas/
 tsconfig.tsbuildinfo
-CLAUDE.md
+*.db
 
+# Ignore WIP or temp dev files with uppercase names
+[A-Z]*.rb
+[A-Z]*.ts
 
 # Environment files
 .env*
