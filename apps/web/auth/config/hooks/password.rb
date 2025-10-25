@@ -38,7 +38,7 @@ module Auth::Config::Hooks
         # Rodauth is the source of truth for password management. Here, we just
         # sync metadata to the customer record.
         Onetime::ErrorHandler.safe_execute('update_password_metadata', email: account[:email]) do
-          Handlers.update_password_metadata(account)
+          Auth::Operations::UpdatePasswordMetadata.new(account: account).call
         end
       end
 

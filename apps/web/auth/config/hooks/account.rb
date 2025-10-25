@@ -54,7 +54,11 @@ module Auth::Config::Hooks
         OT.info "[auth] New account created: #{account[:extid]} (ID: #{account_id})"
 
         Onetime::ErrorHandler.safe_execute('create_customer', account_id: account_id, extid: account[:extid]) do
-          Handlers.create_customer(account_id, account, Auth::Database.connection)
+          Auth::Operations::CreateCustomer.new(
+            account_id: account_id,
+            account: account,
+            db: Auth::Database.connection
+          ).call
         end
       end
 
@@ -75,7 +79,7 @@ module Auth::Config::Hooks
           # In test, skipping the verification simplifies the onboarding flow
           if ENV['RACK_ENV'] != 'test'
             Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:extid]) do
-              Handlers.verify_customer(account)
+              Auth::Operations::VerifyCustomer.new(account: account).call
             end
           end
         end
@@ -110,9 +114,7 @@ module Auth::Config::Hooks
         # Rodauth is the source of truth for password management. Here, we just
         # sync metadata to the customer record.
         Onetime::ErrorHandler.safe_execute('update_password_metadata', email: account[:email]) do
-
-          Handlers.update_password_metadata(account)
-
+          Auth::Operations::UpdatePasswordMetadata.new(account: account).call
         end
       end
 
@@ -126,7 +128,7 @@ module Auth::Config::Hooks
         OT.info "[auth] Account closed: #{account[:extid]} (ID: #{account_id})"
 
         Onetime::ErrorHandler.safe_execute('delete_customer', account_id: account_id, extid: account[:extid]) do
-          Handlers.delete_customer(account)
+          Auth::Operations::DeleteCustomer.new(account: account).call
         end
       end
 
