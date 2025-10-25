@@ -63,8 +63,6 @@ module Auth::Config::Features
         end
       end
 
-
-
       # Custom: Get WebAuthn credentials list for account
       # Used by frontend to show registered devices
       auth_class_eval do

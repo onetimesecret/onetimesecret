@@ -144,7 +144,12 @@ module Auth::Config::Hooks
       #       account_id: account_id,
       #       email: account[:email],
       #     ) do
-      #       Handlers.sync_session_after_login(account, account_id, session, request)
+      #       Auth::Operations::SyncSession.call(
+      #         account: account,
+      #         account_id: account_id,
+      #         session: session,
+      #         request: request
+      #       )
       #       session.delete('mfa_pending')
       #     end
       #   end
