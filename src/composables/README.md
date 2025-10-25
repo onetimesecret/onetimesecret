@@ -93,6 +93,12 @@ export function useAuth() {
     notify: false,
     setLoading: (loading) => isLoading.value = loading,
     onError: (err) => {
+      // IMPORTANT: Clear all error state first to prevent stale data
+      // from previous errors showing alongside new errors
+      error.value = null;
+      fieldError.value = null;
+
+      // Set new error state
       error.value = err.message;
       if (err.details?.['field-error']) {
         fieldError.value = err.details['field-error'];
@@ -119,6 +125,8 @@ export function useAuth() {
   }
 }
 ```
+
+**Key principle**: When handling multiple error-related state fields (error, fieldError, lockoutStatus, etc.), always clear ALL of them in `onError` before setting new values. Otherwise, fields from previous errors can persist when the new error doesn't include them.
 
 ## Error Classification
 
