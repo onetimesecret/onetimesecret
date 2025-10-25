@@ -36,11 +36,27 @@ module Auth::Config::Hooks
           throw_error_status(422, 'login', 'There was a problem validating your email. Please try again.')
         end
 
-        # 3. Uniqueness Check
-        # Rodauth handles the final uniqueness check, but we log here to
-        # provide visibility into attempts to create accounts with duplicate emails.
-        if db[:accounts].where(email: email, status_id: [1, 2]).first # 1=Unverified, 2=Verified
-          OT.info "[auth] Account creation blocked for duplicate email: #{OT::Utils.obscure_email(email)}"
+        # 3. Security: Email Enumeration Prevention (CWE-204)
+        # Check if account already exists. If it does, we handle it silently
+        # to prevent attackers from discovering which emails are registered.
+        existing_account = db[:accounts].where(email: email, status_id: [1, 2]).first # 1=Unverified, 2=Verified
+
+        if existing_account
+          # Account already exists - handle silently without revealing this fact
+          if existing_account[:status_id] == 1 # Unverified
+            # Resend verification email for unverified accounts
+            OT.info "[auth] Account exists (unverified), resending verification: #{OT::Utils.obscure_email(email)}"
+            # TODO: Trigger resend of verification email when email system is active
+            # send_create_account_email
+          else
+            # Verified account - do nothing but log for security monitoring
+            OT.info "[auth] Account exists (verified), silent success: #{OT::Utils.obscure_email(email)}"
+          end
+
+          # Return success without creating account
+          # This prevents enumeration by always returning the same success message
+          set_notice_flash 'If an account with this email exists, you will receive a verification email.'
+          request.redirect create_account_redirect
         end
       end
 

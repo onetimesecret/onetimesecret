@@ -38,40 +38,60 @@ module V2::Logic
       def process
         # Security: Timing-safe account creation to prevent email enumeration
         # Always return the same success message regardless of account existence
-        #
-        # existing_customer = Onetime::Customer.load(email)
-        #
-        # TODO: Complete this branch
+        existing_customer = Onetime::Customer.load(email)
 
-        # New account creation proceeds normally
-        @cust = Onetime::Customer.create!(email: email)
+        if existing_customer
+          # Account already exists - handle silently without revealing this fact
+          @cust = existing_customer
 
-        cust.update_passphrase password
+          # If the account is not verified, resend the verification email
+          # If verified, we do nothing but still return success
+          unless @cust.verified
+            OT.info "[account-exists-unverified] Resending verification for #{@cust.obscure_email}"
+            # TODO: Re-enable when email verification is active
+            send_verification_email
+          else
+            OT.info "[account-exists-verified] Silent success for #{@cust.obscure_email}"
+          end
 
-        colonels       = OT.conf.dig('site', 'authentication', 'colonels')
-        @customer_role = if colonels&.member?(cust.custid)
-                           'colonel'
-                         else
-                           'customer'
-                         end
+          # Use existing customer attributes
+          @customer_role = @cust.role || 'customer'
+        else
+          # New account creation proceeds normally
+          @cust = Onetime::Customer.create!(email: email)
 
-        cust.planid    = planid
-        cust.verified  = @autoverify
-        cust.role      = @customer_role
-        cust.save
+          cust.update_passphrase password
 
-        session_id = @strategy_result.session[:id]
-        ip_address = @strategy_result.metadata[:ip]
-        OT.info "[new-customer] #{cust.objid} #{cust.role} #{ip_address} #{planid} #{session_id}"
+          colonels       = OT.conf.dig('site', 'authentication', 'colonels')
+          @customer_role = if colonels&.member?(cust.custid)
+                             'colonel'
+                           else
+                             'customer'
+                           end
+
+          cust.planid    = planid
+          cust.verified  = @autoverify
+          cust.role      = @customer_role
+          cust.save
+
+          session_id = @strategy_result.session[:id]
+          ip_address = @strategy_result.metadata[:ip]
+          OT.info "[new-customer] #{cust.objid} #{cust.role} #{ip_address} #{planid} #{session_id}"
+
+          # Send verification email for new accounts (unless autoverify is enabled)
+          unless @autoverify
+            # TODO: Disable mail verification temporarily on feature/1787-dual-auth-modes branch
+            send_verification_email
+          end
+        end
 
         success_message = if autoverify
-                            "#{i18n.dig(:web, :COMMON, :autoverified_success)}"
+                            i18n.dig(:web, :COMMON, :autoverified_success)
                           else
-                            # TODO: Disable mail verification temporarily on feature/1787-dual-auth-modes branch
-                            # send_verification_email
-
-                            # NOTE: Intentionally left as symbols for i18n keys
-                            "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
+                            # Security: Return generic success message that doesn't reveal account existence
+                            # This message is identical for: new accounts, existing verified, and existing unverified
+                            # Note: Even though we say "verification email", we don't reveal if account already exists
+                            i18n.dig(:web, :COMMON, :signup_success_generic)
                           end
 
         @sess['success_message'] = success_message
