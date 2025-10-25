@@ -2,6 +2,7 @@
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { loggingService } from '@/services/logging.service';
 import { WindowService } from '@/services/window.service';
+import { classifyError, errorGuards } from '@/schemas/errors';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';
@@ -162,7 +163,15 @@ export const useAuthStore = defineStore('auth', () => {
       lastCheckTime.value = Date.now();
 
       return isAuthenticated.value;
-    } catch {
+    } catch (error) {
+      // Classify error and log technical/security errors
+      const classified = classifyError(error);
+
+      // Log technical/security errors (not human errors)
+      if (!errorGuards.isOfHumanInterest(classified)) {
+        loggingService.error(classified);
+      }
+
       failureCount.value = (failureCount.value ?? 0) + 1;
       if (failureCount.value >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
         logout();
