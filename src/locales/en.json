@@ -95,6 +95,7 @@
       "button_send_feedback": "Send Feedback",
       "verification_sent_to": "A verification was sent to",
       "autoverified_success": "Account created. Please sign in.",
+      "signup_success_generic": "If an account with this email exists, you will receive a verification email.",
       "burn_this_secret_aria": "Burn this secret permanently",
       "burn_confirmation_title": "Please Confirm",
       "burn_confirmation_message": "Are you sure you want to burn this secret? This action cannot be undone.",
