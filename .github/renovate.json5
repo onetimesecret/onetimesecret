@@ -85,7 +85,7 @@
       recreateWhen: 'never',
     },
     {
-      // Don't suggest updates to our own OCI image (avoids a create circular dependency).
+      // Don't suggest updates to our own OCI image (avoids creating a circular dependency).
       matchDatasources: ['docker'],
       matchPackageNames: ['ghcr.io/onetimesecret/onetimesecret'],
       enabled: false,
