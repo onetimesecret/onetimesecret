@@ -74,11 +74,19 @@ export function useAuth() {
     notify: false,
     setLoading: (loading) => isLoading.value = loading,
     onError: (err) => {
+      // Clear all error state first to avoid stale data from previous errors
+      error.value = null;
+      fieldError.value = null;
+      lockoutStatus.value = null;
+
+      // Set new error state
       error.value = err.message;
+
       // Field errors from Rodauth response
       if (err.details?.['field-error']) {
         fieldError.value = err.details['field-error'] as [string, string];
       }
+
       // Lockout status from Rodauth response
       if (err.details?.lockout) {
         lockoutStatus.value = err.details.lockout as LockoutStatus;
