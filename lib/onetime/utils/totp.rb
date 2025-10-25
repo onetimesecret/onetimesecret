@@ -82,7 +82,7 @@ module Onetime
         # Decode the raw secret from base32 to bytes
         raw_bytes = ROTP::Base32.decode(raw_secret)
 
-        # Compute HMAC-SHA256 (Rodauth uses SHA256, not SHA1!)
+        # Compute HMAC-SHA256 (Rodauth uses SHA256)
         hmac_bytes = OpenSSL::HMAC.digest(OpenSSL::Digest::SHA256.new, hmac_secret, raw_bytes)
 
         # Encode back to base32 with same length as input

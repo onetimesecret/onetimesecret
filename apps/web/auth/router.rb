@@ -35,7 +35,7 @@ module Auth
 
     # Session middleware is now configured globally in MiddlewareStack
 
-    plugin :json
+    plugin :json, parser: true  # Parse incoming JSON request bodies
     plugin :halt
     plugin :status_handler
 

@@ -9,10 +9,12 @@ const { recoveryCodes, mfaStatus, isLoading, error, fetchRecoveryCodes, fetchMfa
 const showGenerateConfirm = ref(false);
 
 onMounted(async () => {
-  await Promise.all([
-    fetchMfaStatus(),
-    fetchRecoveryCodes(),
-  ]);
+  // Fetch recovery codes first (generates/fetches codes)
+  // Then fetch MFA status to get the correct count
+  // Sequential execution prevents race condition where count query
+  // runs between code deletion and insertion
+  await fetchRecoveryCodes();
+  await fetchMfaStatus();
 });
 
 // Check if MFA is enabled
@@ -112,8 +114,9 @@ const printCodes = () => {
 // Generate new codes
 const handleGenerateNew = async () => {
   showGenerateConfirm.value = false;
+  // Generate new codes first, then fetch status to avoid race condition
   await generateNewRecoveryCodes();
-  await fetchMfaStatus(); // Refresh count
+  await fetchMfaStatus(); // Refresh count after codes are generated
 };
 </script>
 

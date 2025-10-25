@@ -14,6 +14,7 @@ module Auth
     @uri_prefix = '/auth'.freeze
 
     # Auth app specific middleware (common middleware is in MiddlewareStack)
+    use Rack::JSONBodyParser  # Parse JSON request bodies for Rodauth
 
     Onetime.development? do
       # Development configuration if needed
