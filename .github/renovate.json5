@@ -1,74 +1,116 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
 
-  // Core presets
-  "extends": [
-    "config:recommended",
-    "docker:pinDigests",
-    "helpers:pinGitHubActionDigests",
-    ":pinDevDependencies",
-    ":pinDependencies"
+  // CORE PRESETS
+  // config:recommended - Includes hourly limits, semantic commit messages,
+  //   intelligent grouping, and auto-detection of monorepos
+  // docker:pinDigests - Prevents tag poisoning attacks where "latest" gets rewritten
+  // helpers:pinGitHubActionDigests - Mitigates supply chain attacks (tags are mutable, SHAs aren't)
+  // :pinDevDependencies - Ensures reproducible builds in CI/test environments
+  // :pinDependencies - Maximizes reproducibility at the cost of more frequent updates
+  extends: [
+    'config:recommended',
+    'docker:pinDigests',
+    'helpers:pinGitHubActionDigests',
+    ':pinDevDependencies',
+    ':pinDependencies',
   ],
 
-  // Update control and scheduling
-  "timezone": "America/Vancouver",
-  "schedule": ["before 5am on Monday"],
-  "separateMinorPatch": false,
-  "separateMultipleMajor": true,
-  "separateMultipleMinor": true,
-  "recreateWhen": "auto",
-  "rebaseWhen": "auto",
+  // UPDATE CONTROL AND SCHEDULING
+  // Batches updates so Monday morning reviews clear the queue
+  timezone: 'America/Vancouver',
+  schedule: ['before 5am on Monday'],
 
-  // PR management
-  "prConcurrentLimit": 15,
-  "prHourlyLimit": 10,
-  "labels": ["auto-update"],
-  "assignees": ["delano"],
-  "reviewers": [],
+  // Separation strategy: Multiple updates to the same package get separate PRs
+  // (e.g., if v1.0, v1.1, and v2.0 are all available, creates 3 PRs).
+  // This isolates compatibility issues and makes rollbacks cleaner.
+  separateMinorPatch: false,
+  separateMultipleMajor: true,
+  separateMultipleMinor: true,
 
-  // Branch settings
-  "branchPrefix": "deps/",
-  "branchNameStrict": true,
+  // Only recreate/rebase PRs when actually necessary (conflicts or base changes)
+  recreateWhen: 'auto',
+  rebaseWhen: 'auto',
 
-  // Automerge settings
-  "automerge": true,
-  "automergeType": "branch",
-  "automergeStrategy": "merge-commit",
-  "major": { "automerge": false },
-  "minor": { "automerge": false },
-  "patch": { "automerge": true },
-  "pin": { "automerge": true },
-  "lockFileMaintenance": { "automerge": true },
+  // PR MANAGEMENT
+  // Concurrency limit means there can be more updates than what we see in the PR list.
+  // Hourly limit avoids hitting resource rate limits and spreads CI load
+  prConcurrentLimit: 15,
+  prHourlyLimit: 5,
+  labels: ['auto-update', 'dependencies'],
+  assignees: ['delano'],
+  reviewers: [],
 
-  // Security settings
-  "vulnerabilityAlerts": {
-    "labels": ["security"],
-    "assignees": ["delano"],
-    "schedule": "at any time"
+  // BRANCH SETTINGS
+  // Strict branch names means no spaces/special chars (i.e. slugified)
+  branchPrefix: 'deps/',
+  branchNameStrict: true,
+
+  // AUTOMERGE SETTINGS
+  // Philosophy: Trust patches, verify majors. Reduces toil while maintaining safety.
+  // Squash strategy keeps each dependency update as a single commit for easy reverts.
+  // automergeType=branch - Merge without waiting for PR to be created in UI
+  automerge: true,
+  automergeType: 'branch',
+  automergeStrategy: 'squash',
+  major: { automerge: false },
+  minor: { automerge: false },
+  patch: { automerge: true },
+
+  // When Renovate encounters version ranges like ^1.0.0 or ~2.3.0, it creates
+  // PRs to replace them with exact versions (e.g., 1.0.5). This matches what's
+  // already in your lock file, so no actual dependency versions change.
+  pin: { automerge: true },
+
+  // Lock file maintenance updates indirect dependencies (deps of deps). A
+  // low risk way to get security fixes in nested dependencies.
+  lockFileMaintenance: { automerge: true },
+
+  // SECURITY SETTINGS
+  // Security fixes bypass scheduling to minimize exposure window
+  vulnerabilityAlerts: {
+    labels: ['security'],
+    assignees: ['delano'],
+    schedule: 'at any time',
   },
 
-  // Package-specific rules
-  "packageRules": [
+  // PACKAGE-SPECIFIC RULES
+  packageRules: [
     {
-      "matchPackageNames": ["encryptor"],
-      "recreateWhen": "never"
+      // Frozen due to known breaking changes and compatibility issues. This
+      // prevents Renovate from suggesting updates that we can't/won't merge.
+      // To be removed in v0.24.
+      matchPackageNames: ['encryptor'],
+      recreateWhen: 'never',
     },
     {
-      "matchPackageNames": ["rack"],
-      "recreateWhen": "never"
+      // To be removed in v0.23.
+      matchPackageNames: ['rack'],
+      recreateWhen: 'never',
     },
     {
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["ghcr.io/onetimesecret/onetimesecret"],
-      "enabled": false
+      // Don't suggest updates to our own OCI image (avoids a create circular dependency).
+      matchDatasources: ['docker'],
+      matchPackageNames: ['ghcr.io/onetimesecret/onetimesecret'],
+      enabled: false,
     },
     {
-      "matchPackagePatterns": ["^@types/"],
-      "groupName": "TypeScript type definitions",
-      "groupSlug": "types-updates"
-    }
+      // Type definitions rarely break things and clutter the PR list
+      // when updated individually (often 10+ packages for one TypeScript update)
+      matchPackagePatterns: ['^@types/'],
+      groupName: 'TypeScript type definitions',
+      groupSlug: 'types-updates',
+    },
   ],
 
-  // Additional settings
-  "forkProcessing": "enabled"
+  // ADDITIONAL SETTINGS
+  // Runs separately from regular updates to refresh the entire lock file. Catches
+  // security fixes and improvements in the entire dependency tree.
+  lockFileMaintenance: {
+    enabled: true,
+    schedule: ['before 2am on Monday'],
+  },
+
+  // Only process the main repo, not forks (prevents duplicate work).
+  forkProcessing: 'disabled',
 }
