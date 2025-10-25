@@ -61,42 +61,54 @@ module Auth::Config::Hooks
       # This hook fires when a user attempts to verify their OTP code during login.
       # It ensures proper HMAC secret handling and adds diagnostic logging.
       #
-      auth.before_otp_auth_route do
-          # Retrieve the raw secret from database
-          raw_key = db[otp_keys_table].where(otp_keys_id_column => account_id).get(otp_keys_column)
+      # auth.before_otp_auth_route do
+      #     # Retrieve the raw secret from database
+      #     raw_key = db[otp_keys_table].where(otp_keys_id_column => account_id).get(otp_keys_column)
+      #     Onetime.auth_logger.debug '[MFA Login] before_otp_auth_route hook fired',
+      #       account_id: account_id,
+      #       otp_code: param(otp_auth_param),
+      #       raw_key: raw_key
 
-          if raw_key
-            # Compute what Rodauth will use for validation
-            computed_hmac = otp_keys_use_hmac? ? otp_hmac_secret(raw_key) : raw_key
 
-            # CRITICAL: Tell Rodauth to use the HMAC-computed key for validation
-            # Without this, Rodauth may use the raw key directly, causing validation failure
-            # This matches the pattern used during setup (line 337)
-            otp_tmp_key(computed_hmac)
+      #     if raw_key
+      #       # Compute what Rodauth will use for validation (for debug logging only)
+      #       computed_hmac = otp_keys_use_hmac? ? otp_hmac_secret(raw_key) : raw_key
 
-            # Generate expected codes for debugging
-            require 'rotp'
-            totp         = ROTP::TOTP.new(computed_hmac, issuer: otp_issuer)
-            current_code = totp.now
-            prev_code    = totp.at(Time.now.to_i - 30)
-            next_code    = totp.at(Time.now.to_i + 30)
+      #       # CRITICAL: Tell Rodauth to use the HMAC-computed key for validation
+      #       # Without this, Rodauth may use the raw key directly, causing validation failure
+      #       # This matches the pattern used during setup
+      #       otp_tmp_key(computed_hmac)
 
-            Onetime.auth_logger.debug '[MFA Login] OTP authentication attempt',
-              account_id: account_id,
-              provided_code: param(otp_auth_param),
-              raw_key_sample: "#{raw_key[0..3]}...#{raw_key[-4..-1]}",
-              computed_hmac_sample: "#{computed_hmac[0..3]}...#{computed_hmac[-4..-1]}",
-              expected_current: current_code,
-              expected_previous: prev_code,
-              expected_next: next_code,
-              current_time: Time.now.to_i,
-              hmac_enabled: otp_keys_use_hmac?,
-              otp_code_provided: !param(otp_auth_param).to_s.empty?
-        else
-          Onetime.auth_logger.warn '[MFA Login] No OTP key found in database',
-            account_id: account_id
-        end
-      end
+      #       Onetime.auth_logger.debug '[MFA Login] before_otp_auth_route hook fired',
+      #         account_id: account_id,
+      #         otp_code: param(otp_auth_param),
+      #         computed_hmac: computed_hmac
+
+      #       # Generate expected codes for debugging
+      #       # NOTE: We don't call otp_tmp_key() here - Rodauth's built-in HMAC
+      #       # support handles key computation automatically during validation
+      #       require 'rotp'
+      #       totp         = ROTP::TOTP.new(computed_hmac, issuer: otp_issuer)
+      #       current_code = totp.now
+      #       prev_code    = totp.at(Time.now.to_i - 30)
+      #       next_code    = totp.at(Time.now.to_i + 30)
+
+      #       Onetime.auth_logger.debug '[MFA Login] OTP authentication attempt',
+      #         account_id: account_id,
+      #         provided_code: param(otp_auth_param),
+      #         raw_key_sample: "#{raw_key[0..3]}...#{raw_key[-4..-1]}",
+      #         computed_hmac_sample: "#{computed_hmac[0..3]}...#{computed_hmac[-4..-1]}",
+      #         expected_current: current_code,
+      #         expected_previous: prev_code,
+      #         expected_next: next_code,
+      #         current_time: Time.now.to_i,
+      #         hmac_enabled: otp_keys_use_hmac?,
+      #         otp_code_provided: !param(otp_auth_param).to_s.empty?
+      #   else
+      #     Onetime.auth_logger.warn '[MFA Login] No OTP key found in database',
+      #       account_id: account_id
+      #   end
+      # end
 
       # ========================================================================
       # HOOK: After Successful Two-Factor Authentication
@@ -183,197 +195,197 @@ module Auth::Config::Hooks
       # The hook customizes Rodauth's default HTML form-based flow to work
       # with JSON API requests from the Vue frontend.
       #
-      auth.before_otp_setup_route do
-        if json_request?
-          # Determine which step based on presence of OTP code parameter
-          # param_or_nil(otp_auth_param) checks for the "otp" field
-          if param_or_nil(otp_auth_param).nil?
-            # ================================================================
-            # STEP 1: INITIAL SETUP REQUEST
-            # ================================================================
-            #
-            # USER ACTION: User clicks "Enable 2FA" button in settings
-            # REQUEST: POST /otp-setup (no OTP code in body)
-            #
-            # WHAT HAPPENS:
-            # 1. Generate cryptographic secret for TOTP algorithm
-            # 2. Store secrets in session for verification in step 2
-            # 3. Create QR code containing secret and account info
-            # 4. Return setup data to frontend for display
-            #
-            # USER SEES: QR code, manual entry code, instructions
+      # auth.before_otp_setup_route do
 
-            # Check for existing setup in progress (handles page refresh)
-            raw_secret = session[:otp_setup_raw]
+      #     # Determine which step based on presence of OTP code parameter
+      #     # param_or_nil(otp_auth_param) checks for the "otp" field
+      #     if param_or_nil(otp_auth_param).nil?
+      #       # ================================================================
+      #       # STEP 1: INITIAL SETUP REQUEST
+      #       # ================================================================
+      #       #
+      #       # USER ACTION: User clicks "Enable 2FA" button in settings
+      #       # REQUEST: POST /otp-setup (no OTP code in body)
+      #       #
+      #       # WHAT HAPPENS:
+      #       # 1. Generate cryptographic secret for TOTP algorithm
+      #       # 2. Store secrets in session for verification in step 2
+      #       # 3. Create QR code containing secret and account info
+      #       # 4. Return setup data to frontend for display
+      #       #
+      #       # USER SEES: QR code, manual entry code, instructions
 
-            # Generate new secret if none exists in session
-            unless raw_secret
-              # Create base32-encoded secret (16 chars, ~80 bits entropy)
-              # Example: "JBSWY3DPEHPK3PXP"
-              raw_secret              = otp_new_secret
-              session[:otp_setup_raw] = raw_secret
+      #       # Check for existing setup in progress (handles page refresh)
+      #       raw_secret = session[:otp_setup_raw]
 
-              Onetime.auth_logger.debug '[MFA Setup Step 1] Generated new OTP secret',
-                raw_secret_length: raw_secret.length,
-                raw_secret_sample: "#{raw_secret[0..3]}...#{raw_secret[-4..-1]}"
+      #       # Generate new secret if none exists in session
+      #       unless raw_secret
+      #         # Create base32-encoded secret (16 chars, ~80 bits entropy)
+      #         # Example: "JBSWY3DPEHPK3PXP"
+      #         raw_secret              = otp_new_secret
+      #         session[:otp_setup_raw] = raw_secret
 
-              # Security layer: Generate HMAC version if enabled
-              # HMAC prevents secret tampering and provides additional validation
-              if otp_keys_use_hmac?
-                hmac_secret              = otp_hmac_secret(raw_secret)
-                session[:otp_setup_hmac] = hmac_secret
+      #         Onetime.auth_logger.debug '[MFA Setup Step 1] Generated new OTP secret',
+      #           raw_secret_length: raw_secret.length,
+      #           raw_secret_sample: "#{raw_secret[0..3]}...#{raw_secret[-4..-1]}"
 
-                Onetime.auth_logger.debug '[MFA Setup Step 1] Generated HMAC secret',
-                  hmac_secret_length: hmac_secret.length,
-                  hmac_secret_sample: "#{hmac_secret[0..3]}...#{hmac_secret[-4..-1]}"
-              end
-            end
+      #         # Security layer: Generate HMAC version if enabled
+      #         # HMAC prevents secret tampering and provides additional validation
+      #         if otp_keys_use_hmac?
+      #           hmac_secret              = otp_hmac_secret(raw_secret)
+      #           session[:otp_setup_hmac] = hmac_secret
 
-            # Configure Rodauth's internal OTP validation
-            # CRITICAL: Always use raw secret here
-            # Rodauth automatically handles HMAC conversion when generating provisioning URI
-            otp_tmp_key(raw_secret)
+      #           Onetime.auth_logger.debug '[MFA Setup Step 1] Generated HMAC secret',
+      #             hmac_secret_length: hmac_secret.length,
+      #             hmac_secret_sample: "#{hmac_secret[0..3]}...#{hmac_secret[-4..-1]}"
+      #         end
+      #       end
 
-            # Prepare JSON response for frontend
-            response.status                  = 200
-            response.headers['Content-Type'] = 'application/json'
+      #       # Configure Rodauth's internal OTP validation
+      #       # CRITICAL: Use HMAC secret when HMAC is enabled, so the QR code matches
+      #       # what Rodauth will validate against during login
+      #       key_for_qr = otp_keys_use_hmac? ? session[:otp_setup_hmac] : raw_secret
+      #       otp_tmp_key(key_for_qr)
 
-            # Generate data for authenticator app configuration:
-            # 1. Provisioning URI: otpauth://totp/OneTime:user@email.com?secret=...
-            #    Contains secret, issuer, account name for one-click setup
-            # 2. QR Code SVG: Visual encoding of provisioning URI
-            #    User scans this with authenticator app camera
-            prov_uri    = otp_provisioning_uri
-            qr_code_svg = otp_qr_code
+      #       # Prepare JSON response for frontend
+      #       response.status                  = 200
+      #       response.headers['Content-Type'] = 'application/json'
 
-            # Extract secret from provisioning URI for verification
-            uri_secret          = begin
-                           prov_uri.match(/secret=([^&]+)/)[1]
-            rescue StandardError
-                           nil
-            end
-            expected_secret     = otp_keys_use_hmac? ? session[:otp_setup_hmac] : raw_secret
-            Onetime.auth_logger.debug '[MFA Setup Step 1] Provisioning URI generated',
-              full_uri: prov_uri,
-              uri_secret: uri_secret,
-              uri_secret_sample: uri_secret ? "#{uri_secret[0..3]}...#{uri_secret[-4..-1]}" : 'nil',
-              raw_secret: raw_secret,
-              raw_secret_sample: "#{raw_secret[0..3]}...#{raw_secret[-4..-1]}",
-              hmac_secret: session[:otp_setup_hmac],
-              hmac_secret_sample: "#{session[:otp_setup_hmac][0..3]}...#{session[:otp_setup_hmac][-4..-1]}",
-              uri_matches_raw: uri_secret == raw_secret,
-              uri_matches_hmac: uri_secret == session[:otp_setup_hmac],
-              expected_type: otp_keys_use_hmac? ? 'HMAC' : 'raw'
+      #       # Generate data for authenticator app configuration:
+      #       # 1. Provisioning URI: otpauth://totp/OneTime:user@email.com?secret=...
+      #       #    Contains secret, issuer, account name for one-click setup
+      #       # 2. QR Code SVG: Visual encoding of provisioning URI
+      #       #    User scans this with authenticator app camera
+      #       prov_uri    = otp_provisioning_uri
+      #       qr_code_svg = otp_qr_code
 
-            # Build response payload
-            # NOTE: When HMAC is enabled, the QR code and manual entry secret should both
-            # contain the HMAC version (what authenticator apps use), not the raw secret.
-            # The raw secret is stored in the database for security.
-            manual_entry_secret = otp_keys_use_hmac? ? session[:otp_setup_hmac] : raw_secret
+      #       # Extract secret from provisioning URI for verification
+      #       uri_secret          = begin
+      #                      prov_uri.match(/secret=([^&]+)/)[1]
+      #       rescue StandardError
+      #                      nil
+      #       end
+      #       expected_secret     = otp_keys_use_hmac? ? session[:otp_setup_hmac] : raw_secret
+      #       Onetime.auth_logger.debug '[MFA Setup Step 1] Provisioning URI generated',
+      #         full_uri: prov_uri,
+      #         uri_secret: uri_secret,
+      #         uri_secret_sample: uri_secret ? "#{uri_secret[0..3]}...#{uri_secret[-4..-1]}" : 'nil',
+      #         raw_secret: raw_secret,
+      #         raw_secret_sample: "#{raw_secret[0..3]}...#{raw_secret[-4..-1]}",
+      #         hmac_secret: session[:otp_setup_hmac],
+      #         hmac_secret_sample: "#{session[:otp_setup_hmac][0..3]}...#{session[:otp_setup_hmac][-4..-1]}",
+      #         uri_matches_raw: uri_secret == raw_secret,
+      #         uri_matches_hmac: uri_secret == session[:otp_setup_hmac],
+      #         expected_type: otp_keys_use_hmac? ? 'HMAC' : 'raw'
 
-            result = {
-              secret: manual_entry_secret,     # For manual entry (HMAC if enabled)
-              provisioning_uri: prov_uri,      # For authenticator parsing
-              qr_code: qr_code_svg,            # SVG for visual display
-            }
+      #       # Build response payload
+      #       # NOTE: When HMAC is enabled, the QR code and manual entry secret should both
+      #       # contain the HMAC version (what authenticator apps use), not the raw secret.
+      #       # The raw secret is stored in the database for security.
+      #       manual_entry_secret = otp_keys_use_hmac? ? session[:otp_setup_hmac] : raw_secret
 
-            # Include HMAC security parameters if enabled
-            # These will be validated in step 2 to ensure session integrity
-            if otp_keys_use_hmac?
-              result[otp_setup_param]     = session[:otp_setup_hmac]
-              result[otp_setup_raw_param] = raw_secret
-            end
+      #       result = {
+      #         secret: manual_entry_secret,     # For manual entry (HMAC if enabled)
+      #         provisioning_uri: prov_uri,      # For authenticator parsing
+      #         qr_code: qr_code_svg,            # SVG for visual display
+      #       }
 
-            Onetime.auth_logger.debug '[MFA Setup Step 1] Response payload',
-              has_secret: !result[:secret].nil?,
-              has_prov_uri: !result[:provisioning_uri].nil?,
-              has_qr_code: !result[:qr_code].nil?,
-              has_otp_setup: !result[otp_setup_param.to_sym].nil?,
-              has_otp_raw_secret: !result[otp_setup_raw_param.to_sym].nil?
+      #       # Include HMAC security parameters if enabled
+      #       # These will be validated in step 2 to ensure session integrity
+      #       if otp_keys_use_hmac?
+      #         result[otp_setup_param]     = session[:otp_setup_hmac]
+      #         result[otp_setup_raw_param] = raw_secret
+      #       end
 
-            # Send response and stop Rodauth's default processing
-            response.write(result.to_json)
-            request.halt  # Prevents Rodauth from rendering HTML form
-          elsif otp_keys_use_hmac? && session[:otp_setup_raw]
-            # ================================================================
-            # STEP 2: VERIFICATION REQUEST
-            # ================================================================
-            #
-            # USER ACTION: User enters 6-digit code from authenticator app
-            # REQUEST: POST /otp-setup with body: { "otp": "123456", ... }
-            #
-            # WHAT HAPPENS:
-            # 1. Validate HMAC parameters match session (prevents tampering)
-            # 2. Retrieve raw secret from session
-            # 3. Rodauth validates OTP code using ROTP library
-            # 4. If valid, Rodauth stores HMAC secret to database
-            # 5. Cleanup hook removes temporary session data
-            #
-            # VALIDATION FLOW:
-            # - ROTP generates expected code from raw secret + current time
-            # - Compares user's code with expected code (allows ±1 time step)
-            # - Success: MFA enabled, user sees confirmation
-            # - Failure: Error message, user can retry
-            #
-            provided_raw  = param_or_nil(otp_setup_raw_param)
-            provided_hmac = param_or_nil(otp_setup_param)
+      #       Onetime.auth_logger.debug '[MFA Setup Step 1] Response payload',
+      #         has_secret: !result[:secret].nil?,
+      #         has_prov_uri: !result[:provisioning_uri].nil?,
+      #         has_qr_code: !result[:qr_code].nil?,
+      #         has_otp_setup: !result[otp_setup_param.to_sym].nil?,
+      #         has_otp_raw_secret: !result[otp_setup_raw_param.to_sym].nil?
 
-            # Log validation attempt for debugging
-            Onetime.auth_logger.debug '[MFA] OTP verification attempt',
-              session_raw: session[:otp_setup_raw],
-              session_hmac: session[:otp_setup_hmac],
-              provided_raw: provided_raw,
-              provided_hmac: provided_hmac,
-              params_match: (provided_raw == session[:otp_setup_raw] && provided_hmac == session[:otp_setup_hmac])
+      #       # Send response and stop Rodauth's default processing
+      #       response.write(result.to_json)
+      #       request.halt  # Prevents Rodauth from rendering HTML form
+      #     elsif otp_keys_use_hmac? && session[:otp_setup_raw]
+      #       # ================================================================
+      #       # STEP 2: VERIFICATION REQUEST
+      #       # ================================================================
+      #       #
+      #       # USER ACTION: User enters 6-digit code from authenticator app
+      #       # REQUEST: POST /otp-setup with body: { "otp": "123456", ... }
+      #       #
+      #       # WHAT HAPPENS:
+      #       # 1. Validate HMAC parameters match session (prevents tampering)
+      #       # 2. Retrieve raw secret from session
+      #       # 3. Rodauth validates OTP code using ROTP library
+      #       # 4. If valid, Rodauth stores HMAC secret to database
+      #       # 5. Cleanup hook removes temporary session data
+      #       #
+      #       # VALIDATION FLOW:
+      #       # - ROTP generates expected code from raw secret + current time
+      #       # - Compares user's code with expected code (allows ±1 time step)
+      #       # - Success: MFA enabled, user sees confirmation
+      #       # - Failure: Error message, user can retry
+      #       #
+      #       provided_raw  = param_or_nil(otp_setup_raw_param)
+      #       provided_hmac = param_or_nil(otp_setup_param)
 
-            # Verify HMAC parameters match session
-            # If mismatch, fall through to Rodauth's error handling
-            unless provided_raw == session[:otp_setup_raw] &&
-                   provided_hmac == session[:otp_setup_hmac]
-              # Rodauth will handle error response generation
-              # User will see "Invalid setup parameters" or similar
-            end
+      #       # Log validation attempt for debugging
+      #       Onetime.auth_logger.debug '[MFA] OTP verification attempt',
+      #         session_raw: session[:otp_setup_raw],
+      #         session_hmac: session[:otp_setup_hmac],
+      #         provided_raw: provided_raw,
+      #         provided_hmac: provided_hmac,
+      #         params_match: (provided_raw == session[:otp_setup_raw] && provided_hmac == session[:otp_setup_hmac])
 
-            # Configure Rodauth for OTP validation
-            # CRITICAL: Use HMAC secret - authenticator app generates codes from this
-            # (The QR code contains the HMAC secret, not the raw secret, when HMAC is enabled)
-            # After validation, Rodauth stores the raw secret to database
-            otp_tmp_key(session[:otp_setup_hmac])
+      #       # Verify HMAC parameters match session
+      #       # If mismatch, fall through to Rodauth's error handling
+      #       unless provided_raw == session[:otp_setup_raw] &&
+      #              provided_hmac == session[:otp_setup_hmac]
+      #         # Rodauth will handle error response generation
+      #         # User will see "Invalid setup parameters" or similar
+      #       end
 
-            Onetime.auth_logger.debug '[MFA Setup Step 2] Set otp_tmp_key for validation',
-              tmp_key: session[:otp_setup_hmac],
-              tmp_key_sample: "#{session[:otp_setup_hmac][0..3]}...#{session[:otp_setup_hmac][-4..-1]}",
-              otp_code: param(otp_auth_param),
-              raw_secret: session[:otp_setup_raw],
-              raw_secret_sample: "#{session[:otp_setup_raw][0..3]}...#{session[:otp_setup_raw][-4..-1]}"
+      #       # Configure Rodauth for OTP validation
+      #       # CRITICAL: Use HMAC secret - authenticator app generates codes from this
+      #       # (The QR code contains the HMAC secret, not the raw secret, when HMAC is enabled)
+      #       # After validation, Rodauth stores the raw secret to database
+      #       otp_tmp_key(session[:otp_setup_hmac])
 
-            # Try to manually validate to see what's happening
-            begin
-              require 'rotp'
-              totp_hmac = ROTP::TOTP.new(session[:otp_setup_hmac], issuer: otp_issuer)
-              totp_raw  = ROTP::TOTP.new(session[:otp_setup_raw], issuer: otp_issuer)
+      #       Onetime.auth_logger.debug '[MFA Setup Step 2] Set otp_tmp_key for validation',
+      #         tmp_key: session[:otp_setup_hmac],
+      #         tmp_key_sample: "#{session[:otp_setup_hmac][0..3]}...#{session[:otp_setup_hmac][-4..-1]}",
+      #         otp_code: param(otp_auth_param),
+      #         raw_secret: session[:otp_setup_raw],
+      #         raw_secret_sample: "#{session[:otp_setup_raw][0..3]}...#{session[:otp_setup_raw][-4..-1]}"
 
-              code       = param(otp_auth_param)
-              valid_hmac = totp_hmac.verify(code, drift_behind: 15, drift_ahead: 15)
-              valid_raw  = totp_raw.verify(code, drift_behind: 15, drift_ahead: 15)
+      #       # Try to manually validate to see what's happening
+      #       begin
+      #         require 'rotp'
+      #         totp_hmac = ROTP::TOTP.new(session[:otp_setup_hmac], issuer: otp_issuer)
+      #         totp_raw  = ROTP::TOTP.new(session[:otp_setup_raw], issuer: otp_issuer)
 
-              Onetime.auth_logger.debug '[MFA Setup Step 2] Manual TOTP validation',
-                otp_code: code,
-                valid_with_hmac: !valid_hmac.nil?,
-                valid_with_raw: !valid_raw.nil?,
-                current_time: Time.now.to_i,
-                expected_code_hmac: totp_hmac.now,
-                expected_code_raw: totp_raw.now
-            rescue StandardError => ex
-              Onetime.auth_logger.error '[MFA Setup Step 2] Manual validation error',
-                error: ex.message,
-                backtrace: ex.backtrace.first(3)
-            end
-            # Security check: Validate client sent correct HMAC parameters
-            # This ensures the request matches the session that initiated setup
-          end
-        end
-      end
+      #         code       = param(otp_auth_param)
+      #         valid_hmac = totp_hmac.verify(code, drift_behind: 15, drift_ahead: 15)
+      #         valid_raw  = totp_raw.verify(code, drift_behind: 15, drift_ahead: 15)
+
+      #         Onetime.auth_logger.debug '[MFA Setup Step 2] Manual TOTP validation',
+      #           otp_code: code,
+      #           valid_with_hmac: !valid_hmac.nil?,
+      #           valid_with_raw: !valid_raw.nil?,
+      #           current_time: Time.now.to_i,
+      #           expected_code_hmac: totp_hmac.now,
+      #           expected_code_raw: totp_raw.now
+      #       rescue StandardError => ex
+      #         Onetime.auth_logger.error '[MFA Setup Step 2] Manual validation error',
+      #           error: ex.message,
+      #           backtrace: ex.backtrace.first(3)
+      #       end
+      #       # Security check: Validate client sent correct HMAC parameters
+      #       # This ensures the request matches the session that initiated setup
+      #     end
+      # end
 
       # ========================================================================
       # HOOK: After OTP Setup Complete
@@ -395,69 +407,69 @@ module Auth::Config::Hooks
       # USER EXPERIENCE: User sees "2FA enabled successfully" message
       #
 
-      # ========================================================================
-      # DEBUG: Before OTP Setup (Step 2 Verification)
-      # ========================================================================
-      auth.before_otp_setup do
-        Onetime.auth_logger.debug "[before_otp_setup] #{account[:email]} starting OTP setup"
-        if param_or_nil(otp_auth_param)
-          Onetime.auth_logger.debug '[MFA Setup Step 2] Starting verification',
-            otp_code: param(otp_auth_param),
-            session_has_raw: !session[:otp_setup_raw].nil?,
-            session_has_hmac: !session[:otp_setup_hmac].nil?,
-            hmac_enabled: otp_keys_use_hmac?
-        end
-      end
+      # # ========================================================================
+      # # DEBUG: Before OTP Setup (Step 2 Verification)
+      # # ========================================================================
+      # auth.before_otp_setup do
+      #   Onetime.auth_logger.debug "[before_otp_setup] #{account[:email]} starting OTP setup"
+      #   if param_or_nil(otp_auth_param)
+      #     Onetime.auth_logger.debug '[MFA Setup Step 2] Starting verification',
+      #       otp_code: param(otp_auth_param),
+      #       session_has_raw: !session[:otp_setup_raw].nil?,
+      #       session_has_hmac: !session[:otp_setup_hmac].nil?,
+      #       hmac_enabled: otp_keys_use_hmac?
+      #   end
+      # end
 
-      # ========================================================================
-      # DEBUG: Before OTP Authentication (Login)
-      # ========================================================================
-      auth.before_otp_authentication do
-        Onetime.auth_logger.debug "[before_otp_authentication] #{account[:email]} starting OTP authentication"
+      # # ========================================================================
+      # # DEBUG: Before OTP Authentication (Login)
+      # # ========================================================================
+      # auth.before_otp_authentication do
+      #   Onetime.auth_logger.debug "[before_otp_authentication] #{account[:email]} starting OTP authentication"
 
-        # Get the key that will be used for validation
-        raw_key = db[otp_keys_table].where(otp_keys_id_column => account_id).get(otp_keys_column)
+      #   # Get the key that will be used for validation
+      #   raw_key = db[otp_keys_table].where(otp_keys_id_column => account_id).get(otp_keys_column)
 
-        if raw_key
-          # Compute what Rodauth will use for validation
-          computed_hmac = otp_keys_use_hmac? ? otp_hmac_secret(raw_key) : raw_key
+      #   if raw_key
+      #     # Compute what Rodauth will use for validation
+      #     computed_hmac = otp_keys_use_hmac? ? otp_hmac_secret(raw_key) : raw_key
 
-          # Generate expected codes for debugging
-          require 'rotp'
-          totp         = ROTP::TOTP.new(computed_hmac, issuer: otp_issuer)
-          current_code = totp.now
-          prev_code    = totp.at(Time.now.to_i - 30)
-          next_code    = totp.at(Time.now.to_i + 30)
+      #     # Generate expected codes for debugging
+      #     require 'rotp'
+      #     totp         = ROTP::TOTP.new(computed_hmac, issuer: otp_issuer)
+      #     current_code = totp.now
+      #     prev_code    = totp.at(Time.now.to_i - 30)
+      #     next_code    = totp.at(Time.now.to_i + 30)
 
-          Onetime.auth_logger.debug '[MFA Login] Before authentication',
-            provided_code: param(otp_auth_param),
-            raw_key_sample: "#{raw_key[0..3]}...#{raw_key[-4..-1]}",
-            computed_hmac_sample: "#{computed_hmac[0..3]}...#{computed_hmac[-4..-1]}",
-            expected_current: current_code,
-            expected_previous: prev_code,
-            expected_next: next_code,
-            current_time: Time.now.to_i,
-            hmac_enabled: otp_keys_use_hmac?
-        else
-          Onetime.auth_logger.warn '[MFA Login] No OTP key in database',
-            account_id: account_id
-        end
-      end
+      #     Onetime.auth_logger.debug '[MFA Login] Before authentication',
+      #       provided_code: param(otp_auth_param),
+      #       raw_key_sample: "#{raw_key[0..3]}...#{raw_key[-4..-1]}",
+      #       computed_hmac_sample: "#{computed_hmac[0..3]}...#{computed_hmac[-4..-1]}",
+      #       expected_current: current_code,
+      #       expected_previous: prev_code,
+      #       expected_next: next_code,
+      #       current_time: Time.now.to_i,
+      #       hmac_enabled: otp_keys_use_hmac?
+      #   else
+      #     Onetime.auth_logger.warn '[MFA Login] No OTP key in database',
+      #       account_id: account_id
+      #   end
+      # end
 
-      # ========================================================================
-      # DEBUG: After OTP Authentication Failure
-      # ========================================================================
-      auth.after_otp_authentication_failure do
-        Onetime.auth_logger.warn '[MFA] OTP authentication failed',
-          account_id: account_id,
-          otp_code: param(otp_auth_param),
-          reason: 'Code validation failed - check time sync or secret mismatch'
-      end
+      # # ========================================================================
+      # # DEBUG: After OTP Authentication Failure
+      # # ========================================================================
+      # auth.after_otp_authentication_failure do
+      #   Onetime.auth_logger.warn '[MFA] OTP authentication failed',
+      #     account_id: account_id,
+      #     otp_code: param(otp_auth_param),
+      #     reason: 'Code validation failed - check time sync or secret mismatch'
+      # end
 
-      auth.after_otp_setup do
-        session.delete(:otp_setup_raw)
-        session.delete(:otp_setup_hmac)
-      end
+      # auth.after_otp_setup do
+      #   session.delete(:otp_setup_raw)
+      #   session.delete(:otp_setup_hmac)
+      # end
     end
   end
 end
