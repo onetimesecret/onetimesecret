@@ -33,29 +33,61 @@ module Auth::Config::Features
             post: request.post?,
             path: request.path_info,
             setup_route: otp_setup_route,
+            auth_route: otp_auth_route,
             session_raw: session[:otp_setup_raw]
 
-          # During setup with HMAC, use the session-stored raw secret
-          # Note: path_info has leading slash, setup_route doesn't
+          # During setup with HMAC, use the session-stored HMAC secret
+          # Note: path_info has leading slash, routes don't
           if json_request? && request.post? &&
               request.path_info == "/#{otp_setup_route}" &&
               session[:otp_setup_raw]
 
             require 'rotp'
-            totp = ROTP::TOTP.new(session[:otp_setup_raw])
+            # CRITICAL: Use HMAC version for setup validation, not raw
+            # The QR code contains the HMAC version, so validate against that
+            hmac_key = otp_keys_use_hmac? ? otp_hmac_secret(session[:otp_setup_raw]) : session[:otp_setup_raw]
+            totp = ROTP::TOTP.new(hmac_key)
             expected = totp.now
 
             # Debug logging
-            Onetime.auth_logger.debug '[MFA] OTP validation check',
+            Onetime.auth_logger.debug '[MFA Setup] OTP validation',
               provided_code: oacode,
               expected_code: expected,
-              secret: session[:otp_setup_raw],
+              raw_secret: session[:otp_setup_raw],
+              hmac_secret_sample: "#{hmac_key[0..3]}...#{hmac_key[-4..-1]}",
               codes_match: (oacode == expected),
               drift_check: totp.verify(oacode, drift_behind: 15, drift_ahead: 15)
 
             # Use drift tolerance for validation
             result = totp.verify(oacode, drift_behind: 15, drift_ahead: 15)
             return !!result
+          end
+
+          # During login with HMAC, compute HMAC from stored raw key
+          if json_request? && request.post? &&
+              request.path_info == "/#{otp_auth_route}" &&
+              otp_keys_use_hmac?
+
+            raw_key = db[otp_keys_table].where(otp_keys_id_column => account_id).get(otp_keys_column)
+            if raw_key
+              require 'rotp'
+              # Compute HMAC version - this is what the authenticator app has
+              hmac_key = otp_hmac_secret(raw_key)
+              totp = ROTP::TOTP.new(hmac_key, issuer: otp_issuer)
+              expected = totp.now
+
+              Onetime.auth_logger.debug '[MFA Login] OTP validation',
+                provided_code: oacode,
+                expected_code: expected,
+                raw_key_sample: "#{raw_key[0..3]}...#{raw_key[-4..-1]}",
+                hmac_key_sample: "#{hmac_key[0..3]}...#{hmac_key[-4..-1]}",
+                codes_match: (oacode == expected),
+                drift_check: totp.verify(oacode, drift_behind: 15, drift_ahead: 15)
+
+              # Use drift tolerance for validation
+              result = totp.verify(oacode, drift_behind: 15, drift_ahead: 15)
+              return !!result
+            end
           end
 
           # Otherwise use default validation
