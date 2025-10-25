@@ -1,13 +1,12 @@
 // src/composables/useAuth.ts
 import { inject, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/authStore';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
+import { useAsyncHandler, createError, type AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 import {
   isAuthError,
-  lockoutErrorSchema,
   type LoginResponse,
   type CreateAccountResponse,
   type LogoutResponse,
@@ -51,7 +50,6 @@ import type { LockoutStatus } from '@/types/auth';
 export function useAuth() {
   const $api = inject('api') as AxiosInstance;
   const router = useRouter();
-  const { t } = useI18n();
   const authStore = useAuthStore();
   const csrfStore = useCsrfStore();
   const notificationsStore = useNotificationsStore();
@@ -70,25 +68,25 @@ export function useAuth() {
     lockoutStatus.value = null;
   }
 
-  /**
-   * Sets error from auth response
-   */
-  function setError(response: LoginResponse | CreateAccountResponse | ResetPasswordRequestResponse | ResetPasswordResponse | VerifyAccountResponse | ChangePasswordResponse | CloseAccountResponse) {
-    if (isAuthError(response)) {
-      error.value = response.error;
-      fieldError.value = response['field-error'] || null;
-
-      // Try to parse lockout information if present
-      try {
-        const lockoutParsed = lockoutErrorSchema.safeParse(response);
-        if (lockoutParsed.success && lockoutParsed.data.lockout) {
-          lockoutStatus.value = lockoutParsed.data.lockout;
-        }
-      } catch {
-        // Lockout info not present, which is fine
+  // Configure useAsyncHandler for auth-specific needs
+  const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
+    // Don't auto-notify - auth errors are shown inline in forms
+    notify: false,
+    setLoading: (loading) => isLoading.value = loading,
+    onError: (err) => {
+      error.value = err.message;
+      // Field errors from Rodauth response
+      if (err.details?.['field-error']) {
+        fieldError.value = err.details['field-error'] as [string, string];
+      }
+      // Lockout status from Rodauth response
+      if (err.details?.lockout) {
+        lockoutStatus.value = err.details.lockout as LockoutStatus;
       }
     }
-  }
+  };
+
+  const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
   /**
    * Logs in a user with email and password
@@ -101,9 +99,8 @@ export function useAuth() {
   /* eslint-disable complexity */
   async function login(email: string, password: string, rememberMe: boolean = false): Promise<boolean> {
     clearErrors();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const response = await $api.post<LoginResponse>('/auth/login', {
         login: email,
         password: password,
@@ -121,46 +118,27 @@ export function useAuth() {
       });
 
       if (isAuthError(validated)) {
-        setError(validated);
-        return false;
+        throw createError(validated.error, 'human', 'error', {
+          'field-error': validated['field-error'],
+          ...(validated as any).lockout ? { lockout: (validated as any).lockout } : {}
+        });
       }
 
       // Check if MFA is required (Rodauth returns success but with mfa_required flag)
-      // In advanced mode with MFA enabled, Rodauth will redirect or indicate MFA is needed
-      // The response might have a special flag or the backend might return HTTP 401 with mfa_required
-      // For now, we'll check if the response indicates MFA is required
       const responseData = validated as any;
       if (responseData.mfa_required || responseData.requires_otp) {
         console.log('[useAuth] MFA required, redirecting to /mfa-verify');
-        // MFA verification needed - redirect to MFA verify page
         await router.push('/mfa-verify');
         return false; // Not fully logged in yet
       }
 
       // Success - update auth state (this fetches fresh window state)
       await authStore.setAuthenticated(true);
-
       await router.push('/');
       return true;
-    } catch (err: any) {
-      // Check if error response indicates MFA is required
-      const errorData = err.response?.data;
-      if (errorData?.mfa_required || errorData?.requires_otp) {
-        await router.push('/mfa-verify');
-        return false;
-      }
+    });
 
-      // Handle error responses (4xx, 5xx)
-      if (errorData) {
-        error.value = errorData.error || 'Login failed. Please try again.';
-        fieldError.value = errorData['field-error'] || null;
-      } else {
-        error.value = 'Login failed. Please try again.';
-      }
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
+    return result ?? false;
   }
 
   /**
@@ -173,9 +151,8 @@ export function useAuth() {
    */
   async function signup(email: string, password: string, termsAgreed: boolean = true): Promise<boolean> {
     clearErrors();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const response = await $api.post<CreateAccountResponse>('/auth/create-account', {
         login: email,
         password: password,
@@ -186,29 +163,19 @@ export function useAuth() {
       const validated = createAccountResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        setError(validated);
-        return false;
+        throw createError(validated.error, 'human', 'error', {
+          'field-error': validated['field-error']
+        });
       }
 
       // Success - account created but NOT authenticated yet
       // User needs to either verify email or sign in
-      // Show success message and navigate to signin page
       notificationsStore.show(validated.success, 'success', 'top');
       await router.push('/signin');
       return true;
-    } catch (err: any) {
-      // Handle error responses (4xx, 5xx)
-      if (err.response?.data) {
-        const errorData = err.response.data;
-        error.value = errorData.error || 'Account creation failed. Please try again.';
-        fieldError.value = errorData['field-error'] || null;
-      } else {
-        error.value = 'Account creation failed. Please try again.';
-      }
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
+    });
+
+    return result ?? false;
   }
 
   /**
@@ -218,9 +185,8 @@ export function useAuth() {
    */
   async function logout(): Promise<boolean> {
     clearErrors();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const response = await $api.post<LogoutResponse>('/auth/logout', {
         shrimp: csrfStore.shrimp,
       });
@@ -228,20 +194,16 @@ export function useAuth() {
       const validated = logoutResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        setError(validated);
-        return false;
+        throw createError(validated.error, 'human', 'error');
       }
 
       // Success - clear auth state and navigate
       await authStore.logout();
       await router.push('/');
       return true;
-    } catch (err: any) {
-      error.value = err.response?.data?.error || 'Logout failed.';
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
+    });
+
+    return result ?? false;
   }
 
   /**
@@ -252,9 +214,8 @@ export function useAuth() {
    */
   async function requestPasswordReset(email: string): Promise<boolean> {
     clearErrors();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const response = await $api.post<ResetPasswordRequestResponse>('/auth/reset-password', {
         login: email,
         shrimp: csrfStore.shrimp,
@@ -263,17 +224,15 @@ export function useAuth() {
       const validated = resetPasswordRequestResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        setError(validated);
-        return false;
+        throw createError(validated.error, 'human', 'error', {
+          'field-error': validated['field-error']
+        });
       }
 
       return true;
-    } catch (err: any) {
-      error.value = err.response?.data?.error || 'Password reset request failed.';
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
+    });
+
+    return result ?? false;
   }
 
   /**
@@ -286,9 +245,8 @@ export function useAuth() {
    */
   async function resetPassword(key: string, newPassword: string, confirmPassword: string): Promise<boolean> {
     clearErrors();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const response = await $api.post<ResetPasswordResponse>(`/auth/reset-password/${key}`, {
         key,
         newp: newPassword,
@@ -299,19 +257,17 @@ export function useAuth() {
       const validated = resetPasswordResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        setError(validated);
-        return false;
+        throw createError(validated.error, 'human', 'error', {
+          'field-error': validated['field-error']
+        });
       }
 
       // Success - navigate to signin
       await router.push('/signin');
       return true;
-    } catch (err: any) {
-      error.value = err.response?.data?.error || 'Password reset failed.';
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
+    });
+
+    return result ?? false;
   }
 
   /**
@@ -322,9 +278,8 @@ export function useAuth() {
    */
   async function verifyAccount(key: string): Promise<boolean> {
     clearErrors();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const response = await $api.post<VerifyAccountResponse>('/auth/verify-account', {
         key,
         shrimp: csrfStore.shrimp,
@@ -333,20 +288,16 @@ export function useAuth() {
       const validated = verifyAccountResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        setError(validated);
-        return false;
+        throw createError(validated.error, 'human', 'error');
       }
 
       // Success - show notification and navigate to signin
       notificationsStore.show(validated.success, 'success', 'top');
       await router.push('/signin');
       return true;
-    } catch (err: any) {
-      error.value = err.response?.data?.error || t('web.auth.verify.error');
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
+    });
+
+    return result ?? false;
   }
 
   /**
@@ -363,9 +314,8 @@ export function useAuth() {
     confirmPassword: string
   ): Promise<boolean> {
     clearErrors();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const response = await $api.post<ChangePasswordResponse>('/auth/change-password', {
         password: currentPassword,
         newp: newPassword,
@@ -376,19 +326,17 @@ export function useAuth() {
       const validated = changePasswordResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        setError(validated);
-        return false;
+        throw createError(validated.error, 'human', 'error', {
+          'field-error': validated['field-error']
+        });
       }
 
       // Success - show notification
       notificationsStore.show(validated.success, 'success', 'top');
       return true;
-    } catch (err: any) {
-      error.value = err.response?.data?.error || t('web.auth.change-password.error');
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
+    });
+
+    return result ?? false;
   }
 
   /**
@@ -399,9 +347,8 @@ export function useAuth() {
    */
   async function closeAccount(password: string): Promise<boolean> {
     clearErrors();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const response = await $api.post<CloseAccountResponse>('/auth/close-account', {
         password,
         shrimp: csrfStore.shrimp,
@@ -410,20 +357,18 @@ export function useAuth() {
       const validated = closeAccountResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        setError(validated);
-        return false;
+        throw createError(validated.error, 'human', 'error', {
+          'field-error': validated['field-error']
+        });
       }
 
       // Success - logout and redirect to home
       await authStore.logout();
       await router.push('/');
       return true;
-    } catch (err: any) {
-      error.value = err.response?.data?.error || t('web.auth.close-account.error');
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
+    });
+
+    return result ?? false;
   }
 
   return {
