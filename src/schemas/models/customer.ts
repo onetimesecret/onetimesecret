@@ -29,7 +29,9 @@ export const CustomerRole = {
 export const customerSchema = withFeatureFlags(
   createModelSchema({
     // Core fields
-    custid: z.string(),
+    objid: z.string(),
+    extid: z.string(),
+
     role: z.enum([
       CustomerRole.CUSTOMER,
       CustomerRole.COLONEL,

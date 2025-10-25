@@ -19,7 +19,7 @@ GET   /forgot/:key                               Core::Controllers::Page#index a
 # mode is enabled. The Auth app provides many more routes in addition to these.
 GET   /logout                                    Core::Controllers::Authentication#logout auth=noauth
 POST  /logout                                    Core::Controllers::Authentication#logout auth=noauth
-GET  /auth/logout                                Core::Controllers::Authentication#logout auth=noauth response=json
+GET   /auth/logout                               Core::Controllers::Authentication#logout auth=noauth response=json
 POST  /auth/logout                               Core::Controllers::Authentication#logout auth=noauth response=json
 POST  /auth/login                                Core::Controllers::Authentication#authenticate auth=noauth response=json
 POST  /auth/create-account                       Core::Controllers::Registration#create_account auth=noauth response=json
@@ -31,6 +31,7 @@ POST  /auth/reset-password/:key                  Core::Controllers::Registration
 # the JSON API at /auth/verify-account etc.
 GET   /verify-account                           Core::Controllers::Page#index
 GET   /email-login                              Core::Controllers::Page#index
+GET   /mfa-verify                               Core::Controllers::Page#index
 
 # Data export/import - public for now (may need auth review)
 GET   /window                                    Core::Controllers::Page#export_window auth=noauth

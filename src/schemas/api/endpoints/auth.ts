@@ -107,10 +107,13 @@ export const removeSessionResponseSchema = authResponseSchema;
 export type RemoveSessionResponse = z.infer<typeof removeSessionResponseSchema>;
 
 // OTP setup response
+// When HMAC is enabled, also includes otp_setup and otp_raw_secret
 export const otpSetupResponseSchema = z.object({
   qr_code: z.string(),
   secret: z.string(),
   provisioning_uri: z.string(),
+  otp_setup: z.string().optional(), // HMAC'd secret (when HMAC enabled)
+  otp_raw_secret: z.string().optional(), // Raw secret (when HMAC enabled)
 });
 export type OtpSetupResponse = z.infer<typeof otpSetupResponseSchema>;
 
@@ -150,7 +153,7 @@ export type AccountInfoResponse = z.infer<typeof accountInfoResponseSchema>;
 // MFA status response
 export const mfaStatusResponseSchema = z.object({
   enabled: z.boolean(),
-  last_used_at: z.string().optional(),
+  last_used_at: z.string().nullable(),
   recovery_codes_remaining: z.number(),
 });
 export type MfaStatusResponse = z.infer<typeof mfaStatusResponseSchema>;

@@ -6,7 +6,7 @@ module Auth
       def handle_health_routes(r)
         r.get 'health' do
             # Test database connection
-            db_status = Auth::Config::Database.connection.test_connection ? 'ok' : 'error'
+            db_status = Auth::Database.connection.test_connection ? 'ok' : 'error'
 
             {
               status: 'ok',

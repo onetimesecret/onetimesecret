@@ -3,7 +3,9 @@ import OtpSetupWizard from '@/components/auth/OtpSetupWizard.vue';
 import { useAccount } from '@/composables/useAccount';
 import { useMfa } from '@/composables/useMfa';
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const { mfaStatus, isLoading, error, fetchMfaStatus, disableMfa, clearError } = useMfa();
 const { fetchAccountInfo } = useAccount();
 
@@ -61,17 +63,37 @@ const handleDisableConfirm = async () => {
   <div>
     <div class="mb-6">
       <h1 class="text-3xl font-bold dark:text-white">
-        {{ $t('web.auth.mfa.title') }}
+        {{ t('web.auth.mfa.title') }}
       </h1>
       <p class="mt-2 text-gray-600 dark:text-gray-400">
-        {{ $t('web.auth.mfa.setup-description') }}
+        {{ t('web.auth.mfa.setup-description') }}
       </p>
     </div>
 
     <!-- Loading state -->
     <div v-if="isLoading && !mfaStatus" class="flex items-center justify-center py-12">
       <i class="fas fa-spinner fa-spin mr-2 text-2xl text-gray-400"></i>
-      <span class="text-gray-600 dark:text-gray-400">Loading MFA status...</span>
+      <span class="text-gray-600 dark:text-gray-400">{{ t('web.auth.mfa.loading-status') }}</span>
+    </div>
+
+    <!-- Error state -->
+    <div
+      v-else-if="error && !mfaStatus"
+      class="rounded-lg bg-red-50 p-6 dark:bg-red-900/20"
+      role="alert">
+      <div class="flex items-center gap-3">
+        <i class="fas fa-exclamation-circle text-2xl text-red-600 dark:text-red-400"></i>
+        <div>
+          <h3 class="font-semibold text-red-800 dark:text-red-200">{{ error }}s</h3>
+          <p class="mt-1 text-sm text-red-700 dark:text-red-300">{{ error }}</p>
+          <button
+            @click="fetchMfaStatus"
+            type="button"
+            class="mt-3 text-sm font-medium text-red-800 underline hover:text-red-900 dark:text-red-200 dark:hover:text-red-100">
+            Try again
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Setup wizard (when enabling) -->
@@ -89,20 +111,20 @@ const handleDisableConfirm = async () => {
               <i class="fas fa-shield-check text-3xl text-green-500"></i>
               <div>
                 <h2 class="text-xl font-semibold dark:text-white">
-                  {{ $t('web.auth.mfa.enabled') }}
+                  {{ t('web.auth.mfa.enabled') }}
                 </h2>
                 <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                  Your account is protected with two-factor authentication
+                  {{ t('web.auth.mfa.protected-description') }}
                 </p>
               </div>
             </div>
 
             <!-- Last used -->
             <div v-if="mfaStatus.last_used_at" class="mt-4 text-sm text-gray-600 dark:text-gray-400">
-              {{ $t('web.auth.mfa.last-used', { time: new Date(mfaStatus.last_used_at).toLocaleString() }) }}
+              {{ t('web.auth.mfa.last-used', { time: new Date(mfaStatus.last_used_at).toLocaleString() }) }}
             </div>
             <div v-else class="mt-4 text-sm text-gray-600 dark:text-gray-400">
-              {{ $t('web.auth.mfa.never-used') }}
+              {{ t('web.auth.mfa.never-used') }}
             </div>
 
             <!-- Recovery codes status -->
@@ -111,7 +133,7 @@ const handleDisableConfirm = async () => {
                 to="/account/settings/recovery-codes"
                 class="text-sm text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
                 <i class="fas fa-key mr-1"></i>
-                {{ $t('web.auth.recovery-codes.remaining', { count: mfaStatus.recovery_codes_remaining }) }}
+                {{ t('web.auth.recovery-codes.remaining', { count: mfaStatus.recovery_codes_remaining }) }}
               </router-link>
             </div>
           </div>
@@ -121,7 +143,7 @@ const handleDisableConfirm = async () => {
             @click="handleDisableClick"
             type="button"
             class="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-900/20">
-            {{ $t('web.auth.mfa.disable') }}
+            {{ t('web.auth.mfa.disable') }}
           </button>
         </div>
       </div>
@@ -134,10 +156,10 @@ const handleDisableConfirm = async () => {
               <i class="fas fa-shield-alt text-3xl text-gray-400"></i>
               <div>
                 <h2 class="text-xl font-semibold dark:text-white">
-                  {{ $t('web.auth.mfa.disabled') }}
+                  {{ t('web.auth.mfa.disabled') }}
                 </h2>
                 <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                  Protect your account with an additional layer of security
+                  {{ t('web.auth.mfa.enable-description') }}
                 </p>
               </div>
             </div>
@@ -146,15 +168,15 @@ const handleDisableConfirm = async () => {
             <ul class="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
               <li class="flex items-center">
                 <i class="fas fa-check mr-2 text-green-500"></i>
-                Prevent unauthorized access even if your password is compromised
+                {{ t('web.auth.mfa.benefit-unauthorized') }}
               </li>
               <li class="flex items-center">
                 <i class="fas fa-check mr-2 text-green-500"></i>
-                Works with Google Authenticator, Authy, and other TOTP apps
+                {{ t('web.auth.mfa.benefit-apps') }}
               </li>
               <li class="flex items-center">
                 <i class="fas fa-check mr-2 text-green-500"></i>
-                Backup recovery codes for emergency access
+                {{ t('web.auth.mfa.benefit-recovery') }}
               </li>
             </ul>
           </div>
@@ -164,7 +186,7 @@ const handleDisableConfirm = async () => {
             @click="handleEnableMfa"
             type="button"
             class="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
-            {{ $t('web.auth.mfa.enable') }}
+            {{ t('web.auth.mfa.enable') }}
           </button>
         </div>
       </div>
@@ -172,20 +194,20 @@ const handleDisableConfirm = async () => {
       <!-- Quick links -->
       <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
         <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-          Related Settings
+          {{ t('web.LABELS.related-settings') }}
         </h3>
         <div class="space-y-2">
           <router-link
             to="/account/settings/recovery-codes"
             class="flex items-center gap-3 text-sm text-gray-700 hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-400">
             <i class="fas fa-key w-4"></i>
-            <span>Recovery Codes</span>
+            <span>{{ t('web.auth.recovery-codes.link-title') }}</span>
           </router-link>
           <router-link
             to="/account/settings/sessions"
             class="flex items-center gap-3 text-sm text-gray-700 hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-400">
             <i class="fas fa-desktop w-4"></i>
-            <span>Active Sessions</span>
+            <span>{{ t('web.auth.sessions.link-title') }}</span>
           </router-link>
         </div>
       </div>
@@ -204,12 +226,12 @@ const handleDisableConfirm = async () => {
         <div class="mb-4 flex items-center">
           <i class="fas fa-exclamation-triangle mr-3 text-2xl text-yellow-500"></i>
           <h3 id="disable-mfa-title" class="text-lg font-semibold dark:text-white">
-            {{ $t('web.auth.mfa.disable') }}
+            {{ t('web.auth.mfa.disable') }}
           </h3>
         </div>
 
         <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-          {{ $t('web.auth.mfa.require-password') }}
+          {{ t('web.auth.mfa.require-password') }}
         </p>
 
         <form @submit.prevent="handleDisableConfirm">
@@ -221,7 +243,7 @@ const handleDisableConfirm = async () => {
               v-model="disablePassword"
               type="password"
               :disabled="isDisabling"
-              placeholder="Enter your password"
+              :placeholder="t('web.auth.mfa.password-placeholder')"
               class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             />
           </div>
@@ -243,14 +265,14 @@ const handleDisableConfirm = async () => {
               type="button"
               :disabled="isDisabling"
               class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-              Cancel
+              {{ t('web.COMMON.word_cancel') }}
             </button>
             <button
               type="submit"
               :disabled="isDisabling || !disablePassword"
               class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-              <span v-if="isDisabling">Disabling...</span>
-              <span v-else>Disable 2FA</span>
+              <span v-if="isDisabling">{{ t('web.auth.mfa.disabling') }}</span>
+              <span v-else>{{ t('web.auth.mfa.disable-button') }}</span>
             </button>
           </div>
         </form>

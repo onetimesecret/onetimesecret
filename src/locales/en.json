@@ -90,6 +90,7 @@
       "word_received": "received",
       "word_confirm": "Confirm",
       "word_cancel": "Cancel",
+      "back": "Back",
       "feedback_text": "Share your thoughts, ideas, or experiences...",
       "button_send_feedback": "Send Feedback",
       "verification_sent_to": "A verification was sent to",
@@ -111,7 +112,9 @@
       "redirecting": "Redirecting...",
       "continue": "Continue",
       "are_you_sure": "Are you sure?",
-      "danger_zone": "Danger Zone"
+      "danger_zone": "Danger Zone",
+      "user_menu": "User menu",
+      "security": "Security"
     },
     "LABELS": {
       "view_toggle": {
@@ -159,7 +162,8 @@
       "create-link-short": "Create Link",
       "create-link": "Create Secret Link",
       "create-request-short": "Create Request",
-      "create-request": "Create Request Link"
+      "create-request": "Create Request Link",
+      "related-settings": "Related Settings"
     },
     "STATUS": {
       "new": "New",
@@ -398,7 +402,128 @@
       "timezone": "Timezone",
       "customer-id": "Customer ID"
     },
+    "settings": {
+      "title": "Settings",
+      "description": "Manage your account settings and preferences",
+      "manage_your_account_settings_and_preferences": "Manage your account settings and preferences",
+      "general": "General",
+      "profile": "Profile",
+      "preferences": "Preferences",
+      "security": "Security",
+      "appearance": "Appearance",
+      "theme": {
+        "title": "Theme",
+        "description": "Choose light or dark theme",
+        "choose_light_or_dark_theme": "Choose light or dark theme"
+      },
+      "language": {
+        "title": "Language",
+        "description": "Select your preferred language",
+        "select_your_preferred_language": "Select your preferred language"
+      },
+      "security_settings_description": "Manage authentication and account security",
+      "profile_settings_description": "Manage your account information",
+      "sessions": {
+        "title": "Active Sessions",
+        "description": "Manage your active sessions",
+        "manage_active_sessions": "Manage your active sessions"
+      },
+      "password": {
+        "title": "Password",
+        "description": "Update your account password",
+        "update_account_password": "Update your account password"
+      },
+      "delete_account": {
+        "title": "Delete Account",
+        "description": "Permanently delete your account and all data",
+        "permanently_delete_your_account": "Permanently delete your account and all data"
+      },
+      "security": {
+        "security-score": "Security Score",
+        "score-description": "Your overall account security health",
+        "excellent": "Excellent",
+        "good": "Good",
+        "fair": "Fair",
+        "weak": "Weak",
+        "improve-security": "Improve your security",
+        "enable-mfa-recommendation": "Enable two-factor authentication for stronger protection",
+        "generate-recovery-codes-recommendation": "Generate recovery codes as a backup",
+        "configured": "Configured",
+        "change": "Change",
+        "manage": "Manage",
+        "enable": "Enable",
+        "codes-available": "{0} codes available",
+        "no-codes": "No codes generated",
+        "active-sessions": "{0} active session | {0} active sessions",
+        "best-practices": "Security Best Practices",
+        "use-strong-unique-password": "Use a strong, unique password for your account",
+        "enable-mfa-for-protection": "Enable two-factor authentication for additional protection",
+        "save-recovery-codes-safely": "Save your recovery codes in a secure location",
+        "review-sessions-regularly": "Review and revoke unused sessions regularly",
+        "view-details": "View details"
+      },
+      "api": {
+        "title": "API & Integrations",
+        "description": "Manage API keys and integrations",
+        "manage_api_keys": "Manage API keys and integrations",
+        "documentation": "API Documentation",
+        "documentation-description": "Learn how to integrate Onetime Secret into your applications",
+        "rest-api-reference": "REST API Reference",
+        "complete-api-documentation": "Complete API documentation and endpoints",
+        "code-examples": "Code Examples",
+        "example-code-and-libraries": "Example code and client libraries",
+        "security-best-practices": "Security Best Practices",
+        "never-commit-api-keys": "Never commit API keys to version control",
+        "use-environment-variables": "Use environment variables to store API keys",
+        "rotate-keys-regularly": "Rotate API keys regularly for security",
+        "use-https-only": "Always use HTTPS when making API requests",
+        "monitor-api-usage": "Monitor your API usage and set up alerts",
+        "important-notice": "Important Notice",
+        "regenerating-key-warning": "Regenerating your API key will invalidate the current key. Update all applications using the old key."
+      },
+      "advanced": {
+        "title": "Advanced",
+        "description": "Advanced settings and data management",
+        "data-export": "Data Export",
+        "export-your-data": "Export your account data",
+        "export-description": "Request a complete copy of your account data in machine-readable format",
+        "request-data-export": "Request Data Export",
+        "export-info": "Export Processing Time",
+        "export-info-description": "Exports are processed within 24 hours and sent to your email address",
+        "privacy": "Privacy Settings",
+        "manage-privacy-settings": "Manage your privacy preferences",
+        "analytics-collection": "Analytics Collection",
+        "analytics-description": "Help us improve by sharing anonymous usage data",
+        "deletion-warning-title": "Deleting your account will:",
+        "deletion-warning-secrets": "Permanently delete all your secrets",
+        "deletion-warning-metadata": "Remove all secret metadata and history",
+        "deletion-warning-api-keys": "Invalidate all API keys",
+        "deletion-warning-irreversible": "This action cannot be undone"
+      }
+    },
+    "regions": {
+      "data-sovereignty-title": "Data Sovereignty & Regional Isolation",
+      "data-sovereignty-description": "Your data resides exclusively in your chosen region and is never transferred across regions",
+      "separate-environments-explanation": "Each region operates as a completely independent environment with its own infrastructure, encryption keys, and data storage",
+      "no-data-transfer-policy": "We maintain a strict policy: customer data is never transferred between regions under any circumstances",
+      "switching-creates-new-account": "Important: Switching to a different region creates a new account. Your data stays in your original region.",
+      "your-current-region": "Your Current Region",
+      "active": "Active",
+      "explore-other-regions": "Explore other available regions",
+      "why-it-matters": "Why Data Sovereignty Matters",
+      "compliance-title": "Regulatory Compliance",
+      "compliance-description": "Meet GDPR, CCPA, and other regional data protection requirements by keeping data within specific jurisdictions",
+      "performance-title": "Lower Latency",
+      "performance-description": "Data stored closer to you means faster access and better performance",
+      "privacy-title": "Enhanced Privacy",
+      "privacy-description": "Your data stays within your chosen legal jurisdiction, subject to local privacy laws",
+      "trust-title": "Transparency & Control",
+      "trust-description": "You know exactly where your data resides and which laws govern its protection"
+    },
     "auth": {
+      "mfa_required": "MFA verification required",
+      "mfa_verification_required": "MFA verification required to access your account",
+      "complete_mfa_verification": "Complete MFA Verification",
       "methods": {
         "password": "Password",
         "magicLink": "Email Link",
@@ -411,7 +536,7 @@
         "sendLink": "Send Login Link",
         "checkEmail": "Check your email",
         "sentTo": "We sent a login link to {email}",
-        "linkExpiresIn": "This link will expire in 24 hours",
+        "linkExpiresIn": "This link will expire in 15 minutes",
         "tryDifferentEmail": "Try a different email",
         "noPasswordNeeded": "No password needed — just click the link in your email",
         "networkError": "Network error. Please try again.",
@@ -492,7 +617,8 @@
         "confirm-remove-all": "This will log you out from all other devices. Are you sure?",
         "no-sessions": "No other active sessions",
         "removed-success": "Session removed successfully",
-        "removed-all-success": "All other sessions have been logged out"
+        "removed-all-success": "All other sessions have been logged out",
+        "link-title": "Active Sessions"
       },
       "mfa": {
         "title": "Two-Factor Authentication",
@@ -515,7 +641,21 @@
         "last-used": "Last used: {time}",
         "never-used": "Never used",
         "use-recovery-code": "Use a recovery code instead",
-        "back-to-code": "Back to authentication code"
+        "back-to-code": "Back to authentication code",
+        "loading-status": "Loading MFA status...",
+        "protected-description": "Your account is protected with two-factor authentication",
+        "enable-description": "Protect your account with an additional layer of security",
+        "benefit-unauthorized": "Prevent unauthorized access even if your password is compromised",
+        "benefit-apps": "Works with Google Authenticator, Authy, and other TOTP apps",
+        "benefit-recovery": "Backup recovery codes for emergency access",
+        "password-placeholder": "Enter your password",
+        "disabling": "Disabling...",
+        "disable-button": "Disable 2FA",
+        "generating-qr": "Generating QR code...",
+        "supported-apps": "Use Google Authenticator, Authy, or any TOTP app",
+        "continue-verification": "Continue to Verification",
+        "enter-code-description": "Enter the 6-digit code from your authenticator app",
+        "complete-setup": "Complete Setup"
       },
       "recovery-codes": {
         "title": "Recovery Codes",
@@ -531,7 +671,8 @@
         "code-unused": "Unused",
         "remaining": "{count} recovery code(s) remaining",
         "none-remaining": "No recovery codes remaining",
-        "generate-success": "New recovery codes have been generated"
+        "generate-success": "New recovery codes have been generated",
+        "link-title": "Recovery Codes"
       },
       "account": {
         "title": "Account Information",

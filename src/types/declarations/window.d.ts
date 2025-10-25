@@ -78,7 +78,20 @@ export interface UiInterface {
 
 export interface OnetimeWindow {
   apitoken?: string;
+
+  /**
+   * User is fully authenticated (all auth factors complete).
+   * When true, user has full access to their account.
+   */
   authenticated: boolean;
+
+  /**
+   * User is partially authenticated and awaiting MFA completion.
+   * When true, user has passed first factor (email/password) but needs
+   * to complete second factor (TOTP/WebAuthn) before full access.
+   * The user menu will appear with an amber badge during this state.
+   */
+  awaiting_mfa: boolean;
   baseuri: string;
   cust: Customer | null;
   custid: string;

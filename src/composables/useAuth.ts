@@ -113,6 +113,13 @@ export function useAuth() {
 
       const validated = loginResponseSchema.parse(response.data);
 
+      console.log('[useAuth] Login response:', {
+        data: response.data,
+        validated: validated,
+        hasMfaRequired: 'mfa_required' in response.data,
+        mfaRequiredValue: (response.data as any).mfa_required
+      });
+
       if (isAuthError(validated)) {
         setError(validated);
         return false;
@@ -124,6 +131,7 @@ export function useAuth() {
       // For now, we'll check if the response indicates MFA is required
       const responseData = validated as any;
       if (responseData.mfa_required || responseData.requires_otp) {
+        console.log('[useAuth] MFA required, redirecting to /mfa-verify');
         // MFA verification needed - redirect to MFA verify page
         await router.push('/mfa-verify');
         return false; // Not fully logged in yet

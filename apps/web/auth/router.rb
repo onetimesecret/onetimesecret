@@ -5,12 +5,15 @@ require 'rodauth'
 require 'sequel'
 require 'logger'
 require 'json'
+
 require 'onetime/logging'
 
 require_relative 'config'
 require_relative 'routes/account'
+require_relative 'routes/active_sessions'
 require_relative 'routes/admin'
 require_relative 'routes/health'
+require_relative 'routes/mfa_recovery'
 require_relative 'routes/validation'
 
 module Auth
@@ -26,7 +29,9 @@ module Auth
     include Auth::Routes::Health
     include Auth::Routes::Validation
     include Auth::Routes::Account
+    include Auth::Routes::ActiveSessions
     include Auth::Routes::Admin
+    include Auth::Routes::MfaRecovery
 
     # Session middleware is now configured globally in MiddlewareStack
 
@@ -34,9 +39,9 @@ module Auth
     plugin :halt
     plugin :status_handler
 
-    plugin :rodauth do
-      instance_eval(&Auth::Config.configure)
-    end
+    # All Rodauth configuration is now in apps/web/auth/config.rb
+    # Use its Config class for all authentication configuration.
+    plugin :rodauth, auth_class: Auth::Config
 
     # Status handlers
     status_handler(404) do
@@ -78,12 +83,21 @@ module Auth
 
     # Handle any custom routes beyond standard Rodauth endpoints
     def handle_custom_routes(r)
+      # MFA recovery routes
+      handle_mfa_recovery_routes(r)
+
+      # Account routes (mfa-status, account info)
+      handle_account_routes(r)
+
+      # Active sessions routes
+      handle_active_sessions_routes(r)
+
       # Health check endpoint
       r.on('health') do
         r.get do
             # Test database connection if in advanced mode
-            db_status = if Auth::Config::Database.connection
-              Auth::Config::Database.connection.test_connection ? 'ok' : 'error'
+            db_status = if Auth::Database.connection
+              Auth::Database.connection.test_connection ? 'ok' : 'error'
             else
               'not_required'
             end
@@ -109,7 +123,7 @@ module Auth
       r.on('admin') do
         # Add admin authentication here
         r.get('stats') do
-            db = Auth::Config::Database.connection
+            db = Auth::Database.connection
             if db
               {
                 total_accounts: db[:accounts].count,

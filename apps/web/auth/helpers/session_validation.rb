@@ -8,7 +8,7 @@ module Auth
         # Implementation depends on how sessions are stored
 
         # Example for database-stored sessions:
-        db           = Auth::Config::Database.connection
+        db           = Auth::Database.connection
         session_data = db[:account_active_session_keys]
           .join(:accounts, id: :account_id)
           .where(session_id: token)

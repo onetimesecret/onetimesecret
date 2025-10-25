@@ -19,13 +19,11 @@ import {
   type MfaStatusResponse,
 } from '@/schemas/api/endpoints/auth';
 import type { OtpSetupData, MfaStatus } from '@/types/auth';
-import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 
 /* eslint-disable max-lines-per-function */
 export function useMfa() {
   const $api = inject('api') as AxiosInstance;
-  const csrfStore = useCsrfStore();
   const notificationsStore = useNotificationsStore();
 
   const isLoading = ref(false);
@@ -57,6 +55,12 @@ export function useMfa() {
       mfaStatus.value = validated;
       return validated;
     } catch (err: any) {
+      console.error('[useMfa] fetchMfaStatus error:', {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        message: err.message,
+      });
       error.value = err.response?.data?.error || 'Failed to load MFA status';
       return null;
     } finally {
@@ -74,17 +78,23 @@ export function useMfa() {
     isLoading.value = true;
 
     try {
-      const response = await $api.get<OtpSetupResponse>('/auth/otp-setup', {
-        params: {
-          shrimp: csrfStore.shrimp,
-        },
-      });
+      // POST to /auth/otp-setup without otp_code returns the setup data
+      const response = await $api.post<OtpSetupResponse>('/auth/otp-setup', {});
 
       const validated = otpSetupResponseSchema.parse(response.data);
+
+      // Convert SVG string to data URI for img tag
+      if (validated.qr_code && validated.qr_code.startsWith('<svg')) {
+        validated.qr_code = `data:image/svg+xml;base64,${btoa(validated.qr_code)}`;
+      }
 
       setupData.value = validated;
       return validated;
     } catch (err: any) {
+      console.error('[useMfa] setupMfa error:', {
+        status: err.response?.status,
+        data: err.response?.data,
+      });
       error.value = err.response?.data?.error || 'Failed to initiate MFA setup';
       return null;
     } finally {
@@ -103,10 +113,20 @@ export function useMfa() {
     isLoading.value = true;
 
     try {
-      const response = await $api.post<OtpToggleResponse>('/auth/otp-setup', {
+      // Build request payload
+      const payload: Record<string, string> = {
         otp_code: otpCode,
-        shrimp: csrfStore.shrimp,
-      });
+      };
+
+      // Include HMAC parameters if they were provided in setup response
+      if (setupData.value?.otp_setup) {
+        payload.otp_setup = setupData.value.otp_setup;
+      }
+      if (setupData.value?.otp_raw_secret) {
+        payload.otp_raw_secret = setupData.value.otp_raw_secret;
+      }
+
+      const response = await $api.post<OtpToggleResponse>('/auth/otp-setup', payload);
 
       const validated = otpToggleResponseSchema.parse(response.data);
 
@@ -138,7 +158,6 @@ export function useMfa() {
     try {
       const response = await $api.post<OtpVerifyResponse>('/auth/otp-auth', {
         otp_code: otpCode,
-        shrimp: csrfStore.shrimp,
       });
 
       const validated = otpVerifyResponseSchema.parse(response.data);
@@ -170,7 +189,6 @@ export function useMfa() {
     try {
       const response = await $api.post<OtpToggleResponse>('/auth/otp-disable', {
         password,
-        shrimp: csrfStore.shrimp,
       });
 
       const validated = otpToggleResponseSchema.parse(response.data);
@@ -200,17 +218,18 @@ export function useMfa() {
     isLoading.value = true;
 
     try {
-      const response = await $api.get<RecoveryCodesResponse>('/auth/recovery-codes', {
-        params: {
-          shrimp: csrfStore.shrimp,
-        },
-      });
+      // Rodauth with only_json? true requires POST requests with JSON body
+      const response = await $api.post<RecoveryCodesResponse>('/auth/recovery-codes', {});
 
       const validated = recoveryCodesResponseSchema.parse(response.data);
 
       recoveryCodes.value = validated.codes;
       return validated.codes;
     } catch (err: any) {
+      console.error('[useMfa] fetchRecoveryCodes error:', {
+        status: err.response?.status,
+        data: err.response?.data,
+      });
       error.value = err.response?.data?.error || 'Failed to load recovery codes';
       recoveryCodes.value = [];
       return [];
@@ -229,9 +248,7 @@ export function useMfa() {
     isLoading.value = true;
 
     try {
-      const response = await $api.post<RecoveryCodesResponse>('/auth/recovery-codes', {
-        shrimp: csrfStore.shrimp,
-      });
+      const response = await $api.post<RecoveryCodesResponse>('/auth/recovery-codes', {});
 
       const validated = recoveryCodesResponseSchema.parse(response.data);
 
@@ -260,7 +277,6 @@ export function useMfa() {
     try {
       const response = await $api.post<OtpVerifyResponse>('/auth/recovery-auth', {
         recovery_code: code,
-        shrimp: csrfStore.shrimp,
       });
 
       const validated = otpVerifyResponseSchema.parse(response.data);

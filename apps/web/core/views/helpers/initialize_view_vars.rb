@@ -84,6 +84,12 @@ module Core
         shrimp        = sess&.[]('_csrf_token')
 
         authenticated = strategy_result.authenticated? || false # never nil
+        awaiting_mfa  = sess&.[]('awaiting_mfa') || sess&.[](:'awaiting_mfa') || false
+
+        # When awaiting_mfa is true, user has NOT completed authentication
+        # Do NOT load customer from Redis - they don't have access yet
+        # The frontend will show minimal MFA prompt using email from session
+        session_email = sess&.[]('email')
 
         # Extract values from rack request object
         nonce           = req.env.fetch('onetime.nonce', nil)
@@ -110,6 +116,7 @@ module Core
         # Return all view variables as a hash
         {
           'authenticated' => authenticated,
+          'awaiting_mfa' => awaiting_mfa,
           'baseuri' => baseuri,
           'cust' => cust,
           'description' => description,
@@ -127,6 +134,7 @@ module Core
           'nonce' => nonce,
           'page_title' => page_title,
           'script_element_id' => script_element_id,
+          'session_email' => session_email,
           'shrimp' => shrimp,
           'site' => safe_site,
           'site_host' => site_host,

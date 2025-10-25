@@ -1,15 +1,13 @@
 <!-- src/components/layout/Masthead.vue -->
 
 <script setup lang="ts">
-  import OIcon from '@/components/icons/OIcon.vue';
-  import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
-  import SettingsModal from '@/components/modals/SettingsModal.vue';
+  import UserMenu from '@/components/navigation/UserMenu.vue';
   import DefaultLogo from '@/components/logos/DefaultLogo.vue';
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { computed, ref, watch, type Component } from 'vue';
+  import { computed, watch, type Component } from 'vue';
   import { useI18n } from 'vue-i18n';
-import { shallowRef } from 'vue';
+  import { shallowRef } from 'vue';
 
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
@@ -21,11 +19,22 @@ import { shallowRef } from 'vue';
   const windowProps = computed(() => WindowService.getMultiple([
     'authentication',
     'authenticated',
+    'awaiting_mfa',
+    'email',
     'cust',
     'ui',
+    'domains_enabled',
   ]));
 
   const isColonel = computed(() => windowProps.value.cust?.role === 'colonel');
+
+  // User is partially or fully authenticated
+  // Partially: email verified but awaiting MFA (awaiting_mfa = true, has email but no cust)
+  // Fully: all authentication steps complete (authenticated = true, has cust)
+  const isUserPresent = computed(() => {
+    const { authenticated, awaiting_mfa, cust, email } = windowProps.value;
+    return (authenticated && cust) || (awaiting_mfa && email);
+  });
 
   // i18n setup
   const { t } = useI18n();
@@ -64,6 +73,9 @@ import { shallowRef } from 'vue';
   const navigationEnabled = computed(() =>
     headerConfig.value?.navigation?.enabled !== false
   );
+
+  // Check if domains are enabled for upgrade CTA
+  const domainsEnabled = computed(() => windowProps.value.domains_enabled);
 
   // Logo component handling
   const isVueComponent = computed(() => logoConfig.value.url.endsWith('.vue'));
@@ -111,18 +123,6 @@ import { shallowRef } from 'vue';
   // Watch for changes to logoUrl and load Vue component if needed
   watch(() => logoConfig.value.url, loadLogoComponent, { immediate: true });
 
-  // Reactive state
-  const isSettingsModalOpen = ref(false);
-
-  // Methods
-  const openSettingsModal = () => {
-    isSettingsModalOpen.value = true;
-  };
-
-  const closeSettingsModal = () => {
-    isSettingsModalOpen.value = false;
-  };
-
 </script>
 
 <template>
@@ -165,47 +165,14 @@ import { shallowRef } from 'vue';
         :aria-label="t('main-navigation')"
         class="flex flex-wrap items-center justify-center gap-4
           font-brand text-sm sm:justify-end sm:text-base">
-        <template v-if="windowProps.authenticated && windowProps.cust">
-          <HeaderUserNav
+        <template v-if="isUserPresent">
+          <!-- User Menu Dropdown -->
+          <UserMenu
             :cust="windowProps.cust"
-            :colonel="isColonel" />
-          <!-- prettier-ignore-attribute class -->
-          <button
-            @click="openSettingsModal"
-            class="text-xl text-gray-600 transition-colors duration-200
-              hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
-            :aria-label="t('web.COMMON.header_settings')"
-            :title="t('web.COMMON.header_settings')">
-            <OIcon
-              class="size-5"
-              collection="material-symbols"
-              name="settings-outline"
-              aria-hidden="true" />
-          </button>
-
-          <SettingsModal
-            :is-open="isSettingsModalOpen"
-
-            @close="closeSettingsModal" />
-
-          <span
-            class="text-gray-400"
-            role="separator">
-            |
-          </span>
-          <!-- prettier-ignore-attribute class -->
-          <router-link
-            to="/logout"
-            class="text-gray-600 transition-colors duration-200
-              hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
-            :title="t('web.COMMON.header_logout')"
-            :aria-label="t('web.COMMON.header_logout')">
-            <OIcon
-              class="size-5"
-              collection="heroicons"
-              name="arrow-right-on-rectangle-solid"
-              aria-hidden="true" />
-          </router-link>
+            :email="windowProps.email"
+            :colonel="isColonel"
+            :show-upgrade="domainsEnabled"
+            :awaiting-mfa="windowProps.awaiting_mfa" />
         </template>
 
         <template v-else>

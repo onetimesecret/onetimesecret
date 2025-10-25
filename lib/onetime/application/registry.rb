@@ -102,11 +102,12 @@ module Onetime
 
           $stderr.puts "[registry] Scan found #{filepaths.size} application(s)"
           filepaths.each { |f|
-            $stderr.puts "[registry] Loading application file: #{f}" if Onetime.debug?
+            pretty_path = Onetime::Utils.pretty_path(f)
+            $stderr.puts "[registry] Loading application file: #{pretty_path}" if Onetime.debug?
             begin
               require f
             rescue LoadError => ex
-              $stderr.puts "[registry] ERROR loading application file #{f}: #{ex.class}: #{ex.message}"
+              $stderr.puts "[registry] #{ex.class}: #{ex.message}"
             end
           }
         end

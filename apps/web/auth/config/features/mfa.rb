@@ -1,33 +1,64 @@
 # apps/web/auth/config/features/mfa.rb
 
-module Auth
-  module Config
-    module Features
-      module MFA
-        def self.configure(rodauth_config)
-          rodauth_config.instance_eval do
-            # Multi-Factor Authentication
-            enable :otp  # Time-based One-Time Password (TOTP)
-            enable :recovery_codes  # Backup codes for MFA
+module Auth::Config::Features
+  # Handle JSON-only OTP setup flow with HMAC:
+  # When HMAC is enabled, Rodauth uses a two-step process:
+  # Step 1: POST /auth/otp-setup -> generates secret, returns setup data
+  # Step 2: POST /auth/otp-setup with {otp_code, otp_setup, otp_raw_secret} -> verifies
+  #
+  # @see https://rodauth.jeremyevans.net/rdoc/files/doc/otp_rdoc.html
+  module MFA
+    def self.configure(auth)
 
-            # Table column configurations
-            # All Rodauth tables use account_id as FK, not id
-            otp_keys_table :account_otp_keys
-            otp_keys_id_column :account_id
-            recovery_codes_table :account_recovery_codes
-            recovery_codes_id_column :account_id
+      # Multi-Factor Authentication
+      # enable :otp  # Time-based One-Time Password (TOTP)
+      # enable :recovery_codes  # Backup codes for MFA
 
-            # MFA Configuration
-            otp_issuer 'OneTimeSecret'
-            otp_setup_param 'otp_setup'
-            otp_auth_param 'otp_code'
+      # Table column configurations
+      # All Rodauth tables use account_id as FK, not id
+      auth.otp_keys_table :account_otp_keys
+      auth.otp_keys_id_column :account_id
+      auth.recovery_codes_table :account_recovery_codes
+      auth.recovery_codes_id_column :account_id
 
-            # Recovery codes configuration
-            recovery_codes_column :code
-            auto_add_recovery_codes? true  # Automatically generate recovery codes
-          end
-        end
-      end
+      # MFA Configuration
+      auth.otp_issuer 'OneTimeSecret'
+      auth.otp_setup_param 'otp_setup'
+      auth.otp_setup_raw_param 'otp_raw_secret'
+      auth.otp_auth_param 'otp_code'
+
+      # If this is disabled after having been enabled, existing OTP
+      # keys will be invalidated.
+      auth.otp_keys_use_hmac? true
+
+      # auth.otp_setup_redirect ''
+
+      # Password requirements for MFA modifications
+      # In JSON API mode, password confirmation adds friction without security benefit
+      # since the user must already be authenticated to access these routes
+      auth.two_factor_modifications_require_password? false
+
+      # OTP Lockout Configuration
+      # Default is 5 attempts with permanent lockout - too harsh for production
+      # Industry standard: 10-20 attempts before lockout, with time-based reset
+      #
+      # We use a higher threshold because:
+      # - Users make legitimate mistakes (typos, wrong app, clock sync)
+      # - Recovery codes provide the primary escape mechanism
+      # - Our MFA recovery flow provides email-based reset
+      # - Too-strict lockout creates support burden
+      auth.otp_auth_failures_limit 10  # Up from default 5
+
+      # Recovery codes configuration
+      auth.recovery_codes_column :code
+      auth.auto_add_recovery_codes? true  # Automatically generate recovery codes
+
+      # Require second factor during login if user has MFA setup
+      #
+      # NOTE: The require_two_factor_authenticated method is called in route blocks,
+      # not in configuration. The login flow already handles MFA detection via the
+      # after_login hook in apps/web/auth/config/hooks/login.rb which checks
+      # uses_two_factor_authentication? and sets json_response[:mfa_required] = true
     end
   end
 end
