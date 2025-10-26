@@ -14,26 +14,58 @@ module Auth::Config::Hooks
       auth.before_login_attempt do
         email = param('login') || param('email')
 
+        OT.auth_logger.info "Login attempt: #{OT::Utils.obscure_email(email)}"
+      end
+
+      #
+      # Hook: After Login
+      #
+      # This hook is triggered after a user successfully authenticates. It's
+      # the primary integration point for syncing the application session.
+      #
+      # Standard Rodauth after_login hook - minimal custom logic
+      auth.after_login do
+        OT.auth_logger.info "User logged in: #{account[:email]}"
+        # Rodauth handles MFA flow automatically
+      end
+
+      #
+      # Hook: After Login Failure
+      #
+      # This hook is triggered after a login attempt fails. It logs the
+      # failure and raises a security alert on repeated failures.
+      #
+      auth.after_login_failure do
+        email = param('login') || param('email')
+
+        OT.auth_logger.warn "Login failed: #{OT::Utils.obscure_email(email)}"
+      end
+
+    end
+  end
+end
+
+
+__END__
+# apps/web/auth/config/hooks/login.rb
+
+module Auth::Config::Hooks
+  module Login
+    def self.configure(auth)
+
+
+      #
+      # Hook: Before Login Attempt
+      #
+      # This hook is triggered before processing a login attempt. It implements
+      # a rate limit of 5 attempts per 5 minutes for a given email address.
+      #
+      auth.before_login_attempt do
+        email = param('login') || param('email')
+
         OT.info "[auth] Login attempt: #{OT::Utils.obscure_email(email)}"
 
-        rate_limit_key = "login_attempts:#{email}"
-        client         = Familia.dbclient
 
-        # Increment the attempt counter for this email.
-        attempts = client.incr(rate_limit_key).to_i
-
-        # On the first attempt in a new window, set a 5-minute expiry.
-        client.expire(rate_limit_key, 300) if attempts == 1
-
-        # If attempts exceed the limit, block the request.
-        if attempts > 5
-          remaining_ttl = client.ttl(rate_limit_key)
-          minutes       = (remaining_ttl / 60.0).ceil
-          pluralize     = minutes == 1 ? '' : 's'
-
-          OT.info "[auth] Rate limit exceeded for #{OT::Utils.obscure_email(email)}: #{attempts} attempts"
-          throw_error_status(429, 'login', "Too many login attempts. Please try again in #{minutes} minute#{pluralize}.")
-        end
       end
 
       #

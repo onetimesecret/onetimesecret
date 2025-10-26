@@ -28,25 +28,20 @@ module Auth::Config::Hooks
       # It fires after successful two-factor authentication of any type (OTP, WebAuthn, etc).
       #
       auth.after_two_factor_authentication do
-        Onetime.auth_logger.info '[MFA Login] OTP authentication successful',
+        OT.auth_logger.info '[MFA Login] OTP authentication successful',
           account_id: account_id,
           email: account[:email]
+        # Rodauth handles session management automatically
+      end
 
-        if session[:awaiting_mfa]
-          Onetime.auth_logger.info '[MFA Login] Completing deferred session sync'
-          Onetime::ErrorHandler.safe_execute('sync_session_after_mfa',
-            account_id: account_id,
-            email: account[:email],
-          ) do
-            Auth::Operations::SyncSession.call(
-              account: account,
-              account_id: account_id,
-              session: session,
-              request: request,
-            )
-            session.delete(:awaiting_mfa)
-          end
-        end
+      # ========================================================================
+      # HOOK: After OTP Disable
+      # ========================================================================
+      auth.after_otp_disable do
+        OT.auth_logger.info '[MFA] OTP disabled',
+          account_id: account_id,
+          email: account[:email]
+        # Rodauth handles session cleanup automatically
       end
     end
   end
