@@ -23,10 +23,6 @@ module Auth::Config::Base
     # IMPORTANT: Include external_id for Redis-SQL synchronization
     auth.account_select [:id, :email, :status_id, :external_id]
 
-    # Table column configurations
-    auth.password_hash_table :account_password_hashes
-    # auth.password_hash_id_column :account_id
-
     # Session configuration (unified with other apps)
     # The session_key config is for the session cookie name
     auth.session_key 'onetime.session'
