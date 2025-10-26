@@ -18,9 +18,9 @@ CREATE TABLE account_previous_password_hashes (
 
 -- Password change timestamps
 CREATE TABLE account_password_change_times (
-    account_id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- ================================================================
@@ -29,20 +29,20 @@ CREATE TABLE account_password_change_times (
 
 -- Email-based authentication tokens
 CREATE TABLE account_email_auth_keys (
-    account_id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     key VARCHAR NOT NULL,
     deadline TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '1 day'),
     email_last_sent TIMESTAMPTZ,
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- Login change verification (email change)
 CREATE TABLE account_login_change_keys (
-    account_id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     key VARCHAR NOT NULL,
     login VARCHAR NOT NULL,
     deadline TIMESTAMPTZ NOT NULL,
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- ================================================================
@@ -51,9 +51,9 @@ CREATE TABLE account_login_change_keys (
 
 -- Basic session keys
 CREATE TABLE account_session_keys (
-    account_id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     key VARCHAR NOT NULL,
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- JWT refresh tokens
@@ -71,12 +71,12 @@ CREATE TABLE account_jwt_refresh_keys (
 
 -- SMS-based two-factor authentication
 CREATE TABLE account_sms_codes (
-    account_id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     phone_number VARCHAR(20) NOT NULL,
     num_failures INTEGER NOT NULL DEFAULT 0,
     code VARCHAR(10) NOT NULL,
     code_issued_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- ================================================================
@@ -85,9 +85,9 @@ CREATE TABLE account_sms_codes (
 
 -- WebAuthn user identifiers
 CREATE TABLE account_webauthn_user_ids (
-    account_id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     webauthn_id VARCHAR NOT NULL,
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- WebAuthn public keys and usage tracking
@@ -107,11 +107,11 @@ CREATE TABLE account_webauthn_keys (
 
 -- Activity tracking and session expiration
 CREATE TABLE account_activity_times (
-    account_id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     last_activity_at TIMESTAMPTZ,
     last_login_at TIMESTAMPTZ,
     expired_at TIMESTAMPTZ,
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- ================================================================
@@ -149,21 +149,21 @@ SELECT
     a.id,
     a.email,
     s.name as status_name,
-    CASE WHEN ph.account_id IS NOT NULL THEN 1 ELSE 0 END as has_password,
-    CASE WHEN otpk.account_id IS NOT NULL THEN 1 ELSE 0 END as has_otp,
-    CASE WHEN sc.account_id IS NOT NULL THEN 1 ELSE 0 END as has_sms,
+    CASE WHEN ph.id IS NOT NULL THEN 1 ELSE 0 END as has_password,
+    CASE WHEN otpk.id IS NOT NULL THEN 1 ELSE 0 END as has_otp,
+    CASE WHEN sc.id IS NOT NULL THEN 1 ELSE 0 END as has_sms,
     CASE WHEN wk.account_id IS NOT NULL THEN 1 ELSE 0 END as has_webauthn,
     COALESCE(session_count.count, 0) as active_sessions,
     at.last_login_at,
     COALESCE(lf.number, 0) as failed_attempts
 FROM accounts a
 JOIN account_statuses s ON a.status_id = s.id
-LEFT JOIN account_password_hashes ph ON a.id = ph.account_id
-LEFT JOIN account_otp_keys otpk ON a.id = otpk.account_id
-LEFT JOIN account_sms_codes sc ON a.id = sc.account_id
+LEFT JOIN account_password_hashes ph ON a.id = ph.id
+LEFT JOIN account_otp_keys otpk ON a.id = otpk.id
+LEFT JOIN account_sms_codes sc ON a.id = sc.id
 LEFT JOIN account_webauthn_keys wk ON a.id = wk.account_id
-LEFT JOIN account_activity_times at ON a.id = at.account_id
-LEFT JOIN account_login_failures lf ON a.id = lf.account_id
+LEFT JOIN account_activity_times at ON a.id = at.id
+LEFT JOIN account_login_failures lf ON a.id = lf.id
 LEFT JOIN (
     SELECT account_id, COUNT(*) as count
     FROM account_active_session_keys
@@ -261,13 +261,13 @@ RETURNS TABLE(
 BEGIN
     RETURN QUERY
     SELECT
-        EXISTS(SELECT 1 FROM account_password_hashes WHERE account_id = p_account_id),
-        EXISTS(SELECT 1 FROM account_otp_keys WHERE account_id = p_account_id),
-        EXISTS(SELECT 1 FROM account_sms_codes WHERE account_id = p_account_id),
+        EXISTS(SELECT 1 FROM account_password_hashes WHERE id = p_account_id),
+        EXISTS(SELECT 1 FROM account_otp_keys WHERE id = p_account_id),
+        EXISTS(SELECT 1 FROM account_sms_codes WHERE id = p_account_id),
         EXISTS(SELECT 1 FROM account_webauthn_keys WHERE account_id = p_account_id),
         (SELECT COUNT(*)::INTEGER FROM account_active_session_keys WHERE account_id = p_account_id),
-        (SELECT last_login_at FROM account_activity_times WHERE account_id = p_account_id),
-        COALESCE((SELECT number FROM account_login_failures WHERE account_id = p_account_id), 0);
+        (SELECT last_login_at FROM account_activity_times WHERE id = p_account_id),
+        COALESCE((SELECT number FROM account_login_failures WHERE id = p_account_id), 0);
 END;
 $$ LANGUAGE plpgsql;
 
