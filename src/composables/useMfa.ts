@@ -5,6 +5,7 @@
 
 import { ref, inject } from 'vue';
 import type { AxiosInstance } from 'axios';
+import QRCode from 'qrcode';
 import {
   otpSetupResponseSchema,
   otpToggleResponseSchema,
@@ -78,19 +79,53 @@ export function useMfa() {
     isLoading.value = true;
 
     try {
-      // POST to /auth/otp-setup without otp_code returns the setup data
+      // POST to /auth/otp-setup without otp_code
+      // When HMAC is enabled, Rodauth intentionally returns a 400 error with setup data
       const response = await $api.post<OtpSetupResponse>('/auth/otp-setup', {});
 
       const validated = otpSetupResponseSchema.parse(response.data);
 
-      // Convert SVG string to data URI for img tag
-      if (validated.qr_code && validated.qr_code.startsWith('<svg')) {
-        validated.qr_code = `data:image/svg+xml;base64,${btoa(validated.qr_code)}`;
+      // Generate QR code from otp_raw_secret
+      if (validated.otp_raw_secret) {
+        const issuer = 'Onetime Secret';
+        const userEmail = 'user@example.com'; // TODO: Get from user account
+        const otpUrl = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(userEmail)}?secret=${validated.otp_raw_secret}&issuer=${encodeURIComponent(issuer)}`;
+        validated.qr_code = await QRCode.toDataURL(otpUrl);
       }
 
       setupData.value = validated;
       return validated;
     } catch (err: any) {
+      // When HMAC is enabled, Rodauth returns 422 with the setup data in the error response
+      if (err.response?.status === 422 && err.response?.data) {
+        const errorData = err.response.data;
+
+        // Check if this is the expected HMAC setup response
+        if (errorData.otp_secret && errorData.otp_raw_secret) {
+          try {
+            const validated = otpSetupResponseSchema.parse(errorData);
+
+            // Generate QR code from otp_raw_secret
+            if (validated.otp_raw_secret) {
+              const issuer = 'Onetime Secret';
+              const userEmail = 'user@example.com'; // TODO: Get from user account
+              const otpUrl = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(userEmail)}?secret=${validated.otp_raw_secret}&issuer=${encodeURIComponent(issuer)}`;
+              validated.qr_code = await QRCode.toDataURL(otpUrl);
+            }
+
+            // Map otp_secret to otp_setup for consistency
+            if (errorData.otp_secret && !validated.otp_setup) {
+              validated.otp_setup = errorData.otp_secret;
+            }
+
+            setupData.value = validated;
+            return validated;
+          } catch (parseErr) {
+            console.error('[useMfa] Failed to parse HMAC setup response:', parseErr);
+          }
+        }
+      }
+
       console.error('[useMfa] setupMfa error:', {
         status: err.response?.status,
         data: err.response?.data,
