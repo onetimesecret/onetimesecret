@@ -4,7 +4,6 @@
 import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
-import { WindowService } from '@/services/window.service';
 import OIcon from '@/components/icons/OIcon.vue';
 import JurisdictionInfo from '@/components/modals/settings/JurisdictionInfo.vue';
 import JurisdictionList from '@/components/modals/settings/JurisdictionList.vue';
@@ -12,13 +11,11 @@ import JurisdictionList from '@/components/modals/settings/JurisdictionList.vue'
 const { t } = useI18n();
 const jurisdictionStore = useJurisdictionStore();
 
-const windowProps = WindowService.getMultiple(['regions_enabled']);
-
 const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
 const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
 
 onMounted(async () => {
-  // await jurisdictionStore.init();
+  await jurisdictionStore.init();
 });
 </script>
 

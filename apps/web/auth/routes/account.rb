@@ -60,7 +60,7 @@ module Auth
             last_used_at = nil
             if enabled
               otp_record = rodauth.db[:account_otp_keys]
-                .where(id: rodauth.account_id)
+                .where(account_id: rodauth.account_id)
                 .first
               last_used_at = otp_record[:last_use]&.iso8601 if otp_record
             end

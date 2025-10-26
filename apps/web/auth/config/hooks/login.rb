@@ -191,7 +191,10 @@ module Auth::Config::Hooks
 
         rate_limit_key = "login_attempts:#{email}"
         client         = Familia.dbclient
-        attempts       = client.get(rate_limit_key).to_i
+        attempts       = client.incr(rate_limit_key)
+
+        # Set expiration on the first attempt to create a sliding window
+        client.expire(rate_limit_key, 5 * 60) if attempts == 1
 
         OT.info "[auth] Failed login attempt #{attempts}/5 for #{OT::Utils.obscure_email(email)} from #{ip}"
 

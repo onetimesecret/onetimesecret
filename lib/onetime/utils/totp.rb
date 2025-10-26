@@ -85,9 +85,8 @@ module Onetime
         # Compute HMAC-SHA256 (Rodauth uses SHA256)
         hmac_bytes = OpenSSL::HMAC.digest(OpenSSL::Digest::SHA256.new, hmac_secret, raw_bytes)
 
-        # Encode back to base32 with same length as input
-        chars = 'abcdefghijklmnopqrstuvwxyz234567'
-        raw_secret.length.times.map { |i| chars[hmac_bytes[i].ord % 32] }.join
+        # Encode back to base32 using standard encoding
+        ROTP::Base32.encode(hmac_bytes)
       end
     end
   end

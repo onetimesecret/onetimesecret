@@ -67,7 +67,7 @@ module Auth
           # Handle authentication - only authenticate if username is provided
           if username && password
             begin
-              smtp.start('localhost', username, password, auth_method) do |smtp_session|
+              smtp.start(smtp_host, username, password, auth_method) do |smtp_session|
                 smtp_session.send_message(message, email[:from], email[:to])
               end
             rescue Net::SMTPAuthenticationError => ex
