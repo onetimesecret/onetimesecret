@@ -37,7 +37,9 @@ module Auth
       end
 
       # Configured in Features::MFA
-      enable :otp, :recovery_codes
+      enable :two_factor_base
+      enable :otp
+      enable :recovery_codes
 
       # Configured in Features::Passwordless (authentication)
       enable :email_auth if ENV['ENABLE_MAGIC_LINKS'] == 'true'
