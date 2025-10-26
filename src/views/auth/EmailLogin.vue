@@ -4,10 +4,8 @@
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useMagicLink } from '@/composables/useMagicLink';
-import { useI18n } from 'vue-i18n';
 
 const route = useRoute();
-const { t } = useI18n();
 const { verifyMagicLink, isLoading, error } = useMagicLink();
 
 const hasError = ref(false);

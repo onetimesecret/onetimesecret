@@ -88,17 +88,15 @@ module Auth::Config::Hooks
       # Note: This hook is disabled in the 'test' environment to simplify
       # testing scenarios that do not require email verification flows.
       #
-
+      if ENV['RACK_ENV'] != 'test'
         auth.after_verify_account do
           OT.info "[auth] Account verified: #{account[:extid]}"
 
-          # In test, skipping the verification simplifies the onboarding flow
-          if ENV['RACK_ENV'] != 'test'
-            Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:extid]) do
-              Auth::Operations::VerifyCustomer.new(account: account).call
-            end
+          Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:extid]) do
+            Auth::Operations::VerifyCustomer.new(account: account).call
           end
         end
+      end
 
       #
       # Hook: After Password Reset Request
