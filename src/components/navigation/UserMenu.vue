@@ -142,8 +142,8 @@ onUnmounted(() => {
             dark:border-gray-700">
           <p
             class="text-sm font-medium text-gray-900 dark:text-white"
-            :title="cust.email">
-            {{ cust.email }}
+            :title="cust?.email">
+            {{ cust?.email }}
           </p>
           <p
             v-if="cust.objid"

@@ -12,15 +12,22 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const { setupData, recoveryCodes, isLoading, error, setupMfa, enableMfa, fetchRecoveryCodes } = useMfa();
 
-// Wizard steps: setup, verify, codes
-const currentStep = ref<'setup' | 'verify' | 'codes'>('setup');
+// Wizard steps: password, setup, verify, codes
+const currentStep = ref<'password' | 'setup' | 'verify' | 'codes'>('password');
 const otpCode = ref('');
+const password = ref('');
 const otpInputRef = ref<InstanceType<typeof OtpCodeInput> | null>(null);
 
-// Load setup data on mount
-onMounted(async () => {
-  await setupMfa();
-});
+// Password collection first, then setup
+const handlePasswordSubmit = async () => {
+  if (!password.value) return;
+
+  // Load QR code with password, then move to setup step on success
+  const result = await setupMfa(password.value);
+  if (result) {
+    currentStep.value = 'setup';
+  }
+};
 
 // Handle OTP code input
 const handleOtpComplete = (code: string) => {
@@ -33,7 +40,7 @@ const handleVerify = async () => {
     return;
   }
 
-  const success = await enableMfa(otpCode.value);
+  const success = await enableMfa(otpCode.value, password.value);
   if (success) {
     // Fetch recovery codes
     await fetchRecoveryCodes();
@@ -42,6 +49,7 @@ const handleVerify = async () => {
     // Clear input on error
     otpInputRef.value?.clear();
     otpCode.value = '';
+    // Don't clear password to allow retry
   }
 };
 
@@ -83,8 +91,62 @@ const canVerify = computed(() => otpCode.value.length === 6 && !isLoading.value)
 
 <template>
   <div class="space-y-6">
+    <!-- Step 0: Password Confirmation -->
+    <div v-if="currentStep === 'password'">
+      <h2 class="mb-4 text-2xl font-bold dark:text-white">
+        {{ t('web.auth.mfa.setup-title') }}
+      </h2>
+      <p class="mb-6 text-gray-600 dark:text-gray-400">
+        {{ t('web.auth.mfa.password-reason') }}
+      </p>
+
+      <!-- Password Input -->
+      <form @submit.prevent="handlePasswordSubmit">
+        <div class="mb-6">
+          <label for="mfa-password" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ t('web.auth.mfa.password-confirmation') }}
+          </label>
+          <input
+            id="mfa-password"
+            v-model="password"
+            type="password"
+            :disabled="isLoading"
+            :placeholder="t('web.auth.mfa.password-placeholder')"
+            autofocus
+            class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+
+        <!-- Error message -->
+        <div
+          v-if="error"
+          class="mb-4 rounded-lg bg-red-50 p-4 dark:bg-red-900/20"
+          role="alert">
+          <p class="text-sm text-red-800 dark:text-red-200">
+            {{ error }}
+          </p>
+        </div>
+
+        <!-- Continue button -->
+        <button
+          type="submit"
+          :disabled="!password || isLoading"
+          class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+          <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
+          <span v-else>{{ t('web.COMMON.word_continue') }}</span>
+        </button>
+
+        <button
+          @click="handleCancel"
+          type="button"
+          class="mt-3 w-full text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
+          {{ t('web.COMMON.word_cancel') }}
+        </button>
+      </form>
+    </div>
+
     <!-- Step 1: QR Code & Manual Entry -->
-    <div v-if="currentStep === 'setup'">
+    <div v-else-if="currentStep === 'setup'">
       <h2 class="mb-4 text-2xl font-bold dark:text-white">
         {{ t('web.auth.mfa.setup-title') }}
       </h2>

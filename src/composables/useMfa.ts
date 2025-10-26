@@ -72,16 +72,23 @@ export function useMfa() {
   /**
    * Initiates MFA setup - gets QR code and secret
    *
+   * @param password - User's password for confirmation (required when two_factor_modifications_require_password? true)
    * @returns Setup data with QR code and secret
    */
-  async function setupMfa(): Promise<OtpSetupData | null> {
+  async function setupMfa(password?: string): Promise<OtpSetupData | null> {
     clearError();
     isLoading.value = true;
 
     try {
       // POST to /auth/otp-setup without otp_code
       // When HMAC is enabled, Rodauth intentionally returns a 400 error with setup data
-      const response = await $api.post<OtpSetupResponse>('/auth/otp-setup', {});
+      // When two_factor_modifications_require_password? true, password is required
+      const payload: Record<string, string> = {};
+      if (password) {
+        payload.password = password;
+      }
+
+      const response = await $api.post<OtpSetupResponse>('/auth/otp-setup', payload);
 
       const validated = otpSetupResponseSchema.parse(response.data);
 
@@ -101,7 +108,8 @@ export function useMfa() {
         const errorData = err.response.data;
 
         // Check if this is the expected HMAC setup response
-        if (errorData.otp_secret && errorData.otp_raw_secret) {
+        // Response can have either otp_secret or otp_setup depending on Rodauth version/config
+        if ((errorData.otp_secret || errorData.otp_setup) && errorData.otp_raw_secret) {
           try {
             const validated = otpSetupResponseSchema.parse(errorData);
 
@@ -113,9 +121,12 @@ export function useMfa() {
               validated.qr_code = await QRCode.toDataURL(otpUrl);
             }
 
-            // Map otp_secret to otp_setup for consistency
-            if (errorData.otp_secret && !validated.otp_setup) {
+            // Ensure we have otp_setup for the verification step
+            if (!validated.otp_setup && errorData.otp_secret) {
               validated.otp_setup = errorData.otp_secret;
+            }
+            if (!validated.otp_setup && errorData.otp_setup) {
+              validated.otp_setup = errorData.otp_setup;
             }
 
             setupData.value = validated;
@@ -141,9 +152,10 @@ export function useMfa() {
    * Completes MFA setup by verifying the OTP code
    *
    * @param otpCode - 6-digit OTP code from authenticator app
+   * @param password - User's password for confirmation (required when two_factor_modifications_require_password? true)
    * @returns true if setup successful
    */
-  async function enableMfa(otpCode: string): Promise<boolean> {
+  async function enableMfa(otpCode: string, password: string): Promise<boolean> {
     clearError();
     isLoading.value = true;
 
@@ -151,6 +163,7 @@ export function useMfa() {
       // Build request payload
       const payload: Record<string, string> = {
         otp_code: otpCode,
+        password,
       };
 
       // Include HMAC parameters if they were provided in setup response
@@ -276,14 +289,15 @@ export function useMfa() {
   /**
    * Generates new recovery codes (invalidates old ones)
    *
+   * @param password - User's password for confirmation (required when two_factor_modifications_require_password? true)
    * @returns Array of new recovery codes
    */
-  async function generateNewRecoveryCodes(): Promise<string[]> {
+  async function generateNewRecoveryCodes(password: string): Promise<string[]> {
     clearError();
     isLoading.value = true;
 
     try {
-      const response = await $api.post<RecoveryCodesResponse>('/auth/recovery-codes', {});
+      const response = await $api.post<RecoveryCodesResponse>('/auth/recovery-codes', { password });
 
       const validated = recoveryCodesResponseSchema.parse(response.data);
 
