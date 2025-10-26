@@ -42,8 +42,8 @@ module V1
         @domains_enabled = domains['enabled'] || false
       end
 
-      def valid_email?(guess)
-        OT.ld "[valid_email?] Guess: #{guess}"
+      def valid_email?(email_field)
+        OT.ld "[valid_email?] Email field: #{email_field}"
 
         begin
           validator = Truemail.validate(guess)

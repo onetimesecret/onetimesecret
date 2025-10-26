@@ -56,18 +56,18 @@ module V2
         @domains_enabled = domains['enabled'] || false
       end
 
-      def valid_email?(guess)
-        loggable_guess = OT::Utils.obscure_email(guess)
-        OT.ld "[valid_email?] Guess: #{loggable_guess}"
+      def valid_email?(email_value)
+        loggable_email_value = OT::Utils.obscure_email(email_value)
+        OT.ld "[valid_email?] Email value: #{loggable_email_value}"
 
         begin
-        validator      = Truemail.validate(guess)
+        validator      = Truemail.validate(email_value)
         valid          = validator.result.valid?
         validation_str = validator.as_json
         OT.info "[valid_email?] Address is valid (#{valid}): #{validation_str}"
         valid
         rescue StandardError => ex
-        OT.le "Email validation error (#{loggable_guess}): #{ex.message}"
+        OT.le "Email validation error (#{loggable_email_value}): #{ex.message}"
         OT.le ex.backtrace
         false
         end
