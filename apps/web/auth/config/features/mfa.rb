@@ -17,9 +17,9 @@ module Auth::Config::Features
       # Table column configurations
       # All Rodauth tables use account_id as FK, not id
       auth.otp_keys_table :account_otp_keys
-      auth.otp_keys_id_column :account_id
+      # auth.otp_keys_id_column :account_id
       auth.recovery_codes_table :account_recovery_codes
-      auth.recovery_codes_id_column :account_id
+      # auth.recovery_codes_id_column :account_id
 
       # MFA Configuration
       auth.otp_issuer 'OneTimeSecret'

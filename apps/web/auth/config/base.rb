@@ -15,7 +15,7 @@ module Auth::Config::Base
     auth.only_json? true
 
     # Use email as the account identifier
-    auth.account_id_column :id
+    # auth.account_id_column :id
     auth.login_column :email
     auth.login_label 'Email'
 
@@ -24,9 +24,8 @@ module Auth::Config::Base
     auth.account_select [:id, :email, :status_id, :external_id]
 
     # Table column configurations
-    # All Rodauth tables use account_id as FK, not id
     auth.password_hash_table :account_password_hashes
-    auth.password_hash_id_column :account_id
+    # auth.password_hash_id_column :account_id
 
     # Session configuration (unified with other apps)
     # The session_key config is for the session cookie name

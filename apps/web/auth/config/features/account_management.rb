@@ -10,7 +10,7 @@ module Auth::Config::Features
       # Only configure verify_account if the feature is enabled (disabled in test)
       unless ENV['RACK_ENV'] == 'test'
         auth.verify_account_table :account_verification_keys
-        auth.verify_account_id_column :account_id
+        # auth.verify_account_id_column :account_id
 
         # Password is set during account creation, not during verification
         # This prevents verify_account from requiring password fields
@@ -18,7 +18,7 @@ module Auth::Config::Features
       end
 
       auth.reset_password_table :account_password_reset_keys
-      auth.reset_password_id_column :account_id
+      # auth.reset_password_id_column :account_id
 
       # Password requirements
       auth.password_minimum_length 8

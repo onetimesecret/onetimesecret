@@ -14,9 +14,9 @@ module Auth::Config::Features
       # Table and column configuration
       # All Rodauth tables use account_id as FK, not id
       auth.email_auth_table :account_email_auth_keys
-      auth.email_auth_id_column :account_id
-      auth.email_auth_key_column :key
-      auth.email_auth_deadline_column :deadline
+      # auth.email_auth_id_column :account_id
+      # auth.email_auth_key_column :key
+      # auth.email_auth_deadline_column :deadline
       auth.email_auth_email_last_sent_column :email_last_sent
 
       # Magic links are only valid for a short period so we also keep

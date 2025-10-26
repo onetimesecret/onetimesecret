@@ -9,10 +9,10 @@ require 'json'
 require 'onetime/logging'
 
 require_relative 'config'
+require_relative 'routes/account'
 require_relative 'routes/active_sessions'
 require_relative 'routes/admin'
 require_relative 'routes/health'
-require_relative 'routes/validation'
 
 module Auth
   # This is the Roda application, which handles all routing for the auth service.
