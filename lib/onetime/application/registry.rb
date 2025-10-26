@@ -101,15 +101,21 @@ module Onetime
           end
 
           $stderr.puts "[registry] Scan found #{filepaths.size} application(s)"
-          filepaths.each { |f|
+          filepaths.each do |f|
             pretty_path = Onetime::Utils.pretty_path(f)
             $stderr.puts "[registry] Loading application file: #{pretty_path}" if Onetime.debug?
             begin
               require f
             rescue LoadError => ex
-              $stderr.puts "[registry] #{ex.class}: #{ex.message}"
+              $stderr.puts "\n\n"
+              $stderr.puts '╔' + ('═' * 58) + '╗'
+              $stderr.puts '║ ❌ APPLICATION LOAD FAILED' + (' ' * 31) + '║'
+              $stderr.puts "║    >> #{pretty_path} <<" + (' ' * (55 - pretty_path.to_s.length - 7)) + '║'
+              $stderr.puts '╚' + ('═' * 58) + '╝'
+              $stderr.puts "\n"
+              raise ex
             end
-          }
+          end
         end
 
         # Maps all discovered application classes to their URL routes
