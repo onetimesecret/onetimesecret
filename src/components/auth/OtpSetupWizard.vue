@@ -182,7 +182,9 @@ const canVerify = computed(() => otpCode.value.length === 6 && !isLoading.value)
           <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
             {{ t('web.auth.mfa.manual-entry') }}
           </p>
-          <code class="block break-all rounded bg-gray-100 p-2 font-mono text-sm dark:bg-gray-900 dark:text-gray-300">
+          <code
+            v-if="setupData.otp_raw_secret"
+            class="block break-all rounded bg-gray-100 p-2 font-mono text-sm dark:bg-gray-900 dark:text-gray-300">
             {{ setupData.otp_raw_secret }}
           </code>
         </div>

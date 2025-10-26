@@ -146,7 +146,7 @@ onUnmounted(() => {
             {{ cust?.email }}
           </p>
           <p
-            v-if="cust.objid"
+            v-if="cust?.objid"
             class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
             {{ cust.extid }}
           </p>

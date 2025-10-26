@@ -9,6 +9,7 @@ import OIcon from '@/components/icons/OIcon.vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import AccountBillingSection from '@/components/account/AccountBillingSection.vue';
+import SettingsLayout from '@/components/layout/SettingsLayout.vue';
 
 const { t } = useI18n();
 const { accountInfo, fetchAccountInfo } = useAccount();
