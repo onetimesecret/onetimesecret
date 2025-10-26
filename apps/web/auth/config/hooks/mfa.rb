@@ -1,43 +1,4 @@
 # apps/web/auth/config/hooks/mfa.rb
-#
-# ==============================================================================
-# USER JOURNEY: MULTI-FACTOR AUTHENTICATION (MFA) SETUP AND VERIFICATION
-# ==============================================================================
-#
-# This file configures Rodauth hooks that intercept and customize the MFA flow
-# for JSON API requests. The user's journey through MFA setup follows this path:
-#
-# 1. USER INITIATES MFA SETUP (before_otp_setup_route - Step 1)
-#    - User requests POST /otp-setup without an OTP code
-#    - Server generates a new TOTP secret (base32 encoded, 16 chars)
-#    - If HMAC is enabled, server creates HMAC-secured version of secret
-#    - Both secrets stored in session: :otp_setup_raw and :otp_setup_hmac
-#    - Response includes:
-#      * raw secret (for manual entry)
-#      * provisioning URI (otpauth://totp/...)
-#      * QR code SVG (visual representation)
-#      * HMAC parameters (if enabled)
-#    - User receives QR code and secret to configure authenticator app
-#
-# 2. USER SCANS QR CODE
-#    - User opens authenticator app (Google Authenticator, Authy, etc.)
-#    - Scans QR code or manually enters the raw secret
-#    - Authenticator begins generating 6-digit codes every 30 seconds
-#
-# 3. USER VERIFIES SETUP (before_otp_setup_route - Step 2)
-#    - User submits POST /otp-setup WITH an OTP code from authenticator
-#    - Server validates HMAC parameters against session (if enabled)
-#    - Server retrieves raw secret from session
-#    - Rodauth validates OTP code against raw secret using ROTP library
-#    - If valid, Rodauth stores HMAC secret to database
-#    - Flow continues to after_otp_setup hook
-#
-# 4. CLEANUP (after_otp_setup)
-#    - Server removes temporary session data
-#    - MFA setup complete - user's account now requires 2FA for login
-#
-#
-# ==============================================================================
 
 module Auth::Config::Hooks
   # All Valid Hooks:
