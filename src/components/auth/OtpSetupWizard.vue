@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import OtpCodeInput from '@/components/auth/OtpCodeInput.vue';
 import { useMfa } from '@/composables/useMfa';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const emit = defineEmits<{

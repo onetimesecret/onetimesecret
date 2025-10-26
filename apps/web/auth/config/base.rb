@@ -15,7 +15,7 @@ module Auth::Config::Base
     auth.only_json? true
 
     # Use email as the account identifier
-    auth.account_id_column :id  # Primary key column in accounts table
+    # auth.account_id_column :id
     auth.login_column :email
     auth.login_label 'Email'
 
