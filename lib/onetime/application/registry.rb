@@ -130,7 +130,10 @@ module Onetime
               raise ArgumentError, "Mount point must be a string (#{app_class} gave #{mount.class})"
             end
 
-            OT.li "  #{app_class} for #{mount}"
+            dynamic_char_count = app_class.name.length + mount.to_s.length
+            $stderr.puts '╔' + ('═' * 48) + '╗'
+            $stderr.puts "║ ✅ MOUNTED #{app_class} at #{mount}" + (' ' * (32-dynamic_char_count)) + '║'
+            $stderr.puts '╚' + ('═' * 48) + '╝'
             register(mount, app_class)
           end
 
