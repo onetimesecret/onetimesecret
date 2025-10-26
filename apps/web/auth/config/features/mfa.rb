@@ -14,13 +14,6 @@ module Auth::Config::Features
       # enable :otp  # Time-based One-Time Password (TOTP)
       # enable :recovery_codes  # Backup codes for MFA
 
-      # Table column configurations
-      # All Rodauth tables use account_id as FK, not id
-      auth.otp_keys_table :account_otp_keys
-      # auth.otp_keys_id_column :account_id
-      auth.recovery_codes_table :account_recovery_codes
-      # auth.recovery_codes_id_column :account_id
-
       # MFA Configuration
       auth.otp_issuer 'OneTimeSecret'
       auth.otp_setup_param 'otp_setup'
@@ -50,7 +43,6 @@ module Auth::Config::Features
       auth.otp_auth_failures_limit 10  # Up from default 5
 
       # Recovery codes configuration
-      auth.recovery_codes_column :code
       auth.auto_add_recovery_codes? true  # Automatically generate recovery codes
 
       # Require second factor during login if user has MFA setup

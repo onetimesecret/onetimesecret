@@ -19,19 +19,6 @@ module Auth::Config::Features
 
       auth.webauthn_rp_name 'OnetimeSecret'
 
-      # Table and column configuration
-      # Note: account_webauthn_keys uses composite PK (account_id, webauthn_id)
-      auth.webauthn_keys_table :account_webauthn_keys
-      # auth.webauthn_keys_account_id_column :account_id
-      # auth.webauthn_keys_webauthn_id_column :webauthn_id
-      # auth.webauthn_keys_public_key_column :public_key
-      auth.webauthn_keys_sign_count_column :sign_count
-      auth.webauthn_keys_last_use_column :last_use
-
-      auth.webauthn_user_ids_table :account_webauthn_user_ids
-      # auth.webauthn_user_ids_account_id_column :account_id
-      # auth.webauthn_user_ids_webauthn_id_column :webauthn_id
-
       # WebAuthn challenge configuration
       auth.webauthn_setup_timeout 60_000  # 60 seconds for user interaction during setup
       auth.webauthn_auth_timeout 60_000   # 60 seconds for user interaction during auth
