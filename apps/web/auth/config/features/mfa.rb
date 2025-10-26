@@ -24,12 +24,16 @@ module Auth::Config::Features
       # keys will be invalidated.
       auth.otp_keys_use_hmac? true
 
+      # OTP keys table uses `id` as the primary key column
+      auth.otp_keys_id_column :id
+
       # auth.otp_setup_redirect ''
 
       # Password requirements for MFA modifications
-      # In JSON API mode, password confirmation adds friction without security benefit
-      # since the user must already be authenticated to access these routes
-      auth.two_factor_modifications_require_password? false
+      # Require password confirmation for security-critical MFA operations
+      # (enabling, disabling, regenerating recovery codes)
+      # Rodauth default: true
+      auth.two_factor_modifications_require_password? true
 
       # OTP Lockout Configuration
       # Default is 5 attempts with permanent lockout - too harsh for production
@@ -44,6 +48,7 @@ module Auth::Config::Features
 
       # Recovery codes configuration
       auth.auto_add_recovery_codes? true  # Automatically generate recovery codes
+      auth.recovery_codes_id_column :account_id  # Foreign key column in account_recovery_codes table
 
       # Require second factor during login if user has MFA setup
       #
