@@ -12,6 +12,7 @@ module Auth::Config::Base
     auth.json_response_success_key :success
     auth.json_response_error_key :error
     auth.json_response_field_error_key :'field-error'
+    auth.json_response_custom_error_status? true
     auth.only_json? true
 
     # Use email as the account identifier
