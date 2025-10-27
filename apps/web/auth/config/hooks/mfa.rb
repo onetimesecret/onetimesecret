@@ -14,7 +14,6 @@ module Auth::Config::Hooks
   #
   module MFA
     def self.configure(auth)
-
       # ========================================================================
       # HOOK: After Successful Two-Factor Authentication
       # ========================================================================
@@ -28,20 +27,112 @@ module Auth::Config::Hooks
       # It fires after successful two-factor authentication of any type (OTP, WebAuthn, etc).
       #
       auth.after_two_factor_authentication do
-        OT.auth_logger.info '[MFA Login] OTP authentication successful',
+        correlation_id = session[:auth_correlation_id]
+
+        Auth::Logging.log_auth_event(
+          :mfa_authentication_success,
+          level: :info,
           account_id: account_id,
-          email: account[:email]
-        # Rodauth handles session management automatically
+          email: account[:email],
+          correlation_id: correlation_id,
+        )
+
+        # Measure and log session sync duration
+        Auth::Logging.measure(:mfa_session_sync, account_id: account_id, correlation_id: correlation_id) do
+          # Rodauth handles session management automatically, but we sync session data
+          Onetime::ErrorHandler.safe_execute('sync_session_after_mfa',
+            account_id: account_id,
+            email: account[:email],
+          ) do
+            Auth::Operations::SyncSession.call(
+              account: account,
+              account_id: account_id,
+              session: session,
+              request: request,
+              correlation_id: correlation_id,
+            )
+          end
+        end
+
+        # Log metric for MFA completion
+        Auth::Logging.log_metric(
+          :mfa_authentication_complete,
+          value: 1,
+          unit: :count,
+          account_id: account_id,
+          correlation_id: correlation_id,
+        )
+
+        # Clear awaiting_mfa flag
+        session[:awaiting_mfa] = false
+
+        # Clean up correlation ID after successful completion
+        session.delete(:auth_correlation_id)
       end
 
       # ========================================================================
       # HOOK: After OTP Disable
       # ========================================================================
       auth.after_otp_disable do
-        OT.auth_logger.info '[MFA] OTP disabled',
+        Auth::Logging.log_auth_event(
+          :mfa_disabled,
+          level: :info,
           account_id: account_id,
-          email: account[:email]
+          email: account[:email],
+        )
+
+        # Log metric for MFA disable
+        Auth::Logging.log_metric(
+          :mfa_disabled,
+          value: 1,
+          unit: :count,
+          account_id: account_id,
+        )
         # Rodauth handles session cleanup automatically
+      end
+
+      # ========================================================================
+      # HOOK: After OTP Setup
+      # ========================================================================
+      auth.after_otp_setup do
+        Auth::Logging.log_auth_event(
+          :mfa_setup_success,
+          level: :info,
+          account_id: account_id,
+          email: account[:email],
+        )
+
+        # Log metric for MFA setup
+        Auth::Logging.log_metric(
+          :mfa_setup_success,
+          value: 1,
+          unit: :count,
+          account_id: account_id,
+        )
+      end
+
+      # ========================================================================
+      # HOOK: After OTP Authentication Failure
+      # ========================================================================
+      auth.after_otp_authentication_failure do
+        correlation_id = session[:auth_correlation_id]
+
+        Auth::Logging.log_auth_event(
+          :mfa_authentication_failure,
+          level: :warn,
+          account_id: account_id,
+          email: account[:email],
+          correlation_id: correlation_id,
+        )
+
+        # Log metric for MFA failure
+        Auth::Logging.log_metric(
+          :mfa_authentication_failure,
+          value: 1,
+          unit: :count,
+          account_id: account_id,
+          correlation_id: correlation_id,
+        )
       end
     end
   end

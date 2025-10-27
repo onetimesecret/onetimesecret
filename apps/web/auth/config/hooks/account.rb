@@ -23,14 +23,20 @@ module Auth::Config::Hooks
         begin
           validator = Truemail.validate(email)
           unless validator.result.valid?
-            OT.info "[auth] Invalid email rejected: #{OT::Utils.obscure_email(email)}"
+            Auth::Logging.log_auth_event(
+              :invalid_email_rejected,
+              level: :info,
+              email: email
+            )
             throw_error_status(422, 'login', 'Please enter a valid email address')
           end
         rescue StandardError => ex
-          SemanticLogger['Auth'].error "Email validation service failed - failing open to allow signup",
-            email: OT::Utils.obscure_email(email),
+          Auth::Logging.log_error(
+            :email_validation_failed,
             exception: ex,
-            note: "Consider hard failure for higher security"
+            email: email,
+            note: 'Failing open to allow signup - consider hard failure for higher security'
+          )
           # Fail open on validation errors, but notify for investigation.
           # For higher security, this could be changed to a hard failure.
           throw_error_status(422, 'login', 'There was a problem validating your email. Please try again.')
@@ -45,12 +51,22 @@ module Auth::Config::Hooks
           # Account already exists - handle silently without revealing this fact
           if existing_account[:status_id] == 1 # Unverified
             # Resend verification email for unverified accounts
-            OT.info "[auth] Account exists (unverified), resending verification: #{OT::Utils.obscure_email(email)}"
+            Auth::Logging.log_auth_event(
+              :account_exists_unverified,
+              level: :info,
+              email: email,
+              note: 'Resending verification email'
+            )
             # TODO: Trigger resend of verification email when email system is active
             # send_create_account_email
           else
             # Verified account - do nothing but log for security monitoring
-            OT.info "[auth] Account exists (verified), silent success: #{OT::Utils.obscure_email(email)}"
+            Auth::Logging.log_auth_event(
+              :account_exists_verified,
+              level: :info,
+              email: email,
+              note: 'Silent success to prevent enumeration'
+            )
           end
 
           # Return success without creating account
@@ -67,7 +83,13 @@ module Auth::Config::Hooks
       # It ensures a corresponding Onetime::Customer record is created and linked.
       #
       auth.after_create_account do
-        OT.info "[auth] New account created: #{account[:extid]} (ID: #{account_id})"
+        Auth::Logging.log_auth_event(
+          :account_created,
+          level: :info,
+          account_id: account_id,
+          external_id: account[:external_id],
+          email: account[:email]
+        )
 
         Onetime::ErrorHandler.safe_execute('create_customer', account_id: account_id, extid: account[:extid]) do
           Auth::Operations::CreateCustomer.new(
@@ -90,7 +112,13 @@ module Auth::Config::Hooks
       #
       if ENV['RACK_ENV'] != 'test'
         auth.after_verify_account do
-          OT.info "[auth] Account verified: #{account[:extid]}"
+          Auth::Logging.log_auth_event(
+            :account_verified,
+            level: :info,
+            account_id: account_id,
+            external_id: account[:external_id],
+            email: account[:email]
+          )
 
           Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:extid]) do
             Auth::Operations::VerifyCustomer.new(account: account).call
@@ -104,7 +132,12 @@ module Auth::Config::Hooks
       # This hook is triggered after a user requests a password reset.
       #
       auth.after_reset_password_request do
-        OT.info "[auth] Password reset requested for: #{account[:email]}"
+        Auth::Logging.log_auth_event(
+          :password_reset_requested,
+          level: :info,
+          account_id: account_id,
+          email: account[:email]
+        )
       end
 
       #
@@ -113,7 +146,12 @@ module Auth::Config::Hooks
       # This hook is triggered after a user successfully resets their password.
       #
       auth.after_reset_password do
-        OT.info "[auth] Password reset for: #{account[:email]}"
+        Auth::Logging.log_auth_event(
+          :password_reset_complete,
+          level: :info,
+          account_id: account_id,
+          email: account[:email]
+        )
       end
 
       #
@@ -123,7 +161,12 @@ module Auth::Config::Hooks
       # metadata in the associated Onetime::Customer record.
       #
       auth.after_change_password do
-        OT.info "[auth] Password changed for: #{account[:email]}"
+        Auth::Logging.log_auth_event(
+          :password_changed,
+          level: :info,
+          account_id: account_id,
+          email: account[:email]
+        )
 
         # Rodauth is the source of truth for password management. Here, we just
         # sync metadata to the customer record.
@@ -139,7 +182,13 @@ module Auth::Config::Hooks
       # cleanup of the associated Onetime::Customer record.
       #
       auth.after_close_account do
-        OT.info "[auth] Account closed: #{account[:extid]} (ID: #{account_id})"
+        Auth::Logging.log_auth_event(
+          :account_closed,
+          level: :info,
+          account_id: account_id,
+          external_id: account[:external_id],
+          email: account[:email]
+        )
 
         Onetime::ErrorHandler.safe_execute('delete_customer', account_id: account_id, extid: account[:extid]) do
           Auth::Operations::DeleteCustomer.new(account: account).call

@@ -5,6 +5,7 @@ require 'rodauth'
 module Auth
   class Config < Rodauth::Auth
 
+    require_relative 'lib/logging'
     require_relative 'database'
     require_relative 'mailer'
     require_relative 'operations'
