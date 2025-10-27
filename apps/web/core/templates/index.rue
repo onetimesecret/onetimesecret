@@ -27,6 +27,7 @@ const schema = z.object({
 
   // AuthenticationSerializer fields
   authenticated: z.boolean(),
+  awaiting_mfa: z.boolean().optional(),
   custid: z.string().nullable(),
   cust: z.object({}),
   email: z.string().nullable(),

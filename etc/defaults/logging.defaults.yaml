@@ -47,7 +47,7 @@ loggers:
   HTTP: warn      # HTTP requests and middleware operations
   Familia: warn   # Redis/Familia ORM operations
   Otto: warn      # Otto framework operations
-  Rhales: warn    # Rhales template rendering (when integrated)
+  Rhales: error   # Rhales template rendering (suppress unescaped HTML warnings)
   Sequel: warn    # Database queries and operations
   Secret: info    # Secret lifecycle (create, view, burn)
   App: info       # Default application logger
