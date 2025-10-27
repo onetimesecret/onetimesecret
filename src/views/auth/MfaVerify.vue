@@ -15,7 +15,7 @@
   const otpCode = ref('');
   const recoveryCode = ref('');
   const useRecoveryMode = ref(false);
-  const otpInputRef = ref<InstanceType | null>(null);
+  const otpInputRef = ref<HTMLInputElement | null>(null);
 
   // Check if user is already authenticated (shouldn't be here if so)
   onMounted(() => {
@@ -43,8 +43,11 @@
       router.push('/');
     } else {
       // Clear input on error
-      otpInputRef.value?.clear();
       otpCode.value = '';
+      if (otpInputRef.value) {
+        otpInputRef.value.value = '';
+        otpInputRef.value.focus();
+      }
     }
   };
 

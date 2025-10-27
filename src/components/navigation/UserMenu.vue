@@ -142,13 +142,13 @@ onUnmounted(() => {
             dark:border-gray-700">
           <p
             class="text-sm font-medium text-gray-900 dark:text-white"
-            :title="cust.email">
-            {{ cust.email }}
+            :title="cust?.email">
+            {{ cust?.email }}
           </p>
           <p
-            v-if="cust.objid"
+            v-if="cust?.objid"
             class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {{ cust.extid }}
+            {{ cust?.extid }}
           </p>
           <!-- MFA Required Notice -->
           <div

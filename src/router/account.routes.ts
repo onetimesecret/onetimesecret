@@ -1,7 +1,5 @@
 // src/router/account.routes.ts
 
-import DefaultFooter from '@/components/layout/DefaultFooter.vue';
-import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import ExpandedHeader from '@/components/layout/ExpandedHeader.vue';
 import ExpandedFooter from '@/components/layout/ExpandedFooter.vue';
 import AccountLayout from '@/layouts/AccountLayout.vue';

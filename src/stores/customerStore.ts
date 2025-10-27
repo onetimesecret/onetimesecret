@@ -89,13 +89,13 @@ export const useCustomerStore = defineStore('customer', () => {
    * @throws Will handle and set any errors encountered during the API call.
    */
   async function updateCustomer(updates: Partial<Customer>) {
-    if (!currentCustomer.value?.custid) {
+    if (!currentCustomer.value?.objid) {
       // Use handleError instead of throwing directly
       throw createError('No current customer to update', 'human', 'error');
     }
 
     const response = await $api.put(
-      `/api/v2/account/customer/${currentCustomer?.value?.custid}`,
+      `/api/v2/account/customer/${currentCustomer?.value?.objid}`,
       updates
     );
     const validated = responseSchemas.customer.parse(response.data);

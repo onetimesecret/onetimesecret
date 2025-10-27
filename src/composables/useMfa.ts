@@ -20,8 +20,13 @@ import {
 } from '@/schemas/api/endpoints/auth';
 import type { OtpSetupData, MfaStatus } from '@/types/auth';
 import { useNotificationsStore } from '@/stores/notificationsStore';
+import {
+  generateQrCode,
+  hasHmacSetupData,
+  enrichSetupResponse,
+} from './helpers/mfaHelpers';
 
-/* eslint-disable max-lines-per-function */
+/* eslint-disable max-lines-per-function, complexity */
 export function useMfa() {
   const $api = inject('api') as AxiosInstance;
   const notificationsStore = useNotificationsStore();
@@ -32,18 +37,10 @@ export function useMfa() {
   const setupData = ref<OtpSetupData | null>(null);
   const recoveryCodes = ref<string[]>([]);
 
-  /**
-   * Clears error state
-   */
   function clearError() {
     error.value = null;
   }
 
-  /**
-   * Fetches current MFA status
-   *
-   * @returns MFA status object or null on error
-   */
   async function fetchMfaStatus(): Promise<MfaStatus | null> {
     clearError();
     isLoading.value = true;
@@ -68,57 +65,49 @@ export function useMfa() {
     }
   }
 
-  /**
-   * Initiates MFA setup - gets QR code and secret
-   *
-   * @returns Setup data with QR code and secret
-   */
-  async function setupMfa(): Promise<OtpSetupData | null> {
+  async function setupMfa(password?: string): Promise<OtpSetupData | null> {
     clearError();
     isLoading.value = true;
 
     try {
-      // POST to /auth/otp-setup without otp_code returns the setup data
-      const response = await $api.post<OtpSetupResponse>('/auth/otp-setup', {});
-
+      const payload: Record<string, string> = password ? { password } : {};
+      const response = await $api.post<OtpSetupResponse>('/auth/otp-setup', payload);
       const validated = otpSetupResponseSchema.parse(response.data);
 
-      // Convert SVG string to data URI for img tag
-      if (validated.qr_code && validated.qr_code.startsWith('<svg')) {
-        validated.qr_code = `data:image/svg+xml;base64,${btoa(validated.qr_code)}`;
+      if (validated.otp_raw_secret) {
+        validated.qr_code = await generateQrCode(validated.otp_raw_secret);
       }
 
       setupData.value = validated;
       return validated;
     } catch (err: any) {
+      const errorData = err.response?.data;
+      if (err.response?.status === 422 && errorData && hasHmacSetupData(errorData)) {
+        const hmacData = await enrichSetupResponse(errorData);
+        if (hmacData) {
+          setupData.value = hmacData;
+          return hmacData;
+        }
+      }
+
       console.error('[useMfa] setupMfa error:', {
         status: err.response?.status,
-        data: err.response?.data,
+        data: errorData,
       });
-      error.value = err.response?.data?.error || 'Failed to initiate MFA setup';
+      error.value = errorData?.error || 'Failed to initiate MFA setup';
       return null;
     } finally {
       isLoading.value = false;
     }
   }
 
-  /**
-   * Completes MFA setup by verifying the OTP code
-   *
-   * @param otpCode - 6-digit OTP code from authenticator app
-   * @returns true if setup successful
-   */
-  async function enableMfa(otpCode: string): Promise<boolean> {
+  async function enableMfa(otpCode: string, password: string): Promise<boolean> {
     clearError();
     isLoading.value = true;
 
     try {
-      // Build request payload
-      const payload: Record<string, string> = {
-        otp_code: otpCode,
-      };
+      const payload: Record<string, string> = { otp_code: otpCode, password };
 
-      // Include HMAC parameters if they were provided in setup response
       if (setupData.value?.otp_setup) {
         payload.otp_setup = setupData.value.otp_setup;
       }
@@ -127,7 +116,6 @@ export function useMfa() {
       }
 
       const response = await $api.post<OtpToggleResponse>('/auth/otp-setup', payload);
-
       const validated = otpToggleResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
@@ -145,12 +133,6 @@ export function useMfa() {
     }
   }
 
-  /**
-   * Verifies an OTP code (during login or testing)
-   *
-   * @param otpCode - 6-digit OTP code
-   * @returns true if verification successful
-   */
   async function verifyOtp(otpCode: string): Promise<boolean> {
     clearError();
     isLoading.value = true;
@@ -176,12 +158,6 @@ export function useMfa() {
     }
   }
 
-  /**
-   * Disables MFA for the account
-   *
-   * @param password - User's password for confirmation
-   * @returns true if disable successful
-   */
   async function disableMfa(password: string): Promise<boolean> {
     clearError();
     isLoading.value = true;
@@ -208,19 +184,12 @@ export function useMfa() {
     }
   }
 
-  /**
-   * Fetches recovery codes
-   *
-   * @returns Array of recovery codes
-   */
   async function fetchRecoveryCodes(): Promise<string[]> {
     clearError();
     isLoading.value = true;
 
     try {
-      // Rodauth with only_json? true requires POST requests with JSON body
       const response = await $api.post<RecoveryCodesResponse>('/auth/recovery-codes', {});
-
       const validated = recoveryCodesResponseSchema.parse(response.data);
 
       recoveryCodes.value = validated.codes;
@@ -238,18 +207,12 @@ export function useMfa() {
     }
   }
 
-  /**
-   * Generates new recovery codes (invalidates old ones)
-   *
-   * @returns Array of new recovery codes
-   */
-  async function generateNewRecoveryCodes(): Promise<string[]> {
+  async function generateNewRecoveryCodes(password: string): Promise<string[]> {
     clearError();
     isLoading.value = true;
 
     try {
-      const response = await $api.post<RecoveryCodesResponse>('/auth/recovery-codes', {});
-
+      const response = await $api.post<RecoveryCodesResponse>('/auth/recovery-codes', { password });
       const validated = recoveryCodesResponseSchema.parse(response.data);
 
       recoveryCodes.value = validated.codes;
@@ -264,12 +227,6 @@ export function useMfa() {
     }
   }
 
-  /**
-   * Verifies a recovery code (during login)
-   *
-   * @param code - Recovery code
-   * @returns true if verification successful
-   */
   async function verifyRecoveryCode(code: string): Promise<boolean> {
     clearError();
     isLoading.value = true;
@@ -296,14 +253,11 @@ export function useMfa() {
   }
 
   return {
-    // State
     isLoading,
     error,
     mfaStatus,
     setupData,
     recoveryCodes,
-
-    // Actions
     fetchMfaStatus,
     setupMfa,
     enableMfa,

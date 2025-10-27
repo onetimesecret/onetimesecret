@@ -7,6 +7,7 @@ const { t } = useI18n();
 const { recoveryCodes, mfaStatus, isLoading, error, fetchRecoveryCodes, fetchMfaStatus, generateNewRecoveryCodes } = useMfa();
 
 const showGenerateConfirm = ref(false);
+const regeneratePassword = ref('');
 
 onMounted(async () => {
   // Fetch recovery codes first (generates/fetches codes)
@@ -111,12 +112,32 @@ const printCodes = () => {
   printWindow.print();
 };
 
+// Show generate confirmation modal
+const showGenerateModal = () => {
+  regeneratePassword.value = '';
+  showGenerateConfirm.value = true;
+};
+
+// Cancel generate confirmation
+const cancelGenerate = () => {
+  showGenerateConfirm.value = false;
+  regeneratePassword.value = '';
+};
+
 // Generate new codes
 const handleGenerateNew = async () => {
-  showGenerateConfirm.value = false;
+  if (!regeneratePassword.value) return;
+
   // Generate new codes first, then fetch status to avoid race condition
-  await generateNewRecoveryCodes();
-  await fetchMfaStatus(); // Refresh count after codes are generated
+  const codes = await generateNewRecoveryCodes(regeneratePassword.value);
+
+  if (codes.length > 0) {
+    // Success - close modal and refresh status
+    showGenerateConfirm.value = false;
+    regeneratePassword.value = '';
+    await fetchMfaStatus(); // Refresh count after codes are generated
+  }
+  // If failed, modal stays open with error message displayed
 };
 </script>
 
@@ -230,7 +251,7 @@ const handleGenerateNew = async () => {
           {{ $t('web.auth.recovery-codes.generate-new-warning') }}
         </p>
         <button
-          @click="showGenerateConfirm = true"
+          @click="showGenerateModal"
           type="button"
           class="rounded-md border border-yellow-300 px-4 py-2 text-sm font-medium text-yellow-700 hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 dark:border-yellow-600 dark:text-yellow-400 dark:hover:bg-yellow-900/20">
           <i class="fas fa-sync mr-2"></i>
@@ -256,34 +277,69 @@ const handleGenerateNew = async () => {
     <div
       v-if="showGenerateConfirm"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-      @click.self="showGenerateConfirm = false">
+      @click.self="cancelGenerate">
       <div
         class="mx-4 max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
         role="dialog"
-        aria-modal="true">
+        aria-modal="true"
+        aria-labelledby="regenerate-codes-title">
         <div class="mb-4 flex items-center">
           <i class="fas fa-exclamation-triangle mr-3 text-2xl text-yellow-500"></i>
-          <h3 class="text-lg font-semibold dark:text-white">
+          <h3 id="regenerate-codes-title" class="text-lg font-semibold dark:text-white">
             {{ $t('web.auth.recovery-codes.generate-new') }}
           </h3>
         </div>
-        <p class="mb-6 text-sm text-gray-600 dark:text-gray-400">
+        <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
           {{ $t('web.auth.recovery-codes.generate-new-warning') }}
         </p>
-        <div class="flex justify-end gap-3">
-          <button
-            @click="showGenerateConfirm = false"
-            type="button"
-            class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-            Cancel
-          </button>
-          <button
-            @click="handleGenerateNew"
-            type="button"
-            class="rounded-md bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2">
-            Generate New Codes
-          </button>
-        </div>
+
+        <form @submit.prevent="handleGenerateNew">
+          <!-- Password input -->
+          <div class="mb-4">
+            <label for="regenerate-password" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              {{ $t('web.auth.mfa.password-confirmation') }}
+            </label>
+            <input
+              id="regenerate-password"
+              v-model="regeneratePassword"
+              type="password"
+              :disabled="isLoading"
+              :placeholder="$t('web.auth.mfa.password-placeholder')"
+              class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            />
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {{ $t('web.auth.mfa.password-reason') }}
+            </p>
+          </div>
+
+          <!-- Error message -->
+          <div
+            v-if="error"
+            class="mb-4 rounded-md bg-red-50 p-3 dark:bg-red-900/20"
+            role="alert">
+            <p class="text-sm text-red-800 dark:text-red-200">
+              {{ error }}
+            </p>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="flex justify-end gap-3">
+            <button
+              @click="cancelGenerate"
+              type="button"
+              :disabled="isLoading"
+              class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+              {{ $t('web.COMMON.word_cancel') }}
+            </button>
+            <button
+              type="submit"
+              :disabled="isLoading || !regeneratePassword"
+              class="rounded-md bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+              <span v-if="isLoading">{{ $t('web.COMMON.processing') || 'Processing...' }}</span>
+              <span v-else>{{ $t('web.auth.recovery-codes.generate-new') }}</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

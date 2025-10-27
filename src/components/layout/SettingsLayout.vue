@@ -5,7 +5,6 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
-import { WindowService } from '@/services/window.service';
 
 const route = useRoute();
 const { t } = useI18n();
