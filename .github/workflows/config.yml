@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - uses: nrkno/yaml-schema-validator-github-action@32c469c6568f476abfaafb5ea5acf8b8a41b29a9 # v4
         continue-on-error: false
