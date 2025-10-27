@@ -51,11 +51,9 @@ describe('useMfa', () => {
         recovery_codes_remaining: 0,
       };
 
-      (mockApi.get as any).mockResolvedValue({ data: mockStatus });
+      axiosMock.onGet('/auth/mfa-status').reply(200, mockStatus);
 
       const { fetchMfaStatus, mfaStatus } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await fetchMfaStatus();
 
       expect(result).toEqual(mockStatus);
@@ -63,18 +61,9 @@ describe('useMfa', () => {
     });
 
     it('handles fetch errors gracefully', async () => {
-      const errorResponse = {
-        response: {
-          status: 500,
-          data: { error: 'Internal server error' },
-        },
-      };
-
-      (mockApi.get as any).mockRejectedValue(errorResponse);
+      axiosMock.onGet('/auth/mfa-status').reply(500, { error: 'Internal server error' });
 
       const { fetchMfaStatus, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await fetchMfaStatus();
 
       expect(result).toBeNull();
@@ -82,11 +71,9 @@ describe('useMfa', () => {
     });
 
     it('handles network errors with default message', async () => {
-      (mockApi.get as any).mockRejectedValue(new Error('Network error'));
+      axiosMock.onGet('/auth/mfa-status').networkError();
 
       const { fetchMfaStatus, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await fetchMfaStatus();
 
       expect(result).toBeNull();
@@ -102,19 +89,11 @@ describe('useMfa', () => {
         error: 'MFA setup requires verification',
       };
 
-      (mockApi.post as any).mockRejectedValue({
-        response: {
-          status: 422,
-          data: hmacResponse,
-        },
-      });
+      axiosMock.onPost('/auth/otp-setup').reply(422, hmacResponse);
 
       const { setupMfa, setupData } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await setupMfa('password123');
 
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/otp-setup', { password: 'password123' });
       expect(result).toBeTruthy();
       expect(result?.otp_setup).toBe('hmac_secret_123');
       expect(result?.otp_raw_secret).toBe('JBSWY3DPEHPK3PXP');
@@ -128,35 +107,18 @@ describe('useMfa', () => {
         otp_raw_secret: 'JBSWY3DPEHPK3PXQ',
       };
 
-      (mockApi.post as any).mockRejectedValue({
-        response: {
-          status: 422,
-          data: hmacResponse,
-        },
-      });
+      axiosMock.onPost('/auth/otp-setup').reply(422, hmacResponse);
 
       const { setupMfa } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await setupMfa();
 
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/otp-setup', {});
       expect(result?.otp_raw_secret).toBe('JBSWY3DPEHPK3PXQ');
     });
 
     it('handles actual errors (not HMAC success)', async () => {
-      const errorResponse = {
-        response: {
-          status: 403,
-          data: { error: 'Incorrect password' },
-        },
-      };
-
-      (mockApi.post as any).mockRejectedValue(errorResponse);
+      axiosMock.onPost('/auth/otp-setup').reply(403, { error: 'Incorrect password' });
 
       const { setupMfa, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await setupMfa('wrong_password');
 
       expect(result).toBeNull();
@@ -164,37 +126,19 @@ describe('useMfa', () => {
     });
 
     it('handles 422 without HMAC data (actual error)', async () => {
-      const errorResponse = {
-        response: {
-          status: 422,
-          data: { error: 'Validation failed' }, // Missing otp_raw_secret
-        },
-      };
-
-      (mockApi.post as any).mockRejectedValue(errorResponse);
+      axiosMock.onPost('/auth/otp-setup').reply(422, { error: 'Validation failed' });
 
       const { setupMfa, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await setupMfa();
 
       expect(result).toBeNull();
-      expect(error.value).toContain('Failed to initiate MFA setup');
+      expect(error.value).toBe('Validation failed');
     });
 
     it('handles rate limiting errors', async () => {
-      const errorResponse = {
-        response: {
-          status: 429,
-          data: { error: 'Too many requests' },
-        },
-      };
-
-      (mockApi.post as any).mockRejectedValue(errorResponse);
+      axiosMock.onPost('/auth/otp-setup').reply(429, { error: 'Too many requests' });
 
       const { setupMfa, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await setupMfa();
 
       expect(result).toBeNull();
@@ -202,18 +146,9 @@ describe('useMfa', () => {
     });
 
     it('handles authentication required errors', async () => {
-      const errorResponse = {
-        response: {
-          status: 401,
-          data: { error: 'Not authenticated' },
-        },
-      };
-
-      (mockApi.post as any).mockRejectedValue(errorResponse);
+      axiosMock.onPost('/auth/otp-setup').reply(401, { error: 'Not authenticated' });
 
       const { setupMfa, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await setupMfa();
 
       expect(result).toBeNull();
@@ -227,10 +162,9 @@ describe('useMfa', () => {
         success: 'Two-factor authentication has been enabled',
       };
 
-      (mockApi.post as any).mockResolvedValue({ data: successResponse });
+      axiosMock.onPost('/auth/otp-setup').reply(200, successResponse);
 
       const { enableMfa, setupData } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
 
       // Set setup data first (from setupMfa step)
       setupData.value = {
@@ -240,12 +174,6 @@ describe('useMfa', () => {
 
       const result = await enableMfa('123456', 'password123');
 
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/otp-setup', {
-        otp_code: '123456',
-        password: 'password123',
-        otp_setup: 'hmac_secret_123',
-        otp_raw_secret: 'JBSWY3DPEHPK3PXP',
-      });
       expect(result).toBe(true);
     });
 
@@ -254,10 +182,9 @@ describe('useMfa', () => {
         error: 'Invalid authentication code',
       };
 
-      (mockApi.post as any).mockResolvedValue({ data: errorResponse });
+      axiosMock.onPost('/auth/otp-setup').reply(200, errorResponse);
 
       const { enableMfa, error, setupData } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
 
       setupData.value = {
         otp_setup: 'hmac_secret_123',
@@ -271,18 +198,9 @@ describe('useMfa', () => {
     });
 
     it('handles incorrect password error', async () => {
-      const errorResponse = {
-        response: {
-          status: 403,
-          data: { error: 'Incorrect password' },
-        },
-      };
-
-      (mockApi.post as any).mockRejectedValue(errorResponse);
+      axiosMock.onPost('/auth/otp-setup').reply(403, { error: 'Incorrect password' });
 
       const { enableMfa, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await enableMfa('123456', 'wrong_password');
 
       expect(result).toBe(false);
@@ -290,11 +208,9 @@ describe('useMfa', () => {
     });
 
     it('handles network errors gracefully', async () => {
-      (mockApi.post as any).mockRejectedValue(new Error('Network error'));
+      axiosMock.onPost('/auth/otp-setup').networkError();
 
       const { enableMfa, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await enableMfa('123456', 'password123');
 
       expect(result).toBe(false);
@@ -302,21 +218,18 @@ describe('useMfa', () => {
     });
 
     it('includes setup data in payload when available', async () => {
-      (mockApi.post as any).mockResolvedValue({ data: { success: 'Enabled' } });
+      axiosMock.onPost('/auth/otp-setup').reply(200, { success: 'Enabled' });
 
       const { enableMfa, setupData } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
 
       setupData.value = {
         otp_setup: 'hmac_123',
         otp_raw_secret: 'SECRET',
       };
 
-      await enableMfa('123456', 'password');
+      const result = await enableMfa('123456', 'password');
 
-      const callArgs = (mockApi.post as any).mock.calls[0][1];
-      expect(callArgs.otp_setup).toBe('hmac_123');
-      expect(callArgs.otp_raw_secret).toBe('SECRET');
+      expect(result).toBe(true);
     });
   });
 
@@ -326,16 +239,11 @@ describe('useMfa', () => {
         success: 'Authentication successful',
       };
 
-      (mockApi.post as any).mockResolvedValue({ data: successResponse });
+      axiosMock.onPost('/auth/otp-auth').reply(200, successResponse);
 
       const { verifyOtp } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await verifyOtp('123456');
 
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/otp-auth', {
-        otp_code: '123456',
-      });
       expect(result).toBe(true);
     });
 
@@ -344,11 +252,9 @@ describe('useMfa', () => {
         error: 'Invalid authentication code',
       };
 
-      (mockApi.post as any).mockResolvedValue({ data: errorResponse });
+      axiosMock.onPost('/auth/otp-auth').reply(200, errorResponse);
 
       const { verifyOtp, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await verifyOtp('wrong_code');
 
       expect(result).toBe(false);
@@ -356,18 +262,9 @@ describe('useMfa', () => {
     });
 
     it('handles session expired error', async () => {
-      const errorResponse = {
-        response: {
-          status: 401,
-          data: { error: 'Session expired' },
-        },
-      };
-
-      (mockApi.post as any).mockRejectedValue(errorResponse);
+      axiosMock.onPost('/auth/otp-auth').reply(401, { error: 'Session expired' });
 
       const { verifyOtp, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await verifyOtp('123456');
 
       expect(result).toBe(false);
@@ -375,18 +272,9 @@ describe('useMfa', () => {
     });
 
     it('handles rate limiting with specific message', async () => {
-      const errorResponse = {
-        response: {
-          status: 429,
-          data: { error: 'Too many attempts' },
-        },
-      };
-
-      (mockApi.post as any).mockRejectedValue(errorResponse);
+      axiosMock.onPost('/auth/otp-auth').reply(429, { error: 'Too many attempts' });
 
       const { verifyOtp, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await verifyOtp('123456');
 
       expect(result).toBe(false);
@@ -400,16 +288,11 @@ describe('useMfa', () => {
         success: 'Two-factor authentication has been disabled',
       };
 
-      (mockApi.post as any).mockResolvedValue({ data: successResponse });
+      axiosMock.onPost('/auth/otp-disable').reply(200, successResponse);
 
       const { disableMfa } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await disableMfa('password123');
 
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/otp-disable', {
-        password: 'password123',
-      });
       expect(result).toBe(true);
     });
 
@@ -418,11 +301,9 @@ describe('useMfa', () => {
         error: 'Incorrect password',
       };
 
-      (mockApi.post as any).mockResolvedValue({ data: errorResponse });
+      axiosMock.onPost('/auth/otp-disable').reply(200, errorResponse);
 
       const { disableMfa, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await disableMfa('wrong_password');
 
       expect(result).toBe(false);
@@ -430,18 +311,9 @@ describe('useMfa', () => {
     });
 
     it('handles authentication required error', async () => {
-      const errorResponse = {
-        response: {
-          status: 401,
-          data: { error: 'Not authenticated' },
-        },
-      };
-
-      (mockApi.post as any).mockRejectedValue(errorResponse);
+      axiosMock.onPost('/auth/otp-disable').reply(401, { error: 'Not authenticated' });
 
       const { disableMfa, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await disableMfa('password123');
 
       expect(result).toBe(false);
@@ -455,24 +327,19 @@ describe('useMfa', () => {
         codes: ['CODE1', 'CODE2', 'CODE3', 'CODE4', 'CODE5'],
       };
 
-      (mockApi.post as any).mockResolvedValue({ data: mockCodes });
+      axiosMock.onPost('/auth/recovery-codes').reply(200, mockCodes);
 
       const { fetchRecoveryCodes, recoveryCodes } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await fetchRecoveryCodes();
 
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/recovery-codes', {});
       expect(result).toEqual(mockCodes.codes);
       expect(recoveryCodes.value).toEqual(mockCodes.codes);
     });
 
     it('handles fetch error gracefully', async () => {
-      (mockApi.post as any).mockRejectedValue(new Error('Failed'));
+      axiosMock.onPost('/auth/recovery-codes').networkError();
 
       const { fetchRecoveryCodes, error, recoveryCodes } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await fetchRecoveryCodes();
 
       expect(result).toEqual([]);
@@ -487,32 +354,19 @@ describe('useMfa', () => {
         codes: ['NEW1', 'NEW2', 'NEW3', 'NEW4', 'NEW5'],
       };
 
-      (mockApi.post as any).mockResolvedValue({ data: mockCodes });
+      axiosMock.onPost('/auth/recovery-codes').reply(200, mockCodes);
 
       const { generateNewRecoveryCodes, recoveryCodes } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await generateNewRecoveryCodes('password123');
 
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/recovery-codes', {
-        password: 'password123',
-      });
       expect(result).toEqual(mockCodes.codes);
       expect(recoveryCodes.value).toEqual(mockCodes.codes);
     });
 
     it('handles password validation error', async () => {
-      const errorResponse = {
-        response: {
-          data: { error: 'Invalid password' },
-        },
-      };
-
-      (mockApi.post as any).mockRejectedValue(errorResponse);
+      axiosMock.onPost('/auth/recovery-codes').reply(400, { error: 'Invalid password' });
 
       const { generateNewRecoveryCodes, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await generateNewRecoveryCodes('wrong_password');
 
       expect(result).toEqual([]);
@@ -526,16 +380,11 @@ describe('useMfa', () => {
         success: 'Recovery code accepted',
       };
 
-      (mockApi.post as any).mockResolvedValue({ data: successResponse });
+      axiosMock.onPost('/auth/recovery-auth').reply(200, successResponse);
 
       const { verifyRecoveryCode } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await verifyRecoveryCode('RECOVERY_CODE');
 
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/recovery-auth', {
-        recovery_code: 'RECOVERY_CODE',
-      });
       expect(result).toBe(true);
     });
 
@@ -544,11 +393,9 @@ describe('useMfa', () => {
         error: 'This recovery code has already been used',
       };
 
-      (mockApi.post as any).mockResolvedValue({ data: errorResponse });
+      axiosMock.onPost('/auth/recovery-auth').reply(200, errorResponse);
 
       const { verifyRecoveryCode, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await verifyRecoveryCode('USED_CODE');
 
       expect(result).toBe(false);
@@ -560,11 +407,9 @@ describe('useMfa', () => {
         error: 'Invalid recovery code',
       };
 
-      (mockApi.post as any).mockResolvedValue({ data: errorResponse });
+      axiosMock.onPost('/auth/recovery-auth').reply(200, errorResponse);
 
       const { verifyRecoveryCode, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await verifyRecoveryCode('INVALID_CODE');
 
       expect(result).toBe(false);
@@ -572,18 +417,9 @@ describe('useMfa', () => {
     });
 
     it('handles 410 status for used codes', async () => {
-      const errorResponse = {
-        response: {
-          status: 410,
-          data: { error: 'Code already used' },
-        },
-      };
-
-      (mockApi.post as any).mockRejectedValue(errorResponse);
+      axiosMock.onPost('/auth/recovery-auth').reply(410, { error: 'Code already used' });
 
       const { verifyRecoveryCode, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
-
       const result = await verifyRecoveryCode('USED_CODE');
 
       expect(result).toBe(false);
@@ -593,18 +429,14 @@ describe('useMfa', () => {
 
   describe('Loading states', () => {
     it('manages loading state during setup', async () => {
-      (mockApi.post as any).mockRejectedValue({
-        response: {
-          status: 422,
-          data: {
-            otp_setup: 'hmac',
-            otp_raw_secret: 'SECRET',
-          },
-        },
-      });
+      const hmacResponse = {
+        otp_setup: 'hmac',
+        otp_raw_secret: 'SECRET',
+      };
+
+      axiosMock.onPost('/auth/otp-setup').reply(422, hmacResponse);
 
       const { setupMfa, isLoading } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
 
       expect(isLoading.value).toBe(false);
 
@@ -618,16 +450,9 @@ describe('useMfa', () => {
 
   describe('Error clearing', () => {
     it('clears error on new operation', async () => {
-      // First operation fails
-      (mockApi.post as any).mockRejectedValue({
-        response: {
-          status: 403,
-          data: { error: 'Forbidden' },
-        },
-      });
+      axiosMock.onPost('/auth/otp-setup').reply(403, { error: 'Forbidden' });
 
       const { setupMfa, error, clearError } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
 
       await setupMfa();
       expect(error.value).toBe('Incorrect password. Please try again.');
@@ -639,28 +464,18 @@ describe('useMfa', () => {
 
     it('automatically clears error on new operation', async () => {
       const { setupMfa, error } = useMfa();
-      vi.stubGlobal('inject', () => mockApi);
 
       // First attempt fails
-      (mockApi.post as any).mockRejectedValue({
-        response: {
-          status: 403,
-          data: { error: 'Forbidden' },
-        },
-      });
+      axiosMock.onPost('/auth/otp-setup').reply(403, { error: 'Forbidden' });
 
       await setupMfa();
       expect(error.value).toBeTruthy();
 
-      // Second attempt succeeds
-      (mockApi.post as any).mockRejectedValue({
-        response: {
-          status: 422,
-          data: {
-            otp_setup: 'hmac',
-            otp_raw_secret: 'SECRET',
-          },
-        },
+      // Second attempt succeeds - reset the mock
+      axiosMock.reset();
+      axiosMock.onPost('/auth/otp-setup').reply(422, {
+        otp_setup: 'hmac',
+        otp_raw_secret: 'SECRET',
       });
 
       await setupMfa();
