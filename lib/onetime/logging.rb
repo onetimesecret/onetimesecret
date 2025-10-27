@@ -46,14 +46,15 @@ module Onetime
     end
 
     # Category-specific logger accessors for explicit context
-    def auth_logger = SemanticLogger.[]('Auth')
-    def session_logger = SemanticLogger.[]('Session')
-    def http_logger = SemanticLogger.[]('HTTP')
-    def familia_logger = SemanticLogger.[]('Familia')
-    def otto_logger = SemanticLogger.[]('Otto')
-    def rhales_logger = SemanticLogger.[]('Rhales')
-    def secret_logger = SemanticLogger.[]('Secret')
-    def app_logger = SemanticLogger.[]('App')
+    # Uses cached logger instances from Onetime::Initializers to preserve level settings
+    def auth_logger = Onetime.get_logger('Auth')
+    def session_logger = Onetime.get_logger('Session')
+    def http_logger = Onetime.get_logger('HTTP')
+    def familia_logger = Onetime.get_logger('Familia')
+    def otto_logger = Onetime.get_logger('Otto')
+    def rhales_logger = Onetime.get_logger('Rhales')
+    def secret_logger = Onetime.get_logger('Secret')
+    def app_logger = Onetime.get_logger('App')
 
     # Execute block with a specific log category via thread-local variable.
     #

@@ -140,7 +140,6 @@ end
 **Purpose**: Determine if MFA is required and how session sync should proceed
 
 **Returns**: Decision object with methods:
-- `recovery_mode?` - Is this an MFA recovery attempt?
 - `requires_mfa?` - Does account have MFA enabled?
 - `defer_session_sync?` - Should full sync wait for MFA verification?
 - `sync_session_now?` - Should sync happen immediately?
@@ -149,23 +148,8 @@ end
 ```
 Login successful → DetectMfaRequirement
   ├─ MFA enabled → defer_session_sync? = true → Set session[:awaiting_mfa]
-  ├─ MFA recovery → recovery_mode? = true → ProcessMfaRecovery
   └─ No MFA → sync_session_now? = true → SyncSession immediately
 ```
-
-#### `Auth::Operations::ProcessMfaRecovery`
-
-**Purpose**: Handle MFA recovery flow (disable MFA for user)
-
-**Actions**:
-1. Remove OTP key from `account_otp_keys` table
-2. Delete all recovery codes from `account_recovery_codes` table
-3. Set session flags for frontend notification:
-   - `session[:mfa_recovery_completed] = true`
-   - `session[:mfa_disabled] = true`
-
-**Security Consideration**: Email access = MFA bypass
-Recovery should only be available through authenticated email verification.
 
 ## Session State Machine
 
@@ -176,8 +160,7 @@ Recovery should only be available through authenticated email verification.
 3. **Awaiting MFA** - `session[:awaiting_mfa] = true`, partial session sync
 4. **MFA Verified** - OTP or recovery code verified, full session sync
 5. **Fully Authenticated** - Complete session, Customer linked
-6. **MFA Recovery Mode** - `session[:mfa_recovery_mode] = true`
-7. **Logged Out** - Session cleared, correlation ID cleaned
+6. **Logged Out** - Session cleared, correlation ID cleaned
 
 ### State Transitions
 
@@ -196,11 +179,6 @@ Recovery should only be available through authenticated email verification.
       ↓ POST /auth/otp-auth with valid code
       ↓ SyncSession (full)
      [Fully Authenticated]
-
-[MFA Recovery Mode]
-  ↓ ProcessMfaRecovery
-  ↓ Disable MFA
- [Password Authenticated] → Continue as non-MFA user
 ```
 
 ## Logging and Observability
@@ -237,10 +215,6 @@ Recovery should only be available through authenticated email verification.
 - `account_linked` - SQL external_id updated
 - `session_sync_complete` - Full synchronization done
 - `sync_session_error` - Operation failed
-
-**Recovery**:
-- `mfa_recovery_initiated` - Recovery mode detected
-- `mfa_recovery_completed` - MFA disabled via recovery
 
 ### Metrics Collection
 
@@ -333,25 +307,6 @@ grep "redis_unavailable_during_sync" production.log | wc -l
 4. Delete duplicate customers
 5. Investigate why idempotency failed
 
-### Scenario: MFA Recovery Abuse
-
-**Symptoms**: MFA disabled more frequently than expected
-
-**Diagnosis**:
-```bash
-# Check MFA recovery events
-grep "mfa_recovery_completed" production.log | grep -v "test"
-
-# Check for pattern (same user repeatedly)
-grep "mfa_recovery_completed" production.log | \
-  jq -r '.account_id' | sort | uniq -c | sort -rn
-```
-
-**Resolution**:
-1. Review email verification security
-2. Consider requiring password for recovery
-3. Add rate limiting for recovery flow
-4. Alert on excessive recovery usage
 
 ## Performance Baselines
 

@@ -63,8 +63,7 @@ apps/web/auth/
 │   └── hooks/                         # Lifecycle hooks (login, account, etc.)
 ├── operations/                        # Business logic
 │   ├── sync_session.rb                # Redis-SQL synchronization
-│   ├── detect_mfa_requirement.rb      # MFA detection logic
-│   └── process_mfa_recovery.rb        # MFA recovery flow
+│   └── detect_mfa_requirement.rb      # MFA detection logic
 ├── lib/
 │   └── logging.rb                     # Correlation IDs, metrics
 ├── routes/                            # HTTP endpoints

@@ -1,14 +1,13 @@
 # try/integration/authentication/advanced_mode/mfa_complete_flow_try.rb
 #
 # Comprehensive end-to-end integration test for the complete MFA authentication flow.
-# Validates that extracted operations (DetectMfaRequirement, SyncSession, ProcessMfaRecovery)
+# Validates that extracted operations (DetectMfaRequirement, SyncSession)
 # properly integrate to provide the complete authentication experience.
 #
 # Test Scenarios:
 # 1. Login with password → MFA detection → Verify OTP → Session sync → Authenticated
 # 2. Login with password → No MFA → Immediate session sync → Authenticated
-# 3. MFA Recovery Mode Flow
-# 4. Idempotency During Session Sync
+# 3. Idempotency During Session Sync
 #
 # REQUIRES: Advanced mode with SQL database (PostgreSQL or SQLite)
 
@@ -219,104 +218,10 @@ end
 #=> true
 
 # ============================================================================
-# TEST 3: MFA Recovery Flow
+# TEST 3: Idempotency Protection
 # ============================================================================
 
-## Test 3.1: Create account for recovery flow
-@recovery_account = create_test_account('recovery-flow', with_mfa: true)
-@recovery_account[:account_id]
-#=:> Integer
-
-## Test 3.2: Verify OTP key exists before recovery
-@db[:account_otp_keys].where(id: @recovery_account[:account_id]).count
-#=> 1
-
-## Test 3.3: Create recovery mode session
-@recovery_account_data = @db[:accounts].where(id: @recovery_account[:account_id]).first
-@recovery_session = {
-  'session_id' => 'test-recovery-session',
-  mfa_recovery_mode: true
-}
-
-nil
-#=> nil
-
-## Test 3.4: Mock Rodauth for recovery operation
-@mock_rodauth_recovery = Object.new
-def @mock_rodauth_recovery.uses_two_factor_authentication?
-  # Check if OTP key still exists
-  @db[:account_otp_keys].where(id: @recovery_account_id).count > 0
-end
-
-def @mock_rodauth_recovery.respond_to?(method)
-  [:uses_two_factor_authentication?, :_otp_remove_auth_failures, :_otp_remove_key,
-   :recovery_codes_table, :recovery_codes_id_column].include?(method)
-end
-
-def @mock_rodauth_recovery._otp_remove_auth_failures
-  # No-op
-end
-
-def @mock_rodauth_recovery._otp_remove_key(account_id)
-  @db[:account_otp_keys].where(id: account_id).delete
-end
-
-def @mock_rodauth_recovery.recovery_codes_table
-  :account_recovery_codes
-end
-
-def @mock_rodauth_recovery.recovery_codes_id_column
-  :id
-end
-
-@mock_rodauth_recovery.instance_variable_set(:@db, @db)
-@mock_rodauth_recovery.instance_variable_set(:@recovery_account_id, @recovery_account[:account_id])
-
-nil
-#=> nil
-
-## Test 3.5: Detect recovery mode
-@recovery_decision = Auth::Operations::DetectMfaRequirement.call(
-  account: @recovery_account_data,
-  session: @recovery_session,
-  rodauth: @mock_rodauth_recovery
-)
-
-@recovery_decision.recovery_mode?
-#=> true
-
-## Test 3.6: Recovery mode should bypass MFA requirement
-@recovery_decision.requires_mfa?
-#=> false
-
-## Test 3.7: Process MFA recovery operation
-Auth::Operations::ProcessMfaRecovery.call(
-  account: @recovery_account_data,
-  account_id: @recovery_account[:account_id],
-  session: @recovery_session,
-  rodauth: @mock_rodauth_recovery
-)
-
-nil
-#=> nil
-
-## Test 3.8: OTP key should be removed after recovery
-@db[:account_otp_keys].where(id: @recovery_account[:account_id]).count
-#=> 0
-
-## Test 3.9: Recovery mode flag should be cleared
-@recovery_session.key?(:mfa_recovery_mode)
-#=> false
-
-## Test 3.10: Recovery completion flag should be set
-@recovery_session[:mfa_recovery_completed]
-#=> true
-
-# ============================================================================
-# TEST 4: Idempotency Protection
-# ============================================================================
-
-## Test 4.1: Create account for idempotency test
+## Test 3.1: Create account for idempotency test
 @idem_account = create_test_account('idempotency-test', with_mfa: false)
 @idem_account_data = @db[:accounts].where(id: @idem_account[:account_id]).first
 @idem_session = { 'session_id' => 'test-idem-session' }
@@ -327,7 +232,7 @@ nil
 nil
 #=> nil
 
-## Test 4.2: First sync should succeed
+## Test 3.2: First sync should succeed
 @idem_customer1 = Auth::Operations::SyncSession.call(
   account: @idem_account_data,
   account_id: @idem_account[:account_id],
@@ -338,7 +243,7 @@ nil
 @idem_customer1.class.name
 #=> "Onetime::Customer"
 
-## Test 4.3: Second sync with same session should be idempotent
+## Test 3.3: Second sync with same session should be idempotent
 @idem_customer2 = Auth::Operations::SyncSession.call(
   account: @idem_account_data,
   account_id: @idem_account[:account_id],
@@ -349,7 +254,7 @@ nil
 @idem_customer2.custid == @idem_customer1.custid
 #=> true
 
-## Test 4.4: Third sync should also return same customer
+## Test 3.4: Third sync should also return same customer
 @idem_customer3 = Auth::Operations::SyncSession.call(
   account: @idem_account_data,
   account_id: @idem_account[:account_id],
@@ -360,7 +265,7 @@ nil
 @idem_customer3.custid == @idem_customer1.custid
 #=> true
 
-## Test 4.5: Verify only one customer created (not duplicated)
+## Test 3.5: Verify only one customer created (not duplicated)
 # Find all customers by email
 customers_found = 0
 begin
@@ -380,7 +285,6 @@ customers_found
 ## Cleanup: Remove all test accounts and data
 cleanup_account(@mfa_account[:account_id])
 cleanup_account(@no_mfa_account[:account_id])
-cleanup_account(@recovery_account[:account_id])
 cleanup_account(@idem_account[:account_id])
 
 # Cleanup customers
@@ -395,7 +299,6 @@ nil
 test_account_ids = [
   @mfa_account[:account_id],
   @no_mfa_account[:account_id],
-  @recovery_account[:account_id],
   @idem_account[:account_id]
 ]
 

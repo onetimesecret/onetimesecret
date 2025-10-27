@@ -2,9 +2,8 @@
 
 #
 # Detects whether multi-factor authentication is required for a login session.
-# This operation encapsulates the complex branching logic for determining if:
+# This operation encapsulates the logic for determining if:
 # - MFA is enabled for the account
-# - MFA recovery mode is active
 # - Session sync should be deferred until after MFA
 #
 # Returns a decision object with methods to query the MFA state.
@@ -15,25 +14,18 @@ module Auth
     class DetectMfaRequirement
       # Decision object returned by the operation
       class Decision
-        attr_reader :account, :session, :recovery_mode, :mfa_enabled
+        attr_reader :account, :session, :mfa_enabled
 
-        def initialize(account:, session:, recovery_mode:, mfa_enabled:)
+        def initialize(account:, session:, mfa_enabled:)
           @account = account
           @session = session
-          @recovery_mode = recovery_mode
           @mfa_enabled = mfa_enabled
-        end
-
-        # Is this a recovery mode request?
-        # @return [Boolean]
-        def recovery_mode?
-          @recovery_mode
         end
 
         # Does the account require MFA?
         # @return [Boolean]
         def requires_mfa?
-          @mfa_enabled && !@recovery_mode
+          @mfa_enabled
         end
 
         # Should session sync be deferred until after MFA?
@@ -88,24 +80,16 @@ module Auth
       # Executes the MFA detection operation
       # @return [Decision] The MFA decision object
       def call
-        recovery_mode = detect_recovery_mode
         mfa_enabled = check_mfa_enabled
 
         Decision.new(
           account: @account,
           session: @session,
-          recovery_mode: recovery_mode,
           mfa_enabled: mfa_enabled
         )
       end
 
       private
-
-      # Detects if MFA recovery mode is active
-      # @return [Boolean]
-      def detect_recovery_mode
-        @session[:mfa_recovery_mode] == true
-      end
 
       # Checks if the account has MFA enabled
       # Uses Rodauth's built-in method to check if MFA is setup
