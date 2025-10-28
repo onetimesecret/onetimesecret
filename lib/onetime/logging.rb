@@ -87,6 +87,10 @@ module Onetime
       Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Session') : SemanticLogger['Session']
     end
 
+    def sequel_logger
+      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Sequel') : SemanticLogger['Sequel']
+    end
+
     # Execute block with a specific log category via thread-local variable.
     #
     # Enables shared utilities and cross-cutting concerns to log under
@@ -147,6 +151,8 @@ module Onetime
         'Rhales'
       in /Secret|Metadata/i
         'Secret'
+      in /Sequel/i
+        'Sequel'
       in /Session/i
         'Session'
       else

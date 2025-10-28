@@ -36,9 +36,11 @@ module Auth
                     ENV['DATABASE_URL'] ||
                     'sqlite://data/auth.db'
 
-      db = Sequel.connect(database_url, logger: Onetime.get_logger('Sequel'))
-
-      # db.loggers << SemanticLogger['Sequel']
+      db = Sequel.connect(
+        database_url,
+        logger: Onetime.get_logger('Sequel'),
+        sql_log_level: :debug  # Log SQL statements at debug level instead of info
+      )
 
       db
     end

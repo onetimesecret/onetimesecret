@@ -4,6 +4,13 @@
 
 OneTimeSecret uses a **custom logging architecture** based on SemanticLogger with strategic operational categories. This document explains why we don't use the standard `SemanticLogger::Loggable` mixin and how our system works.
 
+> **Note**: This document describes architectural concepts and patterns. For specific implementation details, refer to:
+> - `lib/onetime/logging.rb` - Logging mixin with category inference
+> - `lib/onetime/initializers/semantic_logger.rb` - Configuration and cached loggers
+> - `lib/middleware/logging.rb` - Middleware logging support
+> - `apps/web/auth/lib/logging.rb` - Auth-specific logging helpers
+> - `etc/defaults/logging.defaults.yaml` - Default log level configuration
+
 ## Why Not SemanticLogger::Loggable?
 
 SemanticLogger provides a `Loggable` mixin that automatically adds logger methods to classes. However, **we intentionally don't use it** because:
@@ -36,24 +43,15 @@ Our strategic categories enable:
 
 ### 2. Cached Logger Instances
 
-**Critical difference:**
-```ruby
-# SemanticLogger::Loggable creates new instances per class
-def logger
-  @logger ||= SemanticLogger[self.class.name]  # One per class
-end
+SemanticLogger::Loggable caches one logger per class, while our system uses shared cached instances per category:
 
-# Our Onetime::Logging uses shared cached instances
-def logger
-  category = infer_category
-  Onetime.get_logger(category)  # Shared instance with preserved config
-end
-```
+**Loggable**: Creates `@logger` instance variable per class
+**Onetime::Logging**: Returns cached instance from `Onetime.get_logger(category)`
 
 Our cached instances:
 - Preserve configured log levels from YAML/env vars
-- Reduce memory overhead (10 instances vs hundreds)
-- Enable runtime level changes that affect all code
+- Reduce memory overhead (~10 category instances vs hundreds of class instances)
+- Enable runtime level changes that affect all code using that category
 
 ### 3. Thread-Local Category Override
 
@@ -88,8 +86,8 @@ All logging goes through these operational categories:
 | `Otto` | Routing and request handling | Route matching, auth strategies |
 | `Rhales` | Rhales framework | Framework internals |
 | `Secret` | Secret lifecycle | Secret create, view, expire |
-| `App` | General application | Fallback for uncategorized code |
 | `Sequel` | Database operations | SQL queries, migrations |
+| `App` | General application | Fallback for uncategorized code |
 
 ### Usage Pattern
 
@@ -129,48 +127,35 @@ logger.info "message"
 auth_logger.info "auth message"
 session_logger.debug "session message"
 http_logger.warn "http message"
+sequel_logger.debug "database query"
 ```
 
 ### Category Inference
 
-The `Onetime::Logging` mixin automatically infers categories from class names:
+The `Onetime::Logging` mixin automatically infers categories from class names using pattern matching:
 
-```ruby
-# lib/onetime/logging.rb
-def infer_category
-  class_name = self.class.name
+- Classes with "Authentication" or "Auth" → `Auth` category
+- Classes with "Session" → `Session` category
+- Classes with "HTTP", "Request", "Response", or "Controller" → `HTTP` category
+- Classes with "Familia" → `Familia` category
+- Classes with "Otto" → `Otto` category
+- Classes with "Secret" or "Metadata" → `Secret` category
+- Classes with "Sequel" → `Sequel` category
+- All others → `App` category (default)
 
-  return 'Auth'    if class_name =~ /Authentication|Auth(?!or)/i
-  return 'Session' if class_name =~ /Session/i
-  return 'HTTP'    if class_name =~ /HTTP|Request|Response|Controller/i
-  return 'Familia' if class_name =~ /Familia/i
-  return 'Otto'    if class_name =~ /Otto/i
-  return 'Secret'  if class_name =~ /Secret|Metadata/i
-
-  'App'  # Default fallback
-end
-```
+See `lib/onetime/logging.rb` for the complete implementation.
 
 ### Configuration
 
-Log levels are configured in `etc/defaults/logging.defaults.yaml`:
+Log levels for each category are configured in `etc/defaults/logging.defaults.yaml` under the `loggers` section. Each category can have its own level (debug, info, warn, error).
 
-```yaml
-loggers:
-  Auth: info          # Authentication events
-  Session: info       # Session lifecycle
-  HTTP: warn          # HTTP requests (reduce noise)
-  Familia: warn       # Redis operations
-  Otto: info          # Routing
-  Secret: info        # Secret operations
-  App: info           # General application
-  Sequel: warn        # Database queries
-```
-
-Override at runtime:
+Runtime overrides using environment variables:
 ```bash
-DEBUG_AUTH=1 bundle exec puma  # Set Auth logger to debug
+DEBUG_AUTH=1 bundle exec puma     # Set Auth logger to debug
+DEBUG_SEQUEL=1 bundle exec puma   # Set Sequel logger to debug
 ```
+
+The configuration supports setting default levels and per-category levels. See `lib/onetime/initializers/semantic_logger.rb` for the configuration loading implementation.
 
 ## SemanticLogger::Loggable Reference
 
