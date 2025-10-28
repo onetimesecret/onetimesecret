@@ -54,7 +54,6 @@ module Onetime
       load_locales
       configure_logging
       setup_diagnostics
-      run_migrations
       set_global_secret
       set_rotated_secrets
       configure_domains

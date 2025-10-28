@@ -39,6 +39,19 @@ module Auth
       # Migrations are run in build_router before loading the Router class
       # This warmup block can be used for other initialization tasks if needed
       if Onetime.auth_config.advanced_enabled?
+      # Run migrations BEFORE loading the Router class
+      # This ensures database tables exist when Rodauth validates features during plugin load
+
+        # Require Auth::Migrator only when needed (after config is loaded)
+        #
+        # apps/web needs to be in $LOAD_PATH already for this to work
+        require 'auth/migrator'
+
+        Auth::Migrator.run_if_needed
+        # Onetime.auth_logger.warn "Calling Sequel::Migrator.run is disabled."
+
+        Onetime.auth_logger.debug 'Database migrations have run'
+
         Onetime.auth_logger.info 'Auth application initialized (advanced mode)'
       else
         Onetime.auth_logger.error 'Auth application mounted in basic mode - this is a configuration error. ' \
