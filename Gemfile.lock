@@ -78,9 +78,9 @@ GIT
     rspec-support (4.0.0.pre)
 
 PATH
-  remote: ../../d/rodauth-rack
+  remote: ../../d/rodauth-tools
   specs:
-    rodauth-rack (0.1.0)
+    rodauth-tools (0.1.0)
       dry-inflector (~> 1.1)
       rack (~> 3.2)
       roda (~> 3.96)
@@ -424,7 +424,7 @@ DEPENDENCIES
   rhales!
   roda (~> 3.0)
   rodauth (~> 2.0)
-  rodauth-rack!
+  rodauth-tools!
   rotp (~> 6.2)
   rqrcode (~> 3.1)
   rspec!

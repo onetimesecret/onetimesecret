@@ -1,7 +1,7 @@
 # apps/web/auth/config.rb
 
 require 'rodauth'
-require 'rodauth/rack'
+require 'rodauth/tools'
 
 module Auth
   class Config < Rodauth::Auth
