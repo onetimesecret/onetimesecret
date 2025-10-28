@@ -38,11 +38,11 @@ module Onetime
       # @param app [Object] The Rack application.
       # @param application_context [Hash] Optional context about the application
       def initialize(app, application_context: nil)
-        @app = app
+        @app                 = app
         @application_context = application_context
-        site_config = OT.conf&.dig('site') || {}
+        site_config          = OT.conf&.dig('site') || {}
         self.class.initialize_from_config(site_config)
-        app_logger.info "DomainStrategy initialized",
+        app_logger.info 'DomainStrategy initialized',
           app_context: @application_context,
           canonical_domain: canonical_domain
       end
@@ -64,7 +64,7 @@ module Onetime
         env['onetime.display_domain']  = display_domain
         env['onetime.domain_strategy'] = domain_strategy || :invalid # make sure never nil
 
-        app_logger.debug "Domain strategy determined",
+        app_logger.debug 'Domain strategy determined',
           host: display_domain,
           strategy: domain_strategy
 
@@ -100,12 +100,12 @@ module Onetime
             when ->(d) { known_custom_domain?(d.name) }       then :custom
             end
           rescue PublicSuffix::DomainInvalid => ex
-            SemanticLogger['App'].debug "Invalid domain in strategy selection",
+            Onetime.app_logger.debug 'Invalid domain in strategy selection',
               exception: ex,
               request_domain: request_domain
             nil
           rescue StandardError => ex
-            SemanticLogger['App'].error "Unhandled error in domain strategy",
+            Onetime.app_logger.error 'Unhandled error in domain strategy',
               exception: ex,
               request_domain: request_domain,
               canonical_domain: canonical_domain
@@ -224,13 +224,13 @@ module Onetime
         def initialize_from_config(config)
           raise ArgumentError, 'Configuration cannot be nil' if config.nil?
 
-          SemanticLogger['App'].debug "DomainStrategy initializing from config",
+          Onetime.app_logger.debug 'DomainStrategy initializing from config',
             domains_enabled_before: @domains_enabled
 
           @domains_enabled  = config.dig('domains', 'enabled') || false
           @canonical_domain = get_canonical_domain(config)
 
-          SemanticLogger['App'].debug "DomainStrategy config loaded",
+          Onetime.app_logger.debug 'DomainStrategy config loaded',
             domains_enabled: @domains_enabled,
             canonical_domain: @canonical_domain
 

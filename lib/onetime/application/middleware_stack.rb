@@ -79,7 +79,7 @@ module Onetime
 
           Otto.on_request_complete do |req, res, duration|
             # Use HTTP logger for request lifecycle events
-            logger = SemanticLogger['HTTP']
+            logger = Onetime.get_logger('HTTP')
 
             # Extract auth context if available
             user_id = req.env['otto.user']&.[](:id)
@@ -99,7 +99,7 @@ module Onetime
         end
 
         def configure(builder, application_context: nil)
-          logger = SemanticLogger['App']
+          logger = Onetime.get_logger('App')
           logger.debug "Configuring common middleware",
             application: application_context&.[](:name)
 

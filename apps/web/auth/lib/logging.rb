@@ -141,7 +141,8 @@ module Auth
     # Returns the Auth logger instance
     # @return [SemanticLogger] Logger for Auth category
     def logger
-      SemanticLogger['Auth']
+      # Use cached logger if available (after boot), otherwise uncached
+      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Auth') : SemanticLogger['Auth']
     end
   end
 end

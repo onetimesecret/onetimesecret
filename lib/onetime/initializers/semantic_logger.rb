@@ -34,8 +34,9 @@ module Onetime
       apply_default_level_overrides(config)
 
       # Configure named loggers from config AFTER default_level is finalized
-      # CRITICAL: Cache logger instances! SemanticLogger[] creates new instances.
-      # We must store references to the configured loggers.
+      # CRITICAL: Logger instances need to be caches b/c SemanticLogger[]
+      # creates new instances every time it's called. So we store references
+      # to the configured loggers in @cached_loggers.
       @cached_loggers = {}
       config['loggers']&.each do |name, level|
         logger = SemanticLogger[name]

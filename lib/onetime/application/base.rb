@@ -58,15 +58,18 @@ module Onetime
             builder.use(middleware, *args, &block)
           end
 
-          # Invoke the warmup block if it is defined
+          Onetime.app_logger.debug "Warmup started", application: app_context[:name]
+
           builder.warmup(&base_klass.warmup)
-
-          # Log warmup completion using a temporary logger instance
-          # (can't use instance method here due to Rack::Builder context)
-          SemanticLogger['App'].debug "Warmup completed",
-            application: app_context[:name]
-
           builder.run router_instance
+
+          dynamic_char_count = base_klass.name.length + base_klass.uri_prefix.to_s.length
+          Onetime.app_logger.info '╔' + ('═' * 48) + '╗'
+          Onetime.app_logger.info "║ ✅ WARMED UP #{base_klass} at #{base_klass.uri_prefix}" + (' ' * (32-dynamic_char_count)) + '║'
+          Onetime.app_logger.info '╚' + ('═' * 48) + '╝'
+
+
+
         end.to_app
       end
 
@@ -82,7 +85,7 @@ module Onetime
         def inherited(subclass)
           # Keep track subclasses without immediate registration
           Registry.register_application_class(subclass)
-          SemanticLogger['App'].debug "Application registered",
+          Onetime.app_logger.debug "Application registered",
             application: subclass.name
         end
 

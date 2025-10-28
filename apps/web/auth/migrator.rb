@@ -23,11 +23,11 @@ module Auth
         return unless database_connection
 
         begin
-          SemanticLogger['Sequel'].debug "Checking auth database migrations"
+          Onetime.get_logger('Sequel').info "Checking auth database migrations"
           run_migrations
-          SemanticLogger['Sequel'].debug "Auth database schema is up to date"
+          Onetime.get_logger('Sequel').info "Auth database schema is up to date"
         rescue StandardError => ex
-          SemanticLogger['Sequel'].error "Auth database migration failed",
+          Onetime.get_logger('Sequel').error "Auth database migration failed",
             exception: ex,
             migrations_dir: migrations_dir
           raise
@@ -38,9 +38,9 @@ module Auth
       def run!
         return unless database_connection
 
-        OT.info 'Running auth database migrations...'
+        Onetime.get_logger('Sequel').info 'Running auth database migrations...'
         run_migrations
-        OT.info 'Auth database migrations completed'
+        Onetime.get_logger('Sequel').info 'Auth database migrations completed'
       end
 
       private

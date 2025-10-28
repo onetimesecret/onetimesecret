@@ -152,7 +152,6 @@ module Onetime
 
         raise Familia::RecordExistsError, "Customer exists #{loggable_email}" if email_exists?(email)
 
-        auth_logger = SemanticLogger['Auth']
         auth_logger.info "Creating customer",
           email: loggable_email,
           kwargs: kwargs.keys,
