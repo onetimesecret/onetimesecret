@@ -19,6 +19,7 @@ module Auth
       # 1. ENABLE FEATURES (configuration methods become available after)
       # =====================================================================
 
+
       # Configured in Features::Base
       enable :json, :login, :logout
 

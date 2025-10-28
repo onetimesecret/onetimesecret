@@ -31,6 +31,11 @@ module Auth::Config::Features
       # since the user must already be authenticated to access these routes
       auth.two_factor_modifications_require_password? false
 
+      # CRITICAL: Disable password requirement for ALL modification operations
+      # This ensures that during MFA setup, we don't require re-authentication
+      # between the initial setup (QR code generation) and verification (code submission)
+      auth.modifications_require_password? false
+
       # OTP Lockout Configuration
       # Default is 5 attempts with permanent lockout - too harsh for production
       # Industry standard: 10-20 attempts before lockout, with time-based reset

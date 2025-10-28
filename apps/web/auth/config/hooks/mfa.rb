@@ -15,6 +15,63 @@ module Auth::Config::Hooks
   module MFA
     def self.configure(auth)
       # ========================================================================
+      # HOOK: Before OTP Setup Route
+      # ========================================================================
+      #
+      # This hook ensures the session is valid before MFA setup begins.
+      # The issue: Rodauth's otp_setup route calls require_account, which calls
+      # require_account_session. If account_from_session fails to load the account
+      # from the database, it clears the session and redirects to login.
+      #
+      # This hook validates and logs session state to prevent unexpected logouts.
+      #
+      auth.before_otp_setup_route do
+        # Log session state for debugging
+        Auth::Logging.log_auth_event(
+          :mfa_setup_route_start,
+          level: :debug,
+          account_id: session_value,
+          session_keys: session.keys,
+          has_account_id: !session_value.nil?,
+          request_method: request.request_method,
+          has_otp_code: !request.params['otp_code'].to_s.empty?,
+        )
+
+        # Critical: Ensure the account_id is in the session
+        # The issue is that between password verification and OTP setup,
+        # the session might not have account_id properly set
+        if session_value
+          # Try to load account to ensure it's accessible
+          begin
+            acct = _account_from_session
+            unless acct
+              Auth::Logging.log_auth_event(
+                :mfa_setup_account_not_found,
+                level: :error,
+                account_id: session_value,
+                message: "Session has account_id but account not found in database",
+              )
+            end
+          rescue => e
+            Auth::Logging.log_auth_event(
+              :mfa_setup_account_lookup_error,
+              level: :error,
+              account_id: session_value,
+              error: e.message,
+              backtrace: e.backtrace.first(3),
+            )
+          end
+        else
+          Auth::Logging.log_auth_event(
+            :mfa_setup_missing_session,
+            level: :error,
+            session_keys: session.keys,
+            message: "No account_id in session during MFA setup",
+          )
+        end
+      end
+
+      # ========================================================================
       # HOOK: After Successful Two-Factor Authentication
       # ========================================================================
       #
