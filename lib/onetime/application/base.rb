@@ -51,26 +51,33 @@ module Onetime
           prefix: base_klass.uri_prefix,
         }
 
-        Rack::Builder.new do |builder|
+        app = Rack::Builder.new do |builder|
           MiddlewareStack.configure(builder, application_context: app_context)
 
           (base_klass.middleware || []).each do |middleware, args, block|
             builder.use(middleware, *args, &block)
           end
 
-          Onetime.app_logger.debug "Warmup started", application: app_context[:name]
+          # Wrap the warmup to log before and after actual execution
+          if base_klass.warmup
+            builder.warmup do |built_app|
+              Onetime.app_logger.debug "Warmup started", application: app_context[:name]
 
-          builder.warmup(&base_klass.warmup)
+              # Call the actual warmup block
+              base_klass.warmup.call(built_app)
+
+              # Log completion AFTER warmup finishes
+              dynamic_char_count = base_klass.name.length + base_klass.uri_prefix.to_s.length
+              Onetime.app_logger.info '╔' + ('═' * 48) + '╗'
+              Onetime.app_logger.info "║ ✅ WARMED UP #{base_klass} at #{base_klass.uri_prefix}" + (' ' * (32-dynamic_char_count)) + '║'
+              Onetime.app_logger.info '╚' + ('═' * 48) + '╝'
+            end
+          end
+
           builder.run router_instance
-
-          dynamic_char_count = base_klass.name.length + base_klass.uri_prefix.to_s.length
-          Onetime.app_logger.info '╔' + ('═' * 48) + '╗'
-          Onetime.app_logger.info "║ ✅ WARMED UP #{base_klass} at #{base_klass.uri_prefix}" + (' ' * (32-dynamic_char_count)) + '║'
-          Onetime.app_logger.info '╚' + ('═' * 48) + '╝'
-
-
-
         end.to_app
+
+        app
       end
 
       class << self
