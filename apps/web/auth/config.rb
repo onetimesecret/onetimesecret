@@ -1,6 +1,7 @@
 # apps/web/auth/config.rb
 
 require 'rodauth'
+require 'rodauth/rack'
 
 module Auth
   class Config < Rodauth::Auth
@@ -21,7 +22,11 @@ module Auth
 
 
       # Configured in Features::Base
-      enable :json, :login, :logout
+      enable :json, :login, :logout, :table_guard
+
+      table_guard_mode :error
+      table_guard_sequel_mode :drop
+      table_guard_logger Onetime.get_logger('Auth')
 
       # Configured in Features::AccountManagement
       enable :verify_account unless ENV['RACK_ENV'] == 'test'

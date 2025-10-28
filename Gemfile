@@ -19,6 +19,8 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
+gem 'rodauth-rack', path: '../../d/rodauth-rack'
+
 gem 'otto', git: 'https://github.com/delano/otto'
 gem 'rhales', git: 'https://github.com/onetimesecret/rhales'
 gem 'roda', '~> 3.0'
