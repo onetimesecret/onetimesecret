@@ -20,10 +20,6 @@ module Auth::Config::Base
     auth.login_column :email
     auth.login_label 'Email'
 
-    # Configure which columns to load from accounts table
-    # IMPORTANT: Include external_id for Redis-SQL synchronization
-    auth.account_select [:id, :email, :status_id, :external_id]
-
     # Session configuration
     # NOTE: session_key is the hash key where account_id is stored in session[]
     # Default is 'account_id', which is what we want to use

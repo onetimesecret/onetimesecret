@@ -6,10 +6,10 @@ Sequel.migration do
     create_table?(:accounts) do
       primary_key :id, type: :Bignum
       String :email, null: false
-      Integer :status, null: false, default: 1
+      Integer :status_id, null: false, default: 1
       String :external_id, null: false
       index :external_id, unique: true
-      index :email, unique: true, where: { status: [1, 2] }
+      index :email, unique: true, where: { status_id: [1, 2] }
     end
 
     # Table for account_webauthn_keys feature

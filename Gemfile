@@ -19,7 +19,7 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
-gem 'rodauth-tools', path: '../../d/rodauth-tools'
+gem 'rodauth-tools', git: 'https://github.com/delano/rodauth-tools'
 
 gem 'otto', git: 'https://github.com/delano/otto'
 gem 'rhales', git: 'https://github.com/onetimesecret/rhales'

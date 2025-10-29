@@ -27,6 +27,18 @@ GIT
       rexml (~> 3.4)
 
 GIT
+  remote: https://github.com/delano/rodauth-tools
+  revision: f797249456ba3fccdcbc8d319f62fbc74bb29a75
+  specs:
+    rodauth-tools (0.2.0)
+      dry-inflector (~> 1.1)
+      rack (~> 3.2)
+      roda (~> 3.96)
+      rodauth (~> 2.41)
+      rodauth-model (~> 0.2)
+      sequel (~> 5.0)
+
+GIT
   remote: https://github.com/onetimesecret/rhales
   revision: 80d5c35a15aaf169d251d05a79c04dbc8e9a6c03
   specs:
@@ -76,17 +88,6 @@ GIT
   glob: rspec-support/rspec-support.gemspec
   specs:
     rspec-support (4.0.0.pre)
-
-PATH
-  remote: ../../d/rodauth-tools
-  specs:
-    rodauth-tools (0.1.0)
-      dry-inflector (~> 1.1)
-      rack (~> 3.2)
-      roda (~> 3.96)
-      rodauth (~> 2.41)
-      rodauth-model (~> 0.2)
-      sequel (~> 5.0)
 
 GEM
   remote: https://rubygems.org/
