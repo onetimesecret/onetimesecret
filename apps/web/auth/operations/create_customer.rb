@@ -8,6 +8,8 @@
 module Auth
   module Operations
     class CreateCustomer
+      include Onetime::Logging
+
       # @param account_id [Integer] The ID of the Rodauth account
       # @param account [Hash] The Rodauth account hash, containing at least :email
       # @param db [Sequel::Database] The database connection (optional)
@@ -21,6 +23,7 @@ module Auth
       # @return [Onetime::Customer] The created or existing customer
       def call
         customer = find_or_create_customer
+
         link_to_rodauth_account(customer)
         verify_link(customer)
 
@@ -34,14 +37,14 @@ module Auth
       def find_or_create_customer
         if Onetime::Customer.exists?(@account[:email])
           customer = Onetime::Customer.find_by_email(@account[:email])
-          OT.info "[create-customer] Found existing customer: #{customer.custid}"
+          auth_logger.info "[create-customer] Found existing customer: #{customer.custid}"
         else
           customer = Onetime::Customer.create!(
             email: @account[:email],
             role: 'customer',
-            verified: '1'
+            verified: false, # needs to be updated in after_verify_account
           )
-          OT.info "[create-customer] Created new customer: #{customer.custid}"
+          auth_logger.info "[create-customer] Created new customer: #{customer.custid}"
         end
 
         customer
@@ -53,8 +56,7 @@ module Auth
         rows_updated = @db[:accounts]
           .where(id: @account_id)
           .update(external_id: customer.extid)
-
-        OT.info "[create-customer] Linked Rodauth account #{@account_id} to extid: #{customer.extid} (rows_updated: #{rows_updated})"
+        auth_logger.info "[create-customer] Linked Rodauth account #{@account_id} to extid: #{customer.extid} (rows_updated: #{rows_updated})"
       end
 
       # Verifies the link was created successfully
@@ -64,7 +66,7 @@ module Auth
           .where(id: @account_id)
           .get(:external_id)
 
-        OT.info "[create-customer] Verification - stored external_id: #{stored_extid}"
+        auth_logger.info "[create-customer] Verification - stored external_id: #{stored_extid}"
 
         unless stored_extid == customer.extid
           OT.le "[create-customer] WARNING: external_id mismatch! Expected #{customer.extid}, got #{stored_extid}"
