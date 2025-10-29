@@ -11,6 +11,10 @@ module Auth::Config::Features
         auth.verify_account_set_password? false
       end
 
+      # Have successful login redirect back to originally requested page
+      # @see login_return.rdoc
+      auth.login_return_to_requested_location? true
+
       # Password requirements
       auth.password_minimum_length 8
 
