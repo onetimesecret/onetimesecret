@@ -22,26 +22,97 @@ module Auth
       def run_if_needed
         return unless database_connection
 
-        begin
-          sequel_logger.info "Checking auth database migrations"
-          run_migrations
-          sequel_logger.info "Auth database schema is up to date"
-        rescue StandardError => ex
-          sequel_logger.error "Auth database migration failed",
-            exception: ex,
-            migrations_dir: migrations_dir
-          raise
+        Sequel.extension :migration
+
+        # Context for all log messages in this operation
+        log_context = {
+          migrations_dir: OT::Utils.pretty_path(migrations_dir).to_s,
+          db_adapter: database_connection.adapter_scheme,
+          rack_env: Onetime.env,
+        }
+
+        # Don't error if migrations directory doesn't exist or is empty
+        unless Dir.exist?(migrations_dir)
+          sequel_logger.debug 'Migrations directory not found',
+            **log_context,
+            action: 'skip',
+            reason: 'directory_missing'
+          return
         end
-      end
 
-      # Force run all migrations (useful for manual execution)
-      def run!
-        return unless database_connection
+        migration_files = Dir.glob(File.join(migrations_dir, '*.rb'))
+        if migration_files.empty?
+          sequel_logger.debug 'No migration files present',
+            **log_context,
+            action: 'skip',
+            reason: 'no_files'
+          return
+        end
 
-        sequel_logger.info 'Running auth database migrations...'
+        # Get current schema version before running migrations
+        current_version = begin
+          database_connection[:schema_info].first&.fetch(:version, 0)
+        rescue Sequel::DatabaseError
+          0  # Table doesn't exist yet
+        end
+
+        sequel_logger.info 'Starting database migration check',
+          **log_context,
+          migration_files_count: migration_files.count,
+          current_schema_version: current_version
+
+        start_time = Onetime.now_in_μs
+
         run_migrations
-        sequel_logger.info 'Auth database migrations completed'
+
+        elapsed_μs = Onetime.now_in_μs - start_time
+
+        # Get new schema version
+        new_version        = database_connection[:schema_info].first&.fetch(:version, 0)
+        migrations_applied = new_version - current_version
+
+        if migrations_applied > 0
+          sequel_logger.info 'Database migrations completed',
+            **log_context,
+            status: 'success',
+            migrations_applied: migrations_applied,
+            schema_version_before: current_version,
+            schema_version_after: new_version,
+            elapsed_μs: elapsed_μs
+        else
+          sequel_logger.info 'Database schema already current',
+            **log_context,
+            status: 'success',
+            migrations_applied: 0,
+            schema_version: current_version,
+            elapsed_μs: elapsed_μs
+        end
+      rescue Sequel::Migrator::Error => ex
+        elapsed_μs = Onetime.now_in_μs - start_time if start_time
+
+        sequel_logger.error 'Database migration failed',
+          **log_context,
+          status: 'error',
+          error_class: ex.class.name,
+          error_message: ex.message,
+          error_backtrace: ex.backtrace&.first(5),  # First 5 lines only
+          schema_version: current_version,
+          elapsed_μs: elapsed_μs
+
+        # Re-raise to prevent app startup with broken schema
+        raise
       end
+
+    # Force run all migrations (useful for manual execution)
+    def run!
+      return unless database_connection
+
+      Sequel.extension :migration
+
+      sequel_logger.info 'Running auth database migrations...'
+      run_migrations
+      sequel_logger.info 'Auth database migrations completed'
+    end
 
       private
 
@@ -54,7 +125,6 @@ module Auth
       end
 
       def run_migrations
-        Sequel.extension :migration
         Sequel::Migrator.run(
           database_connection,
           migrations_dir,
