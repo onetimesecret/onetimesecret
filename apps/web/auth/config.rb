@@ -25,13 +25,13 @@ module Auth
       enable :json, :login, :logout, :table_guard, :external_identity
 
       table_guard_mode :error
-      table_guard_sequel_mode :log
+      table_guard_sequel_mode :skip
       table_guard_logger Onetime.get_logger('Auth')
 
       # Configure which columns to load from accounts table
       # IMPORTANT: Include external_id for Redis-SQL synchronization
-      external_identity_column :external_id
-      external_identity_check_columns :autocreate
+      # external_identity_column :external_id
+      # external_identity_check_columns :autocreate
 
       # Configured in Features::AccountManagement
       enable :verify_account unless ENV['RACK_ENV'] == 'test'
