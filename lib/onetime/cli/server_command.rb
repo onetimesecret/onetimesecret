@@ -14,53 +14,55 @@
 #   -b, --bind ADDRESS      Bind address for Thin (default: 0.0.0.0)
 #
 
+require 'rackup'
+
 module Onetime
   class ServerCommand < Onetime::CLI::DelayBoot
     def server
-      # Get options with defaults
       server_type = option.server || 'puma'
-      port        = option.port || 7143
-      environment = option.environment || 'development'
-      threads     = option.threads || '2:4'
-      workers     = option.workers || 0
-      bind_addr   = option.bind || '0.0.0.0'
+      port = option.port || 7143
+      env = option.environment || 'development'
 
-      # Build the command based on server type
-      cmd = case server_type.downcase
-            when 'puma'
-              "bundle exec puma -p #{port} -t #{threads} -w #{workers} -e #{environment}"
-            when 'thin'
-              # Thin uses different flags: -e for environment, -R for rackup, -a for address
-              "bundle exec thin -e #{environment} -R config.ru -p #{port} -a #{bind_addr} start"
-            else
-              raise "Unknown server type: #{server_type}. Use 'puma' or 'thin'"
-            end
+      app, _ = Rack::Builder.parse_file('config.ru')
 
-      # Output to stderr so it's visible before server starts
-      $stderr.puts
-      $stderr.puts "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-      $stderr.puts "Starting #{server_type.capitalize} Server"
-      $stderr.puts "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-      $stderr.puts
-      $stderr.puts "Configuration:"
-      $stderr.puts "  Server:      #{server_type}"
-      $stderr.puts "  Port:        #{port}"
-      $stderr.puts "  Environment: #{environment}"
-      if server_type.downcase == 'puma'
-        $stderr.puts "  Threads:     #{threads}"
-        $stderr.puts "  Workers:     #{workers}"
-      else
-        $stderr.puts "  Bind:        #{bind_addr}"
+      config = {
+          app: app,
+          Host: option.bind || '0.0.0.0',
+          Port: port,
+          environment: env
+        }
+
+        case server_type.downcase
+        when 'puma'
+          threads = parse_threads(option.threads || '2:4')
+          config.merge!(
+            Threads: "#{threads[:min]}:#{threads[:max]}",
+            workers: option.workers || 0
+          )
+        end
+
+        Rackup::Handler.get(server_type).run(config[:app], **config)
+    end
+
+    private
+
+    def parse_threads(threads_str)
+      min, max = threads_str.split(':').map(&:to_i)
+      { min: min, max: max }
+    end
+
+    def log_startup(server, port, env)
+      puts
+      puts "→ #{server.capitalize} server"
+      puts "  #{env} environment"
+      puts "  http://#{option.bind || '0.0.0.0'}:#{port}"
+      if server == 'puma'
+        threads = parse_threads(option.threads || '2:4')
+        puts "  #{threads[:min]}-#{threads[:max]} threads per worker"
+        workers = option.workers || 0
+        puts "  #{workers} #{'worker'.pluralize(workers)}" if workers > 0
       end
-      $stderr.puts
-      $stderr.puts "Executing:"
-      $stderr.puts "  #{cmd}"
-      $stderr.puts
-      $stderr.puts "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-      $stderr.puts
-
-      # Execute server
-      Kernel.exec(cmd)
+      puts
     end
   end
 end
