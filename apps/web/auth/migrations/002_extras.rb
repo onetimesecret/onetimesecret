@@ -1,11 +1,11 @@
-# apps/web/auth/migrations/001_initial.rb
+# apps/web/auth/migrations/002_extras.rb
 
 MIGRATION_ROOT = __dir__
 
 Sequel.migration do
   up do
     db_type       = adapter_scheme            # :sqlite or :postgres
-    schema_file   = File.join(MIGRATION_ROOT, 'schemas', db_type.to_s, '001_initial.sql')
+    schema_file   = File.join(MIGRATION_ROOT, 'schemas', db_type.to_s, '002_extras.sql')
 
     raise "SQL file not found: #{schema_file}" unless File.exist?(schema_file)
 
@@ -14,7 +14,7 @@ Sequel.migration do
 
   down do
     db_type       = adapter_scheme            # :sqlite or :postgres
-    rollback_file = File.join(MIGRATION_ROOT, 'schemas', db_type.to_s, '001_initial_down.sql')
+    rollback_file = File.join(MIGRATION_ROOT, 'schemas', db_type.to_s, '002_extras_down.sql')
 
     raise "SQL file not found: #{rollback_file}" unless File.exist?(rollback_file)
 
