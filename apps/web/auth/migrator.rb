@@ -125,11 +125,29 @@ module Auth
       end
 
       def run_migrations
-        Sequel::Migrator.run(
-          database_connection,
-          migrations_dir,
-          use_transactions: true,
-        )
+        Sequel.extension :migration
+
+        # Suppress confusing "no such table" errors during migration checks
+        # Sequel's create_table? checks existence by attempting a SELECT,
+        # which logs an error before being caught. This is expected behavior.
+        suppress_table_check_errors do
+          Sequel::Migrator.run(
+            database_connection,
+            migrations_dir,
+            use_transactions: true,
+          )
+        end
+      end
+
+      # Temporarily suppress Sequel's logger to prevent confusing error logs
+      # during table existence checks in migrations
+      def suppress_table_check_errors
+        original_loggers = database_connection.loggers.dup
+        database_connection.loggers.clear
+        yield
+      ensure
+        database_connection.loggers.clear
+        original_loggers.each { |logger| database_connection.loggers << logger }
       end
     end
   end

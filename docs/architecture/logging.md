@@ -145,7 +145,7 @@ The `Onetime::Logging` mixin automatically infers categories from class names us
 
 See `lib/onetime/logging.rb` for the complete implementation.
 
-### Configuration
+## Configuration
 
 Log levels for each category are configured in `etc/defaults/logging.defaults.yaml` under the `loggers` section. Each category can have its own level (debug, info, warn, error).
 
@@ -157,7 +157,35 @@ DEBUG_SEQUEL=1 bundle exec puma   # Set Sequel logger to debug
 
 The configuration supports setting default levels and per-category levels. See `lib/onetime/initializers/semantic_logger.rb` for the configuration loading implementation.
 
-## SemanticLogger::Loggable Reference
+### SemanticLogger Reference
+
+Official docs: https://logger.rocketjob.io/appenders.html#custom-formatting
+
+Quick reference from SemanticLogger source:
+
+%c  # Class/category name
+%C  # Class name (without module)
+%d  # Date (ISO8601 format)
+%e  # Exception with backtrace
+%f  # File name
+%l  # Log level (DEBUG, INFO, etc.)
+%L  # Line number
+%m  # Message
+%M  # Method name
+%p  # Process ID
+%P  # Process name
+%t  # Thread name
+%T  # Time (milliseconds since epoch)
+%h  # Hostname
+%X{key}  # Named tag value
+
+```bash
+# Or in code:
+bundle open semantic_logger
+# Look at: lib/semantic_logger/formatters/default.rb
+```
+
+### SemanticLogger::Loggable Reference
 
 For completeness, here's how SemanticLogger::Loggable works (we don't use this):
 
@@ -177,13 +205,3 @@ MyClass.new.logger     # Instance-level logger
 - Non-core utilities that don't fit strategic categories
 
 **For core application code:** Always use `Onetime::Logging`
-
-## Architecture Benefits
-
-1. **Operational Visibility** - Business-aligned log organization
-2. **Cached Instances** - Level settings preserved, reduced memory
-3. **Thread-Local Override** - Dynamic category switching per request
-4. **Category-Specific Accessors** - Explicit `auth_logger.info` when needed
-5. **Automatic Inference** - `logger.info` works without manual wiring
-
-This architecture is specifically designed for a Familia/Redis-based Ruby application with complex authentication flows and operational monitoring requirements.

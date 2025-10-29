@@ -69,7 +69,7 @@ module Onetime
               # Log completion AFTER warmup finishes
               dynamic_char_count = base_klass.name.length + base_klass.uri_prefix.to_s.length
               Onetime.app_logger.info '╔' + ('═' * 48) + '╗'
-              Onetime.app_logger.info "║ ✅ WARMED UP #{base_klass} at #{base_klass.uri_prefix}" + (' ' * (32-dynamic_char_count)) + '║'
+              Onetime.app_logger.info "║ ✅ WARMED UP #{base_klass} at #{base_klass.uri_prefix}" + (' ' * (30-dynamic_char_count)) + '║'
               Onetime.app_logger.info '╚' + ('═' * 48) + '╝'
             end
           end
