@@ -56,7 +56,7 @@ module Auth
         @customer = Onetime::Customer.find_by_email(@email)
 
         unless @customer
-          puts "❌ Customer not found: #{@email}"
+          OT.auth_logger.info "❌ Customer not found: #{@email}"
           return false
         end
 
@@ -69,7 +69,7 @@ module Auth
         @account = @db[:accounts].where(email: @email, status_id: 2).first
 
         unless @account
-          puts "❌ Active account not found for: #{@email}"
+          OT.auth_logger.info "❌ Active account not found for: #{@email}"
           return false
         end
 
@@ -84,7 +84,7 @@ module Auth
         @recovery_codes_exist = @db[:account_recovery_codes].where(account_id: @account_id).count > 0
 
         unless @otp_key_exists || @recovery_codes_exist
-          puts "ℹ️  No MFA setup found for: #{@email}"
+          OT.auth_logger.info "ℹ️  No MFA setup found for: #{@email}"
           return false
         end
 
@@ -96,7 +96,7 @@ module Auth
         return unless @otp_key_exists
 
         @db[:account_otp_keys].where(account_id: @account_id).delete
-        puts "✅ Removed OTP key for: #{@email}"
+        OT.auth_logger.info "✅ Removed OTP key for: #{@email}"
       end
 
       # Removes all recovery codes from the database
@@ -104,27 +104,27 @@ module Auth
         return unless @recovery_codes_exist
 
         codes_removed = @db[:account_recovery_codes].where(account_id: @account_id).delete
-        puts "✅ Removed #{codes_removed} recovery code(s) for: #{@email}"
+        OT.auth_logger.info "✅ Removed #{codes_removed} recovery code(s) for: #{@email}"
       end
 
       # Logs successful operation
       def log_success
-        puts "✅ MFA successfully disabled for: #{@email}"
-        puts "⚠️  User should re-enable MFA from account settings after login"
+        OT.auth_logger.info "✅ MFA successfully disabled for: #{@email}"
+        OT.auth_logger.info "⚠️  User should re-enable MFA from account settings after login"
 
-        OT.info "[disable-mfa] MFA disabled for account",
+        OT.auth_logger.info "[disable-mfa] MFA disabled for account",
           email: OT::Utils.obscure_email(@email),
-          account_id: @account_id,
+          id: @account_id,
           customer_id: @customer.custid
       end
 
       # Logs error information
       # @param error [Exception]
       def log_error(error)
-        puts "❌ Error disabling MFA: #{error.message}"
-        puts error.backtrace.first(5).join("\n")
+        OT.auth_logger.info "❌ Error disabling MFA: #{error.message}"
+        OT.auth_logger.info error.backtrace.first(5).join("\n")
 
-        OT.error "[disable-mfa] Failed to disable MFA",
+        OT.auth_logger.error "[disable-mfa] Failed to disable MFA",
           email: OT::Utils.obscure_email(@email),
           error: error.message
       end

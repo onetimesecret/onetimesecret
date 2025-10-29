@@ -25,7 +25,12 @@ module Middleware
     def initialize_logger
       if defined?(SemanticLogger)
         category = infer_category
-        SemanticLogger[category]
+        # Use cached logger if available (after boot), otherwise uncached
+        if Onetime.respond_to?(:get_logger)
+          Onetime.get_logger(category)
+        else
+          SemanticLogger[category]
+        end
       else
         require 'logger'
         Logger.new($stdout)

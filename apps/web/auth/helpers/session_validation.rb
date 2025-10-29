@@ -28,7 +28,7 @@ module Auth
         return nil if Familia.now > session_expiry
 
         # Check if MFA is enabled for this account
-        mfa_enabled = db[:account_otp_keys].where(id: session_data[:account_id]).count > 0
+        mfa_enabled = db[:account_otp_keys].where(account_id: session_data[:account_id]).count > 0
 
         {
           account_id: session_data[:account_id],

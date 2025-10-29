@@ -3,69 +3,26 @@
 module Auth::Config::Hooks
   module Login
     def self.configure(auth)
-
-
       #
       # Hook: Before Login Attempt
       #
-      # This hook is triggered before processing a login attempt. It implements
-      # a rate limit of 5 attempts per 5 minutes for a given email address.
+      # This hook is triggered before processing a login attempt. It generates
+      # a correlation ID for tracking the entire authentication flow.
       #
       auth.before_login_attempt do
         email = param('login') || param('email')
 
-        OT.auth_logger.info "Login attempt: #{OT::Utils.obscure_email(email)}"
-      end
+        # Generate correlation ID for this authentication attempt
+        correlation_id                = Auth::Logging.generate_correlation_id
+        session[:auth_correlation_id] = correlation_id
 
-      #
-      # Hook: After Login
-      #
-      # This hook is triggered after a user successfully authenticates. It's
-      # the primary integration point for syncing the application session.
-      #
-      # Standard Rodauth after_login hook - minimal custom logic
-      auth.after_login do
-        OT.auth_logger.info "User logged in: #{account[:email]}"
-        # Rodauth handles MFA flow automatically
-      end
-
-      #
-      # Hook: After Login Failure
-      #
-      # This hook is triggered after a login attempt fails. It logs the
-      # failure and raises a security alert on repeated failures.
-      #
-      auth.after_login_failure do
-        email = param('login') || param('email')
-
-        OT.auth_logger.warn "Login failed: #{OT::Utils.obscure_email(email)}"
-      end
-
-    end
-  end
-end
-
-
-__END__
-# apps/web/auth/config/hooks/login.rb
-
-module Auth::Config::Hooks
-  module Login
-    def self.configure(auth)
-
-
-      #
-      # Hook: Before Login Attempt
-      #
-      # This hook is triggered before processing a login attempt. It implements
-      # a rate limit of 5 attempts per 5 minutes for a given email address.
-      #
-      auth.before_login_attempt do
-        email = param('login') || param('email')
-
-        OT.info "[auth] Login attempt: #{OT::Utils.obscure_email(email)}"
-
-
+        Auth::Logging.log_auth_event(
+          :login_attempt,
+          level: :info,
+          email: email,
+          ip: request.ip,
+          correlation_id: correlation_id,
+        )
       end
 
       #
@@ -77,78 +34,68 @@ module Auth::Config::Hooks
       # After successful authentication (password OR passwordless), check MFA requirement
       # BEFORE syncing session to prevent granting full access prematurely
       auth.after_login do
-        OT.info "[auth] User logged in: #{account[:email]}"
+        correlation_id = session[:auth_correlation_id]
 
-        # Use Rodauth's built-in method to check if MFA is required for this user.
-        #
-        # NOTE: The subtle (yet not so subtle) difference between the two methods:
-        # `uses_two_factor_authentication?` -> Whether the account for the
-        # current session has setup two factor authentication.
-        #
-        # `two_factor_partially_authenticated?` -> Returns true if the session
-        # is logged in, the account has setup two factor authentication,
-        # but has not yet authenticated with a second factor.
-        #
-        # Check if this was an MFA recovery request via email auth
-        if session[:mfa_recovery_mode]
-          SemanticLogger['Auth'].warn 'MFA recovery initiated via email auth',
-            account_id: account[:id],
-            email: account[:email]
+        Auth::Logging.log_auth_event(
+          :login_success,
+          level: :info,
+          account_id: account_id,
+          email: account[:email],
+          correlation_id: correlation_id,
+        )
 
-          # Disable OTP for this account
-          Onetime::ErrorHandler.safe_execute('mfa_recovery_disable_otp',
-            account_id: account_id,
-            email: account[:email],
-          ) do
-            # Remove OTP authentication failures tracking
-            _otp_remove_auth_failures if respond_to?(:_otp_remove_auth_failures)
+        # Detect MFA requirement using dedicated operation
+        mfa_decision = Auth::Operations::DetectMfaRequirement.call(
+          account: account,
+          session: session,
+          rodauth: self
+        )
 
-            # Remove OTP key from database
-            _otp_remove_key(account_id) if respond_to?(:_otp_remove_key)
-
-            # Also clear recovery codes
-            db[recovery_codes_table].where(recovery_codes_id_column => account_id).delete if defined?(recovery_codes_table)
-
-            SemanticLogger['Auth'].info 'MFA disabled via recovery flow',
-              account_id: account_id,
-              email: account[:email]
-          end
-
-          # Clear recovery mode flag
-          session.delete(:mfa_recovery_mode)
-
-          # Set flag for frontend notification
-          session[:mfa_recovery_completed] = true
-
-          # Continue with normal login flow (no MFA required now)
-        elsif uses_two_factor_authentication?
+        if mfa_decision.requires_mfa?
           # MFA required - defer full session sync until after second factor
-          OT.info "[auth] MFA required for #{account[:email]}, deferring full session sync"
+          Auth::Logging.log_auth_event(
+            :mfa_required,
+            level: :info,
+            account_id: mfa_decision.account_id,
+            email: mfa_decision.email,
+            correlation_id: correlation_id,
+            note: 'Deferring full session sync until after second factor',
+          )
 
           # Set minimal session data for MFA flow
           session[:awaiting_mfa] = true
-          session['account_id'] = account_id
-          session['email'] = account[:email]
+          session['account_id']   = mfa_decision.account_id
+          session['email']        = mfa_decision.email
 
           # Store external_id so frontend can display user email during MFA
-          # (but user won't have full access until MFA complete)
-          if account[:external_id]
-            session['external_id'] = account[:external_id]
+          if mfa_decision.external_id
+            session['external_id'] = mfa_decision.external_id
           end
 
           # For JSON mode, indicate MFA is required
           if json_request?
-            json_response[:mfa_required] = true
+            json_response[:mfa_required]  = true
             json_response[:mfa_auth_url] = "/#{otp_auth_route}"
 
-            Onetime.auth_logger.info '[MFA Login] JSON response indicates MFA required',
-              account_id: account_id,
-              email: account[:email],
-              json_response_keys: json_response.keys
+            Auth::Logging.log_auth_event(
+              :mfa_json_response,
+              level: :debug,
+              account_id: mfa_decision.account_id,
+              email: mfa_decision.email,
+              correlation_id: correlation_id,
+              json_response_keys: json_response.keys,
+            )
           end
         else
           # No MFA required - proceed with full session sync
-          OT.info "[auth] No MFA required, syncing session"
+          Auth::Logging.log_auth_event(
+            :session_sync_start,
+            level: :info,
+            account_id: mfa_decision.account_id,
+            email: mfa_decision.email,
+            correlation_id: correlation_id,
+            note: 'No MFA required',
+          )
           session[:awaiting_mfa] = false
 
           Onetime::ErrorHandler.safe_execute('sync_session_after_login',
@@ -159,22 +106,9 @@ module Auth::Config::Hooks
               account: account,
               account_id: account_id,
               session: session,
-              request: request
+              request: request,
+              correlation_id: correlation_id
             )
-          end
-
-          # Clear MFA recovery completion flag after first successful login
-          # This ensures the notification only shows once.
-          #
-          # MFA RECOVERY SCENARIO:
-          # If user requested MFA recovery (can't access authenticator), we:
-          # 1. Detect mfa_recovery_mode session flag
-          # 2. Disable OTP authentication for the account
-          # 3. Clear MFA recovery flag
-          # 4. Let normal authentication flow continue (without MFA requirement)
-          #
-          if session[:mfa_recovery_completed]
-            session.delete(:mfa_recovery_completed)
           end
         end
       end
@@ -182,33 +116,21 @@ module Auth::Config::Hooks
       #
       # Hook: After Login Failure
       #
-      # This hook is triggered after a login attempt fails. It logs the
-      # failure and raises a security alert on repeated failures.
+      # This hook is triggered after a login attempt fails. Rodauth handles
+      # rate limiting via the lockout feature, so we just log the failure.
       #
       auth.after_login_failure do
-        email = param('login') || param('email')
-        ip    = request.ip
+        email          = param('login') || param('email')
+        correlation_id = session[:auth_correlation_id]
 
-        rate_limit_key = "login_attempts:#{email}"
-        client         = Familia.dbclient
-        attempts       = client.incr(rate_limit_key)
-
-        # Set expiration on the first attempt to create a sliding window
-        client.expire(rate_limit_key, 5 * 60) if attempts == 1
-
-        OT.info "[auth] Failed login attempt #{attempts}/5 for #{OT::Utils.obscure_email(email)} from #{ip}"
-
-        # On the 4th (and subsequent) failed attempts, log a high-priority
-        # security event to alert on potential brute-force activity.
-        if attempts >= 4
-          SemanticLogger['Auth'].error "Potential brute force attack detected on login endpoint",
-            attempts: attempts,
-            email: OT::Utils.obscure_email(email),
-            ip: ip,
-            threshold: 4
-        end
+        Auth::Logging.log_auth_event(
+          :login_failure,
+          level: :warn,
+          email: email,
+          ip: request.ip,
+          correlation_id: correlation_id,
+        )
       end
-
     end
   end
 end

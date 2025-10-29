@@ -42,18 +42,54 @@ module Onetime
     #
     def logger
       category = Thread.current[:log_category] || infer_category
-      SemanticLogger[category]
+
+      # During early boot before Initializers is extended, get_logger won't exist yet
+      # Fall back to uncached logger for early logging, switch to cached after boot
+      if Onetime.respond_to?(:get_logger)
+        Onetime.get_logger(category)
+      else
+        SemanticLogger[category]
+      end
     end
 
     # Category-specific logger accessors for explicit context
-    def auth_logger = SemanticLogger.[]('Auth')
-    def session_logger = SemanticLogger.[]('Session')
-    def http_logger = SemanticLogger.[]('HTTP')
-    def familia_logger = SemanticLogger.[]('Familia')
-    def otto_logger = SemanticLogger.[]('Otto')
-    def rhales_logger = SemanticLogger.[]('Rhales')
-    def secret_logger = SemanticLogger.[]('Secret')
-    def app_logger = SemanticLogger.[]('App')
+    # Uses cached logger instances from Onetime::Initializers to preserve level settings
+    # Falls back to uncached loggers during early boot before get_logger is available
+    def app_logger
+      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('App') : SemanticLogger['App']
+    end
+
+    def auth_logger
+      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Auth') : SemanticLogger['Auth']
+    end
+
+    def familia_logger
+      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Familia') : SemanticLogger['Familia']
+    end
+
+    def http_logger
+      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('HTTP') : SemanticLogger['HTTP']
+    end
+
+    def otto_logger
+      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Otto') : SemanticLogger['Otto']
+    end
+
+    def rhales_logger
+      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Rhales') : SemanticLogger['Rhales']
+    end
+
+    def secret_logger
+      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Secret') : SemanticLogger['Secret']
+    end
+
+    def session_logger
+      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Session') : SemanticLogger['Session']
+    end
+
+    def sequel_logger
+      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Sequel') : SemanticLogger['Sequel']
+    end
 
     # Execute block with a specific log category via thread-local variable.
     #
@@ -102,16 +138,26 @@ module Onetime
       class_name = self.class.name
 
       # Check for strategic category patterns in class name
-      return 'Auth'    if class_name =~ /Authentication|Auth(?!or)/i
-      return 'Session' if class_name =~ /Session/i
-      return 'HTTP'    if class_name =~ /HTTP|Request|Response|Controller/i
-      return 'Familia' if class_name =~ /Familia/i
-      return 'Otto'    if class_name =~ /Otto/i
-      return 'Rhales'  if class_name =~ /Rhales/i
-      return 'Secret'  if class_name =~ /Secret|Metadata/i
-
-      # Default fallback
-      'App'
+      case class_name
+      in /Authentication|Auth(?!or)/i
+        'Auth'
+      in /Familia/i
+        'Familia'
+      in /HTTP|Request|Response|Controller/i
+        'HTTP'
+      in /Otto/i
+        'Otto'
+      in /Rhales/i
+        'Rhales'
+      in /Secret|Metadata/i
+        'Secret'
+      in /Sequel/i
+        'Sequel'
+      in /Session/i
+        'Session'
+      else
+        'App' # default fallback
+      end
     end
   end
 end

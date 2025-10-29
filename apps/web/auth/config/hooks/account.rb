@@ -10,54 +10,19 @@ module Auth::Config::Hooks
       # several validation checks on the provided email address.
       #
       auth.before_create_account do
-        email = param('login') || param('email')
 
-        # 1. Presence Check
-        # Ensure an email address was actually provided.
-        unless email && !email.to_s.strip.empty?
-          throw_error_status(422, 'login', 'Email is required')
-        end
+      end
 
-        # 2. Email Format and Deliverability Validation (Truemail)
-        # Use the Truemail gem to perform deep validation on the email address.
-        begin
-          validator = Truemail.validate(email)
-          unless validator.result.valid?
-            OT.info "[auth] Invalid email rejected: #{OT::Utils.obscure_email(email)}"
-            throw_error_status(422, 'login', 'Please enter a valid email address')
-          end
-        rescue StandardError => ex
-          SemanticLogger['Auth'].error "Email validation service failed - failing open to allow signup",
-            email: OT::Utils.obscure_email(email),
-            exception: ex,
-            note: "Consider hard failure for higher security"
-          # Fail open on validation errors, but notify for investigation.
-          # For higher security, this could be changed to a hard failure.
-          throw_error_status(422, 'login', 'There was a problem validating your email. Please try again.')
-        end
+      auth.login_valid_email? do |email|
+        validator = Truemail.validate(email)
+        is_valid = super(email) && validator.result.valid?
 
-        # 3. Security: Email Enumeration Prevention (CWE-204)
-        # Check if account already exists. If it does, we handle it silently
-        # to prevent attackers from discovering which emails are registered.
-        existing_account = db[:accounts].where(email: email, status_id: [1, 2]).first # 1=Unverified, 2=Verified
-
-        if existing_account
-          # Account already exists - handle silently without revealing this fact
-          if existing_account[:status_id] == 1 # Unverified
-            # Resend verification email for unverified accounts
-            OT.info "[auth] Account exists (unverified), resending verification: #{OT::Utils.obscure_email(email)}"
-            # TODO: Trigger resend of verification email when email system is active
-            # send_create_account_email
-          else
-            # Verified account - do nothing but log for security monitoring
-            OT.info "[auth] Account exists (verified), silent success: #{OT::Utils.obscure_email(email)}"
-          end
-
-          # Return success without creating account
-          # This prevents enumeration by always returning the same success message
-          set_notice_flash 'If an account with this email exists, you will receive a verification email.'
-          request.redirect create_account_redirect
-        end
+        Auth::Logging.log_auth_event(
+          :invalid_email_rejected,
+          level: :info,
+          email: email
+        ) unless is_valid
+        is_valid
       end
 
       #
@@ -67,8 +32,6 @@ module Auth::Config::Hooks
       # It ensures a corresponding Onetime::Customer record is created and linked.
       #
       auth.after_create_account do
-        OT.info "[auth] New account created: #{account[:extid]} (ID: #{account_id})"
-
         Onetime::ErrorHandler.safe_execute('create_customer', account_id: account_id, extid: account[:extid]) do
           Auth::Operations::CreateCustomer.new(
             account_id: account_id,
@@ -88,9 +51,15 @@ module Auth::Config::Hooks
       # Note: This hook is disabled in the 'test' environment to simplify
       # testing scenarios that do not require email verification flows.
       #
-      if ENV['RACK_ENV'] != 'test'
+      unless Onetime.env?('test')
         auth.after_verify_account do
-          OT.info "[auth] Account verified: #{account[:extid]}"
+          Auth::Logging.log_auth_event(
+            :account_verified,
+            level: :info,
+            account_id: account_id,
+            external_id: account[:external_id],
+            email: account[:email]
+          )
 
           Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:extid]) do
             Auth::Operations::VerifyCustomer.new(account: account).call
@@ -104,7 +73,12 @@ module Auth::Config::Hooks
       # This hook is triggered after a user requests a password reset.
       #
       auth.after_reset_password_request do
-        OT.info "[auth] Password reset requested for: #{account[:email]}"
+        Auth::Logging.log_auth_event(
+          :password_reset_requested,
+          level: :info,
+          account_id: account_id,
+          email: account[:email]
+        )
       end
 
       #
@@ -113,7 +87,12 @@ module Auth::Config::Hooks
       # This hook is triggered after a user successfully resets their password.
       #
       auth.after_reset_password do
-        OT.info "[auth] Password reset for: #{account[:email]}"
+        Auth::Logging.log_auth_event(
+          :password_reset_complete,
+          level: :info,
+          account_id: account_id,
+          email: account[:email]
+        )
       end
 
       #
@@ -123,7 +102,12 @@ module Auth::Config::Hooks
       # metadata in the associated Onetime::Customer record.
       #
       auth.after_change_password do
-        OT.info "[auth] Password changed for: #{account[:email]}"
+        Auth::Logging.log_auth_event(
+          :password_changed,
+          level: :info,
+          account_id: account_id,
+          email: account[:email]
+        )
 
         # Rodauth is the source of truth for password management. Here, we just
         # sync metadata to the customer record.
@@ -139,7 +123,13 @@ module Auth::Config::Hooks
       # cleanup of the associated Onetime::Customer record.
       #
       auth.after_close_account do
-        OT.info "[auth] Account closed: #{account[:extid]} (ID: #{account_id})"
+        Auth::Logging.log_auth_event(
+          :account_closed,
+          level: :info,
+          account_id: account_id,
+          external_id: account[:external_id],
+          email: account[:email]
+        )
 
         Onetime::ErrorHandler.safe_execute('delete_customer', account_id: account_id, extid: account[:extid]) do
           Auth::Operations::DeleteCustomer.new(account: account).call

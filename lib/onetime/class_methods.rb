@@ -303,7 +303,8 @@ module Onetime
     end
 
     def debug
-      @debug ||= ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
+      return @debug unless @debug.nil?
+      @debug = Onetime::Utils.yes?(ENV['ONETIME_DEBUG'])
     end
 
     def stdout(prefix, msg)

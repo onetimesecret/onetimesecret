@@ -149,6 +149,11 @@ CREATE TABLE account_recovery_codes (
     used_at DATETIME
 );
 
+CREATE TABLE `account_recovery_codes` (
+  `id` bigint NOT NULL REFERENCES `accounts`,
+  `code` varchar(255) NOT NULL, PRIMARY KEY (`id`, `code`)
+);
+
 -- Index for efficient lookup
 CREATE INDEX account_recovery_codes_account_id_idx ON account_recovery_codes(account_id);
 CREATE INDEX account_recovery_codes_code_idx ON account_recovery_codes(code);

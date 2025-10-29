@@ -29,7 +29,7 @@ module Auth
         end
 
         def log_error(email, error, provider = nil)
-          SemanticLogger['Auth'].error 'Email delivery failed',
+          Onetime.get_logger('Auth').error 'Email delivery failed',
             to: email[:to],
             subject: email[:subject],
             provider: provider,
@@ -72,7 +72,7 @@ module Auth
               end
             rescue Net::SMTPAuthenticationError => ex
               # Server doesn't support authentication - try without auth
-              SemanticLogger['Auth'].debug 'SMTP authentication not supported, sending without auth',
+              Onetime.get_logger('Auth').debug 'SMTP authentication not supported, sending without auth',
                 host: smtp_host,
                 port: smtp_port,
                 error: ex.message
@@ -285,7 +285,7 @@ module Auth
         mode = ENV['EMAILER_MODE']&.downcase
 
         # Debug logging
-        SemanticLogger['Auth'].debug 'Email provider detection',
+        Onetime.get_logger('Auth').debug 'Email provider detection',
           emailer_mode: mode,
           smtp_host: ENV.fetch('SMTP_HOST', nil),
           sendgrid_api_key: ENV['SENDGRID_API_KEY'] ? 'configured' : nil,
@@ -320,7 +320,7 @@ module Auth
         when 'logger'
           Delivery::Logger.new
         else
-          SemanticLogger['Auth'].warn 'Unknown email provider configured, falling back to logger',
+          Onetime.get_logger('Auth').warn 'Unknown email provider configured, falling back to logger',
             provider: @provider,
             fallback: 'logger'
           Delivery::Logger.new

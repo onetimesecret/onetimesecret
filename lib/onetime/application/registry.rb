@@ -31,8 +31,8 @@ module Onetime
           find_application_files
           create_mount_mappings
         rescue StandardError => ex
-          $stderr.puts "[#{name}] ERROR: #{ex.class}: #{ex.message}"
-          $stderr.puts ex.backtrace.join("\n") if Onetime.debug?
+          Onetime.app_logger.info "[#{name}] ERROR: #{ex.class}: #{ex.message}"
+          Onetime.app_logger.info ex.backtrace.join("\n") if Onetime.debug?
 
           Onetime.not_ready
         end
@@ -95,24 +95,24 @@ module Onetime
           # Skip auth app in basic mode - auth endpoints handled by Core Web App
           if Onetime.auth_config.mode == 'basic'
             filepaths.reject! { |f| f.include?('web/auth/') }
-            $stderr.puts '[registry] Skipping auth app (basic mode)'
+            Onetime.app_logger.info '[registry] Skipping auth app (basic mode)'
           else
-            $stderr.puts '[registry] Including auth app (advanced mode)'
+            Onetime.app_logger.info '[registry] Including auth app (advanced mode)'
           end
 
-          $stderr.puts "[registry] Scan found #{filepaths.size} application(s)"
+          Onetime.app_logger.info "[registry] Scan found #{filepaths.size} application(s)"
           filepaths.each do |f|
             pretty_path = Onetime::Utils.pretty_path(f)
-            $stderr.puts "[registry] Loading application file: #{pretty_path}" if Onetime.debug?
+            Onetime.app_logger.info "[registry] Loading application file: #{pretty_path}" if Onetime.debug?
             begin
               require f
             rescue LoadError => ex
-              $stderr.puts "\n\n"
-              $stderr.puts '╔' + ('═' * 58) + '╗'
-              $stderr.puts '║ ❌ APPLICATION LOAD FAILED' + (' ' * 31) + '║'
-              $stderr.puts "║    >> #{pretty_path} <<" + (' ' * (55 - pretty_path.to_s.length - 7)) + '║'
-              $stderr.puts '╚' + ('═' * 58) + '╝'
-              $stderr.puts "\n"
+              Onetime.app_logger.info "\n\n"
+              Onetime.app_logger.info '╔' + ('═' * 58) + '╗'
+              Onetime.app_logger.info '║ ❌ APPLICATION LOAD FAILED' + (' ' * 31) + '║'
+              Onetime.app_logger.info "║    >> #{pretty_path} <<" + (' ' * (55 - pretty_path.to_s.length - 7)) + '║'
+              Onetime.app_logger.info '╚' + ('═' * 58) + '╝'
+              Onetime.app_logger.info "\n"
               raise ex
             end
           end
@@ -130,10 +130,8 @@ module Onetime
               raise ArgumentError, "Mount point must be a string (#{app_class} gave #{mount.class})"
             end
 
-            dynamic_char_count = app_class.name.length + mount.to_s.length
-            $stderr.puts '╔' + ('═' * 48) + '╗'
-            $stderr.puts "║ ✅ MOUNTED #{app_class} at #{mount}" + (' ' * (32-dynamic_char_count)) + '║'
-            $stderr.puts '╚' + ('═' * 48) + '╝'
+            Onetime.app_logger.info " Registering #{app_class} at #{mount}"
+
             register(mount, app_class)
           end
 

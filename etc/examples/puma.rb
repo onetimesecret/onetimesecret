@@ -1,6 +1,28 @@
 # etc/examples/puma.rb
 
 # Example Puma configuration
+#
+# # config/puma.rb or inline configuration
+#
+# # Load the app before forking workers (copy-on-write optimization)
+# preload_app!
+#
+# # Runs once in master process before forking
+# before_fork do
+#   # Close database connections, etc.
+#   # ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
+# end
+#
+# # Runs in each worker after fork
+# on_worker_boot do
+#   # Re-establish connections per worker
+#   # ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
+# end
+#
+# # Optional: runs in each worker on shutdown
+# on_worker_shutdown do
+#   # Cleanup
+# end
 
 is_production = ENV['RACK_ENV'] == 'production'
 is_development = ENV['RACK_ENV'] == 'development'
@@ -70,3 +92,25 @@ if is_development
   # Silence all logs?
   quiet false
 end
+
+
+__END__
+
+# Without a `puma.rb` file and without `preload_app!`:
+#
+# **With `workers: 0` (your current default):**
+# - Puma runs in "single mode" - one process, multiple threads
+# - App loads **once** in that single process before threads start
+# - No forking happens - the "single mode" message you're seeing confirms this
+# - All threads share the same memory space
+#
+# **With `workers: > 0` and no `preload_app!`:**
+# - Master process starts but **doesn't load the app**
+# - Each worker process loads the app **independently** from scratch
+# - No copy-on-write optimization - full memory duplication per worker
+# - Your initialization code runs `N` times (once per worker)
+# - More memory usage, slower startup
+#
+# So the key difference: `preload_app!` determines **when** and **how many times** your app initializes in multi-worker mode. Without it, you lose the "initialize once, fork many" benefit.
+#
+# In your current setup with `workers: 0`, you're already getting single initialization - the app loads once in the main process. The threads spawn from there, sharing that loaded state. You only need `preload_app!` if you # switch to `workers > 0` and want initialization to happen once in the master before forking.

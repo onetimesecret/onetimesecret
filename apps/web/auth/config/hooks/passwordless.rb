@@ -103,7 +103,7 @@ module Auth::Config::Hooks
       # - Token used: "This link has already been used" error
       #
       auth.before_email_auth_route do
-        SemanticLogger['Auth'].debug 'Processing magic link authentication'
+        Onetime.get_logger('Auth').debug 'Processing magic link authentication'
 
         # Extract authentication token from URL query parameter
         # Expected format: ?key=TOKEN
@@ -112,7 +112,7 @@ module Auth::Config::Hooks
         # Validate token presence before continuing to Rodauth verification
         if auth_token.nil? || auth_token.empty?
           msg = 'The email authentication token is missing.'
-          SemanticLogger['Auth'].error msg
+          Onetime.get_logger('Auth').error msg
           set_error_flash msg
           redirect login_path  # Send user back to login page
         end
@@ -157,7 +157,7 @@ module Auth::Config::Hooks
       # - Token validates → user logged in → base after_login hook fires
       #
       auth.after_email_auth_request do
-        SemanticLogger['Auth'].info 'Magic link email sent',
+        Onetime.get_logger('Auth').info 'Magic link email sent',
           account_id: account[:id],
           email: account[:email]
 

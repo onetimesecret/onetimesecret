@@ -27,6 +27,18 @@ GIT
       rexml (~> 3.4)
 
 GIT
+  remote: https://github.com/delano/rodauth-tools
+  revision: f797249456ba3fccdcbc8d319f62fbc74bb29a75
+  specs:
+    rodauth-tools (0.2.0)
+      dry-inflector (~> 1.1)
+      rack (~> 3.2)
+      roda (~> 3.96)
+      rodauth (~> 2.41)
+      rodauth-model (~> 0.2)
+      sequel (~> 5.0)
+
+GIT
   remote: https://github.com/onetimesecret/rhales
   revision: 80d5c35a15aaf169d251d05a79c04dbc8e9a6c03
   specs:
@@ -122,6 +134,7 @@ GEM
       reline (>= 0.3.8)
     diff-lcs (1.6.2)
     docile (1.4.1)
+    dry-inflector (1.2.0)
     drydock (1.0.0)
       ostruct (~> 0.6)
     encryptor (1.1.3)
@@ -261,6 +274,8 @@ GEM
     rodauth (2.41.0)
       roda (>= 2.6.0)
       sequel (>= 4)
+    rodauth-model (0.4.0)
+      rodauth (~> 2.28)
     rotp (6.3.0)
     rqrcode (3.1.0)
       chunky_png (~> 1.0)
@@ -410,6 +425,7 @@ DEPENDENCIES
   rhales!
   roda (~> 3.0)
   rodauth (~> 2.0)
+  rodauth-tools!
   rotp (~> 6.2)
   rqrcode (~> 3.1)
   rspec!

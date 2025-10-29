@@ -12,30 +12,59 @@ module Onetime
     # Configuration loaded from etc/logging.yaml with environment variable
     # overrides for flexible development and production use.
     #
+    # IMPORTANT: SemanticLogger[] creates a NEW logger instance each time.
+    # We must cache logger instances after setting their levels, otherwise
+    # the level settings are lost.
+    #
     def configure_logging
       Onetime.ld '[Logging] Initializing SemanticLogger'
       config = load_logging_config
 
-      # Base configuration
+      # Base configuration - set default level first
       SemanticLogger.default_level = config['default_level']&.to_sym || :info
+
+      # Add appender
       SemanticLogger.add_appender(
         io: $stdout,
         formatter: config['formatter']&.to_sym || :color,
       )
 
-      # Configure named loggers from config
+      # Environment variable overrides for default_level only
+      # Must be done BEFORE setting individual logger levels
+      apply_default_level_overrides(config)
+
+      # Configure named loggers from config AFTER default_level is finalized
+      # CRITICAL: Logger instances need to be caches b/c SemanticLogger[]
+      # creates new instances every time it's called. So we store references
+      # to the configured loggers in @cached_loggers.
+      @cached_loggers = {}
       config['loggers']&.each do |name, level|
-        $stderr.puts "[Logging] Setting level '#{name}' to #{level}"
-        SemanticLogger[name].level = level.to_sym
+        logger = SemanticLogger[name]
+        logger.level = level.to_sym
+        @cached_loggers[name] = logger
       end
 
-      # Environment variable overrides
-      apply_environment_overrides
+      # Environment variable overrides for specific loggers
+      apply_logger_level_overrides
 
       # Configure external library loggers
       configure_external_loggers
 
+      # Log final effective configuration
+      log_effective_configuration
+
       Onetime.ld "[Logging] Initialized SemanticLogger (level: #{SemanticLogger.default_level})"
+    end
+
+    # Access a cached logger instance by name
+    # Returns the pre-configured logger with the correct level set
+    #
+    # @param name [String, Symbol] Logger category name
+    # @return [SemanticLogger::Logger] Cached logger instance
+    #
+    def get_logger(name)
+      @cached_loggers ||= {}
+      @cached_loggers[name.to_s] ||= SemanticLogger[name.to_s]
     end
 
     private
@@ -53,39 +82,87 @@ module Onetime
       end
     end
 
-    def apply_environment_overrides
-      # Global level override
-      SemanticLogger.default_level = ENV['LOG_LEVEL'].to_sym if ENV['LOG_LEVEL']
-
-      # ONETIME_DEBUG=1 enables debug logging for all application categories
-      # Uses Onetime.debug? for consistent environment variable parsing
-      Onetime.debug? do
-        SemanticLogger.default_level    = :debug
-        SemanticLogger['Auth'].level    = :debug
-        SemanticLogger['Session'].level = :debug
-        SemanticLogger['HTTP'].level    = :debug
-        SemanticLogger['Secret'].level  = :debug
-        SemanticLogger['App'].level     = :debug
+    # Apply environment variable overrides for default_level only
+    # This must be called BEFORE setting individual logger levels
+    def apply_default_level_overrides(config)
+      # Step 1: Global default level override (affects only unconfigured loggers)
+      if ENV['LOG_LEVEL']
+        SemanticLogger.default_level = ENV['LOG_LEVEL'].to_sym
       end
 
-      # Parse DEBUG_LOGGERS: "Auth:debug,Secret:trace"
+      # Step 2: ONETIME_DEBUG=1 sets global default to debug
+      # Does NOT override individual logger levels set in YAML config
+      # This allows "debug by default" while respecting explicit logger config
+      Onetime.debug? do
+        SemanticLogger.default_level = :debug
+      end
+    end
+
+    # Apply environment variable overrides for specific logger levels
+    # This must be called AFTER setting individual logger levels from YAML
+    def apply_logger_level_overrides
+      # Environment variable precedence for individual loggers:
+      # 1. DEBUG_LOGGERS - fine-grained per-logger control
+      # 2. DEBUG_* - individual quick flags per category
+      #
+      # These WILL override YAML config for specified loggers
+
+      # Step 1: Parse DEBUG_LOGGERS for fine-grained control
+      # Format: "Auth:debug,Secret:trace,Familia:warn" or "Auth=debug,Secret=trace"
+      # Supports both : and = as separators
+      # This DOES override YAML config for specified loggers
       if ENV['DEBUG_LOGGERS']
         ENV['DEBUG_LOGGERS'].split(',').each do |spec|
-          logger_name, level                = spec.split(':')
-          SemanticLogger[logger_name].level = level.to_sym
+          # Support both : and = separators
+          logger_name, level = spec.split(/[:=]/, 2).map(&:strip)
+          next unless logger_name && level
+
+          # Get or create cached logger and set level
+          cached_logger = (@cached_loggers[logger_name] ||= SemanticLogger[logger_name])
+          cached_logger.level = level.to_sym
         end
       end
 
-      # Quick debug flags for individual application categories
+      # Step 2: Quick debug flags for individual categories
+      # These ALSO override YAML config for convenience
       # External libraries (Familia, Otto) use their own debug flags
-      SemanticLogger['Auth'].level    = :debug if ENV['DEBUG_AUTH']
-      SemanticLogger['Session'].level = :debug if ENV['DEBUG_SESSION']
-      SemanticLogger['HTTP'].level    = :debug if ENV['DEBUG_HTTP']
-      SemanticLogger['Secret'].level  = :debug if ENV['DEBUG_SECRET']
-      SemanticLogger['Sequel'].level  = :debug if ENV['DEBUG_SECRET']
+      apply_quick_debug_flag('Auth',    ENV['DEBUG_AUTH'])
+      apply_quick_debug_flag('Session', ENV['DEBUG_SESSION'])
+      apply_quick_debug_flag('HTTP',    ENV['DEBUG_HTTP'])
+      apply_quick_debug_flag('Secret',  ENV['DEBUG_SECRET'])
+      apply_quick_debug_flag('Sequel',  ENV['DEBUG_SEQUEL'])
+      apply_quick_debug_flag('App',     ENV['DEBUG_APP'])
 
       # For external library logging levels, use DEBUG_LOGGERS instead:
-      # DEBUG_LOGGERS=Sequel:debug,Rhales:trace
+      # DEBUG_LOGGERS=Familia:debug,Otto:trace,Rhales:warn
+    end
+
+    # Apply a quick debug flag to a specific logger
+    def apply_quick_debug_flag(logger_name, env_value)
+      return unless env_value
+
+      # Get or create cached logger and set level
+      cached_logger = (@cached_loggers[logger_name] ||= SemanticLogger[logger_name])
+      cached_logger.level = :debug
+    end
+
+    # Log the final effective configuration
+    # Shows which loggers differ from the default level
+    def log_effective_configuration
+      default = SemanticLogger.default_level
+      overrides = []
+
+      # Check all cached loggers for non-default levels
+      @cached_loggers&.each do |name, logger|
+        level = logger.level
+        overrides << "#{name}=#{level}" if level != default
+      end
+
+      if overrides.any?
+        $stderr.puts "[Logging] Effective: default=#{default}, overrides: #{overrides.join(', ')}"
+      else
+        $stderr.puts "[Logging] Effective: default=#{default} (no overrides)"
+      end
     end
 
     # Configure external library loggers to use SemanticLogger

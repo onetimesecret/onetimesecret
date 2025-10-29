@@ -114,7 +114,7 @@ module Auth::Config::Hooks
       # - Can immediately use for login
       #
       auth.after_webauthn_setup do
-        SemanticLogger['Auth::WebAuthn'].info 'WebAuthn credential registered',
+        Onetime.get_logger('Auth::WebAuthn').info 'WebAuthn credential registered',
           account_id: account[:id],
           email: account[:email],
           webauthn_id: param(webauthn_setup_webauthn_id_param)
@@ -162,7 +162,7 @@ module Auth::Config::Hooks
       # - No typing required, works on mobile and desktop
       #
       auth.before_webauthn_auth do
-        SemanticLogger['Auth::WebAuthn'].debug 'Processing WebAuthn authentication',
+        Onetime.get_logger('Auth::WebAuthn').debug 'Processing WebAuthn authentication',
           account_id: account[:id]
 
         # NOTE: Session synchronization happens after successful verification
@@ -211,7 +211,7 @@ module Auth::Config::Hooks
       # - Log failure for security monitoring and alerts
       #
       auth.after_webauthn_auth_failure do
-        SemanticLogger['Auth::WebAuthn'].warn 'WebAuthn authentication failed',
+        Onetime.get_logger('Auth::WebAuthn').warn 'WebAuthn authentication failed',
           account_id: account[:id],
           email: account[:email]
 
@@ -263,7 +263,7 @@ module Auth::Config::Hooks
       # - Prevent account lockout if removing last auth method
       #
       auth.before_webauthn_remove do
-        SemanticLogger['Auth::WebAuthn'].info 'Removing WebAuthn credential',
+        Onetime.get_logger('Auth::WebAuthn').info 'Removing WebAuthn credential',
           account_id: account[:id],
           email: account[:email],
           webauthn_id: param(webauthn_remove_webauthn_id_param)
