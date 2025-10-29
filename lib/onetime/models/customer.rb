@@ -152,7 +152,7 @@ module Onetime
 
         raise Familia::RecordExistsError, "Customer exists #{loggable_email}" if email_exists?(email)
 
-        auth_logger.info "Creating customer",
+        Onetime.auth_logger.info "Creating customer",
           email: loggable_email,
           kwargs: kwargs.keys,
           action: 'create'
@@ -166,7 +166,7 @@ module Onetime
         # updating all unique indexes (only objid?). Likely an upstream bug.
         cust.save
 
-        auth_logger.info "Customer created successfully",
+        Onetime.auth_logger.info "Customer created successfully",
           customer_id: cust.custid,
           email: loggable_email,
           role: cust.role,
