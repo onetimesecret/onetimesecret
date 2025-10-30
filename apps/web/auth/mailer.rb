@@ -3,7 +3,7 @@
 require 'net/smtp'
 
 module Auth
-  # TODO: We'll replace this with Pony or similar
+  # Email delivery using standard Mail gem for SMTP, custom implementations for SendGrid/SES
   module Mailer
     # Email delivery strategies for different providers
     module Delivery
@@ -52,40 +52,17 @@ module Auth
 
       class SMTP < Base
         def deliver(email)
-          smtp_host   = @config[:host] || ENV['SMTP_HOST'] || 'localhost'
-          smtp_port   = (@config[:port] || ENV['SMTP_PORT'] || '587').to_i
-          username    = @config[:username] || ENV.fetch('SMTP_USERNAME', nil)
-          password    = @config[:password] || ENV.fetch('SMTP_PASSWORD', nil)
-          use_tls     = @config[:tls].nil? ? (ENV['SMTP_TLS'] != 'false') : @config[:tls]
-          auth_method = nil # @config[:auth_method] || ENV['SMTP_AUTH'] || 'login'
+          require 'mail'
 
-          message = build_message(email)
-
-          smtp = Net::SMTP.new(smtp_host, smtp_port)
-          smtp.enable_starttls_auto if use_tls
-
-          # Handle authentication - only authenticate if username is provided
-          if username && password
-            begin
-              smtp.start(smtp_host, username, password, auth_method) do |smtp_session|
-                smtp_session.send_message(message, email[:from], email[:to])
-              end
-            rescue Net::SMTPAuthenticationError => ex
-              # Server doesn't support authentication - try without auth
-              Onetime.get_logger('Auth').debug 'SMTP authentication not supported, sending without auth',
-                host: smtp_host,
-                port: smtp_port,
-                error: ex.message
-
-              smtp.start do |smtp_session|
-                smtp_session.send_message(message, email[:from], email[:to])
-              end
-            end
-          else
-            smtp.start do |smtp_session|
-              smtp_session.send_message(message, email[:from], email[:to])
-            end
+          mail = Mail.new do
+            to      email[:to]
+            from    email[:from]
+            subject email[:subject]
+            body    email[:body]
           end
+
+          mail.delivery_method :smtp, smtp_settings
+          mail.deliver!
 
           log_delivery(email, 'sent', 'SMTP')
         rescue StandardError => ex
@@ -100,15 +77,24 @@ module Auth
           raise ArgumentError, 'SMTP host must be configured' if host.nil? || host.empty?
         end
 
-        def build_message(email)
-          <<~MESSAGE
-            From: #{email[:from]}
-            To: #{email[:to]}
-            Subject: #{email[:subject]}
-            Content-Type: text/plain; charset=UTF-8
+        def smtp_settings
+          settings = {
+            address: @config[:host] || ENV['SMTP_HOST'] || 'localhost',
+            port: (@config[:port] || ENV['SMTP_PORT'] || '587').to_i,
+            enable_starttls_auto: @config[:tls].nil? ? (ENV['SMTP_TLS'] != 'false') : @config[:tls],
+          }
 
-            #{email[:body]}
-          MESSAGE
+          # Only add authentication if credentials are provided
+          username = @config[:username] || ENV.fetch('SMTP_USERNAME', nil)
+          password = @config[:password] || ENV.fetch('SMTP_PASSWORD', nil)
+
+          if username && password
+            settings[:user_name] = username
+            settings[:password] = password
+            settings[:authentication] = :plain
+          end
+
+          settings
         end
       end
 
