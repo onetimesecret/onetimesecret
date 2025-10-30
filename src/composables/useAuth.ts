@@ -4,7 +4,11 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
-import { useAsyncHandler, createError, type AsyncHandlerOptions } from '@/composables/useAsyncHandler';
+import {
+  useAsyncHandler,
+  createError,
+  type AsyncHandlerOptions,
+} from '@/composables/useAsyncHandler';
 import {
   isAuthError,
   type LoginResponse,
@@ -72,7 +76,7 @@ export function useAuth() {
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
     // Don't auto-notify - auth errors are shown inline in forms
     notify: false,
-    setLoading: (loading) => isLoading.value = loading,
+    setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => {
       // Clear all error state first to avoid stale data from previous errors
       error.value = null;
@@ -91,7 +95,7 @@ export function useAuth() {
       if (err.details?.lockout) {
         lockoutStatus.value = err.details.lockout as LockoutStatus;
       }
-    }
+    },
   };
 
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
@@ -105,7 +109,11 @@ export function useAuth() {
    * @returns true if login successful, false otherwise
    */
   /* eslint-disable complexity */
-  async function login(email: string, password: string, rememberMe: boolean = false): Promise<boolean> {
+  async function login(
+    email: string,
+    password: string,
+    rememberMe: boolean = false
+  ): Promise<boolean> {
     clearErrors();
 
     const result = await wrap(async () => {
@@ -122,13 +130,13 @@ export function useAuth() {
         data: response.data,
         validated: validated,
         hasMfaRequired: 'mfa_required' in response.data,
-        mfaRequiredValue: (response.data as any).mfa_required
+        mfaRequiredValue: (response.data as any).mfa_required,
       });
 
       if (isAuthError(validated)) {
         throw createError(validated.error, 'human', 'error', {
           'field-error': validated['field-error'],
-          ...(validated as any).lockout ? { lockout: (validated as any).lockout } : {}
+          ...((validated as any).lockout ? { lockout: (validated as any).lockout } : {}),
         });
       }
 
@@ -176,7 +184,7 @@ export function useAuth() {
 
       if (isAuthError(validated)) {
         throw createError(validated.error, 'human', 'error', {
-          'field-error': validated['field-error']
+          'field-error': validated['field-error'],
         });
       }
 
@@ -237,7 +245,7 @@ export function useAuth() {
 
       if (isAuthError(validated)) {
         throw createError(validated.error, 'human', 'error', {
-          'field-error': validated['field-error']
+          'field-error': validated['field-error'],
         });
       }
 
@@ -342,7 +350,7 @@ export function useAuth() {
 
       if (isAuthError(validated)) {
         throw createError(validated.error, 'human', 'error', {
-          'field-error': validated['field-error']
+          'field-error': validated['field-error'],
         });
       }
 
@@ -373,7 +381,7 @@ export function useAuth() {
 
       if (isAuthError(validated)) {
         throw createError(validated.error, 'human', 'error', {
-          'field-error': validated['field-error']
+          'field-error': validated['field-error'],
         });
       }
 
