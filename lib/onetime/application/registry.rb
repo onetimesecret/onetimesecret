@@ -47,7 +47,17 @@ module Onetime
           # Sort mappings by path specificity (longer/more specific paths first)
           sorted_mappings = mount_mappings.sort_by { |path, _| [-path.length, path] }.to_h
 
-          mappings = sorted_mappings.transform_values { |app_class| app_class.new }
+          # Track warmup progress for [N of M] numbering
+          total_apps = sorted_mappings.size
+          warmup_counter = 0
+
+          mappings = sorted_mappings.transform_values do |app_class|
+            warmup_counter += 1
+            # Pass warmup context to application initialization
+            Thread.current[:warmup_context] = { current: warmup_counter, total: total_apps }
+            app_class.new
+          end
+
           Rack::URLMap.new(mappings)
         end
 
@@ -95,15 +105,21 @@ module Onetime
           # Skip auth app in basic mode - auth endpoints handled by Core Web App
           if Onetime.auth_config.mode == 'basic'
             filepaths.reject! { |f| f.include?('web/auth/') }
-            Onetime.app_logger.info '[registry] Skipping auth app (basic mode)'
+
+            # Onetime.app_logger.info '╔' + ('═' * 58) + '╗'
+            Onetime.app_logger.info '║ 🔐 AUTH MODE: Basic (Core handles /auth/*)' + (' ' * 12) + '║'
+            # Onetime.app_logger.info '╚' + ('═' * 58) + '╝'
           else
-            Onetime.app_logger.info '[registry] Including auth app (advanced mode)'
+            Onetime.app_logger.info '╔' + ('═' * 58) + '╗'
+            Onetime.app_logger.info '║ 🔐 AUTH MODE: Advanced (Rodauth enabled)' + (' ' * 15) + '║'
+            Onetime.app_logger.info '╚' + ('═' * 58) + '╝'
           end
 
           Onetime.app_logger.info "[registry] Scan found #{filepaths.size} application(s)"
-          filepaths.each do |f|
+
+          filepaths.each_with_index do |f, idx|
             pretty_path = Onetime::Utils.pretty_path(f)
-            Onetime.app_logger.info "[registry] Loading application file: #{pretty_path}" if Onetime.debug?
+            Onetime.app_logger.info "[registry] [#{idx + 1} of #{filepaths.size}] Loading: #{pretty_path}" if Onetime.debug?
             begin
               require f
             rescue LoadError => ex
@@ -123,14 +139,14 @@ module Onetime
         def create_mount_mappings
           OT.li "[registry] Mapping #{application_classes.size} application(s) to routes"
 
-          application_classes.each do |app_class|
+          application_classes.each_with_index do |app_class, idx|
             mount = app_class.uri_prefix
 
             unless mount.is_a?(String)
               raise ArgumentError, "Mount point must be a string (#{app_class} gave #{mount.class})"
             end
 
-            Onetime.app_logger.info " Registering #{app_class} at #{mount}"
+            Onetime.app_logger.info " [#{idx + 1} of #{application_classes.size}] Registering #{app_class} at #{mount}"
 
             register(mount, app_class)
           end

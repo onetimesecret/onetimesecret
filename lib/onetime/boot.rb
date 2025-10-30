@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
 # lib/onetime/boot.rb
 
 require_relative 'initializers'
+require_relative 'boot/manifest'
 
 module Onetime
   module Initializers
@@ -28,6 +31,9 @@ module Onetime
       OT.mode = mode unless mode.nil?
       OT.env  = ENV['RACK_ENV'] || 'production'
 
+      # Initialize boot manifest for structured progress tracking
+      manifest = BootManifest.new
+
       # Sets a unique, 64-bit hexadecimal ID for this process instance.
       @instance ||= Familia.generate_trace_id.freeze
 
@@ -49,11 +55,20 @@ module Onetime
       # of the initializers (via OT.conf).
       @conf = OT::Config.after_load(raw_conf)
 
+      manifest.checkpoint(:config_load)
+
       # NOTE: We could benefit from tsort to make sure these
       # initializers are loaded in the correct order.
       load_locales
-      configure_logging
-      setup_diagnostics
+
+      manifest.checkpoint(:logging_setup) do
+        configure_logging
+      end
+
+      manifest.checkpoint(:diagnostics_init) do
+        setup_diagnostics
+      end
+
       set_global_secret
       set_rotated_secrets
       configure_domains
@@ -62,14 +77,24 @@ module Onetime
       setup_database_logging # meant to run regardless of db connection
 
       if connect_to_db
-        detect_legacy_data_and_warn # must run before connect_databases
-        connect_databases
-        check_global_banner
+        manifest.checkpoint(:database_init) do
+          detect_legacy_data_and_warn # must run before connect_databases
+          connect_databases
+          check_global_banner
+        end
       end
 
       print_log_banner if $stdout.tty? && !mode?(:test) && !mode?(:cli)
 
       @ready = true if @ready.nil?
+
+      # Display server ready milestone
+      unless mode?(:test) || mode?(:cli)
+        OT.log_box(['Initialization complete'], width: 40)
+      end
+
+      manifest.checkpoint(:server_ready)
+      manifest.complete!
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it

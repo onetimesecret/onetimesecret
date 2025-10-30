@@ -67,10 +67,18 @@ module Onetime
               base_klass.warmup.call(built_app)
 
               # Log completion AFTER warmup finishes
-              dynamic_char_count = base_klass.name.length + base_klass.uri_prefix.to_s.length
-              Onetime.app_logger.info '╔' + ('═' * 48) + '╗'
-              Onetime.app_logger.info "║ ✅ WARMED UP #{base_klass} at #{base_klass.uri_prefix}" + (' ' * (30-dynamic_char_count)) + '║'
-              Onetime.app_logger.info '╚' + ('═' * 48) + '╝'
+              # Include [N of M] if warmup context is available
+              warmup_ctx = Thread.current[:warmup_context]
+              progress_prefix = warmup_ctx ? "[#{warmup_ctx[:current]} of #{warmup_ctx[:total]}] " : ""
+
+              # Build the message and calculate padding
+              message = " ✅ #{progress_prefix}WARMED UP #{base_klass} at #{base_klass.uri_prefix} "
+              box_width = 50
+              padding = [box_width - message.length, 0].max
+
+              Onetime.app_logger.info '╔' + ('═' * box_width) + '╗'
+              Onetime.app_logger.info '║' + message + (' ' * padding) + '║'
+              Onetime.app_logger.info '╚' + ('═' * box_width) + '╝'
             end
           end
 
