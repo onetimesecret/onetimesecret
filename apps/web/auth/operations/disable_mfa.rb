@@ -80,8 +80,8 @@ module Auth
       # Checks if MFA is enabled for this account
       # @return [Boolean]
       def mfa_enabled?
-        @otp_key_exists = @db[:account_otp_keys].where(account_id: @account_id).count > 0
-        @recovery_codes_exist = @db[:account_recovery_codes].where(account_id: @account_id).count > 0
+        @otp_key_exists = @db[:account_otp_keys].where(id: @account_id).count > 0
+        @recovery_codes_exist = @db[:account_recovery_codes].where(id: @account_id).count > 0
 
         unless @otp_key_exists || @recovery_codes_exist
           OT.auth_logger.info "ℹ️  No MFA setup found for: #{@email}"
@@ -95,7 +95,7 @@ module Auth
       def disable_otp_authentication
         return unless @otp_key_exists
 
-        @db[:account_otp_keys].where(account_id: @account_id).delete
+        @db[:account_otp_keys].where(id: @account_id).delete
         OT.auth_logger.info "✅ Removed OTP key for: #{@email}"
       end
 
@@ -103,7 +103,7 @@ module Auth
       def disable_recovery_codes
         return unless @recovery_codes_exist
 
-        codes_removed = @db[:account_recovery_codes].where(account_id: @account_id).delete
+        codes_removed = @db[:account_recovery_codes].where(id: @account_id).delete
         OT.auth_logger.info "✅ Removed #{codes_removed} recovery code(s) for: #{@email}"
       end
 
