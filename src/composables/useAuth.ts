@@ -157,7 +157,11 @@ export function useAuth() {
    * @param termsAgreed - Whether user agreed to terms (optional)
    * @returns true if account created successfully, false otherwise
    */
-  async function signup(email: string, password: string, termsAgreed: boolean = true): Promise<boolean> {
+  async function signup(
+    email: string,
+    password: string,
+    termsAgreed: boolean = true
+  ): Promise<boolean> {
     clearErrors();
 
     const result = await wrap(async () => {
@@ -251,14 +255,18 @@ export function useAuth() {
    * @param confirmPassword - Password confirmation
    * @returns true if reset successful
    */
-  async function resetPassword(key: string, newPassword: string, confirmPassword: string): Promise<boolean> {
+  async function resetPassword(
+    key: string,
+    newPassword: string,
+    confirmPassword: string
+  ): Promise<boolean> {
     clearErrors();
 
     const result = await wrap(async () => {
       const response = await $api.post<ResetPasswordResponse>(`/auth/reset-password/${key}`, {
         key,
         newp: newPassword,
-        newp2: confirmPassword,
+        'password-confirm': confirmPassword,
         shrimp: csrfStore.shrimp,
       });
 
@@ -266,7 +274,7 @@ export function useAuth() {
 
       if (isAuthError(validated)) {
         throw createError(validated.error, 'human', 'error', {
-          'field-error': validated['field-error']
+          'field-error': validated['field-error'],
         });
       }
 
@@ -326,9 +334,8 @@ export function useAuth() {
     const result = await wrap(async () => {
       const response = await $api.post<ChangePasswordResponse>('/auth/change-password', {
         password: currentPassword,
-        newp: newPassword,
-        newp2: confirmPassword,
-        shrimp: csrfStore.shrimp,
+        'new-password': newPassword, // was newp
+        'password-confirm': confirmPassword, // was newp2
       });
 
       const validated = changePasswordResponseSchema.parse(response.data);

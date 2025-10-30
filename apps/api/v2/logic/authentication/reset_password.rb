@@ -1,25 +1,25 @@
 module V2::Logic
   module Authentication
-
     using Familia::Refinements::TimeLiterals
 
     class ResetPassword < V2::Logic::Base
       include Onetime::Logging
+
       attr_reader :secret, :is_confirmed
 
       def process_params
-        @secret       = Onetime::Secret.load params[:key].to_s
-        @newp         = self.class.normalize_password(params[:newp])
-        @newp2        = self.class.normalize_password(params[:newp2])
-        @is_confirmed = Rack::Utils.secure_compare(@newp, @newp2)
+        @secret          = Onetime::Secret.load params[:key].to_s
+        @newpassword     = self.class.normalize_password(params['newpassword']) # was newp
+        @passwordconfirm = self.class.normalize_password(params['password-confirm']) # was newp2
+        @is_confirmed    = Rack::Utils.secure_compare(@newpassword, @passwordconfirm)
       end
 
       def raise_concerns
         raise OT::MissingSecret if secret.nil?
         raise OT::MissingSecret if secret.custid.to_s == 'anon'
 
-        raise_form_error 'New passwords do not match', field: 'newp2', error_type: 'mismatch' unless is_confirmed
-        raise_form_error 'New password is too short', field: 'newp', error_type: 'too_short' unless @newp.size >= 6
+        raise_form_error 'New passwords do not match', field: 'password-confirm', error_type: 'mismatch' unless is_confirmed
+        raise_form_error 'New password is too short', field: 'newpassword', error_type: 'too_short' unless @newpassword.size >= 6
       end
 
       def process
@@ -32,7 +32,7 @@ module V2::Logic
           # the password.
           secret.received!
 
-          auth_logger.warn "Invalid reset secret attempted",
+          auth_logger.warn 'Invalid reset secret attempted',
             customer_id: @cust.custid,
             email: @cust.obscure_email,
             secret_key: secret.key,
@@ -47,7 +47,7 @@ module V2::Logic
           # change the password of an account that has not been verified.
           # This is to prevent unauthorized password changes.
 
-          auth_logger.warn "Password reset attempted for unverified account",
+          auth_logger.warn 'Password reset attempted for unverified account',
             customer_id: @cust.custid,
             email: @cust.obscure_email,
             status: :pending,
@@ -57,7 +57,7 @@ module V2::Logic
         end
 
         # Update the customer's passphrase
-        @cust.update_passphrase @newp
+        @cust.update_passphrase @newpassword
 
         # Set a success message in the session
         sess.set_success_message 'Password changed'
@@ -67,7 +67,7 @@ module V2::Logic
         # don't match.
         secret.destroy!
 
-        auth_logger.info "Password successfully changed",
+        auth_logger.info 'Password successfully changed',
           customer_id: @cust.custid,
           email: @cust.obscure_email,
           ip: @strategy_result&.metadata&.dig(:ip),

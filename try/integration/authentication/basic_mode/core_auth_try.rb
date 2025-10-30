@@ -184,7 +184,7 @@ end
 
 ## Reset password with token and JSON request
 @test.post '/auth/reset-password/testtoken123',
-  { p: 'newpassword123', password_confirm: 'newpassword123' }.to_json,
+  { newpassword: 'newpassword123', password-confirm: 'newpassword123' }.to_json,
   { 'HTTP_ACCEPT' => 'application/json', 'CONTENT_TYPE' => 'application/json' }
 # Should fail validation or token not found (400/404/422)
 [400, 404, 422].include?(@test.last_response.status)

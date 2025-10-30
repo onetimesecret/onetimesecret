@@ -2,7 +2,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useAuth } from '@/composables/useAuth';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const { changePassword, isLoading, error, fieldError, clearErrors } = useAuth();
 
 const currentPassword = ref('');
@@ -68,10 +70,10 @@ const handleSubmit = async () => {
     <div class="bg-white shadow dark:bg-gray-800 sm:rounded-lg">
       <div class="px-4 py-5 sm:p-6">
         <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-          {{ $t('web.auth.change-password.title') }}
+          {{ t('web.auth.change-password.title') }}
         </h3>
         <div class="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
-          <p>{{ $t('web.COMMON.field_password') }} ({{ $t('web.COMMON.minimum_8_characters') }})</p>
+          <p>{{ t('web.COMMON.field_password') }} ({{ t('web.COMMON.minimum_8_characters') }})</p>
         </div>
 
         <form
@@ -92,7 +94,7 @@ const handleSubmit = async () => {
             <label
               for="current-password"
               class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              {{ $t('web.auth.change-password.current-password') }}
+              {{ t('web.auth.change-password.current-password') }}
             </label>
             <div class="relative mt-1">
               <input
@@ -114,7 +116,7 @@ const handleSubmit = async () => {
                 @click="toggleCurrentPasswordVisibility"
                 :disabled="isLoading"
                 class="absolute inset-y-0 right-0 flex items-center pr-3 disabled:opacity-50"
-                :aria-label="showCurrentPassword ? $t('web.COMMON.hide-password') : $t('web.COMMON.show-password')">
+                :aria-label="showCurrentPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')">
                 <svg
                   class="h-5 w-5 text-gray-400"
                   :class="{ 'hidden': showCurrentPassword, 'block': !showCurrentPassword }"
@@ -151,7 +153,7 @@ const handleSubmit = async () => {
             <label
               for="new-password"
               class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              {{ $t('web.auth.change-password.new-password') }}
+              {{ t('web.auth.change-password.new-password') }}
             </label>
             <div class="relative mt-1">
               <input
@@ -161,8 +163,8 @@ const handleSubmit = async () => {
                 autocomplete="new-password"
                 required
                 :disabled="isLoading"
-                :aria-invalid="fieldError?.[0] === 'newp' || !passwordMinLength"
-                :aria-describedby="fieldError?.[0] === 'newp' ? 'new-password-error' : undefined"
+                :aria-invalid="fieldError?.[0] === 'newpassword' || !passwordMinLength"
+                :aria-describedby="fieldError?.[0] === 'newpassword' ? 'new-password-error' : undefined"
                 class="block w-full rounded-md border-gray-300 pr-10 shadow-sm
                        focus:border-brand-500 focus:ring-brand-500
                        disabled:opacity-50 disabled:cursor-not-allowed
@@ -173,7 +175,7 @@ const handleSubmit = async () => {
                 @click="toggleNewPasswordVisibility"
                 :disabled="isLoading"
                 class="absolute inset-y-0 right-0 flex items-center pr-3 disabled:opacity-50"
-                :aria-label="showNewPassword ? $t('web.COMMON.hide-password') : $t('web.COMMON.show-password')">
+                :aria-label="showNewPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')">
                 <svg
                   class="h-5 w-5 text-gray-400"
                   :class="{ 'hidden': showNewPassword, 'block': !showNewPassword }"
@@ -197,7 +199,7 @@ const handleSubmit = async () => {
               </button>
             </div>
             <p
-              v-if="fieldError?.[0] === 'newp'"
+              v-if="fieldError?.[0] === 'newpassword'"
               id="new-password-error"
               role="alert"
               class="mt-2 text-sm text-red-600 dark:text-red-400">
@@ -206,7 +208,7 @@ const handleSubmit = async () => {
             <p
               v-else-if="newPassword && !passwordMinLength"
               class="mt-2 text-sm text-red-600 dark:text-red-400">
-              {{ $t('web.COMMON.minimum_8_characters') }}
+              {{ t('web.COMMON.minimum_8_characters') }}
             </p>
           </div>
 
@@ -215,7 +217,7 @@ const handleSubmit = async () => {
             <label
               for="confirm-password"
               class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              {{ $t('web.auth.change-password.confirm-password') }}
+              {{ t('web.auth.change-password.confirm-password') }}
             </label>
             <div class="relative mt-1">
               <input
@@ -225,8 +227,8 @@ const handleSubmit = async () => {
                 autocomplete="new-password"
                 required
                 :disabled="isLoading"
-                :aria-invalid="fieldError?.[0] === 'newp2' || !passwordsMatch"
-                :aria-describedby="fieldError?.[0] === 'newp2' ? 'confirm-password-error' : undefined"
+                :aria-invalid="fieldError?.[0] === 'password-confirm' || !passwordsMatch"
+                :aria-describedby="fieldError?.[0] === 'password-confirm' ? 'confirm-password-error' : undefined"
                 class="block w-full rounded-md border-gray-300 pr-10 shadow-sm
                        focus:border-brand-500 focus:ring-brand-500
                        disabled:opacity-50 disabled:cursor-not-allowed
@@ -237,7 +239,7 @@ const handleSubmit = async () => {
                 @click="toggleConfirmPasswordVisibility"
                 :disabled="isLoading"
                 class="absolute inset-y-0 right-0 flex items-center pr-3 disabled:opacity-50"
-                :aria-label="showConfirmPassword ? $t('web.COMMON.hide-password') : $t('web.COMMON.show-password')">
+                :aria-label="showConfirmPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')">
                 <svg
                   class="h-5 w-5 text-gray-400"
                   :class="{ 'hidden': showConfirmPassword, 'block': !showConfirmPassword }"
@@ -261,7 +263,7 @@ const handleSubmit = async () => {
               </button>
             </div>
             <p
-              v-if="fieldError?.[0] === 'newp2'"
+              v-if="fieldError?.[0] === 'password-confirm'"
               id="confirm-password-error"
               role="alert"
               class="mt-2 text-sm text-red-600 dark:text-red-400">
@@ -270,7 +272,7 @@ const handleSubmit = async () => {
             <p
               v-else-if="confirmPassword && !passwordsMatch"
               class="mt-2 text-sm text-red-600 dark:text-red-400">
-              {{ $t('web.COMMON.passwords_do_not_match') }}
+              {{ t('web.COMMON.passwords_do_not_match') }}
             </p>
           </div>
 
@@ -285,8 +287,8 @@ const handleSubmit = async () => {
                      focus:ring-brand-500 focus:ring-offset-2
                      disabled:opacity-50 disabled:cursor-not-allowed
                      dark:bg-brand-600 dark:hover:bg-brand-700">
-              <span v-if="isLoading">{{ $t('web.COMMON.processing') }}</span>
-              <span v-else>{{ $t('web.auth.change-password.title') }}</span>
+              <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
+              <span v-else>{{ t('web.auth.change-password.title') }}</span>
             </button>
           </div>
         </form>

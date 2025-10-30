@@ -77,8 +77,8 @@ OT.boot! :test, true
 @reset_params = {
   key: @secret.key,
   v: @secret.verification,
-  newp: 'newpass123',
-  newp2: 'newpass123'
+  newpassword: 'newpass123',
+  'password-confirm': 'newpass123'
 }
 @strategy_result_with_cust = MockStrategyResult.new(session: @session, user: @cust)
 @reset = Logic::Authentication::ResetPassword.new @strategy_result_with_cust, @reset_params

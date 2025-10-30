@@ -3,9 +3,9 @@ module V2::Logic
     class UpdatePassword < UpdateAccountField
       def process_params
         OT.ld "[UpdatePassword#process_params] params: #{params.inspect}"
-        @currentp = self.class.normalize_password(params[:currentp])
-        @newp     = self.class.normalize_password(params[:newp])
-        @newp2    = self.class.normalize_password(params[:newp2])
+        @password        = self.class.normalize_password(params[:password]) # was currentp
+        @newpassword     = self.class.normalize_password(params[:newpassword]) # was newp
+        @passwordconfirm = self.class.normalize_password(params['password-confirm']) # was newp2
       end
 
       def success_data
@@ -19,20 +19,20 @@ module V2::Logic
       end
 
       def field_specific_concerns
-        return if @currentp.empty?
+        return if @password.empty?
 
-        raise_form_error 'Current password is incorrect', field: 'currentp', error_type: 'incorrect' unless cust.passphrase?(@currentp)
-        raise_form_error 'New password cannot be the same as current password', field: 'newp', error_type: 'same_as_current' if @newp == @currentp
-        raise_form_error 'New password is too short', field: 'newp', error_type: 'too_short' unless @newp.size >= 6
-        raise_form_error 'New passwords do not match', field: 'newp2', error_type: 'mismatch' unless @newp == @newp2
+        raise_form_error 'Current password is incorrect', field: 'password', error_type: 'incorrect' unless cust.passphrase?(@password)
+        raise_form_error 'New password cannot be the same as current password', field: 'newpassword', error_type: 'same_as_current' if @newpassword == @password
+        raise_form_error 'New password is too short', field: 'newpassword', error_type: 'too_short' unless @newpassword.size >= 6
+        raise_form_error 'New passwords do not match', field: 'passwordconfirm', error_type: 'mismatch' unless @newpassword == @passwordconfirm
       end
 
       def valid_update?
-        cust.passphrase?(@currentp) && @newp == @newp2
+        cust.passphrase?(@password) && @newpassword == @passwordconfirm
       end
 
       def perform_update
-        cust.update_passphrase! @newp
+        cust.update_passphrase! @newpassword
       end
     end
   end
