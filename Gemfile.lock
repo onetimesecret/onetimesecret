@@ -39,6 +39,15 @@ GIT
       sequel (~> 5.0)
 
 GIT
+  remote: https://github.com/onetimesecret/rhales
+  revision: 2f87b49680ab3cc22a2b4cb10c727bd0ccc0baf6
+  specs:
+    rhales (0.5.3)
+      json_schemer (~> 2.3)
+      logger
+      tilt (~> 2)
+
+GIT
   remote: https://github.com/rspec/rspec
   revision: ce23a3ad7c8a418259eaddd46785476218adfc1b
   specs:
@@ -79,14 +88,6 @@ GIT
   glob: rspec-support/rspec-support.gemspec
   specs:
     rspec-support (4.0.0.pre)
-
-PATH
-  remote: ../rhales
-  specs:
-    rhales (0.5.3)
-      json_schemer (~> 2.3)
-      logger
-      tilt (~> 2)
 
 GEM
   remote: https://rubygems.org/

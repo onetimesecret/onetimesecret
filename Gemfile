@@ -3,13 +3,10 @@
 
 #
 # Recommended: Ruby 3.4+
-#
-# status: normal maintenance
-# release date: 2024-12-25
-# normal maintenance until: TBD
-# end of life: 2028ish
-#
-# We support versions of Ruby that are still in normal maintenance.
+#   status: normal maintenance
+#   release date: 2024-12-25
+#   normal maintenance until: TBD
+#   end of life: 2028ish
 #
 ruby '>= 3.4'
 
