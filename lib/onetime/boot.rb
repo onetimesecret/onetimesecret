@@ -53,16 +53,16 @@ module Onetime
 
       # Normalize the configuration and make it available to the rest
       # of the initializers (via OT.conf).
+      manifest.checkpoint(:config_load)
       @conf = OT::Config.after_load(raw_conf)
 
-      manifest.checkpoint(:config_load)
 
       # NOTE: We could benefit from tsort to make sure these
       # initializers are loaded in the correct order.
       load_locales
 
-      configure_logging
       manifest.checkpoint(:logging_setup)
+      configure_logging
       manifest.logger = Onetime.boot_logger
 
       manifest.checkpoint(:diagnostics_init) do

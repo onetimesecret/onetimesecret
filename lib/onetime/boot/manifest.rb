@@ -1,32 +1,29 @@
-# frozen_string_literal: true
-
 # lib/onetime/boot/manifest.rb
 #
 # Boot::Manifest provides structured, numbered progress tracking for the
 # application boot sequence. It outputs logs in the format:
 #   [N/M] Step description
 #
-# This creates a "systemd-like" boot receipt that helps quickly identify
-# which phase of initialization succeeded or failed.
+# Checkpoints are numbered in the order they're called, not by predefined order.
 #
 module Onetime
   module Boot
     class Manifest
       attr_writer :logger
 
-      # Boot sequence steps in execution order
-      # Note: App discovery/registration/warmup happens in config.ru, not boot!
-      STEPS = [
-        [:logging_setup,    'Configuring logging system'],
-        [:diagnostics_init, 'Initializing diagnostics'],
-        [:config_load,      'Loading configuration'],
-        [:database_init,    'Initializing database connections'],
-        [:server_ready,     'Server ready']
-      ].freeze
+      # Boot sequence step descriptions
+      # Order here is just for documentation - actual numbering is by call order
+      STEPS = {
+        logging_setup:    'Configuring logging system',
+        diagnostics_init: 'Initializing diagnostics',
+        config_load:      'Loading configuration',
+        database_init:    'Initializing database connections',
+        server_ready:     'Initialization complete'
+      }.freeze
 
       def initialize(logger = nil)
         @logger = logger
-        @completed = []
+        @current_step = 0
         @total = STEPS.size
         @start_time = Time.now
       end
@@ -37,20 +34,16 @@ module Onetime
       # @yield Optional block to execute for this step
       # @return [Object] The result of the block, or nil
       def checkpoint(step_key)
-        index = STEPS.index { |s| s.first == step_key }
-        return unless index
+        step_name = STEPS[step_key]
+        return unless step_name
 
-        step_name = STEPS[index].last
+        @current_step += 1
         step_start = Time.now
-
-        _logger("[#{index + 1}/#{@total}] #{step_name}")
+        _logger("[#{@current_step}/#{@total}] #{step_name}")
 
         result = yield if block_given?
 
-        @completed << step_key
         elapsed = ((Time.now - step_start) * 1000).round(1)
-
-        # Log timing for steps that took longer than 100ms
         if elapsed > 100 && @logger
           @logger.debug "Completed #{step_name} in #{elapsed}ms"
         end
