@@ -28,6 +28,7 @@ on:
       - main
       - develop
       - feature/*
+      - rel/*
   workflow_dispatch:
     inputs:
       debug_enabled:
@@ -39,6 +40,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     timeout-minutes: 10 # prevent hung jobs
@@ -49,7 +54,6 @@ jobs:
       fail-fast: true
       matrix:
         ruby: ['3.4']
-        continue-on-error: [true]
 
     steps:
       - name: Checkout code
@@ -67,12 +71,39 @@ jobs:
           detached: true
 
       - name: Install dependencies
-        continue-on-error: ${{ matrix.continue-on-error }}
         run: |
           bundle config path vendor/bundle
           bundle install --jobs 4 --retry 3
 
       - name: Run Rubocop
-        continue-on-error: ${{ matrix.continue-on-error }}
+        id: rubocop
         run: |
-          bundle exec rubocop --config .rubocop.yml --format json --fail-level warning
+          mkdir -p tmp
+          bundle exec rubocop --config .rubocop.yml \
+            --format progress \
+            --format json --out tmp/rubocop_results.json \
+            --fail-level warning || echo "RUBOCOP_FAILED=true" >> $GITHUB_ENV
+
+      - name: Upload Rubocop results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rubocop-results
+          path: tmp/rubocop_results.json
+          retention-days: 7
+
+      - name: Generate job summary
+        if: always()
+        run: |
+          echo "## Ruby Lint Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f tmp/rubocop_results.json ]; then
+            total=$(jq '.summary.offense_count' tmp/rubocop_results.json)
+            files=$(jq '.summary.target_file_count' tmp/rubocop_results.json)
+            echo "- Total offenses: $total" >> $GITHUB_STEP_SUMMARY
+            echo "- Files inspected: $files" >> $GITHUB_STEP_SUMMARY
+            if [ "$RUBOCOP_FAILED" = "true" ]; then
+              echo "⚠️ Rubocop found issues that need attention" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "✅ All files pass linting" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi

@@ -67,10 +67,10 @@ module Onetime
               base_klass.warmup.call(built_app)
 
               # Log completion AFTER warmup finishes
-              dynamic_char_count = base_klass.name.length + base_klass.uri_prefix.to_s.length
-              Onetime.app_logger.info '╔' + ('═' * 48) + '╗'
-              Onetime.app_logger.info "║ ✅ WARMED UP #{base_klass} at #{base_klass.uri_prefix}" + (' ' * (32-dynamic_char_count)) + '║'
-              Onetime.app_logger.info '╚' + ('═' * 48) + '╝'
+              message = "WARMED UP #{base_klass} at #{base_klass.uri_prefix}"
+
+              # Use log_box helper for consistent formatting
+              Onetime.log_box([message], logger_method: :boot_logger)
             end
           end
 

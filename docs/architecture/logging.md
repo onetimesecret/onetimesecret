@@ -132,20 +132,11 @@ sequel_logger.debug "database query"
 
 ### Category Inference
 
-The `Onetime::Logging` mixin automatically infers categories from class names using pattern matching:
+The `Onetime::Logging` mixin automatically infers categories from class names using pattern matching. For example, classes with "Authentication" or "Auth" in the name use the `Auth` category, while classes with "Session" use the `Session` category. All others fall back to the `App` category.
 
-- Classes with "Authentication" or "Auth" → `Auth` category
-- Classes with "Session" → `Session` category
-- Classes with "HTTP", "Request", "Response", or "Controller" → `HTTP` category
-- Classes with "Familia" → `Familia` category
-- Classes with "Otto" → `Otto` category
-- Classes with "Secret" or "Metadata" → `Secret` category
-- Classes with "Sequel" → `Sequel` category
-- All others → `App` category (default)
+See `lib/onetime/logging.rb` for the pattern matching logic.
 
-See `lib/onetime/logging.rb` for the complete implementation.
-
-### Configuration
+## Configuration
 
 Log levels for each category are configured in `etc/defaults/logging.defaults.yaml` under the `loggers` section. Each category can have its own level (debug, info, warn, error).
 
@@ -157,7 +148,90 @@ DEBUG_SEQUEL=1 bundle exec puma   # Set Sequel logger to debug
 
 The configuration supports setting default levels and per-category levels. See `lib/onetime/initializers/semantic_logger.rb` for the configuration loading implementation.
 
-## SemanticLogger::Loggable Reference
+## Understanding Log Output
+
+### Log Format Anatomy
+
+SemanticLogger uses a structured format that includes timing, process, thread, and context information:
+
+```
+2025-10-29 22:12:37.241473 I [56716:2288] App -- [middleware] ViteProxy: Using frontend proxy
+     ^timestamp          ^level ^thread_tag  ^category  ^message
+```
+
+**Timestamp**: Microsecond precision (`YYYY-MM-DD HH:MM:SS.microseconds`)
+**Level**: `D` (debug), `I` (info), `W` (warn), `E` (error), `F` (fatal)
+**Thread Tag**: Identifies the execution context (see below)
+**Category**: Strategic logger category (`App`, `Auth`, `HTTP`, etc.)
+**Message**: The actual log message with optional structured data
+
+### Thread Tags Explained
+
+The thread tag format varies depending on execution context:
+
+#### During Application Startup
+```
+[56716:2288] Boot -- [1/8] Loading configuration
+  PID   TID
+```
+- **PID**: Process ID of the main Puma process
+- **TID**: Main thread ID during initialization
+- **Context**: Executing boot.rb, config.ru, initializers
+
+#### During Request Handling
+```
+[49356:puma srv tp 001] Rhales -- Unescaped variable usage
+  PID   thread_pool_name  thread_number
+```
+- **PID**: Process ID of Puma worker
+- **puma srv tp**: "Puma server thread pool" identifier
+- **Thread number**: Which thread in the pool (`001`, `002`, etc.)
+- **Context**: Handling HTTP requests in worker threads
+
+**Why this matters:**
+- **Multi-process debugging**: Identify which Puma worker encountered an error
+- **Thread safety**: Track if issues are isolated to specific threads
+- **Performance analysis**: Detect thread pool saturation or uneven load distribution
+- **Request tracing**: Follow a request's journey through the thread pool
+
+**Example timeline:**
+```
+[56716:2288] Boot  -- [1/5] Loading configuration        ← Startup, main thread
+[56716:2288] App   -- DomainStrategy initialized         ← Startup, main thread
+[56716:puma srv tp 001] HTTP -- GET /api/v2/status      ← Request, worker thread 1
+[56716:puma srv tp 002] Auth -- Login attempt           ← Request, worker thread 2
+[56716:puma srv tp 001] HTTP -- 200 OK (15ms)           ← Same request, same thread
+```
+
+### SemanticLogger Reference
+
+Official docs: https://logger.rocketjob.io/appenders.html#custom-formatting
+
+Quick reference from SemanticLogger source:
+
+%c  # Class/category name
+%C  # Class name (without module)
+%d  # Date (ISO8601 format)
+%e  # Exception with backtrace
+%f  # File name
+%l  # Log level (DEBUG, INFO, etc.)
+%L  # Line number
+%m  # Message
+%M  # Method name
+%p  # Process ID
+%P  # Process name
+%t  # Thread name
+%T  # Time (milliseconds since epoch)
+%h  # Hostname
+%X{key}  # Named tag value
+
+```bash
+# Or in code:
+bundle open semantic_logger
+# Look at: lib/semantic_logger/formatters/default.rb
+```
+
+### SemanticLogger::Loggable Reference
 
 For completeness, here's how SemanticLogger::Loggable works (we don't use this):
 
@@ -177,13 +251,3 @@ MyClass.new.logger     # Instance-level logger
 - Non-core utilities that don't fit strategic categories
 
 **For core application code:** Always use `Onetime::Logging`
-
-## Architecture Benefits
-
-1. **Operational Visibility** - Business-aligned log organization
-2. **Cached Instances** - Level settings preserved, reduced memory
-3. **Thread-Local Override** - Dynamic category switching per request
-4. **Category-Specific Accessors** - Explicit `auth_logger.info` when needed
-5. **Automatic Inference** - `logger.info` works without manual wiring
-
-This architecture is specifically designed for a Familia/Redis-based Ruby application with complex authentication flows and operational monitoring requirements.

@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
+import FancyIcon from '@/components/ctas/FancyIcon.vue';
 import { Customer } from '@/schemas/models';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -284,13 +285,7 @@ onUnmounted(() => {
               dark:hover:bg-brand-900/20"
             @click="closeMenu"
             role="menuitem">
-            <OIcon
-              collection="heroicons"
-              name="bolt-solid"
-              class="size-5 text-brand-500 transition-colors
-                group-hover:text-brand-600 dark:text-brand-400
-                dark:group-hover:text-brand-300"
-              aria-hidden="true" />
+            <FancyIcon />
             {{ t('web.LABELS.pricing') }}
           </router-link>
 

@@ -42,7 +42,7 @@ module Onetime
         @application_context = application_context
         site_config          = OT.conf&.dig('site') || {}
         self.class.initialize_from_config(site_config)
-        app_logger.info 'DomainStrategy initialized',
+        boot_logger.info 'DomainStrategy initialized',
           app_context: @application_context,
           canonical_domain: canonical_domain
       end

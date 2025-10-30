@@ -1,4 +1,6 @@
-# frozen_string_literal: true
+# lib/onetime/logging.rb
+
+require 'reline' # stdlib
 
 module Onetime
   # Category-aware logging support for Onetime classes and modules.
@@ -45,50 +47,110 @@ module Onetime
 
       # During early boot before Initializers is extended, get_logger won't exist yet
       # Fall back to uncached logger for early logging, switch to cached after boot
-      if Onetime.respond_to?(:get_logger)
-        Onetime.get_logger(category)
-      else
-        SemanticLogger[category]
+      Onetime.get_logger(category)
+    end
+
+    # Access a cached logger instance by name
+    # Returns the pre-configured logger with the correct level set
+    #
+    # @param name [String, Symbol] Logger category name
+    # @return [SemanticLogger::Logger] Cached logger instance
+    #
+    def get_logger(name)
+      @cached_loggers ||= {}
+      @cached_loggers[name.to_s] ||= SemanticLogger[name.to_s]
+    end
+
+    # Box drawing helper for formatted log output.
+    #
+    # Creates visually distinct boxed messages using Unicode box-drawing characters.
+    # Automatically handles line width calculations and padding for clean alignment.
+    #
+    # @param lines [Array<String>] Lines to display in the box (excluding border)
+    # @param width [Integer] Total internal width of the box (default: 56)
+    # @param logger_method [Symbol] Logger method to use (:li, :ld, :lw, :le)
+    #
+    # @example Simple box
+    #   Onetime.log_box(['Hello, world!'])
+    #   # ╔════════════════════════════════════════════════════════╗
+    #   # ║ Hello, world!                                          ║
+    #   # ╚════════════════════════════════════════════════════════╝
+    #
+    # @example Multi-line with custom width
+    #   Onetime.log_box([
+    #     '✅ DATABASE: Connected 7 models to Redis',
+    #     '   Location: redis:6379/0'
+    #   ], width: 58)
+    #
+    # @example Different log levels
+    #   Onetime.log_box(['⚠️  Warning message'], logger_method: :lw)
+    #   Onetime.log_box(['Debug info'], logger_method: :ld)
+    #
+    def log_box(lines, width: 52, logger_method: :boot_logger, level: :info)
+      # Box drawing characters
+      top_left     = '╭'  # or: ┏ ┌ ┍ ┎ ┱ ┲ ╒ ╓ ╭ ╔
+      top_right    = '╮'  # or: ┓ ┐ ┑ ┒ ┳ ┴ ╕ ╖ ╮ ╗
+      bottom_left  = '╰'  # or: ┗ └ ┕ ┖ ┹ ┺ ╘ ╙ ╰ ╚
+      bottom_right = '╯'  # or: ┛ ┘ ┙ ┚ ┻ ┼ ╛ ╜ ╯ ╝
+      horizontal   = '─'  # or: ─ ━ ┄ ┅ ┈ ┉ ╌ ╍ ═ ═
+      vertical     = '│'  # or: │ ┃ ┆ ┇ ┊ ┋ ╎ ╏ ║ ║
+
+      # Build the box
+      top_border = top_left + (horizontal * width) + top_right
+      bottom_border = bottom_left + (horizontal * width) + bottom_right
+      lager = send(logger_method)
+
+      # Output the box (note: no protection against overly long lines)
+      lager.send(level, top_border)
+      lines.each do
+        padding = width - Reline::Unicode.calculate_width(it) - 2
+        padding = 0 if padding.negative?
+        lager.send(level, "#{vertical} #{it}#{' ' * (padding)} #{vertical}")
       end
+      lager.send(level, bottom_border)
     end
 
     # Category-specific logger accessors for explicit context
     # Uses cached logger instances from Onetime::Initializers to preserve level settings
     # Falls back to uncached loggers during early boot before get_logger is available
     def app_logger
-      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('App') : SemanticLogger['App']
+      Onetime.get_logger('App')
+    end
+
+    def boot_logger
+      Onetime.get_logger('Boot')
     end
 
     def auth_logger
-      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Auth') : SemanticLogger['Auth']
+      Onetime.get_logger('Auth')
     end
 
     def familia_logger
-      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Familia') : SemanticLogger['Familia']
+      Onetime.get_logger('Familia')
     end
 
     def http_logger
-      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('HTTP') : SemanticLogger['HTTP']
+      Onetime.get_logger('HTTP')
     end
 
     def otto_logger
-      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Otto') : SemanticLogger['Otto']
+      Onetime.get_logger('Otto')
     end
 
     def rhales_logger
-      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Rhales') : SemanticLogger['Rhales']
+      Onetime.get_logger('Rhales')
     end
 
     def secret_logger
-      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Secret') : SemanticLogger['Secret']
+      Onetime.get_logger('Secret')
     end
 
     def session_logger
-      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Session') : SemanticLogger['Session']
+      Onetime.get_logger('Session')
     end
 
     def sequel_logger
-      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Sequel') : SemanticLogger['Sequel']
+      Onetime.get_logger('Sequel')
     end
 
     # Execute block with a specific log category via thread-local variable.

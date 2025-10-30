@@ -42,5 +42,6 @@
 <meta http-equiv="expires" content="-1">
 {{/if}}
 
+<!-- Vite-generated asset links (intentionally unescaped HTML) -->
 {{{vite_assets_html}}}
 </template>

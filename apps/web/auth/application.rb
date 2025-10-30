@@ -50,9 +50,7 @@ module Auth
         Auth::Migrator.run_if_needed
         # Onetime.auth_logger.warn "Calling Sequel::Migrator.run is disabled."
 
-        Onetime.auth_logger.debug 'Database migrations have run'
-
-        Onetime.auth_logger.info 'Auth application initialized (advanced mode)'
+        Onetime.auth_logger.debug 'Auth application initialized (advanced mode)'
       else
         Onetime.auth_logger.error 'Auth application mounted in basic mode - this is a configuration error. ' \
                                   'The Auth app is designed for advanced mode only. In basic mode, authentication ' \

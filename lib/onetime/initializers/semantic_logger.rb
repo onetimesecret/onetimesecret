@@ -56,17 +56,6 @@ module Onetime
       Onetime.ld "[Logging] Initialized SemanticLogger (level: #{SemanticLogger.default_level})"
     end
 
-    # Access a cached logger instance by name
-    # Returns the pre-configured logger with the correct level set
-    #
-    # @param name [String, Symbol] Logger category name
-    # @return [SemanticLogger::Logger] Cached logger instance
-    #
-    def get_logger(name)
-      @cached_loggers ||= {}
-      @cached_loggers[name.to_s] ||= SemanticLogger[name.to_s]
-    end
-
     private
 
     def load_logging_config
@@ -131,6 +120,7 @@ module Onetime
       apply_quick_debug_flag('HTTP',    ENV['DEBUG_HTTP'])
       apply_quick_debug_flag('Secret',  ENV['DEBUG_SECRET'])
       apply_quick_debug_flag('Sequel',  ENV['DEBUG_SEQUEL'])
+      apply_quick_debug_flag('Rhales',  ENV['DEBUG_RHALES'])
       apply_quick_debug_flag('App',     ENV['DEBUG_APP'])
 
       # For external library logging levels, use DEBUG_LOGGERS instead:
@@ -187,7 +177,7 @@ module Onetime
       Otto.logger = SemanticLogger['Otto']
 
       # Rhales manifold
-      Rhales.logger = SemanticLogger['Rhales']
+      # Rhales.logger = SemanticLogger['Rhales']
       # Rhales.logger.level = :fatal
 
       # NOTE: Database logger is configured per-connection in

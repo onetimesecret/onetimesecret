@@ -1,7 +1,7 @@
 # lib/middleware/logging.rb
 #
 # Provides standardized logging for middleware components.
-# Uses SemanticLogger when available (Onetime context), falls back to stdlib Logger.
+# Uses SemanticLogger when available, falls back to stdlib Logger.
 #
 # Usage:
 #   class MyMiddleware
@@ -24,35 +24,11 @@ module Middleware
 
     def initialize_logger
       if defined?(SemanticLogger)
-        category = infer_category
-        # Use cached logger if available (after boot), otherwise uncached
-        if Onetime.respond_to?(:get_logger)
-          Onetime.get_logger(category)
-        else
-          SemanticLogger[category]
-        end
+        category = self.class.name
+        SemanticLogger[category]
       else
         require 'logger'
         Logger.new($stdout)
-      end
-    end
-
-    # Infer SemanticLogger category from middleware class name
-    # Maps middleware purpose to strategic logging categories
-    def infer_category
-      class_name = self.class.name.split('::').last
-
-      case class_name
-      when /Session/
-        'Session'
-      when /Auth/
-        'Auth'
-      when /Security/, /CSRF/, /IPPrivacy/
-        'HTTP'
-      when /DetectHost/, /RequestId/, /HandleInvalid/, /HeaderLogger/
-        'HTTP'
-      else
-        'App'
       end
     end
   end

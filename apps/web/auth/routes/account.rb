@@ -14,7 +14,7 @@ module Auth
             account = rodauth.account
 
             # Check if MFA features are enabled before calling methods
-            mfa_enabled = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
+            mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
             recovery_codes_count = if rodauth.respond_to?(:recovery_codes_available)
               rodauth.recovery_codes_available
             else
@@ -51,7 +51,7 @@ module Auth
               next { error: 'Authentication required' }
             end
 
-            account = rodauth.account_from_session
+            rodauth.account_from_session
 
             # Check if MFA features are enabled
             enabled = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
@@ -59,8 +59,8 @@ module Auth
             # Get last_use timestamp from account_otp_keys table if MFA is enabled
             last_used_at = nil
             if enabled
-              otp_record = rodauth.db[:account_otp_keys]
-                .where(account_id: rodauth.account_id)
+              otp_record   = rodauth.db[:account_otp_keys]
+                .where(id: rodauth.account_id)
                 .first
               last_used_at = otp_record[:last_use]&.iso8601 if otp_record
             end
@@ -76,7 +76,7 @@ module Auth
             {
               enabled: enabled,
               last_used_at: last_used_at,
-              recovery_codes_remaining: recovery_codes_remaining
+              recovery_codes_remaining: recovery_codes_remaining,
             }
           rescue StandardError => ex
             puts "Error: #{ex.class} - #{ex.message}"
@@ -96,7 +96,7 @@ module Auth
             account = rodauth.account_from_session
 
             # Check if MFA features are enabled before calling methods
-            mfa_enabled = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
+            mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
             recovery_codes_count = if rodauth.respond_to?(:recovery_codes_available)
               rodauth.recovery_codes_available
             else

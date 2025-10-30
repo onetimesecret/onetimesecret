@@ -44,6 +44,7 @@ formatter: color
 loggers:
   App: info       # Default application logger
   Auth: info      # Authentication/authorization flows
+  Boot: info      # During intiaialization
   Familia: warn   # Redis/Familia ORM operations
   HTTP: warn      # HTTP requests and middleware operations
   Otto: warn      # Otto framework operations

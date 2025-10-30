@@ -53,10 +53,6 @@ Layout/SpaceAroundEqualsInParameterDefault:
 Layout/SpaceAroundOperators:
   Enabled: false
 
-# Use parentheses around a logical expression if it makes easier to read.
-Style/RedundantParentheses:
-  Enabled: false
-
 Lint/UnusedMethodArgument:
   Enabled: true
 
@@ -74,18 +70,22 @@ Lint/DuplicateBranch:
 Metrics/PerceivedComplexity:
   Max: 20
 
+# When true: Use match? instead of =~ when MatchData is not used. True is preferred but not for autocorrection. Regexs are too picky. Need to manually check every time.
+Performance/RegexpMatch:
+  Enabled: false
+
 # Offense count: 186
 # Configuration parameters: AllowedConstants.
 Style/Documentation:
   Enabled: false
 
+# Use parentheses around a logical expression if it makes easier to read.
+Style/RedundantParentheses:
+  Enabled: false
+
 Style/RescueStandardError:
   Enabled: true
   EnforcedStyle: explicit
-
-# When true: Use match? instead of =~ when MatchData is not used. True is preferred but not for autocorrection. Regexs are too picky. Need to manually check every time.
-Performance/RegexpMatch:
-  Enabled: false
 
 Style/TrailingCommaInHashLiteral:
   Enabled: true
@@ -131,6 +131,10 @@ Style/GuardClause:
   MinBodyLength: 3
   AllowConsecutiveConditionals: false
 
+Style/Lambda:
+  Enabled: true
+  EnforcedStyle: literal
+
 Style/SymbolArray:
   EnforcedStyle: brackets
   Enabled: true
@@ -141,14 +145,14 @@ Style/StringLiteralsInInterpolation:
 Style/BlockDelimiters:
   Enabled: true
 
-Naming/PredicateMethod:
-  Enabled: false
-
 # We use class instance variables quite a bit, mostly for readonly values set
 # at boot time. Except for our models with have redis-rb Redis instances
 # connected on their associated db via ModelClass.dbclient. We're well aware
 # so keeping this disabled reduces warning noise.
 ThreadSafety/ClassInstanceVariable:
+  Enabled: false
+
+Naming/PredicateMethod:
   Enabled: false
 
 Naming/RescuedExceptionsVariableName:

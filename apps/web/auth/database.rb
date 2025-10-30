@@ -7,6 +7,8 @@ require_relative 'migrator'
 
 module Auth
   module Database
+    extend Onetime::Logging
+
     def self.connection
       # Only create database connection in advanced mode
       # Basic mode operates without SQL database dependencies
@@ -29,7 +31,7 @@ module Auth
     # end
 
     def self.create_connection
-      $stdout.puts '[Database] Creating Auth database connection'
+      sequel_logger.info '[Database] Creating Auth database connection'
 
       # Get database URL from auth config or environment
       database_url = Onetime.auth_config.database_url ||

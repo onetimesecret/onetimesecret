@@ -366,6 +366,7 @@ module Onetime
     end
 
     # Convenience methods for environment checking
+
     def production?(&)
       in_environment?(%w[prod production], &)
     end
