@@ -59,7 +59,7 @@ onMounted(async () => {
           <div class="flex items-center gap-3">
             <OIcon
               collection="heroicons"
-              name="user-circle-solid"
+              name="user-solid"
               class="size-5 text-gray-500 dark:text-gray-400"
               aria-hidden="true" />
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -117,7 +117,7 @@ onMounted(async () => {
               class="mr-2 size-5 animate-spin text-gray-400"
               aria-hidden="true" />
             <span class="text-sm text-gray-600 dark:text-gray-400">
-              {{ t('loading') }}
+              {{ t('loading_ellipses') }}
             </span>
           </div>
         </div>

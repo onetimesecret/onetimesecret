@@ -104,7 +104,7 @@ onMounted(async () => {
             <div class="flex items-center gap-3">
               <OIcon
                 collection="heroicons"
-                name="code-bracket-solid"
+                name="code-bracket"
                 class="size-5 text-gray-400 dark:text-gray-500"
                 aria-hidden="true" />
               <div>

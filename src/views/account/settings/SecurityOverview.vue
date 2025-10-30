@@ -38,7 +38,7 @@ const securityLevel = computed(() => {
   const score = securityScore.value;
   if (score >= 90) return { label: t('web.settings.security.excellent'), color: 'green' };
   if (score >= 70) return { label: t('web.settings.security.good'), color: 'blue' };
-  if (score >= 50) return { label: t('web.settings.security.fair'), color: 'yellow' };
+  if (score >= 25) return { label: t('web.settings.security.fair'), color: 'yellow' };
   return { label: t('web.settings.security.weak'), color: 'red' };
 });
 
@@ -138,7 +138,7 @@ onMounted(async () => {
   <SettingsLayout>
     <div class="space-y-8">
     <!-- Security Score Card -->
-    <div
+    <div v-if="false"
       class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
       <div class="flex items-start justify-between">
         <div>
@@ -262,7 +262,7 @@ onMounted(async () => {
       <h2 class="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
         <OIcon
           collection="heroicons"
-          name="light-bulb-solid"
+          name="light-bulb"
           class="size-5 text-yellow-500"
           aria-hidden="true" />
         {{ t('web.settings.security.best-practices') }}

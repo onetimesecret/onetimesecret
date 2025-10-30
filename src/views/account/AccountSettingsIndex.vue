@@ -70,7 +70,7 @@ const sections = computed(() => {
     },
     {
       id: 'profile',
-      icon: { collection: 'heroicons', name: 'user-circle-solid' },
+      icon: { collection: 'heroicons', name: 'user-solid' },
       title: 'web.settings.profile',
       description: 'web.settings.profile_settings_description',
       items: [

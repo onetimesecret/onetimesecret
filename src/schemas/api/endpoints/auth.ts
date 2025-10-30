@@ -110,8 +110,8 @@ export const sessionSchema = z.object({
   id: z.string(),
   created_at: z.string(),
   last_activity_at: z.string(),
-  ip_address: z.string().optional(),
-  user_agent: z.string().optional(),
+  ip_address: z.string().nullable(),
+  user_agent: z.string().nullable(),
   is_current: z.boolean(),
   remember_enabled: z.boolean(),
 });

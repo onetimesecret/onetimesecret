@@ -38,10 +38,10 @@ onMounted(async () => {
   <div>
     <div class="mb-6">
       <h1 class="text-3xl font-bold dark:text-white">
-        {{ $t('web.auth.sessions.title') }}
+        {{ t('web.auth.sessions.title') }}
       </h1>
       <p class="mt-2 text-gray-600 dark:text-gray-400">
-        {{ $t('web.auth.sessions.title') }} -
+        {{ t('web.auth.sessions.title') }} -
         {{ sessions.length }} {{ sessions.length === 1 ? 'session' : 'sessions' }}
       </p>
     </div>
@@ -68,7 +68,7 @@ onMounted(async () => {
       <!-- Current session -->
       <div v-if="currentSession">
         <h2 class="mb-3 text-lg font-semibold dark:text-white">
-          {{ $t('web.auth.sessions.current') }}
+          {{ t('web.auth.sessions.current') }}
         </h2>
         <SessionListItem
           :session="currentSession"
@@ -81,7 +81,7 @@ onMounted(async () => {
       <div v-if="otherSessions.length > 0">
         <div class="mb-3 flex items-center justify-between">
           <h2 class="text-lg font-semibold dark:text-white">
-            {{ $t('web.auth.sessions.other') }}
+            {{ t('web.auth.sessions.other') }}
           </h2>
           <button
             @click="showRemoveAllConfirm = true"
@@ -89,7 +89,7 @@ onMounted(async () => {
             class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700 dark:hover:bg-red-800"
           >
             <i class="fas fa-sign-out-alt mr-2"></i>
-            {{ $t('web.auth.sessions.remove-all') }}
+            {{ t('web.auth.sessions.remove-all') }}
           </button>
         </div>
         <div class="space-y-3">
@@ -110,7 +110,7 @@ onMounted(async () => {
       >
         <i class="fas fa-check-circle mb-2 text-3xl text-green-500"></i>
         <p class="text-gray-600 dark:text-gray-400">
-          {{ $t('web.auth.sessions.no-sessions') }}
+          {{ t('web.auth.sessions.no-sessions') }}
         </p>
       </div>
 
@@ -133,16 +133,16 @@ onMounted(async () => {
         class="mx-4 max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
         role="dialog"
         aria-modal="true"
-        :aria-labelledby="$t('web.auth.sessions.remove-all')"
+        :aria-labelledby="t('web.auth.sessions.remove-all')"
       >
         <div class="mb-4 flex items-center">
           <i class="fas fa-exclamation-triangle mr-3 text-2xl text-yellow-500"></i>
           <h3 class="text-lg font-semibold dark:text-white">
-            {{ $t('web.auth.sessions.remove-all') }}
+            {{ t('web.auth.sessions.remove-all') }}
           </h3>
         </div>
         <p class="mb-6 text-gray-600 dark:text-gray-400">
-          {{ $t('web.auth.sessions.confirm-remove-all') }}
+          {{ t('web.auth.sessions.confirm-remove-all') }}
         </p>
         <div class="flex justify-end gap-3">
           <button
@@ -157,7 +157,7 @@ onMounted(async () => {
             type="button"
             class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
-            {{ $t('web.auth.sessions.remove-all') }}
+            {{ t('web.auth.sessions.remove-all') }}
           </button>
         </div>
       </div>

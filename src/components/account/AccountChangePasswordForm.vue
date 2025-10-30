@@ -40,7 +40,7 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
                required
                tabindex="0"
                autocomplete="current-password"
-               :aria-label="$t('web.account.changePassword.currentPassword')"
+               :aria-label="t('web.account.changePassword.currentPassword')"
                aria-labelledby="currentPasswordLabel"
                class="mt-1 block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
         <button type="button"

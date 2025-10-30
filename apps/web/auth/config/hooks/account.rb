@@ -22,6 +22,7 @@ module Auth::Config::Hooks
           level: :info,
           email: email
         ) unless is_valid
+
         is_valid
       end
 

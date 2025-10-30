@@ -22,7 +22,7 @@ const navigationSections = computed<NavigationItem[]>(() => {
   const sections: NavigationItem[] = [
     {
       to: '/account/settings/profile',
-      icon: { collection: 'heroicons', name: 'user-circle-solid' },
+      icon: { collection: 'heroicons', name: 'user-solid' },
       label: t('web.settings.profile'),
       description: t('web.settings.profile_settings_description'),
     },
@@ -56,7 +56,7 @@ const navigationSections = computed<NavigationItem[]>(() => {
     },
     {
       to: '/account/settings/api',
-      icon: { collection: 'heroicons', name: 'code-bracket-solid' },
+      icon: { collection: 'heroicons', name: 'code-bracket' },
       label: t('api-key'),
       description: t('web.settings.api.manage_api_keys'),
     },
