@@ -2,8 +2,10 @@
 #
 # CLI command for running the web server (Puma or Thin)
 #
+# Supply options or a config file path but not both.
+#
 # Usage:
-#   ots server [options]
+#   ots server [options] [configpath]
 #
 # Options:
 #   -s, --server TYPE       Server type: puma or thin (default: puma)
@@ -13,35 +15,57 @@
 #   -w, --workers COUNT     Number of workers for Puma (default: 0)
 #   -b, --bind ADDRESS      Bind address for Thin (default: 0.0.0.0)
 #
+# @see https://github.com/puma/puma/blob/v7.1.0/lib/rack/handler/puma.rb
+# @see https://github.com/macournoyer/thin/blob/v2.0.1/lib/thin/rackup/handler.rb
+#
 
 require 'rackup'
 
 module Onetime
   class ServerCommand < Onetime::CLI::DelayBoot
     def server
-      server_type = option.server || 'puma'
-      port = option.port || 7143
-      env = option.environment || 'development'
+      config_file = argv.first
+      has_options = option.port || option.threads || option.workers || option.bind
 
-      app, _ = Rack::Builder.parse_file('config.ru')
+      if config_file && has_options
+        Onetime.app_logger.error('Cannot specify both a config file and command-line options')
+        exit 1
+      end
+
+      server_type = option.server || 'puma'
+      port        = option.port || 7143
+      env         = option.environment || 'development'
+
+      app, = Rack::Builder.parse_file('config.ru')
 
       config = {
-          app: app,
-          Host: option.bind || '0.0.0.0',
-          Port: port,
-          environment: env
-        }
+        app: app,
+        environment: env,
+        Host: option.bind || '0.0.0.0',
+        Port: port,
+      }
 
-        case server_type.downcase
-        when 'puma'
-          threads = parse_threads(option.threads || '2:4')
-          config.merge!(
-            Threads: "#{threads[:min]}:#{threads[:max]}",
-            workers: option.workers || 0
-          )
-        end
+      case [config_file, server_type]
 
-        Rackup::Handler.get(server_type).run(config[:app], **config)
+      in String, _
+        config.merge!(config_files: config_file)
+
+      in nil, 'puma'
+        threads = parse_threads(option.threads || '2:4')
+        config.merge!(
+          Threads: "#{threads[:min]}:#{threads[:max]}",
+          Workers: option.workers || 0,
+        )
+
+      in nil, 'thin'
+        # Thin does not support threads or workers
+      end
+
+      # We remove app from the logged config to avoid cluttering the log
+      loggable_config = config.reject { |k, _| k == :app }.inspect
+      Onetime.app_logger.info("Starting #{server_type} with config: #{loggable_config}")
+
+      Rackup::Handler.get(server_type).run(config[:app], **config)
     end
 
     private
@@ -49,20 +73,6 @@ module Onetime
     def parse_threads(threads_str)
       min, max = threads_str.split(':').map(&:to_i)
       { min: min, max: max }
-    end
-
-    def log_startup(server, port, env)
-      puts
-      puts "→ #{server.capitalize} server"
-      puts "  #{env} environment"
-      puts "  http://#{option.bind || '0.0.0.0'}:#{port}"
-      if server == 'puma'
-        threads = parse_threads(option.threads || '2:4')
-        puts "  #{threads[:min]}-#{threads[:max]} threads per worker"
-        workers = option.workers || 0
-        puts "  #{workers} #{'worker'.pluralize(workers)}" if workers > 0
-      end
-      puts
     end
   end
 end
