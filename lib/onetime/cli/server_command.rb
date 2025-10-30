@@ -63,7 +63,7 @@ module Onetime
 
       # We remove app from the logged config to avoid cluttering the log
       loggable_config = config.reject { |k, _| k == :app }.inspect
-      Onetime.app_logger.info("Starting #{server_type} with config: #{loggable_config}")
+      Onetime.app_logger.debug("Starting #{server_type} with config: #{loggable_config}")
 
       Rackup::Handler.get(server_type).run(config[:app], **config)
     end

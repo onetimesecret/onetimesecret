@@ -56,7 +56,6 @@ module Onetime
       manifest.checkpoint(:config_load)
       @conf = OT::Config.after_load(raw_conf)
 
-
       # NOTE: We could benefit from tsort to make sure these
       # initializers are loaded in the correct order.
       load_locales
@@ -88,12 +87,6 @@ module Onetime
 
       @ready = true if @ready.nil?
 
-      # Display server ready milestone
-      unless mode?(:test) || mode?(:cli)
-        OT.log_box(['Initialization complete'])
-      end
-
-      manifest.checkpoint(:server_ready)
       manifest.complete!
 
       # Let's be clear about returning the prepared configruation. Previously
@@ -129,7 +122,7 @@ module Onetime
       OT.le "Cannot connect to the database #{Familia.uri} (#{ex.class})"
       raise ex unless mode?(:cli)
     rescue StandardError => ex
-      OT.le "Unexpected error", exception: ex
+      OT.le 'Unexpected error', exception: ex
       raise ex unless mode?(:cli)
     end
 
