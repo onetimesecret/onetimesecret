@@ -63,7 +63,9 @@ module Auth
 
         start_time = Onetime.now_in_μs
 
+        Onetime.auth_logger.debug 'Database migrations starting'
         run_migrations
+        Onetime.auth_logger.debug 'Database migrations have run'
 
         elapsed_μs = Onetime.now_in_μs - start_time
 
