@@ -142,7 +142,7 @@ module Auth
     # @return [SemanticLogger] Logger for Auth category
     def logger
       # Use cached logger if available (after boot), otherwise uncached
-      Onetime.respond_to?(:get_logger) ? Onetime.get_logger('Auth') : SemanticLogger['Auth']
+      Onetime.get_logger('Auth') || SemanticLogger[self.name]
     end
   end
 end

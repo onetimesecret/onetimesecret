@@ -56,17 +56,6 @@ module Onetime
       Onetime.ld "[Logging] Initialized SemanticLogger (level: #{SemanticLogger.default_level})"
     end
 
-    # Access a cached logger instance by name
-    # Returns the pre-configured logger with the correct level set
-    #
-    # @param name [String, Symbol] Logger category name
-    # @return [SemanticLogger::Logger] Cached logger instance
-    #
-    def get_logger(name)
-      @cached_loggers ||= {}
-      @cached_loggers[name.to_s] ||= SemanticLogger[name.to_s]
-    end
-
     private
 
     def load_logging_config
