@@ -80,7 +80,7 @@ module Onetime
     #   Onetime.log_box([
     #     '✅ DATABASE: Connected 7 models to Redis',
     #     '   Location: redis:6379/0'
-    #   ], width: 58)
+    #   ])
     #
     # @example Different log levels
     #   Onetime.log_box(['⚠️  Warning message'], logger_method: :lw)
