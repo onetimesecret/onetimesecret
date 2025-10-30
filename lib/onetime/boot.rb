@@ -32,7 +32,7 @@ module Onetime
       OT.env  = ENV['RACK_ENV'] || 'production'
 
       # Initialize boot manifest for structured progress tracking
-      manifest = BootManifest.new
+      manifest = Boot::Manifest.new
 
       # Sets a unique, 64-bit hexadecimal ID for this process instance.
       @instance ||= Familia.generate_trace_id.freeze
@@ -61,9 +61,9 @@ module Onetime
       # initializers are loaded in the correct order.
       load_locales
 
-      manifest.checkpoint(:logging_setup) do
-        configure_logging
-      end
+      configure_logging
+      manifest.checkpoint(:logging_setup)
+      manifest.logger = Onetime.boot_logger
 
       manifest.checkpoint(:diagnostics_init) do
         setup_diagnostics
@@ -90,7 +90,7 @@ module Onetime
 
       # Display server ready milestone
       unless mode?(:test) || mode?(:cli)
-        OT.log_box(['Initialization complete'], width: 40)
+        OT.log_box(['Initialization complete'])
       end
 
       manifest.checkpoint(:server_ready)
