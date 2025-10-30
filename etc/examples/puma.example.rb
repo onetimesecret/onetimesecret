@@ -37,7 +37,9 @@ if _worker_count.positive?
     # Sequel::DATABASES.each(&:disconnect) if defined?(Sequel)
   end
 
-  on_worker_boot do
+  # On Puma 6, use the 'on_worker_boot' hook here instead. Head's
+  # up it is deprecated in Puma 7 and will be removed in v8.
+  before_worker_boot do
     # Reconnect in each worker (auto-reconnects for Familia)
     # DB.reconnect if defined?(DB)
   end
