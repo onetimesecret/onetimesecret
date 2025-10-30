@@ -32,11 +32,11 @@ module Onetime
       redis_info   = Familia.dbclient.info
       colonels     = site_config.dig('authentication', 'colonels') || []
 
+      # Header banner
+      OT.boot_logger.info "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
+
       # Create a buffer to collect all output
       output = []
-
-      # Header banner
-      output << "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
       output << ''
 
       # Add each section to output

@@ -72,6 +72,7 @@ module Onetime
       set_rotated_secrets
       configure_domains
       configure_truemail
+      configure_rhales
       load_fortunes
       setup_database_logging # meant to run regardless of db connection
 

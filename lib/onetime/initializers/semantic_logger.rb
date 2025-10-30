@@ -120,6 +120,7 @@ module Onetime
       apply_quick_debug_flag('HTTP',    ENV['DEBUG_HTTP'])
       apply_quick_debug_flag('Secret',  ENV['DEBUG_SECRET'])
       apply_quick_debug_flag('Sequel',  ENV['DEBUG_SEQUEL'])
+      apply_quick_debug_flag('Rhales',  ENV['DEBUG_RHALES'])
       apply_quick_debug_flag('App',     ENV['DEBUG_APP'])
 
       # For external library logging levels, use DEBUG_LOGGERS instead:
@@ -176,7 +177,7 @@ module Onetime
       Otto.logger = SemanticLogger['Otto']
 
       # Rhales manifold
-      Rhales.logger = SemanticLogger['Rhales']
+      # Rhales.logger = SemanticLogger['Rhales']
       # Rhales.logger.level = :fatal
 
       # NOTE: Database logger is configured per-connection in
