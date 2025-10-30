@@ -1,30 +1,27 @@
-# lib/onetime/initializers/connect_databases.rb
+# lib/onetime/initializers/setup_connection_pool.rb
 
 require 'connection_pool'
 
 module Onetime
   module Initializers
-    # Configures Familia with connection pooling for all models.
+    # Sets up a ConnectionPool for Redis/Valkey database connections.
     #
-    # Sets up a ConnectionPool that Familia uses for all database
-    # operations across models in DB 0.
+    # Configures Familia with thread-safe connection pooling for all
+    # database operations. Must run after configure_familia_uri sets
+    # Familia.uri.
     #
     # @example
-    #   connect_databases
+    #   setup_connection_pool
     #
     # @return [void]
     #
-    def connect_databases
-      uri = OT.conf.dig('redis', 'uri')
+    def setup_connection_pool
+      # Note: Familia.uri is already configured by configure_familia_uri initializer
+      # which runs before this method. We use it here for connection pooling.
+      uri = Familia.uri
 
       OT.ld "[init] Connect database: uri: #{uri}"
       OT.ld "[init] Connect database: models: #{Familia.members.map(&:to_s)}"
-
-      # Early validation: Check if Redis URI is properly configured
-      if uri.nil? || uri.empty? || uri.include?('CHANGEME')
-        OT.le "[init] Current URI: #{uri || '<nil>'}"
-        raise Onetime::Problem, "Redis URI not configured (#{uri})"
-      end
 
       # Validate that models have been loaded
       if Familia.members.empty?
@@ -51,10 +48,9 @@ module Onetime
                  )
       end
 
-      # Configure Familia
+      # Configure Familia connection provider and transaction settings
+      # Note: config.uri is already set by configure_familia_uri initializer
       Familia.configure do |config|
-        config.uri = uri
-
         # Provider pattern: Familia calls this lambda to get connections
         # Returns pooled connection, pool.with handles checkout/checkin automatically
         # Reconnection handled at pool + Redis level prevents "idle connection death"
