@@ -1,0 +1,42 @@
+<template>
+  <!-- Character encoding and viewport -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Security headers -->
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
+
+  <!-- CSRF Token for forms and AJAX requests -->
+  <meta name="csrf-token" content="{{app.csrf_token}}">
+
+  <!-- SEO and page metadata -->
+  <link nonce="{{app.nonce}}" rel="canonical" href="{{canonical_url}}">
+  <title>{{page_title}}</title>
+  <meta name="description" content="{{description}}">
+
+  <!-- PWA and app metadata -->
+  <link nonce="{{app.nonce}}" rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#dc4a22" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="{{page_title}}">
+  <meta name="application-name" content="{{page_title}}">
+
+  <!-- Modern favicon strategy -->
+  <link nonce="{{app.nonce}}" rel="icon" href="/favicon.ico" sizes="32x32">
+  <link nonce="{{app.nonce}}" rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+  <link nonce="{{app.nonce}}" rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link nonce="{{app.nonce}}" rel="mask-icon" href="/safari-pinned-tab.svg" color="#dc4a22">
+
+  {{#if no_cache}}
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="-1">
+  {{/if}}
+
+  <!-- Vite-generated asset links (intentionally unescaped HTML) -->
+  {{{vite_assets_html}}}
+</template>
