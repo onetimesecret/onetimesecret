@@ -49,7 +49,7 @@ when 'production'
   # Cluster mode: multiple worker processes for production
   workers _worker_count
   preload_app!
-  nakayoshi_fork true
+  # nakayoshi_fork was removed in Puma 6.0 - use fork_worker instead if needed
 
   # pidfile 'tmp/pids/server.pid'
   # state_path 'tmp/pids/puma.state'
