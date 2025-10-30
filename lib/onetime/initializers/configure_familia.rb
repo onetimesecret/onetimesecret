@@ -14,12 +14,12 @@ module Onetime
     #
     # @return [void]
     #
-    def configure_familia_uri
+    def configure_familia
       uri = OT.conf.dig('redis', 'uri')
 
       # Early validation: Check if Redis URI is properly configured
       if uri.nil? || uri.empty? || uri.include?('CHANGEME')
-        OT.le "[init] Configure Familia URI: Invalid URI: #{uri || '<nil>'}"
+        OT.boot_logger.info "[init] Configure Familia URI: Invalid URI: #{uri || '<nil>'}"
         raise Onetime::Problem, "Redis URI not configured (#{uri})"
       end
 
@@ -27,7 +27,7 @@ module Onetime
       # during legacy data detection and other pre-connection operations
       Familia.uri = uri
 
-      OT.ld "[init] Configure Familia URI: #{uri}"
+      OT.boot_logger.debug "[init] Configure Familia URI: #{uri}"
     end
   end
 end

@@ -78,7 +78,7 @@ module Onetime
 
       if connect_to_db
         manifest.checkpoint(:database_init) do
-          configure_familia_uri         # must run before detect_legacy_data_and_warn
+          configure_familia             # must run before detect_legacy_data_and_warn
           detect_legacy_data_and_warn   # must run before setup_connection_pool
           setup_connection_pool
           check_global_banner
