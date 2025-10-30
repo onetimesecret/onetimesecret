@@ -106,13 +106,13 @@ module Onetime
           if Onetime.auth_config.mode == 'basic'
             filepaths.reject! { |f| f.include?('web/auth/') }
 
-            # Onetime.app_logger.info '╔' + ('═' * 58) + '╗'
-            Onetime.app_logger.info '║ 🔐 AUTH MODE: Basic (Core handles /auth/*)' + (' ' * 12) + '║'
-            # Onetime.app_logger.info '╚' + ('═' * 58) + '╝'
+            Onetime.log_box(
+              ['AUTH MODE: Basic (Core handles /auth/*)'],
+            )
           else
-            Onetime.app_logger.info '╔' + ('═' * 58) + '╗'
-            Onetime.app_logger.info '║ 🔐 AUTH MODE: Advanced (Rodauth enabled)' + (' ' * 15) + '║'
-            Onetime.app_logger.info '╚' + ('═' * 58) + '╝'
+            Onetime.log_box(
+              ['AUTH MODE: Advanced (Rodauth enabled)'],
+            )
           end
 
           Onetime.app_logger.info "[registry] Scan found #{filepaths.size} application(s)"
@@ -123,12 +123,17 @@ module Onetime
             begin
               require f
             rescue LoadError => ex
-              Onetime.app_logger.info "\n\n"
-              Onetime.app_logger.info '╔' + ('═' * 58) + '╗'
-              Onetime.app_logger.info '║ ❌ APPLICATION LOAD FAILED' + (' ' * 31) + '║'
-              Onetime.app_logger.info "║    >> #{pretty_path} <<" + (' ' * (55 - pretty_path.to_s.length - 7)) + '║'
-              Onetime.app_logger.info '╚' + ('═' * 58) + '╝'
-              Onetime.app_logger.info "\n"
+              Onetime.app_logger.info "
+"
+              Onetime.log_box(
+                [
+                  '❌ APPLICATION LOAD FAILED',
+                  "   >> #{pretty_path} <<"
+                ],
+                level: :error
+              )
+              Onetime.app_logger.info "
+"
               raise ex
             end
           end
@@ -146,7 +151,7 @@ module Onetime
               raise ArgumentError, "Mount point must be a string (#{app_class} gave #{mount.class})"
             end
 
-            Onetime.app_logger.info " [#{idx + 1} of #{application_classes.size}] Registering #{app_class} at #{mount}"
+            Onetime.app_logger.debug " [#{idx + 1} of #{application_classes.size}] Registering #{app_class} at #{mount}"
 
             register(mount, app_class)
           end

@@ -1,4 +1,6 @@
-# frozen_string_literal: true
+# lib/onetime/logging.rb
+
+require 'reline' # stdlib
 
 module Onetime
   # Category-aware logging support for Onetime classes and modules.
@@ -84,7 +86,7 @@ module Onetime
     #   Onetime.log_box(['⚠️  Warning message'], logger_method: :lw)
     #   Onetime.log_box(['Debug info'], logger_method: :ld)
     #
-    def log_box(lines, width: 56, logger_method: :li)
+    def log_box(lines, width: 52, logger_method: :boot_logger, level: :info)
       # Box drawing characters
       top_left     = '╭'  # or: ┏ ┌ ┍ ┎ ┱ ┲ ╒ ╓ ╭ ╔
       top_right    = '╮'  # or: ┓ ┐ ┑ ┒ ┳ ┴ ╕ ╖ ╮ ╗
@@ -93,24 +95,19 @@ module Onetime
       horizontal   = '─'  # or: ─ ━ ┄ ┅ ┈ ┉ ╌ ╍ ═ ═
       vertical     = '│'  # or: │ ┃ ┆ ┇ ┊ ┋ ╎ ╏ ║ ║
 
-      # Calculate visible width (accounting for multi-byte characters like emojis)
-      visible_width = ->(str) do
-        # Simple heuristic: count emojis and special Unicode as 2 chars visually
-        emoji_count = str.scan(/[\u{1F300}-\u{1F9FF}]|[✅❌⚠️]/).length
-        str.length - (emoji_count*2-1)
-      end
-
       # Build the box
       top_border = top_left + (horizontal * width) + top_right
       bottom_border = bottom_left + (horizontal * width) + bottom_right
+      lager = send(logger_method)
 
-      # Output the box
-      send(logger_method, top_border)
-      lines.each do |line|
-        padding = width - visible_width.call(line)
-        send(logger_method, "#{vertical} #{line}#{' ' * padding}#{vertical}")
+      # Output the box (note: no protection against overly long lines)
+      lager.send(level, top_border)
+      lines.each do
+        padding = width - Reline::Unicode.calculate_width(it) - 2
+        padding = 0 if padding.negative?
+        lager.send(level, "#{vertical} #{it}#{' ' * (padding)} #{vertical}")
       end
-      send(logger_method, bottom_border)
+      lager.send(level, bottom_border)
     end
 
     # Category-specific logger accessors for explicit context
@@ -118,6 +115,10 @@ module Onetime
     # Falls back to uncached loggers during early boot before get_logger is available
     def app_logger
       Onetime.get_logger('App')
+    end
+
+    def boot_logger
+      Onetime.get_logger('Boot')
     end
 
     def auth_logger
