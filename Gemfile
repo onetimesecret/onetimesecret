@@ -27,7 +27,7 @@ gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
 
 # Web server and middleware
-gem 'puma', '~> 6.6'
+gem 'puma', '>= 6.0', '< 8.0'
 gem 'rack', '>= 3.2', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
 gem 'rack-protection', '~> 4.1'
@@ -50,7 +50,6 @@ gem 'mail'
 gem 'mustache'
 gem 'public_suffix'
 gem 'tilt'
-gem 'tty-table', '~> 0.12'
 
 # HTTP client
 gem 'httparty'
