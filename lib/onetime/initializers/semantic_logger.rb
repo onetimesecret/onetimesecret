@@ -91,15 +91,24 @@ module Onetime
     # This must be called AFTER setting individual logger levels from YAML
     def apply_logger_level_overrides
       # Environment variable precedence for individual loggers:
-      # 1. DEBUG_LOGGERS - fine-grained per-logger control
-      # 2. DEBUG_* - individual quick flags per category
+      # 1. DEBUG_* - individual quick flags per category
+      # 2. DEBUG_LOGGERS - fine-grained per-logger control (highest precedence)
       #
-      # These WILL override YAML config for specified loggers
+      # These WILL override YAML config for specified loggers.
 
-      # Step 1: Parse DEBUG_LOGGERS for fine-grained control
+      # Step 1: Apply quick debug flags for individual categories first.
+      # These provide a convenient way to enable debug logging for a component.
+      apply_quick_debug_flag('Auth',    ENV['DEBUG_AUTH'])
+      apply_quick_debug_flag('Session', ENV['DEBUG_SESSION'])
+      apply_quick_debug_flag('HTTP',    ENV['DEBUG_HTTP'])
+      apply_quick_debug_flag('Secret',  ENV['DEBUG_SECRET'])
+      apply_quick_debug_flag('Sequel',  ENV['DEBUG_SEQUEL'])
+      apply_quick_debug_flag('Rhales',  ENV['DEBUG_RHALES'])
+      apply_quick_debug_flag('App',     ENV['DEBUG_APP'])
+
+      # Step 2: Parse DEBUG_LOGGERS for fine-grained control.
+      # This has the highest precedence and will override any previous setting.
       # Format: "Auth:debug,Secret:trace,Familia:warn" or "Auth=debug,Secret=trace"
-      # Supports both : and = as separators
-      # This DOES override YAML config for specified loggers
       if ENV['DEBUG_LOGGERS']
         ENV['DEBUG_LOGGERS'].split(',').each do |spec|
           # Support both : and = separators
@@ -111,17 +120,6 @@ module Onetime
           cached_logger.level = level.to_sym
         end
       end
-
-      # Step 2: Quick debug flags for individual categories
-      # These ALSO override YAML config for convenience
-      # External libraries (Familia, Otto) use their own debug flags
-      apply_quick_debug_flag('Auth',    ENV['DEBUG_AUTH'])
-      apply_quick_debug_flag('Session', ENV['DEBUG_SESSION'])
-      apply_quick_debug_flag('HTTP',    ENV['DEBUG_HTTP'])
-      apply_quick_debug_flag('Secret',  ENV['DEBUG_SECRET'])
-      apply_quick_debug_flag('Sequel',  ENV['DEBUG_SEQUEL'])
-      apply_quick_debug_flag('Rhales',  ENV['DEBUG_RHALES'])
-      apply_quick_debug_flag('App',     ENV['DEBUG_APP'])
 
       # For external library logging levels, use DEBUG_LOGGERS instead:
       # DEBUG_LOGGERS=Familia:debug,Otto:trace,Rhales:warn

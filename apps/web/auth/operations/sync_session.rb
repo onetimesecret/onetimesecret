@@ -220,8 +220,8 @@ module Auth
       # @return [String] The idempotency key
       def idempotency_key
         @idempotency_key ||= begin
-          # Use session ID if available, otherwise use a stable identifier
-          session_id = @session['session_id'] || @session.id rescue 'nosession'
+          # Use session ID if available, otherwise generate unique ID to prevent collisions
+          session_id = @session['session_id'] || (@session.id rescue SecureRandom.hex(16))
 
           # Use 5-minute time window to allow re-sync after timeout
           timestamp_window = (Familia.now.to_i / IDEMPOTENCY_TTL).to_i

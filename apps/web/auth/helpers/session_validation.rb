@@ -10,10 +10,10 @@ module Auth
         # Example for database-stored sessions:
         db           = Auth::Database.connection
         session_data = db[:account_active_session_keys]
-          .join(:accounts, id: :id)
+          .join(:accounts, id: :account_id)
           .where(session_id: token)
           .select(
-            :id,
+            :account_id,
             :accounts__email,
             :accounts__created_at,
             :created_at___session_created_at,
