@@ -70,7 +70,7 @@ module Onetime
               message = "WARMED UP #{base_klass} at #{base_klass.uri_prefix}"
 
               # Use log_box helper for consistent formatting
-              Onetime.log_box([message], width: 56, logger_method: :boot_logger)
+              Onetime.log_box([message], logger_method: :boot_logger)
             end
           end
 
