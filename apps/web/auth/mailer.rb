@@ -61,8 +61,45 @@ module Auth
             body    email[:body]
           end
 
-          mail.delivery_method :smtp, smtp_settings
-          mail.deliver!
+          settings = smtp_settings
+          has_auth = settings.key?(:user_name) && settings.key?(:password)
+
+          # Log SMTP connection attempt
+          Onetime.get_logger('Auth').debug 'SMTP delivery attempt',
+            host: settings[:address],
+            port: settings[:port],
+            tls: settings[:enable_starttls_auto],
+            authentication: has_auth ? settings[:authentication] : 'none',
+            to: email[:to]
+
+          mail.delivery_method :smtp, settings
+
+          begin
+            mail.deliver!
+            Onetime.get_logger('Auth').debug 'SMTP delivery successful',
+              host: settings[:address],
+              port: settings[:port],
+              authentication_used: has_auth
+          rescue Net::SMTPAuthenticationError => ex
+            # Server doesn't support authentication or rejected credentials
+            # Common with development SMTP servers like Mailpit that don't require auth
+            Onetime.get_logger('Auth').info 'SMTP authentication failed, retrying without auth',
+              host: settings[:address],
+              port: settings[:port],
+              error_message: ex.message,
+              original_auth_method: settings[:authentication],
+              fallback_strategy: 'remove_authentication'
+
+            # Retry with authentication disabled
+            settings_no_auth = settings.reject { |k, _v| [:user_name, :password, :authentication].include?(k) }
+            mail.delivery_method :smtp, settings_no_auth
+            mail.deliver!
+
+            Onetime.get_logger('Auth').info 'SMTP delivery successful without authentication',
+              host: settings[:address],
+              port: settings[:port],
+              note: 'Server does not support or require authentication'
+          end
 
           log_delivery(email, 'sent', 'SMTP')
         rescue StandardError => ex
