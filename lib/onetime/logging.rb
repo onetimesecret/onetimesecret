@@ -59,6 +59,60 @@ module Onetime
       @cached_loggers[name.to_s] ||= SemanticLogger[name.to_s]
     end
 
+    # Box drawing helper for formatted log output.
+    #
+    # Creates visually distinct boxed messages using Unicode box-drawing characters.
+    # Automatically handles line width calculations and padding for clean alignment.
+    #
+    # @param lines [Array<String>] Lines to display in the box (excluding border)
+    # @param width [Integer] Total internal width of the box (default: 56)
+    # @param logger_method [Symbol] Logger method to use (:li, :ld, :lw, :le)
+    #
+    # @example Simple box
+    #   Onetime.log_box(['Hello, world!'])
+    #   # ╔════════════════════════════════════════════════════════╗
+    #   # ║ Hello, world!                                          ║
+    #   # ╚════════════════════════════════════════════════════════╝
+    #
+    # @example Multi-line with custom width
+    #   Onetime.log_box([
+    #     '✅ DATABASE: Connected 7 models to Redis',
+    #     '   Location: redis:6379/0'
+    #   ], width: 58)
+    #
+    # @example Different log levels
+    #   Onetime.log_box(['⚠️  Warning message'], logger_method: :lw)
+    #   Onetime.log_box(['Debug info'], logger_method: :ld)
+    #
+    def log_box(lines, width: 56, logger_method: :li)
+      # Box drawing characters
+      top_left     = '╭'  # or: ┏ ┌ ┍ ┎ ┱ ┲ ╒ ╓ ╭ ╔
+      top_right    = '╮'  # or: ┓ ┐ ┑ ┒ ┳ ┴ ╕ ╖ ╮ ╗
+      bottom_left  = '╰'  # or: ┗ └ ┕ ┖ ┹ ┺ ╘ ╙ ╰ ╚
+      bottom_right = '╯'  # or: ┛ ┘ ┙ ┚ ┻ ┼ ╛ ╜ ╯ ╝
+      horizontal   = '─'  # or: ─ ━ ┄ ┅ ┈ ┉ ╌ ╍ ═ ═
+      vertical     = '│'  # or: │ ┃ ┆ ┇ ┊ ┋ ╎ ╏ ║ ║
+
+      # Calculate visible width (accounting for multi-byte characters like emojis)
+      visible_width = ->(str) do
+        # Simple heuristic: count emojis and special Unicode as 2 chars visually
+        emoji_count = str.scan(/[\u{1F300}-\u{1F9FF}]|[✅❌⚠️]/).length
+        str.length - (emoji_count*2-1)
+      end
+
+      # Build the box
+      top_border = top_left + (horizontal * width) + top_right
+      bottom_border = bottom_left + (horizontal * width) + bottom_right
+
+      # Output the box
+      send(logger_method, top_border)
+      lines.each do |line|
+        padding = width - visible_width.call(line)
+        send(logger_method, "#{vertical} #{line}#{' ' * padding}#{vertical}")
+      end
+      send(logger_method, bottom_border)
+    end
+
     # Category-specific logger accessors for explicit context
     # Uses cached logger instances from Onetime::Initializers to preserve level settings
     # Falls back to uncached loggers during early boot before get_logger is available

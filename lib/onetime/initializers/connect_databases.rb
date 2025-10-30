@@ -34,12 +34,12 @@ module Onetime
       # Create connection pool - manages Redis connections for thread safety
       pool_size    = ENV.fetch('FAMILIA_POOL_SIZE', 25).to_i
       pool_timeout = ENV.fetch('FAMILIA_POOL_TIMEOUT', 5).to_i
+      parsed_uri = Familia.normalize_uri(uri)
 
       # Belt-and-suspenders reconnection resilience:
       # 1. ConnectionPool retries checkout once on connection errors
       # 2. Redis driver retries once with minimal delay for stale connections
       OT.database_pool = ConnectionPool.new(size: pool_size, timeout: pool_timeout, reconnect_attempts: 1) do
-        parsed_uri = Familia.normalize_uri(uri)
         Redis.new(parsed_uri.conf.merge(
           reconnect_attempts: [
             0.05, # 50ms delay before first retry
@@ -70,6 +70,17 @@ module Onetime
       ping_result = OT.database_pool.with { |conn| conn.ping }
       OT.ld "[init] Connected #{Familia.members.size} models to DB 0 via connection pool " \
             "(size: #{pool_size}, timeout: #{pool_timeout}s) - #{ping_result}"
+
+      # Display database connection milestone
+      model_count = Familia.members.size
+      db_host = parsed_uri.conf[:host] || 'localhost'
+      db_port = parsed_uri.conf[:port] || 6379
+      db_info = "#{db_host}:#{db_port}/#{parsed_uri.conf[:db] || 0}"
+
+      OT.log_box([
+        "✅ DATABASE: Connected #{model_count} models to Redis",
+        "   Location: #{db_info}"
+      ], width: 58)
 
       # Optional: Single migration flag for entire DB 0
       dbkey      = Familia.join(%w[ots migration_needed db_0])
