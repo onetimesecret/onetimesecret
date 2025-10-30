@@ -153,7 +153,7 @@
               :alt="logoConfig.alt" />
             <span
               v-if="logoConfig.showSiteName"
-              class="text-lg font-bold text-gray-800 dark:text-gray-100">
+              class="text-lg font-bold font-brand leading-tight">
               {{ logoConfig.siteName }}
             </span>
           </a>
