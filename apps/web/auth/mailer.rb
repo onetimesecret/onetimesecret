@@ -54,51 +54,15 @@ module Auth
         def deliver(email)
           require 'mail'
 
-          mail = Mail.new do
-            to      email[:to]
-            from    email[:from]
-            subject email[:subject]
-            body    email[:body]
-          end
-
+          mail = build_mail_message(email)
           settings = smtp_settings
-          has_auth = settings.key?(:user_name) && settings.key?(:password)
 
-          # Log SMTP connection attempt
-          Onetime.get_logger('Auth').debug 'SMTP delivery attempt',
-            host: settings[:address],
-            port: settings[:port],
-            tls: settings[:enable_starttls_auto],
-            authentication: has_auth ? settings[:authentication] : 'none',
-            to: email[:to]
-
-          mail.delivery_method :smtp, settings
+          log_smtp_attempt(settings, email[:to])
 
           begin
-            mail.deliver!
-            Onetime.get_logger('Auth').debug 'SMTP delivery successful',
-              host: settings[:address],
-              port: settings[:port],
-              authentication_used: has_auth
+            deliver_with_settings(mail, settings)
           rescue Net::SMTPAuthenticationError => ex
-            # Server doesn't support authentication or rejected credentials
-            # Common with development SMTP servers like Mailpit that don't require auth
-            Onetime.get_logger('Auth').info 'SMTP authentication failed, retrying without auth',
-              host: settings[:address],
-              port: settings[:port],
-              error_message: ex.message,
-              original_auth_method: settings[:authentication],
-              fallback_strategy: 'remove_authentication'
-
-            # Retry with authentication disabled
-            settings_no_auth = settings.reject { |k, _v| [:user_name, :password, :authentication].include?(k) }
-            mail.delivery_method :smtp, settings_no_auth
-            mail.deliver!
-
-            Onetime.get_logger('Auth').info 'SMTP delivery successful without authentication',
-              host: settings[:address],
-              port: settings[:port],
-              note: 'Server does not support or require authentication'
+            handle_auth_failure(mail, settings, ex)
           end
 
           log_delivery(email, 'sent', 'SMTP')
@@ -107,7 +71,59 @@ module Auth
           raise ex
         end
 
-        protected
+        private
+
+        def build_mail_message(email)
+          Mail.new do
+            to      email[:to]
+            from    email[:from]
+            subject email[:subject]
+            body    email[:body]
+          end
+        end
+
+        def deliver_with_settings(mail, settings)
+          mail.delivery_method :smtp, settings
+          mail.deliver!
+
+          has_auth = settings.key?(:user_name)
+          Onetime.get_logger('Auth').debug 'SMTP delivery successful',
+            host: settings[:address],
+            port: settings[:port],
+            authentication_used: has_auth
+        end
+
+        def handle_auth_failure(mail, settings, error)
+          # Server doesn't support authentication or rejected credentials
+          # Common with development SMTP servers like Mailpit that don't require auth
+          Onetime.get_logger('Auth').info 'SMTP authentication failed, retrying without auth',
+            host: settings[:address],
+            port: settings[:port],
+            error_message: error.message,
+            original_auth_method: settings[:authentication],
+            fallback_strategy: 'remove_authentication'
+
+          # Retry without authentication
+          settings_no_auth = settings.reject { |k, _v| [:user_name, :password, :authentication].include?(k) }
+          mail.delivery_method :smtp, settings_no_auth
+          mail.deliver!
+
+          Onetime.get_logger('Auth').info 'SMTP delivery successful without authentication',
+            host: settings[:address],
+            port: settings[:port],
+            note: 'Server does not support or require authentication'
+        end
+
+        def log_smtp_attempt(settings, recipient)
+          has_auth = settings.key?(:user_name) && settings.key?(:password)
+
+          Onetime.get_logger('Auth').debug 'SMTP delivery attempt',
+            host: settings[:address],
+            port: settings[:port],
+            tls: settings[:enable_starttls_auto],
+            authentication: has_auth ? settings[:authentication] : 'none',
+            to: recipient
+        end
 
         def validate_config!
           host = @config[:host] || ENV.fetch('SMTP_HOST', nil)
