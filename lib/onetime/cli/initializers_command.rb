@@ -3,7 +3,7 @@
 # Standalone command that doesn't inherit from Onetime::CLI
 # to avoid the automatic boot process
 module Onetime
-  class InitializersCommand < Drydock::Command
+  class InitializersCommand < CLI::DelayBoot
     def initializers
       # Load only what we need without booting
       require_relative '../initializers'

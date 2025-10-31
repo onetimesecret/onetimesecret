@@ -55,9 +55,10 @@ module Core
         safe_site = InitializeViewVars.safe_site_fields.each_with_object({}) do |field, hash|
           field_str = field.to_s
           unless site_config.key?(field_str)
-            app_logger.debug "Site config missing expected field",
+            app_logger.debug "Site config missing expected field", {
               field: field_str,
               module: "InitializeViewVars"
+            }
             next
           end
 
@@ -84,6 +85,21 @@ module Core
         shrimp        = sess&.[]('_csrf_token')
 
         authenticated = strategy_result.authenticated? || false # never nil
+        awaiting_mfa  = sess&.[]('awaiting_mfa') || sess&.[](:'awaiting_mfa') || false
+
+        # DEBUG: Log session state
+        Onetime.session_logger.debug "Session", {
+          account_id: sess&.[]('account_id'),
+          external_id: sess&.[]('external_id'),
+          module: "InitializeViewVars",
+          awaiting_mfa: awaiting_mfa,
+          authenticated: authenticated
+        }
+
+        # When awaiting_mfa is true, user has NOT completed authentication
+        # Do NOT load customer from Redis - they don't have access yet
+        # The frontend will show minimal MFA prompt using email from session
+        session_email = sess&.[]('email')
 
         # Extract values from rack request object
         nonce           = req.env.fetch('onetime.nonce', nil)
@@ -110,6 +126,7 @@ module Core
         # Return all view variables as a hash
         {
           'authenticated' => authenticated,
+          'awaiting_mfa' => awaiting_mfa,
           'baseuri' => baseuri,
           'cust' => cust,
           'description' => description,
@@ -127,6 +144,7 @@ module Core
           'nonce' => nonce,
           'page_title' => page_title,
           'script_element_id' => script_element_id,
+          'session_email' => session_email,
           'shrimp' => shrimp,
           'site' => safe_site,
           'site_host' => site_host,

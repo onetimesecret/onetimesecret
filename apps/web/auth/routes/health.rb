@@ -4,24 +4,34 @@ module Auth
   module Routes
     module Health
       def handle_health_routes(r)
-        r.get 'health' do
-            # Test database connection
-            db_status = Auth::Config::Database.connection.test_connection ? 'ok' : 'error'
 
-            {
-              status: 'ok',
-              timestamp: Familia.now, # UTC in seconds (float)
-              database: db_status,
-              version: Onetime::VERSION,
-            }
-          rescue StandardError => ex
-            response.status = 503
-            {
-              status: 'error',
-              error: ex.message,
-              timestamp: Familia.now, # UTC in seconds (float)
-            }
+        # Health check endpoint
+        r.on('health') do
+          r.get do
+              # Test database connection if in advanced mode
+              db_status = if Auth::Database.connection
+                Auth::Database.connection.test_connection ? 'ok' : 'error'
+              else
+                'not_required'
+              end
+
+              {
+                status: 'ok',
+                timestamp: Familia.now.to_i,
+                database: db_status,
+                version: Onetime::VERSION,
+                mode: Onetime.auth_config.mode,
+              }
+            rescue StandardError => ex
+              response.status = 503
+              {
+                status: 'error',
+                error: ex.message,
+                timestamp: Familia.now.to_i,
+              }
+          end
         end
+
       end
     end
   end

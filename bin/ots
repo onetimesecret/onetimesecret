@@ -63,11 +63,135 @@ class OT::CLI::Definition
     # IRB.start(__FILE__)
   end
 
+  usage 'ots server [options]'
+  about 'Start the web server (Puma or Thin)'
+  option :s, :server, String, 'Server type: puma or thin (default: puma)'
+  option :p, :port, Integer, 'Port to bind to (default: 7143)'
+  option :e, :environment, String, 'Environment to run in (default: development)'
+  option :t, :threads, String, 'Thread pool size for Puma (default: 2:4)'
+  option :w, :workers, Integer, 'Number of workers for Puma (default: 0)'
+  option :b, :bind, String, 'Bind address for Thin (default: 0.0.0.0)'
+  command server: OT::ServerCommand
+
   usage 'ots version'
   command :version do
     puts format('Onetime %s', OT::VERSION.inspect)
   end
   alias_command :build, :version
+
+  usage 'ots help [topic]'
+  about 'Display help information'
+  about 'Topics: logging'
+  command :help do |obj|
+    topic = obj.argv.shift
+    case topic
+    when 'logging', 'logs'
+      puts <<~HELP
+        ═══════════════════════════════════════════════════════════════════════
+        Logging Configuration and Environment Variables
+        ═══════════════════════════════════════════════════════════════════════
+
+        Onetime uses SemanticLogger with strategic categories for operational
+        monitoring and debugging. Configuration is loaded from etc/logging.yaml
+        with environment variable overrides for flexible control.
+
+        LOGGING CATEGORIES
+        ══════════════════
+
+        Auth     - Authentication/authorization flows
+        Session  - Session lifecycle management
+        HTTP     - HTTP requests, responses, and middleware
+        Familia  - Redis operations via Familia ORM
+        Otto     - Otto framework operations
+        Rhales   - Rhales template rendering
+        Sequel   - Database queries and operations
+        Secret   - Secret lifecycle (create, view, burn)
+        App      - Default fallback for application-level logging
+
+        ENVIRONMENT VARIABLES (Applied in Order)
+        ═════════════════════════════════════════
+
+        1. LOG_LEVEL - Sets global default level for unconfigured loggers
+           Example: LOG_LEVEL=warn bin/ots server
+           Effect:  Changes default_level, respects individual logger config
+
+        2. ONETIME_DEBUG - Quick "debug everything by default" flag
+           Example: ONETIME_DEBUG=1 bin/ots server
+           Effect:  Sets default_level to debug, individual loggers still
+                    respect their configured levels from etc/logging.yaml
+
+        3. DEBUG_LOGGERS - Fine-grained per-logger control (overrides YAML)
+           Example: DEBUG_LOGGERS=Auth:debug,Secret:trace,Familia:warn
+           Effect:  Sets specific logger levels, overriding YAML configuration
+
+        4. DEBUG_* - Individual quick flags (override YAML config)
+           DEBUG_AUTH=1      - Set Auth logger to debug
+           DEBUG_SESSION=1   - Set Session logger to debug
+           DEBUG_HTTP=1      - Set HTTP logger to debug
+           DEBUG_SECRET=1    - Set Secret logger to debug
+           DEBUG_SEQUEL=1    - Set Sequel logger to debug
+           DEBUG_APP=1       - Set App logger to debug
+
+        EXTERNAL LIBRARY FLAGS
+        ═══════════════════════
+
+        FAMILIA_DEBUG=1           - Familia's built-in debug flag
+        FAMILIA_SAMPLE_RATE=0.01  - Familia command sampling (0.0-1.0)
+        OTTO_DEBUG=1              - Otto framework debug flag
+
+        USAGE EXAMPLES
+        ═══════════════
+
+        Debug everything:
+          ONETIME_DEBUG=1 bin/ots server
+
+        Debug only Auth and Session:
+          DEBUG_AUTH=1 DEBUG_SESSION=1 bin/ots server
+
+        Fine-tuned logging for Auth (trace) and Secret (debug):
+          DEBUG_LOGGERS=Auth:trace,Secret:debug bin/ots server
+
+        Override default level but respect individual logger config:
+          LOG_LEVEL=warn bin/ots server
+
+        Combine multiple approaches:
+          LOG_LEVEL=info DEBUG_AUTH=1 DEBUG_LOGGERS=Sequel:debug bin/ots server
+
+        Production with reduced noise:
+          LOG_LEVEL=warn DEBUG_LOGGERS=Familia:info,Otto:info bin/ots server
+
+        LEVEL HIERARCHY
+        ════════════════
+
+        trace < debug < info < warn < error < fatal
+
+        Lower levels include all higher levels. Setting level to 'warn' will
+        show warn, error, and fatal messages.
+
+        CONFIGURATION FILE
+        ═══════════════════
+
+        Edit etc/logging.yaml to set default logger levels. Environment
+        variables provide runtime overrides without modifying the file.
+
+        For more information, see etc/logging.yaml comments.
+        ═══════════════════════════════════════════════════════════════════════
+      HELP
+    else
+      puts <<~HELP
+        Usage: ots help [topic]
+
+        Available topics:
+          logging    - Logging configuration and environment variables
+
+        For command-specific help:
+          ots COMMAND --help
+
+        To see all commands:
+          ots show-commands
+      HELP
+    end
+  end
 
   # In OT::CLI::Definition in bin/ots
   usage 'ots migrate MIGRATION_SCRIPT [--run]'
@@ -85,6 +209,14 @@ class OT::CLI::Definition
   option :b, :batch_size, Integer, 'Set batch size for consolidation (default: 100, max: 10000)'
   option :h, :help, 'Show detailed help message'
   command migrate_redis_data: OT::MigrateRedisDataCommand
+
+  usage 'ots sync-auth-accounts [--run]'
+  about 'Synchronize customer records from Redis to Auth SQL database'
+  about 'Primary use case: switching from auth mode=basic to mode=advanced'
+  about 'By default, runs in dry-run mode to preview changes'
+  option :r, :run, 'Execute synchronization (required for actual operation)'
+  option :h, :help, 'Show detailed help message'
+  command sync_auth_accounts: OT::SyncAuthAccountsCommand
 
   usage 'ots customers'
   option :l, :list, 'List customer domains (by count)'
@@ -136,6 +268,78 @@ class OT::CLI::Definition
   option :l, :limit, Integer, 'Limit number of results'
   option :f, :force, 'Force operation without confirmation'
   command session: OT::SessionCommand
+
+  usage 'ots totp <secret> [--verify CODE]'
+  about 'Generate or verify TOTP codes for MFA testing'
+  about 'Arguments:'
+  about '  secret              - Base32-encoded TOTP secret'
+  about 'Options:'
+  about '  --verify CODE       - Verify a 6-digit code against the secret'
+  about '  --compute-hmac      - Compute HMAC version of raw secret'
+  about '  --raw SECRET        - Use with --compute-hmac to compute HMAC'
+  about ''
+  about 'Examples:'
+  about '  ots totp JBSWY3DPEHPK3PXP'
+  about '  ots totp JBSWY3DPEHPK3PXP --verify 123456'
+  about '  ots totp --compute-hmac --raw omidgappklu267g756mo2l4q2pq5m4rz'
+  option :v, :verify, String, 'Verify a TOTP code'
+  option :c, :compute_hmac, 'Compute HMAC secret from raw secret'
+  option :r, :raw, String, 'Raw secret for HMAC computation'
+  command :totp do |obj, secret = nil|
+    require 'onetime/utils/totp'
+
+    # Get secret from first argument if not using --compute-hmac
+    secret ||= obj.argv.shift unless obj.option.compute_hmac
+
+    if obj.option.compute_hmac
+      unless obj.option.raw
+        puts "Error: --raw SECRET required when using --compute-hmac"
+        exit 1
+      end
+
+      begin
+        hmac_secret = Onetime::Utils::TOTP.compute_hmac(obj.option.raw)
+        puts "Raw secret:  #{obj.option.raw}"
+        puts "HMAC secret: #{hmac_secret}"
+        puts ""
+        puts "Use the HMAC secret in your authenticator app."
+      rescue => e
+        puts "Error: #{e.message}"
+        exit 1
+      end
+    elsif obj.option.verify
+      unless secret
+        puts "Error: SECRET required"
+        exit 1
+      end
+
+      result = Onetime::Utils::TOTP.verify(secret, obj.option.verify)
+      puts "Secret:        #{result[:secret_sample]}"
+      puts "Code:          #{result[:code]}"
+      puts "Expected:      #{result[:expected_code]}"
+      puts "Valid:         #{result[:valid] ? 'YES' : 'NO'}"
+      puts "Match:         #{result[:match] ? 'YES' : 'NO'}"
+
+      exit(result[:valid] ? 0 : 1)
+    else
+      unless secret
+        puts "Error: SECRET required"
+        puts "Usage: ots totp <secret>"
+        exit 1
+      end
+
+      result = Onetime::Utils::TOTP.generate(secret)
+      puts "Secret:        #{result[:secret_sample]}"
+      puts "Issuer:        #{result[:issuer]}"
+      puts ""
+      puts "Current Code:  #{result[:current_code]}"
+      puts "Previous Code: #{result[:previous_code]}"
+      puts "Next Code:     #{result[:next_code]}"
+      puts ""
+      puts "Valid for:     #{result[:valid_for]} seconds"
+      puts "Time:          #{Time.at(result[:current_time]).strftime('%Y-%m-%d %H:%M:%S %Z')}"
+    end
+  end
 
   # usage 'ots initializers [--dependencies]'
   # about 'Display boot-time initializers in order'

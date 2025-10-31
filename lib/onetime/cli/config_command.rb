@@ -1,7 +1,7 @@
 # lib/onetime/cli/config_command.rb
 
 module Onetime
-  class ConfigCommand < Drydock::Command
+  class ConfigCommand < Onetime::CLI
     def config
       # Determine path - from args, discovered, or nil for auto-discovery
       path = argv.first

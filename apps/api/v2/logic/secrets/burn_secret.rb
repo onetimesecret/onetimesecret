@@ -30,7 +30,7 @@ module V2::Logic
         continue_result     = params[:continue]
         @greenlighted       = viewable && correct_passphrase && continue_result
 
-        secret_logger.debug "Secret burn initiated",
+        secret_logger.debug "Secret burn initiated", {
           metadata_key: metadata.key,
           secret_key: potential_secret.shortkey,
           viewable: viewable,
@@ -39,6 +39,7 @@ module V2::Logic
           continue: continue_result,
           user_id: cust&.custid,
           ip: req&.ip
+        }
 
         if greenlighted
           @secret = potential_secret
@@ -47,7 +48,7 @@ module V2::Logic
           owner.increment_field :secrets_burned unless owner.anonymous?
           Onetime::Customer.secrets_burned.increment
 
-          secret_logger.info "Secret burned successfully",
+          secret_logger.info "Secret burned successfully", {
             secret_key: secret.shortkey,
             metadata_key: metadata.key,
             owner_id: owner&.custid,
@@ -55,15 +56,17 @@ module V2::Logic
             ip: req&.ip,
             action: 'burn',
             result: :success
+          }
 
         elsif !correct_passphrase
-          secret_logger.warn "Burn failed - incorrect passphrase",
+          secret_logger.warn "Burn failed - incorrect passphrase", {
             metadata_key: metadata.key,
             secret_key: potential_secret.shortkey,
             user_id: cust&.custid,
             ip: req&.ip,
             action: 'burn',
             result: :passphrase_failed
+          }
 
           message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
           raise_form_error message

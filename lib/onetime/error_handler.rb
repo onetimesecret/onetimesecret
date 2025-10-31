@@ -9,6 +9,7 @@
 module Onetime
   module ErrorHandler
     extend Onetime::Logging
+
     # Executes a block and logs any errors without re-raising.
     # Useful for side-effects that shouldn't break critical operations.
     #
@@ -34,10 +35,11 @@ module Onetime
 
       # Logs error details with operation context
       def log_error(operation, ex, context)
-        app_logger.error "error-handler: #{operation} failed",
+        app_logger.error "error-handler: #{operation} failed", {
           exception: ex,
           operation: operation,
           **context
+        }
       end
 
       # Tracks error frequency in Redis for monitoring
@@ -51,9 +53,10 @@ module Onetime
 
       rescue StandardError => ex
         # Don't let tracking errors break the error handler itself
-        app_logger.error "error-handler: Failed to track error",
+        app_logger.error "error-handler: Failed to track error", {
           exception: ex,
           operation: 'track_error'
+        }
       end
 
       # Captures error in Sentry with context
@@ -65,14 +68,15 @@ module Onetime
         end
       rescue StandardError => ex
         # Don't let Sentry errors break the error handler itself
-        app_logger.error "error-handler: Failed to capture in Sentry",
+        app_logger.error "error-handler: Failed to capture in Sentry", {
           exception: ex,
           operation: 'capture_error'
+        }
       end
 
       # Check if error tracking is available
       def trackable?
-        defined?(Familia.dbclient) && Familia.dbclient
+        !Familia.dbclient.nil?
       end
 
       # Check if Sentry is configured

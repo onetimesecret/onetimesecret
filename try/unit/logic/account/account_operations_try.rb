@@ -59,8 +59,8 @@ logic.process
 ## Test password update
 @update_params = {
   current: 'testpass123',
-  newp1: 'newpass123',
-  newp2: 'newpass123'
+  newpassword: 'newpass123',
+  'password-confirm': 'newpass123'
 }
 @strategy_result_with_cust = MockStrategyResult.new(session: @session, user: @cust)
 logic = V2::Logic::Account::UpdatePassword.new @strategy_result_with_cust, @update_params

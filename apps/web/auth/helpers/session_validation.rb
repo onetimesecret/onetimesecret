@@ -8,7 +8,7 @@ module Auth
         # Implementation depends on how sessions are stored
 
         # Example for database-stored sessions:
-        db           = Auth::Config::Database.connection
+        db           = Auth::Database.connection
         session_data = db[:account_active_session_keys]
           .join(:accounts, id: :account_id)
           .where(session_id: token)
@@ -28,7 +28,7 @@ module Auth
         return nil if Familia.now > session_expiry
 
         # Check if MFA is enabled for this account
-        mfa_enabled = db[:account_otp_keys].where(id: session_data[:account_id]).count > 0
+        mfa_enabled = db[:account_otp_keys].where(account_id: session_data[:account_id]).count > 0
 
         {
           account_id: session_data[:account_id],

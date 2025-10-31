@@ -35,7 +35,7 @@ module Onetime
 
       # Safely log first part of DSN for debugging
       dsn_preview = dsn ? "#{dsn[0..10]}..." : 'nil'
-      OT.li "[init] Sentry: Initializing with DSN: #{dsn_preview}"
+      OT.boot_logger.info "[init] Sentry: Initializing with DSN: #{dsn_preview}"
 
       # Only require Sentry if we have a DSN. We call explicitly
       # via Kernel to aid in testing.

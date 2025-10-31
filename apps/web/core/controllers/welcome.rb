@@ -40,24 +40,27 @@ module Core
           payment_links = billing.fetch('payment_links', {})
           payment_link  = payment_links.dig(tierid, billing_cycle)
 
-          http_logger.debug "Plan redirect request",
+          http_logger.debug "Plan redirect request", {
             tierid: tierid,
             billing_cycle: billing_cycle,
             payment_link: payment_link
+          }
 
           validated_url = validate_url(payment_link)
 
           unless validated_url
-            http_logger.warn "Unknown plan configuration - redirecting to signup",
+            http_logger.warn "Unknown plan configuration - redirecting to signup", {
               tierid: tierid,
               billing_cycle: billing_cycle
+            }
             raise OT::Redirect.new('/signup')
           end
 
-          http_logger.info "Plan clicked - redirecting to Stripe",
+          http_logger.info "Plan clicked - redirecting to Stripe", {
             tierid: tierid,
             billing_cycle: billing_cycle,
             url: validated_url.to_s
+          }
 
           stripe_params = {
             # rack.locale is a list, often with just a single locale (e.g. `[en]`).
@@ -82,8 +85,9 @@ module Core
 
           # Apply the query parameters back to the URI::HTTP object
           validated_url.query = URI.encode_www_form(stripe_params)
-          http_logger.debug "Updated Stripe URL with query parameters",
+          http_logger.debug "Updated Stripe URL with query parameters", {
             query: validated_url.query
+          }
           res.redirect validated_url.to_s # convert URI::Generic to a string
       end
 
@@ -177,13 +181,15 @@ module Core
         res.redirect stripe_session.url
 
       rescue Stripe::StripeError => ex
-            http_logger.error "Stripe customer portal creation failed",
+            http_logger.error "Stripe customer portal creation failed", {
               exception: ex,
               customer_id: customer_id
+            }
             raise_form_error(ex.message)
       rescue StandardError => ex
-            http_logger.error "Unexpected error creating customer portal session",
+            http_logger.error "Unexpected error creating customer portal session", {
               exception: ex
+            }
             raise_form_error('An unexpected error occurred')
       end
     end

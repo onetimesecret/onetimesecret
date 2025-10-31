@@ -957,16 +957,16 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "newp": {
+                  "newpassword": {
                     "type": "string",
                     "description": "New password"
                   },
-                  "newp2": {
+                  "password-confirm": {
                     "type": "string",
                     "description": "New password confirmation"
                   }
                 },
-                "required": ["newp", "newp2"]
+                "required": ["new-password", "password-confirm"]
               }
             }
           }
@@ -1006,17 +1006,17 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "currentp": {
+                  "password": {
                     "type": "string"
                   },
-                  "newp": {
+                  "newpassword": {
                     "type": "string"
                   },
-                  "newp2": {
+                  "password-confirm": {
                     "type": "string"
                   }
                 },
-                "required": ["currentp", "newp", "newp2"]
+                "required": ["password", "new-password", "password-confirm"]
               }
             }
           }

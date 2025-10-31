@@ -1,7 +1,7 @@
 # lib/onetime/cli/validate_command.rb
 
 module Onetime
-  class ValidateCommand < Drydock::Command
+  class ValidateCommand < Onetime::CLI
     def validate
       # Determine path - from args, discovered, or nil for auto-discovery
       path = argv.first

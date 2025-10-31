@@ -31,8 +31,8 @@ module Onetime
           find_application_files
           create_mount_mappings
         rescue StandardError => ex
-          $stderr.puts "[#{name}] ERROR: #{ex.class}: #{ex.message}"
-          $stderr.puts ex.backtrace.join("\n") if Onetime.debug?
+          Onetime.app_logger.info "[#{name}] ERROR: #{ex.class}: #{ex.message}"
+          Onetime.app_logger.info ex.backtrace.join("\n") if Onetime.debug?
 
           Onetime.not_ready
         end
@@ -47,7 +47,17 @@ module Onetime
           # Sort mappings by path specificity (longer/more specific paths first)
           sorted_mappings = mount_mappings.sort_by { |path, _| [-path.length, path] }.to_h
 
-          mappings = sorted_mappings.transform_values { |app_class| app_class.new }
+          # Track warmup progress for [N of M] numbering
+          total_apps = sorted_mappings.size
+          warmup_counter = 0
+
+          mappings = sorted_mappings.transform_values do |app_class|
+            warmup_counter += 1
+            # Pass warmup context to application initialization
+            Thread.current[:warmup_context] = { current: warmup_counter, total: total_apps }
+            app_class.new
+          end
+
           Rack::URLMap.new(mappings)
         end
 
@@ -95,20 +105,38 @@ module Onetime
           # Skip auth app in basic mode - auth endpoints handled by Core Web App
           if Onetime.auth_config.mode == 'basic'
             filepaths.reject! { |f| f.include?('web/auth/') }
-            $stderr.puts '[registry] Skipping auth app (basic mode)'
+
+            Onetime.log_box(
+              ['AUTH MODE: Basic (Core handles /auth/*)'],
+            )
           else
-            $stderr.puts '[registry] Including auth app (advanced mode)'
+            Onetime.log_box(
+              ['AUTH MODE: Advanced (Rodauth enabled)'],
+            )
           end
 
-          $stderr.puts "[registry] Scan found #{filepaths.size} application(s)"
-          filepaths.each { |f|
-            $stderr.puts "[registry] Loading application file: #{f}" if Onetime.debug?
+          Onetime.app_logger.info "[registry] Scan found #{filepaths.size} application(s)"
+
+          filepaths.each_with_index do |f, idx|
+            pretty_path = Onetime::Utils.pretty_path(f)
+            Onetime.app_logger.info "[registry] [#{idx + 1} of #{filepaths.size}] Loading: #{pretty_path}" if Onetime.debug?
             begin
               require f
             rescue LoadError => ex
-              $stderr.puts "[registry] ERROR loading application file #{f}: #{ex.class}: #{ex.message}"
+              Onetime.app_logger.info "
+"
+              Onetime.log_box(
+                [
+                  '❌ APPLICATION LOAD FAILED',
+                  "   >> #{pretty_path} <<"
+                ],
+                level: :error
+              )
+              Onetime.app_logger.info "
+"
+              raise ex
             end
-          }
+          end
         end
 
         # Maps all discovered application classes to their URL routes
@@ -116,14 +144,15 @@ module Onetime
         def create_mount_mappings
           OT.li "[registry] Mapping #{application_classes.size} application(s) to routes"
 
-          application_classes.each do |app_class|
+          application_classes.each_with_index do |app_class, idx|
             mount = app_class.uri_prefix
 
             unless mount.is_a?(String)
               raise ArgumentError, "Mount point must be a string (#{app_class} gave #{mount.class})"
             end
 
-            OT.li "  #{app_class} for #{mount}"
+            Onetime.app_logger.debug " [#{idx + 1} of #{application_classes.size}] Registering #{app_class} at #{mount}"
+
             register(mount, app_class)
           end
 

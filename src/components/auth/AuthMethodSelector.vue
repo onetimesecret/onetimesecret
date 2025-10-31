@@ -5,6 +5,9 @@ import { isMagicLinksEnabled, isWebAuthnEnabled } from '@/utils/features';
 import SignInForm from './SignInForm.vue';
 import MagicLinkForm from './MagicLinkForm.vue';
 import WebAuthnLogin from './WebAuthnLogin.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 export interface Props {
   locale?: string;
@@ -77,7 +80,7 @@ function selectMethod(method: AuthMethod) {
               : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
           ]"
           :aria-current="selectedMethod === method.key ? 'page' : undefined">
-          {{ $t(method.label) }}
+          {{ t(method.label) }}
         </button>
       </nav>
     </div>

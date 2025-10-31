@@ -27,7 +27,7 @@ pnpm-debug.log*
 .prompts*
 .pytest_cache/
 .ruby-lsp/
-.serena/
+.serena
 .vscode/
 .idea/
 .cache/

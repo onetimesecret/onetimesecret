@@ -62,7 +62,7 @@ const closeDeleteModal = () => {
     <i class="fas fa-trash-alt mr-2"></i> {{ $t('permanently-delete-account') }}
   </button>
   <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-    {{ $t('deleting-cust-custid', [cust?.custid]) }}
+    {{ $t('deleting-cust-custid', [cust?.extid]) }}
   </p>
 
   <!-- Delete Account Confirmation Modal -->

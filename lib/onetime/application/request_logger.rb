@@ -13,7 +13,7 @@ module Onetime
       def initialize(app, config)
         @app = app
         @config = config
-        @logger = SemanticLogger['HTTP']
+        @logger = Onetime.get_logger('HTTP')
         @capture = CAPTURE_MODES[config['capture']&.to_sym || :standard]
       end
 

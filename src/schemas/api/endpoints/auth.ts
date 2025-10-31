@@ -46,7 +46,17 @@ export const resetPasswordResponseSchema = authResponseSchema;
 export type ResetPasswordResponse = z.infer<typeof resetPasswordResponseSchema>;
 
 // Type guard to check if response is an error
-export function isAuthError(response: LoginResponse | CreateAccountResponse | LogoutResponse | ResetPasswordRequestResponse | ResetPasswordResponse | VerifyAccountResponse | ChangePasswordResponse | CloseAccountResponse): response is z.infer<typeof authErrorSchema> {
+export function isAuthError(
+  response:
+    | LoginResponse
+    | CreateAccountResponse
+    | LogoutResponse
+    | ResetPasswordRequestResponse
+    | ResetPasswordResponse
+    | VerifyAccountResponse
+    | ChangePasswordResponse
+    | CloseAccountResponse
+): response is z.infer<typeof authErrorSchema> {
   return 'error' in response;
 }
 
@@ -63,7 +73,17 @@ export const closeAccountResponseSchema = authResponseSchema;
 export type CloseAccountResponse = z.infer<typeof closeAccountResponseSchema>;
 
 // Type guard to check if response is a success
-export function isAuthSuccess(response: LoginResponse | CreateAccountResponse | LogoutResponse | ResetPasswordRequestResponse | ResetPasswordResponse | VerifyAccountResponse | ChangePasswordResponse | CloseAccountResponse): response is z.infer<typeof authSuccessSchema> {
+export function isAuthSuccess(
+  response:
+    | LoginResponse
+    | CreateAccountResponse
+    | LogoutResponse
+    | ResetPasswordRequestResponse
+    | ResetPasswordResponse
+    | VerifyAccountResponse
+    | ChangePasswordResponse
+    | CloseAccountResponse
+): response is z.infer<typeof authSuccessSchema> {
   return 'success' in response;
 }
 
@@ -90,8 +110,8 @@ export const sessionSchema = z.object({
   id: z.string(),
   created_at: z.string(),
   last_activity_at: z.string(),
-  ip_address: z.string().optional(),
-  user_agent: z.string().optional(),
+  ip_address: z.string().nullable(),
+  user_agent: z.string().nullable(),
   is_current: z.boolean(),
   remember_enabled: z.boolean(),
 });
@@ -107,10 +127,16 @@ export const removeSessionResponseSchema = authResponseSchema;
 export type RemoveSessionResponse = z.infer<typeof removeSessionResponseSchema>;
 
 // OTP setup response
+// When HMAC is enabled, Rodauth returns an error response with only secrets on first request
 export const otpSetupResponseSchema = z.object({
-  qr_code: z.string(),
-  secret: z.string(),
-  provisioning_uri: z.string(),
+  qr_code: z.string().optional(), // Not present in HMAC first request
+  secret: z.string().optional(), // Not present in HMAC first request
+  provisioning_uri: z.string().optional(), // Not present in HMAC first request
+  otp_setup: z.string().optional(), // HMAC'd secret (when HMAC enabled)
+  otp_raw_secret: z.string().optional(), // Raw secret (when HMAC enabled)
+  otp_secret: z.string().optional(), // Alternative field name for HMAC'd secret
+  error: z.string().optional(), // Error message (expected on first request with HMAC)
+  'field-error': z.tuple([z.string(), z.string()]).optional(), // Field-level error
 });
 export type OtpSetupResponse = z.infer<typeof otpSetupResponseSchema>;
 
@@ -150,7 +176,7 @@ export type AccountInfoResponse = z.infer<typeof accountInfoResponseSchema>;
 // MFA status response
 export const mfaStatusResponseSchema = z.object({
   enabled: z.boolean(),
-  last_used_at: z.string().optional(),
+  last_used_at: z.string().nullable(),
   recovery_codes_remaining: z.number(),
 });
 export type MfaStatusResponse = z.infer<typeof mfaStatusResponseSchema>;

@@ -1,11 +1,11 @@
 # lib/onetime/cli/customers_command.rb
 
 module Onetime
-  class CustomersCommand < Drydock::Command
+  class CustomersCommand < Onetime::CLI
     def customers
-      puts format('%d customers', Onetime::Customer.values.size)
+      puts format('%d customers', Onetime::Customer.instances.size)
       if option.list
-        all_customers = Onetime::Customer.values.all.map do |custid|
+        all_customers = Onetime::Customer.instances.all.map do |custid|
           Onetime::Customer.load(custid)
         end
 
@@ -27,7 +27,7 @@ module Onetime
         end
 
       elsif option.check
-        all_customers = Onetime::Customer.values.all.map do |custid|
+        all_customers = Onetime::Customer.instances.all.map do |custid|
           Onetime::Customer.load(custid)
         end
 

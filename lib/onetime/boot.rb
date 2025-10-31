@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
 # lib/onetime/boot.rb
 
 require_relative 'initializers'
+require_relative 'boot/manifest'
 
 module Onetime
   module Initializers
@@ -28,6 +31,9 @@ module Onetime
       OT.mode = mode unless mode.nil?
       OT.env  = ENV['RACK_ENV'] || 'production'
 
+      # Initialize boot manifest for structured progress tracking
+      manifest = Boot::Manifest.new
+
       # Sets a unique, 64-bit hexadecimal ID for this process instance.
       @instance ||= Familia.generate_trace_id.freeze
 
@@ -47,30 +53,42 @@ module Onetime
 
       # Normalize the configuration and make it available to the rest
       # of the initializers (via OT.conf).
+      manifest.checkpoint(:config_load)
       @conf = OT::Config.after_load(raw_conf)
 
       # NOTE: We could benefit from tsort to make sure these
       # initializers are loaded in the correct order.
       load_locales
-      configure_logging
-      setup_diagnostics
-      run_migrations
-      set_global_secret
-      set_rotated_secrets
+
+      manifest.checkpoint(:logging_setup)
+      configure_loggers
+      manifest.logger = Onetime.boot_logger
+
+      manifest.checkpoint(:diagnostics_init) do
+        setup_diagnostics
+      end
+
+      set_secrets
       configure_domains
       configure_truemail
+      configure_rhales
       load_fortunes
       setup_database_logging # meant to run regardless of db connection
 
       if connect_to_db
-        detect_legacy_data_and_warn # must run before connect_databases
-        connect_databases
-        check_global_banner
+        manifest.checkpoint(:database_init) do
+          configure_familia             # must run before detect_legacy_data_and_warn
+          detect_legacy_data_and_warn   # must run before setup_connection_pool
+          setup_connection_pool
+          check_global_banner
+        end
       end
 
       print_log_banner if $stdout.tty? && !mode?(:test) && !mode?(:cli)
 
       @ready = true if @ready.nil?
+
+      manifest.complete!
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -105,7 +123,7 @@ module Onetime
       OT.le "Cannot connect to the database #{Familia.uri} (#{ex.class})"
       raise ex unless mode?(:cli)
     rescue StandardError => ex
-      OT.le "Unexpected error", exception: ex
+      OT.le 'Unexpected error', exception: ex
       raise ex unless mode?(:cli)
     end
 

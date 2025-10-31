@@ -40,11 +40,11 @@ export const useAccountStore = defineStore('account', () => {
     return response.data;
   }
 
-  async function changePassword(currentp: string, newp: string, newp2: string) {
+  async function changePassword(password: string, newpassword: string, passwordconfirm: string) {
     const response = await $api.post('/api/v2/account/change-password', {
-      currentp,
-      newp,
-      newp2,
+      password,
+      newpassword,
+      passwordconfirm,
     });
     return response.data;
   }

@@ -7,7 +7,7 @@ RSpec.xdescribe V2::Logic::Authentication::ResetPassword do
   let(:session) { double('Session', set_success_message: nil) }
   let(:customer) { double('Customer', custid: 'test@example.com', pending?: false, update_passphrase: nil, valid_reset_secret!: true) }
   let(:secret) { double('Secret', custid: 'test@example.com', load_customer: customer, received!: nil, destroy!: nil) }
-  let(:params) { { key: 'secret_key_123', newp: 'newpassword123', newp2: 'newpassword123' } }
+  let(:params) { { key: 'secret_key_123', newpassword: 'newpassword123', 'password-confirm': 'newpassword123' } }
   let(:locale) { 'en' }
 
   subject { described_class.new(session, customer, params, locale) }
@@ -39,7 +39,7 @@ RSpec.xdescribe V2::Logic::Authentication::ResetPassword do
 
     it 'sets is_confirmed to false when passwords do not match' do
       allow(Rack::Utils).to receive(:secure_compare).with('newpassword123', 'different').and_return(false)
-      params[:newp2] = 'different'
+      params['password-confirm'] = 'different'
       subject.process_params
       expect(subject.is_confirmed).to be false
     end

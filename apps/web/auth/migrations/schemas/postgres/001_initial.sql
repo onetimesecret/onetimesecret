@@ -57,9 +57,9 @@ CREATE INDEX accounts_last_login_ip_idx ON accounts(last_login_ip);
 
 -- Password hashes (stored separately for security)
 CREATE TABLE account_password_hashes (
-    account_id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     password_hash VARCHAR NOT NULL,
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- ================================================================
@@ -68,11 +68,11 @@ CREATE TABLE account_password_hashes (
 
 -- Email verification keys
 CREATE TABLE account_verification_keys (
-    account_id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     key VARCHAR NOT NULL UNIQUE,
     requested_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     email_last_sent TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- ================================================================
@@ -81,11 +81,11 @@ CREATE TABLE account_verification_keys (
 
 -- Password reset keys
 CREATE TABLE account_password_reset_keys (
-    account_id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     key VARCHAR NOT NULL UNIQUE,
     deadline TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '1 day'),
     email_last_sent TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- ================================================================
@@ -94,18 +94,18 @@ CREATE TABLE account_password_reset_keys (
 
 -- Login failure tracking
 CREATE TABLE account_login_failures (
-    account_id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     number INTEGER NOT NULL DEFAULT 1,
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- Account lockout management
 CREATE TABLE account_lockouts (
-    account_id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     key VARCHAR NOT NULL UNIQUE,
     deadline TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '1 day'),
     email_last_sent TIMESTAMPTZ DEFAULT NOW(),
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- ================================================================
@@ -114,10 +114,10 @@ CREATE TABLE account_lockouts (
 
 -- Remember me tokens
 CREATE TABLE account_remember_keys (
-    account_id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     key VARCHAR NOT NULL UNIQUE,
     deadline TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '21 days'),
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- ================================================================
@@ -144,11 +144,11 @@ CREATE INDEX account_active_session_keys_account_id_idx ON account_active_sessio
 
 -- OTP (TOTP) secret keys for Google Authenticator, etc.
 CREATE TABLE account_otp_keys (
-    account_id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     key VARCHAR NOT NULL,
     num_failures INTEGER NOT NULL DEFAULT 0,
     last_use TIMESTAMPTZ DEFAULT NOW(),
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    FOREIGN KEY (id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
 -- ================================================================
@@ -270,12 +270,12 @@ SELECT
     a.updated_at,
     a.last_login_at,
     a.last_login_ip,
-    CASE WHEN ph.account_id IS NOT NULL THEN TRUE ELSE FALSE END as has_password,
-    CASE WHEN otpk.account_id IS NOT NULL THEN TRUE ELSE FALSE END as has_otp
+    CASE WHEN ph.id IS NOT NULL THEN TRUE ELSE FALSE END as has_password,
+    CASE WHEN otpk.id IS NOT NULL THEN TRUE ELSE FALSE END as has_otp
 FROM accounts a
 JOIN account_statuses s ON a.status_id = s.id
-LEFT JOIN account_password_hashes ph ON a.id = ph.account_id
-LEFT JOIN account_otp_keys otpk ON a.id = otpk.account_id;
+LEFT JOIN account_password_hashes ph ON a.id = ph.id
+LEFT JOIN account_otp_keys otpk ON a.id = otpk.id;
 
 -- Active sessions with account info
 CREATE VIEW active_sessions_with_accounts AS
@@ -334,20 +334,20 @@ SELECT
     a.id,
     a.email,
     s.name as status,
-    CASE WHEN ph.account_id IS NOT NULL THEN 'Yes' ELSE 'No' END as has_password,
-    CASE WHEN otpk.account_id IS NOT NULL THEN 'Yes' ELSE 'No' END as has_otp,
+    CASE WHEN ph.id IS NOT NULL THEN 'Yes' ELSE 'No' END as has_password,
+    CASE WHEN otpk.id IS NOT NULL THEN 'Yes' ELSE 'No' END as has_otp,
     COALESCE(lf.number, 0) as failed_attempts,
     COUNT(ask.session_id) as active_sessions,
     COUNT(rc.id) FILTER (WHERE rc.used_at IS NULL) as unused_recovery_codes
 FROM accounts a
 JOIN account_statuses s ON a.status_id = s.id
-LEFT JOIN account_password_hashes ph ON a.id = ph.account_id
-LEFT JOIN account_otp_keys otpk ON a.id = otpk.account_id
-LEFT JOIN account_login_failures lf ON a.id = lf.account_id
+LEFT JOIN account_password_hashes ph ON a.id = ph.id
+LEFT JOIN account_otp_keys otpk ON a.id = otpk.id
+LEFT JOIN account_login_failures lf ON a.id = lf.id
 LEFT JOIN account_active_session_keys ask ON a.id = ask.account_id
 LEFT JOIN account_recovery_codes rc ON a.id = rc.account_id
 WHERE a.status_id IN (1, 2)
-GROUP BY a.id, a.email, s.name, ph.account_id, otpk.account_id, lf.number;
+GROUP BY a.id, a.email, s.name, ph.id, otpk.id, lf.number;
 
 -- Performance analysis
 SELECT schemaname, tablename, attname, n_distinct, correlation

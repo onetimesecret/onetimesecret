@@ -110,7 +110,7 @@ module Onetime
             metadata: {
               customer_id: customer.objid,
               external_id: customer.extid,
-              account_id: session['advanced_account_id'],
+              account_id: session['account_id'],
               auth_method: 'advanced',
               authenticated_at: session['authenticated_at'],
               expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86_400 : nil,
@@ -255,7 +255,7 @@ module Onetime
 
       def advanced_authenticated?(session)
         return false unless session['authenticated_at']
-        return false unless session['account_external_id'] || session['advanced_account_id']
+        return false unless session['external_id'] || session['account_id']
 
         # Check session age against configured expiry
         max_age = Onetime.auth_config.session['expire_after'] || 86_400

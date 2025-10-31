@@ -27,11 +27,17 @@ export interface LockoutStatus {
 
 /**
  * OTP setup data from backend
+ * When HMAC is enabled, includes otp_setup and otp_raw_secret
  */
 export interface OtpSetupData {
-  qr_code: string;
-  secret: string;
-  provisioning_uri: string;
+  qr_code?: string;
+  secret?: string;
+  provisioning_uri?: string;
+  otp_setup?: string; // HMAC'd secret (when HMAC enabled)
+  otp_raw_secret?: string; // Raw secret (when HMAC enabled)
+  otp_secret?: string; // Alternative field name
+  error?: string; // Error message if setup fails
+  'field-error'?: [string, string] | Record<string, string>; // Field-specific errors (tuple or object)
 }
 
 /**
@@ -54,6 +60,7 @@ export interface AccountInfo {
   email_verified: boolean;
   mfa_enabled: boolean;
   recovery_codes_count: number;
+  active_sessions_count?: number;
 }
 
 /**
@@ -61,6 +68,6 @@ export interface AccountInfo {
  */
 export interface MfaStatus {
   enabled: boolean;
-  last_used_at?: string;
+  last_used_at: string | null;
   recovery_codes_remaining: number;
 }

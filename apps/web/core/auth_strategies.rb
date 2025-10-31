@@ -39,8 +39,9 @@ module Core
 
       # Check if authentication is enabled at initialization time
       unless Onetime::Application::AuthStrategies.authentication_enabled?
-        auth_logger.warn "Authentication disabled in config - skipping session strategy registration",
+        auth_logger.warn "Authentication disabled in config - skipping session strategy registration", {
           module: "Core::AuthStrategies"
+        }
         return
       end
 

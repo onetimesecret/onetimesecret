@@ -91,7 +91,7 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
         session, customer, {
           key: reset_secret.key,
           newp: new_password,
-          newp2: new_password
+          'password-confirm': new_password
         }
       )
 
@@ -112,7 +112,7 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
         session, customer, {
           key: reset_secret.key,
           newp: new_password,
-          newp2: new_password
+          'password-confirm': new_password
         }
       )
 

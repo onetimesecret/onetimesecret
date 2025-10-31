@@ -132,7 +132,7 @@ const routes: Array<RouteRecordRaw> = [
         displayNavigation: false,
         displayFooterLinks: false,
         displayFeedback: false,
-        displayVersion: false,
+        displayVersion: true,
         displayToggles: true,
       },
     },

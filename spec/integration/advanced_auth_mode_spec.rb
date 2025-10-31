@@ -281,9 +281,9 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
   describe 'Database Connection' do
     it 'creates database connection in advanced mode' do
       if Onetime.auth_config.advanced_enabled?
-        expect(Auth::Config::Database.connection).not_to be_nil
+        expect(Auth::Database.connection).not_to be_nil
       else
-        expect(Auth::Config::Database.connection).to be_nil
+        expect(Auth::Database.connection).to be_nil
       end
     end
 

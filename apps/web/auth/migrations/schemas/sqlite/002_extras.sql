@@ -16,7 +16,7 @@ CREATE TABLE account_previous_password_hashes (
 
 -- Password change timestamps
 CREATE TABLE account_password_change_times (
-    account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     changed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -26,7 +26,7 @@ CREATE TABLE account_password_change_times (
 
 -- Email-based authentication tokens
 CREATE TABLE account_email_auth_keys (
-    account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     key VARCHAR(255) NOT NULL UNIQUE,
     deadline DATETIME NOT NULL DEFAULT (datetime('now', '+1 day')),
     email_last_sent DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -34,7 +34,7 @@ CREATE TABLE account_email_auth_keys (
 
 -- Login change verification (email change)
 CREATE TABLE account_login_change_keys (
-    account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     key VARCHAR(255) NOT NULL UNIQUE,
     login VARCHAR(255) NOT NULL,
     deadline DATETIME NOT NULL
@@ -46,7 +46,7 @@ CREATE TABLE account_login_change_keys (
 
 -- Basic session keys
 CREATE TABLE account_session_keys (
-    account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     key VARCHAR(255) NOT NULL UNIQUE
 );
 
@@ -64,7 +64,7 @@ CREATE TABLE account_jwt_refresh_keys (
 
 -- SMS-based two-factor authentication
 CREATE TABLE account_sms_codes (
-    account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     phone_number VARCHAR(20) NOT NULL,
     num_failures INTEGER NOT NULL DEFAULT 0,
     code VARCHAR(10) NOT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE account_sms_codes (
 
 -- WebAuthn user identifiers
 CREATE TABLE account_webauthn_user_ids (
-    account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     webauthn_id VARCHAR(255) NOT NULL UNIQUE
 );
 
@@ -97,7 +97,7 @@ CREATE TABLE account_webauthn_keys (
 
 -- Activity tracking and session expiration
 CREATE TABLE account_activity_times (
-    account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
     last_activity_at DATETIME,
     last_login_at DATETIME,
     expired_at DATETIME
@@ -138,21 +138,21 @@ SELECT
     a.id,
     a.email,
     s.name as status_name,
-    CASE WHEN ph.account_id IS NOT NULL THEN 1 ELSE 0 END as has_password,
-    CASE WHEN otpk.account_id IS NOT NULL THEN 1 ELSE 0 END as has_otp,
-    CASE WHEN sc.account_id IS NOT NULL THEN 1 ELSE 0 END as has_sms,
+    CASE WHEN ph.id IS NOT NULL THEN 1 ELSE 0 END as has_password,
+    CASE WHEN otpk.id IS NOT NULL THEN 1 ELSE 0 END as has_otp,
+    CASE WHEN sc.id IS NOT NULL THEN 1 ELSE 0 END as has_sms,
     CASE WHEN wk.account_id IS NOT NULL THEN 1 ELSE 0 END as has_webauthn,
     COALESCE(session_count.count, 0) as active_sessions,
     at.last_login_at,
     COALESCE(lf.number, 0) as failed_attempts
 FROM accounts a
 JOIN account_statuses s ON a.status_id = s.id
-LEFT JOIN account_password_hashes ph ON a.id = ph.account_id
-LEFT JOIN account_otp_keys otpk ON a.id = otpk.account_id
-LEFT JOIN account_sms_codes sc ON a.id = sc.account_id
+LEFT JOIN account_password_hashes ph ON a.id = ph.id
+LEFT JOIN account_otp_keys otpk ON a.id = otpk.id
+LEFT JOIN account_sms_codes sc ON a.id = sc.id
 LEFT JOIN account_webauthn_keys wk ON a.id = wk.account_id
-LEFT JOIN account_activity_times at ON a.id = at.account_id
-LEFT JOIN account_login_failures lf ON a.id = lf.account_id
+LEFT JOIN account_activity_times at ON a.id = at.id
+LEFT JOIN account_login_failures lf ON a.id = lf.id
 LEFT JOIN (
     SELECT account_id, COUNT(*) as count
     FROM account_active_session_keys

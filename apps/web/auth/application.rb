@@ -3,25 +3,18 @@
 require 'onetime/application'
 require 'onetime/logging'
 
-# Load auth dependencies first
-require_relative 'config/database'
+# Load Rodauth configuration first
 require_relative 'config'
-require_relative 'helpers/session_validation'
-require_relative 'routes/health'
-require_relative 'routes/validation'
-require_relative 'routes/account'
-require_relative 'routes/admin'
 
 # Load Roda app
 require_relative 'router'
 
 module Auth
   class Application < Onetime::Application::Base
-    # include Onetime::Logging # call Onetime.auth_logger directly due to all the blocks
-
     @uri_prefix = '/auth'.freeze
 
     # Auth app specific middleware (common middleware is in MiddlewareStack)
+    use Rack::JSONBodyParser  # Parse JSON request bodies for Rodauth
 
     Onetime.development? do
       # Development configuration if needed
@@ -46,7 +39,18 @@ module Auth
       # Migrations are run in build_router before loading the Router class
       # This warmup block can be used for other initialization tasks if needed
       if Onetime.auth_config.advanced_enabled?
-        Onetime.auth_logger.info 'Auth application initialized (advanced mode)'
+      # Run migrations BEFORE loading the Router class
+      # This ensures database tables exist when Rodauth validates features during plugin load
+
+        # Require Auth::Migrator only when needed (after config is loaded)
+        #
+        # apps/web needs to be in $LOAD_PATH already for this to work
+        require 'auth/migrator'
+
+        Auth::Migrator.run_if_needed
+        # Onetime.auth_logger.warn "Calling Sequel::Migrator.run is disabled."
+
+        Onetime.auth_logger.debug 'Auth application initialized (advanced mode)'
       else
         Onetime.auth_logger.error 'Auth application mounted in basic mode - this is a configuration error. ' \
                                   'The Auth app is designed for advanced mode only. In basic mode, authentication ' \

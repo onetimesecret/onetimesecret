@@ -12,7 +12,7 @@ const cust = WindowService.get('cust');
 const jurisdictionStore = useJurisdictionStore();
 const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
 const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
-const customerId = computed(() => cust?.custid);
+const customerId = computed(() => cust?.extid);
 </script>
 
 <template>

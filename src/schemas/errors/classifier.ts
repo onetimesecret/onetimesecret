@@ -55,22 +55,54 @@ export const errorClassifier = {
         'technical',
         'error',
         error as Error,
-        error.status // there may not be a status
+        error.status
       );
     }
 
     const status = error.status || error.response?.status;
-    const type = status ? this.getTypeFromStatus(status) : 'technical';
     const details = error.response?.data || {};
+    const userMessage = this.extractUserMessage(details, error);
+    const type = this.determineHttpErrorType(status, details);
 
     return wrapError(
-      details.message || error.message || 'HTTP Error',
+      userMessage,
       type,
       'error',
       error as Error,
       status,
-      details // include the response payload
+      details
     );
+  },
+
+  extractUserMessage(details: any, error: HttpErrorLike): string {
+    // Check both 'error' (Rodauth format) and 'message' (standard format)
+    return details.error || details.message || error.message || 'HTTP Error';
+  },
+
+  determineHttpErrorType(status: number | undefined, details: any): ErrorType {
+    if (!status) return 'technical';
+
+    // If backend provides field-level errors, it's always a human error (form validation)
+    if (details['field-error']) {
+      return 'human';
+    }
+
+    // Heuristic: If backend sends a user-friendly message for a client error (4xx),
+    // it's signaling that this error is user-actionable, regardless of status code.
+    // The backend controls classification by choosing to include a friendly message.
+    const hasUserMessage = Boolean(details.error || details.message);
+    const isClientError = status >= 400 && status < 500;
+
+    if (hasUserMessage && isClientError) {
+      // Exception: Rate limiting is always a security concern even with a message
+      if (status === 429) return 'security';
+
+      // All other 4xx with friendly messages are user-actionable
+      return 'human';
+    }
+
+    // Fall back to status-based classification
+    return this.getTypeFromStatus(status);
   },
 
   classifyRouter(error: NavigationFailure): ApplicationError {

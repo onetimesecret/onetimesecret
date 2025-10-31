@@ -108,21 +108,21 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
     end
 
     it 'prevents password reset without valid secret' do
-      params = { key: 'invalid_secret', newp: 'newpass', newp2: 'newpass' }
+      params = { key: 'invalid_secret', newpassword: 'newpass', 'password-confirm': 'newpass' }
       allow(Onetime::Secret).to receive(:load).and_return(nil)
 
       expect { reset_logic.raise_concerns }.to raise_error(OT::MissingSecret)
     end
 
     it 'prevents password reset for anonymous users' do
-      params = { key: 'valid_secret', newp: 'newpass', newp2: 'newpass' }
+      params = { key: 'valid_secret', newpassword: 'newpass', 'password-confirm': 'newpass' }
       allow(secret).to receive(:custid).and_return('anon')
 
       expect { reset_logic.raise_concerns }.to raise_error(OT::MissingSecret)
     end
 
     it 'validates password confirmation to prevent typos' do
-      params = { key: 'valid_secret', newp: 'newpass', newp2: 'different' }
+      params = { key: 'valid_secret', newpassword: 'newpass', 'password-confirm': 'different' }
       allow(Rack::Utils).to receive(:secure_compare).and_return(false)
 
       expect(reset_logic).to receive(:raise_form_error).with('New passwords do not match')
@@ -130,7 +130,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
     end
 
     it 'enforces minimum password length' do
-      params = { key: 'valid_secret', newp: '123', newp2: '123' }
+      params = { key: 'valid_secret', newp: '123', 'password-confirm': '123' }
       allow(Rack::Utils).to receive(:secure_compare).and_return(true)
 
       expect(reset_logic).to receive(:raise_form_error).with('New password is too short')
@@ -138,7 +138,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
     end
 
     it 'prevents password reset for unverified accounts' do
-      params = { key: 'valid_secret', newp: 'newpass', newp2: 'newpass' }
+      params = { key: 'valid_secret', newpassword: 'newpass', 'password-confirm': 'newpass' }
       allow(Rack::Utils).to receive(:secure_compare).and_return(true)
       allow(customer).to receive(:pending?).and_return(true)
 
@@ -245,7 +245,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
       # This is handled by BCrypt internally, but we verify the pattern
       allow(Onetime::Customer).to receive(:load).and_return(customer)
 
-      params = { key: 'secret', newp: 'password1', newp2: 'password2' }
+      params = { key: 'secret', newp: 'password1', 'password-confirm': 'password2' }
       logic = V2::Logic::Authentication::ResetPassword.new(session, customer, params)
 
       expect(Rack::Utils).to receive(:secure_compare).with('password1', 'password2')

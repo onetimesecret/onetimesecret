@@ -87,7 +87,8 @@
           </h3>
           <p
             id="burn-dialog-desc"
-            class="text-sm text-gray-600 dark:text-gray-300">
+            class="text-sm text-gray-600
+            ">
             {{ $t('web.COMMON.burn_confirmation_message') }}
           </p>
         </div>
