@@ -74,6 +74,7 @@ module Auth
       Hooks::Login.configure(self)
       Hooks::Logout.configure(self)
       Hooks::Password.configure(self)
+      Hooks::ErrorHandling.configure(self)
 
       if ENV['ENABLE_SECURITY_FEATURES'] != 'false'
         Features::Security.configure(self)
