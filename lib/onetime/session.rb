@@ -88,7 +88,7 @@ module Onetime
       # Extract string ID from SessionId object if needed
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
 
-      session_logger.trace "Session deletion initiated",
+      session_logger.info "Session deletion initiated",
         session_id: sid_string,
         operation: 'delete'
 
@@ -96,7 +96,7 @@ module Onetime
         result = stringkey.del
         session_logger.trace "Session deleted from Redis",
           session_id: sid_string,
-          redis_key: stringkey.key,
+          redis_key: stringkey.dbkey,
           deleted: result > 0,
           operation: 'delete'
       else
@@ -301,7 +301,7 @@ module Onetime
       stringkey.set(signed_data)
       session_logger.trace "Redis SET complete",
         session_id: sid_string,
-        redis_key: stringkey.key,
+        redis_key: stringkey.dbkey,
         operation: 'write'
 
       # Update expiration if configured
