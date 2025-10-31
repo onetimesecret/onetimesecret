@@ -214,10 +214,11 @@ module Onetime
 
         # If no HMAC or invalid format, create new session
         unless hmac && valid_hmac?(data, hmac)
-          session_logger.warn "Session HMAC verification failed",
+          session_logger.warn "Session HMAC verification failed", {
             session_id: sid_string,
             has_hmac: !hmac.nil?,
             operation: 'read'
+          }
 
           # Session tampered with - create new session
           new_sid = generate_sid
@@ -246,12 +247,13 @@ module Onetime
         [sid, session_data]
       rescue StandardError => ex
         # Log error with structured context
-        session_logger.error "Error reading session",
+        session_logger.error "Error reading session", {
           session_id: sid_string,
           error: ex.message,
           error_class: ex.class.name,
           backtrace: ex.backtrace&.first(5),
           operation: 'read'
+        }
 
         # Return new session on any error
         [generate_sid, {}]
@@ -334,13 +336,14 @@ module Onetime
       sid
     rescue StandardError => ex
       # Log error with structured context
-      session_logger.error "Error writing session",
+      session_logger.error "Error writing session", {
         session_id: sid_string,
         session_keys: session_data&.keys,
         error: ex.message,
         error_class: ex.class.name,
         backtrace: ex.backtrace&.first(5),
         operation: 'write'
+      }
 
       # Return false to indicate failure
       false

@@ -6,7 +6,7 @@ OneTimeSecret uses a **custom logging architecture** based on SemanticLogger wit
 
 > **Note**: This document describes architectural concepts and patterns. For specific implementation details, refer to:
 > - `lib/onetime/logging.rb` - Logging mixin with category inference
-> - `lib/onetime/initializers/semantic_logger.rb` - Configuration and cached loggers
+> - `lib/onetime/initializers/configure_loggers.rb` - Configuration and cached loggers
 > - `lib/middleware/logging.rb` - Middleware logging support
 > - `apps/web/auth/lib/logging.rb` - Auth-specific logging helpers
 > - `etc/defaults/logging.defaults.yaml` - Default log level configuration
@@ -146,7 +146,7 @@ DEBUG_AUTH=1 bundle exec puma     # Set Auth logger to debug
 DEBUG_SEQUEL=1 bundle exec puma   # Set Sequel logger to debug
 ```
 
-The configuration supports setting default levels and per-category levels. See `lib/onetime/initializers/semantic_logger.rb` for the configuration loading implementation.
+The configuration supports setting default levels and per-category levels. See `lib/onetime/initializers/configure_loggers.rb` for the configuration loading implementation.
 
 ## Understanding Log Output
 

@@ -38,25 +38,28 @@ module Core
 
         # Prevent infinite redirect loops
         if req.get? && ex.location.to_s == req.path
-          http_logger.error "Redirect loop detected",
+          http_logger.error "Redirect loop detected", {
             exception: ex,
             path: req.path,
             target: ex.location
+          }
           ex.instance_variable_set(:@location, '/500')
         end
 
-        http_logger.info "Redirecting",
+        http_logger.info "Redirecting", {
           location: ex.location,
           status: ex.status
+        }
         [ex.status, { 'location' => ex.location }, []]
       end
 
       def handle_unauthorized(env, ex)
         req = Rack::Request.new(env)
-        http_logger.info "Unauthorized access",
+        http_logger.info "Unauthorized access", {
           exception: ex,
           url: req.url,
           ip: req.ip
+        }
 
         # Serve Vue entry point - let Vue show login prompt
         serve_vue_entry_point(env, status: 401)
@@ -66,12 +69,13 @@ module Core
         req = Rack::Request.new(env)
 
         # Log the error with structured context
-        http_logger.error "Request processing failed",
+        http_logger.error "Request processing failed", {
           exception: ex,
           url: req.url,
           method: req.request_method,
           ip: req.ip,
           backtrace: ex.backtrace&.first(20)
+        }
 
         # Track in Sentry if diagnostics enabled
         capture_error(ex, env) if OT.d9s_enabled
@@ -99,8 +103,9 @@ module Core
         # Fallback to anonymous
         Onetime::Customer.anonymous
       rescue StandardError => ex
-        http_logger.error "Failed to load customer",
+        http_logger.error "Failed to load customer", {
           exception: ex
+        }
         Onetime::Customer.anonymous
       end
 
@@ -129,8 +134,9 @@ module Core
           Sentry.capture_exception(error)
         end
       rescue StandardError => ex
-        http_logger.error "Sentry capture failed",
+        http_logger.error "Sentry capture failed", {
           exception: ex
+        }
       end
     end
   end

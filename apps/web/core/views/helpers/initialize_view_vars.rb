@@ -55,9 +55,10 @@ module Core
         safe_site = InitializeViewVars.safe_site_fields.each_with_object({}) do |field, hash|
           field_str = field.to_s
           unless site_config.key?(field_str)
-            app_logger.debug "Site config missing expected field",
+            app_logger.debug "Site config missing expected field", {
               field: field_str,
               module: "InitializeViewVars"
+            }
             next
           end
 
@@ -87,12 +88,13 @@ module Core
         awaiting_mfa  = sess&.[]('awaiting_mfa') || sess&.[](:'awaiting_mfa') || false
 
         # DEBUG: Log session state
-        Onetime.session_logger.debug "Session",
+        Onetime.session_logger.debug "Session", {
           account_id: sess&.[]('account_id'),
           external_id: sess&.[]('external_id'),
           module: "InitializeViewVars",
           awaiting_mfa: awaiting_mfa,
           authenticated: authenticated
+        }
 
         # When awaiting_mfa is true, user has NOT completed authentication
         # Do NOT load customer from Redis - they don't have access yet

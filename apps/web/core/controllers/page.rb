@@ -21,13 +21,14 @@ module Core
 
       def export_window
         rack_session = req.env['rack.session']
-        session_logger.debug "Exporting window state",
+        session_logger.debug "Exporting window state", {
           session_class: rack_session.class.name,
           session_id: (rack_session.id.public_id rescue 'no-id'),
           session_keys: (rack_session.keys rescue []),
           authenticated: rack_session['authenticated'],
           has_external_id: !rack_session['external_id'].nil?,
           authenticated_check: authenticated?
+        }
         view = Core::Views::ExportWindow.new(req, session, cust, locale)
         res.headers['content-type'] = 'application/json; charset=utf-8'
         res.body = view.serialized_data.to_json

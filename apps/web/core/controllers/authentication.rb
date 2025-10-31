@@ -66,19 +66,21 @@ module Core
           session['authenticated'] = true
           session['authenticated_at'] = Familia.now.to_i
 
-          auth_logger.info "Session synchronized after authentication",
+          auth_logger.info "Session synchronized after authentication", {
             user_id: cust_after.custid,
             email: cust_after.obscure_email,
             external_id: cust_after.extid,
             role: cust_after.role,
             session_id: session.id&.public_id,
             ip: req.ip
+          }
 
           # Override redirect for colonel role
           if !json_requested? && cust_after.role?(:colonel)
-            auth_logger.debug "Redirecting colonel to admin panel",
+            auth_logger.debug "Redirecting colonel to admin panel", {
               user_id: cust_after.custid,
               role: cust_after.role
+            }
 
             res.redirect '/colonel/'
           end

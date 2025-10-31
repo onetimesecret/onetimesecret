@@ -213,10 +213,11 @@ module Onetime
       # Redis command performance tracking
       if Familia.respond_to?(:on_command)
         Familia.on_command do |cmd, duration, context|
-          familia_logger.debug 'Redis command',
+          familia_logger.debug 'Redis command', {
             command: cmd,
             duration: duration,
             context: context
+          }
         end
       end
 
@@ -224,7 +225,7 @@ module Onetime
       return unless Familia.respond_to?(:on_lifecycle)
 
       Familia.on_lifecycle do |event, instance, context|
-        familia_logger.debug 'Familia lifecycle',
+        familia_logger.debug 'Familia lifecycle', {
           event: event,
           class: instance.class.name,
           identifier: instance.respond_to?(:identifier) ? instance.identifier : nil,
