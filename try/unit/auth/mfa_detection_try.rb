@@ -69,7 +69,7 @@ decision = Auth::Operations::DetectMfaRequirement.call(
 # Test DetectMfaRequirement Operation - Recovery Codes Only
 # =============================================================================
 
-## Test detection when only recovery codes exist
+## Test detection when only recovery codes exist (orphaned - should NOT require MFA)
 decision = Auth::Operations::DetectMfaRequirement.call(
   account_id: @account_id,
   has_otp_secret: false,
@@ -83,7 +83,7 @@ decision = Auth::Operations::DetectMfaRequirement.call(
   decision.primary_method,
   decision.reason
 ]
-#=> [true, [:recovery_codes], false, true, :recovery_codes, 'recovery_codes_only']
+#=> [false, [:recovery_codes], false, true, :recovery_codes, 'no_mfa_configured']
 
 # =============================================================================
 # Test DetectMfaRequirement Operation - Both OTP and Recovery

@@ -145,8 +145,10 @@ module Auth
         return true if @mfa_policy == :required
         return false if @mfa_policy == :disabled
 
-        # Default behavior: require MFA if any method is configured
-        @has_otp_secret || @has_recovery_codes
+        # Default behavior: require MFA only if OTP is configured
+        # Recovery codes alone are not sufficient - they're only valid as backup for OTP
+        # Orphaned recovery codes (without OTP) indicate incomplete MFA setup
+        @has_otp_secret
       end
 
       # Get list of available MFA methods

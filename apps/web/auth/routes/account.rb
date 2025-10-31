@@ -53,23 +53,26 @@ module Auth
 
             rodauth.account_from_session
 
-            # Check if MFA features are enabled
-            enabled = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
-
-            # Get last_use timestamp from account_otp_keys table if MFA is enabled
-            last_used_at = nil
-            if enabled
-              otp_record   = rodauth.db[:account_otp_keys]
-                .where(id: rodauth.account_id)
-                .first
-              last_used_at = otp_record[:last_use]&.iso8601 if otp_record
-            end
+            # Check if MFA features are enabled (OTP or recovery codes)
+            has_otp = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
 
             # Get count of unused recovery codes (if recovery codes feature is enabled)
             recovery_codes_remaining = if rodauth.respond_to?(:recovery_codes_available)
               rodauth.recovery_codes_available
             else
               0
+            end
+
+            # MFA is enabled if either OTP is setup OR recovery codes exist
+            enabled = has_otp || recovery_codes_remaining > 0
+
+            # Get last_use timestamp from account_otp_keys table if OTP is enabled
+            last_used_at = nil
+            if has_otp
+              otp_record   = rodauth.db[:account_otp_keys]
+                .where(id: rodauth.account_id)
+                .first
+              last_used_at = otp_record[:last_use]&.iso8601 if otp_record
             end
 
             response.headers['Content-Type'] = 'application/json'

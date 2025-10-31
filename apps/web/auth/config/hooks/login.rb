@@ -120,7 +120,7 @@ module Auth::Config::Hooks
             correlation_id: correlation_id,
             note: 'No MFA required',
           )
-          session[:awaiting_mfa] = false
+          session['awaiting_mfa'] = false
 
           Onetime::ErrorHandler.safe_execute('sync_session_after_login',
             account_id: account_id,

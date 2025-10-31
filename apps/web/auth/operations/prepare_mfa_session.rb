@@ -84,7 +84,7 @@ module Auth
           module: "PrepareMfaSession"
 
         # Set MFA flow flag (prevents premature authenticated access)
-        @session[:awaiting_mfa] = true
+        @session['awaiting_mfa'] = true
 
         # Set minimal account data for MFA UI
         @session['account_id'] = @account_id
@@ -115,7 +115,7 @@ module Auth
       # Get list of session keys that were set (for logging)
       # @return [Array<String, Symbol>]
       def session_keys_set
-        keys = [:awaiting_mfa, 'account_id', 'email']
+        keys = ['awaiting_mfa', 'account_id', 'email']
         keys << 'external_id' if @external_id
         keys << :mfa_correlation_id if @correlation_id
         keys

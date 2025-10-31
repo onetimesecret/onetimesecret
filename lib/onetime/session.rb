@@ -97,7 +97,7 @@ module Onetime
         session_logger.trace "Session deleted from Redis",
           session_id: sid_string,
           redis_key: stringkey.dbkey,
-          deleted: result > 0,
+          deleted: result,
           operation: 'delete'
       else
         session_logger.trace "No session found to delete",

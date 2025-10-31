@@ -85,7 +85,7 @@ module Core
         shrimp        = sess&.[]('_csrf_token')
 
         authenticated = strategy_result.authenticated? || false # never nil
-        awaiting_mfa  = sess&.[]('awaiting_mfa') || sess&.[](:'awaiting_mfa') || false
+        awaiting_mfa  = sess&.[]('awaiting_mfa') || false
 
         # DEBUG: Log session state
         Onetime.session_logger.debug "Session", {
