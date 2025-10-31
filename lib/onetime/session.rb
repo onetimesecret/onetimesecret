@@ -15,12 +15,33 @@ module Onetime
   # This implementation provides secure session storage with HMAC verification
   # and encryption using Familia's Redis-backed StringKey data type.
   #
-  # Key Features:
-  # - Secure session ID generation with SecureRandom
-  # - HMAC-based session integrity verification
-  # - JSON serialization for session data
-  # - Automatic TTL management via Familia's expiration features
-  # - Redis connection pooling via Familia
+  # SECURITY MODEL:
+  # ===============
+  # - Session ID: Plain 64-char hex string (visible in cookie and Redis key)
+  #   Example: "c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655"
+  #
+  # - Session Data: JSON serialized, Base64 encoded, HMAC signed
+  #   Format: "base64(json)--hmac"
+  #   Example: "eyJhY2NvdW50X2lkIjoxMjN9...--a3f5e8d9c2b1..."
+  #
+  # - Secret: Used to derive two keys:
+  #   * HMAC key: Signs session data to prevent tampering
+  #   * Encryption key: Currently derived but unused (future enhancement)
+  #
+  # WHAT THE SECRET PROTECTS:
+  # =========================
+  # ✅ Session data integrity - Can't modify contents without detection
+  # ✅ Prevents tampering - Can't change account_id from 123 to 456
+  # ❌ Does NOT hide session ID - The ID itself is visible in cookie
+  # ❌ Does NOT encrypt data - Base64 is encoding, not encryption
+  #
+  # STORAGE LAYOUT:
+  # ==============
+  # Browser Cookie: onetime.session=c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655
+  # Redis Key:      session:c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655
+  # Redis Value:    eyJhY2NvdW50X2lkIjoxMjN9...--a3f5e8d9c2b1...
+  #                 ^^^^^^^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^
+  #                 Base64(JSON(session_data))    HMAC signature
   #
   # Usage:
   #   use Onetime::Session,
@@ -33,6 +54,7 @@ module Onetime
   # @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/encryptor.rb
   class Session < Rack::Session::Abstract::PersistedSecure
     include Onetime::Logging
+
     unless defined?(DEFAULT_OPTIONS)
       DEFAULT_OPTIONS = {
         key: 'onetime.session',
@@ -66,7 +88,9 @@ module Onetime
       @expire_after = options[:expire_after]
       @namespace    = options[:namespace] || 'session'
 
-      # Derive different keys for different purposes
+      # Derive different keys for different purposes from the master secret
+      # HMAC key: Used for signing session data (active)
+      # Encryption key: Derived but currently unused (reserved for future encryption)
       @hmac_key       = derive_key('hmac')
       @encryption_key = derive_key('encryption')
     end
@@ -74,6 +98,11 @@ module Onetime
     private
 
     # Create a StringKey instance for a session ID
+    #
+    # This creates a Familia::StringKey that maps to:
+    # Redis Key: session:c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655
+    #
+    # The session ID is NOT encrypted - it's the same value in the cookie
     def get_stringkey(sid)
       return nil unless sid
 
@@ -113,6 +142,13 @@ module Onetime
       new_sid
     end
 
+    # Validates session ID format
+    #
+    # Session IDs are plain hex strings (not encrypted):
+    # - Must be 64+ hexadecimal characters
+    # - Example: "c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655"
+    #
+    # This is just format validation - doesn't check if session exists in Redis
     def valid_session_id?(sid)
       return false if sid.to_s.empty?
       return false unless sid.match?(/\A[a-f0-9]{64,}\z/)
@@ -121,6 +157,13 @@ module Onetime
       true
     end
 
+    # Verifies HMAC signature to detect tampering
+    #
+    # SECURITY: Uses constant-time comparison to prevent timing attacks
+    #
+    # This ensures the session data hasn't been modified since it was written.
+    # If someone tries to change Redis value from {"account_id":123} to
+    # {"account_id":456}, the HMAC won't match and session will be rejected.
     def valid_hmac?(data, hmac)
       expected = compute_hmac(data)
 
@@ -139,7 +182,7 @@ module Onetime
         return false
       end
 
-      # Constant-time comparison
+      # Constant-time comparison (prevents timing attacks)
       result = Rack::Utils.secure_compare(expected, hmac)
 
       session_logger.trace "HMAC validation complete",
@@ -149,14 +192,64 @@ module Onetime
       result
     end
 
+    # Derives purpose-specific keys from the master secret
+    #
+    # Input:  @secret = "your-master-secret"
+    # Output: SHA256 HMAC of "session-hmac" or "session-encryption"
+    #
+    # This allows one master secret to generate multiple cryptographically
+    # independent keys for different purposes.
     def derive_key(purpose)
       OpenSSL::HMAC.hexdigest('SHA256', @secret, "session-#{purpose}")
     end
 
+    # Computes HMAC signature for session data
+    #
+    # Input:  "eyJhY2NvdW50X2lkIjoxMjN9..." (base64 encoded session data)
+    # Output: "a3f5e8d9c2b1..." (SHA256 HMAC signature)
+    #
+    # This signature proves data hasn't been tampered with
     def compute_hmac(data)
       OpenSSL::HMAC.hexdigest('SHA256', @hmac_key, data)
     end
 
+    # READ SESSION FROM REDIS
+    # =======================
+    #
+    # Flow:
+    # 1. Extract session ID from cookie (plain text hex string)
+    # 2. Validate ID format
+    # 3. Load data from Redis: session:SESSION_ID
+    # 4. Verify HMAC signature
+    # 5. Decode Base64 and parse JSON
+    # 6. Return session data hash
+    #
+    # RODAUTH LOGIN FAILURE EXAMPLE:
+    # ==============================
+    #
+    # When Rodauth checks if user is logged in:
+    #   logged_in? => session_value => env['rack.session'][:account_id]
+    #
+    # Login fails ("Please login to continue") if:
+    #
+    # 1. Wrong cookie name in request:
+    #    Cookie: session=abc123  ❌ (should be onetime.session=abc123)
+    #
+    # 2. Invalid session ID format:
+    #    Cookie: onetime.session=invalid  ❌ (must be 64+ hex chars)
+    #
+    # 3. Session ID doesn't exist in Redis:
+    #    Redis GET session:abc123 => nil  ❌ (expired or never created)
+    #
+    # 4. HMAC verification fails:
+    #    Redis value: "data--wrong_hmac"  ❌ (data was tampered with)
+    #    Result: Returns empty session {} instead of {account_id: 123}
+    #
+    # 5. Session data missing account_id:
+    #    Redis value valid, but JSON is {}  ❌ (session exists but not logged in)
+    #
+    # In all failure cases, env['rack.session'][:account_id] is nil/missing,
+    # so Rodauth's logged_in? returns false.
     def find_session(_request, sid)
       # Parent class already extracts sid from cookies
       # sid may be a SessionId object or nil
@@ -183,6 +276,8 @@ module Onetime
       end
 
       begin
+        # Load from Redis using session ID
+        # Key format: session:c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655
         stringkey   = get_stringkey(sid_string)
         stored_data = stringkey.value if stringkey
 
@@ -194,15 +289,17 @@ module Onetime
           operation: 'read'
 
         # If no data stored, return empty session
+        # This happens when session expired or was never created
         unless stored_data
           session_logger.trace "No session data found",
             session_id: sid_string,
             operation: 'read'
 
-          return [sid, {}]
+          return [sid, {}]  # Empty session - Rodauth sees this as "not logged in"
         end
 
-        # Verify HMAC before deserializing
+        # Split stored data into base64 data and HMAC signature
+        # Format: "eyJhY2NvdW50X2lkIjoxMjN9...--a3f5e8d9c2b1..."
         data, hmac = stored_data.split('--', 2)
 
         session_logger.trace "HMAC verification",
@@ -212,7 +309,8 @@ module Onetime
           hmac_length: hmac&.length,
           operation: 'read'
 
-        # If no HMAC or invalid format, create new session
+        # Verify HMAC to detect tampering
+        # If someone modified Redis value, HMAC won't match
         unless hmac && valid_hmac?(data, hmac)
           session_logger.warn "Session HMAC verification failed", {
             session_id: sid_string,
@@ -222,16 +320,18 @@ module Onetime
 
           # Session tampered with - create new session
           new_sid = generate_sid
-          return [new_sid, {}]
+          return [new_sid, {}]  # Empty session - Rodauth sees "not logged in"
         end
 
-        # Decode and parse the session data
+        # Decode Base64 (encoding, not encryption - anyone can decode this)
         decoded_data = Base64.decode64(data)
         session_logger.trace "Base64 decode complete",
           session_id: sid_string,
           decoded_size: decoded_data.bytesize,
           operation: 'read'
 
+        # Parse JSON to get session hash
+        # Example: {"account_id":123,"awaiting_mfa":true}
         session_data = Familia::JsonSerializer.parse(decoded_data)
 
         session_logger.trace "Session loaded successfully",
@@ -244,6 +344,8 @@ module Onetime
           two_factor_auth_setup: session_data['two_factor_auth_setup'],
           operation: 'read'
 
+        # Return session data - this becomes env['rack.session']
+        # Rodauth checks env['rack.session'][:account_id] to verify login
         [sid, session_data]
       rescue StandardError => ex
         # Log error with structured context
@@ -256,10 +358,32 @@ module Onetime
         }
 
         # Return new session on any error
+        # This also causes Rodauth to see "not logged in"
         [generate_sid, {}]
       end
     end
 
+    # WRITE SESSION TO REDIS
+    # ======================
+    #
+    # Flow:
+    # 1. Serialize session data to JSON
+    #    {"account_id":123,"awaiting_mfa":true} => '{"account_id":123,...}'
+    #
+    # 2. Base64 encode (for safe transport, not encryption)
+    #    => "eyJhY2NvdW50X2lkIjoxMjN9..."
+    #
+    # 3. Compute HMAC signature (prevents tampering)
+    #    => "a3f5e8d9c2b1..."
+    #
+    # 4. Combine with separator
+    #    => "eyJhY2NvdW50X2lkIjoxMjN9...--a3f5e8d9c2b1..."
+    #
+    # 5. Store in Redis with TTL
+    #    SET session:SESSION_ID "data--hmac" EX 86400
+    #
+    # 6. Cookie contains just the session ID (not encrypted)
+    #    Set-Cookie: onetime.session=c9803eb...
     def write_session(_request, sid, session_data, _options)
       # Extract string ID from SessionId object if needed
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
@@ -270,21 +394,24 @@ module Onetime
         session_data_class: session_data.class.name,
         operation: 'write'
 
-      # Serialize session data
+      # Step 1: Serialize session data to JSON
+      # Example: {"account_id":123,"awaiting_mfa":true}
       json_data = Familia::JsonSerializer.dump(session_data)
       session_logger.trace "JSON serialization complete",
         session_id: sid_string,
         json_size: json_data.bytesize,
         operation: 'write'
 
-      # Base64 encode
+      # Step 2: Base64 encode (this is NOT encryption - anyone can decode)
+      # Purpose: Safe transport, handles binary data
       encoded = Base64.encode64(json_data).delete("\n")
       session_logger.trace "Base64 encoding complete",
         session_id: sid_string,
         encoded_size: encoded.bytesize,
         operation: 'write'
 
-      # Compute HMAC for integrity
+      # Step 3: Compute HMAC signature for integrity verification
+      # This proves the data hasn't been modified
       hmac = compute_hmac(encoded)
       signed_data = "#{encoded}--#{hmac}"
 
@@ -294,17 +421,19 @@ module Onetime
         signed_data_size: signed_data.bytesize,
         operation: 'write'
 
-      # Get or create StringKey for this session
+      # Step 4: Get or create StringKey for this session
       stringkey = get_stringkey(sid_string)
 
-      # Save the session data
+      # Step 5: Save to Redis
+      # Key: session:c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655
+      # Value: eyJhY2NvdW50X2lkIjoxMjN9...--a3f5e8d9c2b1...
       stringkey.set(signed_data)
       session_logger.trace "Redis SET complete",
         session_id: sid_string,
         redis_key: stringkey.dbkey,
         operation: 'write'
 
-      # Update expiration if configured
+      # Step 6: Update expiration if configured
       if @expire_after && @expire_after > 0
         stringkey.update_expiration(expiration: @expire_after)
         session_logger.trace "Expiration updated",
@@ -333,6 +462,8 @@ module Onetime
         operation: 'write'
 
       # Return the original sid (may be SessionId object)
+      # The parent Rack middleware will set the cookie:
+      # Set-Cookie: onetime.session=c9803eb... (just the session ID, not encrypted)
       sid
     rescue StandardError => ex
       # Log error with structured context
@@ -350,6 +481,7 @@ module Onetime
     end
 
     # Clean up expired sessions (optional, can be called periodically)
+    # Note: Redis TTL handles this automatically, so manual cleanup isn't required
     def cleanup_expired_sessions
       # This would typically be handled by Redis TTL automatically
       # but you could implement manual cleanup if needed
