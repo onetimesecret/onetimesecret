@@ -14,7 +14,7 @@ module Onetime
       # Boot sequence step descriptions
       # Order here is just for documentation - actual numbering is by call order
       STEPS = {
-        logging_setup: 'Configuring logging system',
+        logging_setup: 'Initializing logging system',
         diagnostics_init: 'Initializing diagnostics',
         config_load: 'Loading configuration',
         database_init: 'Initializing database connections',
