@@ -82,7 +82,7 @@ module Rack
       end
 
       # Log Set-Cookie header
-      log_cookies(headers['Set-Cookie'])
+      log_cookies(headers['set-cookie'])
 
       # Verify what's in Redis after
       verify_redis_state(session_id_after, 'after') if session_id_after
@@ -91,7 +91,8 @@ module Rack
       duration = Onetime.now_in_μs - start
       logger.debug "Session debug complete", {
         status: status,
-        duration: duration
+        duration: duration,
+        response_headers: headers,
       }
 
       [status, headers, body]
