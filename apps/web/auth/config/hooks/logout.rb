@@ -18,13 +18,15 @@ module Auth::Config::Hooks
           email: loggable_email,
           session_id: session.id,
         )
-        response.headers['set-cookie'] = Rack::Utils.delete_set_cookie_header('onetime.session')
       end
 
       #
       # Hook: After Logout
       #
-      # This hook is triggered after the user has been logged out.
+      # This hook is triggered after the user has been logged out and the session
+      # has been destroyed (via clear_session override that calls session.destroy).
+      # The session store's delete_session method has been called, which deletes
+      # the session from Redis and returns a new session ID for the response.
       #
       auth.after_logout do
         OT.info '[auth] Logout complete'

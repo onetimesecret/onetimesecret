@@ -25,6 +25,14 @@ module Auth::Config::Base
     # Default is 'account_id', which is what we want to use
     # The session cookie name is configured in the session middleware, not here
     auth.session_key 'account_id'  # Using Rodauth default
+
+    # Override clear_session to properly destroy session and trigger cookie deletion
+    # Rodauth's default clear_session only calls session.clear which doesn't delete
+    # the session from the store or generate a new session ID. We need session.destroy
+    # to trigger delete_session on our custom Onetime::Session store.
+    auth.clear_session do
+      session.destroy
+    end
   end
 
   private_class_method
