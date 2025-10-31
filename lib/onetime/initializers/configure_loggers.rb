@@ -18,11 +18,21 @@ module Onetime
     # the level settings are lost.
     #
     def configure_loggers
-      Onetime.ld '[Logging] Initializing SemanticLogger'
+      $stderr.puts ' entering configure_loggers' if Onetime.debug?
       config = load_logging_config
 
       # Base configuration - set default level first
       SemanticLogger.default_level = config['default_level']&.to_sym || :info
+
+      # Configure backtrace level - controls at which log level backtraces are included
+      # Values: :trace, :debug, :info, :warn, :error, :fatal
+      # Default: :error (show backtraces for error and fatal levels)
+      # Override with BACKTRACE_LEVEL environment variable
+      #
+      # NOTE: It's not clear what effect this has on output, Leaving for
+      # now so we can do more testing in various scenarios.
+      backtrace_level = ENV['BACKTRACE_LEVEL']&.to_sym || :error
+      SemanticLogger.backtrace_level = :info
 
       # Add appender
       SemanticLogger.add_appender(
@@ -40,7 +50,7 @@ module Onetime
       # to the configured loggers in @cached_loggers.
       @cached_loggers = {}
       config['loggers']&.each do |name, level|
-        $stderr.puts "[boot] initialize #{name} logger name" if Onetime.debug?
+        $stderr.puts " initialize #{name}=#{level}" if Onetime.debug?
         logger                = SemanticLogger[name]
         logger.level          = level.to_sym
         @cached_loggers[name] = logger
@@ -55,7 +65,7 @@ module Onetime
       # Log final effective configuration
       log_effective_configuration
 
-      Onetime.ld "[Logging] Initialized SemanticLogger (level: #{SemanticLogger.default_level})"
+      $stderr.puts " exiting configure_loggers (level: #{SemanticLogger.default_level})"
     end
 
     private
@@ -152,9 +162,9 @@ module Onetime
       end
 
       if overrides.any?
-        $stderr.puts "[Logging] Effective: default=#{default}, overrides: #{overrides.join(', ')}"
+        $stderr.puts " default=#{default}, overrides: #{overrides.join(', ')}"
       else
-        $stderr.puts "[Logging] Effective: default=#{default} (no overrides)"
+        $stderr.puts " default=#{default} (no overrides)"
       end
     end
 
