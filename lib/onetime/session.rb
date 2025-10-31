@@ -79,7 +79,7 @@ module Onetime
 
       key = Familia.join(@namespace, sid)
       Familia::StringKey.new(key,
-        ttl: @expire_after,
+        default_expiration: @expire_after,
         default: nil,
       )
     end

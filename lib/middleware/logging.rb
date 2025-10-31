@@ -24,8 +24,8 @@ module Middleware
 
     def initialize_logger
       if defined?(SemanticLogger)
-        category = self.class.name
-        SemanticLogger[category]
+        middleware_name = self.class.name
+        SemanticLogger[middleware_name] # e.g. Rack::SessionDebugger
       else
         require 'logger'
         Logger.new($stdout)
