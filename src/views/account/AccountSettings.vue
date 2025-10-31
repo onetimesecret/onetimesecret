@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
-import BaseLayout from '@/layouts/BaseLayout.vue';
+import SettingsLayout from '@/components/layout/SettingsLayout.vue';
 
 const route = useRoute();
 
@@ -21,7 +21,7 @@ const tabs = ref([
 </script>
 
 <template>
-  <BaseLayout>
+  <SettingsLayout>
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
@@ -54,5 +54,5 @@ const tabs = ref([
         <router-view />
       </div>
     </div>
-  </BaseLayout>
+  </SettingsLayout>
 </template>

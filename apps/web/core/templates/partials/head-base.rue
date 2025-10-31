@@ -5,9 +5,9 @@
 
   <!-- Security headers -->
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
+  <!-- Note: X-Frame-Options is set via HTTP header in middleware, not meta tag -->
 
   <!-- CSRF Token for forms and AJAX requests -->
   <meta name="csrf-token" content="{{app.csrf_token}}">

@@ -46,21 +46,21 @@ const sections = computed(() => {
       description: 'web.settings.security_settings_description',
       items: [
         {
-          to: '/account/settings/mfa',
+          to: '/account/settings/security/mfa',
           icon: { collection: 'heroicons', name: 'key-solid' },
           label: 'web.auth.mfa.title',
           description: 'web.auth.mfa.setup-description',
           badge: undefined as string | undefined, // TODO: Add MFA status badge
         },
         {
-          to: '/account/settings/recovery-codes',
+          to: '/account/settings/security/recovery-codes',
           icon: { collection: 'heroicons', name: 'document-text-solid' },
           label: 'web.auth.recovery-codes.title',
           description: 'web.auth.recovery-codes.description',
           badge: undefined as string | undefined, // TODO: Add recovery codes count
         },
         {
-          to: '/account/settings/sessions',
+          to: '/account/settings/security/sessions',
           icon: { collection: 'heroicons', name: 'computer-desktop-solid' },
           label: 'web.auth.sessions.title',
           description: 'web.settings.sessions.manage_active_sessions',
