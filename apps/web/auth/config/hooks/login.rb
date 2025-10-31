@@ -32,18 +32,13 @@ module Auth::Config::Hooks
       # the primary integration point for syncing the application session.
       #
       # After successful authentication (password OR passwordless), check MFA requirement
-      # BEFORE syncing session to prevent granting full access prematurely
+      # BEFORE syncing session to prevent granting full access prematurely.
       #
-      # two_factor_partially_authenticated? :: (two_factor_base feature) Returns true if
-      #                                        the session is logged in, the account has
-      #                                        setup two factor authentication, but has
-      #                                        not yet authenticated with a second factor.
-      # uses_two_factor_authentication? :: (two_factor_base feature) Whether the account
-      #                                    for the current session has setup two factor
-      #                                    authentication.
-      # update_last_activity :: (account_expiration feature) Update the last activity
-      #                         time for the current account.  Only makes sense to use
-      #                         this if you are expiring accounts based on last activity.
+      # SECURITY FLOW:
+      # 1. Query database for MFA configuration state (MfaStateChecker)
+      # 2. Make MFA requirement decision with primitive data (DetectMfaRequirement)
+      # 3. Either prepare session for MFA flow OR sync full session
+      #
       auth.after_login do
         correlation_id = session[:auth_correlation_id]
 
@@ -51,59 +46,77 @@ module Auth::Config::Hooks
           :login_success,
           level: :info,
           account_id: account_id,
-          email: account[:email],
+          email: OT::Utils.obscure_email(account[:email]),
           correlation_id: correlation_id,
         )
 
-        # Detect MFA requirement using dedicated operation
+        # Step 1: Check MFA configuration state from database
+        # This queries the database directly for account_otp_keys and account_recovery_codes
+        mfa_state = Auth::Operations::MfaStateChecker.new(db).check(account_id)
+
+        Auth::Logging.log_auth_event(
+          :mfa_state_checked,
+          level: :debug,
+          account_id: account_id,
+          has_otp: mfa_state.has_otp_secret,
+          has_recovery: mfa_state.has_recovery_codes,
+          mfa_enabled: mfa_state.mfa_enabled?,
+          correlation_id: correlation_id,
+        )
+
+        # Step 2: Make MFA requirement decision (pure function, no side effects)
+        # This accepts only primitive data and returns an immutable decision object
         mfa_decision = Auth::Operations::DetectMfaRequirement.call(
-          account: account,
-          session: session,
-          rodauth: self
+          account_id: account_id,
+          has_otp_secret: mfa_state.has_otp_secret,
+          has_recovery_codes: mfa_state.has_recovery_codes
         )
 
         if mfa_decision.requires_mfa?
-          # MFA required - defer full session sync until after second factor
+          # Step 3a: MFA required - prepare session for MFA flow
           Auth::Logging.log_auth_event(
             :mfa_required,
             level: :info,
             account_id: mfa_decision.account_id,
-            email: mfa_decision.email,
+            email: account[:email],
+            mfa_methods: mfa_decision.mfa_methods,
+            reason: mfa_decision.reason,
             correlation_id: correlation_id,
             note: 'Deferring full session sync until after second factor',
           )
 
-          # Set minimal session data for MFA flow
-          session[:awaiting_mfa] = true
-          session['account_id']   = mfa_decision.account_id
-          session['email']        = mfa_decision.email
+          # Prepare minimal session for MFA verification flow
+          Auth::Operations::PrepareMfaSession.call(
+            session: session,
+            account_id: account_id,
+            email: account[:email],
+            external_id: account[:external_id],
+            correlation_id: correlation_id
+          )
 
-          # Store external_id so frontend can display user email during MFA
-          if mfa_decision.external_id
-            session['external_id'] = mfa_decision.external_id
-          end
-
-          # For JSON mode, indicate MFA is required
+          # For JSON mode, indicate MFA is required and provide auth URL
           if json_request?
             json_response[:mfa_required]  = true
             json_response[:mfa_auth_url] = "/#{otp_auth_route}"
+            json_response[:mfa_methods] = mfa_decision.mfa_methods
 
             Auth::Logging.log_auth_event(
               :mfa_json_response,
               level: :debug,
               account_id: mfa_decision.account_id,
-              email: mfa_decision.email,
+              email: account[:email],
               correlation_id: correlation_id,
               json_response_keys: json_response.keys,
             )
           end
         else
-          # No MFA required - proceed with full session sync
+          # Step 3b: No MFA required - proceed with full session sync
           Auth::Logging.log_auth_event(
             :session_sync_start,
             level: :info,
             account_id: mfa_decision.account_id,
-            external_id: mfa_decision.external_id,
+            external_id: account[:external_id],
+            reason: mfa_decision.reason,
             correlation_id: correlation_id,
             note: 'No MFA required',
           )
