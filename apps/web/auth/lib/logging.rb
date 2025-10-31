@@ -54,6 +54,7 @@ module Auth
       # Ensure correlation_id is present in payload for visibility
       payload[:correlation_id] ||= 'none'
 
+      # e.g. Onetime.auth_logger.info "[login_success]" {...}
       logger.public_send(level, "[#{event}]", payload)
     end
 
