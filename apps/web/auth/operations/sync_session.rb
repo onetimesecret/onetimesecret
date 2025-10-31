@@ -61,7 +61,7 @@ module Auth
           :session_sync_start,
           level: :info,
           account_id: @account_id,
-          email: @account[:email],
+          external_id: @account[:external_id],
           correlation_id: @correlation_id
         )
 

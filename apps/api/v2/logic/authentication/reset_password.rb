@@ -32,11 +32,12 @@ module V2::Logic
           # the password.
           secret.received!
 
-          auth_logger.warn 'Invalid reset secret attempted',
+          auth_logger.warn 'Invalid reset secret attempted', {
             customer_id: @cust.custid,
             email: @cust.obscure_email,
             secret_key: secret.key,
             ip: @strategy_result&.metadata&.dig(:ip)
+          }
 
           raise_form_error 'Invalid reset secret'
         end
@@ -47,11 +48,12 @@ module V2::Logic
           # change the password of an account that has not been verified.
           # This is to prevent unauthorized password changes.
 
-          auth_logger.warn 'Password reset attempted for unverified account',
+          auth_logger.warn 'Password reset attempted for unverified account', {
             customer_id: @cust.custid,
             email: @cust.obscure_email,
             status: :pending,
             ip: @strategy_result&.metadata&.dig(:ip)
+          }
 
           raise_form_error 'Account not verified'
         end
@@ -67,11 +69,12 @@ module V2::Logic
         # don't match.
         secret.destroy!
 
-        auth_logger.info 'Password successfully changed',
+        auth_logger.info 'Password successfully changed', {
           customer_id: @cust.custid,
           email: @cust.obscure_email,
           ip: @strategy_result&.metadata&.dig(:ip),
           session_id: sess&.id
+        }
 
         success_data
       end

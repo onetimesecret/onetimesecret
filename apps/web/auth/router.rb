@@ -49,11 +49,12 @@ module Auth
     route do |r|
       # Debug logging for development
       Onetime.development? do
-        http_logger.debug 'Auth router request',
+        http_logger.debug 'Auth router request', {
           method: r.request_method,
           path_info: r.path_info,
           request_uri: r.env['REQUEST_URI'],
           script_name: r.env['SCRIPT_NAME']
+        }
       end
 
       # Root path - Auth app info

@@ -10,10 +10,11 @@ module Auth::Config::Email
 
     # Configure email delivery with lazy initialization
     auth.send_email do |email|
-      Onetime.auth_logger.debug 'send_email hook called',
+      Onetime.auth_logger.debug 'send_email hook called', {
         subject: email.subject.to_s,
         to: email.to.to_s,
         rack_env: ENV.fetch('RACK_ENV', nil)
+      }
 
       # Deliver email using configured mailer
       mailer = Auth::Mailer::Configuration.new

@@ -56,9 +56,10 @@ module Auth
             response.headers['Content-Type'] = 'application/json'
             { sessions: sessions_data }
           rescue StandardError => ex
-            auth_logger.error 'Error fetching active sessions',
+            auth_logger.error 'Error fetching active sessions', {
               exception: ex,
               account_id: account_id
+            }
 
             response.status = 500
             { error: 'Failed to fetch active sessions' }
@@ -84,9 +85,10 @@ module Auth
             response.headers['Content-Type'] = 'application/json'
             { success: 'Session removed successfully' }
           rescue StandardError => ex
-            auth_logger.error 'Error removing active session',
+            auth_logger.error 'Error removing active session', {
               exception: ex,
               session_id: session_id
+            }
 
             response.status = 500
             { error: 'Failed to remove session' }
@@ -109,9 +111,10 @@ module Auth
         rescue StandardError => ex
           # Use session_value for safer access to account_id
           account_id = rodauth.session_value rescue nil
-          auth_logger.error 'Error removing all active sessions',
+          auth_logger.error 'Error removing all active sessions', {
             exception: ex,
             account_id: account_id
+          }
 
           response.status = 500
           { error: 'Failed to remove sessions' }

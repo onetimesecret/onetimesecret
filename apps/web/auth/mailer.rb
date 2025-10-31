@@ -382,9 +382,10 @@ module Auth
         # Validate the delivery strategy
         @delivery_strategy # This will raise if configuration is invalid
       rescue ArgumentError => ex
-        Onetime.auth_logger.error 'Email configuration invalid, falling back to logger delivery',
+        Onetime.auth_logger.error 'Email configuration invalid, falling back to logger delivery', {
           error: ex.message,
           fallback_provider: 'logger'
+        }
         @delivery_strategy = Delivery::Logger.new
         @provider          = 'logger'
       end

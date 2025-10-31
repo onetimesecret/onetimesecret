@@ -25,7 +25,7 @@ module Auth
                 }
               end
             rescue StandardError => ex
-              auth_logger.error 'Auth stats endpoint error', exception: ex
+              auth_logger.error 'Auth stats endpoint error', { exception: ex }
               response.status = 500
               { error: 'Internal server error' }
           end

@@ -34,27 +34,30 @@ module V2::Logic
 
       def process
         unless success?
-          auth_logger.warn "Login failed",
+          auth_logger.warn "Login failed", {
             email: cust.obscure_email,
             role: cust.role,
             session_id: sess&.id,
             ip: @strategy_result.metadata[:ip],
             reason: :invalid_credentials
+          }
 
           raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
         end
 
         if cust.pending?
-          auth_logger.info "Login pending customer verification",
+          auth_logger.info "Login pending customer verification", {
             customer_id: cust.objid,
             email: cust.obscure_email,
             role: cust.role,
             session_id: sess&.id,
             status: :pending
+          }
 
-          auth_logger.info "Resending verification email",
+          auth_logger.info "Resending verification email", {
             customer_id: cust.objid,
             email: cust.obscure_email
+          }
 
           send_verification_email nil
 
@@ -78,7 +81,7 @@ module V2::Logic
           :customer
         end
 
-        auth_logger.info "Login successful",
+        auth_logger.info "Login successful", {
           user_id: cust.custid,
           email: cust.obscure_email,
           role: cust.role,
@@ -86,6 +89,7 @@ module V2::Logic
           ip: @strategy_result.metadata[:ip],
           stay: stay,
           session_ttl: session_ttl
+        }
 
         success_data
       end
