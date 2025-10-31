@@ -19,7 +19,7 @@ module Auth::Config::Hooks
         Auth::Logging.log_auth_event(
           :login_attempt,
           level: :info,
-          email: email,
+          email: OT::Utils.obscure_email(email),
           ip: request.ip,
           correlation_id: correlation_id,
         )
@@ -103,7 +103,7 @@ module Auth::Config::Hooks
             :session_sync_start,
             level: :info,
             account_id: mfa_decision.account_id,
-            email: mfa_decision.email,
+            external_id: mfa_decision.external_id,
             correlation_id: correlation_id,
             note: 'No MFA required',
           )
@@ -111,7 +111,7 @@ module Auth::Config::Hooks
 
           Onetime::ErrorHandler.safe_execute('sync_session_after_login',
             account_id: account_id,
-            email: account[:email],
+            external_id: account[:external_id],
           ) do
             Auth::Operations::SyncSession.call(
               account: account,
@@ -137,7 +137,7 @@ module Auth::Config::Hooks
         Auth::Logging.log_auth_event(
           :login_failure,
           level: :warn,
-          email: email,
+          email: OT::Utils.obscure_email(email),
           ip: request.ip,
           correlation_id: correlation_id,
         )
