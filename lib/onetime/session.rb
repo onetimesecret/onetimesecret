@@ -88,25 +88,25 @@ module Onetime
       # Extract string ID from SessionId object if needed
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
 
-      session_logger.debug "Session deletion initiated",
+      session_logger.trace "Session deletion initiated",
         session_id: sid_string,
         operation: 'delete'
 
       if stringkey = get_stringkey(sid_string)
         result = stringkey.del
-        session_logger.debug "Session deleted from Redis",
+        session_logger.trace "Session deleted from Redis",
           session_id: sid_string,
           redis_key: stringkey.key,
           deleted: result > 0,
           operation: 'delete'
       else
-        session_logger.debug "No session found to delete",
+        session_logger.trace "No session found to delete",
           session_id: sid_string,
           operation: 'delete'
       end
 
       new_sid = generate_sid
-      session_logger.debug "New session generated after deletion",
+      session_logger.trace "New session generated after deletion",
         session_id: new_sid.respond_to?(:public_id) ? new_sid.public_id : new_sid,
         operation: 'delete'
 
@@ -129,7 +129,7 @@ module Onetime
       valid_size = valid_types && hmac.bytesize == expected.bytesize
 
       unless valid_types && valid_size
-        session_logger.debug "HMAC validation failed",
+        session_logger.trace "HMAC validation failed",
           valid_types: valid_types,
           valid_size: valid_size,
           hmac_size: hmac&.bytesize,
@@ -142,7 +142,7 @@ module Onetime
       # Constant-time comparison
       result = Rack::Utils.secure_compare(expected, hmac)
 
-      session_logger.debug "HMAC validation complete",
+      session_logger.trace "HMAC validation complete",
         valid: result,
         operation: 'hmac_validation'
 
@@ -162,20 +162,20 @@ module Onetime
       # sid may be a SessionId object or nil
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
 
-      session_logger.debug "Session lookup initiated",
+      session_logger.trace "Session lookup initiated",
         session_id: sid_string,
         sid_type: sid.class.name,
         operation: 'read'
 
       # Only generate new sid if none provided or invalid
       unless sid_string && valid_session_id?(sid_string)
-        session_logger.debug "Session ID invalid or missing",
+        session_logger.trace "Session ID invalid or missing",
           session_id: sid_string,
           valid: false,
           operation: 'read'
 
         new_sid = generate_sid
-        session_logger.debug "New session created",
+        session_logger.trace "New session created",
           session_id: new_sid.respond_to?(:public_id) ? new_sid.public_id : new_sid,
           operation: 'read'
 
@@ -186,7 +186,7 @@ module Onetime
         stringkey   = get_stringkey(sid_string)
         stored_data = stringkey.value if stringkey
 
-        session_logger.debug "Redis lookup complete",
+        session_logger.trace "Redis lookup complete",
           session_id: sid_string,
           has_data: !stored_data.nil?,
           data_size: stored_data&.bytesize,
@@ -195,7 +195,7 @@ module Onetime
 
         # If no data stored, return empty session
         unless stored_data
-          session_logger.debug "No session data found",
+          session_logger.trace "No session data found",
             session_id: sid_string,
             operation: 'read'
 
@@ -205,7 +205,7 @@ module Onetime
         # Verify HMAC before deserializing
         data, hmac = stored_data.split('--', 2)
 
-        session_logger.debug "HMAC verification",
+        session_logger.trace "HMAC verification",
           session_id: sid_string,
           has_hmac: !hmac.nil?,
           data_length: data&.length,
@@ -226,14 +226,14 @@ module Onetime
 
         # Decode and parse the session data
         decoded_data = Base64.decode64(data)
-        session_logger.debug "Base64 decode complete",
+        session_logger.trace "Base64 decode complete",
           session_id: sid_string,
           decoded_size: decoded_data.bytesize,
           operation: 'read'
 
         session_data = Familia::JsonSerializer.parse(decoded_data)
 
-        session_logger.debug "Session loaded successfully",
+        session_logger.trace "Session loaded successfully",
           session_id: sid_string,
           session_keys: session_data.keys,
           account_id: session_data['account_id'],
@@ -262,7 +262,7 @@ module Onetime
       # Extract string ID from SessionId object if needed
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
 
-      session_logger.debug "Session write initiated",
+      session_logger.trace "Session write initiated",
         session_id: sid_string,
         session_keys: session_data&.keys,
         session_data_class: session_data.class.name,
@@ -270,14 +270,14 @@ module Onetime
 
       # Serialize session data
       json_data = Familia::JsonSerializer.dump(session_data)
-      session_logger.debug "JSON serialization complete",
+      session_logger.trace "JSON serialization complete",
         session_id: sid_string,
         json_size: json_data.bytesize,
         operation: 'write'
 
       # Base64 encode
       encoded = Base64.encode64(json_data).delete("\n")
-      session_logger.debug "Base64 encoding complete",
+      session_logger.trace "Base64 encoding complete",
         session_id: sid_string,
         encoded_size: encoded.bytesize,
         operation: 'write'
@@ -286,7 +286,7 @@ module Onetime
       hmac = compute_hmac(encoded)
       signed_data = "#{encoded}--#{hmac}"
 
-      session_logger.debug "HMAC computation complete",
+      session_logger.trace "HMAC computation complete",
         session_id: sid_string,
         hmac_length: hmac.length,
         signed_data_size: signed_data.bytesize,
@@ -297,7 +297,7 @@ module Onetime
 
       # Save the session data
       stringkey.set(signed_data)
-      session_logger.debug "Redis SET complete",
+      session_logger.trace "Redis SET complete",
         session_id: sid_string,
         redis_key: stringkey.key,
         operation: 'write'
@@ -305,7 +305,7 @@ module Onetime
       # Update expiration if configured
       if @expire_after && @expire_after > 0
         stringkey.update_expiration(expiration: @expire_after)
-        session_logger.debug "Expiration updated",
+        session_logger.trace "Expiration updated",
           session_id: sid_string,
           expire_after: @expire_after,
           operation: 'write'
@@ -316,8 +316,8 @@ module Onetime
       ttl_value = stringkey.ttl
       expires_at = ttl_value > 0 ? Time.now + ttl_value : nil
 
-      # Structured debug logging with all critical session fields
-      session_logger.debug "Session saved successfully",
+      # Structured trace logging with all critical session fields
+      session_logger.trace "Session saved successfully",
         session_id: sid_string,
         session_keys: session_data&.keys,
         account_id: session_data&.fetch('account_id', 'n/a'),
