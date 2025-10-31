@@ -1,10 +1,11 @@
-# lib/onetime/initializers/semantic_logger.rb
+# lib/onetime/initializers/configure_loggers.rb
 
 require 'yaml'
 require 'semantic_logger'
 
 module Onetime
   module Initializers
+
     # Configure SemanticLogger with strategic categories for debugging and
     # operational instrumentation. Categories: Auth, Session, HTTP, Familia,
     # Otto, Rhales, Secret, App (default).
@@ -16,7 +17,7 @@ module Onetime
     # We must cache logger instances after setting their levels, otherwise
     # the level settings are lost.
     #
-    def configure_logging
+    def configure_loggers
       Onetime.ld '[Logging] Initializing SemanticLogger'
       config = load_logging_config
 
@@ -39,8 +40,9 @@ module Onetime
       # to the configured loggers in @cached_loggers.
       @cached_loggers = {}
       config['loggers']&.each do |name, level|
-        logger = SemanticLogger[name]
-        logger.level = level.to_sym
+        $stderr.puts "[boot] initialize #{name} logger name" if Onetime.debug?
+        logger                = SemanticLogger[name]
+        logger.level          = level.to_sym
         @cached_loggers[name] = logger
       end
 
@@ -73,7 +75,7 @@ module Onetime
 
     # Apply environment variable overrides for default_level only
     # This must be called BEFORE setting individual logger levels
-    def apply_default_level_overrides(config)
+    def apply_default_level_overrides(_config)
       # Step 1: Global default level override (affects only unconfigured loggers)
       if ENV['LOG_LEVEL']
         SemanticLogger.default_level = ENV['LOG_LEVEL'].to_sym
@@ -98,27 +100,28 @@ module Onetime
 
       # Step 1: Apply quick debug flags for individual categories first.
       # These provide a convenient way to enable debug logging for a component.
-      apply_quick_debug_flag('Auth',    ENV['DEBUG_AUTH'])
-      apply_quick_debug_flag('Session', ENV['DEBUG_SESSION'])
-      apply_quick_debug_flag('HTTP',    ENV['DEBUG_HTTP'])
-      apply_quick_debug_flag('Secret',  ENV['DEBUG_SECRET'])
-      apply_quick_debug_flag('Sequel',  ENV['DEBUG_SEQUEL'])
-      apply_quick_debug_flag('Rhales',  ENV['DEBUG_RHALES'])
-      apply_quick_debug_flag('App',     ENV['DEBUG_APP'])
+      apply_quick_debug_flag('Auth',    ENV.fetch('DEBUG_AUTH', nil))
+      apply_quick_debug_flag('Boot',    ENV.fetch('DEBUG_BOOT', nil))
+      apply_quick_debug_flag('Session', ENV.fetch('DEBUG_SESSION', nil))
+      apply_quick_debug_flag('HTTP',    ENV.fetch('DEBUG_HTTP', nil))
+      apply_quick_debug_flag('Secret',  ENV.fetch('DEBUG_SECRET', nil))
+      apply_quick_debug_flag('Sequel',  ENV.fetch('DEBUG_SEQUEL', nil))
+      apply_quick_debug_flag('Rhales',  ENV.fetch('DEBUG_RHALES', nil))
+      apply_quick_debug_flag('App',     ENV.fetch('DEBUG_APP', nil))
 
       # Step 2: Parse DEBUG_LOGGERS for fine-grained control.
       # This has the highest precedence and will override any previous setting.
       # Format: "Auth:debug,Secret:trace,Familia:warn" or "Auth=debug,Secret=trace"
-      if ENV['DEBUG_LOGGERS']
-        ENV['DEBUG_LOGGERS'].split(',').each do |spec|
-          # Support both : and = separators
-          logger_name, level = spec.split(/[:=]/, 2).map(&:strip)
-          next unless logger_name && level
+      return unless ENV['DEBUG_LOGGERS']
 
-          # Get or create cached logger and set level
-          cached_logger = (@cached_loggers[logger_name] ||= SemanticLogger[logger_name])
-          cached_logger.level = level.to_sym
-        end
+      ENV['DEBUG_LOGGERS'].split(',').each do |spec|
+        # Support both : and = separators
+        logger_name, level = spec.split(/[:=]/, 2).map(&:strip)
+        next unless logger_name && level
+
+        # Get or create cached logger and set level
+        cached_logger       = (@cached_loggers[logger_name] ||= SemanticLogger[logger_name])
+        cached_logger.level = level.to_sym
       end
 
       # For external library logging levels, use DEBUG_LOGGERS instead:
@@ -130,14 +133,14 @@ module Onetime
       return unless env_value
 
       # Get or create cached logger and set level
-      cached_logger = (@cached_loggers[logger_name] ||= SemanticLogger[logger_name])
+      cached_logger       = (@cached_loggers[logger_name] ||= SemanticLogger[logger_name])
       cached_logger.level = :debug
     end
 
     # Log the final effective configuration
     # Shows which loggers differ from the default level
     def log_effective_configuration
-      default = SemanticLogger.default_level
+      default   = SemanticLogger.default_level
       overrides = []
 
       # Check all cached loggers for non-default levels
@@ -169,10 +172,10 @@ module Onetime
     #
     def configure_external_loggers
       # Familia Redis ORM - also responds to FAMILIA_DEBUG
-      Familia.logger = SemanticLogger['Familia']
+      Familia.logger = @cached_loggers['Familia']
 
       # Otto router - also responds to OTTO_DEBUG
-      Otto.logger = SemanticLogger['Otto']
+      Otto.logger = @cached_loggers['Otto']
 
       # Rhales manifold
       # Rhales.logger = SemanticLogger['Rhales']
@@ -182,7 +185,7 @@ module Onetime
       # apps/web/auth/config/database.rb using db.loggers array
       # We'll update that file to use SemanticLogger instead of Logger.new
 
-      configure_familia_hooks if defined?(Familia)
+      configure_familia_hooks
     end
 
     # Configure Familia audit hooks for operational visibility
@@ -194,7 +197,7 @@ module Onetime
     # capture for tests.
     #
     def configure_familia_hooks
-      familia_logger = SemanticLogger['Familia']
+      familia_logger = Familia.logger # helps readability in the blocks below
 
       # Configure sampling based on environment
       # - Development/Test: Log everything (nil = 100%)
@@ -230,6 +233,7 @@ module Onetime
           class: instance.class.name,
           identifier: instance.respond_to?(:identifier) ? instance.identifier : nil,
           context: context
+        }
       end
     end
   end
