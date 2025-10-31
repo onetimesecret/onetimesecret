@@ -63,7 +63,7 @@ module Auth::Config::Base
         raise 'HMAC_SECRET or AUTH_SECRET environment variable must be set in production'
       else
         OT.info '[rodauth] WARNING: Using default HMAC secret for development only'
-        hmac_secret_value = 'dev-hmac-secret-change-in-prod'
+        hmac_secret_value = 'dev-only-insecure-example-hmac-secret-needs-to-be-changed-in-prod'
       end
     end
 
