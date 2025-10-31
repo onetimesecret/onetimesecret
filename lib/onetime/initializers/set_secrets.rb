@@ -1,8 +1,15 @@
-# lib/onetime/initializers/set_global_secret.rb
+# lib/onetime/initializers/set_secrets.rb
 
 module Onetime
   module Initializers
-    attr_reader :global_secret
+    attr_reader :global_secret, :rotated_secrets
+
+    def set_secrets
+      set_global_secret
+      set_rotated_secrets
+    end
+
+    private
 
     def set_global_secret
       @global_secret = OT.conf['site']['secret'] || nil
@@ -15,6 +22,14 @@ module Onetime
       # unless Gibbler.secret && Gibbler.secret.frozen?
       #   # Gibbler.secret = global_secret.freeze
       # end
+    end
+
+    def set_rotated_secrets
+      # Remove nil elements that have inadvertently been set in
+      # the list of previously used global secrets. Happens easily
+      # when using environment vars in the config.yaml that aren't
+      # set or are set to an empty string.
+      @rotated_secrets = OT.conf['experimental'].fetch('rotated_secrets', []).compact
     end
   end
 end

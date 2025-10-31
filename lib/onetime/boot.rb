@@ -61,15 +61,14 @@ module Onetime
       load_locales
 
       manifest.checkpoint(:logging_setup)
-      configure_logging
+      configure_loggers
       manifest.logger = Onetime.boot_logger
 
       manifest.checkpoint(:diagnostics_init) do
         setup_diagnostics
       end
 
-      set_global_secret
-      set_rotated_secrets
+      set_secrets
       configure_domains
       configure_truemail
       configure_rhales
