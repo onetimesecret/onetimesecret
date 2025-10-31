@@ -70,7 +70,8 @@ module Core
           exception: ex,
           url: req.url,
           method: req.request_method,
-          ip: req.ip
+          ip: req.ip,
+          backtrace: ex.backtrace&.first(20)
 
         # Track in Sentry if diagnostics enabled
         capture_error(ex, env) if OT.d9s_enabled

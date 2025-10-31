@@ -26,13 +26,15 @@ import type { OtpSetupData } from '@/types/auth';
  * TOTP URI format:
  * otpauth://totp/Issuer:user@example.com?secret=SECRET&issuer=Issuer
  *
- * Note: userEmail is currently a placeholder. In production, this should be
+ * Note: emailAddress is currently a placeholder. In production, this should be
  * fetched from the authenticated user's account information.
  */
-export async function generateQrCode(secret: string): Promise<string> {
-  const issuer = 'Onetime Secret';
-  const userEmail = 'user@example.com'; // TODO: Get from user account
-  const otpUrl = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(userEmail)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}`;
+export async function generateQrCode(
+  issuer: string,
+  emailAddress: string,
+  secret: string
+): Promise<string> {
+  const otpUrl = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(emailAddress)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}`;
   return await QRCode.toDataURL(otpUrl);
 }
 
@@ -52,10 +54,7 @@ export async function generateQrCode(secret: string): Promise<string> {
  * - HMAC setup success (422 with secrets present)
  */
 export function hasHmacSetupData(errorData: any): boolean {
-  return Boolean(
-    (errorData.otp_secret || errorData.otp_setup) &&
-    errorData.otp_raw_secret
-  );
+  return Boolean((errorData.otp_secret || errorData.otp_setup) && errorData.otp_raw_secret);
 }
 
 /**
@@ -83,14 +82,18 @@ export async function enrichSetupResponse(errorData: any): Promise<OtpSetupData 
     // Validate response structure against expected schema
     const validated = otpSetupResponseSchema.parse(errorData);
 
+    // Ensure we have otp_setup for the verification step. When HMAC is
+    // enabled, the field name is otp_secret; otherwise otp_secret.
+    validated.otp_setup = validated.otp_setup || errorData.otp_secret || errorData.otp_setup;
+
     // Generate QR code for authenticator app scanning
     if (validated.otp_raw_secret) {
-      validated.qr_code = await generateQrCode(validated.otp_raw_secret);
+      validated.qr_code = await generateQrCode(
+        'Onetime Secret',
+        'user@example.com', // TODO: Get from authenticated user
+        validated.otp_raw_secret
+      );
     }
-
-    // Ensure we have otp_setup for the verification step
-    // Some backend versions may use otp_secret instead
-    validated.otp_setup = validated.otp_setup || errorData.otp_secret || errorData.otp_setup;
 
     return validated;
   } catch (parseErr) {

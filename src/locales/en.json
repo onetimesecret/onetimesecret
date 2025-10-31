@@ -632,6 +632,8 @@
         "disable": "Disable Two-Factor Authentication",
         "setup-title": "Set Up Two-Factor Authentication",
         "setup-description": "Add an extra layer of security to your account",
+        "step-scan": "1. Scan QR Code",
+        "step-verify": "2. Verify Setup",
         "scan-qr": "Scan this QR code with your authenticator app",
         "manual-entry": "Or enter this code manually",
         "verify-code": "Enter the 6-digit code from your app",
@@ -661,6 +663,7 @@
         "supported-apps": "Use Google Authenticator, Authy, or any TOTP app",
         "continue-verification": "Continue to Verification",
         "enter-code-description": "Enter the 6-digit code from your authenticator app",
+        "enable-and-continue": "Enable MFA",
         "complete-setup": "Complete Setup"
       },
       "recovery-codes": {

@@ -54,11 +54,9 @@ import {
 } from '@/schemas/api/endpoints/auth';
 import type { OtpSetupData, MfaStatus } from '@/types/auth';
 import { useNotificationsStore } from '@/stores/notificationsStore';
-import {
-  generateQrCode,
-  hasHmacSetupData,
-  enrichSetupResponse,
-} from './helpers/mfaHelpers';
+import { generateQrCode, hasHmacSetupData, enrichSetupResponse } from './helpers/mfaHelpers';
+import { useAsyncHandler, createError } from '@/composables/useAsyncHandler';
+import type { ApplicationError } from '@/schemas/errors';
 
 /* eslint-disable max-lines-per-function, complexity */
 export function useMfa() {
@@ -70,6 +68,38 @@ export function useMfa() {
   const mfaStatus = ref<MfaStatus | null>(null);
   const setupData = ref<OtpSetupData | null>(null);
   const recoveryCodes = ref<string[]>([]);
+
+  // Configure async handler for auth-specific pattern (no auto-notify)
+  const { wrap } = useAsyncHandler({
+    // Don't auto-notify - MFA shows errors inline
+    notify: false,
+    setLoading: (loading) => (isLoading.value = loading),
+    onError: (err: ApplicationError) => {
+      // IMPORTANT: Clear all error state first to prevent stale data
+      error.value = null;
+
+      // Provide user-friendly error messages based on error code
+      const code = err.code;
+      const originalMessage = err.message;
+
+      // Map common HTTP status codes to user-friendly messages
+      if (code === 401) {
+        error.value = originalMessage.includes('Session')
+          ? originalMessage // Keep specific session messages
+          : 'Incorrect password. Please try again.';
+      } else if (code === 403) {
+        error.value = 'Not authorized.';
+      } else if (code === 404) {
+        error.value = 'Recovery code not found. Please verify you entered it correctly.';
+      } else if (code === 410) {
+        error.value = 'This recovery code has already been used. Each code can only be used once.';
+      } else if (code === 429) {
+        error.value = 'Too many failed attempts. Please wait 5 minutes before trying again.';
+      } else {
+        error.value = err.message;
+      }
+    },
+  });
 
   function clearError() {
     error.value = null;
@@ -89,26 +119,16 @@ export function useMfa() {
    */
   async function fetchMfaStatus(): Promise<MfaStatus | null> {
     clearError();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const response = await $api.get<MfaStatusResponse>('/auth/mfa-status');
       const validated = mfaStatusResponseSchema.parse(response.data);
 
       mfaStatus.value = validated;
       return validated;
-    } catch (err: any) {
-      console.error('[useMfa] fetchMfaStatus error:', {
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        data: err.response?.data,
-        message: err.message,
-      });
-      error.value = err.response?.data?.error || 'Failed to load MFA status';
-      return null;
-    } finally {
-      isLoading.value = false;
-    }
+    });
+
+    return result ?? null;
   }
 
   /**
@@ -136,52 +156,44 @@ export function useMfa() {
    */
   async function setupMfa(password?: string): Promise<OtpSetupData | null> {
     clearError();
-    isLoading.value = true;
 
     try {
-      const payload: Record<string, string> = password ? { password } : {};
-      const response = await $api.post<OtpSetupResponse>('/auth/otp-setup', payload);
-      const validated = otpSetupResponseSchema.parse(response.data);
+      const result = await wrap(async () => {
+        const payload: Record<string, string> = password ? { password } : {};
+        const response = await $api.post<OtpSetupResponse>('/auth/otp-setup', payload);
+        const validated = otpSetupResponseSchema.parse(response.data);
 
-      // Standard response (non-HMAC mode): includes QR code data directly
-      if (validated.otp_raw_secret) {
-        validated.qr_code = await generateQrCode(validated.otp_raw_secret);
-      }
+        // Standard response (non-HMAC mode): includes QR code data directly
+        if (validated.otp_raw_secret) {
+          validated.qr_code = await generateQrCode(
+            'Onetime Secret',
+            'user@example.com', // TODO: Get from authenticated user
+            validated.otp_raw_secret
+          );
+        }
 
-      setupData.value = validated;
-      return validated;
+        setupData.value = validated;
+        return validated;
+      });
+
+      return result ?? null;
     } catch (err: any) {
+      // HMAC Setup Success Path: 422 with secrets (not a real error)
+      // When HMAC is enabled, backend returns 422 with otp_setup and otp_raw_secret
+      // This is expected behavior, not an actual error
       const errorData = err.response?.data;
 
-      // HMAC Setup Success Path: 422 with secrets (not a real error)
-      // This is the expected response when HMAC is enabled in JSON-only mode
       if (err.response?.status === 422 && errorData && hasHmacSetupData(errorData)) {
         const hmacData = await enrichSetupResponse(errorData);
         if (hmacData) {
           setupData.value = hmacData;
+          error.value = null; // Clear the error set by wrap()
           return hmacData; // Success: proceed to QR code display
         }
       }
 
-      // Actual error: missing required data or other failure
-      console.error('[useMfa] setupMfa error:', {
-        status: err.response?.status,
-        data: errorData,
-      });
-
-      // Provide user-friendly error messages for common scenarios
-      if (err.response?.status === 401) {
-        error.value = 'Authentication required. Please log in again.';
-      } else if (err.response?.status === 403) {
-        error.value = 'Incorrect password. Please try again.';
-      } else if (err.response?.status === 429) {
-        error.value = 'Too many attempts. Please wait a few minutes and try again.';
-      } else {
-        error.value = errorData?.error || 'Failed to initiate MFA setup. Please try again or contact support.';
-      }
-      return null;
-    } finally {
-      isLoading.value = false;
+      // For other errors, re-throw to let wrap() handle them
+      throw err;
     }
   }
 
@@ -209,13 +221,11 @@ export function useMfa() {
    */
   async function enableMfa(otpCode: string, password: string): Promise<boolean> {
     clearError();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const payload: Record<string, string> = { otp_code: otpCode, password };
 
       // Include HMAC'd secret and raw secret from setup step
-      // These are required for the backend to validate the OTP
       if (setupData.value?.otp_setup) {
         payload.otp_setup = setupData.value.otp_setup;
       }
@@ -228,38 +238,22 @@ export function useMfa() {
 
       // Check for error response (validation failure)
       if (isAuthError(validated)) {
-        // Provide specific error message for invalid OTP code
-        if (validated.error.toLowerCase().includes('invalid') || validated.error.toLowerCase().includes('incorrect')) {
-          error.value = 'Invalid verification code. Please check your authenticator app and try again.';
-        } else {
-          error.value = validated.error;
-        }
-        return false;
+        const errorMsg = validated.error.toLowerCase();
+        const message =
+          errorMsg.includes('invalid') || errorMsg.includes('incorrect')
+            ? 'Invalid verification code. Please check your authenticator app and try again.'
+            : validated.error;
+
+        throw createError(message, 'human', 'error', {
+          'field-error': validated['field-error'],
+        });
       }
 
       notificationsStore.show('Two-factor authentication has been enabled', 'success', 'top');
       return true;
-    } catch (err: any) {
-      // Network error or unexpected response with user-friendly messages
-      const errorData = err.response?.data;
+    });
 
-      if (err.response?.status === 401) {
-        error.value = 'Authentication required. Please log in again.';
-      } else if (err.response?.status === 403) {
-        error.value = 'Incorrect password. Please verify your password and try again.';
-      } else if (err.response?.status === 422) {
-        error.value = errorData?.error || 'Invalid verification code. Please check and try again.';
-      } else if (err.response?.status === 429) {
-        error.value = 'Too many attempts. Please wait a few minutes before trying again.';
-      } else if (!err.response) {
-        error.value = 'Network error. Please check your connection and try again.';
-      } else {
-        error.value = errorData?.error || 'Failed to enable MFA. Please try again or contact support.';
-      }
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
+    return result ?? false;
   }
 
   /**
@@ -280,9 +274,8 @@ export function useMfa() {
    */
   async function verifyOtp(otpCode: string): Promise<boolean> {
     clearError();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const response = await $api.post<OtpVerifyResponse>('/auth/otp-auth', {
         otp_code: otpCode,
       });
@@ -290,35 +283,19 @@ export function useMfa() {
       const validated = otpVerifyResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        // Enhanced error message for invalid OTP
-        if (validated.error.toLowerCase().includes('invalid') || validated.error.toLowerCase().includes('incorrect')) {
-          error.value = 'Invalid code. Codes expire every 30 seconds. Try the latest code from your authenticator app.';
-        } else {
-          error.value = validated.error;
-        }
-        return false;
+        const errorMsg = validated.error.toLowerCase();
+        const message =
+          errorMsg.includes('invalid') || errorMsg.includes('incorrect')
+            ? 'Invalid code. Codes expire every 30 seconds. Try the latest code from your authenticator app.'
+            : validated.error;
+
+        throw createError(message, 'human', 'error');
       }
 
       return true;
-    } catch (err: any) {
-      // Detailed error messages for common verification failures
-      const errorData = err.response?.data;
+    });
 
-      if (err.response?.status === 401) {
-        error.value = 'Session expired. Please log in again with your password.';
-      } else if (err.response?.status === 429) {
-        error.value = 'Too many failed attempts. Please wait 5 minutes before trying again.';
-      } else if (err.response?.status === 422) {
-        error.value = errorData?.error || 'Invalid code format. Please enter a 6-digit code.';
-      } else if (!err.response) {
-        error.value = 'Connection error. Please check your network and try again.';
-      } else {
-        error.value = errorData?.error || 'Authentication failed. Please try again with a fresh code.';
-      }
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
+    return result ?? false;
   }
 
   /**
@@ -336,9 +313,8 @@ export function useMfa() {
    */
   async function disableMfa(password: string): Promise<boolean> {
     clearError();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const response = await $api.post<OtpToggleResponse>('/auth/otp-disable', {
         password,
       });
@@ -346,36 +322,18 @@ export function useMfa() {
       const validated = otpToggleResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        // Enhanced error message for password verification failure
-        if (validated.error.toLowerCase().includes('password')) {
-          error.value = 'Incorrect password. Please verify your password and try again.';
-        } else {
-          error.value = validated.error;
-        }
-        return false;
+        const message = validated.error.toLowerCase().includes('password')
+          ? 'Incorrect password. Please verify your password and try again.'
+          : validated.error;
+
+        throw createError(message, 'human', 'error');
       }
 
       notificationsStore.show('Two-factor authentication has been disabled', 'success', 'top');
       return true;
-    } catch (err: any) {
-      // User-friendly error messages for disabling MFA
-      const errorData = err.response?.data;
+    });
 
-      if (err.response?.status === 401) {
-        error.value = 'Authentication required. Please log in again.';
-      } else if (err.response?.status === 403) {
-        error.value = 'Incorrect password. Your password is required to disable MFA.';
-      } else if (err.response?.status === 429) {
-        error.value = 'Too many attempts. Please wait before trying again.';
-      } else if (!err.response) {
-        error.value = 'Network error. Please check your connection.';
-      } else {
-        error.value = errorData?.error || 'Failed to disable MFA. Please try again or contact support.';
-      }
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
+    return result ?? false;
   }
 
   /**
@@ -392,25 +350,20 @@ export function useMfa() {
    */
   async function fetchRecoveryCodes(): Promise<string[]> {
     clearError();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const response = await $api.post<RecoveryCodesResponse>('/auth/recovery-codes', {});
       const validated = recoveryCodesResponseSchema.parse(response.data);
 
       recoveryCodes.value = validated.codes;
       return validated.codes;
-    } catch (err: any) {
-      console.error('[useMfa] fetchRecoveryCodes error:', {
-        status: err.response?.status,
-        data: err.response?.data,
-      });
-      error.value = err.response?.data?.error || 'Failed to load recovery codes';
+    });
+
+    if (!result) {
       recoveryCodes.value = [];
-      return [];
-    } finally {
-      isLoading.value = false;
     }
+
+    return result ?? [];
   }
 
   /**
@@ -430,22 +383,22 @@ export function useMfa() {
    */
   async function generateNewRecoveryCodes(password: string): Promise<string[]> {
     clearError();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const response = await $api.post<RecoveryCodesResponse>('/auth/recovery-codes', { password });
       const validated = recoveryCodesResponseSchema.parse(response.data);
 
       recoveryCodes.value = validated.codes;
-      notificationsStore.show('New recovery codes have been generated', 'success', 'top');
       return validated.codes;
-    } catch (err: any) {
-      error.value = err.response?.data?.error || 'Failed to generate recovery codes';
+    });
+
+    if (result) {
+      notificationsStore.show('New recovery codes have been generated', 'success', 'top');
+    } else {
       recoveryCodes.value = [];
-      return [];
-    } finally {
-      isLoading.value = false;
     }
+
+    return result ?? [];
   }
 
   /**
@@ -469,9 +422,8 @@ export function useMfa() {
    */
   async function verifyRecoveryCode(code: string): Promise<boolean> {
     clearError();
-    isLoading.value = true;
 
-    try {
+    const result = await wrap(async () => {
       const response = await $api.post<OtpVerifyResponse>('/auth/recovery-auth', {
         recovery_code: code,
       });
@@ -479,40 +431,22 @@ export function useMfa() {
       const validated = otpVerifyResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        // Enhanced error message for recovery code issues
         const errorMsg = validated.error.toLowerCase();
+        let message = validated.error;
+
         if (errorMsg.includes('used') || errorMsg.includes('consumed')) {
-          error.value = 'This recovery code has already been used. Please use a different code.';
+          message = 'This recovery code has already been used. Please use a different code.';
         } else if (errorMsg.includes('invalid') || errorMsg.includes('not found')) {
-          error.value = 'Invalid recovery code. Please check for typos and try again.';
-        } else {
-          error.value = validated.error;
+          message = 'Invalid recovery code. Please check for typos and try again.';
         }
-        return false;
+
+        throw createError(message, 'human', 'error');
       }
 
       return true;
-    } catch (err: any) {
-      // Detailed error messages for recovery code verification
-      const errorData = err.response?.data;
+    });
 
-      if (err.response?.status === 401) {
-        error.value = 'Session expired. Please log in with your password first.';
-      } else if (err.response?.status === 404) {
-        error.value = 'Recovery code not found. Please verify you entered it correctly.';
-      } else if (err.response?.status === 410) {
-        error.value = 'This recovery code has already been used. Each code can only be used once.';
-      } else if (err.response?.status === 429) {
-        error.value = 'Too many attempts. Please wait before trying another code.';
-      } else if (!err.response) {
-        error.value = 'Network error. Please check your connection and try again.';
-      } else {
-        error.value = errorData?.error || 'Invalid recovery code. Please try again or contact support.';
-      }
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
+    return result ?? false;
   }
 
   return {

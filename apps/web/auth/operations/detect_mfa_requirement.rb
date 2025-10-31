@@ -11,6 +11,16 @@
 
 module Auth
   module Operations
+    # two_factor_partially_authenticated? :: (two_factor_base feature) Returns true if
+    #                                        the session is logged in, the account has
+    #                                        setup two factor authentication, but has
+    #                                        not yet authenticated with a second factor.
+    # uses_two_factor_authentication? :: (two_factor_base feature) Whether the account
+    #                                    for the current session has setup two factor
+    #                                    authentication.
+    # update_last_activity :: (account_expiration feature) Update the last activity
+    #                         time for the current account.  Only makes sense to use
+    #                         this if you are expiring accounts based on last activity.
     class DetectMfaRequirement
       # Decision object returned by the operation
       class Decision
@@ -80,12 +90,10 @@ module Auth
       # Executes the MFA detection operation
       # @return [Decision] The MFA decision object
       def call
-        mfa_enabled = check_mfa_enabled
-
         Decision.new(
           account: @account,
           session: @session,
-          mfa_enabled: mfa_enabled
+          mfa_enabled: check_mfa_enabled,
         )
       end
 
@@ -95,7 +103,16 @@ module Auth
       # Uses Rodauth's built-in method to check if MFA is setup
       # @return [Boolean]
       def check_mfa_enabled
-        @rodauth.uses_two_factor_authentication?
+        has_mfa = @rodauth.uses_two_factor_authentication?
+
+        # DEBUG: Log MFA check result
+        Onetime.get_logger('Auth').debug "MFA check result",
+          account_id: @account[:id],
+          email: @account[:email],
+          has_mfa: has_mfa,
+          module: "DetectMfaRequirement"
+
+        has_mfa
       end
     end
   end

@@ -152,7 +152,7 @@ describe('useMfa', () => {
       const result = await setupMfa();
 
       expect(result).toBeNull();
-      expect(error.value).toBe('Authentication required. Please log in again.');
+      expect(error.value).toBe('Authentication required.');
     });
   });
 
@@ -278,7 +278,9 @@ describe('useMfa', () => {
       const result = await verifyOtp('123456');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('Too many failed attempts. Please wait 5 minutes before trying again.');
+      expect(error.value).toBe(
+        'Too many failed attempts. Please wait 5 minutes before trying again.'
+      );
     });
   });
 
@@ -317,7 +319,7 @@ describe('useMfa', () => {
       const result = await disableMfa('password123');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('Authentication required. Please log in again.');
+      expect(error.value).toBe('Authentication required.');
     });
   });
 
@@ -399,7 +401,9 @@ describe('useMfa', () => {
       const result = await verifyRecoveryCode('USED_CODE');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('This recovery code has already been used. Please use a different code.');
+      expect(error.value).toBe(
+        'This recovery code has already been used. Please use a different code.'
+      );
     });
 
     it('handles invalid recovery code', async () => {
@@ -423,7 +427,9 @@ describe('useMfa', () => {
       const result = await verifyRecoveryCode('USED_CODE');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('This recovery code has already been used. Each code can only be used once.');
+      expect(error.value).toBe(
+        'This recovery code has already been used. Each code can only be used once.'
+      );
     });
   });
 

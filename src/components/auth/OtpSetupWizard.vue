@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import OtpCodeInput from '@/components/auth/OtpCodeInput.vue';
 import { useMfa } from '@/composables/useMfa';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const emit = defineEmits<{
@@ -12,22 +12,16 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const { setupData, recoveryCodes, isLoading, error, setupMfa, enableMfa, fetchRecoveryCodes } = useMfa();
 
-// Wizard steps: password, setup, verify, codes
-const currentStep = ref<'password' | 'setup' | 'verify' | 'codes'>('password');
+// Simplified wizard: setup or codes
+const currentStep = ref<'setup' | 'codes'>('setup');
 const otpCode = ref('');
 const password = ref('');
 const otpInputRef = ref<InstanceType<typeof OtpCodeInput> | null>(null);
 
-// Password collection first, then setup
-const handlePasswordSubmit = async () => {
-  if (!password.value) return;
-
-  // Load QR code with password, then move to setup step on success
-  const result = await setupMfa(password.value);
-  if (result) {
-    currentStep.value = 'setup';
-  }
-};
+// Auto-load QR code on mount (without password initially)
+onMounted(async () => {
+  await setupMfa();
+});
 
 // Handle OTP code input
 const handleOtpComplete = (code: string) => {
@@ -36,7 +30,7 @@ const handleOtpComplete = (code: string) => {
 
 // Verify OTP and move to recovery codes step
 const handleVerify = async () => {
-  if (otpCode.value.length !== 6) {
+  if (!password.value || otpCode.value.length !== 6) {
     return;
   }
 
@@ -46,7 +40,7 @@ const handleVerify = async () => {
     await fetchRecoveryCodes();
     currentStep.value = 'codes';
   } else {
-    // Clear input on error
+    // Clear OTP input on error
     otpInputRef.value?.clear();
     otpCode.value = '';
     // Don't clear password to allow retry
@@ -86,67 +80,13 @@ const copyCodes = async () => {
   }
 };
 
-const canVerify = computed(() => otpCode.value.length === 6 && !isLoading.value);
+const canVerify = computed(() => password.value && otpCode.value.length === 6 && !isLoading.value);
 </script>
 
 <template>
   <div class="space-y-6">
-    <!-- Step 0: Password Confirmation -->
-    <div v-if="currentStep === 'password'">
-      <h2 class="mb-4 text-2xl font-bold dark:text-white">
-        {{ t('web.auth.mfa.setup-title') }}
-      </h2>
-      <p class="mb-6 text-gray-600 dark:text-gray-400">
-        {{ t('web.auth.mfa.password-reason') }}
-      </p>
-
-      <!-- Password Input -->
-      <form @submit.prevent="handlePasswordSubmit">
-        <div class="mb-6">
-          <label for="mfa-password" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ t('web.auth.mfa.password-confirmation') }}
-          </label>
-          <input
-            id="mfa-password"
-            v-model="password"
-            type="password"
-            :disabled="isLoading"
-            :placeholder="t('web.auth.mfa.password-placeholder')"
-            autofocus
-            class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-          />
-        </div>
-
-        <!-- Error message -->
-        <div
-          v-if="error"
-          class="mb-4 rounded-lg bg-red-50 p-4 dark:bg-red-900/20"
-          role="alert">
-          <p class="text-sm text-red-800 dark:text-red-200">
-            {{ error }}
-          </p>
-        </div>
-
-        <!-- Continue button -->
-        <button
-          type="submit"
-          :disabled="!password || isLoading"
-          class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-          <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
-          <span v-else>{{ t('web.COMMON.word_continue') }}</span>
-        </button>
-
-        <button
-          @click="handleCancel"
-          type="button"
-          class="mt-3 w-full text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
-          {{ t('web.COMMON.word_cancel') }}
-        </button>
-      </form>
-    </div>
-
-    <!-- Step 1: QR Code & Manual Entry -->
-    <div v-else-if="currentStep === 'setup'">
+    <!-- Single-View Setup: QR Code, Password, and OTP Verification -->
+    <div v-if="currentStep === 'setup'">
       <h2 class="mb-4 text-2xl font-bold dark:text-white">
         {{ t('web.auth.mfa.setup-title') }}
       </h2>
@@ -155,54 +95,126 @@ const canVerify = computed(() => otpCode.value.length === 6 && !isLoading.value)
       </p>
 
       <!-- Loading state -->
-      <div v-if="isLoading" class="flex items-center justify-center py-12">
+      <div v-if="isLoading && !setupData" class="flex items-center justify-center py-12">
         <i class="fas fa-spinner fa-spin mr-2 text-2xl text-gray-400"></i>
         <span class="text-gray-600 dark:text-gray-400">{{ t('web.auth.mfa.generating-qr') }}</span>
       </div>
 
-      <!-- Setup data -->
+      <!-- Setup Form -->
       <div v-else-if="setupData" class="space-y-6">
-        <!-- QR Code -->
-        <div class="flex flex-col items-center rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-          <p class="mb-4 text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ t('web.auth.mfa.scan-qr') }}
-          </p>
-          <img
-            :src="setupData.qr_code"
-            alt="QR Code for authenticator app"
-            class="mb-4 rounded-lg border-4 border-white shadow-lg size-96 dark:border-gray-800"
-          />
-          <p class="text-xs text-gray-500 dark:text-gray-400">
-            {{ t('web.auth.mfa.supported-apps') }}
-          </p>
+        <!-- Step 1: QR Code & Manual Entry -->
+        <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+          <h3 class="mb-4 text-lg font-semibold dark:text-white">
+            {{ t('web.auth.mfa.step-scan') || '1. Scan QR Code' }}
+          </h3>
+          <div class="flex flex-col items-center">
+            <p class="mb-4 text-sm text-gray-700 dark:text-gray-300">
+              {{ t('web.auth.mfa.scan-qr') }}
+            </p>
+            <img
+              :src="setupData.qr_code"
+              alt="QR Code for authenticator app"
+              class="mb-4 rounded-lg border-4 border-white shadow-lg size-64 dark:border-gray-800"
+            />
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              {{ t('web.auth.mfa.supported-apps') }}
+            </p>
+          </div>
+
+          <!-- Manual Entry -->
+          <div class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
+            <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              {{ t('web.auth.mfa.manual-entry') }}
+            </p>
+            <code
+              class="block break-all rounded bg-white p-2 font-mono text-sm dark:bg-gray-800 dark:text-gray-300">
+              {{ setupData.otp_setup }}
+            </code>
+          </div>
         </div>
 
-        <!-- Manual Entry -->
-        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-          <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ t('web.auth.mfa.manual-entry') }}
-          </p>
-          <code
-            v-if="setupData.otp_raw_secret"
-            class="block break-all rounded bg-gray-100 p-2 font-mono text-sm dark:bg-gray-900 dark:text-gray-300">
-            {{ setupData.otp_raw_secret }}
-          </code>
-        </div>
+        <!-- Step 2: Verification Form -->
+        <form @submit.prevent="handleVerify" class="space-y-6">
+          <!-- Password Input -->
+          <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+            <h3 class="mb-4 text-lg font-semibold dark:text-white">
+              {{ t('web.auth.mfa.step-verify') || '2. Verify Setup' }}
+            </h3>
 
-        <!-- Next button -->
-        <button
-          @click="currentStep = 'verify'"
-          type="button"
-          class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
-          {{ t('web.auth.mfa.continue-verification') }}
-        </button>
+            <!-- Hidden username field for accessibility/password managers -->
+            <input
+              type="email"
+              name="username"
+              autocomplete="username"
+              value=""
+              class="sr-only"
+              tabindex="-1"
+              aria-hidden="true"
+              readonly
+            />
 
-        <button
-          @click="handleCancel"
-          type="button"
-          class="w-full text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
-          {{ t('web.COMMON.word_cancel') }}
-        </button>
+            <div class="mb-4">
+              <label for="mfa-password" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {{ t('web.auth.mfa.password-confirmation') }}
+              </label>
+              <input
+                id="mfa-password"
+                v-model="password"
+                type="password"
+                autocomplete="current-password"
+                :disabled="isLoading"
+                :placeholder="t('web.auth.mfa.password-placeholder')"
+                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              />
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.auth.mfa.password-reason') }}
+              </p>
+            </div>
+
+            <!-- OTP Code Input -->
+            <div>
+              <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {{ t('web.auth.mfa.enter-code') || 'Enter verification code' }}
+              </label>
+              <OtpCodeInput
+                ref="otpInputRef"
+                :disabled="isLoading"
+                @complete="handleOtpComplete"
+              />
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {{ t('web.auth.mfa.enter-code-description') }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Error message -->
+          <div
+            v-if="error"
+            class="rounded-lg bg-red-50 p-4 dark:bg-red-900/20"
+            role="alert">
+            <p class="text-sm text-red-800 dark:text-red-200">
+              {{ error }}
+            </p>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="flex gap-3">
+            <button
+              @click="handleCancel"
+              type="button"
+              :disabled="isLoading"
+              class="flex-1 rounded-md border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+              {{ t('web.COMMON.word_cancel') }}
+            </button>
+            <button
+              type="submit"
+              :disabled="!canVerify"
+              class="flex-1 rounded-md bg-brand-600 px-4 py-3 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+              <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
+              <span v-else>{{ t('web.auth.mfa.enable-and-continue') || 'Enable MFA' }}</span>
+            </button>
+          </div>
+        </form>
       </div>
 
       <!-- Error state -->
@@ -216,53 +228,7 @@ const canVerify = computed(() => otpCode.value.length === 6 && !isLoading.value)
       </div>
     </div>
 
-    <!-- Step 2: Verify OTP -->
-    <div v-else-if="currentStep === 'verify'">
-      <h2 class="mb-4 text-2xl font-bold dark:text-white">
-        {{ t('web.auth.mfa.verify-code') }}
-      </h2>
-      <p class="mb-6 text-gray-600 dark:text-gray-400">
-        {{ t('web.auth.mfa.enter-code-description') }}
-      </p>
-
-      <!-- OTP Input -->
-      <div class="mb-6">
-        <OtpCodeInput
-          ref="otpInputRef"
-          :disabled="isLoading"
-          @complete="handleOtpComplete"
-        />
-      </div>
-
-      <!-- Error message -->
-      <div
-        v-if="error"
-        class="mb-4 rounded-lg bg-red-50 p-4 dark:bg-red-900/20"
-        role="alert">
-        <p class="text-sm text-red-800 dark:text-red-200">
-          {{ error }}
-        </p>
-      </div>
-
-      <!-- Verify button -->
-      <button
-        @click="handleVerify"
-        :disabled="!canVerify"
-        type="button"
-        class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-        <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
-        <span v-else>{{ t('web.auth.mfa.verify') }}</span>
-      </button>
-
-      <button
-        @click="currentStep = 'setup'"
-        type="button"
-        class="mt-3 w-full text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
-        {{ t('web.COMMON.back') }}
-      </button>
-    </div>
-
-    <!-- Step 3: Recovery Codes -->
+    <!-- Recovery Codes Step -->
     <div v-else-if="currentStep === 'codes'">
       <h2 class="mb-4 text-2xl font-bold dark:text-white">
         {{ t('web.auth.recovery-codes.title') }}

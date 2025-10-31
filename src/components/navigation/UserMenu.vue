@@ -1,4 +1,28 @@
 <!-- src/components/navigation/UserMenu.vue -->
+<!--
+  "Complete MFA Verification" is shown in the UserMenu when:
+
+  Condition: awaitingMfa prop is true
+
+  This happens during the partial authentication state where:
+
+  1. User has successfully completed the first authentication factor (password or magic link)
+  2. But still needs to complete the second factor (MFA/TOTP code)
+  3. Session has awaiting_mfa = true in the backend state
+
+  Visual indicators when awaitingMfa is true:
+  - Avatar circle background changes to amber/yellow (instead of brand blue)
+  - Small amber pulse badge appears on top-right of avatar
+  - Menu shows prominent "Complete MFA Verification" link in amber text at the top
+  - Regular menu items are hidden (only MFA verification link shown)
+  - Links to /mfa-verify route
+
+  This state occurs in advanced authentication mode when:
+  - User logs in with password but has MFA enabled
+  - User clicks magic link but has MFA enabled
+  - Backend sets session['awaiting_mfa'] = true
+  - Frontend receives awaiting_mfa: true via /window endpoint
+-->
 
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
@@ -6,6 +30,7 @@ import FancyIcon from '@/components/ctas/FancyIcon.vue';
 import { Customer } from '@/schemas/models';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useAuth } from '@/composables/useAuth';
 
 const props = defineProps<{
   cust: Customer | null;
@@ -16,6 +41,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+const { logout } = useAuth();
 
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
@@ -47,6 +73,12 @@ const toggleMenu = () => {
 // Close dropdown
 const closeMenu = () => {
   isOpen.value = false;
+};
+
+// Handle logout
+const handleLogout = async () => {
+  closeMenu();
+  await logout();
 };
 
 // Handle click outside
@@ -316,13 +348,12 @@ onUnmounted(() => {
           </template>
 
           <!-- Logout (always show) -->
-          <router-link
-            to="/logout"
-            class="group flex items-center gap-3 px-4 py-2
+          <button
+            @click="handleLogout"
+            class="group flex w-full items-center gap-3 px-4 py-2
               text-sm text-red-600 transition-colors
               hover:bg-red-50 dark:text-red-400
               dark:hover:bg-red-900/20"
-            @click="closeMenu"
             role="menuitem">
             <OIcon
               collection="heroicons"
@@ -332,7 +363,7 @@ onUnmounted(() => {
                 dark:group-hover:text-red-300"
               aria-hidden="true" />
             {{ t('web.COMMON.header_logout') }}
-          </router-link>
+          </button>
         </nav>
       </div>
     </Transition>

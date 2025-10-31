@@ -186,7 +186,9 @@ module Onetime
       # Structured debug logging
       session_logger.debug "Session saved",
         session_id: sid_string,
-        session_keys: session_data,
+        session_keys: session_data&.keys,
+        two_factor_auth_setup: session_data&.fetch('two_factor_auth_setup', 'n/a'),
+        awaiting_mfa: session_data&.fetch('awaiting_mfa', 'n/a'),
         ttl: ttl_value,
         data_size: data_size,
         expires_at: expires_at,

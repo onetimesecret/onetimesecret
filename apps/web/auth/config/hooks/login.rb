@@ -33,6 +33,17 @@ module Auth::Config::Hooks
       #
       # After successful authentication (password OR passwordless), check MFA requirement
       # BEFORE syncing session to prevent granting full access prematurely
+      #
+      # two_factor_partially_authenticated? :: (two_factor_base feature) Returns true if
+      #                                        the session is logged in, the account has
+      #                                        setup two factor authentication, but has
+      #                                        not yet authenticated with a second factor.
+      # uses_two_factor_authentication? :: (two_factor_base feature) Whether the account
+      #                                    for the current session has setup two factor
+      #                                    authentication.
+      # update_last_activity :: (account_expiration feature) Update the last activity
+      #                         time for the current account.  Only makes sense to use
+      #                         this if you are expiring accounts based on last activity.
       auth.after_login do
         correlation_id = session[:auth_correlation_id]
 

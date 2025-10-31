@@ -27,14 +27,9 @@ module Auth::Config::Features
       # auth.otp_setup_redirect ''
 
       # Password requirements for MFA modifications
-      # In JSON API mode, password confirmation adds friction without security benefit
-      # since the user must already be authenticated to access these routes
-      auth.two_factor_modifications_require_password? false
+      auth.two_factor_modifications_require_password? true
 
-      # CRITICAL: Disable password requirement for ALL modification operations
-      # This ensures that during MFA setup, we don't require re-authentication
-      # between the initial setup (QR code generation) and verification (code submission)
-      auth.modifications_require_password? false
+      auth.modifications_require_password? true
 
       # OTP Lockout Configuration
       # Default is 5 attempts with permanent lockout - too harsh for production

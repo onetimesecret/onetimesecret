@@ -217,9 +217,11 @@ export function useAuth() {
         throw createError(validated.error, 'human', 'error');
       }
 
-      // Success - clear auth state and navigate
+      // Success - clear auth state
       await authStore.logout();
-      await router.push('/');
+
+      // Force page reload to fetch fresh unauthenticated state from backend
+      window.location.href = '/';
       return true;
     });
 

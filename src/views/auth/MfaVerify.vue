@@ -10,16 +10,26 @@
 
   const router = useRouter();
   const authStore = useAuthStore();
-  const { verifyOtp, verifyRecoveryCode, isLoading, error, clearError } = useMfa();
+  const { verifyOtp, verifyRecoveryCode, fetchMfaStatus, isLoading, error, clearError } = useMfa();
 
   const otpCode = ref('');
   const recoveryCode = ref('');
   const useRecoveryMode = ref(false);
   const otpInputRef = ref<HTMLInputElement | null>(null);
 
-  // Check if user is already authenticated (shouldn't be here if so)
-  onMounted(() => {
+  // Check if user is already authenticated or MFA is not enabled
+  onMounted(async () => {
     if (authStore.isAuthenticated) {
+      router.push('/');
+      return;
+    }
+
+    // Check if MFA is actually enabled for this account
+    const status = await fetchMfaStatus();
+    if (status && !status.enabled) {
+      // MFA not enabled but session has awaiting_mfa=true
+      // This is an inconsistent state - clear it by completing auth
+      await authStore.setAuthenticated(true);
       router.push('/');
     }
   });

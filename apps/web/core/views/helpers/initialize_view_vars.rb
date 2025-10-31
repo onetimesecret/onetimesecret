@@ -86,6 +86,14 @@ module Core
         authenticated = strategy_result.authenticated? || false # never nil
         awaiting_mfa  = sess&.[]('awaiting_mfa') || sess&.[](:'awaiting_mfa') || false
 
+        # DEBUG: Log session state
+        Onetime.session_logger.debug "Session",
+          account_id: sess&.[]('account_id'),
+          external_id: sess&.[]('external_id'),
+          module: "InitializeViewVars",
+          awaiting_mfa: awaiting_mfa,
+          authenticated: authenticated
+
         # When awaiting_mfa is true, user has NOT completed authentication
         # Do NOT load customer from Redis - they don't have access yet
         # The frontend will show minimal MFA prompt using email from session
