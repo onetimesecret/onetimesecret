@@ -34,7 +34,8 @@ module Rack
         logger.error "SessionDebugger failed", {
           error: ex.message,
           error_class: ex.class.name,
-          backtrace: ex.backtrace.first(3)
+          backtrace: ex.backtrace.first(3),
+          session_class: session.class.name,
         }
         # If debugging fails, still process the request
         @app.call(env)
@@ -123,8 +124,7 @@ module Rack
       # Extract authentication-related session data
       auth_keys = %w[
         authenticated authenticated_at authenticated_by
-        external_id account_id
-        email role locale active_session_id
+        external_id account_id role locale active_session_id
       ]
 
       auth_data = {}
@@ -133,15 +133,19 @@ module Rack
         auth_data[key] = value if value
       end
 
+      if session.key?('email')
+        auth_data['email'] = OT::Utils.obscure_email(session['email'])
+      end
+
       # Log session state
       begin
         logger.debug "Session state", {
           phase: phase,
-          session_id: session_id || 'NONE',
           session_class: session.class.name,
-          auth_data: auth_data,
+          session_id: session_id || 'NONE',
           total_keys: session.keys.size,
-          all_keys: session.keys.join(', ')
+          all_keys: session.keys.join(', '),
+          auth_data: auth_data,
         }
 
         logger.warn "No auth data in session", { phase: phase } if auth_data.empty?
@@ -162,6 +166,7 @@ module Rack
         # Try common session key patterns
         key_patterns = [
           "session:#{session_id}",
+          "onetime:session:#{session_id}",
           "rack:session:#{session_id}",
           session_id
         ]
