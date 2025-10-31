@@ -121,7 +121,7 @@ module Onetime
           builder.use Onetime::Middleware::StartupReadiness
 
           # Host detection and identity resolution (common to all apps)
-          builder.use Rack::DetectHost
+          builder.use Rack::DetectHost, logger: Onetime.http_logger
 
           # TODO: Replace with RequestLogger?
           # require 'semantic_logger'
