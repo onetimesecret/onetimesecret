@@ -88,10 +88,29 @@ module Onetime
       # Extract string ID from SessionId object if needed
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
 
+      session_logger.debug "Session deletion initiated",
+        session_id: sid_string,
+        operation: 'delete'
+
       if stringkey = get_stringkey(sid_string)
-        stringkey.del
+        result = stringkey.del
+        session_logger.debug "Session deleted from Redis",
+          session_id: sid_string,
+          redis_key: stringkey.key,
+          deleted: result > 0,
+          operation: 'delete'
+      else
+        session_logger.debug "No session found to delete",
+          session_id: sid_string,
+          operation: 'delete'
       end
-      generate_sid
+
+      new_sid = generate_sid
+      session_logger.debug "New session generated after deletion",
+        session_id: new_sid.respond_to?(:public_id) ? new_sid.public_id : new_sid,
+        operation: 'delete'
+
+      new_sid
     end
 
     def valid_session_id?(sid)
@@ -104,9 +123,30 @@ module Onetime
 
     def valid_hmac?(data, hmac)
       expected = compute_hmac(data)
-      return false unless hmac.is_a?(String) && expected.is_a?(String) && hmac.bytesize == expected.bytesize
 
-      Rack::Utils.secure_compare(expected, hmac)
+      # Type and size validation
+      valid_types = hmac.is_a?(String) && expected.is_a?(String)
+      valid_size = valid_types && hmac.bytesize == expected.bytesize
+
+      unless valid_types && valid_size
+        session_logger.debug "HMAC validation failed",
+          valid_types: valid_types,
+          valid_size: valid_size,
+          hmac_size: hmac&.bytesize,
+          expected_size: expected&.bytesize,
+          operation: 'hmac_validation'
+
+        return false
+      end
+
+      # Constant-time comparison
+      result = Rack::Utils.secure_compare(expected, hmac)
+
+      session_logger.debug "HMAC validation complete",
+        valid: result,
+        operation: 'hmac_validation'
+
+      result
     end
 
     def derive_key(purpose)
@@ -122,29 +162,86 @@ module Onetime
       # sid may be a SessionId object or nil
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
 
+      session_logger.debug "Session lookup initiated",
+        session_id: sid_string,
+        sid_type: sid.class.name,
+        operation: 'read'
+
       # Only generate new sid if none provided or invalid
       unless sid_string && valid_session_id?(sid_string)
-        return [generate_sid, {}]
+        session_logger.debug "Session ID invalid or missing",
+          session_id: sid_string,
+          valid: false,
+          operation: 'read'
+
+        new_sid = generate_sid
+        session_logger.debug "New session created",
+          session_id: new_sid.respond_to?(:public_id) ? new_sid.public_id : new_sid,
+          operation: 'read'
+
+        return [new_sid, {}]
       end
 
       begin
         stringkey   = get_stringkey(sid_string)
         stored_data = stringkey.value if stringkey
 
+        session_logger.debug "Redis lookup complete",
+          session_id: sid_string,
+          has_data: !stored_data.nil?,
+          data_size: stored_data&.bytesize,
+          ttl: stringkey&.ttl,
+          operation: 'read'
+
         # If no data stored, return empty session
-        return [sid, {}] unless stored_data
+        unless stored_data
+          session_logger.debug "No session data found",
+            session_id: sid_string,
+            operation: 'read'
+
+          return [sid, {}]
+        end
 
         # Verify HMAC before deserializing
         data, hmac = stored_data.split('--', 2)
 
+        session_logger.debug "HMAC verification",
+          session_id: sid_string,
+          has_hmac: !hmac.nil?,
+          data_length: data&.length,
+          hmac_length: hmac&.length,
+          operation: 'read'
+
         # If no HMAC or invalid format, create new session
         unless hmac && valid_hmac?(data, hmac)
+          session_logger.warn "Session HMAC verification failed",
+            session_id: sid_string,
+            has_hmac: !hmac.nil?,
+            operation: 'read'
+
           # Session tampered with - create new session
-          return [generate_sid, {}]
+          new_sid = generate_sid
+          return [new_sid, {}]
         end
 
         # Decode and parse the session data
-        session_data = Familia::JsonSerializer.parse(Base64.decode64(data))
+        decoded_data = Base64.decode64(data)
+        session_logger.debug "Base64 decode complete",
+          session_id: sid_string,
+          decoded_size: decoded_data.bytesize,
+          operation: 'read'
+
+        session_data = Familia::JsonSerializer.parse(decoded_data)
+
+        session_logger.debug "Session loaded successfully",
+          session_id: sid_string,
+          session_keys: session_data.keys,
+          account_id: session_data['account_id'],
+          external_id: session_data['external_id'],
+          authenticated_at: session_data['authenticated_at'],
+          awaiting_mfa: session_data['awaiting_mfa'],
+          two_factor_auth_setup: session_data['two_factor_auth_setup'],
+          operation: 'read'
 
         [sid, session_data]
       rescue StandardError => ex
@@ -153,6 +250,7 @@ module Onetime
           session_id: sid_string,
           error: ex.message,
           error_class: ex.class.name,
+          backtrace: ex.backtrace&.first(5),
           operation: 'read'
 
         # Return new session on any error
@@ -164,29 +262,67 @@ module Onetime
       # Extract string ID from SessionId object if needed
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
 
-      # Serialize and sign the data
-      encoded     = Base64.encode64(Familia::JsonSerializer.dump(session_data)).delete("\n")
-      hmac        = compute_hmac(encoded)
+      session_logger.debug "Session write initiated",
+        session_id: sid_string,
+        session_keys: session_data&.keys,
+        session_data_class: session_data.class.name,
+        operation: 'write'
+
+      # Serialize session data
+      json_data = Familia::JsonSerializer.dump(session_data)
+      session_logger.debug "JSON serialization complete",
+        session_id: sid_string,
+        json_size: json_data.bytesize,
+        operation: 'write'
+
+      # Base64 encode
+      encoded = Base64.encode64(json_data).delete("\n")
+      session_logger.debug "Base64 encoding complete",
+        session_id: sid_string,
+        encoded_size: encoded.bytesize,
+        operation: 'write'
+
+      # Compute HMAC for integrity
+      hmac = compute_hmac(encoded)
       signed_data = "#{encoded}--#{hmac}"
+
+      session_logger.debug "HMAC computation complete",
+        session_id: sid_string,
+        hmac_length: hmac.length,
+        signed_data_size: signed_data.bytesize,
+        operation: 'write'
 
       # Get or create StringKey for this session
       stringkey = get_stringkey(sid_string)
 
       # Save the session data
       stringkey.set(signed_data)
+      session_logger.debug "Redis SET complete",
+        session_id: sid_string,
+        redis_key: stringkey.key,
+        operation: 'write'
 
       # Update expiration if configured
-      stringkey.update_expiration(expiration: @expire_after) if @expire_after && @expire_after > 0
+      if @expire_after && @expire_after > 0
+        stringkey.update_expiration(expiration: @expire_after)
+        session_logger.debug "Expiration updated",
+          session_id: sid_string,
+          expire_after: @expire_after,
+          operation: 'write'
+      end
 
       # Calculate session data metrics for logging
       data_size = signed_data.bytesize
       ttl_value = stringkey.ttl
       expires_at = ttl_value > 0 ? Time.now + ttl_value : nil
 
-      # Structured debug logging
-      session_logger.debug "Session saved",
+      # Structured debug logging with all critical session fields
+      session_logger.debug "Session saved successfully",
         session_id: sid_string,
         session_keys: session_data&.keys,
+        account_id: session_data&.fetch('account_id', 'n/a'),
+        external_id: session_data&.fetch('external_id', 'n/a'),
+        authenticated_at: session_data&.fetch('authenticated_at', 'n/a'),
         two_factor_auth_setup: session_data&.fetch('two_factor_auth_setup', 'n/a'),
         awaiting_mfa: session_data&.fetch('awaiting_mfa', 'n/a'),
         ttl: ttl_value,
@@ -203,6 +339,7 @@ module Onetime
         session_keys: session_data&.keys,
         error: ex.message,
         error_class: ex.class.name,
+        backtrace: ex.backtrace&.first(5),
         operation: 'write'
 
       # Return false to indicate failure
