@@ -205,6 +205,10 @@ module Auth
         @session['email'] = customer.email
         @session['role'] = customer.role
         @session['locale'] = customer.locale || 'en'
+
+        # Clear MFA waiting flag - user has completed full authentication
+        @session.delete(:awaiting_mfa)
+        @session.delete('awaiting_mfa')
       end
 
       # Tracks request metadata in the session
