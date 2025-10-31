@@ -25,7 +25,7 @@ module Onetime
 
       # Validate that models have been loaded
       if Familia.members.empty?
-        raise Onetime::Problem, 'No known Familia members. Models need to load before calling boot!'
+        raise Onetime::Problem, 'No known Familia members. Models need to load before boot!'
       end
 
       # Create connection pool - manages Redis connections for thread safety
@@ -36,7 +36,7 @@ module Onetime
       # Belt-and-suspenders reconnection resilience:
       # 1. ConnectionPool retries checkout once on connection errors
       # 2. Redis driver retries once with minimal delay for stale connections
-      OT.database_pool = ConnectionPool.new(size: pool_size, timeout: pool_timeout, reconnect_attempts: 1) do
+      OT.database_pool = ConnectionPool.new(size: pool_size, timeout: pool_timeout, reconnect_attempts: 4) do
         Redis.new(parsed_uri.conf.merge(
           reconnect_attempts: [
             0.05, # 50ms delay before first retry
