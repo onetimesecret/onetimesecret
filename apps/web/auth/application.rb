@@ -16,6 +16,12 @@ module Auth
     # Auth app specific middleware (common middleware is in MiddlewareStack)
     use Rack::JSONBodyParser  # Parse JSON request bodies for Rodauth
 
+    # CSRF Protection for JSON API
+    # Rack::Protection::JsonCsrf validates X-Requested-With or Origin headers
+    # and stores token in session[:csrf]
+    use Rack::Protection::JsonCsrf
+    use Onetime::Middleware::CsrfResponseHeader
+
     Onetime.development? do
       # Development configuration if needed
     end
@@ -24,13 +30,11 @@ module Auth
       # Production configuration
       use Rack::Deflater  # Gzip compression
 
-      # Security headers (some may be redundant with MiddlewareStack)
-      use Rack::Protection::AuthenticityToken
+      # Additional security headers (some may be redundant with MiddlewareStack)
       use Rack::Protection::ContentSecurityPolicy
       use Rack::Protection::FrameOptions
       use Rack::Protection::HttpOrigin
       use Rack::Protection::IPSpoofing
-      use Rack::Protection::JsonCsrf
       use Rack::Protection::PathTraversal
       use Rack::Protection::SessionHijacking
     end

@@ -41,7 +41,6 @@ module Auth::Config::Base
       session.destroy
     end
 
-
     # auth.max_invalid_logins 2
     # auth.account_password_hash_column :ph
     # auth.title_instance_variable :@page_title
