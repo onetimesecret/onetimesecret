@@ -20,6 +20,12 @@ module Core
     # Initialize request context (nonce, locale) before other processing
     use Core::Middleware::RequestSetup
 
+    # CSRF Protection for JSON API endpoints
+    use Rack::Protection::JsonCsrf
+
+    # Add CSRF token to response headers
+    use Onetime::Middleware::CsrfResponseHeader
+
     # Simplified error handling for Vue SPA - serves entry points
     # Must come after security but before router to catch all downstream errors
     use Core::Middleware::ErrorHandling
