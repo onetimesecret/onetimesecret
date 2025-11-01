@@ -3,7 +3,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useAccount } from '@/composables/useAccount';
+// import { useAccount } from '@/composables/useAccount';
 import { WindowService } from '@/services/window.service';
 import OIcon from '@/components/icons/OIcon.vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';
@@ -11,7 +11,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 import SettingsLayout from '@/components/layout/SettingsLayout.vue';
 
 const { t } = useI18n();
-const { accountInfo, fetchAccountInfo } = useAccount();
+// const { accountInfo, fetchAccountInfo } = useAccount();
 
 const windowProps = WindowService.getMultiple(['i18n_enabled']);
 
@@ -29,7 +29,7 @@ const handleThemeChange = async (isDark: boolean) => {
 };
 
 onMounted(async () => {
-  await fetchAccountInfo();
+  // await fetchAccountInfo();
 });
 </script>
 
@@ -37,7 +37,7 @@ onMounted(async () => {
   <SettingsLayout>
     <div class="space-y-8">
     <!-- Account Information -->
-    <section
+    <!-- <section
       class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
       <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
         <div class="flex items-center gap-3">
@@ -109,7 +109,7 @@ onMounted(async () => {
           </span>
         </div>
       </div>
-    </section>
+    </section> -->
 
     <!-- Preferences -->
     <section
