@@ -58,59 +58,67 @@ const copyCodes = async () => {
 
 // Print codes - using safe DOM manipulation
 const printCodes = () => {
-  const printWindow = window.open('', '_blank', 'width=800,height=600');
-  if (!printWindow) return;
+  try {
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    if (!printWindow) {
+      console.error('[RecoveryCodes] Failed to open print window - popup blocked?');
+      return;
+    }
 
-  const doc = printWindow.document;
-  const html = doc.createElement('html');
-  const head = doc.createElement('head');
-  const title = doc.createElement('title');
-  const style = doc.createElement('style');
-  const body = doc.createElement('body');
+    const doc = printWindow.document;
+    const html = doc.createElement('html');
+    const head = doc.createElement('head');
+    const title = doc.createElement('title');
+    const style = doc.createElement('style');
+    const body = doc.createElement('body');
 
-  title.textContent = 'OneTime Secret Recovery Codes';
-  style.textContent = `
-    body { font-family: monospace; padding: 2rem; }
-    h1 { margin-bottom: 1rem; }
-    p { margin: 1rem 0; }
-    ul { list-style: none; padding: 0; }
-    li { margin: 0.5rem 0; font-size: 1.2rem; }
-    .footer { margin-top: 2rem; font-size: 0.8rem; color: #666; }
-  `;
+    title.textContent = 'OneTime Secret Recovery Codes';
+    style.textContent = `
+      body { font-family: monospace; padding: 2rem; }
+      h1 { margin-bottom: 1rem; }
+      p { margin: 1rem 0; }
+      ul { list-style: none; padding: 0; }
+      li { margin: 0.5rem 0; font-size: 1.2rem; }
+      .footer { margin-top: 2rem; font-size: 0.8rem; color: #666; }
+    `;
 
-  head.appendChild(title);
-  head.appendChild(style);
+    head.appendChild(title);
+    head.appendChild(style);
 
-  const h1 = doc.createElement('h1');
-  h1.textContent = 'OneTime Secret Recovery Codes';
+    const h1 = doc.createElement('h1');
+    h1.textContent = 'OneTime Secret Recovery Codes';
 
-  const p = doc.createElement('p');
-  p.textContent = 'Keep these codes safe and secure. Each code can be used once.';
+    const p = doc.createElement('p');
+    p.textContent = 'Keep these codes safe and secure. Each code can be used once.';
 
-  const ul = doc.createElement('ul');
-  recoveryCodes.value.forEach(code => {
-    const li = doc.createElement('li');
-    li.textContent = code;
-    ul.appendChild(li);
-  });
+    const ul = doc.createElement('ul');
+    recoveryCodes.value.forEach(code => {
+      const li = doc.createElement('li');
+      li.textContent = code;
+      ul.appendChild(li);
+    });
 
-  const footer = doc.createElement('p');
-  footer.className = 'footer';
-  footer.textContent = `Generated: ${new Date().toLocaleString()}`;
+    const footer = doc.createElement('p');
+    footer.className = 'footer';
+    footer.textContent = `Generated: ${new Date().toLocaleString()}`;
 
-  body.appendChild(h1);
-  body.appendChild(p);
-  body.appendChild(ul);
-  body.appendChild(footer);
+    body.appendChild(h1);
+    body.appendChild(p);
+    body.appendChild(ul);
+    body.appendChild(footer);
 
-  html.appendChild(head);
-  html.appendChild(body);
+    html.appendChild(head);
+    html.appendChild(body);
 
-  doc.appendChild(html);
-  doc.close();
+    doc.appendChild(html);
+    doc.close();
 
-  printWindow.focus();
-  printWindow.print();
+    printWindow.focus();
+    printWindow.print();
+  } catch (error) {
+    // Handle errors without letting them bubble to Vue's global error handler
+    console.error('[RecoveryCodes] Error printing codes:', error);
+  }
 };
 
 // Show generate confirmation modal
