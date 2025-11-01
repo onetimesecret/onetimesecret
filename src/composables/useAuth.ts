@@ -11,6 +11,7 @@ import {
 } from '@/composables/useAsyncHandler';
 import {
   isAuthError,
+  requiresMfa,
   type LoginResponse,
   type CreateAccountResponse,
   type LogoutResponse,
@@ -141,9 +142,16 @@ export function useAuth() {
       }
 
       // Check if MFA is required (Rodauth returns success but with mfa_required flag)
-      const responseData = validated as any;
-      if (responseData.mfa_required || responseData.requires_otp) {
-        console.log('[useAuth] MFA required, redirecting to /mfa-verify');
+      if (requiresMfa(validated)) {
+        console.log('[useAuth] MFA required, refreshing window state and redirecting', {
+          mfa_auth_url: validated.mfa_auth_url,
+          mfa_methods: validated.mfa_methods,
+        });
+
+        // Refresh window state to get awaiting_mfa flag from backend
+        await authStore.checkWindowStatus();
+
+        // Now redirect - route guard will allow access since awaiting_mfa is set
         await router.push('/mfa-verify');
         return false; // Not fully logged in yet
       }

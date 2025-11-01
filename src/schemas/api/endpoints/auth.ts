@@ -16,6 +16,14 @@ const authSuccessSchema = z.object({
   success: z.string(),
 });
 
+// Success response with MFA requirement
+const authSuccessWithMfaSchema = z.object({
+  success: z.string(),
+  mfa_required: z.boolean(),
+  mfa_auth_url: z.string().optional(),
+  mfa_methods: z.array(z.string()).optional(),
+});
+
 // Error response schema with optional field-level errors
 const authErrorSchema = z.object({
   error: z.string(),
@@ -25,8 +33,12 @@ const authErrorSchema = z.object({
 // Union type for auth responses (can be success or error)
 const authResponseSchema = z.union([authSuccessSchema, authErrorSchema]);
 
-// Login response
-export const loginResponseSchema = authResponseSchema;
+// Login response (can include MFA requirement)
+export const loginResponseSchema = z.union([
+  authSuccessSchema,
+  authSuccessWithMfaSchema,
+  authErrorSchema,
+]);
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
 
 // Signup/Create account response
@@ -85,6 +97,13 @@ export function isAuthSuccess(
     | CloseAccountResponse
 ): response is z.infer<typeof authSuccessSchema> {
   return 'success' in response;
+}
+
+// Type guard to check if login response requires MFA
+export function requiresMfa(
+  response: LoginResponse
+): response is z.infer<typeof authSuccessWithMfaSchema> {
+  return 'success' in response && 'mfa_required' in response && response.mfa_required === true;
 }
 
 /**
