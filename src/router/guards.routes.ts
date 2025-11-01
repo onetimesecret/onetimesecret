@@ -17,6 +17,11 @@ export async function setupRouterGuards(router: Router): Promise<void> {
       return true;
     }
 
+    // Handle MFA requirement checks
+    const mfaRedirect = handleMfaAccess(to, authStore.isAuthenticated);
+    if (mfaRedirect) {
+      return mfaRedirect;
+    }
 
     // Handle root path redirect
     if (to.path === '/') {
@@ -51,6 +56,28 @@ function requiresAuthentication(route: RouteLocationNormalized): boolean {
 
 function isAuthRoute(route: RouteLocationNormalized): boolean {
   return !!route.meta?.isAuthRoute;
+}
+
+/**
+ * Handle MFA verification access control
+ * @param to - Target route
+ * @param isAuthenticated - Current authentication status
+ * @returns Redirect object or null if no redirect needed
+ */
+function handleMfaAccess(to: RouteLocationNormalized, isAuthenticated: boolean | null) {
+  const awaitingMfa = WindowService.get('awaiting_mfa');
+
+  // Redirect to MFA verification if awaiting second factor
+  if (awaitingMfa && to.path !== '/mfa-verify') {
+    return { path: '/mfa-verify' };
+  }
+
+  // Prevent access to MFA verify page when not awaiting MFA
+  if (to.path === '/mfa-verify' && !awaitingMfa) {
+    return isAuthenticated ? { name: 'Dashboard' } : { path: '/signin' };
+  }
+
+  return null;
 }
 
 function redirectToSignIn(from: RouteLocationNormalized) {
