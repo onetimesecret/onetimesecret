@@ -91,7 +91,8 @@ const copyCodes = async () => {
  *
  * This approach balances simplicity, security, and user experience.
  */
-const printCodes = () => {
+/**
+ * const printCodes = () => {
   try {
     // Open new window for print preview
     const printWindow = window.open('', '_blank', 'width=800,height=600');
@@ -165,7 +166,8 @@ const printCodes = () => {
     // which would crash trying to use inject() outside component context
     console.error('[RecoveryCodes] Error printing codes:', error);
   }
-};
+ * };
+ */
 
 // Show generate confirmation modal
 const showGenerateModal = () => {
@@ -291,13 +293,6 @@ const handleGenerateNew = async () => {
               class="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
               <i class="fas fa-copy mr-2"></i>
               {{ t('web.auth.recovery-codes.copy') }}
-            </button>
-            <button
-              @click="printCodes"
-              type="button"
-              class="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-              <i class="fas fa-print mr-2"></i>
-              {{ t('web.auth.recovery-codes.print') }}
             </button>
           </div>
         </div>
