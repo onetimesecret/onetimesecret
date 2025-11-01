@@ -25,8 +25,9 @@ module Auth::Config::Features
       auth.otp_keys_use_hmac? true
 
       # Password requirements for MFA modifications
-      auth.two_factor_modifications_require_password? false
-      auth.modifications_require_password? false
+      # SECURITY: Require password confirmation to disable MFA
+      auth.two_factor_modifications_require_password? true
+      auth.modifications_require_password? true
 
       # OTP Lockout Configuration
       # Default is 5 attempts with permanent lockout - too harsh for production
