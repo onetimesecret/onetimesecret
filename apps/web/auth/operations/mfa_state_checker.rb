@@ -25,7 +25,7 @@ module Auth
       # State object returned by the checker
       class State
         attr_reader :account_id, :has_otp_secret, :has_recovery_codes,
-                    :otp_last_use, :unused_recovery_code_count
+          :otp_last_use, :unused_recovery_code_count
 
         def initialize(
           account_id:,
@@ -34,10 +34,10 @@ module Auth
           otp_last_use: nil,
           unused_recovery_code_count: 0
         )
-          @account_id = account_id
-          @has_otp_secret = has_otp_secret
-          @has_recovery_codes = has_recovery_codes
-          @otp_last_use = otp_last_use
+          @account_id                 = account_id
+          @has_otp_secret             = has_otp_secret
+          @has_recovery_codes         = has_recovery_codes
+          @otp_last_use               = otp_last_use
           @unused_recovery_code_count = unused_recovery_code_count
 
           freeze # Immutable
@@ -77,10 +77,10 @@ module Auth
       # @param logger [Logger, nil] Optional logger for audit trail
       # @param cache_ttl [Integer, nil] Optional cache TTL in seconds (nil = no cache)
       def initialize(db, logger: nil, cache_ttl: nil)
-        @db = db
-        @logger = logger || Onetime.get_logger('Auth::MfaStateChecker')
+        @db        = db
+        @logger    = logger || Onetime.get_logger('Auth::MfaStateChecker')
         @cache_ttl = cache_ttl
-        @cache = {} if cache_ttl
+        @cache     = {} if cache_ttl
       end
 
       # Check MFA state for an account
@@ -91,9 +91,9 @@ module Auth
 
         # Check cache if enabled
         if @cache_ttl && (cached = get_from_cache(account_id))
-          @logger.debug "MFA state cache hit",
+          @logger.debug 'MFA state cache hit',
             account_id: account_id,
-            module: "MfaStateChecker"
+            module: 'MfaStateChecker'
           return cached
         end
 
@@ -103,12 +103,12 @@ module Auth
         # Store in cache if enabled
         store_in_cache(account_id, state) if @cache_ttl
 
-        @logger.debug "MFA state checked",
+        @logger.debug 'MFA state checked',
           account_id: account_id,
           has_otp: state.has_otp_secret,
           has_recovery: state.has_recovery_codes,
           mfa_enabled: state.mfa_enabled?,
-          module: "MfaStateChecker"
+          module: 'MfaStateChecker'
 
         state
       end
@@ -139,7 +139,7 @@ module Auth
           .first
 
         has_otp_secret = !otp_record.nil?
-        otp_last_use = otp_record&.fetch(:last_use, nil)
+        otp_last_use   = otp_record&.fetch(:last_use, nil)
 
         # Check for unused recovery codes
         # Note: account_recovery_codes.id is ALSO the FK to accounts table (composite PK: id, code)
@@ -155,7 +155,7 @@ module Auth
           has_otp_secret: has_otp_secret,
           has_recovery_codes: has_recovery_codes,
           otp_last_use: otp_last_use,
-          unused_recovery_code_count: unused_codes_count
+          unused_recovery_code_count: unused_codes_count,
         )
       end
 
@@ -163,7 +163,7 @@ module Auth
       # @param account_id [Integer] The account ID
       # @return [State, nil] Cached state or nil if expired/not found
       def get_from_cache(account_id)
-        key = cache_key(account_id)
+        key   = cache_key(account_id)
         entry = @cache[key]
 
         return nil unless entry
@@ -183,7 +183,7 @@ module Auth
       def store_in_cache(account_id, state)
         @cache[cache_key(account_id)] = {
           state: state,
-          timestamp: Time.now.to_i
+          timestamp: Time.now.to_i,
         }
       end
 

@@ -69,7 +69,7 @@ module Auth::Config::Hooks
         mfa_decision = Auth::Operations::DetectMfaRequirement.call(
           account_id: account_id,
           has_otp_secret: mfa_state.has_otp_secret,
-          has_recovery_codes: mfa_state.has_recovery_codes
+          has_recovery_codes: mfa_state.has_recovery_codes,
         )
 
         if mfa_decision.requires_mfa?
@@ -91,14 +91,14 @@ module Auth::Config::Hooks
             account_id: account_id,
             email: account[:email],
             external_id: account[:external_id],
-            correlation_id: correlation_id
+            correlation_id: correlation_id,
           )
 
           # For JSON mode, indicate MFA is required and provide auth URL
           if json_request?
-            json_response[:mfa_required]  = true
+            json_response[:mfa_required] = true
             json_response[:mfa_auth_url] = "/#{otp_auth_route}"
-            json_response[:mfa_methods] = mfa_decision.mfa_methods
+            json_response[:mfa_methods]  = mfa_decision.mfa_methods
 
             Auth::Logging.log_auth_event(
               :mfa_json_response,
@@ -131,7 +131,7 @@ module Auth::Config::Hooks
               account_id: account_id,
               session: session,
               request: request,
-              correlation_id: correlation_id
+              correlation_id: correlation_id,
             )
           end
         end

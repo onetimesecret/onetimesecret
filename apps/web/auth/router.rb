@@ -24,17 +24,22 @@ module Auth
     # include Auth::Helpers::SessionValidation
 
     # Include route modules
+    # include Auth::Routes::Validation
     include Auth::Routes::Health
     include Auth::Routes::Account
     include Auth::Routes::ActiveSessions
     include Auth::Routes::Admin
-    # include Auth::Routes::Validation
+
 
     # Session middleware is now configured globally in MiddlewareStack
 
     plugin :json, parser: true  # Parse incoming JSON request bodies
     plugin :halt
     plugin :status_handler
+
+    # plugin :sessions,
+    #   key: 'onetime.session',
+    #   secret: ENV.fetch('SESSION_SECRET', SecureRandom.hex(64))
 
     # All Rodauth configuration is now in apps/web/auth/config.rb
     # Use its Config class for all authentication configuration.
@@ -53,7 +58,7 @@ module Auth
           method: r.request_method,
           path_info: r.path_info,
           request_uri: r.env['REQUEST_URI'],
-          script_name: r.env['SCRIPT_NAME']
+          script_name: r.env['SCRIPT_NAME'],
         }
       end
 

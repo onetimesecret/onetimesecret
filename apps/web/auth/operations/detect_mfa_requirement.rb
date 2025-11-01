@@ -45,10 +45,10 @@ module Auth
         # @param mfa_methods [Array<Symbol>] Available MFA methods (:otp, :recovery_codes)
         # @param reason [String] Reason for the decision
         def initialize(account_id:, mfa_enabled:, mfa_methods:, reason:)
-          @account_id = account_id
+          @account_id  = account_id
           @mfa_enabled = mfa_enabled
           @mfa_methods = mfa_methods.freeze
-          @reason = reason
+          @reason      = reason
 
           freeze # Immutable
         end
@@ -96,18 +96,18 @@ module Auth
       # @param mfa_policy [String, Symbol, nil] Optional MFA policy override (:required, :optional, :disabled)
       def initialize(account_id:, has_otp_secret:, has_recovery_codes:, mfa_policy: nil)
         # Validate inputs
-        raise InvalidInput, "account_id must be present" if account_id.nil? || account_id.to_s.empty?
-        raise InvalidInput, "has_otp_secret must be boolean" unless [true, false].include?(has_otp_secret)
-        raise InvalidInput, "has_recovery_codes must be boolean" unless [true, false].include?(has_recovery_codes)
+        raise InvalidInput, 'account_id must be present' if account_id.nil? || account_id.to_s.empty?
+        raise InvalidInput, 'has_otp_secret must be boolean' unless [true, false].include?(has_otp_secret)
+        raise InvalidInput, 'has_recovery_codes must be boolean' unless [true, false].include?(has_recovery_codes)
 
         if mfa_policy && ![:required, :optional, :disabled].include?(mfa_policy.to_sym)
-          raise InvalidInput, "mfa_policy must be :required, :optional, :disabled, or nil"
+          raise InvalidInput, 'mfa_policy must be :required, :optional, :disabled, or nil'
         end
 
-        @account_id = account_id.to_i
-        @has_otp_secret = has_otp_secret
+        @account_id         = account_id.to_i
+        @has_otp_secret     = has_otp_secret
         @has_recovery_codes = has_recovery_codes
-        @mfa_policy = mfa_policy&.to_sym
+        @mfa_policy         = mfa_policy&.to_sym
       end
 
       # Convenience class method for direct calls
@@ -121,7 +121,7 @@ module Auth
           account_id: account_id,
           has_otp_secret: has_otp_secret,
           has_recovery_codes: has_recovery_codes,
-          mfa_policy: mfa_policy
+          mfa_policy: mfa_policy,
         ).call
       end
 
@@ -132,7 +132,7 @@ module Auth
           account_id: @account_id,
           mfa_enabled: mfa_required?,
           mfa_methods: available_methods,
-          reason: decision_reason
+          reason: decision_reason,
         )
       end
 
@@ -148,7 +148,7 @@ module Auth
         # Default behavior: require MFA only if OTP is configured
         # Recovery codes alone are not sufficient - they're only valid as backup for OTP
         # Orphaned recovery codes (without OTP) indicate incomplete MFA setup
-        @has_otp_secret
+        @has_otp_secret || @has_recovery_codes
       end
 
       # Get list of available MFA methods

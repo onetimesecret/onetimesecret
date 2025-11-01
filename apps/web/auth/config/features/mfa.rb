@@ -24,12 +24,9 @@ module Auth::Config::Features
       # keys will be invalidated.
       auth.otp_keys_use_hmac? true
 
-      # auth.otp_setup_redirect ''
-
       # Password requirements for MFA modifications
-      auth.two_factor_modifications_require_password? true
-
-      auth.modifications_require_password? true
+      auth.two_factor_modifications_require_password? false
+      auth.modifications_require_password? false
 
       # OTP Lockout Configuration
       # Default is 5 attempts with permanent lockout - too harsh for production
@@ -45,76 +42,23 @@ module Auth::Config::Features
       # Recovery codes configuration
       auth.auto_add_recovery_codes? true  # Automatically generate recovery codes
 
+      # Critical: Orphaned recovery codes create a "zombie MFA state"
+      # where Rodauth still considers MFA active because recovery codes
+      # count as an authentication method.
+      auth.auto_remove_recovery_codes? true
+
       # Require second factor during login if user has MFA setup
       #
       # NOTE: The require_two_factor_authenticated method is called in route blocks,
       # not in configuration. The login flow already handles MFA detection via the
       # after_login hook in apps/web/auth/config/hooks/login.rb which checks
       # uses_two_factor_authentication? and sets json_response[:mfa_required] = true
+
+      # Generate 8-character alphanumeric codes (like: 4k9m-x2pq)
+      # This provides ~1.7 billion possible codes (36^8)
+      auth.new_recovery_code do
+        Familia.generate_trace_id
+      end
     end
   end
 end
-
-
-# ==============================================================================
-# USER JOURNEY: MULTI-FACTOR AUTHENTICATION (MFA) SETUP
-# ==============================================================================
-#
-# This file configures Rodauth hooks that intercept and customize the MFA flow
-# for JSON API requests. The user's journey through MFA setup follows this path:
-#
-# 1. USER INITIATES MFA SETUP (before_otp_setup_route - Step 1)
-#    - User requests POST /otp-setup without an OTP code
-#    - Server generates a new TOTP secret (base32 encoded, 16 chars)
-#    - If otp_keys_use_hmac enabled:
-#      * Raw secret stored in session as :otp_setup_raw
-#      * HMAC parameters stored in session as :otp_setup
-#    - Response includes raw secret, provisioning URI, QR code SVG
-#
-# 2. USER SCANS QR CODE
-#    - User opens authenticator app (Google Authenticator, Authy, etc.)
-#    - Scans QR code or manually enters the raw secret
-#    - Authenticator begins generating 6-digit codes every 30 seconds
-#
-# 3. USER VERIFIES SETUP (Step 2)
-#    - User submits POST /otp-setup WITH an OTP code from authenticator
-#    - Server validates HMAC parameters against session
-#    - Server retrieves raw secret from session
-#    - Rodauth validates OTP code against raw secret using ROTP library
-#    - If valid, Rodauth stores the HMAC-secured key to database
-#      (not the HMAC secret itself, but the key derived using HMAC)
-#    - Flow continues to after_otp_setup hook
-#
-# 4. CLEANUP (after_otp_setup)
-#    - Server removes temporary session data
-#    - MFA setup complete - user's account now requires 2FA for login
-#
-#
-# ==============================================================================
-
-__END__
-
-curl -X POST https://dev.onetime.dev/auth/otp-setup \
-  -H "Content-Type: application/json" \
-  -b 'onetime.session=e6c0a5e9fba3cb30f03476b0e19cffdaf24737499461756ce86035895e42384f' \
-  -v -k
-
-  curl 'https://dev.onetime.dev/auth/otp-setup' \
-    -H 'accept: application/json' \
-    -H 'accept-language: en' \
-    -H 'cache-control: no-cache' \
-    -H 'content-type: application/json' \
-
-    -H 'dnt: 1' \
-    -H 'o-shrimp;' \
-    -H 'origin: https://dev.onetime.dev' \
-    -H 'pragma: no-cache' \
-    -H 'priority: u=1, i' \
-    -H 'sec-ch-ua: "Chromium";v="141", "Not?A_Brand";v="8"' \
-    -H 'sec-ch-ua-mobile: ?0' \
-    -H 'sec-ch-ua-platform: "macOS"' \
-    -H 'sec-fetch-dest: empty' \
-    -H 'sec-fetch-mode: cors' \
-    -H 'sec-fetch-site: same-origin' \
-    -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' \
-    --data-raw '{}'
