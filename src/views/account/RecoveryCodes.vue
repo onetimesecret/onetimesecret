@@ -56,15 +56,51 @@ const copyCodes = async () => {
   }
 };
 
-// Print codes - using safe DOM manipulation
+/**
+ * Print recovery codes in a new window
+ *
+ * IMPORTANT: Error Handling Strategy
+ * ==================================
+ * This function is wrapped in try-catch to prevent errors from bubbling up to
+ * Vue's global error handler (defined in globalErrorBoundary.ts).
+ *
+ * THE PROBLEM:
+ * When window.open() creates a new browser window, that window exists OUTSIDE
+ * Vue's component context. If any error occurs during DOM manipulation in the
+ * new window, Vue's global error handler catches it and tries to use inject()
+ * to access the Sentry client. However, inject() ONLY works inside Vue's
+ * setup() or functional components - it crashes when called outside component
+ * context with: "inject() can only be used inside setup() or functional components"
+ *
+ * THE SOLUTION:
+ * By wrapping the entire function in try-catch, we handle errors locally within
+ * the component context. This prevents errors from escaping to the global error
+ * handler, which would attempt to use inject() and crash.
+ *
+ * APPROACH:
+ * 1. Use imperative DOM API (createElement, appendChild) instead of innerHTML
+ *    to avoid XSS vulnerabilities and maintain explicit control
+ * 2. Build the document structure step-by-step for clarity and safety
+ * 3. Catch any errors locally and log them without disrupting Vue's error system
+ * 4. Provide helpful console messages for debugging (popup blocked, etc.)
+ *
+ * ALTERNATIVE APPROACHES CONSIDERED:
+ * - Using a blob URL with print CSS: More complex, harder to debug
+ * - Rendering Vue component in new window: Requires full Vue app setup
+ * - Using @media print CSS: Doesn't allow preview before printing
+ *
+ * This approach balances simplicity, security, and user experience.
+ */
 const printCodes = () => {
   try {
+    // Open new window for print preview
     const printWindow = window.open('', '_blank', 'width=800,height=600');
     if (!printWindow) {
       console.error('[RecoveryCodes] Failed to open print window - popup blocked?');
       return;
     }
 
+    // Build document structure using imperative DOM API (safe from XSS)
     const doc = printWindow.document;
     const html = doc.createElement('html');
     const head = doc.createElement('head');
@@ -72,7 +108,10 @@ const printCodes = () => {
     const style = doc.createElement('style');
     const body = doc.createElement('body');
 
+    // Set document metadata
     title.textContent = 'OneTime Secret Recovery Codes';
+
+    // Inline styles for print-friendly layout (monospace, readable spacing)
     style.textContent = `
       body { font-family: monospace; padding: 2rem; }
       h1 { margin-bottom: 1rem; }
@@ -85,23 +124,28 @@ const printCodes = () => {
     head.appendChild(title);
     head.appendChild(style);
 
+    // Create page header
     const h1 = doc.createElement('h1');
     h1.textContent = 'OneTime Secret Recovery Codes';
 
+    // Add instruction text
     const p = doc.createElement('p');
     p.textContent = 'Keep these codes safe and secure. Each code can be used once.';
 
+    // Create recovery codes list (iterate reactive ref safely)
     const ul = doc.createElement('ul');
     recoveryCodes.value.forEach(code => {
       const li = doc.createElement('li');
-      li.textContent = code;
+      li.textContent = code; // textContent prevents XSS
       ul.appendChild(li);
     });
 
+    // Add generation timestamp for reference
     const footer = doc.createElement('p');
     footer.className = 'footer';
     footer.textContent = `Generated: ${new Date().toLocaleString()}`;
 
+    // Assemble document structure
     body.appendChild(h1);
     body.appendChild(p);
     body.appendChild(ul);
@@ -111,12 +155,14 @@ const printCodes = () => {
     html.appendChild(body);
 
     doc.appendChild(html);
-    doc.close();
+    doc.close(); // Finalize document for rendering
 
+    // Focus window and trigger print dialog
     printWindow.focus();
     printWindow.print();
   } catch (error) {
-    // Handle errors without letting them bubble to Vue's global error handler
+    // Local error handling - prevents bubbling to Vue's global error handler
+    // which would crash trying to use inject() outside component context
     console.error('[RecoveryCodes] Error printing codes:', error);
   }
 };
