@@ -39,6 +39,54 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    path: '/account/region/current',
+    name: 'Current Region',
+    components: {
+      default: () => import('@/views/account/region/CurrentRegion.vue'),
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
+    },
+    meta: {
+      requiresAuth: true,
+      layout: AccountLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+    },
+  },
+  {
+    path: '/account/region/available',
+    name: 'Available Regions',
+    components: {
+      default: () => import('@/views/account/region/AvailableRegions.vue'),
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
+    },
+    meta: {
+      requiresAuth: true,
+      layout: AccountLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+    },
+  },
+  {
+    path: '/account/region/why',
+    name: 'Why Data Sovereignty Matters',
+    components: {
+      default: () => import('@/views/account/region/WhyItMatters.vue'),
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
+    },
+    meta: {
+      requiresAuth: true,
+      layout: AccountLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+    },
+  },
+  {
     path: '/account/settings',
     redirect: '/account/settings/profile',
   },

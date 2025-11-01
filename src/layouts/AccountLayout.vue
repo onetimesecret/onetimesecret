@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<LayoutProps>(), {});
       <router-view name="header" v-bind="props" />
     </template>
     <template #main>
-      <main class="container mx-auto max-w-4xl p-4" name="AccountLayout">
+      <main class="container mx-auto max-w-4xl" name="AccountLayout">
         <slot></slot>
       </main>
     </template>
