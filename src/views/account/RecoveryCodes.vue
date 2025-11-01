@@ -132,16 +132,29 @@ const handleGenerateNew = async () => {
   // Clear any previous errors
   clearError();
 
-  // Generate new codes
+  // Generate new codes - the composable sets recoveryCodes.value directly
   const codes = await generateNewRecoveryCodes(regeneratePassword.value);
 
-  // If successful (no error was set by the composable), close modal
-  if (!error.value && codes.length > 0) {
+  console.log('[RecoveryCodes] After generateNewRecoveryCodes:', {
+    codesReturned: codes,
+    codesLength: codes.length,
+    recoveryCodes: recoveryCodes.value,
+    recoveryCodesLength: recoveryCodes.value.length,
+    errorValue: error.value,
+    willCloseModal: !error.value,
+  });
+
+  // If no error occurred, the codes were generated successfully
+  // Close modal and refresh (recoveryCodes.value is already set by the composable)
+  if (!error.value) {
+    console.log('[RecoveryCodes] Closing modal and refreshing status');
     showGenerateConfirm.value = false;
     regeneratePassword.value = '';
     await fetchMfaStatus();
+  } else {
+    console.log('[RecoveryCodes] Error occurred, keeping modal open:', error.value);
   }
-  // If error or no codes returned, modal stays open with error displayed
+  // If error exists, modal stays open with error displayed
 };
 </script>
 
