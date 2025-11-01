@@ -203,10 +203,10 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/account/settings/advanced',
+    path: '/account/settings/caution',
     name: 'Advanced Settings',
     components: {
-      default: () => import('@/views/account/settings/AdvancedSettings.vue'),
+      default: () => import('@/views/account/settings/CautionZone.vue'),
       header: ExpandedHeader,
       footer: ExpandedFooter,
     },
@@ -221,7 +221,7 @@ const routes: Array<RouteRecordRaw> = [
   // Legacy route for backward compatibility
   {
     path: '/account/settings/close',
-    redirect: '/account/settings/advanced',
+    redirect: '/account/settings/caution',
   },
 ];
 

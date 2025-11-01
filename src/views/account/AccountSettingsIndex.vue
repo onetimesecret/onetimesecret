@@ -342,7 +342,7 @@ const sections = computed(() => {
                 aria-hidden="true" />
               <h2
                 class="text-lg font-semibold text-red-600 dark:text-red-400">
-                {{ t('web.COMMON.danger_zone') }}
+                {{ t('web.COMMON.caution_zone') }}
               </h2>
             </div>
           </div>

@@ -62,7 +62,7 @@ const handleCancel = () => {
         </div>
         <div class="ml-3">
           <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
-            {{ $t('web.COMMON.danger_zone') }}
+            {{ $t('web.COMMON.caution_zone') }}
           </h3>
           <div class="mt-2 text-sm text-red-700 dark:text-red-300">
             <p>{{ $t('web.auth.close-account.warning') }}</p>

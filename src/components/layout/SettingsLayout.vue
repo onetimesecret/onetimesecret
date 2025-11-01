@@ -82,9 +82,9 @@ const sections: NavigationItem[] = [
     ],
   },
   {
-    to: '/account/settings/advanced',
+    to: '/account/settings/caution',
     icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
-    label: t('web.settings.advanced.title'),
+    label: t('web.settings.caution.title'),
     description: t('web.settings.advanced.description'),
   },
 ];

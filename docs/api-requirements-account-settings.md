@@ -234,7 +234,7 @@ The Account Settings UI makes several assumptions about backend API endpoints th
 ```
 
 **Used By**:
-- `/account/settings/advanced` (AdvancedSettings.vue)
+- `/account/settings/caution` (CautionZone.vue)
 - Via component: `src/components/account/AccountDeleteButtonWithModalForm.vue`
 
 ---
