@@ -60,6 +60,12 @@ const navigationSections = computed<NavigationItem[]>(() => {
       label: t('api-key'),
       description: t('web.settings.api.manage_api_keys'),
     },
+    {
+      to: '/account/region',
+      icon: { collection: 'heroicons', name: 'globe-alt-solid' },
+      label: t('region'),
+      description: t('web.account.region'),
+    },
   ];
 
   // Add advanced settings with danger zone

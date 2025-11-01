@@ -32,6 +32,7 @@ const routes: Array<RouteRecordRaw> = [
     },
     meta: {
       requiresAuth: true,
+      layout: AccountLayout,
       layoutProps: {
         displayPoweredBy: false,
       },

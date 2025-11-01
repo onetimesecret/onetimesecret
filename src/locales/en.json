@@ -413,7 +413,6 @@
       "general": "General",
       "profile": "Profile",
       "preferences": "Preferences",
-      "security": "Security",
       "appearance": "Appearance",
       "theme": {
         "title": "Theme",
@@ -442,6 +441,7 @@
         "description": "Permanently delete your account and all data",
         "permanently_delete_your_account": "Permanently delete your account and all data"
       },
+      "security": "Security",
       "security": {
         "security-score": "Security Score",
         "score-description": "Your overall account security health",
@@ -511,18 +511,24 @@
       "separate-environments-explanation": "Each region operates as a completely independent environment with its own infrastructure, encryption keys, and data storage",
       "no-data-transfer-policy": "We maintain a strict policy: customer data is never transferred between regions under any circumstances",
       "switching-creates-new-account": "Important: Switching to a different region creates a new account. Your data stays in your original region.",
+      "your-region": "Your Region",
       "your-current-region": "Your Current Region",
       "active": "Active",
       "explore-other-regions": "Explore other available regions",
+
       "why-it-matters": "Why Data Sovereignty Matters",
-      "compliance-title": "Regulatory Compliance",
-      "compliance-description": "Meet GDPR, CCPA, and other regional data protection requirements by keeping data within specific jurisdictions",
-      "performance-title": "Lower Latency",
-      "performance-description": "Data stored closer to you means faster access and better performance",
-      "privacy-title": "Enhanced Privacy",
-      "privacy-description": "Your data stays within your chosen legal jurisdiction, subject to local privacy laws",
+
       "trust-title": "Transparency & Control",
-      "trust-description": "You know exactly where your data resides and which laws govern its protection"
+      "trust-description": "Know exactly where your data resides and which laws govern its protection.",
+
+      "privacy-title": "Privacy Rights",
+      "privacy-description": "Ensure your personal information is handled according to your country's privacy laws and regulations, preventing unauthorized access or misuse.",
+
+      "compliance-title": "Regulatory Compliance",
+      "compliance-description": "Meet GDPR, HIPAA, CCPA, and other regional data protection requirements",
+
+      "performance-title": "Faster Access",
+      "performance-description": "Data stored closer to you means lower latency and better performance."
     },
     "auth": {
       "mfa_required": "MFA verification required",
@@ -939,10 +945,10 @@
   "appearance": "Appearance",
   "contact-our-compliance-team": "contact our compliance team",
   "review-our-documentation": "review our documentation",
-  "to-understand-the-specific-regulations-and-prote": "To understand the specific regulations and protections that apply to your account, please",
-  "each-jurisdiction-maintains-separate-legal-compl": "Each jurisdiction maintains separate legal compliance and data governance. While you can create accounts in multiple jurisdictions, they remain legally distinct with no data sharing between regulatory zones.",
-  "this-regulatory-framework-is-determined-by-your-": "This regulatory framework is determined by your access domain:",
-  "your-account-and-data-are-protected-under-the-la": "Your account and data are protected under the laws and regulations of",
+  "your-account-and-data-are-protected-under-the-la": "Your account and data are protected under the laws of",
+  "this-regulatory-framework-is-determined-by-your-": "Your regulatory framework is determined by your access domain:",
+  "each-jurisdiction-maintains-separate-legal-compl": "Each region is completely separate with its own infrastructure, when possible with its own local hosting provider. You can create accounts in multiple regions, but no data is shared between them.",
+  "to-understand-the-specific-regulations-and-prote": "For details on regulations and protections that apply to your account,",
   "current": "Current",
   "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
   "available-regions": "Available Regions",
