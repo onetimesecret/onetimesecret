@@ -650,6 +650,7 @@
         "never-used": "Never used",
         "use-recovery-code": "Use a recovery code instead",
         "back-to-code": "Back to authentication code",
+        "cancel": "Cancel and return to sign in",
         "loading-status": "Loading MFA status...",
         "protected-description": "Your account is protected with two-factor authentication",
         "enable-description": "Protect your account with an additional layer of security",
