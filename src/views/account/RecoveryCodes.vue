@@ -268,7 +268,7 @@ const handleGenerateNew = async () => {
           {{ t('web.auth.recovery-codes.none-remaining') }}
         </p>
         <button
-          @click="handleGenerateNew"
+          @click="showGenerateModal"
           type="button"
           class="mt-4 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
           {{ t('web.auth.recovery-codes.generate-new') }}
