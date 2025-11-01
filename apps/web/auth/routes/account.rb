@@ -15,8 +15,11 @@ module Auth
 
             # Check if MFA features are enabled before calling methods
             mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
+            # Query database directly instead of using rodauth.recovery_codes.size
             recovery_codes_count = if rodauth.respond_to?(:recovery_codes_available?)
-              rodauth.recovery_codes.size
+              rodauth.db[:account_recovery_codes]
+                .where(id: account[:id])
+                .count
             else
               0
             end
@@ -59,10 +62,13 @@ module Auth
             # feature is enabled. Otherwise this would raise a MethodNotFound error.
             has_otp = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
 
-            p [:PLOP, rodauth.recovery_codes_available?, rodauth.recovery_codes.size, has_otp]
-            # Get count of unused recovery codes (if recovery codes feature is enabled)
+            # Get count of unused recovery codes by querying the database directly
+            # Note: Don't use rodauth.recovery_codes.size as it may auto-generate codes
+            # when auto_add_recovery_codes? is true, creating phantom codes
             recovery_codes_remaining = if rodauth.respond_to?(:recovery_codes_available?)
-              rodauth.recovery_codes.size
+              rodauth.db[:account_recovery_codes]
+                .where(id: rodauth.account_id)
+                .count
             else
               0
             end
@@ -104,8 +110,11 @@ module Auth
 
             # Check if MFA features are enabled before calling methods
             mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
+            # Query database directly instead of using rodauth.recovery_codes.size
             recovery_codes_count = if rodauth.respond_to?(:recovery_codes_available?)
-              rodauth.recovery_codes.size
+              rodauth.db[:account_recovery_codes]
+                .where(id: account[:id])
+                .count
             else
               0
             end
