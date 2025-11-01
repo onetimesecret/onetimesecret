@@ -17,7 +17,7 @@
  *    - Returns success/error based on OTP validity
  *
  * 3. Recovery Flow:
- *    - POST /auth/recovery-auth {recovery_code}
+ *    - POST /auth/recovery-auth {recovery-code}
  *    - One-time use codes for account recovery
  *
  * State Transitions:
@@ -425,7 +425,7 @@ export function useMfa() {
 
     const result = await wrap(async () => {
       const response = await $api.post<OtpVerifyResponse>('/auth/recovery-auth', {
-        recovery_code: code,
+        'recovery-code': code,
       });
 
       const validated = otpVerifyResponseSchema.parse(response.data);

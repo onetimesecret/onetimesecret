@@ -15,8 +15,8 @@ module Auth
 
             # Check if MFA features are enabled before calling methods
             mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
-            recovery_codes_count = if rodauth.respond_to?(:recovery_codes_available)
-              rodauth.recovery_codes_available
+            recovery_codes_count = if rodauth.respond_to?(:recovery_codes_available?)
+              rodauth.recovery_codes.size
             else
               0
             end
@@ -54,11 +54,15 @@ module Auth
             rodauth.account_from_session
 
             # Check if MFA features are enabled (OTP or recovery codes)
+            #
+            # NOTE: We check for the method first b/c it only exists while the
+            # feature is enabled. Otherwise this would raise a MethodNotFound error.
             has_otp = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
 
+            p [:PLOP, rodauth.recovery_codes_available?, rodauth.recovery_codes.size, has_otp]
             # Get count of unused recovery codes (if recovery codes feature is enabled)
-            recovery_codes_remaining = if rodauth.respond_to?(:recovery_codes_available)
-              rodauth.recovery_codes_available
+            recovery_codes_remaining = if rodauth.respond_to?(:recovery_codes_available?)
+              rodauth.recovery_codes.size
             else
               0
             end
@@ -100,8 +104,8 @@ module Auth
 
             # Check if MFA features are enabled before calling methods
             mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
-            recovery_codes_count = if rodauth.respond_to?(:recovery_codes_available)
-              rodauth.recovery_codes_available
+            recovery_codes_count = if rodauth.respond_to?(:recovery_codes_available?)
+              rodauth.recovery_codes.size
             else
               0
             end
