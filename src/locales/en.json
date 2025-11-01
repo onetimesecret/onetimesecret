@@ -442,7 +442,6 @@
         "description": "Permanently delete your account and all data",
         "permanently_delete_your_account": "Permanently delete your account and all data"
       },
-      "security": "Security",
       "security": {
         "security-score": "Security Score",
         "score-description": "Your overall account security health",
@@ -486,8 +485,17 @@
         "important-notice": "Important Notice",
         "regenerating-key-warning": "Regenerating your API key will invalidate the current key. Update all applications using the old key."
       },
-      "advanced": {
-        "title": "Advanced",
+      "privacy": {
+        "title": "Privacy Settings",
+        "manage-privacy-settings": "Manage your privacy preferences",
+        "your-privacy": "Your Privacy",
+        "non-negotiable": "Non-Negotiable",
+        "not-a-setting": "Not a setting",
+        "no-analytics-statement": "No analytics. No tracking. Period.",
+        "privacy-explanation": "This isn't a setting because there's nothing to turn on or off. Your privacy is built into how we operate."
+      },
+      "caution": {
+        "title": "Careful Consideration Zone",
         "description": "Advanced settings and data management",
         "data-export": "Data Export",
         "export-your-data": "Export your account data",
@@ -495,15 +503,6 @@
         "request-data-export": "Request Data Export",
         "export-info": "Export Processing Time",
         "export-info-description": "Exports are processed within 24 hours and sent to your email address",
-        "privacy": "Privacy Settings",
-        "manage-privacy-settings": "Manage your privacy preferences",
-        "your-privacy": "Your Privacy",
-        "non-negotiable": "Non-Negotiable",
-        "not-a-setting": "Not a setting",
-        "no-analytics-statement": "No analytics. No tracking. No \"anonymous\" data collection.",
-        "privacy-explanation": "This isn't a setting because there's nothing to set. Your privacy is built into how we operate.",
-        "analytics-collection": "Analytics Collection",
-        "analytics-description": "Help us improve by sharing anonymous usage data",
         "deletion-warning-title": "Deleting your account will:",
         "deletion-warning-secrets": "Permanently delete all your secrets",
         "deletion-warning-metadata": "Remove all secret metadata and history",
