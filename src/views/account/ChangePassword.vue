@@ -1,69 +1,70 @@
 <!-- src/views/account/ChangePassword.vue -->
 <script setup lang="ts">
-import SettingsLayout from '@/components/layout/SettingsLayout.vue';
-import { ref, computed } from 'vue';
-import { useAuth } from '@/composables/useAuth';
-import { useI18n } from 'vue-i18n';
+  import SettingsLayout from '@/components/layout/SettingsLayout.vue';
+  import { useAuth } from '@/composables/useAuth';
+  import { computed, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
-const { changePassword, isLoading, error, fieldError, clearErrors } = useAuth();
+  const { t } = useI18n();
+  const { changePassword, isLoading, error, fieldError, clearErrors } = useAuth();
 
-const currentPassword = ref('');
-const newPassword = ref('');
-const confirmPassword = ref('');
-const showCurrentPassword = ref(false);
-const showNewPassword = ref(false);
-const showConfirmPassword = ref(false);
+  const currentPassword = ref('');
+  const newPassword = ref('');
+  const confirmPassword = ref('');
+  const showCurrentPassword = ref(false);
+  const showNewPassword = ref(false);
+  const showConfirmPassword = ref(false);
 
-const toggleCurrentPasswordVisibility = () => {
-  showCurrentPassword.value = !showCurrentPassword.value;
-};
+  const toggleCurrentPasswordVisibility = () => {
+    showCurrentPassword.value = !showCurrentPassword.value;
+  };
 
-const toggleNewPasswordVisibility = () => {
-  showNewPassword.value = !showNewPassword.value;
-};
+  const toggleNewPasswordVisibility = () => {
+    showNewPassword.value = !showNewPassword.value;
+  };
 
-const toggleConfirmPasswordVisibility = () => {
-  showConfirmPassword.value = !showConfirmPassword.value;
-};
+  const toggleConfirmPasswordVisibility = () => {
+    showConfirmPassword.value = !showConfirmPassword.value;
+  };
 
-// Client-side validation
-const passwordsMatch = computed(() => {
-  if (!newPassword.value || !confirmPassword.value) return true;
-  return newPassword.value === confirmPassword.value;
-});
+  // Client-side validation
+  const passwordsMatch = computed(() => {
+    if (!newPassword.value || !confirmPassword.value) return true;
+    return newPassword.value === confirmPassword.value;
+  });
 
-const passwordMinLength = computed(() => {
-  if (!newPassword.value) return true;
-  return newPassword.value.length >= 8;
-});
+  const passwordMinLength = computed(() => {
+    if (!newPassword.value) return true;
+    return newPassword.value.length >= 8;
+  });
 
-const canSubmit = computed(() => (
-    currentPassword.value.length > 0 &&
-    newPassword.value.length >= 8 &&
-    confirmPassword.value.length >= 8 &&
-    passwordsMatch.value &&
-    !isLoading.value
-  ));
-
-const handleSubmit = async () => {
-  clearErrors();
-
-  if (!canSubmit.value) return;
-
-  const success = await changePassword(
-    currentPassword.value,
-    newPassword.value,
-    confirmPassword.value
+  const canSubmit = computed(
+    () =>
+      currentPassword.value.length > 0 &&
+      newPassword.value.length >= 8 &&
+      confirmPassword.value.length >= 8 &&
+      passwordsMatch.value &&
+      !isLoading.value
   );
 
-  if (success) {
-    // Clear form on success
-    currentPassword.value = '';
-    newPassword.value = '';
-    confirmPassword.value = '';
-  }
-};
+  const handleSubmit = async () => {
+    clearErrors();
+
+    if (!canSubmit.value) return;
+
+    const success = await changePassword(
+      currentPassword.value,
+      newPassword.value,
+      confirmPassword.value
+    );
+
+    if (success) {
+      // Clear form on success
+      currentPassword.value = '';
+      newPassword.value = '';
+      confirmPassword.value = '';
+    }
+  };
 </script>
 
 <template>
@@ -116,21 +117,23 @@ const handleSubmit = async () => {
                   required
                   :disabled="isLoading"
                   :aria-invalid="fieldError?.[0] === 'password'"
-                  :aria-describedby="fieldError?.[0] === 'password' ? 'current-password-error' : undefined"
-                  class="block w-full rounded-md border-gray-300 pr-10 shadow-sm
-                        focus:border-brand-500 focus:ring-brand-500
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                        dark:border-gray-600 dark:bg-gray-700 dark:text-white
-                        sm:text-sm" />
+                  :aria-describedby="
+                    fieldError?.[0] === 'password' ? 'current-password-error' : undefined
+                  "
+                  class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm" />
                 <button
                   type="button"
                   @click="toggleCurrentPasswordVisibility"
                   :disabled="isLoading"
                   class="absolute inset-y-0 right-0 flex items-center pr-3 disabled:opacity-50"
-                  :aria-label="showCurrentPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')">
+                  :aria-label="
+                    showCurrentPassword
+                      ? t('web.COMMON.hide-password')
+                      : t('web.COMMON.show-password')
+                  ">
                   <svg
                     class="h-5 w-5 text-gray-400"
-                    :class="{ 'hidden': showCurrentPassword, 'block': !showCurrentPassword }"
+                    :class="{ hidden: showCurrentPassword, block: !showCurrentPassword }"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 576 512"
                     aria-hidden="true">
@@ -140,7 +143,7 @@ const handleSubmit = async () => {
                   </svg>
                   <svg
                     class="h-5 w-5 text-gray-400"
-                    :class="{ 'block': showCurrentPassword, 'hidden': !showCurrentPassword }"
+                    :class="{ block: showCurrentPassword, hidden: !showCurrentPassword }"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 640 512"
                     aria-hidden="true">
@@ -175,21 +178,21 @@ const handleSubmit = async () => {
                   required
                   :disabled="isLoading"
                   :aria-invalid="fieldError?.[0] === 'newpassword' || !passwordMinLength"
-                  :aria-describedby="fieldError?.[0] === 'newpassword' ? 'new-password-error' : undefined"
-                  class="block w-full rounded-md border-gray-300 pr-10 shadow-sm
-                        focus:border-brand-500 focus:ring-brand-500
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                        dark:border-gray-600 dark:bg-gray-700 dark:text-white
-                        sm:text-sm" />
+                  :aria-describedby="
+                    fieldError?.[0] === 'newpassword' ? 'new-password-error' : undefined
+                  "
+                  class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm" />
                 <button
                   type="button"
                   @click="toggleNewPasswordVisibility"
                   :disabled="isLoading"
                   class="absolute inset-y-0 right-0 flex items-center pr-3 disabled:opacity-50"
-                  :aria-label="showNewPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')">
+                  :aria-label="
+                    showNewPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')
+                  ">
                   <svg
                     class="h-5 w-5 text-gray-400"
-                    :class="{ 'hidden': showNewPassword, 'block': !showNewPassword }"
+                    :class="{ hidden: showNewPassword, block: !showNewPassword }"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 576 512"
                     aria-hidden="true">
@@ -199,7 +202,7 @@ const handleSubmit = async () => {
                   </svg>
                   <svg
                     class="h-5 w-5 text-gray-400"
-                    :class="{ 'block': showNewPassword, 'hidden': !showNewPassword }"
+                    :class="{ block: showNewPassword, hidden: !showNewPassword }"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 640 512"
                     aria-hidden="true">
@@ -239,21 +242,23 @@ const handleSubmit = async () => {
                   required
                   :disabled="isLoading"
                   :aria-invalid="fieldError?.[0] === 'password-confirm' || !passwordsMatch"
-                  :aria-describedby="fieldError?.[0] === 'password-confirm' ? 'confirm-password-error' : undefined"
-                  class="block w-full rounded-md border-gray-300 pr-10 shadow-sm
-                        focus:border-brand-500 focus:ring-brand-500
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                        dark:border-gray-600 dark:bg-gray-700 dark:text-white
-                        sm:text-sm" />
+                  :aria-describedby="
+                    fieldError?.[0] === 'password-confirm' ? 'confirm-password-error' : undefined
+                  "
+                  class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm" />
                 <button
                   type="button"
                   @click="toggleConfirmPasswordVisibility"
                   :disabled="isLoading"
                   class="absolute inset-y-0 right-0 flex items-center pr-3 disabled:opacity-50"
-                  :aria-label="showConfirmPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')">
+                  :aria-label="
+                    showConfirmPassword
+                      ? t('web.COMMON.hide-password')
+                      : t('web.COMMON.show-password')
+                  ">
                   <svg
                     class="h-5 w-5 text-gray-400"
-                    :class="{ 'hidden': showConfirmPassword, 'block': !showConfirmPassword }"
+                    :class="{ hidden: showConfirmPassword, block: !showConfirmPassword }"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 576 512"
                     aria-hidden="true">
@@ -263,7 +268,7 @@ const handleSubmit = async () => {
                   </svg>
                   <svg
                     class="h-5 w-5 text-gray-400"
-                    :class="{ 'block': showConfirmPassword, 'hidden': !showConfirmPassword }"
+                    :class="{ block: showConfirmPassword, hidden: !showConfirmPassword }"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 640 512"
                     aria-hidden="true">
@@ -292,12 +297,7 @@ const handleSubmit = async () => {
               <button
                 type="submit"
                 :disabled="!canSubmit"
-                class="inline-flex justify-center rounded-md border border-transparent
-                      bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm
-                      hover:bg-brand-700 focus:outline-none focus:ring-2
-                      focus:ring-brand-500 focus:ring-offset-2
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                      dark:bg-brand-600 dark:hover:bg-brand-700">
+                class="inline-flex justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700">
                 <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
                 <span v-else>{{ t('web.auth.change-password.title') }}</span>
               </button>

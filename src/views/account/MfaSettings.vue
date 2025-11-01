@@ -1,10 +1,10 @@
 <script setup lang="ts">
   import OtpSetupWizard from '@/components/auth/OtpSetupWizard.vue';
-  import SettingsLayout from '@/components/layout/SettingsLayout.vue';
   import OIcon from '@/components/icons/OIcon.vue';
+  import SettingsLayout from '@/components/layout/SettingsLayout.vue';
   import { useAccount } from '@/composables/useAccount';
   import { useMfa } from '@/composables/useMfa';
-  import { ref, onMounted } from 'vue';
+  import { onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();

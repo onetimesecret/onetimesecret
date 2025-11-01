@@ -1,21 +1,21 @@
 <!-- src/views/account/region/CurrentRegion.vue -->
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useJurisdictionStore } from '@/stores/jurisdictionStore';
-import OIcon from '@/components/icons/OIcon.vue';
-import JurisdictionInfo from '@/components/modals/settings/JurisdictionInfo.vue';
-import SettingsLayout from '@/components/layout/SettingsLayout.vue';
+  import OIcon from '@/components/icons/OIcon.vue';
+  import SettingsLayout from '@/components/layout/SettingsLayout.vue';
+  import JurisdictionInfo from '@/components/modals/settings/JurisdictionInfo.vue';
+  import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+  import { computed, onMounted } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
-const jurisdictionStore = useJurisdictionStore();
+  const { t } = useI18n();
+  const jurisdictionStore = useJurisdictionStore();
 
-const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
+  const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
 
-onMounted(async () => {
-  jurisdictionStore.init();
-});
+  onMounted(async () => {
+    jurisdictionStore.init();
+  });
 </script>
 
 <template>
@@ -63,7 +63,9 @@ onMounted(async () => {
           </div>
 
           <!-- Jurisdiction Details -->
-          <div v-if="currentJurisdiction" class="mt-6">
+          <div
+            v-if="currentJurisdiction"
+            class="mt-6">
             <JurisdictionInfo :jurisdiction="currentJurisdiction" />
           </div>
         </div>

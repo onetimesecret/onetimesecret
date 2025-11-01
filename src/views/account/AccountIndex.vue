@@ -1,52 +1,52 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useAccount } from '@/composables/useAccount';
-import { useAccountStore } from '@/stores/accountStore';
-import { storeToRefs } from 'pinia';
-import { WindowService } from '@/services/window.service';
-import OIcon from '@/components/icons/OIcon.vue';
-import LanguageToggle from '@/components/LanguageToggle.vue';
-import ThemeToggle from '@/components/ThemeToggle.vue';
-import AccountBillingSection from '@/components/account/AccountBillingSection.vue';
-import SettingsLayout from '@/components/layout/SettingsLayout.vue';
+  import AccountBillingSection from '@/components/account/AccountBillingSection.vue';
+  import OIcon from '@/components/icons/OIcon.vue';
+  import LanguageToggle from '@/components/LanguageToggle.vue';
+  import SettingsLayout from '@/components/layout/SettingsLayout.vue';
+  import ThemeToggle from '@/components/ThemeToggle.vue';
+  import { useAccount } from '@/composables/useAccount';
+  import { WindowService } from '@/services/window.service';
+  import { useAccountStore } from '@/stores/accountStore';
+  import { storeToRefs } from 'pinia';
+  import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
-const { accountInfo, fetchAccountInfo } = useAccount();
-const accountStore = useAccountStore();
-const { account } = storeToRefs(accountStore);
+  const { t } = useI18n();
+  const { accountInfo, fetchAccountInfo } = useAccount();
+  const accountStore = useAccountStore();
+  const { account } = storeToRefs(accountStore);
 
-const windowProps = WindowService.getMultiple(['i18n_enabled']);
+  const windowProps = WindowService.getMultiple(['i18n_enabled']);
 
-const isLoading = ref(false);
+  const isLoading = ref(false);
 
-const accountCreatedDate = computed(() => {
-  if (!accountInfo.value?.created_at) return '';
-  return new Date(accountInfo.value.created_at).toLocaleDateString();
-});
+  const accountCreatedDate = computed(() => {
+    if (!accountInfo.value?.created_at) return '';
+    return new Date(accountInfo.value.created_at).toLocaleDateString();
+  });
 
-const emailVerificationStatus = computed(() => {
-  if (!accountInfo.value) return '';
-  return accountInfo.value.email_verified
-    ? t('web.auth.account.verified')
-    : t('web.auth.account.not-verified');
-});
+  const emailVerificationStatus = computed(() => {
+    if (!accountInfo.value) return '';
+    return accountInfo.value.email_verified
+      ? t('web.auth.account.verified')
+      : t('web.auth.account.not-verified');
+  });
 
-const handleThemeChange = async (isDark: boolean) => {
-  isLoading.value = true;
-  try {
-    console.log('Theme changed:', isDark);
-  } catch (error) {
-    console.error('Error changing theme:', error);
-  } finally {
-    isLoading.value = false;
-  }
-};
+  const handleThemeChange = async (isDark: boolean) => {
+    isLoading.value = true;
+    try {
+      console.log('Theme changed:', isDark);
+    } catch (error) {
+      console.error('Error changing theme:', error);
+    } finally {
+      isLoading.value = false;
+    }
+  };
 
-onMounted(async () => {
-  await accountStore.fetch();
-  await fetchAccountInfo();
-});
+  onMounted(async () => {
+    await accountStore.fetch();
+    await fetchAccountInfo();
+  });
 </script>
 
 <template>
@@ -69,7 +69,9 @@ onMounted(async () => {
         </div>
 
         <div class="p-6">
-          <div v-if="accountInfo" class="space-y-4">
+          <div
+            v-if="accountInfo"
+            class="space-y-4">
             <div class="flex items-center justify-between py-3">
               <div>
                 <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -98,7 +100,7 @@ onMounted(async () => {
               </div>
             </div>
 
-            <div class="border-t border-gray-200 dark:border-gray-700" ></div>
+            <div class="border-t border-gray-200 dark:border-gray-700"></div>
 
             <div class="py-3">
               <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -110,7 +112,9 @@ onMounted(async () => {
             </div>
           </div>
 
-          <div v-else class="flex items-center justify-center py-8">
+          <div
+            v-else
+            class="flex items-center justify-center py-8">
             <OIcon
               collection="heroicons"
               name="arrow-path-solid"
@@ -166,7 +170,9 @@ onMounted(async () => {
           </div>
 
           <!-- Language Setting -->
-          <div v-if="windowProps.i18n_enabled" class="px-6 py-4">
+          <div
+            v-if="windowProps.i18n_enabled"
+            class="px-6 py-4">
             <div class="space-y-4">
               <div class="flex items-center gap-3">
                 <OIcon

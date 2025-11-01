@@ -1,97 +1,106 @@
 <script setup lang="ts">
-import SettingsLayout from '@/components/layout/SettingsLayout.vue';
-import { useMfa } from '@/composables/useMfa';
-import { ref, onMounted, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+  import SettingsLayout from '@/components/layout/SettingsLayout.vue';
+  import { useMfa } from '@/composables/useMfa';
+  import { ref, onMounted, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
-const { recoveryCodes, mfaStatus, isLoading, error, fetchRecoveryCodes, fetchMfaStatus, generateNewRecoveryCodes, clearError } = useMfa();
+  const { t } = useI18n();
+  const {
+    recoveryCodes,
+    mfaStatus,
+    isLoading,
+    error,
+    fetchRecoveryCodes,
+    fetchMfaStatus,
+    generateNewRecoveryCodes,
+    clearError,
+  } = useMfa();
 
-const showGenerateConfirm = ref(false);
-const regeneratePassword = ref('');
+  const showGenerateConfirm = ref(false);
+  const regeneratePassword = ref('');
 
-onMounted(async () => {
-  // Fetch recovery codes first (generates/fetches codes)
-  // Then fetch MFA status to get the correct count
-  // Sequential execution prevents race condition where count query
-  // runs between code deletion and insertion
-  await fetchRecoveryCodes();
-  await fetchMfaStatus();
-});
+  onMounted(async () => {
+    // Fetch recovery codes first (generates/fetches codes)
+    // Then fetch MFA status to get the correct count
+    // Sequential execution prevents race condition where count query
+    // runs between code deletion and insertion
+    await fetchRecoveryCodes();
+    await fetchMfaStatus();
+  });
 
-// Check if MFA is enabled
-const mfaEnabled = computed(() => mfaStatus.value?.enabled || false);
+  // Check if MFA is enabled
+  const mfaEnabled = computed(() => mfaStatus.value?.enabled || false);
 
-// Download codes as text file
-const downloadCodes = () => {
-  const content = [
-    'OneTime Secret Recovery Codes',
-    '================================',
-    '',
-    'Keep these codes safe and secure.',
-    'Each code can be used once to access your account if you lose your authenticator device.',
-    '',
-    ...recoveryCodes.value,
-    '',
-    `Generated: ${new Date().toLocaleString()}`,
-  ].join('\n');
+  // Download codes as text file
+  const downloadCodes = () => {
+    const content = [
+      'OneTime Secret Recovery Codes',
+      '================================',
+      '',
+      'Keep these codes safe and secure.',
+      'Each code can be used once to access your account if you lose your authenticator device.',
+      '',
+      ...recoveryCodes.value,
+      '',
+      `Generated: ${new Date().toLocaleString()}`,
+    ].join('\n');
 
-  const blob = new Blob([content], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `onetime-recovery-codes-${Date.now()}.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `onetime-recovery-codes-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
-// Copy codes to clipboard
-const copyCodes = async () => {
-  const content = recoveryCodes.value.join('\n');
-  try {
-    await navigator.clipboard.writeText(content);
-    alert(t('web.auth.recovery-codes.copied'));
-  } catch (err) {
-    console.error('Failed to copy:', err);
-  }
-};
+  // Copy codes to clipboard
+  const copyCodes = async () => {
+    const content = recoveryCodes.value.join('\n');
+    try {
+      await navigator.clipboard.writeText(content);
+      alert(t('web.auth.recovery-codes.copied'));
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
-/**
- * Print recovery codes in a new window
- *
- * IMPORTANT: Error Handling Strategy
- * ==================================
- * This function is wrapped in try-catch to prevent errors from bubbling up to
- * Vue's global error handler (defined in globalErrorBoundary.ts).
- *
- * THE PROBLEM:
- * When window.open() creates a new browser window, that window exists OUTSIDE
- * Vue's component context. If any error occurs during DOM manipulation in the
- * new window, Vue's global error handler catches it and tries to use inject()
- * to access the Sentry client. However, inject() ONLY works inside Vue's
- * setup() or functional components - it crashes when called outside component
- * context with: "inject() can only be used inside setup() or functional components"
- *
- * THE SOLUTION:
- * By wrapping the entire function in try-catch, we handle errors locally within
- * the component context. This prevents errors from escaping to the global error
- * handler, which would attempt to use inject() and crash.
- *
- * APPROACH:
- * 1. Use imperative DOM API (createElement, appendChild) instead of innerHTML
- *    to avoid XSS vulnerabilities and maintain explicit control
- * 2. Build the document structure step-by-step for clarity and safety
- * 3. Catch any errors locally and log them without disrupting Vue's error system
- * 4. Provide helpful console messages for debugging (popup blocked, etc.)
- *
- * ALTERNATIVE APPROACHES CONSIDERED:
- * - Using a blob URL with print CSS: More complex, harder to debug
- * - Rendering Vue component in new window: Requires full Vue app setup
- * - Using @media print CSS: Doesn't allow preview before printing
- *
- * This approach balances simplicity, security, and user experience.
- */
-/**
+  /**
+   * Print recovery codes in a new window
+   *
+   * IMPORTANT: Error Handling Strategy
+   * ==================================
+   * This function is wrapped in try-catch to prevent errors from bubbling up to
+   * Vue's global error handler (defined in globalErrorBoundary.ts).
+   *
+   * THE PROBLEM:
+   * When window.open() creates a new browser window, that window exists OUTSIDE
+   * Vue's component context. If any error occurs during DOM manipulation in the
+   * new window, Vue's global error handler catches it and tries to use inject()
+   * to access the Sentry client. However, inject() ONLY works inside Vue's
+   * setup() or functional components - it crashes when called outside component
+   * context with: "inject() can only be used inside setup() or functional components"
+   *
+   * THE SOLUTION:
+   * By wrapping the entire function in try-catch, we handle errors locally within
+   * the component context. This prevents errors from escaping to the global error
+   * handler, which would attempt to use inject() and crash.
+   *
+   * APPROACH:
+   * 1. Use imperative DOM API (createElement, appendChild) instead of innerHTML
+   *    to avoid XSS vulnerabilities and maintain explicit control
+   * 2. Build the document structure step-by-step for clarity and safety
+   * 3. Catch any errors locally and log them without disrupting Vue's error system
+   * 4. Provide helpful console messages for debugging (popup blocked, etc.)
+   *
+   * ALTERNATIVE APPROACHES CONSIDERED:
+   * - Using a blob URL with print CSS: More complex, harder to debug
+   * - Rendering Vue component in new window: Requires full Vue app setup
+   * - Using @media print CSS: Doesn't allow preview before printing
+   *
+   * This approach balances simplicity, security, and user experience.
+   */
+  /**
  * const printCodes = () => {
   try {
     // Open new window for print preview
@@ -169,37 +178,37 @@ const copyCodes = async () => {
  * };
  */
 
-// Show generate confirmation modal
-const showGenerateModal = () => {
-  regeneratePassword.value = '';
-  showGenerateConfirm.value = true;
-};
+  // Show generate confirmation modal
+  const showGenerateModal = () => {
+    regeneratePassword.value = '';
+    showGenerateConfirm.value = true;
+  };
 
-// Cancel generate confirmation
-const cancelGenerate = () => {
-  showGenerateConfirm.value = false;
-  regeneratePassword.value = '';
-};
-
-// Generate new codes
-const handleGenerateNew = async () => {
-  if (!regeneratePassword.value) return;
-
-  // Clear any previous errors
-  clearError();
-
-  // Generate new codes - the composable sets recoveryCodes.value directly
-  await generateNewRecoveryCodes(regeneratePassword.value);
-
-  // If no error occurred, the codes were generated successfully
-  // Close modal and refresh (recoveryCodes.value is already set by the composable)
-  if (!error.value) {
+  // Cancel generate confirmation
+  const cancelGenerate = () => {
     showGenerateConfirm.value = false;
     regeneratePassword.value = '';
-    await fetchMfaStatus();
-  }
-  // If error exists, modal stays open with error displayed
-};
+  };
+
+  // Generate new codes
+  const handleGenerateNew = async () => {
+    if (!regeneratePassword.value) return;
+
+    // Clear any previous errors
+    clearError();
+
+    // Generate new codes - the composable sets recoveryCodes.value directly
+    await generateNewRecoveryCodes(regeneratePassword.value);
+
+    // If no error occurred, the codes were generated successfully
+    // Close modal and refresh (recoveryCodes.value is already set by the composable)
+    if (!error.value) {
+      showGenerateConfirm.value = false;
+      regeneratePassword.value = '';
+      await fetchMfaStatus();
+    }
+    // If error exists, modal stays open with error displayed
+  };
 </script>
 
 <template>
@@ -215,7 +224,9 @@ const handleGenerateNew = async () => {
       </div>
 
       <!-- MFA not enabled warning -->
-      <div v-if="!mfaEnabled && !isLoading" class="rounded-lg border border-yellow-200 bg-yellow-50 p-6 dark:border-yellow-800 dark:bg-yellow-900/20">
+      <div
+        v-if="!mfaEnabled && !isLoading"
+        class="rounded-lg border border-yellow-200 bg-yellow-50 p-6 dark:border-yellow-800 dark:bg-yellow-900/20">
         <div class="flex items-start gap-3">
           <i class="fas fa-exclamation-triangle text-2xl text-yellow-600 dark:text-yellow-400"></i>
           <div>
@@ -235,7 +246,9 @@ const handleGenerateNew = async () => {
       </div>
 
       <!-- Loading state -->
-      <div v-else-if="isLoading" class="flex items-center justify-center py-12">
+      <div
+        v-else-if="isLoading"
+        class="flex items-center justify-center py-12">
         <i class="fas fa-spinner fa-spin mr-2 text-2xl text-gray-400"></i>
         <span class="text-gray-600 dark:text-gray-400">Loading recovery codes...</span>
       </div>
@@ -251,14 +264,20 @@ const handleGenerateNew = async () => {
       </div>
 
       <!-- Recovery codes display -->
-      <div v-else-if="recoveryCodes.length > 0" class="space-y-6">
+      <div
+        v-else-if="recoveryCodes.length > 0"
+        class="space-y-6">
         <!-- Status info -->
         <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
           <div class="flex items-start gap-3">
             <i class="fas fa-info-circle text-blue-600 dark:text-blue-400"></i>
             <div class="text-sm text-blue-800 dark:text-blue-300">
               <p class="font-semibold">
-                {{ t('web.auth.recovery-codes.remaining', { count: mfaStatus?.recovery_codes_remaining || recoveryCodes.length }) }}
+                {{
+                  t('web.auth.recovery-codes.remaining', {
+                    count: mfaStatus?.recovery_codes_remaining || recoveryCodes.length,
+                  })
+                }}
               </p>
               <p class="mt-1">
                 Each code can only be used once. Generate new codes if you're running low.
@@ -298,7 +317,8 @@ const handleGenerateNew = async () => {
         </div>
 
         <!-- Generate new codes -->
-        <div class="rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
+        <div
+          class="rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
           <h3 class="mb-2 font-semibold dark:text-white">
             {{ t('web.auth.recovery-codes.generate-new') }}
           </h3>
@@ -316,7 +336,9 @@ const handleGenerateNew = async () => {
       </div>
 
       <!-- No codes available -->
-      <div v-else class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-800">
+      <div
+        v-else
+        class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-800">
         <p class="text-gray-600 dark:text-gray-400">
           {{ t('web.auth.recovery-codes.none-remaining') }}
         </p>
@@ -340,7 +362,9 @@ const handleGenerateNew = async () => {
           aria-labelledby="regenerate-codes-title">
           <div class="mb-4 flex items-center">
             <i class="fas fa-exclamation-triangle mr-3 text-2xl text-yellow-500"></i>
-            <h3 id="regenerate-codes-title" class="text-lg font-semibold dark:text-white">
+            <h3
+              id="regenerate-codes-title"
+              class="text-lg font-semibold dark:text-white">
               {{ t('web.auth.recovery-codes.generate-new') }}
             </h3>
           </div>
@@ -351,7 +375,9 @@ const handleGenerateNew = async () => {
           <form @submit.prevent="handleGenerateNew">
             <!-- Password input -->
             <div class="mb-4">
-              <label for="regenerate-password" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                for="regenerate-password"
+                class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {{ t('web.auth.mfa.password-confirmation') }}
               </label>
               <input
@@ -361,8 +387,7 @@ const handleGenerateNew = async () => {
                 autocomplete="current-password"
                 :disabled="isLoading"
                 :placeholder="t('web.auth.mfa.password-placeholder')"
-                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              />
+                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 {{ t('web.auth.mfa.password-reason') }}
               </p>
