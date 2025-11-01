@@ -179,21 +179,15 @@ onUnmounted(() => {
             {{ cust?.email }}
           </p>
           <p
-            v-if="cust?.objid"
+            v-if="!awaitingMfa && cust?.objid"
             class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
             {{ cust?.extid }}
           </p>
           <!-- MFA Required Notice -->
           <div
             v-if="awaitingMfa"
-            class="mt-2 flex items-center gap-2 rounded-md
-              bg-amber-50 px-2 py-1.5 dark:bg-amber-900/20">
-            <OIcon
-              collection="heroicons"
-              name="shield-exclamation-solid"
-              class="size-4 text-amber-600 dark:text-amber-400"
-              aria-hidden="true" />
-            <span class="text-xs font-medium text-amber-700 dark:text-amber-300">
+            class="mt-2 flex items-center gap-2 rounded-md px-2 py-1.5">
+            <span class="text-sm font-medium ">
               {{ t('web.auth.mfa_verification_required') }}
             </span>
           </div>
