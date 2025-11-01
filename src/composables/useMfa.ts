@@ -41,12 +41,14 @@ import { ref, inject } from 'vue';
 import type { AxiosInstance } from 'axios';
 import {
   otpSetupResponseSchema,
+  otpEnableResponseSchema,
   otpToggleResponseSchema,
   otpVerifyResponseSchema,
   recoveryCodesResponseSchema,
   mfaStatusResponseSchema,
   isAuthError,
   type OtpSetupResponse,
+  type OtpEnableResponse,
   type OtpToggleResponse,
   type OtpVerifyResponse,
   type RecoveryCodesResponse,
@@ -157,9 +159,10 @@ export function useMfa() {
   async function setupMfa(password?: string): Promise<OtpSetupData | null> {
     clearError();
 
-    try {
-      const result = await wrap(async () => {
-        const payload: Record<string, string> = password ? { password } : {};
+    const result = await wrap(async () => {
+      const payload: Record<string, string> = password ? { password } : {};
+
+      try {
         const response = await $api.post<OtpSetupResponse>('/auth/otp-setup', payload);
         const validated = otpSetupResponseSchema.parse(response.data);
 
@@ -174,27 +177,26 @@ export function useMfa() {
 
         setupData.value = validated;
         return validated;
-      });
+      } catch (err: any) {
+        // HMAC Setup Success Path: 422 with secrets (not a real error)
+        // When HMAC is enabled, backend returns 422 with otp_setup and otp_raw_secret
+        // This is expected behavior, not an actual error
+        const errorData = err.response?.data;
 
-      return result ?? null;
-    } catch (err: any) {
-      // HMAC Setup Success Path: 422 with secrets (not a real error)
-      // When HMAC is enabled, backend returns 422 with otp_setup and otp_raw_secret
-      // This is expected behavior, not an actual error
-      const errorData = err.response?.data;
-
-      if (err.response?.status === 422 && errorData && hasHmacSetupData(errorData)) {
-        const hmacData = await enrichSetupResponse(errorData);
-        if (hmacData) {
-          setupData.value = hmacData;
-          error.value = null; // Clear the error set by wrap()
-          return hmacData; // Success: proceed to QR code display
+        if (err.response?.status === 422 && errorData && hasHmacSetupData(errorData)) {
+          const hmacData = await enrichSetupResponse(errorData);
+          if (hmacData) {
+            setupData.value = hmacData;
+            return hmacData; // Success: proceed to QR code display
+          }
         }
-      }
 
-      // For other errors, re-throw to let wrap() handle them
-      throw err;
-    }
+        // For other errors, re-throw to let wrap() handle them
+        throw err;
+      }
+    });
+
+    return result ?? null;
   }
 
   /**
@@ -233,8 +235,8 @@ export function useMfa() {
         payload.otp_raw_secret = setupData.value.otp_raw_secret;
       }
 
-      const response = await $api.post<OtpToggleResponse>('/auth/otp-setup', payload);
-      const validated = otpToggleResponseSchema.parse(response.data);
+      const response = await $api.post<OtpEnableResponse>('/auth/otp-setup', payload);
+      const validated = otpEnableResponseSchema.parse(response.data);
 
       // Check for error response (validation failure)
       if (isAuthError(validated)) {
@@ -247,6 +249,11 @@ export function useMfa() {
         throw createError(message, 'human', 'error', {
           'field-error': validated['field-error'],
         });
+      }
+
+      // Store recovery codes if provided in response
+      if ('recovery_codes' in validated && validated.recovery_codes) {
+        recoveryCodes.value = validated.recovery_codes;
       }
 
       notificationsStore.show('Two-factor authentication has been enabled', 'success', 'top');
@@ -341,7 +348,12 @@ export function useMfa() {
    *
    * State: Authenticated (MFA complete) → Authenticated (viewing codes)
    *
-   * Retrieves the current set of recovery codes. Does not generate new codes.
+   * The /auth/recovery-codes endpoint serves dual purposes:
+   * - POST without 'add' param: View existing codes (this function)
+   * - POST with 'add' param: Generate NEW codes (see generateNewRecoveryCodes)
+   *
+   * This function retrieves existing codes without generating new ones.
+   * It sends an empty payload (no 'add' parameter) to view-only mode.
    *
    * @returns Array of recovery code strings
    *
@@ -352,6 +364,7 @@ export function useMfa() {
     clearError();
 
     const result = await wrap(async () => {
+      // Empty payload = view existing codes (no 'add' param = no generation)
       const response = await $api.post<RecoveryCodesResponse>('/auth/recovery-codes', {});
       const validated = recoveryCodesResponseSchema.parse(response.data);
 
@@ -371,6 +384,13 @@ export function useMfa() {
    *
    * State: Authenticated (MFA complete) → Authenticated (new codes generated)
    *
+   * The /auth/recovery-codes endpoint serves dual purposes:
+   * - POST without 'add' param: View existing codes (password required)
+   * - POST with 'add' param: Generate NEW codes (password required)
+   *
+   * This function uses add='true' to trigger code generation. Without it,
+   * the endpoint validates the password but only returns existing codes.
+   *
    * Creates a fresh set of recovery codes. All previous codes become invalid.
    * User should save the new codes immediately.
    *
@@ -385,7 +405,12 @@ export function useMfa() {
     clearError();
 
     const result = await wrap(async () => {
-      const response = await $api.post<RecoveryCodesResponse>('/auth/recovery-codes', { password });
+      // IMPORTANT: The 'add' parameter triggers code generation
+      // Without it, endpoint only returns existing codes
+      const response = await $api.post<RecoveryCodesResponse>('/auth/recovery-codes', {
+        password,
+        add: 'true',
+      });
       const validated = recoveryCodesResponseSchema.parse(response.data);
 
       recoveryCodes.value = validated.codes;

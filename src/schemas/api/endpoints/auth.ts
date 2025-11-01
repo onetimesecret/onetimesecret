@@ -159,7 +159,16 @@ export const otpSetupResponseSchema = z.object({
 });
 export type OtpSetupResponse = z.infer<typeof otpSetupResponseSchema>;
 
-// OTP enable/disable response
+// OTP enable response (includes recovery codes)
+export const otpEnableResponseSchema = z.union([
+  authSuccessSchema.extend({
+    recovery_codes: z.array(z.string()).optional(),
+  }),
+  authErrorSchema,
+]);
+export type OtpEnableResponse = z.infer<typeof otpEnableResponseSchema>;
+
+// OTP disable response
 export const otpToggleResponseSchema = authResponseSchema;
 export type OtpToggleResponse = z.infer<typeof otpToggleResponseSchema>;
 

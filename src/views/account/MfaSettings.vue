@@ -284,6 +284,7 @@
                 id="disable-password"
                 v-model="disablePassword"
                 type="password"
+                autocomplete="current-password"
                 :disabled="isDisabling"
                 :placeholder="t('web.auth.mfa.password-placeholder')"
                 class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />

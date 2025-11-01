@@ -16,10 +16,9 @@ module Auth
     # Auth app specific middleware (common middleware is in MiddlewareStack)
     use Rack::JSONBodyParser  # Parse JSON request bodies for Rodauth
 
-    # CSRF Protection for JSON API
-    # Rack::Protection::JsonCsrf validates X-Requested-With or Origin headers
-    # and stores token in session[:csrf]
-    use Rack::Protection::JsonCsrf
+    # CSRF Protection - Token-based approach for JSON API
+    # AuthenticityToken generates and validates tokens (unlike JsonCsrf which only checks Origin)
+    use Rack::Protection::AuthenticityToken, reaction: :drop_session
     use Onetime::Middleware::CsrfResponseHeader
 
     Onetime.development? do

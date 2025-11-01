@@ -10,7 +10,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { setupData, recoveryCodes, isLoading, error, setupMfa, enableMfa, fetchRecoveryCodes } = useMfa();
+const { setupData, recoveryCodes, isLoading, error, setupMfa, enableMfa } = useMfa();
 
 // Simplified wizard: setup or codes
 const currentStep = ref<'setup' | 'codes'>('setup');
@@ -36,8 +36,8 @@ const handleVerify = async () => {
 
   const success = await enableMfa(otpCode.value, password.value);
   if (success) {
-    // Fetch recovery codes
-    await fetchRecoveryCodes();
+    // Recovery codes are automatically included in enableMfa response
+    // No need to fetch separately
     currentStep.value = 'codes';
   } else {
     // Clear OTP input on error

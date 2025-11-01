@@ -82,7 +82,8 @@ module Core
         strategy_result = req.env.fetch('otto.strategy_result', nil) # should always have a value
         sess = strategy_result.session
         cust = strategy_result.user || Onetime::Customer.anonymous
-        # Rack::Protection stores CSRF token in session[:csrf]
+        # Rack::Protection::AuthenticityToken stores CSRF token in session[:csrf]
+        # It generates the token on first access if not present
         shrimp = sess&.[](:csrf) || sess&.[]('csrf')
 
         authenticated = strategy_result.authenticated? || false # never nil
