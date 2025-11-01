@@ -5,7 +5,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const { recoveryCodes, mfaStatus, isLoading, error, fetchRecoveryCodes, fetchMfaStatus, generateNewRecoveryCodes } = useMfa();
+const { recoveryCodes, mfaStatus, isLoading, error, fetchRecoveryCodes, fetchMfaStatus, generateNewRecoveryCodes, clearError } = useMfa();
 
 const showGenerateConfirm = ref(false);
 const regeneratePassword = ref('');
@@ -129,16 +129,19 @@ const cancelGenerate = () => {
 const handleGenerateNew = async () => {
   if (!regeneratePassword.value) return;
 
-  // Generate new codes first, then fetch status to avoid race condition
+  // Clear any previous errors
+  clearError();
+
+  // Generate new codes
   const codes = await generateNewRecoveryCodes(regeneratePassword.value);
 
-  if (codes.length > 0) {
-    // Success - close modal and refresh status
+  // If successful (no error was set by the composable), close modal
+  if (!error.value && codes.length > 0) {
     showGenerateConfirm.value = false;
     regeneratePassword.value = '';
-    await fetchMfaStatus(); // Refresh count after codes are generated
+    await fetchMfaStatus();
   }
-  // If failed, modal stays open with error message displayed
+  // If error or no codes returned, modal stays open with error displayed
 };
 </script>
 
@@ -305,6 +308,7 @@ const handleGenerateNew = async () => {
                 id="regenerate-password"
                 v-model="regeneratePassword"
                 type="password"
+                autocomplete="current-password"
                 :disabled="isLoading"
                 :placeholder="t('web.auth.mfa.password-placeholder')"
                 class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
