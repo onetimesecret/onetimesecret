@@ -144,6 +144,10 @@ SELECT * FROM account_security_overview_enhanced WHERE has_webauthn = 1;
 
 ## Maintenance
 
+```bash
+sqlite3 data/auth.db "UPDATE schema_info SET version = 1"
+```
+
 ### Cleanup Expired Tokens (PostgreSQL)
 ```sql
 SELECT cleanup_expired_tokens();
