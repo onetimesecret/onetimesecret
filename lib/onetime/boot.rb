@@ -31,6 +31,8 @@ module Onetime
       OT.mode = mode unless mode.nil?
       OT.env  = ENV['RACK_ENV'] || 'production'
 
+      raise OT::Problem, 'Boot already completed' if OT.ready?
+
       # Initialize boot manifest for structured progress tracking
       manifest = Boot::Manifest.new
 
