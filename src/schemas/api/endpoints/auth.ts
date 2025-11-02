@@ -150,7 +150,6 @@ export type RemoveSessionResponse = z.infer<typeof removeSessionResponseSchema>;
 export const otpSetupResponseSchema = z.object({
   qr_code: z.string().optional(), // Not present in HMAC first request
   secret: z.string().optional(), // Not present in HMAC first request
-  provisioning_uri: z.string().optional(), // Not present in HMAC first request
   otp_setup: z.string().optional(), // HMAC'd secret (when HMAC enabled)
   otp_raw_secret: z.string().optional(), // Raw secret (when HMAC enabled)
   otp_secret: z.string().optional(), // Alternative field name for HMAC'd secret

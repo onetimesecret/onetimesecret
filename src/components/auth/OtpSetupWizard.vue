@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import OtpCodeInput from '@/components/auth/OtpCodeInput.vue';
 import { useMfa } from '@/composables/useMfa';
+import { WindowService } from '@/services/window.service';
 import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -20,7 +21,11 @@ const otpInputRef = ref<InstanceType<typeof OtpCodeInput> | null>(null);
 
 // Auto-load QR code on mount (without password initially)
 onMounted(async () => {
-  await setupMfa();
+  // Get site name and user email from window state
+  const siteName = WindowService.get('ui')?.header?.branding?.site_name || 'Onetime Secret';
+  const email = WindowService.get('email') || '';
+
+  await setupMfa(siteName, email);
 });
 
 // Handle OTP code input
