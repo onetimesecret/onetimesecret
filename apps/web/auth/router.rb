@@ -11,6 +11,7 @@ require 'onetime/logging'
 require_relative 'config'
 require_relative 'routes/account'
 require_relative 'routes/active_sessions'
+require_relative 'routes/mfa'
 require_relative 'routes/admin'
 require_relative 'routes/health'
 
@@ -27,9 +28,9 @@ module Auth
     # include Auth::Routes::Validation
     include Auth::Routes::Health
     include Auth::Routes::Account
+    include Auth::Routes::MFA
     include Auth::Routes::ActiveSessions
     include Auth::Routes::Admin
-
 
     # Session middleware is now configured globally in MiddlewareStack
 
@@ -76,6 +77,9 @@ module Auth
 
       # Account routes (mfa-status, account info)
       handle_account_routes(r)
+
+      # MFA
+      handle_mfa_routes(r)
 
       # Active sessions routes
       handle_active_sessions_routes(r)

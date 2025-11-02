@@ -4,6 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 BE CONCISE. Focus on what's important NOW.
 
+Unless otherwise specified, pull requests target `develop` branch.
+
 ## Critical Workflow
 1. **Research First**: Read files, understand patterns, plan before coding
 2. **TDD**: Write tests → fail → implement → pass → commit

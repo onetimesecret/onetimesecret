@@ -41,13 +41,28 @@ module Auth
     #
     # @param event [Symbol] Event identifier (e.g., :login_attempt, :login_success, :mfa_required)
     # @param level [Symbol] Log level (:debug, :info, :warn, :error)
+    # @param log_metric [Boolean, Hash] If true, logs a metric with same event name and value=1.
+    #   If Hash, uses provided metric options (value, unit, metric_name)
     # @param payload [Hash] Structured data to log
     # @option payload [String] :correlation_id Correlation ID for this auth flow
     # @option payload [Integer] :account_id Rodauth account ID
     # @option payload [String] :email User email (will be obscured)
     # @option payload [String] :ip IP address
     #
-    def log_auth_event(event, level: :info, **payload)
+    # @example Basic event logging
+    #   log_auth_event(:login_attempt, account_id: 123)
+    #
+    # @example Event with automatic metric
+    #   log_auth_event(:login_success, account_id: 123, log_metric: true)
+    #   # Logs event + metric with value=1, unit=:count
+    #
+    # @example Event with custom metric
+    #   log_auth_event(:mfa_setup_failure,
+    #     failure_reason: :invalid_password,
+    #     log_metric: { value: 1, unit: :count }
+    #   )
+    #
+    def log_auth_event(event, level: :info, log_metric: false, **payload)
       # Obscure email if present
       payload[:email] = OT::Utils.obscure_email(payload[:email]) if payload[:email]
 
@@ -56,6 +71,29 @@ module Auth
 
       # e.g. Onetime.auth_logger.info "[login_success]" {...}
       logger.public_send(level, "[#{event}]", payload)
+
+      # Optionally log metric alongside event
+      if log_metric
+        metric_options = if log_metric.is_a?(Hash)
+                          log_metric
+                        else
+                          { value: 1, unit: :count }
+                        end
+
+        # Use custom metric name if provided, otherwise use event name
+        metric_name = metric_options.delete(:metric_name) || event
+
+        # Extract metric-specific options and preserve event payload
+        metric_payload = payload.dup
+        metric_payload.merge!(metric_options.except(:value, :unit))
+
+        self.log_metric(
+          metric_name,
+          value: metric_options[:value],
+          unit: metric_options[:unit],
+          **metric_payload
+        )
+      end
     end
 
     # Log an operation with consistent structure
