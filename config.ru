@@ -24,13 +24,15 @@ $LOAD_PATH.unshift(File.join(__dir__, 'lib')) unless $LOAD_PATH.include?(File.jo
 
 require 'onetime'
 
-# Application models need to be loaded before booting
-Onetime::Application::Registry.prepare_application_registry
 
 # Bootstrap the Application
 # NOTE: Proper semantic logging comes online during boot. Any logging
 # prior to this needs to be output directly via STDOUT/STDERR.
 Onetime.boot! :app
+
+
+# Application models need to be loaded before booting
+Onetime::Application::Registry.prepare_application_registry
 
 Onetime.app_logger.debug "Onetime application booted in #{OT.env} mode. Is ready? #{Onetime.ready?} "
 

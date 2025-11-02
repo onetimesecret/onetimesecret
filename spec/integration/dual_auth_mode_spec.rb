@@ -283,7 +283,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
   describe 'POST /auth/reset-password/:key' do
     it 'rejects invalid reset token' do
       post '/auth/reset-password/testtoken123',
-        { p: 'newpassword123', password_confirm: 'newpassword123' },
+        { newpassword: 'newpassword123', 'password-confirm': 'newpassword123' },
         json_request_headers
 
       # Invalid token should return 400 (bad request), 404 (not found), or 422 (invalid)

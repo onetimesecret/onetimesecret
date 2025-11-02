@@ -38,7 +38,7 @@ module Core
       # Locale is handled by Otto::Locale::Middleware
       # Available via env['otto.locale']
 
-      http_logger.debug "Request setup complete", nonce: nonce[0, 8] if OT.debug?
+      http_logger.debug "Request setup complete", { nonce: nonce[0, 8] } if OT.debug?
     end
 
     def finalize_response(status, headers, body, env)

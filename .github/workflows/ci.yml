@@ -134,6 +134,7 @@ jobs:
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'advanced'
           SESSION_SECRET: 'test-session-secret-for-ci-only-do-not-use-in-production'
         run: |
           mkdir tmp && bundle exec rspec \

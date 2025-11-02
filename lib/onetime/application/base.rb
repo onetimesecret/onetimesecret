@@ -12,17 +12,20 @@ module Onetime
       attr_reader :options, :router, :rack_app
 
       def initialize(options = {})
-        app_logger.debug "Initializing",
+        app_logger.debug "Initializing", {
           application: self.class.name,
           options: options
+        }
         @options  = options
 
-        app_logger.debug "Building router",
+        app_logger.debug "Building router", {
           application: self.class.name
+        }
         @router   = build_router
 
-        app_logger.debug "Building rack app",
+        app_logger.debug "Building rack app", {
           application: self.class.name
+        }
         @rack_app = build_rack_app
 
       end
@@ -51,23 +54,35 @@ module Onetime
           prefix: base_klass.uri_prefix,
         }
 
-        Rack::Builder.new do |builder|
+        app = Rack::Builder.new do |builder|
           MiddlewareStack.configure(builder, application_context: app_context)
 
           (base_klass.middleware || []).each do |middleware, args, block|
             builder.use(middleware, *args, &block)
           end
 
-          # Invoke the warmup block if it is defined
-          builder.warmup(&base_klass.warmup)
+          # Wrap the warmup to log before and after actual execution
+          if base_klass.warmup
+            builder.warmup do |built_app|
+              Onetime.app_logger.debug "Warmup started", {
+                application: app_context[:name]
+              }
 
-          # Log warmup completion using a temporary logger instance
-          # (can't use instance method here due to Rack::Builder context)
-          SemanticLogger['App'].debug "Warmup completed",
-            application: app_context[:name]
+              # Call the actual warmup block
+              base_klass.warmup.call(built_app)
+
+              # Log completion AFTER warmup finishes
+              message = "WARMED UP #{base_klass} at #{base_klass.uri_prefix}"
+
+              # Use log_box helper for consistent formatting
+              Onetime.log_box([message], logger_method: :boot_logger)
+            end
+          end
 
           builder.run router_instance
         end.to_app
+
+        app
       end
 
       class << self
@@ -82,8 +97,9 @@ module Onetime
         def inherited(subclass)
           # Keep track subclasses without immediate registration
           Registry.register_application_class(subclass)
-          SemanticLogger['App'].debug "Application registered",
+          Onetime.app_logger.debug "Application registered", {
             application: subclass.name
+          }
         end
 
         def use(klass, *args, &block)

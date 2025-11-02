@@ -89,17 +89,18 @@ repos:
           - '--pattern=(i18n(?=/)|([a-zA-Z0-9]{0,10}-?[0-9]{1,5}))'
           - '--template=[#{}]'
 
-  # Local JavaScript linting: quick syntax checks
+  # Local JavaScript linting: quick syntax checks on staged files only
   - repo: local
     hooks:
       - id: local-eslint-fast
         stages: [pre-commit]
-        name: Quick ESLint
-        description: Lightweight TypeScript/Vue syntax validation
-        entry: node_modules/.bin/eslint --quiet --config eslint.config.ts --ignore-pattern 'src/tests/**'
+        name: Quick ESLint (staged files)
+        description: Lightweight TypeScript/Vue syntax validation via lint-staged
+        entry: pnpm exec lint-staged
         language: system
-        pass_filenames: true
-        files: (^src/.*\.(mjs|ts|vue)$|^.*\.(mjs|ts|vue)$)
+        pass_filenames: false
+        always_run: true
+        files: \.(ts|vue|mjs)$
 
   # Disable type-checking while sorting out tsconfig.json ignore when files specified
   # Local TypeScript type checking: quick type validation

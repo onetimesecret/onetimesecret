@@ -20,6 +20,10 @@ module Core
     # Initialize request context (nonce, locale) before other processing
     use Core::Middleware::RequestSetup
 
+    # CSRF Protection - Token-based approach
+    use Rack::Protection::AuthenticityToken, reaction: :drop_session
+    use Onetime::Middleware::CsrfResponseHeader
+
     # Simplified error handling for Vue SPA - serves entry points
     # Must come after security but before router to catch all downstream errors
     use Core::Middleware::ErrorHandling
@@ -53,8 +57,9 @@ module Core
             ]
           rhales_logger.debug "Schema validation middleware enabled"
         rescue LoadError => ex
-          rhales_logger.warn "Could not load schema validation middleware - json_schemer gem not available",
+          rhales_logger.warn "Could not load schema validation middleware - json_schemer gem not available", {
             exception: ex
+          }
         end
       end
     end

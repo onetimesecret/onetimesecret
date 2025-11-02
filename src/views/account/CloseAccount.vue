@@ -1,45 +1,43 @@
 <!-- src/views/account/CloseAccount.vue -->
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useAuth } from '@/composables/useAuth';
+  import { ref, computed } from 'vue';
+  import { useAuth } from '@/composables/useAuth';
 
-const { closeAccount, isLoading, error, fieldError, clearErrors } = useAuth();
+  const { closeAccount, isLoading, error, fieldError, clearErrors } = useAuth();
 
-const password = ref('');
-const showPassword = ref(false);
-const confirmationChecked = ref(false);
-const showConfirmation = ref(false);
+  const password = ref('');
+  const showPassword = ref(false);
+  const confirmationChecked = ref(false);
+  const showConfirmation = ref(false);
 
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
-};
+  const togglePasswordVisibility = () => {
+    showPassword.value = !showPassword.value;
+  };
 
-const canSubmit = computed(() => (
-    password.value.length > 0 &&
-    confirmationChecked.value &&
-    !isLoading.value
-  ));
+  const canSubmit = computed(
+    () => password.value.length > 0 && confirmationChecked.value && !isLoading.value
+  );
 
-const handleInitialSubmit = () => {
-  clearErrors();
-  showConfirmation.value = true;
-};
+  const handleInitialSubmit = () => {
+    clearErrors();
+    showConfirmation.value = true;
+  };
 
-const handleFinalSubmit = async () => {
-  clearErrors();
+  const handleFinalSubmit = async () => {
+    clearErrors();
 
-  if (!canSubmit.value) return;
+    if (!canSubmit.value) return;
 
-  await closeAccount(password.value);
-  // Navigation handled by useAuth composable (logout + redirect to /)
-};
+    await closeAccount(password.value);
+    // Navigation handled by useAuth composable (logout + redirect to /)
+  };
 
-const handleCancel = () => {
-  password.value = '';
-  showConfirmation.value = false;
-  confirmationChecked.value = false;
-  clearErrors();
-};
+  const handleCancel = () => {
+    password.value = '';
+    showConfirmation.value = false;
+    confirmationChecked.value = false;
+    clearErrors();
+  };
 </script>
 
 <template>
@@ -62,7 +60,7 @@ const handleCancel = () => {
         </div>
         <div class="ml-3">
           <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
-            {{ $t('web.COMMON.danger_zone') }}
+            {{ $t('web.COMMON.caution_zone') }}
           </h3>
           <div class="mt-2 text-sm text-red-700 dark:text-red-300">
             <p>{{ $t('web.auth.close-account.warning') }}</p>
@@ -109,20 +107,18 @@ const handleCancel = () => {
                 :disabled="isLoading"
                 :aria-invalid="fieldError?.[0] === 'password'"
                 :aria-describedby="fieldError?.[0] === 'password' ? 'password-error' : undefined"
-                class="block w-full rounded-md border-gray-300 pr-10 shadow-sm
-                       focus:border-brand-500 focus:ring-brand-500
-                       disabled:opacity-50 disabled:cursor-not-allowed
-                       dark:border-gray-600 dark:bg-gray-700 dark:text-white
-                       sm:text-sm" />
+                class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm" />
               <button
                 type="button"
                 @click="togglePasswordVisibility"
                 :disabled="isLoading"
                 class="absolute inset-y-0 right-0 flex items-center pr-3 disabled:opacity-50"
-                :aria-label="showPassword ? $t('web.COMMON.hide-password') : $t('web.COMMON.show-password')">
+                :aria-label="
+                  showPassword ? $t('web.COMMON.hide-password') : $t('web.COMMON.show-password')
+                ">
                 <svg
                   class="h-5 w-5 text-gray-400"
-                  :class="{ 'hidden': showPassword, 'block': !showPassword }"
+                  :class="{ hidden: showPassword, block: !showPassword }"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 576 512"
                   aria-hidden="true">
@@ -132,7 +128,7 @@ const handleCancel = () => {
                 </svg>
                 <svg
                   class="h-5 w-5 text-gray-400"
-                  :class="{ 'block': showPassword, 'hidden': !showPassword }"
+                  :class="{ block: showPassword, hidden: !showPassword }"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 640 512"
                   aria-hidden="true">
@@ -159,10 +155,7 @@ const handleCancel = () => {
                 type="checkbox"
                 v-model="confirmationChecked"
                 :disabled="isLoading"
-                class="h-4 w-4 rounded border-gray-300 text-red-600
-                       focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed
-                       dark:border-gray-600 dark:bg-gray-700
-                       dark:ring-offset-gray-800 dark:focus:ring-red-500" />
+                class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-red-500" />
             </div>
             <div class="ml-3 text-sm">
               <label
@@ -179,23 +172,13 @@ const handleCancel = () => {
               type="button"
               @click="$router.push('/account/settings')"
               :disabled="isLoading"
-              class="inline-flex justify-center rounded-md border border-gray-300 bg-white
-                     px-4 py-2 text-sm font-medium text-gray-700 shadow-sm
-                     hover:bg-gray-50 focus:outline-none focus:ring-2
-                     focus:ring-brand-500 focus:ring-offset-2
-                     disabled:opacity-50 disabled:cursor-not-allowed
-                     dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300
-                     dark:hover:bg-gray-600">
+              class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
               {{ $t('web.auth.close-account.cancel') }}
             </button>
             <button
               type="submit"
               :disabled="!password || !confirmationChecked || isLoading"
-              class="inline-flex justify-center rounded-md border border-transparent
-                     bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm
-                     hover:bg-red-700 focus:outline-none focus:ring-2
-                     focus:ring-red-500 focus:ring-offset-2
-                     disabled:opacity-50 disabled:cursor-not-allowed">
+              class="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
               {{ $t('web.COMMON.continue') }}
             </button>
           </div>
@@ -247,24 +230,14 @@ const handleCancel = () => {
               type="button"
               @click="handleCancel"
               :disabled="isLoading"
-              class="inline-flex justify-center rounded-md border border-gray-300 bg-white
-                     px-4 py-2 text-sm font-medium text-gray-700 shadow-sm
-                     hover:bg-gray-50 focus:outline-none focus:ring-2
-                     focus:ring-brand-500 focus:ring-offset-2
-                     disabled:opacity-50 disabled:cursor-not-allowed
-                     dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300
-                     dark:hover:bg-gray-600">
+              class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
               {{ $t('web.auth.close-account.cancel') }}
             </button>
             <button
               type="button"
               @click="handleFinalSubmit"
               :disabled="!canSubmit"
-              class="inline-flex justify-center rounded-md border border-transparent
-                     bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm
-                     hover:bg-red-700 focus:outline-none focus:ring-2
-                     focus:ring-red-500 focus:ring-offset-2
-                     disabled:opacity-50 disabled:cursor-not-allowed">
+              class="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
               <span v-if="isLoading">{{ $t('web.COMMON.processing') }}</span>
               <span v-else>{{ $t('web.auth.close-account.button') }}</span>
             </button>

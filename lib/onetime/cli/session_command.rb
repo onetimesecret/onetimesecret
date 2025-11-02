@@ -300,9 +300,9 @@ module Onetime
       puts
 
       # Advanced auth info (if using Rodauth)
-      if data['advanced_account_id']
+      if data['account_id']
         puts 'Advanced Auth (Rodauth):'
-        puts "  Account ID: #{data['advanced_account_id']}"
+        puts "  Account ID: #{data['account_id']}"
         puts "  Active Session ID: #{data['active_session_id']}" if data['active_session_id']
         puts
       end

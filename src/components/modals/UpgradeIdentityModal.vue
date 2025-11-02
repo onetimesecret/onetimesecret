@@ -1,3 +1,5 @@
+<!-- src/components/modals/UpgradeIdentityModal.vue -->
+
 <script setup lang="ts">
 import { productTiers, paymentFrequencies } from '@/sources/productTiers'
 import type { Testimonial } from '@/sources/testimonials';

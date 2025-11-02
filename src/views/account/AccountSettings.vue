@@ -1,27 +1,27 @@
 <!-- src/views/account/AccountSettings.vue -->
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRoute } from 'vue-router';
-import BaseLayout from '@/layouts/BaseLayout.vue';
+  import SettingsLayout from '@/components/layout/SettingsLayout.vue';
+  import { ref } from 'vue';
+  import { useRoute } from 'vue-router';
 
-const route = useRoute();
+  const route = useRoute();
 
-const tabs = ref([
-  {
-    name: 'password',
-    label: 'web.auth.change-password.title',
-    path: '/account/settings/password',
-  },
-  {
-    name: 'close',
-    label: 'web.auth.close-account.title',
-    path: '/account/settings/close',
-  },
-]);
+  const tabs = ref([
+    {
+      name: 'password',
+      label: 'web.auth.change-password.title',
+      path: '/account/settings/password',
+    },
+    {
+      name: 'close',
+      label: 'web.auth.close-account.title',
+      path: '/account/settings/close',
+    },
+  ]);
 </script>
 
 <template>
-  <BaseLayout>
+  <SettingsLayout>
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
@@ -42,7 +42,7 @@ const tabs = ref([
               :class="[
                 route.path.includes(tab.name)
                   ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300'
+                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
               ]">
               {{ $t(tab.label) }}
             </router-link>
@@ -54,5 +54,5 @@ const tabs = ref([
         <router-view />
       </div>
     </div>
-  </BaseLayout>
+  </SettingsLayout>
 </template>

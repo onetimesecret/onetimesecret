@@ -303,7 +303,8 @@ module Onetime
     end
 
     def debug
-      @debug ||= ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
+      return @debug unless @debug.nil?
+      @debug = Onetime::Utils.yes?(ENV['ONETIME_DEBUG'])
     end
 
     def stdout(prefix, msg)
@@ -332,9 +333,10 @@ module Onetime
       return if @legacy_log_warnings.include?(caller_file)
       @legacy_log_warnings << caller_file
 
-      logger.warn "Legacy logging detected - use keyword arguments for structured logging",
+      logger.warn "Legacy logging detected - use keyword arguments for structured logging", {
         file: caller_file,
         migration_guide: 'docs/logging-migration-guide.md'
+      }
     end
     private :warn_about_legacy_logging
 
@@ -365,6 +367,7 @@ module Onetime
     end
 
     # Convenience methods for environment checking
+
     def production?(&)
       in_environment?(%w[prod production], &)
     end

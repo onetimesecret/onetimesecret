@@ -21,6 +21,13 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
     Onetime::Application::Registry.generate_rack_url_map
   end
 
+  # Helper method to send JSON requests to Rodauth endpoints
+  def json_post(path, params)
+    header 'Content-Type', 'application/json'
+    header 'Accept', 'application/json'
+    post path, JSON.generate(params)
+  end
+
   let(:dbclient) { Familia.dbclient(0) }
   let(:test_email) { "test-#{SecureRandom.hex(8)}@example.com" }
   let(:valid_password) { 'SecureP@ss123' }
@@ -38,11 +45,11 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
   describe 'before_create_account hook' do
     context 'with valid email' do
       it 'allows account creation' do
-        post '/auth/create-account', {
+        json_post '/auth/create-account', {
           login: test_email,
           password: valid_password,
           'password-confirm': valid_password
-        }, { 'HTTP_ACCEPT' => 'application/json' }
+        }
 
         expect(last_response.status).to be_between(200, 299).or be(422) # 422 if DB constraints fail
       end
@@ -50,29 +57,33 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
 
     context 'with invalid email format' do
       it 'rejects account creation' do
-        post '/auth/create-account', {
+        json_post '/auth/create-account', {
           login: 'not-an-email',
           password: valid_password,
           'password-confirm': valid_password
-        }, { 'HTTP_ACCEPT' => 'application/json' }
+        }
 
         expect(last_response.status).to eq(422)
         json = JSON.parse(last_response.body)
-        expect(json['error']).to match(/valid email/i)
+        # Check field-error which contains our custom validation message
+        expect(json['field-error']).to be_an(Array)
+        expect(json['field-error'][0]).to eq('login')
       end
     end
 
     context 'with empty email' do
       it 'rejects account creation' do
-        post '/auth/create-account', {
+        json_post '/auth/create-account', {
           login: '',
           password: valid_password,
           'password-confirm': valid_password
-        }, { 'HTTP_ACCEPT' => 'application/json' }
+        }
 
         expect(last_response.status).to eq(422)
         json = JSON.parse(last_response.body)
-        expect(json['error']).to match(/email/i)
+        # Check field-error which contains our custom validation message
+        expect(json['field-error']).to be_an(Array)
+        expect(json['field-error'][0]).to eq('login')
       end
     end
   end
@@ -81,10 +92,10 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
     context 'rate limiting' do
       it 'allows initial login attempts' do
         3.times do
-          post '/auth/login', {
+          json_post '/auth/login', {
             login: test_email,
             password: 'wrong-password'
-          }, { 'HTTP_ACCEPT' => 'application/json' }
+          }
 
           expect(last_response.status).to eq(401)
         end
@@ -93,17 +104,17 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
       it 'blocks after 5 failed attempts' do
         # Make 5 failed attempts
         5.times do
-          post '/auth/login', {
+          json_post '/auth/login', {
             login: test_email,
             password: 'wrong-password'
-          }, { 'HTTP_ACCEPT' => 'application/json' }
+          }
         end
 
         # 6th attempt should be rate limited
-        post '/auth/login', {
+        json_post '/auth/login', {
           login: test_email,
           password: 'wrong-password'
-        }, { 'HTTP_ACCEPT' => 'application/json' }
+        }
 
         expect(last_response.status).to eq(429)
         json = JSON.parse(last_response.body)
@@ -111,10 +122,10 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
       end
 
       it 'sets DB key with TTL' do
-        post '/auth/login', {
+        json_post '/auth/login', {
           login: test_email,
           password: 'wrong-password'
-        }, { 'HTTP_ACCEPT' => 'application/json' }
+        }
 
         rate_limit_key = "login_attempts:#{test_email}"
         expect(dbclient.exists(rate_limit_key)).to eq(1)
@@ -131,10 +142,10 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
 
         # Make some failed attempts
         2.times do
-          post '/auth/login', {
+          json_post '/auth/login', {
             login: test_email,
             password: 'wrong-password'
-          }, { 'HTTP_ACCEPT' => 'application/json' }
+          }
         end
 
         rate_limit_key = "login_attempts:#{test_email}"
@@ -151,10 +162,10 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
     it 'logs failed login attempts' do
       # Capture OT.info calls would require a logger spy
       # For now, just verify the endpoint responds correctly
-      post '/auth/login', {
+      json_post '/auth/login', {
         login: test_email,
         password: 'wrong-password'
-      }, { 'HTTP_ACCEPT' => 'application/json' }
+      }
 
       expect(last_response.status).to eq(401)
     end

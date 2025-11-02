@@ -31,10 +31,12 @@ module Rack
       begin
         debug_request(env)
       rescue StandardError => ex
-        logger.error "SessionDebugger failed",
+        logger.error "SessionDebugger failed", {
           error: ex.message,
           error_class: ex.class.name,
-          backtrace: ex.backtrace.first(3)
+          backtrace: ex.backtrace.first(3),
+          session_class: session.class.name,
+        }
         # If debugging fails, still process the request
         @app.call(env)
       end
@@ -49,10 +51,11 @@ module Rack
       start  = Onetime.now_in_μs
 
       # Log incoming request
-      logger.debug "Session debug start",
+      logger.debug "Session debug start", {
         method: method,
         path: path,
         has_cookie: env['HTTP_COOKIE']&.include?('rack.session') || false
+      }
 
       # Get session before processing
       session_before    = env['rack.session']
@@ -72,22 +75,25 @@ module Rack
 
       # Check for session ID changes
       if session_id_before != session_id_after
-        logger.warn "Session ID changed",
+        logger.warn "Session ID changed", {
           before: session_id_before,
           after: session_id_after
+        }
       end
 
       # Log Set-Cookie header
-      log_cookies(headers['Set-Cookie'])
+      log_cookies(headers['set-cookie'])
 
       # Verify what's in Redis after
       verify_redis_state(session_id_after, 'after') if session_id_after
 
       # Log response info
       duration = Onetime.now_in_μs - start
-      logger.debug "Session debug complete",
+      logger.debug "Session debug complete", {
         status: status,
-        duration: duration
+        duration: duration,
+        response_headers: headers,
+      }
 
       [status, headers, body]
     end
@@ -106,21 +112,20 @@ module Rack
         end
       end
     rescue StandardError => ex
-      logger.error "Failed to extract session ID", error: ex.message
+      logger.error "Failed to extract session ID", { error: ex.message }
       nil
     end
 
     def log_session_state(session, session_id, phase)
       if session.nil?
-        logger.warn "Session is nil", phase: phase
+        logger.warn "Session is nil", { phase: phase }
         return
       end
 
       # Extract authentication-related session data
       auth_keys = %w[
         authenticated authenticated_at authenticated_by
-        external_id account_external_id advanced_account_id
-        email role locale active_session_id
+        external_id account_id role locale active_session_id
       ]
 
       auth_data = {}
@@ -129,21 +134,27 @@ module Rack
         auth_data[key] = value if value
       end
 
+      if session.key?('email')
+        auth_data['email'] = OT::Utils.obscure_email(session['email'])
+      end
+
       # Log session state
       begin
-        logger.debug "Session state",
+        logger.debug "Session state", {
           phase: phase,
-          session_id: session_id || 'NONE',
           session_class: session.class.name,
-          auth_data: auth_data,
+          session_id: session_id || 'NONE',
           total_keys: session.keys.size,
-          all_keys: session.keys.join(', ')
+          all_keys: session.keys.join(', '),
+          auth_data: auth_data,
+        }
 
-        logger.warn "No auth data in session", phase: phase if auth_data.empty?
+        logger.warn "No auth data in session", { phase: phase } if auth_data.empty?
       rescue StandardError => ex
-        logger.error "Could not read session keys",
+        logger.error "Could not read session keys", {
           phase: phase,
           error: ex.message
+        }
       end
     end
 
@@ -156,6 +167,7 @@ module Rack
         # Try common session key patterns
         key_patterns = [
           "session:#{session_id}",
+          "onetime:session:#{session_id}",
           "rack:session:#{session_id}",
           session_id
         ]
@@ -177,33 +189,37 @@ module Rack
             end
           end
 
-          logger.debug "Redis session found",
+          logger.debug "Redis session found", {
             phase: phase,
             key: key,
             ttl: ttl,
             data_size: data&.bytesize,
             parsed: parsed.is_a?(Hash)
+          }
 
           return
         end
 
         # Not found in any pattern
-        logger.warn "Redis session missing",
+        logger.warn "Redis session missing", {
           phase: phase,
           session_id: session_id,
           searched_keys: key_patterns
+        }
 
         # List available session keys for debugging
         all_session_keys = dbclient.keys('*session*')
         if all_session_keys.any?
-          logger.debug "Available Redis session keys",
+          logger.debug "Available Redis session keys", {
             sample: all_session_keys.first(5),
             total: all_session_keys.size
+          }
         end
       rescue StandardError => ex
-        logger.error "Redis inspection failed",
+        logger.error "Redis inspection failed", {
           phase: phase,
           error: ex.message
+        }
       end
     end
 
@@ -227,7 +243,7 @@ module Rack
           end
         end
 
-        logger.debug "Session cookie set", attributes: attributes
+        logger.debug "Session cookie set", { attributes: attributes }
 
         # Check for common issues
         logger.warn "Cookie missing HttpOnly" unless attributes['httponly']

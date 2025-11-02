@@ -3,11 +3,13 @@
 <script setup lang="ts">
 import { usePasswordChange } from '@/composables/usePasswordChange';
 import OIcon from '@/components/icons/OIcon.vue';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
   apitoken?: string;
 }
 
+const { t } = useI18n();
 defineProps<Props>();
 const emit = defineEmits(['update:password']);
 
@@ -18,7 +20,7 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
   <form @submit.prevent="handleSubmit">
     <!-- Visually Hidden Fields -->
     <div class="hidden">
-      <label for="username">{{ $t('web.account.changePassword.username') }}</label>
+      <label for="username">{{ t('web.account.changePassword.username') }}</label>
       <input type="text"
              id="username"
              autocomplete="username" />
@@ -28,7 +30,7 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
       <label for="currentPassword"
              id="currentPasswordLabel"
              class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        {{ $t('web.account.changePassword.currentPassword') }}
+        {{ t('web.account.changePassword.currentPassword') }}
       </label>
       <div class="relative">
         <input :type="formState.showPassword.current ? 'text' : 'password'"
@@ -38,7 +40,7 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
                required
                tabindex="0"
                autocomplete="current-password"
-               :aria-label="$t('web.account.changePassword.currentPassword')"
+               :aria-label="t('web.account.changePassword.currentPassword')"
                aria-labelledby="currentPasswordLabel"
                class="mt-1 block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
         <button type="button"
@@ -56,17 +58,17 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
       <label for="newPassword"
              id="newPasswordLabel"
              class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        {{ $t('web.account.changePassword.newPassword') }}
+        {{ t('web.account.changePassword.newPassword') }}
       </label>
       <div class="relative">
         <input :type="formState.showPassword.new ? 'text' : 'password'"
-               name="newp"
+               name="newpassword"
                id="newPassword"
                v-model="formState.newPassword"
                required
                tabindex="0"
                autocomplete="new-password"
-               :aria-label="$t('web.account.changePassword.newPassword')"
+               :aria-label="t('web.account.changePassword.newPassword')"
                aria-labelledby="newPasswordLabel"
                class="mt-1 block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
         <button type="button"
@@ -84,17 +86,17 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
       <label for="confirmPassword"
              id="confirmPasswordLabel"
              class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        {{ $t('web.account.changePassword.confirmPassword') }}
+        {{ t('web.account.changePassword.confirmPassword') }}
       </label>
       <div class="relative">
         <input :type="formState.showPassword.confirm ? 'text' : 'password'"
-               name="newp2"
+               name="password-confirm"
                id="confirmPassword"
                v-model="formState.confirmPassword"
                required
                tabindex="0"
                autocomplete="confirm-password"
-               :aria-label="$t('web.account.changePassword.newPassword')"
+               :aria-label="t('web.account.changePassword.newPassword')"
                aria-labelledby="confirmPasswordLabel"
                class="mt-1 block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
         <button type="button"
@@ -120,7 +122,7 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
             :disabled="!isValid || formState.isSubmitting"
             class="flex w-full items-center justify-center rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 disabled:opacity-50">
       <i class="fas fa-save mr-2"></i>
-      {{ formState.isSubmitting ? $t('web.account.changePassword.updating') : $t('web.account.changePassword.updatePassword') }}
+      {{ formState.isSubmitting ? t('web.account.changePassword.updating') : t('web.account.changePassword.updatePassword') }}
     </button>
   </form>
 </template>

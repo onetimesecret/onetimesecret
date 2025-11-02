@@ -1,6 +1,6 @@
 # lib/onetime/initializers/print_log_banner.rb
 
-require 'tty-table'
+# No longer need tty-table
 
 module Onetime
   module Initializers
@@ -32,11 +32,11 @@ module Onetime
       redis_info   = Familia.dbclient.info
       colonels     = site_config.dig('authentication', 'colonels') || []
 
+      # Header banner
+      OT.boot_logger.info "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
+
       # Create a buffer to collect all output
       output = []
-
-      # Header banner
-      output << "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
       output << ''
 
       # Add each section to output
@@ -69,10 +69,9 @@ module Onetime
       end
 
       # Footer
-      output << "#{'-' * 75}"
 
       # Output everything with a single OT.li call
-      OT.li output.join("\n")
+      OT.boot_logger.info output.join("\n")
     end
 
     private
@@ -302,33 +301,78 @@ module Onetime
       end
     end
 
-    # Helper method to render a section as a table
+    # Helper method to render a section as a simple formatted table
     def render_section(header1, header2, rows)
-      table = TTY::Table.new(
-        header: [header1, header2],
-        rows: rows,
-      )
+      col1_width = 17  # Width for first column
+      col2_width = 80  # Width for second column
+      total_width = col1_width + col2_width + 7  # Include borders and padding
+      separator = '-' * total_width
 
-      begin
-        rendered = table.render(:unicode,
-          padding: [0, 1],
-          multiline: true,
-          column_widths: [15, 79],
-        )
-      rescue NoMethodError => ex
-        raise unless ex.message.include?("undefined method 'ioctl'")
+      output = []
+      output << separator
+      output << format_row(header1, header2, col1_width, col2_width)
+      output << separator
 
-        # Fallback for non-terminal environments like Tryouts
-        rendered = table.render(:unicode,
-          padding: [0, 1],
-          multiline: true,
-          column_widths: [15, 79],
-          width: 95,
-        ) # Explicit width to avoid terminal detection
+      rows.each do |row|
+        output << format_row(row[0], row[1], col1_width, col2_width)
       end
 
-      # Return rendered table with an extra newline
-      rendered + "\n"
+      output << separator
+      output.join("\n") + "\n"
+    end
+
+    # Helper method to format a table row with word wrapping
+    def format_row(col1, col2, width1, width2)
+      col1_str = (col1 || '').to_s
+      col2_str = (col2 || '').to_s
+
+      # Handle word wrapping for both columns
+      col1_lines = word_wrap(col1_str, width1)
+      col2_lines = word_wrap(col2_str, width2)
+
+      # Ensure we have at least one line for each column
+      col1_lines = [''] if col1_lines.empty?
+      col2_lines = [''] if col2_lines.empty?
+
+      # Determine how many lines we need (max of both columns)
+      max_lines = [col1_lines.length, col2_lines.length].max
+
+      lines = []
+      (0...max_lines).each do |i|
+        left_text = (col1_lines[i] || '').ljust(width1)
+        right_text = (col2_lines[i] || '').ljust(width2)
+        lines << "| #{left_text} | #{right_text} |"
+      end
+
+      lines.join("\n")
+    end
+
+    # Simple word wrap helper
+    def word_wrap(text, width)
+      return [''] if text.nil? || text.empty?
+
+      # Handle text that's already within width
+      return [text] if text.length <= width
+
+      # Simple wrapping at width boundary
+      lines = []
+      remaining = text.dup
+
+      while remaining.length > 0
+        if remaining.length <= width
+          lines << remaining
+          break
+        else
+          # Try to break at a space
+          break_point = remaining.rindex(' ', width)
+          break_point = width if break_point.nil? || break_point == 0
+
+          lines << remaining[0...break_point].rstrip
+          remaining = remaining[break_point..-1].lstrip
+        end
+      end
+
+      lines.empty? ? [''] : lines
     end
   end
 end

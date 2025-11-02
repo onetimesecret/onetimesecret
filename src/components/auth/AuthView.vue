@@ -1,98 +1,88 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <!-- src/components/auth/AuthView.vue -->
 <script setup lang="ts">
-import { useJurisdictionStore } from '@/stores/jurisdictionStore';
-import OIcon from '@/components/icons/OIcon.vue';
-import { Jurisdiction } from '@/schemas/models';
-import { storeToRefs } from 'pinia';
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+  import OIcon from '@/components/icons/OIcon.vue';
+  import { Jurisdiction } from '@/schemas/models';
+  import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+  import { storeToRefs } from 'pinia';
+  import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-interface IconConfig {
-  collection: string;
-  name: string;
-}
-
-interface Props {
-  heading: string;
-  headingId: string;
-  title?: string | null;
-  titleLogo?: string | null;
-  featureIcon?: IconConfig;
-  withSubheading?: boolean;
-}
-
-// Define props with defaults
-const props = withDefaults(defineProps<Props>(), {
-  title: null,
-  titleLogo: null,
-  withSubheading: false,
-  featureIcon: () => ({
-    collection: 'material-symbols',
-    name: 'mail-lock-outline'
-  })
-});
-
-const { t } = useI18n();
-
-// Initialize jurisdiction store
-const jurisdictionStore = useJurisdictionStore();
-const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
-
-// Compute the current jurisdiction or default to unknown
-const currentJurisdiction = computed((): Jurisdiction => getCurrentJurisdiction.value || {
-  identifier: t('unknown-jurisdiction'),
-  display_name: t('unknown-jurisdiction'),
-  domain: '',
-  icon: {
-    collection: 'mdi',
-    name: 'help-circle'
-  },
-  enabled: false
-});
-
-// Compute the background icon based on jurisdiction status
-const backgroundIcon = computed((): IconConfig => {
-  if (jurisdictionStore.enabled && getCurrentJurisdiction.value?.icon) {
-    return getCurrentJurisdiction.value.icon;
+  interface IconConfig {
+    collection: string;
+    name: string;
   }
-  return props.featureIcon;
-});
 
-
-// Compute the icon to show based on jurisdiction status
-
-const iconToShow = computed((): IconConfig => {
-  if (jurisdictionStore.enabled && getCurrentJurisdiction.value?.icon) {
-    return getCurrentJurisdiction.value.icon;
+  interface Props {
+    heading: string;
+    headingId: string;
+    title?: string | null;
+    titleLogo?: string | null;
+    featureIcon?: IconConfig;
+    withSubheading?: boolean;
   }
-  return props.featureIcon;
-});
+
+  // Define props with defaults
+  const props = withDefaults(defineProps<Props>(), {
+    title: null,
+    titleLogo: null,
+    withSubheading: false,
+    featureIcon: () => ({
+      collection: 'material-symbols',
+      name: 'mail-lock-outline',
+    }),
+  });
+
+  const { t } = useI18n();
+
+  // Initialize jurisdiction store
+  const jurisdictionStore = useJurisdictionStore();
+  const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
+
+  // Compute the current jurisdiction or default to unknown
+  const currentJurisdiction = computed(
+    (): Jurisdiction =>
+      getCurrentJurisdiction.value || {
+        identifier: t('unknown-jurisdiction'),
+        display_name: t('unknown-jurisdiction'),
+        domain: '',
+        icon: {
+          collection: 'mdi',
+          name: 'help-circle',
+        },
+        enabled: false,
+      }
+  );
+
+  // Compute the background icon based on jurisdiction status
+  const backgroundIcon = computed((): IconConfig => {
+    if (jurisdictionStore.enabled && getCurrentJurisdiction.value?.icon) {
+      return getCurrentJurisdiction.value.icon;
+    }
+    return props.featureIcon;
+  });
+
+  // Compute the icon to show based on jurisdiction status
+
+  const iconToShow = computed((): IconConfig => {
+    if (jurisdictionStore.enabled && getCurrentJurisdiction.value?.icon) {
+      return getCurrentJurisdiction.value.icon;
+    }
+    return props.featureIcon;
+  });
 </script>
 
 <template>
   <div
-    class="relative flex min-h-screen items-start justify-center overflow-hidden
-              bg-gray-50 px-4
-              pt-12
-              dark:bg-gray-900
-              sm:px-6 sm:pt-16
-              lg:px-8">
+    class="relative flex min-h-screen items-start justify-center overflow-hidden bg-gray-50 px-4 pt-12 dark:bg-gray-900 sm:px-6 sm:pt-16 lg:px-8">
     <!-- Background Icon -->
-    <div
-      class="absolute inset-0 overflow-hidden
-                opacity-5
-                dark:opacity-5">
+    <div class="absolute inset-0 overflow-hidden opacity-5 dark:opacity-5">
       <OIcon
         :collection="backgroundIcon.collection"
         :name="backgroundIcon.name"
-        size="24"
-        class="blur-x absolute left-1/2 top-32 h-auto transform-cpu
-                   w-full -translate-x-1/2 translate-y-0 scale-[5]
-                   object-cover object-center
-                   backdrop-invert"
-        aria-hidden="true"
-      />
+
+        class="blur-x absolute left-1/2 top-32 h-auto w-full -translate-x-1/2 translate-y-0 scale-[9] transform-cpu object-cover object-center backdrop-invert"
+        aria-hidden="true" />
     </div>
 
     <!-- Page Title -->
@@ -104,10 +94,8 @@ const iconToShow = computed((): IconConfig => {
             :collection="iconToShow.collection"
             :name="iconToShow.name"
             size="32"
-            class="mb-8 size-24 text-brand-600
-                      dark:text-brand-400"
-            aria-hidden="true"
-          />
+            class="mb-8 size-24 text-brand-600 dark:text-brand-400"
+            aria-hidden="true" />
         </RouterLink>
       </div>
 
@@ -115,34 +103,24 @@ const iconToShow = computed((): IconConfig => {
       <div class="text-center">
         <h2
           :id="headingId"
-          class="text-2xl font-bold
-                   text-gray-900
-                   dark:text-white">
+          class="text-2xl font-bold text-gray-900 dark:text-white">
           {{ heading }}
         </h2>
         <p
           v-if="withSubheading"
-          class="mt-2 flex items-center
-            justify-center
-            text-lg text-gray-600
-            dark:text-gray-400">
+          class="mt-2 flex items-center justify-center text-lg text-gray-600 dark:text-gray-400">
           <span
             v-if="jurisdictionStore.enabled"
             class="mr-1">
-            {{ $t('serving-you-from-the') }}: <span lang="en">{{ currentJurisdiction.display_name }}</span>
+            {{ $t('serving-you-from-the') }}:
+            <span lang="en">{{ currentJurisdiction.display_name }}</span>
           </span>
         </p>
       </div>
 
       <!-- Form Card -->
       <div
-        class="mt-4 rounded-lg
-                  border
-                  border-gray-200
-                  bg-white
-                  p-6
-                  shadow-md dark:border-gray-700
-                  dark:bg-gray-800">
+        class="mt-4 rounded-lg border border-gray-200 bg-white p-6 shadow-md dark:border-gray-700 dark:bg-gray-800">
         <slot name="form"></slot>
       </div>
 

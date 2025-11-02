@@ -107,6 +107,7 @@
     "nanoid": "5.1.6",
     "pinia": "3.0.3",
     "pnpm": "10.10.0",
+    "qrcode": "^1.5.4",
     "stripe": "18.3.0",
     "vue": "3.5.22",
     "vue-codemirror6": "1.3.22",
@@ -126,6 +127,7 @@
     "@tailwindcss/typography": "0.5.19",
     "@tsconfig/node22": "22.0.2",
     "@types/node": "22.18.6",
+    "@types/qrcode": "^1.5.6",
     "@typescript-eslint/eslint-plugin": "8.32.1",
     "@typescript-eslint/parser": "8.32.1",
     "@vitejs/plugin-vue": "^6.0.1",
@@ -146,6 +148,7 @@
     "happy-dom": "17.4.9",
     "jiti": "2.4.2",
     "jsdom": "26.1.0",
+    "lint-staged": "^16.2.6",
     "playwright": "1.52.0",
     "postcss": "8.5.6",
     "prettier": "3.5.3",
@@ -172,6 +175,11 @@
     "vue-tsc": "2.2.12"
   },
   "signature": "4pSP4pST4pSz4pST4pSP4pST4pSP4pSz4pST4pSz4pSz4pSz4pST4pSP4pSTCuKUg+KUg+KUg+KUg+KUoyAg4pSDIOKUg+KUg+KUg+KUg+KUowrilJfilJvilJvilJfilJfilJsg4pS7IOKUu+KUmyDilJfilJfilJsKCg==",
+  "lint-staged": {
+    "*.{ts,vue,mjs}": [
+      "eslint --quiet --config eslint.config.ts --cache --cache-location ./node_modules/.cache/eslint --fix"
+    ]
+  },
   "pnpm": {
     "ignoredBuiltDependencies": [
       "vue-demi"

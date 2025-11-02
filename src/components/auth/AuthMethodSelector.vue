@@ -1,10 +1,13 @@
 <!-- src/components/auth/AuthMethodSelector.vue -->
+
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { isMagicLinksEnabled, isWebAuthnEnabled } from '@/utils/features';
+import { isMagicLinksEnabled } from '@/utils/features';
 import SignInForm from './SignInForm.vue';
 import MagicLinkForm from './MagicLinkForm.vue';
-import WebAuthnLogin from './WebAuthnLogin.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 export interface Props {
   locale?: string;
@@ -14,24 +17,13 @@ withDefaults(defineProps<Props>(), {
   locale: 'en',
 });
 
-type AuthMethod = 'password' | 'magicLink' | 'webauthn';
+type AuthMethod = 'password' | 'magicLink';
 
 // Check which methods are enabled
 const magicLinksEnabled = isMagicLinksEnabled();
-const webauthnEnabled = isWebAuthnEnabled();
-const hasPasswordless = magicLinksEnabled || webauthnEnabled;
 
-// Determine default method: prefer password, fallback to first available
-let defaultMethod: AuthMethod = 'password';
-if (!hasPasswordless) {
-  defaultMethod = 'password';
-} else if (magicLinksEnabled) {
-  defaultMethod = 'magicLink';
-} else if (webauthnEnabled) {
-  defaultMethod = 'webauthn';
-}
-
-const selectedMethod = ref<AuthMethod>(defaultMethod);
+// Default to password method
+const selectedMethod = ref<AuthMethod>('password');
 
 // Available methods based on feature flags
 const availableMethods = computed(() => {
@@ -41,10 +33,6 @@ const availableMethods = computed(() => {
 
   if (magicLinksEnabled) {
     methods.push({ key: 'magicLink', label: 'web.auth.methods.magicLink' });
-  }
-
-  if (webauthnEnabled) {
-    methods.push({ key: 'webauthn', label: 'web.auth.methods.webauthn' });
   }
 
   return methods;
@@ -77,7 +65,7 @@ function selectMethod(method: AuthMethod) {
               : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
           ]"
           :aria-current="selectedMethod === method.key ? 'page' : undefined">
-          {{ $t(method.label) }}
+          {{ t(method.label) }}
         </button>
       </nav>
     </div>
@@ -87,6 +75,5 @@ function selectMethod(method: AuthMethod) {
       v-if="selectedMethod === 'password'"
       :locale="locale" />
     <MagicLinkForm v-else-if="selectedMethod === 'magicLink'" />
-    <WebAuthnLogin v-else-if="selectedMethod === 'webauthn'" />
   </div>
 </template>

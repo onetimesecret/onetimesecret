@@ -79,14 +79,14 @@ module Onetime
 
           Otto.on_request_complete do |req, res, duration|
             # Use HTTP logger for request lifecycle events
-            logger = SemanticLogger['HTTP']
+            logger = Onetime.get_logger('HTTP')
 
             # Extract auth context if available
             user_id = req.env['otto.user']&.[](:id)
             strategy_result = req.env['otto.strategy_result']
             auth_strategy = strategy_result&.strategy_name
 
-            logger.info "Request completed",
+            logger.info "Request completed", {
               method: req.request_method,
               path: req.path,
               status: res.status,
@@ -95,13 +95,15 @@ module Onetime
               auth_strategy: auth_strategy,
               ip: req.ip,
               user_agent: req.user_agent&.slice(0, 100)
+            }
           end
         end
 
         def configure(builder, application_context: nil)
-          logger = SemanticLogger['App']
-          logger.debug "Configuring common middleware",
+          logger = Onetime.get_logger('App')
+          logger.debug "Configuring common middleware", {
             application: application_context&.[](:name)
+          }
 
           # Configure Otto request completion hook for operational metrics
           # This provides centralized request logging with timing, status, and auth context
@@ -110,14 +112,16 @@ module Onetime
           # IP Privacy FIRST - masks public IPs before logging/monitoring
           # Private/localhost IPs are automatically exempted for development
           # Uses Otto's privacy middleware as a standalone Rack component
-          logger.debug "Setting up IP Privacy middleware", note: "masks public IPs"
+          logger.debug "Setting up IP Privacy middleware", {
+            note: "masks public IPs"
+          }
           builder.use Otto::Security::Middleware::IPPrivacyMiddleware
 
           builder.use Rack::ContentLength
           builder.use Onetime::Middleware::StartupReadiness
 
           # Host detection and identity resolution (common to all apps)
-          builder.use Rack::DetectHost
+          builder.use Rack::DetectHost, logger: Onetime.http_logger
 
           # TODO: Replace with RequestLogger?
           # require 'semantic_logger'
@@ -161,8 +165,9 @@ module Onetime
           # Add Sentry exception tracking when available
           # This block only executes if Sentry was successfully initialized
           Onetime.with_diagnostics do |diagnostics_conf|
-            logger.debug "Sentry enabled",
+            logger.debug "Sentry enabled", {
               config: diagnostics_conf
+            }
             # Position Sentry middleware early to capture exceptions throughout the stack
             builder.use Sentry::Rack::CaptureExceptions
           end
@@ -176,8 +181,9 @@ module Onetime
           # Support running with code frozen in production-like environments
           # This reduces memory usage and prevents runtime modifications
           if Onetime.conf&.dig(:experimental, :freeze_app).eql?(true)
-            logger.info "Freezing app by request",
+            logger.info "Freezing app by request", {
               env: Onetime.env
+            }
             builder.freeze_app
           end
         end

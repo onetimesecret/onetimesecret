@@ -24,7 +24,7 @@
 
     <template #main>
       <main
-        class="container mx-auto min-w-[320px] max-w-2xl px-4 py-8"
+        class="container mx-auto min-w-[320px] max-w-8xl px-4 py-8"
         name="DefaultLayout">
         <slot></slot>
       </main>

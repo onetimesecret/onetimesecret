@@ -56,6 +56,9 @@ module V2::Logic
           # Log the event immediately after saving the change to
           # to minimize the chance of the event not being logged.
           OT.info "[destroy-account] Account destroyed. #{cust.objid} #{cust.role} #{session_sid}"
+
+          # If in advanced mode, also delete from auth database
+          delete_auth_account(cust) if Onetime.auth_config.advanced_enabled?
         end
 
         # We replace the session and session ID and then add a message
@@ -73,6 +76,31 @@ module V2::Logic
 
       def success_data
         { custid: @cust.custid }
+      end
+
+      private
+
+      # Delete account from auth database in advanced mode
+      # @param customer [Onetime::Customer]
+      def delete_auth_account(customer)
+        return unless customer&.extid
+
+        db = Auth::Database.connection
+        return unless db
+
+        deleted = db[:accounts]
+          .where(external_id: customer.extid)
+          .delete
+
+        if deleted > 0
+          OT.info "[destroy-account] Deleted auth account for extid: #{customer.extid}"
+        else
+          OT.le "[destroy-account] WARNING: No auth account found for extid: #{customer.extid}"
+        end
+      rescue StandardError => e
+        OT.le "[destroy-account] Error deleting auth account: #{e.message}"
+        OT.ld e.backtrace.first(5).join("\n")
+        # Don't raise - customer is already deleted, this is cleanup
       end
     end
   end
