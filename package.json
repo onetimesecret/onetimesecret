@@ -148,6 +148,7 @@
     "happy-dom": "17.4.9",
     "jiti": "2.4.2",
     "jsdom": "26.1.0",
+    "lint-staged": "^16.2.6",
     "playwright": "1.52.0",
     "postcss": "8.5.6",
     "prettier": "3.5.3",
@@ -174,6 +175,11 @@
     "vue-tsc": "2.2.12"
   },
   "signature": "4pSP4pST4pSz4pST4pSP4pST4pSP4pSz4pST4pSz4pSz4pSz4pST4pSP4pSTCuKUg+KUg+KUg+KUg+KUoyAg4pSDIOKUg+KUg+KUg+KUg+KUowrilJfilJvilJvilJfilJfilJsg4pS7IOKUu+KUmyDilJfilJfilJsKCg==",
+  "lint-staged": {
+    "*.{ts,vue,mjs}": [
+      "eslint --quiet --config eslint.config.ts --cache --cache-location ./node_modules/.cache/eslint --fix"
+    ]
+  },
   "pnpm": {
     "ignoredBuiltDependencies": [
       "vue-demi"
