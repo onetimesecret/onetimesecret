@@ -18,30 +18,56 @@ module Auth::Config::Hooks
       # HOOK: Before OTP Setup Route
       # ========================================================================
       #
-      # This hook ensures the session is valid before MFA setup begins.
-      # The issue: Rodauth's otp_setup route calls require_account, which calls
-      # require_account_session. If account_from_session fails to load the account
-      # from the database, it clears the session and redirects to login.
+      # This hook logs MFA setup attempts and validates session state.
       #
-      # This hook validates and logs session state to prevent unexpected logouts.
+      # Logging strategy:
+      # - GET requests: Log route access for debugging
+      # - POST requests: Log setup attempts (with/without OTP code)
+      #
+      # This provides visibility into:
+      # - Initial setup page loads (GET)
+      # - Secret generation attempts (POST without OTP code)
+      # - Verification attempts (POST with OTP code)
       #
       auth.before_otp_setup_route do
-        # Log session state for debugging
-        Auth::Logging.log_auth_event(
-          :mfa_setup_route_start,
-          level: :debug,
-          account_id: session_value,
-          session_keys: session.keys,
-          has_account_id: !session_value.nil?,
-          request_method: request.request_method,
-          has_otp_code: !request.params['otp_code'].to_s.empty?,
-        )
+        is_post = request.post?
+        has_otp_code = !param_or_nil(otp_auth_param).to_s.empty?
+        has_password = !param_or_nil(password_param).to_s.empty?
 
-        # Critical: Ensure the account_id is in the session
-        # The issue is that between password verification and OTP setup,
-        # the session might not have account_id properly set
+        # Log setup attempts (POST requests)
+        if is_post
+          # Determine attempt type based on parameters
+          attempt_type = if has_otp_code
+                          :verification  # Step 2: Verifying OTP code
+                        else
+                          :initiation    # Step 1: Generating secret
+                        end
+
+          Auth::Logging.log_auth_event(
+            :mfa_setup_attempt,
+            level: :info,
+            log_metric: true,
+            account_id: session_value,
+            email: (account[:email] rescue nil),
+            attempt_type: attempt_type,
+            has_otp_code: has_otp_code,
+            has_password: has_password,
+            ip: request.ip,
+            request_method: request.request_method,
+          )
+        else
+          # GET request - just accessing setup page
+          Auth::Logging.log_auth_event(
+            :mfa_setup_route_start,
+            level: :debug,
+            account_id: session_value,
+            ip: request.ip,
+            request_method: request.request_method,
+          )
+        end
+
+        # Session validation (debug logging)
         if session_value
-          # Try to load account to ensure it's accessible
           begin
             acct = _account_from_session
             unless acct
@@ -49,24 +75,23 @@ module Auth::Config::Hooks
                 :mfa_setup_account_not_found,
                 level: :error,
                 account_id: session_value,
-                message: "Session has account_id but account not found in database",
+                message: 'Session has account_id but account not found in database',
               )
             end
-          rescue => e
+          rescue StandardError => ex
             Auth::Logging.log_auth_event(
               :mfa_setup_account_lookup_error,
               level: :error,
               account_id: session_value,
-              error: e.message,
-              backtrace: e.backtrace.first(3),
+              error: ex.message,
+              backtrace: ex.backtrace.first(3),
             )
           end
         else
           Auth::Logging.log_auth_event(
             :mfa_setup_missing_session,
             level: :error,
-            session_keys: session.keys,
-            message: "No account_id in session during MFA setup",
+            message: 'No account_id in session during MFA setup',
           )
         end
       end
@@ -86,11 +111,20 @@ module Auth::Config::Hooks
       auth.after_two_factor_authentication do
         correlation_id = session[:auth_correlation_id]
 
+        # Calculate verification duration if we have start time
+        duration_ms = if session[:mfa_verification_start]
+                       start = session.delete(:mfa_verification_start)
+                       ((Onetime.now_in_μs - start) / 1000.0).round(2)
+                     end
+
         Auth::Logging.log_auth_event(
-          :mfa_authentication_success,
+          :mfa_verification_success,
           level: :info,
+          log_metric: true,
           account_id: account_id,
           email: account[:email],
+          ip: request.ip,
+          duration_ms: duration_ms,
           correlation_id: correlation_id,
         )
 
@@ -134,16 +168,10 @@ module Auth::Config::Hooks
         Auth::Logging.log_auth_event(
           :mfa_disabled,
           level: :info,
+          log_metric: true,
           account_id: account_id,
           email: account[:email],
-        )
-
-        # Log metric for MFA disable
-        Auth::Logging.log_metric(
-          :mfa_disabled,
-          value: 1,
-          unit: :count,
-          account_id: account_id,
+          ip: request.ip,
         )
         # Rodauth handles session cleanup automatically
       end
@@ -151,12 +179,27 @@ module Auth::Config::Hooks
       # ========================================================================
       # HOOK: After OTP Setup
       # ========================================================================
+      #
+      # This hook runs after successful MFA setup completion.
+      # It fires inside the database transaction, ensuring atomicity.
+      #
+      # At this point:
+      # - OTP secret has been validated and stored
+      # - Password has been verified
+      # - OTP code has been confirmed
+      # - Recovery codes have been generated (if auto_add_recovery_codes? true)
+      #
       auth.after_otp_setup do
+        recovery_codes_count = respond_to?(:recovery_codes) ? recovery_codes.length : 0
+
         Auth::Logging.log_auth_event(
           :mfa_setup_success,
           level: :info,
+          log_metric: true,
           account_id: account_id,
           email: account[:email],
+          recovery_codes_generated: recovery_codes_count,
+          hmac_enabled: otp_keys_use_hmac?,
         )
 
         # Include recovery codes in JSON response for user to save
@@ -164,37 +207,153 @@ module Auth::Config::Hooks
         if json_request? && respond_to?(:recovery_codes)
           json_response[:recovery_codes] = recovery_codes
         end
+      end
 
-        # Log metric for MFA setup
-        Auth::Logging.log_metric(
-          :mfa_setup_success,
-          value: 1,
-          unit: :count,
+      # ========================================================================
+      # HOOK: Before OTP Auth Route
+      # ========================================================================
+      #
+      # This hook logs MFA verification attempts before processing.
+      # Provides visibility into:
+      # - GET requests: Accessing verification page
+      # - POST requests: Submitting OTP code for verification
+      #
+      auth.before_otp_auth_route do
+        is_post = request.post?
+        has_otp_code = !param_or_nil(otp_auth_param).to_s.empty?
+        correlation_id = session[:auth_correlation_id]
+
+        if is_post
+          # Log verification attempt with timing
+          session[:mfa_verification_start] = Onetime.now_in_μs
+
+          Auth::Logging.log_auth_event(
+            :mfa_verification_attempt,
+            level: :info,
+            log_metric: true,
+            account_id: session_value,
+            email: (account[:email] rescue nil),
+            has_otp_code: has_otp_code,
+            ip: request.ip,
+            correlation_id: correlation_id,
+          )
+        else
+          # GET request - accessing verification page
+          Auth::Logging.log_auth_event(
+            :mfa_verification_route_start,
+            level: :debug,
+            account_id: session_value,
+            ip: request.ip,
+            correlation_id: correlation_id,
+          )
+        end
+      end
+
+      # ========================================================================
+      # HOOK: Before OTP Authentication
+      # ========================================================================
+      #
+      # This hook fires just before validating the OTP code.
+      # Use for last-minute checks or enriched logging.
+      #
+      auth.before_otp_authentication do
+        correlation_id = session[:auth_correlation_id]
+
+        Auth::Logging.log_auth_event(
+          :mfa_verification_validating,
+          level: :debug,
           account_id: account_id,
+          correlation_id: correlation_id,
         )
       end
 
       # ========================================================================
       # HOOK: After OTP Authentication Failure
       # ========================================================================
+      #
+      # This hook logs failed MFA verification attempts.
+      # Captures timing, IP, and increments failure metrics.
+      #
       auth.after_otp_authentication_failure do
         correlation_id = session[:auth_correlation_id]
 
+        # Calculate verification duration if we have start time
+        duration_ms = if session[:mfa_verification_start]
+                       start = session.delete(:mfa_verification_start)
+                       ((Onetime.now_in_μs - start) / 1000.0).round(2)
+                     end
+
         Auth::Logging.log_auth_event(
-          :mfa_authentication_failure,
+          :mfa_verification_failure,
           level: :warn,
+          log_metric: true,
           account_id: account_id,
           email: account[:email],
+          ip: request.ip,
+          duration_ms: duration_ms,
           correlation_id: correlation_id,
         )
+      end
 
-        # Log metric for MFA failure
-        Auth::Logging.log_metric(
-          :mfa_authentication_failure,
-          value: 1,
-          unit: :count,
+      # ========================================================================
+      # HOOK: Before Recovery Auth
+      # ========================================================================
+      #
+      # This hook logs recovery code authentication attempts.
+      # Recovery codes are backup codes used when primary MFA is unavailable.
+      #
+      auth.before_recovery_auth do
+        correlation_id = session[:auth_correlation_id]
+        recovery_code = param_or_nil(recovery_codes_param)
+
+        Auth::Logging.log_auth_event(
+          :mfa_recovery_code_attempt,
+          level: :info,
+          log_metric: true,
           account_id: account_id,
+          email: account[:email],
+          ip: request.ip,
+          has_recovery_code: !recovery_code.to_s.empty?,
           correlation_id: correlation_id,
+        )
+      end
+
+      # ========================================================================
+      # HOOK: After Add Recovery Codes
+      # ========================================================================
+      #
+      # This hook logs when recovery codes are generated/regenerated.
+      # Important for security auditing.
+      #
+      auth.after_add_recovery_codes do
+        codes_count = respond_to?(:recovery_codes) ? recovery_codes.length : 0
+
+        Auth::Logging.log_auth_event(
+          :mfa_recovery_codes_generated,
+          level: :info,
+          log_metric: true,
+          account_id: account_id,
+          email: account[:email],
+          ip: request.ip,
+          codes_count: codes_count,
+        )
+      end
+
+      # ========================================================================
+      # HOOK: Before View Recovery Codes
+      # ========================================================================
+      #
+      # This hook logs when users access their recovery codes.
+      # Important for detecting potential account compromise.
+      #
+      auth.before_view_recovery_codes do
+        Auth::Logging.log_auth_event(
+          :mfa_recovery_codes_viewed,
+          level: :info,
+          log_metric: true,
+          account_id: account_id,
+          email: account[:email],
+          ip: request.ip,
         )
       end
     end
