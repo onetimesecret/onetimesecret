@@ -131,23 +131,7 @@ jobs:
           done
 
       - name: Generate random secrets for testing
-        id: secrets
-        run: |
-          # Generate unique random secrets for this CI run
-          SESSION_SECRET=$(openssl rand -hex 32)
-          HMAC_SECRET=$(openssl rand -hex 32)
-          SECRET=$(openssl rand -hex 32)
-
-          # Export to GITHUB_ENV for subsequent steps
-          echo "SESSION_SECRET=${SESSION_SECRET}" >> $GITHUB_ENV
-          echo "HMAC_SECRET=${HMAC_SECRET}" >> $GITHUB_ENV
-          echo "SECRET=${SECRET}" >> $GITHUB_ENV
-
-          # Log confirmation (without exposing the actual secrets)
-          echo "Generated SESSION_SECRET (length: ${#SESSION_SECRET} chars)"
-          echo "Generated HMAC_SECRET (length: ${#HMAC_SECRET} chars)"
-          echo "Generated SECRET (length: ${#SECRET} chars)"
-          echo "All secrets are different: $( [ "$SESSION_SECRET" != "$HMAC_SECRET" ] && [ "$SESSION_SECRET" != "$SECRET" ] && [ "$HMAC_SECRET" != "$SECRET" ] && echo "✅ YES" || echo "❌ NO" )"
+        uses: ./.github/actions/generate-test-secrets
 
       - name: Run test specs
         env:
@@ -291,20 +275,7 @@ jobs:
         run: docker build -t onetime-test .
 
       - name: Generate random secrets for container
-        id: secrets
-        run: |
-          # Generate unique random secrets for this CI run
-          SESSION_SECRET=$(openssl rand -hex 32)
-          HMAC_SECRET=$(openssl rand -hex 32)
-
-          # Export to GITHUB_ENV for subsequent steps
-          echo "SESSION_SECRET=${SESSION_SECRET}" >> $GITHUB_ENV
-          echo "HMAC_SECRET=${HMAC_SECRET}" >> $GITHUB_ENV
-
-          # Log confirmation (without exposing the actual secrets)
-          echo "Generated SESSION_SECRET (length: ${#SESSION_SECRET} chars)"
-          echo "Generated HMAC_SECRET (length: ${#HMAC_SECRET} chars)"
-          echo "Secrets are different: $( [ "$SESSION_SECRET" != "$HMAC_SECRET" ] && echo "✅ YES" || echo "❌ NO" )"
+        uses: ./.github/actions/generate-test-secrets
 
       - name: Start container
         run: |

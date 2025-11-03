@@ -66,18 +66,30 @@ jobs:
       - name: Build Docker image
         run: docker build -t onetime-test .
 
+      - name: Generate random secrets for container
+        uses: ./.github/actions/generate-test-secrets
+
       - name: Start container with debug output
         run: |
+          echo "Starting container with generated secrets..."
+          echo "SESSION_SECRET length: ${#SESSION_SECRET}"
+          echo "HMAC_SECRET length: ${#HMAC_SECRET}"
+          echo "SECRET length: ${#SECRET}"
+
           docker run -d \
             --name onetime-test-container \
             -p 3000:3000 \
             -e VALKEY_URL=redis://host.docker.internal:6379/0 \
-            -e SECRET=$(openssl rand -hex 32) \
+            -e SESSION_SECRET="${SESSION_SECRET}" \
+            -e HMAC_SECRET="${HMAC_SECRET}" \
+            -e SECRET="${SECRET}" \
             -e ONETIME_DEBUG=1 \
             -e RUBY_UNBUFFERED=1 \
             -e STDOUT_SYNC=1 \
             --add-host=host.docker.internal:host-gateway \
             onetime-test
+
+          echo "Container started with unique secrets"
 
           # Give container a moment to start logging
           sleep 2
