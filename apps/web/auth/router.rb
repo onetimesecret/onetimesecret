@@ -76,8 +76,8 @@ module Auth
       # Account routes (mfa-status, account info)
       handle_account_routes(r)
 
-      # MFA
-      handle_mfa_routes(r)
+      # MFA routes (placeholder - uncomment when implemented)
+      # handle_mfa_routes(r)
 
       # Active sessions routes
       handle_active_sessions_routes(r)
