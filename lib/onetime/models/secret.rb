@@ -12,9 +12,9 @@ module Onetime
     feature :relationships
     feature :object_identifier
     feature :required_fields
-    feature :secret_encryption
+    feature :encrypted_fields
+    feature :transient_fields
     feature :secret_state_management
-    feature :secret_customer_relations
     feature :legacy_encrypted_fields
     feature :deprecated_fields
 
