@@ -1,19 +1,22 @@
-# .github/workflows/harmonize-locales-files.yml
+# .github/workflows/harmonize-locales.yml
 
-name: Harmonize Locale Files
+name: Harmonize Locales
 
 on:
-  # Run on push to main branch
-  push:
-    branches:
-      - develop
-      - 'i18n/**'
-    paths:
-      - 'src/locales/en.json'
+  ##
+  # Disabled except for manual trigger.
+  #
+  # # Run on push to main branch
+  # push:
+  #   branches:
+  #     - develop
+  #     - 'i18n/**'
+  #   paths:
+  #     - 'src/locales/en.json'
 
-  # Run when a PR is created or updated with specific keyword in commit
-  pull_request:
-    types: [opened, synchronize, reopened]
+  # # Run when a PR is created or updated with specific keyword in commit
+  # pull_request:
+  #   types: [opened, synchronize, reopened]
 
   # Allow manual trigger
   workflow_dispatch:
@@ -39,42 +42,57 @@ jobs:
       should_run: ${{ steps.check.outputs.should_run }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           fetch-depth: 0
 
       - name: Check commit messages or file changes
         id: check
         run: |
+          echo "Event: ${{ github.event_name }}"
+
           # Always run if it's a manual trigger
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "should_run=true" >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          # Always run if src/locales/en.json was changed on develop or i18n branches
+          # Get appropriate SHAs based on event type
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            BEFORE_SHA="${{ github.event.before }}"
+            AFTER_SHA="${{ github.event.after }}"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BEFORE_SHA="${{ github.event.pull_request.base.sha }}"
+            AFTER_SHA="${{ github.event.pull_request.head.sha }}"
+          fi
+
+          # Validate SHAs
+          if ! git rev-parse --verify "$BEFORE_SHA" > /dev/null 2>&1 || \
+             ! git rev-parse --verify "$AFTER_SHA" > /dev/null 2>&1; then
+            echo "Error: Invalid git SHAs"
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          # Check trigger conditions using correct SHAs
           if [ "${{ github.event_name }}" = "push" ]; then
-            # Check if en.json was modified in the push
-            if git diff --name-only ${{ github.event.before }}..${{ github.event.after }} | grep -q "src/locales/en.json"; then
-              if [[ "${{ github.ref }}" =~ ^refs/heads/(develop|i18n) ]]; then
+            if git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" | grep -q "src/locales/en.json"; then
+              if [[ "${{ github.ref }}" =~ ^refs/heads/(develop|i18n/) ]]; then
                 echo "should_run=true" >> $GITHUB_OUTPUT
                 exit 0
               fi
             fi
           fi
 
-          # For PRs, check for keyword [i18n] in the latest commit message or any commit since the base branch
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            # Get all commits in this PR
-            if git log --format=%B ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -q "\[i18n\]"; then
-              echo "Keyword [i18n] found in commit message"
+            PR_COMMITS=$(git log --format=%B "$BEFORE_SHA".."$AFTER_SHA" || true)
+
+            if echo "$PR_COMMITS" | grep -q "\[i18n\]"; then
               echo "should_run=true" >> $GITHUB_OUTPUT
               exit 0
             fi
 
-            # Check if src/locales/en.json was modified in the PR
-            if git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -q "src/locales/en.json"; then
-              echo "File src/locales/en.json was modified"
+            if git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" | grep -q "src/locales/en.json"; then
               echo "should_run=true" >> $GITHUB_OUTPUT
               exit 0
             fi
@@ -95,7 +113,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Set up environment
         run: |
@@ -252,7 +270,7 @@ jobs:
 
       - name: Upload translation templates and reports
         if: always() && steps.harmonize.outputs.changes_made == 'true'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: translation-templates-and-reports
           path: ./reports/
@@ -261,7 +279,7 @@ jobs:
 
       - name: Upload fallback reports (minimal)
         if: always() && steps.harmonize.outputs.changes_made == 'true' && failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: fallback-harmonization-report
           path: |

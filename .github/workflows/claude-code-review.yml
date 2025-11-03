@@ -1,14 +1,17 @@
+# .github/workflows/claude-code-review.yml
+
 name: Claude Code Review
 
 on:
   pull_request:
-    types: [opened, synchronize]
-    # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
+    branches:
+      - 'feature/*'
+      - 'fix/*'
+      - 'wip/*'
+      - 'rel/*'
+      - 'develop'
+    types: [opened, synchronize, labeled]
+  workflow_dispatch:
 
 jobs:
   claude-review:
@@ -17,8 +20,13 @@ jobs:
     #   github.event.pull_request.user.login == 'external-contributor' ||
     #   github.event.pull_request.user.login == 'new-developer' ||
     #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-
+    # if: ${{ !startsWith(github.head_ref, 'deps/') }}
     runs-on: ubuntu-latest
+    if: |
+      (github.event.action == 'opened') ||
+      (github.event.action == 'labeled' && github.event.label.name == 'claude-review') ||
+      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'claude-review'))
+
     permissions:
       contents: read
       pull-requests: read
@@ -27,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           fetch-depth: 1
 
@@ -52,15 +60,7 @@ jobs:
             Be constructive and helpful in your feedback.
 
           # Optional: Use sticky comments to make Claude reuse the same comment on subsequent pushes to the same PR
-          # use_sticky_comment: true
-
-          # Optional: Customize review based on file types
-          # direct_prompt: |
-          #   Review this PR focusing on:
-          #   - For TypeScript files: Type safety and proper interface usage
-          #   - For API endpoints: Security, input validation, and error handling
-          #   - For React components: Performance, accessibility, and best practices
-          #   - For tests: Coverage, edge cases, and test quality
+          use_sticky_comment: true
 
           # Optional: Different prompts for different authors
           # direct_prompt: |
@@ -75,3 +75,20 @@ jobs:
           # if: |
           #   !contains(github.event.pull_request.title, '[skip-review]') &&
           #   !contains(github.event.pull_request.title, '[WIP]')
+
+      - name: Remove claude-review label
+        # Remove label whether success or failure - prevents getting stuck
+        if: always() && github.event.action != 'opened'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                name: 'claude-review'
+              });
+            } catch (error) {
+              console.log('Label not found or already removed');
+            }

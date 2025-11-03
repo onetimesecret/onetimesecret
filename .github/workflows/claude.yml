@@ -1,6 +1,15 @@
+# .github/workflows/claude.yml
+
 name: Claude Code
 
 on:
+  pull_request:
+    branches:
+      - 'feature/*'
+      - 'fix/*'
+      - 'wip/*'
+      - 'rel/*'
+      - 'develop'
   issue_comment:
     types: [created]
   pull_request_review_comment:
@@ -9,6 +18,10 @@ on:
     types: [opened, assigned]
   pull_request_review:
     types: [submitted]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   claude:
@@ -26,7 +39,7 @@ jobs:
       actions: read # Required for Claude to read CI results on PRs
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           fetch-depth: 1
 
