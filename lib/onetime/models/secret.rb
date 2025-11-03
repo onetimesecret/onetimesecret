@@ -21,36 +21,18 @@ module Onetime
     default_expiration 7.days # default only, can be overridden at create time
     prefix :secret
 
-    identifier_field :key
+    identifier_field :identifier
 
-    field :custid
     field :state
-    field :value
-    field :key
-    field :metadata_key
-    field :value_encryption
     field :lifespan
-    field :share_domain
-    field :verification
-    field :truncated # boolean
+    field :metadata_identifier
 
-    counter :view_count, default_expiration: 14.days # out lives the secret itself
-
-    safe_dump_field :identifier, ->(obj) { obj.identifier }
-    safe_dump_field :key
-    safe_dump_field :state
-    safe_dump_field :secret_ttl, ->(m) { m.lifespan }
-    safe_dump_field :lifespan
-    safe_dump_field :shortkey, ->(m) { m.key.slice(0, 8) }
-    safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
-    safe_dump_field :verification, ->(m) { m.verification? }
-    safe_dump_field :is_truncated, ->(m) { m.truncated? }
-    safe_dump_field :created
-    safe_dump_field :updated
+    encrypted_field :ciphertext, add_fields: [:objid, :domain, :ciphertext_passphrase]
+    transient_field :ciphertext_passphrase
+    transient_field :domain
 
     def init
       self.state ||= 'new'
-      self.key   ||= self.class.generate_id # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
     def shortkey
