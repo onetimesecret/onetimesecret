@@ -107,10 +107,10 @@ module Auth::Config::Hooks
 
         # Extract authentication token from URL query parameter
         # Expected format: ?key=TOKEN
-        auth_token = param('key')
+        auth_token = param_or_nil('key')
 
         # Validate token presence before continuing to Rodauth verification
-        if auth_token.nil? || auth_token.empty?
+        if auth_token.nil? || auth_token.to_s.empty?
           msg = 'The email authentication token is missing.'
           Onetime.get_logger('Auth').error msg
           set_error_flash msg

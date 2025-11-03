@@ -184,9 +184,6 @@
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ customer.stamp }}</p>
               </div>
               <div class="text-right flex-shrink-0">
-                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{
-                  customer.planid
-                }}</div>
                 <p class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                   {{ customer.secrets_created }} created • {{ customer.secrets_shared }} shared •
                   {{ customer.emails_sent }} emails

@@ -492,7 +492,7 @@
         "non-negotiable": "Non-Negotiable",
         "not-a-setting": "Not a setting",
         "no-analytics-statement": "No analytics. No tracking. Period.",
-        "privacy-explanation": "This isn't a setting because there's nothing to turn on or off. Your privacy is built into how we operate."
+        "explanation": "This isn't a setting because there's nothing to turn on or off. Your privacy is built into how we operate."
       },
       "caution": {
         "title": "Careful Consideration Zone",

@@ -130,12 +130,15 @@ jobs:
             fi
           done
 
+      - name: Generate random secrets for testing
+        uses: ./.github/actions/generate-test-secrets
+
       - name: Run test specs
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'advanced'
-          SESSION_SECRET: 'test-session-secret-for-ci-only-do-not-use-in-production'
+          # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
         run: |
           mkdir tmp && bundle exec rspec \
             --format progress \
@@ -158,7 +161,7 @@ jobs:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'basic'
-          SESSION_SECRET: 'test-session-secret-for-ci-only-do-not-use-in-production'
+          # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
         run: |
           echo "Testing basic authentication mode..."
           bundle exec tryouts -vf try/unit try/system
@@ -171,7 +174,7 @@ jobs:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'disabled'
-          SESSION_SECRET: 'test-session-secret-for-ci-only-do-not-use-in-production'
+          # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
         run: |
           echo "Testing disabled authentication mode..."
           bundle exec tryouts -vf try/integration/authentication/disabled_mode
@@ -183,7 +186,7 @@ jobs:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'advanced'
-          SESSION_SECRET: 'test-session-secret-for-ci-only-do-not-use-in-production'
+          # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
           # Advanced mode requires a database. Using in-memory SQLite for CI.
           DATABASE_URL: 'sqlite::memory:'
         run: |
@@ -271,15 +274,27 @@ jobs:
       - name: Build Docker image
         run: docker build -t onetime-test .
 
+      - name: Generate random secrets for container
+        uses: ./.github/actions/generate-test-secrets
+
       - name: Start container
         run: |
+          echo "Starting container with generated secrets..."
+          echo "SESSION_SECRET length: ${#SESSION_SECRET}"
+          echo "HMAC_SECRET length: ${#HMAC_SECRET}"
+          echo "SECRET length: ${#SECRET}"
+
           docker run -d \
             --name onetime-test-container \
             -p 3000:3000 \
             -e REDIS_URL=redis://host.docker.internal:2121/0 \
-            -e SECRET=$(openssl rand -hex 32) \
+            -e SESSION_SECRET="${SESSION_SECRET}" \
+            -e HMAC_SECRET="${HMAC_SECRET}" \
+            -e SECRET="${SECRET}" \
             --add-host=host.docker.internal:host-gateway \
             onetime-test
+
+          echo "Container started with unique secrets"
 
       - name: Show initial container status
         run: |

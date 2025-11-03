@@ -62,7 +62,6 @@ module V2
 
             {
               custid: this_cust.custid,
-              planid: this_cust.planid,
               colonel: this_cust.role?(:colonel),
               secrets_created: this_cust.secrets_created,
               secrets_shared: this_cust.secrets_shared,

@@ -22,6 +22,7 @@ module Auth
       # Configured in Features::Base
       enable :base, :json, :login, :logout, :table_guard, :external_identity
       enable :hmac_secret_guard
+      enable :audit_logging
 
       # Configured in Features::AccountManagement
       enable :verify_account unless ENV['RACK_ENV'] == 'test'
@@ -32,10 +33,12 @@ module Auth
 
       Base.configure(self)
       Email.configure(self)
+      Features::AuditLogging.configure(self)
 
       Features::AccountManagement.configure(self)
 
       Hooks::Account.configure(self)
+      Hooks::AuditLogging.configure(self)
       Hooks::Login.configure(self)
       Hooks::Logout.configure(self)
       Hooks::Password.configure(self)

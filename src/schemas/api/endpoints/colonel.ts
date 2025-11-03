@@ -152,7 +152,6 @@ export const systemSettingsDetailsSchema = systemSettingsSchema.extend({
  */
 export const recentCustomerSchema = z.object({
   custid: z.string(), // Not always an email address (e.g. GLOBAL for new installs)
-  planid: z.string(),
   colonel: z.boolean(),
   secrets_created: transforms.fromString.number,
   secrets_shared: transforms.fromString.number,
