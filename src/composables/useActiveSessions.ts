@@ -46,8 +46,15 @@ export function useActiveSessions() {
       const response = await $api.get<ActiveSessionsResponse>('/auth/active-sessions');
       const validated = activeSessionsResponseSchema.parse(response.data);
 
-      sessions.value = validated.sessions;
-      return validated.sessions;
+      // Convert null to undefined for TypeScript compatibility
+      const mappedSessions = validated.sessions.map((session) => ({
+        ...session,
+        ip_address: session.ip_address ?? undefined,
+        user_agent: session.user_agent ?? undefined,
+      }));
+
+      sessions.value = mappedSessions;
+      return mappedSessions;
     } catch (err: any) {
       error.value = err.response?.data?.error || 'Failed to load sessions';
       sessions.value = [];
