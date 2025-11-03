@@ -230,8 +230,7 @@ module V2::Logic
       private
 
       def create_secret_pair
-        customer_identifier = cust&.custid
-        @metadata, @secret = Onetime::Secret.spawn_pair customer_identifier, token
+        @metadata, @secret = Onetime::Secret.spawn_pair cust&.objid
       end
 
       def handle_passphrase
