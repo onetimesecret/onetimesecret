@@ -129,7 +129,7 @@ module Auth::Config::Base
     auth.db Auth::Database.connection
 
     # HMAC secret
-    hmac_value = ENV['HMAC_SECRET'] || ENV['AUTH_SECRET']
+    hmac_value = ENV['HMAC_SECRET']
     if hmac_value.nil? || hmac_value.empty?
       if Onetime.production?
         raise 'HMAC_SECRET required in production'

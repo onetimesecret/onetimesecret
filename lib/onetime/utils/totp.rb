@@ -68,10 +68,10 @@ module Onetime
       # @return [String] HMAC-secured version of the secret
       #
       def self.compute_hmac(raw_secret, hmac_secret = nil)
-        hmac_secret ||= ENV['HMAC_SECRET'] || ENV['AUTH_SECRET']
+        hmac_secret ||= ENV['HMAC_SECRET']
 
         if hmac_secret.nil? || hmac_secret.empty?
-          raise 'HMAC_SECRET or AUTH_SECRET environment variable must be set'
+          raise 'HMAC_SECRET environment variable must be set'
         end
 
         # This mirrors Rodauth's otp_hmac_secret method
