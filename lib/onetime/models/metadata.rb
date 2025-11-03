@@ -2,16 +2,23 @@
 
 module Onetime
   class Metadata < Familia::Horreum
+    include Familia::Features::Autoloader
     include Onetime::Logging
 
     using Familia::Refinements::TimeLiterals
 
     feature :expiration
+    feature :safe_dump_fields
+    feature :expiration
+    feature :relationships
+    feature :object_identifier
+    feature :required_fields
+    feature :deprecated_fields
 
     default_expiration 14.days # by default 2x Secret.default_expiration
     prefix :metadata
 
-    identifier_field :identifier
+    identifier_field :objid
 
     field :owner_id
     field :state
@@ -20,8 +27,6 @@ module Onetime
     field :lifespan
     field :share_domain
     field :passphrase
-    field :created
-    field :updated
 
     # NOTE: There is no `expired` timestamp field since we can calculate
     # that based on the `secret_ttl` and the `created` timestamp. See

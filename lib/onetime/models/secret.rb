@@ -7,7 +7,7 @@ module Onetime
 
     using Familia::Refinements::TimeLiterals
 
-    feature :safe_dump
+    feature :safe_dump_fields
     feature :expiration
     feature :relationships
     feature :object_identifier
@@ -21,7 +21,7 @@ module Onetime
     default_expiration 7.days # default only, can be overridden at create time
     prefix :secret
 
-    identifier_field :identifier
+    identifier_field :objid
 
     field :state
     field :lifespan

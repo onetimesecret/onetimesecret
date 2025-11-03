@@ -1,7 +1,7 @@
 # lib/onetime/models/customer/features/safe_dump_fields.rb
 
 module Onetime::Customer::Features
-  module SafeDump
+  module SafeDumpFields
 	# Register our custom SafeDump feature with a unique
     Onetime::Customer.add_feature self, :safe_dump_fields
 

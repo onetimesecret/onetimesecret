@@ -1,7 +1,7 @@
 # lib/onetime/models/secret/features/safe_dump_fields.rb
 
 module Onetime::Secret::Features
-  module SafeDump
+  module SafeDumpFields
     Onetime::Secret.add_feature self, :safe_dump_fields
 
     def self.included(base)

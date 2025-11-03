@@ -1,8 +1,8 @@
 # lib/onetime/models/metadata/features/safe_dump_fields.rb
 
 module Onetime::Metadata::Features
-  module SafeDump
-	# Register our custom SafeDump feature with a unique
+  module SafeDumpFields
+    # Register our custom SafeDump feature with a unique
     Onetime::Metadata.add_feature self, :safe_dump_fields
 
     def self.included(base)
@@ -45,8 +45,8 @@ module Onetime::Metadata::Features
         m.state?(:received) || m.state?(:burned) || m.state?(:expired) || m.state?(:orphaned)
       }
       # We use the hash syntax here since `:truncated?` is not a valid symbol.
-      safe_dump_field :is_truncated, ->(m) { m.truncated? }
-      safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
+      base.safe_dump_field :is_truncated, ->(m) { m.truncated? }
+      base.safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
     end
   end
 end
