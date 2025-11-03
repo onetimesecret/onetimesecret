@@ -14,8 +14,9 @@ module V2
     # API v2 specific middleware (common middleware is in MiddlewareStack)
     use Rack::JSONBodyParser # TODO: Remove since we pass: builder.use Rack::Parser, parsers: @parsers
 
-    # CSRF Protection - Token-based approach for JSON API
-    use Rack::Protection::AuthenticityToken, reaction: :drop_session
+    # CSRF Response Header
+    # Note: CSRF validation is handled by common Security middleware with
+    # allow_if to skip /api/* routes. This just adds the response header.
     use Onetime::Middleware::CsrfResponseHeader
 
     warmup do

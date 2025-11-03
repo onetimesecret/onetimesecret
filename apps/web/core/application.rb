@@ -20,8 +20,9 @@ module Core
     # Initialize request context (nonce, locale) before other processing
     use Core::Middleware::RequestSetup
 
-    # CSRF Protection - Token-based approach
-    use Rack::Protection::AuthenticityToken, reaction: :drop_session
+    # CSRF Response Header
+    # Note: CSRF validation is handled by common Security middleware with
+    # allow_if to skip JSON/API requests. This just adds the response header.
     use Onetime::Middleware::CsrfResponseHeader
 
     # Simplified error handling for Vue SPA - serves entry points
