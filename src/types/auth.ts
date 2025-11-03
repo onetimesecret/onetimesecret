@@ -10,8 +10,8 @@ export interface Session {
   id: string;
   created_at: string;
   last_activity_at: string;
-  ip_address?: string;
-  user_agent?: string;
+  ip_address: string | null;
+  user_agent: string | null;
   is_current: boolean;
   remember_enabled: boolean;
 }
