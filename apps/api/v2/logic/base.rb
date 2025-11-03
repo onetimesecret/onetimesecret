@@ -19,7 +19,7 @@ module V2
       include V2::Logic::I18nHelpers
       include V2::Logic::UriHelpers
 
-      attr_reader :context, :sess, :cust, :params, :locale, :processed_params, :site, :authentication, :domains_enabled, :planid
+      attr_reader :context, :sess, :cust, :params, :locale, :processed_params, :site, :authentication, :domains_enabled
 
       attr_accessor :domain_strategy, :display_domain
 

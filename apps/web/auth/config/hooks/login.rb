@@ -10,7 +10,7 @@ module Auth::Config::Hooks
       # a correlation ID for tracking the entire authentication flow.
       #
       auth.before_login_attempt do
-        email = param('login') || param('email')
+        email = param_or_nil('login') || param_or_nil('email')
 
         # Generate correlation ID for this authentication attempt
         correlation_id                = Auth::Logging.generate_correlation_id
@@ -144,7 +144,7 @@ module Auth::Config::Hooks
       # rate limiting via the lockout feature, so we just log the failure.
       #
       auth.after_login_failure do
-        email          = param('login') || param('email')
+        email          = param_or_nil('login') || param_or_nil('email')
         correlation_id = session[:auth_correlation_id]
 
         Auth::Logging.log_auth_event(

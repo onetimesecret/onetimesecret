@@ -22,7 +22,6 @@ module V2
             stripe_checkout_email: checkout_email,
             stripe_subscription_id: checkout_session.subscription,
             stripe_customer_id: checkout_session.customer,
-            planid: 'identity',
           }
         end
 
@@ -65,7 +64,6 @@ module V2
               OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with new user #{checkout_email}"
 
               cust          = Onetime::Customer.create!(checkout_email)
-              cust.planid   = 'identity'
               cust.verified = 'true'
               cust.role     = 'customer'
               cust.update_passphrase Onetime::Utils.strand(12)

@@ -1,12 +1,11 @@
 module V2::Logic
   module Account
     class CreateAccount < V2::Logic::Base
-      attr_reader :cust, :autoverify, :customer_role, :planid, :email, :password, :skill
+      attr_reader :cust, :autoverify, :customer_role, :email, :password, :skill
       attr_accessor :token
 
       def process_params
         OT.ld "[CreateAccount#process_params] param keys: #{params.keys.sort}"
-        @planid = params[:planid].to_s
 
         # NOTE: The parameter names should match what rodauth uses.
         @email    = params[:login].to_s.downcase.strip
@@ -31,8 +30,6 @@ module V2::Logic
         # emails are registered in the system by observing different validation error messages.
         raise_form_error 'Is that a valid email address?', field: 'login', error_type: 'invalid' unless valid_email?(email)
         raise_form_error 'Password is too short', field: 'password', error_type: 'too_short' unless password.size >= 6
-
-        @planid ||= 'basic'
       end
 
       def process
@@ -69,14 +66,13 @@ module V2::Logic
                              'customer'
                            end
 
-          cust.planid    = planid
           cust.verified  = @autoverify
           cust.role      = @customer_role
           cust.save
 
           session_id = @strategy_result.session[:id]
           ip_address = @strategy_result.metadata[:ip]
-          OT.info "[new-customer] #{cust.objid} #{cust.role} #{ip_address} #{planid} #{session_id}"
+          OT.info "[new-customer] #{cust.objid} #{cust.role} #{ip_address} #{session_id}"
 
           # Send verification email for new accounts (unless autoverify is enabled)
           unless @autoverify
@@ -106,7 +102,7 @@ module V2::Logic
       private
 
       def form_fields
-        { planid: planid, email: email }
+        { email: email }
       end
     end
   end

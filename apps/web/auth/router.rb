@@ -23,7 +23,7 @@ module Auth
     # Include session validation helpers
     # TODO: Implement these modules
     # include Auth::Helpers::SessionValidation
-
+    #
     # Include route modules
     # include Auth::Routes::Validation
     include Auth::Routes::Health
@@ -31,8 +31,6 @@ module Auth
     include Auth::Routes::MFA
     include Auth::Routes::ActiveSessions
     include Auth::Routes::Admin
-
-    # Session middleware is now configured globally in MiddlewareStack
 
     plugin :json, parser: true  # Parse incoming JSON request bodies
     plugin :halt

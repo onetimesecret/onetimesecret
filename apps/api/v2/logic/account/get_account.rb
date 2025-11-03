@@ -37,13 +37,6 @@ module V2::Logic
           cust.stripe_subscription_id = stripe_subscription.id
         end
 
-        # Just incase we didn't capture the Onetime Secret planid update after
-        # a customer subscribes, let's make sure we update it b/c it doesn't
-        # feel good to pay for something and still see "Basic Plan" at the
-        # top of your account page.
-        if stripe_subscription && stripe_subscription.plan
-          cust.planid = 'identity' # TOOD: obviously find a better way
-        end
 
         cust.save
 

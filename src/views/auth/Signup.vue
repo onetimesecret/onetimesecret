@@ -8,16 +8,14 @@
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';
   import { useLanguageStore } from '@/stores/languageStore';
   import { storeToRefs } from 'pinia';
-  import { computed, ref } from 'vue';
+  import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
   const { t } = useI18n();
 
   const jurisdictionStore = useJurisdictionStore();
   const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
 
-  const default_planid = 'basic';
   const languageStore = useLanguageStore();
-  const currentPlanId = ref(default_planid);
   const currentJurisdiction = computed(
     () =>
       getCurrentJurisdiction.value || {
@@ -45,7 +43,6 @@
     :with-subheading="true">
     <template #form>
       <SignUpForm
-        :planid="currentPlanId"
         :locale="languageStore.currentLocale ?? ''"
         :jurisdiction="currentJurisdiction" />
       <AlternateSignUpMethods

@@ -7,14 +7,12 @@ import { useI18n } from 'vue-i18n';
 
 export interface Props {
   enabled?: boolean;
-  planid?: string;
   jurisdiction?: Jurisdiction
   locale?: string;
 }
 
 withDefaults(defineProps<Props>(), {
   enabled: true,
-  planid: 'basic',
   locale: 'en',
 })
 

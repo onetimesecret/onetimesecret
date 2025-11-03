@@ -63,14 +63,17 @@ module Auth
     #   )
     #
     def log_auth_event(event, level: :info, log_metric: false, **payload)
+      # Work with a copy to avoid modifying the original payload
+      log_payload = payload.dup
+
       # Obscure email if present
-      payload[:email] = OT::Utils.obscure_email(payload[:email]) if payload[:email]
+      log_payload[:email] = OT::Utils.obscure_email(log_payload[:email]) if log_payload[:email]
 
       # Ensure correlation_id is present in payload for visibility
-      payload[:correlation_id] ||= 'none'
+      log_payload[:correlation_id] ||= 'none'
 
       # e.g. Onetime.auth_logger.info "[login_success]" {...}
-      logger.public_send(level, "[#{event}]", payload)
+      logger.public_send(level, "[#{event}]", log_payload)
 
       # Optionally log metric alongside event
       if log_metric
@@ -84,7 +87,7 @@ module Auth
         metric_name = metric_options.delete(:metric_name) || event
 
         # Extract metric-specific options and preserve event payload
-        metric_payload = payload.dup
+        metric_payload = log_payload.dup
         metric_payload.merge!(metric_options.except(:value, :unit))
 
         self.log_metric(
