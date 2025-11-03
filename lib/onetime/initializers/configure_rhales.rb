@@ -25,6 +25,11 @@ module Onetime
     #
     def configure_rhales
       Rhales.logger = Onetime.rhales_logger
+
+      # Guard against multiple configuration attempts
+      # Rhales.configure freezes the config after first call
+      return if Rhales.configuration.frozen?
+
       Rhales.configure do |config|
         # Use existing nonce from Onetime Secret middleware
         # This ensures all script tags use the same CSP nonce

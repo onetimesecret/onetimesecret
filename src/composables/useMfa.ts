@@ -173,7 +173,7 @@ export function useMfa() {
         const validated = otpSetupResponseSchema.parse(response.data);
 
         // Standard response (non-HMAC mode): includes QR code data directly
-        if (validated.otp_raw_secret) {
+        if (validated.otp_raw_secret && validated.otp_setup) {
           validated.qr_code = await generateQrCode(siteName, email, validated.otp_setup);
         }
 

@@ -113,14 +113,14 @@
       'bg-yellow-50 text-yellow-800 ring-yellow-600/20 dark:bg-yellow-900/20 dark:text-yellow-400',
   };
 
-  const scoreColorClasses: Record = {
+  const scoreColorClasses: Record<string, string> = {
     green: 'text-green-600 dark:text-green-400',
     blue: 'text-blue-600 dark:text-blue-400',
     yellow: 'text-yellow-600 dark:text-yellow-400',
     red: 'text-red-600 dark:text-red-400',
   };
 
-  const progressBarColorClasses: Record = {
+  const progressBarColorClasses: Record<string, string> = {
     green: 'bg-green-600',
     blue: 'bg-blue-600',
     yellow: 'bg-yellow-600',

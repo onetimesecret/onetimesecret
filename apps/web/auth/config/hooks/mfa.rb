@@ -48,7 +48,7 @@ module Auth::Config::Hooks
             level: :info,
             log_metric: true,
             account_id: session_value,
-            email: (account[:email] rescue nil),
+            email: account&.[](:email),
             attempt_type: attempt_type,
             has_otp_code: has_otp_code,
             has_password: has_password,
@@ -84,7 +84,6 @@ module Auth::Config::Hooks
               level: :error,
               account_id: session_value,
               error: ex.message,
-              backtrace: ex.backtrace.first(3),
             )
           end
         else
@@ -232,7 +231,7 @@ module Auth::Config::Hooks
             level: :info,
             log_metric: true,
             account_id: session_value,
-            email: (account[:email] rescue nil),
+            email: account&.[](:email),
             has_otp_code: has_otp_code,
             ip: request.ip,
             correlation_id: correlation_id,
