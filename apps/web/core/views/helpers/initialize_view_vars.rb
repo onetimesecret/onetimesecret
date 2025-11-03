@@ -55,7 +55,7 @@ module Core
         safe_site = InitializeViewVars.safe_site_fields.each_with_object({}) do |field, hash|
           field_str = field.to_s
           unless site_config.key?(field_str)
-            app_logger.debug "Site config missing expected field", {
+            Onetime.app_logger.debug "Site config missing expected field", {
               field: field_str,
               module: "InitializeViewVars"
             }
