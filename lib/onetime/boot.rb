@@ -31,7 +31,12 @@ module Onetime
       OT.mode = mode unless mode.nil?
       OT.env  = ENV['RACK_ENV'] || 'production'
 
-      raise OT::Problem, 'Boot already completed' if OT.ready?
+      # In test mode, silently return if already booted (idempotent)
+      # In other environments, raise to catch unintended double-boot bugs
+      if OT.ready?
+        return if OT.testing?
+        raise OT::Problem, 'Boot already completed'
+      end
 
       # Initialize boot manifest for structured progress tracking
       manifest = Boot::Manifest.new

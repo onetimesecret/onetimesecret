@@ -127,7 +127,7 @@ module Auth::Config::Hooks
         {
           ip: request.ip,
           user_agent: request.user_agent,
-          email: param('login') || param('email'),
+          email: param_or_nil('login') || param_or_nil('email'),
           failure_reason: 'invalid_credentials',
         }
       end
