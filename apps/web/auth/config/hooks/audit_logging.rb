@@ -127,7 +127,7 @@ module Auth::Config::Hooks
         {
           ip: request.ip,
           user_agent: request.user_agent,
-          email: param_or_nil('login') || param_or_nil('email'),
+          email: OT::Utils.obscure_email(param_or_nil('login') || param_or_nil('email')),
           failure_reason: 'invalid_credentials',
         }
       end
@@ -181,7 +181,7 @@ module Auth::Config::Hooks
         {
           ip: request.ip,
           user_agent: request.user_agent,
-          email: account[:email],
+          email: OT::Utils.obscure_email(account[:email]),
         }
       end
 
