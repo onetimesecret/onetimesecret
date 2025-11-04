@@ -21,9 +21,10 @@ module Onetime::Metadata::Features
       # server to see the changes.
       base.safe_dump_field :identifier, ->(obj) { obj.identifier }
       base.safe_dump_field :custid
+      base.safe_dump_field :owner_id
       base.safe_dump_field :state
       base.safe_dump_field :secret_shortid
-      base.safe_dump_field :secret_ttl
+      base.safe_dump_field :secret_ttl, ->(m) { m.secret_ttl || -1 }
       base.safe_dump_field :metadata_ttl, ->(m) { m.lifespan }
       base.safe_dump_field :lifespan
       base.safe_dump_field :share_domain
