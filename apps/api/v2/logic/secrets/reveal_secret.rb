@@ -44,7 +44,7 @@ module V2::Logic
 
           # If we can't decrypt that's great! We just set secret_value to
           # the encrypted string.
-          @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
+          @secret_value = secret.ciphertext.reveal { it }
 
           if verification
             if owner.nil? || owner.anonymous? || owner.verified?
