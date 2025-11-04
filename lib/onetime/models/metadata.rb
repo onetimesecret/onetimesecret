@@ -7,10 +7,11 @@ module Onetime
 
     using Familia::Refinements::TimeLiterals
 
+    feature :object_identifier,
+      generator: proc { Familia::VerifiableIdentifier.generate_verifiable_id }
     feature :safe_dump_fields
     feature :expiration
     feature :relationships
-    feature :object_identifier
     feature :required_fields
     feature :deprecated_fields
 

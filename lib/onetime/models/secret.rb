@@ -1,5 +1,7 @@
 # lib/onetime/models/secret.rb
 
+require 'familia/verifiable_identifier'
+
 require_relative 'secret/features'
 
 module Onetime
@@ -7,10 +9,11 @@ module Onetime
 
     using Familia::Refinements::TimeLiterals
 
+    feature :object_identifier,
+      generator: proc { Familia::VerifiableIdentifier.generate_verifiable_id }
     feature :safe_dump_fields
     feature :expiration
     feature :relationships
-    feature :object_identifier
     feature :required_fields
     feature :encrypted_fields
     feature :transient_fields
