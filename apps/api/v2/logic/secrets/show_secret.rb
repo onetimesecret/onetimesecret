@@ -6,7 +6,7 @@ module V2::Logic
 
     class ShowSecret < V2::Logic::Base
       attr_reader :identifier, :passphrase, :continue, :secret, :show_secret, :secret_value,
-        :is_truncated, :verification, :correct_passphrase, :display_lines, :one_liner,
+        :verification, :correct_passphrase, :display_lines, :one_liner,
         :is_owner, :has_passphrase, :secret_identifier, :share_domain
 
       def process_params
@@ -26,13 +26,12 @@ module V2::Logic
         @verification       = secret.verification.to_s == 'true'
         @secret_identifier  = @secret.identifier
 
-        owner = secret.load_customer
+        owner = secret.load_owner
 
         if show_secret
           # If we can't decrypt that's great! We just set secret_value to
           # the encrypted string.
-          @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
-          @is_truncated = secret.truncated?
+          @secret_value = secret.ciphertext.reveal { it }
 
           if verification
             if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)

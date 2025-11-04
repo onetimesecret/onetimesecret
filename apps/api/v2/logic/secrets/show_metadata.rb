@@ -12,7 +12,7 @@ module V2::Logic
         :secret_shortid, :recipients, :no_cache, :expiration_in_seconds,
         :natural_expiration, :is_received, :is_burned, :secret_realttl,
         :is_destroyed, :expiration, :view_count,
-        :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
+        :has_passphrase, :can_decrypt, :secret_value,
         :show_secret, :show_secret_link, :show_metadata_link, :metadata_attributes,
         :show_metadata, :show_recipients, :share_domain, :is_orphaned,
         :share_path, :burn_path, :metadata_path, :share_url, :is_expired,
@@ -89,16 +89,10 @@ module V2::Logic
             # TODO: There's a bug here. If the UI that created this secret+metadata
             # records doesn't immediately load the metadata/reciept page the metadata
             # record stays in state=new allowing the next request through.
-            if can_decrypt && metadata.state?(:new)
-              begin
-                OT.ld "[show_metadata] m:#{metadata_identifier} s:#{secret_identifier} Decrypting for first and only creator viewing"
-                @secret_value = secret.decrypted_value if @can_decrypt
-              rescue OpenSSL::Cipher::CipherError => ex
-                OT.le "[show_metadata] m:#{metadata_identifier} s:#{secret_identifier} #{ex.message}"
-                @secret_value = nil
-              end
+            if metadata.state?(:new)
+              OT.ld "[show_metadata] m:#{metadata_identifier} s:#{secret_identifier} Decrypting for first and only creator viewing"
+              @secret_value = secret.ciphertext.reveal { it }
             end
-            @is_truncated   = secret.truncated?
           end
         end
 
@@ -221,7 +215,6 @@ module V2::Logic
           has_passphrase: has_passphrase,
           can_decrypt: can_decrypt,
           secret_value: secret_value,
-          is_truncated: is_truncated,
           show_secret: show_secret,
           show_secret_link: show_secret_link,
           show_metadata_link: show_metadata_link,

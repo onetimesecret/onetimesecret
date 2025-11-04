@@ -148,7 +148,7 @@ module Onetime
           end
 
           def can_decrypt?
-            !value.to_s.empty? && (passphrase.to_s.empty? || !passphrase_temp.to_s.empty?)
+            (ciphertext.to_s.empty? ||!value.to_s.empty?  ) && (passphrase.to_s.empty? || !passphrase_temp.to_s.empty?)
           end
 
           def encryption_key(*)
