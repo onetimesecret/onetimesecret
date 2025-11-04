@@ -7,7 +7,6 @@ module Onetime
 
     using Familia::Refinements::TimeLiterals
 
-    feature :expiration
     feature :safe_dump_fields
     feature :expiration
     feature :relationships
@@ -130,7 +129,7 @@ module Onetime
         metadata = Onetime::Metadata.new(owner_id: owner_id)
 
         metadata.secret_identifier = secret.objid
-        metadata.default_expiration = lifespan
+        metadata.default_expiration = lifespan * 2
         metadata.save
 
         secret.default_expiration = lifespan

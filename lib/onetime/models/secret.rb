@@ -27,10 +27,9 @@ module Onetime
     field :lifespan
     field :metadata_identifier
 
-    encrypted_field :ciphertext,
-      add_fields: [:objid, :domain, :ciphertext_passphrase]
+    encrypted_field :ciphertext
     transient_field :ciphertext_passphrase
-    transient_field :domain
+    transient_field :ciphertext_domain
 
     def init
       self.state ||= 'new'
