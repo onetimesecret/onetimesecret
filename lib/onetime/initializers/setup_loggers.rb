@@ -189,6 +189,10 @@ module Onetime
       # Otto router - also responds to OTTO_DEBUG
       Otto.logger = @cached_loggers['Otto']
 
+      # Without this, we don't see backtraces for errors caught by Otto's
+      # centralized unhandled error handler.
+      Otto.debug = Onetime.debug?
+
       # Rhales manifold
       # Rhales.logger = SemanticLogger['Rhales']
       # Rhales.logger.level = :fatal
