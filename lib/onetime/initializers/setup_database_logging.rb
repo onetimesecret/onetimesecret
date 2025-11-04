@@ -14,7 +14,7 @@ module Onetime
     def setup_database_logging
       if OT.env?(:production)
         Familia.enable_database_logging = false
-        return Onetime.boot_logger.warn "[setup_database_logging] Blocked in #{OT.env}"
+        return Onetime.familia_logger.warn "[setup_database_logging] Blocked in #{OT.env}"
       end
 
       # Check multiple environment variables for database debugging specifically
@@ -26,10 +26,10 @@ module Onetime
       Familia.enable_database_logging = debug_enabled
 
       status = debug_enabled ? 'enabled' : 'disabled'
-      Onetime.boot_logger.debug "[init] Database command logging #{status}"
+      Onetime.familia_logger.debug "[init] Database command logging #{status}"
     rescue StandardError => ex
-      Onetime.boot_logger.error "[init] Error: #{ex.message}"
-      Onetime.boot_logger.debug ex.backtrace.join("\n")
+      Onetime.familia_logger.error "[init] Error: #{ex.message}"
+      Onetime.familia_logger.debug ex.backtrace.join("\n")
       # Continue boot process - logging is optional functionality
     end
   end
