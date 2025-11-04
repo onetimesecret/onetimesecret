@@ -62,7 +62,7 @@ module Onetime
     end
 
     def valid?
-      exists? && !value.to_s.empty?
+      exists? && (!ciphertext.to_s.empty? || !value.to_s.empty?)
     end
 
     def truncated?
