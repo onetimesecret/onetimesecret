@@ -25,7 +25,7 @@ import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
  *    - `secret_identifier: 'secret-orphaned-key-123'`
  *    - `secret_shortid: 'secret-orphaned-abc123'`
  *
- * 5. In `mockMetadataRecordsList`, each record also has unique `secret_identifier` and `secret_shortid`:
+ * 5. In `mockMetadataRecordsList`, `secret_identifier` and `secret_shortid` are also unique:
  *    - Received records:
  *      - `secret-received-1` / `sec-rcv1`
  *      - `secret-received-2` / `sec-rcv2`
@@ -169,7 +169,6 @@ export const mockMetadataRecentRecords = [
     is_burned: false,
     is_orphaned: true,
     is_destroyed: false,
-    is_truncated: true,
     identifier: 'abc123def456',
     // Add these required fields from metadataBaseSchema
     state: 'new',
@@ -200,7 +199,6 @@ export const mockMetadataRecentDetails = {
       is_burned: false,
       is_orphaned: false,
       is_destroyed: false,
-      is_truncated: false,
       identifier: 'received-metadata-1',
     },
   ],
@@ -219,7 +217,6 @@ export const mockMetadataRecentDetails = {
       is_burned: false,
       is_orphaned: false,
       is_destroyed: false,
-      is_truncated: false,
       identifier: 'not-received-metadata-1',
     },
   ],
@@ -237,7 +234,6 @@ export const mockSecretRecord: Secret = {
   identifier: 'testkey123',
   created: new Date(),
   updated: new Date(),
-  is_truncated: false,
   has_passphrase: false,
   verification: true,
   secret_value: 'test-secret',
@@ -255,7 +251,6 @@ export const mockReceivedSecretRecord: Secret = {
   identifier: 'testkey123',
   created: new Date(),
   updated: new Date(),
-  is_truncated: false,
   has_passphrase: false,
   verification: true,
   secret_value: 'received test secret',
@@ -270,7 +265,6 @@ export const mockOrphanedSecretRecord: Secret = {
   identifier: 'testkey123',
   created: new Date(),
   updated: new Date(),
-  is_truncated: false,
   has_passphrase: false,
   verification: true,
   secret_value: 'orphaned test secret',
@@ -286,7 +280,6 @@ export const mockReceivedSecretRecord1: Secret = {
   identifier: 'testkey123',
   created: new Date(),
   updated: new Date(),
-  is_truncated: false,
   has_passphrase: false,
   verification: true,
   secret_value: 'received-test-secret-1',
@@ -301,7 +294,6 @@ export const mockReceivedSecretRecord2: Secret = {
   identifier: 'testkey123',
   created: new Date(),
   updated: new Date(),
-  is_truncated: false,
   has_passphrase: false,
   verification: true,
   secret_value: 'received-test-secret-2',
@@ -316,7 +308,6 @@ export const mockNotReceivedSecretRecord1: Secret = {
   identifier: 'testkey123',
   created: new Date(),
   updated: new Date(),
-  is_truncated: false,
   has_passphrase: false,
   verification: true,
   secret_value: 'not-received-test-secret-1',

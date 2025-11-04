@@ -13,7 +13,6 @@ export const metadataRecordsSchema = metadataBaseSchema.merge(
     is_burned: transforms.fromString.boolean,
     is_orphaned: transforms.fromString.boolean,
     is_destroyed: transforms.fromString.boolean,
-    is_truncated: transforms.fromString.boolean,
     identifier: z.string().nullish(),
     secret_shortid: z.string().nullish(),
     key: z.string().nullish(),

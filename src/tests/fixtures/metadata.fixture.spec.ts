@@ -155,7 +155,6 @@ describe('Metadata Fixtures Integrity', () => {
         expect(secretRecord.state).toBe(expectedState);
 
         // Validate common fields
-        expect(secretRecord.is_truncated).toBe(false);
         expect(secretRecord.has_passphrase).toBe(false);
         expect(secretRecord.verification).toBe(true);
       });

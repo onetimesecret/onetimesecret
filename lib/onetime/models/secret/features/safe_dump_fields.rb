@@ -27,7 +27,7 @@ module Onetime::Secret::Features
       base.safe_dump_field :lifespan
       base.safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
       base.safe_dump_field :verification, ->(m) { m.verification? }
-      base.safe_dump_field :is_truncated, ->(m) { m.truncated? }
+      # base.safe_dump_field :is_truncated, ->(m) { m.truncated? }
       base.safe_dump_field :created
       base.safe_dump_field :updated
 

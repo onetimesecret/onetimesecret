@@ -29,7 +29,6 @@ const secretBaseSchema = z.object({
   key: z.string(),
   shortid: z.string(),
   state: secretStateSchema,
-  is_truncated: transforms.fromString.boolean,
   has_passphrase: transforms.fromString.boolean,
   verification: transforms.fromString.boolean,
   secret_value: z.string().optional(), // optional for preview/confirmation page
