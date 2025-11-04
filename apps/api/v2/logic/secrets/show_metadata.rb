@@ -6,7 +6,7 @@ module V2::Logic
 
     class ShowMetadata < V2::Logic::Base
       # Working variables
-      attr_reader :key, :metadata, :secret
+      attr_reader :identifier, :metadata, :secret
       # Template variables
       attr_reader :metadata_identifier, :metadata_shortid, :secret_identifier, :secret_state,
         :secret_shortid, :recipients, :no_cache, :expiration_in_seconds,
@@ -19,21 +19,21 @@ module V2::Logic
         :metadata_url, :burn_url, :display_lines
 
       def process_params
-        @key      = params['key'].to_s
-        @metadata = Onetime::Metadata.load key
+        @identifier = params['identifier'].to_s
+        @metadata   = Onetime::Metadata.load identifier
       end
 
       def raise_concerns
-        raise OT::MissingSecret, "key: #{key}" if metadata.nil?
+        raise OT::MissingSecret, "identifier: #{identifier}" if metadata.nil?
       end
 
       def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
         @secret = @metadata.load_secret
 
-        @metadata_identifier      = metadata.identifier
+        @metadata_identifier       = metadata.identifier
         @metadata_short_identifier = metadata.shortid
-        @secret_identifier        = metadata.secret_identifier
-        @secret_shortid   = metadata.secret_shortid
+        @secret_identifier         = metadata.secret_identifier
+        @secret_shortid            = metadata.secret_shortid
 
         # Default the recipients to an empty string. When a Familia::Horreum
         # object is loaded, the fields that have no values (or that don't

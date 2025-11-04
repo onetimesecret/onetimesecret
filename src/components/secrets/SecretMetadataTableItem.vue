@@ -33,7 +33,7 @@ const linkTitle = computed(() => {
 }
 );
 
-const displayKey = computed(() => `${props.secretMetadata.secret_shortid}`);
+const displayIdentifier = computed(() => `${props.secretMetadata.secret_shortid}`);
 
 const formattedDate = computed(() =>
   formatRelativeTime(props.secretMetadata.created)
@@ -65,8 +65,8 @@ const statusIcon = computed(() => {
         :to="{ name: 'Receipt link', params: { metadataIdentifier: secretMetadata.identifier } }"
         :class="linkClass"
         :title="linkTitle"
-        :aria-label="`${$t('web.COMMON.secret')} ${displayKey} ${linkTitle}`">
-        <span class="font-mono text-sm font-medium">{{ displayKey }}</span>
+        :aria-label="`${t('web.COMMON.secret')} ${displayIdentifier} ${linkTitle}`">
+        <span class="font-mono text-sm font-medium">{{ displayIdentifier }}</span>
       </router-link>
 
       <!-- Date Information -->

@@ -20,6 +20,7 @@ module Onetime::Metadata::Features
       # with hot reloading in dev mode will not work. You will need to restart the
       # server to see the changes.
       base.safe_dump_field :identifier, ->(obj) { obj.identifier }
+      base.safe_dump_field :key, ->(obj) { obj.identifier }
       base.safe_dump_field :custid
       base.safe_dump_field :owner_id
       base.safe_dump_field :state

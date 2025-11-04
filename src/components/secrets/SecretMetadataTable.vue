@@ -1,3 +1,5 @@
+<!-- src/components/secrets/SecretMetadataTable.vue -->
+
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import SecretMetadataTableItem from '@/components/secrets/SecretMetadataTableItem.vue';
@@ -26,14 +28,14 @@
   // Create shareable link for an item
   const getShareLink = (item: MetadataRecords) => {
     const share_domain = item.share_domain ?? site_host;
-    return `https://${share_domain}/secret/${item.key}`;
+    return `https://${share_domain}/secret/${item.identifier}`;
   };
 
   // Handle copying link to clipboard
   const handleCopy = async (item: MetadataRecords) => {
     try {
       await navigator.clipboard.writeText(getShareLink(item));
-      copiedItemKey.value = item.key;
+      copiedItemKey.value = item.identifier;
 
       // Reset copied state after 1.5 seconds
       setTimeout(() => {
@@ -101,7 +103,7 @@
                 <!-- prettier-ignore-attribute class -->
                 <tr
                   v-for="item in notReceived"
-                  :key="item.key"
+                  :key="item.identifier"
                   class="group border-b border-gray-200 transition-all duration-200
                     hover:bg-gray-50/80 dark:border-gray-700 dark:hover:bg-slate-800/70">
                   <td class="whitespace-nowrap px-6 py-4">
@@ -168,7 +170,7 @@
                               dark:border-gray-700/50 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-700/40">
                             <OIcon
                               collection="heroicons"
-                              :name="copiedItemKey === item.key ? 'check' : 'clipboard'"
+                              :name="copiedItemKey === item.identifier ? 'check' : 'clipboard'"
                               class="size-4"
                               aria-hidden="true" />
                             <span class="sr-only">{{ $t('web.LABELS.copy_to_clipboard') }}</span>
@@ -176,7 +178,7 @@
                           <!-- Copy Feedback Tooltip -->
                           <!-- prettier-ignore-attribute class -->
                           <div
-                            v-if="copiedItemKey === item.key"
+                            v-if="copiedItemKey === item.identifier"
                             class="absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap
                             rounded-t bg-gray-800
                             px-2 py-1 text-xs text-white shadow-lg">
@@ -190,7 +192,7 @@
                       <!-- prettier-ignore-attribute class -->
                       <router-link
                         v-if="!item.is_destroyed"
-                        :to="{ name: 'Burn secret', params: { metadataIdentifier: item.key } }"
+                        :to="{ name: 'Burn secret', params: { metadataIdentifier: item.identifier } }"
                         class="inline-flex items-center rounded-md bg-red-100 px-2.5 py-1.5 text-sm
                           font-medium text-red-700 hover:bg-red-200 focus:outline-none focus:ring-2
                           focus:ring-red-500 focus:ring-offset-2 dark:bg-red-900/30 dark:text-red-300
@@ -284,7 +286,7 @@
                 <!-- prettier-ignore-attribute class -->
                 <tr
                   v-for="item in received"
-                  :key="item.key"
+                  :key="item.identifier"
                   class="group border-b border-gray-200 transition-all duration-200
                     hover:bg-gray-50/80 dark:border-gray-700 dark:hover:bg-slate-800/70">
                   <td class="whitespace-nowrap px-6 py-4">

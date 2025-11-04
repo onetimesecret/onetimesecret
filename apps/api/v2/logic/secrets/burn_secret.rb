@@ -2,18 +2,18 @@
 
 module V2::Logic
   module Secrets
-
     using Familia::Refinements::TimeLiterals
 
     class BurnSecret < V2::Logic::Base
       include Onetime::Logging
-      attr_reader :key, :passphrase, :continue, :metadata, :secret, :correct_passphrase, :greenlighted
+
+      attr_reader :identifier, :passphrase, :continue, :metadata, :secret, :correct_passphrase, :greenlighted
 
       def process_params
-        @key        = params[:key].to_s
-        @metadata   = Onetime::Metadata.load key
-        @passphrase = params[:passphrase].to_s
-        @continue   = [true, 'true'].include?(params[:continue])
+        @identifier = params['identifier'].to_s
+        @metadata   = Onetime::Metadata.load identifier
+        @passphrase = params['passphrase'].to_s
+        @continue   = [true, 'true'].include?(params['continue'])
       end
 
       def raise_concerns
@@ -27,10 +27,10 @@ module V2::Logic
 
         @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
         viewable            = potential_secret.viewable?
-        continue_result     = params[:continue]
+        continue_result     = params['continue']
         @greenlighted       = viewable && correct_passphrase && continue_result
 
-        secret_logger.debug "Secret burn initiated", {
+        secret_logger.debug 'Secret burn initiated', {
           metadata_identifier: metadata.identifier,
           secret_identifier: potential_secret.shortid,
           viewable: viewable,
@@ -38,7 +38,7 @@ module V2::Logic
           passphrase_correct: correct_passphrase,
           continue: continue_result,
           user_id: cust&.custid,
-          ip: req&.ip
+          ip: req&.ip,
         }
 
         if greenlighted
@@ -48,24 +48,24 @@ module V2::Logic
           owner.increment_field :secrets_burned unless owner.anonymous?
           Onetime::Customer.secrets_burned.increment
 
-          secret_logger.info "Secret burned successfully", {
+          secret_logger.info 'Secret burned successfully', {
             secret_identifier: secret.shortid,
             metadata_identifier: metadata.identifier,
             owner_id: owner&.custid,
             user_id: cust&.custid,
             ip: req&.ip,
             action: 'burn',
-            result: :success
+            result: :success,
           }
 
         elsif !correct_passphrase
-          secret_logger.warn "Burn failed - incorrect passphrase", {
+          secret_logger.warn 'Burn failed - incorrect passphrase', {
             metadata_identifier: metadata.identifier,
             secret_identifier: potential_secret.shortid,
             user_id: cust&.custid,
             ip: req&.ip,
             action: 'burn',
-            result: :passphrase_failed
+            result: :passphrase_failed,
           }
 
           message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'

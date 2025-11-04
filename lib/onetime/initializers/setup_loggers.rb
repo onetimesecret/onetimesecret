@@ -223,7 +223,7 @@ module Onetime
         when 'production'
           ENV['FAMILIA_SAMPLE_RATE']&.to_f || 0.01  # 1% default
         when 'development'
-          ENV['FAMILIA_SAMPLE_RATE']&.to_f || 0.1   # 10% default
+          ENV['FAMILIA_SAMPLE_RATE']&.to_f || 1   # 10% default
         else
           # Log everything in test
         end

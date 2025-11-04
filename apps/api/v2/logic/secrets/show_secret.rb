@@ -2,19 +2,18 @@
 
 module V2::Logic
   module Secrets
-
     using Familia::Refinements::TimeLiterals
 
     class ShowSecret < V2::Logic::Base
-      attr_reader :key, :passphrase, :continue, :secret, :show_secret, :secret_value,
+      attr_reader :identifier, :passphrase, :continue, :secret, :show_secret, :secret_value,
         :is_truncated, :verification, :correct_passphrase, :display_lines, :one_liner,
         :is_owner, :has_passphrase, :secret_identifier, :share_domain
 
       def process_params
-        @key        = params[:key].to_s
-        @secret     = Onetime::Secret.load key
-        @passphrase = params[:passphrase].to_s
-        @continue   = params[:continue].to_s == 'true'
+        @identifier = params['identifier'].to_s
+        @secret     = Onetime::Secret.load identifier
+        @passphrase = params['passphrase'].to_s
+        @continue   = params['continue'].to_s == 'true'
       end
 
       def raise_concerns
@@ -25,7 +24,7 @@ module V2::Logic
         @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
         @show_secret        = secret.viewable? && correct_passphrase && continue
         @verification       = secret.verification.to_s == 'true'
-        @secret_identifier         = @secret.identifier
+        @secret_identifier  = @secret.identifier
 
         owner = secret.load_customer
 
