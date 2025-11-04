@@ -32,7 +32,7 @@ module V2::Logic
 
         secret_logger.debug "Secret burn initiated", {
           metadata_key: metadata.key,
-          secret_key: potential_secret.shortkey,
+          secret_key: potential_secret.shortid,
           viewable: viewable,
           has_passphrase: potential_secret.has_passphrase?,
           passphrase_correct: correct_passphrase,
@@ -49,7 +49,7 @@ module V2::Logic
           Onetime::Customer.secrets_burned.increment
 
           secret_logger.info "Secret burned successfully", {
-            secret_key: secret.shortkey,
+            secret_key: secret.shortid,
             metadata_key: metadata.key,
             owner_id: owner&.custid,
             user_id: cust&.custid,
@@ -61,7 +61,7 @@ module V2::Logic
         elsif !correct_passphrase
           secret_logger.warn "Burn failed - incorrect passphrase", {
             metadata_key: metadata.key,
-            secret_key: potential_secret.shortkey,
+            secret_key: potential_secret.shortid,
             user_id: cust&.custid,
             ip: req&.ip,
             action: 'burn',

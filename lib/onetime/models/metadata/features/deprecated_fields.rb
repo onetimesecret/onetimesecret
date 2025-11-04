@@ -33,8 +33,8 @@ module Onetime::Metadata::Features
 
         if eaddrs.nil? || eaddrs.empty?
           secret_logger.info "No email addresses specified for delivery", {
-            metadata_key: key,
-            secret_key: secret.key,
+            metadata_id: key,
+            secret_id: secret.key,
             user: cust.obscure_email,
             action: 'deliver_email'
           }
@@ -42,8 +42,8 @@ module Onetime::Metadata::Features
         end
 
         secret_logger.debug "Preparing email delivery", {
-          metadata_key: key,
-          secret_key: secret.key,
+          metadata_id: key,
+          secret_id: secret.key,
           user: cust.obscure_email,
           token: token.nil? ? nil : 'present',
           action: 'deliver_email'
@@ -55,8 +55,8 @@ module Onetime::Metadata::Features
         eaddrs_safe_str = eaddrs_safe.join(', ')
 
         secret_logger.info "Delivering secret by email", {
-          metadata_key: key,
-          secret_key: secret.key,
+          metadata_id: key,
+          secret_id: secret.key,
           user: cust.obscure_email,
           recipient_count: eaddrs_safe.size,
           recipients: eaddrs_safe_str,
@@ -66,8 +66,8 @@ module Onetime::Metadata::Features
 
         if eaddrs.size > 1
           secret_logger.warn "Multiple recipients detected", {
-            metadata_key: key,
-            secret_key: secret.key,
+            metadata_id: key,
+            secret_id: secret.key,
             recipient_count: eaddrs.size,
             action: 'deliver_email'
           }
@@ -107,8 +107,8 @@ module Onetime::Metadata::Features
         save update_expiration: false
 
         secret_logger.info "Metadata state transition to viewed", {
-          metadata_key: shortkey,
-          secret_key: secret_shortkey,
+          metadata_id: shortid,
+          secret_id: secret_identifier,
           previous_state: 'new',
           new_state: 'viewed',
           timestamp: viewed
@@ -123,12 +123,12 @@ module Onetime::Metadata::Features
         previous_state = state
         self.state      = 'received'
         self.received   = Familia.now.to_i
-        self.secret_key = ''
+        self.secret_identifier = ''
         save update_expiration: false
 
         secret_logger.info "Metadata state transition to received", {
-          metadata_key: shortkey,
-          secret_key: secret_shortkey,
+          metadata_id: shortid,
+          secret_id: secret_identifier,
           previous_state: previous_state,
           new_state: 'received',
           timestamp: received
@@ -136,24 +136,24 @@ module Onetime::Metadata::Features
       end
 
       # We use this method in special cases where a metadata record exists with
-      # a secret_key value but no valid secret object exists. This can happen
+      # a secret_id value but no valid secret object exists. This can happen
       # when a secret is manually deleted but the metadata record is not. Otherwise
       # it's a bug and although unintentional we want to handle it gracefully here.
       def orphaned!
         # A guard to prevent modifying metadata records that already have
         # cleared out the secret (and that probably have already set a reason).
-        return if secret_key.to_s.empty?
+        return if secret_id.to_s.empty?
         return unless state?(:new) || state?(:viewed) # only new or viewed secrets can be orphaned
 
         previous_state = state
         self.state      = 'orphaned'
         self.updated    = Familia.now.to_i
-        self.secret_key = ''
+        self.secret_identifier = ''
         save update_expiration: false
 
         secret_logger.warn "Metadata state transition to orphaned", {
-          metadata_key: shortkey,
-          secret_key: secret_shortkey,
+          metadata_id: shortid,
+          secret_id: secret_identifier,
           previous_state: previous_state,
           new_state: 'orphaned',
           timestamp: updated
@@ -167,12 +167,12 @@ module Onetime::Metadata::Features
         previous_state = state
         self.state      = 'burned'
         self.burned     = Familia.now.to_i
-        self.secret_key = ''
+        self.secret_identifier = ''
         save update_expiration: false
 
         secret_logger.info "Metadata state transition to burned", {
-          metadata_key: shortkey,
-          secret_key: secret_shortkey,
+          metadata_id: shortid,
+          secret_id: secret_identifier,
           previous_state: previous_state,
           new_state: 'burned',
           timestamp: burned
@@ -187,12 +187,12 @@ module Onetime::Metadata::Features
         previous_state = state
         self.state      = 'expired'
         self.updated    = Familia.now.to_i
-        self.secret_key = ''
+        self.secret_identifier = ''
         save update_expiration: false
 
         secret_logger.info "Metadata state transition to expired", {
-          metadata_key: shortkey,
-          secret_key: secret_shortkey,
+          metadata_id: shortid,
+          secret_id: secret_identifier,
           previous_state: previous_state,
           new_state: 'expired',
           timestamp: updated,

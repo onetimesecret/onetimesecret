@@ -33,7 +33,7 @@ const linkTitle = computed(() => {
 }
 );
 
-const displayKey = computed(() => `${props.secretMetadata.secret_shortkey}`);
+const displayKey = computed(() => `${props.secretMetadata.secret_shortid}`);
 
 const formattedDate = computed(() =>
   formatRelativeTime(props.secretMetadata.created)

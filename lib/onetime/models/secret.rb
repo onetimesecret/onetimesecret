@@ -38,13 +38,12 @@ module Onetime
       self.state ||= 'new'
     end
 
-    def shortkey
-      key.slice(0, 6)
+    def shortid
+      identifier.slice(0, 6)
     end
 
     def age
       @age ||= Familia.now.to_i - updated
-      @age
     end
 
     def expiration
@@ -75,7 +74,7 @@ module Onetime
     end
 
     def load_metadata
-      Onetime::Metadata.load metadata_key
+      Onetime::Metadata.load metadata_identifier
     end
   end
 end

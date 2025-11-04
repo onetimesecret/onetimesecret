@@ -11,21 +11,21 @@ import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
  *
  * 1. `mockMetadataRecord`:
  *    - `secret_key: 'secret-test-key-123'`
- *    - `secret_shortkey: 'secret-abc123'`
+ *    - `secret_shortid: 'secret-abc123'`
  *
  * 2. `mockBurnedMetadataRecord`:
  *    - `secret_key: 'secret-burned-key-123'`
- *    - `secret_shortkey: 'secret-burned-abc123'`
+ *    - `secret_shortid: 'secret-burned-abc123'`
  *
  * 3. `mockReceivedMetadataRecord`:
  *    - `secret_key: 'secret-received-key-123'`
- *    - `secret_shortkey: 'secret-received-abc123'`
+ *    - `secret_shortid: 'secret-received-abc123'`
  *
  * 4. `mockOrphanedMetadataRecord`:
  *    - `secret_key: 'secret-orphaned-key-123'`
- *    - `secret_shortkey: 'secret-orphaned-abc123'`
+ *    - `secret_shortid: 'secret-orphaned-abc123'`
  *
- * 5. In `mockMetadataRecordsList`, each record also has unique `secret_key` and `secret_shortkey`:
+ * 5. In `mockMetadataRecordsList`, each record also has unique `secret_key` and `secret_shortid`:
  *    - Received records:
  *      - `secret-received-1` / `sec-rcv1`
  *      - `secret-received-2` / `sec-rcv2`
@@ -47,9 +47,9 @@ import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
  */
 export const mockMetadataRecord: Metadata = {
   key: 'testkey123',
-  shortkey: 'abc123',
+  shortid: 'abc123',
   secret_key: 'secret-test-key-123', // Added
-  secret_shortkey: 'secret-abc123', // Added
+  secret_shortid: 'secret-abc123', // Added
   state: MetadataState.NEW,
   natural_expiration: '24 hours',
   expiration: new Date('2024-12-26T00:06:54Z'),
@@ -96,11 +96,11 @@ export const mockMetadataDetails: MetadataDetails = {
 export const mockBurnedMetadataRecord: Metadata = {
   ...mockMetadataRecord,
   key: 'burnedkey',
-  shortkey: 'b123',
+  shortid: 'b123',
   state: MetadataState.BURNED,
   burned: new Date('2024-12-25T16:06:54Z'),
   secret_key: 'secret-burned-key-123', // Updated
-  secret_shortkey: 'secret-burned-abc123', // Updated
+  secret_shortid: 'secret-burned-abc123', // Updated
   is_burned: true,
 };
 
@@ -115,11 +115,11 @@ export const mockBurnedMetadataDetails: MetadataDetails = {
 export const mockReceivedMetadataRecord: Metadata = {
   ...mockMetadataRecord,
   key: 'receivedkey',
-  shortkey: 'rcv123',
+  shortid: 'rcv123',
   state: MetadataState.RECEIVED,
   received: new Date('2024-12-25T16:06:54Z'),
   secret_key: 'secret-received-key-123', // Updated
-  secret_shortkey: 'secret-received-abc123', // Updated
+  secret_shortid: 'secret-received-abc123', // Updated
   is_received: true,
 };
 
@@ -131,10 +131,10 @@ export const mockReceivedMetadataDetails: MetadataDetails = {
 export const mockOrphanedMetadataRecord: Metadata = {
   ...mockMetadataRecord,
   key: 'orphanedkey',
-  shortkey: 'orphan123',
+  shortid: 'orphan123',
   state: MetadataState.ORPHANED,
   secret_key: 'secret-orphaned-key-123',
-  secret_shortkey: 'secret-orphaned-abc123', // Changed from 'so-abc123'
+  secret_shortid: 'secret-orphaned-abc123', // Changed from 'so-abc123'
   is_orphaned: true,
 };
 
@@ -153,7 +153,7 @@ export const createMetadataWithPassphrase = (
   record: mockMetadataRecord,
   details: {
     ...mockMetadataDetails,
-    has_passphrase: true,
+    has_passphrase: !!passphrase,
     secret_value: null,
     can_decrypt: false,
   },
@@ -174,7 +174,7 @@ export const mockMetadataRecentRecords = [
     // Add these required fields from metadataBaseSchema
     state: 'new',
     key: 'key123',
-    shortkey: 'short123',
+    shortid: 'short123',
     created: new Date(),
     updated: new Date(),
   },
@@ -188,8 +188,8 @@ export const mockMetadataRecentDetails = {
   received: [
     {
       key: 'received-metadata-1',
-      shortkey: 'rcv-short-1',
-      secret_shortkey: 'sec-rcv-1',
+      shortid: 'rcv-short-1',
+      secret_shortid: 'sec-rcv-1',
       custid: 'user-789',
       secret_ttl: 1800, // 30 minutes
       state: MetadataState.RECEIVED,
@@ -207,8 +207,8 @@ export const mockMetadataRecentDetails = {
   notreceived: [
     {
       key: 'not-received-metadata-1',
-      shortkey: 'nrcv-short-1',
-      secret_shortkey: 'sec-nrcv-1',
+      shortid: 'nrcv-short-1',
+      secret_shortid: 'sec-nrcv-1',
       custid: 'user-101',
       secret_ttl: 5400, // 1.5 hours
       state: MetadataState.NEW,
@@ -232,7 +232,7 @@ export const mockMetadataRecent = {
 
 export const mockSecretRecord: Secret = {
   key: 'testkey123',
-  shortkey: 'abc123',
+  shortid: 'abc123',
   state: SecretState.NEW,
   identifier: 'testkey123',
   created: new Date(),
@@ -250,7 +250,7 @@ export const mockBurnedSecretRecord: Secret | null = null;
 
 export const mockReceivedSecretRecord: Secret = {
   key: 'secret-received-key-123',
-  shortkey: 'secret-received-abc123',
+  shortid: 'secret-received-abc123',
   state: SecretState.RECEIVED,
   identifier: 'testkey123',
   created: new Date(),
@@ -265,7 +265,7 @@ export const mockReceivedSecretRecord: Secret = {
 
 export const mockOrphanedSecretRecord: Secret = {
   key: 'secret-orphaned-key-123',
-  shortkey: 'secret-orphaned-abc123',
+  shortid: 'secret-orphaned-abc123',
   state: SecretState.VIEWED,
   identifier: 'testkey123',
   created: new Date(),
@@ -281,7 +281,7 @@ export const mockOrphanedSecretRecord: Secret = {
 
 export const mockReceivedSecretRecord1: Secret = {
   key: 'secret-received-1',
-  shortkey: 'sec-rcv1',
+  shortid: 'sec-rcv1',
   state: SecretState.RECEIVED,
   identifier: 'testkey123',
   created: new Date(),
@@ -296,7 +296,7 @@ export const mockReceivedSecretRecord1: Secret = {
 
 export const mockReceivedSecretRecord2: Secret = {
   key: 'secret-received-2',
-  shortkey: 'sec-rcv2',
+  shortid: 'sec-rcv2',
   state: SecretState.RECEIVED,
   identifier: 'testkey123',
   created: new Date(),
@@ -311,7 +311,7 @@ export const mockReceivedSecretRecord2: Secret = {
 
 export const mockNotReceivedSecretRecord1: Secret = {
   key: 'secret-not-received-1',
-  shortkey: 'sec-nrcv1',
+  shortid: 'sec-nrcv1',
   state: SecretState.NEW,
   identifier: 'testkey123',
   created: new Date(),

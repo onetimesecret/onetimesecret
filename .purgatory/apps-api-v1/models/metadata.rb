@@ -17,7 +17,7 @@ module V1
     field :custid
     field :state
     field :secret_key
-    field :secret_shortkey
+    field :secret_shortid
     field :secret_ttl
     field :lifespan
     field :share_domain
@@ -44,7 +44,7 @@ module V1
     safe_dump_field :key
     safe_dump_field :custid
     safe_dump_field :state
-    safe_dump_field :secret_shortkey
+    safe_dump_field :secret_shortid
     safe_dump_field :secret_ttl
     safe_dump_field :metadata_ttl, ->(m) { m.lifespan }
     safe_dump_field :lifespan
@@ -57,7 +57,7 @@ module V1
     safe_dump_field :viewed
     safe_dump_field :recipients
 
-    safe_dump_field :shortkey, ->(m) { m.key.slice(0, 8) }
+    safe_dump_field :shortid, ->(m) { m.key.slice(0, 8) }
     safe_dump_field :show_recipients, ->(m) { !m.recipients.to_s.empty? }
 
     safe_dump_field :is_viewed, ->(m) { m.state?(:viewed) }
@@ -121,7 +121,7 @@ module V1
       age > seconds
     end
 
-    def shortkey
+    def shortid
       key.slice(0,6)
     end
 

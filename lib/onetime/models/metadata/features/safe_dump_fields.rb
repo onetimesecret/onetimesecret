@@ -22,7 +22,7 @@ module Onetime::Metadata::Features
       base.safe_dump_field :identifier, ->(obj) { obj.identifier }
       base.safe_dump_field :custid
       base.safe_dump_field :state
-      base.safe_dump_field :secret_shortkey
+      base.safe_dump_field :secret_shortid
       base.safe_dump_field :secret_ttl
       base.safe_dump_field :metadata_ttl, ->(m) { m.lifespan }
       base.safe_dump_field :lifespan
@@ -34,7 +34,7 @@ module Onetime::Metadata::Features
       base.safe_dump_field :burned
       base.safe_dump_field :viewed
       base.safe_dump_field :recipients
-      base.safe_dump_field :shortkey, ->(m) { m.key.slice(0, 8) }
+      base.safe_dump_field :shortid, ->(m) { m.key.slice(0, 8) }
       base.safe_dump_field :show_recipients, ->(m) { !m.recipients.to_s.empty? }
       base.safe_dump_field :is_viewed, ->(m) { m.state?(:viewed) }
       base.safe_dump_field :is_received, ->(m) { m.state?(:received) }

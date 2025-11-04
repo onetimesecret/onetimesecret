@@ -41,7 +41,7 @@ describe('metadataListStore', () => {
         count: 2,
         records: [
           mockMetadataRecent.records[0],
-          { ...mockMetadataRecent.records[0], key: 'key456', shortkey: 'short456' }
+          { ...mockMetadataRecent.records[0], key: 'key456', shortid: 'short456' },
         ],
         details: mockMetadataRecent.details,
       };
@@ -136,9 +136,12 @@ describe('metadataListStore', () => {
         details: mockMetadataRecent.details,
       };
 
-      axiosMock.onGet('/api/v2/receipt/recent').reply(() => new Promise((resolve) => {
-          setTimeout(() => resolve([200, mockResponse]), 50);
-        }));
+      axiosMock.onGet('/api/v2/receipt/recent').reply(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(() => resolve([200, mockResponse]), 50);
+          })
+      );
 
       await store.fetchList();
 
@@ -265,13 +268,13 @@ describe('metadataListStore', () => {
         //expect(notifySpy).toHaveBeenCalledWith(expect.any(String), 'error');
 
         // Add debugging info about notification calls
-        console.log('Notification spy calls:', notifySpy.mock.calls);
+        // console.log('Notification spy calls:', notifySpy.mock.calls);
       });
     });
 
     describe('loading state transitions', () => {
       it('follows correct loading state sequence for successful request', async () => {
-        const loadingStates: boolean[] = [];
+        // const loadingStates: boolean[] = [];
         // const mockResponse = {
         //   record: mockMetadataRecentRecords,
         //   details: mockMetadataRecentDetails,
@@ -283,7 +286,7 @@ describe('metadataListStore', () => {
       });
 
       it('handles loading state properly with error', async () => {
-        const loadingStates: boolean[] = [];
+        // const loadingStates: boolean[] = [];
 
         store.$subscribe(() => {
           // Store doesn't expose isLoading property
@@ -291,7 +294,7 @@ describe('metadataListStore', () => {
       });
 
       it('maintains loading state during concurrent requests', async () => {
-        const loadingStates: boolean[] = [];
+        // const loadingStates: boolean[] = [];
 
         store.$subscribe(() => {
           // Store doesn't expose isLoading property

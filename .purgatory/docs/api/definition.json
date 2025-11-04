@@ -1990,20 +1990,20 @@
               "key": {
                 "type": "string"
               },
-              "shortkey": {
+              "shortid": {
                 "type": "string"
               },
               "secret_key": {
                 "type": "string"
               },
-              "secret_shortkey": {
+              "secret_shortid": {
                 "type": "string"
               },
               "share_domain": {
                 "type": "string"
               }
             },
-            "required": ["key", "shortkey", "secret_key", "secret_shortkey", "share_domain"]
+            "required": ["key", "shortid", "secret_key", "secret_shortid", "share_domain"]
           }
         ]
       },

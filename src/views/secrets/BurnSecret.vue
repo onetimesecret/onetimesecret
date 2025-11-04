@@ -95,7 +95,7 @@
           {{ $t('web.COMMON.burn_this_secret_aria') }}
         </h1>
         <h2 class="text-xl text-gray-600 dark:text-gray-400">
-          {{ $t('web.COMMON.secret') }}: {{ record?.secret_shortkey }}
+          {{ $t('web.COMMON.secret') }}: {{ record?.secret_shortid }}
         </h2>
       </div>
 

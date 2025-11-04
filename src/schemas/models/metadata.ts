@@ -45,8 +45,8 @@ export const metadataStateSchema = z.enum(Object.values(MetadataState) as [strin
 // Common base schema for all metadata records
 export const metadataBaseSchema = createModelSchema({
   key: z.string(),
-  shortkey: z.string(),
-  secret_shortkey: z.string().optional(),
+  shortid: z.string(),
+  secret_shortid: z.string().optional(),
   recipients: z.array(z.string()).or(z.string()).nullable().optional(),
   share_domain: z.string().nullable().optional(),
   secret_ttl: transforms.fromString.number,

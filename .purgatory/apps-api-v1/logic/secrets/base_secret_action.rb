@@ -237,7 +237,7 @@ module V1::Logic
         metadata.default_expiration, secret.default_expiration = ttl*2, ttl
         metadata.lifespan = metadata.default_expiration.to_i
         metadata.secret_ttl = secret.default_expiration.to_i
-        metadata.secret_shortkey = secret.shortkey
+        metadata.secret_short_identifier = secret.shortid
         metadata.share_domain = share_domain
         secret.lifespan = secret.default_expiration.to_i
         secret.share_domain = share_domain

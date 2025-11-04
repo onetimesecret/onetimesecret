@@ -80,8 +80,8 @@ module Onetime
       age > seconds
     end
 
-    def shortkey
-      key.slice(0, 6)
+    def shortid
+      identifier.slice(0, 6)
     end
 
     def anonymous?
@@ -108,21 +108,6 @@ module Onetime
       def generate_id
         Familia.generate_id
       end
-
-      # def save_secret
-      #   secret.encrypt_value secret_value
-      #   metadata.default_expiration             = ttl * 2
-      #   secret.default_expiration               = ttl
-      #   metadata.lifespan        = metadata.default_expiration.to_i
-      #   metadata.secret_ttl      = secret.default_expiration.to_i
-      #   metadata.secret_shortkey = secret.shortkey
-      #   metadata.share_domain    = share_domain
-      #   secret.lifespan          = secret.default_expiration.to_i
-      #   secret.share_domain      = share_domain
-      #   secret.save
-      #   metadata.save
-      #   @greenlighted            = metadata.valid? && secret.valid?
-      # end
 
       def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil)
 

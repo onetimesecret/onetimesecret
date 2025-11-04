@@ -57,14 +57,12 @@ describe('Metadata Fixtures Integrity', () => {
           expect(record).toBeTruthy();
           expect(record.state).toBe(expectedState);
           expect(record.secret_key).toBe(expectedSecretKey);
-          expect(record.secret_shortkey).toBe(expectedSecretShortkey);
+          expect(record.secret_shortid).toBe(expectedSecretShortkey);
 
           // Check date fields
           expect(record.created).toBeInstanceOf(Date);
           expect(record.updated).toBeInstanceOf(Date);
-          expect(record.updated.getTime()).toBeGreaterThanOrEqual(
-            record.created.getTime()
-          );
+          expect(record.updated.getTime()).toBeGreaterThanOrEqual(record.created.getTime());
         });
       }
     );
@@ -76,18 +74,19 @@ describe('Metadata Fixtures Integrity', () => {
       expect(mockBurnedMetadataRecord.state).toBe(MetadataState.BURNED);
       expect(mockBurnedMetadataRecord.burned).toBeInstanceOf(Date);
       expect(mockBurnedMetadataRecord.secret_key).toBe('secret-burned-key-123');
-      expect(mockBurnedMetadataRecord.secret_shortkey).toBe('secret-burned-abc123');
+      expect(mockBurnedMetadataRecord.secret_shortid).toBe('secret-burned-abc123');
     });
 
     it('Orphaned metadata record is not null', () => {
       expect(mockOrphanedMetadataRecord).toBeTruthy();
       expect(mockOrphanedMetadataRecord.state).toBe(MetadataState.ORPHANED);
       expect(mockOrphanedMetadataRecord.secret_key).toBe('secret-orphaned-key-123');
-      expect(mockOrphanedMetadataRecord.secret_shortkey).toBe('secret-orphaned-abc123');
+      expect(mockOrphanedMetadataRecord.secret_shortid).toBe('secret-orphaned-abc123');
     });
     it('rejects invalid metadata state', () => {
       // Assuming MetadataState is an enum or a union type
-      const isValidState = (state: any): state is MetadataState => Object.values(MetadataState).includes(state);
+      const isValidState = (state: any): state is MetadataState =>
+        Object.values(MetadataState).includes(state);
 
       expect(() => {
         const invalidRecord = {
@@ -114,7 +113,7 @@ describe('Metadata Fixtures Integrity', () => {
       const receivedRecords = mockMetadataRecent.details.received;
 
       expect(receivedRecords[0].key).toBe('received-metadata-1');
-      expect(receivedRecords[0].shortkey).toBe('rcv-short-1');
+      expect(receivedRecords[0].shortid).toBe('rcv-short-1');
       expect(receivedRecords[0].state).toBe(MetadataState.RECEIVED);
     });
 
@@ -122,7 +121,7 @@ describe('Metadata Fixtures Integrity', () => {
       const notReceivedRecord = mockMetadataRecent.details.notreceived[0];
 
       expect(notReceivedRecord.key).toBe('not-received-metadata-1');
-      expect(notReceivedRecord.shortkey).toBe('nrcv-short-1');
+      expect(notReceivedRecord.shortid).toBe('nrcv-short-1');
       expect(notReceivedRecord.state).toBe(MetadataState.NEW);
     });
   });
@@ -149,20 +148,18 @@ describe('Metadata Fixtures Integrity', () => {
       },
     ];
 
-    secretRecordTestCases.forEach(
-      ({ name, secretRecord, expectedKey, expectedState }) => {
-        it(`"${name}" has correct structure`, () => {
-          expect(secretRecord).toBeTruthy();
-          expect(secretRecord.key).toBe(expectedKey);
-          expect(secretRecord.state).toBe(expectedState);
+    secretRecordTestCases.forEach(({ name, secretRecord, expectedKey, expectedState }) => {
+      it(`"${name}" has correct structure`, () => {
+        expect(secretRecord).toBeTruthy();
+        expect(secretRecord.key).toBe(expectedKey);
+        expect(secretRecord.state).toBe(expectedState);
 
-          // Validate common fields
-          expect(secretRecord.is_truncated).toBe(false);
-          expect(secretRecord.has_passphrase).toBe(false);
-          expect(secretRecord.verification).toBe(true);
-        });
-      }
-    );
+        // Validate common fields
+        expect(secretRecord.is_truncated).toBe(false);
+        expect(secretRecord.has_passphrase).toBe(false);
+        expect(secretRecord.verification).toBe(true);
+      });
+    });
 
     it('Burned secret record is null', () => {
       expect(mockBurnedSecretRecord).toBeNull();
@@ -182,21 +179,21 @@ describe('Metadata Fixtures Integrity', () => {
           metadataRecord: mockMetadataRecent.details.received[0],
           secretRecord: {
             key: 'sec-rcv-1',
-            shortkey: 'rcv-short-1',
+            shortid: 'rcv-short-1',
           },
         },
         {
           metadataRecord: mockMetadataRecent.details.notreceived[0],
           secretRecord: {
             key: 'sec-nrcv-1',
-            shortkey: 'nrcv-short-1',
+            shortid: 'nrcv-short-1',
           },
         },
       ];
 
       verificationCases.forEach(({ metadataRecord, secretRecord }) => {
-        expect(metadataRecord.secret_shortkey).toBe(secretRecord.key);
-        expect(metadataRecord.shortkey).toBe(secretRecord.shortkey);
+        expect(metadataRecord.secret_shortid).toBe(secretRecord.key);
+        expect(metadataRecord.shortid).toBe(secretRecord.shortid);
       });
     });
   });
@@ -223,7 +220,7 @@ describe('Metadata Fixtures Integrity', () => {
 
       records.forEach((record) => {
         expect(record.key).toBeTruthy();
-        expect(record.shortkey).toBeTruthy();
+        expect(record.shortid).toBeTruthy();
         expect(record.state).toBeDefined();
         expect(record.custid).toBeTruthy();
         expect(typeof record.secret_ttl).toBe('number');

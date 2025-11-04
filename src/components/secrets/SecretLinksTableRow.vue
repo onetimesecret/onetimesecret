@@ -106,7 +106,7 @@
   });
 
   // Display key (shortened for clarity)
-  const displayKey = computed(() => props.concealedMessage.response.record.secret.shortkey);
+  const displayKey = computed(() => props.concealedMessage.response.record.secret.shortid);
 </script>
 
 <template>

@@ -19,7 +19,7 @@ module Onetime::Secret::Features
         base.field :truncated # boolean
         base.field :key
         base.field :secret_key
-        base.field :secret_shortkey
+        base.field :secret_shortid
       end
 
     end
