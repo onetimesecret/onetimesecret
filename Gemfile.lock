@@ -14,7 +14,7 @@ GIT
 
 GIT
   remote: https://github.com/delano/otto
-  revision: 8d7be339f7fb83bb71eedc5d0035fc3a03476eac
+  revision: 9437e17c064ba47b7d0fdc0f5ebce9f9655d47d1
   specs:
     otto (2.0.0.pre5)
       concurrent-ruby (~> 1.3, < 2.0)
@@ -229,7 +229,7 @@ GEM
     puma (7.1.0)
       nio4r (~> 2.0)
     racc (1.8.1)
-    rack (3.2.3)
+    rack (3.2.4)
     rack-contrib (2.5.0)
       rack (< 4)
     rack-parser (0.7.0)
