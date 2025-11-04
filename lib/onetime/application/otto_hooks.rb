@@ -30,6 +30,9 @@ module Onetime
       def configure_otto_request_hook(router)
         return unless Onetime.debug?
 
+        # Register expected errors with status codes and log levels
+        router.register_error_handler(Onetime::MissingSecret, status: 404, log_level: :info)
+
         router.on_request_complete do |req, res, duration|
           # Use HTTP logger for request lifecycle events
           logger = Onetime.get_logger('HTTP')

@@ -14,7 +14,7 @@ GIT
 
 GIT
   remote: https://github.com/delano/otto
-  revision: d504b6b0c9e7ef9deb3212d216b1d06fe650667a
+  revision: aebbc315f8e44ead8c589d56a5b37cff22b74c26
   specs:
     otto (2.0.0.pre6)
       concurrent-ruby (~> 1.3, < 2.0)
