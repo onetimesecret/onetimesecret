@@ -24,7 +24,7 @@ OT.boot! :test, false
 @cust = Onetime::Customer.create!(email: @email)
 @metadata = Onetime::Metadata.create
 @secret = Onetime::Secret.create value: "This is a secret message"
-@metadata.secret_key = @secret.key
+@metadata.secret_identifier = @secret.identifier
 @metadata.save
 
 class MockRequest

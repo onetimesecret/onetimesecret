@@ -43,7 +43,7 @@ module V1
     safe_dump_field :secret_ttl, ->(m) { m.lifespan }
     safe_dump_field :lifespan
     safe_dump_field :original_size
-    safe_dump_field :shortid, ->(m) { m.key.slice(0, 8) }
+    safe_dump_field :shortid, ->(m) { m.identifier.slice(0, 8) }
     safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
     safe_dump_field :verification, ->(m) { m.verification? }
     safe_dump_field :is_truncated, ->(m) { m.truncated? }

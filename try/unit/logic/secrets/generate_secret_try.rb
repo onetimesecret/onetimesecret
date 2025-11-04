@@ -30,13 +30,13 @@ OT.boot! :test, false
 
 ## New secrets now get a key automatically when created
 secret = Secret.new
-[secret.key.class, secret.key.length > 16]
+[secret.identifier.class, secret.identifier.length > 16]
 #=> [String, true]
 
 ## Calling generate_id on secrets ensures they have a key
 secret = Secret.new
 secret.generate_id
-[secret.key.is_a?(String), secret.key.length > 16]
+[secret.identifier.is_a?(String), secret.identifier.length > 16]
 #=> [true, true]
 
 ## Test basic secret creation
@@ -66,26 +66,26 @@ logic = Logic::Secrets::ConcealSecret.new @strategy_result_with_cust, {secret: @
 
 # Test secret viewing
 @view_params = {
-  key: @secret.key, # Key converted to symbol
+  key: @secret.identifier, # Key converted to symbol
   passphrase: 'testpass123', # Key converted to symbol
 }
 logic = Logic::Secrets::ShowSecret.new @strategy_result_with_cust, @view_params
 [logic.key, logic.passphrase]
-#=> [@secret.key, 'testpass123']
+#=> [@secret.identifier, 'testpass123']
 
 # RevealSecret Tests
 
 ## Test secret revealing (v2 API)
 logic = V2::Logic::Secrets::RevealSecret.new @strategy_result_with_cust, @view_params
 [logic.key, logic.passphrase]
-#=> [@secret.key, 'testpass123']
+#=> [@secret.identifier, 'testpass123']
 
 # ShowMetadata Tests
 
 ## Test metadata viewing
-logic = Logic::Secrets::ShowMetadata.new @strategy_result_with_cust, { key: @metadata.key }
-[logic.instance_variables.include?(:@key), logic.instance_variables.include?(:@metadata_key), logic.instance_variables.include?(:@secret_key), logic.secret_key, logic.key]
-#=> [true, false, false, nil, @metadata.key]
+logic = Logic::Secrets::ShowMetadata.new @strategy_result_with_cust, { key: @metadata.identifier }
+[logic.instance_variables.include?(:@key), logic.instance_variables.include?(:@metadata_identifier), logic.instance_variables.include?(:@secret_identifier), logic.secret_identifier, logic.key]
+#=> [true, false, false, nil, @metadata.identifier]
 
 # ListMetadata Tests
 
@@ -104,7 +104,7 @@ logic = Logic::Secrets::ListMetadata.new @strategy_result_with_cust, {}
 ## Test secret burning
 logic = Logic::Secrets::BurnSecret.new @strategy_result_with_cust, @view_params
 [logic.key, logic.passphrase]
-#=> [@secret.key, 'testpass123']
+#=> [@secret.identifier, 'testpass123']
 
 # Cleanup test data
 @cust.delete!

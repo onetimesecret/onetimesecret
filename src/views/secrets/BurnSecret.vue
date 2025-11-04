@@ -6,11 +6,11 @@
   import { onMounted } from 'vue';
 
   interface Props {
-    metadataKey: string;
+    metadataIdentifier: string;
   }
   const props = defineProps<Props>();
 
-  const { record, details, isLoading, passphrase, fetch, burn } = useMetadata(props.metadataKey);
+  const { record, details, isLoading, passphrase, fetch, burn } = useMetadata(props.metadataIdentifier);
 
   onMounted(() => {
     fetch();
@@ -62,7 +62,7 @@
         <!-- prettier-ignore-attribute class -->
         <router-link
           v-if="record?.metadata_path"
-          :to="{ name: 'Receipt link', params: { metadataKey: record.identifier } }"
+          :to="{ name: 'Receipt link', params: { metadataIdentifier: record.identifier } }"
           class="flex-1 rounded-lg
             bg-white px-4 py-2.5 text-center font-brand font-medium
             text-gray-700 shadow-sm transition

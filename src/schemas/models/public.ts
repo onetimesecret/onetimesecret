@@ -43,53 +43,59 @@ export const secretOptionsSchema = z.object({
   /**
    * Settings for the passphrase field that protects access to secrets
    */
-  passphrase: z.object({
-    /**
-     * Whether passphrases are required for all secrets
-     */
-    required: transforms.fromString.boolean.default(false),
+  passphrase: z
+    .object({
+      /**
+       * Whether passphrases are required for all secrets
+       */
+      required: transforms.fromString.boolean.default(false),
 
-    /**
-     * Minimum length required for passphrases
-     */
-    minimum_length: z.number().int().min(1).max(256).default(8),
+      /**
+       * Minimum length required for passphrases
+       */
+      minimum_length: z.number().int().min(1).max(256).default(8),
 
-    /**
-     * Maximum length allowed for passphrases
-     */
-    maximum_length: z.number().int().min(8).max(1024).default(128),
+      /**
+       * Maximum length allowed for passphrases
+       */
+      maximum_length: z.number().int().min(8).max(1024).default(128),
 
-    /**
-     * Whether to enforce complexity requirements
-     */
-    enforce_complexity: transforms.fromString.boolean.default(false),
-  }).optional(),
+      /**
+       * Whether to enforce complexity requirements
+       */
+      enforce_complexity: transforms.fromString.boolean.default(false),
+    })
+    .optional(),
 
   /**
    * Settings for password generation feature
    */
-  password_generation: z.object({
-    /**
-     * Default length for generated passwords
-     */
-    default_length: z.number().int().min(4).max(128).default(12),
+  password_generation: z
+    .object({
+      /**
+       * Default length for generated passwords
+       */
+      default_length: z.number().int().min(4).max(128).default(12),
 
-    /**
-     * Available length options for password generation
-     */
-    length_options: z.array(z.number().int().min(4).max(128)).default([8, 12, 16, 20, 24, 32]),
+      /**
+       * Available length options for password generation
+       */
+      length_options: z.array(z.number().int().min(4).max(128)).default([8, 12, 16, 20, 24, 32]),
 
-    /**
-     * Character sets to include in generated passwords
-     */
-    character_sets: z.object({
-      uppercase: transforms.fromString.boolean.default(true),
-      lowercase: transforms.fromString.boolean.default(true),
-      numbers: transforms.fromString.boolean.default(true),
-      symbols: transforms.fromString.boolean.default(false),
-      exclude_ambiguous: transforms.fromString.boolean.default(true),
-    }).optional(),
-  }).optional(),
+      /**
+       * Character sets to include in generated passwords
+       */
+      character_sets: z
+        .object({
+          uppercase: transforms.fromString.boolean.default(true),
+          lowercase: transforms.fromString.boolean.default(true),
+          numbers: transforms.fromString.boolean.default(true),
+          symbols: transforms.fromString.boolean.default(false),
+          exclude_ambiguous: transforms.fromString.boolean.default(true),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -180,7 +186,7 @@ const domainsSchema = z.object({
 const authenticitySchema = z
   .object({
     type: z.string(),
-    //  secret_key: z.string(),
+    //  secret_identifier: z.string(),
   })
   .strip();
 

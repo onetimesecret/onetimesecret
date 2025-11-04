@@ -24,7 +24,7 @@
   import UnknownSecret from './UnknownSecret.vue';
 
   interface Props {
-    secretKey: string;
+    secretIdentifier: string;
     domainId: string;
     displayDomain: string;
     siteHost: string;
@@ -38,7 +38,7 @@
 
 <template>
   <BaseShowSecret
-    :secret-key="secretKey"
+    :secret-identifier="secretIdentifier"
     :branded="true"
     :site-host="siteHost"
     class="container mx-auto mt-24 px-4">
@@ -69,7 +69,7 @@
           'mx-auto max-w-2xl space-y-20': true,
         }">
         <SecretConfirmationForm
-          :secret-key="secretKey"
+          :secret-identifier="secretIdentifier"
           :record="record"
           :details="details"
           :domain-id="domainId"
@@ -84,7 +84,7 @@
       <div class="mx-auto w-full max-w-2xl">
         <SecretDisplayCase
           aria-labelledby="secret-heading"
-          :secret-key="secretKey"
+          :secret-identifier="secretIdentifier"
           :record="record"
           :details="details"
           :domain-id="domainId"

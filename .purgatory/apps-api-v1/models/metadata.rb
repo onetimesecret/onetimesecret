@@ -57,7 +57,7 @@ module V1
     safe_dump_field :viewed
     safe_dump_field :recipients
 
-    safe_dump_field :shortid, ->(m) { m.key.slice(0, 8) }
+    safe_dump_field :shortid, ->(m) { m.identifier.slice(0, 8) }
     safe_dump_field :show_recipients, ->(m) { !m.recipients.to_s.empty? }
 
     safe_dump_field :is_viewed, ->(m) { m.state?(:viewed) }

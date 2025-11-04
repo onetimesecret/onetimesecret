@@ -62,7 +62,7 @@ const statusIcon = computed(() => {
     <div class="flex flex-col">
       <!-- Secret Key with Link -->
       <router-link
-        :to="{ name: 'Receipt link', params: { metadataKey: secretMetadata.identifier } }"
+        :to="{ name: 'Receipt link', params: { metadataIdentifier: secretMetadata.identifier } }"
         :class="linkClass"
         :title="linkTitle"
         :aria-label="`${$t('web.COMMON.secret')} ${displayKey} ${linkTitle}`">

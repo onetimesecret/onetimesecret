@@ -73,8 +73,8 @@
       if (!response) throw 'Response is missing';
       const newMessage: ConcealedMessage = {
         id: nanoid(),
-        metadata_key: response.record.metadata.key,
-        secret_key: response.record.secret.key,
+        metadata_identifier: response.record.metadata.identifier,
+        secret_identifier: response.record.secret.identifier,
         response,
         clientInfo: {
           hasPassphrase: !!form.passphrase,
@@ -88,7 +88,7 @@
       secretContentInput.value?.clearTextarea(); // Clear textarea
 
       // Navigate to the metadata view page
-      router.push(`/receipt/${response.record.metadata.key}`);
+      router.push(`/receipt/${response.record.metadata.identifier}`);
     },
   });
 

@@ -104,8 +104,8 @@ end
 
       { metadata: lambda { |cust|
         # Only include safe metadata fields
-        safe_metadata_keys = [:public_note, :preferred_language]
-        cust.metadata_list.select { |k, _| safe_metadata_keys.include?(k.to_sym) }
+        safe_metadata_identifiers = [:public_note, :preferred_language]
+        cust.metadata_list.select { |k, _| safe_metadata_identifiers.include?(k.to_sym) }
       } },
     ]
   end

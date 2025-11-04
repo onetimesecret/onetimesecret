@@ -13,7 +13,7 @@ import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
  *
  */
 /* eslint-disable max-lines-per-function */
-export function useMetadata(metadataKey: string) {
+export function useMetadata(metadataIdentifier: string) {
   const router = useRouter();
   const notifications = useNotificationsStore();
   const store = useMetadataStore();
@@ -44,7 +44,7 @@ export function useMetadata(metadataKey: string) {
 
   const fetch = async () =>
     wrap(async () => {
-      const result = await store.fetch(metadataKey);
+      const result = await store.fetch(metadataIdentifier);
       return result;
     });
 
@@ -54,14 +54,14 @@ export function useMetadata(metadataKey: string) {
         throw createError('Cannot burn this secret', 'human', 'error'); // fires synchronously fyi
       }
 
-      await store.burn(metadataKey, passphrase.value);
+      await store.burn(metadataIdentifier, passphrase.value);
 
       // Should be handled by the async handler
       //notifications.show('Secret burned successfully', 'success');
 
       router.push({
         name: 'Receipt link',
-        params: { metadataKey },
+        params: { metadataIdentifier },
         query: { ts: Date.now().toString() },
       });
     });

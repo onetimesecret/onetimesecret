@@ -35,7 +35,7 @@ module V1::Logic
         @metadata_key = metadata.key
         @metadata_short_identifier = metadata.shortid
         @secret_key = metadata.secret_key
-        @secret_short_identifier = metadata.secret_shortid
+        @secret_shortid = metadata.secret_shortid
 
         # Default the recipients to an empty string. When a Familia::Horreum
         # object is loaded, the fields that have no values (or that don't

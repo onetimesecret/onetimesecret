@@ -65,9 +65,9 @@ module Onetime::Customer::Features
       end
 
       def reset_secret?(secret)
-        return false if secret.nil? || !secret.exists? || secret.key.to_s.empty?
+        return false if secret.nil? || !secret.exists? || secret.identifier.to_s.empty?
 
-        Rack::Utils.secure_compare(reset_secret.to_s, secret.key)
+        Rack::Utils.secure_compare(reset_secret.to_s, secret.identifier)
       end
 
       def valid_reset_secret!(secret)

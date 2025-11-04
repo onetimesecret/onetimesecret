@@ -26,13 +26,13 @@ OT.boot! :test, true
 
 ## Can create a Metadata
 m = Onetime::Metadata.new :private
-[m.class, m.dbclient.connection[:db], m.secret_key]
+[m.class, m.dbclient.connection[:db], m.secret_identifier]
 #=> [Onetime::Metadata, 0, nil]
 
 ## Can explicitly set the secret key
 m = Onetime::Metadata.new :private
-m.secret_key = 'hihi'
-[m.class, m.dbclient.connection[:db], m.secret_key]
+m.secret_identifier = 'hihi'
+[m.class, m.dbclient.connection[:db], m.secret_identifier]
 #=> [Onetime::Metadata, 0, 'hihi']
 
 ## Keys are always unique for Metadata

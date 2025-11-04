@@ -4,8 +4,8 @@ import { ConcealDataResponse } from '@/schemas/api';
 
 export interface ConcealedMessage {
   id: string;
-  metadata_key: string;
-  secret_key: string;
+  metadata_identifier: string;
+  secret_identifier: string;
   response: ConcealDataResponse;
   clientInfo: {
     hasPassphrase: boolean;

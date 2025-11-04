@@ -35,7 +35,7 @@ module V2::Logic
           auth_logger.warn 'Invalid reset secret attempted', {
             customer_id: @cust.custid,
             email: @cust.obscure_email,
-            secret_key: secret.key,
+            secret_identifier: secret.identifier,
             ip: @strategy_result&.metadata&.dig(:ip)
           }
 

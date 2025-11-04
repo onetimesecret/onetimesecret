@@ -24,7 +24,7 @@ OT.boot! :test, true
 
 ## Can create Secret
 s = Onetime::Secret.new :private
-[s.class, s.dbclient.connection[:db], s.metadata_key]
+[s.class, s.dbclient.connection[:db], s.metadata_identifier]
 #=> [Onetime::Secret, 0, nil]
 
 ## Keys are always unique for Secrets
@@ -51,13 +51,13 @@ unique_values.size
 #=> [false, false]
 
 ## Private metadata key matches
-p [@secret.metadata_key, @metadata.key]
-[@secret.metadata_key.nil?, @secret.metadata_key == @metadata.key]
+p [@secret.metadata_identifier, @metadata.identifier]
+[@secret.metadata_identifier.nil?, @secret.metadata_identifier == @metadata.identifier]
 #=> [false, true]
 
 ## Shared secret key matches
-p [@secret.key, @metadata.secret_key]
-[@metadata.secret_key.nil?, @metadata.secret_key == @secret.key]
+p [@secret.identifier, @metadata.secret_identifier]
+[@metadata.secret_identifier.nil?, @metadata.secret_identifier == @secret.identifier]
 #=> [false, true]
 
 ## Kinds are correct

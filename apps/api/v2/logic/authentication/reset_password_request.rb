@@ -45,14 +45,14 @@ module V2::Logic
         secret.verification       = 'true'
         secret.save
 
-        cust.reset_secret = secret.key  # as a standalone dbkey, writes immediately
+        cust.reset_secret = secret.identifier  # as a standalone dbkey, writes immediately
 
         view = OT::Mail::PasswordRequest.new cust, locale, secret
 
         auth_logger.debug 'Delivering password reset email', {
           customer_id: cust.objid,
           email: cust.obscure_email,
-          secret_key: secret.key,
+          secret_identifier: secret.identifier,
           token: token&.slice(0, 8) # Only log first 8 chars for debugging
         }
 
@@ -73,7 +73,7 @@ module V2::Logic
             customer_id: cust.objid,
             email: cust.obscure_email,
             session_id: sess&.id,
-            secret_key: secret.key
+            secret_identifier: secret.identifier
           }
 
           set_info_message "We sent instructions to #{cust.objid}"

@@ -23,6 +23,7 @@ module Onetime
     field :owner_id
     field :state
     field :secret_identifier
+    field :secret_shortid
     field :secret_ttl
     field :lifespan
     field :share_domain
@@ -101,7 +102,7 @@ module Onetime
     end
 
     def load_secret
-      Onetime::Secret.load secret_key
+      Onetime::Secret.load secret_identifier
     end
 
     class << self

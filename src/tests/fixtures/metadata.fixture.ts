@@ -10,22 +10,22 @@ import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
  * Relationship quick reference:
  *
  * 1. `mockMetadataRecord`:
- *    - `secret_key: 'secret-test-key-123'`
+ *    - `secret_identifier: 'secret-test-key-123'`
  *    - `secret_shortid: 'secret-abc123'`
  *
  * 2. `mockBurnedMetadataRecord`:
- *    - `secret_key: 'secret-burned-key-123'`
+ *    - `secret_identifier: 'secret-burned-key-123'`
  *    - `secret_shortid: 'secret-burned-abc123'`
  *
  * 3. `mockReceivedMetadataRecord`:
- *    - `secret_key: 'secret-received-key-123'`
+ *    - `secret_identifier: 'secret-received-key-123'`
  *    - `secret_shortid: 'secret-received-abc123'`
  *
  * 4. `mockOrphanedMetadataRecord`:
- *    - `secret_key: 'secret-orphaned-key-123'`
+ *    - `secret_identifier: 'secret-orphaned-key-123'`
  *    - `secret_shortid: 'secret-orphaned-abc123'`
  *
- * 5. In `mockMetadataRecordsList`, each record also has unique `secret_key` and `secret_shortid`:
+ * 5. In `mockMetadataRecordsList`, each record also has unique `secret_identifier` and `secret_shortid`:
  *    - Received records:
  *      - `secret-received-1` / `sec-rcv1`
  *      - `secret-received-2` / `sec-rcv2`
@@ -33,7 +33,7 @@ import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
  *      - `secret-not-received-1` / `sec-nrcv1`
  *
  *  Every metadata record expects to have exactly one reference to a secret
- *  record, via secret_key and secret_short_key. Review and make sure all
+ *  record, via secret_identifier and secret_short_key. Review and make sure all
  *  metadata objects have a singular standalone secret to refer to.
  *
  *  To fully implement the 1:1 relationship, we created corresponding mock
@@ -48,7 +48,7 @@ import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 export const mockMetadataRecord: Metadata = {
   key: 'testkey123',
   shortid: 'abc123',
-  secret_key: 'secret-test-key-123', // Added
+  secret_identifier: 'secret-test-key-123', // Added
   secret_shortid: 'secret-abc123', // Added
   state: MetadataState.NEW,
   natural_expiration: '24 hours',
@@ -99,7 +99,7 @@ export const mockBurnedMetadataRecord: Metadata = {
   shortid: 'b123',
   state: MetadataState.BURNED,
   burned: new Date('2024-12-25T16:06:54Z'),
-  secret_key: 'secret-burned-key-123', // Updated
+  secret_identifier: 'secret-burned-key-123', // Updated
   secret_shortid: 'secret-burned-abc123', // Updated
   is_burned: true,
 };
@@ -118,7 +118,7 @@ export const mockReceivedMetadataRecord: Metadata = {
   shortid: 'rcv123',
   state: MetadataState.RECEIVED,
   received: new Date('2024-12-25T16:06:54Z'),
-  secret_key: 'secret-received-key-123', // Updated
+  secret_identifier: 'secret-received-key-123', // Updated
   secret_shortid: 'secret-received-abc123', // Updated
   is_received: true,
 };
@@ -133,7 +133,7 @@ export const mockOrphanedMetadataRecord: Metadata = {
   key: 'orphanedkey',
   shortid: 'orphan123',
   state: MetadataState.ORPHANED,
-  secret_key: 'secret-orphaned-key-123',
+  secret_identifier: 'secret-orphaned-key-123',
   secret_shortid: 'secret-orphaned-abc123', // Changed from 'so-abc123'
   is_orphaned: true,
 };

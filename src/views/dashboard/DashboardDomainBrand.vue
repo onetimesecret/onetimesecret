@@ -208,7 +208,7 @@
               :preview-i18n="previewI18n"
               :on-logo-upload="handleLogoUpload"
               :on-logo-remove="removeLogo"
-              secret-key="abcd"
+              secret-identifier="abcd"
               class="max-w-full transition-all duration-200 hover:scale-[1.02]"
             />
           </BrowserPreviewFrame>

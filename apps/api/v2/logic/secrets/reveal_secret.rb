@@ -9,7 +9,7 @@ module V2::Logic
     class RevealSecret < V2::Logic::Base
       include Onetime::Logging
       attr_reader :key, :passphrase, :continue, :share_domain, :secret, :show_secret, :secret_value, :is_truncated,
-        :verification, :correct_passphrase, :display_lines, :one_liner, :is_owner, :has_passphrase, :secret_key
+        :verification, :correct_passphrase, :display_lines, :one_liner, :is_owner, :has_passphrase, :secret_identifier
 
       def process_params
         @key        = params[:key].to_s
@@ -26,11 +26,11 @@ module V2::Logic
         @correct_passphrase = secret.passphrase?(passphrase)
         @show_secret        = secret.viewable? && (correct_passphrase || !secret.has_passphrase?) && continue
         @verification       = secret.verification.to_s == 'true'
-        @secret_key         = @secret.key
+        @secret_identifier         = @secret.identifier
         @secret_shortid    = @secret.shortid
 
         secret_logger.debug "Secret reveal initiated", {
-          secret_key: secret.shortid,
+          secret_identifier: secret.shortid,
           viewable: secret.viewable?,
           has_passphrase: secret.has_passphrase?,
           passphrase_correct: correct_passphrase,
@@ -50,7 +50,7 @@ module V2::Logic
           if verification
             if owner.nil? || owner.anonymous? || owner.verified?
               secret_logger.error "Invalid verification attempt", {
-                secret_key: secret.shortid,
+                secret_identifier: secret.shortid,
                 owner_nil: owner.nil?,
                 owner_anonymous: owner&.anonymous?,
                 owner_verified: owner&.verified?,
@@ -62,7 +62,7 @@ module V2::Logic
 
             elsif cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
               secret_logger.info "Owner verification successful", {
-                secret_key: secret.shortid,
+                secret_identifier: secret.shortid,
                 owner_id: owner.custid,
                 action: 'verification',
                 result: :verified
@@ -74,7 +74,7 @@ module V2::Logic
 
             else
               secret_logger.error "Invalid verification - user already logged in", {
-                secret_key: secret.shortid,
+                secret_identifier: secret.shortid,
                 user_id: cust&.custid,
                 action: 'verification',
                 result: :already_logged_in
@@ -85,7 +85,7 @@ module V2::Logic
             end
           else
             secret_logger.info "Secret revealed successfully", {
-              secret_key: secret.shortid,
+              secret_identifier: secret.shortid,
               owner_id: owner&.custid,
               user_id: cust&.custid,
               ip: req&.ip,
@@ -113,7 +113,7 @@ module V2::Logic
 
         elsif secret.has_passphrase? && !correct_passphrase
           secret_logger.warn "Incorrect passphrase attempt", {
-            secret_key: secret.shortid,
+            secret_identifier: secret.shortid,
             user_id: cust&.custid,
             ip: req&.ip,
             session_id: sess&.sessid,

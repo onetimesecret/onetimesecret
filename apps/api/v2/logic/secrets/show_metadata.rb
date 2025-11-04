@@ -8,7 +8,7 @@ module V2::Logic
       # Working variables
       attr_reader :key, :metadata, :secret
       # Template variables
-      attr_reader :metadata_key, :metadata_shortid, :secret_key, :secret_state,
+      attr_reader :metadata_identifier, :metadata_shortid, :secret_identifier, :secret_state,
         :secret_shortid, :recipients, :no_cache, :expiration_in_seconds,
         :natural_expiration, :is_received, :is_burned, :secret_realttl,
         :is_destroyed, :expiration, :view_count,
@@ -30,9 +30,9 @@ module V2::Logic
       def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
         @secret = @metadata.load_secret
 
-        @metadata_key      = metadata.key
+        @metadata_identifier      = metadata.identifier
         @metadata_short_identifier = metadata.shortid
-        @secret_key        = metadata.secret_key
+        @secret_identifier        = metadata.secret_identifier
         @secret_shortid   = metadata.secret_shortid
 
         # Default the recipients to an empty string. When a Familia::Horreum
@@ -57,11 +57,11 @@ module V2::Logic
 
           if !burned_or_received && metadata.secret_expired?
             OT.le('[show_metadata] Metadata has expired secret. {metadata.shortid}')
-            metadata.secret_key = nil
+            metadata.secret_identifier = nil
             metadata.expired!
           elsif !burned_or_received
             OT.le("[show_metadata] Metadata is an orphan. #{metadata.shortid}")
-            metadata.secret_key = nil
+            metadata.secret_identifier = nil
             metadata.orphaned!
           end
 
@@ -71,7 +71,7 @@ module V2::Logic
           @is_orphaned  = metadata.state?(:orphaned)
           @is_destroyed = @is_burned || @is_received || @is_expired || @is_orphaned
 
-          metadata.secret_key! nil if is_destroyed && metadata.secret_key
+          metadata.secret_identifier! nil if is_destroyed && metadata.secret_identifier
         else
           @secret_state   = secret.state
           @secret_realttl = secret.current_expiration
@@ -82,7 +82,7 @@ module V2::Logic
             @can_decrypt    = secret.can_decrypt?
             # If we can't decrypt the secret (i.e. if we can't access it) then
             # then we leave secret_value nil. We do this so that after creating
-            # a secret we can show the received contents on the "/receipt/metadata_key"
+            # a secret we can show the received contents on the "/receipt/metadata_identifier"
             # page one time. Particularly for generated passwords which are not
             # shown any other time.
             #
@@ -91,10 +91,10 @@ module V2::Logic
             # record stays in state=new allowing the next request through.
             if can_decrypt && metadata.state?(:new)
               begin
-                OT.ld "[show_metadata] m:#{metadata_key} s:#{secret_key} Decrypting for first and only creator viewing"
+                OT.ld "[show_metadata] m:#{metadata_identifier} s:#{secret_identifier} Decrypting for first and only creator viewing"
                 @secret_value = secret.decrypted_value if @can_decrypt
               rescue OpenSSL::Cipher::CipherError => ex
-                OT.le "[show_metadata] m:#{metadata_key} s:#{secret_key} #{ex.message}"
+                OT.le "[show_metadata] m:#{metadata_identifier} s:#{secret_identifier} #{ex.message}"
                 @secret_value = nil
               end
             end
@@ -191,7 +191,7 @@ module V2::Logic
         attributes = metadata.safe_dump
 
         # Only include the secret's identifying key when necessary
-        attributes[:secret_key] = secret_key if show_secret
+        attributes[:secret_identifier] = secret_identifier if show_secret
 
         # Add additional attributes not included in safe dump
         attributes.merge!({
@@ -231,9 +231,9 @@ module V2::Logic
       end
 
       def process_uris
-        @share_path    = build_path(:secret, secret_key)
-        @burn_path     = build_path(:private, metadata_key, 'burn')
-        @metadata_path = build_path(:private, metadata_key)
+        @share_path    = build_path(:secret, secret_identifier)
+        @burn_path     = build_path(:private, metadata_identifier, 'burn')
+        @metadata_path = build_path(:private, metadata_identifier)
         @share_url     = build_url(share_domain, @share_path)
         @metadata_url  = build_url(baseuri, @metadata_path)
         @burn_url      = build_url(baseuri, @burn_path)

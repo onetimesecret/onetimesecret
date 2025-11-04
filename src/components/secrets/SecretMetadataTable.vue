@@ -190,7 +190,7 @@
                       <!-- prettier-ignore-attribute class -->
                       <router-link
                         v-if="!item.is_destroyed"
-                        :to="{ name: 'Burn secret', params: { metadataKey: item.key } }"
+                        :to="{ name: 'Burn secret', params: { metadataIdentifier: item.key } }"
                         class="inline-flex items-center rounded-md bg-red-100 px-2.5 py-1.5 text-sm
                           font-medium text-red-700 hover:bg-red-200 focus:outline-none focus:ring-2
                           focus:ring-red-500 focus:ring-offset-2 dark:bg-red-900/30 dark:text-red-300

@@ -26,7 +26,7 @@ OT.boot! :test, false
   secret = Onetime::Secret.new
   secret.value = "This is a secret message"
   secret.save
-  metadata.secret_key = secret.key
+  metadata.secret_identifier = secret.identifier
   metadata.save
   metadata
 }
@@ -60,7 +60,7 @@ logic.success_data
 metadata = @create_metadata.call
 secret = metadata.load_secret
 params = {
-  key: metadata.secret_key
+  key: metadata.secret_identifier
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 ret = logic.success_data
@@ -99,7 +99,7 @@ end
 
 ## Raises an exception when there's no secret
 params = {
-  key: @metadata.key
+  key: @metadata.identifier
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 begin
@@ -114,7 +114,7 @@ metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.received!
 params = {
-  key: metadata.secret_key
+  key: metadata.secret_identifier
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 begin
@@ -127,7 +127,7 @@ end
 ## Share domain is site.host by default (same as metadata)
 metadata = @create_metadata.call
 params = {
-  key: metadata.secret_key
+  key: metadata.secret_identifier
 }
 @this_logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 @this_logic.process
@@ -139,7 +139,7 @@ metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.share_domain! "example.com"
 params = {
-  key: metadata.secret_key
+  key: metadata.secret_identifier
 }
 @this_logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 @this_logic.process
@@ -151,7 +151,7 @@ metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.share_domain! "example.com"
 params = {
-  key: metadata.secret_key
+  key: metadata.secret_identifier
 }
 @this_logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 @this_logic.instance_variable_set(:@domains_enabled, true)
@@ -177,7 +177,7 @@ logic.one_liner
 ## Cannot determine if secret is a one-liner when the logic.show_secret is false, even if the secret itself is viewable
 metadata = @create_metadata.call
 params = {
-  key: metadata.secret_key
+  key: metadata.secret_identifier
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 logic.raise_concerns
@@ -191,7 +191,7 @@ logic.process
 ## the secret has been received).
 metadata = @create_metadata.call
 params = {
-  key: metadata.secret_key,
+  key: metadata.secret_identifier,
   continue: true
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
@@ -204,7 +204,7 @@ logic.process
 metadata = @create_metadata.call
 secret = metadata.load_secret
 params = {
-  key: metadata.secret_key
+  key: metadata.secret_identifier
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 secret.received!
@@ -216,10 +216,10 @@ logic.process
 ## about why logic.secret.viewable? reports false after running process).
 metadata = Onetime::Metadata.create
 secret = Onetime::Secret.create value: "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
-metadata.secret_key = secret.key
+metadata.secret_identifier = secret.identifier
 metadata.save
 params = {
-  key: metadata.secret_key,
+  key: metadata.secret_identifier,
   continue: true
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
@@ -238,10 +238,10 @@ Line4
 Line5
 Line6"
 secret.save
-metadata.secret_key = secret.key
+metadata.secret_identifier = secret.identifier
 metadata.save
 params = {
-  key: metadata.secret_key,
+  key: metadata.secret_identifier,
   continue: true
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
@@ -253,7 +253,7 @@ logic.display_lines
 metadata = @create_metadata.call
 secret = metadata.load_secret
 params = {
-  key: metadata.secret_key,
+  key: metadata.secret_identifier,
   continue: true
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
@@ -266,7 +266,7 @@ metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.update_passphrase('correct_pass')
 params = {
-  key: metadata.secret_key,
+  key: metadata.secret_identifier,
   passphrase: 'wrong_pass',
   continue: true
 }
@@ -283,7 +283,7 @@ metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.update_passphrase('correct_pass')
 params = {
-  key: metadata.secret_key,
+  key: metadata.secret_identifier,
   passphrase: 'wrong_pass',
   continue: true
 }
@@ -300,7 +300,7 @@ metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.update_passphrase('correct_pass')
 params = {
-  key: metadata.secret_key,
+  key: metadata.secret_identifier,
   passphrase: 'correct_pass',
   continue: true
 }

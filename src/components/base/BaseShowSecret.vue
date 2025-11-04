@@ -22,7 +22,7 @@
   import { onBeforeRouteUpdate } from 'vue-router';
 
   export interface Props {
-    secretKey: string;
+    secretIdentifier: string;
     siteHost: string;
     domainStrategy?: string;
     displayDomain?: string;
@@ -32,7 +32,7 @@
 
   const props = defineProps<Props>();
 
-  const { record, details, state, load, reveal } = useSecret(props.secretKey);
+  const { record, details, state, load, reveal } = useSecret(props.secretIdentifier);
 
   const handleUserConfirmed = (passphrase: string) => {
     reveal(passphrase);
@@ -103,7 +103,7 @@
           <!-- Confirmation form slot -->
           <slot
             name="confirmation"
-            :secret-key="secretKey"
+            :secret-identifier="secretIdentifier"
             :record="record"
             :details="details"
             :error="state.error"

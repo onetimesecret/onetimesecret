@@ -29,7 +29,7 @@
   const shareLink = computed(() => {
     const record = props.concealedMessage;
     const share_domain = record.response.record.metadata.share_domain ?? site_host;
-    return `https://${share_domain}/secret/${record.secret_key}`;
+    return `https://${share_domain}/secret/${record.secret_identifier}`;
   });
 
   const handleCopy = async () => {
@@ -134,7 +134,7 @@
             ]">
             <router-link
               v-if="!isExpired && !isBurned"
-              :to="`/receipt/${concealedMessage.metadata_key}`"
+              :to="`/receipt/${concealedMessage.metadata_identifier}`"
               class="transition-colors hover:text-gray-600 dark:hover:text-gray-300">
               {{ displayKey }}
             </router-link>

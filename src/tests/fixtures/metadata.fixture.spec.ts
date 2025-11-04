@@ -56,7 +56,7 @@ describe('Metadata Fixtures Integrity', () => {
         it(`"${name}" has correct structure and keys`, () => {
           expect(record).toBeTruthy();
           expect(record.state).toBe(expectedState);
-          expect(record.secret_key).toBe(expectedSecretKey);
+          expect(record.secret_identifier).toBe(expectedSecretKey);
           expect(record.secret_shortid).toBe(expectedSecretShortkey);
 
           // Check date fields
@@ -73,14 +73,14 @@ describe('Metadata Fixtures Integrity', () => {
       expect(mockBurnedMetadataRecord).toBeTruthy();
       expect(mockBurnedMetadataRecord.state).toBe(MetadataState.BURNED);
       expect(mockBurnedMetadataRecord.burned).toBeInstanceOf(Date);
-      expect(mockBurnedMetadataRecord.secret_key).toBe('secret-burned-key-123');
+      expect(mockBurnedMetadataRecord.secret_identifier).toBe('secret-burned-key-123');
       expect(mockBurnedMetadataRecord.secret_shortid).toBe('secret-burned-abc123');
     });
 
     it('Orphaned metadata record is not null', () => {
       expect(mockOrphanedMetadataRecord).toBeTruthy();
       expect(mockOrphanedMetadataRecord.state).toBe(MetadataState.ORPHANED);
-      expect(mockOrphanedMetadataRecord.secret_key).toBe('secret-orphaned-key-123');
+      expect(mockOrphanedMetadataRecord.secret_identifier).toBe('secret-orphaned-key-123');
       expect(mockOrphanedMetadataRecord.secret_shortid).toBe('secret-orphaned-abc123');
     });
     it('rejects invalid metadata state', () => {
