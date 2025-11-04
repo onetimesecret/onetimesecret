@@ -24,7 +24,7 @@ module V2::Logic
 
       def process
         # Load the customer information from the premade secret
-        @cust = secret.load_customer
+        @cust = secret.load_owner
 
         unless @cust.valid_reset_secret!(secret)
           # If the secret is a reset secret, we can proceed to change

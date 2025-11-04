@@ -9,7 +9,7 @@ module V2::Logic
     class RevealSecret < V2::Logic::Base
       include Onetime::Logging
 
-      attr_reader :identifier, :passphrase, :continue, :share_domain, :secret, :show_secret, :secret_value, :is_truncated,
+      attr_reader :identifier, :passphrase, :continue, :share_domain, :secret, :show_secret, :secret_value,
         :verification, :correct_passphrase, :display_lines, :one_liner, :is_owner, :has_passphrase, :secret_identifier
 
       def process_params
@@ -37,16 +37,14 @@ module V2::Logic
           passphrase_correct: correct_passphrase,
           continue: continue,
           user_id: cust&.custid,
-          ip: req&.ip,
         }
 
-        owner = secret.load_customer
+        owner = secret.load_owner
         if show_secret
 
           # If we can't decrypt that's great! We just set secret_value to
           # the encrypted string.
           @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
-          @is_truncated = secret.truncated?
 
           if verification
             if owner.nil? || owner.anonymous? || owner.verified?
@@ -61,10 +59,10 @@ module V2::Logic
               secret.received!
               raise_form_error i18n.dig(:web, :COMMON, :verification_not_valid) || 'Verification not valid'
 
-            elsif cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
+            elsif cust&.anonymous? || (cust&.custid == owner&.custid && !owner&.verified?)
               secret_logger.info 'Owner verification successful', {
                 secret_identifier: secret.shortid,
-                owner_id: owner.custid,
+                owner_id: owner.objid,
                 action: 'verification',
                 result: :verified,
               }
@@ -87,14 +85,13 @@ module V2::Logic
           else
             secret_logger.info 'Secret revealed successfully', {
               secret_identifier: secret.shortid,
-              owner_id: owner&.custid,
-              user_id: cust&.custid,
-              ip: req&.ip,
-              truncated: @is_truncated,
+              owner_id: owner&.objid,
               action: 'reveal',
               result: :success,
             }
-            owner.increment_field :secrets_shared unless owner.anonymous?
+
+            owner.increment_field :secrets_shared if !owner.nil? && !owner.anonymous?
+
             Onetime::Customer.secrets_shared.increment
 
             # Immediately mark the secret as viewed, so that it
@@ -116,7 +113,6 @@ module V2::Logic
           secret_logger.warn 'Incorrect passphrase attempt', {
             secret_identifier: secret.shortid,
             user_id: cust&.custid,
-            ip: req&.ip,
             session_id: sess&.sessid,
             action: 'reveal',
             result: :passphrase_failed,

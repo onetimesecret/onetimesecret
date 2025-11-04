@@ -101,6 +101,14 @@ module Onetime
       !passphrase.to_s.empty?
     end
 
+    def load_owner
+      Onetime::Customer.load owner_id
+    end
+
+    def owner?(fobj)
+      fobj && (fobj.objid == owner_id)
+    end
+
     def load_secret
       Onetime::Secret.load secret_identifier
     end
@@ -112,7 +120,7 @@ module Onetime
 
       def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil)
 
-        secret   = Onetime::Secret.new
+        secret   = Onetime::Secret.new(owner_id: owner_id)
         metadata = Onetime::Metadata.new(owner_id: owner_id)
 
         metadata.secret_identifier = secret.objid

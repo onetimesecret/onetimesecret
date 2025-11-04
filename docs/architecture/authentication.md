@@ -202,7 +202,7 @@ Strategies are centralized in `lib/onetime/application/auth_strategies.rb` and s
 class NoAuthStrategy < Otto::Security::AuthStrategy
   def authenticate(env, _requirement)
     session = env['rack.session']
-    cust = load_customer_from_session(session) || Onetime::Customer.anonymous
+    cust = load_user_from_session(session) || Onetime::Customer.anonymous
 
     success(
       session: session,
@@ -214,7 +214,7 @@ class NoAuthStrategy < Otto::Security::AuthStrategy
 
   private
 
-  def load_customer_from_session(session)
+  def load_user_from_session(session)
     return nil unless session && session['authenticated'] == true
     return nil if session['external_id'].to_s.empty?
 

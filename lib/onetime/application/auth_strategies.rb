@@ -19,7 +19,7 @@ module Onetime
         #
         # @param session [Hash] Rack session
         # @return [Onetime::Customer, nil] Customer if found, nil otherwise
-        def load_customer_from_session(session)
+        def load_user_from_session(session)
           return nil unless session
           return nil unless session['authenticated'] == true
 
@@ -88,7 +88,7 @@ module Onetime
           session = env['rack.session']
 
           # Load customer from session or use anonymous
-          cust = load_customer_from_session(session) || Onetime::Customer.anonymous
+          cust = load_user_from_session(session) || Onetime::Customer.anonymous
 
           success(
             session: session,

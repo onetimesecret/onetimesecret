@@ -30,6 +30,7 @@ module Onetime
     field :lifespan
     field :metadata_identifier
     field :metadata_shortid
+    field :owner_id
 
     encrypted_field :ciphertext
     transient_field :ciphertext_passphrase
@@ -56,6 +57,14 @@ module Onetime
     def natural_duration
       # Colloquial representation of the TTL. e.g. "1 day"
       OT::Utils::TimeUtils.natural_duration lifespan
+    end
+
+    def load_owner
+      Onetime::Customer.load owner_id
+    end
+
+    def owner?(fobj)
+      fobj && (fobj.objid == owner_id)
     end
 
     def older_than?(seconds)

@@ -201,7 +201,7 @@ module Onetime
         request.cookies['ots_auth_token'] || request.cookies['sess']
       end
 
-      def load_customer_from_session(session)
+      def load_user_from_session(session)
         # Use existing Customer model to load by external_id
         return nil unless session['external_id']
 

@@ -38,12 +38,11 @@ module V2::Logic
           passphrase_correct: correct_passphrase,
           continue: continue_result,
           user_id: cust&.custid,
-          ip: req&.ip,
         }
 
         if greenlighted
           @secret = potential_secret
-          owner   = secret.load_customer
+          owner   = secret.load_owner
           secret.burned!
           owner.increment_field :secrets_burned unless owner.anonymous?
           Onetime::Customer.secrets_burned.increment
@@ -53,7 +52,6 @@ module V2::Logic
             metadata_identifier: metadata.identifier,
             owner_id: owner&.custid,
             user_id: cust&.custid,
-            ip: req&.ip,
             action: 'burn',
             result: :success,
           }
@@ -63,7 +61,6 @@ module V2::Logic
             metadata_identifier: metadata.identifier,
             secret_identifier: potential_secret.shortid,
             user_id: cust&.custid,
-            ip: req&.ip,
             action: 'burn',
             result: :passphrase_failed,
           }
@@ -107,7 +104,6 @@ module V2::Logic
             view_count: 0,
             has_passphrase: false,
             can_decrypt: false,
-            is_truncated: false,
             show_secret: false,
             show_secret_link: false,
             show_metadata_link: false,
