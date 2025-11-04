@@ -28,6 +28,8 @@ module Onetime
       #     router
       #   end
       def configure_otto_request_hook(router)
+        return unless Onetime.debug?
+
         router.on_request_complete do |req, res, duration|
           # Use HTTP logger for request lifecycle events
           logger = Onetime.get_logger('HTTP')
@@ -37,7 +39,7 @@ module Onetime
           strategy_result = req.env['otto.strategy_result']
           auth_strategy = strategy_result&.strategy_name
 
-          logger.info "Request completed", {
+          logger.trace "Request completed", {
             method: req.request_method,
             path: req.path,
             status: res.status,
