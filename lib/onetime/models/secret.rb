@@ -39,7 +39,7 @@ module Onetime
     end
 
     def shortid
-      identifier.slice(0, 6)
+      identifier.slice(0, 8)
     end
 
     def age
