@@ -86,11 +86,11 @@ module Onetime
     end
 
     def anonymous?
-      custid.to_s == 'anon'
+      owner_id.to_s == 'anon'
     end
 
     def owner?(cust)
-      !anonymous? && (cust.is_a?(Onetime::Customer) ? cust.custid : cust).to_s == custid.to_s
+      !anonymous? && (cust.is_a?(Onetime::Customer) ? cust.custid : cust).to_s == owner_id.to_s
     end
 
     def valid?
@@ -120,12 +120,21 @@ module Onetime
         metadata.save
 
         secret.default_expiration = lifespan
+        secret.lifespan = lifespan
         secret.metadata_identifier = metadata.objid
+
         secret.share_domain = domain
         secret.ciphertext_domain = domain # transient fields need to be populated before
         secret.passphrase = passphrase # encrypting the content fio aad protection
         secret.ciphertext = content
         secret.save
+
+        metadata.secret_shortid = secret.shortid
+        metadata.secret_ttl = lifespan
+        metadata.lifespan = lifespan
+        metadata.share_domain = domain
+        metadata.passphrase = passphrase if passphrase
+        metadata.save
 
         [metadata, secret]
       end
