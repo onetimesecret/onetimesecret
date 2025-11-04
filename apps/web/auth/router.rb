@@ -20,6 +20,8 @@ module Auth
   class Router < Roda
     include Onetime::Logging
 
+    use Otto::Security::Middleware::IPPrivacyMiddleware
+
     # Include session validation helpers
     # TODO: Implement these modules
     # include Auth::Helpers::SessionValidation
