@@ -128,8 +128,6 @@ export interface OnetimeWindow {
 
   regions: RegionsConfig;
 
-  incoming_recipient: string;
-
   available_jurisdictions: string[];
 
   /**

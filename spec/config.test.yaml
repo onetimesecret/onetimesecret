@@ -78,10 +78,7 @@ site:
     cluster:
       type: <%= ENV['CLUSTER_TYPE'] || nil %>
 features:
-  incoming:
-    enabled: false
-    email:
-    passphrase:
+
 redis:
   uri: 'redis://127.0.0.1:2121/0'
   dbs:

@@ -80,11 +80,7 @@ site:
       vhost_target: str(required=False)
 
 features:
-  incoming:
-    enabled: any(str(), bool())
-    email: any(str(), null())
-    passphrase: any(str(), null())
-    regex: str(required=False)
+
 
 redis:
   uri: str()

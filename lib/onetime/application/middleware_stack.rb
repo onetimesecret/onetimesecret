@@ -159,6 +159,7 @@ module Onetime
           unless Onetime.conf&.dig(:logging, :http_requests).eql?(false)
             logger.debug "Setting up CommonLogger middleware"
             builder.use Rack::CommonLogger
+
           end
 
           # Error Monitoring Integration

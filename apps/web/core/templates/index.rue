@@ -17,7 +17,6 @@ const schema = z.object({
   }),
   frontend_development: z.boolean(),
   frontend_host: z.string(),
-  incoming_recipient: z.string().nullable(),
   billing_enabled: z.boolean(),
   regions: z.object({}).optional(),
   regions_enabled: z.boolean(),

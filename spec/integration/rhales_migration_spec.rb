@@ -27,9 +27,6 @@ RSpec.describe 'Rhales Migration Integration' do
         'domain' => 'localhost',
         'ssl' => false
       },
-      'features' => {
-        'incoming' => { 'email' => 'support@localhost' }
-      },
       'development' => { 'enabled' => false },
       'diagnostics' => {},
       'billing' => { 'enabled' => false }

@@ -20,7 +20,6 @@ module Core
 
         # NOTE: The keys available in view_vars are defined in initialize_view_vars
         site        = view_vars['site'] || {}
-        incoming    = view_vars['incoming']
         development = view_vars['development']
         diagnostics = view_vars['diagnostics']
 
@@ -37,8 +36,6 @@ module Core
 
         output['domains_enabled'] = domains.fetch('enabled', false)
         output['domains']         = domains if output['domains_enabled']
-
-        output['incoming_recipient'] = incoming.fetch('email', nil)
 
         # Link to the pricing page can be seen regardless of authentication status
         billing                   = OT.conf.fetch('billing', {})
@@ -77,7 +74,6 @@ module Core
             'features' => nil,
             'frontend_development' => nil,
             'frontend_host' => nil,
-            'incoming_recipient' => nil,
             'billing_enabled' => nil,
             'regions' => nil,
             'regions_enabled' => nil,

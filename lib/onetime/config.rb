@@ -62,7 +62,6 @@ module Onetime
           },
         },
         'features' => {
-          'incoming' => {},
         },
         'internationalization' => {
           'enabled' => false,

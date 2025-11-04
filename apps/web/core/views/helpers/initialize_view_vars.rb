@@ -75,8 +75,6 @@ module Core
           safe_site['authentication'].delete('colonels')
         end
 
-        incoming = features['incoming']
-
         # Extract values from session
 
         strategy_result = req.env.fetch('otto.strategy_result', nil) # should always have a value
@@ -138,7 +136,6 @@ module Core
           'domain_strategy' => domain_strategy,
           'frontend_development' => frontend_development,
           'frontend_host' => frontend_host,
-          'incoming' => incoming,
           'keywords' => keywords,
           'locale' => locale,
           'messages' => nil,
