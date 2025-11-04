@@ -68,7 +68,7 @@ module Onetime
       load_locales
 
       manifest.checkpoint(:logging_setup)
-      configure_loggers
+      setup_loggers
       manifest.logger = Onetime.boot_logger
 
       manifest.checkpoint(:diagnostics_init) do

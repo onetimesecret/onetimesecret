@@ -1,4 +1,4 @@
-# lib/onetime/initializers/configure_loggers.rb
+# lib/onetime/initializers/setup_loggers.rb
 
 require 'yaml'
 require 'semantic_logger'
@@ -17,7 +17,7 @@ module Onetime
     # We must cache logger instances after setting their levels, otherwise
     # the level settings are lost.
     #
-    def configure_loggers
+    def setup_loggers
       $stderr.puts ' entering configure_loggers' if Onetime.debug?
       config = load_logging_config
 
