@@ -79,8 +79,10 @@ export const metadataBaseSchema = createModelSchema({
 // Metadata shape in single record view
 export const metadataSchema = metadataBaseSchema.merge(
   z.object({
-    secret_key: z.string().nullable().optional(),
-    secret_state: metadataStateSchema.nullable().optional(),
+    secret_identifier: z.string().nullish().optional(),
+    secret_shortid: z.string().nullish().optional(),
+    key: z.string().nullish().optional(),
+    secret_state: metadataStateSchema.nullish().optional(),
     natural_expiration: z.string(),
     expiration: transforms.fromString.date,
     expiration_in_seconds: transforms.fromString.number,

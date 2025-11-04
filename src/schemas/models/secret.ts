@@ -25,6 +25,7 @@ export const secretStateSchema = z.enum(Object.values(SecretState) as [string, .
 
 // Base schema for core fields
 const secretBaseSchema = z.object({
+  identifier: z.string(),
   key: z.string(),
   shortid: z.string(),
   state: secretStateSchema,

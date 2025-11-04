@@ -120,7 +120,8 @@ module Onetime
 
         secret.default_expiration = lifespan
         secret.metadata_identifier = metadata.objid
-        secret.domain = domain # transient fields need to be populated before
+        secret.share_domain = domain
+        secret.ciphertext_domain = domain # transient fields need to be populated before
         secret.passphrase = passphrase # encrypting the content fio aad protection
         secret.ciphertext = content
         secret.save

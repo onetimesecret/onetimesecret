@@ -29,6 +29,7 @@ module Onetime
     field :state
     field :lifespan
     field :metadata_identifier
+    field :metadata_shortid
 
     encrypted_field :ciphertext
     transient_field :ciphertext_passphrase

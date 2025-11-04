@@ -20,6 +20,8 @@ module Onetime::Secret::Features
       # server to see the changes.
 
       base.safe_dump_field :identifier, ->(obj) { obj.identifier }
+      base.safe_dump_field :key, ->(obj) { obj.identifier }
+      base.safe_dump_field :shortid, ->(obj) { obj.shortid }
       base.safe_dump_field :state
       base.safe_dump_field :secret_ttl, ->(m) { m.lifespan }
       base.safe_dump_field :lifespan
@@ -28,6 +30,7 @@ module Onetime::Secret::Features
       base.safe_dump_field :is_truncated, ->(m) { m.truncated? }
       base.safe_dump_field :created
       base.safe_dump_field :updated
+
     end
   end
 end
