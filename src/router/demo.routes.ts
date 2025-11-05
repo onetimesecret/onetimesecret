@@ -29,6 +29,26 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
   },
+  {
+    path: '/demo/team-navigation',
+    name: 'TeamNavigationDemo',
+    components: {
+      default: () => import('@/views/demo/TeamNavigationDemo.vue'),
+      header: () => null,  // TeamNavigationDemo has its own header
+      footer: DefaultFooter,
+    },
+    meta: {
+      requiresAuth: true,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: true,
+        displayFeedback: false,
+        displayPoweredBy: false,
+        displayVersion: true,
+      },
+    },
+  },
 ];
 
 export default routes;
