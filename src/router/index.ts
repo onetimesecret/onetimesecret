@@ -68,6 +68,7 @@ export function createAppRouter(): Router {
         name: 'NotFound',
         component: NotFound,
         meta: {
+          title: 'web.TITLES.not_found',
           requiresAuth: false,
         },
       },

@@ -39,6 +39,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Secret link',
     component: ShowSecretContainer,
     meta: {
+      title: 'web.TITLES.secret',
       requiresAuth: false,
       layoutProps: {
         displayMasthead: false,

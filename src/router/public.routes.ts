@@ -25,6 +25,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: DefaultFooter,
     },
     meta: {
+      title: 'web.COMMON.title_home',
       requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {
@@ -133,6 +134,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Inbound Secrets',
     component: IncomingSupportSecret,
     meta: {
+      title: 'web.TITLES.incoming',
       requiresAuth: false,
       layout: DefaultLayout,
     },
@@ -142,6 +144,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Feedback',
     component: () => import('@/views/Feedback.vue'),
     meta: {
+      title: 'web.TITLES.feedback',
       requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {

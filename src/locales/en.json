@@ -22,6 +22,31 @@
         "one_time_warning": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone."
       }
     },
+    "TITLES": {
+      "incoming": "Incoming Secrets",
+      "feedback": "Feedback",
+      "signin": "Sign In",
+      "signup": "Create Account",
+      "forgot_password": "Forgot Password",
+      "reset_password": "Reset Password",
+      "logout": "Logging Out",
+      "secret": "Secret",
+      "metadata": "Secret Details",
+      "receipt": "Secret Receipt",
+      "burn_secret": "Burn Secret",
+      "dashboard": "Dashboard",
+      "recent": "Recent Secrets",
+      "domains": "Custom Domains",
+      "domain_add": "Add Domain",
+      "domain_verify": "Verify Domain",
+      "domain_brand": "Brand Domain",
+      "account": "Account Settings",
+      "colonel": "Administration",
+      "colonel_users": "User Management",
+      "system_settings": "System Settings",
+      "colonel_info": "System Information",
+      "not_found": "Page Not Found"
+    },
     "COMMON": {
       "broadcast": "",
       "tagline": "Secure links that only work once",

@@ -19,28 +19,40 @@ const routes: Array<RouteRecordRaw> = [
     path: '/colonel',
     name: 'Colonel',
     component: () => import('@/views/colonel/ColonelIndex.vue'),
-    meta: defaultMeta,
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel',
+    },
     props: true,
   },
   {
     path: '/colonel/users',
     name: 'ColonelUsers',
     component: () => import('@/views/colonel/ColonelUsers.vue'),
-    meta: defaultMeta,
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_users',
+    },
     props: true,
   },
   {
     path: '/colonel/settings',
     name: 'SystemSettings',
     component: () => import('@/views/colonel/SystemSettings.vue'),
-    meta: defaultMeta,
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.system_settings',
+    },
     props: true,
   },
   {
     path: '/colonel/info',
     name: 'ColonelInfo',
     component: () => import('@/views/colonel/ColonelInfo.vue'),
-    meta: defaultMeta,
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_info',
+    },
     props: true,
   },
 ];

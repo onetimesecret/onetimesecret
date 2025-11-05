@@ -10,6 +10,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Sign In',
     component: () => import('@/views/auth/Signin.vue'),
     meta: {
+      title: 'web.TITLES.signin',
       requiresAuth: false,
       isAuthRoute: true,
       layout: DefaultLayout,
@@ -30,12 +31,18 @@ const routes: Array<RouteRecordRaw> = [
         path: '',
         name: 'Sign Up',
         component: () => import('@/views/auth/Signup.vue'),
+        meta: {
+          title: 'web.TITLES.signup',
+        },
       },
       {
         path: ':planCode',
         name: 'Sign Up with Plan',
         component: () => import('@/views/auth/Signup.vue'),
         props: true,
+        meta: {
+          title: 'web.TITLES.signup',
+        },
       },
     ],
     meta: {
@@ -58,12 +65,18 @@ const routes: Array<RouteRecordRaw> = [
         path: '',
         name: 'Forgot Password',
         component: () => import('@/views/auth/PasswordResetRequest.vue'),
+        meta: {
+          title: 'web.TITLES.forgot_password',
+        },
       },
       {
         path: ':resetKey',
         name: 'Reset Password',
         component: () => import('@/views/auth/PasswordReset.vue'),
         props: true,
+        meta: {
+          title: 'web.TITLES.reset_password',
+        },
       },
     ],
     meta: {
@@ -84,6 +97,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Logout',
     component: { render: () => null }, // Dummy component
     meta: {
+      title: 'web.TITLES.logout',
       requiresAuth: true,
       layout: QuietLayout,
       layoutProps: {},

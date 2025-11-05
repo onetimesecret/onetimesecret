@@ -14,6 +14,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: DefaultFooter,
     },
     meta: {
+      title: 'web.TITLES.account',
       requiresAuth: true,
       layoutProps: {
         displayPoweredBy: false,
