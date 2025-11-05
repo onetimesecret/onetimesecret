@@ -18,7 +18,7 @@ module Onetime
         end
 
         module ClassMethods
-          def spawn_pair(custid)
+          def legacy_spawn_pair(custid)
             secret   = Onetime::Secret.create!
             metadata = Onetime::Metadata.create!(custid: custid)
 

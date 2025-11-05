@@ -35,6 +35,7 @@ OT.boot! :test, false
 @unverified_customer.save
 
 @locale = :en
+@session = OpenStruct.new(identifier: SecureRandom.hex(16))
 
 ## Test 1: New email account creation returns generic success message
 params = {
@@ -43,6 +44,7 @@ params = {
   planid: 'basic'
 }
 strategy_result = Otto::Security::Authentication::StrategyResult.new(
+  strategy_name: 'noauth',
   session: {},
   user: nil,
   auth_method: 'noauth',
@@ -62,6 +64,7 @@ params2 = {
   planid: 'basic'
 }
 strategy_result2 = Otto::Security::Authentication::StrategyResult.new(
+  strategy_name: 'noauth',
   session: {},
   user: nil,
   auth_method: 'noauth',
@@ -81,6 +84,7 @@ params3 = {
   planid: 'basic'
 }
 strategy_result3 = Otto::Security::Authentication::StrategyResult.new(
+  strategy_name: 'noauth',
   session: {},
   user: nil,
   auth_method: 'noauth',
@@ -110,6 +114,7 @@ params4 = {
   planid: 'basic'
 }
 strategy_result4 = Otto::Security::Authentication::StrategyResult.new(
+  strategy_name: 'noauth',
   session: {},
   user: nil,
   auth_method: 'noauth',
@@ -133,6 +138,7 @@ params5 = {
   planid: 'basic'
 }
 strategy_result5 = Otto::Security::Authentication::StrategyResult.new(
+  strategy_name: 'noauth',
   session: {},
   user: nil,
   auth_method: 'noauth',
@@ -150,13 +156,14 @@ end
 
 ## Test 8: Existing customer object is reused (not recreated)
 # For existing accounts, we should reuse the customer object
-initial_customer_count = Onetime::Customer.redis.keys('customer:*').size
+initial_customer_count = Onetime::Customer.dbclient.keys('customer:*').size
 params6 = {
   login: @existing_verified_email,
   password: 'another_attempt',
   planid: 'basic'
 }
 strategy_result6 = Otto::Security::Authentication::StrategyResult.new(
+  strategy_name: 'noauth',
   session: {},
   user: nil,
   auth_method: 'noauth',
@@ -166,7 +173,7 @@ logic6 = V2::Logic::Account::CreateAccount.new(strategy_result6, params6, @local
 logic6.process_params
 logic6.raise_concerns
 logic6.process
-final_customer_count = Onetime::Customer.redis.keys('customer:*').size
+final_customer_count = Onetime::Customer.dbclient.keys('customer:*').size
 # Count should not increase (no new customer created)
 final_customer_count == initial_customer_count
 #=> true
