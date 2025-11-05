@@ -33,7 +33,7 @@ module Onetime::Metadata::Features
 
         if eaddrs.nil? || eaddrs.empty?
           secret_logger.info "No email addresses specified for delivery", {
-            metadata_id: key,
+            metadata_id: identifier,
             secret_id: secret.identifier,
             user: cust.obscure_email,
             action: 'deliver_email'
@@ -42,7 +42,7 @@ module Onetime::Metadata::Features
         end
 
         secret_logger.debug "Preparing email delivery", {
-          metadata_id: key,
+          metadata_id: identifier,
           secret_id: secret.identifier,
           user: cust.obscure_email,
           token: token.nil? ? nil : 'present',
@@ -55,7 +55,7 @@ module Onetime::Metadata::Features
         eaddrs_safe_str = eaddrs_safe.join(', ')
 
         secret_logger.info "Delivering secret by email", {
-          metadata_id: key,
+          metadata_id: identifier,
           secret_id: secret.identifier,
           user: cust.obscure_email,
           recipient_count: eaddrs_safe.size,
@@ -66,7 +66,7 @@ module Onetime::Metadata::Features
 
         if eaddrs.size > 1
           secret_logger.warn "Multiple recipients detected", {
-            metadata_id: key,
+            metadata_id: identifier,
             secret_id: secret.identifier,
             recipient_count: eaddrs.size,
             action: 'deliver_email'
