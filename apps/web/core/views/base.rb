@@ -33,11 +33,16 @@ module Core
       attr_accessor :req, :form_fields, :pagename, :strategy_result, :locale, :sess, :cust
       attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
 
-      def initialize(req, *)
+      def initialize(req, session = nil, cust = nil, locale = nil)
         @req  = req
         @strategy_result = req.env['otto.strategy_result']
-        @sess = strategy_result.session
-        @cust = strategy_result.user  || Onetime::Customer.anonymous
+
+        # Defensive initialization: Use strategy_result when available (normal auth flow),
+        # otherwise fall back to provided params (error recovery flow).
+        # This handles cases where errors occur before Otto's auth wrapper runs.
+        @sess = @strategy_result ? @strategy_result.session : (session || {})
+        @cust = @strategy_result ? (@strategy_result.user || Onetime::Customer.anonymous)
+                                 : (cust || Onetime::Customer.anonymous)
 
         # We determine locale here because it's used for i18n. Otherwise we couldn't
         # determine the i18n messages until inside or after initialize_view_vars.
@@ -46,7 +51,7 @@ module Core
         # 1. Explicitly provided locale
         # 2. Locale from request environment (if available)
         # 3. Application default locale as set in yaml configuration
-        @locale = req.locale
+        @locale = locale || req.locale
 
         @i18n_instance = i18n
         @messages      = []
@@ -55,7 +60,7 @@ module Core
         @view_vars = self.class.initialize_view_vars(req, i18n_instance)
 
         # Call subclass init hook if defined
-        init(*) if respond_to?(:init)
+        init if respond_to?(:init)
 
         # Run serializers to prepare data for frontend
         @serialized_data = run_serializers

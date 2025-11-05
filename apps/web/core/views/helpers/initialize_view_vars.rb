@@ -76,15 +76,27 @@ module Core
         end
 
         # Extract values from session
+        #
+        # Defensive: Handle cases where Otto's auth wrapper hasn't run yet
+        # (e.g., errors during hot reload, middleware failures before routing)
+        strategy_result = req.env.fetch('otto.strategy_result', nil)
 
-        strategy_result = req.env.fetch('otto.strategy_result', nil) # should always have a value
-        sess = strategy_result.session
-        cust = strategy_result.user || Onetime::Customer.anonymous
+        if strategy_result
+          # Normal flow: Otto ran, strategy_result available
+          sess = strategy_result.session
+          cust = strategy_result.user || Onetime::Customer.anonymous
+          authenticated = strategy_result.authenticated? || false
+        else
+          # Error recovery flow: Otto didn't run, use fallback values
+          sess = req.session rescue {}
+          cust = Onetime::Customer.anonymous
+          authenticated = false
+        end
+
         # Rack::Protection::AuthenticityToken stores CSRF token in session[:csrf]
         # It generates the token on first access if not present
         shrimp = sess&.[](:csrf) || sess&.[]('csrf')
 
-        authenticated = strategy_result.authenticated? || false # never nil
         awaiting_mfa  = sess&.[]('awaiting_mfa') || false
 
         # DEBUG: Log session state
