@@ -34,7 +34,8 @@ const routes: Array<RouteRecordRaw> = [
     name: 'TeamNavigationDemo',
     components: {
       default: () => import('@/views/demo/TeamNavigationDemo.vue'),
-      header: () => null,  // TeamNavigationDemo has its own header
+      // Note: TeamNavigationDemo includes its own header, so header component is handled by EmptyHeader
+      header: () => import('@/components/layout/EmptyHeader.vue'),
       footer: DefaultFooter,
     },
     meta: {
