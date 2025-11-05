@@ -57,7 +57,8 @@ module Core
         @messages      = []
 
         # Initialize view variables for use in rendering
-        @view_vars = self.class.initialize_view_vars(req, i18n_instance)
+        # Pass resolved session and customer to ensure consistency
+        @view_vars = self.class.initialize_view_vars(req, i18n_instance, @sess, @cust)
 
         # Call subclass init hook if defined
         init if respond_to?(:init)

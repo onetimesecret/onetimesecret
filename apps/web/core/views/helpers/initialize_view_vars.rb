@@ -27,8 +27,10 @@ module Core
       #
       # @param req [Rack::Request] Current request object
       # @param i18n_instance [I18n] Current I18n instance
+      # @param sess [Hash, nil] Pre-resolved session (optional, extracted from strategy_result if nil)
+      # @param cust [Customer, nil] Pre-resolved customer (optional, extracted from strategy_result if nil)
       # @return [Hash] Collection of initialized variables
-      def initialize_view_vars(req, i18n_instance)
+      def initialize_view_vars(req, i18n_instance, sess = nil, cust = nil)
         # Extract the top-level keys from the YAML configuration.
         #
         # SECURITY: This implementation follows an opt-in approach for configuration filtering.
@@ -77,20 +79,30 @@ module Core
 
         # Extract values from session
         #
-        # Defensive: Handle cases where Otto's auth wrapper hasn't run yet
-        # (e.g., errors during hot reload, middleware failures before routing)
-        strategy_result = req.env.fetch('otto.strategy_result', nil)
+        # Use pre-resolved sess/cust if provided (from BaseView#initialize),
+        # otherwise extract from strategy_result or fallback values
+        if sess.nil? || cust.nil?
+          strategy_result = req.env.fetch('otto.strategy_result', nil)
 
-        if strategy_result
-          # Normal flow: Otto ran, strategy_result available
-          sess = strategy_result.session
-          cust = strategy_result.user || Onetime::Customer.anonymous
-          authenticated = strategy_result.authenticated? || false
+          if strategy_result
+            # Normal flow: Otto ran, strategy_result available
+            sess ||= strategy_result.session
+            cust ||= strategy_result.user || Onetime::Customer.anonymous
+            authenticated = strategy_result.authenticated? || false
+          else
+            # Error recovery flow: Otto didn't run, use fallback values
+            begin
+              sess ||= req.session
+            rescue NoMethodError, RuntimeError
+              sess = {}
+            end
+            cust ||= Onetime::Customer.anonymous
+            authenticated = false
+          end
         else
-          # Error recovery flow: Otto didn't run, use fallback values
-          sess = req.session rescue {}
-          cust = Onetime::Customer.anonymous
-          authenticated = false
+          # Using pre-resolved values from BaseView#initialize
+          strategy_result = req.env.fetch('otto.strategy_result', nil)
+          authenticated = strategy_result&.authenticated? || false
         end
 
         # Rack::Protection::AuthenticityToken stores CSRF token in session[:csrf]
