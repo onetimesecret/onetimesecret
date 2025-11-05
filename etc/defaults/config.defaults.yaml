@@ -173,10 +173,6 @@ site:
       cluster_name: <%= ENV['APPROXIMATED_PROXY_CLUSTER_NAME'] || '<CLUSTER_NAME>' %>
       vhost_target: <%= ENV['APPROXIMATED_PROXY_VHOST_TARGET'] || '<VHOST_TARGET>' %>
 features:
-  incoming:
-    enabled: false
-    email: CHANGEME@example.com
-    passphrase: abacus
 
 # Main Database Configuration
 redis:

@@ -65,14 +65,14 @@ module Onetime::Customer::Features
       end
 
       def reset_secret?(secret)
-        return false if secret.nil? || !secret.exists? || secret.key.to_s.empty?
+        return false if secret.nil? || !secret.exists? || secret.identifier.to_s.empty?
 
-        Rack::Utils.secure_compare(reset_secret.to_s, secret.key)
+        Rack::Utils.secure_compare(reset_secret.to_s, secret.identifier)
       end
 
       def valid_reset_secret!(secret)
         if is_valid = reset_secret?(secret)
-          OT.ld "[valid_reset_secret!] Reset secret is valid for #{custid} #{secret.shortkey}"
+          OT.ld "[valid_reset_secret!] Reset secret is valid for #{custid} #{secret.shortid}"
           secret.delete!
           reset_secret.delete!
         end

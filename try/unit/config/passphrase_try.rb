@@ -35,8 +35,8 @@ s.update_passphrase 'plop'
 s = Onetime::Secret.new :shared
 s.update_passphrase! 'plop'
 
-secret_key = s.identifier
-s2 = Onetime::Secret.find_by_identifier secret_key
+secret_identifier = s.identifier
+s2 = Onetime::Secret.find_by_identifier secret_identifier
 
 [s2.passphrase_encryption, s2.passphrase?('plop')]
 #=> ["1", true]
@@ -45,8 +45,8 @@ s2 = Onetime::Secret.find_by_identifier secret_key
 s = Onetime::Secret.new :shared
 s.update_passphrase 'plop'
 
-secret_key = s.identifier
-s2 = Onetime::Secret.find_by_identifier secret_key
+secret_identifier = s.identifier
+s2 = Onetime::Secret.find_by_identifier secret_identifier
 
 [s2.passphrase_encryption, s2.passphrase?('plop')]
 #=> ["1", true]

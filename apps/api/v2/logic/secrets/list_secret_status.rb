@@ -5,14 +5,14 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ListSecretStatus < V2::Logic::Base
-      attr_reader :keys
+      attr_reader :identifiers
 
       def process_params
-        @keys    = params[:keys].to_s.strip.downcase.gsub(/[^a-z0-9,]/, '').split(',').compact
-        @secrets = keys.map do |key|
-          next unless key
+        @identifiers    = params[:identifiers].to_s.strip.downcase.gsub(/[^a-z0-9,]/, '').split(',').compact
+        @secrets = identifiers.map do |identifier|
+          next unless identifier
 
-          record = Onetime::Secret.load(key)
+          record = Onetime::Secret.load(identifier)
           next unless record
 
           record.safe_dump

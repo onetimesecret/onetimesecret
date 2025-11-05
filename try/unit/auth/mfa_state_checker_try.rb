@@ -70,7 +70,7 @@ state = checker.check(@test_account_id)
 # We'll let it use the default timestamp
 @db[:account_otp_keys].insert(
   id: @test_account_id,
-  key: 'test_otp_secret_key_base32',
+  key: 'test_otp_secret_identifier_base32',
   num_failures: 0
 )
 
@@ -123,7 +123,7 @@ state = checker.check(@test_account_id)
 ## Test state when both OTP and recovery codes exist
 @db[:account_otp_keys].insert(
   id: @test_account_id,
-  key: 'test_otp_secret_key_base32',
+  key: 'test_otp_secret_identifier_base32',
   num_failures: 0
 )
 

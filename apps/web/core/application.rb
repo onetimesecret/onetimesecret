@@ -1,6 +1,7 @@
 # apps/web/core/application.rb
 
 require 'onetime/application'
+require 'onetime/application/otto_hooks'
 require 'onetime/middleware'
 require 'onetime/logging'
 
@@ -12,16 +13,31 @@ require_relative 'controllers'
 require_relative 'auth_strategies'
 
 module Core
+  # Core Web Application
+  #
+  # The main web application serving the Onetime Secret frontend and HTML views.
+  # Uses Otto router with custom authentication strategies and CSP nonce support.
+  #
+  # ## Architecture
+  #
+  # - Router: Otto (configured in `build_router`)
+  # - Middleware: Universal (MiddlewareStack) + Core-specific (below)
+  # - Otto Hooks: Includes `OttoHooks` for request lifecycle logging
+  #
   class Application < Onetime::Application::Base
     include Onetime::Logging
+    include Onetime::Application::OttoHooks  # Provides configure_otto_request_hook
 
     @uri_prefix = '/'.freeze
 
+    # Core-specific middleware (universal middleware in MiddlewareStack)
+    #
     # Initialize request context (nonce, locale) before other processing
     use Core::Middleware::RequestSetup
 
-    # CSRF Protection - Token-based approach
-    use Rack::Protection::AuthenticityToken, reaction: :drop_session
+    # CSRF Response Header
+    # Note: CSRF validation is handled by common Security middleware with
+    # allow_if to skip JSON/API requests. This just adds the response header.
     use Onetime::Middleware::CsrfResponseHeader
 
     # Simplified error handling for Vue SPA - serves entry points
@@ -77,9 +93,20 @@ module Core
 
     protected
 
+    # Build and configure Otto router instance
+    #
+    # Router-specific configuration happens here, after the router instance
+    # is created. This is separate from universal middleware configuration
+    # in MiddlewareStack.
+    #
+    # @return [Otto] Configured router instance
     def build_router
       routes_path = File.join(__dir__, 'routes')
       router      = Otto.new(routes_path)
+
+      # Configure Otto request lifecycle hooks (from OttoHooks module)
+      # Instance-level hook logging for operational metrics and audit trail
+      configure_otto_request_hook(router)
 
       # IP privacy is enabled globally in common middleware stack for public
       # addresses. Must be enabled specifically for private and localhost

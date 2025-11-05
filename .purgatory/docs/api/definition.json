@@ -781,64 +781,7 @@
         },
         "tags": ["webhooks", "stripe"]
       }
-    },
-    "/incoming": {
-      "post": {
-        "summary": "Create Incoming Secret",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "secret": {
-                    "type": "string",
-                    "description": "The secret value to be stored"
-                  },
-                  "ticketno": {
-                    "type": "string",
-                    "description": "A valid ticket number"
-                  },
-                  "recipient": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "email"
-                    },
-                    "description": "Email addresses of recipients"
-                  }
-                },
-                "required": ["secret", "ticketno"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseApiResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["incoming"]
-      }
-    },
+    },,
     "/feedback": {
       "post": {
         "summary": "Submit Feedback",
@@ -2047,20 +1990,20 @@
               "key": {
                 "type": "string"
               },
-              "shortkey": {
+              "shortid": {
                 "type": "string"
               },
               "secret_key": {
                 "type": "string"
               },
-              "secret_shortkey": {
+              "secret_shortid": {
                 "type": "string"
               },
               "share_domain": {
                 "type": "string"
               }
             },
-            "required": ["key", "shortkey", "secret_key", "secret_shortkey", "share_domain"]
+            "required": ["key", "shortid", "secret_key", "secret_shortid", "share_domain"]
           }
         ]
       },

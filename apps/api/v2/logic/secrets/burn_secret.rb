@@ -2,18 +2,18 @@
 
 module V2::Logic
   module Secrets
-
     using Familia::Refinements::TimeLiterals
 
     class BurnSecret < V2::Logic::Base
       include Onetime::Logging
-      attr_reader :key, :passphrase, :continue, :metadata, :secret, :correct_passphrase, :greenlighted
+
+      attr_reader :identifier, :passphrase, :continue, :metadata, :secret, :correct_passphrase, :greenlighted
 
       def process_params
-        @key        = params[:key].to_s
-        @metadata   = Onetime::Metadata.load key
-        @passphrase = params[:passphrase].to_s
-        @continue   = [true, 'true'].include?(params[:continue])
+        @identifier = params['identifier'].to_s
+        @metadata   = Onetime::Metadata.load identifier
+        @passphrase = params['passphrase'].to_s
+        @continue   = [true, 'true'].include?(params['continue'])
       end
 
       def raise_concerns
@@ -27,45 +27,42 @@ module V2::Logic
 
         @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
         viewable            = potential_secret.viewable?
-        continue_result     = params[:continue]
+        continue_result     = params['continue']
         @greenlighted       = viewable && correct_passphrase && continue_result
 
-        secret_logger.debug "Secret burn initiated", {
-          metadata_key: metadata.key,
-          secret_key: potential_secret.shortkey,
+        secret_logger.debug 'Secret burn initiated', {
+          metadata_identifier: metadata.identifier,
+          secret_identifier: potential_secret.shortid,
           viewable: viewable,
           has_passphrase: potential_secret.has_passphrase?,
           passphrase_correct: correct_passphrase,
           continue: continue_result,
           user_id: cust&.custid,
-          ip: req&.ip
         }
 
         if greenlighted
           @secret = potential_secret
-          owner   = secret.load_customer
+          owner   = secret.load_owner
           secret.burned!
           owner.increment_field :secrets_burned unless owner.anonymous?
           Onetime::Customer.secrets_burned.increment
 
-          secret_logger.info "Secret burned successfully", {
-            secret_key: secret.shortkey,
-            metadata_key: metadata.key,
+          secret_logger.info 'Secret burned successfully', {
+            secret_identifier: secret.shortid,
+            metadata_identifier: metadata.identifier,
             owner_id: owner&.custid,
             user_id: cust&.custid,
-            ip: req&.ip,
             action: 'burn',
-            result: :success
+            result: :success,
           }
 
         elsif !correct_passphrase
-          secret_logger.warn "Burn failed - incorrect passphrase", {
-            metadata_key: metadata.key,
-            secret_key: potential_secret.shortkey,
+          secret_logger.warn 'Burn failed - incorrect passphrase', {
+            metadata_identifier: metadata.identifier,
+            secret_identifier: potential_secret.shortid,
             user_id: cust&.custid,
-            ip: req&.ip,
             action: 'burn',
-            result: :passphrase_failed
+            result: :passphrase_failed,
           }
 
           message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
@@ -86,12 +83,12 @@ module V2::Logic
           natural_expiration: natural_duration(metadata.default_expiration.to_i),
           expiration: (metadata.default_expiration.to_i + metadata.created.to_i),
           expiration_in_seconds: metadata.default_expiration.to_i,
-          share_path: build_path(:secret, metadata.secret_key),
-          burn_path: build_path(:private, metadata.key, 'burn'),
-          metadata_path: build_path(:private, metadata.key),
-          share_url: build_url(baseuri, build_path(:secret, metadata.secret_key)),
-          metadata_url: build_url(baseuri, build_path(:private, metadata.key)),
-          burn_url: build_url(baseuri, build_path(:private, metadata.key, 'burn')),
+          share_path: build_path(:secret, metadata.secret_identifier),
+          burn_path: build_path(:private, metadata.identifier, 'burn'),
+          metadata_path: build_path(:private, metadata.identifier),
+          share_url: build_url(baseuri, build_path(:secret, metadata.secret_identifier)),
+          metadata_url: build_url(baseuri, build_path(:private, metadata.identifier)),
+          burn_url: build_url(baseuri, build_path(:private, metadata.identifier, 'burn')),
         },
                          )
 
@@ -107,7 +104,6 @@ module V2::Logic
             view_count: 0,
             has_passphrase: false,
             can_decrypt: false,
-            is_truncated: false,
             show_secret: false,
             show_secret_link: false,
             show_metadata_link: false,

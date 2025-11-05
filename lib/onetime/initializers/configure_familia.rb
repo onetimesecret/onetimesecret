@@ -27,6 +27,17 @@ module Onetime
       # during legacy data detection and other pre-connection operations
       Familia.uri = uri
 
+      # Set encryption key with version to allow for future key rotation.
+      # Without this config, familia's encrypted fields will raise an error
+      # when trying to set or reveal a value.
+      secret_key = ENV['SECRET']
+      raise "SECRET environment variable not set or empty" if secret_key.to_s.empty?
+
+      Familia.config.encryption_keys = {
+        v1: secret_key,
+      }
+      Familia.config.current_key_version = :v1
+
       OT.boot_logger.debug "[init] Configure Familia URI: #{uri}"
     end
   end

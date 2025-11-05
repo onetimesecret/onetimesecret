@@ -5,15 +5,17 @@ import { z } from 'zod';
 // Metadata shape in list view
 export const metadataRecordsSchema = metadataBaseSchema.merge(
   z.object({
-    custid: z.string(),
+    custid: z.string().nullish(),
+    owner_id: z.string().nullish(),
     secret_ttl: z.union([z.string(), z.number()]).transform(Number),
     show_recipients: transforms.fromString.boolean,
     is_received: transforms.fromString.boolean,
     is_burned: transforms.fromString.boolean,
     is_orphaned: transforms.fromString.boolean,
     is_destroyed: transforms.fromString.boolean,
-    is_truncated: transforms.fromString.boolean,
-    identifier: z.string(),
+    identifier: z.string().nullish(),
+    secret_shortid: z.string().nullish(),
+    key: z.string().nullish(),
   })
 );
 

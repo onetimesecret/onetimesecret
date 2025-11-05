@@ -6,6 +6,66 @@ require_relative '../logging'
 
 module Onetime
   module Application
+    # Base Application Class
+    #
+    # Foundation for all Onetime Rack applications. Provides a consistent
+    # initialization pattern that separates universal middleware from
+    # router-specific configuration.
+    #
+    # ## Architecture
+    #
+    # Applications built on this base follow a layered approach:
+    #
+    # 1. **Universal Middleware** (MiddlewareStack)
+    #    - Framework-agnostic components (sessions, CSRF, logging)
+    #    - Applied to ALL applications regardless of router
+    #
+    # 2. **Application-Specific Middleware** (via class `use` calls)
+    #    - Configured declaratively at class level
+    #    - Examples: Core::Middleware::RequestSetup, error handling
+    #
+    # 3. **Router Instance** (via `build_router`)
+    #    - Otto, Roda, or other Rack-compatible router
+    #    - Router-specific configuration happens HERE
+    #    - Otto apps should include `OttoHooks` module
+    #
+    # ## Subclass Responsibilities
+    #
+    # When creating a new application:
+    #
+    # 1. Set `@uri_prefix` class variable (e.g., '/api/v2', '/auth')
+    # 2. Declare app-specific middleware using `use` at class level
+    # 3. Implement `build_router` to create and configure router instance
+    # 4. For Otto routers: include `Onetime::Application::OttoHooks`
+    #
+    # @example Otto-based application
+    #   class Application < Onetime::Application::Base
+    #     include Onetime::Application::OttoHooks
+    #
+    #     @uri_prefix = '/api/v2'.freeze
+    #     use MyApp::Middleware::CustomHandler
+    #
+    #     protected
+    #
+    #     def build_router
+    #       router = Otto.new(routes_path)
+    #       configure_otto_request_hook(router)  # from OttoHooks
+    #       router.enable_full_ip_privacy!
+    #       router
+    #     end
+    #   end
+    #
+    # @example Roda-based application
+    #   class Application < Onetime::Application::Base
+    #     @uri_prefix = '/auth'.freeze
+    #
+    #     protected
+    #
+    #     def build_router
+    #       MyApp::Router  # Roda class responds to #call
+    #     end
+    #   end
+    #
     class Base
       include Onetime::Logging
 

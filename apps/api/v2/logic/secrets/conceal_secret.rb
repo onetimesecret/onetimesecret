@@ -4,7 +4,6 @@ require_relative 'base_secret_action'
 
 module V2::Logic
   module Secrets
-
     using Familia::Refinements::TimeLiterals
 
     class ConcealSecret < BaseSecretAction

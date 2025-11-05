@@ -24,7 +24,7 @@ module V2::Logic
 
       def process
         # Load the customer information from the premade secret
-        @cust = secret.load_customer
+        @cust = secret.load_owner
 
         unless @cust.valid_reset_secret!(secret)
           # If the secret is a reset secret, we can proceed to change
@@ -35,7 +35,7 @@ module V2::Logic
           auth_logger.warn 'Invalid reset secret attempted', {
             customer_id: @cust.custid,
             email: @cust.obscure_email,
-            secret_key: secret.key,
+            secret_identifier: secret.identifier,
             ip: @strategy_result&.metadata&.dig(:ip)
           }
 

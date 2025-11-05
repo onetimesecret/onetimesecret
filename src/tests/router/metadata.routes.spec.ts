@@ -22,7 +22,9 @@ vi.mock('@/stores/secretStore', () => ({
 describe('Receipt Routes', () => {
   describe('Receipt Link Route (/receipt)', () => {
     it('should define metadata link route correctly', () => {
-      const route = routes.find((route: RouteRecordRaw) => route.path === '/receipt/:metadataKey');
+      const route = routes.find(
+        (route: RouteRecordRaw) => route.path === '/receipt/:metadataIdentifier'
+      );
       expect(route).toBeDefined();
       expect(route?.meta?.layoutProps?.displayMasthead).toBe(true);
       expect(route?.meta?.layoutProps?.displayNavigation).toBe(true);
@@ -35,14 +37,18 @@ describe('Receipt Routes', () => {
 
   describe('Private Link Route (/private)', () => {
     it('should define metadata link route correctly', () => {
-      const route = routes.find((route: RouteRecordRaw) => route.path === '/metadata/:metadataKey');
+      const route = routes.find(
+        (route: RouteRecordRaw) => route.path === '/metadata/:metadataIdentifier'
+      );
       expect(route).toBeUndefined();
     });
   });
 
   describe('Metadata Link Route (/metadata)', () => {
     it('should define metadata link route correctly', () => {
-      const route = routes.find((route: RouteRecordRaw) => route.path === '/metadata/:metadataKey');
+      const route = routes.find(
+        (route: RouteRecordRaw) => route.path === '/metadata/:metadataIdentifier'
+      );
       expect(route).toBeUndefined();
     });
   });
@@ -50,7 +56,7 @@ describe('Receipt Routes', () => {
   describe('Burn Secret Route', () => {
     it('should define burn secret route correctly', () => {
       const route = routes.find(
-        (route: RouteRecordRaw) => route.path === '/private/:metadataKey/burn'
+        (route: RouteRecordRaw) => route.path === '/private/:metadataIdentifier/burn'
       );
       expect(route).toBeDefined();
       expect(route?.meta?.layout).toBeDefined();

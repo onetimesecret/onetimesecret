@@ -257,9 +257,6 @@ auth.enable :webauthn     # Hardware keys/biometrics
 ```bash
 # Environment variable (production)
 export HMAC_SECRET="your-secure-random-secret-min-32-chars"
-
-# Or fallback (development only)
-export AUTH_SECRET="dev-secret"
 ```
 
 ## Related Files

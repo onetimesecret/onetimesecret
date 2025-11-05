@@ -40,10 +40,8 @@ GET   /window                                    Core::Controllers::Page#export_
 GET   /private/*                                 Core::Controllers::Page#index auth=noauth
 GET   /receipt/*                                 Core::Controllers::Page#index auth=noauth
 GET   /secret/*                                  Core::Controllers::Page#index auth=noauth
-GET   /incoming                                  Core::Controllers::Page#index auth=noauth
 GET   /l/*                                       Core::Controllers::Page#index auth=noauth
 GET   /l                                         Core::Controllers::Page#index auth=noauth
-POST  /incoming                                  Core::Controllers::DataIncoming#create_incoming auth=noauth
 
 # Authenticated routes - require valid session
 GET   /dashboard                                 Core::Controllers::Page#index auth=sessionauth

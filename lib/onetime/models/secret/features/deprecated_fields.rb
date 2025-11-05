@@ -11,9 +11,16 @@ module Onetime::Secret::Features
       base.extend ClassMethods
       base.include InstanceMethods
 
-      # NOTE: this field is a nullop. It's only populated if a value was entered
-      # into a hidden field which is something a regular person would not do.
-      base.field :token
+      base.field_group :deprecated_fields do
+        base.field :share_domain
+        base.field :verification
+        base.field :custid
+        base.field :metadata_key
+        base.field :truncated # boolean
+        base.field :key
+        base.field :secret_key
+      end
+
     end
 
     module ClassMethods

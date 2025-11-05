@@ -75,7 +75,7 @@ OT.boot! :test, true
 @secret.objid = @email
 @secret.save
 @reset_params = {
-  key: @secret.key,
+  key: @secret.identifier,
   v: @secret.verification,
   newpassword: 'newpass123',
   'password-confirm': 'newpass123'

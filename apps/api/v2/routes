@@ -27,17 +27,17 @@ GET    /domains                                   V2::Logic::Domains::ListDomain
 
 # Secrets - Private (Authenticated)
 GET    /receipt/recent                            V2::Logic::Secrets::ListMetadata response=json auth=noauth
-POST   /receipt/:key/burn                         V2::Logic::Secrets::BurnSecret response=json auth=noauth
-GET    /receipt/:key                              V2::Logic::Secrets::ShowMetadata response=json auth=noauth
+POST   /receipt/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=noauth
+GET    /receipt/:identifier                       V2::Logic::Secrets::ShowMetadata response=json auth=noauth
 GET    /private/recent                            V2::Logic::Secrets::ListMetadata response=json auth=noauth
-POST   /private/:key/burn                         V2::Logic::Secrets::BurnSecret response=json auth=noauth
-GET    /private/:key                              V2::Logic::Secrets::ShowMetadata response=json auth=noauth
+POST   /private/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=noauth
+GET    /private/:identifier                       V2::Logic::Secrets::ShowMetadata response=json auth=noauth
 
 # Secrets - Public (Anonymous allowed)
-GET    /secret/:key                               V2::Logic::Secrets::ShowSecret response=json auth=noauth
-GET    /secret/:key/status                        V2::Logic::Secrets::ShowSecretStatus response=json auth=noauth
+GET    /secret/:identifier                        V2::Logic::Secrets::ShowSecret response=json auth=noauth
+GET    /secret/:identifier/status                 V2::Logic::Secrets::ShowSecretStatus response=json auth=noauth
 POST   /secret/status                             V2::Logic::Secrets::ListSecretStatus response=json auth=noauth
-POST   /secret/:key/reveal                        V2::Logic::Secrets::RevealSecret response=json auth=noauth csrf=exempt
+POST   /secret/:identifier/reveal                 V2::Logic::Secrets::RevealSecret response=json auth=noauth csrf=exempt
 POST   /secret/generate                           V2::Logic::Secrets::GenerateSecret response=json auth=noauth csrf=exempt
 POST   /secret/conceal                            V2::Logic::Secrets::ConcealSecret response=json auth=noauth csrf=exempt
 

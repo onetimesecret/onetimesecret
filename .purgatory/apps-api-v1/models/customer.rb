@@ -153,7 +153,7 @@ module V1
 
     def valid_reset_secret! secret
       if is_valid = reset_secret?(secret)
-        OT.ld "[valid_reset_secret!] Reset secret is valid for #{custid} #{secret.shortkey}"
+        OT.ld "[valid_reset_secret!] Reset secret is valid for #{custid} #{secret.shortid}"
         secret.delete!
         self.reset_secret.delete!
       end

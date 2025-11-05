@@ -19,7 +19,7 @@
 
   // Define props
   interface Props {
-    metadataKey: string;
+    metadataIdentifier: string;
   }
   const props = defineProps<Props>();
 
@@ -27,7 +27,7 @@
   const showWarning = ref(false);
   const warningMessage = ref<HTMLElement | null>(null);
 
-  const { record, details, isLoading, fetch, reset } = useMetadata(props.metadataKey);
+  const { record, details, isLoading, fetch, reset } = useMetadata(props.metadataIdentifier);
 
   const { onExpirationEvent } = useSecretExpiration(
     record.value?.created ?? new Date(),
@@ -42,7 +42,7 @@
 
   // Watch for route parameter changes to refetch data
   watch(
-    () => props.metadataKey,
+    () => props.metadataIdentifier,
     (newKey) => {
       reset();
       if (newKey) {

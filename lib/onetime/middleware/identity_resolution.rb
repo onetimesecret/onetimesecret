@@ -62,7 +62,8 @@ module Onetime
         env['identity.authenticated'] = identity[:authenticated]
         env['identity.metadata']      = identity[:metadata]
 
-        logger.debug "[IdentityResolution] Resolved identity from #{identity[:source]}"
+        dmsg = identity.map { |k,v| format('%s=%s', k, v)}.join(' ')
+        logger.debug "[IdentityResolution] Resolved #{dmsg}"
 
         @app.call(env)
       end
@@ -91,8 +92,6 @@ module Onetime
       def resolve_advanced_identity(_request, env)
           # Get session from Valkey/Redis session middleware
           session = env['rack.session']
-          logger.debug "[IdentityResolution] Advanced - Session: #{session.class}, keys: #{session.keys.join(', ') rescue 'none'}"
-          logger.debug "[IdentityResolution] Advanced - authenticated=#{session['authenticated']}, account_external_id=#{session['account_external_id']}"
 
           return no_identity unless session
 
@@ -152,8 +151,6 @@ module Onetime
       def resolve_basic_identity(request, env)
         # Use Rack::Session from middleware
         session = env['rack.session']
-        logger.debug "[IdentityResolution] Basic mode - Session class: #{session.class}, ID: #{session.id&.public_id rescue 'none'}"
-        logger.debug "[IdentityResolution] Basic mode - authenticated=#{session['authenticated']}, external_id=#{session['external_id']&.slice(0,10)}..."
 
         # Don't require external_id - just check authenticated flag
         return no_identity unless session && session['authenticated'] == true
@@ -204,7 +201,7 @@ module Onetime
         request.cookies['ots_auth_token'] || request.cookies['sess']
       end
 
-      def load_customer_from_session(session)
+      def load_user_from_session(session)
         # Use existing Customer model to load by external_id
         return nil unless session['external_id']
 
@@ -217,7 +214,7 @@ module Onetime
 
           Onetime::Customer.find_by_extid(session['external_id'])
         rescue StandardError => ex
-          logger.debug "[IdentityResolution] Could not load customer: #{ex.message}"
+          logger.error "[IdentityResolution] Could not load customer: #{ex.message}"
           nil
         end
       end
@@ -292,11 +289,7 @@ module Onetime
       end
 
       def default_logger
-        if defined?(OT) && OT.respond_to?(:logger)
-          OT.logger
-        else
-          Logger.new($stderr, level: Logger::INFO)
-        end
+        Onetime.http_logger
       end
     end
   end

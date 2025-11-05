@@ -15,7 +15,7 @@
   import BaseSecretDisplay from './BaseSecretDisplay.vue';
 
   interface Props {
-    secretKey: string;
+    secretIdentifier: string;
     record: Secret | null;
     details: SecretDetails | null;
     domainId: string;
@@ -164,13 +164,13 @@
           v-if="record?.has_passphrase"
           class="mb-4 space-y-2">
           <label
-            :for="'passphrase-' + secretKey"
+            :for="'passphrase-' + secretIdentifier"
             class="sr-only">
             {{ $t('web.COMMON.enter_passphrase_here') }}
           </label>
           <input
             v-model="passphrase"
-            :id="'passphrase-' + secretKey"
+            :id="'passphrase-' + secretIdentifier"
             type="password"
             name="passphrase"
             :class="[

@@ -9,11 +9,13 @@
   import { useMetadataList } from '@/composables/useMetadataList';
   import { MetadataRecords } from '@/schemas/api/endpoints';
   import { onMounted, computed, ref, onBeforeUnmount } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   // Define props
   interface Props {}
   defineProps<Props>();
 
+  const { t } = useI18n();
   const { details, recordCount, isLoading, refreshRecords, error } = useMetadataList();
 
   const sectionId = ref(`dashboard-recent-${Math.random().toString(36).substring(2, 9)}`);
@@ -96,14 +98,14 @@
             <h2
               id="dashboard-recent-heading"
               class="text-xl font-medium text-gray-700 dark:text-gray-200">
-              {{ $t('web.LABELS.title_recent_secrets') }}
+              {{ t('web.LABELS.title_recent_secrets') }}
             </h2>
           </div>
 
           <div
             class="flex items-center gap-3">
             <span class="text-sm text-gray-500 dark:text-gray-400">
-              {{ $t('web.LABELS.items_count', { count: recordCount }) }}
+              {{ t('web.LABELS.items_count', { count: recordCount }) }}
             </span>
             <!-- prettier-ignore-attribute class -->
             <button
@@ -112,13 +114,13 @@
               class="flex items-center gap-1 rounded p-1.5
                 text-gray-500 hover:bg-gray-100 hover:text-gray-700
                 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-              :aria-label="$t('web.LABELS.refresh')"
+              :aria-label="t('web.LABELS.refresh')"
               type="button">
               <OIcon
                 collection="heroicons"
                 name="arrow-path"
                 :class="['size-4', { 'animate-spin': isRefreshing }]" />
-              <span class="sr-only">{{ $t('web.LABELS.refresh') }}</span>
+              <span class="sr-only">{{ t('web.LABELS.refresh') }}</span>
             </button>
           </div>
         </div>
@@ -136,13 +138,13 @@
           <EmptyState
             v-else
             action-route="/"
-            :action-text="$t('create-a-secret')">
+            :action-text="t('create-a-secret')">
             <template #title>
-              {{ $t('web.dashboard.title_no_recent_secrets') }}
+              {{ t('web.dashboard.title_no_recent_secrets') }}
             </template>
             <template #description>
-              <div>{{ $t('web.dashboard.get-started-by-creating-your-first-secret') }}</div>
-              <div>{{ $t('theyll-appear-here-once-youve-shared-them') }}</div>
+              <div>{{ t('web.dashboard.get-started-by-creating-your-first-secret') }}</div>
+              <div>{{ t('theyll-appear-here-once-youve-shared-them') }}</div>
             </template>
           </EmptyState>
         </div>

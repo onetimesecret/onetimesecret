@@ -45,16 +45,16 @@ export const metadataStateSchema = z.enum(Object.values(MetadataState) as [strin
 // Common base schema for all metadata records
 export const metadataBaseSchema = createModelSchema({
   key: z.string(),
-  shortkey: z.string(),
-  secret_shortkey: z.string().optional(),
+  shortid: z.string(),
+  secret_shortid: z.string().optional(),
   recipients: z.array(z.string()).or(z.string()).nullable().optional(),
   share_domain: z.string().nullable().optional(),
   secret_ttl: transforms.fromString.number,
   metadata_ttl: transforms.fromString.number,
   lifespan: transforms.fromString.number,
   state: metadataStateSchema,
-  created: transforms.fromString.date,
-  updated: transforms.fromString.date,
+  created: transforms.fromNumber.secondsToDate,
+  updated: transforms.fromNumber.secondsToDate,
   has_passphrase: z.boolean().optional(),
   shared: transforms.fromString.dateNullable.optional(),
   received: transforms.fromString.dateNullable.optional(),
@@ -79,10 +79,12 @@ export const metadataBaseSchema = createModelSchema({
 // Metadata shape in single record view
 export const metadataSchema = metadataBaseSchema.merge(
   z.object({
-    secret_key: z.string().nullable().optional(),
-    secret_state: metadataStateSchema.nullable().optional(),
+    secret_identifier: z.string().nullish().optional(),
+    secret_shortid: z.string().nullish().optional(),
+    key: z.string().nullish().optional(),
+    secret_state: metadataStateSchema.nullish().optional(),
     natural_expiration: z.string(),
-    expiration: transforms.fromString.date,
+    expiration: transforms.fromNumber.secondsToDate,
     expiration_in_seconds: transforms.fromString.number,
     share_path: z.string(),
     burn_path: z.string(),

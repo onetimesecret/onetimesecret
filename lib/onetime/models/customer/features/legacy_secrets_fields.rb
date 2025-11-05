@@ -25,7 +25,7 @@ module Onetime::Customer::Features
       end
 
       def add_metadata(obj)
-        metadata.add obj.key
+        metadata.add obj.identifier
       end
     end
   end

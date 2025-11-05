@@ -27,8 +27,8 @@ OT.boot! :test, false
 
 ## Basic metadata transformation (this doubles as a check for FlexibleHashAccess)
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-[result['custid'], result['metadata_key'], result['secret_key']]
-#=> [@metadata.custid, @metadata.key, @metadata.secret_key]
+[result['custid'], result['metadata_identifier'], result['secret_identifier']]
+#=> [@metadata.custid, @metadata.identifier, @metadata.secret_identifier]
 
 ## TTL handling - metadata_ttl is set to the real TTL value
 result = V1::Controllers::Index.metadata_hsh(@metadata)
@@ -53,14 +53,14 @@ result['secret_ttl']
 
 ## State-dependent field presence - 'new' state
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-[result.key?('secret_key'), result.key?('secret_ttl'), result.key?('received')]
+[result.key?('secret_identifier'), result.key?('secret_ttl'), result.key?('received')]
 #=> [true, true, false]
 
 ## State-dependent field presence - 'received' state
 @metadata.state = 'received'
 @metadata.save
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-[result.key?('secret_key'), result.key?('secret_ttl'), result.key?('received')]
+[result.key?('secret_identifier'), result.key?('secret_ttl'), result.key?('received')]
 #=> [false, false, true]
 
 ## Optional parameter handling - value
@@ -88,11 +88,11 @@ result = V1::Controllers::Index.metadata_hsh(@metadata)
 result['custid']
 #=> nil
 
-## Handling nil secret_key
-@metadata.secret_key = nil
+## Handling nil secret_identifier
+@metadata.secret_identifier = nil
 @metadata.save
 result = V1::Controllers::Index.metadata_hsh(@metadata)
-result['secret_key']
+result['secret_identifier']
 #=> nil
 
 ## Handling nil state

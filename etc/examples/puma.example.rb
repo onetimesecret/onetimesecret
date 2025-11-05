@@ -73,7 +73,7 @@ when 'development'
   preload_app! if _worker_count > 0
 
   plugin :tmp_restart
-  quiet false
+  quiet true
 
   worker_timeout 30
   worker_boot_timeout 30

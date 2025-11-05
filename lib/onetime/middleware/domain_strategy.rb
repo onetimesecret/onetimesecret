@@ -65,7 +65,7 @@ module Onetime
         env['onetime.display_domain']  = display_domain
         env['onetime.domain_strategy'] = domain_strategy || :invalid # make sure never nil
 
-        app_logger.debug 'Domain strategy determined', {
+        http_logger.debug '[DomainStrategy] determined', {
           host: display_domain,
           strategy: domain_strategy
         }
@@ -102,13 +102,13 @@ module Onetime
             when ->(d) { known_custom_domain?(d.name) }       then :custom
             end
           rescue PublicSuffix::DomainInvalid => ex
-            Onetime.app_logger.debug 'Invalid domain in strategy selection', {
+            Onetime.http_logger.debug 'Invalid domain in strategy selection', {
               exception: ex,
               request_domain: request_domain
             }
             nil
           rescue StandardError => ex
-            Onetime.app_logger.error 'Unhandled error in domain strategy', {
+            Onetime.http_logger.error 'Unhandled error in domain strategy', {
               exception: ex,
               request_domain: request_domain,
               canonical_domain: canonical_domain
@@ -228,14 +228,14 @@ module Onetime
         def initialize_from_config(config)
           raise ArgumentError, 'Configuration cannot be nil' if config.nil?
 
-          Onetime.app_logger.debug 'DomainStrategy initializing from config', {
+          Onetime.http_logger.debug 'DomainStrategy initializing from config', {
             domains_enabled_before: @domains_enabled
           }
 
           @domains_enabled  = config.dig('domains', 'enabled') || false
           @canonical_domain = get_canonical_domain(config)
 
-          Onetime.app_logger.debug 'DomainStrategy config loaded', {
+          Onetime.http_logger.debug 'DomainStrategy config loaded', {
             domains_enabled: @domains_enabled,
             canonical_domain: @canonical_domain
           }

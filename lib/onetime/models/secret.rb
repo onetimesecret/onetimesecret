@@ -1,5 +1,7 @@
 # lib/onetime/models/secret.rb
 
+require 'familia/verifiable_identifier'
+
 require_relative 'secret/features'
 
 module Onetime
@@ -7,59 +9,43 @@ module Onetime
 
     using Familia::Refinements::TimeLiterals
 
-    feature :safe_dump
+    feature :object_identifier,
+      generator: proc { Familia::VerifiableIdentifier.generate_verifiable_id }
+    feature :safe_dump_fields
     feature :expiration
     feature :relationships
-    feature :object_identifier
     feature :required_fields
-    feature :secret_encryption
+    feature :encrypted_fields
+    feature :transient_fields
     feature :secret_state_management
-    feature :secret_customer_relations
     feature :legacy_encrypted_fields
     feature :deprecated_fields
 
     default_expiration 7.days # default only, can be overridden at create time
     prefix :secret
 
-    identifier_field :key
+    identifier_field :objid
 
-    field :custid
     field :state
-    field :value
-    field :key
-    field :metadata_key
-    field :value_encryption
     field :lifespan
-    field :share_domain
-    field :verification
-    field :truncated # boolean
+    field :metadata_identifier
+    field :metadata_shortid
+    field :owner_id
 
-    counter :view_count, default_expiration: 14.days # out lives the secret itself
-
-    safe_dump_field :identifier, ->(obj) { obj.identifier }
-    safe_dump_field :key
-    safe_dump_field :state
-    safe_dump_field :secret_ttl, ->(m) { m.lifespan }
-    safe_dump_field :lifespan
-    safe_dump_field :shortkey, ->(m) { m.key.slice(0, 8) }
-    safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
-    safe_dump_field :verification, ->(m) { m.verification? }
-    safe_dump_field :is_truncated, ->(m) { m.truncated? }
-    safe_dump_field :created
-    safe_dump_field :updated
+    encrypted_field :ciphertext
+    transient_field :ciphertext_passphrase
+    transient_field :ciphertext_domain
 
     def init
       self.state ||= 'new'
-      self.key   ||= self.class.generate_id # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
-    def shortkey
-      key.slice(0, 6)
+    def shortid
+      identifier.slice(0, 8)
     end
 
     def age
       @age ||= Familia.now.to_i - updated
-      @age
     end
 
     def expiration
@@ -73,12 +59,20 @@ module Onetime
       OT::Utils::TimeUtils.natural_duration lifespan
     end
 
+    def load_owner
+      Onetime::Customer.load owner_id
+    end
+
+    def owner?(fobj)
+      fobj && (fobj.objid == owner_id)
+    end
+
     def older_than?(seconds)
       age > seconds
     end
 
     def valid?
-      exists? && !value.to_s.empty?
+      exists? && (!ciphertext.to_s.empty? || !value.to_s.empty?)
     end
 
     def truncated?
@@ -90,7 +84,7 @@ module Onetime
     end
 
     def load_metadata
-      Onetime::Metadata.load metadata_key
+      Onetime::Metadata.load metadata_identifier
     end
   end
 end

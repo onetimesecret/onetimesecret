@@ -10,7 +10,11 @@ import { ref } from 'vue';
 import { Router, useRouter } from 'vue-router';
 import { getRouter } from 'vue-router-mock';
 
-import { mockBurnedMetadataRecord, mockMetadataDetails, mockMetadataRecord } from '../fixtures/metadata.fixture';
+import {
+  mockBurnedMetadataRecord,
+  mockMetadataDetails,
+  mockMetadataRecord,
+} from '../fixtures/metadata.fixture';
 
 vi.mock('@/stores/metadataStore');
 vi.mock('@/stores/notificationsStore');
@@ -31,7 +35,9 @@ const mockRouter: Router = getRouter();
 
 vi.mocked(useRouter).mockReturnValue(mockRouter);
 vi.mocked(useMetadataStore).mockReturnValue(storeMock as ReturnType<typeof useMetadataStore>);
-vi.mocked(useNotificationsStore).mockReturnValue(notificationsMock as ReturnType<typeof useNotificationsStore>);
+vi.mocked(useNotificationsStore).mockReturnValue(
+  notificationsMock as ReturnType<typeof useNotificationsStore>
+);
 
 const mockMetadata = { id: 'test-key', value: 'secret-data' };
 
@@ -79,7 +85,13 @@ describe('useMetadata', () => {
   describe('lifecycle', () => {
     it('should handle error state reset', () => {
       const { error, reset } = useMetadata('test-key');
-      error.value = { name: 'ApplicationError' as const, message: 'Test error', type: 'human', severity: 'error', code: null };
+      error.value = {
+        name: 'ApplicationError' as const,
+        message: 'Test error',
+        type: 'human',
+        severity: 'error',
+        code: null,
+      };
       reset();
       expect(error.value).toBeNull();
     });
@@ -130,7 +142,7 @@ describe('useMetadata', () => {
 
       expect(routerMock.push).toHaveBeenCalledWith({
         name: 'Receipt link',
-        params: { metadataKey: 'test-key' },
+        params: { metadataIdentifier: 'test-key' },
         query: expect.objectContaining({
           ts: expect.any(String),
         }),
@@ -201,7 +213,7 @@ describe('useMetadata', () => {
       // Verify
       expect(store.fetch).toHaveBeenCalledWith('test-key');
       expect(isLoading.value).toBe(false);
-      expect(notifications.show).toHaveBeenCalledWith("web.COMMON.unexpected_error", "error");
+      expect(notifications.show).toHaveBeenCalledWith('web.COMMON.unexpected_error', 'error');
       expect(error.value).toBeDefined();
       expect(error.value?.type).toBe('technical');
       expect(error.value?.severity).toBe('error');
@@ -209,10 +221,16 @@ describe('useMetadata', () => {
 
     it('should handle 404 errors as human-facing', async () => {
       // Setup
-      const notFoundError = new AxiosError('Request failed with status 404', 'ERR_NOT_FOUND', undefined, undefined, {
-        status: 404,
-        data: { message: 'Secret not found or has been burned' },
-      } as any);
+      const notFoundError = new AxiosError(
+        'Request failed with status 404',
+        'ERR_NOT_FOUND',
+        undefined,
+        undefined,
+        {
+          status: 404,
+          data: { message: 'Secret not found or has been burned' },
+        } as any
+      );
 
       store.fetch.mockRejectedValueOnce(notFoundError);
       const notifications = { show: vi.fn() };
@@ -231,7 +249,10 @@ describe('useMetadata', () => {
         severity: 'error',
         code: 404,
       });
-      expect(notifications.show).toHaveBeenCalledWith('Secret not found or has been burned', 'error');
+      expect(notifications.show).toHaveBeenCalledWith(
+        'Secret not found or has been burned',
+        'error'
+      );
     });
   });
 
@@ -265,7 +286,7 @@ describe('useMetadata', () => {
       // expect(notifications.show).toHaveBeenCalledWith('Secret burned successfully', 'success');
       expect(mockRouter.push).toHaveBeenCalledWith({
         name: 'Receipt link',
-        params: { metadataKey: 'test-key' },
+        params: { metadataIdentifier: 'test-key' },
         query: expect.objectContaining({ ts: expect.any(String) }),
       });
     });

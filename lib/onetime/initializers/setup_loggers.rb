@@ -1,4 +1,4 @@
-# lib/onetime/initializers/configure_loggers.rb
+# lib/onetime/initializers/setup_loggers.rb
 
 require 'yaml'
 require 'semantic_logger'
@@ -17,7 +17,7 @@ module Onetime
     # We must cache logger instances after setting their levels, otherwise
     # the level settings are lost.
     #
-    def configure_loggers
+    def setup_loggers
       $stderr.puts ' entering configure_loggers' if Onetime.debug?
       config = load_logging_config
 
@@ -189,6 +189,10 @@ module Onetime
       # Otto router - also responds to OTTO_DEBUG
       Otto.logger = @cached_loggers['Otto']
 
+      # Without this, we don't see backtraces for errors caught by Otto's
+      # centralized unhandled error handler.
+      Otto.debug = Onetime.debug?
+
       # Rhales manifold
       # Rhales.logger = SemanticLogger['Rhales']
       # Rhales.logger.level = :fatal
@@ -219,7 +223,7 @@ module Onetime
         when 'production'
           ENV['FAMILIA_SAMPLE_RATE']&.to_f || 0.01  # 1% default
         when 'development'
-          ENV['FAMILIA_SAMPLE_RATE']&.to_f || 0.1   # 10% default
+          ENV['FAMILIA_SAMPLE_RATE']&.to_f || 1   # 10% default
         else
           # Log everything in test
         end

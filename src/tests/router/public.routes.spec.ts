@@ -14,29 +14,24 @@ import publicRoutes from '@/router/public.routes';
 
 describe('Public Routes', () => {
   describe('Homepage Route', () => {
+    let route: RouteRecordRaw | undefined;
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      route = publicRoutes.find((route: RouteRecordRaw) => route.path === '/');
+    });
+
     it('should define homepage route correctly', () => {
-      const route = publicRoutes.find((route: RouteRecordRaw) => route.path === '/');
       expect(route).toBeDefined();
       expect(route?.name).toBe('Home');
       expect(route?.meta?.requiresAuth).toBe(false);
       expect(route?.meta?.layout).toBeDefined();
+    });
+
+    it('should have correct layout props', () => {
       expect(route?.meta?.layoutProps?.displayMasthead).toBe(true);
       expect(route?.meta?.layoutProps?.displayFooterLinks).toBe(true);
       expect(route?.meta?.layoutProps?.displayFeedback).toBe(true);
-    });
-
-    // Add beforeEach to clear mocks if needed
-    beforeEach(() => {
-      vi.clearAllMocks();
-    });
-  });
-  describe('Incoming Secrets Route', () => {
-    it('should define incoming secrets route correctly', () => {
-      const route = publicRoutes.find((route: RouteRecordRaw) => route.path === '/incoming');
-      expect(route).toBeDefined();
-      expect(route?.name).toBe('Inbound Secrets');
-      expect(route?.meta?.requiresAuth).toBe(false);
-      expect(route?.meta?.layout).toBeDefined();
     });
   });
 

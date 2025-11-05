@@ -4,7 +4,6 @@ require 'time'
 
 module V2::Logic
   module Secrets
-
     using Familia::Refinements::TimeLiterals
 
     class ListMetadata < V2::Logic::Base
@@ -37,16 +36,16 @@ module V2::Logic
 
       def success_data
         {
-          "custid" => cust.custid,
-          "count" => records.count,
-          "records" => records,
-          "details" => {
-            "type" => 'list', # Add the type discriminator
-            "since" => since,
-            "now" => now,
-            "has_items" => has_items,
-            "received" => received,
-            "notreceived" => notreceived,
+          'custid' => cust.custid,
+          'count' => records.count,
+          'records' => records,
+          'details' => {
+            'type' => 'list', # Add the type discriminator
+            'since' => since,
+            'now' => now,
+            'has_items' => has_items,
+            'received' => received,
+            'notreceived' => notreceived,
           },
         }
       end

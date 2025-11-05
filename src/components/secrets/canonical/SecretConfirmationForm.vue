@@ -8,7 +8,7 @@
   import { useI18n } from 'vue-i18n';
 
   interface Props {
-    secretKey: string;
+    secretIdentifier: string;
     record: Secret | null;
     details: SecretDetails | null;
     isSubmitting: boolean;
@@ -21,11 +21,11 @@
 
   const passphrase = ref('');
 
-  // Generate unique IDs for ARIA attributes based on secretKey
-  const formHeadingId = computed(() => `form-heading-${props.secretKey}`);
-  const passphraseInputId = computed(() => `passphrase-${props.secretKey}`);
-  const passphraseHeadingId = computed(() => `passphrase-heading-${props.secretKey}`);
-  const passphraseDescriptionId = computed(() => `passphrase-description-${props.secretKey}`);
+  // Generate unique IDs for ARIA attributes based on secretIdentifier
+  const formHeadingId = computed(() => `form-heading-${props.secretIdentifier}`);
+  const passphraseInputId = computed(() => `passphrase-${props.secretIdentifier}`);
+  const passphraseHeadingId = computed(() => `passphrase-heading-${props.secretIdentifier}`);
+  const passphraseDescriptionId = computed(() => `passphrase-description-${props.secretIdentifier}`);
 
   // Determine the primary status message based on record state
   const statusMessage = computed(() => {

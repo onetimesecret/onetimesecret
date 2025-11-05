@@ -9,8 +9,8 @@ module V1::Logic
       # Working variables
       attr_reader :key, :metadata, :secret
       # Template variables
-      attr_reader :metadata_key, :metadata_shortkey, :secret_key, :secret_state,
-            :secret_shortkey, :recipients, :no_cache, :expiration_in_seconds,
+      attr_reader :metadata_key, :metadata_shortid, :secret_key, :secret_state,
+            :secret_shortid, :recipients, :no_cache, :expiration_in_seconds,
             :natural_expiration, :is_received, :is_burned, :secret_realttl,
             :is_destroyed, :expiration, :view_count,
             :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
@@ -33,9 +33,9 @@ module V1::Logic
         @secret = @metadata.load_secret
 
         @metadata_key = metadata.key
-        @metadata_shortkey = metadata.shortkey
+        @metadata_short_identifier = metadata.shortid
         @secret_key = metadata.secret_key
-        @secret_shortkey = metadata.secret_shortkey
+        @secret_shortid = metadata.secret_shortid
 
         # Default the recipients to an empty string. When a Familia::Horreum
         # object is loaded, the fields that have no values (or that don't
@@ -58,11 +58,11 @@ module V1::Logic
           burned_or_received = metadata.state?(:burned) || metadata.state?(:received)
 
           if !burned_or_received && metadata.secret_expired?
-            OT.le("[show_metadata] Metadata has expired secret. {metadata.shortkey}")
+            OT.le("[show_metadata] Metadata has expired secret. {metadata.shortid}")
             metadata.secret_key = nil
             metadata.expired!
           elsif !burned_or_received
-            OT.le("[show_metadata] Metadata is an orphan. #{metadata.shortkey}")
+            OT.le("[show_metadata] Metadata is an orphan. #{metadata.shortid}")
             metadata.secret_key = nil
             metadata.orphaned!
           end

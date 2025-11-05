@@ -129,7 +129,7 @@ module V1
           logic.process
           if logic.greenlighted
             json :state           => self.class.metadata_hsh(logic.metadata),
-                :secret_shortkey => logic.metadata.secret_shortkey
+                :secret_shortid => logic.metadata.secret_shortid
           else
             secret_not_found_response
           end
