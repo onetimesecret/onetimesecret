@@ -84,7 +84,7 @@ export const metadataSchema = metadataBaseSchema.merge(
     key: z.string().nullish().optional(),
     secret_state: metadataStateSchema.nullish().optional(),
     natural_expiration: z.string(),
-    expiration: transforms.fromString.date,
+    expiration: transforms.fromNumber.secondsToDate,
     expiration_in_seconds: transforms.fromString.number,
     share_path: z.string(),
     burn_path: z.string(),
