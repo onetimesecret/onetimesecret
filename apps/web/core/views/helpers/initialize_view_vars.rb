@@ -136,7 +136,9 @@ module Core
         # although a serializer could still choose to include any of them).
         description          = i18n_instance[:COMMON][:description]
         keywords             = i18n_instance[:COMMON][:keywords]
-        page_title           = 'Onetime Secret' # TODO: Implement as config setting
+        # Use the display domain name for branded instances, otherwise use the default app name.
+        # This provides a default title for initial page load before Vue takes over title management.
+        page_title           = display_domain || site_config.dig('host', 'name') || 'Onetime Secret'
         no_cache             = false
         frontend_host        = development['frontend_host']
         frontend_development = development['enabled']

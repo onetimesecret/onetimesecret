@@ -5,8 +5,11 @@ import { useAuthStore } from '@/stores/authStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { RouteLocationNormalized, Router } from 'vue-router';
 import { processQueryParams } from './queryParams.handler';
+import { usePageTitle } from '@/composables/usePageTitle';
 
 export async function setupRouterGuards(router: Router): Promise<void> {
+  const { setTitle } = usePageTitle();
+
   router.beforeEach(async (to: RouteLocationNormalized) => {
     const authStore = useAuthStore();
     const languageStore = useLanguageStore();
@@ -47,6 +50,22 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     }
 
     return true; // Always return true for non-auth routes
+  });
+
+  // Update page title after navigation completes
+  router.afterEach((to: RouteLocationNormalized) => {
+    // Get title from route meta, route name, or default to null
+    const title = to.meta?.title as string | undefined;
+
+    if (title) {
+      setTitle(title);
+    } else if (to.name && typeof to.name === 'string') {
+      // Fallback to route name if no title is specified
+      setTitle(to.name);
+    } else {
+      // Reset to default app name
+      setTitle(null);
+    }
   });
 }
 

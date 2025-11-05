@@ -14,6 +14,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: DefaultFooter,
     },
     meta: {
+      title: 'web.TITLES.dashboard',
       requiresAuth: true,
       layoutProps: {
         displayMasthead: true,
@@ -34,6 +35,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: DefaultFooter,
     },
     meta: {
+      title: 'web.TITLES.recent',
       requiresAuth: true,
       layoutProps: {
         displayMasthead: true,
@@ -54,6 +56,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: DefaultFooter,
     },
     meta: {
+      title: 'web.TITLES.domains',
       requiresAuth: true,
       layoutProps: {
         displayFeedback: true,
@@ -71,6 +74,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: DefaultFooter,
     },
     meta: {
+      title: 'web.TITLES.domain_add',
       requiresAuth: true,
       layoutProps: {
         displayFeedback: false,
@@ -88,6 +92,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: DefaultFooter,
     },
     meta: {
+      title: 'web.TITLES.domain_verify',
       requiresAuth: true,
       displayPoweredBy: false,
     },
@@ -102,6 +107,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: DefaultFooter,
     },
     meta: {
+      title: 'web.TITLES.domain_brand',
       requiresAuth: true,
       displayPoweredBy: false,
     },

@@ -73,6 +73,7 @@ const routes: Array<RouteRecordMultipleViews> = [
     },
     ...withValidatedMetadataKey,
     meta: {
+      title: 'web.TITLES.metadata',
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
@@ -94,6 +95,7 @@ const routes: Array<RouteRecordMultipleViews> = [
     },
     ...withValidatedMetadataKey,
     meta: {
+      title: 'web.TITLES.receipt',
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
@@ -115,6 +117,7 @@ const routes: Array<RouteRecordMultipleViews> = [
     },
     ...withValidatedMetadataKey,
     meta: {
+      title: 'web.TITLES.burn_secret',
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: false,
@@ -136,6 +139,7 @@ const routes: Array<RouteRecordMultipleViews> = [
     },
     ...withValidatedMetadataKey,
     meta: {
+      title: 'web.TITLES.burn_secret',
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: false,
