@@ -2,8 +2,10 @@
 
 import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
+import EmptyHeader from '@/components/layout/EmptyHeader.vue';
 import ImprovedLayout from '@/layouts/ImprovedLayout.vue';
 import NavigationDemo from '@/views/demo/NavigationDemo.vue';
+import NavigationCodaDemo from '@/views/demo/NavigationCodaDemo.vue';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
@@ -47,6 +49,27 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: false,
         displayPoweredBy: false,
         displayVersion: true,
+      },
+    },
+  },
+  {
+    path: '/demo/navigation-coda',
+    name: 'NavigationCodaDemo',
+    components: {
+      default: NavigationCodaDemo,
+      // Coda demo handles its own layout completely (full-screen split view)
+      header: EmptyHeader,
+      footer: () => import('@/components/layout/EmptyFooter.vue'),
+    },
+    meta: {
+      requiresAuth: true,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayPoweredBy: false,
+        displayVersion: false,
       },
     },
   },
