@@ -160,7 +160,7 @@ status, headers, body = @middleware.call(env)
 
 ## Middleware logs error message
 io = StringIO.new
-middleware_with_custom_logger = Rack::HandleInvalidPercentEncoding.new(@app, io: io, check_enabled: true)
+middleware_with_custom_logger = Rack::HandleInvalidPercentEncoding.new(@app, logger: Logger.new(io), check_enabled: true)
 env = @env_url_encoded_multiple.call
 middleware_with_custom_logger.call(env)
 io.rewind

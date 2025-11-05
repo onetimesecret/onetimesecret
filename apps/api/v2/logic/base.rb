@@ -121,7 +121,8 @@ module V2
 
       # Requires the implementing class to have cust and session fields
       def send_verification_email(token = nil)
-        _, secret = Onetime::Secret.spawn_pair cust.custid, token
+        # NOTE: Disabled - requires refactoring to use new Metadata.spawn_pair API
+        # _, secret = Onetime::Secret.spawn_pair cust.custid, token
 
         OT.lw '[send_verification_email] DISABLED'
         return
