@@ -5,8 +5,12 @@ import { useAuthStore } from '@/stores/authStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { RouteLocationNormalized, Router } from 'vue-router';
 import { processQueryParams } from './queryParams.handler';
+import { usePageTitle } from '@/composables/usePageTitle';
 
 export async function setupRouterGuards(router: Router): Promise<void> {
+  const { setTitle } = usePageTitle();
+  let currentTitle: string | null = null;
+
   router.beforeEach(async (to: RouteLocationNormalized) => {
     const authStore = useAuthStore();
     const languageStore = useLanguageStore();
@@ -47,6 +51,28 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     }
 
     return true; // Always return true for non-auth routes
+  });
+
+  // Update page title after navigation completes
+  router.afterEach((to: RouteLocationNormalized) => {
+    // Find the title from the matched routes, starting from the most specific
+    // This handles nested routes properly by inheriting from parent routes
+    const nearestWithTitle = to.matched.slice().reverse().find(r => r.meta && r.meta.title);
+
+    let newTitle: string | null = null;
+
+    if (nearestWithTitle) {
+      newTitle = nearestWithTitle.meta.title as string;
+    } else if (to.name && typeof to.name === 'string') {
+      // Fallback to route name if no title is specified in the route hierarchy
+      newTitle = to.name;
+    }
+
+    // Only update title if it has changed
+    if (newTitle !== currentTitle) {
+      currentTitle = newTitle;
+      setTitle(newTitle);
+    }
   });
 }
 

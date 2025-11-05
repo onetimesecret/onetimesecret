@@ -15,6 +15,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: ExpandedFooter,
     },
     meta: {
+      title: 'web.TITLES.account',
       requiresAuth: true,
       layout: AccountLayout,
       layoutProps: {
@@ -31,6 +32,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: ExpandedFooter,
     },
     meta: {
+      title: 'web.TITLES.data_region',
       requiresAuth: true,
       layout: AccountLayout,
       layoutProps: {
@@ -47,6 +49,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: ExpandedFooter,
     },
     meta: {
+      title: 'web.TITLES.current_region',
       requiresAuth: true,
       layout: AccountLayout,
       layoutProps: {
@@ -63,6 +66,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: ExpandedFooter,
     },
     meta: {
+      title: 'web.TITLES.available_regions',
       requiresAuth: true,
       layout: AccountLayout,
       layoutProps: {
@@ -79,6 +83,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: ExpandedFooter,
     },
     meta: {
+      title: 'web.TITLES.why_data_sovereignty',
       requiresAuth: true,
       layout: AccountLayout,
       layoutProps: {
@@ -99,6 +104,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: ExpandedFooter,
     },
     meta: {
+      title: 'web.TITLES.profile_settings',
       requiresAuth: true,
       layout: AccountLayout,
       layoutProps: {
@@ -115,6 +121,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: ExpandedFooter,
     },
     meta: {
+      title: 'web.TITLES.security_overview',
       requiresAuth: true,
       layout: AccountLayout,
       layoutProps: {
@@ -131,6 +138,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: ExpandedFooter,
     },
     meta: {
+      title: 'web.TITLES.change_password',
       requiresAuth: true,
       layout: AccountLayout,
       layoutProps: {
@@ -147,6 +155,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: ExpandedFooter,
     },
     meta: {
+      title: 'web.TITLES.mfa_settings',
       requiresAuth: true,
       layout: AccountLayout,
       layoutProps: {
@@ -163,6 +172,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: ExpandedFooter,
     },
     meta: {
+      title: 'web.TITLES.active_sessions',
       requiresAuth: true,
       layout: AccountLayout,
       layoutProps: {
@@ -179,6 +189,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: ExpandedFooter,
     },
     meta: {
+      title: 'web.TITLES.recovery_codes',
       requiresAuth: true,
       layout: AccountLayout,
       layoutProps: {
@@ -195,6 +206,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: ExpandedFooter,
     },
     meta: {
+      title: 'web.TITLES.api_settings',
       requiresAuth: true,
       layout: AccountLayout,
       layoutProps: {
@@ -211,6 +223,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: ExpandedFooter,
     },
     meta: {
+      title: 'web.TITLES.advanced_settings',
       requiresAuth: true,
       layout: AccountLayout,
       layoutProps: {
