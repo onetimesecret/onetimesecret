@@ -78,14 +78,15 @@ repos:
         args: ['--branch', 'develop', '--branch', 'rel/.*']
 
   # Commit message issue tracking integration
-  - repo: https://github.com/avilaton/add-msg-issue-prefix-hook
-    rev: v0.0.13
+  - repo: https://github.com/delano/add-msg-issue-prefix-hook
+    rev: v0.0.14-fork
     hooks:
       - id: add-msg-issue-prefix
         stages: [prepare-commit-msg]
         description: Automatically prefix commits with issue numbers
         args:
           - '--default='
+          - '--exclude-pattern=^(dependabot|renovate)/'
           - '--pattern=(i18n(?=/)|([a-zA-Z0-9]{0,10}-?[0-9]{1,5}))'
           - '--template=[#{}]'
 
