@@ -142,10 +142,11 @@ module Onetime::Metadata::Features
       def orphaned!
         # A guard to prevent modifying metadata records that already have
         # cleared out the secret (and that probably have already set a reason).
-        return if secret_id.to_s.empty?
+        return if secret_identifier.to_s.empty?
         return unless state?(:new) || state?(:viewed) # only new or viewed secrets can be orphaned
 
         previous_state = state
+        original_secret_id = secret_identifier
         self.state      = 'orphaned'
         self.updated    = Familia.now.to_i
         self.secret_identifier = ''
@@ -153,7 +154,7 @@ module Onetime::Metadata::Features
 
         secret_logger.warn "Metadata state transition to orphaned", {
           metadata_id: shortid,
-          secret_id: secret_identifier,
+          secret_id: original_secret_id,
           previous_state: previous_state,
           new_state: 'orphaned',
           timestamp: updated

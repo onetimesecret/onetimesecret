@@ -138,7 +138,7 @@
         </label>
         <!-- prettier-ignore-attribute class -->
         <textarea
-          v-if="record"
+          v-if="record?.secret_value"
           :id="secretContentId"
           class="w-full resize-none rounded-md
             border border-gray-300 bg-gray-100 px-3 py-2 font-mono text-base leading-[1.2] tracking-wider

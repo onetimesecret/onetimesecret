@@ -89,7 +89,7 @@ module V2::Logic
             # TODO: There's a bug here. If the UI that created this secret+metadata
             # records doesn't immediately load the metadata/reciept page the metadata
             # record stays in state=new allowing the next request through.
-            if metadata.state?(:new)
+            if secret && metadata.state?(:new)
               OT.ld "[show_metadata] m:#{metadata_identifier} s:#{secret_identifier} Decrypting for first and only creator viewing"
               @secret_value = secret.ciphertext.reveal { it }
             end

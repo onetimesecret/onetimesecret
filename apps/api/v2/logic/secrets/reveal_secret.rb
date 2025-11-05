@@ -59,7 +59,7 @@ module V2::Logic
               secret.received!
               raise_form_error i18n.dig(:web, :COMMON, :verification_not_valid) || 'Verification not valid'
 
-            elsif cust&.anonymous? || (cust&.custid == owner&.custid && !owner&.verified?)
+            elsif owner && (cust&.anonymous? || (cust&.custid == owner.custid && !owner.verified?))
               secret_logger.info 'Owner verification successful', {
                 secret_identifier: secret.shortid,
                 owner_id: owner.objid,
