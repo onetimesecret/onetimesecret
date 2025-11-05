@@ -94,7 +94,9 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_verify',
       requiresAuth: true,
-      displayPoweredBy: false,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
     },
     props: true,
   },

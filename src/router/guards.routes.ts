@@ -9,6 +9,7 @@ import { usePageTitle } from '@/composables/usePageTitle';
 
 export async function setupRouterGuards(router: Router): Promise<void> {
   const { setTitle } = usePageTitle();
+  let currentTitle: string | null = null;
 
   router.beforeEach(async (to: RouteLocationNormalized) => {
     const authStore = useAuthStore();
@@ -54,17 +55,23 @@ export async function setupRouterGuards(router: Router): Promise<void> {
 
   // Update page title after navigation completes
   router.afterEach((to: RouteLocationNormalized) => {
-    // Get title from route meta, route name, or default to null
-    const title = to.meta?.title as string | undefined;
+    // Find the title from the matched routes, starting from the most specific
+    // This handles nested routes properly by inheriting from parent routes
+    const nearestWithTitle = to.matched.slice().reverse().find(r => r.meta && r.meta.title);
 
-    if (title) {
-      setTitle(title);
+    let newTitle: string | null = null;
+
+    if (nearestWithTitle) {
+      newTitle = nearestWithTitle.meta.title as string;
     } else if (to.name && typeof to.name === 'string') {
-      // Fallback to route name if no title is specified
-      setTitle(to.name);
-    } else {
-      // Reset to default app name
-      setTitle(null);
+      // Fallback to route name if no title is specified in the route hierarchy
+      newTitle = to.name;
+    }
+
+    // Only update title if it has changed
+    if (newTitle !== currentTitle) {
+      currentTitle = newTitle;
+      setTitle(newTitle);
     }
   });
 }

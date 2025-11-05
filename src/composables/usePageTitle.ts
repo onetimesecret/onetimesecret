@@ -30,12 +30,16 @@ const TITLE_SEPARATOR = ' - ';
 export function usePageTitle() {
   const { t, te } = useI18n();
 
+  // Cache DOM elements to avoid repeated queries
+  let ogTitleMeta: HTMLMetaElement | null | undefined;
+  let twitterTitleMeta: HTMLMetaElement | null | undefined;
+
   /**
    * Gets the branded app name from domain settings or defaults to APP_NAME
    */
   const getAppName = (): string => {
-    const domainBranding = WindowService.get('domain_branding');
-    return domainBranding?.display_domain || APP_NAME;
+    const displayDomain = WindowService.get('display_domain');
+    return displayDomain || APP_NAME;
   };
 
   /**
@@ -46,7 +50,12 @@ export function usePageTitle() {
   const translateTitle = (title: string): string => {
     // Check if it's an i18n key (e.g., 'DASHBOARD.TITLE')
     if (te(title)) {
-      return t(title);
+      try {
+        return t(title);
+      } catch (error) {
+        console.error('Failed to translate title:', title, error);
+        return title;
+      }
     }
     return title;
   };
@@ -72,21 +81,29 @@ export function usePageTitle() {
    * @param title - The new title (can be plain string or i18n key)
    */
   const setTitle = (title: string | null | undefined) => {
-    const finalTitle = title ? formatTitle(title) : getAppName();
+    try {
+      const finalTitle = title ? formatTitle(title) : getAppName();
 
-    // Update document title
-    document.title = finalTitle;
+      // Update document title
+      document.title = finalTitle;
 
-    // Update Open Graph meta tag
-    const ogTitleMeta = document.querySelector('meta[property="og:title"]');
-    if (ogTitleMeta) {
-      ogTitleMeta.setAttribute('content', finalTitle);
-    }
+      // Cache and update Open Graph meta tag (query once on first access)
+      if (ogTitleMeta === undefined) {
+        ogTitleMeta = document.querySelector<HTMLMetaElement>('meta[property="og:title"]');
+      }
+      if (ogTitleMeta) {
+        ogTitleMeta.setAttribute('content', finalTitle);
+      }
 
-    // Update Twitter meta tag
-    const twitterTitleMeta = document.querySelector('meta[name="twitter:title"]');
-    if (twitterTitleMeta) {
-      twitterTitleMeta.setAttribute('content', finalTitle);
+      // Cache and update Twitter meta tag (query once on first access)
+      if (twitterTitleMeta === undefined) {
+        twitterTitleMeta = document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]');
+      }
+      if (twitterTitleMeta) {
+        twitterTitleMeta.setAttribute('content', finalTitle);
+      }
+    } catch (error) {
+      console.error('Failed to update page title:', error);
     }
   };
 
@@ -117,16 +134,4 @@ export function usePageTitle() {
     useComputedTitle,
     formatTitle,
   };
-}
-
-/**
- * Type extension for route meta to include title property
- * Add this to your router type declarations
- */
-export interface RouteMeta {
-  title?: string;
-  requiresAuth?: boolean;
-  isAuthRoute?: boolean;
-  layout?: string;
-  layoutProps?: Record<string, unknown>;
 }
