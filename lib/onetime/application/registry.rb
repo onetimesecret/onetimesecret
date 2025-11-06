@@ -17,9 +17,10 @@ module Onetime
       # rubocop:disable ThreadSafety/MutableClassInstanceVariable
       @application_classes = []
       @mount_mappings      = {}
+      @application_instances = {}
 
       class << self
-        attr_reader :application_classes, :mount_mappings
+        attr_reader :application_classes, :mount_mappings, :application_instances
 
         def register_application_class(app_class)
           @application_classes << app_class unless @application_classes.include?(app_class)
@@ -51,14 +52,52 @@ module Onetime
           total_apps = sorted_mappings.size
           warmup_counter = 0
 
-          mappings = sorted_mappings.transform_values do |app_class|
+          mappings = sorted_mappings.transform_values do |app_class, path|
             warmup_counter += 1
             # Pass warmup context to application initialization
             Thread.current[:warmup_context] = { current: warmup_counter, total: total_apps }
-            app_class.new
+            instance = app_class.new
+            # Store instance for health checks
+            @application_instances[app_class] = instance
+            instance
           end
 
           Rack::URLMap.new(mappings)
+        end
+
+        # Check health of all registered applications
+        #
+        # Aggregates initialization health status from all instantiated
+        # applications. Returns false if any application failed to initialize.
+        #
+        # NOTE: This checks initialization success only. See Base#healthy? for
+        # details on scope and limitations of health checking across different
+        # router types (Otto, Roda, etc.).
+        #
+        # @return [Hash] Aggregated health status with per-application details
+        def health_check
+          results = {
+            healthy: true,
+            applications: {}
+          }
+
+          application_instances.each do |app_class, instance|
+            health = instance.health_check
+            results[:applications][app_class.name] = health
+            results[:healthy] = false unless health[:healthy]
+          end
+
+          results
+        end
+
+        # Check if all applications are healthy
+        #
+        # Convenience method that returns boolean health status across all
+        # registered applications. Equivalent to `health_check[:healthy]`.
+        #
+        # @return [Boolean] true if all apps initialized successfully
+        def healthy?
+          health_check[:healthy]
         end
 
         # Reset registry state (for testing and development)
@@ -73,6 +112,7 @@ module Onetime
         def reset!
           @mount_mappings = {}
           @application_classes = []
+          @application_instances = {}
 
           # Re-register classes that are already loaded in memory
           reregister_loaded_applications
@@ -95,17 +135,21 @@ module Onetime
           # Skip auth app in basic mode - auth endpoints handled by Core Web App
           if Onetime.auth_config.mode == 'basic'
             filepaths.reject! { |f| f.include?('web/auth/') }
-
-            Onetime.log_box(
-              ['AUTH MODE: Basic (Core handles /auth/*)'],
-            )
-          else
-            Onetime.log_box(
-              ['AUTH MODE: Advanced (Rodauth enabled)'],
-            )
           end
 
           Onetime.app_logger.info "[registry] Scan found #{filepaths.size} application(s)"
+
+          # Log auth mode after scan but before loading
+          auth_mode_msg = if Onetime.auth_config.mode == 'basic'
+              'Basic (Core handles /auth/*)'
+          else
+            'Advanced (Rodauth enabled)'
+          end
+
+          Onetime.log_box(
+            ["AUTHENTICATION MODE: #{auth_mode_msg}"],
+            logger_method: :auth_logger
+          )
 
           filepaths.each_with_index do |f, idx|
             pretty_path = Onetime::Utils.pretty_path(f)
@@ -113,8 +157,7 @@ module Onetime
             begin
               require f
             rescue LoadError => ex
-              Onetime.app_logger.info "
-"
+              Onetime.app_logger.info "\n"
               Onetime.log_box(
                 [
                   '❌ APPLICATION LOAD FAILED',
@@ -122,8 +165,7 @@ module Onetime
                 ],
                 level: :error
               )
-              Onetime.app_logger.info "
-"
+              Onetime.app_logger.info "\n"
               raise ex
             end
           end

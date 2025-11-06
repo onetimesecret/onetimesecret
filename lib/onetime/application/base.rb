@@ -94,6 +94,47 @@ module Onetime
         rack_app.call(env)
       end
 
+      # Health check for application initialization
+      #
+      # Verifies that the application successfully completed initialization by
+      # checking that both router and rack_app were constructed without errors.
+      #
+      # SCOPE: This checks initialization success only, not runtime correctness.
+      #
+      # What this catches:
+      # - Router construction failures (file not found, syntax errors)
+      # - Rack app build failures (middleware errors, configuration issues)
+      #
+      # What this intentionally doesn't catch:
+      # - Route handler errors (Otto/Roda use lazy evaluation)
+      # - Missing classes referenced in routes (caught at request time)
+      # - Logic errors in handler classes (runtime concern)
+      #
+      # Rationale: Both Otto and Roda use lazy evaluation for route handlers.
+      # Attempting to validate all route handlers would require executing code
+      # with potential side effects, fighting framework design. Runtime errors
+      # should be caught by monitoring and logging systems, not health checks.
+      #
+      # @return [Boolean] true if initialization succeeded, false otherwise
+      def healthy?
+        !router.nil? && !rack_app.nil?
+      end
+
+      # Get detailed health check information
+      #
+      # Returns structured health data suitable for boot validation and
+      # monitoring systems. See #healthy? for scope and limitations.
+      #
+      # @return [Hash] Health status with initialization details
+      def health_check
+        {
+          application: self.class.name,
+          healthy: healthy?,
+          router_present: !router.nil?,
+          rack_app_present: !rack_app.nil?
+        }
+      end
+
       private
 
       def build_router
@@ -135,7 +176,7 @@ module Onetime
               message = "WARMED UP #{base_klass} at #{base_klass.uri_prefix}"
 
               # Use log_box helper for consistent formatting
-              Onetime.log_box([message], logger_method: :boot_logger)
+              Onetime.log_box([message], logger_method: :app_logger)
             end
           end
 
