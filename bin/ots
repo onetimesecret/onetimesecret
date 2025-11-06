@@ -73,6 +73,17 @@ class OT::CLI::Definition
   option :b, :bind, String, 'Bind address for Thin (default: 0.0.0.0)'
   command server: OT::ServerCommand
 
+  usage 'ots boot-test'
+  about 'Test application boot and registry initialization'
+  about 'Boots the application, initializes all apps via the registry,'
+  about 'then exits with success/failure status. Useful for validating'
+  about 'Ruby code structure after refactoring.'
+  about ''
+  about 'Exit codes:'
+  about '  0 - Boot successful'
+  about '  1 - Boot failed'
+  command boot_test: OT::BootTestCommand
+
   usage 'ots version'
   command :version do
     puts format('Onetime %s', OT::VERSION.inspect)
