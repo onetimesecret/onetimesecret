@@ -1,8 +1,10 @@
+# apps/api/account/logic/domains/list_domains.rb
+
 require_relative '../base'
 
-module V2::Logic
+module AccountAPI::Logic
   module Domains
-    class ListDomains < V2::Logic::Base
+    class ListDomains < AccountAPI::Logic::Base
       attr_reader :custom_domains, :with_brand
 
       def process_params

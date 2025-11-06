@@ -1,6 +1,6 @@
 # apps/api/v3/routes
 #
-# Otto Advanced Routes - V3 API (Public Secret Operations)
+# Otto Routes - V3 API (Public secrets API)
 # Using direct Logic class routing with authentication strategies
 #
 # V3 API returns native JSON types (numbers, booleans, null) instead of

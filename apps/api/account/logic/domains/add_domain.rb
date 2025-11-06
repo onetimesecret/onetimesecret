@@ -1,13 +1,13 @@
-require 'public_suffix'
+# apps/api/account/logic/domains/add_domain.rb
 
-# Tryouts: tests/unit/ruby/try/60_logic/41_logic_domains_add_try.rb
+require 'public_suffix'
 
 require 'onetime/cluster'
 require_relative '../base'
 
-module V2::Logic
+module AccountAPI::Logic
   module Domains
-    class AddDomain < V2::Logic::Base
+    class AddDomain < AccountAPI::Logic::Base
       attr_reader :greenlighted, :custom_domain, :domain_input, :display_domain
 
       def process_params

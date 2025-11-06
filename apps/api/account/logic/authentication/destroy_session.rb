@@ -1,10 +1,10 @@
 # apps/api/v2/logic/authentication/destroy_session.rb
 
-module V2::Logic
+module AccountAPI::Logic
   module Authentication
     using Familia::Refinements::TimeLiterals
 
-    class DestroySession < V2::Logic::Base
+    class DestroySession < AccountAPI::Logic::Base
       include Onetime::Logging
 
       def process_params; end

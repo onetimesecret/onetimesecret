@@ -1,9 +1,11 @@
+# apps/api/account/logic/domains/remove_domain_image.rb
+
 require 'onetime/cluster'
 require_relative '../base'
 
-module V2::Logic
+module AccountAPI::Logic
   module Domains
-    class RemoveDomainImage < V2::Logic::Base
+    class RemoveDomainImage < AccountAPI::Logic::Base
       attr_reader :greenlighted, :display_domain, :custom_domain
 
       @field = nil

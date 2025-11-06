@@ -1,6 +1,6 @@
 # apps/api/v2/logic/account/update_locale.rb
 
-module V2::Logic
+module AccountAPI::Logic
   module Account
     class UpdateLocale < UpdateAccountField
       attr_reader :new_locale, :old_locale

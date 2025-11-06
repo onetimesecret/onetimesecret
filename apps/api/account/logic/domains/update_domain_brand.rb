@@ -1,9 +1,11 @@
+# apps/api/account/logic/domains/update_domain_brand.rb
+
 require 'onetime/cluster'
 require_relative '../base'
 
-module V2::Logic
+module AccountAPI::Logic
   module Domains
-    class UpdateDomainBrand < V2::Logic::Base
+    class UpdateDomainBrand < AccountAPI::Logic::Base
       attr_reader :greenlighted, :brand_settings, :display_domain, :custom_domain
 
       def process_params

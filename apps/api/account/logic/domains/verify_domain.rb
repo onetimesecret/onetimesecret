@@ -3,7 +3,7 @@
 require 'onetime/cluster'
 require_relative 'get_domain'
 
-module V2::Logic
+module AccountAPI::Logic
   module Domains
     class VerifyDomain < GetDomain
       def raise_concerns

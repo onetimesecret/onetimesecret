@@ -1,6 +1,8 @@
-module V2::Logic
+# apps/api/account/logic/account/create_account.rb
+
+module AccountAPI::Logic
   module Account
-    class CreateAccount < V2::Logic::Base
+    class CreateAccount < AccountAPI::Logic::Base
       attr_reader :cust, :autoverify, :customer_role, :email, :password, :skill
       attr_accessor :token
 

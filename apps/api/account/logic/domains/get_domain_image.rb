@@ -1,8 +1,10 @@
+# apps/api/account/logic/domains/get_domain_image.rb
+
 require 'base64'
 
-module V2::Logic
+module AccountAPI::Logic
   module Domains
-    class GetDomainImage < V2::Logic::Base
+    class GetDomainImage < AccountAPI::Logic::Base
       attr_reader :display_domain, :image_field, :image, :custom_domain
 
       @field = nil

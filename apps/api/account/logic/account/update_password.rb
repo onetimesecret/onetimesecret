@@ -1,4 +1,6 @@
-module V2::Logic
+# apps/api/account/logic/account/update_password.rb
+
+module AccountAPI::Logic
   module Account
     class UpdatePassword < UpdateAccountField
       def process_params

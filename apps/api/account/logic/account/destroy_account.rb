@@ -1,6 +1,8 @@
-module V2::Logic
+# apps/api/account/logic/account/destroy_account.rb
+
+module AccountAPI::Logic
   module Account
-    class DestroyAccount < V2::Logic::Base
+    class DestroyAccount < AccountAPI::Logic::Base
       attr_reader :raised_concerns_was_called, :greenlighted
 
       def process_params

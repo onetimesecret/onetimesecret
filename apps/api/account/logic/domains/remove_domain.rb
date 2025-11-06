@@ -1,9 +1,11 @@
+# apps/api/account/logic/domains/remove_domain.rb
+
 require 'onetime/cluster'
 require_relative '../base'
 
-module V2::Logic
+module AccountAPI::Logic
   module Domains
-    class RemoveDomain < V2::Logic::Base
+    class RemoveDomain < AccountAPI::Logic::Base
       attr_reader :greenlighted, :domain_input, :display_domain
 
       def process_params

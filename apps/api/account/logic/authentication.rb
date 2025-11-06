@@ -1,8 +1,8 @@
-# apps/api/v2/logic/authentication.rb
+# apps/api/account/logic/authentication.rb
 
 require_relative 'base'
 
-module V2
+module AccountAPI
   module Logic
     module Authentication
     end

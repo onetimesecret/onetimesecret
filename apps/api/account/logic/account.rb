@@ -1,8 +1,8 @@
-# apps/api/v2/logic/account.rb
+# apps/api/account/logic/account.rb
 
 require_relative 'base'
 
-module V2
+module AccountAPI
   module Logic
     module Account
       using Familia::Refinements::TimeLiterals

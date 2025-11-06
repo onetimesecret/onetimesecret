@@ -1,8 +1,10 @@
+# apps/api/account/logic/account/get_account.rb
+
 require 'onetime/refinements/stripe_refinements'
 
-module V2::Logic
+module AccountAPI::Logic
   module Account
-    class GetAccount < V2::Logic::Base
+    class GetAccount < AccountAPI::Logic::Base
       attr_accessor :billing_enabled
       attr_reader :stripe_subscription, :stripe_customer
 

@@ -1,6 +1,8 @@
-module V2::Logic
+# apps/api/account/logic/account/generate_api_token.rb
+
+module AccountAPI::Logic
   module Account
-    class GenerateAPIToken < V2::Logic::Base
+    class GenerateAPIToken < AccountAPI::Logic::Base
       attr_reader :apitoken, :greenlighted
 
       def process_params

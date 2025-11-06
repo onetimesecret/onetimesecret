@@ -1,6 +1,6 @@
 # apps/api/account/routes
 #
-# Otto Advanced Routes - Account API (Site-Only Endpoints)
+# Otto Routes - Account API (Site-Only Endpoints)
 # Using direct Logic class routing with authentication strategies
 #
 # Account API handles site-only account and domain management endpoints.
@@ -8,11 +8,11 @@
 # Secret operations live in V3 API at /api/v3/*.
 
 # Account Management
-POST   /account/destroy                           AccountAPI::Logic::Accounts::DestroyAccount response=json auth=sessionauth
-POST   /account/change-password                   AccountAPI::Logic::Accounts::UpdatePassword response=json auth=sessionauth
-POST   /account/update-locale                     AccountAPI::Logic::Accounts::UpdateLocale response=json auth=noauth
-POST   /account/apitoken                          AccountAPI::Logic::Accounts::GenerateAPIToken response=json auth=sessionauth csrf=exempt
-GET    /account                                   AccountAPI::Logic::Accounts::GetAccount response=json auth=sessionauth
+POST   /account/destroy                           AccountAPI::Logic::Account::DestroyAccount response=json auth=sessionauth
+POST   /account/change-password                   AccountAPI::Logic::Account::UpdatePassword response=json auth=sessionauth
+POST   /account/update-locale                     AccountAPI::Logic::Account::UpdateLocale response=json auth=noauth
+POST   /account/apitoken                          AccountAPI::Logic::Account::GenerateAPIToken response=json auth=sessionauth csrf=exempt
+GET    /account                                   AccountAPI::Logic::Account::GetAccount response=json auth=sessionauth
 
 # Domain Management
 POST   /domains/add                               AccountAPI::Logic::Domains::AddDomain response=json auth=sessionauth

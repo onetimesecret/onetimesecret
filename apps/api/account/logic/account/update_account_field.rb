@@ -1,9 +1,9 @@
 # apps/api/v2/logic/account/update_account_field.rb
 
-module V2::Logic
+module AccountAPI::Logic
   module Account
     # Base class for updating specific account fields
-    class UpdateAccountField < V2::Logic::Base
+    class UpdateAccountField < AccountAPI::Logic::Base
       attr_reader :modified, :greenlighted
 
       def initialize(*args)

@@ -1,6 +1,8 @@
+# apps/api/account/logic/domains/get_image.rb
+
 require_relative '../base'
 
-module V2::Logic
+module AccountAPI::Logic
   module Domains
     # Get an image from a custom domain
     #
@@ -13,7 +15,7 @@ module V2::Logic
     # e.g.
     #   /imagine/b79b17281be7264f778c/logo.png
     #
-    class GetImage < V2::Logic::Base
+    class GetImage < AccountAPI::Logic::Base
       attr_reader :custom_domain_id, :filename, :custom_domain, :image_type, :image_ext, :content_type,
         :content_length, :image_data, :encoded_content
 

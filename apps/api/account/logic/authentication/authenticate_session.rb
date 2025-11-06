@@ -1,10 +1,10 @@
 # apps/api/v2/logic/authentication/authenticate_session.rb
 
-module V2::Logic
+module AccountAPI::Logic
   module Authentication
     using Familia::Refinements::TimeLiterals
 
-    class AuthenticateSession < V2::Logic::Base
+    class AuthenticateSession < AccountAPI::Logic::Base
       include Onetime::Logging
       attr_reader :objid, :stay, :greenlighted, :session_ttl, :potential_email_address
 

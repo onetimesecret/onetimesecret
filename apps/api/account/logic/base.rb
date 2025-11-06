@@ -10,7 +10,7 @@ require_relative '../../v2/logic/base'
 
 module AccountAPI
   module Logic
-    module Base
+    class Base < V2::Logic::Base
       # Account API-specific serialization helper
       #
       # Converts Familia model to JSON hash with native types.

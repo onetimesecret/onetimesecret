@@ -2,11 +2,11 @@
 
 require_relative '../base'
 
-module V2::Logic
+module AccountAPI::Logic
   module Authentication
     using Familia::Refinements::TimeLiterals
 
-    class ResetPasswordRequest < V2::Logic::Base
+    class ResetPasswordRequest < AccountAPI::Logic::Base
       include Onetime::Logging
 
       attr_reader :login_or_email

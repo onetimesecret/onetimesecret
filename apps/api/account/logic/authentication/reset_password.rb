@@ -1,8 +1,10 @@
-module V2::Logic
+# apps/api/account/logic/authentication/reset_password.rb
+
+module AccountAPI::Logic
   module Authentication
     using Familia::Refinements::TimeLiterals
 
-    class ResetPassword < V2::Logic::Base
+    class ResetPassword < AccountAPI::Logic::Base
       include Onetime::Logging
 
       attr_reader :secret, :is_confirmed

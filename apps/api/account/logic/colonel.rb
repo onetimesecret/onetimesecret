@@ -1,24 +1,13 @@
 # apps/api/account/logic/colonel.rb
 
-# Colonel/Admin Logic Classes
-#
-# Inherits from V2 logic but uses JSON-type serialization via Account::Logic::Base.
-# No business logic changes needed - only serialization format differs.
-
-require_relative '../../v2/logic/colonel'
+require_relative 'base'
 
 module AccountAPI
   module Logic
     module Colonel
-      # Get colonel info
-      class GetColonelInfo < V2::Logic::Colonel::GetColonelInfo
-        include AccountAPI::Logic::Base
-      end
-
-      # Get colonel stats
-      class GetColonelStats < V2::Logic::Colonel::GetColonelStats
-        include AccountAPI::Logic::Base
-      end
     end
   end
 end
+
+require_relative 'colonel/get_colonel_info'
+require_relative 'colonel/get_colonel_stats'
