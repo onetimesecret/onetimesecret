@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import TableSkeleton from '@/components/closet/TableSkeleton.vue';
-  import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
   import EmptyState from '@/components/EmptyState.vue';
   import ErrorDisplay from '@/components/ErrorDisplay.vue';
   import OIcon from '@/components/icons/OIcon.vue';
@@ -74,7 +73,6 @@
 
 <template>
   <div>
-    <DashboardTabNav />
 
     <section
       :id="sectionId"

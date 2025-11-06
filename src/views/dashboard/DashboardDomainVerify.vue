@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
   import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
   import MoreInfoText from '@/components/MoreInfoText.vue';
   import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
@@ -42,8 +41,6 @@
 
 <template>
   <div class="">
-    <DashboardTabNav />
-
     <h1 class="mb-6 text-3xl font-bold text-gray-900 dark:text-white">
       {{ $t('verify-your-domain') }}
     </h1>

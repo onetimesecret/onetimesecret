@@ -33,7 +33,8 @@ interface NavItem {
   label: string;
   icon?: string;
   count?: number | null;
-  badge?: string;
+  countLabel?: string;
+  shortLabel?: string;
   requiresAuth?: boolean;
 }
 
@@ -57,15 +58,16 @@ const primaryNavItems = computed((): NavItem[] => {
     {
       id: 'dashboard',
       path: '/dashboard',
-      label: t('web.TITLES.dashboard'),
-      icon: 'squares-2x2',
+      label: t('web.COMMON.title_home'),
+      icon: 'home',
     },
     {
-      id: 'secrets',
+      id: 'recent',
       path: '/recent',
-      label: t('web.TITLES.recent'),
+      label: t('web.LABELS.title_recent_secrets'),
       count: counts.value.metadata,
-      icon: 'key',
+      countLabel: t('recent-secrets-count'),
+      icon: 'clock',
     }
   ];
 
@@ -75,8 +77,10 @@ const primaryNavItems = computed((): NavItem[] => {
       id: 'domains',
       path: '/domains',
       label: t('web.COMMON.custom_domains_title'),
+      shortLabel: t('domains'),
       count: counts.value.domains,
-      icon: 'globe-alt',
+      countLabel: t('custom-domains-count'),
+      icon: 'globe',
     });
   }
 
@@ -146,7 +150,8 @@ const isActiveRoute = (path: string): boolean => {
             isActiveRoute(item.path)
               ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400'
               : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-          ]">
+          ]"
+          :aria-label="item.countLabel">
           {{ item.count }}
         </span>
       </router-link>
