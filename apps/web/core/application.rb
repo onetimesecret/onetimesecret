@@ -9,6 +9,7 @@ require_relative 'middleware/request_setup'
 require_relative 'middleware/error_handling'
 require_relative 'middleware/vite_proxy'
 
+require_relative 'logic'
 require_relative 'controllers'
 require_relative 'auth_strategies'
 

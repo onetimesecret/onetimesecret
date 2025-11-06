@@ -1,6 +1,6 @@
 # apps/web/core/logic/welcome.rb
 
-require_relative 'base'
+require_relative '../../../api/v2/logic/base'
 
 module V2
   module Logic
