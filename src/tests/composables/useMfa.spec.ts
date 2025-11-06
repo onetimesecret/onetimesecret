@@ -406,7 +406,7 @@ describe('useMfa', () => {
       const result = await verifyRecoveryCode('USED_CODE');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('web.auth.mfa.recovery-code-already-used');
+      expect(error.value).toBe('web.auth.security.recovery_code_used');
     });
 
     it('handles invalid recovery code', async () => {
@@ -420,7 +420,7 @@ describe('useMfa', () => {
       const result = await verifyRecoveryCode('INVALID_CODE');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('web.auth.mfa.invalid-recovery-code');
+      expect(error.value).toBe('web.auth.security.recovery_code_not_found');
     });
 
     it('handles 410 status for used codes', async () => {

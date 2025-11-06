@@ -444,17 +444,29 @@ export function useMfa() {
       const validated = otpVerifyResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        // Use centralized i18n messages for recovery code errors
+        // Map server error to HTTP status code for consistent error handling
+        // This avoids inspecting error message content directly, which could leak information
+        // The onError callback will use mapMfaError() to translate the status code to i18n
         const errorMsg = validated.error.toLowerCase();
-        let message: string;
+        let statusCode: number;
 
         if (errorMsg.includes('used') || errorMsg.includes('consumed')) {
-          message = t('web.auth.mfa.recovery-code-already-used');
+          statusCode = 410; // Gone - recovery code already used
         } else {
-          message = t('web.auth.mfa.invalid-recovery-code');
+          statusCode = 404; // Not found - invalid recovery code
         }
 
-        throw createError(message, 'human', 'error');
+        // Create error with status code - onError will map to appropriate i18n message
+        const error: ApplicationError = {
+          name: 'ApplicationError',
+          message: validated.error, // Keep original for debugging
+          type: 'human',
+          severity: 'error',
+          code: statusCode, // Will be mapped by onError → mapMfaError
+          original: null,
+          details: undefined,
+        };
+        throw error;
       }
 
       return true;
