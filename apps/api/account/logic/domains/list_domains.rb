@@ -25,6 +25,7 @@ module AccountAPI::Logic
 
       def success_data
         {
+          success: true,
           custid: @cust.custid,
           records: @custom_domains,
           count: @custom_domains.length,

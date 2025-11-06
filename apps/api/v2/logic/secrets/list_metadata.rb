@@ -36,6 +36,7 @@ module V2::Logic
 
       def success_data
         {
+          'success' => true,
           'custid' => cust.custid,
           'count' => records.count,
           'records' => records,
