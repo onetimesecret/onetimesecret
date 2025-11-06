@@ -113,7 +113,7 @@ module Onetime
 
       raise ArgumentError, "Bad path (#{path})" unless path && File.readable?(path)
 
-      parsed_template = ERB.new(File.read(path))
+      parsed_template = ERB.new(File.read(path, encoding: 'UTF-8'))
 
       YAML.load(parsed_template.result)
     rescue StandardError => ex

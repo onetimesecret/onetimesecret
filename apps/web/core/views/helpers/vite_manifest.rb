@@ -61,7 +61,7 @@ module Core
           return error_script(nonce, 'Vite manifest.json not found. Run `pnpm run build`')
         end
 
-        @manifest_cache ||= Familia::JsonSerializer.parse(File.read(manifest_path))
+        @manifest_cache ||= Familia::JsonSerializer.parse(File.read(manifest_path, encoding: 'UTF-8'))
         main_entry        = @manifest_cache['main.ts']
         style_entry       = @manifest_cache['style.css'] # may not exist
 

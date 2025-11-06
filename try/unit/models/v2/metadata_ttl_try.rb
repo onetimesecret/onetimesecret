@@ -20,8 +20,8 @@ require_relative '../../../support/test_models'
 OT.boot! :test, false
 
 # Setup
-@metadata, @secret = V1::Secret.spawn_pair 'anon'
-# metadata, secret = V1::Secret.spawn_pair 'anon'
+@metadata, @secret = Onetime::Metadata.spawn_pair 'anon'
+# metadata, secret = Onetime::Metadata.spawn_pair 'anon'
 @metadata.save
 @secret.save
 

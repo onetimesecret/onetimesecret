@@ -46,7 +46,7 @@ unique_values.size
 #=> @iterations
 
 ## Generate a pair
-@metadata, @secret = Onetime::Secret.spawn_pair 'anon', :tryouts
+@metadata, @secret = Onetime::Metadata.spawn_pair 'anon', :tryouts
 [@metadata.nil?, @secret.nil?]
 #=> [false, false]
 
@@ -65,25 +65,25 @@ p [@secret.identifier, @metadata.secret_identifier]
 #=> [Onetime::Metadata, Onetime::Secret]
 
 ## Can save a secret and check existence
-metadata, secret = Onetime::Secret.spawn_pair 'anon', :tryouts
+metadata, secret = Onetime::Metadata.spawn_pair 'anon', :tryouts
 [metadata.save, metadata.exists?]
 #=> [true, true]
 
 ## A secret can be destroyed using Familia's destroy! method
-metadata, secret = Onetime::Secret.spawn_pair 'anon', :tryouts
+metadata, secret = Onetime::Metadata.spawn_pair 'anon', :tryouts
 metadata.save
 metadata.destroy!
 !metadata.exists?
 #=> true
 
 ## Can set private secret to viewed state
-metadata, secret = Onetime::Secret.spawn_pair 'anon', :tryouts
+metadata, secret = Onetime::Metadata.spawn_pair 'anon', :tryouts
 metadata.viewed!
 [metadata.viewed, metadata.state]
 #=> [Familia.now.to_i, 'viewed']
 
 ## Can set shared secret to viewed state
-metadata, secret = Onetime::Secret.spawn_pair 'anon', :tryouts
+metadata, secret = Onetime::Metadata.spawn_pair 'anon', :tryouts
 metadata.save && secret.save
 secret.received!
 # NOTE: The secret no longer keeps a reference to the metadata
