@@ -80,19 +80,24 @@ export function useMfa() {
 
   // Configure async handler for auth-specific pattern (no auto-notify)
   const { wrap } = useAsyncHandler({
-    // Don't auto-notify - MFA shows errors inline
     notify: false,
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err: ApplicationError) => {
-      // IMPORTANT: Clear all error state first to prevent stale data
       error.value = null;
 
-      // Use the mapMfaError helper for security-hardened, i18n error messages
+      // If the error message is already an i18n key (starts with 'web.'),
+      // use it directly (these are errors we explicitly threw with translated messages)
+      if (err.message && err.message.startsWith('web.')) {
+        error.value = err.message;
+        return;
+      }
+
+      // Otherwise, map HTTP status codes to security messages
       const statusCode = typeof err.code === 'number' ? err.code : null;
       if (statusCode) {
-        error.value = mapMfaError(statusCode, err.message, t);
+        error.value = mapMfaError(statusCode, t);
       } else {
-        error.value = err.message;
+        error.value = t('web.auth.security.internal_error');
       }
     },
   });
@@ -236,13 +241,8 @@ export function useMfa() {
 
       // Check for error response (validation failure)
       if (isAuthError(validated)) {
-        const errorMsg = validated.error.toLowerCase();
-        const message =
-          errorMsg.includes('invalid') || errorMsg.includes('incorrect')
-            ? 'Invalid verification code. Please check your authenticator app and try again.'
-            : validated.error;
-
-        throw createError(message, 'human', 'error', {
+        // Use centralized i18n message for invalid codes
+        throw createError(t('web.auth.mfa.invalid-code'), 'human', 'error', {
           'field-error': validated['field-error'],
         });
       }
@@ -286,13 +286,8 @@ export function useMfa() {
       const validated = otpVerifyResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        const errorMsg = validated.error.toLowerCase();
-        const message =
-          errorMsg.includes('invalid') || errorMsg.includes('incorrect')
-            ? 'Invalid code. Codes expire every 30 seconds. Try the latest code from your authenticator app.'
-            : validated.error;
-
-        throw createError(message, 'human', 'error');
+        // Use centralized i18n message for invalid OTP codes
+        throw createError(t('web.auth.mfa.invalid-code'), 'human', 'error');
       }
 
       return true;
@@ -325,11 +320,8 @@ export function useMfa() {
       const validated = otpToggleResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        const message = validated.error.toLowerCase().includes('password')
-          ? 'Authentication failed. Please verify your credentials and try again.'
-          : validated.error;
-
-        throw createError(message, 'human', 'error');
+        // Use centralized security message for authentication failures
+        throw createError(t('web.auth.security.authentication_failed'), 'human', 'error');
       }
 
       notificationsStore.show('Two-factor authentication has been disabled', 'success', 'top');
@@ -452,13 +444,14 @@ export function useMfa() {
       const validated = otpVerifyResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
+        // Use centralized i18n messages for recovery code errors
         const errorMsg = validated.error.toLowerCase();
-        let message = validated.error;
+        let message: string;
 
         if (errorMsg.includes('used') || errorMsg.includes('consumed')) {
-          message = 'This recovery code has already been used. Please use a different code.';
-        } else if (errorMsg.includes('invalid') || errorMsg.includes('not found')) {
-          message = 'Invalid recovery code. Please check for typos and try again.';
+          message = t('web.auth.mfa.recovery-code-already-used');
+        } else {
+          message = t('web.auth.mfa.invalid-recovery-code');
         }
 
         throw createError(message, 'human', 'error');

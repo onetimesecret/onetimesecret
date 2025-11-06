@@ -770,7 +770,10 @@
         "continue-verification": "Continue to Verification",
         "enter-code-description": "Enter the 6-digit code from your authenticator app",
         "enable-and-continue": "Enable MFA",
-        "complete-setup": "Complete Setup"
+        "complete-setup": "Complete Setup",
+        "invalid-code": "Invalid code. Codes expire every 30 seconds. Try the latest code from your authenticator app.",
+        "invalid-recovery-code": "Invalid recovery code. Please check for typos and try again.",
+        "recovery-code-already-used": "This recovery code has already been used. Please use a different code."
       },
       "recovery-codes": {
         "title": "Recovery Codes",

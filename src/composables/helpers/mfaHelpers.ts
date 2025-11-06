@@ -112,25 +112,27 @@ export async function enrichSetupResponse(
  * error messages by preventing information disclosure through generic responses.
  * All messages are internationalized using the `web.auth.security.*` namespace.
  *
+ * SECURITY: This function does NOT accept server-provided error messages to
+ * prevent information leakage. All error messages are generated from status
+ * codes only.
+ *
  * Security Principles:
  * ====================
  * ✗ DO NOT reveal: Which credential failed, account existence, precise timing
  * ✓ SAFE to reveal: Format requirements, general guidance, expected behavior
  *
  * @param statusCode - HTTP status code from MFA API response
- * @param originalMessage - Original error message from server (optional)
  * @param t - vue-i18n translate function (from useI18n())
  * @returns Generic, security-hardened, internationalized error message
  *
  * Status Code Mappings:
- * - 401 (Unauthorized): Generic authentication failure or session expired
+ * - 401 (Unauthorized): Generic authentication failure
  * - 403 (Forbidden): Generic authentication failure (no hints about why)
  * - 404 (Not Found): Recovery code validation failure
  * - 410 (Gone): Recovery code already used
  * - 429 (Too Many Requests): Rate limiting (no precise timing disclosed)
  * - 500+ (Server Error): Generic internal error
- * - Network Error: Generic network error
- * - Other: Pass through original message (may need review)
+ * - Other: Generic internal error (no passthrough)
  *
  * Examples of what NOT to say:
  * - "Incorrect password" (reveals which credential failed)
@@ -144,26 +146,16 @@ export async function enrichSetupResponse(
  *
  * @see src/locales/SECURITY-TRANSLATION-GUIDE.md for complete guidelines
  */
-export function mapMfaError(
-  statusCode: number,
-  originalMessage?: string,
-  t?: (key: string) => string
-): string {
+export function mapMfaError(statusCode: number, t?: (key: string) => string): string {
   // If i18n not available, use English fallbacks
   // This ensures tests and edge cases still work
   const translate = t || ((key: string) => key);
 
   switch (statusCode) {
     case 401:
-      // Check if this is a session-specific message (safe to preserve)
-      if (originalMessage?.toLowerCase().includes('session')) {
-        return translate('web.auth.security.session_expired');
-      }
-      // Generic authentication failure - don't reveal which credential failed
-      return translate('web.auth.security.authentication_failed');
-
     case 403:
-      // Forbidden - same generic message, no hints about authorization vs authentication
+      // Generic authentication failure - don't reveal which credential failed
+      // Note: We no longer check server message for 'session' - status code only
       return translate('web.auth.security.authentication_failed');
 
     case 404:
@@ -186,11 +178,8 @@ export function mapMfaError(
       return translate('web.auth.security.internal_error');
 
     default:
-      // For network errors
-      if (originalMessage?.toLowerCase().includes('network')) {
-        return translate('web.auth.security.network_error');
-      }
-      // For other status codes, return original message or generic error
-      return originalMessage || translate('web.auth.security.internal_error');
+      // For any other status code, default to generic internal error
+      // NEVER pass through server messages to prevent information leakage
+      return translate('web.auth.security.internal_error');
   }
 }
