@@ -40,7 +40,7 @@ module AccountAPI
       otto.add_auth_strategy('basicauth', Onetime::Application::AuthStrategies::BasicAuthStrategy.new)
 
       # Colonel-only routes (admin)
-      otto.add_auth_strategy('colonelsonly', Onetime::Application::AuthStrategies::ColonelsOnlyStrategy.new)
+      otto.add_auth_strategy('colonelsonly', Onetime::Application::AuthStrategies::ColonelStrategy.new)
     end
   end
 end
