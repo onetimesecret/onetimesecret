@@ -25,7 +25,7 @@ describe('Security Message Compliance', () => {
     credentialSpecific: [
       /password/i,
       /\botp\b/i, // word boundary to avoid matching "adoption"
-      /code/i, // This is tricky - we allow "recovery code" but not "invalid code"
+      /(?<!recovery\s)code/i, // Negative lookbehind: allow "recovery code" but catch standalone "code"
       /username/i,
       /email/i,
       /biometric/i,
@@ -170,7 +170,7 @@ describe('Security Message Compliance', () => {
     const messageKeys = Object.keys(securityMessages).filter((key) => !key.startsWith('_'));
     const messages = messageKeys.map((key) => ({
       key,
-      // @ts-ignore - we know these are strings
+      // @ts-expect-error - we know these are strings but TypeScript doesn't after filtering
       message: securityMessages[key as keyof typeof securityMessages],
     }));
 
@@ -213,7 +213,14 @@ describe('Security Message Compliance', () => {
     it('should have _README with security warning', () => {
       expect(securityMessages._README).toBeDefined();
       expect(securityMessages._README).toContain('SECURITY-CRITICAL');
-      expect(securityMessages._README).toContain('OWASP');
+      expect(securityMessages._README).toContain('SECURITY-TRANSLATION-GUIDE');
+    });
+
+    it('should have _meta with detailed security guidance', () => {
+      expect(securityMessages._meta).toBeDefined();
+      expect(securityMessages._meta._purpose).toBeDefined();
+      expect(securityMessages._meta._purpose).toContain('OWASP');
+      expect(securityMessages._meta._purpose).toContain('credential enumeration');
     });
 
     it('should have _meta with security notes for critical messages', () => {

@@ -146,40 +146,36 @@ export async function enrichSetupResponse(
  *
  * @see src/locales/SECURITY-TRANSLATION-GUIDE.md for complete guidelines
  */
-export function mapMfaError(statusCode: number, t?: (key: string) => string): string {
-  // If i18n not available, use English fallbacks
-  // This ensures tests and edge cases still work
-  const translate = t || ((key: string) => key);
-
+export function mapMfaError(statusCode: number, t: (key: string) => string): string {
   switch (statusCode) {
     case 401:
     case 403:
       // Generic authentication failure - don't reveal which credential failed
       // Note: We no longer check server message for 'session' - status code only
-      return translate('web.auth.security.authentication_failed');
+      return t('web.auth.security.authentication_failed');
 
     case 404:
       // Recovery code not found - safe to indicate it's about recovery codes
-      return translate('web.auth.security.recovery_code_not_found');
+      return t('web.auth.security.recovery_code_not_found');
 
     case 410:
       // Recovery code already used - safe expected behavior message
-      return translate('web.auth.security.recovery_code_used');
+      return t('web.auth.security.recovery_code_used');
 
     case 429:
       // Rate limiting - DO NOT reveal precise timing ("wait 5 minutes")
-      return translate('web.auth.security.rate_limited');
+      return t('web.auth.security.rate_limited');
 
     case 500:
     case 502:
     case 503:
     case 504:
       // Server errors - generic message
-      return translate('web.auth.security.internal_error');
+      return t('web.auth.security.internal_error');
 
     default:
       // For any other status code, default to generic internal error
       // NEVER pass through server messages to prevent information leakage
-      return translate('web.auth.security.internal_error');
+      return t('web.auth.security.internal_error');
   }
 }

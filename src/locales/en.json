@@ -580,7 +580,7 @@
       "mfa_verification_required": "MFA verification required to access your account",
       "complete_mfa_verification": "Complete MFA Verification",
       "security": {
-        "_README": "⚠️ SECURITY-CRITICAL: These messages prevent information disclosure per OWASP/NIST guidelines. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. See src/locales/SECURITY-TRANSLATION-GUIDE.md for complete guidelines.",
+        "_README": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md",
         "authentication_failed": "Authentication failed. Please verify your credentials and try again.",
         "rate_limited": "Too many attempts. Please try again later.",
         "session_expired": "Session expired. Please log in again.",
@@ -589,6 +589,7 @@
         "network_error": "Network error. Please check your connection and try again.",
         "internal_error": "An error occurred. Please try again.",
         "_meta": {
+          "_purpose": "These messages follow OWASP/NIST guidelines to prevent information disclosure. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. Never reveal: which credential failed, precise timing, account existence, or attack progress.",
           "authentication_failed": {
             "security_note": "MUST NOT reveal which credential failed (password, OTP, or recovery code). This prevents attackers from determining valid credentials or enumerating accounts.",
             "owasp_ref": "ASVS 2.2.2 - Authentication failure responses must be generic"
