@@ -142,7 +142,7 @@ export async function enrichSetupResponse(
  * - "Too many attempts. Please try again later."
  * - "Codes expire every 30 seconds" (expected behavior, not attack info)
  *
- * @see docs/i18n-security-messages.md for complete guidelines
+ * @see src/locales/SECURITY-TRANSLATION-GUIDE.md for complete guidelines
  */
 export function mapMfaError(
   statusCode: number,

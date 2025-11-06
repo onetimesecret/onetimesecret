@@ -580,7 +580,7 @@
       "mfa_verification_required": "MFA verification required to access your account",
       "complete_mfa_verification": "Complete MFA Verification",
       "security": {
-        "_README": "⚠️ SECURITY-CRITICAL: These messages prevent information disclosure per OWASP/NIST guidelines. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. See docs/i18n-security-messages.md for complete guidelines.",
+        "_README": "⚠️ SECURITY-CRITICAL: These messages prevent information disclosure per OWASP/NIST guidelines. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. See src/locales/SECURITY-TRANSLATION-GUIDE.md for complete guidelines.",
         "authentication_failed": "Authentication failed. Please verify your credentials and try again.",
         "rate_limited": "Too many attempts. Please try again later.",
         "session_expired": "Session expired. Please log in again.",
