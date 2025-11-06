@@ -141,7 +141,10 @@ export const useDomainsStore = defineStore('domains', () => {
       return validated.record;
     } catch (error: unknown) {
       // Handle 404 or other expected errors silently
-      if ((error as AxiosError).response?.status === 404) return null;
+      if ((error as AxiosError).response?.status === 404) {
+        console.debug(`[domainsStore] No logo found for domain: ${domain}`);
+        return null;
+      }
       throw error;
     }
   }

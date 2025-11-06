@@ -28,6 +28,7 @@ v2_response = v2_logic.process
 #=> [true, @cust.custid, false]
 
 # TODO: Rewrite V3 tests after strategy refactoring (commits 0986aeb38, 66fc5a57f)
+# Tracked in issue #1882: Improve test coverage for v3 API REST modernization
 #
 # The V3 logic class initialization signature changed from:
 #   initialize(params, cust, sess, locale, ip, plan)
