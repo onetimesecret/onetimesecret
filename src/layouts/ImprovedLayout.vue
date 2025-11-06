@@ -52,7 +52,7 @@
 
     <template #main>
       <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div class="container mx-auto min-w-[320px] max-w-6xl px-4 py-8">
+        <div class="container mx-auto min-w-[320px] max-w-4xl px-4 py-8">
           <div class="flex gap-8">
             <!-- Sidebar (Left position) -->
             <aside
@@ -164,11 +164,6 @@
 </template>
 
 <style scoped>
-/* Ensure main content doesn't get too wide for readability */
-main > div {
-  max-width: 900px;
-}
-
 /* Responsive adjustments */
 @media (max-width: 1024px) {
   main {

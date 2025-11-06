@@ -29,7 +29,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <div class="container mx-auto min-w-[320px] max-w-2xl">
     <ErrorDisplay v-if="error" :error="error" />
     <div v-if="isLoading">
       <TableSkeleton/>

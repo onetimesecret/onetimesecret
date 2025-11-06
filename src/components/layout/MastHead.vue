@@ -127,9 +127,9 @@
 
 <template>
   <div class="w-full">
-    <div class="flex flex-col items-center justify-between sm:flex-row">
+    <div class="flex flex-row items-center justify-between">
       <!-- Logo lockup -->
-      <div class="mb-4 flex items-center justify-between gap-3 sm:mb-0">
+      <div class="flex items-center gap-3">
 
         <div v-if="isVueComponent">
           <component
@@ -163,8 +163,8 @@
         v-if="displayNavigation && navigationEnabled"
         role="navigation"
         :aria-label="t('main-navigation')"
-        class="flex flex-wrap items-center justify-center gap-4
-          font-brand text-sm sm:justify-end sm:text-base">
+        class="flex flex-wrap items-center justify-end gap-4
+          font-brand text-sm sm:text-base">
         <template v-if="isUserPresent">
           <!-- User Menu Dropdown -->
           <UserMenu

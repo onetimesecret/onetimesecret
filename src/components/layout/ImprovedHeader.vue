@@ -31,8 +31,8 @@
       </div>
     </div>
 
-    <!-- Primary Navigation Bar (for authenticated users) -->
-    <div v-if="authenticated && displayNavigation" class="bg-gray-100 dark:bg-gray-800">
+    <!-- Primary Navigation Bar (for authenticated users) - Hidden on mobile -->
+    <div v-if="authenticated && displayNavigation" class="hidden md:block bg-gray-100 dark:bg-gray-800">
       <div class="container mx-auto min-w-[320px] max-w-4xl px-4">
         <ImprovedPrimaryNav />
       </div>

@@ -152,7 +152,7 @@
              class="size-5 group-hover:text-brand-500 dark:group-hover:text-brand-400"
              aria-hidden="true" />
 
-      <span class="whitespace-nowrap" id="jurisdiction-label">{{ currentJurisdiction.display_name }}</span>
+      <span class="hidden sm:inline whitespace-nowrap" id="jurisdiction-label">{{ currentJurisdiction.display_name }}</span>
 
       <svg xmlns="http://www.w3.org/2000/svg"
            class="size-4 -rotate-90"

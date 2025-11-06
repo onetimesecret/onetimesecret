@@ -4,12 +4,16 @@
   - Wider, changing max-w-2xl to max-w-4xl
 -->
 <script setup lang="ts">
+  import { computed, onMounted } from 'vue';
+  import { useRoute } from 'vue-router';
   import FeedbackToggle from '@/components/FeedbackToggle.vue';
   import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
   import LanguageToggle from '@/components/LanguageToggle.vue';
   import FooterLinks from '@/components/layout/FooterLinks.vue';
+  import OIcon from '@/components/icons/OIcon.vue';
   import ThemeToggle from '@/components/ThemeToggle.vue';
   import { WindowService } from '@/services/window.service';
+  import { useDomainsStore, useMetadataListStore } from '@/stores';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { useI18n } from 'vue-i18n';
 
@@ -23,6 +27,7 @@
   });
 
   const { t } = useI18n();
+  const route = useRoute();
   const windowProps = WindowService.getMultiple([
     'regions_enabled',
     'regions',
@@ -31,18 +36,131 @@
     'ot_version',
     'ui',
   ]);
+
+  const domainsEnabled = WindowService.get('domains_enabled');
+
+  // Store instances for counts
+  const metadataListStore = useMetadataListStore();
+  const domainsStore = useDomainsStore();
+
+  interface NavItem {
+    id: string;
+    path: string;
+    label: string;
+    icon: string;
+    count?: number | null;
+  }
+
+  // Computed counts
+  const counts = computed(() => ({
+    metadata: metadataListStore.count,
+    domains: domainsStore.count,
+  }));
+
+  // Load counts on mount
+  onMounted(() => {
+    metadataListStore.refreshRecords(true);
+    if (domainsEnabled) {
+      domainsStore.refreshRecords(true);
+    }
+  });
+
+  // Mobile navigation items
+  const mobileNavItems = computed((): NavItem[] => {
+    const items: NavItem[] = [
+      {
+        id: 'dashboard',
+        path: '/dashboard',
+        label: t('web.COMMON.title_home'),
+        icon: 'home',
+      },
+      {
+        id: 'recent',
+        path: '/recent',
+        label: t('web.LABELS.title_recent_secrets'),
+        icon: 'clock',
+        count: counts.value.metadata,
+      }
+    ];
+
+    if (domainsEnabled) {
+      items.push({
+        id: 'domains',
+        path: '/domains',
+        label: t('web.COMMON.custom_domains_title'),
+        icon: 'globe-alt',
+        count: counts.value.domains,
+      });
+    }
+
+    return items;
+  });
+
+  // Check if a route is active
+  const isActiveRoute = (path: string): boolean => {
+    if (route.path === path) return true;
+    if (path === '/account' && route.path.startsWith('/account')) return true;
+    return route.path.startsWith(path + '/');
+  };
 </script>
 
 <template>
+  <!-- Mobile Product Navigation - Fixed at bottom on mobile only -->
+  <!-- prettier-ignore-attribute class -->
+  <nav
+    class="
+      fixed bottom-0 left-0 right-0
+      bg-white dark:bg-gray-900
+      border-t border-gray-200 dark:border-gray-700
+      shadow-lg
+      z-20
+      md:hidden"
+    :aria-label="t('mobile-navigation')">
+    <div class="flex items-center justify-around py-3 px-2">
+      <router-link
+        v-for="item in mobileNavItems"
+        :key="item.id"
+        :to="item.path"
+        class="relative flex flex-col items-center gap-1 px-3 py-1 transition-colors duration-150"
+        :class="[
+          isActiveRoute(item.path)
+            ? 'text-brand-500'
+            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+        ]"
+        :aria-label="item.label"
+        :aria-current="isActiveRoute(item.path) ? 'page' : undefined">
+        <!-- Icon -->
+        <OIcon
+          collection="heroicons"
+          :name="`${item.icon}`"
+          class="size-6" />
+
+        <!-- Count badge (if present) -->
+        <span
+          v-if="item.count !== undefined && item.count !== null && item.count > 0"
+          class="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1
+                 rounded-full text-[10px] font-medium bg-brand-500 text-white"
+          :aria-label="`${item.count} items`">
+          {{ item.count > 99 ? '99+' : item.count }}
+        </span>
+      </router-link>
+    </div>
+  </nav>
+
+  <!-- Main Footer - Natural flow on mobile, fixed on desktop -->
   <!-- prettier-ignore-attribute class -->
   <footer
     class="
-    w-full min-w-[320px]
-    bg-gray-100
-    py-16 transition-all
-    duration-300 dark:bg-gray-800"
+      w-full min-w-[320px]
+      bg-gray-100
+      py-16 md:py-6
+      md:fixed md:bottom-0
+      transition-all
+      duration-300 dark:bg-gray-800
+      z-10
+      pb-20 md:pb-6"
     :aria-label="t('site-footer')">
-    <div class="container mx-auto max-w-6xl px-4">
+    <div class="container mx-auto max-w-4xl px-4">
       <!-- Footer Links Section -->
       <FooterLinks v-if="displayFooterLinks" />
 
@@ -99,7 +217,7 @@
         <!-- prettier-ignore-attribute class -->
         <div
           v-if="displayToggles"
-          class="flex w-full flex-row items-center justify-center gap-4 sm:w-auto sm:justify-end">
+          class="flex w-full flex-row flex-wrap items-center justify-center gap-2 sm:gap-4 sm:w-auto sm:justify-end">
           <JurisdictionToggle v-if="windowProps.regions_enabled && windowProps.regions" />
 
           <!-- prettier-ignore-attribute class -->
