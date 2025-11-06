@@ -1,7 +1,7 @@
 // src/stores/colonelInfoStore.ts
 
-import { responseSchemas, type ColonelInfoDetails } from '@/schemas/api';
-import { type SystemSettingsDetails, type ColonelStatsDetails } from '@/schemas/api/endpoints/colonel';
+import { responseSchemas } from '@/schemas/api/v3';
+import { type SystemSettingsDetails, type ColonelStatsDetails, type ColonelInfoDetails } from '@/schemas/api/account/endpoints/colonel';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';

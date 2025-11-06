@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import SecretMetadataTableItem from '@/components/secrets/SecretMetadataTableItem.vue';
-  import { MetadataRecords } from '@/schemas/api/endpoints';
+  import { MetadataRecords } from '@/schemas/api/account/endpoints/recent';
   import { WindowService } from '@/services/window.service';
   import { ref } from 'vue';
   import { useI18n } from 'vue-i18n';

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useDomainsManager } from '@/composables/useDomainsManager';
-import { CustomDomainResponse } from '@/schemas/api/responses';
+import { CustomDomainResponse } from '@/schemas/api/v3/responses';
 import { CustomDomain, CustomDomainCluster } from '@/schemas/models/domain';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed, ref } from 'vue';

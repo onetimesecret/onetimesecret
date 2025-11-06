@@ -1,7 +1,7 @@
 // src/stores/accountStore.ts
 
-import type { Account } from '@/schemas/api/endpoints/account';
-import { responseSchemas } from '@/schemas/api/responses';
+import type { Account } from '@/schemas/api/account/endpoints/account';
+import { responseSchemas } from '@/schemas/api/v3/responses';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { inject, ref } from 'vue';

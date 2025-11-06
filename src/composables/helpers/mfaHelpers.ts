@@ -8,7 +8,7 @@
  */
 
 import QRCode from 'qrcode';
-import { otpSetupResponseSchema } from '@/schemas/api/endpoints/auth';
+import { otpSetupResponseSchema } from '@/schemas/api/auth/endpoints/auth';
 import type { OtpSetupData } from '@/types/auth';
 
 /**

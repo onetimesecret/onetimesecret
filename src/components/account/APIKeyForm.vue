@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import APIKeyCard from '@/components/account/APIKeyCard.vue';
   import { useFormSubmission } from '@/composables/useFormSubmission';
-  import { responseSchemas } from '@/schemas/api/responses';
+  import { responseSchemas } from '@/schemas/api/v3/responses';
   import { useCsrfStore } from '@/stores/csrfStore';
   import { ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';

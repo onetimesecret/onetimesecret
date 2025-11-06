@@ -1,7 +1,7 @@
 // src/stores/customerStore.ts
 import { createError } from '@/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import { responseSchemas } from '@/schemas/api/responses';
+import { responseSchemas } from '@/schemas/api/v3/responses';
 import type { Customer } from '@/schemas/models/customer';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';

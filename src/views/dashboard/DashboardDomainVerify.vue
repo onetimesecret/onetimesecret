@@ -2,7 +2,7 @@
   import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
   import MoreInfoText from '@/components/MoreInfoText.vue';
   import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
-  import { type CustomDomainResponse } from '@/schemas/api/responses';
+  import { type CustomDomainResponse } from '@/schemas/api/v3/responses';
   import { useDomainsManager } from '@/composables/useDomainsManager';
   import { CustomDomain, CustomDomainCluster } from '@/schemas/models';
   import { onMounted, ref } from 'vue';

@@ -7,7 +7,7 @@ import {
   GeneratePayload,
   responseSchemas,
   type SecretResponse,
-} from '@/schemas/api';
+} from '@/schemas/api/v3';
 import { type Secret, type SecretDetails, type SecretState } from '@/schemas/models/secret';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';

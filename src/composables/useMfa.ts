@@ -53,7 +53,7 @@ import {
   type OtpVerifyResponse,
   type RecoveryCodesResponse,
   type MfaStatusResponse,
-} from '@/schemas/api/endpoints/auth';
+} from '@/schemas/api/auth/endpoints/auth';
 import type { OtpSetupData, MfaStatus } from '@/types/auth';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import { generateQrCode, hasHmacSetupData, enrichSetupResponse } from './helpers/mfaHelpers';

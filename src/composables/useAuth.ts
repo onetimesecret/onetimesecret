@@ -20,7 +20,7 @@ import {
   type VerifyAccountResponse,
   type ChangePasswordResponse,
   type CloseAccountResponse,
-} from '@/schemas/api/endpoints/auth';
+} from '@/schemas/api/auth/endpoints/auth';
 import {
   loginResponseSchema,
   createAccountResponseSchema,
@@ -30,7 +30,7 @@ import {
   verifyAccountResponseSchema,
   changePasswordResponseSchema,
   closeAccountResponseSchema,
-} from '@/schemas/api/endpoints/auth';
+} from '@/schemas/api/auth/endpoints/auth';
 import type { AxiosInstance } from 'axios';
 import type { LockoutStatus } from '@/types/auth';
 

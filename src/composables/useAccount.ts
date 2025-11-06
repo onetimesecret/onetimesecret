@@ -5,7 +5,7 @@
 
 import { ref, inject } from 'vue';
 import type { AxiosInstance } from 'axios';
-import { accountInfoResponseSchema, type AccountInfoResponse } from '@/schemas/api/endpoints/auth';
+import { accountInfoResponseSchema, type AccountInfoResponse } from '@/schemas/api/auth/endpoints/auth';
 import type { AccountInfo } from '@/types/auth';
 
 export function useAccount() {
