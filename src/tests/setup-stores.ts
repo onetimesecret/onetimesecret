@@ -6,6 +6,7 @@ import { setActivePinia } from 'pinia';
 import axios, { AxiosInstance } from 'axios';
 import { stateFixture } from './fixtures/window.fixture';
 import type { OnetimeWindow } from '@/types/declarations/window';
+import { createApi } from '@/api';
 
 // Create global test API instance that will be shared across tests
 // This gets the mock adapter applied to it in individual test setups

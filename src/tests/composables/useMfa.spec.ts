@@ -122,7 +122,7 @@ describe('useMfa', () => {
       const result = await setupMfa('wrong_password');
 
       expect(result).toBeNull();
-      expect(error.value).toBe('Incorrect password. Please try again.');
+      expect(error.value).toBe('Authentication failed. Please verify your credentials and try again.');
     });
 
     it('handles 422 without HMAC data (actual error)', async () => {
@@ -142,7 +142,7 @@ describe('useMfa', () => {
       const result = await setupMfa();
 
       expect(result).toBeNull();
-      expect(error.value).toBe('Too many attempts. Please wait a few minutes and try again.');
+      expect(error.value).toBe('Too many attempts. Please try again later.');
     });
 
     it('handles authentication required errors', async () => {
@@ -204,7 +204,7 @@ describe('useMfa', () => {
       const result = await enableMfa('123456', 'wrong_password');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('Incorrect password. Please verify your password and try again.');
+      expect(error.value).toBe('Authentication failed. Please verify your credentials and try again.');
     });
 
     it('handles network errors gracefully', async () => {
@@ -278,9 +278,7 @@ describe('useMfa', () => {
       const result = await verifyOtp('123456');
 
       expect(result).toBe(false);
-      expect(error.value).toBe(
-        'Too many failed attempts. Please wait 5 minutes before trying again.'
-      );
+      expect(error.value).toBe('Too many attempts. Please try again later.');
     });
   });
 
@@ -309,7 +307,7 @@ describe('useMfa', () => {
       const result = await disableMfa('wrong_password');
 
       expect(result).toBe(false);
-      expect(error.value).toContain('Incorrect password');
+      expect(error.value).toContain('Authentication failed');
     });
 
     it('handles authentication required error', async () => {
@@ -461,7 +459,7 @@ describe('useMfa', () => {
       const { setupMfa, error, clearError } = useMfa();
 
       await setupMfa();
-      expect(error.value).toBe('Incorrect password. Please try again.');
+      expect(error.value).toBe('Authentication failed. Please verify your credentials and try again.');
 
       // Clear error manually
       clearError();

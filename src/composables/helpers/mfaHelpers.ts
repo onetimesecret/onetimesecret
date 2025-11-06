@@ -5,6 +5,7 @@
  * - QR code generation for authenticator apps
  * - HMAC setup data validation
  * - Response enrichment with generated assets
+ * - Secure error message mapping to prevent information disclosure
  */
 
 import QRCode from 'qrcode';
@@ -101,5 +102,70 @@ export async function enrichSetupResponse(
   } catch (parseErr) {
     console.error('[mfaHelpers] Parse error:', parseErr);
     return null;
+  }
+}
+
+/**
+ * Maps HTTP status codes to generic MFA error messages
+ *
+ * This function implements OWASP/NIST security guidelines for authentication
+ * error messages by preventing information disclosure through generic responses.
+ *
+ * Security Principles:
+ * ====================
+ * ✗ DO NOT reveal: Which credential failed, account existence, precise timing
+ * ✓ SAFE to reveal: Format requirements, general guidance, expected behavior
+ *
+ * @param statusCode - HTTP status code from MFA API response
+ * @param originalMessage - Original error message from server (optional)
+ * @returns Generic, security-hardened error message
+ *
+ * Status Code Mappings:
+ * - 401 (Unauthorized): Generic authentication failure
+ * - 403 (Forbidden): Generic authentication failure (no hints about why)
+ * - 404 (Not Found): Recovery code validation failure
+ * - 410 (Gone): Recovery code already used
+ * - 429 (Too Many Requests): Rate limiting (no precise timing disclosed)
+ * - Other: Pass through original message (may need review)
+ *
+ * Examples of what NOT to say:
+ * - "Incorrect password" (reveals which credential failed)
+ * - "Wait 5 minutes" (reveals precise lockout timing)
+ * - "Account not found" (reveals account existence)
+ *
+ * Examples of what IS safe:
+ * - "Authentication failed. Please verify your credentials and try again."
+ * - "Too many attempts. Please try again later."
+ * - "Codes expire every 30 seconds" (expected behavior, not attack info)
+ */
+export function mapMfaError(statusCode: number, originalMessage?: string): string {
+  switch (statusCode) {
+    case 401:
+      // Check if this is a session-specific message (safe to preserve)
+      if (originalMessage?.toLowerCase().includes('session')) {
+        return originalMessage;
+      }
+      // Generic authentication failure - don't reveal which credential failed
+      return 'Authentication failed. Please verify your credentials and try again.';
+
+    case 403:
+      // Forbidden - same generic message, no hints about authorization vs authentication
+      return 'Authentication failed. Please verify your credentials and try again.';
+
+    case 404:
+      // Recovery code not found - safe to indicate it's about recovery codes
+      return 'Recovery code not found. Please verify you entered it correctly.';
+
+    case 410:
+      // Recovery code already used - safe expected behavior message
+      return 'This recovery code has already been used. Each code can only be used once.';
+
+    case 429:
+      // Rate limiting - DO NOT reveal precise timing ("wait 5 minutes")
+      return 'Too many attempts. Please try again later.';
+
+    default:
+      // For other status codes, return original message or generic error
+      return originalMessage || 'An error occurred. Please try again.';
   }
 }

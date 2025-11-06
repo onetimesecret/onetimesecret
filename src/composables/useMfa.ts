@@ -56,7 +56,12 @@ import {
 } from '@/schemas/api/auth/endpoints/auth';
 import type { OtpSetupData, MfaStatus } from '@/types/auth';
 import { useNotificationsStore } from '@/stores/notificationsStore';
-import { generateQrCode, hasHmacSetupData, enrichSetupResponse } from './helpers/mfaHelpers';
+import {
+  generateQrCode,
+  hasHmacSetupData,
+  enrichSetupResponse,
+  mapMfaError,
+} from './helpers/mfaHelpers';
 import { useAsyncHandler, createError } from '@/composables/useAsyncHandler';
 import type { ApplicationError } from '@/schemas/errors';
 
@@ -80,23 +85,10 @@ export function useMfa() {
       // IMPORTANT: Clear all error state first to prevent stale data
       error.value = null;
 
-      // Provide user-friendly error messages based on error code
-      const code = err.code;
-      const originalMessage = err.message;
-
-      // Map common HTTP status codes to user-friendly messages
-      if (code === 401) {
-        error.value = originalMessage.includes('Session')
-          ? originalMessage // Keep specific session messages
-          : 'Incorrect password. Please try again.';
-      } else if (code === 403) {
-        error.value = 'Not authorized.';
-      } else if (code === 404) {
-        error.value = 'Recovery code not found. Please verify you entered it correctly.';
-      } else if (code === 410) {
-        error.value = 'This recovery code has already been used. Each code can only be used once.';
-      } else if (code === 429) {
-        error.value = 'Too many failed attempts. Please wait 5 minutes before trying again.';
+      // Use the mapMfaError helper for security-hardened error messages
+      const statusCode = typeof err.code === 'number' ? err.code : null;
+      if (statusCode) {
+        error.value = mapMfaError(statusCode, err.message);
       } else {
         error.value = err.message;
       }
@@ -332,7 +324,7 @@ export function useMfa() {
 
       if (isAuthError(validated)) {
         const message = validated.error.toLowerCase().includes('password')
-          ? 'Incorrect password. Please verify your password and try again.'
+          ? 'Authentication failed. Please verify your credentials and try again.'
           : validated.error;
 
         throw createError(message, 'human', 'error');
