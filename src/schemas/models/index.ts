@@ -15,6 +15,6 @@ export * from './secret';
  * Secondary models have a relation to primaries.
  *
  */
-export * from '../api/endpoints/account';
+export * from '../api/account/endpoints/account';
 export * from './domain/index';
 export * from './metadata';

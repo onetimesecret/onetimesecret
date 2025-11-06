@@ -1,26 +1,28 @@
-import { createApiListResponseSchema, createApiResponseSchema } from '@/schemas/api/base';
+import { createApiListResponseSchema, createApiResponseSchema } from '@/schemas/api/v3/base';
 import {
   accountSchema,
   apiTokenSchema,
   checkAuthDetailsSchema,
-} from '@/schemas/api/endpoints/account';
+} from '@/schemas/api/account/endpoints/account';
 import {
   loginResponseSchema,
   createAccountResponseSchema,
   logoutResponseSchema,
   resetPasswordRequestResponseSchema,
   resetPasswordResponseSchema,
-} from '@/schemas/api/endpoints/auth';
+} from '@/schemas/api/auth/endpoints/auth';
 import {
   systemSettingsDetailsSchema,
   colonelInfoDetailsSchema,
   colonelStatsDetailsSchema,
-} from '@/schemas/api/endpoints/colonel';
+} from '@/schemas/api/account/endpoints/colonel';
 import {
   concealDataSchema,
+} from '@/schemas/api/v3/endpoints';
+import {
   metadataRecordsDetailsSchema,
   metadataRecordsSchema,
-} from '@/schemas/api/endpoints/index';
+} from '@/schemas/api/account/endpoints/recent';
 import {
   customDomainDetailsSchema,
   customDomainSchema,
