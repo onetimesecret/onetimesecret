@@ -1,4 +1,4 @@
-# try/integration/api/v3_rest_transformations_try.rb
+# try/integration/api/v3/rest_transformations_try.rb
 #
 # Verify V3 and Account API REST transformations:
 # - Remove 'success' field (use HTTP status codes)
