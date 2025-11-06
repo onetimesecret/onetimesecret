@@ -321,7 +321,7 @@ module V2::Logic
 
         secret_logger.info 'Non-owner attempted domain access', {
           domain: share_domain,
-          user_id: cust.custid,
+          user_id: cust.objid,
           action: 'validate_domain_permissions',
           result: :non_owner,
         }

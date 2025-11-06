@@ -2,7 +2,7 @@
 
 require_relative '../../../api/v2/logic/base'
 
-module V2
+module Core
   module Logic
     module Authentication
     end

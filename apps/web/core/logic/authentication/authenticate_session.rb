@@ -1,6 +1,6 @@
 # apps/web/core/logic/authentication/authenticate_session.rb
 
-module V2::Logic
+module Core::Logic
   module Authentication
     using Familia::Refinements::TimeLiterals
 
