@@ -10,7 +10,7 @@ require_relative '../../v2/logic/base'
 
 module V3
   module Logic
-    class Base < V2::Logic::Base
+    module Base
       # V3-specific serialization helper
       #
       # Converts Familia model to JSON hash with native types.
