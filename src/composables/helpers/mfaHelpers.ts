@@ -106,10 +106,11 @@ export async function enrichSetupResponse(
 }
 
 /**
- * Maps HTTP status codes to generic MFA error messages
+ * Maps HTTP status codes to generic MFA error messages using i18n
  *
  * This function implements OWASP/NIST security guidelines for authentication
  * error messages by preventing information disclosure through generic responses.
+ * All messages are internationalized using the `web.auth.security.*` namespace.
  *
  * Security Principles:
  * ====================
@@ -118,14 +119,17 @@ export async function enrichSetupResponse(
  *
  * @param statusCode - HTTP status code from MFA API response
  * @param originalMessage - Original error message from server (optional)
- * @returns Generic, security-hardened error message
+ * @param t - vue-i18n translate function (from useI18n())
+ * @returns Generic, security-hardened, internationalized error message
  *
  * Status Code Mappings:
- * - 401 (Unauthorized): Generic authentication failure
+ * - 401 (Unauthorized): Generic authentication failure or session expired
  * - 403 (Forbidden): Generic authentication failure (no hints about why)
  * - 404 (Not Found): Recovery code validation failure
  * - 410 (Gone): Recovery code already used
  * - 429 (Too Many Requests): Rate limiting (no precise timing disclosed)
+ * - 500+ (Server Error): Generic internal error
+ * - Network Error: Generic network error
  * - Other: Pass through original message (may need review)
  *
  * Examples of what NOT to say:
@@ -137,35 +141,56 @@ export async function enrichSetupResponse(
  * - "Authentication failed. Please verify your credentials and try again."
  * - "Too many attempts. Please try again later."
  * - "Codes expire every 30 seconds" (expected behavior, not attack info)
+ *
+ * @see docs/i18n-security-messages.md for complete guidelines
  */
-export function mapMfaError(statusCode: number, originalMessage?: string): string {
+export function mapMfaError(
+  statusCode: number,
+  originalMessage?: string,
+  t?: (key: string) => string
+): string {
+  // If i18n not available, use English fallbacks
+  // This ensures tests and edge cases still work
+  const translate = t || ((key: string) => key);
+
   switch (statusCode) {
     case 401:
       // Check if this is a session-specific message (safe to preserve)
       if (originalMessage?.toLowerCase().includes('session')) {
-        return originalMessage;
+        return translate('web.auth.security.session_expired');
       }
       // Generic authentication failure - don't reveal which credential failed
-      return 'Authentication failed. Please verify your credentials and try again.';
+      return translate('web.auth.security.authentication_failed');
 
     case 403:
       // Forbidden - same generic message, no hints about authorization vs authentication
-      return 'Authentication failed. Please verify your credentials and try again.';
+      return translate('web.auth.security.authentication_failed');
 
     case 404:
       // Recovery code not found - safe to indicate it's about recovery codes
-      return 'Recovery code not found. Please verify you entered it correctly.';
+      return translate('web.auth.security.recovery_code_not_found');
 
     case 410:
       // Recovery code already used - safe expected behavior message
-      return 'This recovery code has already been used. Each code can only be used once.';
+      return translate('web.auth.security.recovery_code_used');
 
     case 429:
       // Rate limiting - DO NOT reveal precise timing ("wait 5 minutes")
-      return 'Too many attempts. Please try again later.';
+      return translate('web.auth.security.rate_limited');
+
+    case 500:
+    case 502:
+    case 503:
+    case 504:
+      // Server errors - generic message
+      return translate('web.auth.security.internal_error');
 
     default:
+      // For network errors
+      if (originalMessage?.toLowerCase().includes('network')) {
+        return translate('web.auth.security.network_error');
+      }
       // For other status codes, return original message or generic error
-      return originalMessage || 'An error occurred. Please try again.';
+      return originalMessage || translate('web.auth.security.internal_error');
   }
 }

@@ -64,9 +64,11 @@ import {
 } from './helpers/mfaHelpers';
 import { useAsyncHandler, createError } from '@/composables/useAsyncHandler';
 import type { ApplicationError } from '@/schemas/errors';
+import { useI18n } from 'vue-i18n';
 
 /* eslint-disable max-lines-per-function, complexity */
 export function useMfa() {
+  const { t } = useI18n();
   const $api = inject('api') as AxiosInstance;
   const notificationsStore = useNotificationsStore();
 
@@ -85,10 +87,10 @@ export function useMfa() {
       // IMPORTANT: Clear all error state first to prevent stale data
       error.value = null;
 
-      // Use the mapMfaError helper for security-hardened error messages
+      // Use the mapMfaError helper for security-hardened, i18n error messages
       const statusCode = typeof err.code === 'number' ? err.code : null;
       if (statusCode) {
-        error.value = mapMfaError(statusCode, err.message);
+        error.value = mapMfaError(statusCode, err.message, t);
       } else {
         error.value = err.message;
       }
