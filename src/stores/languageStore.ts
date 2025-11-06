@@ -152,7 +152,7 @@ export const useLanguageStore = defineStore('language', () => {
 
     await setGlobalLocale(validatedLocale); // via i18n
     setCurrentLocale(validatedLocale); // save to session storage
-    await $api.post('/api/v2/account/update-locale', { locale: validatedLocale });
+    await $api.post('/api/account/account/update-locale', { locale: validatedLocale });
     return validatedLocale;
   }
 

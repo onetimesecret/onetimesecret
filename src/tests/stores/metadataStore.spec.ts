@@ -250,7 +250,7 @@ describe('metadataStore', () => {
 
         // Mock API to return a 404 error with error response data
         axiosMock = new AxiosMockAdapter(mockAxios);
-        axiosMock?.onGet('/api/v2/receipt/test-key').reply(404, {
+        axiosMock?.onGet('/api/v3/receipt/test-key').reply(404, {
           error: {
             message: 'Secret not found',
             code: 'NOT_FOUND',

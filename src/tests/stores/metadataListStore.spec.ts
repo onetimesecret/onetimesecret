@@ -46,8 +46,8 @@ describe('metadataListStore', () => {
         details: mockMetadataRecent.details,
       };
 
-      axiosMock.onGet('/api/v2/receipt/recent').reply(200, mockResponse);
-      axiosMock.onGet('/api/v2/receipt/recent').reply(200, mockResponse);
+      axiosMock.onGet('/api/v3/receipt/recent').reply(200, mockResponse);
+      axiosMock.onGet('/api/v3/receipt/recent').reply(200, mockResponse);
 
       await store.fetchList();
 
@@ -73,8 +73,8 @@ describe('metadataListStore', () => {
         },
       };
 
-      axiosMock.onGet('/api/v2/receipt/recent').reply(200, mockResponse);
-      axiosMock.onGet('/api/v2/receipt/recent').reply(200, mockResponse);
+      axiosMock.onGet('/api/v3/receipt/recent').reply(200, mockResponse);
+      axiosMock.onGet('/api/v3/receipt/recent').reply(200, mockResponse);
 
       await store.fetchList();
 
@@ -93,8 +93,8 @@ describe('metadataListStore', () => {
         details: mockMetadataRecentDetails,
       };
 
-      axiosMock.onGet('/api/v2/receipt/recent').reply(200, mockResponse);
-      axiosMock.onGet('/api/v2/receipt/recent').reply(200, mockResponse);
+      axiosMock.onGet('/api/v3/receipt/recent').reply(200, mockResponse);
+      axiosMock.onGet('/api/v3/receipt/recent').reply(200, mockResponse);
 
       await store.refreshRecords();
       expect(store.initialized()).toBe(true);
@@ -112,8 +112,8 @@ describe('metadataListStore', () => {
         details: mockMetadataRecentDetails,
       };
 
-      axiosMock.onGet('/api/v2/receipt/recent').reply(200, mockResponse);
-      axiosMock.onGet('/api/v2/receipt/recent').reply(200, mockResponse);
+      axiosMock.onGet('/api/v3/receipt/recent').reply(200, mockResponse);
+      axiosMock.onGet('/api/v3/receipt/recent').reply(200, mockResponse);
 
       // First call to initialize
       await store.refreshRecords();
@@ -136,7 +136,7 @@ describe('metadataListStore', () => {
         details: mockMetadataRecent.details,
       };
 
-      axiosMock.onGet('/api/v2/receipt/recent').reply(
+      axiosMock.onGet('/api/v3/receipt/recent').reply(
         () =>
           new Promise((resolve) => {
             setTimeout(() => resolve([200, mockResponse]), 50);
@@ -152,14 +152,14 @@ describe('metadataListStore', () => {
 
   describe('error handling', () => {
     it('handles API errors correctly', async () => {
-      axiosMock.onGet('/api/v2/receipt/recent').networkError();
+      axiosMock.onGet('/api/v3/receipt/recent').networkError();
 
       await expect(store.fetchList()).rejects.toThrow();
       // isLoading property not exposed by store
     });
 
     it('handles validation errors correctly', async () => {
-      axiosMock.onGet('/api/v2/private/recent').reply(200, {
+      axiosMock.onGet('/api/v3/private/recent').reply(200, {
         records: [{ invalid: 'data' }],
       });
 
@@ -169,12 +169,12 @@ describe('metadataListStore', () => {
 
     it('resets error state between requests', async () => {
       // First request fails
-      axiosMock.onGet('/api/v2/receipt/recent').networkError();
+      axiosMock.onGet('/api/v3/receipt/recent').networkError();
       await expect(store.fetchList()).rejects.toThrow();
 
       // Second request succeeds - reset mock to allow new request
       axiosMock.reset();
-      axiosMock.onGet('/api/v2/receipt/recent').reply(200, {
+      axiosMock.onGet('/api/v3/receipt/recent').reply(200, {
         custid: 'user-123',
         count: 1,
         records: mockMetadataRecentRecords,
@@ -195,7 +195,7 @@ describe('metadataListStore', () => {
         details: mockMetadataRecentDetails,
       };
 
-      axiosMock.onGet('/api/v2/receipt/recent').reply(200, mockResponse);
+      axiosMock.onGet('/api/v3/receipt/recent').reply(200, mockResponse);
 
       await store.refreshRecords();
       expect(store.initialized()).toBe(true);

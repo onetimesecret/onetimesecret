@@ -43,7 +43,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
   async function fetch() {
     isLoading.value = true;
     try {
-      const response = await $api.get('/api/v2/colonel/info');
+      const response = await $api.get('/api/account/colonel/info');
       const validated = responseSchemas.colonelInfo.parse(response.data);
       details.value = validated.details as any;
       // Also populate stats from the full response
@@ -66,7 +66,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     isLoading.value = true;
     try {
       // Use the dedicated stats endpoint for better performance
-      const response = await $api.get('/api/v2/colonel/stats');
+      const response = await $api.get('/api/account/colonel/stats');
       const validated = responseSchemas.colonelStats.parse(response.data);
       if (validated.details) {
         stats.value = validated.details as any;

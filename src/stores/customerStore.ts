@@ -76,7 +76,7 @@ export const useCustomerStore = defineStore('customer', () => {
     abort();
 
     abortController.value = new AbortController();
-    const response = await $api.get('/api/v2/account/customer', {
+    const response = await $api.get('/api/account/account/customer', {
       signal: abortController.value.signal,
     });
     const validated = responseSchemas.customer.parse(response.data);

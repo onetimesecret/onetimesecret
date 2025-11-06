@@ -36,7 +36,7 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
    * @returns Validated configuration object
    */
   async function fetch() {
-    const response = await $api.get('/api/v2/colonel/config');
+    const response = await $api.get('/api/account/colonel/config');
 
     try {
       const validated = responseSchemas.systemSettings.parse(response.data);
@@ -68,7 +68,7 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
       throw validationError;
     }
 
-    const response = await $api.post('/api/v2/colonel/config', { config: newConfig });
+    const response = await $api.post('/api/account/colonel/config', { config: newConfig });
 
     try {
       const validated = responseSchemas.systemSettings.parse(response.data);
