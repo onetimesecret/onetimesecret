@@ -123,6 +123,7 @@ module Onetime
           ObjectSpace.each_object(Class)
             .select { |cls| cls < Onetime::Application::Base && cls.respond_to?(:uri_prefix) }
             .reject { |cls| cls.name == 'Auth::Application' && Onetime.auth_config.mode != 'advanced' }
+            .reject { |cls| cls.instance_variable_get(:@abstract) == true } # Skip abstract base classes
             .each { |cls| register_application_class(cls) }
         end
 
@@ -177,6 +178,12 @@ module Onetime
           OT.li "[registry] Mapping #{application_classes.size} application(s) to routes"
 
           application_classes.each_with_index do |app_class, idx|
+            # Skip abstract base classes
+            if app_class.instance_variable_get(:@abstract) == true
+              Onetime.app_logger.debug " [#{idx + 1} of #{application_classes.size}] Skipping abstract class #{app_class}"
+              next
+            end
+
             mount = app_class.uri_prefix
 
             unless mount.is_a?(String)
