@@ -3,7 +3,6 @@
 <script setup lang="ts">
   import MetadataSkeleton from '@/components/closet/MetadataSkeleton.vue';
   import CopyButton from '@/components/CopyButton.vue';
-  import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
   import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
@@ -78,7 +77,6 @@
 
 <template>
   <div class="flex flex-col">
-    <DashboardTabNav />
 
     <div class="container mx-auto px-4">
       <!--  Add Back navigation link -->

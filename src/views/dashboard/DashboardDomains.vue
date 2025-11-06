@@ -1,5 +1,5 @@
+<!--  -->
 <script setup lang="ts">
-import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import DomainsTable from '@/components/DomainsTable.vue';
 import ErrorDisplay from '@/components/ErrorDisplay.vue';
 import EmptyState from '@/components/EmptyState.vue';
@@ -29,8 +29,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <DashboardTabNav />
+  <div class="container mx-auto min-w-[320px] max-w-2xl">
     <ErrorDisplay v-if="error" :error="error" />
     <div v-if="isLoading">
       <TableSkeleton/>

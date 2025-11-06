@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import TableSkeleton from '@/components/closet/TableSkeleton.vue';
-  import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
   import EmptyState from '@/components/EmptyState.vue';
   import ErrorDisplay from '@/components/ErrorDisplay.vue';
   import OIcon from '@/components/icons/OIcon.vue';
@@ -73,8 +72,7 @@
 </script>
 
 <template>
-  <div>
-    <DashboardTabNav />
+  <div class="container mx-auto min-w-[320px] max-w-2xl">
 
     <section
       :id="sectionId"

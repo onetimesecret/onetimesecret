@@ -37,7 +37,7 @@ import { type LogoConfig } from '@/types/ui/layouts';
 
 <template>
   <div
-    class="flex items-center gap-3"
+    class="flex font-brand items-center gap-3"
     :aria-label="ariaLabel">
     <a
       :href="props.href"

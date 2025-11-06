@@ -48,3 +48,13 @@ export interface LayoutProps extends Partial<LayoutDisplay> {
   /** Colonel mode enables admin features */
   colonel?: boolean;
 }
+
+/**
+ * Extended layout properties for ImprovedLayout component
+ */
+export interface ImprovedLayoutProps extends LayoutProps {
+  /** Whether to show the sidebar */
+  showSidebar?: boolean;
+  /** Sidebar position */
+  sidebarPosition?: 'left' | 'right';
+}
