@@ -95,7 +95,7 @@ module AccountAPI::Logic
       end
 
       def success_data
-        {success: success?, objid: cust.objid, role: cust.role}
+        { objid: cust.objid, role: cust.role}
       end
 
       def success?

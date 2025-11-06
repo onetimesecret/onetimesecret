@@ -35,7 +35,7 @@ module AccountAPI::Logic
 
       def success_data
         {
-          custid: @cust.custid,
+          user_id: @cust.custid,
           record: custom_domain.safe_dump,
           details: {
             cluster: Onetime::Cluster::Features.cluster_safe_dump,

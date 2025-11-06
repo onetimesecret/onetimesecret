@@ -98,7 +98,7 @@ module AccountAPI::Logic
       end
 
       def success_data
-        { custid: cust.custid, email: cust.email, role: customer_role }
+        { user_id: cust.custid, email: cust.email, role: customer_role }
       end
 
       private
