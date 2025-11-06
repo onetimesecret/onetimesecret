@@ -68,7 +68,7 @@ module AccountAPI
       router.enable_full_ip_privacy!
 
       # Register authentication strategies
-      Account::AuthStrategies.register_essential(router)
+      AccountAPI::AuthStrategies.register_essential(router)
 
       # Default error responses
       headers             = { 'content-type' => 'application/json' }
