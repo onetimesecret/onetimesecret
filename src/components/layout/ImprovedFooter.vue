@@ -138,8 +138,8 @@
         <!-- Count badge (if present) -->
         <span
           v-if="item.count !== undefined && item.count !== null && item.count > 0"
-          class="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1
-                 rounded-full text-[10px] font-medium bg-brand-500 text-white"
+          class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1
+                 rounded-full text-[10px] font-semibold leading-none bg-brand-500 text-white shadow-sm"
           :aria-label="`${item.count} items`">
           {{ item.count > 99 ? '99+' : item.count }}
         </span>
@@ -155,8 +155,7 @@
       bg-gray-100
       py-16 md:py-6
       md:fixed md:bottom-0
-      transition-all
-      duration-300 dark:bg-gray-800
+      dark:bg-gray-800
       z-10
       pb-20 md:pb-6"
     :aria-label="t('site-footer')">
@@ -171,8 +170,8 @@
         flex
         flex-col-reverse items-center
         justify-between
-        space-y-6 space-y-reverse md:flex-row
-        md:space-y-0"
+        gap-6 md:flex-row
+        md:gap-0"
         :class="
           displayFooterLinks && windowProps.ui?.footer_links?.enabled
             ? 'mt-8 border-t border-gray-200 pt-8 dark:border-gray-700'
@@ -184,6 +183,7 @@
           class="
           flex w-full
           flex-wrap items-center justify-center
+          gap-x-3
           text-center
           text-xs text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
@@ -197,8 +197,9 @@
           </span>
           <span
             v-if="displayVersion && displayPoweredBy"
-            class="flex items-center justify-center px-2">
-            -
+            class="text-gray-400 dark:text-gray-600"
+            aria-hidden="true">
+            •
           </span>
           <span
             v-if="displayPoweredBy"
@@ -217,7 +218,7 @@
         <!-- prettier-ignore-attribute class -->
         <div
           v-if="displayToggles"
-          class="flex w-full flex-row flex-wrap items-center justify-center gap-2 sm:gap-4 sm:w-auto sm:justify-end">
+          class="flex w-full flex-row flex-wrap items-center justify-center gap-3 md:gap-4 md:w-auto md:justify-end">
           <JurisdictionToggle v-if="windowProps.regions_enabled && windowProps.regions" />
 
           <!-- prettier-ignore-attribute class -->
