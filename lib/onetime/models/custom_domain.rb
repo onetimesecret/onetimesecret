@@ -487,8 +487,8 @@ module Onetime
           raise Onetime::Problem, "Invalid domain format - unable to determine display domain"
         end
 
-        # Return a UTF-8 encoded string, not the PublicSuffix::Domain object
-        result.to_s.encode('UTF-8', invalid: :replace, undef: :replace)
+        # Ensure we return a string, not a PublicSuffix::Domain object
+        result.to_s
       rescue PublicSuffix::Error => ex
         OT.le "[CustomDomain.parse] #{ex.message} for `#{input}`"
         raise Onetime::Problem, ex.message

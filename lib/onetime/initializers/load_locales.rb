@@ -44,7 +44,7 @@ module Onetime
         path = File.join(Onetime::HOME, 'src', 'locales', "#{loc}.json")
         OT.ld "[init] Loading #{loc}: #{File.exist?(path)}"
         begin
-          contents = File.read(path, encoding: 'UTF-8')
+          contents = File.read(path)
         rescue Errno::ENOENT
           OT.le "[init] Missing locale file: #{path}"
           next

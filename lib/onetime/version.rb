@@ -24,7 +24,7 @@ module Onetime
 
       # Load version from package.json
       package_json_path = File.join(Onetime::HOME, 'package.json')
-      package_json      = Familia::JsonSerializer.parse(File.read(package_json_path, encoding: 'UTF-8'))
+      package_json      = Familia::JsonSerializer.parse(File.read(package_json_path))
 
       # Split the version string into main version and pre-release parts
       version_parts      = package_json['version'].split('-')
@@ -44,7 +44,7 @@ module Onetime
       commit_hash_file = File.join(Onetime::HOME, '.commit_hash.txt')
       commit_hash      = 'pristine'
       if File.exist?(commit_hash_file)
-        commit_hash = File.read(commit_hash_file, encoding: 'UTF-8').strip
+        commit_hash = File.read(commit_hash_file).strip
       else
         warn "Warning: Commit hash file not found. Using default value '#{commit_hash}'."
       end

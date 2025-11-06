@@ -1,5 +1,6 @@
 # lib/onetime/initializers.rb
 
+require_relative 'initializers/set_encoding'
 require_relative 'initializers/set_secrets'
 require_relative 'initializers/load_locales'
 require_relative 'initializers/setup_database_logging'
