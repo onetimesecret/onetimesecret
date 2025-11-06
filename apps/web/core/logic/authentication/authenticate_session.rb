@@ -68,6 +68,9 @@ module Core::Logic
 
         @greenlighted = true
 
+        # Clear old session data to prevent session fixation
+        sess.clear
+
         # Set session authentication data
         sess['external_id'] = cust.extid
         sess['authenticated'] = true

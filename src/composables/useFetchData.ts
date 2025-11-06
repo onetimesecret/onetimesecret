@@ -41,7 +41,7 @@ export function useFetchData<T extends BaseApiRecord>({
   const isLoading = ref(false);
   const error = ref('');
   const count = ref<number>(0);
-  const custid = ref<string | null>(null);
+  const userId = ref<string | null>(null);
   const status = ref<number | null>(null);
 
   const fetchData = async () => {
@@ -73,7 +73,7 @@ export function useFetchData<T extends BaseApiRecord>({
       } else if ('records' in jsonData) {
         records.value = jsonData.records;
         count.value = jsonData.count ?? 0;
-        custid.value = jsonData.user_id || null;
+        userId.value = jsonData.user_id || null;
         details.value = (jsonData.details || undefined) as DetailsType;
       } else {
         throw new Error('Unexpected response format');
@@ -104,7 +104,7 @@ export function useFetchData<T extends BaseApiRecord>({
     isLoading,
     error,
     count,
-    custid,
+    userId,
     status,
     fetchData,
   };
@@ -113,7 +113,7 @@ export function useFetchData<T extends BaseApiRecord>({
 export function useFetchDataRecord<T extends BaseApiRecord>(
   options: FetchDataOptions<T>
 ) {
-  const { records, details, isLoading, count, custid, status, fetchData, error } =
+  const { records, details, isLoading, count, userId, status, fetchData, error } =
     useFetchData<T>(options);
 
   const record = computed(() => records.value[0] || null);
@@ -124,7 +124,7 @@ export function useFetchDataRecord<T extends BaseApiRecord>(
     isLoading,
     error,
     count,
-    custid,
+    userId,
     status,
     fetchData,
   };
