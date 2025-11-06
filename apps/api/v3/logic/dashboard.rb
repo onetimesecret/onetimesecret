@@ -1,8 +1,8 @@
-# apps/api/v2/logic/dashboard.rb
+# apps/api/v3/logic/dashboard.rb
 
 require_relative 'base'
 
-module V2
+module V3
   module Logic
     module Dashboard
       class Index < V2::Logic::Base

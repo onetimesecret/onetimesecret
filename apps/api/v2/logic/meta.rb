@@ -1,7 +1,6 @@
 # apps/api/v2/logic/meta.rb
 
 require_relative 'base'
-require_relative 'feedback'
 
 module V2
   module Logic

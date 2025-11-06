@@ -2,9 +2,14 @@
 
 # Account API Logic Base Class
 #
-# Extends V2 logic with JSON-type aware serialization for Account API.
-# Returns native JSON types (numbers, booleans, null) instead of
-# string-serialized values.
+# Extends V2 logic with modern API patterns for Account API.
+#
+# Key differences from v2:
+# 1. Native JSON types (numbers, booleans, null) instead of string-serialized values
+# 2. Pure REST semantics - no "success" field (use HTTP status codes)
+# 3. Modern naming - "user_id" instead of "custid"
+#
+# Account API uses same modern conventions as v3 API for consistency.
 
 require_relative '../../v2/logic/base'
 

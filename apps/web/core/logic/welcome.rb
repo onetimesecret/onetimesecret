@@ -1,4 +1,4 @@
-# apps/api/v2/logic/welcome.rb
+# apps/web/core/logic/welcome.rb
 
 require_relative 'base'
 

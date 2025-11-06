@@ -29,7 +29,6 @@ OPTIONS /secret/conceal                           V2::Logic::Secrets::ConcealSec
 GET    /supported-locales                         V2::Logic::Meta.get_supported_locales response=json
 GET    /status                                    V2::Logic::Meta.system_status response=json
 GET    /version                                   V2::Logic::Meta.system_version response=json
-POST   /feedback                                  V2::Logic::ReceiveFeedback response=json auth=noauth
 
 # OTTO ADVANCED ROUTES SYNTAX - QUICK REFERENCE
 # ==============================================
