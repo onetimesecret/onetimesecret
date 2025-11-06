@@ -110,7 +110,7 @@ const isActiveRoute = (path: string): boolean => {
 <template>
   <nav
     class="flex items-center justify-between py-0"
-    :aria-label="t('web.COMMON.main_navigation')">
+    :aria-label="t('main-navigation')">
 
     <!-- Primary tabs -->
     <div class="flex items-center -mb-px">
@@ -130,7 +130,7 @@ const isActiveRoute = (path: string): boolean => {
         <OIcon
           v-if="item.icon"
           collection="heroicons"
-          :name="`${item.icon}-outline`"
+          :name="`${item.icon}`"
           class="size-4"
           :class="[
             isActiveRoute(item.path)

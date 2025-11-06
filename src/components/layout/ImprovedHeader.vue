@@ -1,7 +1,5 @@
 <!-- src/components/layout/ImprovedHeader.vue -->
 <!--
-  Improved Header Layout
-
   Changes from DefaultHeader:
   - Wider container (max-w-4xl instead of max-w-2xl)
   - Better spacing and structure for navigation growth

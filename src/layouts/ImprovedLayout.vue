@@ -40,7 +40,7 @@
   const shouldShowSidebar = computed(() => {
     // Show sidebar on dashboard, recent, and account pages
     const sidebarRoutes = ['/dashboard', '/recent', '/domains', '/account'];
-    return props.showSidebar || sidebarRoutes.some(r => route.path.startsWith(r));
+    return props.showSidebar && sidebarRoutes.some(r => route.path.startsWith(r));
   });
 </script>
 
@@ -65,7 +65,7 @@
 
             <!-- Main Content Area -->
             <main class="flex-1 min-w-0">
-              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+              <div class="bg-white dark:bg-inherit rounded-lg shadow-sm">
                 <slot></slot>
               </div>
             </main>

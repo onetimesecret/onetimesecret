@@ -1,9 +1,7 @@
 <!-- src/components/layout/ImprovedFooter.vue -->
 <!--
-  Improved Footer Layout
-
   Changes from DefaultFooter:
-  - None currently. Only exists for naming consistency with header and layout.
+  - Wider, changing max-w-2xl to max-w-4xl
 -->
 <script setup lang="ts">
   import FeedbackToggle from '@/components/FeedbackToggle.vue';
@@ -44,7 +42,7 @@
     py-16 transition-all
     duration-300 dark:bg-gray-800"
     :aria-label="t('site-footer')">
-    <div class="container mx-auto max-w-6xl px-4">
+    <div class="container mx-auto max-w-4xl px-4">
       <!-- Footer Links Section -->
       <FooterLinks v-if="displayFooterLinks" />
 
