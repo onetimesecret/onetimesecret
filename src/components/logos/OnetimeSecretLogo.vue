@@ -6,10 +6,10 @@
   import { useI18n } from 'vue-i18n';
 
   import OIcon from '@/components/icons/OIcon.vue';
+  import OnetimeSecretIcon from '@/components/icons/OnetimeSecretIcon.vue';
   import type { Jurisdiction } from '@/schemas/models/jurisdiction';
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';
   import type { LogoConfig } from '@/types/ui/layouts';
-  import OnetimeSecretIcon from '@/components/icons/OnetimeSecretIcon.vue';
 
   /**
    * Props for controlling logo appearance
@@ -38,9 +38,11 @@
   );
 
   // Jurisdiction icon helper functions
-  const getIconCollection = (jurisdiction: Jurisdiction | null): string => jurisdiction?.icon?.collection || 'fa6-solid';
+  const getIconCollection = (jurisdiction: Jurisdiction | null): string =>
+    jurisdiction?.icon?.collection || 'fa6-solid';
 
-  const getIconName = (jurisdiction: Jurisdiction | null): string => jurisdiction?.icon?.name || 'globe';
+  const getIconName = (jurisdiction: Jurisdiction | null): string =>
+    jurisdiction?.icon?.name || 'globe';
 
   // Jurisdiction menu state and handlers
   const tooltipVisible = ref(false);
@@ -186,7 +188,8 @@
                 <span
                   class="block truncate"
                   :class="{
-                    'font-bold text-gray-900 dark:text-gray-100': currentJurisdiction?.identifier === jurisdiction.identifier,
+                    'font-bold text-gray-900 dark:text-gray-100':
+                      currentJurisdiction?.identifier === jurisdiction.identifier,
                   }">
                   {{ jurisdiction.display_name }}
                 </span>
@@ -240,7 +243,7 @@
             </span>
           </span>
         </div>
-          </a>
+      </a>
     </div>
   </div>
 </template>

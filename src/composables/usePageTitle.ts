@@ -1,7 +1,7 @@
 // src/composables/usePageTitle.ts
 
 import { computed, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { globalComposer } from '@/i18n';
 import { WindowService } from '@/services/window.service';
 
 /**
@@ -12,6 +12,7 @@ import { WindowService } from '@/services/window.service';
  * - i18n support for translated titles
  * - Meta tag updates (og:title, twitter:title)
  * - TypeScript support for route meta
+ * - Can be used outside of component setup (e.g., in router guards)
  *
  * @example
  * // In a component
@@ -22,13 +23,23 @@ import { WindowService } from '@/services/window.service';
  * // With i18n key
  * const { setTitle } = usePageTitle();
  * setTitle('DASHBOARD.TITLE'); // Will translate automatically
+ *
+ * @example
+ * // In router guards
+ * const { setTitle } = usePageTitle();
+ * router.afterEach((to) => {
+ *   setTitle(to.meta.title);
+ * });
  */
 
 const APP_NAME = 'Onetime Secret';
 const TITLE_SEPARATOR = ' - ';
 
 export function usePageTitle() {
-  const { t, te } = useI18n();
+  // Use the global i18n composer instance directly to avoid requiring
+  // Vue's injection context. This allows usePageTitle to be called
+  // outside of component setup (e.g., in router guards).
+  const { t, te } = globalComposer;
 
   // Cache DOM elements to avoid repeated queries
   let ogTitleMeta: HTMLMetaElement | null | undefined;
