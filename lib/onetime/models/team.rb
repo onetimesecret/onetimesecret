@@ -20,24 +20,76 @@ module Onetime
     identifier_field :teamid
 
     class_sorted_set :values
+    sorted_set :members
 
     field :teamid
     field :display_name
     field :description
+    field :owner_id       # custid of team owner
 
     def init
       @teamid ||= Familia.generate_id
       nil
     end
 
-    class << self
-      def create!(display_name = nil, contact_email = nil)
-        raise Onetime::Problem, 'Team exists for that email address' if contact_email && exists?(contact_email)
+    # Owner management
+    def owner
+      Onetime::Customer.load(owner_id) if owner_id
+    end
 
-        team = new display_name: display_name, contact_email: contact_email
+    def owner?(customer)
+      customer && customer.custid == owner_id
+    end
+
+    # Member management (uses participates_in relationship)
+    def add_member(customer, role = 'member')
+      # Add to members sorted set with timestamp score
+      members.add(customer.objid, Familia.now.to_i)
+    end
+
+    def remove_member(customer)
+      members.rem(customer.objid)
+    end
+
+    def member?(customer)
+      return false unless customer
+      members.member?(customer.objid)
+    end
+
+    def member_count
+      members.size
+    end
+
+    def list_members
+      # Returns Customer objects
+      member_ids = members.members
+      member_ids.map { |id| Onetime::Customer.load(id) }.compact
+    end
+
+    # Authorization helpers
+    def can_modify?(current_user)
+      owner?(current_user)
+    end
+
+    def can_delete?(current_user)
+      owner?(current_user)
+    end
+
+    class << self
+      def create!(display_name, owner_customer)
+        raise Onetime::Problem, 'Owner required' if owner_customer.nil?
+        raise Onetime::Problem, 'Display name required' if display_name.to_s.empty?
+
+        team = new(
+          display_name: display_name,
+          owner_id: owner_customer.custid
+        )
         team.save
 
-        OT.ld "[create] teamid: #{team.teamid}, #{team.to_s}"
+        # Add owner as first member
+        team.add_member(owner_customer, 'owner')
+
+        OT.ld "[Team.create!] teamid: #{team.teamid}, owner: #{owner_customer.custid}"
         add team
         team
       end
