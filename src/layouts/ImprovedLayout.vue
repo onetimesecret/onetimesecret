@@ -14,7 +14,9 @@
   import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
   import type { ImprovedLayoutProps } from '@/types/ui/layouts';
   import BaseLayout from './BaseLayout.vue';
-  import { computed } from 'vue';
+  import { computed, onMounted } from 'vue';
+  import { WindowService } from '@/services/window.service';
+  import { useDomainsStore, useMetadataListStore } from '@/stores';
 
   const props = withDefaults(defineProps<ImprovedLayoutProps>(), {
     displayFeedback: true,
@@ -26,6 +28,19 @@
     displayPoweredBy: true,
     showSidebar: false,
     sidebarPosition: 'right',
+  });
+
+  // Store instances for centralized data loading
+  const metadataListStore = useMetadataListStore();
+  const domainsStore = useDomainsStore();
+  const domainsEnabled = WindowService.get('domains_enabled');
+
+  // Centralize store refreshing to avoid duplicate API calls from header and footer
+  onMounted(() => {
+    metadataListStore.refreshRecords(true);
+    if (domainsEnabled) {
+      domainsStore.refreshRecords(true);
+    }
   });
 
   // Filter out sidebar-specific props for child components that don't need them

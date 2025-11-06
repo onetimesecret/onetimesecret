@@ -11,7 +11,7 @@
 -->
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { WindowService } from '@/services/window.service';
@@ -39,19 +39,11 @@ interface NavItem {
   show?: boolean;
 }
 
-// Computed counts
+// Computed counts (data loaded by parent ImprovedLayout)
 const counts = computed(() => ({
   metadata: metadataListStore.count,
   domains: domainsStore.count,
 }));
-
-// Load counts on mount
-onMounted(() => {
-  metadataListStore.refreshRecords(true);
-  if (domainsEnabled) {
-    domainsStore.refreshRecords(true);
-  }
-});
 
 // Primary navigation items - now more prominent
 const primaryNavItems = computed((): NavItem[] => {

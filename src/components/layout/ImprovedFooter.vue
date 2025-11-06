@@ -4,7 +4,7 @@
   - Wider, changing max-w-2xl to max-w-4xl
 -->
 <script setup lang="ts">
-  import { computed, onMounted } from 'vue';
+  import { computed } from 'vue';
   import { useRoute } from 'vue-router';
   import FeedbackToggle from '@/components/FeedbackToggle.vue';
   import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
@@ -51,19 +51,11 @@
     count?: number | null;
   }
 
-  // Computed counts
+  // Computed counts (data loaded by parent ImprovedLayout)
   const counts = computed(() => ({
     metadata: metadataListStore.count,
     domains: domainsStore.count,
   }));
-
-  // Load counts on mount
-  onMounted(() => {
-    metadataListStore.refreshRecords(true);
-    if (domainsEnabled) {
-      domainsStore.refreshRecords(true);
-    }
-  });
 
   // Mobile navigation items
   const mobileNavItems = computed((): NavItem[] => {
