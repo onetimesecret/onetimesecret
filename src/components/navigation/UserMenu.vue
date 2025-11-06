@@ -55,7 +55,7 @@ interface MenuItem {
     collection: string;
     name: string;
   };
-  variant?: 'default' | 'primary' | 'danger';
+  variant?: 'default' | 'caution' | 'danger' | 'cta';
   condition?: () => boolean;
   onClick?: () => void | Promise<void>;
 }
@@ -68,8 +68,16 @@ const menuItems = computed<MenuItem[]>(() => [
     to: '/mfa-verify',
     label: t('web.auth.complete_mfa_verification'),
     icon: { collection: 'heroicons', name: 'shield-check-solid' },
-    variant: 'primary' as const,
+    variant: 'caution' as const,
     condition: () => props.awaitingMfa,
+  },
+  // Dashboard
+  {
+    id: 'dashboard',
+    to: '/dashboard',
+    label: t('web.TITLES.dashboard'),
+    icon: { collection: 'heroicons', name: 'shield-check-solid' },
+    condition: () => !props.awaitingMfa,
   },
   // Account Settings
   {
@@ -79,37 +87,13 @@ const menuItems = computed<MenuItem[]>(() => [
     icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
     condition: () => !props.awaitingMfa,
   },
-  // Security
-  {
-    id: 'security',
-    to: '/account/settings/security',
-    label: t('web.COMMON.security'),
-    icon: { collection: 'heroicons', name: 'shield-check-solid' },
-    condition: () => !props.awaitingMfa,
-  },
-  // Active Sessions
-  {
-    id: 'sessions',
-    to: '/account/settings/security/sessions',
-    label: t('web.auth.sessions.title'),
-    icon: { collection: 'heroicons', name: 'computer-desktop-solid' },
-    condition: () => !props.awaitingMfa,
-  },
-  // Data Region
-  {
-    id: 'region',
-    to: '/account/region',
-    label: t('web.account.region'),
-    icon: { collection: 'heroicons', name: 'globe-alt-solid' },
-    condition: () => !props.awaitingMfa,
-  },
   // Upgrade (conditional)
   {
     id: 'upgrade',
     to: '/pricing',
     label: t('upgrade-for-teams'),
     icon: { collection: 'heroicons', name: 'sparkles-solid' },
-    variant: 'primary' as const,
+    variant: 'cta' as const,
     condition: () => !props.awaitingMfa && props.showUpgrade,
   },
   // Colonel (conditional)
@@ -152,21 +136,23 @@ const shouldShowDividerBefore = (item: MenuItem, index: number): boolean => {
 };
 
 // Get CSS classes for menu item based on variant
-const getMenuItemClasses = (variant?: 'default' | 'primary' | 'danger'): string => {
+const getMenuItemClasses = (variant?: 'default' | 'caution' | 'danger' | 'cta'): string => {
   const baseClasses = 'group flex items-center gap-3 px-4 py-2 text-sm transition-colors';
 
   switch (variant) {
-    case 'primary':
+    case 'caution':
       return `${baseClasses} font-semibold text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20`;
     case 'danger':
       return `${baseClasses} text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20`;
+    case 'cta':
+      return `${baseClasses} text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-900/20`;
     default:
       return `${baseClasses} text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700`;
   }
 };
 
 // Get icon classes based on variant and item id
-const getIconClasses = (variant?: 'default' | 'primary' | 'danger', itemId?: string): string => {
+const getIconClasses = (variant?: 'default' | 'caution' | 'danger' | 'cta', itemId?: string): string => {
   const baseClasses = 'size-5 transition-colors';
 
   // Special case for colonel icon
@@ -175,10 +161,12 @@ const getIconClasses = (variant?: 'default' | 'primary' | 'danger', itemId?: str
   }
 
   switch (variant) {
-    case 'primary':
+    case 'caution':
       return `${baseClasses} text-amber-500 group-hover:text-amber-600 dark:text-amber-400 dark:group-hover:text-amber-300`;
     case 'danger':
       return `${baseClasses} text-red-500 group-hover:text-red-600 dark:text-red-400 dark:group-hover:text-red-300`;
+    case 'cta':
+      return `${baseClasses} text-brand-500 group-hover:text-brand-600 dark:text-brand-400 dark:group-hover:text-brand-300`;
     default:
       return `${baseClasses} text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300`;
   }
