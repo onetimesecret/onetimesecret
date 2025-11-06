@@ -82,7 +82,7 @@ module AccountAPI::Logic
       end
 
       def success_data
-        { custid: @cust.custid }
+        { user_id: @cust.objid }
       end
     end
   end

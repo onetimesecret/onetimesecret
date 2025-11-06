@@ -1,8 +1,8 @@
 # apps/web/core/logic/welcome.rb
 
-require_relative 'base'
+require_relative '../../../api/v2/logic/base'
 
-module V2
+module Core
   module Logic
     module Welcome
       class FromStripePaymentLink < V2::Logic::Base

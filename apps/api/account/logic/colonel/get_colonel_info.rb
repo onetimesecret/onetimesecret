@@ -61,7 +61,7 @@ module AccountAPI
             next if this_cust.nil?
 
             {
-              custid: this_cust.custid,
+              user_id: this_cust.objid,
               colonel: this_cust.role?(:colonel),
               secrets_created: this_cust.secrets_created,
               secrets_shared: this_cust.secrets_shared,

@@ -26,7 +26,7 @@ module Core
       def logout
         res.do_not_cache!
 
-        logic = V2::Logic::Authentication::DestroySession.new(strategy_result, req.params, locale)
+        logic = AccountAPI::Logic::Authentication::DestroySession.new(strategy_result, req.params, locale)
         execute_with_error_handling(
           logic,
           success_message: 'You have been logged out',
@@ -46,7 +46,7 @@ module Core
       end
 
       def perform_authentication
-        logic = V2::Logic::Authentication::AuthenticateSession.new(strategy_result, req.params, locale)
+        logic = Core::Logic::Authentication::AuthenticateSession.new(strategy_result, req.params, locale)
 
         execute_with_error_handling(
           logic,

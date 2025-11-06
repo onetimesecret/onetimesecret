@@ -1,10 +1,10 @@
-# apps/api/v2/logic/authentication/authenticate_session.rb
+# apps/web/core/logic/authentication/authenticate_session.rb
 
-module AccountAPI::Logic
+module Core::Logic
   module Authentication
     using Familia::Refinements::TimeLiterals
 
-    class AuthenticateSession < AccountAPI::Logic::Base
+    class AuthenticateSession < V2::Logic::Base
       include Onetime::Logging
       attr_reader :objid, :stay, :greenlighted, :session_ttl, :potential_email_address
 
@@ -68,6 +68,9 @@ module AccountAPI::Logic
 
         @greenlighted = true
 
+        # Clear old session data to prevent session fixation
+        sess.clear
+
         # Set session authentication data
         sess['external_id'] = cust.extid
         sess['authenticated'] = true
@@ -82,7 +85,7 @@ module AccountAPI::Logic
         end
 
         auth_logger.info "Login successful", {
-          user_id: cust.custid,
+          user_id: cust.objid,
           email: cust.obscure_email,
           role: cust.role,
           session_id: sess.id,
@@ -95,7 +98,7 @@ module AccountAPI::Logic
       end
 
       def success_data
-        {success: success?, objid: cust.objid, role: cust.role}
+        { objid: cust.objid, role: cust.role}
       end
 
       def success?

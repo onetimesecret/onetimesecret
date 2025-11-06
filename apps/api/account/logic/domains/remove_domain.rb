@@ -47,7 +47,7 @@ module AccountAPI::Logic
 
       def success_data
         {
-          custid: @cust.custid,
+          user_id: @cust.objid,
           record: {},
           message: "Removed #{display_domain}",
         }

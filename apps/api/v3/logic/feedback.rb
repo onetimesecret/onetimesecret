@@ -57,7 +57,6 @@ module V3
 
       def success_data
         {
-          success: greenlighted,
           record: {},
           details: {
             message: 'Message received. Send as much as you like!',

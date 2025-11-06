@@ -287,7 +287,7 @@ module V2::Logic
           custom_domain: custom_domain?,
           allow_public: domain_record.allow_public_homepage?,
           is_owner: domain_record.owner?(@cust),
-          user_id: @cust&.custid,
+          user_id: @cust&.objid,
         }
 
         validate_domain_permissions(domain_record)
@@ -310,7 +310,7 @@ module V2::Logic
 
           secret_logger.warn 'Public sharing disabled for domain', {
             domain: share_domain,
-            user_id: @cust&.custid,
+            user_id: @cust&.objid,
             action: 'validate_domain_permissions',
             result: :access_denied,
           }
@@ -321,7 +321,7 @@ module V2::Logic
 
         secret_logger.info 'Non-owner attempted domain access', {
           domain: share_domain,
-          user_id: cust.custid,
+          user_id: @cust&.objid,
           action: 'validate_domain_permissions',
           result: :non_owner,
         }

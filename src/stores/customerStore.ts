@@ -95,7 +95,7 @@ export const useCustomerStore = defineStore('customer', () => {
     }
 
     const response = await $api.put(
-      `/api/v2/account/customer/${currentCustomer?.value?.objid}`,
+      `/api/account/customer/${currentCustomer?.value?.objid}`,
       updates
     );
     const validated = responseSchemas.customer.parse(response.data);

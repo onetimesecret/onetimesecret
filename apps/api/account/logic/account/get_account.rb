@@ -92,7 +92,7 @@ module AccountAPI::Logic
 
       def success_data
         ret = {
-          custid: cust.custid,
+          user_id: cust.objid,
           record: {
             apitoken: cust.apitoken,
             cust: cust.safe_dump,
