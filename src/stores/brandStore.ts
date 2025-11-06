@@ -37,7 +37,7 @@ export const useBrandStore = defineStore('brand', () => {
   }
 
   async function fetchSettings(domainId: string): Promise<BrandSettings> {
-    const response = await $api.get(`/api/v2/domains/${domainId}/brand`);
+    const response = await $api.get(`/api/account/domains/${domainId}/brand`);
     const validated = responseSchemas.brandSettings.parse(response.data);
     settings.value[domainId] = validated.record;
     return validated.record;
@@ -49,7 +49,7 @@ export const useBrandStore = defineStore('brand', () => {
       primary_color: updates.primary_color?.toLowerCase(),
     };
 
-    const response = await $api.put(`/api/v2/domains/${domainId}/brand`, {
+    const response = await $api.put(`/api/account/domains/${domainId}/brand`, {
       brand: formattedUpdates,
     });
     const validated = responseSchemas.brandSettings.parse(response.data);
@@ -63,7 +63,7 @@ export const useBrandStore = defineStore('brand', () => {
   }
 
   async function fetchLogo(domainId: string) {
-    const response = await $api.get(`/api/v2/domains/${domainId}/logo`);
+    const response = await $api.get(`/api/account/domains/${domainId}/logo`);
     const validated = responseSchemas.imageProps.parse(response.data);
     logos.value[domainId] = validated.record;
     return validated.record;
@@ -72,7 +72,7 @@ export const useBrandStore = defineStore('brand', () => {
   async function uploadLogo(domainId: string, file: File) {
     const formData = new FormData();
     formData.append('image', file);
-    const response = await $api.post(`/api/v2/domains/${domainId}/logo`, formData, {
+    const response = await $api.post(`/api/account/domains/${domainId}/logo`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     const validated = responseSchemas.imageProps.parse(response.data);
@@ -81,7 +81,7 @@ export const useBrandStore = defineStore('brand', () => {
   }
 
   async function removeLogo(domainId: string) {
-    await $api.delete(`/api/v2/domains/${domainId}/logo`);
+    await $api.delete(`/api/account/domains/${domainId}/logo`);
     delete logos.value[domainId];
   }
 

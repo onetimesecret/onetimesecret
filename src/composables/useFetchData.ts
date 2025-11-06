@@ -73,7 +73,7 @@ export function useFetchData<T extends BaseApiRecord>({
       } else if ('records' in jsonData) {
         records.value = jsonData.records;
         count.value = jsonData.count ?? 0;
-        custid.value = jsonData.custid || null;
+        custid.value = jsonData.user_id || null;
         details.value = (jsonData.details || undefined) as DetailsType;
       } else {
         throw new Error('Unexpected response format');

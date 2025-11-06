@@ -49,7 +49,7 @@ module AccountAPI::Logic
 
       def success_data
         {
-          user_id: @cust.custid,
+          user_id: @cust.objid,
           record: @custom_domain.safe_dump.fetch(:brand, {}),
           details: {},
         }
