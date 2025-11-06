@@ -27,6 +27,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: true,
         displayPoweredBy: false,
         displayVersion: true,
+        showSidebar: false,
       },
     },
   },
@@ -120,7 +121,9 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.domain_brand',
       requiresAuth: true,
       layout: ImprovedLayout,
-      displayPoweredBy: false,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
     },
     props: true,
   },

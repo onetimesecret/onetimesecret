@@ -865,6 +865,33 @@
           d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5z" />
       </symbol>
       <symbol
+        viewBox="0 0 16 16"
+        id="heroicons-plus-16-solid">
+        <path
+          fill="currentColor"
+          d="M8.75 3.75a.75.75 0 0 0-1.5 0v3.5h-3.5a.75.75 0 0 0 0 1.5h3.5v3.5a.75.75 0 0 0 1.5 0v-3.5h3.5a.75.75 0 0 0 0-1.5h-3.5z" />
+      </symbol>
+      <symbol
+        viewBox="0 0 16 16"
+        id="heroicons-plus-circle-16-solid">
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14m.75-10.25v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5a.75.75 0 0 1 1.5 0"
+          clip-rule="evenodd" />
+      </symbol>
+      <symbol
+        viewBox="0 0 24 24"
+        id="heroicons-plus-circle">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0a9 9 0 0 1 18 0" />
+      </symbol>
+      <symbol
         viewBox="0 0 20 20"
         id="heroicons-question-mark-circle-20-solid">
         <path

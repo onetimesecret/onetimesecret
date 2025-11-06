@@ -69,10 +69,10 @@
   const mobileNavItems = computed((): NavItem[] => {
     const items: NavItem[] = [
       {
-        id: 'dashboard',
-        path: '/dashboard',
-        label: t('web.COMMON.title_home'),
-        icon: 'home',
+        id: 'create',
+        path: '/',
+        label: t('web.COMMON.button_create_secret'),
+        icon: 'plus-circle-16-solid',
       },
       {
         id: 'recent',
@@ -99,6 +99,7 @@
   // Check if a route is active
   const isActiveRoute = (path: string): boolean => {
     if (route.path === path) return true;
+    if (path === '/' && route.path === '/dashboard') return true;
     if (path === '/account' && route.path.startsWith('/account')) return true;
     return route.path.startsWith(path + '/');
   };

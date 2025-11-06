@@ -107,7 +107,7 @@ const isActiveRoute = (path: string): boolean => {
   // Special case for account/settings paths
   if (path === '/account' && route.path.startsWith('/account')) return true;
   return route.path.startsWith(path + '/');
-};;
+};
 </script>
 
 <template>

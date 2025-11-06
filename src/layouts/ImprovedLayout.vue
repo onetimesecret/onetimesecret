@@ -12,15 +12,9 @@
 <script setup lang="ts">
   import ImprovedFooter from '@/components/layout/ImprovedFooter.vue';
   import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
-  import type { LayoutProps } from '@/types/ui/layouts';
+  import type { ImprovedLayoutProps } from '@/types/ui/layouts';
   import BaseLayout from './BaseLayout.vue';
   import { computed } from 'vue';
-  import { useRoute } from 'vue-router';
-
-  interface ImprovedLayoutProps extends LayoutProps {
-    showSidebar?: boolean;
-    sidebarPosition?: 'left' | 'right';
-  }
 
   const props = withDefaults(defineProps<ImprovedLayoutProps>(), {
     displayFeedback: true,
@@ -34,30 +28,28 @@
     sidebarPosition: 'right',
   });
 
-  const route = useRoute();
-
-  // Determine if sidebar should show based on route
-  const shouldShowSidebar = computed(() => {
-    // Show sidebar on dashboard, recent, and account pages
-    const sidebarRoutes = ['/dashboard', '/recent', '/domains', '/account'];
-    return props.showSidebar && sidebarRoutes.some(r => route.path.startsWith(r));
+  // Filter out sidebar-specific props for child components that don't need them
+  const layoutProps = computed(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { showSidebar, sidebarPosition, ...rest } = props;
+    return rest;
   });
 </script>
 
 <template>
-  <BaseLayout v-bind="props">
+  <BaseLayout v-bind="layoutProps">
     <template #header>
-      <ImprovedHeader v-bind="props" />
+      <ImprovedHeader v-bind="layoutProps" />
     </template>
 
     <template #main>
       <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div class="container mx-auto min-w-[320px] max-w-4xl px-4 py-8">
-          <div class="flex gap-8">
+          <div class="flex items-start gap-8">
             <!-- Sidebar (Left position) -->
             <aside
-              v-if="shouldShowSidebar && sidebarPosition === 'left'"
-              class="hidden lg:block w-64 shrink-0">
+              v-if="showSidebar && sidebarPosition === 'left'"
+              class="hidden md:block w-80 shrink-0">
               <slot name="sidebar-left">
                 <!-- Default sidebar content can go here -->
               </slot>
@@ -65,15 +57,38 @@
 
             <!-- Main Content Area -->
             <main class="flex-1 min-w-0">
-              <div class="bg-white dark:bg-inherit rounded-lg shadow-sm">
-                <slot></slot>
+              <slot></slot>
+
+              <!-- Mobile Quick Stats - Show below main content on small screens -->
+              <div v-if="showSidebar && sidebarPosition === 'right'" class="mt-8 md:hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+                  <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                    Quick Stats
+                  </h3>
+                  <slot name="quick-stats">
+                    <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                      <div class="flex justify-between">
+                        <span>Active Secrets</span>
+                        <span class="font-medium">--</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span>Total Shared</span>
+                        <span class="font-medium">--</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span>Storage Used</span>
+                        <span class="font-medium">--</span>
+                      </div>
+                    </div>
+                  </slot>
+                </div>
               </div>
             </main>
 
-            <!-- Sidebar (Right position) -->
+            <!-- Sidebar (Right position) - Desktop only -->
             <aside
-              v-if="shouldShowSidebar && sidebarPosition === 'right'"
-              class="hidden lg:block w-80 shrink-0">
+              v-if="showSidebar && sidebarPosition === 'right'"
+              class="hidden md:block w-80 shrink-0">
               <slot name="sidebar-right">
                 <div class="space-y-6">
                   <!-- Quick Stats Card -->
@@ -158,7 +173,7 @@
     </template>
 
     <template #footer>
-      <ImprovedFooter v-bind="props" />
+      <ImprovedFooter v-bind="layoutProps" />
     </template>
   </BaseLayout>
 </template>

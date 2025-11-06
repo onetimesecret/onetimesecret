@@ -926,6 +926,8 @@
   "custom-domains-count": "Custom domains count",
   "recent-secrets-count": "Recent secrets count",
   "dashboard-navigation": "Dashboard Navigation",
+  "mobile-navigation": "Mobile Navigation",
+  "main-navigation": "Main Navigation",
   "custom-domain": "Custom Domain",
   "open-domain-in-new-tab": "Open domain in new tab",
   "back-to-domains": "Back to Domains",
