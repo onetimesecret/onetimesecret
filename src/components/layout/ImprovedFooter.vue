@@ -133,7 +133,7 @@
           v-if="item.count !== undefined && item.count !== null && item.count > 0"
           class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1
                  rounded-full text-[10px] font-semibold leading-none bg-brand-500 text-white shadow-sm"
-          :aria-label="`${item.count} items`">
+          :aria-label="t('mobile-nav-item-count', { count: item.count })">
           {{ item.count > 99 ? '99+' : item.count }}
         </span>
       </router-link>
