@@ -2,6 +2,11 @@
 
 **⚠️ IMPORTANT**: This guide is for translating authentication error messages in the `web.auth.security.*` namespace. These messages are different from normal UI text because they must prevent information disclosure to attackers.
 
+## About This Document
+
+- **This guide itself**: Keep in **English** (canonical version). Translation teams may create localized copies (e.g., `SECURITY-TRANSLATION-GUIDE.es.md`) if helpful, but English is the authoritative source.
+- **Status**: English is canonical; translations are optional and at team discretion.
+
 ## Why These Messages Are Special
 
 Unlike regular UI copy, security-critical authentication messages:
@@ -42,6 +47,16 @@ All security-critical messages are in the `web.auth.security.*` namespace with i
   }
 }
 ```
+
+### ⚠️ DO NOT Translate Keys Starting with Underscore
+
+Keys prefixed with `_` are **metadata for documentation only**:
+- `_README` - Warning for translators (keep in English)
+- `_meta` - Security notes with OWASP references (keep in English)
+- `_translation_guidelines` - Rules for translators (keep in English)
+- `_safe_information` - Documentation (keep in English)
+
+**These are NOT displayed to users.** Leave them in English in all locale files. Vue-i18n ignores these keys by convention.
 
 ## Translation Rules
 

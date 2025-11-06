@@ -1,213 +1,101 @@
-# Onetime Secret Locales
+# Locales Directory
 
-This directory contains the locales for the Onetime Secret project in JSON format.
+This directory contains internationalization (i18n) files for all supported languages.
 
-## Structure
+## Quick Reference
 
-## QA
+- **Base language**: `en.json` (English - canonical reference)
+- **30+ languages supported**: See individual `.json` files
+- **Security messages**: Special handling required (see below)
 
-### Commands
+## Translation Guidelines
 
-#### 1. Create a flattened keymap from the base locale:
+### Standard Translation Process
 
-```bash
-jq -r 'paths(scalars) as $p | [$p[] | tostring] | join(".")' src/locales/en.json > keys.txt
-```
-The output will be:
+1. **Use `en.json` as reference** - All translations should match the English structure
+2. **Preserve key names** - Only translate the values, never the keys
+3. **Maintain placeholders** - Keep `{variable}` syntax intact (e.g., `{count}`, `{email}`)
+4. **Test thoroughly** - Verify translations in the UI before committing
 
-```
-web.COMMON.broadcast
-web.COMMON.button_generate_secret_short
-web.COMMON.generate_password_disabled
-...
-```
+### ⚠️ Special Rules for Security Messages
 
-Alternately, create a flattened keymap with values from the base locale:
+**Security-critical messages** in `web.auth.security.*` require special handling:
 
-```bash
-jq -r '
-def flatten:
-  . as $root
-  | paths(scalars) as $path
-  | ($path | join(".")) + "\t" + ($root | getpath($path) | tostring)
-;
-flatten
-' src/locales/en.json > keys_with_values.txt
-```
+- **Read first**: `SECURITY-TRANSLATION-GUIDE.md` in this directory
+- **Follow OWASP/NIST guidelines**: Messages must remain generic to prevent information disclosure
+- **NO creative rewording**: Semantic meaning must be identical across languages
+- **Validation required**: Run `pnpm test:unit security-messages` to verify compliance
 
-The output will be:
+### 🔒 DO NOT Translate: Underscore-Prefixed Keys
 
-```
-web.COMMON.broadcast ""
-web.COMMON.button_generate_secret_short "Generate"
-web.COMMON.generate_password_disabled "Generate password is disabled"
-...
-```
-
-#### 2. Transform the keys list into JSON
-
-
-```bash
-# 1. Reads raw input (-R)
-# 2. Collects all input into a single string (-s)
-# 3. Splits into array by newlines
-# 4. Filters empty lines
-# 5. Maps each key to object with required structure
-# 6. Wraps in a container object with "keys" property
-cat keys.txt | jq -R -s '
-  split("\n")
-  | map(select(length > 0))
-  | map({
-      oldkey: .,
-      files: [],
-      count: 0,
-      newkey: null
-    })
-  | {keys: .}
-' > keys.json
-```
-
-The output structure will be:
+Keys starting with `_` are **metadata/documentation only**:
 
 ```json
 {
-  "keys": [
-    {
-      "oldkey": "web.COMMON.broadcast",
-      "files": [],
-      "count": 0,
-      "newkey": null
-    },
-    {
-      "oldkey": "web.COMMON.button_generate_secret_short",
-      "files": [],
-      "count": 0,
-      "newkey": null
-    }
-    // ...
-  ]
+  "_README": "⚠️ SECURITY-CRITICAL...",     // ← Keep in English
+  "_meta": { ... },                          // ← Keep in English
+  "_translation_guidelines": { ... },        // ← Keep in English
+  "_safe_information": { ... },              // ← Keep in English
+
+  "authentication_failed": "..."             // ← Translate this
 }
 ```
 
-#### 3. Update the files list for each key
+**Why?**
+- Not displayed to users
+- Vue-i18n ignores these by convention
+- English ensures consistent understanding across all translation teams
+- Contains technical OWASP/NIST references and security notes
+
+### 🔒 DO NOT Translate: This README
+
+- **This README.md**: Keep in **English** (canonical version)
+- **SECURITY-TRANSLATION-GUIDE.md**: Keep in **English** (canonical version)
+- Optional: Teams may create localized copies (e.g., `README.es.md`) if helpful
+
+## File Structure
+
+```
+src/locales/
+├── README.md                           ← You are here (keep in English)
+├── SECURITY-TRANSLATION-GUIDE.md       ← Security translation rules (keep in English)
+├── en.json                             ← Base language (English)
+├── es.json                             ← Spanish
+├── fr_FR.json                          ← French (France)
+├── fr_CA.json                          ← French (Canada)
+├── de.json                             ← German
+├── ... (30+ languages)
+```
+
+## Adding a New Language
+
+1. Copy `en.json` to `{language_code}.json` (e.g., `it.json` for Italian)
+2. Translate all user-facing strings (values only, not keys)
+3. **Keep all `_` prefixed keys in English**
+4. For security messages, read `SECURITY-TRANSLATION-GUIDE.md` first
+5. Run validation: `pnpm test:unit security-messages`
+6. Test in the UI to ensure proper rendering
+7. Submit PR with the new locale file
+
+## Testing Translations
 
 ```bash
-$ src/locales/scripts/search-key-usage
+# Run security message validation
+pnpm test:unit security-messages
+
+# Type check (ensures no syntax errors in JSON)
+pnpm run type-check
+
+# Run full test suite
+pnpm test
 ```
 
-#### 4. Sort keys.json by number of files
+## Questions?
 
-```bash
-jq '
-.keys |= map(. + {count: (.files | length)}) |
-.keys |= sort_by(.count) |
-.keys |= reverse
-' keys.json > keys_sorted.json
-```
+- **General i18n**: Ask maintainers
+- **Security messages**: Read `SECURITY-TRANSLATION-GUIDE.md` first, then ask if unclear
+- **Technical issues**: Open a GitHub issue
 
-### Translating
+---
 
-This command outputs a unified diff format focusing on additions and modifications with ample context, suitable for processing.
-
-```bash
-  $ git --no-pager -c color.ui=false diff --diff-filter=AM -U5 HEAD -- src/locales/LANG.json
-```
-
-Using the diff output, use a prompt like the following to produce a patch with the translated changes.
-
-> When we harmonize our language files eith en.json, it orders the
-> hierarchical structure of the JSON and adds missing keys, using the english
-> message as a placeholder. When copying and pasting the diff, I want it to
-> contain enough context so that an LLM can modify the diff directly, with a
-> prompt like, "Replace the new and changed values with english into the
-> target language."
-
-Save that patch to a file and use git apply to make it so:
-
-```bash
-  $ git apply patch.diff
-```
-
-### Adhoc commands
-
-#### List 2nd level keys:
-
-This extracts and displays arrays of second-level key names found under 'web' and 'email' top-level keys.
-
-```bash
-jq '{web: .web | keys, email: .email | keys}' src/locales/en.json
-```
-
-
-#### Validate structure matches:
-
-```bash
-jq -r 'paths(scalars)' en.json > base_paths.txt
-jq -r 'paths(scalars)' fr.json > target_paths.txt
-diff base_paths.txt target_paths.txt
-```
-
-#### Statistics generation:
-
-```bash
-jq -r '
-  def count_empty:
-    if type == "object" then
-      reduce (to_entries[]) as $item (
-        0;
-        . + ($item.value | count_empty)
-      )
-    elif . == "" then 1
-    else 0
-    end;
-
-  [paths(scalars)] as $paths |
-  length as $total |
-  count_empty as $empty |
-  {
-    "total": $total,
-    "empty": $empty,
-    "completed": (($total-$empty)/$total*100)
-  }
-' src/locales/en.json > stats.json
-```
-
-#### Transform
-
-```jq
-# src/locales/utils/transform.jq
-
-# About: Transform that JSON structure to match this JSON structure
-# Usage: jq -f transform.jq --argfile base en.json fr.json > fr.transformed.json
-# Language: `jq`, a domain-specific language for processing JSON data.
-
-# Performs recursive traversal of nested JSON structures
-# Applies transformation function f to each scalar value
-# Returns transformed object maintaining original structure
-def walk(f):
-  . as $in
-  | if type == "object" then
-      reduce keys[] as $key
-        ( {}; . + { ($key):  ($in[$key] | walk(f)) } )
-    else if type == "array" then map( walk(f) )
-    else f
-    end
-end;
-
-# $base: Source locale structure to match
-# Input: Target locale to transform
-# Output: Transformed target matching source structure
-input as $base |
-walk(
-  if type != "object" and type != "array" then
-    if . != null then .
-    else $base[getpath(path)]
-    end
-  else .
-  end
-)
-```
-
-## References
-
-- [JSON i18n](https://phrase.com/blog/posts/json-i18n/)
+**Key Principle**: Preserve security while enabling accessibility. Thank you for helping make Onetime Secret available to users worldwide! 🌍
