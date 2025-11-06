@@ -12,6 +12,13 @@ vi.mock('qrcode', () => ({
   },
 }));
 
+// Mock vue-i18n to provide translation function
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key, // Return the key itself for testing
+  }),
+}));
+
 describe('useMfa', () => {
   let api: AxiosInstance;
   let axiosMock: AxiosMockAdapter;
@@ -67,7 +74,7 @@ describe('useMfa', () => {
       const result = await fetchMfaStatus();
 
       expect(result).toBeNull();
-      expect(error.value).toBe('Internal server error');
+      expect(error.value).toBe('web.auth.security.internal_error');
     });
 
     it('handles network errors with default message', async () => {
@@ -77,7 +84,7 @@ describe('useMfa', () => {
       const result = await fetchMfaStatus();
 
       expect(result).toBeNull();
-      expect(error.value).toBe('Failed to load MFA status');
+      expect(error.value).toBe('web.auth.security.internal_error');
     });
   });
 
@@ -122,7 +129,7 @@ describe('useMfa', () => {
       const result = await setupMfa('wrong_password');
 
       expect(result).toBeNull();
-      expect(error.value).toBe('Incorrect password. Please try again.');
+      expect(error.value).toBe('web.auth.security.authentication_failed');
     });
 
     it('handles 422 without HMAC data (actual error)', async () => {
@@ -132,7 +139,7 @@ describe('useMfa', () => {
       const result = await setupMfa();
 
       expect(result).toBeNull();
-      expect(error.value).toBe('Validation failed');
+      expect(error.value).toBe('web.auth.security.internal_error');
     });
 
     it('handles rate limiting errors', async () => {
@@ -142,7 +149,7 @@ describe('useMfa', () => {
       const result = await setupMfa();
 
       expect(result).toBeNull();
-      expect(error.value).toBe('Too many attempts. Please wait a few minutes and try again.');
+      expect(error.value).toBe('web.auth.security.rate_limited');
     });
 
     it('handles authentication required errors', async () => {
@@ -152,7 +159,7 @@ describe('useMfa', () => {
       const result = await setupMfa();
 
       expect(result).toBeNull();
-      expect(error.value).toBe('Authentication required.');
+      expect(error.value).toBe('web.auth.security.authentication_failed');
     });
   });
 
@@ -194,7 +201,7 @@ describe('useMfa', () => {
       const result = await enableMfa('wrong_code', 'password123');
 
       expect(result).toBe(false);
-      expect(error.value).toContain('Invalid verification code');
+      expect(error.value).toBe('web.auth.mfa.invalid-code');
     });
 
     it('handles incorrect password error', async () => {
@@ -204,7 +211,7 @@ describe('useMfa', () => {
       const result = await enableMfa('123456', 'wrong_password');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('Incorrect password. Please verify your password and try again.');
+      expect(error.value).toBe('web.auth.security.authentication_failed');
     });
 
     it('handles network errors gracefully', async () => {
@@ -214,7 +221,7 @@ describe('useMfa', () => {
       const result = await enableMfa('123456', 'password123');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('Network error. Please check your connection and try again.');
+      expect(error.value).toBe('web.auth.security.internal_error');
     });
 
     it('includes setup data in payload when available', async () => {
@@ -258,7 +265,7 @@ describe('useMfa', () => {
       const result = await verifyOtp('wrong_code');
 
       expect(result).toBe(false);
-      expect(error.value).toContain('Codes expire every 30 seconds');
+      expect(error.value).toBe('web.auth.mfa.invalid-code');
     });
 
     it('handles session expired error', async () => {
@@ -268,7 +275,7 @@ describe('useMfa', () => {
       const result = await verifyOtp('123456');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('Session expired. Please log in again with your password.');
+      expect(error.value).toBe('web.auth.security.authentication_failed');
     });
 
     it('handles rate limiting with specific message', async () => {
@@ -278,9 +285,7 @@ describe('useMfa', () => {
       const result = await verifyOtp('123456');
 
       expect(result).toBe(false);
-      expect(error.value).toBe(
-        'Too many failed attempts. Please wait 5 minutes before trying again.'
-      );
+      expect(error.value).toBe('web.auth.security.rate_limited');
     });
   });
 
@@ -309,7 +314,7 @@ describe('useMfa', () => {
       const result = await disableMfa('wrong_password');
 
       expect(result).toBe(false);
-      expect(error.value).toContain('Incorrect password');
+      expect(error.value).toBe('web.auth.security.authentication_failed');
     });
 
     it('handles authentication required error', async () => {
@@ -319,7 +324,7 @@ describe('useMfa', () => {
       const result = await disableMfa('password123');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('Authentication required.');
+      expect(error.value).toBe('web.auth.security.authentication_failed');
     });
   });
 
@@ -346,7 +351,7 @@ describe('useMfa', () => {
 
       expect(result).toEqual([]);
       expect(recoveryCodes.value).toEqual([]);
-      expect(error.value).toBe('Failed to load recovery codes');
+      expect(error.value).toBe('web.auth.security.internal_error');
     });
   });
 
@@ -372,7 +377,7 @@ describe('useMfa', () => {
       const result = await generateNewRecoveryCodes('wrong_password');
 
       expect(result).toEqual([]);
-      expect(error.value).toBe('Invalid password');
+      expect(error.value).toBe('web.auth.security.internal_error');
     });
   });
 
@@ -401,9 +406,7 @@ describe('useMfa', () => {
       const result = await verifyRecoveryCode('USED_CODE');
 
       expect(result).toBe(false);
-      expect(error.value).toBe(
-        'This recovery code has already been used. Please use a different code.'
-      );
+      expect(error.value).toBe('web.auth.security.recovery_code_used');
     });
 
     it('handles invalid recovery code', async () => {
@@ -417,7 +420,7 @@ describe('useMfa', () => {
       const result = await verifyRecoveryCode('INVALID_CODE');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('Invalid recovery code. Please check for typos and try again.');
+      expect(error.value).toBe('web.auth.security.recovery_code_not_found');
     });
 
     it('handles 410 status for used codes', async () => {
@@ -427,9 +430,7 @@ describe('useMfa', () => {
       const result = await verifyRecoveryCode('USED_CODE');
 
       expect(result).toBe(false);
-      expect(error.value).toBe(
-        'This recovery code has already been used. Each code can only be used once.'
-      );
+      expect(error.value).toBe('web.auth.security.recovery_code_used');
     });
   });
 
@@ -461,7 +462,7 @@ describe('useMfa', () => {
       const { setupMfa, error, clearError } = useMfa();
 
       await setupMfa();
-      expect(error.value).toBe('Incorrect password. Please try again.');
+      expect(error.value).toBe('web.auth.security.authentication_failed');
 
       // Clear error manually
       clearError();

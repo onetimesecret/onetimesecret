@@ -5,6 +5,7 @@
  * - QR code generation for authenticator apps
  * - HMAC setup data validation
  * - Response enrichment with generated assets
+ * - Secure error message mapping to prevent information disclosure
  */
 
 import QRCode from 'qrcode';
@@ -101,5 +102,80 @@ export async function enrichSetupResponse(
   } catch (parseErr) {
     console.error('[mfaHelpers] Parse error:', parseErr);
     return null;
+  }
+}
+
+/**
+ * Maps HTTP status codes to generic MFA error messages using i18n
+ *
+ * This function implements OWASP/NIST security guidelines for authentication
+ * error messages by preventing information disclosure through generic responses.
+ * All messages are internationalized using the `web.auth.security.*` namespace.
+ *
+ * SECURITY: This function does NOT accept server-provided error messages to
+ * prevent information leakage. All error messages are generated from status
+ * codes only.
+ *
+ * Security Principles:
+ * ====================
+ * ✗ DO NOT reveal: Which credential failed, account existence, precise timing
+ * ✓ SAFE to reveal: Format requirements, general guidance, expected behavior
+ *
+ * @param statusCode - HTTP status code from MFA API response
+ * @param t - vue-i18n translate function (from useI18n())
+ * @returns Generic, security-hardened, internationalized error message
+ *
+ * Status Code Mappings:
+ * - 401 (Unauthorized): Generic authentication failure
+ * - 403 (Forbidden): Generic authentication failure (no hints about why)
+ * - 404 (Not Found): Recovery code validation failure
+ * - 410 (Gone): Recovery code already used
+ * - 429 (Too Many Requests): Rate limiting (no precise timing disclosed)
+ * - 500+ (Server Error): Generic internal error
+ * - Other: Generic internal error (no passthrough)
+ *
+ * Examples of what NOT to say:
+ * - "Incorrect password" (reveals which credential failed)
+ * - "Wait 5 minutes" (reveals precise lockout timing)
+ * - "Account not found" (reveals account existence)
+ *
+ * Examples of what IS safe:
+ * - "Authentication failed. Please verify your credentials and try again."
+ * - "Too many attempts. Please try again later."
+ * - "Codes expire every 30 seconds" (expected behavior, not attack info)
+ *
+ * @see src/locales/SECURITY-TRANSLATION-GUIDE.md for complete guidelines
+ */
+export function mapMfaError(statusCode: number, t: (key: string) => string): string {
+  switch (statusCode) {
+    case 401:
+    case 403:
+      // Generic authentication failure - don't reveal which credential failed
+      // Note: We no longer check server message for 'session' - status code only
+      return t('web.auth.security.authentication_failed');
+
+    case 404:
+      // Recovery code not found - safe to indicate it's about recovery codes
+      return t('web.auth.security.recovery_code_not_found');
+
+    case 410:
+      // Recovery code already used - safe expected behavior message
+      return t('web.auth.security.recovery_code_used');
+
+    case 429:
+      // Rate limiting - DO NOT reveal precise timing ("wait 5 minutes")
+      return t('web.auth.security.rate_limited');
+
+    case 500:
+    case 502:
+    case 503:
+    case 504:
+      // Server errors - generic message
+      return t('web.auth.security.internal_error');
+
+    default:
+      // For any other status code, default to generic internal error
+      // NEVER pass through server messages to prevent information leakage
+      return t('web.auth.security.internal_error');
   }
 }

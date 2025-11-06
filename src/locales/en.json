@@ -579,6 +579,61 @@
       "mfa_required": "MFA verification required",
       "mfa_verification_required": "MFA verification required to access your account",
       "complete_mfa_verification": "Complete MFA Verification",
+      "security": {
+        "_README": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md",
+        "authentication_failed": "Authentication failed. Please verify your credentials and try again.",
+        "rate_limited": "Too many attempts. Please try again later.",
+        "session_expired": "Session expired. Please log in again.",
+        "recovery_code_not_found": "Recovery code not found. Please verify you entered it correctly.",
+        "recovery_code_used": "This recovery code has already been used. Each code can only be used once.",
+        "network_error": "Network error. Please check your connection and try again.",
+        "internal_error": "An error occurred. Please try again.",
+        "_meta": {
+          "_purpose": "These messages follow OWASP/NIST guidelines to prevent information disclosure. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. Never reveal: which credential failed, precise timing, account existence, or attack progress.",
+          "authentication_failed": {
+            "security_note": "MUST NOT reveal which credential failed (password, OTP, or recovery code). This prevents attackers from determining valid credentials or enumerating accounts.",
+            "owasp_ref": "ASVS 2.2.2 - Authentication failure responses must be generic"
+          },
+          "rate_limited": {
+            "security_note": "MUST NOT reveal precise lockout duration, attempt counts, or remaining attempts. This prevents timing attacks and progress tracking.",
+            "owasp_ref": "ASVS 2.2.1 - Account lockout must not be timing-based enumerable"
+          },
+          "session_expired": {
+            "security_note": "Safe to indicate session issue as it doesn't reveal credential information. Helps users understand they need to re-authenticate.",
+            "owasp_ref": "Session management best practices"
+          },
+          "recovery_code_not_found": {
+            "security_note": "Safe to indicate recovery code context as user explicitly selected this authentication method. Does not reveal whether code exists.",
+            "owasp_ref": "Recovery code validation guidance"
+          },
+          "recovery_code_used": {
+            "security_note": "Safe expected behavior message. Users need to know recovery codes are single-use to prevent confusion.",
+            "owasp_ref": "User guidance for recovery mechanisms"
+          }
+        },
+        "_translation_guidelines": {
+          "DO_NOT_translate_as": [
+            "Wrong password",
+            "Invalid OTP code",
+            "Incorrect recovery code",
+            "Wait 5 minutes",
+            "3 attempts remaining",
+            "Account locked for 15 minutes"
+          ],
+          "MUST_translate_as": [
+            "Generic authentication failure (no credential specifics)",
+            "Generic rate limit message (no precise timing)",
+            "Recovery code validation (no existence confirmation)"
+          ],
+          "WHY": "These restrictions prevent attackers from: (1) determining valid usernames/emails, (2) knowing which credential to focus attacks on, (3) conducting timing attacks, (4) measuring attack progress"
+        },
+        "_safe_information": {
+          "format_requirements": "Safe to specify format rules (e.g., 'OTP must be 6 digits')",
+          "expected_behavior": "Safe to describe how features work (e.g., 'Codes expire every 30 seconds')",
+          "recovery_options": "Safe to offer alternatives (e.g., 'Use a recovery code instead')",
+          "general_guidance": "Safe to provide help (e.g., 'Check your authenticator app')"
+        }
+      },
       "methods": {
         "password": "Password",
         "magicLink": "Email Link",
@@ -716,7 +771,8 @@
         "continue-verification": "Continue to Verification",
         "enter-code-description": "Enter the 6-digit code from your authenticator app",
         "enable-and-continue": "Enable MFA",
-        "complete-setup": "Complete Setup"
+        "complete-setup": "Complete Setup",
+        "invalid-code": "Invalid code. Codes expire every 30 seconds. Try the latest code from your authenticator app."
       },
       "recovery-codes": {
         "title": "Recovery Codes",

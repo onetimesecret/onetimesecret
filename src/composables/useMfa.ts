@@ -56,12 +56,19 @@ import {
 } from '@/schemas/api/auth/endpoints/auth';
 import type { OtpSetupData, MfaStatus } from '@/types/auth';
 import { useNotificationsStore } from '@/stores/notificationsStore';
-import { generateQrCode, hasHmacSetupData, enrichSetupResponse } from './helpers/mfaHelpers';
+import {
+  generateQrCode,
+  hasHmacSetupData,
+  enrichSetupResponse,
+  mapMfaError,
+} from './helpers/mfaHelpers';
 import { useAsyncHandler, createError } from '@/composables/useAsyncHandler';
 import type { ApplicationError } from '@/schemas/errors';
+import { useI18n } from 'vue-i18n';
 
 /* eslint-disable max-lines-per-function, complexity */
 export function useMfa() {
+  const { t } = useI18n();
   const $api = inject('api') as AxiosInstance;
   const notificationsStore = useNotificationsStore();
 
@@ -73,32 +80,24 @@ export function useMfa() {
 
   // Configure async handler for auth-specific pattern (no auto-notify)
   const { wrap } = useAsyncHandler({
-    // Don't auto-notify - MFA shows errors inline
     notify: false,
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err: ApplicationError) => {
-      // IMPORTANT: Clear all error state first to prevent stale data
       error.value = null;
 
-      // Provide user-friendly error messages based on error code
-      const code = err.code;
-      const originalMessage = err.message;
-
-      // Map common HTTP status codes to user-friendly messages
-      if (code === 401) {
-        error.value = originalMessage.includes('Session')
-          ? originalMessage // Keep specific session messages
-          : 'Incorrect password. Please try again.';
-      } else if (code === 403) {
-        error.value = 'Not authorized.';
-      } else if (code === 404) {
-        error.value = 'Recovery code not found. Please verify you entered it correctly.';
-      } else if (code === 410) {
-        error.value = 'This recovery code has already been used. Each code can only be used once.';
-      } else if (code === 429) {
-        error.value = 'Too many failed attempts. Please wait 5 minutes before trying again.';
-      } else {
+      // If the error message is already an i18n key (starts with 'web.'),
+      // use it directly (these are errors we explicitly threw with translated messages)
+      if (err.message && err.message.startsWith('web.')) {
         error.value = err.message;
+        return;
+      }
+
+      // Otherwise, map HTTP status codes to security messages
+      const statusCode = typeof err.code === 'number' ? err.code : null;
+      if (statusCode) {
+        error.value = mapMfaError(statusCode, t);
+      } else {
+        error.value = t('web.auth.security.internal_error');
       }
     },
   });
@@ -242,13 +241,8 @@ export function useMfa() {
 
       // Check for error response (validation failure)
       if (isAuthError(validated)) {
-        const errorMsg = validated.error.toLowerCase();
-        const message =
-          errorMsg.includes('invalid') || errorMsg.includes('incorrect')
-            ? 'Invalid verification code. Please check your authenticator app and try again.'
-            : validated.error;
-
-        throw createError(message, 'human', 'error', {
+        // Use centralized i18n message for invalid codes
+        throw createError(t('web.auth.mfa.invalid-code'), 'human', 'error', {
           'field-error': validated['field-error'],
         });
       }
@@ -292,13 +286,8 @@ export function useMfa() {
       const validated = otpVerifyResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        const errorMsg = validated.error.toLowerCase();
-        const message =
-          errorMsg.includes('invalid') || errorMsg.includes('incorrect')
-            ? 'Invalid code. Codes expire every 30 seconds. Try the latest code from your authenticator app.'
-            : validated.error;
-
-        throw createError(message, 'human', 'error');
+        // Use centralized i18n message for invalid OTP codes
+        throw createError(t('web.auth.mfa.invalid-code'), 'human', 'error');
       }
 
       return true;
@@ -331,11 +320,8 @@ export function useMfa() {
       const validated = otpToggleResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
-        const message = validated.error.toLowerCase().includes('password')
-          ? 'Incorrect password. Please verify your password and try again.'
-          : validated.error;
-
-        throw createError(message, 'human', 'error');
+        // Use centralized security message for authentication failures
+        throw createError(t('web.auth.security.authentication_failed'), 'human', 'error');
       }
 
       notificationsStore.show('Two-factor authentication has been disabled', 'success', 'top');
@@ -458,16 +444,29 @@ export function useMfa() {
       const validated = otpVerifyResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
+        // Map server error to HTTP status code for consistent error handling
+        // This avoids inspecting error message content directly, which could leak information
+        // The onError callback will use mapMfaError() to translate the status code to i18n
         const errorMsg = validated.error.toLowerCase();
-        let message = validated.error;
+        let statusCode: number;
 
         if (errorMsg.includes('used') || errorMsg.includes('consumed')) {
-          message = 'This recovery code has already been used. Please use a different code.';
-        } else if (errorMsg.includes('invalid') || errorMsg.includes('not found')) {
-          message = 'Invalid recovery code. Please check for typos and try again.';
+          statusCode = 410; // Gone - recovery code already used
+        } else {
+          statusCode = 404; // Not found - invalid recovery code
         }
 
-        throw createError(message, 'human', 'error');
+        // Create error with status code - onError will map to appropriate i18n message
+        const error: ApplicationError = {
+          name: 'ApplicationError',
+          message: validated.error, // Keep original for debugging
+          type: 'human',
+          severity: 'error',
+          code: statusCode, // Will be mapped by onError → mapMfaError
+          original: null,
+          details: undefined,
+        };
+        throw error;
       }
 
       return true;
