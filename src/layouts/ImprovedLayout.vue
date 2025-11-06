@@ -10,7 +10,7 @@
 -->
 
 <script setup lang="ts">
-  import DefaultFooter from '@/components/layout/DefaultFooter.vue';
+  import ImprovedFooter from '@/components/layout/ImprovedFooter.vue';
   import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
   import type { LayoutProps } from '@/types/ui/layouts';
   import BaseLayout from './BaseLayout.vue';
@@ -158,7 +158,7 @@
     </template>
 
     <template #footer>
-      <DefaultFooter v-bind="props" />
+      <ImprovedFooter v-bind="props" />
     </template>
   </BaseLayout>
 </template>

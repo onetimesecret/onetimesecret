@@ -36,6 +36,7 @@ interface NavItem {
   countLabel?: string;
   shortLabel?: string;
   requiresAuth?: boolean;
+  show?: boolean;
 }
 
 // Computed counts
@@ -80,7 +81,7 @@ const primaryNavItems = computed((): NavItem[] => {
       shortLabel: t('domains'),
       count: counts.value.domains,
       countLabel: t('custom-domains-count'),
-      icon: 'globe',
+      icon: 'globe-alt',
     });
   }
 
@@ -95,8 +96,10 @@ const quickActions = computed(() => [
     path: '/',
     variant: 'primary',
     icon: 'plus',
+    show: false,
   }
 ]);
+const showSearch = computed(() => false);
 
 // Check if a route is active
 const isActiveRoute = (path: string): boolean => {
@@ -104,7 +107,7 @@ const isActiveRoute = (path: string): boolean => {
   // Special case for account/settings paths
   if (path === '/account' && route.path.startsWith('/account')) return true;
   return route.path.startsWith(path + '/');
-};
+};;
 </script>
 
 <template>
@@ -162,6 +165,7 @@ const isActiveRoute = (path: string): boolean => {
       <!-- Create Secret Button -->
       <router-link
         v-for="action in quickActions"
+        v-show="action.show"
         :key="action.id"
         :to="action.path"
         class="inline-flex items-center font-brand gap-2 px-4 py-2 text-base font-medium
@@ -180,7 +184,10 @@ const isActiveRoute = (path: string): boolean => {
       </router-link>
 
       <!-- Future: Search bar could go here -->
-      <!-- <div class="relative">
+       <div
+        class="relative"
+        v-show="showSearch"
+        >
         <input
           type="search"
           placeholder="Search secrets..."
@@ -191,7 +198,7 @@ const isActiveRoute = (path: string): boolean => {
           collection="heroicons"
           name="magnifying-glass-outline"
           class="absolute left-3 top-2.5 size-4 text-gray-400" />
-      </div> -->
+      </div>
     </div>
   </nav>
 </template>

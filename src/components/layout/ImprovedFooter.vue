@@ -42,7 +42,7 @@
     py-16 transition-all
     duration-300 dark:bg-gray-800"
     :aria-label="t('site-footer')">
-    <div class="container mx-auto max-w-4xl px-4">
+    <div class="container mx-auto max-w-6xl px-4">
       <!-- Footer Links Section -->
       <FooterLinks v-if="displayFooterLinks" />
 
