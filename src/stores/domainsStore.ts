@@ -1,8 +1,8 @@
 // src/stores/domainsStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import { UpdateDomainBrandRequest } from '@/schemas/api';
-import { responseSchemas } from '@/schemas/api/responses';
+import { UpdateDomainBrandRequest } from '@/schemas/api/v3';
+import { responseSchemas } from '@/schemas/api/v3/responses';
 import type {
   BrandSettings,
   CustomDomain,
@@ -86,7 +86,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * Add a new custom domain
    */
   async function addDomain(domain: string) {
-    const response = await $api.post('/api/v2/domains/add', { domain });
+    const response = await $api.post('/api/account/domains/add', { domain });
     const validated = responseSchemas.customDomain.parse(response.data);
     if (!records.value) records.value = [];
     records.value.push(validated.record);
@@ -97,7 +97,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * Load all domains if not already _initialized
    */
   async function fetchList() {
-    const response = await $api.get('/api/v2/domains');
+    const response = await $api.get('/api/account/domains');
     const validated = responseSchemas.customDomainList.parse(response.data);
     records.value = validated.records ?? [];
     details.value = validated.details ?? {};

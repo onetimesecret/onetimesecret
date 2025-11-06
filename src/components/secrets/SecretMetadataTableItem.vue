@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
-import { type MetadataRecords } from '@/schemas/api';
+import { type MetadataRecords } from '@/schemas/api/account/endpoints/recent';
 import { formatRelativeTime } from '@/utils/format'
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';

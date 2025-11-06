@@ -1,7 +1,7 @@
 // src/stores/customerStore.ts
 import { createError } from '@/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import { responseSchemas } from '@/schemas/api/responses';
+import { responseSchemas } from '@/schemas/api/v3/responses';
 import type { Customer } from '@/schemas/models/customer';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
@@ -76,7 +76,7 @@ export const useCustomerStore = defineStore('customer', () => {
     abort();
 
     abortController.value = new AbortController();
-    const response = await $api.get('/api/v2/account/customer', {
+    const response = await $api.get('/api/account/account/customer', {
       signal: abortController.value.signal,
     });
     const validated = responseSchemas.customer.parse(response.data);

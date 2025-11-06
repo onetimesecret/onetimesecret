@@ -41,7 +41,7 @@ module Onetime
       config = {
         app: app,
         environment: env,
-        Host: option.bind || '0.0.0.0',
+        Host: option.bind || '127.0.0.1', # don't bind to all IP addresses by default
         Port: port,
       }
 

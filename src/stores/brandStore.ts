@@ -2,7 +2,7 @@ import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { inject, ref } from 'vue';
 import type { BrandSettings, ImageProps } from '@/schemas/models';
-import { responseSchemas } from '@/schemas/api';
+import { responseSchemas } from '@/schemas/api/v3';
 
 const defaultBranding: BrandSettings = {
   primary_color: '#dc4a22',

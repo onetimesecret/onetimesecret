@@ -11,7 +11,7 @@ import {
   isAuthError,
   type ActiveSessionsResponse,
   type RemoveSessionResponse,
-} from '@/schemas/api/endpoints/auth';
+} from '@/schemas/api/auth/endpoints/auth';
 import type { Session } from '@/types/auth';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';

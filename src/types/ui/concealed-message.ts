@@ -1,6 +1,6 @@
 // src/types/ui/concealed-message.ts
 
-import { ConcealDataResponse } from '@/schemas/api';
+import { ConcealDataResponse } from '@/schemas/api/v3';
 
 export interface ConcealedMessage {
   id: string;

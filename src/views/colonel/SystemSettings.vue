@@ -4,7 +4,7 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import { useSystemSettings, type ConfigSectionKey } from '@/composables/useSystemSettings';
   import { useTheme } from '@/composables/useTheme';
-  import { type SystemSettingsDetails } from '@/schemas/api/endpoints/colonel';
+  import { type SystemSettingsDetails } from '@/schemas/api/account/endpoints/colonel';
   import { useSystemSettingsStore } from '@/stores/systemSettingsStore';
   import { json } from '@codemirror/lang-json';
   import { EditorState } from '@codemirror/state';

@@ -6,7 +6,7 @@
   import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
   import ToastNotification from '@/components/ui/ToastNotification.vue';
   import { useMetadataList } from '@/composables/useMetadataList';
-  import { MetadataRecords } from '@/schemas/api/endpoints';
+  import { MetadataRecords } from '@/schemas/api/account/endpoints/recent';
   import { onMounted, computed, ref, onBeforeUnmount } from 'vue';
   import { useI18n } from 'vue-i18n';
 

@@ -1,0 +1,78 @@
+# apps/api/v3/routes
+#
+# Otto Routes - V3 API (Public secrets API)
+# Using direct Logic class routing with authentication strategies
+#
+# V3 API returns native JSON types (numbers, booleans, null) instead of
+# string-serialized values. Account/domain management lives in separate
+# Account API at /api/account/*.
+
+# Secrets - Private (Authenticated - identifier acts as auth)
+GET    /receipt/recent                            V3::Logic::Secrets::ListMetadata response=json auth=noauth
+POST   /receipt/:identifier/burn                  V3::Logic::Secrets::BurnSecret response=json auth=noauth
+GET    /receipt/:identifier                       V3::Logic::Secrets::ShowMetadata response=json auth=noauth
+GET    /private/recent                            V3::Logic::Secrets::ListMetadata response=json auth=noauth
+POST   /private/:identifier/burn                  V3::Logic::Secrets::BurnSecret response=json auth=noauth
+GET    /private/:identifier                       V3::Logic::Secrets::ShowMetadata response=json auth=noauth
+
+# Secrets - Public (Anonymous allowed)
+GET    /secret/:identifier                        V3::Logic::Secrets::ShowSecret response=json auth=noauth
+GET    /secret/:identifier/status                 V3::Logic::Secrets::ShowSecretStatus response=json auth=noauth
+POST   /secret/status                             V3::Logic::Secrets::ListSecretStatus response=json auth=noauth
+POST   /secret/:identifier/reveal                 V3::Logic::Secrets::RevealSecret response=json auth=noauth csrf=exempt
+POST   /secret/generate                           V3::Logic::Secrets::GenerateSecret response=json auth=noauth csrf=exempt
+POST   /secret/conceal                            V3::Logic::Secrets::ConcealSecret response=json auth=noauth csrf=exempt
+
+# OPTIONS preflight for CORS (public)
+OPTIONS /secret/generate                          V3::Logic::Secrets::GenerateSecret response=json
+OPTIONS /secret/conceal                           V3::Logic::Secrets::ConcealSecret response=json
+
+# Meta/Public endpoints (static information uses class methods)
+GET    /supported-locales                         V3::Logic::Meta.get_supported_locales response=json
+GET    /status                                    V3::Logic::Meta.system_status response=json
+GET    /version                                   V3::Logic::Meta.system_version response=json
+POST   /feedback                                  V3::Logic::ReceiveFeedback response=json auth=noauth
+
+# OTTO ADVANCED ROUTES SYNTAX - QUICK REFERENCE
+# ==============================================
+#
+# Added in v1.5.0+. Basic syntax:
+#
+# VERB /path Target param1=value1 param2=value2
+#
+# RESPONSE TYPES
+# --------------
+# response=json     - JSON API response
+# response=view     - HTML view response
+# response=redirect - HTTP redirect
+# response=auto     - Content negotiation
+#
+# Examples:
+# GET  /api/users    App#list_users response=json
+# GET  /dashboard    App#dashboard response=view
+# GET  /login        App#redirect response=redirect
+# GET  /data         App#data response=auto
+#
+# CSRF PROTECTION
+# ---------------
+# csrf=exempt       - Skip CSRF protection (useful for APIs)
+#
+# Examples:
+# POST /api/webhook  App#webhook csrf=exempt
+# POST /settings     App#settings  # CSRF protected by default
+#
+# LOGIC CLASSES (NEW!)
+# --------------------
+# Route directly to a class (no . or # in target).
+# Class gets: initialize(session, user, params, locale)
+#
+# Examples:
+# GET  /logic/simple      SimpleLogic
+# GET  /admin/panel       Admin::Panel
+# POST /data/processor    DataProcessor response=json csrf=exempt
+#
+# MULTIPLE PARAMETERS
+# -------------------
+# Combine any parameters with spaces:
+#
+# GET  /api/admin    App#admin auth=role:admin response=json

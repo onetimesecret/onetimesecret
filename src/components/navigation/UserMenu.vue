@@ -46,6 +46,132 @@ const { logout } = useAuth();
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
 
+// Menu item type
+interface MenuItem {
+  id: string;
+  to?: string;
+  label: string;
+  icon: {
+    collection: string;
+    name: string;
+  };
+  variant?: 'default' | 'caution' | 'danger' | 'cta';
+  condition?: () => boolean;
+  onClick?: () => void | Promise<void>;
+}
+
+// Define menu items
+const menuItems = computed<MenuItem[]>(() => [
+  // MFA Verification (when awaiting)
+  {
+    id: 'mfa-verify',
+    to: '/mfa-verify',
+    label: t('web.auth.complete_mfa_verification'),
+    icon: { collection: 'heroicons', name: 'shield-check-solid' },
+    variant: 'caution' as const,
+    condition: () => props.awaitingMfa,
+  },
+  // Dashboard
+  {
+    id: 'dashboard',
+    to: '/dashboard',
+    label: t('web.TITLES.dashboard'),
+    icon: { collection: 'heroicons', name: 'shield-check-solid' },
+    condition: () => !props.awaitingMfa,
+  },
+  // Account Settings
+  {
+    id: 'account',
+    to: '/account',
+    label: t('web.account.settings'),
+    icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
+    condition: () => !props.awaitingMfa,
+  },
+  // Upgrade (conditional)
+  {
+    id: 'upgrade',
+    to: '/pricing',
+    label: t('upgrade-for-teams'),
+    icon: { collection: 'heroicons', name: 'sparkles-solid' },
+    variant: 'cta' as const,
+    condition: () => !props.awaitingMfa && props.showUpgrade,
+  },
+  // Colonel (conditional)
+  {
+    id: 'colonel',
+    to: '/colonel',
+    label: t('web.colonel.dashboard'),
+    icon: { collection: 'mdi', name: 'star' },
+    condition: () => !props.awaitingMfa && props.colonel,
+  },
+  // Logout (always show)
+  {
+    id: 'logout',
+    label: t('web.COMMON.header_logout'),
+    icon: { collection: 'heroicons', name: 'arrow-right-on-rectangle-solid' },
+    variant: 'danger' as const,
+    onClick: handleLogout,
+  },
+]);
+
+// Visible menu items based on conditions
+const visibleMenuItems = computed(() =>
+  menuItems.value.filter(item => item.condition?.() ?? true)
+);
+
+// Check if we should show a divider before a menu item
+const shouldShowDividerBefore = (item: MenuItem, index: number): boolean => {
+  if (index === 0) return false;
+
+  // Show divider after MFA verification
+  if (visibleMenuItems.value[index - 1]?.id === 'mfa-verify') return true;
+
+  // Show divider before upgrade/colonel section
+  if (item.id === 'upgrade' || item.id === 'colonel') return true;
+
+  // Show divider before logout
+  if (item.id === 'logout') return true;
+
+  return false;
+};
+
+// Get CSS classes for menu item based on variant
+const getMenuItemClasses = (variant?: 'default' | 'caution' | 'danger' | 'cta'): string => {
+  const baseClasses = 'group flex items-center gap-3 px-4 py-2 text-sm transition-colors';
+
+  switch (variant) {
+    case 'caution':
+      return `${baseClasses} font-semibold text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20`;
+    case 'danger':
+      return `${baseClasses} text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20`;
+    case 'cta':
+      return `${baseClasses} text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-900/20`;
+    default:
+      return `${baseClasses} text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700`;
+  }
+};
+
+// Get icon classes based on variant and item id
+const getIconClasses = (variant?: 'default' | 'caution' | 'danger' | 'cta', itemId?: string): string => {
+  const baseClasses = 'size-5 transition-colors';
+
+  // Special case for colonel icon
+  if (itemId === 'colonel') {
+    return `${baseClasses} text-brand-400 group-hover:text-brand-500 dark:text-brand-400 dark:group-hover:text-brand-300`;
+  }
+
+  switch (variant) {
+    case 'caution':
+      return `${baseClasses} text-amber-500 group-hover:text-amber-600 dark:text-amber-400 dark:group-hover:text-amber-300`;
+    case 'danger':
+      return `${baseClasses} text-red-500 group-hover:text-red-600 dark:text-red-400 dark:group-hover:text-red-300`;
+    case 'cta':
+      return `${baseClasses} text-brand-500 group-hover:text-brand-600 dark:text-brand-400 dark:group-hover:text-brand-300`;
+    default:
+      return `${baseClasses} text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300`;
+  }
+};
+
 // Get email from either customer object or direct prop (when awaiting MFA)
 const userEmail = computed(() => props.cust?.email || props.email || '');
 
@@ -195,169 +321,46 @@ onUnmounted(() => {
 
         <!-- Menu Items -->
         <nav class="py-1" role="navigation">
-          <!-- Complete MFA (when awaiting) -->
-          <router-link
-            v-if="awaitingMfa"
-            to="/mfa-verify"
-            class="group flex items-center gap-3 px-4 py-2
-              text-sm font-semibold text-amber-600 transition-colors
-              hover:bg-amber-50 dark:text-amber-400
-              dark:hover:bg-amber-900/20"
-            @click="closeMenu"
-            role="menuitem">
-            <OIcon
-              collection="heroicons"
-              name="shield-check-solid"
-              class="size-5 text-amber-500 transition-colors
-                group-hover:text-amber-600 dark:text-amber-400
-                dark:group-hover:text-amber-300"
-              aria-hidden="true" />
-            {{ t('web.auth.complete_mfa_verification') }}
-          </router-link>
+          <template
+            v-for="(item, index) in visibleMenuItems"
+            :key="item.id">
+            <!-- Divider -->
+            <div
+              v-if="shouldShowDividerBefore(item, index)"
+              class="my-1 border-t border-gray-200 dark:border-gray-700"></div>
 
-          <!-- Divider after MFA prompt -->
-          <div
-            v-if="awaitingMfa"
-            class="my-1 border-t border-gray-200 dark:border-gray-700"></div>
+            <!-- Router Link Item -->
+            <router-link
+              v-if="item.to"
+              :to="item.to"
+              :class="getMenuItemClasses(item.variant)"
+              @click="closeMenu"
+              role="menuitem">
+              <!-- Special case for upgrade using FancyIcon -->
+              <FancyIcon v-if="item.id === 'upgrade'" />
+              <OIcon
+                v-else
+                :collection="item.icon.collection"
+                :name="item.icon.name"
+                :class="getIconClasses(item.variant, item.id)"
+                aria-hidden="true" />
+              {{ item.label }}
+            </router-link>
 
-          <!-- Regular menu items (hidden when awaiting MFA) -->
-          <template v-if="!awaitingMfa">
-          <!-- Account Settings -->
-          <router-link
-            to="/account"
-            class="group flex items-center gap-3 px-4 py-2
-              text-sm text-gray-700 transition-colors
-              hover:bg-gray-100 dark:text-gray-300
-              dark:hover:bg-gray-700"
-            @click="closeMenu"
-            role="menuitem">
-            <OIcon
-              collection="heroicons"
-              name="cog-6-tooth-solid"
-              class="size-5 text-gray-400 transition-colors
-                group-hover:text-gray-600 dark:text-gray-500
-                dark:group-hover:text-gray-300"
-              aria-hidden="true" />
-            {{ t('web.account.settings') }}
-          </router-link>
-
-          <!-- Security -->
-          <router-link
-            to="/account/settings/security"
-            class="group flex items-center gap-3 px-4 py-2
-              text-sm text-gray-700 transition-colors
-              hover:bg-gray-100 dark:text-gray-300
-              dark:hover:bg-gray-700"
-            @click="closeMenu"
-            role="menuitem">
-            <OIcon
-              collection="heroicons"
-              name="shield-check-solid"
-              class="size-5 text-gray-400 transition-colors
-                group-hover:text-gray-600 dark:text-gray-500
-                dark:group-hover:text-gray-300"
-              aria-hidden="true" />
-            {{ t('web.COMMON.security') }}
-          </router-link>
-
-          <!-- Active Sessions -->
-          <router-link
-            to="/account/settings/security/sessions"
-            class="group flex items-center gap-3 px-4 py-2
-              text-sm text-gray-700 transition-colors
-              hover:bg-gray-100 dark:text-gray-300
-              dark:hover:bg-gray-700"
-            @click="closeMenu"
-            role="menuitem">
-            <OIcon
-              collection="heroicons"
-              name="computer-desktop-solid"
-              class="size-5 text-gray-400 transition-colors
-                group-hover:text-gray-600 dark:text-gray-500
-                dark:group-hover:text-gray-300"
-              aria-hidden="true" />
-            {{ t('web.auth.sessions.title') }}
-          </router-link>
-
-          <!-- Data Region -->
-          <router-link
-            to="/account/region"
-            class="group flex items-center gap-3 px-4 py-2
-              text-sm text-gray-700 transition-colors
-              hover:bg-gray-100 dark:text-gray-300
-              dark:hover:bg-gray-700"
-            @click="closeMenu"
-            role="menuitem">
-            <OIcon
-              collection="heroicons"
-              name="globe-alt-solid"
-              class="size-5 text-gray-400 transition-colors
-                group-hover:text-gray-600 dark:text-gray-500
-                dark:group-hover:text-gray-300"
-              aria-hidden="true" />
-            {{ t('web.account.region') }}
-          </router-link>
-
-          <!-- Divider -->
-          <div class="my-1 border-t border-gray-200 dark:border-gray-700"></div>
-
-          <!-- Upgrade \(conditional\) -->
-          <router-link
-            v-if="showUpgrade"
-            to="/pricing"
-            class="group flex items-center gap-3 px-4 py-2
-              text-sm text-brand-600 transition-colors
-              hover:bg-brand-50 dark:text-brand-400
-              dark:hover:bg-brand-900/20"
-            @click="closeMenu"
-            role="menuitem">
-            <FancyIcon />
-            {{ t('web.LABELS.pricing') }}
-          </router-link>
-
-          <!-- Colonel (conditional) -->
-          <router-link
-            v-if="colonel"
-            to="/colonel"
-            class="group flex items-center gap-3 px-4 py-2
-              text-sm text-gray-700 transition-colors
-              hover:bg-gray-100 dark:text-gray-300
-              dark:hover:bg-gray-700"
-            @click="closeMenu"
-            role="menuitem">
-            <OIcon
-              collection="mdi"
-              name="star"
-              class="size-5 text-brand-400 transition-colors
-                group-hover:text-brand-500 dark:text-brand-400
-                dark:group-hover:text-brand-300"
-              aria-hidden="true" />
-            {{ t('web.colonel.dashboard') }}
-          </router-link>
-
-          <!-- Divider -->
-          <div
-            v-if="showUpgrade || colonel"
-            class="my-1 border-t border-gray-200 dark:border-gray-700"></div>
+            <!-- Button Item (for logout) -->
+            <button
+              v-else-if="item.onClick"
+              :class="[getMenuItemClasses(item.variant), 'w-full']"
+              @click="item.onClick"
+              role="menuitem">
+              <OIcon
+                :collection="item.icon.collection"
+                :name="item.icon.name"
+                :class="getIconClasses(item.variant, item.id)"
+                aria-hidden="true" />
+              {{ item.label }}
+            </button>
           </template>
-
-          <!-- Logout (always show) -->
-          <button
-            @click="handleLogout"
-            class="group flex w-full items-center gap-3 px-4 py-2
-              text-sm text-red-600 transition-colors
-              hover:bg-red-50 dark:text-red-400
-              dark:hover:bg-red-900/20"
-            role="menuitem">
-            <OIcon
-              collection="heroicons"
-              name="arrow-right-on-rectangle-solid"
-              class="size-5 text-red-500 transition-colors
-                group-hover:text-red-600 dark:text-red-400
-                dark:group-hover:text-red-300"
-              aria-hidden="true" />
-            {{ t('web.COMMON.header_logout') }}
-          </button>
         </nav>
       </div>
     </Transition>

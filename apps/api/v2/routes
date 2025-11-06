@@ -1,29 +1,9 @@
 # apps/api/v2/routes
 #
-# Otto Advanced Routes - V2 API
+# Otto Routes - V2 API (Public secrets API)
 # Using direct Logic class routing with authentication strategies
-
-# Account Management
-POST   /account/destroy                           V2::Logic::Account::DestroyAccount response=json auth=sessionauth
-POST   /account/change-password                   V2::Logic::Account::UpdatePassword response=json auth=sessionauth
-POST   /account/update-locale                     V2::Logic::Account::UpdateLocale response=json auth=noauth
-POST   /account/apitoken                          V2::Logic::Account::GenerateAPIToken response=json auth=sessionauth csrf=exempt
-GET    /account                                   V2::Logic::Account::GetAccount response=json auth=sessionauth
-
-# Domain Management
-POST   /domains/add                               V2::Logic::Domains::AddDomain response=json auth=sessionauth
-POST   /domains/:domain/remove                    V2::Logic::Domains::RemoveDomain response=json auth=sessionauth
-GET    /domains/:domain                           V2::Logic::Domains::GetDomain response=json auth=sessionauth
-POST   /domains/:domain/verify                    V2::Logic::Domains::VerifyDomain response=json auth=sessionauth
-PUT    /domains/:domain/brand                     V2::Logic::Domains::UpdateDomainBrand response=json auth=sessionauth
-GET    /domains/:domain/brand                     V2::Logic::Domains::GetDomainBrand response=json auth=sessionauth
-DELETE /domains/:domain/logo                      V2::Logic::Domains::RemoveDomainImage response=json auth=sessionauth
-POST   /domains/:domain/logo                      V2::Logic::Domains::UpdateDomainImage response=json auth=sessionauth
-GET    /domains/:domain/logo                      V2::Logic::Domains::GetDomainImage response=json auth=sessionauth
-DELETE /domains/:domain/icon                      V2::Logic::Domains::RemoveDomainImage response=json auth=sessionauth
-POST   /domains/:domain/icon                      V2::Logic::Domains::UpdateDomainImage response=json auth=sessionauth
-GET    /domains/:domain/icon                      V2::Logic::Domains::GetDomainImage response=json auth=sessionauth
-GET    /domains                                   V2::Logic::Domains::ListDomains response=json auth=sessionauth
+#
+# V2 API returns string values for all fields.
 
 # Secrets - Private (Authenticated)
 GET    /receipt/recent                            V2::Logic::Secrets::ListMetadata response=json auth=noauth
@@ -49,11 +29,6 @@ OPTIONS /secret/conceal                           V2::Logic::Secrets::ConcealSec
 GET    /supported-locales                         V2::Logic::Meta.get_supported_locales response=json
 GET    /status                                    V2::Logic::Meta.system_status response=json
 GET    /version                                   V2::Logic::Meta.system_version response=json
-POST   /feedback                                  V2::Logic::ReceiveFeedback response=json auth=noauth
-
-# Colonel/Admin endpoints
-GET    /colonel/info                              V2::Logic::Colonel::GetColonelInfo response=json auth=colonelsonly
-GET    /colonel/stats                             V2::Logic::Colonel::GetColonelStats response=json auth=colonelsonly
 
 # OTTO ADVANCED ROUTES SYNTAX - QUICK REFERENCE
 # ==============================================

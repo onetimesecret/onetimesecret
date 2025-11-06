@@ -55,7 +55,7 @@ describe('domainsStore', () => {
 
     it('should add a new domain', async () => {
       // Setup mock response with valid data
-      axiosMock.onPost('/api/v2/domains/add').reply(200, {
+      axiosMock.onPost('/api/account/domains/add').reply(200, {
         record: mockNewDomain,
       });
 
@@ -77,7 +77,7 @@ describe('domainsStore', () => {
 
   describe('Domain Operations', () => {
     it('should add a new domain (schema validation issues)', async () => {
-      axiosMock.onPost('/api/v2/domains/add').reply(200, {
+      axiosMock.onPost('/api/account/domains/add').reply(200, {
         record: newDomainData,
       });
 
@@ -88,7 +88,7 @@ describe('domainsStore', () => {
 
     it('should refresh domain records (schema validation issues)', async () => {
       // Use mockDomains from the fixture instead of undefined mockDomainsList
-      axiosMock.onGet('/api/v2/domains').reply(200, {
+      axiosMock.onGet('/api/account/domains').reply(200, {
         records: Object.values(mockDomains),
         count: Object.keys(mockDomains).length,
       });
@@ -222,14 +222,14 @@ describe('domainsStore', () => {
 
   describe('Error Handling', () => {
     it('should handle network errors', async () => {
-      axiosMock.onGet('/api/v2/domains').networkError();
+      axiosMock.onGet('/api/account/domains').networkError();
 
       // Expect raw AxiosError, not ApplicationError
       await expect(store.refreshRecords()).rejects.toThrow();
     });
 
     it('should handle validation errors', async () => {
-      axiosMock.onGet('/api/v2/domains').reply(200, {
+      axiosMock.onGet('/api/account/domains').reply(200, {
         records: [{ invalid_field: true }],
       });
 
