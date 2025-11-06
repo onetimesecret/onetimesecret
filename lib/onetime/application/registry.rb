@@ -90,6 +90,16 @@ module Onetime
             register_application_class(V2::Application)
           end
 
+          # Check for V3 API app
+          if defined?(V3::Application)
+            register_application_class(V3::Application)
+          end
+
+          # Check for Account API app
+          if defined?(AccountAPI::Application)
+            register_application_class(AccountAPI::Application)
+          end
+
           # Only re-register Auth app if advanced mode
           if defined?(Auth::Application) && Onetime.auth_config.mode == 'advanced'
             register_application_class(Auth::Application)

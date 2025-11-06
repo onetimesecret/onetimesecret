@@ -1,0 +1,34 @@
+# apps/api/account/routes
+#
+# Otto Advanced Routes - Account API (Site-Only Endpoints)
+# Using direct Logic class routing with authentication strategies
+#
+# Account API handles site-only account and domain management endpoints.
+# These endpoints are not part of the public API and don't need versioning.
+# Secret operations live in V3 API at /api/v3/*.
+
+# Account Management
+POST   /account/destroy                           AccountAPI::Logic::Accounts::DestroyAccount response=json auth=sessionauth
+POST   /account/change-password                   AccountAPI::Logic::Accounts::UpdatePassword response=json auth=sessionauth
+POST   /account/update-locale                     AccountAPI::Logic::Accounts::UpdateLocale response=json auth=noauth
+POST   /account/apitoken                          AccountAPI::Logic::Accounts::GenerateAPIToken response=json auth=sessionauth csrf=exempt
+GET    /account                                   AccountAPI::Logic::Accounts::GetAccount response=json auth=sessionauth
+
+# Domain Management
+POST   /domains/add                               AccountAPI::Logic::Domains::AddDomain response=json auth=sessionauth
+POST   /domains/:domain/remove                    AccountAPI::Logic::Domains::RemoveDomain response=json auth=sessionauth
+GET    /domains/:domain                           AccountAPI::Logic::Domains::GetDomain response=json auth=sessionauth
+POST   /domains/:domain/verify                    AccountAPI::Logic::Domains::VerifyDomain response=json auth=sessionauth
+PUT    /domains/:domain/brand                     AccountAPI::Logic::Domains::UpdateDomainBrand response=json auth=sessionauth
+GET    /domains/:domain/brand                     AccountAPI::Logic::Domains::GetDomainBrand response=json auth=sessionauth
+DELETE /domains/:domain/logo                      AccountAPI::Logic::Domains::RemoveDomainImage response=json auth=sessionauth
+POST   /domains/:domain/logo                      AccountAPI::Logic::Domains::UpdateDomainImage response=json auth=sessionauth
+GET    /domains/:domain/logo                      AccountAPI::Logic::Domains::GetDomainImage response=json auth=sessionauth
+DELETE /domains/:domain/icon                      AccountAPI::Logic::Domains::RemoveDomainImage response=json auth=sessionauth
+POST   /domains/:domain/icon                      AccountAPI::Logic::Domains::UpdateDomainImage response=json auth=sessionauth
+GET    /domains/:domain/icon                      AccountAPI::Logic::Domains::GetDomainImage response=json auth=sessionauth
+GET    /domains                                   AccountAPI::Logic::Domains::ListDomains response=json auth=sessionauth
+
+# Colonel/Admin endpoints
+GET    /colonel/info                              AccountAPI::Logic::Colonel::GetColonelInfo response=json auth=colonelsonly
+GET    /colonel/stats                             AccountAPI::Logic::Colonel::GetColonelStats response=json auth=colonelsonly
