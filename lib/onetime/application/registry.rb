@@ -80,30 +80,10 @@ module Onetime
 
         # Re-register application classes that are already in memory
         def reregister_loaded_applications
-          # Check for Core app
-          if defined?(Core::Application)
-            register_application_class(Core::Application)
-          end
-
-          # Check for V2 API app
-          if defined?(V2::Application)
-            register_application_class(V2::Application)
-          end
-
-          # Check for V3 API app
-          if defined?(V3::Application)
-            register_application_class(V3::Application)
-          end
-
-          # Check for Account API app
-          if defined?(AccountAPI::Application)
-            register_application_class(AccountAPI::Application)
-          end
-
-          # Only re-register Auth app if advanced mode
-          if defined?(Auth::Application) && Onetime.auth_config.mode == 'advanced'
-            register_application_class(Auth::Application)
-          end
+          ObjectSpace.each_object(Class)
+            .select { |cls| cls < Onetime::Application::Base && cls.respond_to?(:uri_prefix) }
+            .reject { |cls| cls.name == 'Auth::Application' && Onetime.auth_config.mode != 'advanced' }
+            .each { |cls| register_application_class(cls) }
         end
 
         private
