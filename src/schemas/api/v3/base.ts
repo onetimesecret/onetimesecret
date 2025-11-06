@@ -1,4 +1,3 @@
-import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 const resolveDetailsSchema = <T extends z.ZodTypeAny | undefined>(schema?: T) =>
@@ -38,7 +37,7 @@ const resolveDetailsSchema = <T extends z.ZodTypeAny | undefined>(schema?: T) =>
  *    - Can be extended with specific schemas
  */
 const apiResponseBaseSchema = z.object({
-  success: transforms.fromString.boolean,
+  success: z.boolean(),
   custid: z.string().optional(),
   shrimp: z.string().optional().default(''),
 });
@@ -65,13 +64,13 @@ export const createApiListResponseSchema = <
   apiResponseBaseSchema.extend({
     records: z.array(recordSchema),
     details: resolveDetailsSchema(detailsSchema).optional(),
-    count: transforms.fromString.number.optional(),
+    count: z.number().int().optional(),
   });
 
 // Common error response schema
 export const apiErrorResponseSchema = apiResponseBaseSchema.extend({
   message: z.string(),
-  code: transforms.fromString.number,
+  code: z.number().int(),
   record: z.unknown().nullable(),
   details: z.record(z.string(), z.unknown()).optional(),
 });
