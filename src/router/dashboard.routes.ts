@@ -1,5 +1,7 @@
+// src/router/dashboard.routes.ts
+
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
-import DefaultHeader from '@/components/layout/DefaultHeader.vue';
+import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
 import DashboardIndex from '@/views/dashboard/DashboardIndex.vue';
 import DashboardRecent from '@/views/dashboard/DashboardRecent.vue';
 import { RouteRecordRaw } from 'vue-router';
@@ -10,7 +12,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Dashboard',
     components: {
       default: DashboardIndex,
-      header: DefaultHeader,
+      header: ImprovedHeader,
       footer: DefaultFooter,
     },
     meta: {
@@ -31,7 +33,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Recents',
     components: {
       default: DashboardRecent,
-      header: DefaultHeader,
+      header: ImprovedHeader,
       footer: DefaultFooter,
     },
     meta: {
@@ -52,7 +54,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'DashboardDomains',
     components: {
       default: () => import('@/views/dashboard/DashboardDomains.vue'),
-      header: DefaultHeader,
+      header: ImprovedHeader,
       footer: DefaultFooter,
     },
     meta: {
@@ -70,7 +72,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'DomainAdd',
     components: {
       default: () => import('@/views/dashboard/DashboardDomainAdd.vue'),
-      header: DefaultHeader,
+      header: ImprovedHeader,
       footer: DefaultFooter,
     },
     meta: {
@@ -88,7 +90,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'DomainVerify',
     components: {
       default: () => import('@/views/dashboard/DashboardDomainVerify.vue'),
-      header: DefaultHeader,
+      header: ImprovedHeader,
       footer: DefaultFooter,
     },
     meta: {
@@ -105,7 +107,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'DomainBrand',
     components: {
       default: () => import('@/views/dashboard/DashboardDomainBrand.vue'),
-      header: DefaultHeader,
+      header: ImprovedHeader,
       footer: DefaultFooter,
     },
     meta: {
