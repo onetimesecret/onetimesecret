@@ -4,17 +4,28 @@ const resolveDetailsSchema = <T extends z.ZodTypeAny | undefined>(schema?: T) =>
   schema ?? z.record(z.string(), z.any());
 
 /**
- * Base schema patterns for API responses.
+ * Base schema patterns for API v3 responses.
  *
  * Design Decisions:
  *
- * 1. Response Structure:
- *    All API responses follow consistent patterns:
- *    - success: boolean flag
+ * 1. Pure REST Semantics:
+ *    - HTTP status codes indicate success (2xx) or error (4xx/5xx)
+ *    - No redundant 'success' boolean field
+ *    - Follows modern REST API best practices
+ *
+ * 2. Response Structure:
+ *    Success responses (2xx):
  *    - record/records: primary payload
  *    - details: optional metadata
+ *    - count: for list responses
+ *    - user_id/shrimp: session/CSRF data
  *
- * 2. Single Record vs List Responses:
+ *    Error responses (4xx/5xx):
+ *    - message: human-readable error message
+ *    - code: machine-readable error code (e.g., "VALIDATION_ERROR")
+ *    - details: optional structured error data
+ *
+ * 3. Single Record vs List Responses:
  *    We explicitly distinguish between:
  *    - Single record uses `record` field
  *    - List response uses `records` field
@@ -25,20 +36,23 @@ const resolveDetailsSchema = <T extends z.ZodTypeAny | undefined>(schema?: T) =>
  *    - Type safety is more precise - compiler enforces correct expectations
  *    - Preferred over generic `data` field for API clarity
  *
- * 3. Type Parameters:
+ * 4. Type Parameters:
  *    Schemas use TypeScript generics to ensure:
  *    - Type safety for records
  *    - Flexible detail schemas
  *    - Proper type inference
  *
- * 4. Details Handling:
+ * 5. Details Handling:
  *    - Optional details object
  *    - Defaults to record<string, unknown>
  *    - Can be extended with specific schemas
+ *
+ * 6. Naming Conventions:
+ *    - user_id instead of custid (modern, clear naming)
+ *    - Maps to Customer#objid internally but presents cleaner API
  */
 const apiResponseBaseSchema = z.object({
-  success: z.boolean(),
-  custid: z.string().optional(),
+  user_id: z.string().optional(),
   shrimp: z.string().optional().default(''),
 });
 
@@ -67,11 +81,10 @@ export const createApiListResponseSchema = <
     count: z.number().int().optional(),
   });
 
-// Common error response schema
-export const apiErrorResponseSchema = apiResponseBaseSchema.extend({
+// Error response schema for 4xx/5xx responses
+export const apiErrorResponseSchema = z.object({
   message: z.string(),
-  code: z.number().int(),
-  record: z.unknown().nullable(),
+  code: z.string().optional(), // Machine-readable error code (e.g., "VALIDATION_ERROR")
   details: z.record(z.string(), z.unknown()).optional(),
 });
 

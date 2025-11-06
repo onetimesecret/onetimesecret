@@ -37,6 +37,34 @@ module AccountAPI
       # This allows Account logic classes to inherit from v2 but get JSON serialization
       # without modifying v2 behavior.
       alias safe_dump json_dump
+
+      # Transform v2 response data to Account API format
+      #
+      # Account API changes (same as v3):
+      # - Remove "success" field (use HTTP status codes)
+      # - Rename "custid" to "user_id" (modern naming)
+      #
+      # @return [Hash] Account API-formatted response data
+      def success_data
+        # Get the v2 response data
+        v2_data = super
+
+        # Transform for Account API
+        account_data = v2_data.dup
+
+        # Remove success field (Account API uses HTTP status codes)
+        account_data.delete(:success)
+        account_data.delete('success')
+
+        # Rename custid to user_id (modern naming)
+        if account_data.key?(:custid)
+          account_data[:user_id] = account_data.delete(:custid)
+        elsif account_data.key?('custid')
+          account_data['user_id'] = account_data.delete('custid')
+        end
+
+        account_data
+      end
     end
   end
 end
