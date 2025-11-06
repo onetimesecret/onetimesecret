@@ -215,11 +215,11 @@
     <!-- Text content -->
     <div
       v-if="props.showSiteName && siteName"
-      class="flex flex-col">
-        <a
-          :href="props.href"
-          class="transition-opacity hover:opacity-80">
-        <div :class="['text-lg font-bold leading-tight transition-colors']">
+      class="flex flex-col ">
+      <a
+        :href="props.href"
+        class="transition-opacity hover:opacity-80">
+        <div :class="['text-lg font-bold font-brand leading-tight transition-colors']">
           {{ siteName }}
         </div>
         <!-- Tagline -->
