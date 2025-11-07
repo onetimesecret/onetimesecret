@@ -15,7 +15,7 @@ describe('Team Store', () => {
 
   const mockTeam: TeamWithRole = {
     id: 'team-123',
-    name: 'Test Team',
+    display_name: 'Test Team',
     description: 'A test team',
     owner_id: 'user-123',
     member_count: 3,
@@ -63,7 +63,7 @@ describe('Team Store', () => {
       const result1 = store.init();
       const result2 = store.init();
 
-      expect(result1).toBe(result2);
+      expect(result1).toStrictEqual(result2);
       expect(store.isInitialized).toBe(true);
     });
   });
@@ -71,7 +71,8 @@ describe('Team Store', () => {
   describe('Fetching teams', () => {
     it('fetches all teams successfully', async () => {
       axiosMock?.onGet('/api/teams').reply(200, {
-        teams: [mockTeam],
+        records: [mockTeam],
+        count: 1,
       });
 
       await store.fetchTeams();
@@ -83,7 +84,8 @@ describe('Team Store', () => {
 
     it('handles empty teams response', async () => {
       axiosMock?.onGet('/api/teams').reply(200, {
-        teams: [],
+        records: [],
+        count: 0,
       });
 
       await store.fetchTeams();
@@ -94,7 +96,7 @@ describe('Team Store', () => {
 
     it('fetches a single team by ID', async () => {
       axiosMock?.onGet('/api/teams/team-123').reply(200, {
-        team: mockTeam,
+        record: mockTeam,
       });
 
       const team = await store.fetchTeam('team-123');
@@ -112,13 +114,13 @@ describe('Team Store', () => {
       };
 
       axiosMock?.onPost('/api/teams').reply(200, {
-        team: mockTeam,
+        record: mockTeam,
       });
 
       const team = await store.createTeam(newTeamPayload);
 
       expect(team).toEqual(mockTeam);
-      expect(store.teams).toContain(mockTeam);
+      expect(store.teams).toContainEqual(mockTeam);
       expect(store.activeTeam).toEqual(mockTeam);
     });
   });
@@ -137,14 +139,14 @@ describe('Team Store', () => {
       const updatedTeam = { ...mockTeam, ...updates };
 
       axiosMock?.onPatch('/api/teams/team-123').reply(200, {
-        team: updatedTeam,
+        record: updatedTeam,
       });
 
       const result = await store.updateTeam('team-123', updates);
 
-      expect(result.name).toBe('Updated Team Name');
-      expect(store.teams[0].name).toBe('Updated Team Name');
-      expect(store.activeTeam?.name).toBe('Updated Team Name');
+      expect(result.display_name).toBe('Updated Team Name');
+      expect(store.teams[0].display_name).toBe('Updated Team Name');
+      expect(store.activeTeam?.display_name).toBe('Updated Team Name');
     });
   });
 
@@ -171,7 +173,8 @@ describe('Team Store', () => {
 
     it('fetches team members', async () => {
       axiosMock?.onGet('/api/teams/team-123/members').reply(200, {
-        members: [mockMember],
+        records: [mockMember],
+        count: 1,
       });
 
       const members = await store.fetchMembers('team-123');
@@ -190,13 +193,13 @@ describe('Team Store', () => {
       const newMember = { ...mockMember, email: 'newmember@example.com' };
 
       axiosMock?.onPost('/api/teams/team-123/members').reply(200, {
-        member: newMember,
+        record: newMember,
       });
 
       const member = await store.inviteMember('team-123', invitePayload);
 
       expect(member.email).toBe('newmember@example.com');
-      expect(store.members).toContain(newMember);
+      expect(store.members).toContainEqual(newMember);
     });
 
     it('updates a member role', async () => {
@@ -205,7 +208,7 @@ describe('Team Store', () => {
       const updatedMember = { ...mockMember, role: TeamRole.ADMIN };
 
       axiosMock?.onPatch('/api/teams/team-123/members/member-123').reply(200, {
-        member: updatedMember,
+        record: updatedMember,
       });
 
       const result = await store.updateMemberRole('team-123', 'member-123', {
