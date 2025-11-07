@@ -9,14 +9,10 @@ module V2::Logic
 
       def process_params
         @identifiers    = params[:identifiers].to_s.strip.downcase.gsub(/[^a-z0-9,]/, '').split(',').compact
-        @secrets = identifiers.map do |identifier|
-          next unless identifier
-
-          record = Onetime::Secret.load(identifier)
-          next unless record
-
-          record.safe_dump
-        end.compact
+        # Filter out empty identifiers first, then use optimized bulk loading
+        valid_identifiers = identifiers.compact.reject(&:empty?)
+        secret_objects = Onetime::Secret.load_multi(valid_identifiers).compact
+        @secrets = secret_objects.map(&:safe_dump)
       end
 
       def raise_concerns; end
