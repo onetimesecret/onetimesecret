@@ -43,8 +43,8 @@ module Onetime
 
     # Member management (uses participates_in relationship)
     def add_member(customer, role = 'member')
-      # Add to members sorted set with timestamp score
-      members.add(customer.objid, Familia.now.to_i)
+      # Add to members sorted set with timestamp score (float for Redis sorted sets)
+      members.add(customer.objid, Familia.now.to_f)
     end
 
     def remove_member(customer)
@@ -76,6 +76,16 @@ module Onetime
     end
 
     class << self
+      # Add team to global index
+      def add(obj)
+        values.add(obj.objid, Familia.now.to_f)
+      end
+
+      # Remove team from global index
+      def rem(obj)
+        values.rem(obj.objid)
+      end
+
       def create!(display_name, owner_customer)
         raise Onetime::Problem, 'Owner required' if owner_customer.nil?
         raise Onetime::Problem, 'Display name required' if display_name.to_s.empty?
