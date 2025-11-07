@@ -76,9 +76,9 @@ module Onetime
     unique_index :extid, :extid_index, within: Onetime::Organization
 
     # Participation - bidirectional membership tracking with reverse indexes
-    # These give you O(1) access to all members: org.members, team.members
-    participates_in Onetime::Organization, :members, score: :joined
-    participates_in Onetime::Team, :members
+    # Organization: org.members gives O(1) access to all members
+    participates_in :Organization, :members, score: :joined
+    participates_in :Team, :members
 
     field_group :core_fields do
       field :custid

@@ -19,7 +19,7 @@ module Onetime
 
     identifier_field :teamid
 
-    class_sorted_set :values
+    # Familia v2 relationships - Team has members collection
     sorted_set :members
 
     field :teamid
@@ -41,14 +41,15 @@ module Onetime
       customer && customer.custid == owner_id
     end
 
-    # Member management (uses participates_in relationship)
+    # Member management - manual relationship (Familia v2 sorted_set)
+    # Note: Without participates_in, add_member must be defined manually
+
     def add_member(customer, role = 'member')
-      # Add to members sorted set with timestamp score (float for Redis sorted sets)
       members.add(customer.objid, Familia.now.to_f)
     end
 
     def remove_member(customer)
-      members.rem(customer.objid)
+      members.remove(customer.objid)
     end
 
     def member?(customer)
@@ -61,7 +62,6 @@ module Onetime
     end
 
     def list_members
-      # Returns Customer objects
       member_ids = members.members
       member_ids.map { |id| Onetime::Customer.load(id) }.compact
     end
@@ -76,19 +76,10 @@ module Onetime
     end
 
     class << self
-      # Add team to global index
-      def add(obj)
-        values.add(obj.objid, Familia.now.to_f)
-      end
-
-      # Remove team from global index
-      def rem(obj)
-        values.rem(obj.objid)
-      end
-
       def create!(display_name, owner_customer)
         raise Onetime::Problem, 'Owner required' if owner_customer.nil?
-        raise Onetime::Problem, 'Display name required' if display_name.to_s.empty?
+        display_name = display_name.to_s.strip
+        raise Onetime::Problem, 'Display name required' if display_name.empty?
 
         team = new(
           display_name: display_name,
@@ -96,11 +87,11 @@ module Onetime
         )
         team.save
 
-        # Add owner as first member
-        team.add_member(owner_customer, 'owner')
+        # Add owner as first member using Familia v2 relationship
+        team.add_member(owner_customer)
 
         OT.ld "[Team.create!] teamid: #{team.teamid}, owner: #{owner_customer.custid}"
-        add team
+        # Familia v2 automatically manages instances collection - no manual add needed
         team
       end
     end
