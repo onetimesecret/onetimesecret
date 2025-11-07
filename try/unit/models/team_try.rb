@@ -24,11 +24,8 @@ end
 @member2 = Onetime::Customer.create!(email: "member2#{Familia.now.to_i}@onetimesecret.com")
 @non_member = Onetime::Customer.create!(email: "nonmember#{Familia.now.to_i}@onetimesecret.com")
 
-# Create team manually (Team.create! has a bug - it calls `add team` but the class method doesn't exist)
-@team = Onetime::Team.new(display_name: "Engineering Team", owner_id: @owner.custid)
-@team.save
-# Use float for score to avoid Redis "not a valid float" error
-@team.members.add(@owner.objid, Familia.now.to_f)
+# Create team using factory method (Familia v2 auto-manages instances and relationships)
+@team = Onetime::Team.create!("Engineering Team", @owner)
 
 ## Can create team manually
 [@team.class, @team.display_name, @team.owner_id]
@@ -62,8 +59,8 @@ end
 @team.member_count
 #=> 1
 
-## Can add member to team (using float score for Redis compatibility)
-@team.members.add(@member1.objid, Familia.now.to_f)
+## Can add member to team (using Familia v2 relationship)
+@team.add_member(@member1)
 @team.member?(@member1)
 #=> true
 
@@ -71,8 +68,8 @@ end
 @team.member_count
 #=> 2
 
-## Can add multiple members (using float score for Redis compatibility)
-@team.members.add(@member2.objid, Familia.now.to_f)
+## Can add multiple members (using Familia v2 relationship)
+@team.add_member(@member2)
 [@team.member?(@member2), @team.member_count]
 #=> [true, 3]
 
@@ -130,33 +127,29 @@ members = @team.list_members
 @team.can_delete?(nil)
 #=> nil
 
-# NOTE: Team.create! factory method has a bug - it calls `add team` but
-# Team class doesn't define an `add` class method like CustomDomain does.
-# These factory method validation tests are commented out until the model is fixed.
-#
-# ## Factory method requires owner
-# begin
-#   Onetime::Team.create!("Invalid Team", nil)
-# rescue Onetime::Problem => e
-#   e.message
-# end
-# #=> "Owner required"
-#
-# ## Factory method requires display name
-# begin
-#   Onetime::Team.create!("", @owner)
-# rescue Onetime::Problem => e
-#   e.message
-# end
-# #=> "Display name required"
-#
-# ## Factory method requires non-empty display name
-# begin
-#   Onetime::Team.create!("   ", @owner)
-# rescue Onetime::Problem => e
-#   e.message
-# end
-# #=> "Display name required"
+## Factory method requires owner
+begin
+  Onetime::Team.create!("Invalid Team", nil)
+rescue Onetime::Problem => e
+  e.message
+end
+#=> "Owner required"
+
+## Factory method requires display name
+begin
+  Onetime::Team.create!("", @owner)
+rescue Onetime::Problem => e
+  e.message
+end
+#=> "Display name required"
+
+## Factory method requires non-empty display name
+begin
+  Onetime::Team.create!("   ", @owner)
+rescue Onetime::Problem => e
+  e.message
+end
+#=> "Display name required"
 
 ## Can set team description
 @team.description = "Our engineering team"
