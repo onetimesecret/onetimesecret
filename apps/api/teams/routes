@@ -8,13 +8,13 @@
 # All endpoints require authentication (session or basic).
 
 # Team Management
-GET    /teams                                     TeamAPI::Logic::Teams::ListTeams response=json auth=sessionauth
-POST   /teams                                     TeamAPI::Logic::Teams::CreateTeam response=json auth=sessionauth
-GET    /teams/:teamid                             TeamAPI::Logic::Teams::GetTeam response=json auth=sessionauth
-PUT    /teams/:teamid                             TeamAPI::Logic::Teams::UpdateTeam response=json auth=sessionauth
-DELETE /teams/:teamid                             TeamAPI::Logic::Teams::DeleteTeam response=json auth=sessionauth
+GET    /                                          TeamAPI::Logic::Teams::ListTeams response=json auth=sessionauth
+POST   /                                          TeamAPI::Logic::Teams::CreateTeam response=json auth=sessionauth
+GET    /:teamid                                   TeamAPI::Logic::Teams::GetTeam response=json auth=sessionauth
+PUT    /:teamid                                   TeamAPI::Logic::Teams::UpdateTeam response=json auth=sessionauth
+DELETE /:teamid                                   TeamAPI::Logic::Teams::DeleteTeam response=json auth=sessionauth
 
 # Team Member Management
-GET    /teams/:teamid/members                     TeamAPI::Logic::Members::ListMembers response=json auth=sessionauth
-POST   /teams/:teamid/members                     TeamAPI::Logic::Members::AddMember response=json auth=sessionauth
-DELETE /teams/:teamid/members/:custid             TeamAPI::Logic::Members::RemoveMember response=json auth=sessionauth
+GET    /:teamid/members                           TeamAPI::Logic::Members::ListMembers response=json auth=sessionauth
+POST   /:teamid/members                           TeamAPI::Logic::Members::AddMember response=json auth=sessionauth
+DELETE /:teamid/members/:custid                   TeamAPI::Logic::Members::RemoveMember response=json auth=sessionauth
