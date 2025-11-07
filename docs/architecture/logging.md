@@ -86,7 +86,7 @@ All logging goes through these operational categories:
 | `Otto` | Routing and request handling | Route matching, auth strategies |
 | `Rhales` | Rhales framework | Framework internals |
 | `Secret` | Secret lifecycle | Secret create, view, expire |
-| `Sequel` | Database operations | SQL queries, migrations |
+| `Sequel` | Database operations | SQL queries (at :trace), migrations |
 | `App` | General application | Fallback for uncategorized code |
 
 ### Usage Pattern

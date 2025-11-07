@@ -50,7 +50,7 @@ loggers:
   Otto: warn      # Otto framework operations
   Rhales: error   # Rhales template rendering (suppress unescaped HTML warnings)
   Secret: info    # Secret lifecycle (create, view, burn)
-  Sequel: warn    # Database queries and operations
+  Sequel: warn    # Database queries and operations (SQL logged at :trace level)
   Session: info   # Session lifecycle (create, update, destroy)
 
 # HTTP request logging configuration
