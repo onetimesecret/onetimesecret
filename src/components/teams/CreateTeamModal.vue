@@ -70,7 +70,7 @@ const handleSubmit = async () => {
     emit('created', team.id);
     closeModal();
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof z.ZodError && error.errors) {
       // Handle validation errors
       error.errors.forEach((err) => {
         const field = err.path[0] as string;
@@ -80,6 +80,9 @@ const handleSubmit = async () => {
       // Handle API errors
       const classified = classifyError(error);
       generalError.value = classified.userMessage || t('web.teams.create_error');
+
+      // Log for debugging
+      console.error('[CreateTeamModal] Error creating team:', error);
     }
   } finally {
     isSubmitting.value = false;

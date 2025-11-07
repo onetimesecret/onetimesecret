@@ -74,10 +74,10 @@ export const teamMemberSchema = z.object({
   email: z.string().email(),
   role: teamRoleSchema,
   status: teamMemberStatusSchema,
-  invited_at: z.string().optional(),
-  joined_at: z.string().optional(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  invited_at: z.union([z.string(), z.number()]).transform(val => String(val)).optional(),
+  joined_at: z.union([z.string(), z.number()]).transform(val => String(val)).optional(),
+  created_at: z.union([z.string(), z.number()]).transform(val => String(val)),
+  updated_at: z.union([z.string(), z.number()]).transform(val => String(val)),
 });
 
 export const teamSchema = z.object({
@@ -86,8 +86,8 @@ export const teamSchema = z.object({
   description: z.string().max(500).optional(),
   owner_id: z.string(),
   member_count: z.number().int().min(0),
-  created_at: z.string(),
-  updated_at: z.string(),
+  created_at: z.union([z.string(), z.number()]).transform(val => String(val)),
+  updated_at: z.union([z.string(), z.number()]).transform(val => String(val)),
 });
 
 export const teamWithRoleSchema = teamSchema.extend({
