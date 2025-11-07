@@ -11,31 +11,18 @@ import type {
 import {
   createTeamPayloadSchema,
   inviteMemberPayloadSchema,
-  teamMemberSchema,
-  teamWithRoleSchema,
   updateMemberRolePayloadSchema,
   updateTeamPayloadSchema,
 } from '@/types/team';
+import {
+  teamResponseSchema,
+  teamsResponseSchema,
+  teamMembersResponseSchema,
+  teamMemberResponseSchema,
+} from '@/schemas/api/teams';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { computed, inject, ref } from 'vue';
-import { z } from 'zod';
-
-const teamsResponseSchema = z.object({
-  teams: z.array(teamWithRoleSchema),
-});
-
-const teamResponseSchema = z.object({
-  team: teamWithRoleSchema,
-});
-
-const membersResponseSchema = z.object({
-  members: z.array(teamMemberSchema),
-});
-
-const memberResponseSchema = z.object({
-  member: teamMemberSchema,
-});
 
 /* eslint-disable max-lines-per-function */
 export const useTeamStore = defineStore('team', () => {
@@ -65,7 +52,11 @@ export const useTeamStore = defineStore('team', () => {
     );
   });
 
-  const getTeamById = computed(() => (teamId: string): TeamWithRole | undefined => teams.value.find((t) => t.id === teamId));
+  const getTeamById = computed(
+    () =>
+      (teamId: string): TeamWithRole | undefined =>
+        teams.value.find((t) => t.id === teamId)
+  );
 
   const isInitialized = computed(() => _initialized.value);
 
@@ -105,7 +96,7 @@ export const useTeamStore = defineStore('team', () => {
       });
 
       const validated = teamsResponseSchema.parse(response.data);
-      teams.value = validated.teams;
+      teams.value = validated.records;
       return teams.value;
     } finally {
       loading.value = false;
@@ -126,17 +117,17 @@ export const useTeamStore = defineStore('team', () => {
       });
 
       const validated = teamResponseSchema.parse(response.data);
-      activeTeam.value = validated.team;
+      activeTeam.value = validated.record;
 
       // Update in teams array if exists
       const index = teams.value.findIndex((t) => t.id === teamId);
       if (index !== -1) {
-        teams.value[index] = validated.team;
+        teams.value[index] = validated.record;
       } else {
-        teams.value.push(validated.team);
+        teams.value.push(validated.record);
       }
 
-      return validated.team;
+      return validated.record;
     } finally {
       loading.value = false;
     }
@@ -154,10 +145,10 @@ export const useTeamStore = defineStore('team', () => {
       const response = await $api.post('/api/teams', validated);
 
       const teamData = teamResponseSchema.parse(response.data);
-      teams.value.push(teamData.team);
-      activeTeam.value = teamData.team;
+      teams.value.push(teamData.record);
+      activeTeam.value = teamData.record;
 
-      return teamData.team;
+      return teamData.record;
     } finally {
       loading.value = false;
     }
@@ -179,15 +170,15 @@ export const useTeamStore = defineStore('team', () => {
       // Update in teams array
       const index = teams.value.findIndex((t) => t.id === teamId);
       if (index !== -1) {
-        teams.value[index] = teamData.team;
+        teams.value[index] = teamData.record;
       }
 
       // Update activeTeam if it's the same team
       if (activeTeam.value?.id === teamId) {
-        activeTeam.value = teamData.team;
+        activeTeam.value = teamData.record;
       }
 
-      return teamData.team;
+      return teamData.record;
     } finally {
       loading.value = false;
     }
@@ -228,8 +219,8 @@ export const useTeamStore = defineStore('team', () => {
         signal: abortController.value.signal,
       });
 
-      const validated = membersResponseSchema.parse(response.data);
-      members.value = validated.members;
+      const validated = teamMembersResponseSchema.parse(response.data);
+      members.value = validated.records;
       return members.value;
     } finally {
       loading.value = false;
@@ -247,8 +238,8 @@ export const useTeamStore = defineStore('team', () => {
 
       const response = await $api.post(`/api/teams/${teamId}/members`, validated);
 
-      const memberData = memberResponseSchema.parse(response.data);
-      members.value.push(memberData.member);
+      const memberData = teamMemberResponseSchema.parse(response.data);
+      members.value.push(memberData.record);
 
       // Update member count in team
       const team = teams.value.find((t) => t.id === teamId);
@@ -271,7 +262,7 @@ export const useTeamStore = defineStore('team', () => {
   async function updateMemberRole(
     teamId: string,
     memberId: string,
-    payload: UpdateMemberRolePayload,
+    payload: UpdateMemberRolePayload
   ): Promise<TeamMember> {
     loading.value = true;
 
@@ -280,15 +271,15 @@ export const useTeamStore = defineStore('team', () => {
 
       const response = await $api.patch(`/api/teams/${teamId}/members/${memberId}`, validated);
 
-      const memberData = memberResponseSchema.parse(response.data);
+      const memberData = teamMemberResponseSchema.parse(response.data);
 
       // Update in members array
       const index = members.value.findIndex((m) => m.id === memberId);
       if (index !== -1) {
-        members.value[index] = memberData.member;
+        members.value[index] = memberData.record;
       }
 
-      return memberData.member;
+      return memberData.record;
     } finally {
       loading.value = false;
     }
