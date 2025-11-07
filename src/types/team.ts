@@ -44,7 +44,7 @@ export interface TeamMember {
  */
 export interface Team {
   id: string;
-  name: string;
+  display_name: string;
   description?: string;
   owner_id: string;
   member_count: number;
@@ -82,7 +82,7 @@ export const teamMemberSchema = z.object({
 
 export const teamSchema = z.object({
   id: z.string(),
-  name: z.string().min(1).max(100),
+  display_name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
   owner_id: z.string(),
   member_count: z.number().int().min(0),
@@ -99,12 +99,12 @@ export const teamWithRoleSchema = teamSchema.extend({
  */
 
 export const createTeamPayloadSchema = z.object({
-  name: z.string().min(1, 'Team name is required').max(100, 'Team name is too long'),
+  display_name: z.string().min(1, 'Team name is required').max(100, 'Team name is too long'),
   description: z.string().max(500, 'Description is too long').optional(),
 });
 
 export const updateTeamPayloadSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
+  display_name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
 });
 
