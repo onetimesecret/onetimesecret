@@ -25,7 +25,7 @@ onMounted(async () => {
     await teamStore.fetchTeams();
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.userMessage || t('web.teams.fetch_error');
+    error.value = classified.userMessage || t('web.teams.fetch_teams_error');
   }
 });
 

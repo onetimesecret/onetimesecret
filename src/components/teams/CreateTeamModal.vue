@@ -26,7 +26,7 @@ const emit = defineEmits<{
 const teamStore = useTeamStore();
 
 const formData = ref<CreateTeamPayload>({
-  name: '',
+  display_name: '',
   description: '',
 });
 
@@ -34,7 +34,7 @@ const errors = ref<Record<string, string>>({});
 const generalError = ref('');
 const isSubmitting = ref(false);
 
-const isFormValid = computed(() => formData.value.name.trim().length > 0);
+const isFormValid = computed(() => formData.value.display_name.trim().length > 0);
 
 const closeModal = () => {
   if (!isSubmitting.value) {
@@ -45,7 +45,7 @@ const closeModal = () => {
 
 const resetForm = () => {
   formData.value = {
-    name: '',
+    display_name: '',
     description: '',
   };
   errors.value = {};
@@ -162,7 +162,7 @@ const handleSubmit = async () => {
                     </label>
                     <input
                       id="team-name"
-                      v-model="formData.name"
+                      v-model="formData.display_name"
                       type="text"
                       required
                       maxlength="100"
@@ -171,13 +171,13 @@ const handleSubmit = async () => {
                         'mt-1 block w-full rounded-md shadow-sm sm:text-sm',
                         'focus:ring-brand-500 focus:border-brand-500',
                         'dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400',
-                        errors.name
+                        errors.display_name
                           ? 'border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
                           : 'border-gray-300 dark:border-gray-600'
                       ]"
                     />
-                    <p v-if="errors.name" class="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {{ errors.name }}
+                    <p v-if="errors.display_name" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                      {{ errors.display_name }}
                     </p>
                   </div>
 
