@@ -28,9 +28,9 @@ GIT
 
 GIT
   remote: https://github.com/delano/rodauth-tools
-  revision: f797249456ba3fccdcbc8d319f62fbc74bb29a75
+  revision: 9724324e67bbed7364c7eb982b302b8ed03576d8
   specs:
-    rodauth-tools (0.2.0)
+    rodauth-tools (0.3.0)
       dry-inflector (~> 1.1)
       rack (~> 3.2)
       roda (~> 3.96)
@@ -269,7 +269,7 @@ GEM
     rerun (0.14.0)
       listen (~> 3.0)
     rexml (3.4.4)
-    roda (3.96.0)
+    roda (3.97.0)
       rack
     rodauth (2.41.0)
       roda (>= 2.6.0)
@@ -321,7 +321,7 @@ GEM
     sentry-ruby (5.28.0)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
-    sequel (5.97.0)
+    sequel (5.98.0)
       bigdecimal
     simplecov (0.22.0)
       docile (~> 1.1)
