@@ -41,7 +41,7 @@ module Auth
       db = Sequel.connect(
         database_url,
         logger: Onetime.get_logger('Sequel'),
-        sql_log_level: :debug  # Log SQL statements at debug level instead of info
+        sql_log_level: :trace  # Log SQL statements at trace level for safety
       )
 
       db

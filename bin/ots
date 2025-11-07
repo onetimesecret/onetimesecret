@@ -140,7 +140,7 @@ class OT::CLI::Definition
            DEBUG_SESSION=1   - Set Session logger to debug
            DEBUG_HTTP=1      - Set HTTP logger to debug
            DEBUG_SECRET=1    - Set Secret logger to debug
-           DEBUG_SEQUEL=1    - Set Sequel logger to debug
+           DEBUG_SEQUEL=1    - Set Sequel logger to debug (SQL at trace)
            DEBUG_APP=1       - Set App logger to debug
 
         EXTERNAL LIBRARY FLAGS
@@ -166,7 +166,7 @@ class OT::CLI::Definition
           LOG_LEVEL=warn bin/ots server
 
         Combine multiple approaches:
-          LOG_LEVEL=info DEBUG_AUTH=1 DEBUG_LOGGERS=Sequel:debug bin/ots server
+          LOG_LEVEL=info DEBUG_AUTH=1 DEBUG_LOGGERS=Sequel:trace bin/ots server
 
         Production with reduced noise:
           LOG_LEVEL=warn DEBUG_LOGGERS=Familia:info,Otto:info bin/ots server

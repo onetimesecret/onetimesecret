@@ -177,7 +177,7 @@ module Onetime
     # - Familia: Redis ORM with SemanticLogger['Familia']
     # - Otto: Router framework with SemanticLogger['Otto']
     # - Rhales: Ruby SFC framework with SemanticLogger['Rhales']
-    # - Sequel: Database connections with SemanticLogger['Sequel']
+    # - Sequel: Database connections with SemanticLogger['Sequel'] (SQL at :trace)
     #
     # Note: Some libraries don't support custom loggers (e.g., standard Redis gem).
     # For those, we rely on our own logging within wrapper code.
