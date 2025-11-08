@@ -33,10 +33,10 @@ export interface TeamMember {
   email: string;
   role: TeamRole;
   status: TeamMemberStatus;
-  invited_at?: string;
-  joined_at?: string;
-  created_at: string;
-  updated_at: string;
+  invited_at?: Date;
+  joined_at?: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 /**
@@ -48,8 +48,9 @@ export interface Team {
   description?: string;
   owner_id: string;
   member_count: number;
-  created_at: string;
-  updated_at: string;
+  is_default: boolean;
+  created_at: Date;
+  updated_at: Date;
 }
 
 /**
@@ -74,10 +75,10 @@ export const teamMemberSchema = z.object({
   email: z.string().email(),
   role: teamRoleSchema,
   status: teamMemberStatusSchema,
-  invited_at: z.union([z.string(), z.number()]).transform(val => String(val)).optional(),
-  joined_at: z.union([z.string(), z.number()]).transform(val => String(val)).optional(),
-  created_at: z.union([z.string(), z.number()]).transform(val => String(val)),
-  updated_at: z.union([z.string(), z.number()]).transform(val => String(val)),
+  invited_at: z.number().transform(val => new Date(val * 1000)).optional(),
+  joined_at: z.number().transform(val => new Date(val * 1000)).optional(),
+  created_at: z.number().transform(val => new Date(val * 1000)),
+  updated_at: z.number().transform(val => new Date(val * 1000)),
 });
 
 export const teamSchema = z.object({
@@ -86,8 +87,9 @@ export const teamSchema = z.object({
   description: z.string().max(500).optional(),
   owner_id: z.string(),
   member_count: z.number().int().min(0),
-  created_at: z.union([z.string(), z.number()]).transform(val => String(val)),
-  updated_at: z.union([z.string(), z.number()]).transform(val => String(val)),
+  is_default: z.boolean(),
+  created_at: z.number().transform(val => new Date(val * 1000)),
+  updated_at: z.number().transform(val => new Date(val * 1000)),
 });
 
 export const teamWithRoleSchema = teamSchema.extend({
@@ -101,6 +103,7 @@ export const teamWithRoleSchema = teamSchema.extend({
 export const createTeamPayloadSchema = z.object({
   display_name: z.string().min(1, 'Team name is required').max(100, 'Team name is too long'),
   description: z.string().max(500, 'Description is too long').optional(),
+  org_id: z.string().optional(),
 });
 
 export const updateTeamPayloadSchema = z.object({

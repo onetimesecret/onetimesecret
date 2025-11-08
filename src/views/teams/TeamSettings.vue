@@ -146,7 +146,7 @@ aria-hidden="true" />
             @click="navigateToTeam"
             class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >
-            {{ activeTeam?.name }}
+            {{ activeTeam?.display_name }}
           </button>
         </li>
         <li>
@@ -277,13 +277,13 @@ aria-hidden="true" />
                 {{ t('web.teams.delete_team') }}
               </h3>
               <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {{ t('web.teams.delete_team_warning') }}
+                {{ activeTeam?.is_default ? t('web.teams.delete_default_team_warning') : t('web.teams.delete_team_warning') }}
               </p>
             </div>
             <button
               type="button"
               @click="showDeleteConfirm = true"
-              :disabled="isDeleting"
+              :disabled="isDeleting || activeTeam?.is_default"
               class="ml-4 inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-600"
             >
               <OIcon collection="heroicons"
@@ -301,7 +301,7 @@ aria-hidden="true" />
     <ConfirmDialog
       v-if="showDeleteConfirm"
       :title="t('web.teams.delete_team_confirm_title')"
-      :message="t('web.teams.delete_team_confirm_message', { name: activeTeam?.name })"
+      :message="t('web.teams.delete_team_confirm_message', { name: activeTeam?.display_name })"
       :confirm-text="t('web.teams.delete')"
       :cancel-text="t('web.COMMON.word_cancel')"
       type="danger"

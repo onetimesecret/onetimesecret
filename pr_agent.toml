@@ -58,7 +58,7 @@ enable = true
 # enable/disable features
 require_score_review=false
 require_tests_review=true
-require_estimate_effort_to_review=true
+require_estimate_effort_to_review=false
 require_can_be_split_review=false
 # soc2
 require_soc2_ticket=false
@@ -73,10 +73,10 @@ persistent_comment=true
 extra_instructions = ""
 final_update_message = true
 # review labels
-enable_review_labels_security=true
-enable_review_labels_effort=true
+enable_review_labels_security=false
+enable_review_labels_effort=false
 # specific configurations for incremental review (/review -i)
-require_all_thresholds_for_incremental_review=false
+require_all_thresholds_for_incremental_review=true
 minimal_commits_for_incremental_review=0
 minimal_minutes_for_incremental_review=5
 enable_help_text=false # Determines whether to include help text in the PR review. Enabled by default.
@@ -87,15 +87,15 @@ maximal_review_effort=9
 
 [pr_description] # /describe #
 publish_labels=true
-publish_description_as_comment=false
+publish_description_as_comment=true
 add_original_user_description=true
-keep_original_user_title=false
+keep_original_user_title=true
 use_bullet_points=true
 extra_instructions = ""
 enable_pr_type=true
 final_update_message = true
 enable_help_text=false
-enable_help_comment=true
+enable_help_comment=false
 ## changes walkthrough section
 enable_semantic_files_types=true
 collapsible_file_list='adaptive' # true, false, 'adaptive'
@@ -130,10 +130,10 @@ enable_help_text=true
 
 
 [checks] # /checks (pro feature) #
-enable_auto_checks_feedback=true
+enable_auto_checks_feedback=false
 excluded_checks_list=["lint"] # list of checks to exclude, for example: ["check1", "check2"]
 persistent_comment=true
-enable_help_text=true
+enable_help_text=false
 
 [pr_help] # /help #
 
@@ -142,7 +142,7 @@ enable_help_text=true
 [pr_similar_issue]
 skip_comments = false
 force_update_dataset = false
-max_issues_to_scan = 500
+max_issues_to_scan = 100
 vectordb = "pinecone"
 
 

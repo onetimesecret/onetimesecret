@@ -1,13 +1,12 @@
-<!-- src/components/teams/CreateTeamModal.vue -->
+<!-- src/components/organizations/CreateOrganizationModal.vue -->
 <script setup lang="ts">
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { classifyError } from '@/schemas/errors';
-import { useTeamStore } from '@/stores/teamStore';
 import { useOrganizationStore } from '@/stores/organizationStore';
-import { createTeamPayloadSchema, type CreateTeamPayload } from '@/types/team';
+import { createOrganizationPayloadSchema, type CreateOrganizationPayload } from '@/types/organization';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { z } from 'zod';
 
@@ -21,16 +20,14 @@ withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'created', teamId: string): void;
+  (e: 'created', orgId: string): void;
 }>();
 
-const teamStore = useTeamStore();
 const organizationStore = useOrganizationStore();
 
-const formData = ref<CreateTeamPayload>({
+const formData = ref<CreateOrganizationPayload>({
   display_name: '',
   description: '',
-  org_id: undefined,
 });
 
 const errors = ref<Record<string, string>>({});
@@ -50,23 +47,10 @@ const resetForm = () => {
   formData.value = {
     display_name: '',
     description: '',
-    org_id: undefined,
   };
   errors.value = {};
   generalError.value = '';
 };
-
-// Load organizations on mount
-onMounted(async () => {
-  if (organizationStore.hasOrganizations || organizationStore.loading) return;
-
-  try {
-    await organizationStore.fetchOrganizations();
-  } catch (error) {
-    // Silently fail - organizations are optional
-    console.debug('[CreateTeamModal] Could not load organizations:', error);
-  }
-});
 
 const handleSubmit = async () => {
   if (!isFormValid.value || isSubmitting.value) return;
@@ -77,13 +61,13 @@ const handleSubmit = async () => {
 
   try {
     // Validate form data
-    createTeamPayloadSchema.parse(formData.value);
+    createOrganizationPayloadSchema.parse(formData.value);
 
-    // Create team
-    const team = await teamStore.createTeam(formData.value);
+    // Create organization
+    const org = await organizationStore.createOrganization(formData.value);
 
     // Success - emit event and close
-    emit('created', team.id);
+    emit('created', org.id);
     closeModal();
   } catch (error) {
     if (error instanceof z.ZodError && error.errors) {
@@ -95,10 +79,10 @@ const handleSubmit = async () => {
     } else {
       // Handle API errors
       const classified = classifyError(error);
-      generalError.value = classified.userMessage || t('web.teams.create_error');
+      generalError.value = classified.userMessage || t('web.organizations.create_error');
 
       // Log for debugging
-      console.error('[CreateTeamModal] Error creating team:', error);
+      console.error('[CreateOrganizationModal] Error creating organization:', error);
     }
   } finally {
     isSubmitting.value = false;
@@ -143,7 +127,7 @@ const handleSubmit = async () => {
                 <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900">
                   <OIcon
                     collection="heroicons"
-                    name="users"
+                    name="building-office"
                     class="size-6 text-brand-600 dark:text-brand-400"
                     aria-hidden="true"
                   />
@@ -153,11 +137,11 @@ const handleSubmit = async () => {
                     as="h3"
                     class="text-base font-semibold leading-6 text-gray-900 dark:text-white"
                   >
-                    {{ t('web.teams.create_team') }}
+                    {{ t('web.organizations.create_organization') }}
                   </DialogTitle>
                   <div class="mt-2">
                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                      {{ t('web.teams.create_team_description') }}
+                      {{ t('web.organizations.create_organization_description') }}
                     </p>
                   </div>
                 </div>
@@ -170,22 +154,22 @@ const handleSubmit = async () => {
                 />
 
                 <div class="space-y-4">
-                  <!-- Team Name -->
+                  <!-- Organization Name -->
                   <div>
                     <label
-                      for="team-name"
+                      for="organization-name"
                       class="block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
-                      {{ t('web.teams.team_name') }}
+                      {{ t('web.organizations.organization_name') }}
                       <span class="text-red-500">*</span>
                     </label>
                     <input
-                      id="team-name"
+                      id="organization-name"
                       v-model="formData.display_name"
                       type="text"
                       required
                       maxlength="100"
-                      :placeholder="t('web.teams.team_name_placeholder')"
+                      :placeholder="t('web.organizations.organization_name_placeholder')"
                       :class="[
                         'mt-1 block w-full rounded-md shadow-sm sm:text-sm',
                         'focus:ring-brand-500 focus:border-brand-500',
@@ -200,47 +184,20 @@ const handleSubmit = async () => {
                     </p>
                   </div>
 
-                  <!-- Organization (optional) -->
-                  <div v-if="organizationStore.hasOrganizations">
-                    <label
-                      for="team-organization"
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      {{ t('web.organizations.select_organization') }}
-                    </label>
-                    <select
-                      id="team-organization"
-                      v-model="formData.org_id"
-                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
-                    >
-                      <option :value="undefined">{{ t('web.COMMON.word_none') }}</option>
-                      <option
-                        v-for="org in organizationStore.organizations"
-                        :key="org.id"
-                        :value="org.id"
-                      >
-                        {{ org.display_name }}
-                      </option>
-                    </select>
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      {{ t('web.organizations.organizations_description') }}
-                    </p>
-                  </div>
-
                   <!-- Description -->
                   <div>
                     <label
-                      for="team-description"
+                      for="organization-description"
                       class="block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
-                      {{ t('web.teams.description') }}
+                      {{ t('web.organizations.description') }}
                     </label>
                     <textarea
-                      id="team-description"
+                      id="organization-description"
                       v-model="formData.description"
                       rows="3"
                       maxlength="500"
-                      :placeholder="t('web.teams.description_placeholder')"
+                      :placeholder="t('web.organizations.description_placeholder')"
                       :class="[
                         'mt-1 block w-full rounded-md shadow-sm sm:text-sm',
                         'focus:ring-brand-500 focus:border-brand-500',
@@ -265,7 +222,7 @@ const handleSubmit = async () => {
                     :disabled="!isFormValid || isSubmitting"
                     class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 sm:col-start-2 dark:bg-brand-500 dark:hover:bg-brand-400"
                   >
-                    <span v-if="!isSubmitting">{{ t('web.teams.create') }}</span>
+                    <span v-if="!isSubmitting">{{ t('web.organizations.create') }}</span>
                     <span v-else>{{ t('web.COMMON.processing') }}</span>
                   </button>
                   <button

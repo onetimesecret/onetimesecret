@@ -38,12 +38,13 @@ module TeamAPI::Logic
           record: {
             id: team.teamid,
             display_name: team.display_name,
-            description: team.description,
+            description: team.description || '',
             owner_id: team.owner_id,
-            is_owner: team.owner?(cust),
             member_count: team.member_count,
-            created: team.created,
-            updated: team.updated,
+            is_default: team.is_default || false,
+            created_at: team.created,
+            updated_at: team.updated,
+            current_user_role: team.owner?(cust) ? 'owner' : 'member',
             members: members.map do |member|
               {
                 custid: member.custid,
