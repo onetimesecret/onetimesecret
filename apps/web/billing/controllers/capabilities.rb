@@ -81,7 +81,7 @@ module Billing
         org = load_organization(req.params[:org_id])
         capability = req.params[:capability]
 
-        unless capability.present?
+        if capability.to_s.empty?
           return json_error("Capability parameter required", status: 400)
         end
 

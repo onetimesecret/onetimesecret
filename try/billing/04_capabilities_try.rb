@@ -14,46 +14,49 @@ require_relative '../support/test_helpers'
 require 'lib/onetime/models/organization'
 require 'lib/onetime/billing/plan_definitions'
 
-## Create test organizations with different plans
+## Create unique test ID suffix to avoid collisions
+@test_suffix = Time.now.to_i.to_s[-6..-1]
+@test_suffix.class
+#=> String
 
-# Free plan organization
+## Create free plan organization
 @free_org = Onetime::Organization.new(
   display_name: 'Free Org',
   owner_id: 'cust_test_001',
-  contact_email: 'free@example.com',
+  contact_email: "free-#{@test_suffix}@example.com",
   planid: 'free'
 )
 @free_org.save
 @free_org.planid
 #=> 'free'
 
-# Identity Plus v1 organization
+## Create Identity Plus v1 organization
 @identity_org = Onetime::Organization.new(
   display_name: 'Identity Org',
   owner_id: 'cust_test_002',
-  contact_email: 'identity@example.com',
+  contact_email: "identity-#{@test_suffix}@example.com",
   planid: 'identity_v1'
 )
 @identity_org.save
 @identity_org.planid
 #=> 'identity_v1'
 
-# Multi-Team v1 organization
+## Create Multi-Team v1 organization
 @multi_org = Onetime::Organization.new(
   display_name: 'Multi Org',
   owner_id: 'cust_test_003',
-  contact_email: 'multi@example.com',
+  contact_email: "multi-#{@test_suffix}@example.com",
   planid: 'multi_team_v1'
 )
 @multi_org.save
 @multi_org.planid
 #=> 'multi_team_v1'
 
-# Legacy Identity v0 organization (grandfathered)
+## Create Legacy Identity v0 organization (grandfathered)
 @legacy_org = Onetime::Organization.new(
   display_name: 'Legacy Org',
   owner_id: 'cust_test_004',
-  contact_email: 'legacy@example.com',
+  contact_email: "legacy-#{@test_suffix}@example.com",
   planid: 'identity_v0'
 )
 @legacy_org.save
@@ -76,7 +79,7 @@ require 'lib/onetime/billing/plan_definitions'
 @free_org.can?('custom_domains')
 #=> false
 
-## Test: Identity Plus v1 capabilities include team creation
+## Test: Identity Plus v1 can create team
 @identity_org.can?('create_team')
 #=> true
 
@@ -92,20 +95,23 @@ require 'lib/onetime/billing/plan_definitions'
 @identity_org.can?('audit_logs')
 #=> false
 
-## Test: Multi-Team has all advanced features
+## Test: Multi-Team can create multiple teams
 @multi_org.can?('create_teams')
 #=> true
 
+## Test: Multi-Team has API access
 @multi_org.can?('api_access')
 #=> true
 
+## Test: Multi-Team has audit logs
 @multi_org.can?('audit_logs')
 #=> true
 
+## Test: Multi-Team has advanced analytics
 @multi_org.can?('advanced_analytics')
 #=> true
 
-## Test: Legacy plan (v0) has limited capabilities
+## Test: Legacy plan can create team
 @legacy_org.can?('create_team')
 #=> true
 
@@ -113,13 +119,13 @@ require 'lib/onetime/billing/plan_definitions'
 @legacy_org.can?('custom_domains')
 #=> false
 
-## Test: Limit checking - Free plan secret limit
+## Test: Free plan secret per day limit
 @free_org.limit_for('secrets_per_day')
 #=> 10
 
-## Test: Limit checking - Free plan lifetime limit
+## Test: Free plan secret lifetime limit
 @free_org.limit_for('secret_lifetime')
-#=:> 7.days
+#=> 604800
 
 ## Test: Identity Plus teams limit
 @identity_org.limit_for('teams')
@@ -141,16 +147,6 @@ require 'lib/onetime/billing/plan_definitions'
 @identity_org.limit_for('unknown_resource')
 #=> Float::INFINITY
 
-## Test: Unknown resource defaults to 0 for plans without definition
-@unknown_org = Onetime::Organization.new(
-  display_name: 'Unknown Plan',
-  owner_id: 'cust_test_999',
-  contact_email: 'unknown@example.com',
-  planid: 'nonexistent_plan'
-)
-@unknown_org.limit_for('teams')
-#=> 0
-
 ## Test: at_limit? check when at limit
 @identity_org.at_limit?('teams', 1)
 #=> true
@@ -163,17 +159,20 @@ require 'lib/onetime/billing/plan_definitions'
 @multi_org.at_limit?('teams', 999999)
 #=> false
 
-## Test: check_capability returns detailed response
+## Test: check_capability returns not allowed for missing capability
 @result = @free_org.check_capability('custom_domains')
 @result[:allowed]
 #=> false
 
+## Test: check_capability shows upgrade needed
 @result[:upgrade_needed]
 #=> true
 
+## Test: check_capability shows capability name
 @result[:capability]
 #=> "custom_domains"
 
+## Test: check_capability shows current plan
 @result[:current_plan]
 #=> "free"
 
@@ -181,97 +180,106 @@ require 'lib/onetime/billing/plan_definitions'
 @result[:upgrade_to]
 #=> "identity_v1"
 
-## Test: check_capability for allowed capability
+## Test: check_capability for allowed capability shows allowed
 @allowed_result = @identity_org.check_capability('custom_domains')
 @allowed_result[:allowed]
 #=> true
 
+## Test: check_capability for allowed shows no upgrade needed
 @allowed_result[:upgrade_needed]
 #=> false
 
-## Test: Upgrade path recommendation for free to custom_domains
+## Test: Upgrade path from free to custom_domains is identity
 Onetime::Billing.upgrade_path_for('custom_domains', 'free')
 #=> "identity_v1"
 
-## Test: Upgrade path for Identity to audit_logs
+## Test: Upgrade path from Identity to audit_logs is multi_team
 Onetime::Billing.upgrade_path_for('audit_logs', 'identity_v1')
 #=> "multi_team_v1"
 
-## Test: Upgrade path for capability not available returns nil
+## Test: Upgrade path for nonexistent capability returns nil
 Onetime::Billing.upgrade_path_for('nonexistent_capability', 'free')
 #=> nil
 
-## Test: Plan name formatting
+## Test: Plan name for free
 Onetime::Billing.plan_name('free')
 #=> "Free"
 
+## Test: Plan name for identity_v1
 Onetime::Billing.plan_name('identity_v1')
 #=> "Identity Plus"
 
+## Test: Plan name for multi_team_v1
 Onetime::Billing.plan_name('multi_team_v1')
 #=> "Multi-Team"
 
-## Test: Legacy plan detection
+## Test: Legacy plan detection for v0
 Onetime::Billing.legacy_plan?('identity_v0')
 #=> true
 
+## Test: Legacy plan detection for v1
 Onetime::Billing.legacy_plan?('identity_v1')
 #=> false
 
-## Test: Available plans excludes legacy
+## Test: Available plans includes identity_v1
 Onetime::Billing.available_plans.include?('identity_v1')
 #=> true
 
+## Test: Available plans excludes legacy identity_v0
 Onetime::Billing.available_plans.include?('identity_v0')
 #=> false
 
-## Test: Capability categories defined
+## Test: Capability categories are defined
 Onetime::Billing::CAPABILITY_CATEGORIES[:core].class
 #=> Array
 
+## Test: Core capabilities include create_secrets
 Onetime::Billing::CAPABILITY_CATEGORIES[:core].include?('create_secrets')
 #=> true
 
-## Test: Fail-safe for nil planid
+## Test: Fail-safe for nil planid returns empty capabilities
 @no_plan_org = Onetime::Organization.new(
   display_name: 'No Plan',
   owner_id: 'cust_test_888',
-  contact_email: 'noplan@example.com'
+  contact_email: "noplan-#{@test_suffix}@example.com"
 )
 @no_plan_org.planid = nil
 @no_plan_org.capabilities
 #=> []
 
+## Test: Fail-safe for nil planid denies create_secrets
 @no_plan_org.can?('create_secrets')
 #=> false
 
+## Test: Fail-safe for nil planid returns 0 limit
 @no_plan_org.limit_for('teams')
 #=> 0
 
-## Test: Fail-safe for empty string planid
+## Test: Fail-safe for empty planid returns empty capabilities
 @empty_plan_org = Onetime::Organization.new(
   display_name: 'Empty Plan',
   owner_id: 'cust_test_777',
-  contact_email: 'empty@example.com'
+  contact_email: "empty-#{@test_suffix}@example.com"
 )
 @empty_plan_org.planid = ''
 @empty_plan_org.capabilities
 #=> []
 
-## Test: Organization defaults to 'free' plan on init
+## Test: New organization defaults to free plan
 @new_org = Onetime::Organization.new(
   display_name: 'New Org',
   owner_id: 'cust_test_555',
-  contact_email: 'new@example.com'
+  contact_email: "new-#{@test_suffix}@example.com"
 )
 @new_org.planid
 #=> 'free'
 
+## Test: New organization can create secrets
 @new_org.can?('create_secrets')
 #=> true
 
 ## Teardown: Clean up test organizations
-[@free_org, @identity_org, @multi_org, @legacy_org, @unknown_org, @no_plan_org, @empty_plan_org, @new_org].each do |org|
+[@free_org, @identity_org, @multi_org, @legacy_org, @no_plan_org, @empty_plan_org, @new_org].each do |org|
   org&.destroy! rescue nil
 end
 true

@@ -51,7 +51,7 @@ module Onetime
           # @example
           #   org.capabilities  # => ["create_secrets", "create_team", "custom_domains"]
           def capabilities
-            return [] unless planid.to_s.present?
+            return [] if planid.to_s.empty?
 
             plan_def = Onetime::Billing::PLAN_DEFINITIONS[planid]
             return [] unless plan_def  # Fail safely
@@ -75,7 +75,7 @@ module Onetime
           #   org.limit_for(:members_per_team)  # => Float::INFINITY
           #   org.limit_for('unknown')          # => 0
           def limit_for(resource)
-            return 0 unless planid.to_s.present?
+            return 0 if planid.to_s.empty?
 
             plan_def = Onetime::Billing::PLAN_DEFINITIONS[planid]
             return 0 unless plan_def

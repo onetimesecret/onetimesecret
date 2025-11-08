@@ -29,7 +29,7 @@ module Onetime
         ],
         limits: {
           secrets_per_day: 10,
-          secret_lifetime: 7.days,
+          secret_lifetime: 7 * 24 * 60 * 60, # 7 days in seconds
         }
       },
 
@@ -49,7 +49,7 @@ module Onetime
           teams: 1,
           members_per_team: Float::INFINITY,
           custom_domains: Float::INFINITY,
-          secret_lifetime: 30.days,
+          secret_lifetime: 30 * 24 * 60 * 60, # 30 days in seconds
         }
       },
 
@@ -73,7 +73,7 @@ module Onetime
           members_per_team: Float::INFINITY,
           custom_domains: Float::INFINITY,
           api_rate_limit: 10_000,  # requests per hour
-          secret_lifetime: 90.days,
+          secret_lifetime: 90 * 24 * 60 * 60, # 90 days in seconds
         }
       },
 
@@ -93,7 +93,7 @@ module Onetime
         limits: {
           teams: 1,
           members_per_team: 10,  # Old limit was 10 members
-          secret_lifetime: 14.days,
+          secret_lifetime: 14 * 24 * 60 * 60, # 14 days in seconds
         }
       },
 
@@ -114,7 +114,7 @@ module Onetime
           teams: Float::INFINITY,
           members_per_team: 25,  # Old limit
           api_rate_limit: 5_000, # Lower rate limit
-          secret_lifetime: 30.days,
+          secret_lifetime: 30 * 24 * 60 * 60, # 30 days in seconds
         }
       }
     }.freeze
@@ -210,7 +210,7 @@ module Onetime
     #
     # @return [Array<String>] List of current plan IDs
     def self.available_plans
-      PLAN_DEFINITIONS.reject { |_id, def| def[:legacy] }.keys
+      PLAN_DEFINITIONS.reject { |_id, plan_def| plan_def[:legacy] }.keys
     end
 
   end
