@@ -1,4 +1,6 @@
 # apps/web/auth/config/features/security.rb
+#
+# frozen_string_literal: true
 
 module Auth::Config::Features
   # Placeholder for Rodauth overrides

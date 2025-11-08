@@ -1,4 +1,6 @@
 # apps/api/teams/logic/base.rb
+#
+# frozen_string_literal: true
 
 # Team API Logic Base Class
 #

@@ -1,4 +1,6 @@
 # apps/api/v2/models/features/increment_field.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Models

@@ -1,4 +1,6 @@
 # apps/api/v1/refinements.rb
+#
+# frozen_string_literal: true
 
 module V1
   # FlexibleHashAccess provides enhanced Hash methods for handling web request

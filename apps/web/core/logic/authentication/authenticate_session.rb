@@ -1,4 +1,6 @@
 # apps/web/core/logic/authentication/authenticate_session.rb
+#
+# frozen_string_literal: true
 
 module Core::Logic
   module Authentication

@@ -1,4 +1,5 @@
 // src/tests/schemas/errors/classifier.spec.ts
+
 import { classifyError, createError } from '@/schemas/errors/classifier';
 import { errorGuards } from '@/schemas/errors/guards';
 import { describe, expect, it } from 'vitest';

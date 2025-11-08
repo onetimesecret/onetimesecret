@@ -1,3 +1,5 @@
+# try/integration/authentication/advanced_mode/audit_logging_config_try.rb
+#
 # frozen_string_literal: true
 
 require_relative '../../../support/test_helpers'

@@ -1,4 +1,6 @@
 # try/50_middleware/20_domain_strategy_basics_try.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../../support/test_helpers'
 

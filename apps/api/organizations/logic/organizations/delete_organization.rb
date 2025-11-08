@@ -1,4 +1,6 @@
 # apps/api/organizations/logic/organizations/delete_organization.rb
+#
+# frozen_string_literal: true
 
 module OrganizationAPI::Logic
   module Organizations

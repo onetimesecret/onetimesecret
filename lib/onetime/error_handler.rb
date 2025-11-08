@@ -1,3 +1,5 @@
+# lib/onetime/error_handler.rb
+#
 # frozen_string_literal: true
 
 # lib/onetime/error_handler.rb

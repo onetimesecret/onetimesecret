@@ -1,4 +1,6 @@
 # try/integration/authentication/basic_mode/adapter_try.rb
+#
+# frozen_string_literal: true
 
 # Test to verify Auth app adapter behavior in basic mode
 #

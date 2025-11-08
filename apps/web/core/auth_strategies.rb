@@ -1,5 +1,8 @@
 # apps/web/core/auth_strategies.rb
 #
+# frozen_string_literal: true
+
+#
 # Otto authentication strategies for Web Core (apps/web/core).
 #
 # This module delegates to the centralized Onetime::Application::AuthStrategies

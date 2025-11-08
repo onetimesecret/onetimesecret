@@ -1,4 +1,6 @@
 # lib/onetime/models/customer/features/safe_dump_fields.rb
+#
+# frozen_string_literal: true
 
 module Onetime::Customer::Features
   module SafeDumpFields

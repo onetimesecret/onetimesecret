@@ -1,4 +1,6 @@
 # lib/onetime/middleware/startup_readiness.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Middleware

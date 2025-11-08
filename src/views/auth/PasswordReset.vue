@@ -1,4 +1,5 @@
 <!-- src/views/auth/PasswordReset.vue -->
+
 <script setup lang="ts">
 import { useAuth } from '@/composables/useAuth';
 import { ref } from 'vue';

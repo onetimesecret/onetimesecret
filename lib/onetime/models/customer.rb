@@ -1,4 +1,6 @@
 # lib/onetime/models/customer.rb
+#
+# frozen_string_literal: true
 
 require 'rack/utils'
 require 'bcrypt'

@@ -1,4 +1,6 @@
 # apps/api/v1/logic/secrets/show_secret.rb
+#
+# frozen_string_literal: true
 
 module V1::Logic
   module Secrets

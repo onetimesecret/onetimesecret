@@ -1,4 +1,5 @@
 <!-- src/components/auth/SignInForm.vue -->
+
 <script setup lang="ts">
 import { useAuth } from '@/composables/useAuth';
 import LockoutAlert from '@/components/auth/LockoutAlert.vue';

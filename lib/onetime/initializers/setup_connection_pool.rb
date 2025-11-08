@@ -1,4 +1,6 @@
 # lib/onetime/initializers/setup_connection_pool.rb
+#
+# frozen_string_literal: true
 
 require 'connection_pool'
 

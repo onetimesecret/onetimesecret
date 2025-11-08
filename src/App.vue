@@ -1,4 +1,5 @@
 <!-- src/App.vue -->
+
 <script setup lang="ts">
   import StatusBar from '@/components/StatusBar.vue';
   import QuietLayout from '@/layouts/QuietLayout.vue';

@@ -1,4 +1,6 @@
 # apps/api/v2/logic/authentication/destroy_session.rb
+#
+# frozen_string_literal: true
 
 module AccountAPI::Logic
   module Authentication

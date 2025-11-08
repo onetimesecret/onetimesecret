@@ -1,4 +1,6 @@
 # apps/web/auth/config/features/webauthn.rb
+#
+# frozen_string_literal: true
 
 module Auth::Config::Features
   module WebAuthn

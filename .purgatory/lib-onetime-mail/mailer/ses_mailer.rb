@@ -1,4 +1,6 @@
 # lib/onetime/mail/mailer/ses_mailer.rb
+#
+# frozen_string_literal: true
 
 require 'aws-sdk-sesv2'
 require_relative 'base_mailer'

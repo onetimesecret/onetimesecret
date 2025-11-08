@@ -1,4 +1,6 @@
 # lib/onetime/initializers/detect_legacy_data_and_warn
+#
+# frozen_string_literal: true
 
 module Onetime
   module Initializers

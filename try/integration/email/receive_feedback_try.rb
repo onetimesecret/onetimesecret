@@ -1,4 +1,6 @@
 # try/68_receive_feedback_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test the feedback receiving functionality in the Onetime application.
 # They cover various aspects of handling user feedback, including:

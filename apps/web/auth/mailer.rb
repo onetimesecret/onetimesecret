@@ -1,4 +1,6 @@
 # apps/web/auth/config/email.rb
+#
+# frozen_string_literal: true
 
 require 'net/smtp'
 

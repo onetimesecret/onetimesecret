@@ -1,5 +1,8 @@
 # try/unit/logic/account/create_account_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Comprehensive tests for CreateAccount logic class focusing on
 # authentication state validation and edge cases.
 #

@@ -1,4 +1,6 @@
 # try/20_models/27_domains_expiration_try.rb
+#
+# frozen_string_literal: true
 
 require 'securerandom'
 

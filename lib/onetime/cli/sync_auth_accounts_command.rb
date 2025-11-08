@@ -1,5 +1,8 @@
 # lib/onetime/cli/sync_auth_accounts_command.rb
 #
+# frozen_string_literal: true
+
+#
 # Synchronizes customer records from Redis to Auth application SQL database.
 # Primary use case: Switching from auth mode=basic to mode=advanced.
 #

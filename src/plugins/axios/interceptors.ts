@@ -1,4 +1,5 @@
 // src/plugins/axios/interceptors.ts
+
 import { useLanguageStore } from '@/stores';
 import { useCsrfStore } from '@/stores/csrfStore';
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';

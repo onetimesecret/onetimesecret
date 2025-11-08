@@ -1,4 +1,6 @@
 # lib/onetime/mail/views/base.rb
+#
+# frozen_string_literal: true
 
 require 'chimera'
 

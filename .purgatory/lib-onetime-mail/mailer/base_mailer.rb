@@ -1,4 +1,6 @@
 # lib/onetime/mail/mailer/base_mailer.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Mail

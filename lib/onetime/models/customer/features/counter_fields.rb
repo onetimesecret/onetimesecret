@@ -1,4 +1,6 @@
 # apps/api/v2/models/customer/features/counter_fields.rb
+#
+# frozen_string_literal: true
 
 module Onetime::Customer::Features
   module CounterFields

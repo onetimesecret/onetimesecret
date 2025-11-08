@@ -1,4 +1,6 @@
 # lib/onetime/cli/domains_command.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   class DomainsCommand < Onetime::CLI

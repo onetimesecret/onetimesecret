@@ -1,4 +1,7 @@
 # spec/spec_helper.rb
+#
+# frozen_string_literal: true
+
 # Test harness for Onetime.
 
 require 'rspec'

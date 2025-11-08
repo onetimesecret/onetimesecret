@@ -1,4 +1,6 @@
 # apps/web/auth/operations/prepare_mfa_session.rb
+#
+# frozen_string_literal: true
 
 #
 # Prepares the session for MFA (Multi-Factor Authentication) flow.

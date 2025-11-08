@@ -1,4 +1,6 @@
 # apps/web/core/views/helpers/sanitizer.rb
+#
+# frozen_string_literal: true
 
 # SanitizerHelpers provides methods for sanitizing data before rendering in views.
 #

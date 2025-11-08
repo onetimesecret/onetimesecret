@@ -1,4 +1,6 @@
 # try/10_utils_fortunes_try.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../support/test_helpers'
 

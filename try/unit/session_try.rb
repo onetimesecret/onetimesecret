@@ -1,5 +1,8 @@
 # try/unit/minimal_session_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Session Test Suite
 #
 

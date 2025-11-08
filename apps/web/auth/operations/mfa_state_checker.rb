@@ -1,4 +1,6 @@
 # apps/web/auth/operations/mfa_state_checker.rb
+#
+# frozen_string_literal: true
 
 #
 # Service for checking MFA (Multi-Factor Authentication) configuration state

@@ -1,4 +1,5 @@
 // src/tests/stores/domainsStore.spec.ts
+
 import { useDomainsStore } from '@/stores/domainsStore';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

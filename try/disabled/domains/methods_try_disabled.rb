@@ -1,4 +1,6 @@
 # try/20_models/27_domains_methods_try.rb
+#
+# frozen_string_literal: true
 
 require 'securerandom'
 

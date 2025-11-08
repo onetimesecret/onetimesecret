@@ -1,4 +1,6 @@
 # apps/web/auth/router.rb
+#
+# frozen_string_literal: true
 
 require 'roda'
 require 'rodauth'

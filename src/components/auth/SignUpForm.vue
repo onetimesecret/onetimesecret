@@ -1,4 +1,5 @@
 <!-- SignUpForm.vue -->
+
 <script setup lang="ts">
 import { Jurisdiction } from '@/schemas/models';
 import { useAuth } from '@/composables/useAuth';

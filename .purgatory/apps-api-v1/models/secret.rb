@@ -1,4 +1,6 @@
 # apps/api/v1/models/secret.rb
+#
+# frozen_string_literal: true
 
 require_relative 'mixins/passphrase'
 

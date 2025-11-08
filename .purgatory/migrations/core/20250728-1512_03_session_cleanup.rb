@@ -1,5 +1,8 @@
 # migrate/1512_03_session_cleanup.rb
 #
+# frozen_string_literal: true
+
+#
 # Session Cleanup - Remove test user sessions
 #
 # Purpose: Removes session records with no expiration

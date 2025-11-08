@@ -1,4 +1,6 @@
 # lib/onetime/cli/initializers_command.rb
+#
+# frozen_string_literal: true
 
 # Standalone command that doesn't inherit from Onetime::CLI
 # to avoid the automatic boot process

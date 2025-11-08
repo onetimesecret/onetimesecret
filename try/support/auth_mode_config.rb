@@ -1,5 +1,8 @@
 # try/support/auth_mode_config.rb
 #
+# frozen_string_literal: true
+
+#
 # Centralized authentication mode detection and test helpers
 #
 # Authentication Modes:

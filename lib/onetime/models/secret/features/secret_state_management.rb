@@ -1,4 +1,6 @@
 # lib/onetime/models/secret/features/secret_state_management.rb
+#
+# frozen_string_literal: true
 
 module Onetime::Secret::Features
   module SecretStateManagement

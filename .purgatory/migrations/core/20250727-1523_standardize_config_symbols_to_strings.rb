@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
+#
+# frozen_string_literal: true
+
 # migrate/20250727-1523_standardize_config_symbols_to_strings.rb
 #
 # Configuration Standardization Migration

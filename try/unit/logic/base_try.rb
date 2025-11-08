@@ -1,4 +1,6 @@
 # try/60_logic/01_logic_base_try.rb
+#
+# frozen_string_literal: true
 
 # These tests cover the core functionality of the Logic::Base class,
 # which serves as the foundation for all logic classes in the application.

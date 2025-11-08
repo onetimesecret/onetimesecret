@@ -1,4 +1,6 @@
 # try/23_passphrase_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test the functionality of passphrase handling in the Onetime application.
 # Specifically, they focus on:

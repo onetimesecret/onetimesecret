@@ -1,3 +1,5 @@
+# apps/web/core/middleware/error_handling.rb
+#
 # frozen_string_literal: true
 
 # ErrorHandling middleware for Web Core application.

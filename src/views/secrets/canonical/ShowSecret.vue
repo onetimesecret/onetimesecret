@@ -1,4 +1,5 @@
 <!-- src/views/secrets/canonical/ShowSecret.vue -->
+
 <script setup lang="ts">
   /**
    * Core Onetime Secret implementation that uses distinct layouts for confirmation

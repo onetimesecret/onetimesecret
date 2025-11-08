@@ -1,4 +1,6 @@
 # spec/support/view_context.rb
+#
+# frozen_string_literal: true
 
 RSpec.shared_context "view_test_context" do
   let(:rack_request) do

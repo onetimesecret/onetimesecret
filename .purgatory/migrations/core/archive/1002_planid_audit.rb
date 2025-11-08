@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
+#
+# frozen_string_literal: true
+
 # migrate/1002_planid_audit.rb
 
 base_path = File.expand_path File.join(File.dirname(__FILE__), '..')

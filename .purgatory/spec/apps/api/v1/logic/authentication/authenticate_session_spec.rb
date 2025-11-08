@@ -1,4 +1,6 @@
 # spec/apps/api/v1/logic/authentication/authenticate_session_spec.rb
+#
+# frozen_string_literal: true
 
 require 'spec_helper'
 

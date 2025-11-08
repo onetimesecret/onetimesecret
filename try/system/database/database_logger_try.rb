@@ -1,5 +1,8 @@
 # try/80_database/20_database_logger_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Tryouts for Familia's DatabaseLogger middleware functionality
 #
 # These tests verify that Familia's DatabaseLogger middleware correctly

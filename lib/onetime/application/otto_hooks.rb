@@ -1,5 +1,8 @@
 # lib/onetime/application/otto_hooks.rb
 #
+# frozen_string_literal: true
+
+#
 # Shared Otto request lifecycle hooks for Otto-based applications.
 #
 # This module provides common Otto hook configurations that can be included

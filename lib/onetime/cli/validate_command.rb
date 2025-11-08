@@ -1,4 +1,6 @@
 # lib/onetime/cli/validate_command.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   class ValidateCommand < Onetime::CLI

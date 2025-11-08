@@ -1,4 +1,6 @@
 # apps/api/v1/utils.rb
+#
+# frozen_string_literal: true
 
 module V1
   # V1::Utils - a local copy of the Onetime::Utils of old.

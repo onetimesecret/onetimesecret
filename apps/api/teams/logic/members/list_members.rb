@@ -1,4 +1,6 @@
 # apps/api/teams/logic/members/list_members.rb
+#
+# frozen_string_literal: true
 
 module TeamAPI::Logic
   module Members

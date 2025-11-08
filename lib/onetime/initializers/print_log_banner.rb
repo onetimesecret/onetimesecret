@@ -1,4 +1,6 @@
 # lib/onetime/initializers/print_log_banner.rb
+#
+# frozen_string_literal: true
 
 # No longer need tty-table
 

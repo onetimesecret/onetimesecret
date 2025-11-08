@@ -1,4 +1,6 @@
 # apps/web/auth/config.rb
+#
+# frozen_string_literal: true
 
 require 'rodauth'
 require 'rodauth/tools'

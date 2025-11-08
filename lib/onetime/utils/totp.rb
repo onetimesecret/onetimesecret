@@ -1,3 +1,5 @@
+# lib/onetime/utils/totp.rb
+#
 # frozen_string_literal: true
 
 require 'rotp'

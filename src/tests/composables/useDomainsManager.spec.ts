@@ -1,4 +1,5 @@
 // src/tests/composables/useDomainsManager.spec.ts
+
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { ApplicationError } from '@/schemas/errors';
 import { mockDomains, newDomainData } from '@/tests/fixtures/domains.fixture';

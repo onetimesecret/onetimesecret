@@ -1,5 +1,8 @@
 # apps/web/auth/config/hooks/passwordless.rb
 #
+# frozen_string_literal: true
+
+#
 # ==============================================================================
 # USER JOURNEY: PASSWORDLESS EMAIL AUTHENTICATION (MAGIC LINK)
 # ==============================================================================

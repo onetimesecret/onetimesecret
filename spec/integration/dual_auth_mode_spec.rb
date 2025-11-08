@@ -1,4 +1,6 @@
 # spec/integration/dual_auth_mode_spec.rb
+#
+# frozen_string_literal: true
 
 # Integration tests for dual authentication mode (basic/advanced)
 #

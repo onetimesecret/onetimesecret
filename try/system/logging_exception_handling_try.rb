@@ -1,5 +1,8 @@
 # try/system/logging_exception_handling_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Tests for enhanced exception logging functionality with SemanticLogger.
 # Tests the new exception: parameter for OT.le method.
 

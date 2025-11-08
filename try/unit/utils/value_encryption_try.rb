@@ -1,4 +1,6 @@
 # try/22_value_encryption_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test the encryption and decryption functionality
 # of the Onetime::Secret class.

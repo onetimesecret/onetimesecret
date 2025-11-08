@@ -1,4 +1,6 @@
 # lib/onetime/refinements/stripe_refinements.rb
+#
+# frozen_string_literal: true
 
 require 'stripe' # ensures Stripe namespace is loaded
 

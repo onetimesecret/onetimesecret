@@ -1,5 +1,8 @@
 # try/integration/api/teams/authorization_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Integration tests for Teams authorization and permissions:
 # - Non-owner cannot update team
 # - Non-owner cannot delete team

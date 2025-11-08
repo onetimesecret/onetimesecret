@@ -1,4 +1,6 @@
 # lib/onetime/initializers/check_global_banner.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Initializers

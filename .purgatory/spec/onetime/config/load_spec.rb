@@ -1,4 +1,6 @@
 # spec/onetime/config/load_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../spec_helper'
 require 'tempfile'

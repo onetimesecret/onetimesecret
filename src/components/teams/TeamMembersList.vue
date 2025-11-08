@@ -1,4 +1,5 @@
 <!-- src/components/teams/TeamMembersList.vue -->
+
 <script setup lang="ts">
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import OIcon from '@/components/icons/OIcon.vue';

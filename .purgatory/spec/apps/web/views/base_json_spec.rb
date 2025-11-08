@@ -1,4 +1,6 @@
 # spec/apps/web/views/base_json_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../../spec_helper'
 require 'familia/json_serializer'

@@ -1,4 +1,6 @@
 # apps/api/v2/controllers/meta.rb
+#
+# frozen_string_literal: true
 
 require 'familia/json_serializer'
 require 'base64'

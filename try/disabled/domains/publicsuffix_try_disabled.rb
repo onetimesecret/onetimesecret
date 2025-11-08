@@ -1,4 +1,6 @@
 # try/20_models/27_domains_publicsuffix_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test domain-related functionality using the PublicSuffix gem
 

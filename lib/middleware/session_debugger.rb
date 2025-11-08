@@ -1,5 +1,8 @@
 # lib/middleware/session_debugger.rb
 #
+# frozen_string_literal: true
+
+#
 # Lightweight debugging middleware for session persistence issues
 #
 # Enable with:

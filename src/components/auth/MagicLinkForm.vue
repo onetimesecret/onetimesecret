@@ -1,4 +1,5 @@
 <!-- src/components/auth/MagicLinkForm.vue -->
+
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useMagicLink } from '@/composables/useMagicLink';

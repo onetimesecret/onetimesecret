@@ -1,4 +1,6 @@
 # lib/onetime/cli/migrate_redis_data_command.rb
+#
+# frozen_string_literal: true
 
 require_relative '../redis_key_migrator'
 

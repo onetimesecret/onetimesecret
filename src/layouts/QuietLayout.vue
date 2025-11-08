@@ -1,4 +1,5 @@
 <!-- src/layouts/QuietLayout.vue -->
+
 <script setup lang="ts">
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';

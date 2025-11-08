@@ -1,4 +1,6 @@
 # try/05_logging.rb
+#
+# frozen_string_literal: true
 
 #
 # Capture STDOUT and STDERR for testing

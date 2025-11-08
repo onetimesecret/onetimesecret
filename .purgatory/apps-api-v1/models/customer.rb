@@ -1,4 +1,6 @@
 # apps/api/v1/models/customer.rb
+#
+# frozen_string_literal: true
 
 require 'rack/utils'
 

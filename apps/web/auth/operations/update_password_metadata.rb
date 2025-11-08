@@ -1,4 +1,6 @@
 # apps/web/auth/operations/update_password_metadata.rb
+#
+# frozen_string_literal: true
 
 #
 # Updates customer metadata after a password change.

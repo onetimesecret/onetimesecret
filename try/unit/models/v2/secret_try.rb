@@ -1,4 +1,6 @@
 # try/21_secret_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test the Onetime::Secret class functionality.
 # The Secret class is responsible for managing secrets in the

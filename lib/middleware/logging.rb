@@ -1,5 +1,8 @@
 # lib/middleware/logging.rb
 #
+# frozen_string_literal: true
+
+#
 # Provides standardized logging for middleware components.
 # Uses SemanticLogger when available, falls back to stdlib Logger.
 #

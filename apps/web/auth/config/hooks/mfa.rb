@@ -1,4 +1,6 @@
 # apps/web/auth/config/hooks/mfa.rb
+#
+# frozen_string_literal: true
 
 module Auth::Config::Hooks
   # All Valid Hooks:

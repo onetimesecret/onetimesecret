@@ -1,4 +1,6 @@
 # try/17_mail_validation.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test the email validation functionality using the Truemail gem.
 # Email validation is crucial for ensuring that user-provided email addresses

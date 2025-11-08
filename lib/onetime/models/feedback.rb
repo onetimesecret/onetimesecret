@@ -1,4 +1,6 @@
 # lib/onetime/models/feedback.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   class Feedback < Familia::Horreum

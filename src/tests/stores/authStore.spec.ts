@@ -1,4 +1,5 @@
 // src/tests/stores/authStore.spec.ts
+
 import { Customer } from '@/schemas/models';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/stores/authStore';
 import { createApi } from '@/api';

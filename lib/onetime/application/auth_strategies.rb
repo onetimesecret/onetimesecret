@@ -1,5 +1,8 @@
 # lib/onetime/application/auth_strategies.rb
 #
+# frozen_string_literal: true
+
+#
 # Centralized authentication strategies for Onetime applications.
 # All applications (Web Core, V2 API, etc.) use these shared strategy classes.
 #

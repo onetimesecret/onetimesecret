@@ -1,4 +1,6 @@
 # lib/onetime/initializers.rb
+#
+# frozen_string_literal: true
 
 require_relative 'initializers/set_secrets'
 require_relative 'initializers/load_locales'

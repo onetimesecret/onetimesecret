@@ -1,4 +1,6 @@
 # spec/apps/api/authentication_security_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../spec_helper'
 

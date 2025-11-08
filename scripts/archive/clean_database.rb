@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
+#
+# frozen_string_literal: true
+
 # support/clean_database.rb
 #
 # Clear Redis databases with safety checks and options

@@ -1,4 +1,5 @@
 <!-- src/views/HomepageContainer.vue -->
+
 <script setup lang="ts">
   import { useProductIdentity } from '@/stores/identityStore';
   import { computed } from 'vue';

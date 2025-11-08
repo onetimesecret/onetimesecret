@@ -1,4 +1,6 @@
 # apps/api/organizations/logic/organizations/list_organizations.rb
+#
+# frozen_string_literal: true
 
 module OrganizationAPI::Logic
   module Organizations

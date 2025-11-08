@@ -1,4 +1,6 @@
 # spec/support/mail_context.rb
+#
+# frozen_string_literal: true
 
 def with_emailer(mail)
   mail.tap { |m| m.instance_variable_set(:@emailer, mail_emailer) }

@@ -1,4 +1,6 @@
 # apps/api/teams/logic/teams/list_teams.rb
+#
+# frozen_string_literal: true
 
 module TeamAPI::Logic
   module Teams

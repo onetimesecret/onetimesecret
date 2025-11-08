@@ -1,4 +1,6 @@
 # lib/onetime/utils/enumerables.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Utils

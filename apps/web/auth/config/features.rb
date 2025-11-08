@@ -1,4 +1,6 @@
 # apps/web/auth/config/features.rb
+#
+# frozen_string_literal: true
 
 module Auth::Config::Features
   require_relative 'features/account_management'

@@ -1,4 +1,5 @@
 // src/services/window.service.ts
+
 import type { OnetimeWindow } from '@/types/declarations/window';
 
 const STATE_KEY = '__ONETIME_STATE__';

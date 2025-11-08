@@ -1,4 +1,6 @@
 # try/integration/authentication/sync_session_idempotency_try.rb
+#
+# frozen_string_literal: true
 
 # Tests idempotency protection in Auth::Operations::SyncSession
 # Ensures the operation can be safely retried without double-execution

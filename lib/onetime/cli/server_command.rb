@@ -1,5 +1,8 @@
 # lib/onetime/cli/server_command.rb
 #
+# frozen_string_literal: true
+
+#
 # CLI command for running the web server (Puma or Thin)
 #
 # Supply options or a config file path but not both.

@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+#
+# frozen_string_literal: true
 
 # Demo of the new auto-configuration behavior for Docker users with minimal env vars
 
