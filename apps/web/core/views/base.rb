@@ -1,4 +1,4 @@
-# apps/web/core/views/base.rb - REFACTORED
+# apps/web/core/views/base.rb
 
 require 'rhales'
 
@@ -64,9 +64,9 @@ module Core
         @i18n_instance = i18n
         @messages      = []
 
-        # Initialize view variables - no need to pass sess/cust,
-        # initialize_view_vars extracts them from req
-        @view_vars = self.class.initialize_view_vars(req, i18n_instance)
+        # Initialize view variables, passing pre-resolved sess/cust
+        # to avoid re-extraction (eliminates duplication)
+        @view_vars = self.class.initialize_view_vars(req, i18n_instance, @sess, @cust)
 
         # Call subclass init hook if defined
         init if respond_to?(:init)
