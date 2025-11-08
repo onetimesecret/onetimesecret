@@ -76,6 +76,7 @@ module TeamAPI::Logic
             description: team.description || '',
             owner_id: team.owner_id,
             member_count: team.member_count,
+            is_default: team.is_default || false,
             created_at: team.created,
             updated_at: team.updated,
             current_user_role: 'owner',
