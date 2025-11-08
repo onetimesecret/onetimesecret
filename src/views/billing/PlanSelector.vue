@@ -3,7 +3,7 @@
 <script setup lang="ts">
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import OIcon from '@/components/icons/OIcon.vue';
-import SettingsLayout from '@/components/layout/SettingsLayout.vue';
+import BillingLayout from '@/components/layout/BillingLayout.vue';
 import { classifyError } from '@/schemas/errors';
 import { useOrganizationStore } from '@/stores/organizationStore';
 import type { Plan, BillingInterval } from '@/types/billing';
@@ -184,7 +184,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <SettingsLayout>
+  <BillingLayout>
     <div class="space-y-8">
       <!-- Header -->
       <div class="text-center">
@@ -370,5 +370,5 @@ onMounted(async () => {
         </button>
       </div>
     </div>
-  </SettingsLayout>
+  </BillingLayout>
 </template>
