@@ -73,12 +73,12 @@ module TeamAPI::Logic
           record: {
             id: team.teamid,
             display_name: team.display_name,
-            description: team.description,
+            description: team.description || '',
             owner_id: team.owner_id,
-            is_owner: true,
             member_count: team.member_count,
-            created: team.created,
-            updated: team.updated,
+            created_at: team.created,
+            updated_at: team.updated,
+            current_user_role: 'owner',
           },
         }
       end
