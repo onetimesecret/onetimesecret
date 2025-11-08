@@ -431,7 +431,7 @@
       "organizations": "Organizations"
     },
     "account": {
-      "settings": "Account Settings",
+      "settings": "Settings",
       "change-password": "Change Password",
       "close-account": "Close Account",
       "verify-account": "Verify Account",
@@ -441,7 +441,7 @@
       "customer_since": "Customer since:",
       "email": "Email:",
       "region": "Region",
-      "account_balance": "Account balance:",
+      "account_balance": "Balance:",
       "default_payment_method": "Default Payment Method",
       "card_ending": "ending in",
       "subscriptions_title": "Subscriptions",
