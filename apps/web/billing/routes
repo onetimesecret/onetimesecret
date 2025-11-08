@@ -28,3 +28,16 @@ GET    /org/:org_id/invoices                     Billing::Controllers::Billing#l
 GET    /capabilities                             Billing::Controllers::Capabilities#list response=json auth=sessionauth
 GET    /capabilities/:org_id                     Billing::Controllers::Capabilities#show response=json auth=sessionauth
 GET    /capabilities/:org_id/:capability         Billing::Controllers::Capabilities#check response=json auth=sessionauth
+
+# Billing is a web app so it needs to support its own root paths for
+# the initial server-rendered page loads. e.g. linking directly to
+# /billing/overview would return a 404 without these. After that
+# the Vue application handles the navigation. A common way around
+# this for SPAs is to simply return the base server-rendered page
+# for any route by default. But imagine that. A world where people
+# navigate websites blissfully unaware that their browser console is
+# filling with red 404 errors everywhere they go. So I say, no. No to
+# the 404-land dystopia. No to the absurdity. And yes to keeping it 200.
+GET   /teapot                                    Billing::Controllers::TeaPot#brew response=json auth=noauth
+GET   /overview                                  Billing::Controllers::Page#index auth=sessionauth
+GET   /*                                         Billing::Controllers::Page#index auth=sessionauth

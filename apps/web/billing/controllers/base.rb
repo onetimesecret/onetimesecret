@@ -127,7 +127,15 @@ module Billing
 
         org
       end
+    end
 
+    class TeaPot
+      include Base
+
+      def brew
+        res.status = 418
+        { message: "I'm a teapot" }
+      end
     end
   end
 end
