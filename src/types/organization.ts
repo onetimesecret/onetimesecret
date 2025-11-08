@@ -13,8 +13,8 @@ export interface Organization {
   display_name: string;
   description?: string;
   is_default: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 /**
@@ -26,8 +26,8 @@ export const organizationSchema = z.object({
   display_name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
   is_default: z.boolean(),
-  created_at: z.number().transform(val => new Date(val * 1000).toISOString()),
-  updated_at: z.number().transform(val => new Date(val * 1000).toISOString()),
+  created_at: z.number().transform(val => new Date(val * 1000)),
+  updated_at: z.number().transform(val => new Date(val * 1000)),
 });
 
 /**

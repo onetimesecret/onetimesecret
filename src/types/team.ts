@@ -33,10 +33,10 @@ export interface TeamMember {
   email: string;
   role: TeamRole;
   status: TeamMemberStatus;
-  invited_at?: string;
-  joined_at?: string;
-  created_at: string;
-  updated_at: string;
+  invited_at?: Date;
+  joined_at?: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 /**
@@ -49,8 +49,8 @@ export interface Team {
   owner_id: string;
   member_count: number;
   is_default: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 /**
@@ -75,10 +75,10 @@ export const teamMemberSchema = z.object({
   email: z.string().email(),
   role: teamRoleSchema,
   status: teamMemberStatusSchema,
-  invited_at: z.number().transform(val => new Date(val * 1000).toISOString()).optional(),
-  joined_at: z.number().transform(val => new Date(val * 1000).toISOString()).optional(),
-  created_at: z.number().transform(val => new Date(val * 1000).toISOString()),
-  updated_at: z.number().transform(val => new Date(val * 1000).toISOString()),
+  invited_at: z.number().transform(val => new Date(val * 1000)).optional(),
+  joined_at: z.number().transform(val => new Date(val * 1000)).optional(),
+  created_at: z.number().transform(val => new Date(val * 1000)),
+  updated_at: z.number().transform(val => new Date(val * 1000)),
 });
 
 export const teamSchema = z.object({
@@ -88,8 +88,8 @@ export const teamSchema = z.object({
   owner_id: z.string(),
   member_count: z.number().int().min(0),
   is_default: z.boolean(),
-  created_at: z.number().transform(val => new Date(val * 1000).toISOString()),
-  updated_at: z.number().transform(val => new Date(val * 1000).toISOString()),
+  created_at: z.number().transform(val => new Date(val * 1000)),
+  updated_at: z.number().transform(val => new Date(val * 1000)),
 });
 
 export const teamWithRoleSchema = teamSchema.extend({
