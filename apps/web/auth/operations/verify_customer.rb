@@ -1,4 +1,6 @@
 # apps/web/auth/operations/verify_customer.rb
+#
+# frozen_string_literal: true
 
 #
 # Updates the Customer's verification status when the Rodauth account is verified.

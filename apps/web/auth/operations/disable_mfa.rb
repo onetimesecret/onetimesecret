@@ -1,4 +1,6 @@
 # apps/web/auth/operations/disable_mfa.rb
+#
+# frozen_string_literal: true
 
 #
 # Disables multi-factor authentication for a customer account.

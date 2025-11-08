@@ -1,4 +1,5 @@
 // src/tests/composables/useMfa.spec.ts
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useMfa } from '@/composables/useMfa';
 import { setupTestPinia } from '../setup';

@@ -1,4 +1,6 @@
 # lib/onetime/initializers/configure_rhales.rb
+#
+# frozen_string_literal: true
 
 require 'rhales'
 

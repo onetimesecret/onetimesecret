@@ -1,4 +1,6 @@
-# try/60_logic/41_logic_domains_add_try.rb
+# try/disabled/domains/logic_domains_add_try_disabled.rb
+#
+# frozen_string_literal: true
 
 # NOTE: Domain logic is only in V2. V1 includes domains that are related
 # to secrets but otherwise does not have domains funtionality.

@@ -1,4 +1,7 @@
 # try/integration/authentication/advanced_mode/active_sessions_try.rb
+#
+# frozen_string_literal: true
+
 # Integration tests for active sessions management in advanced mode
 #
 # Tests:

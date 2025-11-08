@@ -1,5 +1,8 @@
 # try/unit/models/team_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Unit tests for the Onetime::Team model.
 # Tests cover:
 # - Team creation with owner

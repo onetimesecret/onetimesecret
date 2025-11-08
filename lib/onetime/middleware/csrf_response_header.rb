@@ -1,4 +1,6 @@
 # lib/onetime/middleware/csrf_response_header.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Middleware

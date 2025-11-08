@@ -1,4 +1,6 @@
-# try/20_metadata_try.rb
+# try/unit/models/v2/metadata_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test the Onetime::Metadata class functionality.
 # The Metadata class is responsible for managing metadata associated

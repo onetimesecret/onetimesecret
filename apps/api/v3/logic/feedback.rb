@@ -1,4 +1,6 @@
 # apps/api/v3/logic/feedback.rb
+#
+# frozen_string_literal: true
 
 require_relative 'base'
 

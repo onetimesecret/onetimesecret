@@ -1,4 +1,6 @@
 # lib/onetime/cli/change_email_command.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   class ChangeEmailCommand < Onetime::CLI

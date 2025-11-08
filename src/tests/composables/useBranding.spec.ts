@@ -1,4 +1,5 @@
 // src/tests/composables/useBranding.spec.ts
+
 import {
   mockCustomBrandingRed,
   mockDefaultBranding,

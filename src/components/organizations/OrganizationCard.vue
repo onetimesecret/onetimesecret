@@ -1,4 +1,5 @@
 <!-- src/components/organizations/OrganizationCard.vue -->
+
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 import type { Organization } from '@/types/organization';

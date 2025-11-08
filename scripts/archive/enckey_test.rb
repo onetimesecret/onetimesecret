@@ -1,4 +1,7 @@
-# support/enckey_test.rb
+# scripts/archive/enckey_test.rb
+#
+# frozen_string_literal: true
+
 #
 # Test script for debugging OnetimeSecret encryption keys
 # This utility helps diagnose encryption/decryption issues by testing

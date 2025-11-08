@@ -1,4 +1,7 @@
-# try/test_models.rb
+# try/support/test_models.rb
+#
+# frozen_string_literal: true
+
 #
 # This file provides convenient access to model classes for testing purposes.
 # It creates top-level constants (e.g., Customer) to versioned namespaces

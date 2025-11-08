@@ -1,4 +1,6 @@
-# apps/api/v1/controllers/index.rb
+# .purgatory/apps-api-v1/controllers/index.rb
+#
+# frozen_string_literal: true
 
 require 'v1/refinements'
 

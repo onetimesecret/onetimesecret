@@ -1,4 +1,6 @@
-# spec/support/test_models.rb
+# .purgatory/spec/support/test_models.rb
+#
+# frozen_string_literal: true
 
 # Test double for Onetime::Secret that doesn't require Redis
 class TestSecret

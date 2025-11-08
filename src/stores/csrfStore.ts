@@ -1,4 +1,5 @@
 // src/stores/csrfStore.ts
+
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import { WindowService } from '@/services/window.service';

@@ -1,4 +1,5 @@
 // src/tests/composables/useHash.spec.ts
+
 /**
  * Unit tests for useHash composable
  *

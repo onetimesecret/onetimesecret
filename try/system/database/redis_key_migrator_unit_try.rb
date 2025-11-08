@@ -1,4 +1,6 @@
-# try/80_database/20_redis_key_migrator_unit_try.rb
+# try/system/database/redis_key_migrator_unit_try.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../support/test_helpers'
 

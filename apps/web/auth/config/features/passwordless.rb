@@ -1,4 +1,6 @@
 # apps/web/auth/config/features/passwordless.rb
+#
+# frozen_string_literal: true
 
 module Auth::Config::Features
   # Passwordless (Email Magic Links) feature configuration

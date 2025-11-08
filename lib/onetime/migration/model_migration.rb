@@ -1,4 +1,6 @@
 # lib/onetime/migration/model_migration.rb
+#
+# frozen_string_literal: true
 
 require_relative 'base_migration'
 

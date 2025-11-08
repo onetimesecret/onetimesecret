@@ -1,4 +1,6 @@
 # lib/onetime/migration/pipeline_migration.rb
+#
+# frozen_string_literal: true
 
 require_relative 'model_migration'
 

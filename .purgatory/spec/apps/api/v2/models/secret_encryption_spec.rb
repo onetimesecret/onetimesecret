@@ -1,4 +1,6 @@
-# spec/apps/api/v2/models/secret_encryption_spec.rb
+# .purgatory/spec/apps/api/v2/models/secret_encryption_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../../../spec_helper'
 

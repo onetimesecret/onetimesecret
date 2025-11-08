@@ -1,4 +1,6 @@
-# apps/api/v1/logic/secrets/base_secret_action.rb
+# .purgatory/apps-api-v1/logic/secrets/base_secret_action.rb
+#
+# frozen_string_literal: true
 
 module V1::Logic
   module Secrets

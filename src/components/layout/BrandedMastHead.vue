@@ -1,4 +1,5 @@
 <!-- src/components/layout/Masthead.vue -->
+
 <script setup lang="ts">
   import { useProductIdentity } from '@/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';

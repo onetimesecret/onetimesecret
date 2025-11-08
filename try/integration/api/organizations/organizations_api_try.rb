@@ -1,5 +1,8 @@
 # try/integration/api/organizations/organizations_api_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Integration tests for Organizations CRUD API endpoints:
 # - POST /api/organizations (create organization)
 # - GET /api/organizations (list user's organizations)

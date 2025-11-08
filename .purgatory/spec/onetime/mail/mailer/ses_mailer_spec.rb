@@ -1,4 +1,6 @@
-# spec/onetime/mail/mailer/ses_mailer_spec.rb
+# .purgatory/spec/onetime/mail/mailer/ses_mailer_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../../spec_helper'
 require 'aws-sdk-sesv2'

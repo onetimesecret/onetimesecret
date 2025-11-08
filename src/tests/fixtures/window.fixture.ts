@@ -1,4 +1,5 @@
 // src/tests/fixtures/window.fixture.ts
+
 import { OnetimeWindow } from '@/types/declarations/window';
 import { vi } from 'vitest';
 

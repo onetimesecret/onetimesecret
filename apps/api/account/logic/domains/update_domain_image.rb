@@ -1,4 +1,6 @@
 # apps/api/account/logic/domains/update_domain_image.rb
+#
+# frozen_string_literal: true
 
 require 'base64'
 require 'fastimage'

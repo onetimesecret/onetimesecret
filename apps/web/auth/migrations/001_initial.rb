@@ -1,4 +1,6 @@
 # apps/web/auth/migrations/001_initial.rb
+#
+# frozen_string_literal: true
 
 MIGRATION_ROOT = __dir__
 

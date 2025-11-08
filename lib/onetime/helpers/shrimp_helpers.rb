@@ -1,4 +1,6 @@
 # lib/onetime/helpers/shrimp_helpers.rb
+#
+# frozen_string_literal: true
 
 require 'securerandom'
 

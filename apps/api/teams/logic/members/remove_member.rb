@@ -1,4 +1,6 @@
 # apps/api/teams/logic/members/remove_member.rb
+#
+# frozen_string_literal: true
 
 module TeamAPI::Logic
   module Members

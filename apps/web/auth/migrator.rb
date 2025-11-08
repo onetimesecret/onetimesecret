@@ -1,4 +1,7 @@
 # apps/web/auth/migrator.rb
+#
+# frozen_string_literal: true
+
 # Auto-migration module for Rodauth authentication database
 #
 # This module provides automatic database migration capabilities

@@ -1,4 +1,6 @@
 # apps/api/teams/logic/teams.rb
+#
+# frozen_string_literal: true
 
 require_relative 'base'
 

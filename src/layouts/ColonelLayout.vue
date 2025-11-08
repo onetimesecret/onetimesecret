@@ -1,4 +1,5 @@
 <!-- src/layouts/ColonelLayout.vue -->
+
 <script setup lang="ts">
   import ColonelNavigation from '@/components/colonel/ColonelNavigation.vue';
   import DefaultHeader from '@/components/layout/DefaultHeader.vue';

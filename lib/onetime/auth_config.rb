@@ -1,4 +1,6 @@
 # lib/onetime/auth_config.rb
+#
+# frozen_string_literal: true
 
 # Authentication configuration loader for Otto's Derived Identity Architecture
 

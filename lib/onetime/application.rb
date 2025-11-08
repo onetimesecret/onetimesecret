@@ -1,4 +1,6 @@
 # lib/onetime/application.rb
+#
+# frozen_string_literal: true
 
 # Character Encoding Configuration
 # Set UTF-8 as the default external encoding to ensure consistent text handling:

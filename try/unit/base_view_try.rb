@@ -1,5 +1,8 @@
 # try/unit/base_view_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Test suite for Core::Views::BaseView nil strategy_result handling
 #
 # This test verifies that BaseView can be initialized in both scenarios:

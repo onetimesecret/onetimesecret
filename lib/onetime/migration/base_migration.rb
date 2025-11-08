@@ -1,4 +1,6 @@
 # lib/onetime/migration/base_migration.rb
+#
+# frozen_string_literal: true
 
 require 'onetime'
 

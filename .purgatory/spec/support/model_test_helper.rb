@@ -1,4 +1,6 @@
-# spec/support/model_test_helper.rb
+# .purgatory/spec/support/model_test_helper.rb
+#
+# frozen_string_literal: true
 
 module ModelTestHelper
   # Factory method to create a fully stubbed V1::Secret instance

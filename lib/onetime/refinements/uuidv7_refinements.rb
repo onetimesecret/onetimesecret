@@ -1,4 +1,6 @@
 # lib/onetime/refinements/uuidv7_refinements.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   # UUIDv7 Refinements for SecureRandom, String, and Time

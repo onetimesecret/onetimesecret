@@ -1,4 +1,6 @@
 # lib/onetime/models/features/with_stripe_account.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Models

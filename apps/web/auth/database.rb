@@ -1,4 +1,6 @@
 # apps/web/auth/database.rb
+#
+# frozen_string_literal: true
 
 require 'sequel'
 require 'logger'

@@ -1,4 +1,6 @@
 # apps/api/v3/logic/meta.rb
+#
+# frozen_string_literal: true
 
 # V3 Meta Logic
 #

@@ -1,4 +1,6 @@
 # lib/middleware/request_id.rb
+#
+# frozen_string_literal: true
 
 module Rack
   # Rack middleware that ensures every HTTP request has a unique identifier.

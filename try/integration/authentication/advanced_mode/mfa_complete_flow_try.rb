@@ -1,5 +1,8 @@
 # try/integration/authentication/advanced_mode/mfa_complete_flow_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Comprehensive end-to-end integration test for the complete MFA authentication flow.
 # Validates that extracted operations (DetectMfaRequirement, SyncSession)
 # properly integrate to provide the complete authentication experience.

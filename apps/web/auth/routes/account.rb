@@ -1,4 +1,6 @@
 # apps/web/auth/routes/account.rb
+#
+# frozen_string_literal: true
 
 module Auth
   module Routes

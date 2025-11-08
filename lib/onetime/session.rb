@@ -1,4 +1,6 @@
 # lib/onetime/session.rb
+#
+# frozen_string_literal: true
 
 require 'rack/session/abstract/id'
 require 'securerandom'

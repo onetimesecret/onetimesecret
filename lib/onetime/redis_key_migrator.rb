@@ -1,4 +1,6 @@
 # lib/onetime/redis_key_migrator.rb
+#
+# frozen_string_literal: true
 
 require 'redis'
 require 'uri'

@@ -1,4 +1,6 @@
 # lib/onetime/models/secret.rb
+#
+# frozen_string_literal: true
 
 require 'familia/verifiable_identifier'
 

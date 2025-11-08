@@ -1,4 +1,6 @@
 # apps/api/account/logic/account/generate_api_token.rb
+#
+# frozen_string_literal: true
 
 module AccountAPI::Logic
   module Account

@@ -1,4 +1,6 @@
 # apps/api/account/logic/account/get_account.rb
+#
+# frozen_string_literal: true
 
 require 'onetime/refinements/stripe_refinements'
 

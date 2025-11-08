@@ -1,4 +1,5 @@
 <!-- src/components/ApiTokenDisplay.vue -->
+
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 import { ref } from 'vue';

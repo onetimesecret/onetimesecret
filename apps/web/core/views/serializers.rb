@@ -1,4 +1,6 @@
 # apps/web/core/views/serializers.rb
+#
+# frozen_string_literal: true
 
 require_relative 'serializers/registry'
 require_relative 'serializers/authentication_serializer'

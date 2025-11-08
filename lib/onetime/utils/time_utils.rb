@@ -1,4 +1,6 @@
 # lib/onetime/utils/time_utils.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Utils

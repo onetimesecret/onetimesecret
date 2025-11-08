@@ -1,4 +1,6 @@
-# try/60_logic/03_logic_secrets_try.rb
+# try/unit/logic/secrets/generate_secret_try.rb
+#
+# frozen_string_literal: true
 
 # These tests cover the Secrets logic classes which handle
 # the core secret management functionality of the application.

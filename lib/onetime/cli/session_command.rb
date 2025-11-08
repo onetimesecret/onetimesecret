@@ -1,5 +1,8 @@
 # lib/onetime/cli/session_command.rb
 #
+# frozen_string_literal: true
+
+#
 # CLI commands for session inspection and debugging
 #
 # Usage:

@@ -1,4 +1,6 @@
 # lib/onetime/class_methods.rb
+#
+# frozen_string_literal: true
 
 require 'semantic_logger'
 

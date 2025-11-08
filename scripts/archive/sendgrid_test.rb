@@ -1,4 +1,7 @@
-# support/sendgrid_test.rb
+# scripts/archive/sendgrid_test.rb
+#
+# frozen_string_literal: true
+
 #
 # Test script for SendGrid email delivery in OnetimeSecret
 # This utility verifies that SendGrid API integration is properly configured

@@ -1,4 +1,6 @@
 # lib/onetime/middleware.rb
+#
+# frozen_string_literal: true
 
 require 'logger'
 require_relative '../middleware/handle_invalid_percent_encoding'

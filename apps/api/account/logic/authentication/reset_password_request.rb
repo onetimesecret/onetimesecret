@@ -1,4 +1,6 @@
-# apps/api/v2/logic/authentication/reset_password_request.rb
+# apps/api/account/logic/authentication/reset_password_request.rb
+#
+# frozen_string_literal: true
 
 require_relative '../base'
 

@@ -1,4 +1,6 @@
 # apps/web/auth/operations/detect_mfa_requirement.rb
+#
+# frozen_string_literal: true
 
 #
 # Detects whether multi-factor authentication is required for a login session.

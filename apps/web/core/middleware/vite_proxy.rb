@@ -1,5 +1,8 @@
 # apps/web/core/middleware/vite_proxy.rb
 #
+# frozen_string_literal: true
+
+#
 # Development proxy middleware for Onetime Secret application.
 # Provides development-specific utilities including Vite integration.
 

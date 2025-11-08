@@ -1,4 +1,6 @@
 # apps/api/account/logic/account/update_password.rb
+#
+# frozen_string_literal: true
 
 module AccountAPI::Logic
   module Account

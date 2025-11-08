@@ -1,5 +1,8 @@
 # lib/onetime/middleware/security.rb
 #
+# frozen_string_literal: true
+
+#
 # Security middleware collection for the Onetime Secret application.
 # Configures various Rack::Protection middleware components based on
 # application configuration settings.

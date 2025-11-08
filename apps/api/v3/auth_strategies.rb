@@ -1,4 +1,6 @@
 # apps/api/v3/auth_strategies.rb
+#
+# frozen_string_literal: true
 
 # Otto authentication strategies for V3 API (apps/api/v3).
 #

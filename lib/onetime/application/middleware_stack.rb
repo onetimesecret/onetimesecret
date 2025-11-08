@@ -1,4 +1,6 @@
 # lib/onetime/application/middleware_stack.rb
+#
+# frozen_string_literal: true
 
 require 'rack/content_length'
 require 'rack/contrib'

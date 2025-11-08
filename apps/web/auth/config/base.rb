@@ -1,4 +1,6 @@
 # apps/web/auth/config/base.rb
+#
+# frozen_string_literal: true
 
 require_relative '../database'
 

@@ -1,4 +1,6 @@
-# try/00_middleware/12_detect_host_instances_try.rb
+# try/integration/middleware/detect_host_instances_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts verify whether Rack instantiates a new middleware instance per
 # request or reuses the same instance across requests using real Rack requests.

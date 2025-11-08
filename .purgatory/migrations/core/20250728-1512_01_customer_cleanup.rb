@@ -1,4 +1,7 @@
-# migrate/1512_01_customer_cleanup.rb
+# .purgatory/migrations/core/20250728-1512_01_customer_cleanup.rb
+#
+# frozen_string_literal: true
+
 #
 # Customer Cleanup - Remove anonymous, known test users - Pipeline
 #

@@ -1,4 +1,5 @@
 <!-- src/components/common/LanguageButton.vue -->
+
 <script setup lang="ts">
 import HoverTooltip from './HoverTooltip.vue';
 import OIcon from '@/components/icons/OIcon.vue';

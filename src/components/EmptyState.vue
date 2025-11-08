@@ -1,4 +1,5 @@
 <!-- src/components/EmptyState.vue -->
+
 <script setup lang="ts">
 defineProps<{
   actionRoute?: string;

@@ -1,4 +1,5 @@
 <!-- src/components/teams/TeamCard.vue -->
+
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 import { getRoleBadgeColor, getRoleLabel, type TeamWithRole } from '@/types/team';

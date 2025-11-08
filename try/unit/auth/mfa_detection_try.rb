@@ -1,4 +1,6 @@
 # try/unit/auth/mfa_detection_try.rb
+#
+# frozen_string_literal: true
 
 # These tests cover the MFA detection operation which has been refactored
 # to accept only primitive inputs (no Rodauth, no session objects).

@@ -1,5 +1,8 @@
 # try/integration/api/teams/members_api_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Integration tests for Team Members API endpoints:
 # - GET /api/teams/:teamid/members (list members)
 # - POST /api/teams/:teamid/members (add member)

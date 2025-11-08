@@ -1,4 +1,6 @@
 # apps/web/auth/operations.rb
+#
+# frozen_string_literal: true
 
 require_relative 'operations/sync_session'
 require_relative 'operations/update_password_metadata'

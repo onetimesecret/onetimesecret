@@ -1,5 +1,8 @@
 # lib/onetime/helpers/session_helpers.rb
 #
+# frozen_string_literal: true
+
+#
 # Session-based authentication helpers that minimize database/Redis lookups.
 #
 # Performance Pattern:

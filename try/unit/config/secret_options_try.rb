@@ -1,4 +1,6 @@
-# try/16_config_secret_options_try.rb
+# try/unit/config/secret_options_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test the secret_options configuration of the Onetime application.
 # We're testing various aspects of the secret_options configuration, including:

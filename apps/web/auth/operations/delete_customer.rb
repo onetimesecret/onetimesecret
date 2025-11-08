@@ -1,4 +1,6 @@
 # apps/web/auth/operations/delete_customer.rb
+#
+# frozen_string_literal: true
 
 #
 # Deletes the Customer record associated with a closed Rodauth account.

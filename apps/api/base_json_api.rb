@@ -1,3 +1,5 @@
+# apps/api/base_json_api.rb
+#
 # frozen_string_literal: true
 
 require 'onetime/application'

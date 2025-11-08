@@ -1,4 +1,6 @@
 # lib/onetime/initializers/load_locales.rb
+#
+# frozen_string_literal: true
 
 require 'familia/json_serializer'
 

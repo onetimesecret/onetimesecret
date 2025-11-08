@@ -1,5 +1,8 @@
 # try/system/logging_simple_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Simple unit tests for the logging configuration without full boot.
 # Tests YAML config file structure and basic module inclusion.
 

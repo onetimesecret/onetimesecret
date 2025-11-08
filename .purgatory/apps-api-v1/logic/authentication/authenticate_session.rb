@@ -1,4 +1,6 @@
-# apps/api/v1/logic/authentication/authenticate_session.rb
+# .purgatory/apps-api-v1/logic/authentication/authenticate_session.rb
+#
+# frozen_string_literal: true
 
 require_relative '../base'
 

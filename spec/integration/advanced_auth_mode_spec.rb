@@ -1,4 +1,6 @@
 # spec/integration/advanced_auth_mode_spec.rb
+#
+# frozen_string_literal: true
 
 require 'spec_helper'
 require 'rack/test'

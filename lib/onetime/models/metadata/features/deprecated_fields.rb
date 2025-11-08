@@ -1,4 +1,6 @@
 # lib/onetime/models/metadata/features/deprecated_fields.rb
+#
+# frozen_string_literal: true
 
 module Onetime::Metadata::Features
   module DeprecatedFields

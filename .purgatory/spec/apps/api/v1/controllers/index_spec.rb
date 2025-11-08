@@ -1,4 +1,6 @@
-# spec/apps/api/v1/controllers/index_spec.rb
+# .purgatory/spec/apps/api/v1/controllers/index_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../../../spec_helper'
 require 'v1/controllers'

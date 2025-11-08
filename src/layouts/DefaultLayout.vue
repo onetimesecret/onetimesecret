@@ -1,4 +1,5 @@
 <!-- src/layouts/DefaultLayout.vue -->
+
 <script setup lang="ts">
   import DefaultFooter from '@/components/layout/DefaultFooter.vue';
   import DefaultHeader from '@/components/layout/DefaultHeader.vue';

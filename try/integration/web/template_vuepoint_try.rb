@@ -1,4 +1,6 @@
-# try/42_web_template_vuepoint_try.rb
+# try/integration/web/template_vuepoint_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test the VuePoint view functionality in the Onetime application,
 # with a focus on the initialization process and its arguments.

@@ -1,4 +1,6 @@
 # lib/onetime/application/request_logger.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Application

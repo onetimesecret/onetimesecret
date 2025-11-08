@@ -1,4 +1,5 @@
 <!-- src/views/auth/VerifyAccount.vue -->
+
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';

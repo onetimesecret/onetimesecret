@@ -1,4 +1,7 @@
 # try/integration/authentication/advanced_mode/rodauth_try.rb
+#
+# frozen_string_literal: true
+
 # Integration tests for advanced authentication mode with Rodauth
 #
 # Tests:

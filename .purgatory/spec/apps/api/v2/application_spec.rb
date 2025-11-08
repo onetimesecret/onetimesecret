@@ -1,4 +1,6 @@
-# spec/apps/api/v2/application_spec.rb
+# .purgatory/spec/apps/api/v2/application_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../../spec_helper'
 require 'v2/application'

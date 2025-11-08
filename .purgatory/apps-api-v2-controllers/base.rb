@@ -1,4 +1,6 @@
-# apps/api/v2/controllers/base.rb
+# .purgatory/apps-api-v2-controllers/base.rb
+#
+# frozen_string_literal: true
 
 require_relative 'class_settings'
 require_relative 'helpers'
