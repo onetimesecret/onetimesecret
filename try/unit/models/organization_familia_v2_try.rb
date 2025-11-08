@@ -59,8 +59,8 @@ end
 @org.can_modify?(@member)
 #=> false
 
-## Adding members
-@org.add_member(@member)
+## Adding members using auto-generated method
+@org.add_members_instance(@member)
 @org.member?(@member)
 #=> true
 
@@ -93,8 +93,8 @@ end
 @members.map(&:custid).sort
 #=> [@owner.custid, @member.custid].sort
 
-## Removing members cleans forward side
-@org.remove_member(@member)
+## Removing members cleans forward side using auto-generated method
+@org.remove_members_instance(@member)
 @org.member?(@member)
 #=> false
 
