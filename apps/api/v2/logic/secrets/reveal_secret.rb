@@ -7,7 +7,7 @@ module V2::Logic
     # Very similar logic to ShowSecret, but with a few key differences
     # as required by the v2 API. The v1 API uses the original ShowSecret.
     class RevealSecret < V2::Logic::Base
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       attr_reader :identifier, :passphrase, :continue, :share_domain, :secret, :show_secret, :secret_value,
         :verification, :correct_passphrase, :display_lines, :one_liner, :is_owner, :has_passphrase, :secret_identifier

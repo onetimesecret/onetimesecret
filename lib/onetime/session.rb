@@ -7,7 +7,7 @@ require 'base64'
 require 'openssl'
 require 'familia'
 
-require_relative 'logging'
+require_relative 'logger_methods'
 
 module Onetime
   # Onetime::Session - A secure Rack session store using Familia's StringKey DataType
@@ -53,7 +53,7 @@ module Onetime
   # @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/abstract/id.rb
   # @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/encryptor.rb
   class Session < Rack::Session::Abstract::PersistedSecure
-    include Onetime::Logging
+    include Onetime::LoggerMethods
 
     unless defined?(DEFAULT_OPTIONS)
       DEFAULT_OPTIONS = {

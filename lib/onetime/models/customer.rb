@@ -30,7 +30,7 @@ module Onetime
   # factory methods above to avoid state inconsistencies.
   #
   class Customer < Familia::Horreum
-    include Onetime::Logging
+    include Onetime::LoggerMethods
     require_relative 'customer/features'
 
     using Familia::Refinements::TimeLiterals

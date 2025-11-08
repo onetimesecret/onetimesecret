@@ -15,7 +15,7 @@
 module Core
   module Middleware
     class ErrorHandling
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       def initialize(app)
         @app = app

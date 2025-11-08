@@ -5,7 +5,7 @@ require 'onetime/helpers/session_helpers'
 module Billing
   module Controllers
     module Base
-      include Onetime::Logging
+      include Onetime::LoggerMethods
       include Onetime::Helpers::SessionHelpers
 
       attr_reader :req, :res, :locale

@@ -8,7 +8,7 @@
 module Auth
   module Operations
     class CreateCustomer
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       # @param account_id [Integer] The ID of the Rodauth account
       # @param account [Hash] The Rodauth account hash, containing at least :email

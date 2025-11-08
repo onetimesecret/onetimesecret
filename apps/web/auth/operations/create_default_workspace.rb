@@ -11,7 +11,7 @@
 module Auth
   module Operations
     class CreateDefaultWorkspace
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       # @param customer [Onetime::Customer] The customer for whom to create workspace
       def initialize(customer:)

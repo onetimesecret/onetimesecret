@@ -5,7 +5,7 @@
 OneTimeSecret uses a **custom logging architecture** based on SemanticLogger with strategic operational categories. This document explains why we don't use the standard `SemanticLogger::Loggable` mixin and how our system works.
 
 > **Note**: This document describes architectural concepts and patterns. For specific implementation details, refer to:
-> - `lib/onetime/logging.rb` - Logging mixin with category inference
+> - `lib/onetime/logger_methods.rb` - Logging mixin with category inference
 > - `lib/onetime/initializers/configure_loggers.rb` - Configuration and cached loggers
 > - `lib/middleware/logging.rb` - Middleware logging support
 > - `apps/web/auth/lib/logging.rb` - Auth-specific logging helpers
@@ -29,7 +29,7 @@ end
 **Our superior pattern:**
 ```ruby
 class V2::Logic::Authentication::AuthenticateSession
-  include Onetime::Logging
+  include Onetime::LoggerMethods
   # Logger name: "Auth" ✅
   # All auth code logs to one strategic category
 end
@@ -46,7 +46,7 @@ Our strategic categories enable:
 SemanticLogger::Loggable caches one logger per class, while our system uses shared cached instances per category:
 
 **Loggable**: Creates `@logger` instance variable per class
-**Onetime::Logging**: Returns cached instance from `Onetime.get_logger(category)`
+**Onetime::LoggerMethods**: Returns cached instance from `Onetime.get_logger(category)`
 
 Our cached instances:
 - Preserve configured log levels from YAML/env vars
@@ -59,7 +59,7 @@ Our system supports dynamic category switching:
 
 ```ruby
 class RequestProcessor
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 
   def handle(request)
     with_log_category(request.category) do
@@ -93,7 +93,7 @@ All logging goes through these operational categories:
 
 ```ruby
 class V2::Logic::Authentication::AuthenticateSession
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 
   def perform
     # Automatic category inference → Auth logger
@@ -118,7 +118,7 @@ end
 
 **Or use the mixin:**
 ```ruby
-include Onetime::Logging
+include Onetime::LoggerMethods
 
 # Automatic category from class name
 logger.info "message"
@@ -132,9 +132,9 @@ sequel_logger.debug "database query"
 
 ### Category Inference
 
-The `Onetime::Logging` mixin automatically infers categories from class names using pattern matching. For example, classes with "Authentication" or "Auth" in the name use the `Auth` category, while classes with "Session" use the `Session` category. All others fall back to the `App` category.
+The `Onetime::LoggerMethods` mixin automatically infers categories from class names using pattern matching. For example, classes with "Authentication" or "Auth" in the name use the `Auth` category, while classes with "Session" use the `Session` category. All others fall back to the `App` category.
 
-See `lib/onetime/logging.rb` for the pattern matching logic.
+See `lib/onetime/logger_methods.rb` for the pattern matching logic.
 
 ## Configuration
 
@@ -250,4 +250,4 @@ MyClass.new.logger     # Instance-level logger
 - Throwaway diagnostic code
 - Non-core utilities that don't fit strategic categories
 
-**For core application code:** Always use `Onetime::Logging`
+**For core application code:** Always use `Onetime::LoggerMethods`

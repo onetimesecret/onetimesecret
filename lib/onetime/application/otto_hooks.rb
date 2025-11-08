@@ -6,12 +6,12 @@
 # by applications using Otto as their router (Core, V2). Applications using
 # other routers (Auth/Roda) do not need these hooks.
 
-require_relative '../logging'
+require_relative '../logger_methods'
 
 module Onetime
   module Application
     module OttoHooks
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       # Configure Otto request completion hook for operational metrics
       #

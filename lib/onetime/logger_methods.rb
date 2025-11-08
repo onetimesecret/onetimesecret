@@ -1,4 +1,4 @@
-# lib/onetime/logging.rb
+# lib/onetime/logger_methods.rb
 
 require 'reline' # stdlib
 
@@ -10,7 +10,7 @@ module Onetime
   #
   # Usage in classes:
   #   class MyAuthController
-  #     include Onetime::Logging
+  #     include Onetime::LoggerMethods
   #
   #     def login
   #       auth_logger.info "Login attempt", email: email, ip: request.ip
@@ -20,7 +20,7 @@ module Onetime
   #
   # Usage with automatic category detection:
   #   class V2::Logic::Authentication::AuthenticateSession
-  #     include Onetime::Logging
+  #     include Onetime::LoggerMethods
   #
   #     def perform
   #       logger.debug "Validating credentials"  # Uses 'Authentication' logger
@@ -35,7 +35,7 @@ module Onetime
   #     end
   #   end
   #
-  module Logging
+  module LoggerMethods
     # Returns a SemanticLogger instance scoped to the current class.
     # Attempts to extract a meaningful category from the class name,
     # falling back to 'App' if no match found.

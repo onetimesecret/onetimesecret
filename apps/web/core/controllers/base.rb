@@ -7,7 +7,7 @@ require 'onetime/helpers/shrimp_helpers'
 module Core
   module Controllers
     module Base
-      include Onetime::Logging
+      include Onetime::LoggerMethods
       include Onetime::Helpers::SessionHelpers
       include Onetime::Helpers::ShrimpHelpers
 

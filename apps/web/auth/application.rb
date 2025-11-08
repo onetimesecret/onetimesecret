@@ -1,7 +1,7 @@
 # apps/web/auth/application.rb
 
 require 'onetime/application'
-require 'onetime/logging'
+require 'onetime/logger_methods'
 
 # Load Rodauth configuration first
 require_relative 'config'

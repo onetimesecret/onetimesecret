@@ -6,7 +6,7 @@ require 'sequel'
 require 'logger'
 require 'json'
 
-require 'onetime/logging'
+require 'onetime/logger_methods'
 
 require_relative 'config'
 require_relative 'routes/account'
@@ -18,7 +18,7 @@ require_relative 'routes/health'
 module Auth
   # This is the Roda application, which handles all routing for the auth service.
   class Router < Roda
-    include Onetime::Logging
+    include Onetime::LoggerMethods
 
     use Otto::Security::Middleware::IPPrivacyMiddleware
 

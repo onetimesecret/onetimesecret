@@ -3,7 +3,7 @@
 require 'onetime/application'
 require 'onetime/application/otto_hooks'
 require 'onetime/middleware'
-require 'onetime/logging'
+require 'onetime/logger_methods'
 
 require_relative 'middleware/request_setup'
 require_relative 'middleware/error_handling'
@@ -26,7 +26,7 @@ module Core
   # - Otto Hooks: Includes `OttoHooks` for request lifecycle logging
   #
   class Application < Onetime::Application::Base
-    include Onetime::Logging
+    include Onetime::LoggerMethods
     include Onetime::Application::OttoHooks  # Provides configure_otto_request_hook
 
     @uri_prefix = '/'.freeze

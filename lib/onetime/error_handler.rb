@@ -8,7 +8,7 @@
 #
 module Onetime
   module ErrorHandler
-    extend Onetime::Logging
+    extend Onetime::LoggerMethods
 
     # Executes a block and logs any errors without re-raising.
     # Useful for side-effects that shouldn't break critical operations.

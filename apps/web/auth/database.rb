@@ -7,7 +7,7 @@ require_relative 'migrator'
 
 module Auth
   module Database
-    extend Onetime::Logging
+    extend Onetime::LoggerMethods
 
     def self.connection
       # Only create database connection in advanced mode

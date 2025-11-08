@@ -4,7 +4,7 @@ require 'onetime/application'
 require 'onetime/application/otto_hooks'
 require 'onetime/middleware'
 require 'onetime/models'
-require 'onetime/logging'
+require 'onetime/logger_methods'
 
 require_relative 'controllers'
 require_relative 'models'
@@ -28,7 +28,7 @@ module Billing
   # See lib/onetime/application/registry.rb for loading logic.
   #
   class Application < Onetime::Application::Base
-    include Onetime::Logging
+    include Onetime::LoggerMethods
     include Onetime::Application::OttoHooks  # Provides configure_otto_request_hook
 
     @uri_prefix = '/billing'.freeze

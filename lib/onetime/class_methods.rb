@@ -2,7 +2,7 @@
 
 require 'semantic_logger'
 
-require_relative 'logging'
+require_relative 'logger_methods'
 
 # Usage:
 # module Onetime
@@ -12,7 +12,7 @@ require_relative 'logging'
 # Environment detection and normalization
 module Onetime
   module ClassMethods
-    prepend Onetime::Logging
+    prepend Onetime::LoggerMethods
 
     @env   = nil
     @mode  ||= :app
@@ -276,7 +276,7 @@ module Onetime
     # before all loggers are configured. Defaults to 'App' category unless
     # overridden via thread-local variable.
     #
-    # Note: This is distinct from Onetime::Logging#logger which provides
+    # Note: This is distinct from Onetime::LoggerMethods#logger which provides
     # automatic category inference for instance methods in classes.
     #
     # @example Module-level logging

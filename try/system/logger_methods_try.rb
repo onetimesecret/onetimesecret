@@ -75,7 +75,7 @@ SemanticLogger['App']
 
 ## Logging Module - Include in test class
 class TestLoggingClass
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_instance = TestLoggingClass.new
 test_instance.respond_to?(:logger)
@@ -108,7 +108,7 @@ test_instance.app_logger
 
 ## Category Inference - Auth pattern detection
 class TestAuthClass
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_auth = TestAuthClass.new
 test_auth.send(:infer_category)
@@ -116,7 +116,7 @@ test_auth.send(:infer_category)
 
 ## Category Inference - Session pattern detection
 class TestSessionClass
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_session = TestSessionClass.new
 test_session.send(:infer_category)
@@ -124,7 +124,7 @@ test_session.send(:infer_category)
 
 ## Category Inference - Secret pattern detection
 class TestSecretClass
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_secret = TestSecretClass.new
 test_secret.send(:infer_category)
@@ -132,7 +132,7 @@ test_secret.send(:infer_category)
 
 ## Category Inference - HTTP/Controller pattern detection
 class TestController
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_controller = TestController.new
 test_controller.send(:infer_category)
@@ -140,7 +140,7 @@ test_controller.send(:infer_category)
 
 ## Category Inference - Default fallback
 class TestRandomClass
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_random = TestRandomClass.new
 test_random.send(:infer_category)
@@ -174,7 +174,7 @@ Thread.current[:log_category]
 
 ## Structured Logging - li with payload (uses SemanticLogger)
 class TestStructuredLogging
-  include Onetime::Logging
+  include Onetime::LoggerMethods
   def test_li_structured
     # Capture would require SemanticLogger appender configuration
     # For now, verify the method accepts keyword arguments
@@ -187,7 +187,7 @@ TestStructuredLogging.new.test_li_structured
 
 ## Structured Logging - le with payload (uses SemanticLogger)
 class TestStructuredLogging
-  include Onetime::Logging
+  include Onetime::LoggerMethods
   def test_le_structured
     Onetime.le "Error", code: 500
     true
@@ -198,7 +198,7 @@ TestStructuredLogging.new.test_le_structured
 
 ## Structured Logging - lw with payload (uses SemanticLogger)
 class TestStructuredLogging
-  include Onetime::Logging
+  include Onetime::LoggerMethods
   def test_lw_structured
     Onetime.lw "Warning", threshold: 100
     true
@@ -210,7 +210,7 @@ TestStructuredLogging.new.test_lw_structured
 ## Structured Logging - ld with payload (uses SemanticLogger)
 ENV['ONETIME_DEBUG'] = '1'
 class TestStructuredLogging
-  include Onetime::Logging
+  include Onetime::LoggerMethods
   def test_ld_structured
     Onetime.ld "Debug", step: 1
     true
@@ -223,7 +223,7 @@ result
 
 ## Logger Method - Returns SemanticLogger instance
 class TestLoggerMethod
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_logger = TestLoggerMethod.new.logger
 test_logger
@@ -231,7 +231,7 @@ test_logger
 
 ## Logger Method - Respects thread-local category
 class TestLoggerMethod
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_instance = TestLoggerMethod.new
 Thread.current[:log_category] = 'Secret'

@@ -5,7 +5,7 @@ module AccountAPI::Logic
     using Familia::Refinements::TimeLiterals
 
     class DestroySession < AccountAPI::Logic::Base
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       def process_params; end
 

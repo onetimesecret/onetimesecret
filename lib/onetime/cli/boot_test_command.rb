@@ -16,7 +16,7 @@
 
 module Onetime
   class BootTestCommand < Onetime::CLI::DelayBoot
-    include Onetime::Logging
+    include Onetime::LoggerMethods
 
     def boot_test
       puts "Testing application boot..."

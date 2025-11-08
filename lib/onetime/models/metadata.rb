@@ -3,7 +3,7 @@
 module Onetime
   class Metadata < Familia::Horreum
     include Familia::Features::Autoloader
-    include Onetime::Logging
+    include Onetime::LoggerMethods
 
     using Familia::Refinements::TimeLiterals
 
