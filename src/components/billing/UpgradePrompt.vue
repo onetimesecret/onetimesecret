@@ -47,8 +47,8 @@ const upgradeUrl = computed(() => `/account/billing/plans?upgrade_to=${props.upg
     <div :class="['flex gap-4', compact ? 'items-center' : 'items-start']">
       <div class="shrink-0">
         <OIcon
-          collection="heroicons"
-          name="sparkles"
+          collection="tabler"
+          name="square-letter-s"
           :class="[
             'text-amber-600 dark:text-amber-400',
             compact ? 'size-5' : 'size-6',

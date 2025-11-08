@@ -305,8 +305,8 @@ onMounted(async () => {
               class="flex flex-col items-center rounded-lg border border-gray-200 p-4 text-center transition-colors hover:border-brand-500 hover:bg-brand-50 dark:border-gray-700 dark:hover:border-brand-400 dark:hover:bg-brand-900/10">
               <div class="flex size-12 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
                 <OIcon
-                  collection="heroicons"
-                  name="sparkles"
+                  collection="tabler"
+                  name="square-letter-s"
                   class="size-6 text-brand-600 dark:text-brand-400"
                   aria-hidden="true"
                 />

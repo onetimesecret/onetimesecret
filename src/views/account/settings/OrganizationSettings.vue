@@ -552,8 +552,8 @@ watch(activeTab, async (newTab) => {
                 <!-- No Subscription (Free Plan) -->
                 <div v-else class="text-center">
                   <OIcon
-                    collection="heroicons"
-                    name="sparkles"
+                    collection="tabler"
+                    name="square-letter-s"
                     class="mx-auto size-12 text-gray-400"
                     aria-hidden="true" />
                   <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">

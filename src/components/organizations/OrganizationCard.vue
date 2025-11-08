@@ -51,7 +51,7 @@ const handleClick = () => {
     <div class="mt-4 flex items-center gap-3">
       <div class="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
         <OIcon
-          collection="heroicons"
+          collection="ph"
           name="building-office"
           class="size-4"
           aria-hidden="true"

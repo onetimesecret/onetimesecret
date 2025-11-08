@@ -126,7 +126,7 @@ const handleSubmit = async () => {
               <div>
                 <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900">
                   <OIcon
-                    collection="heroicons"
+                    collection="ph"
                     name="building-office"
                     class="size-6 text-brand-600 dark:text-brand-400"
                     aria-hidden="true"

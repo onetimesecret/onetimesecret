@@ -119,7 +119,7 @@ const menuItems = computed<MenuItem[]>(() => [
     id: 'upgrade',
     to: '/pricing',
     label: t('upgrade-for-teams'),
-    icon: { collection: 'heroicons', name: 'sparkles-solid' },
+    icon: { collection: 'tabler', name: 'square-letter-s-solid' },
     variant: 'cta' as const,
     condition: () => !props.awaitingMfa && props.showUpgrade,
   },

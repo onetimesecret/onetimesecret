@@ -34,7 +34,7 @@ const sections: NavigationItem[] = [
   },
   {
     to: '/billing/plans',
-    icon: { collection: 'heroicons', name: 'sparkles' },
+    icon: { collection: 'tabler', name: 'square-letter-s' },
     label: t('web.billing.plans.title'),
     description: t('web.billing.plans.choose_plan'),
   },
