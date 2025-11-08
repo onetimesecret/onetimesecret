@@ -64,10 +64,14 @@ module TeamAPI::Logic
           user_id: cust.objid,
           teamid: team.teamid,
           record: {
-            custid: new_member.custid,
+            id: new_member.custid,
+            team_id: team.teamid,
+            user_id: new_member.custid,
             email: new_member.email,
             role: 'member',
-            added_at: Familia.now.to_i,
+            status: 'active',
+            created_at: Familia.now.to_i,
+            updated_at: Familia.now.to_i,
           },
         }
       end

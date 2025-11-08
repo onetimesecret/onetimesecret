@@ -40,10 +40,14 @@ module TeamAPI::Logic
           teamid: team.teamid,
           records: members.map do |member|
             {
-              custid: member.custid,
+              id: member.custid,
+              team_id: team.teamid,
+              user_id: member.custid,
               email: member.email,
               role: (team.owner?(member) ? 'owner' : 'member'),
-              is_current_user: (member.custid == cust.custid),
+              status: 'active',
+              created_at: member.created || Familia.now.to_i,
+              updated_at: member.updated || Familia.now.to_i,
             }
           end,
           count: members.length,
