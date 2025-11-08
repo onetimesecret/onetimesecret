@@ -40,7 +40,7 @@ module Onetime
     feature :expiration
     feature :relationships
     feature :object_identifier
-    feature :external_identifier
+    feature :external_identifier, format: 'ur%<id>s'
     feature :required_fields
     feature :increment_field
     feature :counter_fields
