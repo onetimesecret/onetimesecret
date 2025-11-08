@@ -30,15 +30,24 @@ module Auth::Config::Hooks
       # Hook: After Account Creation
       #
       # This hook is triggered after a new user successfully creates an account.
-      # It ensures a corresponding Onetime::Customer record is created and linked.
+      # It ensures a corresponding Onetime::Customer record is created and linked,
+      # and creates a default organization and team for the new user.
       #
       auth.after_create_account do
-        Onetime::ErrorHandler.safe_execute('create_customer', account_id: account_id, extid: account[:extid]) do
+        customer = Onetime::ErrorHandler.safe_execute('create_customer', account_id: account_id, extid: account[:extid]) do
           Auth::Operations::CreateCustomer.new(
             account_id: account_id,
             account: account,
             db: Auth::Database.connection
           ).call
+        end
+
+        # Create default organization and team for the new customer
+        # Note: These are hidden from individual plan users in the UI
+        if customer
+          Onetime::ErrorHandler.safe_execute('create_default_workspace', custid: customer.custid) do
+            Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+          end
         end
       end
 
