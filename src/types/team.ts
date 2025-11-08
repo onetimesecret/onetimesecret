@@ -74,10 +74,10 @@ export const teamMemberSchema = z.object({
   email: z.string().email(),
   role: teamRoleSchema,
   status: teamMemberStatusSchema,
-  invited_at: z.union([z.string(), z.number()]).transform(val => String(val)).optional(),
-  joined_at: z.union([z.string(), z.number()]).transform(val => String(val)).optional(),
-  created_at: z.union([z.string(), z.number()]).transform(val => String(val)),
-  updated_at: z.union([z.string(), z.number()]).transform(val => String(val)),
+  invited_at: z.number().transform(val => new Date(val * 1000).toISOString()).optional(),
+  joined_at: z.number().transform(val => new Date(val * 1000).toISOString()).optional(),
+  created_at: z.number().transform(val => new Date(val * 1000).toISOString()),
+  updated_at: z.number().transform(val => new Date(val * 1000).toISOString()),
 });
 
 export const teamSchema = z.object({
@@ -86,8 +86,8 @@ export const teamSchema = z.object({
   description: z.string().max(500).optional(),
   owner_id: z.string(),
   member_count: z.number().int().min(0),
-  created_at: z.union([z.string(), z.number()]).transform(val => String(val)),
-  updated_at: z.union([z.string(), z.number()]).transform(val => String(val)),
+  created_at: z.number().transform(val => new Date(val * 1000).toISOString()),
+  updated_at: z.number().transform(val => new Date(val * 1000).toISOString()),
 });
 
 export const teamWithRoleSchema = teamSchema.extend({
