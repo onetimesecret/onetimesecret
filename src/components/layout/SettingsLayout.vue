@@ -1,12 +1,16 @@
 <!-- src/components/layout/SettingsLayout.vue -->
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
+import { useOrganizationStore } from '@/stores/organizationStore';
+import { WindowService } from '@/services/window.service';
 
 const route = useRoute();
 const { t } = useI18n();
+const organizationStore = useOrganizationStore();
 
 interface NavigationItem {
   to: string;
@@ -15,7 +19,14 @@ interface NavigationItem {
   description?: string;
   badge?: string;
   children?: NavigationItem[];
+  visible?: () => boolean;
 }
+
+const billingEnabled = computed(() => WindowService.getWindowProperty('billing_enabled', false));
+const showOrganizations = computed(() =>
+  // Show if billing is enabled AND user has organizations OR can create one
+   billingEnabled.value && (organizationStore.hasOrganizations || true)
+);
 
 const sections: NavigationItem[] = [
   {
@@ -59,6 +70,13 @@ const sections: NavigationItem[] = [
     description: t('web.settings.api.manage_api_keys'),
   },
   {
+    to: '/account/settings/organizations',
+    icon: { collection: 'heroicons', name: 'building-office-2' },
+    label: t('web.organizations.title'),
+    description: t('web.organizations.organizations_description'),
+    visible: () => showOrganizations.value,
+  },
+  {
     to: '/account/region',
     icon: { collection: 'heroicons', name: 'globe-alt-solid' },
     label: t('web.account.region'),
@@ -88,6 +106,8 @@ const sections: NavigationItem[] = [
     description: t('web.settings.advanced.description'),
   },
 ];
+
+const visibleSections = computed(() => sections.filter(section => section.visible ? section.visible() : true));
 
 const isActiveRoute = (path: string): boolean => route.path === path || route.path.startsWith(path + '/');
 
@@ -129,7 +149,7 @@ const isParentActive = (item: NavigationItem): boolean => {
       <!-- Sidebar Navigation -->
       <aside class="w-full lg:w-72 lg:shrink-0">
         <nav class="space-y-1" aria-label="Settings navigation">
-          <template v-for="item in sections" :key="item.to">
+          <template v-for="item in visibleSections" :key="item.to">
             <!-- Parent item -->
             <div>
               <router-link

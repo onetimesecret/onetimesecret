@@ -195,6 +195,40 @@ export const useOrganizationStore = defineStore('organization', () => {
   }
 
   /**
+   * Fetch capabilities for an organization
+   * This method fetches the organization's billing capabilities and limits
+   */
+  async function fetchCapabilities(orgId: string): Promise<void> {
+    try {
+      const response = await $api.get(`/api/billing/capabilities/${orgId}`);
+
+      // Update the organization with capabilities
+      const index = organizations.value.findIndex((o) => o.id === orgId);
+      if (index !== -1) {
+        organizations.value[index] = {
+          ...organizations.value[index],
+          planid: response.data.planid,
+          capabilities: response.data.capabilities,
+          limits: response.data.limits,
+        };
+      }
+
+      // Update current organization if it matches
+      if (currentOrganization.value?.id === orgId) {
+        currentOrganization.value = {
+          ...currentOrganization.value,
+          planid: response.data.planid,
+          capabilities: response.data.capabilities,
+          limits: response.data.limits,
+        };
+      }
+    } catch (err) {
+      console.error('[OrganizationStore] Error fetching capabilities:', err);
+      // Don't throw - capabilities are optional enhancements
+    }
+  }
+
+  /**
    * Reset the store
    */
   function $reset() {
@@ -225,6 +259,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     updateOrganization,
     deleteOrganization,
     setCurrentOrganization,
+    fetchCapabilities,
     abort,
     $reset,
   };

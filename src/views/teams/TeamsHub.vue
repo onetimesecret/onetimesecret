@@ -2,10 +2,13 @@
 <script setup lang="ts">
 import CreateTeamModal from '@/components/teams/CreateTeamModal.vue';
 import TeamCard from '@/components/teams/TeamCard.vue';
+import UpgradePrompt from '@/components/billing/UpgradePrompt.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { classifyError } from '@/schemas/errors';
 import { useTeamStore } from '@/stores/teamStore';
-import { onMounted, ref } from 'vue';
+import { useOrganizationStore } from '@/stores/organizationStore';
+import { useCapabilities } from '@/composables/useCapabilities';
+import { onMounted, ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
@@ -13,12 +16,29 @@ import { storeToRefs } from 'pinia';
 const { t } = useI18n();
 const router = useRouter();
 const teamStore = useTeamStore();
+const organizationStore = useOrganizationStore();
 
 const { teams, loading } = storeToRefs(teamStore);
+const { currentOrganization } = storeToRefs(organizationStore);
+
+// Capability checking
+const { can, hasReachedLimit, limit, upgradePath, CAPABILITIES } = useCapabilities(
+  currentOrganization
+);
 
 const activeTab = ref<'my-teams' | 'new-team'>('my-teams');
 const showCreateModal = ref(false);
 const error = ref('');
+
+// Check if user can create teams
+const canCreateTeam = computed(() => can(CAPABILITIES.CREATE_TEAM) || can(CAPABILITIES.CREATE_TEAMS));
+
+// Check if team limit has been reached
+const teamLimitReached = computed(() => {
+  const teamLimit = limit('teams');
+  if (teamLimit === 0) return false; // No limit
+  return hasReachedLimit('teams', teams.value.length);
+});
 
 onMounted(async () => {
   try {
@@ -107,6 +127,7 @@ aria-hidden="true" />
           </div>
         </button>
         <button
+          v-if="canCreateTeam && !teamLimitReached"
           @click="openCreateModal"
           :class="[
             'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors',
@@ -128,6 +149,25 @@ aria-hidden="true" />
 
     <!-- Content -->
     <div class="mt-8">
+      <!-- Upgrade Prompts -->
+      <div class="mb-6 space-y-4">
+        <!-- No capability to create teams -->
+        <UpgradePrompt
+          v-if="!canCreateTeam"
+          :capability="CAPABILITIES.CREATE_TEAM"
+          :upgrade-plan="upgradePath(CAPABILITIES.CREATE_TEAM) || 'multi_team_v1'"
+          :message="t('web.billing.upgrade.needTeams')"
+        />
+
+        <!-- Team limit reached -->
+        <UpgradePrompt
+          v-else-if="teamLimitReached"
+          :capability="CAPABILITIES.CREATE_TEAMS"
+          :upgrade-plan="upgradePath(CAPABILITIES.CREATE_TEAMS) || 'multi_team_v1'"
+          :message="t('web.billing.limits.teams_upgrade')"
+        />
+      </div>
+
       <!-- My Teams Tab -->
       <div v-if="activeTab === 'my-teams'">
         <!-- Loading State -->
@@ -163,7 +203,7 @@ aria-hidden="true" />
           <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {{ t('web.teams.no_teams_description') }}
           </p>
-          <div class="mt-6">
+          <div v-if="canCreateTeam && !teamLimitReached" class="mt-6">
             <button
               type="button"
               @click="openCreateModal"

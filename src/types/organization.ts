@@ -6,6 +6,31 @@
 import { z } from 'zod';
 
 /**
+ * Organization capability constants
+ */
+export const CAPABILITIES = {
+  CREATE_SECRETS: 'create_secrets',
+  BASIC_SHARING: 'basic_sharing',
+  CREATE_TEAM: 'create_team',
+  CREATE_TEAMS: 'create_teams',
+  CUSTOM_DOMAINS: 'custom_domains',
+  API_ACCESS: 'api_access',
+  PRIORITY_SUPPORT: 'priority_support',
+  AUDIT_LOGS: 'audit_logs',
+} as const;
+
+export type Capability = (typeof CAPABILITIES)[keyof typeof CAPABILITIES];
+
+/**
+ * Organization limits interface
+ */
+export interface OrganizationLimits {
+  teams?: number;
+  members_per_team?: number;
+  custom_domains?: number;
+}
+
+/**
  * Organization interface
  */
 export interface Organization {
@@ -16,6 +41,9 @@ export interface Organization {
   is_default: boolean;
   created_at: Date;
   updated_at: Date;
+  planid?: string;
+  capabilities?: Capability[];
+  limits?: OrganizationLimits;
 }
 
 /**
@@ -28,8 +56,17 @@ export const organizationSchema = z.object({
   description: z.string().max(500).optional(),
   contact_email: z.string().email().optional(),
   is_default: z.boolean(),
-  created_at: z.number().transform(val => new Date(val * 1000)),
-  updated_at: z.number().transform(val => new Date(val * 1000)),
+  created_at: z.number().transform((val) => new Date(val * 1000)),
+  updated_at: z.number().transform((val) => new Date(val * 1000)),
+  planid: z.string().optional(),
+  capabilities: z.array(z.string() as z.ZodType<Capability>).optional(),
+  limits: z
+    .object({
+      teams: z.number().optional(),
+      members_per_team: z.number().optional(),
+      custom_domains: z.number().optional(),
+    })
+    .optional(),
 });
 
 /**

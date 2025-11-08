@@ -26,6 +26,8 @@ module Onetime
     feature :object_identifier
     feature :external_identifier, format: 'on%<id>s'
     feature :required_fields
+    feature :with_organization_billing
+    feature :with_capabilities
 
     identifier_field :orgid
 
@@ -49,6 +51,7 @@ module Onetime
 
     def init
       @orgid ||= Familia.generate_id
+      @planid ||= 'free'  # Default to free plan
       nil
     end
 
