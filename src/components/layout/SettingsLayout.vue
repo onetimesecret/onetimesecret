@@ -22,7 +22,13 @@ interface NavigationItem {
   visible?: () => boolean;
 }
 
-const billingEnabled = computed(() => WindowService.getWindowProperty('billing_enabled', false));
+const billingEnabled = computed(() => {
+  try {
+    return WindowService.get('billing_enabled') || false;
+  } catch {
+    return false;
+  }
+});
 const showOrganizations = computed(() =>
   // Show if billing is enabled AND user has organizations OR can create one
    billingEnabled.value && (organizationStore.hasOrganizations || true)
@@ -103,7 +109,7 @@ const sections: NavigationItem[] = [
     to: '/account/settings/caution',
     icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
     label: t('web.settings.caution.title'),
-    description: t('web.settings.advanced.description'),
+    description: t('web.settings.caution.description'),
   },
 ];
 
