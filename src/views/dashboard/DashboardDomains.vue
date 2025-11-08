@@ -1,16 +1,12 @@
+<!--  -->
 <script setup lang="ts">
-import CustomDomainsCTA from '@/components/ctas/CustomDomainsCTA.vue'
-import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import DomainsTable from '@/components/DomainsTable.vue';
 import ErrorDisplay from '@/components/ErrorDisplay.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
-import { WindowService } from '@/services/window.service';
-import { computed, onMounted, ref } from 'vue';
-import type { Customer, CustomDomain } from '@/schemas/models';
+import { computed, onMounted } from 'vue';
+import type { CustomDomain } from '@/schemas/models';
 import TableSkeleton from '@/components/closet/TableSkeleton.vue'
-
-const cust = ref<Customer | null>(WindowService.get('cust'));
 
 const {
   isLoading,
@@ -19,11 +15,6 @@ const {
   error,
   refreshRecords,
 } = useDomainsManager();
-
-const showUpgradeCta = computed(() => {
-  const planid = cust?.value?.planid;
-  return !planid || planid === '' || planid === 'anonymous' || planid === 'basic';
-});
 
 const domains = computed(() => {
   if (records.value) {
@@ -38,17 +29,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <DashboardTabNav />
+  <div class="container mx-auto min-w-[320px] max-w-2xl">
     <ErrorDisplay v-if="error" :error="error" />
     <div v-if="isLoading">
       <TableSkeleton/>
-    </div>
-
-    <div
-      v-else-if="showUpgradeCta"
-      class="w-full">
-      <CustomDomainsCTA />
     </div>
 
     <div v-else>

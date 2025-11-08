@@ -23,14 +23,15 @@ require_relative '../../support/test_logic'
 OT.boot! :test, false
 
 # Setup some variables for these tryouts
-@now = DateTime.now
+@now = Familia.now
 @from_address = OT.conf.dig('emailer', 'from')
-@email_address = 'tryouts@onetimesecret.com'
-@sess = Session.new '255.255.255.255', 'anon'
+@email_address = "tryouts+#{Familia.now.to_i}@onetimesecret.com"
+@session = {}
+@strategy_result = MockStrategyResult.new(session: @session, user: nil)
 @cust = Customer.new email: @email_address
 @params = {}
 @locale = 'en'
-@obj = V2::Logic::Account::CreateAccount.new @sess, @cust
+@obj = V2::Logic::Account::CreateAccount.new @strategy_result, {}
 
 # A generator for valid params for creating an account
 @valid_params = lambda do
@@ -39,9 +40,9 @@ OT.boot! :test, false
   pword = 'loopersucks'
   {
     planid: :individual_v1,
-    u: email,
-    p: pword,
-    p2: pword,
+    login: email,
+    password: pword,
+    password2: pword,
 
     # This is a hidden field, so it should be empty. If it has a value, it's
     skill: '',
@@ -72,16 +73,18 @@ end
 #=> true
 
 ## Can create account and it's not verified by default.
-sess = Session.create '255.255.255.255', 'anon'
+sess = {}
+strategy_result = MockStrategyResult.new(sess, nil)
 cust = Customer.new
-logic = V2::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
+logic = V2::Logic::Account::CreateAccount.new strategy_result, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
 [logic.autoverify, logic.cust.verified, OT.conf.dig('site', 'authentication', 'autoverify')]
 #=> [false, 'false', false]
 
 ## Can create account and have it auto-verified.
-sess = Session.create '255.255.255.255', 'anon'
+sess = {}
+strategy_result = MockStrategyResult.new(sess, nil)
 cust = Customer.new
 old_conf = OT.instance_variable_get(:@conf)
 new_conf = {
@@ -92,7 +95,7 @@ new_conf = {
   },
 }
 OT.instance_variable_set(:@conf, new_conf)
-logic = V2::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
+logic = V2::Logic::Account::CreateAccount.new strategy_result, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
 ret = [logic.autoverify.to_s, logic.cust.verified.to_s, OT.conf.dig('site', 'authentication', 'autoverify').to_s]

@@ -3,7 +3,6 @@
 <script setup lang="ts">
   import MetadataSkeleton from '@/components/closet/MetadataSkeleton.vue';
   import CopyButton from '@/components/CopyButton.vue';
-  import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
   import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
@@ -19,7 +18,7 @@
 
   // Define props
   interface Props {
-    metadataKey: string;
+    metadataIdentifier: string;
   }
   const props = defineProps<Props>();
 
@@ -27,7 +26,7 @@
   const showWarning = ref(false);
   const warningMessage = ref<HTMLElement | null>(null);
 
-  const { record, details, isLoading, fetch, reset } = useMetadata(props.metadataKey);
+  const { record, details, isLoading, fetch, reset } = useMetadata(props.metadataIdentifier);
 
   const { onExpirationEvent } = useSecretExpiration(
     record.value?.created ?? new Date(),
@@ -42,7 +41,7 @@
 
   // Watch for route parameter changes to refetch data
   watch(
-    () => props.metadataKey,
+    () => props.metadataIdentifier,
     (newKey) => {
       reset();
       if (newKey) {
@@ -78,7 +77,6 @@
 
 <template>
   <div class="flex flex-col">
-    <DashboardTabNav />
 
     <div class="container mx-auto px-4">
       <!--  Add Back navigation link -->

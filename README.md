@@ -2,6 +2,10 @@
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
+> [!WARNING]
+> **Development Branch**: You're viewing the `develop` branch with active development and unreleased features. This branch may be unstable or contain work-in-progress code. For stable releases and production use, check out the [`main` branch](https://github.com/onetimesecret/onetimesecret/tree/main).
+
+
 ## What is a One-Time Secret?
 
 A onetime secret is a link that can be viewed only once. A single-use URL.

@@ -14,9 +14,9 @@
 require_relative '../../support/test_models'
 OT.boot! :test, false
 
-@email = "tryouts+40+#{Time.now.to_i}@onetimesecret.com"
-@cust = V1::Customer.create @email
-@secret = V1::Secret.create
+@email = "tryouts+40+#{Familia.now.to_i}@onetimesecret.com"
+@cust = Onetime::Customer.create!(email: @email)
+@secret = Onetime::Secret.create
 @locale = 'en'
 @recipient = 'tryouts+recipient@onetimesecret.com'
 
@@ -54,12 +54,12 @@ view.subject
 
 ## Includes share_domain in email body (English)
 view = OT::Mail::SecretLink.new @cust, 'en', @secret, @recipient
-view.render.include?("https://example.com/secret/#{@secret.key}")
+view.render.include?("https://example.com/secret/#{@secret.identifier}")
 #=> true
 
 ## Includes share_domain in email body (French Canadian)
 view = OT::Mail::SecretLink.new @cust, 'fr_CA', @secret, @recipient
-view.render.include?("https://example.com/secret/#{@secret.key}")
+view.render.include?("https://example.com/secret/#{@secret.identifier}")
 #=> true
 
 

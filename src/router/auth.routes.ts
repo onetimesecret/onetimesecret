@@ -10,6 +10,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Sign In',
     component: () => import('@/views/auth/Signin.vue'),
     meta: {
+      title: 'web.TITLES.signin',
       requiresAuth: false,
       isAuthRoute: true,
       layout: DefaultLayout,
@@ -30,12 +31,18 @@ const routes: Array<RouteRecordRaw> = [
         path: '',
         name: 'Sign Up',
         component: () => import('@/views/auth/Signup.vue'),
+        meta: {
+          title: 'web.TITLES.signup',
+        },
       },
       {
         path: ':planCode',
         name: 'Sign Up with Plan',
         component: () => import('@/views/auth/Signup.vue'),
         props: true,
+        meta: {
+          title: 'web.TITLES.signup',
+        },
       },
     ],
     meta: {
@@ -58,12 +65,18 @@ const routes: Array<RouteRecordRaw> = [
         path: '',
         name: 'Forgot Password',
         component: () => import('@/views/auth/PasswordResetRequest.vue'),
+        meta: {
+          title: 'web.TITLES.forgot_password',
+        },
       },
       {
         path: ':resetKey',
         name: 'Reset Password',
         component: () => import('@/views/auth/PasswordReset.vue'),
         props: true,
+        meta: {
+          title: 'web.TITLES.reset_password',
+        },
       },
     ],
     meta: {
@@ -84,6 +97,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Logout',
     component: { render: () => null }, // Dummy component
     meta: {
+      title: 'web.TITLES.logout',
       requiresAuth: true,
       layout: QuietLayout,
       layoutProps: {},
@@ -100,6 +114,62 @@ const routes: Array<RouteRecordRaw> = [
 
       // Force a full page load from the server
       window.location.href = '/logout';
+    },
+  },
+  {
+    path: '/verify-account',
+    name: 'Verify Account',
+    component: () => import('@/views/auth/VerifyAccount.vue'),
+    meta: {
+      title: 'web.TITLES.verify_account',
+      requiresAuth: false,
+      isAuthRoute: true,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: false,
+      },
+    },
+  },
+  {
+    path: '/mfa-verify',
+    name: 'MFA Verify',
+    component: () => import('@/views/auth/MfaVerify.vue'),
+    meta: {
+      title: 'web.TITLES.mfa_verify',
+      requiresAuth: false,
+      isAuthRoute: true,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayToggles: true,
+      },
+    },
+  },
+  {
+    path: '/email-login',
+    name: 'Email Login',
+    component: () => import('@/views/auth/EmailLogin.vue'),
+    meta: {
+      title: 'web.TITLES.email_login',
+      requiresAuth: false,
+      isAuthRoute: true,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayToggles: true,
+      },
     },
   },
 ];

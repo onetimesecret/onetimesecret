@@ -12,12 +12,12 @@ require 'v2/secret'
 Onetime.boot! :app
 
 # Helper method to test decryption with different parameters
-def test_decrypt(encrypted_value, secret_key, encryption_mode, passphrase=nil, global_secrets=[])
+def test_decrypt(encrypted_value, secret_identifier, encryption_mode, passphrase=nil, global_secrets=[])
   puts "Testing with mode: #{encryption_mode}, passphrase: #{passphrase ? 'YES' : 'NO'}"
 
   # Create a temporary secret object
-  secret = V2::Secret.new
-  secret.key = secret_key
+  secret = Onetime::Secret.new
+  secret.identifier = secret_identifier
   secret.value = encrypted_value
   secret.value_encryption = encryption_mode
   secret.passphrase_temp = passphrase if passphrase
@@ -50,15 +50,15 @@ def test_decrypt(encrypted_value, secret_key, encryption_mode, passphrase=nil, g
 
   global_secrets.each do |global_secret|
     # Try v1 style encryption key
-    v1_key = V2::Secret.encryption_key(secret_key, passphrase)
+    v1_key = Onetime::Secret.encryption_key(secret_identifier, passphrase)
     try_manual_decrypt(encrypted_value, v1_key, "V1 style (key + passphrase)")
 
     # Try v2 style encryption key
-    v2_key = V2::Secret.encryption_key(global_secret, secret_key, passphrase)
+    v2_key = Onetime::Secret.encryption_key(global_secret, secret_identifier, passphrase)
     try_manual_decrypt(encrypted_value, v2_key, "V2 style (global + key + passphrase)")
 
     # Try nil global secret
-    v2_nil_key = V2::Secret.encryption_key(nil, secret_key, passphrase)
+    v2_nil_key = Onetime::Secret.encryption_key(nil, secret_identifier, passphrase)
     try_manual_decrypt(encrypted_value, v2_nil_key, "V2 style with nil global")
   end
 
@@ -80,16 +80,16 @@ def try_manual_decrypt(encrypted_value, key, method_name)
 end
 
 # Function to find a problematic secret and test it
-def test_problematic_secret(secret_key, additional_global_secrets=[], potential_passphrases=nil)
-  secret = V2::Secret.load(secret_key)
+def test_problematic_secret(secret_identifier, additional_global_secrets=[], potential_passphrases=nil)
+  secret = Onetime::Secret.load(secret_identifier)
   potential_passphrases ||= [nil, ""]  # Add potential passphrases if applicable
 
   if secret.nil?
-    puts "Secret not found with key: #{secret_key}"
+    puts "Secret not found with key: #{secret_identifier}"
     return
   end
 
-  puts "Found secret with key: #{secret_key}"
+  puts "Found secret with key: #{secret_identifier}"
   puts "Encryption mode: #{secret.value_encryption}"
   puts "Has passphrase: #{secret.has_passphrase?}"
 
@@ -108,7 +108,7 @@ def test_problematic_secret(secret_key, additional_global_secrets=[], potential_
 
   result = nil
   potential_passphrases.each do |passphrase|
-    result = test_decrypt(encrypted_value, secret_key, secret.value_encryption,
+    result = test_decrypt(encrypted_value, secret_identifier, secret.value_encryption,
                          passphrase, potential_global_secrets)
     break if result
   end
@@ -121,35 +121,35 @@ def test_problematic_secret(secret_key, additional_global_secrets=[], potential_
 end
 
 # Function to manually test encryption key generation with specific parameters
-def test_encryption_key_generation(secret_key, passphrase=nil, global_secrets=[])
-  puts "Testing encryption key generation for secret_key: #{secret_key}"
+def test_encryption_key_generation(secret_identifier, passphrase=nil, global_secrets=[])
+  puts "Testing encryption key generation for secret_identifier: #{secret_identifier}"
 
   global_secrets.each do |global_secret|
     # V1 style (no global secret)
-    v1_key = V2::Secret.encryption_key(secret_key, passphrase)
+    v1_key = Onetime::Secret.encryption_key(secret_identifier, passphrase)
     puts "V1 style key (key + passphrase): #{v1_key}"
 
     # V2 style (with global secret)
-    v2_key = V2::Secret.encryption_key(global_secret, secret_key, passphrase)
+    v2_key = Onetime::Secret.encryption_key(global_secret, secret_identifier, passphrase)
     puts "V2 style key (global + key + passphrase) with global=#{global_secret.inspect}: #{v2_key}"
   end
 end
 
 # Create a test value and encrypt it with different methods for comparison
-def create_test_encryptions(test_value, secret_key, passphrase=nil, global_secrets=[])
+def create_test_encryptions(test_value, secret_identifier, passphrase=nil, global_secrets=[])
   puts "Creating test encryptions for value: #{test_value.inspect}"
 
   encryptions = {}
 
   global_secrets.each do |global_secret|
     # V1 style encryption
-    v1_key = V2::Secret.encryption_key(secret_key, passphrase)
+    v1_key = Onetime::Secret.encryption_key(secret_identifier, passphrase)
     v1_encrypted = test_value.encrypt(key: v1_key)
     encryptions["v1_#{global_secret.inspect}"] = v1_encrypted
     puts "V1 style encryption: #{v1_encrypted.inspect}"
 
     # V2 style encryption
-    v2_key = V2::Secret.encryption_key(global_secret, secret_key, passphrase)
+    v2_key = Onetime::Secret.encryption_key(global_secret, secret_identifier, passphrase)
     v2_encrypted = test_value.encrypt(key: v2_key)
     encryptions["v2_#{global_secret.inspect}"] = v2_encrypted
     puts "V2 style encryption with global=#{global_secret.inspect}: #{v2_encrypted.inspect}"

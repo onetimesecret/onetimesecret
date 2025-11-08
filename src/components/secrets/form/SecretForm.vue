@@ -4,6 +4,7 @@
   import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import SplitButton from '@/components/SplitButton.vue';
+  import TeamSelector from '@/components/teams/TeamSelector.vue';
   import { useDomainDropdown } from '@/composables/useDomainDropdown';
   import { usePrivacyOptions } from '@/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/composables/useSecretConcealer';
@@ -15,6 +16,7 @@
     DEFAULT_PRIMARY_COLOR,
     useProductIdentity,
   } from '@/stores/identityStore';
+  import { useTeamStore } from '@/stores/teamStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { nanoid } from 'nanoid';
   import { computed, onMounted, ref, watch } from 'vue';
@@ -48,7 +50,9 @@
   const router = useRouter();
   const productIdentity = useProductIdentity();
   const concealedMetadataStore = useConcealedMetadataStore();
+  const teamStore = useTeamStore();
   const showProTip = ref(props.withAsterisk);
+  const selectedTeamId = ref<string | null>(null);
 
   // Get passphrase configuration for UI hints
   const secretOptions = computed(() => WindowService.get('secret_options'));
@@ -73,8 +77,8 @@
       if (!response) throw 'Response is missing';
       const newMessage: ConcealedMessage = {
         id: nanoid(),
-        metadata_key: response.record.metadata.key,
-        secret_key: response.record.secret.key,
+        metadata_identifier: response.record.metadata.identifier,
+        secret_identifier: response.record.secret.identifier,
         response,
         clientInfo: {
           hasPassphrase: !!form.passphrase,
@@ -88,7 +92,7 @@
       secretContentInput.value?.clearTextarea(); // Clear textarea
 
       // Navigate to the metadata view page
-      router.push(`/receipt/${response.record.metadata.key}`);
+      router.push(`/receipt/${response.record.metadata.identifier}`);
     },
   });
 
@@ -123,11 +127,22 @@
     operations.updateField('share_domain', domain);
   });
 
+  // Watch for team selection changes and update form
+  watch(selectedTeamId, (teamId) => {
+    operations.updateField('team_id', teamId);
+  });
+
   // Focus management when switching between Create Link and Generate Password modes
   const generatePasswordSection = ref<HTMLElement | null>(null);
 
   onMounted(() => {
     operations.updateField('share_domain', selectedDomain.value);
+    // Load teams if user is authenticated
+    if (teamStore.teams.length === 0) {
+      teamStore.fetchTeams().catch(() => {
+        // Silently fail - teams are optional
+      });
+    }
   });
 </script>
 
@@ -371,6 +386,15 @@
                   dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
                 @input="(e) => updateRecipient((e.target as HTMLInputElement).value)" />
             </div>
+          </div>
+
+          <!-- Team Selector (optional - only shows if user has teams) -->
+          <div
+            v-if="teamStore.hasTeams"
+            class="mt-6">
+            <TeamSelector
+              v-model="selectedTeamId"
+              :disabled="isSubmitting" />
           </div>
         </div>
 

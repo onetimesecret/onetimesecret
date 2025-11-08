@@ -32,11 +32,11 @@ module Onetime::StripeRefinements
       } },
 
       { current_period_remaining: lambda { |sub|
-        (Time.at(sub.current_period_end) - Time.now).to_i
+        (Time.at(sub.current_period_end) - Familia.now).to_i
       } },
 
       { on_trial: lambda { |sub|
-        sub.trial_end && Time.now < Time.at(sub.trial_end)
+        sub.trial_end && Familia.now < Time.at(sub.trial_end)
       } },
 
       { plan: lambda { |sub|
@@ -104,8 +104,8 @@ end
 
       { metadata: lambda { |cust|
         # Only include safe metadata fields
-        safe_metadata_keys = [:public_note, :preferred_language]
-        cust.metadata_list.select { |k, _| safe_metadata_keys.include?(k.to_sym) }
+        safe_metadata_identifiers = [:public_note, :preferred_language]
+        cust.metadata_list.select { |k, _| safe_metadata_identifiers.include?(k.to_sym) }
       } },
     ]
   end

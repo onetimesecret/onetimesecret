@@ -29,7 +29,9 @@ export const CustomerRole = {
 export const customerSchema = withFeatureFlags(
   createModelSchema({
     // Core fields
-    custid: z.string(),
+    objid: z.string(),
+    extid: z.string(),
+
     role: z.enum([
       CustomerRole.CUSTOMER,
       CustomerRole.COLONEL,
@@ -54,7 +56,6 @@ export const customerSchema = withFeatureFlags(
 
     // Optional fields
     locale: z.string().nullable(),
-    planid: z.string().nullable().optional(),
 
     // Stripe-related fields
     stripe_customer_id: z.string().nullable(),

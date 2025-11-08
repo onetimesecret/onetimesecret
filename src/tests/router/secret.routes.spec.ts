@@ -5,24 +5,24 @@ import ShowSecretContainer from '@/views/secrets/ShowSecretContainer.vue';
 import { describe, expect, it } from 'vitest';
 
 describe('Secret Routes', () => {
-  const secretRoute = routes.find((route) => route.path === '/secret/:secretKey');
+  const secretRoute = routes.find((route) => route.path === '/secret/:secretIdentifier');
 
   describe('route configuration', () => {
     it('should define basic route properties correctly', () => {
       expect(secretRoute).toBeDefined();
-      expect(secretRoute?.path).toBe('/secret/:secretKey');
+      expect(secretRoute?.path).toBe('/secret/:secretIdentifier');
       expect(secretRoute?.name).toBe('Secret link');
       expect(secretRoute?.component).toBe(ShowSecretContainer);
     });
   });
 
-  describe('secretKey validation', () => {
+  describe('secretIdentifier validation', () => {
     it('should allow valid secret keys', () => {
       const guard = secretRoute?.beforeEnter;
       if (!guard) throw new Error('beforeEnter guard not defined');
 
       const mockRoute = {
-        params: { secretKey: 'abc123' },
+        params: { secretIdentifier: 'abc123' },
       };
 
       const result = guard(mockRoute as any);
@@ -37,7 +37,7 @@ describe('Secret Routes', () => {
 
       invalidKeys.forEach((key) => {
         const mockRoute = {
-          params: { secretKey: key },
+          params: { secretIdentifier: key },
         };
 
         const result = guard(mockRoute as any);
@@ -47,16 +47,16 @@ describe('Secret Routes', () => {
   });
 
   describe('props', () => {
-    it('should pass secretKey as a prop', () => {
+    it('should pass secretIdentifier as a prop', () => {
       const propsFunc = secretRoute?.props;
       if (typeof propsFunc !== 'function') throw new Error('props should be a function');
 
       const mockRoute = {
-        params: { secretKey: 'abc123' },
+        params: { secretIdentifier: 'abc123' },
       };
 
       const props = propsFunc(mockRoute as any);
-      expect(props).toEqual({ secretKey: 'abc123' });
+      expect(props).toEqual({ secretIdentifier: 'abc123' });
     });
   });
 });

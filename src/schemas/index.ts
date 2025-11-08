@@ -49,7 +49,7 @@
 
 // Exports organized by architectural layer
 // Base schemas and utilities
-export * from './api/base';
+export * from './api/v3/base';
 export * from './models/base';
 
 // Error Flynn
@@ -62,8 +62,8 @@ export * from './models/metadata';
 export * from './models/secret';
 
 // Domain-specific models and endpoints
-export * from './api/endpoints';
-export * from './api/endpoints/colonel';
+export * from './api/v3/endpoints';
+export * from './api/account/endpoints/colonel';
 export * from './models/domain/index';
 
 // API response types
@@ -72,16 +72,16 @@ export type {
   ApiErrorResponse,
   ApiRecordResponse,
   ApiRecordsResponse,
-} from './api/base';
+} from './api/v3/base';
 
 export type {
   AccountResponse,
   ApiTokenResponse,
   MetadataResponse,
   SecretResponse,
-} from './api/responses';
+} from './api/v3/responses';
 
-export type { ColonelInfoDetails } from './api/endpoints/colonel';
+export type { ColonelInfoDetails } from './api/account/endpoints/colonel';
 
 // Core model types
 export type { BaseModel, CustomDomain, Customer, Feedback, Metadata, Secret } from './models';

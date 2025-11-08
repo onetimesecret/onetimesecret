@@ -1,11 +1,11 @@
 // src/types/ui/concealed-message.ts
 
-import { ConcealDataResponse } from '@/schemas/api';
+import { ConcealDataResponse } from '@/schemas/api/v3';
 
 export interface ConcealedMessage {
   id: string;
-  metadata_key: string;
-  secret_key: string;
+  metadata_identifier: string;
+  secret_identifier: string;
   response: ConcealDataResponse;
   clientInfo: {
     hasPassphrase: boolean;

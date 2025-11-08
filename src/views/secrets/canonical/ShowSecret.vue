@@ -58,7 +58,7 @@
 
 <template>
   <BaseShowSecret
-    :secret-key="secretKey"
+    :secret-identifier="secretIdentifier"
     :branded="false"
     :site-host="siteHost"
     class="container mx-auto mt-24 px-4">
@@ -128,7 +128,7 @@
     <template #confirmation="{ record, details, error, isLoading, onConfirm }">
       <div class="mx-auto max-w-2xl space-y-48 ">
         <SecretConfirmationForm
-          :secret-key="secretKey"
+          :secret-identifier="secretIdentifier"
           :record="record"
           :details="details"
           :error="error"

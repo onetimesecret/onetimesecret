@@ -16,11 +16,11 @@ const validateMetadataKey = (key: string | string[]): key is string =>
 
 /**
  * Shared route configuration for metadata-related routes.
- * Handles validation and type safety for the metadataKey parameter.
+ * Handles validation and type safety for the metadataIdentifier parameter.
  *
- * - Validates metadataKey format in beforeEnter guard
+ * - Validates metadataIdentifier format in beforeEnter guard
  * - Redirects to Not Found for invalid keys
- * - Provides typed metadataKey prop to components
+ * - Provides typed metadataIdentifier prop to components
  */
 const withValidatedMetadataKey = {
   beforeEnter: (to: RouteLocationNormalized) => {
@@ -41,14 +41,14 @@ const withValidatedMetadataKey = {
       };
     }
 
-    const isValid = validateMetadataKey(to.params.metadataKey);
+    const isValid = validateMetadataKey(to.params.metadataIdentifier);
     if (!isValid) {
       return { name: 'Not Found' };
     }
   },
   props: {
     default: (route: RouteLocationNormalized) => ({
-      metadataKey: route.params.metadataKey as string,
+      metadataIdentifier: route.params.metadataIdentifier as string,
     }),
     header: false,
     footer: false,
@@ -57,14 +57,14 @@ const withValidatedMetadataKey = {
 
 /**
  * Routes for viewing and managing metadata/secrets:
- * - /private/:metadataKey - View metadata and secret details
- * - /receipt/:metadataKey - Alternative path for viewing metadata and secret details
- * - /private/:metadataKey/burn - Permanently delete a secret
- * - /receipt/:metadataKey/burn - Alternative path for permanently deleting a secret
+ * - /private/:metadataIdentifier - View metadata and secret details
+ * - /receipt/:metadataIdentifier - Alternative path for viewing metadata and secret details
+ * - /private/:metadataIdentifier/burn - Permanently delete a secret
+ * - /receipt/:metadataIdentifier/burn - Alternative path for permanently deleting a secret
  */
 const routes: Array<RouteRecordMultipleViews> = [
   {
-    path: '/private/:metadataKey',
+    path: '/private/:metadataIdentifier',
     name: 'Metadata link',
     components: {
       default: ShowMetadata,
@@ -73,6 +73,7 @@ const routes: Array<RouteRecordMultipleViews> = [
     },
     ...withValidatedMetadataKey,
     meta: {
+      title: 'web.TITLES.metadata',
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
@@ -85,7 +86,7 @@ const routes: Array<RouteRecordMultipleViews> = [
     },
   },
   {
-    path: '/receipt/:metadataKey',
+    path: '/receipt/:metadataIdentifier',
     name: 'Receipt link',
     components: {
       default: ShowMetadata,
@@ -94,6 +95,7 @@ const routes: Array<RouteRecordMultipleViews> = [
     },
     ...withValidatedMetadataKey,
     meta: {
+      title: 'web.TITLES.receipt',
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
@@ -106,7 +108,7 @@ const routes: Array<RouteRecordMultipleViews> = [
     },
   },
   {
-    path: '/private/:metadataKey/burn',
+    path: '/private/:metadataIdentifier/burn',
     name: 'Burn secret',
     components: {
       default: BurnSecret,
@@ -115,6 +117,7 @@ const routes: Array<RouteRecordMultipleViews> = [
     },
     ...withValidatedMetadataKey,
     meta: {
+      title: 'web.TITLES.burn_secret',
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: false,
@@ -127,7 +130,7 @@ const routes: Array<RouteRecordMultipleViews> = [
     },
   },
   {
-    path: '/receipt/:metadataKey/burn',
+    path: '/receipt/:metadataIdentifier/burn',
     name: 'Burn receipt',
     components: {
       default: BurnSecret,
@@ -136,6 +139,7 @@ const routes: Array<RouteRecordMultipleViews> = [
     },
     ...withValidatedMetadataKey,
     meta: {
+      title: 'web.TITLES.burn_secret',
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: false,

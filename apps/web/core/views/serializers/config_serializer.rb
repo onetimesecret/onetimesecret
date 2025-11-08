@@ -20,7 +20,6 @@ module Core
 
         # NOTE: The keys available in view_vars are defined in initialize_view_vars
         site        = view_vars['site'] || {}
-        incoming    = view_vars['incoming']
         development = view_vars['development']
         diagnostics = view_vars['diagnostics']
 
@@ -38,8 +37,6 @@ module Core
         output['domains_enabled'] = domains.fetch('enabled', false)
         output['domains']         = domains if output['domains_enabled']
 
-        output['incoming_recipient'] = incoming.fetch('email', nil)
-
         # Link to the pricing page can be seen regardless of authentication status
         billing                   = OT.conf.fetch('billing', {})
         output['billing_enabled'] = billing.fetch('enabled', false)
@@ -56,6 +53,10 @@ module Core
           }
         end
 
+        # Feature flags for authentication methods
+        # Only available in advanced mode (Rodauth)
+        output['features'] = build_feature_flags
+
         output
       end
 
@@ -70,9 +71,9 @@ module Core
             'diagnostics' => nil,
             'domains' => nil,
             'domains_enabled' => nil,
+            'features' => nil,
             'frontend_development' => nil,
             'frontend_host' => nil,
-            'incoming_recipient' => nil,
             'billing_enabled' => nil,
             'regions' => nil,
             'regions_enabled' => nil,
@@ -80,6 +81,31 @@ module Core
             'site_host' => nil,
             'ui' => nil,
           }
+        end
+
+        # Build feature flags for authentication methods
+        #
+        # Feature flags indicate which authentication methods are available
+        # based on the current authentication mode (basic vs advanced).
+        #
+        # @return [Hash] Feature flags for frontend consumption
+        def build_feature_flags
+          features = {
+            'magic_links' => false,
+            'email_auth' => false,
+            'webauthn' => false,
+          }
+
+          # Passwordless features only available in advanced mode
+          if Onetime.auth_config.advanced_enabled?
+            # Check if email_auth is in the advanced features list
+            advanced_features = Onetime.auth_config.advanced.fetch('features', [])
+            features['magic_links'] = advanced_features.include?('email_auth')
+            features['email_auth'] = advanced_features.include?('email_auth')
+            features['webauthn'] = advanced_features.include?('webauthn')
+          end
+
+          features
         end
       end
 

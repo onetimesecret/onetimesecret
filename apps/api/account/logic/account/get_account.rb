@@ -1,0 +1,115 @@
+# apps/api/account/logic/account/get_account.rb
+
+require 'onetime/refinements/stripe_refinements'
+
+module AccountAPI::Logic
+  module Account
+    class GetAccount < AccountAPI::Logic::Base
+      attr_accessor :billing_enabled
+      attr_reader :stripe_subscription, :stripe_customer
+
+      using Onetime::StripeRefinements
+
+      def process_params
+        OT.ld "[GetAccount#process_params] params: #{params.inspect}"
+        billing          = OT.conf.fetch('billing', {})
+        @billing_enabled = billing.fetch('enabled', false)
+      end
+
+      def raise_concerns; end
+
+      def process
+        return unless billing_enabled
+
+        @stripe_customer     = cust.get_stripe_customer
+        @stripe_subscription = cust.get_stripe_subscription
+
+        # Rudimentary normalization to make sure that all Onetime customers
+        # that have a stripe customer and subscription record, have the
+        # RedisHash fields stripe_customer_id and stripe_subscription_id
+        # fields populated. The subscription section on the account screen
+        # depends on these ID fields being populated.
+        if stripe_customer
+          OT.info 'Recording stripe customer ID'
+          cust.stripe_customer_id = stripe_customer.id
+        end
+
+        if stripe_subscription
+          OT.info 'Recording stripe subscription ID'
+          cust.stripe_subscription_id = stripe_subscription.id
+        end
+
+
+        cust.save
+
+        success_data
+      end
+
+      def show_stripe_section?
+        billing_enabled && !stripe_customer.nil?
+      end
+
+      def safe_stripe_customer_dump
+        return nil if stripe_customer.nil?
+
+        object_id = stripe_customer&.id
+        {
+          id: object_id,
+          email: stripe_customer.email,
+          description: stripe_customer.description,
+          balance: stripe_customer.balance,
+          created: stripe_customer.created,
+          metadata: stripe_customer.metadata,
+        }
+      rescue RuntimeError => ex
+        OT.le("[safe_stripe_customer_dump] Error for #{object_id}: #{ex.message}")
+        nil
+      end
+
+      def safe_stripe_subscription_dump
+        # https://docs.stripe.com/api/subscriptions/retrieve?lang=ruby&api-version=2025-03-31.basil
+        return nil if stripe_subscription.nil?
+
+        object_id = stripe_subscription&.id
+        item_data = stripe_subscription.items.data.first
+        {
+          id: object_id,
+          status: stripe_subscription.status,
+          current_period_end: item_data&.current_period_end,
+          items: stripe_subscription.items,
+          plan: {
+            id: stripe_subscription.plan.id,
+            amount: stripe_subscription.plan.amount,
+            currency: stripe_subscription.plan.currency,
+            interval: stripe_subscription.plan.interval,
+            product: stripe_subscription.plan.product,
+          },
+        }
+      rescue RuntimeError => ex
+        OT.le("[safe_stripe_subscription_dump] Error for #{object_id}: #{ex.message}")
+        nil
+      end
+
+      def success_data
+        ret = {
+          user_id: cust.objid,
+          record: {
+            apitoken: cust.apitoken,
+            cust: cust.safe_dump,
+            stripe_customer: nil,
+            stripe_subscriptions: nil,
+          },
+          details: {},
+        }
+
+        if show_stripe_section?
+          ret[:record][:stripe_customer]      = safe_stripe_customer_dump
+          subscription                        = safe_stripe_subscription_dump
+          ret[:record][:stripe_subscriptions] = [subscription] if subscription
+        end
+
+        ret
+      end
+    end
+  end
+end

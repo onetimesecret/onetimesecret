@@ -30,10 +30,7 @@ export const transforms = {
     ),
     number: z.preprocess(parseNumber, z.number().nullable()),
     boolean: z.preprocess(parseBoolean, z.boolean()),
-    ttlToNaturalLanguage: z.preprocess(
-      ttlToNaturalLanguage,
-      z.string().nullable()
-    ),
+    ttlToNaturalLanguage: z.preprocess(ttlToNaturalLanguage, z.string().nullable()),
 
     /**
      * Transforms empty strings to undefined for optional email fields
@@ -41,7 +38,7 @@ export const transforms = {
      * Input: "test@example.com" -> "test@example.com"
      * Input: "invalid" -> ZodError
      */
-    optionalEmail: z.preprocess((val) => (val === '' ? undefined : val), z.string().email().optional()),
+    optionalEmail: z.preprocess((val) => (val === '' ? undefined : val), z.email().optional()),
   },
 
   fromNumber: {

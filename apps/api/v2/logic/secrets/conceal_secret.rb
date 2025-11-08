@@ -4,13 +4,12 @@ require_relative 'base_secret_action'
 
 module V2::Logic
   module Secrets
-
     using Familia::Refinements::TimeLiterals
 
     class ConcealSecret < BaseSecretAction
       def process_secret
-        @kind         = :conceal
-        @secret_value = payload[:secret]
+        @kind         = 'conceal'
+        @secret_value = payload['secret']
       end
 
       def raise_concerns

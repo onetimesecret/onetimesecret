@@ -12,15 +12,18 @@
 
 require_relative '../../support/test_helpers'
 
+require 'logger'
 require 'stringio'
+
 require 'middleware/detect_host'
 
 # Capture log output for verification
 @log_output = StringIO.new
+@logger = Logger.new(@log_output)
 @app = ->(env) { [200, {}, ['OK']] }
 @original_value = OT.debug?
 OT.debug = true  # log messages are only avalable in debug mode
-@middleware = Rack::DetectHost.new(@app, io: @log_output)
+@middleware = Rack::DetectHost.new(@app, logger: @logger)
 
 ## X-Forwarded-Host takes precedence over Host header
 env = {'HTTP_X_FORWARDED_HOST' => 'first.com', 'HTTP_HOST' => 'last.com'}

@@ -1,45 +1,70 @@
 # apps/web/core/routes
 
-GET   /                                          Core::Controllers::Page#index
-GET   /feedback                                  Core::Controllers::Page#index
-GET   /404                                       Core::Controllers::Page#not_found
-GET   /500                                       Core::Controllers::Page#server_error
-GET   /robots.txt                                Core::Controllers::Page#robots_txt
+# Public routes - accessible to everyone
+GET   /                                          Core::Controllers::Page#index auth=noauth
+GET   /feedback                                  Core::Controllers::Page#index auth=noauth
+GET   /404                                       Core::Controllers::Page#not_found auth=noauth
+GET   /500                                       Core::Controllers::Page#server_error auth=noauth
+GET   /robots.txt                                Core::Controllers::Page#robots_txt auth=noauth
 
-POST  /incoming                                  Core::Controllers::Data#create_incoming
-GET   /window                                    Core::Controllers::Data#export_window
+# Authentication System UI - Supports both Basic and Advanced modes
+GET   /signin                                    Core::Controllers::Page#index auth=noauth
+GET   /signup                                    Core::Controllers::Page#index auth=noauth
+GET   /signup/*                                  Core::Controllers::Page#index auth=noauth
+GET   /forgot                                    Core::Controllers::Page#index auth=noauth
+GET   /forgot/:key                               Core::Controllers::Page#index auth=noauth
 
-GET   /plans/:tier                               Core::Controllers::Account#plan_redirect
-GET   /plans/:tier/:billing_cycle                Core::Controllers::Account#plan_redirect
-GET   /welcome                                   Core::Controllers::Account#welcome
-POST  /welcome/stripe/webhook                    Core::Controllers::Account#welcome_webhook
+# Authentication routes - handled here in basic mode, by Auth app in advanced
+# mode. The Vue frontend uses the same /auth/* endpoints regardless of which
+# mode is enabled. The Auth app provides many more routes in addition to these.
+GET   /logout                                    Core::Controllers::Authentication#logout auth=noauth
+POST  /logout                                    Core::Controllers::Authentication#logout auth=noauth
+GET   /auth/logout                               Core::Controllers::Authentication#logout auth=noauth response=json
+POST  /auth/logout                               Core::Controllers::Authentication#logout auth=noauth response=json
+POST  /auth/login                                Core::Controllers::Authentication#authenticate auth=noauth response=json
+POST  /auth/create-account                       Core::Controllers::Registration#create_account auth=noauth response=json
+POST  /auth/reset-password                       Core::Controllers::Registration#request_reset auth=noauth response=json
+POST  /auth/reset-password/:key                  Core::Controllers::Registration#request_reset auth=noauth response=json
 
-GET   /private/*                                 Core::Controllers::Page#index
-GET   /receipt/*                                 Core::Controllers::Page#index
-GET   /secret/*                                  Core::Controllers::Page#index
+# Authentication routes - advanced mode routes that core delivers for the
+# frontend vue app to mount on. The frontend app then communicates via
+# the JSON API at /auth/verify-account etc.
+GET   /verify-account                           Core::Controllers::Page#index
+GET   /email-login                              Core::Controllers::Page#index
+GET   /mfa-verify                               Core::Controllers::Page#index
 
-POST  /signin                                    Core::Controllers::Account#authenticate
-POST  /signup                                    Core::Controllers::Account#create_account
+# Data export/import - public for now (may need auth review)
+GET   /window                                    Core::Controllers::Page#export_window auth=noauth
 
-GET   /signin                                    Core::Controllers::Page#index
-GET   /signup                                    Core::Controllers::Page#index
-GET   /signup/*                                  Core::Controllers::Page#index
-GET   /logout                                    Core::Controllers::Account#logout
+# Vue SPA catch-all routes - public (Vue handles auth client-side)
+GET   /private/*                                 Core::Controllers::Page#index auth=noauth
+GET   /receipt/*                                 Core::Controllers::Page#index auth=noauth
+GET   /secret/*                                  Core::Controllers::Page#index auth=noauth
+GET   /l/*                                       Core::Controllers::Page#index auth=noauth
+GET   /l                                         Core::Controllers::Page#index auth=noauth
 
-GET   /forgot                                    Core::Controllers::Page#index
-GET   /forgot/:key                               Core::Controllers::Page#index
-POST  /forgot                                    Core::Controllers::Account#request_reset
-POST  /forgot/:key                               Core::Controllers::Account#request_reset
+# Authenticated routes - require valid session
+GET   /dashboard                                 Core::Controllers::Page#index auth=sessionauth
+GET   /recent                                    Core::Controllers::Page#index auth=sessionauth
+GET   /domains/*                                 Core::Controllers::Page#index auth=sessionauth
+GET   /domains                                   Core::Controllers::Page#index auth=sessionauth
+GET   /account/*                                 Core::Controllers::Page#index auth=sessionauth
+GET   /account                                   Core::Controllers::Page#index auth=sessionauth
+GET   /teams/*                                   Core::Controllers::Page#index auth=sessionauth
+GET   /teams                                     Core::Controllers::Page#index auth=sessionauth
+GET   /orgs/*                                    Core::Controllers::Page#index auth=sessionauth
+GET   /orgs                                      Core::Controllers::Page#index auth=sessionauth
 
-GET   /dashboard                                 Core::Controllers::Page#customers_only
-GET   /recent                                    Core::Controllers::Page#customers_only
-GET   /domains/*                                 Core::Controllers::Page#customers_only
-GET   /domains                                   Core::Controllers::Page#customers_only
-GET   /account/*                                 Core::Controllers::Page#customers_only
-GET   /account                                   Core::Controllers::Page#customers_only
-GET   /account/billing_portal                    Core::Controllers::Account#customer_portal_redirect
+# Billing
+GET   /plans/:tier                               Core::Controllers::Welcome#plan_redirect auth=noauth
+GET   /plans/:tier/:billing_cycle                Core::Controllers::Welcome#plan_redirect auth=noauth
+GET   /welcome                                   Core::Controllers::Welcome#welcome auth=noauth
+POST  /welcome/stripe/webhook                    Core::Controllers::Welcome#welcome_webhook auth=noauth csrf=exempt
+GET   /account/billing_portal                    Core::Controllers::Welcome#customer_portal_redirect auth=sessionauth
 
-GET   /colonel                                   Core::Controllers::Page#colonels_only
-GET   /colonel/*                                 Core::Controllers::Page#colonels_only
+# Colonel routes - require colonel role
+GET   /colonel                                   Core::Controllers::Page#index auth=colonelsonly
+GET   /colonel/*                                 Core::Controllers::Page#index auth=colonelsonly
 
-GET   /imagine/:custom_domain_id/:image_type.:image_ext  Core::Controllers::Page#imagine
+# Image generation - authenticated
+GET   /imagine/:custom_domain_id/:image_type.:image_ext  Core::Controllers::Page#imagine auth=noauth

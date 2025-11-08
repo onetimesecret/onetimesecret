@@ -25,10 +25,10 @@ export const secretStateSchema = z.enum(Object.values(SecretState) as [string, .
 
 // Base schema for core fields
 const secretBaseSchema = z.object({
+  identifier: z.string(),
   key: z.string(),
-  shortkey: z.string(),
+  shortid: z.string(),
   state: secretStateSchema,
-  is_truncated: transforms.fromString.boolean,
   has_passphrase: transforms.fromString.boolean,
   verification: transforms.fromString.boolean,
   secret_value: z.string().optional(), // optional for preview/confirmation page

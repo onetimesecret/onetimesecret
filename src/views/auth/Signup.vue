@@ -8,19 +8,14 @@
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';
   import { useLanguageStore } from '@/stores/languageStore';
   import { storeToRefs } from 'pinia';
-  import { ref, computed } from 'vue';
+  import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
   const { t } = useI18n();
 
   const jurisdictionStore = useJurisdictionStore();
   const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
 
-  const default_planid = 'basic';
-
   const languageStore = useLanguageStore();
-
-  const currentPlanId = ref(default_planid);
-
   const currentJurisdiction = computed(
     () =>
       getCurrentJurisdiction.value || {
@@ -43,12 +38,11 @@
 
 <template>
   <AuthView
-    :heading="$t('web.signup.create-your-account')"
+    :heading="t('web.signup.create-your-account')"
     heading-id="signup-heading"
     :with-subheading="true">
     <template #form>
       <SignUpForm
-        :planid="currentPlanId"
         :locale="languageStore.currentLocale ?? ''"
         :jurisdiction="currentJurisdiction" />
       <AlternateSignUpMethods
@@ -59,7 +53,7 @@
       <router-link
         to="/signin"
         class="font-medium text-brand-600 transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-        {{ $t('web.signup.have_an_account') }}
+        {{ t('web.signup.have_an_account') }}
       </router-link>
     </template>
   </AuthView>

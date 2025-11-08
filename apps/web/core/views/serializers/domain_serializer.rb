@@ -1,7 +1,7 @@
 # apps/web/core/views/serializers/domain_serializer.rb
 
-require 'v2/models/custom_domain'
 require 'onetime/middleware/domain_strategy'
+require 'onetime/logging'
 
 module Core
   module Views
@@ -10,6 +10,7 @@ module Core
     # Handles custom domains, domain strategies, and domain branding
     # transformations for frontend consumption.
     module DomainSerializer
+      extend Onetime::Logging
       # Serializes domain data from view variables
       #
       # Transforms domain strategy, custom domains, and domain branding
@@ -29,13 +30,13 @@ module Core
 
         output['domain_strategy'] = view_vars['domain_strategy']
 
-        output['canonical_domain'] = Onetime::DomainStrategy.canonical_domain
+        output['canonical_domain'] = Onetime::Middleware::DomainStrategy.canonical_domain
         output['display_domain']   = view_vars['display_domain']
 
         # Custom domain handling
         if output['domain_strategy'] == :custom
           # Load the CustomDomain object
-          custom_domain             = V2::CustomDomain.from_display_domain(output['display_domain'])
+          custom_domain             = Onetime::CustomDomain.from_display_domain(output['display_domain'])
           output['domain_id']       = custom_domain&.domainid
           output['domain_branding'] = (custom_domain&.brand&.hgetall || {}).to_h
           output['domain_logo']     = (custom_domain&.logo&.hgetall || {}).to_h
@@ -55,7 +56,11 @@ module Core
               # have some visibility which customers this will affect. We've made
               # the verification more stringent so currently many existing domains
               # would return obj.ready? == false.
-              OT.li "[custom_domains] Allowing unverified domain: #{obj.display_domain} (#{obj.verified}/#{obj.resolving})"
+              app_logger.info "Allowing unverified custom domain", {
+                domain: obj.display_domain,
+                verified: obj.verified,
+                resolving: obj.resolving
+              }
             end
 
             obj.display_domain

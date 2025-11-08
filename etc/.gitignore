@@ -1,1 +1,13 @@
-_*
+*
+!defaults/
+!defaults/*defaults.yml
+!defaults/*defaults.yaml
+!examples/
+!examples/*.conf
+!examples/*.yml
+!examples/*.yaml
+!examples/puma*.rb
+!init.d/
+!fortunes*
+!redis.conf
+!valkey.conf

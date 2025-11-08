@@ -16,10 +16,11 @@ require_relative '../../support/test_logic'
 OT.boot! :test, false
 
 # Setup common test variables
-@now = DateTime.now
+@now = Familia.now
 @email = 'test@onetimesecret.com'
-@sess = Session.new '255.255.255.255', 'anon'
+@session = {}
 @cust = Customer.new email: @email
+@strategy_result = MockStrategyResult.new(session: @session, user: @cust)
 @params = { test: 'value' }
 @locale = 'en'
 
@@ -38,11 +39,11 @@ class TestLogic < Logic::Base
   end
 end
 
-@obj = TestLogic.new @sess, @cust, @params, @locale
+@obj = TestLogic.new @strategy_result, @params, @locale
 
 ## Base initialization sets expected attributes
 [@obj.sess, @obj.cust, @obj.params, @obj.locale]
-#=> [@sess, @cust, @params, @locale]
+#=> [@session, @cust, @params, @locale]
 
 ## process_params processes parameters correctly
 @obj.processed_params
@@ -69,7 +70,8 @@ end
 #=> ['password', 'a' * 128, '']
 
 ## Plan defaults to anonymous for nil customer
-@obj_no_cust = TestLogic.new(@sess, nil)
+@strategy_result_no_cust = MockStrategyResult.new(session: @session, user: nil)
+@obj_no_cust = TestLogic.new(@strategy_result_no_cust, {})
 @obj_no_cust.planid
 #=> nil
 

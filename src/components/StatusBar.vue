@@ -3,7 +3,7 @@ import { useNotificationsStore } from '@/stores/notificationsStore';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-const { t } = useI18n();
+const { t, te } = useI18n();
 
 interface Props {
   autoDismiss?: boolean;
@@ -27,7 +27,10 @@ const effectivePosition = computed(() =>
    notifications.position || props.position
 );
 
-const translatedMessage = computed(() => t(notifications.message));
+const translatedMessage = computed(() =>
+  // Check if the message is a translation key that exists
+  // If not, return the message as-is (e.g., dynamic error messages)
+  te(notifications.message) ? t(notifications.message) : notifications.message);
 
 const getStatusConfig = (type: string | null) => ({
   success: {

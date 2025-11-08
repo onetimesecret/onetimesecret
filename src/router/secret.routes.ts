@@ -11,22 +11,22 @@ const validateSecretKey = (key: string | string[]): key is string =>
 
 /**
  * Shared route configuration for metadata-related routes.
- * Handles validation and type safety for the secretKey parameter.
+ * Handles validation and type safety for the secretIdentifier parameter.
  *
- * - Validates secretKey format in beforeEnter guard
+ * - Validates secretIdentifier format in beforeEnter guard
  * - Redirects to Not Found for invalid keys
- * - Provides typed secretKey prop to components
+ * - Provides typed secretIdentifier prop to components
  */
 const withValidatedSecretKey = {
   beforeEnter: (to: RouteLocationNormalized) => {
-    const isValid = validateSecretKey(to.params.secretKey);
+    const isValid = validateSecretKey(to.params.secretIdentifier);
 
     if (!isValid) {
       return { name: 'Not Found' };
     }
   },
   props: (route: RouteLocationNormalized) => ({
-    secretKey: route.params.secretKey as string,
+    secretIdentifier: route.params.secretIdentifier as string,
   }),
 } as const;
 
@@ -35,10 +35,11 @@ const withValidatedSecretKey = {
  */
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/secret/:secretKey',
+    path: '/secret/:secretIdentifier',
     name: 'Secret link',
     component: ShowSecretContainer,
     meta: {
+      title: 'web.TITLES.secret',
       requiresAuth: false,
       layoutProps: {
         displayMasthead: false,

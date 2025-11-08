@@ -5,18 +5,14 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ListSecretStatus < V2::Logic::Base
-      attr_reader :keys
+      attr_reader :identifiers
 
       def process_params
-        @keys    = params[:keys].to_s.strip.downcase.gsub(/[^a-z0-9,]/, '').split(',').compact
-        @secrets = keys.map do |key|
-          next unless key
-
-          record = V2::Secret.load(key)
-          next unless record
-
-          record.safe_dump
-        end.compact
+        @identifiers    = params[:identifiers].to_s.strip.downcase.gsub(/[^a-z0-9,]/, '').split(',').compact
+        # Filter out empty identifiers first, then use optimized bulk loading
+        valid_identifiers = identifiers.compact.reject(&:empty?)
+        secret_objects = Onetime::Secret.load_multi(valid_identifiers).compact
+        @secrets = secret_objects.map(&:safe_dump)
       end
 
       def raise_concerns; end
@@ -24,6 +20,8 @@ module V2::Logic
       def process
         # We don't get the actual TTL value for batches of secrets
         # since that would double the calls to the database.
+
+        success_data
       end
 
       def success_data

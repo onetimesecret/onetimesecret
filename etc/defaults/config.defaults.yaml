@@ -173,10 +173,6 @@ site:
       cluster_name: <%= ENV['APPROXIMATED_PROXY_CLUSTER_NAME'] || '<CLUSTER_NAME>' %>
       vhost_target: <%= ENV['APPROXIMATED_PROXY_VHOST_TARGET'] || '<VHOST_TARGET>' %>
 features:
-  incoming:
-    enabled: false
-    email: CHANGEME@example.com
-    passphrase: abacus
 
 # Main Database Configuration
 redis:
@@ -498,6 +494,9 @@ experimental:
     utf8_sanitizer: true
     # Protects against Cross-Site Request Forgery (CSRF) attacks
     # Validates that requests originate from the same site
+    authenticity_token: true
+    # Protects against Cross-Site Request Forgery (CSRF) attacks
+    # Validates that requests originate from the same site
     http_origin: false
     # Escapes HTML entities in request parameters
     # Helps prevent XSS attacks via request parameters
@@ -525,7 +524,7 @@ experimental:
   # prevent any content loading from other origins. In regular production mode,
   # a secure nonce will be included with the headers and unsafe-inline content
   # is completely blocked. The nonce can be accessed via the rack request object
-  # `req.env['ots.nonce']`. The backend views grab it from there to add it to
+  # `req.env['onetime.nonce']`. The backend views grab it from there to add it to
   # all front-end script and style assets automatically. You'd only need to use
   # the none if you're adding new script or style dependencies.
   # When disabled, no csp headers are included in any environment.

@@ -28,7 +28,7 @@ vi.mock('@/stores/authStore', () => ({
   useAuthStore: vi.fn(() => ({
     isAuthenticated: false,
     needsCheck: false,
-    checkAuthStatus: vi.fn(),
+    checkWindowStatus: vi.fn(),
   })),
 }));
 
@@ -117,7 +117,7 @@ describe('Router Guards', () => {
       mockValidator = {
         needsCheck: true,
         isAuthenticated: null,
-        checkAuthStatus: vi.fn().mockImplementation(async () => true),
+        checkWindowStatus: vi.fn().mockImplementation(async () => true),
       } satisfies AuthValidator;
 
       protectedRoute = {
@@ -129,7 +129,7 @@ describe('Router Guards', () => {
     test('performs check when needed on protected route', async () => {
       mockValidator.needsCheck = true;
       const result = await validateAuthentication(mockValidator, protectedRoute);
-      expect(mockValidator.checkAuthStatus).toHaveBeenCalled();
+      expect(mockValidator.checkWindowStatus).toHaveBeenCalled();
       expect(result).toBe(true);
     });
 
@@ -139,7 +139,7 @@ describe('Router Guards', () => {
       mockValidator.isAuthenticated = true; // Add this line to indicate authenticated state
 
       const result = await validateAuthentication(mockValidator, protectedRoute);
-      expect(mockValidator.checkAuthStatus).not.toHaveBeenCalled();
+      expect(mockValidator.checkWindowStatus).not.toHaveBeenCalled();
       expect(result).toBe(true);
     });
 
@@ -148,7 +148,7 @@ describe('Router Guards', () => {
       // value in our setup), the validator should return false for protected routes.
       mockValidator.needsCheck = false;
       const result = await validateAuthentication(mockValidator, protectedRoute);
-      expect(mockValidator.checkAuthStatus).not.toHaveBeenCalled();
+      expect(mockValidator.checkWindowStatus).not.toHaveBeenCalled();
       expect(result).toBe(false);
     });
 
@@ -156,13 +156,13 @@ describe('Router Guards', () => {
       mockValidator.needsCheck = true;
       mockValidator.isAuthenticated = false;
       const result = await validateAuthentication(mockValidator, publicRoute);
-      expect(mockValidator.checkAuthStatus).not.toHaveBeenCalled();
+      expect(mockValidator.checkWindowStatus).not.toHaveBeenCalled();
       expect(result).toBe(true);
     });
 
     test('returns false when auth check fails', async () => {
       mockValidator.needsCheck = true;
-      mockValidator.checkAuthStatus.mockResolvedValueOnce(false);
+      mockValidator.checkWindowStatus.mockResolvedValueOnce(false);
       const result = await validateAuthentication(mockValidator, protectedRoute);
       expect(result).toBe(false);
     });

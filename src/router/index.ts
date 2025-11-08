@@ -12,6 +12,7 @@ import dashboardRoutes from './dashboard.routes';
 import metadataRoutes from './metadata.routes';
 import publicRoutes from './public.routes';
 import secretRoutes from './secret.routes';
+import teamsRoutes from './teams.routes';
 
 const routes: RouteRecordRaw[] = [
   ...publicRoutes,
@@ -20,6 +21,7 @@ const routes: RouteRecordRaw[] = [
   ...authRoutes,
   ...dashboardRoutes,
   ...accountRoutes,
+  ...teamsRoutes,
   ...colonelRoutes,
 ];
 
@@ -68,6 +70,7 @@ export function createAppRouter(): Router {
         name: 'NotFound',
         component: NotFound,
         meta: {
+          title: 'web.TITLES.not_found',
           requiresAuth: false,
         },
       },

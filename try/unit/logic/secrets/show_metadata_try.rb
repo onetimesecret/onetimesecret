@@ -16,14 +16,17 @@ require_relative '../../../support/test_logic'
 
 OT.boot! :test, false
 
-@email = "tryouts+#{Time.now.to_i}@onetimesecret.com"
-@cust = Customer.create @email
+@email = "tryouts+#{Familia.now.to_i}@onetimesecret.com"
+@cust = Onetime::Customer.create!(email: @email)
 
 # Define a lambda to create and return a new metadata instance
 @create_metadata = lambda {
-  metadata = Metadata.create
-  secret = Secret.create(value: "This is a secret message")
-  metadata.secret_key = secret.key
+  metadata = Metadata.new
+  metadata.save
+  secret = Secret.new
+  secret.value = "This is a secret message"
+  secret.save
+  metadata.secret_identifier = secret.identifier
   metadata.save
   metadata
 }
@@ -36,25 +39,6 @@ class MockRequest
   attr_reader :env
   def initialize
     @env = {'ots.locale' => 'en'}
-  end
-end
-
-# Mock session object
-class MockSession
-  def authenticated?
-    true
-  end
-  def add_shrimp
-    "mock_shrimp"
-  end
-  def get_error_messages
-    []
-  end
-  def get_info_messages
-    []
-  end
-  def get_form_fields!
-    {}
   end
 end
 
@@ -106,27 +90,27 @@ end
 
 ## No exceptions raised when metadata can be loaded
 params = {
-  key: @metadata.key
+  key: @metadata.identifier
 }
 logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 logic.raise_concerns
-@metadata.key
-#=> @metadata.key
+@metadata.identifier
+#=> @metadata.identifier
 
 ## Generates correct share URI
 params = {
-  key: @metadata.key
+  key: @metadata.identifier
 }
 @this_logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 @this_logic.raise_concerns
 @this_logic.process
 @this_logic.share_url
-#=> "#{@this_logic.baseuri}/secret/#{@this_logic.secret.key}"
+#=> "#{@this_logic.baseuri}/secret/#{@this_logic.secret.identifier}"
 
 ## Share domain in site.host by default
 metadata = @create_metadata.call
 params = {
-  key: metadata.key
+  key: metadata.identifier
 }
 @this_logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 @this_logic.process
@@ -137,7 +121,7 @@ params = {
 metadata = @create_metadata.call
 metadata.share_domain! "example.com"
 params = {
-  key: metadata.key
+  key: metadata.identifier
 }
 @this_logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 @this_logic.process
@@ -148,7 +132,7 @@ params = {
 metadata = @create_metadata.call
 metadata.share_domain! "example.com"
 params = {
-  key: metadata.key
+  key: metadata.identifier
 }
 @this_logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 @this_logic.instance_variable_set(:@domains_enabled, true)
@@ -170,7 +154,7 @@ logic.locale
 @metadata.secret_ttl = 3600 * 24 * 2
 @metadata.save
 params = {
-  key: @metadata.key
+  key: @metadata.identifier
 }
 logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 logic.process
@@ -179,7 +163,7 @@ logic.natural_expiration
 
 ## Knows that the metadata has been viewed b/c process has been called several times already
 params = {
-  key: @metadata.key
+  key: @metadata.identifier
 }
 logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 logic.process
@@ -189,7 +173,7 @@ logic.process
 ## Shows secret link when viewed for the first time (i.e. processed)
 metadata = @create_metadata.call
 params = {
-  key: metadata.key
+  key: metadata.identifier
 }
 logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 logic.process
@@ -199,7 +183,7 @@ logic.process
 ## Doesn't show secret link when for the second time though
 metadata = @create_metadata.call
 params = {
-  key: metadata.key
+  key: metadata.identifier
 }
 logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 logic.process
@@ -211,7 +195,7 @@ logic.process
 metadata = @create_metadata.call
 metadata.received!
 params = {
-  key: metadata.key
+  key: metadata.identifier
 }
 logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 logic.process
@@ -226,7 +210,7 @@ logic.one_liner
 ## Correctly determines if secret is a one-liner if the secret is readable
 metadata = @create_metadata.call
 params = {
-  key: metadata.key
+  key: metadata.identifier
 }
 logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 logic.process
@@ -237,7 +221,7 @@ logic.process
 metadata = @create_metadata.call
 secret = metadata.load_secret
 params = {
-  key: metadata.key
+  key: metadata.identifier
 }
 logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 secret.received!
@@ -246,12 +230,20 @@ logic.process
 #=> [false, nil]
 
 ## Correctly determines if secret is NOT a one-liner if the secret is readable
-metadata = Metadata.create
-secret = Secret.create value: "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
-metadata.secret_key = secret.key
+metadata = Metadata.new
+metadata.save
+secret = Secret.new
+secret.value = "Line 1
+Line 2
+Line 3
+Line4
+Line5
+Line6"
+secret.save
+metadata.secret_identifier = secret.identifier
 metadata.save
 params = {
-  key: metadata.key
+  key: metadata.identifier
 }
 logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 logic.process
@@ -259,12 +251,20 @@ logic.process
 #=> [true, false]
 
 ## Correctly determines display lines for multi-line secrets
-metadata = Metadata.create
-secret = Secret.create value: "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
-metadata.secret_key = secret.key
+metadata = Metadata.new
+metadata.save
+secret = Secret.new
+secret.value = "Line 1
+Line 2
+Line 3
+Line4
+Line5
+Line6"
+secret.save
+metadata.secret_identifier = secret.identifier
 metadata.save
 params = {
-  key: metadata.key
+  key: metadata.identifier
 }
 logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 logic.process

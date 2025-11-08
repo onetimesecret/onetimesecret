@@ -1,50 +1,123 @@
 # apps/api/v2/routes
+#
+# Otto Routes - V2 API (Public secrets API)
+# Using direct Logic class routing with authentication strategies
+#
+# V2 API returns string values for all fields.
 
-POST   /account/destroy                           V2::Controllers::Account#destroy_account
-POST   /account/change-password                   V2::Controllers::Account#change_account_password
-POST   /account/update-locale                     V2::Controllers::Account#update_locale
-POST   /account/apitoken                          V2::Controllers::Account#generate_apitoken
-POST   /domains/add                               V2::Controllers::Domains#add_domain
-POST   /domains/:domain/remove                    V2::Controllers::Domains#remove_domain
-GET    /domains/:domain                           V2::Controllers::Domains#get_domain
-POST   /domains/:domain/verify                    V2::Controllers::Domains#verify_domain
-PUT    /domains/:domain/brand                     V2::Controllers::Domains#update_domain_brand
-GET    /domains/:domain/brand                     V2::Controllers::Domains#get_domain_brand
-DELETE /domains/:domain/logo                      V2::Controllers::Domains#delete_domain_logo
-POST   /domains/:domain/logo                      V2::Controllers::Domains#update_domain_logo
-GET    /domains/:domain/logo                      V2::Controllers::Domains#get_domain_logo
-DELETE /domains/:domain/icon                      V2::Controllers::Domains#delete_domain_icon
-POST   /domains/:domain/icon                      V2::Controllers::Domains#update_domain_icon
-GET    /domains/:domain/icon                      V2::Controllers::Domains#get_domain_icon
-GET    /domains                                   V2::Controllers::Domains#list_domains
-GET    /account                                   V2::Controllers::Account#get_account
+# Secrets - Private (Authenticated)
+GET    /receipt/recent                            V2::Logic::Secrets::ListMetadata response=json auth=noauth
+POST   /receipt/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=noauth
+GET    /receipt/:identifier                       V2::Logic::Secrets::ShowMetadata response=json auth=noauth
+GET    /private/recent                            V2::Logic::Secrets::ListMetadata response=json auth=noauth
+POST   /private/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=noauth
+GET    /private/:identifier                       V2::Logic::Secrets::ShowMetadata response=json auth=noauth
 
-GET    /receipt/recent                            V2::Controllers::Secrets#list_metadata
-POST   /receipt/:key/burn                         V2::Controllers::Secrets#burn_secret
-GET    /receipt/:key                              V2::Controllers::Secrets#get_metadata
-GET    /private/recent                            V2::Controllers::Secrets#list_metadata
-POST   /private/:key/burn                         V2::Controllers::Secrets#burn_secret
-GET    /private/:key                              V2::Controllers::Secrets#get_metadata
-GET    /secret/:key                               V2::Controllers::Secrets#get_secret
-GET    /secret/:key/status                        V2::Controllers::Secrets#get_secret_status
-POST   /secret/status                             V2::Controllers::Secrets#list_secret_status
-POST   /secret/:key/reveal                        V2::Controllers::Secrets#reveal_secret
+# Secrets - Public (Anonymous allowed)
+GET    /secret/:identifier                        V2::Logic::Secrets::ShowSecret response=json auth=noauth
+GET    /secret/:identifier/status                 V2::Logic::Secrets::ShowSecretStatus response=json auth=noauth
+POST   /secret/status                             V2::Logic::Secrets::ListSecretStatus response=json auth=noauth
+POST   /secret/:identifier/reveal                 V2::Logic::Secrets::RevealSecret response=json auth=noauth csrf=exempt
+POST   /secret/generate                           V2::Logic::Secrets::GenerateSecret response=json auth=noauth csrf=exempt
+POST   /secret/conceal                            V2::Logic::Secrets::ConcealSecret response=json auth=noauth csrf=exempt
 
-OPTIONS /secret/generate                          V2::Controllers::Secrets#generate_secret_options
-OPTIONS /secret/conceal                           V2::Controllers::Secrets#generate_secret_options
-POST   /secret/generate                           V2::Controllers::Secrets#generate_secret
-POST   /secret/conceal                            V2::Controllers::Secrets#conceal_secret
+# OPTIONS preflight for CORS (public)
+OPTIONS /secret/generate                          V2::Logic::Secrets::GenerateSecret response=json
+OPTIONS /secret/conceal                           V2::Logic::Secrets::ConcealSecret response=json
 
-GET    /supported-locales                         V2::Controllers::Meta#get_supported_locales
+# Meta/Public endpoints (static information uses class methods)
+GET    /supported-locales                         V2::Logic::Meta.get_supported_locales response=json
+GET    /status                                    V2::Logic::Meta.system_status response=json
+GET    /version                                   V2::Logic::Meta.system_version response=json
 
-GET    /status                                    V2::Controllers::Meta#status
-GET    /authcheck                                 V2::Controllers::Meta#authcheck
-GET    /version                                   V2::Controllers::Meta#version
-POST   /validate-shrimp                           V2::Controllers::Meta#get_validate_shrimp
-
-POST   /feedback                                  V2::Controllers::Meta#receive_feedback
-
-GET    /colonel/config                            V2::Controllers::Colonel#get_config
-POST   /colonel/config                            V2::Controllers::Colonel#update_config
-GET    /colonel/info                              V2::Controllers::Colonel#get_info
-GET    /colonel/stats                             V2::Controllers::Colonel#get_stats
+# OTTO ADVANCED ROUTES SYNTAX - QUICK REFERENCE
+# ==============================================
+#
+# Added in v1.5.0+. Basic syntax:
+#
+# VERB /path Target param1=value1 param2=value2
+#
+# RESPONSE TYPES
+# --------------
+# response=json     - JSON API response
+# response=view     - HTML view response
+# response=redirect - HTTP redirect
+# response=auto     - Content negotiation
+#
+# Examples:
+# GET  /api/users    App#list_users response=json
+# GET  /dashboard    App#dashboard response=view
+# GET  /login        App#redirect response=redirect
+# GET  /data         App#data response=auto
+#
+# CSRF PROTECTION
+# ---------------
+# csrf=exempt       - Skip CSRF protection (useful for APIs)
+#
+# Examples:
+# POST /api/webhook  App#webhook csrf=exempt
+# POST /settings     App#settings  # CSRF protected by default
+#
+# LOGIC CLASSES (NEW!)
+# --------------------
+# Route directly to a class (no . or # in target).
+# Class gets: initialize(session, user, params, locale)
+#
+# Examples:
+# GET  /logic/simple      SimpleLogic
+# GET  /admin/panel       Admin::Panel
+# POST /data/processor    DataProcessor response=json csrf=exempt
+#
+# MULTIPLE PARAMETERS
+# -------------------
+# Combine any parameters with spaces:
+#
+# GET  /api/admin    App#admin auth=role:admin response=json
+# POST /api/secure   App#secure auth=noauth response=json csrf=exempt
+#
+# NAMESPACED CLASSES
+# ------------------
+# Class methods:  Namespace::Class.method
+# Instance methods: Namespace::Class#method
+#
+# Examples:
+# GET  /v2/admin     V2::Admin.show response=view
+# POST /modules/auth Modules::Auth#process response=json
+#
+# CUSTOM PARAMETERS
+# -----------------
+# Add your own key=value parameters:
+#
+# GET /config  App#config env=production debug=true
+# GET /api/v1  App#api version=1.0 response=json
+#
+# PARAMETER RULES
+# ---------------
+# - Space-separated after the target
+# - key=value format
+# - Values can contain = signs: config=host=localhost
+# - Bad params (no =) are ignored
+# - Order doesn't matter
+#
+# COMMON PATTERNS
+# ---------------
+# # JSON API with CSRF exemption
+# POST /api/data  App#data response=json csrf=exempt
+#
+# # Admin view with authentication
+# GET /admin  App#admin auth=role:admin response=view
+#
+# # Logic class with JSON response
+# POST /processor  DataProcessor response=json
+#
+# # Complex route with all features
+# PUT /api/admin  App#update auth=role:admin response=json csrf=exempt
+#
+# ROUTE TARGETS
+# -------------
+# App.method       - Class method
+# App#method       - Instance method
+# LogicClass       - Logic class (new!)
+# Namespace::Class - Namespaced targets
+#
+# That's it! Advanced routing in Otto is just adding parameters after your target.

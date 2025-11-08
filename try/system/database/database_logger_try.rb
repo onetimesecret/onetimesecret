@@ -49,9 +49,9 @@ DatabaseLogger.clear_commands
 ## DatabaseLogger captures Redis commands in a block
 commands = DatabaseLogger.capture_commands do
   # Create a test customer which will execute Redis commands
-  cust = V2::Customer.new
-  cust.custid = 'test-database-logger'
-  cust.email = 'dblogger@example.com'
+  cust = Onetime::Customer.new
+  cust.custid = "test-database-logger-#{Time.now.to_i}"
+  cust.email = "dblogger-#{Time.now.to_i}@example.com"
   cust.save
   cust.delete!
 end
@@ -60,36 +60,36 @@ end
 
 ## Captured commands include command hashes with keys
 commands = DatabaseLogger.capture_commands do
-  cust = V2::Customer.new
-  cust.custid = 'test-command-format'
-  cust.email = 'format@example.com'
+  cust = Onetime::Customer.new
+  cust.custid = "test-command-format-#{Time.now.to_i}"
+  cust.email = "format-#{Time.now.to_i}@example.com"
   cust.save
   cust.delete!
 end
 first_command = commands.first
 raise RuntimeError, "Command details missing" unless first_command&.command
-[first_command.command.is_a?(Array), first_command.μs.is_a?(Numeric), first_command.timeline.is_a?(Numeric)]
+[first_command.command.is_a?(String), first_command.μs.is_a?(Numeric), first_command.timeline.is_a?(Numeric)]
 #=> [true, true, true]
 
 ## Command arrays contain Redis command names
 commands = DatabaseLogger.capture_commands do
-  cust = V2::Customer.new
-  cust.custid = 'test-command-names'
-  cust.email = 'names@example.com'
+  cust = Onetime::Customer.new
+  cust.custid = "test-command-names-#{Time.now.to_i}"
+  cust.email = "names-#{Time.now.to_i}@example.com"
   cust.save
   cust.delete!
 end
 # Should see various Redis commands (HSET, DEL, etc.)
-command_names = commands.map { |cmd| cmd.command.first }.uniq
+command_names = commands.map { |cmd| cmd.command }.uniq
 has_redis_commands = !command_names.empty? && command_names.all? { |name| name.is_a?(String) }
 has_redis_commands
 #=> true
 
 ## Duration is measured in microseconds
 commands = DatabaseLogger.capture_commands do
-  cust = V2::Customer.new
-  cust.custid = 'test-duration'
-  cust.email = 'duration@example.com'
+  cust = Onetime::Customer.new
+  cust.custid = "test-duration-#{Time.now.to_i}"
+  cust.email = "duration-#{Time.now.to_i}@example.com"
   cust.save
   cust.delete!
 end
@@ -100,9 +100,9 @@ durations_valid
 
 ## Timeliens are Floats, ever increasing relative to the time the process started
 commands = DatabaseLogger.capture_commands do
-  cust = V2::Customer.new
-  cust.custid = 'test-timelines'
-  cust.email = 'timelines@example.com'
+  cust = Onetime::Customer.new
+  cust.custid = "test-timelines-#{Time.now.to_i}"
+  cust.email = "timelines-#{Time.now.to_i}@example.com"
   cust.save
   cust.delete!
 end
@@ -136,9 +136,9 @@ original_logger = DatabaseLogger.logger
 begin
   DatabaseLogger.logger = nil
   commands = DatabaseLogger.capture_commands do
-    cust = V2::Customer.new
-    cust.custid = 'test-no-logger'
-    cust.email = 'nologger@example.com'
+    cust = Onetime::Customer.new
+    cust.custid = "test-no-logger-#{Time.now.to_i}"
+    cust.email = "nologger-#{Time.now.to_i}@example.com"
     cust.save
     cust.delete!
   end
@@ -150,27 +150,27 @@ end
 
 ## Captured commands include various Redis operations
 commands = DatabaseLogger.capture_commands do
-  cust = V2::Customer.new
-  cust.custid = 'test-operations'
-  cust.email = 'ops@example.com'
+  cust = Onetime::Customer.new
+  cust.custid = "test-operations-#{Time.now.to_i}"
+  cust.email = "ops-#{Time.now.to_i}@example.com"
   cust.save
 
   # Trigger various Redis operations
-  loaded = V2::Customer.find_by_identifier(cust.identifier)
+  loaded = Onetime::Customer.find_by_identifier(cust.identifier)
   loaded.delete!
 end
 
 # Should see various Redis commands
-command_types = commands.map { |cmd| cmd.command.first }.uniq
+command_types = commands.map { |cmd| cmd.command }.uniq
 has_multiple_types = command_types.size > 1
 has_multiple_types
 #=> true
 
 ## Commands array can be cleared
 DatabaseLogger.capture_commands do
-  cust = V2::Customer.new
-  cust.custid = 'test-clear'
-  cust.email = 'clear@example.com'
+  cust = Onetime::Customer.new
+  cust.custid = "test-clear-#{Time.now.to_i}"
+  cust.email = "clear-#{Time.now.to_i}@example.com"
   cust.save
   cust.delete!
 end

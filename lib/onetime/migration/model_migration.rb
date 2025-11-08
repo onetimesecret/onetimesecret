@@ -36,7 +36,7 @@ module Onetime
   #
   #   class CustomerEmailMigration < ModelMigration
   #     def prepare
-  #       @model_class = V2::Customer
+  #       @model_class = Onetime::Customer
   #       @batch_size = 1000  # optional, defaults to 1000
   #     end
   #

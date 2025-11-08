@@ -1,5 +1,7 @@
 # lib/onetime/utils.rb
 
+require 'pathname'
+
 require_relative 'utils/enumerables'
 require_relative 'utils/sanitation'
 require_relative 'utils/strings'

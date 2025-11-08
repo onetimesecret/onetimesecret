@@ -12,6 +12,68 @@
     <defs>
       <symbol
         viewBox="0 0 24 24"
+        id="heroicons-home">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          d="m2.25 12l8.955-8.955a1.124 1.124 0 0 1 1.59 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+      </symbol>
+      <symbol
+        viewBox="0 0 24 24"
+        id="heroicons-map-pin">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5">
+          <path d="M15 10.5a3 3 0 1 1-6 0a3 3 0 0 1 6 0" />
+          <path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0" />
+        </g>
+      </symbol>
+      <symbol
+        viewBox="0 0 24 24"
+        id="heroicons-light-bulb">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          d="M12 18v-5.25m0 0a6 6 0 0 0 1.5-.189m-1.5.189a6 6 0 0 1-1.5-.189m3.75 7.478a12.1 12.1 0 0 1-4.5 0m3.75 2.383a14.4 14.4 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+      </symbol>
+      <symbol
+        viewBox="0 0 24 24"
+        id="heroicons-adjustments-horizontal-solid">
+        <path
+          fill="currentColor"
+          d="M18.75 12.75h1.5a.75.75 0 0 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5M12 6a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 12 6m0 12a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 12 18M3.75 6.75h1.5a.75.75 0 1 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5m1.5 12h-1.5a.75.75 0 0 1 0-1.5h1.5a.75.75 0 0 1 0 1.5M3 12a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 3 12m6-8.25a2.25 2.25 0 1 0 0 4.5a2.25 2.25 0 0 0 0-4.5M12.75 12a2.25 2.25 0 1 1 4.5 0a2.25 2.25 0 0 1-4.5 0M9 15.75a2.25 2.25 0 1 0 0 4.5a2.25 2.25 0 0 0 0-4.5" />
+      </symbol>
+      <symbol
+        viewBox="0 0 24 24"
+        id="heroicons-code-bracket">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+      </symbol>
+      <symbol
+        viewBox="0 0 24 24"
+        id="heroicons-computer-desktop-solid">
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M2.25 5.25a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3V15a3 3 0 0 1-3 3h-3v.257c0 .597.237 1.17.659 1.591l.621.622a.75.75 0 0 1-.53 1.28h-9a.75.75 0 0 1-.53-1.28l.621-.622a2.25 2.25 0 0 0 .659-1.59V18h-3a3 3 0 0 1-3-3zm1.5 0v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5"
+          clip-rule="evenodd" />
+      </symbol>
+      <symbol
+        viewBox="0 0 24 24"
         id="heroicons-user">
         <path
           fill="none"
@@ -801,6 +863,33 @@
         <path
           fill="currentColor"
           d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5z" />
+      </symbol>
+      <symbol
+        viewBox="0 0 16 16"
+        id="heroicons-plus-16-solid">
+        <path
+          fill="currentColor"
+          d="M8.75 3.75a.75.75 0 0 0-1.5 0v3.5h-3.5a.75.75 0 0 0 0 1.5h3.5v3.5a.75.75 0 0 0 1.5 0v-3.5h3.5a.75.75 0 0 0 0-1.5h-3.5z" />
+      </symbol>
+      <symbol
+        viewBox="0 0 16 16"
+        id="heroicons-plus-circle-16-solid">
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14m.75-10.25v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5a.75.75 0 0 1 1.5 0"
+          clip-rule="evenodd" />
+      </symbol>
+      <symbol
+        viewBox="0 0 24 24"
+        id="heroicons-plus-circle">
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0a9 9 0 0 1 18 0" />
       </symbol>
       <symbol
         viewBox="0 0 20 20"

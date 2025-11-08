@@ -2,10 +2,11 @@
 
 module V2::Logic
   module Secrets
-
     using Familia::Refinements::TimeLiterals
 
     class BaseSecretAction < V2::Logic::Base
+      include Onetime::Logging
+
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted, :metadata,
         :secret, :share_domain, :custom_domain, :payload
       attr_accessor :token
@@ -15,7 +16,7 @@ module V2::Logic
       # variables only (no more params access).
       def process_params
         # All parameters are passed in the :secret hash (secret[:ttl], etc)
-        @payload = params[:secret] || {}
+        @payload = params['secret'] || {}
         raise_form_error 'Incorrect payload format' if payload.is_a?(String)
 
         process_ttl
@@ -35,8 +36,6 @@ module V2::Logic
 
       def process
         create_secret_pair
-        handle_passphrase
-        save_secret
         handle_success
       end
 
@@ -46,7 +45,7 @@ module V2::Logic
           record: {
             metadata: metadata.safe_dump,
             secret: secret.safe_dump,
-            share_domain: share_domain,
+            share_domain: share_domain, # we return the value, but don't save it
           },
           details: {
             kind: kind,
@@ -67,13 +66,13 @@ module V2::Logic
       end
 
       def redirect_uri
-        ['/receipt/', metadata.key].join
+        ['/receipt/', metadata.identifier].join
       end
 
       protected
 
       def process_ttl
-        @ttl = payload.fetch(:ttl, nil)
+        @ttl = payload.fetch('ttl', nil)
 
         # Get configuration options. We can rely on these values existing
         # because that are guaranteed by OT::Config.after_load.
@@ -108,18 +107,18 @@ module V2::Logic
       end
 
       def process_passphrase
-        @passphrase = payload[:passphrase].to_s
+        @passphrase = payload['passphrase'].to_s
       end
 
       def process_recipient
-        payload[:recipient] = [payload[:recipient]].flatten.compact.uniq # force a list
-        r                   = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
-        @recipient          = payload[:recipient].collect do |email_address|
+        payload['recipient'] = [payload['recipient']].flatten.compact.uniq # force a list
+        r                    = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
+        @recipient           = payload['recipient'].collect do |email_address|
           next if email_address.to_s.empty?
 
           email_address.scan(r).uniq.first
         end.compact.uniq
-        @recipient_safe     = recipient.collect { |r| OT::Utils.obscure_email(r) }
+        @recipient_safe      = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
 
       # Capture the selected domain the link is meant for, as long as it's
@@ -131,14 +130,24 @@ module V2::Logic
         potential_domain = payload[:share_domain].to_s
         return if potential_domain.empty?
 
-        unless V2::CustomDomain.valid?(potential_domain)
-          return OT.info "[BaseSecretAction] Invalid share domain #{potential_domain}"
+        unless Onetime::CustomDomain.valid?(potential_domain)
+          secret_logger.info 'Invalid share domain', {
+            domain: potential_domain,
+            action: 'validate_share_domain',
+            result: :invalid,
+          }
+          return
         end
 
         # If the given domain is the same as the site's host domain, then
         # we simply skip the share domain stuff altogether.
-        if V2::CustomDomain.default_domain?(potential_domain)
-          return OT.info "[BaseSecretAction] Ignoring default share domain: #{potential_domain}"
+        if Onetime::CustomDomain.default_domain?(potential_domain)
+          secret_logger.info 'Ignoring default share domain', {
+            domain: potential_domain,
+            action: 'validate_share_domain',
+            result: :default_domain_skipped,
+          }
+          return
         end
 
         # Otherewise, it's good to go.
@@ -148,9 +157,9 @@ module V2::Logic
       def validate_recipient
         return if recipient.empty?
 
-        raise_form_error 'An account is required to send emails.' if cust.anonymous?
+        raise_form_error 'An account is required to send emails.', field: 'recipient', error_type: 'requires_account' if cust.anonymous?
         recipient.each do |recip|
-          raise_form_error "Undeliverable email address: #{recip}" unless valid_email?(recip)
+          raise_form_error "Undeliverable email address: #{recip}", field: 'recipient', error_type: 'invalid_email' unless valid_email?(recip)
         end
       end
 
@@ -172,7 +181,7 @@ module V2::Logic
 
         # Check if passphrase is required
         if passphrase_config['required'] && passphrase.to_s.empty?
-          raise_form_error "A passphrase is required for all secrets"
+          raise_form_error 'A passphrase is required for all secrets'
         end
 
         # Skip further validation if no passphrase provided
@@ -200,16 +209,16 @@ module V2::Logic
         errors = []
 
         # Check for at least one uppercase letter
-        errors << "uppercase letter" unless passphrase.match?(/[A-Z]/)
+        errors << 'uppercase letter' unless passphrase.match?(/[A-Z]/)
 
         # Check for at least one lowercase letter
-        errors << "lowercase letter" unless passphrase.match?(/[a-z]/)
+        errors << 'lowercase letter' unless passphrase.match?(/[a-z]/)
 
         # Check for at least one number
-        errors << "number" unless passphrase.match?(/\d/)
+        errors << 'number' unless passphrase.match?(/\d/)
 
         # Check for at least one symbol
-        errors << "symbol" unless passphrase.match?(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/)
+        errors << 'symbol' unless passphrase.match?(%r{[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?~`]})
 
         unless errors.empty?
           raise_form_error "Passphrase must contain at least one #{errors.join(', ')}"
@@ -219,29 +228,12 @@ module V2::Logic
       private
 
       def create_secret_pair
-        @metadata, @secret = V2::Secret.spawn_pair cust.custid, token
-      end
+        # def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil)
+        @metadata, @secret = Onetime::Metadata.spawn_pair(
+          cust&.objid, ttl, secret_value, passphrase: passphrase, domain: share_domain
+        )
 
-      def handle_passphrase
-        return if passphrase.to_s.empty?
-
-        secret.update_passphrase passphrase
-        metadata.passphrase = secret.passphrase
-      end
-
-      def save_secret
-        secret.encrypt_value secret_value
-        metadata.default_expiration             = ttl * 2
-        secret.default_expiration               = ttl
-        metadata.lifespan        = metadata.default_expiration.to_i
-        metadata.secret_ttl      = secret.default_expiration.to_i
-        metadata.secret_shortkey = secret.shortkey
-        metadata.share_domain    = share_domain
-        secret.lifespan          = secret.default_expiration.to_i
-        secret.share_domain      = share_domain
-        secret.save
-        metadata.save
-        @greenlighted            = metadata.valid? && secret.valid?
+        @greenlighted = metadata.valid? && secret.valid?
       end
 
       def handle_success
@@ -249,6 +241,8 @@ module V2::Logic
 
         update_stats
         send_email_to_recipient
+
+        success_data
       end
 
       def update_stats
@@ -256,7 +250,7 @@ module V2::Logic
           cust.add_metadata metadata
           cust.increment_field :secrets_created
         end
-        V2::Customer.secrets_created.increment
+        Onetime::Customer.secrets_created.increment
       end
 
       def send_email_to_recipient
@@ -285,17 +279,16 @@ module V2::Logic
 
         # e.g. dbkey -> customdomain:display_domains -> hash -> key: value
         # where key is the domain and value is the domainid
-        domain_record = V2::CustomDomain.from_display_domain(domain)
+        domain_record = Onetime::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?
 
-        OT.ld <<~DEBUG
-          [BaseSecretAction]
-            class:     #{self.class}
-            share_domain:   #{@share_domain}
-            custom_domain?:  #{custom_domain?}
-            allow_public?:   #{domain_record.allow_public_homepage?}
-            owner?:          #{domain_record.owner?(@cust)}
-        DEBUG
+        secret_logger.debug 'Validating domain access', {
+          domain: domain,
+          custom_domain: custom_domain?,
+          allow_public: domain_record.allow_public_homepage?,
+          is_owner: domain_record.owner?(@cust),
+          user_id: @cust&.objid,
+        }
 
         validate_domain_permissions(domain_record)
       end
@@ -315,12 +308,23 @@ module V2::Logic
         if custom_domain?
           return if domain_record.allow_public_homepage?
 
+          secret_logger.warn 'Public sharing disabled for domain', {
+            domain: share_domain,
+            user_id: @cust&.objid,
+            action: 'validate_domain_permissions',
+            result: :access_denied,
+          }
           raise_form_error "Public sharing disabled for domain: #{share_domain}"
         end
 
         return if domain_record.owner?(@cust)
 
-        OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
+        secret_logger.info 'Non-owner attempted domain access', {
+          domain: share_domain,
+          user_id: @cust&.objid,
+          action: 'validate_domain_permissions',
+          result: :non_owner,
+        }
       end
     end
   end

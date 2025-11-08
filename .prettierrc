@@ -15,6 +15,10 @@
       }
     },
     {
+      "files": "*.sql",
+      "options": { "parser": "sql-cst" }
+    },
+    {
       "files": "*.svg",
       "options": {
         "parser": "html",

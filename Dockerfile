@@ -40,7 +40,7 @@
 ARG APP_DIR=/app
 ARG VERSION
 ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:dd8c06af4886548264f4463ee2400fd6be641b0562c8f681e490d759632078f5
-ARG NODE_IMAGE_TAG=22@sha256:d367fd3fce932a9d3bc3816c23f85313d9b44e58e1fed49ef90a10c4b99409e8
+ARG NODE_IMAGE_TAG=22@sha256:23c24e85395992be118734a39903e08c8f7d1abc73978c46b6bda90060091a49
 
 ##
 # NODE: Node.js source for copying binaries
@@ -64,6 +64,7 @@ RUN set -eux && \
         libssl-dev \
         libffi-dev \
         libyaml-dev \
+        pkg-config \
         git \
         curl && \
     apt-get clean && \
@@ -142,7 +143,6 @@ WORKDIR ${APP_DIR}
 
 # Copy application source
 COPY public ./public
-COPY templates ./templates
 COPY src ./src
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts \
      postcss.config.mjs tailwind.config.ts eslint.config.ts ./
@@ -192,7 +192,6 @@ COPY --from=dependencies /usr/local/bundle /usr/local/bundle
 
 # Copy application files
 COPY --from=build ${APP_DIR}/public ./public
-COPY --from=build ${APP_DIR}/templates ./templates
 COPY --from=build ${APP_DIR}/src ./src
 COPY --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
 
@@ -201,7 +200,6 @@ COPY bin ./bin
 COPY apps ./apps
 COPY etc/ ./etc/
 COPY lib ./lib
-COPY migrations ./migrations
 COPY scripts/entrypoint.sh ./bin/
 COPY scripts/update-version.sh ./bin/
 COPY package.json config.ru Gemfile Gemfile.lock ./
@@ -210,16 +208,22 @@ COPY package.json config.ru Gemfile Gemfile.lock ./
 ENV RACK_ENV=production \
     ONETIME_HOME=${APP_DIR} \
     RUBY_YJIT_ENABLE=1 \
+    SERVER_TYPE=puma \
     PATH=${APP_DIR}/bin:$PATH
 
 # Ensure config files exist (preserve existing if mounted)
-# Copies the default config files into place if they don't
-# already exist. If a file does exist, nothing happens. For
-# example, if the config file has been previously copied
-# (and modified) the "--no-clobber" argument prevents
-# those changes from being overwritten.
+# Copies all default config files from etc/defaults/*.defaults.* to etc/*
+# removing the .defaults suffix. For example:
+#   etc/defaults/config.defaults.yaml -> etc/config.yaml
+#   etc/defaults/auth.defaults.yaml -> etc/auth.yaml
+# The --no-clobber flag ensures existing files are not overwritten.
 RUN set -eux && \
-    cp --preserve --no-clobber etc/defaults/config.defaults.yaml etc/config.yaml && \
+    for file in etc/defaults/*.defaults.*; do \
+        if [ -f "$file" ]; then \
+            target="etc/$(basename "$file" | sed 's/\.defaults//')"; \
+            cp --preserve --no-clobber "$file" "$target"; \
+        fi; \
+    done && \
     chmod +x bin/entrypoint.sh bin/update-version.sh
 
 EXPOSE 3000

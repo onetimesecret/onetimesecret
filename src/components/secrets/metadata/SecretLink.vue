@@ -83,7 +83,7 @@
           class="size-4 transition-transform duration-300 group-hover:rotate-12"
           aria-hidden="true" />
         <span class="transition-colors group-hover:text-brand-500 dark:group-hover:text-brand-400">
-          {{ record.secret_shortkey }}
+          {{ record.secret_shortid }}
         </span>
       </div>
 

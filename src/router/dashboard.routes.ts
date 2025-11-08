@@ -1,5 +1,8 @@
-import DefaultFooter from '@/components/layout/DefaultFooter.vue';
-import DefaultHeader from '@/components/layout/DefaultHeader.vue';
+// src/router/dashboard.routes.ts
+
+import ImprovedFooter from '@/components/layout/ImprovedFooter.vue';
+import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
+import ImprovedLayout from '@/layouts/ImprovedLayout.vue';
 import DashboardIndex from '@/views/dashboard/DashboardIndex.vue';
 import DashboardRecent from '@/views/dashboard/DashboardRecent.vue';
 import { RouteRecordRaw } from 'vue-router';
@@ -10,11 +13,13 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Dashboard',
     components: {
       default: DashboardIndex,
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
+      title: 'web.TITLES.dashboard',
       requiresAuth: true,
+      layout: ImprovedLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
@@ -22,6 +27,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: true,
         displayPoweredBy: false,
         displayVersion: true,
+        showSidebar: false,
       },
     },
   },
@@ -30,11 +36,13 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Recents',
     components: {
       default: DashboardRecent,
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
+      title: 'web.TITLES.recent',
       requiresAuth: true,
+      layout: ImprovedLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
@@ -50,11 +58,13 @@ const routes: Array<RouteRecordRaw> = [
     name: 'DashboardDomains',
     components: {
       default: () => import('@/views/dashboard/DashboardDomains.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
+      title: 'web.TITLES.domains',
       requiresAuth: true,
+      layout: ImprovedLayout,
       layoutProps: {
         displayFeedback: true,
         displayPoweredBy: false,
@@ -67,11 +77,13 @@ const routes: Array<RouteRecordRaw> = [
     name: 'DomainAdd',
     components: {
       default: () => import('@/views/dashboard/DashboardDomainAdd.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
+      title: 'web.TITLES.domain_add',
       requiresAuth: true,
+      layout: ImprovedLayout,
       layoutProps: {
         displayFeedback: false,
         displayPoweredBy: false,
@@ -84,12 +96,16 @@ const routes: Array<RouteRecordRaw> = [
     name: 'DomainVerify',
     components: {
       default: () => import('@/views/dashboard/DashboardDomainVerify.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
+      title: 'web.TITLES.domain_verify',
       requiresAuth: true,
-      displayPoweredBy: false,
+      layout: ImprovedLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
     },
     props: true,
   },
@@ -98,12 +114,16 @@ const routes: Array<RouteRecordRaw> = [
     name: 'DomainBrand',
     components: {
       default: () => import('@/views/dashboard/DashboardDomainBrand.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
+      title: 'web.TITLES.domain_brand',
       requiresAuth: true,
-      displayPoweredBy: false,
+      layout: ImprovedLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
     },
     props: true,
   },

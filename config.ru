@@ -4,12 +4,14 @@
 #
 #   $ thin -e dev -R config.ru -p 3000 start
 #
+#   $ puma -e development -p 3000 config.ru
+#
 # Application Structure:
 # ```
 # /
-# ├── config.ru               # Main Rack configuration
-# ├── apps/                   # API (v1, v2, v3) and web applications
-# └── lib/                    # Core libraries and app registry
+# ├── config.ru         # Main Rack configuration
+# ├── apps/             # API (v1, v2, v3) and web applications
+# └── lib/              # Core libraries, models, and app registry
 # ```
 #
 
@@ -17,16 +19,29 @@
 ENV['RACK_ENV']     ||= 'production'.freeze
 ENV['ONETIME_HOME'] ||= File.expand_path(__dir__).freeze
 
-require_relative 'apps/app_registry'
+# Add lib to load path first
+$LOAD_PATH.unshift(File.join(__dir__, 'lib')) unless $LOAD_PATH.include?(File.join(__dir__, 'lib'))
 
-# Application models need to be loaded before booting
-AppRegistry.prepare_application_registry
+require 'onetime'
+
 
 # Bootstrap the Application
-# Applications must be loaded before boot to ensure all Familia models
-# are properly registered. This sequence is critical for establishing
-# database connections for all model classes.
+# NOTE: Proper semantic logging comes online during boot. Any logging
+# prior to this needs to be output directly via STDOUT/STDERR.
 Onetime.boot! :app
 
+
+# Application models need to be loaded before booting
+Onetime::Application::Registry.prepare_application_registry
+
+Onetime.app_logger.debug "Onetime application booted in #{OT.env} mode. Is ready? #{Onetime.ready?} "
+
+# Check if application is ready before starting server
+unless Onetime.ready?
+  $stderr.puts 'Application is not ready - goodnight irene'
+  $stderr.flush
+  exit 87
+end
+
 # Mount and run Rack applications
-run AppRegistry.generate_rack_url_map
+run Onetime::Application::Registry.generate_rack_url_map

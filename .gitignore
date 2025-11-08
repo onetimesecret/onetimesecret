@@ -27,7 +27,7 @@ pnpm-debug.log*
 .prompts*
 .pytest_cache/
 .ruby-lsp/
-.serena/
+.serena
 .vscode/
 .idea/
 .cache/
@@ -63,11 +63,10 @@ public/doc
 bin/bundle
 bin/rspec
 bin/rubocop
-etc/config*
-etc/*.yaml
 !fly.toml
 support/schemas/
 tsconfig.tsbuildinfo
+*.db
 
 # Ignore WIP or temp dev files with uppercase names
 [A-Z]*.rb

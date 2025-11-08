@@ -1,12 +1,12 @@
 # lib/onetime/cli/customers_command.rb
 
 module Onetime
-  class CustomersCommand < Drydock::Command
+  class CustomersCommand < Onetime::CLI
     def customers
-      puts format('%d customers', V2::Customer.instances.size)
+      puts format('%d customers', Onetime::Customer.instances.size)
       if option.list
-        all_customers = V2::Customer.instances.all.map do |custid|
-          V2::Customer.load(custid)
+        all_customers = Onetime::Customer.instances.all.map do |custid|
+          Onetime::Customer.load(custid)
         end
 
         # Choose the field to group by
@@ -27,8 +27,8 @@ module Onetime
         end
 
       elsif option.check
-        all_customers = V2::Customer.instances.all.map do |custid|
-          V2::Customer.load(custid)
+        all_customers = Onetime::Customer.instances.all.map do |custid|
+          Onetime::Customer.load(custid)
         end
 
         mismatched_customers = all_customers.select do |cust|

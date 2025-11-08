@@ -6,7 +6,7 @@ import { reactive } from 'vue';
 
 import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
-export function useSecret(secretKey: string, options?: AsyncHandlerOptions) {
+export function useSecret(secretIdentifier: string, options?: AsyncHandlerOptions) {
   const store = useSecretStore();
   const { record, details } = storeToRefs(store);
 
@@ -33,12 +33,12 @@ export function useSecret(secretKey: string, options?: AsyncHandlerOptions) {
 
   const load = () =>
     wrap(async () => {
-      await store.fetch(secretKey);
+      await store.fetch(secretIdentifier);
     });
 
   const reveal = (passphrase: string) =>
     wrap(async () => {
-      await store.reveal(secretKey, passphrase);
+      await store.reveal(secretIdentifier, passphrase);
     });
 
   return {

@@ -7,14 +7,16 @@ module V2::Logic
     # Very similar logic to ShowSecret, but with a few key differences
     # as required by the v2 API. The v1 API uses the original ShowSecret.
     class RevealSecret < V2::Logic::Base
-      attr_reader :key, :passphrase, :continue, :share_domain, :secret, :show_secret, :secret_value, :is_truncated,
-        :verification, :correct_passphrase, :display_lines, :one_liner, :is_owner, :has_passphrase, :secret_key
+      include Onetime::Logging
+
+      attr_reader :identifier, :passphrase, :continue, :share_domain, :secret, :show_secret, :secret_value,
+        :verification, :correct_passphrase, :display_lines, :one_liner, :is_owner, :has_passphrase, :secret_identifier
 
       def process_params
-        @key        = params[:key].to_s
-        @secret     = V2::Secret.load key
-        @passphrase = params[:passphrase].to_s
-        @continue   = params[:continue].to_s == 'true'
+        @identifier = params['identifier'].to_s
+        @secret     = Onetime::Secret.load identifier
+        @passphrase = params['passphrase'].to_s
+        @continue   = params['continue'].to_s == 'true'
       end
 
       def raise_concerns
@@ -25,42 +27,72 @@ module V2::Logic
         @correct_passphrase = secret.passphrase?(passphrase)
         @show_secret        = secret.viewable? && (correct_passphrase || !secret.has_passphrase?) && continue
         @verification       = secret.verification.to_s == 'true'
-        @secret_key         = @secret.key
-        @secret_shortkey    = @secret.shortkey
+        @secret_identifier  = @secret.identifier
+        @secret_shortid     = @secret.shortid
 
-        OT.ld "[reveal_secret] secret=#{secret.shortkey} viewable=#{secret.viewable?} correct_passphrase=#{correct_passphrase} continue=#{continue}"
+        secret_logger.debug 'Secret reveal initiated', {
+          secret_identifier: secret.shortid,
+          viewable: secret.viewable?,
+          has_passphrase: secret.has_passphrase?,
+          passphrase_correct: correct_passphrase,
+          continue: continue,
+          user_id: cust&.custid,
+        }
 
-        owner = secret.load_customer
+        owner = secret.load_owner
         if show_secret
 
           # If we can't decrypt that's great! We just set secret_value to
           # the encrypted string.
-          @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
-          @is_truncated = secret.truncated?
+          @secret_value = secret.ciphertext.reveal { it }
 
           if verification
             if owner.nil? || owner.anonymous? || owner.verified?
-              OT.le "[verification] Invalid verification attempt for secret #{secret.shortkey} - no owner or anonymous owner or already verified"
+              secret_logger.error 'Invalid verification attempt', {
+                secret_identifier: secret.shortid,
+                owner_nil: owner.nil?,
+                owner_anonymous: owner&.anonymous?,
+                owner_verified: owner&.verified?,
+                action: 'verification',
+                result: :invalid,
+              }
               secret.received!
               raise_form_error i18n.dig(:web, :COMMON, :verification_not_valid) || 'Verification not valid'
 
-            elsif cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
-              OT.li "[verification] Verifying owner #{owner.custid} for secret #{secret.shortkey}"
+            elsif owner && (cust&.anonymous? || (cust&.custid == owner.custid && !owner.verified?))
+              secret_logger.info 'Owner verification successful', {
+                secret_identifier: secret.shortid,
+                owner_id: owner.objid,
+                action: 'verification',
+                result: :verified,
+              }
               owner.verified! 'true'
               owner.reset_secret.delete!
               sess.destroy!
               secret.received!
 
             else
-              OT.le '[verification] Invalid verification - user already logged in'
+              secret_logger.error 'Invalid verification - user already logged in', {
+                secret_identifier: secret.shortid,
+                user_id: cust&.custid,
+                action: 'verification',
+                result: :already_logged_in,
+              }
               raise_form_error i18n.dig(:web, :COMMON,
                 :verification_already_logged_in
               ) || 'Cannot verify when logged in'
             end
           else
-            OT.li "[reveal_secret] #{secret.key} viewed successfully"
-            owner.increment_field :secrets_shared unless owner.anonymous?
-            V2::Customer.secrets_shared.increment
+            secret_logger.info 'Secret revealed successfully', {
+              secret_identifier: secret.shortid,
+              owner_id: owner&.objid,
+              action: 'reveal',
+              result: :success,
+            }
+
+            owner.increment_field :secrets_shared if !owner.nil? && !owner.anonymous?
+
+            Onetime::Customer.secrets_shared.increment
 
             # Immediately mark the secret as viewed, so that it
             # can't be shown again. If there's a network failure
@@ -78,7 +110,13 @@ module V2::Logic
           end
 
         elsif secret.has_passphrase? && !correct_passphrase
-          OT.le "[reveal_secret] Failed passphrase attempt for secret #{secret.shortkey} #{sess.short_identifier} #{sess.ipaddress}"
+          secret_logger.warn 'Incorrect passphrase attempt', {
+            secret_identifier: secret.shortid,
+            user_id: cust&.custid,
+            session_id: sess&.sessid,
+            action: 'reveal',
+            result: :passphrase_failed,
+          }
 
           message = i18n.dig(:web, :COMMON, :incorrect_passphrase) || 'Incorrect passphrase'
           raise_form_error message
@@ -99,6 +137,8 @@ module V2::Logic
         @has_passphrase = @secret.has_passphrase?
         @display_lines  = calculate_display_lines
         @one_liner      = one_liner
+
+        success_data
       end
 
       def success_data

@@ -2,19 +2,18 @@
 
 module V2::Logic
   module Secrets
-
     using Familia::Refinements::TimeLiterals
 
     class ShowSecret < V2::Logic::Base
-      attr_reader :key, :passphrase, :continue, :secret, :show_secret, :secret_value,
-        :is_truncated, :verification, :correct_passphrase, :display_lines, :one_liner,
-        :is_owner, :has_passphrase, :secret_key, :share_domain
+      attr_reader :identifier, :passphrase, :continue, :secret, :show_secret, :secret_value,
+        :verification, :correct_passphrase, :display_lines, :one_liner,
+        :is_owner, :has_passphrase, :secret_identifier, :share_domain
 
       def process_params
-        @key        = params[:key].to_s
-        @secret     = V2::Secret.load key
-        @passphrase = params[:passphrase].to_s
-        @continue   = params[:continue].to_s == 'true'
+        @identifier = params['identifier'].to_s
+        @secret     = Onetime::Secret.load identifier
+        @passphrase = params['passphrase'].to_s
+        @continue   = params['continue'].to_s == 'true'
       end
 
       def raise_concerns
@@ -25,15 +24,14 @@ module V2::Logic
         @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
         @show_secret        = secret.viewable? && correct_passphrase && continue
         @verification       = secret.verification.to_s == 'true'
-        @secret_key         = @secret.key
+        @secret_identifier  = @secret.identifier
 
-        owner = secret.load_customer
+        owner = secret.load_owner
 
         if show_secret
           # If we can't decrypt that's great! We just set secret_value to
           # the encrypted string.
-          @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
-          @is_truncated = secret.truncated?
+          @secret_value = secret.ciphertext.reveal { it }
 
           if verification
             if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
@@ -46,7 +44,7 @@ module V2::Logic
           else
 
             owner.increment_field :secrets_shared unless owner.anonymous?
-            V2::Customer.secrets_shared.increment
+            Onetime::Customer.secrets_shared.increment
 
             # Immediately mark the secret as viewed, so that it
             # can't be shown again. If there's a network failure
@@ -80,6 +78,8 @@ module V2::Logic
         @one_liner      = one_liner
 
         secret.viewed! if secret.state?(:new)
+
+        success_data
       end
 
       def success_data

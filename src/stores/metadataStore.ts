@@ -1,7 +1,7 @@
 // src/stores/metadataStore.ts
 import { createError } from '@/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import { responseSchemas } from '@/schemas/api/responses';
+import { responseSchemas } from '@/schemas/api/v3/responses';
 import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
@@ -94,7 +94,7 @@ export const useMetadataStore = defineStore('metadata', () => {
    * @throws {AxiosError} When request fails
    */
   async function fetch(key: string) {
-    const response = await $api.get(`/api/v2/receipt/${key}`);
+    const response = await $api.get(`/api/v3/receipt/${key}`);
     const validated = responseSchemas.metadata.parse(response.data);
     record.value = validated.record;
     details.value = validated.details as any;
@@ -117,7 +117,7 @@ export const useMetadataStore = defineStore('metadata', () => {
       throw createError('Cannot burn this metadata', 'human', 'error');
     }
 
-    const response = await $api.post(`/api/v2/receipt/${key}/burn`, {
+    const response = await $api.post(`/api/v3/receipt/${key}/burn`, {
       passphrase,
       continue: true,
     });

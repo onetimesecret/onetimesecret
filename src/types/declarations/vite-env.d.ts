@@ -36,6 +36,20 @@ import type { Plugin } from 'rollup';
 /// <reference types="vite/client" />
 
 /**
+ * Extend Vite's ImportMetaEnv interface to include our custom environment variables
+ */
+interface ImportMetaEnv {
+  readonly VITE_AUTH_URL?: string
+  // Include other Vite default env vars
+  readonly VITE_APP_TITLE?: string
+  readonly MODE: string
+  readonly BASE_URL: string
+  readonly PROD: boolean
+  readonly DEV: boolean
+  readonly SSR: boolean
+}
+
+/**
  * This part tells TypeScript how to understand .vue files.
  * It's like teaching TypeScript a new language (Vue).
  */

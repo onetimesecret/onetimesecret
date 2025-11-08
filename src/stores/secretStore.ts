@@ -7,7 +7,7 @@ import {
   GeneratePayload,
   responseSchemas,
   type SecretResponse,
-} from '@/schemas/api';
+} from '@/schemas/api/v3';
 import { type Secret, type SecretDetails, type SecretState } from '@/schemas/models/secret';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
@@ -31,9 +31,9 @@ export type SecretStore = {
 
   // Actions
   init: () => { isInitialized: boolean };
-  fetch: (secretKey: string) => Promise<void>;
-  reveal: (secretKey: string, passphrase?: string) => Promise<void>;
-  getStatus: (secretKey: string) => Promise<SecretState>;
+  fetch: (secretIdentifier: string) => Promise<void>;
+  reveal: (secretIdentifier: string, passphrase?: string) => Promise<void>;
+  getStatus: (secretIdentifier: string) => Promise<SecretState>;
   clear: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
@@ -68,12 +68,12 @@ export const useSecretStore = defineStore('secrets', () => {
 
   /**
    * Loads a secret by its key
-   * @param secretKey - Unique identifier for the secret
+   * @param secretIdentifier - Unique identifier for the secret
    * @throws Will throw an error if the API call fails
    * @returns Validated secret response
    */
-  async function fetch(secretKey: string) {
-    const response = await $api.get(`/api/v2/secret/${secretKey}`);
+  async function fetch(secretIdentifier: string) {
+    const response = await $api.get(`/api/v3/secret/${secretIdentifier}`);
     const validated = responseSchemas.secret.parse(response.data);
     record.value = validated.record;
     details.value = validated.details as any;
@@ -102,14 +102,14 @@ export const useSecretStore = defineStore('secrets', () => {
    * should remain the responsibility of this store.
    */
   async function conceal(payload: ConcealPayload): Promise<ConcealDataResponse> {
-    const response = await $api.post('/api/v2/secret/conceal', {
+    const response = await $api.post('/api/v3/secret/conceal', {
       secret: payload,
     });
     return response.data;
   }
 
   async function generate(payload: GeneratePayload): Promise<ConcealDataResponse> {
-    const response = await $api.post('/api/v2/secret/generate', {
+    const response = await $api.post('/api/v3/secret/generate', {
       secret: payload,
     });
     // const validated = responseSchemas.concealData.parse(response.data); // Fails?
@@ -120,13 +120,13 @@ export const useSecretStore = defineStore('secrets', () => {
 
   /**
    * Reveals a secret's contents using an optional passphrase
-   * @param secretKey - Unique identifier for the secret
+   * @param secretIdentifier - Unique identifier for the secret
    * @param passphrase - Optional passphrase to decrypt the secret
    * @throws Will throw an error if the API call fails
    * @returns Validated secret response
    */
-  async function reveal(secretKey: string, passphrase?: string) {
-    const response = await $api.post<SecretResponse>(`/api/v2/secret/${secretKey}/reveal`, {
+  async function reveal(secretIdentifier: string, passphrase?: string) {
+    const response = await $api.post<SecretResponse>(`/api/v3/secret/${secretIdentifier}/reveal`, {
       passphrase,
       continue: true,
     });

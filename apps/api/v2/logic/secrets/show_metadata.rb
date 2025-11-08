@@ -2,39 +2,38 @@
 
 module V2::Logic
   module Secrets
-
     using Familia::Refinements::TimeLiterals
 
     class ShowMetadata < V2::Logic::Base
       # Working variables
-      attr_reader :key, :metadata, :secret
+      attr_reader :identifier, :metadata, :secret
       # Template variables
-      attr_reader :metadata_key, :metadata_shortkey, :secret_key, :secret_state,
-        :secret_shortkey, :recipients, :no_cache, :expiration_in_seconds,
+      attr_reader :metadata_identifier, :metadata_shortid, :secret_identifier, :secret_state,
+        :secret_shortid, :recipients, :no_cache, :expiration_in_seconds,
         :natural_expiration, :is_received, :is_burned, :secret_realttl,
         :is_destroyed, :expiration, :view_count,
-        :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
+        :has_passphrase, :can_decrypt, :secret_value,
         :show_secret, :show_secret_link, :show_metadata_link, :metadata_attributes,
         :show_metadata, :show_recipients, :share_domain, :is_orphaned,
         :share_path, :burn_path, :metadata_path, :share_url, :is_expired,
         :metadata_url, :burn_url, :display_lines
 
       def process_params
-        @key      = params[:key].to_s
-        @metadata = V2::Metadata.load key
+        @identifier = params['identifier'].to_s
+        @metadata   = Onetime::Metadata.load identifier
       end
 
       def raise_concerns
-        raise OT::MissingSecret if metadata.nil?
+        raise OT::MissingSecret, "identifier: #{identifier}" if metadata.nil?
       end
 
       def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
         @secret = @metadata.load_secret
 
-        @metadata_key      = metadata.key
-        @metadata_shortkey = metadata.shortkey
-        @secret_key        = metadata.secret_key
-        @secret_shortkey   = metadata.secret_shortkey
+        @metadata_identifier       = metadata.identifier
+        @metadata_short_identifier = metadata.shortid
+        @secret_identifier         = metadata.secret_identifier
+        @secret_shortid            = metadata.secret_shortid
 
         # Default the recipients to an empty string. When a Familia::Horreum
         # object is loaded, the fields that have no values (or that don't
@@ -57,12 +56,12 @@ module V2::Logic
           burned_or_received = metadata.state?(:burned) || metadata.state?(:received)
 
           if !burned_or_received && metadata.secret_expired?
-            OT.le('[show_metadata] Metadata has expired secret. {metadata.shortkey}')
-            metadata.secret_key = nil
+            OT.le('[show_metadata] Metadata has expired secret. {metadata.shortid}')
+            metadata.secret_identifier = nil
             metadata.expired!
           elsif !burned_or_received
-            OT.le("[show_metadata] Metadata is an orphan. #{metadata.shortkey}")
-            metadata.secret_key = nil
+            OT.le("[show_metadata] Metadata is an orphan. #{metadata.shortid}")
+            metadata.secret_identifier = nil
             metadata.orphaned!
           end
 
@@ -72,7 +71,7 @@ module V2::Logic
           @is_orphaned  = metadata.state?(:orphaned)
           @is_destroyed = @is_burned || @is_received || @is_expired || @is_orphaned
 
-          metadata.secret_key! nil if is_destroyed && metadata.secret_key
+          metadata.secret_identifier! nil if is_destroyed && metadata.secret_identifier
         else
           @secret_state   = secret.state
           @secret_realttl = secret.current_expiration
@@ -83,19 +82,17 @@ module V2::Logic
             @can_decrypt    = secret.can_decrypt?
             # If we can't decrypt the secret (i.e. if we can't access it) then
             # then we leave secret_value nil. We do this so that after creating
-            # a secret we can show the received contents on the "/receipt/metadata_key"
+            # a secret we can show the received contents on the "/receipt/metadata_identifier"
             # page one time. Particularly for generated passwords which are not
             # shown any other time.
-            if can_decrypt && metadata.state?(:new)
-              begin
-                OT.ld "[show_metadata] m:#{metadata_key} s:#{secret_key} Decrypting for first and only creator viewing"
-                @secret_value = secret.decrypted_value if @can_decrypt
-              rescue OpenSSL::Cipher::CipherError => ex
-                OT.le "[show_metadata] m:#{metadata_key} s:#{secret_key} #{ex.message}"
-                @secret_value = nil
-              end
+            #
+            # TODO: There's a bug here. If the UI that created this secret+metadata
+            # records doesn't immediately load the metadata/reciept page the metadata
+            # record stays in state=new allowing the next request through.
+            if secret && metadata.state?(:new)
+              OT.ld "[show_metadata] m:#{metadata_identifier} s:#{secret_identifier} Decrypting for first and only creator viewing"
+              @secret_value = secret.ciphertext.reveal { it }
             end
-            @is_truncated   = secret.truncated?
           end
         end
 
@@ -164,6 +161,8 @@ module V2::Logic
         # We mark the metadata record viewed so that we can support showing the
         # secret link on the metadata page, just the one time.
         metadata.viewed! if metadata.state?(:new)
+
+        success_data
       end
 
       def one_liner
@@ -186,7 +185,7 @@ module V2::Logic
         attributes = metadata.safe_dump
 
         # Only include the secret's identifying key when necessary
-        attributes[:secret_key] = secret_key if show_secret
+        attributes[:secret_identifier] = secret_identifier if show_secret
 
         # Add additional attributes not included in safe dump
         attributes.merge!({
@@ -216,7 +215,6 @@ module V2::Logic
           has_passphrase: has_passphrase,
           can_decrypt: can_decrypt,
           secret_value: secret_value,
-          is_truncated: is_truncated,
           show_secret: show_secret,
           show_secret_link: show_secret_link,
           show_metadata_link: show_metadata_link,
@@ -226,9 +224,9 @@ module V2::Logic
       end
 
       def process_uris
-        @share_path    = build_path(:secret, secret_key)
-        @burn_path     = build_path(:private, metadata_key, 'burn')
-        @metadata_path = build_path(:private, metadata_key)
+        @share_path    = build_path(:secret, secret_identifier)
+        @burn_path     = build_path(:private, metadata_identifier, 'burn')
+        @metadata_path = build_path(:private, metadata_identifier)
         @share_url     = build_url(share_domain, @share_path)
         @metadata_url  = build_url(baseuri, @metadata_path)
         @burn_url      = build_url(baseuri, @burn_path)

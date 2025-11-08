@@ -31,9 +31,8 @@ describe('Auth Routes Configuration', () => {
 
     it('should define signup routes with correct children', () => {
       const route = authRoutes.find((route: RouteRecordRaw) => route.path === '/signup');
-      expect(route?.children).toHaveLength(2);
+      expect(route?.children).toHaveLength(1);
       expect(route?.children?.[0].path).toBe('');
-      expect(route?.children?.[1].path).toBe(':planCode');
       expect(route?.meta?.requiresAuth).toBe(false);
     });
 
@@ -59,10 +58,8 @@ describe('Auth Routes Configuration', () => {
     it('should lazy load signup components', async () => {
       const route = authRoutes.find((route: RouteRecordRaw) => route.path === '/signup');
       const mainComponent = await (route?.children?.[0].component as Function)();
-      const planComponent = await (route?.children?.[1].component as Function)();
 
       expect(mainComponent).toBeDefined();
-      expect(planComponent).toBeDefined();
     });
   });
 
@@ -151,11 +148,9 @@ describe('Auth Routes Configuration', () => {
       expect(router.currentRoute.value.path).toBe('/signin');
     });
 
-    it('should navigate to signup with plan code', async () => {
-      const planCode = 'premium';
-      await router.push(`/signup/${planCode}`);
-      expect(router.currentRoute.value.path).toBe(`/signup/${planCode}`);
-      expect(router.currentRoute.value.params.planCode).toBe(planCode);
+    it('should navigate to signup', async () => {
+      await router.push('/signup');
+      expect(router.currentRoute.value.path).toBe('/signup');
     });
 
     it('should navigate to password reset with reset key', async () => {

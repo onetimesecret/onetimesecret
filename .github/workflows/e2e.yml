@@ -35,9 +35,12 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   container-e2e-tests:
-    continue-on-error: true
     timeout-minutes: 20
     runs-on: ubuntu-24.04
 
@@ -213,12 +216,12 @@ jobs:
 
   notify-results:
     runs-on: ubuntu-24.04
-    needs: docker-e2e-tests
+    needs: container-e2e-tests
     if: always()
     steps:
       - name: Notify Results
         run: |
-          if [ "${{ needs.docker-e2e-tests.result }}" == "success" ]; then
+          if [ "${{ needs.container-e2e-tests.result }}" == "success" ]; then
             echo "✅ E2E integration tests passed!"
             echo "The production OCI image successfully serves the application and passes E2E tests."
           else

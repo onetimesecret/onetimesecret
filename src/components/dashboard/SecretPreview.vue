@@ -19,7 +19,7 @@ const props = defineProps<{
   logoImage?: ImageProps | null;
   onLogoUpload: (file: File) => Promise<void>;
   onLogoRemove: () => Promise<void>;
-  secretKey: string;
+  secretIdentifier: string;
   previewI18n: Composer;
 }>();
 

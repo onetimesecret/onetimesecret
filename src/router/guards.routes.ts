@@ -5,8 +5,12 @@ import { useAuthStore } from '@/stores/authStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { RouteLocationNormalized, Router } from 'vue-router';
 import { processQueryParams } from './queryParams.handler';
+import { usePageTitle } from '@/composables/usePageTitle';
 
 export async function setupRouterGuards(router: Router): Promise<void> {
+  const { setTitle } = usePageTitle();
+  let currentTitle: string | null = null;
+
   router.beforeEach(async (to: RouteLocationNormalized) => {
     const authStore = useAuthStore();
     const languageStore = useLanguageStore();
@@ -17,6 +21,11 @@ export async function setupRouterGuards(router: Router): Promise<void> {
       return true;
     }
 
+    // Handle MFA requirement checks
+    const mfaRedirect = handleMfaAccess(to, authStore.isAuthenticated);
+    if (mfaRedirect) {
+      return mfaRedirect;
+    }
 
     // Handle root path redirect
     if (to.path === '/') {
@@ -43,6 +52,28 @@ export async function setupRouterGuards(router: Router): Promise<void> {
 
     return true; // Always return true for non-auth routes
   });
+
+  // Update page title after navigation completes
+  router.afterEach((to: RouteLocationNormalized) => {
+    // Find the title from the matched routes, starting from the most specific
+    // This handles nested routes properly by inheriting from parent routes
+    const nearestWithTitle = to.matched.slice().reverse().find(r => r.meta && r.meta.title);
+
+    let newTitle: string | null = null;
+
+    if (nearestWithTitle) {
+      newTitle = nearestWithTitle.meta.title as string;
+    } else if (to.name && typeof to.name === 'string') {
+      // Fallback to route name if no title is specified in the route hierarchy
+      newTitle = to.name;
+    }
+
+    // Only update title if it has changed
+    if (newTitle !== currentTitle) {
+      currentTitle = newTitle;
+      setTitle(newTitle);
+    }
+  });
 }
 
 function requiresAuthentication(route: RouteLocationNormalized): boolean {
@@ -51,6 +82,28 @@ function requiresAuthentication(route: RouteLocationNormalized): boolean {
 
 function isAuthRoute(route: RouteLocationNormalized): boolean {
   return !!route.meta?.isAuthRoute;
+}
+
+/**
+ * Handle MFA verification access control
+ * @param to - Target route
+ * @param isAuthenticated - Current authentication status
+ * @returns Redirect object or null if no redirect needed
+ */
+function handleMfaAccess(to: RouteLocationNormalized, isAuthenticated: boolean | null) {
+  const awaitingMfa = WindowService.get('awaiting_mfa');
+
+  // Redirect to MFA verification if awaiting second factor
+  if (awaitingMfa && to.path !== '/mfa-verify') {
+    return { path: '/mfa-verify' };
+  }
+
+  // Prevent access to MFA verify page when not awaiting MFA
+  if (to.path === '/mfa-verify' && !awaitingMfa) {
+    return isAuthenticated ? { name: 'Dashboard' } : { path: '/signin' };
+  }
+
+  return null;
 }
 
 function redirectToSignIn(from: RouteLocationNormalized) {
@@ -88,7 +141,7 @@ function redirectToSignIn(from: RouteLocationNormalized) {
 interface AuthValidator {
   needsCheck: boolean;
   isAuthenticated: boolean | null;
-  checkAuthStatus: () => Promise<boolean | null>;
+  checkWindowStatus: () => Promise<boolean | null>;
 }
 
 /**
@@ -109,7 +162,7 @@ async function validateAuthentication(
   if (!requiresAuthentication(route)) return true;
 
   if (store.needsCheck) {
-    const authStatus = await store.checkAuthStatus();
+    const authStatus = await store.checkWindowStatus();
     return authStatus ?? false; // Coalesce null to false
   }
   return store.isAuthenticated ?? false;

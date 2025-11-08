@@ -1,5 +1,4 @@
 // src/plugins/axios/interceptors.ts
-import type { ApiErrorResponse } from '@/schemas/api';
 import { useLanguageStore } from '@/stores';
 import { useCsrfStore } from '@/stores/csrfStore';
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
@@ -7,19 +6,19 @@ import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axio
 /**
  * CSRF Token Interceptors
  *
- * A comprehensive system for managing CSRF (Cross-Site Request Forgery)
- * tokens, referred to as "shrimp" in this implementation.
+ * Manages CSRF (Cross-Site Request Forgery) tokens using Rack::Protection.
  *
  * Key Features:
- * - Automatic token management in headers
- * - Token validation and updates
- * - Detailed debug logging
+ * - Automatic token management in X-CSRF-Token header
+ * - Token validation and updates from server responses
  * - Error handling with token preservation
  *
  * Flow:
- * 1. Request: Attaches current token to headers
- * 2. Response: Updates token if new one is provided
+ * 1. Request: Attaches current token to X-CSRF-Token header
+ * 2. Response: Updates token if new one is provided in response.data.shrimp
  * 3. Error: Preserves token updates even in error cases
+ *
+ * The token is stored in session[:csrf] by Rack::Protection::JsonCsrf middleware.
  */
 
 /**
@@ -45,9 +44,9 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
   //   baseURL: config.baseURL,
   // });
 
-  // Set CSRF token in headers
+  // Set CSRF token in headers (Rack::Protection::JsonCsrf expects X-CSRF-Token)
   config.headers = config.headers || {};
-  config.headers['O-Shrimp'] = csrfStore.shrimp;
+  config.headers['X-CSRF-Token'] = csrfStore.shrimp;
   config.headers['Accept-Language'] = languageStore.getCurrentLocale;
 
   return config;
@@ -60,7 +59,8 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
  */
 export const responseInterceptor = (response: AxiosResponse) => {
   const csrfStore = useCsrfStore();
-  const responseShrimp = response.data?.shrimp;
+  // Read CSRF token from response header (industry standard)
+  const responseShrimp = response.headers['x-csrf-token'];
 
   if (isValidShrimp(responseShrimp)) {
     csrfStore.updateShrimp(responseShrimp);
@@ -76,14 +76,14 @@ export const responseInterceptor = (response: AxiosResponse) => {
  */
 export const errorInterceptor = (error: AxiosError) => {
   const csrfStore = useCsrfStore();
-  const responseData = error.response?.data as ApiErrorResponse | undefined;
-  const responseShrimp = responseData?.shrimp;
+  // Read CSRF token from response header even in error cases
+  const responseShrimp = error.response?.headers['x-csrf-token'];
 
   // console.error('[errorInterceptor] ', {
   //   url: error.config?.url,
   //   method: error.config?.method,
   //   status: error.response?.status,
-  //   hasShrimp: responseData?.shrimp ? true : false,
+  //   hasShrimp: responseShrimp ? true : false,
   //   shrimp: createLoggableShrimp(responseShrimp),
   //   error: error.message,
   //   name: error.name,

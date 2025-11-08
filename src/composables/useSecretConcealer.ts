@@ -9,9 +9,9 @@ import {
   createError,
   useAsyncHandler,
 } from '@/composables/useAsyncHandler';
-import { ConcealPayload, GeneratePayload } from '@/schemas/api/payloads';
+import { ConcealPayload, GeneratePayload } from '@/schemas/api/v3/payloads';
 import { WindowService } from '@/services/window.service';
-import { ConcealDataResponse } from '@/schemas/api';
+import { ConcealDataResponse } from '@/schemas/api/v3';
 
 interface SecretConcealerOptions {
   onSuccess?: (response: ConcealDataResponse) => Promise<void> | void;

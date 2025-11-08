@@ -1,7 +1,7 @@
 // src/stores/metadataListStore.ts
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
-import { responseSchemas } from '@/schemas/api/responses';
+import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/account/endpoints/recent';
+import { responseSchemas } from '@/schemas/api/v3/responses';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -57,7 +57,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   }
 
   async function fetchList() {
-    const response = await $api.get('/api/v2/receipt/recent');
+    const response = await $api.get('/api/v3/receipt/recent');
     const validated = responseSchemas.metadataList.parse(response.data);
 
     records.value = validated.records ?? [];

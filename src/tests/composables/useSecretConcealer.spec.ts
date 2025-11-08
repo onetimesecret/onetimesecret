@@ -49,7 +49,7 @@ describe('useSecretConcealer', () => {
         onSuccess: async (response) => {
           mockRouter.push({
             name: 'Metadata link',
-            params: { metadataKey: response.record.metadata.key },
+            params: { metadataIdentifier: response.record.metadata.identifier },
           });
         },
       });
@@ -61,7 +61,7 @@ describe('useSecretConcealer', () => {
       expect(isSubmitting.value).toBe(false);
       expect(mockRouter.push).toHaveBeenCalledWith({
         name: 'Metadata link',
-        params: { metadataKey: 'test-metadata-key' },
+        params: { metadataIdentifier: 'test-metadata-key' },
       });
     });
 

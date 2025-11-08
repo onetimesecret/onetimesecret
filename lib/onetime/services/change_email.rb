@@ -91,12 +91,12 @@ module Onetime
         log 'VALIDATION: Starting validation checks'
 
         # Check old email exists
-        unless V2::Customer.exists?(old_email)
+        unless Onetime::Customer.exists?(old_email)
           raise "ERROR: Old email #{old_email} does not exist"
         end
 
         # Check new email doesn't already exist
-        if V2::Customer.exists?(new_email)
+        if Onetime::Customer.exists?(new_email)
           raise "ERROR: New email #{new_email} already exists"
         end
 
@@ -130,7 +130,7 @@ module Onetime
           end
 
           # Check domain exists in display_domains
-          display_domains_id = V2::CustomDomain.dbclient.hget('customdomain:display_domains', domain)
+          display_domains_id = Onetime::CustomDomain.dbclient.hget('customdomain:display_domains', domain)
           if display_domains_id.to_s.empty?
             raise "ERROR: Domain '#{domain}' not found in display_domains mapping"
           end
@@ -151,12 +151,12 @@ module Onetime
       #
       # @return [Boolean] True if all operations succeeded, false if any errors occurred
       def execute!
-        # Get the redis connection via the model to make sure we're
+        # Get the db connection via the model to make sure we're
         # connected to the correct DB where customer records live.
-        dbclient = V2::Customer.dbclient
+        dbclient = Onetime::Customer.dbclient
 
         log "EXECUTION: Starting email change process for #{old_email} -> #{new_email}"
-        log "Using Redis database #{dbclient.connection[:db]}"
+        log "Using database #{dbclient.connection[:db]}"
 
         begin
           dbclient.multi do |multi|
@@ -242,7 +242,7 @@ module Onetime
                   "New Email: #{new_email}",
                   "Realm: #{realm}",
                   "Domains: #{domains.map { |d| d[:domain] }.join(', ')}",
-                  "Timestamp: #{Time.now}",
+                  "Timestamp: #{Familia.now}",
                   '=====================',
                   'LOG ENTRIES:']
         report.concat(log_entries)
@@ -253,7 +253,7 @@ module Onetime
       # @return [String] The key where the report was stored
       def save_report_to_db
         report_text = generate_report
-        timestamp   = Time.now.to_i
+        timestamp   = Familia.now.to_i
         report_key  = "change_email:#{old_email}:#{new_email}:#{timestamp}"
 
         # Save to the database DB 0 for audit logs

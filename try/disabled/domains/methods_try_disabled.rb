@@ -7,8 +7,8 @@ require_relative '../../support/test_models'
 # Load the app
 OT.boot! :test, false
 
-@customer = Customer.create "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com"
-@alt_customer = Customer.create "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com"
+@customer = Onetime::Customer.create!(email: "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com")
+@alt_customer = Onetime::Customer.create!(email: "Tryouts+27+#{SecureRandom.uuid}@onetimesecret.com")
 @apex_domain = 'example.com'
 @subdomain = 'sub.example.com'
 @nested_subdomain = 'nested.sub.example.com'

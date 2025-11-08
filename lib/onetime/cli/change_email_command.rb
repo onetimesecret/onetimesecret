@@ -1,7 +1,7 @@
-# lib/onetime/cli/change_email.rb
+# lib/onetime/cli/change_email_command.rb
 
 module Onetime
-  class ChangeEmailCommand < Drydock::Command
+  class ChangeEmailCommand < Onetime::CLI
     # CLI command to view email change reports
     def change_email_log
       # Default limit is 10 reports, can be overridden with --limit or -n option
@@ -12,11 +12,11 @@ module Onetime
       puts '=' * 50
 
       # Connect to the database DB 0 where audit logs are stored
-      redis = Familia.dbclient
+      dbclient = Familia.dbclient
 
       # Get keys matching the pattern
       pattern = email_filter ? "change_email:#{email_filter}:*" : 'change_email:*'
-      keys    = redis.keys(pattern).sort_by { |k| k.split(':').last.to_i }.reverse.first(limit.to_i)
+      keys    = dbclient.keys(pattern).sort_by { |k| k.split(':').last.to_i }.reverse.first(limit.to_i)
 
       if keys.empty?
         puts "No email change reports found#{" for #{email_filter}" if email_filter}."
@@ -34,7 +34,7 @@ module Onetime
         next unless option.verbose
 
         # Show full report in verbose mode
-        report = redis.get(key)
+        report = dbclient.get(key)
         if report
           puts '-' * 40
           puts report
@@ -88,7 +88,7 @@ module Onetime
 
       # Load customer to check if exists
       customer = begin
-                   V2::Customer.load(old_email)
+                   Onetime::Customer.load(old_email)
       rescue StandardError
                    nil
       end
@@ -150,7 +150,7 @@ module Onetime
               puts
 
               # Check customer record exists with new email
-              if V2::Customer.exists?(new_email)
+              if Onetime::Customer.exists?(new_email)
                 # If this is the only check, or all other checks also pass,
                 # then we can set verify_success to true.
                 # For now, let's assume we need to check domains too.
@@ -169,7 +169,7 @@ module Onetime
                   domain            = domain_info['domain']
                   stored_domain_id  = domain_info['old_id']
                   # Check display_domains mapping still exists
-                  current_domain_id = V2::CustomDomain.dbclient.hget('customdomain:display_domains', domain)
+                  current_domain_id = Onetime::CustomDomain.dbclient.hget('customdomain:display_domains', domain)
 
                   if current_domain_id == stored_domain_id
                     puts "  ✓ Domain #{index+1}: #{domain} still correctly mapped to #{current_domain_id}"
@@ -179,7 +179,7 @@ module Onetime
                   end
                 end
                 # Final success depends on both customer and all domains being verified
-                verify_success       = V2::Customer.exists?(new_email) && all_domains_verified
+                verify_success       = Onetime::Customer.exists?(new_email) && all_domains_verified
               end
 
               if verify_success
@@ -216,8 +216,8 @@ module Onetime
     # @param key [String] The database key for the report
     # @return [String, nil] The report text or nil if not found
     def get_change_email_report(key)
-      redis = Familia.dbclient
-      redis.get(key)
+      dbclient = Familia.dbclient
+      dbclient.get(key)
     end
   end
 end

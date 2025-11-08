@@ -5,7 +5,6 @@ import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import { WindowService } from '@/services/window.service';
 import HomepageContainer from '@/views/HomepageContainer.vue';
-import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
 import { RouteRecordRaw } from 'vue-router';
 
 // Extend RouteRecordRaw meta to include our custom componentState
@@ -25,6 +24,7 @@ const routes: Array<RouteRecordRaw> = [
       footer: DefaultFooter,
     },
     meta: {
+      title: 'web.COMMON.title_home',
       requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {
@@ -129,19 +129,11 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/incoming',
-    name: 'Inbound Secrets',
-    component: IncomingSupportSecret,
-    meta: {
-      requiresAuth: false,
-      layout: DefaultLayout,
-    },
-  },
-  {
     path: '/feedback',
     name: 'Feedback',
     component: () => import('@/views/Feedback.vue'),
     meta: {
+      title: 'web.TITLES.feedback',
       requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {

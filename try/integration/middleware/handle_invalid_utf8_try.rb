@@ -96,7 +96,7 @@ status, headers, body = @middleware.call(env)
 
 ## Middleware logs error message
 io = StringIO.new
-middleware_with_custom_logger = Rack::HandleInvalidUTF8.new(@app, io: io, check_enabled: true)
+middleware_with_custom_logger = Rack::HandleInvalidUTF8.new(@app, logger: Logger.new(io), check_enabled: true)
 env = @env_invalid_utf8_header.call
 middleware_with_custom_logger.call(env)
 io.rewind

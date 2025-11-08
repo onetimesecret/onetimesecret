@@ -5,17 +5,19 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ShowSecretStatus < V2::Logic::Base
-      attr_reader :key, :current_expiration, :secret, :verification
+      attr_reader :identifier, :current_expiration, :secret, :verification
 
       def process_params
-        @key    = params[:key].to_s
-        @secret = V2::Secret.load key
+        @identifier = params['identifier'].to_s
+        @secret     = Onetime::Secret.load identifier
       end
 
       def raise_concerns; end
 
       def process
         @current_expiration = secret.current_expiration unless secret.nil?
+
+        success_data
       end
 
       def success_data

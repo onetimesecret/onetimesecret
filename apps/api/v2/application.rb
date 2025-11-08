@@ -1,36 +1,66 @@
 # apps/api/v2/application.rb
 
-require_relative '../../base_application'
+require 'onetime/application'
+require 'onetime/application/otto_hooks'
+require 'onetime/middleware'
+require 'onetime/models'
 
-require_relative 'models'
 require_relative 'logic'
-require_relative 'controllers'
+require_relative 'auth_strategies'
 
 module V2
-  class Application < ::BaseApplication
+  # V2 API Application
+  #
+  # RESTful API for Onetime Secret v2. Serves JSON responses and uses
+  # Otto router for authentication and routing.
+  #
+  # ## Architecture
+  #
+  # - Router: Otto (configured in `build_router`)
+  # - Middleware: Universal (MiddlewareStack) + V2-specific (below)
+  # - Otto Hooks: Includes `OttoHooks` for request lifecycle logging
+  # - Authentication: Token-based and session-based strategies
+  #
+  class Application < Onetime::Application::Base
+    include Onetime::Application::OttoHooks  # Provides configure_otto_request_hook
+
     @uri_prefix = '/api/v2'.freeze
 
-    # Common middleware stack
-    use Rack::ClearSessionMessages
-    use Rack::DetectHost
+    # V2-specific middleware (universal middleware in MiddlewareStack)
+    use Rack::JSONBodyParser # TODO: Remove since we pass: builder.use Rack::Parser, parsers: @parsers
 
-    # Applications middleware stack
-    use Onetime::DomainStrategy # after DetectHost
-    use Rack::JSONBodyParser
+    # CSRF Response Header
+    # Note: CSRF validation is handled by common Security middleware with
+    # allow_if to skip /api/* routes. This just adds the response header.
+    use Onetime::Middleware::CsrfResponseHeader
 
     warmup do
-      require_relative 'logic'
-      require_relative 'models'
-
-      # Log warmup completion
-      Onetime.li 'V2 warmup completed'
     end
 
     protected
 
+    # Build and configure Otto router instance
+    #
+    # Router-specific configuration happens here, after the router instance
+    # is created. This is separate from universal middleware configuration
+    # in MiddlewareStack.
+    #
+    # @return [Otto] Configured router instance
     def build_router
-      routes_path = File.join(ENV.fetch('ONETIME_HOME'), 'apps/api/v2/routes')
+      routes_path = File.join(__dir__, 'routes')
       router      = Otto.new(routes_path)
+
+      # Configure Otto request lifecycle hooks (from OttoHooks module)
+      # Instance-level hook logging for operational metrics and audit trail
+      configure_otto_request_hook(router)
+
+      # IP privacy is enabled globally in common middleware stack for public
+      # addresses. Must be enabled specifically for private and localhost
+      # addresses. See Otto::Middleware::IPPrivacy for details
+      router.enable_full_ip_privacy!
+
+      # Register authentication strategies
+      V2::AuthStrategies.register_essential(router)
 
       # Default error responses
       headers             = { 'content-type' => 'application/json' }
