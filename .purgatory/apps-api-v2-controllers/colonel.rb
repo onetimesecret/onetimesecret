@@ -1,4 +1,4 @@
-# apps/api/v2/controllers/colonel.rb
+# .purgatory/apps-api-v2-controllers/colonel.rb
 #
 # frozen_string_literal: true
 

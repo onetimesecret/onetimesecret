@@ -1,4 +1,4 @@
-# apps/api/v1/models/custom_domain.rb
+# .purgatory/apps-api-v1/models/custom_domain.rb
 #
 # frozen_string_literal: true
 

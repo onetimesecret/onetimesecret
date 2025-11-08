@@ -1,4 +1,4 @@
-# try/80_database/10_redis_key_migrator_basic_try.rb
+# try/system/database/redis_key_migrator_basic_try.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# support/ses_test.rb
+# scripts/archive/ses_test.rb
 #
 # frozen_string_literal: true
 

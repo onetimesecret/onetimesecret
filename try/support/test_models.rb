@@ -1,4 +1,4 @@
-# try/test_models.rb
+# try/support/test_models.rb
 #
 # frozen_string_literal: true
 

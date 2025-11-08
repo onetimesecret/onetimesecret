@@ -1,4 +1,4 @@
-# lib/onetime/models/customer/features/legacy_encrypted_fields.rb
+# lib/onetime/models/features/legacy_encrypted_fields.rb
 #
 # frozen_string_literal: true
 

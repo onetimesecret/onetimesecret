@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+# scripts/test_auto_config_demo.rb
 #
 # frozen_string_literal: true
 

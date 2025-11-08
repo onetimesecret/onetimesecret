@@ -1,4 +1,4 @@
-# try/50_middleware/20_domain_strategy_try.rb
+# try/disabled/domains/domain_strategy_try_disabled.rb
 #
 # frozen_string_literal: true
 

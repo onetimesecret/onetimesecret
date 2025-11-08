@@ -1,4 +1,4 @@
-# spec/onetime/config/i18n_spec.rb
+# .purgatory/spec/onetime/config/i18n_spec.rb
 #
 # frozen_string_literal: true
 

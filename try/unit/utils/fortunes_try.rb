@@ -1,4 +1,4 @@
-# try/10_utils_fortunes_try.rb
+# try/unit/utils/fortunes_try.rb
 #
 # frozen_string_literal: true
 

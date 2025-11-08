@@ -1,4 +1,4 @@
-# try/21_secret_try.rb
+# try/unit/models/v2/secret_try.rb
 #
 # frozen_string_literal: true
 

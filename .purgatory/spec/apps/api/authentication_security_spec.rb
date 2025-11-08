@@ -1,4 +1,4 @@
-# spec/apps/api/authentication_security_spec.rb
+# .purgatory/spec/apps/api/authentication_security_spec.rb
 #
 # frozen_string_literal: true
 

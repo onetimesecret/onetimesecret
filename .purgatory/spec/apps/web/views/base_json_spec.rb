@@ -1,4 +1,4 @@
-# spec/apps/web/views/base_json_spec.rb
+# .purgatory/spec/apps/web/views/base_json_spec.rb
 #
 # frozen_string_literal: true
 

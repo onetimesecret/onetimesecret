@@ -1,4 +1,4 @@
-# lib/onetime/mail/mailer/base_mailer.rb
+# .purgatory/lib-onetime-mail/mailer/base_mailer.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# apps/api/v1/logic/secrets.rb
+# .purgatory/apps-api-v1/logic/secrets.rb
 #
 # frozen_string_literal: true
 

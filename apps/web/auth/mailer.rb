@@ -1,4 +1,4 @@
-# apps/web/auth/config/email.rb
+# apps/web/auth/mailer.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# spec/apps/api/v1/controllers/index_spec.rb
+# .purgatory/spec/apps/api/v1/controllers/index_spec.rb
 #
 # frozen_string_literal: true
 

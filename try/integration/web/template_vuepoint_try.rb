@@ -1,4 +1,4 @@
-# try/42_web_template_vuepoint_try.rb
+# try/integration/web/template_vuepoint_try.rb
 #
 # frozen_string_literal: true
 

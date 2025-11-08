@@ -1,4 +1,4 @@
-# spec/support/service_provider_context.rb
+# .purgatory/spec/support/service_provider_context.rb
 #
 # frozen_string_literal: true
 

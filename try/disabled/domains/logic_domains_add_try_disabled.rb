@@ -1,4 +1,4 @@
-# try/60_logic/41_logic_domains_add_try.rb
+# try/disabled/domains/logic_domains_add_try_disabled.rb
 #
 # frozen_string_literal: true
 

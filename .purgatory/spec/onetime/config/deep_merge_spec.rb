@@ -1,4 +1,4 @@
-# spec/onetime/config/deep_merge_spec.rb
+# .purgatory/spec/onetime/config/deep_merge_spec.rb
 #
 # frozen_string_literal: true
 

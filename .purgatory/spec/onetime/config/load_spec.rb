@@ -1,4 +1,4 @@
-# spec/onetime/config/load_spec.rb
+# .purgatory/spec/onetime/config/load_spec.rb
 #
 # frozen_string_literal: true
 

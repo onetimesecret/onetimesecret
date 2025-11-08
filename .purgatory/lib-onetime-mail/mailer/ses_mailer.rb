@@ -1,4 +1,4 @@
-# lib/onetime/mail/mailer/ses_mailer.rb
+# .purgatory/lib-onetime-mail/mailer/ses_mailer.rb
 #
 # frozen_string_literal: true
 

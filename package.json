@@ -48,6 +48,7 @@
     "rubocop:version": "bundle exec rubocop --config .rubocop.yml --verbose_version",
     "rubocop:version:pnpm": "pnpm run rubocop:version",
     "rubocop:json": "pnpm --silent run rubocop --format json",
+    "validate:headers": "ruby scripts/validate_headers.rb",
     "rubocop:autocorrect": "pnpm run rubocop --autocorrect",
     "rubocop:regenerate": "pnpm run rubocop --regenerate-todo",
     "rubocop:pretty": "pnpm --silent run rubocop | jq",

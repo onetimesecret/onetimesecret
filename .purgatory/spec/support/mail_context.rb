@@ -1,4 +1,4 @@
-# spec/support/mail_context.rb
+# .purgatory/spec/support/mail_context.rb
 #
 # frozen_string_literal: true
 

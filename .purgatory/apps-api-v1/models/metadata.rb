@@ -1,4 +1,4 @@
-# apps/api/v1/models/metadata.rb
+# .purgatory/apps-api-v1/models/metadata.rb
 #
 # frozen_string_literal: true
 

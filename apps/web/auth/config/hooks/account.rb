@@ -1,4 +1,4 @@
-# apps/web/auth/config/features/account_management.rb
+# apps/web/auth/config/hooks/account.rb
 #
 # frozen_string_literal: true
 

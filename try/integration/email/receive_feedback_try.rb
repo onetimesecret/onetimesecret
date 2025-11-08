@@ -1,4 +1,4 @@
-# try/68_receive_feedback_try.rb
+# try/integration/email/receive_feedback_try.rb
 #
 # frozen_string_literal: true
 

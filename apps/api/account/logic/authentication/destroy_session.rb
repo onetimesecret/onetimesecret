@@ -1,4 +1,4 @@
-# apps/api/v2/logic/authentication/destroy_session.rb
+# apps/api/account/logic/authentication/destroy_session.rb
 #
 # frozen_string_literal: true
 

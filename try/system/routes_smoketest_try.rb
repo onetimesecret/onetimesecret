@@ -1,4 +1,4 @@
-# try/90_routes_smoketest_try.rb
+# try/system/routes_smoketest_try.rb
 #
 # frozen_string_literal: true
 

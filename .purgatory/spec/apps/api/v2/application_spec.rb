@@ -1,4 +1,4 @@
-# spec/apps/api/v2/application_spec.rb
+# .purgatory/spec/apps/api/v2/application_spec.rb
 #
 # frozen_string_literal: true
 

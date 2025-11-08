@@ -1,4 +1,4 @@
-# try/60_logic/02_logic_base_try.rb
+# try/unit/logic/base_extended_try.rb
 #
 # frozen_string_literal: true
 

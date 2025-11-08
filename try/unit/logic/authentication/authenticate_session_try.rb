@@ -1,4 +1,4 @@
-# try/60_logic/02_logic_authentication_try.rb
+# try/unit/logic/authentication/authenticate_session_try.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# apps/api/v1/logic/secrets/conceal_secret.rb
+# .purgatory/apps-api-v1/logic/secrets/conceal_secret.rb
 #
 # frozen_string_literal: true
 

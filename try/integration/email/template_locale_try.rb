@@ -1,4 +1,4 @@
-# try/40_email_template_locale_try.rb
+# try/integration/email/template_locale_try.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# try/00_middleware/21_handle_invalid_percent_encoding_try.rb
+# try/integration/middleware/handle_invalid_percent_encoding_try.rb
 #
 # frozen_string_literal: true
 

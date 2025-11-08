@@ -1,4 +1,4 @@
-# try/72_approximated.rb
+# try/disabled/experimental/approximated_try_manually.rb
 #
 # frozen_string_literal: true
 

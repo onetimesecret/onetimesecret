@@ -1,4 +1,4 @@
-# try/50_middleware/20_domain_strategy_basics_try.rb
+# try/integration/middleware/domain_strategy/basics_try.rb
 #
 # frozen_string_literal: true
 

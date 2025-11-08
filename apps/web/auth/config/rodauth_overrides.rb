@@ -1,4 +1,4 @@
-# apps/web/auth/config/features/security.rb
+# apps/web/auth/config/rodauth_overrides.rb
 #
 # frozen_string_literal: true
 

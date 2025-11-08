@@ -1,6 +1,12 @@
 /**
  * ESLint Flat Config
  *
+ * FILE HEADER REQUIREMENT:
+ * All TypeScript and Vue files must include a filename comment header:
+ * - TypeScript: // src/path/to/file.ts
+ * - Vue: <!-- src/path/to/file.vue -->
+ * Followed by a blank line. This is enforced via scripts/validate_headers.rb
+ *
  * IMPORTANT: Beware of conditional ts parser assignment based on the extension of this file.
  *
  * Problem Pattern:

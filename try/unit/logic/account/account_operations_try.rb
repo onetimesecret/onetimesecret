@@ -1,4 +1,4 @@
-# try/60_logic/04_logic_account_try.rb
+# try/unit/logic/account/account_operations_try.rb
 #
 # frozen_string_literal: true
 

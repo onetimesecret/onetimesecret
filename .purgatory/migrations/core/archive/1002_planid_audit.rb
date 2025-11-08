@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+# .purgatory/migrations/core/archive/1002_planid_audit.rb
 #
 # frozen_string_literal: true
 

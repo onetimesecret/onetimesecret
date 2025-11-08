@@ -1,4 +1,4 @@
-# apps/api/v2/controllers/meta.rb
+# .purgatory/apps-api-v2-controllers/meta.rb
 #
 # frozen_string_literal: true
 

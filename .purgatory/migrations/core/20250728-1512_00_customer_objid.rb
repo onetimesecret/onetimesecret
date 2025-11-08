@@ -1,4 +1,4 @@
-# migrate/20250728-1512_00_customer_objid.rb
+# .purgatory/migrations/core/20250728-1512_00_customer_objid.rb
 #
 # frozen_string_literal: true
 

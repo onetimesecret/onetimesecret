@@ -1,4 +1,4 @@
-# migrate/1512_03_session_cleanup.rb
+# .purgatory/migrations/core/20250728-1512_03_session_cleanup.rb
 #
 # frozen_string_literal: true
 

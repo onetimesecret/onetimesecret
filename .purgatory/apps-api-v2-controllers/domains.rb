@@ -1,4 +1,4 @@
-# apps/api/v2/controllers/domains.rb
+# .purgatory/apps-api-v2-controllers/domains.rb
 #
 # frozen_string_literal: true
 

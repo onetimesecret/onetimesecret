@@ -1,4 +1,4 @@
-# try/50_middleware/22_domain_strategy_chooserator_try.rb
+# try/integration/middleware/domain_strategy/chooserator_try.rb
 #
 # frozen_string_literal: true
 

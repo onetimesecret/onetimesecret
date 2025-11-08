@@ -1,4 +1,4 @@
-# try/20_models/27_domains_expiration_try.rb
+# try/disabled/domains/expiration_try_disabled.rb
 #
 # frozen_string_literal: true
 

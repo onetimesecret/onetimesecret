@@ -1,4 +1,4 @@
-# spec/onetime/config/truemail_spec.rb
+# .purgatory/spec/onetime/config/truemail_spec.rb
 #
 # frozen_string_literal: true
 

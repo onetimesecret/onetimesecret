@@ -1,4 +1,4 @@
-# support/smtp_test.rb
+# scripts/archive/smtp_test.rb
 #
 # frozen_string_literal: true
 

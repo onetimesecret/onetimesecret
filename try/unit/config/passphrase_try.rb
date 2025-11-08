@@ -1,4 +1,4 @@
-# try/23_passphrase_try.rb
+# try/unit/config/passphrase_try.rb
 #
 # frozen_string_literal: true
 

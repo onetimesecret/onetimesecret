@@ -1,4 +1,4 @@
-# support/sendgrid_test.rb
+# scripts/archive/sendgrid_test.rb
 #
 # frozen_string_literal: true
 

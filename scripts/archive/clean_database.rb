@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+# scripts/archive/clean_database.rb
 #
 # frozen_string_literal: true
 

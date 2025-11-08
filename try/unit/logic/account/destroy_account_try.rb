@@ -1,4 +1,4 @@
-# try/60_logic/24_logic_destroy_account_try.rb
+# try/unit/logic/account/destroy_account_try.rb
 #
 # frozen_string_literal: true
 

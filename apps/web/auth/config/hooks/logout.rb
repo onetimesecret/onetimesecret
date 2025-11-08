@@ -1,4 +1,4 @@
-# apps/web/auth/config/hooks/login.rb
+# apps/web/auth/config/hooks/logout.rb
 #
 # frozen_string_literal: true
 

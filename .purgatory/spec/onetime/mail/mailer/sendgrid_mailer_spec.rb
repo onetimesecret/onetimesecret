@@ -1,4 +1,4 @@
-# spec/onetime/mail/mailer/sendgrid_mailer_spec.rb
+# .purgatory/spec/onetime/mail/mailer/sendgrid_mailer_spec.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# try/17_mail_validation.rb
+# try/disabled/experimental/mail_validation.rb
 #
 # frozen_string_literal: true
 

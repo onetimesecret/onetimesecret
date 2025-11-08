@@ -1,4 +1,4 @@
-# apps/api/v1/models.rb
+# .purgatory/apps-api-v1/models.rb
 #
 # frozen_string_literal: true
 

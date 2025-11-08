@@ -1,4 +1,4 @@
-# try/16_config_secret_options_try.rb
+# try/unit/config/secret_options_try.rb
 #
 # frozen_string_literal: true
 

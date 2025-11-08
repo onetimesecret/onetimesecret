@@ -1,4 +1,4 @@
-# try/80_database/20_database_logger_try.rb
+# try/system/database/database_logger_try.rb
 #
 # frozen_string_literal: true
 

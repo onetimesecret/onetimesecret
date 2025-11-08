@@ -1,4 +1,4 @@
-# lib/onetime/mail/views/common.rb
+# .purgatory/lib-onetime-mail/views/common.rb
 #
 # frozen_string_literal: true
 

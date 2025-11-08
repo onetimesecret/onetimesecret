@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+# .purgatory/migrations/core/archive/816_populate_display_domains.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# apps/api/v2/logic/domains/verify_domain.rb
+# apps/api/account/logic/domains/verify_domain.rb
 #
 # frozen_string_literal: true
 

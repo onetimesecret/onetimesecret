@@ -1,4 +1,4 @@
-# try/20_models/27_domains_publicsuffix_try.rb
+# try/disabled/domains/publicsuffix_try_disabled.rb
 #
 # frozen_string_literal: true
 

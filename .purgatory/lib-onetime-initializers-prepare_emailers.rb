@@ -1,4 +1,4 @@
-# lib/onetime/initializers/prepare_emailers.rb
+# .purgatory/lib-onetime-initializers-prepare_emailers.rb
 #
 # frozen_string_literal: true
 

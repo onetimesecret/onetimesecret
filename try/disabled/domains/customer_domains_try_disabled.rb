@@ -1,4 +1,4 @@
-# try/20_models/29_customer_domains_try.rb
+# try/disabled/domains/customer_domains_try_disabled.rb
 #
 # frozen_string_literal: true
 

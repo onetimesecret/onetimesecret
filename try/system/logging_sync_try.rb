@@ -1,4 +1,4 @@
-# try/05_logging_sync_try.rb
+# try/system/logging_sync_try.rb
 #
 # frozen_string_literal: true
 

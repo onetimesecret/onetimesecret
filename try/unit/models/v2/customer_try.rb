@@ -1,4 +1,4 @@
-# try/25_customer_try.rb
+# try/unit/models/v2/customer_try.rb
 #
 # frozen_string_literal: true
 

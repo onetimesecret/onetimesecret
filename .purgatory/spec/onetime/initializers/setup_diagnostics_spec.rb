@@ -1,4 +1,4 @@
-# spec/onetime/initializers/setup_diagnostics_spec.rb
+# .purgatory/spec/onetime/initializers/setup_diagnostics_spec.rb
 #
 # frozen_string_literal: true
 

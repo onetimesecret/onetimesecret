@@ -1,4 +1,4 @@
-# support/enckey_test.rb
+# scripts/archive/enckey_test.rb
 #
 # frozen_string_literal: true
 

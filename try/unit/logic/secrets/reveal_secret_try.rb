@@ -1,4 +1,4 @@
-# try/60_logic/23_logic_secrets_reveal_secret_try.rb
+# try/unit/logic/secrets/reveal_secret_try.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# apps/api/v2/logic/account/update_account_field.rb
+# apps/api/account/logic/account/update_account_field.rb
 #
 # frozen_string_literal: true
 

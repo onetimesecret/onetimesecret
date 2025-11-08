@@ -1,4 +1,4 @@
-# spec/support/view_context.rb
+# .purgatory/spec/support/view_context.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# apps/api/v1/refinements.rb
+# .purgatory/apps-api-v1/refinements.rb
 #
 # frozen_string_literal: true
 

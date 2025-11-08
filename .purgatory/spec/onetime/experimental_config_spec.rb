@@ -1,4 +1,4 @@
-# spec/onetime/experimental_config_spec.rb
+# .purgatory/spec/onetime/experimental_config_spec.rb
 #
 # frozen_string_literal: true
 

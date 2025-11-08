@@ -1,4 +1,4 @@
-# apps/api/v1/logic/authentication.rb
+# .purgatory/apps-api-v1/logic/authentication.rb
 #
 # frozen_string_literal: true
 

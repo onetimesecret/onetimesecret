@@ -1,4 +1,4 @@
-# spec/support/model_test_helper.rb
+# .purgatory/spec/support/model_test_helper.rb
 #
 # frozen_string_literal: true
 

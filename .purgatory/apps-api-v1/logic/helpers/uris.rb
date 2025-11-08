@@ -1,4 +1,4 @@
-# apps/api/v1/logic/helpers/uris.rb
+# .purgatory/apps-api-v1/logic/helpers/uris.rb
 #
 # frozen_string_literal: true
 

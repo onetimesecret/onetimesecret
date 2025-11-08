@@ -1,4 +1,4 @@
-# try/00_middleware/22_handle_invalid_utf8_try.rb
+# try/integration/middleware/handle_invalid_utf8_try.rb
 #
 # frozen_string_literal: true
 

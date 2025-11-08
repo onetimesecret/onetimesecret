@@ -1,4 +1,4 @@
-# try/00_middleware/12_detect_host_instances_try.rb
+# try/integration/middleware/detect_host_instances_try.rb
 #
 # frozen_string_literal: true
 

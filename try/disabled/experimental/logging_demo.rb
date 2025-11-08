@@ -1,4 +1,4 @@
-# try/05_logging.rb
+# try/disabled/experimental/logging_demo.rb
 #
 # frozen_string_literal: true
 
