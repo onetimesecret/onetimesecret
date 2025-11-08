@@ -29,6 +29,9 @@ module Onetime
 
     identifier_field :orgid
 
+    # Unique index for contact email (prevents duplicates, enables fast lookups)
+    unique_index :contact_email, :contact_email_index
+
     # Core fields
     field :orgid
     field :display_name
@@ -128,13 +131,8 @@ module Onetime
       end
 
       def contact_email_exists?(email)
-        # Simple existence check - would need unique index for production
-        # For now, we'll iterate (acceptable for MVP with small org counts)
-        return false if values.empty?
-        values.members.any? do |orgid|
-          org = load(orgid)
-          org && org.contact_email.to_s == email.to_s
-        end
+        # Use unique_index auto-generated finder for O(1) lookup
+        !find_by_contact_email(email).nil?
       end
     end
   end

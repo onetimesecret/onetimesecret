@@ -43,16 +43,10 @@ module OrganizationAPI::Logic
 
         # Validate contact_email if provided
         if !contact_email.empty?
-          # Check if another organization already has this contact email
-          if Onetime::Organization.contact_email_exists?(contact_email)
-            existing_org = Onetime::Organization.values.members.find do |orgid|
-              org = Onetime::Organization.load(orgid)
-              org && org.contact_email == contact_email && org.orgid != @orgid
-            end
-
-            if existing_org
-              raise_form_error('An organization with this contact email already exists', field: :contact_email, error_type: :exists)
-            end
+          # Use unique_index finder for O(1) lookup (no iteration)
+          existing_org = Onetime::Organization.find_by_contact_email(contact_email)
+          if existing_org && existing_org.orgid != @orgid
+            raise_form_error('An organization with this contact email already exists', field: :contact_email, error_type: :exists)
           end
         end
 

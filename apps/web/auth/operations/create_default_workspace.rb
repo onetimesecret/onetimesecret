@@ -36,18 +36,9 @@ module Auth
       # Check if customer already has an organization (e.g., via invite)
       # @return [Boolean]
       def workspace_already_exists?
-        # Check all existing organizations to see if customer is a member
-        # Note: This is a simple check for MVP. In production with many orgs,
-        # we'd use an index or Familia v2's participations (when fully working)
-        has_org = false
-
-        if defined?(Onetime::Organization) && Onetime::Organization.respond_to?(:values)
-          org_ids = Onetime::Organization.values.to_a rescue []
-          has_org = org_ids.any? do |orgid|
-            org = Onetime::Organization.load(orgid)
-            org && org.members.member?(@customer.objid)
-          end
-        end
+        # Use Familia v2 auto-generated reverse collection method
+        # This uses the participation index for O(1) lookup instead of iterating
+        has_org = @customer.organization_instances.any?
 
         if has_org
           auth_logger.info "[create-default-workspace] Customer #{@customer.custid} already has organization, skipping"
