@@ -265,6 +265,57 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
   },
+  {
+    path: '/account/billing',
+    name: 'Billing Overview',
+    components: {
+      default: () => import('@/views/billing/BillingOverview.vue'),
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
+    },
+    meta: {
+      title: 'web.billing.overview.title',
+      requiresAuth: true,
+      layout: AccountLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+    },
+  },
+  {
+    path: '/account/billing/plans',
+    name: 'Billing Plans',
+    components: {
+      default: () => import('@/views/billing/PlanSelector.vue'),
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
+    },
+    meta: {
+      title: 'web.billing.plans.title',
+      requiresAuth: true,
+      layout: AccountLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+    },
+  },
+  {
+    path: '/account/billing/invoices',
+    name: 'Billing Invoices',
+    components: {
+      default: () => import('@/views/billing/InvoiceList.vue'),
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
+    },
+    meta: {
+      title: 'web.billing.invoices.title',
+      requiresAuth: true,
+      layout: AccountLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+    },
+  },
   // Legacy route for backward compatibility
   {
     path: '/account/settings/close',

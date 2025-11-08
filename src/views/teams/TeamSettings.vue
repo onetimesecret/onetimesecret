@@ -180,6 +180,37 @@ aria-hidden="true" />
 
     <!-- Settings Form -->
     <div v-else-if="activeTeam && isOwner" class="space-y-6">
+      <!-- Billing Notice for Org-Managed Teams -->
+      <div
+        v-if="activeTeam.org_id"
+        class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-900/20">
+        <div class="flex gap-3">
+          <OIcon
+            collection="heroicons"
+            name="information-circle"
+            class="size-5 flex-shrink-0 text-blue-600 dark:text-blue-400"
+            aria-hidden="true" />
+          <div>
+            <h3 class="text-sm font-medium text-blue-900 dark:text-blue-300">
+              {{ t('web.billing.notices.team_billing_disabled') }}
+            </h3>
+            <p class="mt-1 text-sm text-blue-700 dark:text-blue-400">
+              {{ t('web.billing.notices.org_managed', { orgName: 'Organization' }) }}
+            </p>
+            <router-link
+              :to="`/account/settings/organization/${activeTeam.org_id}`"
+              class="mt-2 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+              {{ t('web.billing.notices.view_org_billing') }}
+              <OIcon
+                collection="heroicons"
+                name="arrow-right"
+                class="size-4"
+                aria-hidden="true" />
+            </router-link>
+          </div>
+        </div>
+      </div>
+
       <!-- General Settings -->
       <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
