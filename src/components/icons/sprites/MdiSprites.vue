@@ -1,3 +1,4 @@
+<!-- src/components/icons/sprites/MdiSprites.vue -->
 <!--
 License: Apache License 2.0
   Source: https://pictogrammers.com/docs/general/license/
