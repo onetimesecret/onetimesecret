@@ -35,7 +35,7 @@ module OrganizationAPI::Logic
         # Remove all members first
         members = @organization.list_members
         members.each do |member|
-          @organization.remove_member(member)
+          @organization.remove_members_instance(member)
         end
 
         # Remove from global values set (Familia v2 uses 'remove' not 'rem')
