@@ -977,8 +977,9 @@
       }
     },
     "organizations": {
-      "title": "Organizations",
-      "organizations": "Organizations",
+      "title": "Organization",
+      "organization": "Organization",
+      "organization_plural": "Organizations",
       "organizations_description": "Manage your organizations",
       "my_organizations": "My Organizations",
       "new_organization": "New Organization",
