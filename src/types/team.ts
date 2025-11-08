@@ -48,6 +48,7 @@ export interface Team {
   description?: string;
   owner_id: string;
   member_count: number;
+  is_default: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -86,6 +87,7 @@ export const teamSchema = z.object({
   description: z.string().max(500).optional(),
   owner_id: z.string(),
   member_count: z.number().int().min(0),
+  is_default: z.boolean(),
   created_at: z.number().transform(val => new Date(val * 1000).toISOString()),
   updated_at: z.number().transform(val => new Date(val * 1000).toISOString()),
 });

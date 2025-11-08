@@ -277,13 +277,13 @@ aria-hidden="true" />
                 {{ t('web.teams.delete_team') }}
               </h3>
               <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {{ t('web.teams.delete_team_warning') }}
+                {{ activeTeam?.is_default ? t('web.teams.delete_default_team_warning') : t('web.teams.delete_team_warning') }}
               </p>
             </div>
             <button
               type="button"
               @click="showDeleteConfirm = true"
-              :disabled="isDeleting"
+              :disabled="isDeleting || activeTeam?.is_default"
               class="ml-4 inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-600"
             >
               <OIcon collection="heroicons"

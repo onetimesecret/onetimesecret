@@ -29,6 +29,7 @@ module Onetime
     field :description
     field :owner_id       # custid of team owner
     field :org_id         # Optional reference to Organization.objid
+    field :is_default     # Boolean: true for auto-created workspace (prevents deletion)
 
     # Team participates in Organization teams collection
     participates_in :Organization, :teams
@@ -83,6 +84,9 @@ module Onetime
     end
 
     def can_delete?(current_user)
+      # Default workspaces cannot be deleted (would break user's account)
+      return false if is_default
+      # Otherwise, only owners can delete
       owner?(current_user)
     end
 

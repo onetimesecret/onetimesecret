@@ -35,6 +35,7 @@ module Onetime
     field :description
     field :owner_id       # custid of organization owner
     field :contact_email  # Primary billing/contact email
+    field :is_default     # Boolean: true for auto-created workspace (prevents deletion)
 
     hashkey :urls
 
@@ -93,6 +94,9 @@ module Onetime
     end
 
     def can_delete?(current_user)
+      # Default workspaces cannot be deleted (would break user's account)
+      return false if is_default
+      # Otherwise, only owners can delete
       owner?(current_user)
     end
 

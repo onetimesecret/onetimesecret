@@ -953,6 +953,7 @@
       "danger_zone": "Danger Zone",
       "delete_team": "Delete Team",
       "delete_team_warning": "This will permanently delete the team and remove all members. This action cannot be undone.",
+      "delete_default_team_warning": "This is your default team and cannot be deleted.",
       "delete": "Delete",
       "delete_team_confirm_title": "Delete Team",
       "delete_team_confirm_message": "Are you sure you want to delete {name}? This action cannot be undone.",
