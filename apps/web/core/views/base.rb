@@ -43,8 +43,7 @@ module Core
         @req             = req
         @strategy_result = req.env['otto.strategy_result']
 
-        # Extract session and customer from strategy_result or fallback values
-        # All extraction logic is centralized in initialize_view_vars
+        # Extract session and customer from strategy_result or use fallback values
         if @strategy_result
           @sess = @strategy_result.session
           @cust = @strategy_result.user || Onetime::Customer.anonymous
