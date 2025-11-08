@@ -1,4 +1,6 @@
 # tests/unit/ruby/rspec/onetime/initializers/boot_part1_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../spec_helper'
 require 'fileutils' # For managing temp config files

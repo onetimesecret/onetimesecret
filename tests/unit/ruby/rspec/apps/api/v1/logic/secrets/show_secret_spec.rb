@@ -1,4 +1,6 @@
 # tests/unit/ruby/rspec/apps/api/v1/logic/secrets/show_secret_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../../../../spec_helper' # correct depth - Mar 22
 

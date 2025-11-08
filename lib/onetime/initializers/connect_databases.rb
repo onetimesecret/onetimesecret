@@ -1,4 +1,6 @@
 # lib/onetime/initializers/connect_databases.rb
+#
+# frozen_string_literal: true
 
 require_relative '../refinements/horreum_refinements'
 

@@ -1,4 +1,6 @@
 # tests/unit/ruby/try/16_config_emailer_try.rb
+#
+# frozen_string_literal: true
 
 require_relative './test_helpers'
 

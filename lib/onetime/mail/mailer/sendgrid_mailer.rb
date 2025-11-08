@@ -1,4 +1,6 @@
 # lib/onetime/mail/mailer/sendgrid_mailer.rb
+#
+# frozen_string_literal: true
 
 require 'sendgrid-ruby'
 require_relative 'base_mailer'

@@ -1,4 +1,6 @@
 # lib/onetime/mail/mailer/smtp_mailer.rb
+#
+# frozen_string_literal: true
 
 require 'mail'  # gem 'mail', here referred to as ::Mail
 require_relative 'base_mailer'

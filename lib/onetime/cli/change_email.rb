@@ -1,4 +1,6 @@
 # lib/onetime/cli/change_email.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   class CLI < Drydock::Command

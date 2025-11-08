@@ -1,4 +1,6 @@
 # apps/api/v2/models/mixins/passphrase.rb
+#
+# frozen_string_literal: true
 
 module V2
   module Mixins

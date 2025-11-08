@@ -1,4 +1,6 @@
 # tests/unit/ruby/rspec/onetime/experimental_config_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../spec_helper'
 require 'openssl'

@@ -1,4 +1,4 @@
-// composables/useHash.ts
+// src/composables/useHash.ts
 
 import { ref, Ref } from 'vue';
 

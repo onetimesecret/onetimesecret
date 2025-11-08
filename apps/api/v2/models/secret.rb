@@ -1,4 +1,6 @@
 # apps/api/v2/models/secret.rb
+#
+# frozen_string_literal: true
 
 require 'openssl'
 

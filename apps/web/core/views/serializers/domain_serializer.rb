@@ -1,4 +1,6 @@
 # apps/web/core/views/serializers/domain_serializer.rb
+#
+# frozen_string_literal: true
 
 require 'v2/models/custom_domain'
 require 'onetime/middleware/domain_strategy'

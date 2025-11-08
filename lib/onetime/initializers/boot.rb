@@ -1,4 +1,6 @@
 # lib/onetime/initializers/boot.rb
+#
+# frozen_string_literal: true
 
 require 'sysinfo'
 

@@ -1,4 +1,6 @@
 # lib/onetime/cli.rb
+#
+# frozen_string_literal: true
 
 require 'drydock'
 require 'onetime'

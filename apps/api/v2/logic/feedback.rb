@@ -1,4 +1,6 @@
 # apps/api/v2/logic/feedback.rb
+#
+# frozen_string_literal: true
 
 require 'altcha'
 require_relative 'base'

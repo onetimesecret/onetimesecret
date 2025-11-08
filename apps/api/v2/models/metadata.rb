@@ -1,4 +1,6 @@
 # apps/api/v2/models/metadata.rb
+#
+# frozen_string_literal: true
 
 module V2
   class Metadata < Familia::Horreum

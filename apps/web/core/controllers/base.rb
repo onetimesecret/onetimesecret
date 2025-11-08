@@ -1,4 +1,6 @@
 # apps/web/core/controllers/base.rb
+#
+# frozen_string_literal: true
 
 require_relative 'helpers'
 require 'v2/controllers/class_settings'

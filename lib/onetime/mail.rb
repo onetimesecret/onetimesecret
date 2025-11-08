@@ -1,4 +1,6 @@
 # lib/onetime/mail.rb
+#
+# frozen_string_literal: true
 
 require_relative 'mail/views'
 

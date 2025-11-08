@@ -1,4 +1,6 @@
 # apps/web/core/views/serializers/system_serializer.rb
+#
+# frozen_string_literal: true
 
 module Core
   module Views

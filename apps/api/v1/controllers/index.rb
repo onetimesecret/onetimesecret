@@ -1,4 +1,6 @@
 # apps/api/v1/controllers/index.rb
+#
+# frozen_string_literal: true
 
 require_relative 'base'
 require_relative 'settings'

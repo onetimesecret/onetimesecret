@@ -1,4 +1,6 @@
 # apps/app_registry.rb
+#
+# frozen_string_literal: true
 
 APPS_ROOT = File.expand_path(__dir__).freeze
 $LOAD_PATH.unshift(File.join(APPS_ROOT, 'api'))

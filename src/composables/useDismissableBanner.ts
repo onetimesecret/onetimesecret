@@ -1,4 +1,4 @@
-// useDismissableBanner.ts
+// src/composables/useDismissableBanner.ts
 
 /**
  * <script setup lang="ts">

@@ -1,4 +1,6 @@
 # apps/api/v2/logic/helpers/uris.rb
+#
+# frozen_string_literal: true
 
 require 'onetime/utils'
 

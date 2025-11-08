@@ -1,4 +1,6 @@
 # tests/unit/ruby/try/31_session_extended_try.rb
+#
+# frozen_string_literal: true
 
 require 'benchmark'
 

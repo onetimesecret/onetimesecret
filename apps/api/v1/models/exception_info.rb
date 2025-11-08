@@ -1,4 +1,6 @@
 # apps/api/v1/models/exception_info.rb
+#
+# frozen_string_literal: true
 
 require 'logger'
 

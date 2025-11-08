@@ -1,4 +1,6 @@
 # apps/web/core/application.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../app_base'
 

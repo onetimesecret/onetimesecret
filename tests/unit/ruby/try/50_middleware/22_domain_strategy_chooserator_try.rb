@@ -1,4 +1,6 @@
 # tests/unit/ruby/try/50_middleware/22_domain_strategy_chooserator_try.rb
+#
+# frozen_string_literal: true
 
 require_relative '../test_helpers'
 

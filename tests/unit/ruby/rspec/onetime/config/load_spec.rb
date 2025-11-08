@@ -1,4 +1,6 @@
-# tests/unit/ruby/rspec/onetime/config/file_loading_spec.rb
+# tests/unit/ruby/rspec/onetime/config/load_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../spec_helper'
 require 'tempfile'

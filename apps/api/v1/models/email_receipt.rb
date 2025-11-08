@@ -1,4 +1,6 @@
 # apps/api/v1/models/email_receipt.rb
+#
+# frozen_string_literal: true
 
 module V1
   class EmailReceipt < Familia::Horreum

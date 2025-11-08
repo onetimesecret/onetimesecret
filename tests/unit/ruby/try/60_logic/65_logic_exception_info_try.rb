@@ -1,4 +1,6 @@
 # tests/unit/ruby/try/60_logic/65_logic_exception_info_try.rb
+#
+# frozen_string_literal: true
 
 require_relative '../test_logic'
 require 'securerandom'

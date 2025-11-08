@@ -1,4 +1,6 @@
 # tests/unit/ruby/rspec/onetime/config/apply_config_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../spec_helper'
 require 'onetime/models'

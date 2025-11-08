@@ -1,4 +1,6 @@
 # apps/api/v2/models/session.rb
+#
+# frozen_string_literal: true
 
 require_relative 'mixins/session_messages'
 

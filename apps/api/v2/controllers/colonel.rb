@@ -1,4 +1,6 @@
 # apps/api/v2/controllers/colonel.rb
+#
+# frozen_string_literal: true
 
 require_relative 'base'
 require_relative '../logic/colonel'

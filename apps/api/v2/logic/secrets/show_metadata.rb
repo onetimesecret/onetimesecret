@@ -1,4 +1,6 @@
 # apps/api/v2/logic/secrets/show_metadata.rb
+#
+# frozen_string_literal: true
 
 module V2::Logic
   module Secrets

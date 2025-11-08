@@ -1,4 +1,6 @@
 # apps/api/v2/models/mixins/session_messages.rb
+#
+# frozen_string_literal: true
 
 require 'json'
 

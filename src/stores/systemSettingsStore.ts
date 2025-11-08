@@ -1,4 +1,4 @@
-// stores/systemSettingsStore.ts
+// src/stores/systemSettingsStore.ts
 
 import { responseSchemas } from '@/schemas/api';
 import { systemSettingsSchema, type SystemSettingsDetails } from '@/schemas/api/endpoints/colonel';

@@ -1,4 +1,6 @@
 # apps/api/v1/controllers/base.rb
+#
+# frozen_string_literal: true
 
 require_relative 'helpers'
 

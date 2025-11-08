@@ -1,4 +1,6 @@
 # apps/api/v1/models/secret.rb
+#
+# frozen_string_literal: true
 
 module V1
   class Secret < Familia::Horreum

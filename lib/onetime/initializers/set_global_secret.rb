@@ -1,4 +1,6 @@
 # lib/onetime/initializers/set_global_secret.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Initializers

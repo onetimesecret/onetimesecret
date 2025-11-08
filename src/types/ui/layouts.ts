@@ -1,4 +1,4 @@
-// types/ui/layouts.ts
+// src/types/ui/layouts.ts
 
 /**
  * Logo configuration for masthead and other layout components

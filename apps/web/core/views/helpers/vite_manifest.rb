@@ -1,4 +1,6 @@
 # apps/web/core/views/helpers/vite_manifest.rb
+#
+# frozen_string_literal: true
 
 module Core
   module Views

@@ -1,4 +1,6 @@
-# tests/unit/ruby/rspec/apps/api/v2/models/secret_encryption_alt_spec.rb
+# tests/unit/ruby/rspec/apps/api/v1/models/secret_encryption_alt_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../../../spec_helper'
 

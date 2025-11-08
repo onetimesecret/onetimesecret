@@ -1,4 +1,6 @@
 # apps/web/core/views/serializers/authentication_serializer.rb
+#
+# frozen_string_literal: true
 
 require 'onetime/utils'
 

@@ -1,4 +1,6 @@
 # lib/onetime/initializers/prepare_emailers.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Initializers

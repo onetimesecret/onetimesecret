@@ -1,4 +1,6 @@
-# tests/unit/ruby/rspec/onetime/config/apply_defaults_to_peers.rb
+# tests/unit/ruby/rspec/onetime/config/apply_defaults_to_peers_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../spec_helper'
 

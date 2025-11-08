@@ -1,4 +1,6 @@
 # lib/onetime/middleware.rb
+#
+# frozen_string_literal: true
 
 require 'logger'
 require_relative '../middleware/clear_session_messages'

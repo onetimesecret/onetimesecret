@@ -1,4 +1,6 @@
 # apps/api/v2/models/feedback.rb
+#
+# frozen_string_literal: true
 
 module V2
   class Feedback < Familia::Horreum

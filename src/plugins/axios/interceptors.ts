@@ -1,4 +1,5 @@
 // src/plugins/axios/interceptors.ts
+
 import type { ApiErrorResponse } from '@/schemas/api';
 import { useLanguageStore } from '@/stores';
 import { useCsrfStore } from '@/stores/csrfStore';

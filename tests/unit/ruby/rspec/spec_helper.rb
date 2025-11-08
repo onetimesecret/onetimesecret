@@ -1,4 +1,6 @@
-# tests/unit/ruby/rspec/onetime/config/spec_helper.rb
+# tests/unit/ruby/rspec/spec_helper.rb
+#
+# frozen_string_literal: true
 
 require 'rspec'
 require 'yaml'

@@ -1,4 +1,6 @@
 # apps/api/v2/logic/secrets/conceal_secret.rb
+#
+# frozen_string_literal: true
 
 require_relative 'base_secret_action'
 

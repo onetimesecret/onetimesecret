@@ -1,4 +1,6 @@
 # lib/chimera.rb
+#
+# frozen_string_literal: true
 
 require 'mustache'
 

@@ -1,5 +1,7 @@
-# /Users/d/Projects/opensource/onetime/onetimesecret/lib/onetime/initializers/load_plans.rb
 # lib/onetime/initializers/load_plans.rb
+#
+# frozen_string_literal: true
+
 module Onetime
   module Initializers
     def load_plans

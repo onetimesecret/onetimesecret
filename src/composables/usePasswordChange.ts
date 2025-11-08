@@ -1,4 +1,5 @@
-// composables/usePasswordChange.ts
+// src/composables/usePasswordChange.ts
+
 import { useAccountStore } from '@/stores/accountStore';
 import { computed, reactive } from 'vue';
 import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';

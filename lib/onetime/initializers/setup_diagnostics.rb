@@ -1,4 +1,6 @@
 # lib/onetime/initializers/setup_diagnostics.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Initializers

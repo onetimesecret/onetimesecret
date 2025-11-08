@@ -1,4 +1,5 @@
 // src/stores/notificationsStore.ts
+
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { loggingService } from '@/services/logging.service';
 import { NotificationSeverity } from '@/types/ui/notifications';

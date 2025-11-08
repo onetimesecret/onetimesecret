@@ -1,4 +1,6 @@
 # apps/api/v2/logic/colonel/get_system_settings.rb
+#
+# frozen_string_literal: true
 
 require_relative '../base'
 
