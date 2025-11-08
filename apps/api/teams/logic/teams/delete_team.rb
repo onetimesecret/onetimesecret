@@ -21,6 +21,11 @@ module TeamAPI::Logic
 
         # Verify user is owner
         verify_team_owner(@team)
+
+        # Prevent deletion of default teams
+        if @team.is_default
+          raise_form_error('Cannot delete default team', field: :teamid, error_type: :forbidden)
+        end
       end
 
       def process
