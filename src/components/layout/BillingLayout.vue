@@ -5,11 +5,9 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
-import { useOrganizationStore } from '@/stores/organizationStore';
 
 const route = useRoute();
 const { t } = useI18n();
-const organizationStore = useOrganizationStore();
 
 interface NavigationItem {
   to: string;
@@ -20,11 +18,6 @@ interface NavigationItem {
   children?: NavigationItem[];
   visible?: () => boolean;
 }
-
-const showOrganizations = computed(() =>
-  // Show if user has organizations OR can create one
-  organizationStore.hasOrganizations || true
-);
 
 const sections: NavigationItem[] = [
   {
@@ -38,7 +31,6 @@ const sections: NavigationItem[] = [
     icon: { collection: 'ph', name: 'building-office-bold' },
     label: t('web.organizations.title'),
     description: t('web.organizations.organizations_description'),
-    visible: () => showOrganizations.value,
   },
   {
     to: '/billing/plans',
