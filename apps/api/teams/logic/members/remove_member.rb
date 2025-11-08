@@ -6,8 +6,8 @@ module TeamAPI::Logic
       attr_reader :team, :member_to_remove
 
       def process_params
-        @teamid = params[:teamid]
-        @custid = params[:custid].to_s.strip
+        @teamid = params['teamid']
+        @custid = params['custid'].to_s.strip
       end
 
       def raise_concerns

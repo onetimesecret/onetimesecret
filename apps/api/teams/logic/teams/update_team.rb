@@ -6,7 +6,7 @@ module TeamAPI::Logic
       attr_reader :team, :display_name, :description
 
       def process_params
-        @teamid = params[:teamid]
+        @teamid = params['teamid']
         @display_name = params[:display_name].to_s.strip
         @description = params[:description].to_s.strip
       end

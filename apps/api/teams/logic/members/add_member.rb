@@ -6,7 +6,7 @@ module TeamAPI::Logic
       attr_reader :team, :new_member, :email
 
       def process_params
-        @teamid = params[:teamid]
+        @teamid = params['teamid']
         @email = params[:email].to_s.strip.downcase
       end
 

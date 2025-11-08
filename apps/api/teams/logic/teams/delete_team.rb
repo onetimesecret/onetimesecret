@@ -6,7 +6,7 @@ module TeamAPI::Logic
       attr_reader :team
 
       def process_params
-        @teamid = params[:teamid]
+        @teamid = params['teamid']
       end
 
       def raise_concerns
