@@ -145,7 +145,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       const validated = updateOrganizationPayloadSchema.parse(payload);
 
-      const response = await $api.patch(`/api/organizations/${orgId}`, validated);
+      const response = await $api.put(`/api/organizations/${orgId}`, validated);
 
       const orgData = organizationResponseSchema.parse(response.data);
 
