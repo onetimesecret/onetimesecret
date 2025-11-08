@@ -14,7 +14,7 @@ GIT
 
 GIT
   remote: https://github.com/delano/otto
-  revision: 0f4e7e3d5bb7f65c3ca2da1eb23aa462404cadad
+  revision: 34f285412a44e4fa334a8cca173dbc9c2c68bd20
   specs:
     otto (2.0.0.pre6)
       concurrent-ruby (~> 1.3, < 2.0)
@@ -40,7 +40,7 @@ GIT
 
 GIT
   remote: https://github.com/onetimesecret/rhales
-  revision: 2f87b49680ab3cc22a2b4cb10c727bd0ccc0baf6
+  revision: 273a59663e5961f701d58cfa24695c5cb6e5b4fc
   specs:
     rhales (0.5.3)
       json_schemer (~> 2.3)
