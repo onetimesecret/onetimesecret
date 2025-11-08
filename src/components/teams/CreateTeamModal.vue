@@ -4,9 +4,10 @@ import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { classifyError } from '@/schemas/errors';
 import { useTeamStore } from '@/stores/teamStore';
+import { useOrganizationStore } from '@/stores/organizationStore';
 import { createTeamPayloadSchema, type CreateTeamPayload } from '@/types/team';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { z } from 'zod';
 
@@ -24,10 +25,12 @@ const emit = defineEmits<{
 }>();
 
 const teamStore = useTeamStore();
+const organizationStore = useOrganizationStore();
 
 const formData = ref<CreateTeamPayload>({
   display_name: '',
   description: '',
+  org_id: undefined,
 });
 
 const errors = ref<Record<string, string>>({});
@@ -47,10 +50,23 @@ const resetForm = () => {
   formData.value = {
     display_name: '',
     description: '',
+    org_id: undefined,
   };
   errors.value = {};
   generalError.value = '';
 };
+
+// Load organizations on mount
+onMounted(async () => {
+  if (organizationStore.hasOrganizations || organizationStore.loading) return;
+
+  try {
+    await organizationStore.fetchOrganizations();
+  } catch (error) {
+    // Silently fail - organizations are optional
+    console.debug('[CreateTeamModal] Could not load organizations:', error);
+  }
+});
 
 const handleSubmit = async () => {
   if (!isFormValid.value || isSubmitting.value) return;
@@ -181,6 +197,33 @@ const handleSubmit = async () => {
                     />
                     <p v-if="errors.display_name" class="mt-1 text-sm text-red-600 dark:text-red-400">
                       {{ errors.display_name }}
+                    </p>
+                  </div>
+
+                  <!-- Organization (optional) -->
+                  <div v-if="organizationStore.hasOrganizations">
+                    <label
+                      for="team-organization"
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      {{ t('web.organizations.select_organization') }}
+                    </label>
+                    <select
+                      id="team-organization"
+                      v-model="formData.org_id"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                    >
+                      <option :value="undefined">{{ t('web.COMMON.word_none') }}</option>
+                      <option
+                        v-for="org in organizationStore.organizations"
+                        :key="org.id"
+                        :value="org.id"
+                      >
+                        {{ org.display_name }}
+                      </option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {{ t('web.organizations.organizations_description') }}
                     </p>
                   </div>
 

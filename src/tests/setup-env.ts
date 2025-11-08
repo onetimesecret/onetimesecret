@@ -8,4 +8,19 @@ import type { OnetimeWindow } from '@/types/declarations/window';
   authenticated: false,
 };
 
+// Mock localStorage for tests
+const localStorageMock = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+  clear: () => {},
+  key: () => null,
+  length: 0,
+};
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+});
+
 console.log('Window state initialized in setup-env.js');

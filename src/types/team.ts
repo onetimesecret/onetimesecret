@@ -101,6 +101,7 @@ export const teamWithRoleSchema = teamSchema.extend({
 export const createTeamPayloadSchema = z.object({
   display_name: z.string().min(1, 'Team name is required').max(100, 'Team name is too long'),
   description: z.string().max(500, 'Description is too long').optional(),
+  org_id: z.string().optional(),
 });
 
 export const updateTeamPayloadSchema = z.object({
