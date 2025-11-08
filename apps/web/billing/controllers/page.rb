@@ -8,7 +8,7 @@ module Billing
       include Controllers::Base
 
       def index
-        view     = Core::Views::VuePoint.new(req, session, cust, locale)
+        view     = Core::Views::VuePoint.new(req)
         res.body = view.render
       end
 
