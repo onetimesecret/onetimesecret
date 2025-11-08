@@ -32,10 +32,13 @@ export type OrganizationsResponse = z.infer<typeof organizationsResponseSchema>;
 /**
  * Delete response
  * DELETE /api/organizations/:orgid
+ *
+ * Returns minimal confirmation payload with deleted flag and organization ID
  */
 export const deleteResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string().optional(),
+  user_id: z.string(),
+  deleted: z.boolean(),
+  orgid: z.string(),
 });
 
 export type DeleteResponse = z.infer<typeof deleteResponseSchema>;
