@@ -231,6 +231,40 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
   },
+  {
+    path: '/account/settings/organizations',
+    name: 'Organizations Settings',
+    components: {
+      default: () => import('@/views/account/settings/OrganizationsSettings.vue'),
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
+    },
+    meta: {
+      title: 'web.TITLES.organizations_settings',
+      requiresAuth: true,
+      layout: AccountLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+    },
+  },
+  {
+    path: '/account/settings/organization/:orgid',
+    name: 'Organization Settings',
+    components: {
+      default: () => import('@/views/account/settings/OrganizationSettings.vue'),
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
+    },
+    meta: {
+      title: 'web.TITLES.organization_settings',
+      requiresAuth: true,
+      layout: AccountLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+    },
+  },
   // Legacy route for backward compatibility
   {
     path: '/account/settings/close',

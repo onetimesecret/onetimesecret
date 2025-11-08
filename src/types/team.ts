@@ -47,6 +47,7 @@ export interface Team {
   display_name: string;
   description?: string;
   owner_id: string;
+  org_id?: string;
   member_count: number;
   is_default: boolean;
   created_at: Date;
@@ -86,6 +87,7 @@ export const teamSchema = z.object({
   display_name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
   owner_id: z.string(),
+  org_id: z.string().optional(),
   member_count: z.number().int().min(0),
   is_default: z.boolean(),
   created_at: z.number().transform(val => new Date(val * 1000)),
