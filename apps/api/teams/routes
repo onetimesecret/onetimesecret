@@ -1,0 +1,20 @@
+# apps/api/teams/routes
+#
+# Otto Routes - Team API (Site-Only Endpoints)
+# Using direct Logic class routing with authentication strategies
+#
+# Team API handles team and member management endpoints.
+# These endpoints are not part of the public API and don't need versioning.
+# All endpoints require authentication (session or basic).
+
+# Team Management
+GET    /                                          TeamAPI::Logic::Teams::ListTeams response=json auth=sessionauth
+POST   /                                          TeamAPI::Logic::Teams::CreateTeam response=json auth=sessionauth
+GET    /:teamid                                   TeamAPI::Logic::Teams::GetTeam response=json auth=sessionauth
+PUT    /:teamid                                   TeamAPI::Logic::Teams::UpdateTeam response=json auth=sessionauth
+DELETE /:teamid                                   TeamAPI::Logic::Teams::DeleteTeam response=json auth=sessionauth
+
+# Team Member Management
+GET    /:teamid/members                           TeamAPI::Logic::Members::ListMembers response=json auth=sessionauth
+POST   /:teamid/members                           TeamAPI::Logic::Members::AddMember response=json auth=sessionauth
+DELETE /:teamid/members/:custid                   TeamAPI::Logic::Members::RemoveMember response=json auth=sessionauth

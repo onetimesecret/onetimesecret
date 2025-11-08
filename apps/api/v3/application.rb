@@ -32,6 +32,10 @@ module V3
   class Application < BaseJSONAPI
     @uri_prefix = '/api/v3'.freeze
 
+    warmup do
+      # Empty warmup - just triggers the logging
+    end
+
     def self.auth_strategy_module
       V3::AuthStrategies
     end
