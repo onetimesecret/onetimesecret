@@ -110,11 +110,17 @@ module Onetime
       lager.send(level, bottom_border)
     end
 
-    # Category-specific logger accessors for explicit context
-    # Uses cached logger instances from Onetime::Initializers to preserve level settings
-    # Falls back to uncached loggers during early boot before get_logger is available
+    # Category-specific logger accessors
+    #
+    # Uses cached logger instances from Onetime::Initializers to preserve level
+    # settings. Falls back to uncached loggers during early boot before
+    # get_logger is available. Add new categories to logging.yaml.
     def app_logger
       Onetime.get_logger('App')
+    end
+
+    def billing_logger
+      Onetime.get_logger('Billing')
     end
 
     def boot_logger
@@ -200,26 +206,22 @@ module Onetime
       class_name = self.class.name
 
       # Check for strategic category patterns in class name
-      case class_name
-      in /Authentication|Auth(?!or)/i
-        'Auth'
-      in /Familia/i
-        'Familia'
-      in /HTTP|Request|Response|Controller/i
-        'HTTP'
-      in /Otto/i
-        'Otto'
-      in /Rhales/i
-        'Rhales'
-      in /Secret|Metadata/i
-        'Secret'
-      in /Sequel/i
-        'Sequel'
-      in /Session/i
-        'Session'
-      else
-        'App' # default fallback
+      category_patterns = {
+        /Authentication|Auth(?!or)/i => 'Auth',
+        /Familia/i => 'Familia',
+        /HTTP|Request|Response|Controller/i => 'HTTP',
+        /Otto/i => 'Otto',
+        /Rhales/i => 'Rhales',
+        /Secret|Metadata/i => 'Secret',
+        /Sequel/i => 'Sequel',
+        /Session/i => 'Session'
+      }
+
+      category_patterns.each do |pattern, category|
+        return category if class_name.match?(pattern)
       end
+
+      'App' # default fallback
     end
   end
 end

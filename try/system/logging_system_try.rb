@@ -43,35 +43,35 @@ config.key?('http')
 
 ## SemanticLogger Integration - Auth logger exists
 SemanticLogger['Auth']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - Session logger exists
 SemanticLogger['Session']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - HTTP logger exists
 SemanticLogger['HTTP']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - Familia logger exists
 SemanticLogger['Familia']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - Otto logger exists
 SemanticLogger['Otto']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - Rhales logger exists
 SemanticLogger['Rhales']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - Secret logger exists
 SemanticLogger['Secret']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - App logger exists (default)
 SemanticLogger['App']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## Logging Module - Include in test class
 class TestLoggingClass
@@ -83,28 +83,28 @@ test_instance.respond_to?(:logger)
 
 ## Logging Module - Auth logger accessor
 test_instance = TestLoggingClass.new
-test_instance.auth_logger.class
-#=> SemanticLogger::Logger
+test_instance.auth_logger
+#=:> SemanticLogger::Logger
 
 ## Logging Module - Session logger accessor
 test_instance = TestLoggingClass.new
-test_instance.session_logger.class
-#=> SemanticLogger::Logger
+test_instance.session_logger
+#=:> SemanticLogger::Logger
 
 ## Logging Module - HTTP logger accessor
 test_instance = TestLoggingClass.new
-test_instance.http_logger.class
-#=> SemanticLogger::Logger
+test_instance.http_logger
+#=:> SemanticLogger::Logger
 
 ## Logging Module - Secret logger accessor
 test_instance = TestLoggingClass.new
-test_instance.secret_logger.class
-#=> SemanticLogger::Logger
+test_instance.secret_logger
+#=:> SemanticLogger::Logger
 
 ## Logging Module - App logger accessor (default)
 test_instance = TestLoggingClass.new
-test_instance.app_logger.class
-#=> SemanticLogger::Logger
+test_instance.app_logger
+#=:> SemanticLogger::Logger
 
 ## Category Inference - Auth pattern detection
 class TestAuthClass
@@ -226,8 +226,8 @@ class TestLoggerMethod
   include Onetime::Logging
 end
 test_logger = TestLoggerMethod.new.logger
-test_logger.class
-#=> SemanticLogger::Logger
+test_logger
+#=:> SemanticLogger::Logger
 
 ## Logger Method - Respects thread-local category
 class TestLoggerMethod
@@ -240,22 +240,26 @@ Thread.current[:log_category] = nil
 logger_name
 #=> "Secret"
 
-## Configuration Loading - Config file structure
-config = YAML.load_file(File.join(Onetime.conf[:site][:path], 'etc', 'logging.yaml'))
-config.key?('default_level')
+## Configuration Loading - Config path from Onetime.conf
+site_path = Onetime.conf.dig(:site, :path) || Dir.pwd
+config_path = File.join(site_path, 'etc', 'logging.yaml')
+File.exist?(config_path)
 #=> true
 
-## Configuration Loading - Loggers configuration exists
-config = YAML.load_file(File.join(Onetime.conf[:site][:path], 'etc', 'logging.yaml'))
-config.key?('loggers')
+## Configuration Loading - Config loads successfully
+site_path = Onetime.conf.dig(:site, :path) || Dir.pwd
+config = YAML.load_file(File.join(site_path, 'etc', 'logging.yaml'))
+!config.nil?
 #=> true
 
-## Configuration Loading - Auth logger configured
-config = YAML.load_file(File.join(Onetime.conf[:site][:path], 'etc', 'logging.yaml'))
+## Configuration Loading - Config has required keys
+site_path = Onetime.conf.dig(:site, :path) || Dir.pwd
+config = YAML.load_file(File.join(site_path, 'etc', 'logging.yaml'))
+config.key?('default_level') && config.key?('loggers') && config.key?('http')
+#=> true
+
+## Configuration Loading - Auth logger is configured
+site_path = Onetime.conf.dig(:site, :path) || Dir.pwd
+config = YAML.load_file(File.join(site_path, 'etc', 'logging.yaml'))
 config['loggers'].key?('Auth')
-#=> true
-
-## Configuration Loading - HTTP config exists
-config = YAML.load_file(File.join(Onetime.conf[:site][:path], 'etc', 'logging.yaml'))
-config.key?('http')
 #=> true

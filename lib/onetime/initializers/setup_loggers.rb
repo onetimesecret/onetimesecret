@@ -112,13 +112,14 @@ module Onetime
       # These provide a convenient way to enable debug logging for a component.
       apply_quick_debug_flag('App',     ENV.fetch('DEBUG_APP', nil))
       apply_quick_debug_flag('Auth',    ENV.fetch('DEBUG_AUTH', nil))
+      apply_quick_debug_flag('Billing', ENV.fetch('DEBUG_BILLING', nil))
       apply_quick_debug_flag('Boot',    ENV.fetch('DEBUG_BOOT', nil))
       apply_quick_debug_flag('HTTP',    ENV.fetch('DEBUG_HTTP', nil))
       apply_quick_debug_flag('Rhales',  ENV.fetch('DEBUG_RHALES', nil))
       apply_quick_debug_flag('Secret',  ENV.fetch('DEBUG_SECRET', nil))
       apply_quick_debug_flag('Sequel',  ENV.fetch('DEBUG_SEQUEL', nil))
 
-      # Setting DEBUG_SESSION alwo enables SessionDebugger middleware
+      # Setting DEBUG_SESSION also enables SessionDebugger middleware
       apply_quick_debug_flag('Session', ENV.fetch('DEBUG_SESSION', nil))
 
       # Step 2: Parse DEBUG_LOGGERS for fine-grained control.
