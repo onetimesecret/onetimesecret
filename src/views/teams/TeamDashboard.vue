@@ -76,7 +76,7 @@ const getRoleBadge = computed(() => {
       <div class="flex items-start justify-between">
         <div class="min-w-0 flex-1">
           <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-            {{ activeTeam.name }}
+            {{ activeTeam.display_name }}
           </h1>
           <p v-if="activeTeam.description" class="mt-2 text-sm text-gray-600 dark:text-gray-400">
             {{ activeTeam.description }}

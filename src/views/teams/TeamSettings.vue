@@ -146,7 +146,7 @@ aria-hidden="true" />
             @click="navigateToTeam"
             class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >
-            {{ activeTeam?.name }}
+            {{ activeTeam?.display_name }}
           </button>
         </li>
         <li>
@@ -301,7 +301,7 @@ aria-hidden="true" />
     <ConfirmDialog
       v-if="showDeleteConfirm"
       :title="t('web.teams.delete_team_confirm_title')"
-      :message="t('web.teams.delete_team_confirm_message', { name: activeTeam?.name })"
+      :message="t('web.teams.delete_team_confirm_message', { name: activeTeam?.display_name })"
       :confirm-text="t('web.teams.delete')"
       :cancel-text="t('web.COMMON.word_cancel')"
       type="danger"
