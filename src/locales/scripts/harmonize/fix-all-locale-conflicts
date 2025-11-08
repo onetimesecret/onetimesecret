@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Wrapper to fix structural conflicts in all locale files
+#
+# Usage: ./fix-all-locale-conflicts [-q quiet] [-f filename-only] [-v verbose] [-c copy-values]
+#
+# Options:
+#   -q: Suppress all output except summary
+#   -f: Only output filenames of files that failed to fix
+#   -v: Show verbose fix details
+#   -c: Copy values from base file for missing keys
+#
+# Exit: 0 if all fixes succeed, 1 if any fail
+
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+
+EXIT_CODE=0
+FIXED_FILES=0
+FAILED_FILES=0
+TOTAL_FILES=0
+
+for locale in src/locales/*.json; do
+  [ "$locale" = "src/locales/en.json" ] && continue
+
+  TOTAL_FILES=$((TOTAL_FILES + 1))
+
+  if "$SCRIPT_DIR/fix-locale-conflicts" "$@" "$locale"; then
+    FIXED_FILES=$((FIXED_FILES + 1))
+  else
+    EXIT_CODE=1
+    FAILED_FILES=$((FAILED_FILES + 1))
+  fi
+done
+
+# Summary unless in filename-only mode
+if [ "$1" != "-f" ]; then
+  echo "=========================================="
+  echo "CONFLICT FIX SUMMARY: $FIXED_FILES fixed, $FAILED_FILES failed of $TOTAL_FILES files"
+  [ $FAILED_FILES -eq 0 ] && echo "✓ All locale files have been fixed for structural conflicts"
+  [ $FAILED_FILES -gt 0 ] && echo "⚠ $FAILED_FILES files still have issues"
+fi
+
+exit $EXIT_CODE
