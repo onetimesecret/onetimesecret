@@ -50,6 +50,8 @@ module Onetime
     prefix :customdomain
 
     feature :safe_dump_fields
+    feature :relationships  # Enable Familia v2 features
+    feature :object_identifier  # Auto-generates objid
 
     # NOTE: The dbkey used by older models for values is simply
     # "onetime:customdomain". We'll want to rename those at some point.
@@ -63,9 +65,8 @@ module Onetime
 
     identifier_field :domainid
 
-    field :domainid
     field :display_domain
-    field :custid
+    field :org_id       # Organization foreign key (replaces custid)
     field :base_domain
     field :subdomain
     field :trd
@@ -85,31 +86,52 @@ module Onetime
     hashkey :logo # image fields need a corresponding v2 route and logic class
     hashkey :icon
 
+    # Familia v2 relationships
+    # Participate in Organization.domains collection (auto-generated sorted_set)
+    participates_in :Organization, :domains, score: :created
+
+    # Global unique index - domain can only exist once
+    unique_index :display_domain, :display_domain_index
+
     @txt_validation_prefix = '_onetime-challenge'
 
 
 
     def init
-      @domainid = identifier
+      # Display domain should already be set via accessor methods
+      # The ObjectIdentifier feature provides objid automatically via lazy generation
+      # which is aliased to domainid below
+      OT.ld "[CustomDomain.init] #{display_domain} id:#{domainid} org_id:#{org_id}"
 
-      # Display domain and cust should already be set and accessible
-      # via accessor methods so we should see a valid identifier logged.
-      OT.ld "[CustomDomain.init] #{display_domain} id:#{domainid}"
+      # Parse the domain structure (will raise if invalid)
+      if display_domain && !display_domain.empty?
+        ps_domain = PublicSuffix.parse(display_domain, default_rule: nil)
 
-      # Will raise PublicSuffix::DomainInvalid if invalid domain
-      ps_domain = PublicSuffix.parse(display_domain, default_rule: nil)
-
-      # Store the individual domain parts that PublicSuffix parsed out
-      @base_domain = ps_domain.domain.to_s
-      @subdomain   = ps_domain.subdomain.to_s
-      @trd         = ps_domain.trd.to_s
-      @tld         = ps_domain.tld.to_s
-      @sld         = ps_domain.sld.to_s
+        # Store the individual domain parts that PublicSuffix parsed out
+        @base_domain = ps_domain.domain.to_s
+        @subdomain   = ps_domain.subdomain.to_s
+        @trd         = ps_domain.trd.to_s
+        @tld         = ps_domain.tld.to_s
+        @sld         = ps_domain.sld.to_s
+      end
 
       # Don't call generate_txt_validation_record here otherwise we'll
       # create a new validation record every time we instantiate a
       # custom domain object. Instead, we'll call it when we're ready
       # to verify the domain.
+    end
+
+    # Alias domainid to objid for API compatibility
+    # The object_identifier feature provides objid automatically
+    def domainid
+      objid
+    end
+
+    # Validate required fields before save
+    def save
+      raise Onetime::Problem, 'Organization ID required' if org_id.to_s.empty?
+      raise Onetime::Problem, 'Display domain required' if display_domain.to_s.empty?
+      super
     end
 
     # Generate a unique identifier for this customer's custom domain.
@@ -130,12 +152,38 @@ module Onetime
     end
 
     # Check if the given customer is the owner of this domain
+    # In the new model, ownership is through organization membership
     #
     # @param cust [Onetime::Customer, String] The customer object or customer ID to check
     # @return [Boolean] true if the customer is the owner, false otherwise
     def owner?(cust)
-      matching_class = cust.is_a?(Onetime::Customer)
-      (matching_class ? cust.email : cust).eql?(custid)
+      return false unless org_id
+
+      org = Onetime::Organization.load(org_id)
+      return false unless org
+
+      customer_id = cust.is_a?(Onetime::Customer) ? cust.custid : cust
+      org.owner_id == customer_id || org.member?(cust)
+    end
+
+    # Check if this domain is owned by the given organization
+    #
+    # @param org [Onetime::Organization] The organization to check
+    # @return [Boolean] true if the organization owns this domain
+    def owned_by_organization?(org)
+      organization_instances.any? { |o| o.objid == org.objid }
+    end
+
+    # Get the primary organization for this domain based on org_id field
+    # This works even if the participation has been removed
+    #
+    # @return [Onetime::Organization, nil] The organization or nil if org_id is not set
+    def primary_organization
+      return nil if org_id.to_s.empty?
+
+      Onetime::Organization.load(org_id)
+    rescue Familia::RecordNotFound
+      nil
     end
 
     # Destroy the custom domain record
@@ -192,45 +240,20 @@ module Onetime
     # This includes:
     # - The main database key for the custom domain (`self.dbkey`)
     # - database keys of all related objects specified in `self.class.data_types`
+    # - Familia v2 participations in organization.domains collections
     #
-    # @param customer [Onetime::Customer, nil] The customer to remove the domain from
     # @return [void]
-    def destroy!(customer = nil)
-      keys_to_delete = [dbkey]
-
-      # This produces a list of dbkeys for each of the DataType
-      # relations defined for this model.
-      # See Familia::Features::Expiration for references implementation.
-      if self.class.has_relations?
-        related_names = self.class.data_types.keys
-        OT.ld "[destroy!] #{self.class} has relations: #{related_names}"
-
-        related_keys = related_names.filter_map do |name|
-          relation = send(name) # e.g. self.brand
-          relation.dbkey
-        end
-
-        # Append related database keys to the deletion list.
-        keys_to_delete.concat(related_keys)
+    def destroy!
+      # Remove from organization participations before Familia cleanup
+      organization_instances.each do |o|
+        remove_from_organization_domains(o)
       end
 
-      dbclient.multi do |multi|
-        # Delete all keys associated with this domain instance
-        multi.del(*keys_to_delete)
-
-        # Also remove from the class-level collections
-        multi.zrem(Onetime::CustomDomain.values.dbkey, identifier)
-        multi.hdel(Onetime::CustomDomain.display_domains.dbkey, display_domain)
-        multi.hdel(Onetime::CustomDomain.owners.dbkey, display_domain)
-
-        # Remove from customer's custom domains collection if customer provided
-        unless customer.nil?
-          multi.zrem(customer.custom_domains.dbkey, display_domain)
-        end
-      end
-    rescue Redis::BaseError => ex
-      OT.le "[CustomDomain.destroy!] Redis error: #{ex.message}"
-      raise Onetime::Problem, 'Unable to delete custom domain'
+      # Call Familia's built-in destroy which handles:
+      # - Main object key deletion
+      # - Related fields cleanup (brand, logo, icon hashkeys)
+      # - Transaction management
+      super
     end
 
     # Checks if the domain is an apex domain.
@@ -378,44 +401,49 @@ module Onetime
       # 3. Saves the domain and updates related records atomically
       #
       # @param input [String] The domain name to create
-      # @param custid [String] The customer ID to associate with
+      # @param org_id [String] The organization ID to associate with (replaces custid)
       # @return [Onetime::CustomDomain] The created custom domain
       # @raise [Onetime::Problem] If domain is invalid or already exists
       #
       # More Info:
-      # We need a minimum of a domain and customer id to create a custom
-      # domain -- or more specifically, a custom domain indentifier. We
-      # allow instantiating a custom domain without a customer id, but
+      # We need a minimum of a domain and organization id to create a custom
+      # domain -- or more specifically, a custom domain identifier. We
+      # allow instantiating a custom domain without an organization id, but
       # instead raise a fuss if we try to save it later without one.
       #
       # See CustomDomain.base_domain and display_domain for details on
       # the difference between display domain and base domain.
       #
-      # NOTE: Interally within this class, we try not to use the
+      # NOTE: Internally within this class, we try not to use the
       # unqualified term "domain" on its own since there's so much
       # room for confusion.
       #
-      def create!(input, custid)
-        obj = parse(input, custid)
+      def create!(input, org_id)
+        obj = parse(input, org_id)
 
         dbclient.watch(obj.dbkey) do
           if obj.exists?
             dbclient.unwatch
-            raise Onetime::Problem, 'Duplicate domain for customer'
+            raise Onetime::Problem, 'Duplicate domain for organization'
           end
 
           dbclient.multi do |_multi|
             obj.generate_txt_validation_record
             obj.save
-            # Create minimal customer instance for database key
-            cust = Onetime::Customer.new(custid: custid)
-            cust.add_custom_domain(obj)
+
+            # Use Familia v2 participation to add to organization.domains
+            org = Onetime::Organization.load(org_id)
+            obj.add_to_organization_domains(org) if org
+
             # Add to global values set
             add(obj)
           end
         end
 
         obj # Return the created object
+      rescue Familia::RecordExistsError => ex
+        OT.le "[CustomDomain.create] Duplicate domain: #{ex.message}"
+        raise Onetime::Problem, 'Duplicate domain for organization'
       rescue Redis::BaseError => ex
         OT.le "[CustomDomain.create] Redis error: #{ex.message}"
         raise Onetime::Problem, 'Unable to create custom domain'
@@ -424,7 +452,7 @@ module Onetime
       # Returns a new Onetime::CustomDomain object (without saving it).
       #
       # @param input [String] The domain name to parse
-      # @param custid [String] Customer ID associated with the domain
+      # @param org_id [String] Organization ID associated with the domain (replaces custid)
       #
       # @return [Onetime::CustomDomain]
       #
@@ -433,8 +461,8 @@ module Onetime
       # @raise [PublicSuffix::Error] For other PublicSuffix errors
       # @raise [Onetime::Problem] If domain exceeds MAX_SUBDOMAIN_DEPTH or MAX_TOTAL_LENGTH
       #
-      def parse(input, custid)
-        raise Onetime::Problem, 'Customer ID required' if custid.to_s.empty?
+      def parse(input, org_id)
+        raise Onetime::Problem, 'Organization ID required' if org_id.to_s.empty?
 
         segments = input.to_s.split('.').reject(&:empty?)
         raise Onetime::Problem, 'Invalid domain format' if segments.empty?
@@ -444,12 +472,12 @@ module Onetime
         raise Onetime::Problem, "Domain too long (max: #{MAX_TOTAL_LENGTH})" if input.length > MAX_TOTAL_LENGTH
 
         display_domain      = self.display_domain(input)
-        OT.ld "[CustomDomain.parse] Creating with display_domain=#{display_domain.inspect}, custid=#{custid.inspect}"
-        obj                 = new(display_domain, custid)
+        OT.ld "[CustomDomain.parse] Creating with display_domain=#{display_domain.inspect}, org_id=#{org_id.inspect}"
+        obj                 = new(display_domain: display_domain, org_id: org_id)
         obj._original_value = input
 
         # Debug the created object
-        OT.ld "[CustomDomain.parse] Created object: display_domain=#{obj.display_domain.inspect}, custid=#{obj.custid.inspect}, identifier=#{obj.identifier.inspect}"
+        OT.ld "[CustomDomain.parse] Created object: display_domain=#{obj.display_domain.inspect}, org_id=#{obj.org_id.inspect}, identifier=#{obj.identifier.inspect}"
 
         obj
       end
@@ -516,13 +544,13 @@ module Onetime
       end
 
       # Simply instatiates a new CustomDomain object and checks if it exists.
-      def exists?(input, custid)
-        # The `parse`` method instantiates a new CustomDomain object but does
-        # not save it to the database. We do that here to piggyback on the inital
+      def exists?(input, org_id)
+        # The `parse` method instantiates a new CustomDomain object but does
+        # not save it to the database. We do that here to piggyback on the initial
         # validation and parsing. We use the derived identifier to load
-        # the object from the database using
-        obj = parse(input, custid)
-        OT.ld "[CustomDomain.exists?] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
+        # the object from the database.
+        obj = parse(input, org_id)
+        OT.ld "[CustomDomain.exists?] Got #{obj.identifier} #{obj.display_domain} #{obj.org_id}"
         obj.exists?
       rescue Onetime::Problem => ex
         OT.le "[CustomDomain.exists?] #{ex.message}"
@@ -541,20 +569,20 @@ module Onetime
           raise Onetime::Problem, "Cannot add custom domain with nil identifier"
         end
 
-        if fobj.custid.nil?
-          OT.le "[CustomDomain.add] custid is nil for #{fobj.class}:#{fobj.display_domain}:#{fobj.identifier}"
+        if fobj.org_id.nil?
+          OT.le "[CustomDomain.add] org_id is nil for #{fobj.class}:#{fobj.display_domain}:#{fobj.identifier}"
           debug_info = begin
-            { to_h: fobj.to_h, methods: fobj.methods.grep(/cust/) }
+            { to_h: fobj.to_h, methods: fobj.methods.grep(/org/) }
           rescue => e
             { error: e.message }
           end
           OT.le "[CustomDomain.add] fobj debug: #{debug_info.inspect}"
-          raise Onetime::Problem, "Cannot add custom domain with nil custid. display_domain=#{fobj.display_domain.inspect}, identifier=#{fobj.identifier.inspect}"
+          raise Onetime::Problem, "Cannot add custom domain with nil org_id. display_domain=#{fobj.display_domain.inspect}, identifier=#{fobj.identifier.inspect}"
         end
 
         values.add fobj.to_s # created time, identifier
         display_domains.put fobj.display_domain, fobj.identifier
-        owners.put fobj.to_s, fobj.custid # domainid => customer id
+        owners.put fobj.to_s, fobj.org_id # domainid => organization id
       end
 
       def rem(fobj)
@@ -577,9 +605,9 @@ module Onetime
 
       # Implement a load method for CustomDomain to make sure the
       # correct derived ID is used as the key.
-      def load(display_domain, custid)
-        custom_domain = parse(display_domain, custid).tap do |obj|
-          OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
+      def load(display_domain, org_id)
+        custom_domain = parse(display_domain, org_id).tap do |obj|
+          OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.org_id}"
           raise Onetime::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?
         end
 
@@ -610,6 +638,21 @@ module Onetime
       # @return [String] A secure short identifier in base-36 encoding
       def generate_id
         Familia.generate_id
+      end
+
+      # Find all custom domains for a given organization
+      # Uses the Familia v2 participates_in relationship
+      #
+      # @param org_id [String] The organization identifier (orgid)
+      # @return [Array<String>] Array of domain identifiers
+      def find_all_by_org_id(org_id)
+        org = Onetime::Organization.load(org_id)
+        return [] unless org
+
+        # org.domains is the auto-generated SortedSet from participates_in
+        org.domains.to_a
+      rescue Familia::RecordNotFound
+        []
       end
     end
 
