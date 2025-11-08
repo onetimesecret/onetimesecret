@@ -1056,7 +1056,17 @@
         "manage_billing": "Manage Billing",
         "view_invoices": "View Invoices",
         "upgrade_plan": "Upgrade Plan",
-        "no_payment_method": "No payment method on file"
+        "no_payment_method": "No payment method on file",
+        "capabilities": {
+          "create_secrets": "Create Secrets",
+          "basic_sharing": "Basic Sharing",
+          "create_team": "Create Team",
+          "create_teams": "Create Multiple Teams",
+          "custom_domains": "Custom Domains",
+          "api_access": "API Access",
+          "priority_support": "Priority Support",
+          "audit_logs": "Audit Logs"
+        }
       },
       "plans": {
         "title": "Select a Plan",

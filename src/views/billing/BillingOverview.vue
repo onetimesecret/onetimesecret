@@ -36,14 +36,14 @@ const planStatus = computed(() => selectedOrg.value?.planid ? 'active' : 'free')
 
 const formatCapability = (cap: string): string => {
   const labels: Record<string, string> = {
-    [CAPABILITIES.CREATE_SECRETS]: t('web.billing.overview.plan_features'),
-    [CAPABILITIES.BASIC_SHARING]: 'Basic Sharing',
-    [CAPABILITIES.CREATE_TEAM]: 'Create Team',
-    [CAPABILITIES.CREATE_TEAMS]: 'Create Multiple Teams',
-    [CAPABILITIES.CUSTOM_DOMAINS]: 'Custom Domains',
-    [CAPABILITIES.API_ACCESS]: 'API Access',
-    [CAPABILITIES.PRIORITY_SUPPORT]: 'Priority Support',
-    [CAPABILITIES.AUDIT_LOGS]: 'Audit Logs',
+    [CAPABILITIES.CREATE_SECRETS]: t('web.billing.overview.capabilities.create_secrets'),
+    [CAPABILITIES.BASIC_SHARING]: t('web.billing.overview.capabilities.basic_sharing'),
+    [CAPABILITIES.CREATE_TEAM]: t('web.billing.overview.capabilities.create_team'),
+    [CAPABILITIES.CREATE_TEAMS]: t('web.billing.overview.capabilities.create_teams'),
+    [CAPABILITIES.CUSTOM_DOMAINS]: t('web.billing.overview.capabilities.custom_domains'),
+    [CAPABILITIES.API_ACCESS]: t('web.billing.overview.capabilities.api_access'),
+    [CAPABILITIES.PRIORITY_SUPPORT]: t('web.billing.overview.capabilities.priority_support'),
+    [CAPABILITIES.AUDIT_LOGS]: t('web.billing.overview.capabilities.audit_logs'),
   };
   return labels[cap] || cap;
 };

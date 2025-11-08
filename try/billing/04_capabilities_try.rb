@@ -143,9 +143,9 @@ require 'lib/onetime/billing/plan_definitions'
 @legacy_org.limit_for('members_per_team')
 #=> 10
 
-## Test: Unknown resource defaults to infinity for paid plans
+## Test: Unknown resource defaults to 0 (fail-closed for security)
 @identity_org.limit_for('unknown_resource')
-#=> Float::INFINITY
+#=> 0
 
 ## Test: at_limit? check when at limit
 @identity_org.at_limit?('teams', 1)

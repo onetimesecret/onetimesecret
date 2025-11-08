@@ -68,7 +68,7 @@ module Onetime
           # - planid is nil/empty
           # - plan definition not found
           # - limits hash missing
-          # - resource not in limits
+          # - resource not in limits (fail-closed for security)
           #
           # @example
           #   org.limit_for('teams')            # => 1
@@ -81,7 +81,9 @@ module Onetime
             return 0 unless plan_def
 
             limits = plan_def[:limits] || {}
-            limits[resource.to_sym] || Float::INFINITY
+            # Default to 0 for unknown resources (fail-closed for security)
+            # This prevents typos from granting unlimited access
+            limits.fetch(resource.to_sym, 0)
           end
 
           # Check capability with detailed response for upgrade messaging
