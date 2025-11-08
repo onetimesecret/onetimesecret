@@ -4,7 +4,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import SettingsLayout from '@/components/layout/SettingsLayout.vue';
+import BillingLayout from '@/components/layout/BillingLayout.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import CreateOrganizationModal from '@/components/organizations/CreateOrganizationModal.vue';
 import { useOrganizationStore } from '@/stores/organizationStore';
@@ -45,16 +45,16 @@ const handleCreateOrganization = () => {
 const handleOrganizationCreated = (orgId: string) => {
   showCreateModal.value = false;
   // Navigate to the new organization's settings
-  router.push(`/account/settings/organization/${orgId}`);
+  router.push(`/billing/organization/${orgId}`);
 };
 
 const handleManageOrganization = (org: Organization) => {
-  router.push(`/account/settings/organization/${org.id}`);
+  router.push(`/billing/organization/${org.id}`);
 };
 </script>
 
 <template>
-  <SettingsLayout>
+  <BillingLayout>
     <div class="space-y-8">
       <!-- Organizations Section -->
       <section
@@ -63,8 +63,8 @@ const handleManageOrganization = (org: Organization) => {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <OIcon
-                collection="heroicons"
-                name="building-office-2"
+                collection="ph"
+                name="building-office-bold"
                 class="size-5 text-gray-500 dark:text-gray-400"
                 aria-hidden="true" />
               <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -139,8 +139,8 @@ const handleManageOrganization = (org: Organization) => {
           <!-- Empty State -->
           <div v-else class="py-12 text-center">
             <OIcon
-              collection="heroicons"
-              name="building-office-2"
+              collection="ph"
+              name="building-office-bold"
               class="mx-auto size-12 text-gray-400"
               aria-hidden="true" />
             <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
@@ -191,5 +191,5 @@ const handleManageOrganization = (org: Organization) => {
       :open="showCreateModal"
       @close="showCreateModal = false"
       @created="handleOrganizationCreated" />
-  </SettingsLayout>
+  </BillingLayout>
 </template>

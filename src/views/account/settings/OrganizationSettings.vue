@@ -4,7 +4,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
-import SettingsLayout from '@/components/layout/SettingsLayout.vue';
+import BillingLayout from '@/components/layout/BillingLayout.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import { useOrganizationStore } from '@/stores/organizationStore';
@@ -181,14 +181,14 @@ watch(activeTab, async (newTab) => {
 </script>
 
 <template>
-  <SettingsLayout>
+  <BillingLayout>
     <div class="space-y-6">
       <!-- Breadcrumb -->
       <nav class="flex" aria-label="Breadcrumb">
         <ol class="flex items-center space-x-2">
           <li>
             <router-link
-              to="/account/settings/organizations"
+              to="/billing/organizations"
               class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
               {{ t('web.organizations.title') }}
             </router-link>
@@ -579,5 +579,5 @@ watch(activeTab, async (newTab) => {
         </section>
       </div>
     </div>
-  </SettingsLayout>
+  </BillingLayout>
 </template>

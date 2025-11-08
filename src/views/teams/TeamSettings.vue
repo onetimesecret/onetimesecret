@@ -198,7 +198,7 @@ aria-hidden="true" />
               {{ t('web.billing.notices.org_managed', { orgName: 'Organization' }) }}
             </p>
             <router-link
-              :to="`/account/settings/organization/${activeTeam.org_id}`"
+              :to="`/billing/organization/${activeTeam.org_id}`"
               class="mt-2 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
               {{ t('web.billing.notices.view_org_billing') }}
               <OIcon

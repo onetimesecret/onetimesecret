@@ -425,6 +425,11 @@
       "incoming_success_message": "Your email has been sent",
       "incoming_button_creating": "Creating"
     },
+    "navigation": {
+      "billing": "Billing",
+      "billingOverview": "Overview",
+      "organizations": "Organizations"
+    },
     "account": {
       "settings": "Account Settings",
       "change-password": "Change Password",
@@ -1037,8 +1042,10 @@
         "needPrioritySupport": "Priority support requires Identity Plus or higher",
         "needAuditLogs": "Audit logs require Multi-Team plan or higher"
       },
+      "manage_subscription_and_billing": "Manage your subscription, organizations, and billing settings",
       "overview": {
         "title": "Billing Overview",
+        "description": "View and manage your subscription and payment details",
         "organization_selector": "Select Organization",
         "current_plan": "Current Plan",
         "plan_features": "Plan Features",
@@ -1052,6 +1059,7 @@
       },
       "plans": {
         "title": "Select a Plan",
+        "choose_plan": "Choose the plan that fits your needs",
         "current": "Current Plan",
         "upgrade": "Upgrade",
         "downgrade": "Downgrade",
@@ -1072,6 +1080,7 @@
       },
       "invoices": {
         "title": "Billing History",
+        "view_history": "View your billing history and download invoices",
         "invoice_date": "Date",
         "invoice_amount": "Amount",
         "invoice_status": "Status",

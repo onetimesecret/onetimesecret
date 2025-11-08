@@ -1,13 +1,15 @@
-<!-- src/components/layout/SettingsLayout.vue -->
+<!-- src/components/layout/BillingLayout.vue -->
 
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
+import { useOrganizationStore } from '@/stores/organizationStore';
 
 const route = useRoute();
 const { t } = useI18n();
+const organizationStore = useOrganizationStore();
 
 interface NavigationItem {
   to: string;
@@ -19,75 +21,36 @@ interface NavigationItem {
   visible?: () => boolean;
 }
 
+const showOrganizations = computed(() =>
+  // Show if user has organizations OR can create one
+  organizationStore.hasOrganizations || true
+);
+
 const sections: NavigationItem[] = [
   {
-    to: '/account/settings/profile',
-    icon: { collection: 'heroicons', name: 'user-solid' },
-    label: t('web.settings.profile'),
-    description: t('web.settings.profile_settings_description'),
+    to: '/billing',
+    icon: { collection: 'heroicons', name: 'credit-card' },
+    label: t('web.billing.overview.title'),
+    description: t('web.billing.overview.description'),
   },
   {
-    to: '/account/settings/security',
-    icon: { collection: 'heroicons', name: 'shield-check-solid' },
-    label: t('web.COMMON.security'),
-    description: t('web.settings.security_settings_description'),
-    children: [
-      {
-        to: '/account/settings/security/password',
-        icon: { collection: 'heroicons', name: 'lock-closed-solid' },
-        label: t('web.auth.change-password.title'),
-      },
-      {
-        to: '/account/settings/security/mfa',
-        icon: { collection: 'heroicons', name: 'key-solid' },
-        label: t('web.auth.mfa.title'),
-      },
-      {
-        to: '/account/settings/security/sessions',
-        icon: { collection: 'heroicons', name: 'computer-desktop-solid' },
-        label: t('web.auth.sessions.title'),
-      },
-      {
-        to: '/account/settings/security/recovery-codes',
-        icon: { collection: 'heroicons', name: 'document-text-solid' },
-        label: t('web.auth.recovery-codes.title'),
-      },
-    ],
+    to: '/billing/organizations',
+    icon: { collection: 'ph', name: 'building-office-bold' },
+    label: t('web.organizations.title'),
+    description: t('web.organizations.organizations_description'),
+    visible: () => showOrganizations.value,
   },
   {
-    to: '/account/settings/api',
-    icon: { collection: 'heroicons', name: 'code-bracket' },
-    label: t('api-key'),
-    description: t('web.settings.api.manage_api_keys'),
+    to: '/billing/plans',
+    icon: { collection: 'heroicons', name: 'sparkles' },
+    label: t('web.billing.plans.title'),
+    description: t('web.billing.plans.choose_plan'),
   },
   {
-    to: '/account/region',
-    icon: { collection: 'heroicons', name: 'globe-alt-solid' },
-    label: t('web.account.region'),
-    description: t('web.regions.data-sovereignty-title'),
-    children: [
-      {
-        to: '/account/region/current',
-        icon: { collection: 'heroicons', name: 'map-pin' },
-        label: t('web.regions.your-region'),
-      },
-      {
-        to: '/account/region/available',
-        icon: { collection: 'heroicons', name: 'globe-americas-solid' },
-        label: t('available-regions'),
-      },
-      {
-        to: '/account/region/why',
-        icon: { collection: 'heroicons', name: 'shield-check-solid' },
-        label: t('web.regions.why-it-matters'),
-      },
-    ],
-  },
-  {
-    to: '/account/settings/caution',
-    icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
-    label: t('web.settings.caution.title'),
-    description: t('web.settings.caution.description'),
+    to: '/billing/invoices',
+    icon: { collection: 'heroicons', name: 'document-text' },
+    label: t('web.billing.invoices.title'),
+    description: t('web.billing.invoices.view_history'),
   },
 ];
 
@@ -118,21 +81,21 @@ const isParentActive = (item: NavigationItem): boolean => {
           name="chevron-right-solid"
           class="mx-2 size-4"
           aria-hidden="true" />
-        <span class="text-gray-900 dark:text-white">{{ t('web.account.settings') }}</span>
+        <span class="text-gray-900 dark:text-white">{{ t('web.navigation.billing') }}</span>
       </nav>
 
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-        {{ t('web.account.settings') }}
+        {{ t('web.navigation.billing') }}
       </h1>
       <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-        {{ t('web.settings.manage_your_account_settings_and_preferences') }}
+        {{ t('web.billing.manage_subscription_and_billing') }}
       </p>
     </div>
 
     <div class="flex flex-col gap-8 lg:flex-row">
       <!-- Sidebar Navigation -->
       <aside class="w-full lg:w-72 lg:shrink-0">
-        <nav class="space-y-1" aria-label="Settings navigation">
+        <nav class="space-y-1" aria-label="Billing navigation">
           <template v-for="item in visibleSections" :key="item.to">
             <!-- Parent item -->
             <div>
@@ -196,7 +159,7 @@ const isParentActive = (item: NavigationItem): boolean => {
 
       <!-- Main Content Area -->
       <main class="min-w-0 flex-1">
-        <slot ></slot>
+        <slot></slot>
       </main>
     </div>
   </div>

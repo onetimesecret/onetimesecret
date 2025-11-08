@@ -32,6 +32,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuth } from '@/composables/useAuth';
 import { useTeamStore } from '@/stores/teamStore';
+import { WindowService } from '@/services/window.service';
 
 const props = defineProps<{
   cust: Customer | null;
@@ -44,6 +45,14 @@ const props = defineProps<{
 const { t } = useI18n();
 const { logout } = useAuth();
 const teamStore = useTeamStore();
+
+const billingEnabled = computed(() => {
+  try {
+    return WindowService.get('billing_enabled') || false;
+  } catch {
+    return false;
+  }
+});
 
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
@@ -88,6 +97,14 @@ const menuItems = computed<MenuItem[]>(() => [
     label: t('web.account.settings'),
     icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
     condition: () => !props.awaitingMfa,
+  },
+  // Billing (conditional - only show if billing enabled)
+  {
+    id: 'billing',
+    to: '/billing',
+    label: t('web.navigation.billing'),
+    icon: { collection: 'heroicons', name: 'credit-card' },
+    condition: () => !props.awaitingMfa && billingEnabled.value,
   },
   // Teams (conditional - only show if user has teams)
   {
