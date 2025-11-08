@@ -28,7 +28,7 @@ GIT
 
 GIT
   remote: https://github.com/delano/rodauth-tools
-  revision: 8e2c7a08c61840538408d9a01bc17ccbb8468f96
+  revision: 8e63e3768383417ca8c8939e8428f49649aa5c3f
   specs:
     rodauth-tools (0.3.0)
       dry-inflector (~> 1.1)
