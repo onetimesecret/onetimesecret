@@ -52,11 +52,11 @@ jq_script='
 def find_value($key; $obj):
   if $obj == null then
     null
-  elif type == "object" then
-    if has($key) then
-      .[$key]
+  elif ($obj | type) == "object" then
+    if $obj | has($key) then
+      $obj[$key]
     else
-      reduce to_entries[] as $entry (null;
+      reduce ($obj | to_entries[]) as $entry (null;
         if . != null then .
         else $entry.value | find_value($key; .)
         end
@@ -82,10 +82,10 @@ def walk($base; $target_root):
       {
         key: $k,
         value: (
-          if $target[$k] != null then
+          if ($target | has($k)) and ($target[$k] != null) then
             $target[$k] | walk($v; $target_root)
           else
-            $target_root | find_value($k; .) as $existing_value |
+            find_value($k; $target_root) as $existing_value |
             if $existing_value != null then
               $existing_value
             else
@@ -106,7 +106,7 @@ def walk($base; $target_root):
 $target[0] | walk($base[0]; $target[0])
 '
 
-if ! jq -n --slurpfile base "$BASEPATH" --slurpfile target "$LOCALE" "$jq_script" > "$OUTPUT"; then
+if ! DEBUG="$DEBUG" jq -n --slurpfile base "$BASEPATH" --slurpfile target "$LOCALE" "$jq_script" > "$OUTPUT"; then
   [ $FILENAME_ONLY -eq 1 ] && echo "$LOCALE" && exit 1
   [ $QUIET -eq 1 ] && exit 1
   [ $VERBOSE -eq 1 ] && echo "Failed repairing $LOCALE"
