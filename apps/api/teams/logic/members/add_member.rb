@@ -20,8 +20,9 @@ module TeamAPI::Logic
         # Validate email parameter
         raise_form_error('Email address required', field: :email, error_type: :missing) if email.empty?
 
-        # Validate email format
-        unless valid_email?(email)
+        # Validate email format using Truemail
+        validator = Truemail.validate(email)
+        unless validator.result.valid?
           raise_form_error('Invalid email address', field: :email, error_type: :invalid)
         end
 

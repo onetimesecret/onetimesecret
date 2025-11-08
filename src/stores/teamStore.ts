@@ -250,7 +250,7 @@ export const useTeamStore = defineStore('team', () => {
         activeTeam.value.member_count += 1;
       }
 
-      return memberData.member;
+      return memberData.record;
     } finally {
       loading.value = false;
     }

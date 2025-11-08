@@ -12,24 +12,24 @@ module TeamAPI::Logic
 
       def raise_concerns
         # Require authenticated user
-        raise_form_error('Authentication required', field: 'user_id', error_type: :unauthorized) if cust.anonymous?
+        raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
 
         # Validate display_name
         if display_name.empty?
-          raise_form_error('Team name is required', field: 'display_name', error_type: :missing)
+          raise_form_error('Team name is required', field: :display_name, error_type: :missing)
         end
 
-        if display_name.length < 1
-          raise_form_error('Team name must be at least 1 character', field: 'display_name', error_type: :invalid)
+        if display_name.length < MIN_DISPLAY_NAME_LENGTH
+          raise_form_error("Team name must be at least #{MIN_DISPLAY_NAME_LENGTH} characters", field: :display_name, error_type: :invalid)
         end
 
-        if display_name.length > 100
-          raise_form_error('Team name must be less than 100 characters', field: 'display_name', error_type: :invalid)
+        if display_name.length > MAX_DISPLAY_NAME_LENGTH
+          raise_form_error("Team name must be less than #{MAX_DISPLAY_NAME_LENGTH} characters", field: :display_name, error_type: :invalid)
         end
 
         # Description is optional but limit length if provided
-        if !description.empty? && description.length > 500
-          raise_form_error('Description must be less than 500 characters', field: 'description', error_type: :invalid)
+        if !description.empty? && description.length > MAX_DESCRIPTION_LENGTH
+          raise_form_error("Description must be less than #{MAX_DESCRIPTION_LENGTH} characters", field: :description, error_type: :invalid)
         end
       end
 
