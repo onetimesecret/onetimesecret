@@ -107,21 +107,22 @@ module Onetime
     end
 
     class << self
-      def create!(display_name, owner_customer, contact_email)
+      def create!(display_name, owner_customer, contact_email = nil)
         raise Onetime::Problem, 'Owner required' if owner_customer.nil?
 
         display_name = display_name.to_s.strip
         raise Onetime::Problem, 'Display name required' if display_name.empty?
 
         contact_email = contact_email.to_s.strip
-        raise Onetime::Problem, 'Contact email required' if contact_email.empty?
-
-        raise Onetime::Problem, 'Organization exists for that email address' if contact_email_exists?(contact_email)
+        # contact_email is optional - can be set later for billing
+        if !contact_email.empty? && contact_email_exists?(contact_email)
+          raise Onetime::Problem, 'Organization exists for that email address'
+        end
 
         org = new(
           display_name: display_name,
           owner_id: owner_customer.custid,
-          contact_email: contact_email
+          contact_email: contact_email.empty? ? nil : contact_email
         )
         org.save
 

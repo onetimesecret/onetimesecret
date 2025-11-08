@@ -28,13 +28,8 @@ module OrganizationAPI::Logic
           raise_form_error('Organization name must be less than 100 characters', field: 'display_name', error_type: :invalid)
         end
 
-        # Validate contact_email
-        if contact_email.empty?
-          raise_form_error('Contact email is required', field: 'contact_email', error_type: :missing)
-        end
-
-        # Check if contact_email already exists
-        if Onetime::Organization.contact_email_exists?(contact_email)
+        # Validate contact_email (optional, but must be unique if provided)
+        if !contact_email.empty? && Onetime::Organization.contact_email_exists?(contact_email)
           raise_form_error('An organization with this contact email already exists', field: 'contact_email', error_type: :exists)
         end
 
@@ -47,8 +42,9 @@ module OrganizationAPI::Logic
       def process
         OT.ld "[CreateOrganization] Creating organization '#{display_name}' for user #{cust.custid}"
 
-        # Create organization using class method
-        @organization = Onetime::Organization.create!(display_name, cust, contact_email)
+        # Create organization using class method (contact_email is optional)
+        email_value = contact_email.empty? ? nil : contact_email
+        @organization = Onetime::Organization.create!(display_name, cust, email_value)
 
         # Set description if provided
         if !description.empty?
@@ -69,7 +65,7 @@ module OrganizationAPI::Logic
             display_name: organization.display_name,
             description: organization.description || '',
             owner_id: organization.owner_id,
-            contact_email: organization.contact_email,
+            contact_email: organization.contact_email || '',
             member_count: organization.member_count,
             created_at: organization.created,
             updated_at: organization.updated,
