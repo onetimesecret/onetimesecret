@@ -63,8 +63,8 @@ POST  /welcome/stripe/webhook                    Core::Controllers::Welcome#welc
 GET   /account/billing_portal                    Core::Controllers::Welcome#customer_portal_redirect auth=sessionauth
 
 # Colonel routes - require colonel role
-GET   /colonel                                   Core::Controllers::Page#index auth=colonelsonly
-GET   /colonel/*                                 Core::Controllers::Page#index auth=colonelsonly
+GET   /colonel                                   Core::Controllers::Page#index auth=sessionauth role=colonel
+GET   /colonel/*                                 Core::Controllers::Page#index auth=sessionauth role=colonel
 
 # Image generation - authenticated
 GET   /imagine/:custom_domain_id/:image_type.:image_ext  Core::Controllers::Page#imagine auth=noauth

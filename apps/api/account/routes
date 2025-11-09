@@ -30,5 +30,5 @@ GET    /domains/:domain/icon                      AccountAPI::Logic::Domains::Ge
 GET    /domains                                   AccountAPI::Logic::Domains::ListDomains response=json auth=sessionauth,basicauth
 
 # Colonel/Admin endpoints
-GET    /colonel/info                              AccountAPI::Logic::Colonel::GetColonelInfo response=json auth=colonelsonly
-GET    /colonel/stats                             AccountAPI::Logic::Colonel::GetColonelStats response=json auth=colonelsonly
+GET    /colonel/info                              AccountAPI::Logic::Colonel::GetColonelInfo response=json auth=sessionauth role=colonel
+GET    /colonel/stats                             AccountAPI::Logic::Colonel::GetColonelStats response=json auth=sessionauth role=colonel

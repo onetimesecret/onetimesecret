@@ -61,8 +61,9 @@ module Onetime
 
       # Registers core Onetime authentication strategies with Otto
       #
-      # Registers session-based strategies (noauth, authenticated, colonelsonly).
+      # Registers session-based strategies (noauth, sessionauth).
       # For BasicAuth, call register_basic_auth(otto) separately.
+      # For role-based authorization, use the role= route option (e.g., auth=sessionauth role=colonel).
       #
       # @param otto [Otto] Otto router instance
       def register_essential(otto)
@@ -180,35 +181,19 @@ module Onetime
 
       # Authenticated strategy - requires valid session with authenticated customer
       #
-      # Routes: auth=authenticated
+      # Routes: auth=sessionauth
       # Access: Authenticated users only
       # User: Authenticated Customer
+      # Roles: Provides customer role(s) for Otto's role-based authorization (role= option)
       class SessionAuthStrategy < BaseSessionAuthStrategy
         @auth_method_name = 'sessionauth'
-      end
-
-      # Colonel strategy - requires authenticated user with colonel role
-      #
-      # Routes: auth=colonelsonly
-      # Access: Users with colonel role only
-      # User: Authenticated Customer with :colonel role
-      class ColonelStrategy < BaseSessionAuthStrategy
-        @auth_method_name = 'colonel'
 
         protected
 
-        def additional_checks(cust, _env)
-          return failure('[ROLE_COLONEL_REQUIRED] Colonel role required') unless cust.role?(:colonel)
-
-          nil
-        end
-
-        def additional_metadata(_cust)
-          { role: 'colonel' }
-        end
-
-        def log_success(cust)
-          OT.ld "[onetime_colonel] Colonel access granted '#{cust.objid}'"
+        def additional_metadata(cust)
+          # Provide roles as array for Otto's role= parameter support
+          # Otto's RouteAuthWrapper#extract_user_roles looks for metadata[:user_roles]
+          { user_roles: [cust.role.to_s] }
         end
       end
 

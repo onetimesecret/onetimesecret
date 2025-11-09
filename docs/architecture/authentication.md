@@ -258,12 +258,22 @@ GET /account Core::Controllers::Account#show auth=sessionauth
 GET /api/v2/account V2::Logic::Account::GetAccount auth=sessionauth
 ```
 
-### ColonelStrategy (`auth=colonelsonly`)
+### Role-Based Authorization (`role=` parameter)
 
-**Access**: Users with `:colonel` role
-**User**: Authenticated `Customer` with admin role
+**Access**: Users with specific role(s)
+**User**: Authenticated `Customer` with required role
 
-Extends `SessionAuthStrategy` with `role?(:colonel)` check.
+Otto's built-in role-based authorization uses the `role=` route parameter combined with `auth=sessionauth`:
+
+```ruby
+# Single role requirement
+GET /colonel Core::Controllers::Page#index auth=sessionauth role=colonel
+
+# Multiple roles (OR logic)
+GET /content/:id ContentLogic auth=sessionauth role=admin,editor
+```
+
+SessionAuthStrategy provides user roles via `metadata[:user_roles]` array. Otto's `RouteAuthWrapper` enforces role requirements after successful authentication, returning 403 Forbidden if the user lacks the required role.
 
 ### BasicAuthStrategy (`auth=basicauth`)
 
@@ -295,15 +305,15 @@ GET /api/v2/status V2::Controllers::Status#show auth=basicauth
 |----------|-----------|-------|---------|----------|
 | `noauth` | None | Stateless | Read-only | Public endpoints |
 | `sessionauth` | `session['authenticated']` | Stateful | Read/Write | Web UI |
-| `colonelsonly` | `sessionauth` + `:colonel` role | Stateful | Read/Write | Admin UI |
+| `sessionauth role=colonel` | `sessionauth` + `:colonel` role | Stateful | Read/Write | Admin UI |
 | `basicauth` | HTTP Basic Auth | Stateless | Empty `{}` | API endpoints |
 
 ### Application Registration
 
 | Application | Registered Strategies | Purpose |
 |------------|----------------------|---------|
-| Core | `noauth`, `sessionauth`, `colonelsonly` | Web UI routes |
-| V2 | `noauth`, `sessionauth`, `basicauth` | API endpoints |
+| Core | `noauth`, `sessionauth` | Web UI routes (use `role=` for authorization) |
+| Account API | `noauth`, `sessionauth`, `basicauth` | API endpoints |
 
 ## Controllers and Logic
 

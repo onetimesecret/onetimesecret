@@ -14,7 +14,7 @@
 # Usage in routes file:
 #   GET /public   Controller#action auth=noauth
 #   GET /private  Controller#action auth=sessionauth
-#   GET /colonel  Controller#action auth=colonelsonly
+#   GET /colonel  Controller#action auth=sessionauth role=colonel
 #
 # Keep this code in sync with:
 # @see docs/architecture/authentication.md#authstrategies
@@ -31,6 +31,7 @@ module Core
     #
     # Delegates to centralized Onetime::Application::AuthStrategies.
     # Always registers noauth strategy; only registers session-based strategies if enabled.
+    # For role-based authorization, use the role= route option (e.g., auth=sessionauth role=colonel).
     #
     # @param otto [Otto] Otto router instance
     def register_essential(otto)
@@ -50,9 +51,6 @@ module Core
 
       # Authenticated routes - requires valid session
       otto.add_auth_strategy('sessionauth', Onetime::Application::AuthStrategies::SessionAuthStrategy.new)
-
-      # Colonel routes - requires colonel role
-      otto.add_auth_strategy('colonelsonly', Onetime::Application::AuthStrategies::ColonelStrategy.new)
     end
   end
 end
