@@ -92,7 +92,7 @@ export const BillingService = {
    * @returns Billing overview data including subscription, plan, and usage
    */
   async getOverview(orgExtId: string): Promise<BillingOverviewResponse> {
-    const response = await $api.get(`/billing/org/${orgExtId}`);
+    const response = await $api.get(`/billing/api/org/${orgExtId}`);
     return response.data;
   },
 
@@ -109,7 +109,7 @@ export const BillingService = {
     tier: string,
     billingCycle: string
   ): Promise<CheckoutSessionResponse> {
-    const response = await $api.post(`/billing/org/${orgExtId}/checkout`, {
+    const response = await $api.post(`/billing/api/org/${orgExtId}/checkout`, {
       tier,
       billing_cycle: billingCycle,
     });
@@ -123,7 +123,7 @@ export const BillingService = {
    * @returns List of invoices with pagination info
    */
   async listInvoices(orgExtId: string): Promise<InvoicesResponse> {
-    const response = await $api.get(`/billing/org/${orgExtId}/invoices`);
+    const response = await $api.get(`/billing/api/org/${orgExtId}/invoices`);
     return response.data;
   },
 
@@ -133,7 +133,7 @@ export const BillingService = {
    * @returns List of available plans with pricing and features
    */
   async listPlans(): Promise<PlansResponse> {
-    const response = await $api.get('/billing/plans');
+    const response = await $api.get('/billing/api/plans');
     return response.data;
   },
 };
