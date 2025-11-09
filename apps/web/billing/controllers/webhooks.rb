@@ -223,17 +223,14 @@ module Billing
 
       # Find organization by Stripe subscription ID
       #
+      # Uses unique index for O(1) lookup instead of O(n) iteration.
+      # The stripe_subscription_id unique_index is defined in WithStripeAccount feature.
+      #
       # @param subscription_id [String] Stripe subscription ID
       # @return [Onetime::Organization, nil] Organization or nil if not found
       def find_organization_by_subscription(subscription_id)
-        # Iterate through all organizations to find one with matching subscription ID
-        # Future optimization: Add a unique index on stripe_subscription_id
-        Onetime::Organization.values.to_a.each do |orgid|
-          org = Onetime::Organization.load(orgid)
-          return org if org&.stripe_subscription_id == subscription_id
-        end
-
-        nil
+        # Use Familia auto-generated finder from unique_index for O(1) lookup
+        Onetime::Organization.find_by_stripe_subscription_id(subscription_id)
       end
 
     end

@@ -23,8 +23,8 @@ Create products in [Stripe Dashboard → Products](https://dashboard.stripe.com/
   "app": "onetimesecret",
   "plan_id": "identity_v1",
   "capabilities": ["create_secrets", "create_team", "custom_domains"],
-  "limit_teams": "1",
-  "limit_members_per_team": "-1"
+  "limit_teams": 1,
+  "limit_members_per_team": -1
 }
 ```
 
