@@ -18,7 +18,11 @@ module AccountAPI::Logic
         raise_form_error 'Please enter a domain' if @domain_input.empty?
         raise_form_error 'Not a valid public domain' unless Onetime::CustomDomain.valid?(@domain_input)
 
-        @custom_domain = Onetime::CustomDomain.load(@domain_input, @cust.custid)
+        # Get customer's organization for domain ownership
+        org = @cust.organization_instances.first
+        raise_form_error 'Customer must belong to an organization' unless org
+
+        @custom_domain = Onetime::CustomDomain.load(@domain_input, org.orgid)
         raise_form_error 'Domain not found' unless @custom_domain
       end
 
