@@ -14,10 +14,12 @@
 # Organization API uses same modern conventions as Account API and Team API for consistency.
 
 require_relative '../../v2/logic/base'
+require_relative '../../../lib/onetime/logic/authorization_helpers'
 
 module OrganizationAPI
   module Logic
     class Base < V2::Logic::Base
+      include Onetime::Logic::AuthorizationHelpers
       # Organization API-specific serialization helper
       #
       # Converts Familia model to JSON hash with native types.
@@ -115,57 +117,30 @@ module OrganizationAPI
         'member'
       end
 
-      # Check if user has a system-level role
-      #
-      # System roles (not organization-specific):
-      # - colonel: Site administrators with full access
-      # - admin: Future system admin role
-      #
-      # @param role [String] Role name to check ('colonel', 'admin')
-      # @return [Boolean] true if user has the role
-      def cust_has_system_role?(role)
-        return false if cust.nil? || cust.anonymous?
-
-        case role.to_s
-        when 'colonel'
-          cust.role == 'colonel'
-        when 'admin'
-          ['colonel', 'admin'].include?(cust.role)
-        else
-          false
-        end
-      end
-
       # Verify current user owns the organization
       #
-      # Allows system admins (colonels) to bypass ownership check.
-      # This enables site administrators to manage any organization.
+      # Uses authorization helpers for clean multi-condition check:
+      # - Colonels (site admins) can manage any organization
+      # - Organization owners can manage their own organization
       #
       # @param organization [Onetime::Organization]
       # @raise [FormError] If user is not owner and not admin
       def verify_organization_owner(organization)
-        # System admins can manage any organization
-        return if cust_has_system_role?('colonel')
-
-        unless organization.owner?(cust)
-          raise_form_error('Only organization owner can perform this action', field: :extid, error_type: :forbidden)
-        end
+        verify_one_of_roles!('colonel', org_owner: organization,
+          error_message: 'Only organization owner can perform this action')
       end
 
       # Verify current user is an organization member
       #
-      # Allows system admins (colonels) to bypass membership check.
-      # This enables site administrators to view any organization.
+      # Uses authorization helpers for clean multi-condition check:
+      # - Colonels (site admins) can view any organization
+      # - Organization members can view their organization
       #
       # @param organization [Onetime::Organization]
       # @raise [FormError] If user is not a member and not admin
       def verify_organization_member(organization)
-        # System admins can view any organization
-        return if cust_has_system_role?('colonel')
-
-        unless organization.member?(cust)
-          raise_form_error('You must be an organization member to perform this action', field: :extid, error_type: :forbidden)
-        end
+        verify_one_of_roles!('colonel', org_member: organization,
+          error_message: 'You must be an organization member to perform this action')
       end
 
       # Load organization and verify it exists
