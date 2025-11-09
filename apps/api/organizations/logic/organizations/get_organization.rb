@@ -35,26 +35,20 @@ module OrganizationAPI::Logic
       end
 
       def success_data
+        record = serialize_organization(organization)
+
+        # Add members list for detailed view
+        record[:members] = members.map do |member|
+          {
+            id: member.objid,
+            email: member.email,
+            role: determine_user_role(organization, member),
+          }
+        end
+
         {
           user_id: cust.objid,
-          record: {
-            orgid: organization.orgid,
-            display_name: organization.display_name,
-            description: organization.description,
-            contact_email: organization.contact_email,
-            owner_id: organization.owner_id,
-            is_owner: organization.owner?(cust),
-            member_count: organization.member_count,
-            created: organization.created,
-            updated: organization.updated,
-            members: members.map do |member|
-              {
-                custid: member.custid,
-                email: member.email,
-                role: (organization.owner?(member) ? 'owner' : 'member'),
-              }
-            end,
-          },
+          record: record,
         }
       end
     end

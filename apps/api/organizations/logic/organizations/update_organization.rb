@@ -86,17 +86,7 @@ module OrganizationAPI::Logic
       def success_data
         {
           user_id: cust.objid,
-          record: {
-            orgid: organization.orgid,
-            display_name: organization.display_name,
-            description: organization.description,
-            contact_email: organization.contact_email,
-            owner_id: organization.owner_id,
-            is_owner: true,
-            member_count: organization.member_count,
-            created: organization.created,
-            updated: organization.updated,
-          },
+          record: serialize_organization(organization),
         }
       end
 

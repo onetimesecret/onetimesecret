@@ -37,18 +37,7 @@ module OrganizationAPI::Logic
       def success_data
         {
           user_id: cust.objid,
-          records: organizations.map do |org|
-            {
-              orgid: org.orgid,
-              display_name: org.display_name,
-              description: org.description || '',
-              owner_id: org.owner_id,
-              is_owner: org.owner?(cust),
-              member_count: org.member_count,
-              created: org.created,
-              updated: org.updated,
-            }
-          end,
+          records: organizations.map { |org| serialize_organization(org) },
           count: organizations.length,
         }
       end

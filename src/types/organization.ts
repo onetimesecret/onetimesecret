@@ -31,6 +31,17 @@ export interface OrganizationLimits {
 }
 
 /**
+ * Organization role constants
+ */
+export const ORGANIZATION_ROLES = {
+  OWNER: 'owner',
+  ADMIN: 'admin',
+  MEMBER: 'member',
+} as const;
+
+export type OrganizationRole = (typeof ORGANIZATION_ROLES)[keyof typeof ORGANIZATION_ROLES];
+
+/**
  * Organization interface
  */
 export interface Organization {
@@ -41,6 +52,9 @@ export interface Organization {
   is_default: boolean;
   created_at: Date;
   updated_at: Date;
+  owner_id?: string;
+  member_count?: number;
+  current_user_role?: OrganizationRole;
   planid?: string;
   capabilities?: Capability[];
   limits?: OrganizationLimits;
@@ -58,6 +72,9 @@ export const organizationSchema = z.object({
   is_default: z.boolean(),
   created_at: z.number().transform((val) => new Date(val * 1000)),
   updated_at: z.number().transform((val) => new Date(val * 1000)),
+  owner_id: z.string().optional(),
+  member_count: z.number().int().min(0).optional(),
+  current_user_role: z.enum(['owner', 'admin', 'member']).optional(),
   planid: z.string().optional(),
   capabilities: z.array(z.string() as z.ZodType<Capability>).optional(),
   limits: z
