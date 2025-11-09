@@ -234,6 +234,20 @@ class OT::CLI::Definition
   option :c, :check, 'Show customer records where custid and email do not match (obscured)'
   command customers: OT::CustomersCommand
 
+  usage 'ots test-data EMAIL'
+  about 'Create test organizations and teams for UI testing'
+  about 'Creates a non-default organization and team for the specified customer.'
+  about 'Useful for testing organization visibility and billing features.'
+  about ''
+  about 'Examples:'
+  about '  ots test-data user@example.com'
+  about '  ots test-data --org-name "ACME Corp" user@example.com'
+  about '  ots test-data --cleanup user@example.com'
+  option :o, :org_name, String, 'Organization name (auto-generated if not provided)'
+  option :t, :team_name, String, 'Team name (auto-generated if not provided)'
+  option :c, :cleanup, 'Remove all non-default organizations and teams for the user'
+  command test_data: OT::TestDataCommand
+
   usage 'ots domains'
   option :l, :list, 'List domains'
   command domains: OT::DomainsCommand
