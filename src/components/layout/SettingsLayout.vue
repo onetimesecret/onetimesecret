@@ -23,8 +23,25 @@ const sections: NavigationItem[] = [
   {
     to: '/account/settings/profile',
     icon: { collection: 'heroicons', name: 'user-solid' },
-    label: t('web.settings.profile'),
+    label: t('web.settings.profile.title'),
     description: t('web.settings.profile_settings_description'),
+    children: [
+      {
+        to: '/account/settings/profile/preferences',
+        icon: { collection: 'heroicons', name: 'adjustments-horizontal-solid' },
+        label: t('web.settings.preferences'),
+      },
+      {
+        to: '/account/settings/profile/privacy',
+        icon: { collection: 'heroicons', name: 'shield-check' },
+        label: t('web.settings.privacy.title'),
+      },
+      {
+        to: '/account/settings/profile/email',
+        icon: { collection: 'heroicons', name: 'envelope' },
+        label: t('web.settings.profile.change-email'),
+      },
+    ],
   },
   {
     to: '/account/settings/security',
@@ -129,9 +146,9 @@ const isParentActive = (item: NavigationItem): boolean => {
       </p>
     </div>
 
-    <div class="flex flex-col gap-8 lg:flex-row">
+    <div class="flex flex-col gap-8 md:flex-row">
       <!-- Sidebar Navigation -->
-      <aside class="w-full lg:w-72 lg:shrink-0">
+      <aside class="w-full md:w-72 md:shrink-0">
         <nav class="space-y-1" aria-label="Settings navigation">
           <template v-for="item in visibleSections" :key="item.to">
             <!-- Parent item -->
