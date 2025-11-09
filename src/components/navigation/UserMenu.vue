@@ -39,7 +39,6 @@ const props = defineProps<{
   cust: Customer | null;
   email?: string;  // Used when awaiting MFA (no customer object yet)
   colonel?: boolean;
-  showUpgrade?: boolean;
   awaitingMfa?: boolean;
 }>();
 
@@ -114,15 +113,6 @@ const menuItems = computed<MenuItem[]>(() => [
     label: t('web.teams.menu.teams'),
     icon: { collection: 'heroicons', name: 'user-group-solid' },
     condition: () => !props.awaitingMfa && teamStore.hasTeams,
-  },
-  // Upgrade (conditional)
-  {
-    id: 'upgrade',
-    to: '/pricing',
-    label: t('upgrade-for-teams'),
-    icon: { collection: 'tabler', name: 'square-letter-s-solid' },
-    variant: 'cta' as const,
-    condition: () => !props.awaitingMfa && props.showUpgrade,
   },
   // Colonel (conditional)
   {
