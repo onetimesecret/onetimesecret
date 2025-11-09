@@ -167,7 +167,11 @@
       "danger_zone": "Danger Zone",
       "caution_zone": "Careful Consideration Zone",
       "user_menu": "User menu",
-      "security": "Security"
+      "security": "Security",
+      "manage": "Manage",
+      "loading": "Loading...",
+      "save_changes": "Save Changes",
+      "saving": "Saving..."
     },
     "LABELS": {
       "view_toggle": {
@@ -1045,6 +1049,7 @@
       "getting_started_description": "Create your first organization to manage your company information and prepare for future team collaboration and branding features.",
       "tabs": {
         "general": "General",
+        "company_branding": "Company Branding",
         "teams": "Teams",
         "billing": "Billing"
       },

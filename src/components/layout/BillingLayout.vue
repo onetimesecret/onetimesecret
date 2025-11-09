@@ -4,10 +4,12 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { useOrganizationStore } from '@/stores/organizationStore';
 import OIcon from '@/components/icons/OIcon.vue';
 
 const route = useRoute();
 const { t } = useI18n();
+const organizationStore = useOrganizationStore();
 
 interface NavigationItem {
   to: string;
@@ -27,10 +29,11 @@ const sections: NavigationItem[] = [
     description: t('web.billing.overview.description'),
   },
   {
-    to: '/billing/organizations',
+    to: '/billing/orgs',
     icon: { collection: 'ph', name: 'building-office-bold' },
     label: t('web.organizations.title'),
     description: t('web.organizations.organizations_description'),
+    visible: () => organizationStore.hasNonDefaultOrganizations,
   },
   {
     to: '/billing/plans',
