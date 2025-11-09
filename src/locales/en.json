@@ -1155,6 +1155,7 @@
         "members_upgrade": "Upgrade to add more members"
       },
       "subscription": {
+        "title": "Subscription",
         "status": "Subscription Status",
         "active": "Active",
         "inactive": "Inactive",

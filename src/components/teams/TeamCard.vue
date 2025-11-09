@@ -40,7 +40,7 @@ const handleClick = () => {
         <h3
           class="truncate text-lg font-semibold text-gray-900 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400"
         >
-          {{ team.name }}
+          {{ team.display_name }}
         </h3>
         <p
           v-if="team.description"
