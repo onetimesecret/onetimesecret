@@ -130,9 +130,9 @@ module Onetime
           builder.use Onetime::Session, {
             secret: session_config['secret'],
             expire_after: session_config['expire_after'],
-            key: session_config['key'], # defaults to 'onetime.session' if not specified
-            secure: session_config['secure'] || Onetime.conf&.dig('site', 'ssl'),
-            same_site: (session_config['same_site'] || :strict).to_sym,
+            key: session_config['key'],
+            secure: session_config['secure'],
+            same_site: session_config['same_site'].to_sym,
           }
 
           # Identity resolution middleware (after session)
