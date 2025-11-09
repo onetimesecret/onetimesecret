@@ -13,9 +13,10 @@ module AccountAPI::Logic
       attr_reader :greenlighted, :custom_domain, :domain_input, :display_domain
 
       def process_params
-        OT.ld "[AddDomain] Parsing #{params['domain']}"
         # PublicSuffix does its own normalizing so we don't need to do any here
-        @domain_input = params[:domain].to_s
+        @domain_input = params['domain'].to_s
+
+        OT.ld "[AddDomain] Parsing #{domain_input}"
       end
 
       def raise_concerns
