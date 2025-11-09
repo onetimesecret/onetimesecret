@@ -119,28 +119,32 @@ module OrganizationAPI
 
       # Verify current user owns the organization
       #
-      # Uses authorization helpers for clean multi-condition check:
-      # - Colonels (site admins) can manage any organization
-      # - Organization owners can manage their own organization
+      # Colonels (site admins) have automatic superuser bypass.
+      # Otherwise, user must be organization owner.
       #
       # @param organization [Onetime::Organization]
       # @raise [FormError] If user is not owner and not admin
       def verify_organization_owner(organization)
-        verify_one_of_roles!('colonel', org_owner: organization,
-          error_message: 'Only organization owner can perform this action')
+        verify_one_of_roles!(
+          colonel: true,
+          custom_check: -> { organization.owner?(cust) },
+          error_message: 'Only organization owner can perform this action'
+        )
       end
 
       # Verify current user is an organization member
       #
-      # Uses authorization helpers for clean multi-condition check:
-      # - Colonels (site admins) can view any organization
-      # - Organization members can view their organization
+      # Colonels (site admins) have automatic superuser bypass.
+      # Otherwise, user must be organization member.
       #
       # @param organization [Onetime::Organization]
       # @raise [FormError] If user is not a member and not admin
       def verify_organization_member(organization)
-        verify_one_of_roles!('colonel', org_member: organization,
-          error_message: 'You must be an organization member to perform this action')
+        verify_one_of_roles!(
+          colonel: true,
+          custom_check: -> { organization.member?(cust) },
+          error_message: 'You must be an organization member to perform this action'
+        )
       end
 
       # Load organization and verify it exists

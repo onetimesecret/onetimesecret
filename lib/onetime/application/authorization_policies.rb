@@ -59,60 +59,47 @@ module Onetime
       # Verify user has at least one of the specified roles/permissions
       #
       # Supports multi-condition authorization with early return (OR logic):
-      # - System roles (colonel, admin)
-      # - Organization ownership
-      # - Organization membership
-      # - Custom conditions
+      # - System roles (colonel = superuser, admin = system admin)
+      # - Custom conditions (for resource-level checks)
       #
-      # @param system_roles [Array<String>] System role names (colonel, admin)
-      # @param org_owner [Organization, nil] Organization to check ownership
-      # @param org_member [Organization, nil] Organization to check membership
+      # @param colonel [Boolean] Require colonel (superuser) role
+      # @param admin [Boolean] Require admin role (includes colonel)
       # @param custom_check [Proc, nil] Custom authorization check
+      # @param error_message [String, nil] Override default error message
       # @return [Boolean] true if any condition passes
       # @raise [FormError] If no conditions pass
       #
-      # @example Owner or admin (colonel superuser bypasses automatically)
-      #   verify_one_of_roles!(org_owner: @organization, org_admin: @organization)
+      # @example Colonel-only operation
+      #   verify_one_of_roles!(colonel: true)
       #
-      # @example Member or custom condition (colonel superuser bypasses automatically)
+      # @example System admin operation (colonel or admin)
+      #   verify_one_of_roles!(admin: true)
+      #
+      # @example Resource-level check with custom condition
       #   verify_one_of_roles!(
-      #     org_member: @organization,
-      #     custom_check: -> { @organization.public? }
+      #     custom_check: -> { @organization.owner?(cust) || @organization.member?(cust) }
       #   )
       #
-      # @example Admin-only operation (explicit colonel check)
-      #   verify_one_of_roles!('colonel')  # Only superusers allowed
-      def verify_one_of_roles!(*system_roles, org_owner: nil, org_member: nil, org_admin: nil, custom_check: nil, error_message: nil)
-        # Check system roles
-        system_roles.each do |role|
-          return true if has_system_role?(role)
-        end
+      # @example Multiple conditions (OR logic)
+      #   verify_one_of_roles!(
+      #     admin: true,
+      #     custom_check: -> { @resource.public? }
+      #   )
+      def verify_one_of_roles!(colonel: false, admin: false, custom_check: nil, error_message: nil)
+        # Check colonel (superuser)
+        return true if colonel && has_system_role?('colonel')
 
-        # Check organization owner
-        if org_owner && org_owner.owner?(cust)
-          return true
-        end
-
-        # Check organization admin (future)
-        if org_admin && org_admin.admin?(cust)
-          return true
-        end
-
-        # Check organization member
-        if org_member && org_member.member?(cust)
-          return true
-        end
+        # Check admin (includes colonel via has_system_role?)
+        return true if admin && has_system_role?('admin')
 
         # Check custom condition
-        if custom_check && custom_check.call
-          return true
-        end
+        return true if custom_check&.call
 
         # All checks failed
         message = error_message || build_authorization_error_message(
-          system_roles: system_roles,
-          org_owner: org_owner,
-          org_member: org_member
+          colonel: colonel,
+          admin: admin,
+          has_custom: !custom_check.nil?
         )
 
         raise_form_error(message, field: :user_id, error_type: :forbidden)
@@ -120,42 +107,37 @@ module Onetime
 
       # Verify user has ALL of the specified roles/permissions
       #
-      # Supports multi-condition authorization with AND logic:
-      # - Must have system role AND resource permission
+      # Supports multi-condition authorization with AND logic.
+      # Must pass ALL checks (colonel AND admin AND custom).
       #
-      # @param system_role [String] Required system role
-      # @param org_role [Symbol] Required organization role (:owner, :admin, :member)
-      # @param organization [Organization] Organization to check role in
+      # @param colonel [Boolean] Require colonel (superuser) role
+      # @param admin [Boolean] Require admin role
+      # @param custom_check [Proc, nil] Custom authorization check (must return true)
+      # @param error_message [String, nil] Override default error message
       # @raise [FormError] If any condition fails
       #
-      # @example Must be colonel AND org owner
-      #   verify_all_roles!('colonel', org_role: :owner, organization: @org)
-      def verify_all_roles!(system_role = nil, org_role: nil, organization: nil, error_message: nil)
-        # Check system role if specified
-        if system_role && !has_system_role?(system_role)
-          message = error_message || "Requires #{system_role} role"
+      # @example Must be colonel AND pass custom check
+      #   verify_all_roles!(
+      #     colonel: true,
+      #     custom_check: -> { @organization.owner?(cust) }
+      #   )
+      def verify_all_roles!(colonel: false, admin: false, custom_check: nil, error_message: nil)
+        # Check colonel if required
+        if colonel && !has_system_role?('colonel')
+          message = error_message || "Requires colonel role"
           raise_form_error(message, field: :user_id, error_type: :forbidden)
         end
 
-        # Check organization role if specified
-        if org_role && organization
-          case org_role
-          when :owner
-            unless organization.owner?(cust)
-              message = error_message || "Requires organization owner role"
-              raise_form_error(message, field: :user_id, error_type: :forbidden)
-            end
-          when :admin
-            unless organization.admin?(cust)
-              message = error_message || "Requires organization admin role"
-              raise_form_error(message, field: :user_id, error_type: :forbidden)
-            end
-          when :member
-            unless organization.member?(cust)
-              message = error_message || "Requires organization membership"
-              raise_form_error(message, field: :user_id, error_type: :forbidden)
-            end
-          end
+        # Check admin if required
+        if admin && !has_system_role?('admin')
+          message = error_message || "Requires admin role"
+          raise_form_error(message, field: :user_id, error_type: :forbidden)
+        end
+
+        # Check custom condition if specified
+        if custom_check && !custom_check.call
+          message = error_message || "Insufficient permissions"
+          raise_form_error(message, field: :user_id, error_type: :forbidden)
         end
 
         true
@@ -164,13 +146,12 @@ module Onetime
       private
 
       # Build user-friendly error message from authorization requirements
-      def build_authorization_error_message(system_roles:, org_owner:, org_member:)
+      def build_authorization_error_message(colonel:, admin:, has_custom:)
         conditions = []
 
-        conditions << "site admin" if system_roles.include?('colonel')
-        conditions << "system admin" if system_roles.include?('admin')
-        conditions << "organization owner" if org_owner
-        conditions << "organization member" if org_member
+        conditions << "site admin" if colonel
+        conditions << "system admin" if admin
+        conditions << "sufficient permissions" if has_custom
 
         if conditions.empty?
           "Insufficient permissions"
