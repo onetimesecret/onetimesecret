@@ -12,11 +12,11 @@ module Billing
       #
       # Returns current subscription status, plan details, and usage information.
       #
-      # GET /billing/org/:ext_id
+      # GET /billing/org/:extid
       #
       # @return [Hash] Billing overview data
       def overview
-        org = load_organization(req.params['ext_id'])
+        org = load_organization(req.params['extid'])
 
         data = {
           organization: {
@@ -35,7 +35,7 @@ module Billing
       rescue StandardError => ex
         billing_logger.error "Failed to load billing overview", {
           exception: ex,
-          ext_id: req.params[:ext_id]
+          extid: req.params['extid']
         }
         json_error("Failed to load billing data", status: 500)
       end
@@ -45,14 +45,14 @@ module Billing
       # Creates a new Stripe Checkout Session for the organization to subscribe
       # or change their plan.
       #
-      # POST /billing/org/:ext_id/checkout
+      # POST /billing/org/:extid/checkout
       #
       # @param [String] tier Plan tier (from request body)
       # @param [String] billing_cycle Billing cycle (from request body)
       #
       # @return [Hash] Checkout session URL
       def create_checkout_session
-        org = load_organization(req.params[:ext_id], require_owner: true)
+        org = load_organization(req.params['extid'], require_owner: true)
 
         tier = req.params['tier']
         billing_cycle = req.params['billing_cycle']
@@ -132,7 +132,7 @@ module Billing
       rescue Stripe::StripeError => ex
         billing_logger.error "Stripe checkout session creation failed", {
           exception: ex,
-          ext_id: req.params[:ext_id]
+          extid: req.params['extid']
         }
         json_error("Failed to create checkout session", status: 500)
       end
@@ -141,11 +141,11 @@ module Billing
       #
       # Returns recent invoices from Stripe for the organization's customer.
       #
-      # GET /billing/org/:ext_id/invoices
+      # GET /billing/org/:extid/invoices
       #
       # @return [Hash] List of invoices
       def list_invoices
-        org = load_organization(req.params[:ext_id])
+        org = load_organization(req.params['extid'])
 
         unless org.stripe_customer_id
           return json_response({ invoices: [] })
@@ -182,7 +182,7 @@ module Billing
       rescue Stripe::StripeError => ex
         billing_logger.error "Failed to retrieve invoices", {
           exception: ex,
-          ext_id: req.params[:ext_id]
+          extid: req.params['extid']
         }
         json_error("Failed to retrieve invoices", status: 500)
       end

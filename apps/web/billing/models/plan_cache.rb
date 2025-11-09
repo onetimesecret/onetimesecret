@@ -34,8 +34,6 @@ module Billing
 
       prefix :billing_plan
 
-      class_sorted_set :values
-
       feature :safe_dump
       feature :expiration
 
@@ -104,11 +102,14 @@ module Billing
         # @return [Integer] Number of plans cached
         def refresh_from_stripe
           # Skip Stripe sync in CI/test environments without API key
-          stripe_key = ENV['STRIPE_SECRET_KEY'] || Onetime.conf.dig('billing', 'stripe', 'secret_key')
+          stripe_key = Onetime.conf.dig('billing', 'stripe_key')
           if stripe_key.to_s.strip.empty?
             OT.lw "[PlanCache.refresh_from_stripe] Skipping Stripe sync: No API key configured"
             return 0
           end
+
+          # Configure Stripe SDK with API key
+          Stripe.api_key = stripe_key
 
           OT.li "[PlanCache.refresh_from_stripe] Starting Stripe sync"
 
@@ -224,7 +225,7 @@ module Billing
         #
         # @return [Array<PlanCache>] All cached plans
         def list_plans
-          load_multi(values.to_a)
+          load_multi(instances.to_a)
         end
 
         # Clear all cached plans (for testing or forced refresh)
