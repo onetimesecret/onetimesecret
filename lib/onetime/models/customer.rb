@@ -48,7 +48,6 @@ module Onetime
     feature :counter_fields
     feature :right_to_be_forgotten
     feature :safe_dump_fields
-    feature :with_stripe_account
     feature :with_custom_domains
     feature :status
 

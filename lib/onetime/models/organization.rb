@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require 'rack/utils'
-require_relative 'organization/features'
 
 module Onetime
   # Organization Model
@@ -16,6 +15,7 @@ module Onetime
   # - Auto-generates: org.members (sorted_set), customer.organization_instances, etc.
   #
   class Organization < Familia::Horreum
+    include Familia::Features::Autoloader
 
     using Familia::Refinements::TimeLiterals
 
