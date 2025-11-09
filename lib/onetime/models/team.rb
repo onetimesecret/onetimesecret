@@ -7,6 +7,8 @@ require 'rack/utils'
 module Onetime
   # Team Model (aka Group)
   #
+  # Features are loaded from lib/onetime/models/team/features.rb
+  #
   # Primary Keys & Identifiers:
   #   - objid - Primary key (UUID), internal
   #   - extid - External identifier (e.g., tm%<id>s), user-facing
@@ -27,10 +29,11 @@ module Onetime
   # you can't, it's an external ID.
   #
   class Team < Familia::Horreum
+    include Familia::Features::Autoloader
 
     using Familia::Refinements::TimeLiterals
 
-    feature :safe_dump
+    feature :safe_dump_fields
 
     feature :relationships
     feature :object_identifier

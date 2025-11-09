@@ -35,7 +35,7 @@ module Onetime
     # Use 'organization' prefix to match config_name for Familia v2 participation lookups
     prefix :organization
 
-    feature :safe_dump
+    feature :safe_dump_fields
 
     feature :relationships
     feature :object_identifier
