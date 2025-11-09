@@ -9,7 +9,7 @@ module Core
 
       # /imagine/b79b17281be7264f778c/logo.png
       def imagine
-        logic = V2::Logic::Domains::GetImage.new(req, session, cust, req.params)
+        logic = AccountAPI::Logic::Domains::GetImage.new(strategy_result, req.params, locale)
         logic.raise_concerns
         logic.process
 
