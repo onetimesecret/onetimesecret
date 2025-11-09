@@ -10,7 +10,7 @@ module Core
     # JavaScript variables from the backend to the frontend.
     #
     # Example usage:
-    #   view = Core::Views::VuePoint.new(req, sess, cust, locale)
+    #   view = Core::Views::VuePoint.new(req)
     #   html = view.render('index')
     #
     class VuePoint < Core::Views::BaseView
