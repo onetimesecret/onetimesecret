@@ -1,28 +1,29 @@
-# lib/onetime/application/authorization_helpers.rb
+# lib/onetime/application/authorization_policies.rb
 #
-# Shared authorization helpers for Logic classes
+# Authorization policy module for Logic classes
 #
-# Provides consistent authorization patterns across all APIs:
-# - System role checks (colonel, admin)
+# Provides declarative authorization patterns across all APIs:
+# - System role checks (colonel = superuser)
 # - Organization role checks (owner, admin, member)
-# - Multi-condition authorization
+# - Multi-condition authorization with automatic superuser bypass
 #
 # Located alongside auth_strategies.rb to group authentication and
 # authorization concerns together under the application namespace.
 #
 # Usage:
 #   class MyLogic < BaseLogic
-#     include Onetime::Application::AuthorizationHelpers
+#     include Onetime::Application::AuthorizationPolicies
 #
 #     def raise_concerns
 #       verify_authenticated!
-#       verify_one_of_roles!('colonel', org_owner: @organization)
+#       # Colonel (superuser) automatically bypasses all checks
+#       verify_one_of_roles!(org_owner: @organization, org_member: @organization)
 #     end
 #   end
 
 module Onetime
   module Application
-    module AuthorizationHelpers
+    module AuthorizationPolicies
       # Check if user has a system-level role
       #
       # System roles (not resource-specific):
@@ -70,14 +71,17 @@ module Onetime
       # @return [Boolean] true if any condition passes
       # @raise [FormError] If no conditions pass
       #
-      # @example Admin or owner
-      #   verify_one_of_roles!('colonel', org_owner: @organization)
+      # @example Owner or admin (colonel superuser bypasses automatically)
+      #   verify_one_of_roles!(org_owner: @organization, org_admin: @organization)
       #
-      # @example Member or custom condition
+      # @example Member or custom condition (colonel superuser bypasses automatically)
       #   verify_one_of_roles!(
       #     org_member: @organization,
       #     custom_check: -> { @organization.public? }
       #   )
+      #
+      # @example Admin-only operation (explicit colonel check)
+      #   verify_one_of_roles!('colonel')  # Only superusers allowed
       def verify_one_of_roles!(*system_roles, org_owner: nil, org_member: nil, org_admin: nil, custom_check: nil, error_message: nil)
         # Check system roles
         system_roles.each do |role|

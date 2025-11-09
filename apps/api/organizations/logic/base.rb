@@ -14,12 +14,12 @@
 # Organization API uses same modern conventions as Account API and Team API for consistency.
 
 require_relative '../../v2/logic/base'
-require_relative '../../../lib/onetime/application/authorization_helpers'
+require_relative '../../../../lib/onetime/application/authorization_policies'
 
 module OrganizationAPI
   module Logic
     class Base < V2::Logic::Base
-      include Onetime::Application::AuthorizationHelpers
+      include Onetime::Application::AuthorizationPolicies
       # Organization API-specific serialization helper
       #
       # Converts Familia model to JSON hash with native types.
