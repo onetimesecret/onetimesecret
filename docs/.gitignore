@@ -10,3 +10,4 @@
 !/api/*
 !DOCKER*.md
 !README*.md
+!BILLING*.md
