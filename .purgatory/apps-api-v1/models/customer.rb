@@ -66,9 +66,12 @@ module V1
     safe_dump_field :locale
     safe_dump_field :updated
     safe_dump_field :created
-    safe_dump_field :stripe_customer_id
-    safe_dump_field :stripe_subscription_id
-    safe_dump_field :stripe_checkout_email
+
+    # Fields have been moved to Organization (via with_stripe_account)
+    #
+    # safe_dump_field :stripe_customer_id
+    # safe_dump_field :stripe_subscription_id
+    # safe_dump_field :stripe_checkout_email
     safe_dump_field :planid
 
     # NOTE: The secrets_created incrementer is null until the first secret

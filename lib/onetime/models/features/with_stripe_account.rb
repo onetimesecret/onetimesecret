@@ -15,15 +15,6 @@ module Onetime
           OT.ld "[features] #{base}: #{name}"
 
           base.include InstanceMethods
-
-          base.field :stripe_customer_id
-          base.field :stripe_subscription_id
-          base.field :stripe_checkout_email
-
-          # Add indexes. e.g. unique_index :extid, :extid_index, within: Onetime::Organization
-          base.unique_index :stripe_customer_id, :stripe_customer_id_index
-          base.unique_index :stripe_subscription_id, :stripe_subscription_id_index
-          base.unique_index :stripe_checkout_email, :stripe_checkout_email_index
         end
 
         module InstanceMethods

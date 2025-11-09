@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'rack/utils'
+require_relative 'organization/features'
 
 module Onetime
   # Organization Model
@@ -29,7 +30,6 @@ module Onetime
     feature :external_identifier, format: 'on%<id>s'
     feature :required_fields
     feature :with_organization_billing
-    feature :with_stripe_account
     feature :with_capabilities
 
     identifier_field :orgid
