@@ -21,8 +21,6 @@ module Onetime
 
     prefix :org
 
-    class_sorted_set :values
-
     feature :safe_dump
 
     feature :relationships
