@@ -12,9 +12,9 @@ require 'apps/web/billing/models/plan_cache'
 Billing::Models::PlanCache.clear_cache.class
 #=> Integer
 
-## Create a mock plan manually
+## Create a mock plan manually (metadata-based plan_id with interval)
 @plan = Billing::Models::PlanCache.new(
-  plan_id: 'single_team_monthly_us-east',
+  plan_id: 'identity_v1_monthly',
   stripe_price_id: 'price_test123',
   stripe_product_id: 'prod_test123',
   name: 'Single Team',
@@ -33,8 +33,8 @@ Billing::Models::PlanCache.clear_cache.class
 Billing::Models::PlanCache.values.size
 #=> 1
 
-## Retrieve plan by ID
-@retrieved = Billing::Models::PlanCache.load('single_team_monthly_us-east')
+## Retrieve plan by ID (metadata-based with interval)
+@retrieved = Billing::Models::PlanCache.load('identity_v1_monthly')
 @retrieved.tier
 #=> 'single_team'
 
@@ -49,11 +49,11 @@ Billing::Models::PlanCache.values.size
 ## Get plan using tier, interval, region
 @monthly_plan = Billing::Models::PlanCache.get_plan('single_team', 'monthly', 'us-east')
 @monthly_plan.plan_id
-#=> 'single_team_monthly_us-east'
+#=> 'identity_v1_monthly'
 
-## Get plan with yearly interval
+## Get plan with yearly interval (different plan_id for yearly)
 @yearly_plan = Billing::Models::PlanCache.new(
-  plan_id: 'single_team_yearly_us-east',
+  plan_id: 'identity_v1_yearly',
   stripe_price_id: 'price_yearly123',
   stripe_product_id: 'prod_test123',
   name: 'Single Team Annual',
@@ -67,8 +67,8 @@ Billing::Models::PlanCache.values.size
 )
 @yearly_plan.save
 @yearly_retrieved = Billing::Models::PlanCache.get_plan('single_team', 'yearly', 'us-east')
-@yearly_retrieved.interval
-#=> 'year'
+@yearly_retrieved.plan_id
+#=> 'identity_v1_yearly'
 
 ## List all plans
 Billing::Models::PlanCache.list_plans.size

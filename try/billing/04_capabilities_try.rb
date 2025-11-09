@@ -13,6 +13,50 @@ require_relative '../support/test_helpers'
 ## Setup: Load models and billing modules
 require 'lib/onetime/models/organization'
 require 'lib/onetime/billing/plan_definitions'
+require 'apps/web/billing/models/plan_cache'
+
+## Setup: Populate PlanCache with test data (replaces hardcoded PLAN_DEFINITIONS)
+Billing::Models::PlanCache.clear_cache
+
+## Free plan
+Billing::Models::PlanCache.new(
+  plan_id: 'free',
+  tier: 'free',
+  interval: 'month',
+  region: 'us-east',
+  capabilities: '["create_secrets", "basic_sharing", "view_metadata"]',
+  limits: '{"secrets_per_day": 10, "secret_lifetime": 604800}'
+).save
+
+## Identity Plus v1
+Billing::Models::PlanCache.new(
+  plan_id: 'identity_v1',
+  tier: 'single_team',
+  interval: 'month',
+  region: 'us-east',
+  capabilities: '["create_secrets", "basic_sharing", "view_metadata", "create_team", "custom_domains", "priority_support", "extended_lifetime"]',
+  limits: '{"teams": 1, "members_per_team": -1, "custom_domains": -1, "secret_lifetime": 2592000}'
+).save
+
+## Multi-Team v1
+Billing::Models::PlanCache.new(
+  plan_id: 'multi_team_v1',
+  tier: 'multi_team',
+  interval: 'month',
+  region: 'us-east',
+  capabilities: '["create_secrets", "basic_sharing", "view_metadata", "create_teams", "custom_domains", "api_access", "priority_support", "extended_lifetime", "audit_logs", "advanced_analytics"]',
+  limits: '{"teams": -1, "members_per_team": -1, "custom_domains": -1, "api_rate_limit": 10000, "secret_lifetime": 7776000}'
+).save
+
+## Legacy Identity v0 (for testing legacy plan support)
+Billing::Models::PlanCache.new(
+  plan_id: 'identity_v0',
+  tier: 'single_team',
+  interval: 'month',
+  region: 'us-east',
+  capabilities: '["create_secrets", "basic_sharing", "view_metadata", "create_team", "priority_support"]',
+  limits: '{"teams": 1, "members_per_team": 10, "secret_lifetime": 1209600}'
+).save
 
 ## Create unique test ID suffix to avoid collisions
 @test_suffix = Time.now.to_i.to_s[-6..-1]

@@ -151,10 +151,10 @@ module Billing
       # @param org [Onetime::Organization] Organization instance
       # @return [Hash] Limits with nil for infinity
       def build_limits_hash(org)
-        plan_def = Onetime::Billing::PLAN_DEFINITIONS[org.planid]
-        return {} unless plan_def
+        plan = ::Billing::Models::PlanCache.load(org.planid)
+        return {} unless plan
 
-        limits = plan_def[:limits] || {}
+        limits = plan.parsed_limits
         limits.transform_values do |value|
           value == Float::INFINITY ? nil : value
         end
@@ -178,15 +178,13 @@ module Billing
       def build_plans_summary
         summary = {}
 
-        Onetime::Billing.available_plans.each do |plan_id|
-          plan_def = Onetime::Billing::PLAN_DEFINITIONS[plan_id]
-          next unless plan_def
+        ::Billing::Models::PlanCache.list_plans.each do |plan|
+          next unless plan
 
-          summary[plan_id] = {
-            name: Onetime::Billing.plan_name(plan_id),
-            version: plan_def[:version],
-            capabilities: plan_def[:capabilities],
-            limits: plan_def[:limits].transform_values { |v| v == Float::INFINITY ? nil : v }
+          summary[plan.plan_id] = {
+            name: plan.name,
+            capabilities: plan.parsed_capabilities,
+            limits: plan.parsed_limits.transform_values { |v| v == Float::INFINITY ? nil : v }
           }
         end
 

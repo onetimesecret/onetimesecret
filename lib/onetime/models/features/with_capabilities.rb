@@ -45,18 +45,18 @@ module Onetime
           #
           # Falls back safely to empty array if:
           # - planid is nil/empty
-          # - plan definition not found
-          # - capabilities key missing from plan
+          # - plan not found in cache
+          # - capabilities missing from plan
           #
           # @example
           #   org.capabilities  # => ["create_secrets", "create_team", "custom_domains"]
           def capabilities
             return [] if planid.to_s.empty?
 
-            plan_def = Onetime::Billing::PLAN_DEFINITIONS[planid]
-            return [] unless plan_def  # Fail safely
+            plan = ::Billing::Models::PlanCache.load(planid)
+            return [] unless plan  # Fail safely
 
-            plan_def[:capabilities] || []
+            plan.parsed_capabilities
           end
 
           # Get limit for a specific resource
@@ -66,7 +66,7 @@ module Onetime
           #
           # Falls back safely to 0 (no access) if:
           # - planid is nil/empty
-          # - plan definition not found
+          # - plan not found in cache
           # - limits hash missing
           # - resource not in limits (fail-closed for security)
           #
@@ -77,13 +77,14 @@ module Onetime
           def limit_for(resource)
             return 0 if planid.to_s.empty?
 
-            plan_def = Onetime::Billing::PLAN_DEFINITIONS[planid]
-            return 0 unless plan_def
+            plan = ::Billing::Models::PlanCache.load(planid)
+            return 0 unless plan
 
-            limits = plan_def[:limits] || {}
+            limits = plan.parsed_limits
             # Default to 0 for unknown resources (fail-closed for security)
             # This prevents typos from granting unlimited access
-            limits.fetch(resource.to_sym, 0)
+            # Note: parsed_limits keys are strings from JSON
+            limits.fetch(resource.to_s, 0)
           end
 
           # Check capability with detailed response for upgrade messaging

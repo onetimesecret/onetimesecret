@@ -87,7 +87,9 @@ module Billing
       end
 
       def parsed_limits
-        JSON.parse(limits)
+        parsed = JSON.parse(limits)
+        # Convert -1 to Float::INFINITY for unlimited resources
+        parsed.transform_values { |v| v == -1 ? Float::INFINITY : v }
       rescue JSON::ParserError
         {}
       end
@@ -199,16 +201,23 @@ module Billing
 
         # Get plan by tier, interval, and region
         #
+        # Searches cached plans by tier/interval/region fields instead of
+        # constructing a computed plan_id. Supports metadata-based plan IDs.
+        #
         # @param tier [String] Plan tier (e.g., 'single_team')
         # @param interval [String] Billing interval ('monthly' or 'yearly')
         # @param region [String] Region code (e.g., 'us-east')
         # @return [PlanCache, nil] Cached plan or nil if not found
         def get_plan(tier, interval, region = 'us-east')
-          # Normalize interval to singular form
+          # Normalize interval to singular form (monthly -> month)
           interval = interval.to_s.sub(/ly$/, '')
 
-          plan_id = "#{tier}_#{interval}ly_#{region}"
-          load(plan_id)
+          # Search through all cached plans for matching tier/interval/region
+          list_plans.find do |plan|
+            plan.tier == tier &&
+              plan.interval == interval &&
+              plan.region == region
+          end
         end
 
         # List all cached plans
