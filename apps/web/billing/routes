@@ -21,6 +21,10 @@ GET    /portal                                  Billing::Controllers::Plans#cust
 
 # Organization billing API endpoints (authenticated only)
 # Uses extid (external ID) in URLs for security; orgid (internal ID) is for internal use only
+
+# Plan listing (no authentication required for browsing)
+GET    /plans                                    Billing::Controllers::Billing#list_plans response=json auth=noauth
+
 GET    /org/:ext_id                              Billing::Controllers::Billing#overview response=json auth=sessionauth
 POST   /org/:ext_id/checkout                     Billing::Controllers::Billing#create_checkout_session response=json auth=sessionauth
 GET    /org/:ext_id/invoices                     Billing::Controllers::Billing#list_invoices response=json auth=sessionauth
