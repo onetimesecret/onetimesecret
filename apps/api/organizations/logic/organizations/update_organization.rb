@@ -18,7 +18,7 @@ module OrganizationAPI::Logic
         # Require authenticated user
         raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
 
-        # Validate orgid parameter
+        # Validate extid parameter
         raise_form_error('Organization ID required', field: :extid, error_type: :missing) if @extid.to_s.empty?
 
         # Load organization
@@ -92,7 +92,7 @@ module OrganizationAPI::Logic
 
       def form_fields
         {
-          orgid: @extid,
+          extid: @extid,
           display_name: display_name,
           description: description,
           contact_email: contact_email,
