@@ -65,7 +65,7 @@ module Billing
         region = detect_region
 
         # Get plan from cache
-        plan = Billing::Models::PlanCache.get_plan(tier, billing_cycle, region)
+        plan = ::Billing::Models::PlanCache.get_plan(tier, billing_cycle, region)
 
         unless plan
           billing_logger.warn "Plan not found", {
@@ -195,7 +195,7 @@ module Billing
       #
       # @return [Hash] List of plans
       def list_plans
-        plans = Billing::Models::PlanCache.list_plans
+        plans = ::Billing::Models::PlanCache.list_plans
 
         plan_data = plans.map do |plan|
           {
@@ -246,7 +246,7 @@ module Billing
       def build_plan_data(org)
         return nil unless org.planid
 
-        plan = Billing::Models::PlanCache.load(org.planid)
+        plan = ::Billing::Models::PlanCache.load(org.planid)
         return nil unless plan
 
         {
