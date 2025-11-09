@@ -16,7 +16,7 @@ module Billing
       #
       # @return [Hash] Billing overview data
       def overview
-        org = load_organization(req.params['org_id'])
+        org = load_organization(req.params['ext_id'])
 
         data = {
           organization: {
@@ -53,7 +53,7 @@ module Billing
       #
       # @return [Hash] Checkout session URL
       def create_checkout_session
-        org = load_organization(req.params[:org_id], require_owner: true)
+        org = load_organization(req.params[:ext_id], require_owner: true)
 
         tier = req.params['tier']
         billing_cycle = req.params['billing_cycle']
