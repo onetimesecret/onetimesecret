@@ -101,15 +101,15 @@ module Onetime
 
         def configure(builder, application_context: nil)
           logger = Onetime.get_logger('App')
-          logger.debug "Configuring common middleware", {
-            application: application_context&.[](:name)
+          logger.debug 'Configuring common middleware', {
+            application: application_context&.[](:name),
           }
 
           # IP Privacy FIRST - masks public IPs before logging/monitoring
           # Private/localhost IPs are automatically exempted for development
           # Uses Otto's privacy middleware as a standalone Rack component
-          logger.debug "Setting up IP Privacy middleware", {
-            note: "masks public IPs"
+          logger.debug 'Setting up IP Privacy middleware', {
+            note: 'masks public IPs',
           }
           builder.use Otto::Security::Middleware::IPPrivacyMiddleware
 
@@ -119,11 +119,7 @@ module Onetime
           # Host detection and identity resolution (common to all apps)
           builder.use Rack::DetectHost, logger: Onetime.http_logger
 
-          # TODO: Replace with RequestLogger?
-          # require 'semantic_logger'
-          # SemanticLogger.add_appender(io: $stdout, formatter: :color)
-
-          # adds env['HTTP_X_REQUEST_ID']
+          # Adds env['HTTP_X_REQUEST_ID']
           require 'middleware/request_id'
           builder.use Rack::RequestId, generator: -> { Familia.generate_trace_id }
 
@@ -133,8 +129,8 @@ module Onetime
 
           builder.use Onetime::Session, {
             secret: session_config['secret'],
-            expire_after: session_config['expire_after'] || 86_400,
-            key: session_config['key'] || 'onetime.session',
+            expire_after: session_config['expire_after'],
+            key: session_config['key'], # defaults to 'onetime.session' if not specified
             secure: session_config['secure'] || Onetime.conf&.dig('site', 'ssl'),
             same_site: (session_config['same_site'] || :strict).to_sym,
           }
@@ -144,28 +140,28 @@ module Onetime
 
           # Locale detection middleware (after session, before domain strategy)
           # Sets env['otto.locale'] based on URL param, session, Accept-Language header
-          logger.debug "Setting up Locale detection middleware"
-          builder.use Otto::Locale::Middleware,
+          logger.debug 'Setting up Locale detection middleware'
+          builder.use Otto::Locale::Middleware, {
             available_locales: build_available_locales,
             default_locale: OT.default_locale,
-            debug: OT.debug?
+            debug: OT.debug?,
+          }
 
           # Domain strategy middleware (after identity)
           builder.use Onetime::Middleware::DomainStrategy, application_context: application_context
 
           # Load the logger early so it's ready to log request errors
           unless Onetime.conf&.dig(:logging, :http_requests).eql?(false)
-            logger.debug "Setting up CommonLogger middleware"
+            logger.debug 'Setting up CommonLogger middleware'
             builder.use Rack::CommonLogger
-
           end
 
           # Error Monitoring Integration
           # Add Sentry exception tracking when available
           # This block only executes if Sentry was successfully initialized
           Onetime.with_diagnostics do |diagnostics_conf|
-            logger.debug "Sentry enabled", {
-              config: diagnostics_conf
+            logger.debug 'Sentry enabled', {
+              config: diagnostics_conf,
             }
             # Position Sentry middleware early to capture exceptions throughout the stack
             builder.use Sentry::Rack::CaptureExceptions
@@ -173,18 +169,18 @@ module Onetime
 
           # Security Middleware Configuration
           # Configures security-related middleware components based on application settings
-          logger.debug "Setting up Security middleware"
+          logger.debug 'Setting up Security middleware'
           builder.use Onetime::Middleware::Security
 
           # Performance Optimization
           # Support running with code frozen in production-like environments
           # This reduces memory usage and prevents runtime modifications
-          if Onetime.conf&.dig(:experimental, :freeze_app).eql?(true)
-            logger.info "Freezing app by request", {
-              env: Onetime.env
-            }
-            builder.freeze_app
-          end
+          return unless Onetime.conf&.dig(:experimental, :freeze_app).eql?(true)
+
+          logger.info 'Freezing app by request', {
+            env: Onetime.env,
+          }
+          builder.freeze_app
         end
       end
     end

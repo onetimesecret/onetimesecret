@@ -74,16 +74,17 @@ module Onetime
       raise ArgumentError, 'Secret required for secure sessions' unless options[:secret]
 
       # Merge options with defaults
+      # Note: :key sets the cookie name (defaults to 'onetime.session' instead of
+      # Rack's default 'rack.session' to prevent session fixation attacks), while
+      # the Rack environment key for session data is always env['rack.session'].
       options = DEFAULT_OPTIONS.merge(options)
 
-      # Force cookie name to 'onetime.session' for security (custom name prevents
-      # session fixation attacks). This overrides Rack's default 'rack.session'.
-      # The session key in env['rack.session'] remains standard for compatibility.
-      options[:key] = 'onetime.session'
-
       # Configure Familia connection if redis_uri provided
-      @dbclient = options[:dbclient] || Familia.dbclient
+      @dbclient = options[:dbclient] || Familia.dbclient # TODO: options.delete(:dbclient)?
 
+      # Call parent to set @app, @default_options, @key, etc. Must happen after
+      # we prepare options but before we read from them to derive the keys. Otherwise
+      # it's an, "Ow, I fell on my keys" type situation.
       super
 
       @secret       = options[:secret]

@@ -48,7 +48,7 @@ loggers:
   App: info       # Default application logger
   Auth: info      # Authentication/authorization flows
   Billing: info   # Only used when billing.enabled=true
-  Boot: info      # During intiaialization
+  Boot: info      # During initialization
   Familia: warn   # Redis/Familia main database operations
   HTTP: warn      # HTTP requests and middleware operations
   Otto: warn      # Otto framework operations

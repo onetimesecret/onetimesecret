@@ -4,7 +4,7 @@
 # Controls the authentication mode and related settings
 ---
 
-# Authentication mode: off, 'basic' (Redis-only) or 'advanced' (SQL + Redis)
+# Authentication mode: off, 'basic' (Redis-only) or 'advanced' (requires SQL db)
 mode: basic
 
 # Shared session configuration (both modes)
@@ -28,7 +28,15 @@ advanced:
   #
   # e.g. "postgres://user:password@host:port/database"
   #
-  # In development, can be set to 'sqlite://:memory:' for no persistence.
+  # SQLite paths:
+  #   - 'sqlite://:memory:' - In-memory, no persistence (dev/test only)
+  #   - 'sqlite://data/auth.db' - Relative path from application directory
+  #   - 'sqlite:///data/auth.db' - Absolute path from filesystem root
+  #   - 'sqlite:///tmp/auth.db' - Temporary, lost on restart
+  #
+  # ⚠️  In OCI containers: SQLite files MUST be in a mounted volume directory
+  #     (e.g., /data) or all data will be lost on container restart.
+  #
   database_url: <%= ENV['AUTH_DATABASE_URL'] || 'sqlite://data/auth.db' %>
 
   # Migrations Connection (PostgreSQL, MySQL, MS SQL Server only)
