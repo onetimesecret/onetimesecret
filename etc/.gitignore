@@ -6,6 +6,7 @@
 !examples/*.conf
 !examples/*.yml
 !examples/*.yaml
+!examples/*-example
 !examples/puma*.rb
 !init.d/
 !fortunes*

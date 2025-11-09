@@ -1,0 +1,317 @@
+##
+# Caddy 2 Configuration - One-Time Secret (Updated: 2025-11-09)
+#
+# caddy validate -c etc/examples/Caddyfile-example
+
+{
+  # This email address is used for ACME (Let's Encrypt) contacts
+  # and depending on your customer domain privacy settings, may be
+  # publicly visible in the certificate transparency logs.
+  email {$CERTIFICATE_EMAIL:björk@example.com}
+
+  admin off
+
+  log {
+    output stdout
+    format json
+    level INFO
+  }
+
+  # Explicitly set storage path (/data/caddy is default)
+  storage file_system {
+      root /data/caddy
+  }
+
+  # If disabling HTTP challenge (i.e. port 80), uncomment this setting
+  # to use TLS-ALPN challenge instead.
+  #acme_ca https://acme-v02.api.letsencrypt.org/directory
+
+  # For testing first, use staging:
+  #acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+
+  servers {
+    # Optimize keepalive settings
+    keepalive_interval 20s
+    max_header_size 4kb
+
+    # Set explicit timeouts (updated 2025-05-18)
+    timeouts {
+      read_body 30s
+      read_header 10s
+      write 60s
+      idle 5m
+    }
+
+    # Protect against slow DoS attacks
+    protocols h1 h2 h3
+
+    # If we're behind a proxy, this tells caddy that it's not unsafe
+    # to trust the client IP address(es) in the forwarded-for
+    # header. It's a security measure to prevent someone from
+    # spoofing a different IP address than their own.
+    trusted_proxies static private_ranges
+    client_ip_headers X-Forwarded-For X-Real-IP
+  }
+
+  #on_demand_tls {
+  #  # @see allowed-domains
+  #  ask http://localhost:3001/ask
+  #}
+}
+
+(onetime-root) {
+
+  root * {$PUBLIC_DIR:/var/www/public}
+
+  encode {
+    minimum_length 1024
+    zstd
+    gzip 7
+  }
+  # Block access to sensitive files
+  @sensitive {
+    path */wp-config.php */.env* */.git/* */config.php */.htaccess */readme.html */readme.md
+    path */phpinfo.php */info.php */test.php */server-status */server-info
+    path */admin* */wp-admin
+  }
+  respond @sensitive 404
+
+  # Block known bad user agents and common attack patterns
+  @blocklist {
+    header_regexp User-Agent (nmap|nikto|sqlmap|gobuster|masscan|zmap|zgrab|wpscan|dirbuster)
+    path */wp-login.php */xmlrpc.php */eval-stdin.php */install.php
+  }
+  respond @blocklist 404
+
+}
+
+(onetime-headers) {
+  # Add a unique ID for every request for enhanced debugging and logging.
+  # Excludes favicon requests for efficiency.
+  @always {
+    not path /favicon.ico
+  }
+  # Adds the O-Request-ID header to all requests (excluding
+  # favicon.ico) using a UUID.
+  header @always O-Request-ID "{http.request.uuid}"
+
+  # Serve static files if they exist
+  @exists file
+  handle @exists {
+    file_server
+  }
+
+  header {
+    # Don't send referrer information when leaving the site
+    Referrer-Policy "no-referrer"
+    X-Content-Type-Options nosniff
+    X-Frame-Options DENY
+    X-XSS-Protection "1; mode=block"
+    X-Via -{args[0]}
+
+    # Prevent caching of sensitive content
+    Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Pragma "no-cache"
+
+    # Prevent search engines from indexing
+    X-Robots-Tag "noindex, nofollow, noarchive, nosnippet, noimageindex"
+
+    # Remove Server header to minimize fingerprinting
+    -Server
+  }
+}
+
+(onetime-proxy) {
+  handle {
+    # Forward all other requests to backend
+    reverse_proxy {
+      # Pass custom domain relevant headers to backend
+      header_up Host {http.request.host}
+      header_up Apx-Incoming-Host {http.request.header.Apx-Incoming-Host}
+      header_up X-Forwarded-Host {http.request.header.X-Forwarded-Host}
+      header_up X-Original-Host {http.request.host}
+      header_up X-Real-IP {http.request.remote.host}
+
+      # Filter request headers to prevent header smuggling
+      header_down -Server
+
+      to onetime-app:3000
+
+      # Load Balancer
+      #
+      # @see https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#load-balancing
+      lb_policy least_conn
+
+      # How many times to retry selecting available backends (default: 0).
+      # retries may stop early if the duration is reached. In other words,
+      # the retry duration takes precedence over the retry count.
+      #lb_retries 1
+
+      # how long to try selecting available backends for each request if
+      # the next available host is down. (default: 0)
+      #lb_try_duration 5s
+
+      # Active health checking
+      #
+      # @see https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#active-health-checks
+      health_uri /api/v2/status
+
+      # Substring or regular expression to match
+      health_body nominal
+
+      # How often to check (default: 30s)
+      health_interval 20s
+
+      # Consecutive checks to mark healthy/unhealthy (default: 1)
+      health_passes 1
+      health_fails 1
+
+      # How long to wait before marking down (default: 5s)
+      health_timeout 5s
+
+      # Passive health checks
+      #
+      # @see https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#passive-health-checks
+
+      # How long to remember a failed request; a duration > 0 enables
+      # passive health checking. (default: 30s)
+      fail_duration 30s
+
+      transport http {
+        compression off
+        keepalive off # important
+
+        read_timeout 15s
+        write_timeout 60s
+        dial_timeout 5s
+      }
+    }
+  }
+}
+
+(onetime-logging) {
+  # Site-wide logging configuration
+  # https://github.com/caddyserver/transform-encoder?tab=readme-ov-file
+  log {
+    output stdout
+    format json {
+      time_format unix_milli_float
+      duration_format string
+    }
+
+    level INFO
+    #exclude_headers authorization cookie set-cookie
+  }
+
+  @api_endpoints_logging {
+    path /auth /api/v3/secret /api/v2/secret /api/v1/share /api/v1/generate
+  }
+
+  log @api_endpoints_logging {
+    output stdout
+    #format transform "{ts} [DEBUG] host={request>host} method={request>method} path={request>uri} status={status} duration={duration} size={size} upstream_addr={upstream>dial_addr} upstream_duration={upstream>latency} dial_duration={upstream>dial_duration} client_ip={request>client_ip}" {
+    #  time_format "2006-01-02 15:04:05.000"
+    #  time_local
+    #}
+    #level DEBUG
+  }
+}
+
+
+######################################################################
+#                                                                    #
+#        SERVER SETTINGS BELOW THIS LINE -- THAR SHE BELOWS          #
+#                                                                    #
+######################################################################
+
+{$DOMAIN}:443 {
+  tls {
+    protocols tls1.3
+
+    # When using CloudFlare Proxy DNS (Orange Cloud is on), it helps to
+    # explicitly disable http certificate validation since the incoming
+    # requests are blocked and never make it through.
+    #
+    ## Disable HTTP-01, use only TLS-ALPN-01
+    #issuer acme {
+    # disable_http_challenge
+    #}
+  }
+
+  import onetime-root
+  import onetime-headers main
+  import onetime-proxy
+  import onetime-logging
+
+  # HSTS configuration
+  # NOTE: For domains that are proxied through CloudFlare, these settings are
+  # overridden and configured in the CloudFlare SSL/TLS Dashboard.
+  #@hsts_domains {
+  #  host example.com
+  #}
+  #header @hsts_domains Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+}
+
+# Verify the http-01 challenge is configured correctly:
+#
+#   # This should serve the challenge (or 404 if no active challenge)
+#   $ curl -v http://example.com/.well-known/acme-challenge/test
+#
+#   # This should redirect to https
+#   $ curl -I http://example.com/anything-else
+#
+http:// {
+  # ACME http challenge path - no redirect
+  handle /.well-known/acme-challenge/* {
+    file_server
+  }
+
+  # Everything else - redirect to HTTPS
+  handle {
+    redir https://{host}{uri} permanent
+  }
+}
+
+# If on demand certificates are enabled.
+#
+#https:// {
+#  #
+#  # The tls block must not have any cert or issue settings otherwise:
+#  #   "Error: adapting config using caddyfile: automation policy from site block is also
+#  #   default/catch-all policy because of key without hostname, and the two are in conflict"
+#  #
+#  tls {
+#    protocols tls1.3
+#    on_demand
+#  }
+#
+#  import onetime-root
+#  import onetime-headers on_demand
+#  import onetime-proxy
+#  import onetime-logging
+#}
+
+# Caddy relies on this to be available for hot reloads
+#
+# i.e. systemctl reload caddy.service
+:2019 {
+  @local_only {
+    remote_ip 127.0.0.1 ::1
+  }
+
+  # (Optional) Custom Debugging endpoint - only available locally
+  handle /debug/headers {
+    @allowed {
+      expression {remote_ip} == '127.0.0.1' || {remote_ip} == '::1'
+    }
+    respond @allowed "Headers debug endpoint" 200 {
+      close
+    }
+    respond 403
+  }
+
+  log {
+    output stdout
+    level DEBUG
+  }
+}

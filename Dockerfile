@@ -18,26 +18,44 @@
 #
 # RUNNING:
 #
-#     # 1. Start a Valkey/Redis container:
-#     $ docker run -d --name db -p 6379:6379 valkey/valkey
+#     # 1. Create a dedicated docker network
+#     $ docker network create onetime-network
 #
-#     # 2. Set a unique secret:
+#     # 2. Start a Valkey/Redis container with persistent storage:
+#     $ docker run -d --name onetime-maindb \
+#         --network onetime-network \
+#         -p 6379:6379 \
+#         -v onetime_maindb_data:/data \
+#         valkey/valkey
+#
+#     # 3. Set a unique secret:
 #     $ openssl rand -hex 24
 #     [Copy the output and save it somewhere safe]
 #
 #     $ echo -n "Enter a secret and press [ENTER]: "; read -s SECRET
 #     [Paste the secret you copied from the openssl command]
 #
-#     # 3. Run the application:
-#     $ docker run -p 3000:3000 -d --name onetimesecret \
+#     # 4. Run the application:
+#     $ docker run -p 3000:3000 --name onetime-app \
+#         --network onetime-network \
 #         -e SECRET=$SECRET \
-#         -e REDIS_URL=redis://host.docker.internal:6379/0 \
+#         -e SESSION_SECRET=$SESSION_SECRET \
+#         -e REDIS_URL=redis://onetime-maindb:6379/0 \
+#         --detach \
 #         onetimesecret
 #
 # The app will be at http://localhost:3000. For more, see docs/docker.md.
 #
+#     # Double-check the persistent storage for redis
+#     $ docker exec onetime-maindb ls -la /data
+#
+#     $ docker volume inspect onetime_maindb_data
+#
+#     # View application logs
+#     $ docker logs onetime-app
 
 ARG APP_DIR=/app
+ARG PUBLIC_DIR=/var/www/public
 ARG VERSION
 ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:dd8c06af4886548264f4463ee2400fd6be641b0562c8f681e490d759632078f5
 ARG NODE_IMAGE_TAG=22@sha256:23c24e85395992be118734a39903e08c8f7d1abc73978c46b6bda90060091a49
@@ -167,11 +185,12 @@ RUN set -eux && \
 #
 FROM docker.io/library/ruby:${RUBY_IMAGE_TAG} AS final
 ARG APP_DIR
+ARG PUBLIC_DIR
 ARG VERSION
 
 LABEL org.opencontainers.image.version=${VERSION} \
       org.opencontainers.image.title="OneTime Secret" \
-      org.opencontainers.image.description="Keep passwords out of your inboxes and chat logs with links that work only once." \
+      org.opencontainers.image.description="Keep passwords out of your inboxes and chat logs with links that work only one time." \
       org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret"
 
 WORKDIR ${APP_DIR}
@@ -183,7 +202,7 @@ WORKDIR ${APP_DIR}
 #     chown -R appuser:appuser ${APP_DIR}
 
 # Now we can switch to the non-root user for the rest of the commands
-# WARNING: Changing the user adds a big, new layer to the image.
+# WARNING: Changing the user after COPY operations adds a large, new layer to the image.
 # USER appuser
 
 # Copy only runtime essentials from build stages
@@ -207,6 +226,7 @@ COPY package.json config.ru Gemfile Gemfile.lock ./
 # Set production environment
 ENV RACK_ENV=production \
     ONETIME_HOME=${APP_DIR} \
+    PUBLIC_DIR=${PUBLIC_DIR} \
     RUBY_YJIT_ENABLE=1 \
     SERVER_TYPE=puma \
     PATH=${APP_DIR}/bin:$PATH

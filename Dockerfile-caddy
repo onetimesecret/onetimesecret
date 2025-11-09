@@ -1,0 +1,93 @@
+# Dockerfile-caddy
+#
+# Expects One-Time Secret to be running as onetime-app on port 3000.
+#
+#   # Build
+#   $ docker build -f Dockerfile-caddy -t onetime-caddy:2.10 .
+#
+#   # Prepare
+#   $ docker network create onetime-network
+#
+#   # Run
+#   $ docker run \
+#     --name onetime-proxy \
+#     --network onetime-network \
+#     -p 80:80 \
+#     -p 443:443 \
+#     -v $PWD/etc/examples/Caddyfile-example:/etc/caddy/Caddyfile \
+#     -v onetime_caddy_data:/data \
+#     -e CERTIFICATE_EMAIL=björk@example.com \
+#     -e DOMAIN=secrets.example.com \
+#     --detach \
+#     onetime-caddy:latest
+#
+#   # Double-check the persistent storage
+#   $ docker exec onetime-proxy ls -la /data/caddy
+#
+#   # View caddy logs
+#   $ docker logs onetime-proxy
+#
+# The mounted volume handles all persistence automatically. Make sure your
+# Caddyfile uses valid domain names that resolve to your server.
+
+# Notes:
+#   * No systemd: Docker containers don't use systemd, so we run Caddy directly
+#     via CMD, in foreground as PID 1
+#   * Official repo: Uses Cloudsmith APT repository for stable Caddy releases
+#   * Permissions: Sets proper permissions on keyring and sources list
+#   * Cleanup: Removes apt lists to reduce image size
+#
+# What's Stored in /data
+#   * TLS/SSL certificates - Automatically obtained from Let's Encrypt or other ACME providers
+#   * Certificate private keys
+#   * OCSP staples - For certificate validation
+#   * Certificate metadata - Renewal information, timestamps
+#
+# Without persisting /data, Caddy would:
+#   * Re-request certificates on every container restart
+#   * Hit Let's Encrypt rate limits (~5 certificates per domain per week)
+#   * Experience downtime during certificate re-issuance
+
+FROM debian:bookworm-slim
+
+ARG PUBLIC_DIR=/var/www/public
+ARG CADDY_VERSION=2.10.2
+
+# Install dependencies and add Caddy stable repository
+RUN apt-get update && apt-get install -y \
+    debian-keyring \
+    debian-archive-keyring \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+   	bind9-dnsutils \
+    && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
+    && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list \
+    && chmod 644 /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
+    && chmod 644 /etc/apt/sources.list.d/caddy-stable.list \
+    && apt-get update \
+    && apt-get install -y caddy=${CADDY_VERSION} \
+    && caddy version \
+    && rm -rf /var/lib/apt/lists/*
+
+# Ensure directories exist and make PUBLIC_DIR available as env var
+RUN mkdir -p /etc/caddy ${PUBLIC_DIR}
+ENV PUBLIC_DIR=${PUBLIC_DIR}
+
+# Ensure a default configuration (can be overridden at run time)
+# via `-v path/2/Caddyfile:/etc/caddy/Caddyfile:ro`
+COPY ./etc/examples/Caddyfile-example /etc/caddy/Caddyfile
+
+# Copy static assets so they're served directly by Caddy instead of proxied
+COPY ./public/web ${PUBLIC_DIR}
+
+# Exposing ports is safe. For documentation only - Tells users which ports the container listens on
+# Metadata - Used by tools like docker-compose for automatic port mapping
+# No network effect - Ports remain isolated within the container
+EXPOSE 80 443 2019
+
+# Volumes for persistence
+VOLUME /data /config
+
+# Run Caddy directly (not via systemd)
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
