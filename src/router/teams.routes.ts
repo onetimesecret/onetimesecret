@@ -24,7 +24,7 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/teams/:teamid',
+    path: '/teams/:extid',
     name: 'Team Dashboard',
     components: {
       default: () => import('@/views/teams/TeamDashboard.vue'),
@@ -41,7 +41,7 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/teams/:teamid/members',
+    path: '/teams/:extid/members',
     name: 'Team Members',
     components: {
       default: () => import('@/views/teams/TeamMembers.vue'),
@@ -58,7 +58,7 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/teams/:teamid/settings',
+    path: '/teams/:extid/settings',
     name: 'Team Settings',
     components: {
       default: () => import('@/views/teams/TeamSettings.vue'),

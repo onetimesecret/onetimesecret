@@ -1,6 +1,7 @@
 <!-- src/views/teams/TeamsHub.vue -->
 
 <script setup lang="ts">
+import BillingLayout from '@/components/layout/BillingLayout.vue';
 import CreateTeamModal from '@/components/teams/CreateTeamModal.vue';
 import TeamCard from '@/components/teams/TeamCard.vue';
 import UpgradePrompt from '@/components/billing/UpgradePrompt.vue';
@@ -50,12 +51,12 @@ onMounted(async () => {
   }
 });
 
-const handleTeamClick = (teamId: string) => {
-  router.push({ name: 'Team Dashboard', params: { teamid: teamId } });
+const handleTeamClick = (extid: string) => {
+  router.push({ name: 'Team Dashboard', params: { extid } });
 };
 
-const handleTeamCreated = (teamId: string) => {
-  router.push({ name: 'Team Dashboard', params: { teamid: teamId } });
+const handleTeamCreated = (extid: string) => {
+  router.push({ name: 'Team Dashboard', params: { extid } });
 };
 
 const openCreateModal = () => {
@@ -70,10 +71,11 @@ const closeCreateModal = () => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  <BillingLayout>
+  <div class="space-y-6">
     <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
         {{ t('web.teams.teams') }}
       </h1>
       <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -149,7 +151,7 @@ aria-hidden="true" />
     </div>
 
     <!-- Content -->
-    <div class="mt-8">
+    <div>
       <!-- Upgrade Prompts -->
       <div class="mb-6 space-y-4">
         <!-- No capability to create teams -->
@@ -184,9 +186,9 @@ aria-hidden="true" />
         <div v-else-if="teams.length > 0" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <TeamCard
             v-for="team in teams"
-            :key="team.id"
+            :key="team.extid"
             :team="team"
-            @click="handleTeamClick(team.id)"
+            @click="handleTeamClick(team.extid)"
           />
         </div>
 
@@ -228,4 +230,5 @@ aria-hidden="true" />
       @created="handleTeamCreated"
     />
   </div>
+  </BillingLayout>
 </template>

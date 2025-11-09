@@ -43,7 +43,7 @@ export interface TeamMember {
  * Team interface
  */
 export interface Team {
-  id: string;
+  extid: string; // External identifier (e.g., tm123456) - used in URLs
   display_name: string;
   description?: string;
   owner_id: string;
@@ -83,7 +83,7 @@ export const teamMemberSchema = z.object({
 });
 
 export const teamSchema = z.object({
-  id: z.string(),
+  extid: z.string(), // External identifier (e.g., tm123456) - used in URLs
   display_name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
   owner_id: z.string(),
