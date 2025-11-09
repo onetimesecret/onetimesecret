@@ -63,7 +63,7 @@ module Auth::Config::Hooks
       # Note: This hook is disabled in the 'test' environment to simplify
       # testing scenarios that do not require email verification flows.
       #
-      unless Onetime.env?('test')
+      unless Onetime.env?('testing')
         auth.after_verify_account do
           Auth::Logging.log_auth_event(
             :account_verified,
