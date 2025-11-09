@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
+import { BillingService } from '@/services/billing.service';
 import OIcon from '@/components/icons/OIcon.vue';
 import BillingLayout from '@/components/layout/BillingLayout.vue';
 import { useCapabilities } from '@/composables/useCapabilities';
@@ -60,10 +61,20 @@ const loadOrganizationData = async (orgId: string) => {
       await organizationStore.fetchCapabilities(orgId);
     }
 
-    // TODO: Load payment method and billing date from API
-    // This is placeholder logic until backend implements the endpoints
-    paymentMethod.value = null;
-    nextBillingDate.value = null;
+    // Load billing overview data from API
+    if (org.extid) {
+      const overview = await BillingService.getOverview(org.extid);
+
+      // Update next billing date from subscription
+      if (overview.subscription?.period_end) {
+        nextBillingDate.value = new Date(overview.subscription.period_end * 1000);
+      } else {
+        nextBillingDate.value = null;
+      }
+
+      // Payment method coming from backend in future update
+      paymentMethod.value = overview.payment_method || null;
+    }
   } catch (err) {
     const classified = classifyError(err);
     error.value = classified.message || 'Failed to load billing information';
