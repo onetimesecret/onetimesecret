@@ -203,6 +203,7 @@ WORKDIR ${APP_DIR}
 
 # Now we can switch to the non-root user for the rest of the commands
 # WARNING: Changing the user after COPY operations adds a large, new layer to the image.
+#
 # USER appuser
 
 # Copy only runtime essentials from build stages
@@ -249,8 +250,8 @@ RUN set -eux && \
 
 EXPOSE 3000
 
-# HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-#     CMD curl -f http://localhost:3000/api/v2/status || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://127.0.0.1:3000/api/v2/status || exit 1
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:
