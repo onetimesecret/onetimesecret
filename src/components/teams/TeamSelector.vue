@@ -166,7 +166,7 @@ const getRoleBadge = (role: string) => ({
               <div class="mt-0.5 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                 <OIcon
                   collection="heroicons"
-                  name="users"
+                  name="rectangle-group"
                   class="size-3"
                   aria-hidden="true"
                 />

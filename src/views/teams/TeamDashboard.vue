@@ -93,7 +93,7 @@ const getRoleBadge = computed(() => {
             </span>
             <div class="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
               <OIcon collection="heroicons"
-name="users"
+name="rectangle-group"
 class="size-4"
 aria-hidden="true" />
               <span>{{ activeTeam.member_count }} {{ activeTeam.member_count === 1 ? t('web.teams.member') : t('web.teams.members') }}</span>
@@ -133,7 +133,7 @@ aria-hidden="true" />
           >
             <div class="flex items-center gap-2">
               <OIcon collection="heroicons"
-name="users"
+name="rectangle-group"
 class="size-5"
 aria-hidden="true" />
               <span>{{ t('web.teams.members') }}</span>
@@ -178,7 +178,7 @@ aria-hidden="true" />
               <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900">
                 <OIcon
                   collection="heroicons"
-                  name="users"
+                  name="rectangle-group"
                   class="size-6 text-brand-600 dark:text-brand-400"
                   aria-hidden="true"
                 />

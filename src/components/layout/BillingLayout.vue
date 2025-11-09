@@ -37,7 +37,7 @@ const sections: NavigationItem[] = [
   },
   {
     to: '/teams',
-    icon: { collection: 'heroicons', name: 'user-group' },
+    icon: { collection: 'heroicons', name: 'rectangle-group' },
     label: t('web.teams.title'),
     description: t('web.teams.teams_description'),
   },

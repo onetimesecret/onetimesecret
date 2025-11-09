@@ -275,7 +275,7 @@ onMounted(async () => {
                   /month
                 </span>
               </div>
-              <p v-if="billingInterval === 'year' && plan.amount > 0" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p v-if="plan.interval === 'year' && plan.amount > 0" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 Billed {{ formatCurrency(plan.amount, plan.currency) }} yearly
               </p>
             </div>

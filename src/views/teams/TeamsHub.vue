@@ -112,7 +112,7 @@ const closeCreateModal = () => {
         >
           <div class="flex items-center gap-2">
             <OIcon collection="heroicons"
-name="users"
+name="rectangle-group"
 class="size-5"
 aria-hidden="true" />
             <span>{{ t('web.teams.my_teams') }}</span>
@@ -196,7 +196,7 @@ aria-hidden="true" />
         <div v-else class="text-center">
           <OIcon
             collection="heroicons"
-            name="users"
+            name="rectangle-group"
             class="mx-auto size-12 text-gray-400 dark:text-gray-600"
             aria-hidden="true"
           />

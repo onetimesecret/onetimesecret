@@ -436,7 +436,7 @@ watch(activeTab, async (newTab) => {
             <div v-else class="py-12 text-center">
               <OIcon
                 collection="heroicons"
-                name="user-group"
+                name="rectangle-group"
                 class="mx-auto size-12 text-gray-400"
                 aria-hidden="true" />
               <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
