@@ -34,6 +34,7 @@ module Onetime
         # Register expected errors with status codes and log levels
         router.register_error_handler(Onetime::RecordNotFound, status: 404, log_level: :info)
         router.register_error_handler(Onetime::MissingSecret, status: 404, log_level: :info)
+        router.register_error_handler(Onetime::FormError, status: 400, log_level: :info)
 
         return unless Onetime.debug?
 

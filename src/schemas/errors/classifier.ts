@@ -75,8 +75,11 @@ export const errorClassifier = {
   },
 
   extractUserMessage(details: any, error: HttpErrorLike): string {
-    // Check both 'error' (Rodauth format) and 'message' (standard format)
-    return details.error || details.message || error.message || 'HTTP Error';
+    // Prioritize 'message' over 'error' since 'error' is often a generic type identifier
+    // while 'message' contains the user-friendly description
+    // Example API response: { "error": "FormError", "message": "Please enter a domain" }
+    // We want to show "Please enter a domain" not "FormError"
+    return details.message || details.error || error.message || 'HTTP Error';
   },
 
   determineHttpErrorType(status: number | undefined, details: any): ErrorType {

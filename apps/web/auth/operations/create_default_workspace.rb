@@ -59,8 +59,7 @@ module Auth
         )
 
         # Mark as default workspace (prevents deletion)
-        org.is_default = true
-        org.save
+        org.is_default! true
 
         org
       rescue => e
@@ -79,8 +78,7 @@ module Auth
         )
 
         # Mark as default workspace (prevents deletion)
-        team.is_default = true
-        team.save
+        team.is_default! true
 
         team
       rescue => e

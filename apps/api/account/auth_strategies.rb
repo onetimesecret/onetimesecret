@@ -19,7 +19,8 @@ module AccountAPI
     # Registers Onetime authentication strategies with Otto router
     #
     # Delegates to centralized Onetime::Application::AuthStrategies.
-    # Registers noauth, session-based, and admin strategies.
+    # Registers noauth, session-based authentication strategies.
+    # For role-based authorization, use the role= route option (e.g., auth=sessionauth role=colonel).
     #
     # @param otto [Otto] Otto router instance
     def register_essential(otto)
@@ -40,9 +41,6 @@ module AccountAPI
 
       # HTTP Basic Auth - require valid apikey and apisecretkey
       otto.add_auth_strategy('basicauth', Onetime::Application::AuthStrategies::BasicAuthStrategy.new)
-
-      # Colonel-only routes (admin)
-      otto.add_auth_strategy('colonelsonly', Onetime::Application::AuthStrategies::ColonelStrategy.new)
     end
   end
 end

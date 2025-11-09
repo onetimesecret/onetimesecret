@@ -72,8 +72,8 @@ end
 @org.member_count
 #=> 1
 
-## Can add member to organization (using Familia v2 participates_in)
-@owner_objid = @org.add_member(@member1)
+## Can add member to organization (using Familia v2 auto-generated method)
+@owner_objid = @org.add_members_instance(@member1)
 @org.member?(@member1)
 #=> true
 
@@ -82,7 +82,7 @@ end
 #=> 2
 
 ## Can add multiple members
-@org.add_member(@member2)
+@org.add_members_instance(@member2)
 [@org.member?(@member2), @org.member_count]
 #=> [true, 3]
 
@@ -104,7 +104,7 @@ members = @org.list_members
 #=> Onetime::Customer
 
 ## Can remove member from organization
-@org.remove_member(@member2)
+@org.remove_members_instance(@member2)
 @org.member?(@member2)
 #=> false
 

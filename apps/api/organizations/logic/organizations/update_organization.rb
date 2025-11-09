@@ -8,7 +8,7 @@ module OrganizationAPI::Logic
       attr_reader :organization, :display_name, :description, :contact_email
 
       def process_params
-        @orgid = params['orgid']
+        @extid = params['extid']
         @display_name = (params[:display_name] || params['display_name']).to_s.strip
         @description = (params[:description] || params['description']).to_s.strip
         @contact_email = (params[:contact_email] || params['contact_email']).to_s.strip
@@ -19,10 +19,10 @@ module OrganizationAPI::Logic
         raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
 
         # Validate orgid parameter
-        raise_form_error('Organization ID required', field: :orgid, error_type: :missing) if @orgid.to_s.empty?
+        raise_form_error('Organization ID required', field: :extid, error_type: :missing) if @extid.to_s.empty?
 
         # Load organization
-        @organization = load_organization(@orgid)
+        @organization = load_organization(@extid)
 
         # Verify user is owner
         verify_organization_owner(@organization)
@@ -47,7 +47,7 @@ module OrganizationAPI::Logic
         if !contact_email.empty?
           # Use unique_index finder for O(1) lookup (no iteration)
           existing_org = Onetime::Organization.find_by_contact_email(contact_email)
-          if existing_org && existing_org.orgid != @orgid
+          if existing_org && existing_org.orgid != @extid
             raise_form_error('An organization with this contact email already exists', field: :contact_email, error_type: :exists)
           end
         end
@@ -59,7 +59,7 @@ module OrganizationAPI::Logic
       end
 
       def process
-        OT.ld "[UpdateOrganization] Updating organization #{@orgid} for user #{cust.custid}"
+        OT.ld "[UpdateOrganization] Updating organization #{@extid} for user #{cust.custid}"
 
         # Update fields
         if !display_name.empty?
@@ -78,7 +78,7 @@ module OrganizationAPI::Logic
         @organization.updated = Familia.now.to_i
         @organization.save
 
-        OT.info "[UpdateOrganization] Updated organization #{@orgid}"
+        OT.info "[UpdateOrganization] Updated organization #{@extid}"
 
         success_data
       end
@@ -92,7 +92,7 @@ module OrganizationAPI::Logic
 
       def form_fields
         {
-          orgid: @orgid,
+          orgid: @extid,
           display_name: display_name,
           description: description,
           contact_email: contact_email,

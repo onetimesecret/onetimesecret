@@ -12,11 +12,11 @@ module Billing
       #
       # Returns current subscription status, plan details, and usage information.
       #
-      # GET /billing/org/:org_id
+      # GET /billing/org/:ext_id
       #
       # @return [Hash] Billing overview data
       def overview
-        org = load_organization(req.params[:org_id])
+        org = load_organization(req.params['org_id'])
 
         data = {
           organization: {
@@ -36,7 +36,7 @@ module Billing
       rescue StandardError => ex
         billing_logger.error "Failed to load billing overview", {
           exception: ex,
-          org_id: req.params[:org_id]
+          ext_id: req.params[:ext_id]
         }
         json_error("Failed to load billing data", status: 500)
       end
@@ -46,7 +46,7 @@ module Billing
       # Creates a new Stripe Checkout Session for the organization to subscribe
       # or change their plan.
       #
-      # POST /billing/org/:org_id/checkout
+      # POST /billing/org/:ext_id/checkout
       #
       # @param [String] tier Plan tier (from request body)
       # @param [String] billing_cycle Billing cycle (from request body)
@@ -133,7 +133,7 @@ module Billing
       rescue Stripe::StripeError => ex
         billing_logger.error "Stripe checkout session creation failed", {
           exception: ex,
-          org_id: req.params[:org_id]
+          ext_id: req.params[:ext_id]
         }
         json_error("Failed to create checkout session", status: 500)
       end
@@ -142,11 +142,11 @@ module Billing
       #
       # Returns recent invoices from Stripe for the organization's customer.
       #
-      # GET /billing/org/:org_id/invoices
+      # GET /billing/org/:ext_id/invoices
       #
       # @return [Hash] List of invoices
       def list_invoices
-        org = load_organization(req.params[:org_id])
+        org = load_organization(req.params[:ext_id])
 
         unless org.stripe_customer_id
           return json_response({ invoices: [] })
@@ -183,7 +183,7 @@ module Billing
       rescue Stripe::StripeError => ex
         billing_logger.error "Failed to retrieve invoices", {
           exception: ex,
-          org_id: req.params[:org_id]
+          ext_id: req.params[:ext_id]
         }
         json_error("Failed to retrieve invoices", status: 500)
       end
@@ -242,14 +242,6 @@ module Billing
         }
       end
 
-      # Detect region from request
-      #
-      # @return [String] Region code (default: 'us-east')
-      def detect_region
-        # For Phase 1, default to us-east
-        # Future: Use req.env['HTTP_CF_IPCOUNTRY'] or GeoIP database
-        'us-east'
-      end
 
     end
   end

@@ -161,7 +161,7 @@ module Core
       # Returns the StrategyResult created by Otto's RouteAuthWrapper
       #
       # This provides authenticated state and metadata from the auth strategy
-      # that executed for the current route (noauth, sessionauth, colonelsonly, etc.)
+      # that executed for the current route (noauth, sessionauth, basicauth, etc.)
       #
       # RouteAuthWrapper (post-routing authentication) executes the strategy and sets
       # req.env['otto.strategy_result'] before the controller handler runs.

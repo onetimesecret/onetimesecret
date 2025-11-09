@@ -12,7 +12,7 @@ module Billing
       # Returns the organization's plan capabilities and limits for
       # feature availability checks in the frontend.
       #
-      # GET /billing/capabilities/:org_id
+      # GET /billing/capabilities/:ext_id
       #
       # Response:
       #   {
@@ -29,7 +29,7 @@ module Billing
       #
       # @return [Hash] Capabilities and limits data
       def show
-        org = load_organization(req.params[:org_id])
+        org = load_organization(req.params[:ext_id])
 
         data = {
           planid: org.planid,
@@ -45,7 +45,7 @@ module Billing
       rescue StandardError => ex
         billing_logger.error "Failed to load capabilities", {
           exception: ex,
-          org_id: req.params[:org_id]
+          ext_id: req.params[:ext_id]
         }
         json_error("Failed to load capabilities", status: 500)
       end
@@ -55,7 +55,7 @@ module Billing
       # Validates whether the organization has a specific capability,
       # returning upgrade information if not available.
       #
-      # GET /billing/check/:org_id/:capability
+      # GET /billing/check/:ext_id/:capability
       #
       # Response (allowed):
       #   {
@@ -78,7 +78,7 @@ module Billing
       #
       # @return [Hash] Capability check result
       def check
-        org = load_organization(req.params[:org_id])
+        org = load_organization(req.params[:ext_id])
         capability = req.params[:capability]
 
         if capability.to_s.empty?
@@ -100,7 +100,7 @@ module Billing
       rescue StandardError => ex
         billing_logger.error "Failed capability check", {
           exception: ex,
-          org_id: req.params[:org_id],
+          ext_id: req.params[:ext_id],
           capability: req.params[:capability]
         }
         json_error("Failed to check capability", status: 500)
