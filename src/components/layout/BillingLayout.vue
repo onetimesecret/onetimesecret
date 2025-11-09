@@ -36,6 +36,12 @@ const sections: NavigationItem[] = [
     visible: () => organizationStore.hasNonDefaultOrganizations,
   },
   {
+    to: '/teams',
+    icon: { collection: 'heroicons', name: 'user-group' },
+    label: t('web.teams.title'),
+    description: t('web.teams.teams_description'),
+  },
+  {
     to: '/billing/plans',
     icon: { collection: 'tabler', name: 'square-letter-s' },
     label: t('web.billing.plans.title'),

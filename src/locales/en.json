@@ -922,6 +922,7 @@
       "view-domain-verification-status": "View domain verification status"
     },
     "teams": {
+      "title": "Teams",
       "teams": "Teams",
       "teams_description": "Collaborate with your team on secure sharing",
       "my_teams": "My Teams",
