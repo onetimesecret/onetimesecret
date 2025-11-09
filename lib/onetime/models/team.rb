@@ -7,6 +7,25 @@ require 'rack/utils'
 module Onetime
   # Team Model (aka Group)
   #
+  # Primary Keys & Identifiers:
+  #   - objid - Primary key (UUID), internal
+  #   - extid - External identifier (e.g., tm%<id>s), user-facing
+  #
+  # Foreign Keys:
+  #   - team_id (underscore) - Foreign key field, stores the objid value
+  #   - All FK relationships use objid values for indexing
+  #
+  # API Layer:
+  #   - Public URLs/APIs should use extid for user-facing references
+  #   - Use find_by_extid(extid) to convert extid → object
+  #   - Internally, relationships always use objid
+  #
+  # Logging:
+  #   - Use extid. Don't log internal IDs.
+  #
+  # Easy way to remember: if you can see a UUID, it's an internal ID. If
+  # you can't, it's an external ID.
+  #
   class Team < Familia::Horreum
 
     using Familia::Refinements::TimeLiterals
@@ -27,7 +46,6 @@ module Onetime
     # This is populated by Customer.participates_in Team, :members
     ##sorted_set :members
 
-    field :teamid
     field :display_name
     field :description
     field :owner_id       # custid of team owner
@@ -38,13 +56,13 @@ module Onetime
     participates_in :Organization, :teams
 
     def init
-      self.teamid ||= objid
       nil
     end
 
-    # Alias for org_id to match Organization's identifier field name
-    def orgid
-      org_id
+    # Underscore means foreign key. This is a convenience method for semantic
+    # clarity when comparing, e.g. team.team_id == entity.team_id
+    def team_id
+      objid
     end
 
     # Owner management

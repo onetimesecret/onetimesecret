@@ -31,6 +31,25 @@ module Onetime
   # backwards compatibility, but business logic should use the explicit
   # factory methods above to avoid state inconsistencies.
   #
+  # Primary Keys & Identifiers:
+  #   - objid - Primary key (UUID), internal
+  #   - extid - External identifier (e.g., ur%<id>s), user-facing
+  #
+  # Foreign Keys:
+  #   - user_id (underscore) - Foreign key field, stores the objid value
+  #   - All FK relationships use objid values for indexing
+  #
+  # API Layer:
+  #   - Public URLs/APIs should use extid for user-facing references
+  #   - Use find_by_extid(extid) to convert extid → object
+  #   - Internally, relationships always use objid
+  #
+  # Logging:
+  #   - Use extid. Don't log internal IDs.
+  #
+  # Easy way to remember: if you can see a UUID, it's an internal ID. If
+  # you can't, it's an external ID.
+  #
   class Customer < Familia::Horreum
     include Onetime::LoggerMethods
     require_relative 'customer/features'
@@ -99,7 +118,7 @@ module Onetime
       # uuid_v4, hex, etc.) in @objid_generator_used for provenance tracking.
       # Accessing @objid directly bypasses the lazy generation mechanism and
       # skips provenance tracking, causing ExternalIdentifier derivation to fail.
-      self.custid ||= objid
+      self.custid ||= objid # previously <=0.22, custid was email address.
       self.role   ||= 'customer'
 
       # When an instance is first created, any field that doesn't have a
@@ -109,6 +128,14 @@ module Onetime
       self.locale ||= ''
 
       init_counter_fields
+    end
+
+    # Underscore means foreign key. This is a convenience method for semantic
+    # clarity when comparing, e.g. customer.user_id == team.user_id. We name
+    # it user_id to clearly differentiate it from the deprecated custid which
+    # will be removed and Customer model will be renamed User.
+    def user_id
+      objid
     end
 
     def anonymous?

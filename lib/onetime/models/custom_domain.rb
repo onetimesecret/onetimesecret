@@ -6,10 +6,6 @@ require 'public_suffix'
 
 module Onetime
 
-  # Tryouts:
-  # - tests/unit/ruby/try/20_models/27_domains_try.rb
-  # - tests/unit/ruby/try/20_models/27_domains_publicsuffix_try.rb
-
   # Custom Domain
   #
   # NOTE: CustomDomain records can only be created via V2 API
@@ -37,6 +33,24 @@ module Onetime
   # the hostname and the domain name, and include the top-level domain, the
   # format looks like [hostname].[domain].[tld]. for ex. [www].[mozilla].[org].
   #
+  # Primary Keys & Identifiers:
+  #   - objid - Primary key (UUID), internal
+  #   - extid - External identifier (e.g., dm%<id>s), user-facing
+  #
+  # Foreign Keys:
+  #   - domain_id (underscore) - Foreign key field, stores the objid value
+  #   - All FK relationships use objid values for indexing
+  #
+  # API Layer:
+  #   - Public URLs/APIs should use extid for user-facing references
+  #   - Use find_by_extid(extid) to convert extid → object
+  #   - Internally, relationships always use objid
+  #
+  # Logging:
+  #   - Use extid. Don't log internal IDs.
+  #
+  # Easy way to remember: if you can see a UUID, it's an internal ID. If
+  # you can't, it's an external ID.
   class CustomDomain < Familia::Horreum
     include Familia::Features::Autoloader
 
@@ -52,6 +66,7 @@ module Onetime
     feature :safe_dump_fields
     feature :relationships  # Enable Familia v2 features
     feature :object_identifier  # Auto-generates objid
+    feature :external_identifier, format: 'dm%<id>s'
 
     # NOTE: The dbkey used by older models for values is simply
     # "onetime:customdomain". We'll want to rename those at some point.
