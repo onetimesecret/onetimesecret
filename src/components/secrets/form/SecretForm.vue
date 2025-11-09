@@ -394,6 +394,7 @@
             class="mt-6">
             <TeamSelector
               v-model="selectedTeamId"
+              :teams="teamStore.teams"
               :disabled="isSubmitting" />
           </div>
         </div>

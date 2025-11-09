@@ -31,6 +31,10 @@ export const useOrganizationStore = defineStore('organization', () => {
   // Getters
   const hasOrganizations = computed(() => organizations.value.length > 0);
 
+  const hasNonDefaultOrganizations = computed(() =>
+    organizations.value.some((org) => !org.is_default)
+  );
+
   const getOrganizationById = computed(
     () =>
       (orgId: string): Organization | undefined =>
@@ -248,6 +252,7 @@ export const useOrganizationStore = defineStore('organization', () => {
 
     // Getters
     hasOrganizations,
+    hasNonDefaultOrganizations,
     getOrganizationById,
     isInitialized,
 
