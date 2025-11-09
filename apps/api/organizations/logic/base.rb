@@ -75,7 +75,7 @@ module OrganizationAPI
       # Serialize organization to API response format
       #
       # Provides consistent serialization across all organization endpoints:
-      # - Uses `id` (objid) instead of `orgid`
+      # - Uses `id` (objid) internally.
       # - Timestamps as `created_at`/`updated_at`
       # - Includes `is_default`, `owner_id`, `member_count`
       # - Omits `contact_email` when empty

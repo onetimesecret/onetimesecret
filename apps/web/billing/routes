@@ -20,7 +20,7 @@ POST   /webhook                                 Billing::Controllers::Webhooks#h
 GET    /portal                                  Billing::Controllers::Plans#customer_portal_redirect auth=sessionauth
 
 # Organization billing API endpoints (authenticated only)
-# Uses extid (external ID) in URLs for security; orgid (internal ID) is for internal use only
+# Uses extid (external ID) in URLs for security; objid (internal ID) is for internal use only
 
 # Plan listing (no authentication required for browsing)
 GET    /plans                                    Billing::Controllers::Billing#list_plans response=json auth=noauth
@@ -30,7 +30,7 @@ POST   /org/:ext_id/checkout                     Billing::Controllers::Billing#c
 GET    /org/:ext_id/invoices                     Billing::Controllers::Billing#list_invoices response=json auth=sessionauth
 
 # Capability checking endpoints (authenticated only)
-# Uses extid (external ID) in URLs for security; orgid (internal ID) is for internal use only
+# Uses extid (external ID) in URLs for security; objid (internal ID) is for internal use only
 GET    /capabilities                             Billing::Controllers::Capabilities#list response=json auth=sessionauth
 GET    /capabilities/:ext_id                     Billing::Controllers::Capabilities#show response=json auth=sessionauth
 GET    /capabilities/:ext_id/:capability         Billing::Controllers::Capabilities#check response=json auth=sessionauth

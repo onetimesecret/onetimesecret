@@ -142,7 +142,7 @@ module Billing
         if result
           billing_logger.info "[self-healing] Successfully created default workspace", {
             custid: cust.custid,
-            orgid: result[:organization]&.orgid,
+            extid: result[:organization]&.extid,
             teamid: result[:team]&.teamid
           }
         end
@@ -160,7 +160,7 @@ module Billing
 
       # Load organization and verify ownership/membership
       #
-      # @param orgid [String] Organization identifier
+      # @param extid [String] Organization external identifier
       # @param require_owner [Boolean] If true, require current user to be owner
       # @return [Onetime::Organization] Loaded organization
       # @raise [OT::Problem] If organization not found or access denied

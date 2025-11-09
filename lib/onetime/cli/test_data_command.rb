@@ -48,7 +48,7 @@ module Onetime
       org.is_default = false  # Make it non-default so it shows in UI
       org.save
 
-      puts "Created organization: #{org.orgid} - #{org.display_name}"
+      puts "Created organization: #{org.objid} - #{org.display_name}"
       puts "  - is_default: #{org.is_default}"
       puts "  - contact_email: #{org.contact_email}"
 
@@ -64,7 +64,7 @@ module Onetime
       puts ''
       puts '✓ Test data created:'
       puts "  Customer: #{cust.email}"
-      puts "  Organization: #{org.display_name} (#{org.orgid})"
+      puts "  Organization: #{org.display_name} (#{org.objid})"
       puts "  Team: #{team.display_name} (#{team.teamid})"
       puts ''
       puts "Login as #{email} and visit /billing to see the org link!"
@@ -92,7 +92,7 @@ module Onetime
       orgs = cust.list_organizations.reject(&:is_default)
 
       orgs.each do |org|
-        puts "Removing organization: #{org.display_name} (#{org.orgid})"
+        puts "Removing organization: #{org.display_name} (#{org.objid})"
 
         # Remove teams first
         org.teams.each do |team_id|

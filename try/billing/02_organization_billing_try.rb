@@ -47,7 +47,7 @@ require 'onetime/models/organization'
 #=> true
 
 ## Reload and verify
-@reloaded = Onetime::Organization.load(@org.orgid)
+@reloaded = Onetime::Organization.load(@org.objid)
 @reloaded.stripe_customer_id
 #=> 'cus_test123'
 

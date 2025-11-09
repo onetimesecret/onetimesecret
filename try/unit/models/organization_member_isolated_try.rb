@@ -72,5 +72,5 @@ nil
 #=> 1
 
 ## After add - customer can see org
-@cust.organization_instances.first.orgid
-#=> @org.orgid
+@cust.organization_instances.first.objid
+#=> @org.objid

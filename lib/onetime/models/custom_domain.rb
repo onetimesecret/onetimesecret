@@ -429,7 +429,7 @@ module Onetime
       # @note BREAKING CHANGE: This method signature changed from (input, custid) to (input, org_id).
       #   Domains are now owned by organizations, not individual customers. To migrate existing code:
       #   OLD: CustomDomain.create!(domain, customer.custid)
-      #   NEW: CustomDomain.create!(domain, customer.organization_instances.first.orgid)
+      #   NEW: CustomDomain.create!(domain, customer.organization_instances.first.objid)
       #
       # More Info:
       # We need a minimum of a domain and organization id to create a custom
@@ -672,7 +672,7 @@ module Onetime
       # Find all custom domains for a given organization
       # Uses the Familia v2 participates_in relationship
       #
-      # @param org_id [String] The organization identifier (orgid)
+      # @param org_id [String] The organization internal identifier (objid)
       # @return [Array<String>] Array of domain identifiers
       def find_all_by_org_id(org_id)
         org = Onetime::Organization.load(org_id)

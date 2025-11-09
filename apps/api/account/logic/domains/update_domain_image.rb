@@ -66,7 +66,7 @@ module AccountAPI::Logic
         raise_form_error 'Customer must belong to an organization' unless org
 
         # Check if the domain exists and belongs to the current customer
-        @custom_domain = Onetime::CustomDomain.load(@domain_input, org.orgid)
+        @custom_domain = Onetime::CustomDomain.load(@domain_input, org.objid)
         raise_form_error 'Invalid Domain' unless @custom_domain
 
         @display_domain = @domain_input

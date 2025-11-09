@@ -29,7 +29,7 @@ module OrganizationAPI::Logic
         OT.ld "[DeleteOrganization] Deleting organization #{@extid} for user #{cust.custid}"
 
         # Get organization info before deletion
-        orgid = @organization.orgid
+        objid = @organization.objid
         display_name = @organization.display_name
 
         # Remove all members first
@@ -39,12 +39,12 @@ module OrganizationAPI::Logic
         end
 
         # Remove from global values set (Familia v2 uses 'remove' not 'rem')
-        Onetime::Organization.values.remove(orgid)
+        Onetime::Organization.values.remove(objid)
 
         # Delete the organization
         @organization.destroy!
 
-        OT.info "[DeleteOrganization] Deleted organization #{orgid} (#{display_name})"
+        OT.info "[DeleteOrganization] Deleted organization #{objid} (#{display_name})"
 
         success_data
       end

@@ -25,7 +25,7 @@ const router = useRouter();
 const organizationStore = useOrganizationStore();
 const teamStore = useTeamStore();
 
-const orgId = computed(() => route.params.orgid as string);
+const orgId = computed(() => route.params.extid as string);
 const organization = ref<Organization | null>(null);
 const teams = ref<Team[]>([]);
 const subscription = ref<Subscription | null>(null);

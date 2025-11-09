@@ -45,7 +45,7 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/billing/org/:orgid',
+    path: '/billing/org/:extid',
     name: 'Billing Organization Settings',
     components: {
       default: () => import('@/views/account/settings/OrganizationSettings.vue'),
@@ -113,9 +113,9 @@ const routes: Array<RouteRecordRaw> = [
     redirect: '/billing/orgs',
   },
   {
-    path: '/account/settings/organization/:orgid',
-    redirect: to => ({
-      path: `/billing/org/${to.params.orgid}`,
+    path: '/account/settings/organization/:extid',
+    redirect: (to) => ({
+      path: `/billing/org/${to.params.extid}`,
     }),
   },
   {
@@ -123,9 +123,9 @@ const routes: Array<RouteRecordRaw> = [
     redirect: '/billing/orgs',
   },
   {
-    path: '/billing/organization/:orgid',
-    redirect: to => ({
-      path: `/billing/org/${to.params.orgid}`,
+    path: '/billing/organization/:extid',
+    redirect: (to) => ({
+      path: `/billing/org/${to.params.extid}`,
     }),
   },
 ];

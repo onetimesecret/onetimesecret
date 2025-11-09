@@ -30,7 +30,7 @@ module AccountAPI::Logic
         raise_form_error 'Customer must belong to an organization' unless org
 
         # Only store a valid, parsed input value to @domain
-        @parsed_domain  = Onetime::CustomDomain.parse(@domain_input, org.orgid)
+        @parsed_domain  = Onetime::CustomDomain.parse(@domain_input, org.objid)
         @display_domain = @parsed_domain.display_domain
 
         OT.ld "[AddDomain] Display: #{@display_domain}, Identifier: #{@parsed_domain.identifier}, Exists?: #{@parsed_domain.exists?}"
@@ -45,7 +45,7 @@ module AccountAPI::Logic
         org = @cust.organization_instances.first
         raise_form_error 'Customer must belong to an organization' unless org
 
-        @custom_domain = Onetime::CustomDomain.create!(@display_domain, org.orgid)
+        @custom_domain = Onetime::CustomDomain.create!(@display_domain, org.objid)
 
         begin
           # Create the approximated vhost for this domain. Approximated provides a

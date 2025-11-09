@@ -28,7 +28,7 @@ module Auth
         org = create_default_organization
         team = create_default_team(org)
 
-        auth_logger.info "[create-default-workspace] Created workspace for #{@customer.custid}: org=#{org.orgid}, team=#{team.teamid}"
+        auth_logger.info "[create-default-workspace] Created workspace for #{@customer.custid}: org=#{org.objid}, team=#{team.teamid}"
 
         { organization: org, team: team }
       end
@@ -74,7 +74,7 @@ module Auth
         team = Onetime::Team.create!(
           "Default Team",  # Not shown to individual plan users
           @customer,
-          org.orgid
+          org.objid
         )
 
         # Mark as default workspace (prevents deletion)

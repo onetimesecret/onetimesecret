@@ -40,8 +40,8 @@ end
 [@org.class, @org.display_name, @org.owner_id]
 #=> [Onetime::Organization, "Acme Corporation", @owner.custid]
 
-## Organization has a valid orgid (UUID format - Familia.generate_id)
-@org.orgid.class
+## Organization has a valid objid (UUID format - Familia.generate_id)
+@org.objid.class
 #=> String
 
 ## Organization has contact_email set
@@ -218,17 +218,17 @@ sleep 0.01
 @org.updated > original_updated
 #=> true
 
-## Can load organization by orgid
-loaded_org = Onetime::Organization.load(@org.orgid)
-[loaded_org.orgid, loaded_org.display_name]
-#=> [@org.orgid, "Updated Org Name"]
+## Can load organization by objid
+loaded_org = Onetime::Organization.load(@org.objid)
+[loaded_org.objid, loaded_org.display_name]
+#=> [@org.objid, "Updated Org Name"]
 
 ## Loading non-existent organization returns nil
 Onetime::Organization.load("nonexistent123")
 #=> nil
 
 ## Can reload organization and verify persistence
-reloaded_org = Onetime::Organization.load(@org.orgid)
+reloaded_org = Onetime::Organization.load(@org.objid)
 [reloaded_org.display_name, reloaded_org.contact_email]
 #=> ["Updated Org Name", "admin@acme.com"]
 

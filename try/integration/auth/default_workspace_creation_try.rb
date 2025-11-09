@@ -54,7 +54,7 @@ require_relative '../../../apps/web/auth/operations/create_default_workspace'
 
 ## Team is linked to the organization
 @team.org_id
-#=> @org.orgid
+#=> @org.objid
 
 ## Customer is automatically added as team member
 @team.member?(@customer)

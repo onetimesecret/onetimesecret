@@ -20,11 +20,11 @@ begin
 
   puts "Creating organization..."
   @org = Onetime::Organization.create!("Test Org #{@test_id}", @cust, "billing_#{@test_id}@test.com")
-  puts "Organization created with orgid: #{@org.orgid}"
+  puts "Organization created with extid: #{@org.objid}"
 
   puts "Creating custom domain..."
   @domain_name = "test#{@test_id}.example.com"
-  @domain = Onetime::CustomDomain.create!(@domain_name, @org.orgid)
+  @domain = Onetime::CustomDomain.create!(@domain_name, @org.objid)
   puts "Domain created: #{@domain.display_domain}"
 rescue Redis::CannotConnectError, Redis::ConnectionError => e
   puts "SKIP: Setup requires Redis connection (#{e.class})"

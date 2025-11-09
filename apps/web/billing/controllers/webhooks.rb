@@ -132,7 +132,7 @@ module Billing
         org.update_from_stripe_subscription(subscription)
 
         billing_logger.info "Checkout completed - organization subscription activated", {
-          orgid: org.orgid,
+          orgid: org.objid,
           subscription_id: subscription.id,
           custid: custid
         }
@@ -164,7 +164,7 @@ module Billing
         org.update_from_stripe_subscription(subscription)
 
         billing_logger.info "Subscription updated", {
-          orgid: org.orgid,
+          orgid: org.objid,
           subscription_id: subscription.id,
           status: subscription.status
         }
@@ -194,7 +194,7 @@ module Billing
         org.clear_billing_fields
 
         billing_logger.info "Subscription deleted - organization marked as canceled", {
-          orgid: org.orgid,
+          orgid: org.objid,
           subscription_id: subscription.id
         }
       end

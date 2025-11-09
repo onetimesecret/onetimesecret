@@ -63,13 +63,13 @@ begin
   @cust_no_org = Onetime::Customer.create!(email: "customer_no_org_#{@test_id}@test.com")
 
   # Create test domains using org_id (new pattern)
-  @domain1 = Onetime::CustomDomain.create!("secrets-#{@test_id}.acme.com", @org_with_customer.orgid)
-  @domain2 = Onetime::CustomDomain.create!("linx-#{@test_id}.acme.com", @org_with_customer.orgid)
+  @domain1 = Onetime::CustomDomain.create!("secrets-#{@test_id}.acme.com", @org_with_customer.objid)
+  @domain2 = Onetime::CustomDomain.create!("linx-#{@test_id}.acme.com", @org_with_customer.objid)
 
   # Create already-migrated domain (for idempotency testing)
   @cust_migrated = Onetime::Customer.create!(email: "already_migrated_#{@test_id}@test.com")
   @org_migrated = Onetime::Organization.create!("Already Migrated Inc #{@test_id}", @cust_migrated, "billing2_#{@test_id}@migrated.com")
-  @domain_migrated = Onetime::CustomDomain.create!("already-#{@test_id}.migrated.com", @org_migrated.orgid)
+  @domain_migrated = Onetime::CustomDomain.create!("already-#{@test_id}.migrated.com", @org_migrated.objid)
 
   # Track counts for validation
   @initial_domain_count = Onetime::CustomDomain.values.size
@@ -130,7 +130,7 @@ end
 
 ## Migration validation: Load customer's primary organization
 @primary_org = Onetime::Organization.load(@cust_with_org.organization_ids.first)
-@primary_org.orgid == @org1.orgid
+@primary_org.objid == @org1.objid
 #=> true
 
 ## Migration logic: Domain has custid field
@@ -143,14 +143,14 @@ end
 
 ## Migration logic: Find organization from customer
 @found_org = Onetime::Organization.load(@cust_with_org.organization_ids.first)
-@found_org.orgid == @org1.orgid
+@found_org.objid == @org1.objid
 #=> true
 
 ## Migration logic: Domain should get org_id from organization
 # NOTE: This will fail until org_id field is added to CustomDomain
-# @domain1.org_id = @found_org.orgid
+# @domain1.org_id = @found_org.objid
 # @domain1.save
-# @domain1.org_id == @org1.orgid
+# @domain1.org_id == @org1.objid
 # #=> true
 
 ## Migration logic: Add domain to organization participation

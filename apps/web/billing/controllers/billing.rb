@@ -20,7 +20,7 @@ module Billing
 
         data = {
           organization: {
-            id: org.orgid,
+            id: org.objid,
             external_id: org.extid,
             display_name: org.display_name,
             billing_email: org.billing_email
@@ -94,11 +94,11 @@ module Billing
           success_url: success_url,
           cancel_url: cancel_url,
           customer_email: org.billing_email || cust.email,
-          client_reference_id: org.orgid,
+          client_reference_id: org.objid,
           locale: req.env['rack.locale']&.first || 'auto',
           subscription_data: {
             metadata: {
-              orgid: org.orgid,
+              orgid: org.objid,
               plan_id: plan.plan_id,
               tier: tier,
               region: region,
@@ -117,7 +117,7 @@ module Billing
         checkout_session = Stripe::Checkout::Session.create(session_params)
 
         billing_logger.info "Checkout session created for organization", {
-          orgid: org.orgid,
+          orgid: org.objid,
           session_id: checkout_session.id,
           tier: tier,
           billing_cycle: billing_cycle

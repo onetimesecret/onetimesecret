@@ -47,7 +47,7 @@ module OrganizationAPI::Logic
         if !contact_email.empty?
           # Use unique_index finder for O(1) lookup (no iteration)
           existing_org = Onetime::Organization.find_by_contact_email(contact_email)
-          if existing_org && existing_org.orgid != @extid
+          if existing_org && existing_org.objid != @extid
             raise_form_error('An organization with this contact email already exists', field: :contact_email, error_type: :exists)
           end
         end

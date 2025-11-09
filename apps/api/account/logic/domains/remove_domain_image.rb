@@ -29,7 +29,7 @@ module AccountAPI::Logic
         org = @cust.organization_instances.first
         raise_form_error 'Customer must belong to an organization' unless org
 
-        @custom_domain = Onetime::CustomDomain.load(@domain_input, org.orgid)
+        @custom_domain = Onetime::CustomDomain.load(@domain_input, org.objid)
         raise_form_error 'Invalid Domain' unless @custom_domain
 
         @display_domain = @domain_input

@@ -105,10 +105,10 @@ module AccountAPI::Logic
         org = @cust.organization_instances.first
         raise_form_error 'Customer must belong to an organization' unless org
 
-        @custom_domain = Onetime::CustomDomain.load(@domain_id, org.orgid)
+        @custom_domain = Onetime::CustomDomain.load(@domain_id, org.objid)
         return if custom_domain&.exists?
 
-        OT.ld "[UpdateDomainBrand] Error: Domain #{@domain_id} not found for organization #{org.orgid}"
+        OT.ld "[UpdateDomainBrand] Error: Domain #{@domain_id} not found for organization #{org.objid}"
         raise_form_error 'Domain not found'
       end
 

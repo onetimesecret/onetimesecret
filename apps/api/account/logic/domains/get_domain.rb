@@ -26,7 +26,7 @@ module AccountAPI::Logic
         # the display_domain). That way we need to combine with the org_id
         # in order to find it. It's a way of proving ownership. Vs passing the
         # domainid in the URL path which gives up the goods.
-        @custom_domain = Onetime::CustomDomain.load(@domain_input, org.orgid)
+        @custom_domain = Onetime::CustomDomain.load(@domain_input, org.objid)
 
         raise_form_error 'Domain not found' unless @custom_domain
       end
