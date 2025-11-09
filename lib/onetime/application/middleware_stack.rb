@@ -128,13 +128,15 @@ module Onetime
           builder.use Rack::RequestId, generator: -> { Familia.generate_trace_id }
 
           builder.use Rack::Parser, parsers: @parsers
-
           # Add session middleware early in the stack (before other middleware)
+          session_config = Onetime.auth_config.session
+
           builder.use Onetime::Session, {
-            secret: Onetime.auth_config.session['secret'],
-            expire_after: 86_400, # 24 hours
-            secure: Onetime.conf&.dig('site', 'ssl'),
-            same_site: :strict,
+            secret: session_config['secret'],
+            expire_after: session_config['expire_after'] || 86_400,
+            key: session_config['key'] || 'onetime.session',
+            secure: session_config['secure'] || Onetime.conf&.dig('site', 'ssl'),
+            same_site: (session_config['same_site'] || :strict).to_sym,
           }
 
           # Identity resolution middleware (after session)

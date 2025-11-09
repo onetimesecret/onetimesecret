@@ -1,3 +1,4 @@
+# etc/defaults/config.defaults.yaml
 ---
 site:
   host: <%= ENV['HOST'] || 'localhost:3000' %>

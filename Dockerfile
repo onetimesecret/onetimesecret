@@ -216,6 +216,7 @@ ENV RACK_ENV=production \
 # removing the .defaults suffix. For example:
 #   etc/defaults/config.defaults.yaml -> etc/config.yaml
 #   etc/defaults/auth.defaults.yaml -> etc/auth.yaml
+#   etc/defaults/logging.defaults.yaml -> etc/logging.yaml
 # The --no-clobber flag ensures existing files are not overwritten.
 RUN set -eux && \
     for file in etc/defaults/*.defaults.*; do \

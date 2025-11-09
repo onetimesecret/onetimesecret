@@ -1,3 +1,5 @@
+# etc/defaults/auth.defaults.yaml
+#
 # Authentication Configuration for OneTimeSecret
 # Controls the authentication mode and related settings
 ---
@@ -13,41 +15,61 @@ session:
   secure: true              # Set based on SSL configuration
   same_site: strict
 
-# Mode-specific configurations
+# Basic mode settings (Redis-only authentication)
 basic:
-  # Basic mode settings (Redis-only authentication)
-  password_hash_cost: 12
-  session_timeout: 86400    # 24 hours
+  #password_hash_cost: 12
+  #session_timeout: 86400    # 24 hours
 
+# Advanced mode settings (Rodauth-based application)
 advanced:
-  # Database connection for Advanced
-  # database_url: "postgres://user:password@host:port/database"
-  database_url: "sqlite://data/auth.db"
+  # Application Connection
+  #
+  # Used at runtime by the application.
+  #
+  # e.g. "postgres://user:password@host:port/database"
+  #
+  # In development, can be set to 'sqlite://:memory:' for no persistence.
+  database_url: <%= ENV['AUTH_DATABASE_URL'] || 'sqlite://data/auth.db' %>
+
+  # Migrations Connection (PostgreSQL, MySQL, MS SQL Server only)
+  #
+  # Used at deployment time to run all Rodauth migrations:
+  #   - Set up the schema with appropriate permissions
+  #   - Create database functions for password verification
+  #   - Grant specific access to the application account as needed
+  #
+  # When using this approach, the application account should only have EXECUTE
+  # permission on the password hash verification functions and should not have
+  # SELECT access to the password hash column.
+  #
+  # Not needed for SQLite or other databases that don't support this security model.
+  #
+  database_url_migrations: <%= ENV['AUTH_DATABASE_URL_MIGRATIONS'] || nil %>
 
   # Service URL (used for internal requests)
-  service_url: "http://127.0.0.1:9393/auth"
+  #service_url: <%= ENV['AUTH_SERVICE_URL'] || 'http://127.0.0.1:3000/auth' %>
 
-  # Advanced features to enable
-  features:
-    - login
-    - logout
-    - create_account
-    - close_account
-    - change_password
-    - reset_password
-    - active_sessions       # Session tracking
-    - lockout               # Brute force protection
-    - remember              # "Remember me" functionality
-    - verify_account        # Email verification
-    - otp                   # MFA
-    - recovery_codes        # MFA backup codes
-    - email_auth            # Magic links (passwordless email login)
-    - webauthn              # Biometric/security key authentication
+  # Advanced features to enable (COMING SOON)
+  # features:
+  #   - login
+  #   - logout
+  #   - create_account
+  #   - close_account
+  #   - change_password
+  #   - reset_password
+  #   - active_sessions       # Session tracking
+  #   - lockout               # Brute force protection
+  #   - remember              # "Remember me" functionality
+  #   - verify_account        # Email verification
+  #   - otp                   # MFA
+  #   - recovery_codes        # MFA backup codes
+  #   - email_auth            # Magic links (passwordless email login)
+  #   - webauthn              # Biometric/security key authentication
 
-  # Security settings
-  security:
-    password_minimum_length: 8
-    max_invalid_logins: 5
-    lockout_expiration: 3600     # 1 hour
-    session_expire_after: 86400  # 24 hours
-    require_email_confirmation: false  # Set to true when email is configured
+  # Security settings (COMING SOON)
+  # security:
+  #   password_minimum_length: 8
+  #   max_invalid_logins: 5
+  #   lockout_expiration: 3600     # 1 hour
+  #   session_expire_after: 86400  # 24 hours
+  #   require_email_confirmation: false  # Set to true when email is configured

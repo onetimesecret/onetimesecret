@@ -1,3 +1,5 @@
+# etc/defaults/logging.defaults.yaml
+
 # Onetime Secret - Logging Configuration
 #
 # Strategic categories for debugging and operational instrumentation:
@@ -45,7 +47,7 @@ formatter: color
 loggers:
   App: info       # Default application logger
   Auth: info      # Authentication/authorization flows
-  Billing: info   #
+  Billing: info   # Only used when billing.enabled=true
   Boot: info      # During intiaialization
   Familia: warn   # Redis/Familia main database operations
   HTTP: warn      # HTTP requests and middleware operations
