@@ -2,83 +2,31 @@
 
 <script setup lang="ts">
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
+import { BillingService, type Plan as BillingPlan } from '@/services/billing.service';
 import OIcon from '@/components/icons/OIcon.vue';
 import BillingLayout from '@/components/layout/BillingLayout.vue';
 import { classifyError } from '@/schemas/errors';
 import { useOrganizationStore } from '@/stores/organizationStore';
-import type { Plan, BillingInterval } from '@/types/billing';
+import type { BillingInterval } from '@/types/billing';
 import { formatCurrency } from '@/types/billing';
 import { CAPABILITIES } from '@/types/organization';
-import { AxiosInstance } from 'axios';
-import { computed, inject, onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
 const { t } = useI18n();
 const route = useRoute();
 const organizationStore = useOrganizationStore();
-const $api = inject('api') as AxiosInstance;
 
 const billingInterval = ref<BillingInterval>('month');
 const selectedOrgId = ref<string | null>(null);
 const isCreatingCheckout = ref(false);
+const isLoadingPlans = ref(false);
 const error = ref('');
 const suggestedPlanId = ref<string | null>(null);
 
-// Plan definitions (these would normally come from API)
-const plans = ref<Plan[]>([
-  {
-    id: 'free',
-    type: 'free',
-    name: 'Free',
-    description: 'Perfect for personal use',
-    price_monthly: 0,
-    price_yearly: 0,
-    teams_limit: 1,
-    members_per_team_limit: 1,
-    features: [
-      'create_secrets',
-      'basic_sharing',
-      'create_team',
-    ],
-  },
-  {
-    id: 'identity_plus',
-    type: 'single_team',
-    name: 'Identity Plus',
-    description: 'Enhanced features for professionals',
-    price_monthly: 999,
-    price_yearly: 9990,
-    teams_limit: 1,
-    members_per_team_limit: 5,
-    features: [
-      'create_secrets',
-      'basic_sharing',
-      'create_team',
-      'custom_domains',
-      'priority_support',
-    ],
-  },
-  {
-    id: 'multi_team',
-    type: 'multi_team',
-    name: 'Multi-Team',
-    description: 'For organizations managing multiple teams',
-    price_monthly: 2999,
-    price_yearly: 29990,
-    teams_limit: 10,
-    members_per_team_limit: 20,
-    features: [
-      'create_secrets',
-      'basic_sharing',
-      'create_teams',
-      'custom_domains',
-      'api_access',
-      'priority_support',
-      'audit_logs',
-    ],
-  },
-]);
+// Plans loaded from API
+const plans = ref<BillingPlan[]>([]);
 
 const organizations = computed(() => organizationStore.organizations);
 const selectedOrg = computed(() =>
@@ -86,6 +34,9 @@ const selectedOrg = computed(() =>
 );
 
 const currentPlanId = computed(() => selectedOrg.value?.planid || 'free');
+
+// Filter plans by selected billing interval
+const filteredPlans = computed(() => plans.value.filter(plan => plan.interval === billingInterval.value));
 
 const yearlySavingsPercent = computed(() =>
    17 // ~2 months free
@@ -105,49 +56,76 @@ const getFeatureLabel = (feature: string): string => {
   return labels[feature] || feature;
 };
 
-const getPlanPricePerMonth = (plan: Plan): number => {
-  if (billingInterval.value === 'month') return plan.price_monthly;
-  return Math.floor(plan.price_yearly / 12);
+const getPlanPricePerMonth = (plan: BillingPlan): number => {
+  // For yearly plans, show the monthly equivalent
+  if (plan.interval === 'year') {
+    return Math.floor(plan.amount / 12);
+  }
+  // For monthly plans, show the amount as-is
+  return plan.amount;
 };
 
-const isPlanRecommended = (plan: Plan): boolean => plan.id === 'identity_plus';
 
-const isPlanCurrent = (plan: Plan): boolean => plan.id === currentPlanId.value;
+const isPlanRecommended = (plan: BillingPlan): boolean => plan.tier === 'single_team';
 
-const canUpgrade = (plan: Plan): boolean => {
-  if (currentPlanId.value === 'free') return plan.id !== 'free';
-  if (currentPlanId.value === 'identity_plus') return plan.id === 'multi_team';
+const isPlanCurrent = (plan: BillingPlan): boolean => plan.tier === currentPlanId.value;
+
+const canUpgrade = (plan: BillingPlan): boolean => {
+  if (currentPlanId.value === 'free') return plan.tier !== 'free';
+  if (currentPlanId.value === 'single_team') return plan.tier === 'multi_team';
   return false;
 };
 
-const canDowngrade = (plan: Plan): boolean => {
-  if (currentPlanId.value === 'multi_team') return plan.id !== 'multi_team';
-  if (currentPlanId.value === 'identity_plus') return plan.id === 'free';
+const canDowngrade = (plan: BillingPlan): boolean => {
+  if (currentPlanId.value === 'multi_team') return plan.tier !== 'multi_team';
+  if (currentPlanId.value === 'single_team') return plan.tier === 'free';
   return false;
 };
 
-const getButtonLabel = (plan: Plan): string => {
+const getButtonLabel = (plan: BillingPlan): string => {
   if (isPlanCurrent(plan)) return t('web.billing.plans.current');
   if (canUpgrade(plan)) return t('web.billing.plans.upgrade');
   if (canDowngrade(plan)) return t('web.billing.plans.downgrade');
   return t('web.billing.plans.select_plan');
 };
 
-const handlePlanSelect = async (plan: Plan) => {
-  if (isPlanCurrent(plan) || !selectedOrgId.value || plan.id === 'free') return;
+const loadPlans = async () => {
+  isLoadingPlans.value = true;
+  error.value = '';
+  try {
+    const response = await BillingService.listPlans();
+    plans.value = response.plans;
+  } catch (err) {
+    const classified = classifyError(err);
+    error.value = classified.message || 'Failed to load plans';
+    console.error('[PlanSelector] Error loading plans:', err);
+  } finally {
+    isLoadingPlans.value = false;
+  }
+};
+
+const handlePlanSelect = async (plan: BillingPlan) => {
+  if (isPlanCurrent(plan) || !selectedOrgId.value || plan.tier === 'free') return;
+
+  const selectedOrganization = organizations.value.find(org => org.id === selectedOrgId.value);
+  if (!selectedOrganization?.extid) {
+    error.value = 'Organization not found';
+    return;
+  }
 
   isCreatingCheckout.value = true;
   error.value = '';
 
   try {
-    const response = await $api.post(`/api/billing/org/${selectedOrgId.value}/checkout`, {
-      plan_id: plan.id,
-      interval: billingInterval.value,
-    });
+    const response = await BillingService.createCheckoutSession(
+      selectedOrganization.extid,
+      plan.tier,
+      billingInterval.value
+    );
 
     // Redirect to Stripe Checkout
-    if (response.data.checkout_url) {
-      window.location.href = response.data.checkout_url;
+    if (response.checkout_url) {
+      window.location.href = response.checkout_url;
     } else {
       error.value = 'Failed to create checkout session';
     }
@@ -162,6 +140,9 @@ const handlePlanSelect = async (plan: Plan) => {
 
 onMounted(async () => {
   try {
+    // Load plans from API
+    await loadPlans();
+
     if (organizations.value.length === 0) {
       await organizationStore.fetchOrganizations();
     }
@@ -250,7 +231,7 @@ onMounted(async () => {
       <!-- Plan Cards -->
       <div class="mx-auto grid max-w-7xl grid-cols-1 gap-8 md:grid-cols-3">
         <div
-          v-for="plan in plans"
+          v-for="plan in filteredPlans"
           :key="plan.id"
           :class="[
             'relative flex flex-col rounded-2xl border bg-white shadow-sm transition-shadow hover:shadow-lg dark:bg-gray-800',
@@ -280,7 +261,7 @@ onMounted(async () => {
                 {{ plan.name }}
               </h3>
               <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {{ plan.description }}
+                {{ plan.tier }} plan
               </p>
             </div>
 
@@ -288,24 +269,24 @@ onMounted(async () => {
             <div class="mb-6">
               <div class="flex items-baseline gap-2">
                 <span class="text-4xl font-bold text-gray-900 dark:text-white">
-                  {{ formatCurrency(getPlanPricePerMonth(plan)) }}
+                  {{ formatCurrency(getPlanPricePerMonth(plan), plan.currency) }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-gray-400">
                   /month
                 </span>
               </div>
-              <p v-if="billingInterval === 'year' && plan.price_yearly > 0" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Billed {{ formatCurrency(plan.price_yearly) }} yearly
+              <p v-if="billingInterval === 'year' && plan.amount > 0" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Billed {{ formatCurrency(plan.amount, plan.currency) }} yearly
               </p>
             </div>
 
             <!-- Team & Member Limits -->
             <div class="mb-6 space-y-2 text-sm">
               <p class="text-gray-700 dark:text-gray-300">
-                {{ t('web.billing.plans.teams_limit', { count: plan.teams_limit }) }}
+                {{ t('web.billing.plans.teams_limit', { count: plan.limits.teams || 1 }) }}
               </p>
               <p class="text-gray-700 dark:text-gray-300">
-                {{ t('web.billing.plans.members_limit', { count: plan.members_per_team_limit }) }}
+                {{ t('web.billing.plans.members_limit', { count: plan.limits.members_per_team || 1 }) }}
               </p>
             </div>
 
@@ -316,8 +297,8 @@ onMounted(async () => {
               </p>
               <ul class="space-y-2">
                 <li
-                  v-for="feature in plan.features"
-                  :key="feature"
+                  v-for="capability in plan.capabilities"
+                  :key="capability"
                   class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
                   <OIcon
                     collection="heroicons"
@@ -325,7 +306,7 @@ onMounted(async () => {
                     class="mt-0.5 size-5 shrink-0 text-green-500 dark:text-green-400"
                     aria-hidden="true"
                   />
-                  <span>{{ getFeatureLabel(feature) }}</span>
+                  <span>{{ getFeatureLabel(capability) }}</span>
                 </li>
               </ul>
             </div>
