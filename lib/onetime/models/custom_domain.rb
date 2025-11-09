@@ -594,13 +594,13 @@ module Onetime
           raise Onetime::Problem, "Cannot add custom domain with nil org_id. display_domain=#{fobj.display_domain.inspect}, identifier=#{fobj.identifier.inspect}"
         end
 
-        values.add fobj.to_s # created time, identifier
+        instances.add fobj.to_s # created time, identifier
         display_domains.put fobj.display_domain, fobj.identifier
         owners.put fobj.to_s, fobj.org_id # domainid => organization id
       end
 
       def rem(fobj)
-        values.remove fobj.to_s
+        instances.remove fobj.to_s
         display_domains.remove fobj.display_domain
         owners.remove fobj.to_s
       end
@@ -608,13 +608,13 @@ module Onetime
       def all
         # Load all instances from the sorted set. No need
         # to involve the owners HashKey here.
-        values.revrangeraw(0, -1).collect { |identifier| find_by_identifier(identifier) }
+        instances.revrangeraw(0, -1).collect { |identifier| find_by_identifier(identifier) }
       end
 
       def recent(duration = 48.hours)
         spoint = OT.now.to_i - duration
         epoint = OT.now.to_i
-        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        instances.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       # Implement a load method for CustomDomain to make sure the
