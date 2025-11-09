@@ -132,7 +132,7 @@ module Billing
         return if cust.organization_instances.any?
 
         billing_logger.info "[self-healing] Customer has no organization, creating default workspace", {
-          custid: cust.custid
+          user: cust.extid
         }
 
         # Call CreateDefaultWorkspace operation
@@ -141,9 +141,9 @@ module Billing
 
         if result
           billing_logger.info "[self-healing] Successfully created default workspace", {
-            custid: cust.custid,
+            user: cust.extid,
             extid: result[:organization]&.extid,
-            teamid: result[:team]&.teamid
+            team_id: result[:team]&.team_id
           }
         end
 
@@ -152,7 +152,7 @@ module Billing
         # The user experience should continue even if workspace creation fails
         billing_logger.error "[self-healing] Failed to create default workspace", {
           exception: ex,
-          custid: cust.custid,
+          user: cust.extid,
           message: ex.message,
           backtrace: ex.backtrace&.first(5)
         }
@@ -171,7 +171,7 @@ module Billing
         unless org.member?(cust)
           billing_logger.warn "Access denied to organization", {
             extid: extid,
-            custid: cust.custid
+            user: cust.extid
           }
           raise OT::Problem, "Access denied"
         end
@@ -179,7 +179,7 @@ module Billing
         if require_owner && !org.owner?(cust)
           billing_logger.warn "Owner access required", {
             extid: extid,
-            custid: cust.custid
+            user: cust.extid
           }
           raise OT::Problem, "Owner access required"
         end

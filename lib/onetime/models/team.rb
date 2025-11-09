@@ -71,7 +71,7 @@ module Onetime
     end
 
     def owner?(customer)
-      customer && customer.custid == owner_id
+      customer && customer.user_id == owner_id
     end
 
     # Member management - Familia v2 auto-generated methods wrapper
@@ -123,7 +123,7 @@ module Onetime
 
         team = new(
           display_name: display_name,
-          owner_id: owner_customer.custid,
+          owner_id: owner_customer.user_id,
           org_id: org_id
         )
         team.save
@@ -136,7 +136,7 @@ module Onetime
           team.add_to_organization_teams(org)
         end
 
-        OT.ld "[Team.create!] teamid: #{team.teamid}, owner: #{owner_customer.custid}, org: #{org_id}"
+        OT.ld "[Team.create!] team_id: #{team.team_id}, owner: #{owner_customer.user_id}, org: #{org_id}"
         team
       end
     end

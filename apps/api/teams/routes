@@ -10,11 +10,11 @@
 # Team Management
 GET    /                                          TeamAPI::Logic::Teams::ListTeams response=json auth=sessionauth
 POST   /                                          TeamAPI::Logic::Teams::CreateTeam response=json auth=sessionauth
-GET    /:teamid                                   TeamAPI::Logic::Teams::GetTeam response=json auth=sessionauth
-PUT    /:teamid                                   TeamAPI::Logic::Teams::UpdateTeam response=json auth=sessionauth
-DELETE /:teamid                                   TeamAPI::Logic::Teams::DeleteTeam response=json auth=sessionauth
+GET    /:extid                                   TeamAPI::Logic::Teams::GetTeam response=json auth=sessionauth
+PUT    /:extid                                   TeamAPI::Logic::Teams::UpdateTeam response=json auth=sessionauth
+DELETE /:extid                                   TeamAPI::Logic::Teams::DeleteTeam response=json auth=sessionauth
 
 # Team Member Management
-GET    /:teamid/members                           TeamAPI::Logic::Members::ListMembers response=json auth=sessionauth
-POST   /:teamid/members                           TeamAPI::Logic::Members::AddMember response=json auth=sessionauth
-DELETE /:teamid/members/:custid                   TeamAPI::Logic::Members::RemoveMember response=json auth=sessionauth
+GET    /:extid/members                           TeamAPI::Logic::Members::ListMembers response=json auth=sessionauth
+POST   /:extid/members                           TeamAPI::Logic::Members::AddMember response=json auth=sessionauth
+DELETE /:extid/members/:custid                   TeamAPI::Logic::Members::RemoveMember response=json auth=sessionauth

@@ -6,9 +6,9 @@
 # Integration tests for Teams CRUD API endpoints:
 # - POST /api/teams (create team)
 # - GET /api/teams (list user's teams)
-# - GET /api/teams/:teamid (get team details)
-# - PUT /api/teams/:teamid (update team)
-# - DELETE /api/teams/:teamid (delete team)
+# - GET /api/teams/:extid (get team details)
+# - PUT /api/teams/:extid (update team)
+# - DELETE /api/teams/:extid (delete team)
 
 require 'rack/test'
 require_relative '../../../support/test_helpers'
@@ -51,14 +51,14 @@ last_response.status
 
 ## Can parse create team response
 resp = JSON.parse(last_response.body)
-@teamid = resp['record']['teamid']
+@extid = resp['record']['extid']
 [resp['record']['display_name'], resp['record']['owner_id']]
 #=> ['API Test Team', @cust.custid]
 
 ## Created team response includes all expected fields
 resp = JSON.parse(last_response.body)
 [
-  resp['record'].key?('teamid'),
+  resp['record'].key?('extid'),
   resp['record'].key?('display_name'),
   resp['record'].key?('description'),
   resp['record'].key?('owner_id'),
@@ -84,27 +84,27 @@ resp = JSON.parse(last_response.body)
 
 ## Listed teams include the created team
 resp = JSON.parse(last_response.body)
-team_ids = resp['records'].map { |t| t['teamid'] }
-team_ids.include?(@teamid)
+team_ids = resp['records'].map { |t| t['extid'] }
+team_ids.include?(@team_id)
 #=> true
 
 ## Listed teams have correct structure
 resp = JSON.parse(last_response.body)
 first_team = resp['records'].first
 [
-  first_team.key?('teamid'),
+  first_team.key?('extid'),
   first_team.key?('display_name'),
   first_team.key?('is_owner')
 ]
 #=> [true, true, true]
 
-## Can get team details by teamid
-get "/api/teams/#{@teamid}",
+## Can get team details by external id
+get "/api/teams/#{@extid}",
   {},
   { 'rack.session' => @session }
 resp = JSON.parse(last_response.body)
-[last_response.status, resp['record']['teamid'], resp['record']['display_name']]
-#=> [200, @teamid, 'API Test Team']
+[last_response.status, resp['record']['extid'], resp['record']['display_name']]
+#=> [200, @team_id, 'API Test Team']
 
 ## Team details include description
 resp = JSON.parse(last_response.body)
@@ -112,7 +112,7 @@ resp['record']['description']
 #=> 'Created via API'
 
 ## Can update team display name
-put "/api/teams/#{@teamid}",
+put "/api/teams/#{@extid}",
   { display_name: 'Updated Team Name' }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
 resp = JSON.parse(last_response.body)
@@ -120,7 +120,7 @@ resp = JSON.parse(last_response.body)
 #=> [200, 'Updated Team Name']
 
 ## Can update team description
-put "/api/teams/#{@teamid}",
+put "/api/teams/#{@extid}",
   { description: 'New description' }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
 resp = JSON.parse(last_response.body)
@@ -128,7 +128,7 @@ resp = JSON.parse(last_response.body)
 #=> [200, 'New description']
 
 ## Can update both display name and description
-put "/api/teams/#{@teamid}",
+put "/api/teams/#{@extid}",
   { display_name: 'Final Team Name', description: 'Final description' }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
 resp = JSON.parse(last_response.body)
@@ -138,7 +138,7 @@ resp = JSON.parse(last_response.body)
 ## Updated timestamp changes after update
 original_updated = JSON.parse(last_response.body)['record']['updated']
 sleep 0.01
-put "/api/teams/#{@teamid}",
+put "/api/teams/#{@extid}",
   { display_name: 'Timestamp Test' }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
 new_updated = JSON.parse(last_response.body)['record']['updated']
@@ -183,12 +183,12 @@ last_response.status >= 400
 #=> true
 
 ## Cannot get team details without authentication
-get "/api/teams/#{@teamid}", {}, {}
+get "/api/teams/#{@extid}", {}, {}
 last_response.status >= 400
 #=> true
 
 ## Cannot update team without authentication
-put "/api/teams/#{@teamid}",
+put "/api/teams/#{@extid}",
   { display_name: 'Hacked Name' }.to_json,
   { 'CONTENT_TYPE' => 'application/json' }
 last_response.status >= 400
@@ -202,21 +202,21 @@ last_response.status >= 400
 #=> true
 
 ## Can delete team
-delete "/api/teams/#{@teamid}",
+delete "/api/teams/#{@extid}",
   {},
   { 'rack.session' => @session }
 last_response.status
 #=> 200
 
 ## Deleted team no longer accessible
-get "/api/teams/#{@teamid}",
+get "/api/teams/#{@extid}",
   {},
   { 'rack.session' => @session }
 last_response.status >= 400
 #=> true
 
 ## Cannot delete already deleted team
-delete "/api/teams/#{@teamid}",
+delete "/api/teams/#{@extid}",
   {},
   { 'rack.session' => @session }
 last_response.status >= 400
@@ -226,7 +226,7 @@ last_response.status >= 400
 post '/api/teams',
   { display_name: 'Delete Test Team' }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
-delete_teamid = JSON.parse(last_response.body)['record']['teamid']
+delete_teamid = JSON.parse(last_response.body)['record']['extid']
 delete "/api/teams/#{delete_teamid}", {}, {}
 [last_response.status >= 400, delete_teamid != nil]
 #=> [true, true]

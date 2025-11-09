@@ -34,9 +34,10 @@ end
 [@team.class, @team.display_name, @team.owner_id]
 #=> [Onetime::Team, "Engineering Team", @owner.custid]
 
-## Team has a valid teamid (UUUID format - Familia.generate_id)
-@team.teamid.class
+## Team has a valid team_id (UUID format - Familia.generate_id)
+@team.team_id.class
 #=> String
+#=~> /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 ## Team owner is correctly set
 @team.owner.custid
@@ -182,10 +183,10 @@ sleep 0.01
 @team.updated > original_updated
 #=> true
 
-## Can load team by teamid
-loaded_team = Onetime::Team.load(@team.teamid)
-[loaded_team.teamid, loaded_team.display_name]
-#=> [@team.teamid, "Updated Team Name"]
+## Can load team by team_id (team.objid or team.team_id)
+loaded_team = Onetime::Team.load(@team.team_id)
+[loaded_team.team_id, loaded_team.display_name]
+#=> [@team.team_id, "Updated Team Name"]
 
 ## Loading non-existent team returns nil
 Onetime::Team.load("nonexistent123")

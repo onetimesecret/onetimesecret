@@ -32,7 +32,7 @@ module TeamAPI::Logic
           user_id: cust.objid,
           records: teams.map do |team|
             {
-              id: team.teamid,
+              id: team.team_id,
               display_name: team.display_name,
               description: team.description || '',
               owner_id: team.owner_id,

@@ -32,7 +32,7 @@ module Onetime
 
     def create_test_data(email)
       # Load customer
-      cust = Onetime::Customer.load_from_email(email)
+      cust = Onetime::Customer.find_by_email(email)
       unless cust
         puts "Error: Customer not found for #{email}"
         exit 1
@@ -56,7 +56,7 @@ module Onetime
       team_display_name = option.team_name || "#{org_display_name} Team"
       team = Onetime::Team.create!(team_display_name, cust, org.objid)
 
-      puts "Created team: #{team.teamid} - #{team.display_name}"
+      puts "Created team: #{team.team_id} - #{team.display_name}"
       puts "  - org_id: #{team.org_id}"
       puts "  - owner: #{team.owner_id}"
 
@@ -65,7 +65,7 @@ module Onetime
       puts '✓ Test data created:'
       puts "  Customer: #{cust.email}"
       puts "  Organization: #{org.display_name} (#{org.objid})"
-      puts "  Team: #{team.display_name} (#{team.teamid})"
+      puts "  Team: #{team.display_name} (#{team.team_id})"
       puts ''
       puts "Login as #{email} and visit /billing to see the org link!"
 
@@ -80,7 +80,7 @@ module Onetime
 
     def cleanup_test_data(email)
       # Load customer
-      cust = Onetime::Customer.load_from_email(email)
+      cust = Onetime::Customer.find_by_email(email)
       unless cust
         puts "Error: Customer not found for #{email}"
         exit 1

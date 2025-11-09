@@ -47,7 +47,7 @@ module TeamAPI::Logic
           @team.save
         end
 
-        OT.info "[CreateTeam] Created team #{@team.teamid}"
+        OT.info "[CreateTeam] Created team #{@team.team_id}"
 
         success_data
       end
@@ -56,7 +56,7 @@ module TeamAPI::Logic
         {
           user_id: cust.objid,
           record: {
-            id: team.teamid,
+            id: team.team_id,
             display_name: team.display_name,
             description: team.description || '',
             owner_id: team.owner_id,

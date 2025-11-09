@@ -28,7 +28,7 @@ module Auth
         org = create_default_organization
         team = create_default_team(org)
 
-        auth_logger.info "[create-default-workspace] Created workspace for #{@customer.custid}: org=#{org.objid}, team=#{team.teamid}"
+        auth_logger.info "[create-default-workspace] Created workspace for #{@customer.custid}: org=#{org.objid}, team=#{team.team_id}"
 
         { organization: org, team: team }
       end
