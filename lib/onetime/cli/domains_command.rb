@@ -5,10 +5,10 @@
 module Onetime
   class DomainsCommand < Onetime::CLI
     def domains
-      puts format('%d custom domains', Onetime::CustomDomain.values.size)
+      puts format('%d custom domains', Onetime::CustomDomain.instances.size)
       return unless option.list
 
-      literally_all_domain_ids = Onetime::CustomDomain.values.all
+      literally_all_domain_ids = Onetime::CustomDomain.instances.all
       all_domains              = literally_all_domain_ids.map do |did|
         Onetime::CustomDomain.find_by_identifier(did)
       end

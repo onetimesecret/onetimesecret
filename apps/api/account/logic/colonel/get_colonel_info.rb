@@ -44,7 +44,7 @@ module AccountAPI
           @yesterday_feedback = process_feedback_for_period(48.hours, now - 24.hours)
           @older_feedback     = process_feedback_for_period(14.days, now - 48.hours)
 
-          @feedback_count           = Onetime::Feedback.values.size
+          @feedback_count           = Onetime::Feedback.instances.size
           @today_feedback_count     = @today_feedback.size
           @yesterday_feedback_count = @yesterday_feedback.size
           @older_feedback_count     = @older_feedback.size
@@ -73,7 +73,7 @@ module AccountAPI
             }
           end.compact.reverse
 
-          @customer_count        = Onetime::Customer.values.size
+          @customer_count        = Onetime::Customer.instances.size
           @recent_customer_count = @recent_customers.size
         end
         private :process_customers

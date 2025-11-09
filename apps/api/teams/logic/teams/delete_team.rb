@@ -43,8 +43,8 @@ module TeamAPI::Logic
           @team.remove_member(member)
         end
 
-        # Remove from global values set
-        Onetime::Team.values.rem(teamid)
+        # Remove from global instances set
+        Onetime::Team.instances.rem(teamid)
 
         # Delete the team
         @team.destroy!

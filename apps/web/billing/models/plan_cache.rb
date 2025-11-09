@@ -69,7 +69,7 @@ module Billing
       # Override save to track plans in class-level sorted set
       def save(**)
         result = super
-        self.class.values.add(plan_id) if result && plan_id
+        self.class.instances.add(plan_id) if result && plan_id
         result
       end
 

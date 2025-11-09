@@ -38,8 +38,8 @@ module OrganizationAPI::Logic
           @organization.remove_member(member)
         end
 
-        # Remove from global values set (Familia v2 uses 'remove' not 'rem')
-        Onetime::Organization.values.remove(objid)
+        # Remove from global instances set (Familia v2 uses 'remove' not 'rem')
+        Onetime::Organization.instances.remove(objid)
 
         # Delete the organization
         @organization.destroy!
