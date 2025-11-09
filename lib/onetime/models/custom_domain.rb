@@ -194,9 +194,12 @@ module Onetime
     # Removes the domain identifier from the CustomDomain values
     # and then calls the superclass destroy method
     #
+    # @deprecated Use {#destroy!} instead. This method does not properly clean up
+    #   organization participations. destroy! should be used for complete cleanup.
     # @param args [Array] Additional arguments to pass to the superclass destroy method
     # @return [Object] The result of the superclass destroy method
     def delete!(*args)
+      OT.le "[CustomDomain#delete!] DEPRECATED: Use destroy! instead for proper organization cleanup"
       Onetime::CustomDomain.rem self
       super # we may prefer to call self.clear here instead
     end
@@ -404,9 +407,14 @@ module Onetime
       # 3. Saves the domain and updates related records atomically
       #
       # @param input [String] The domain name to create
-      # @param org_id [String] The organization ID to associate with (replaces custid)
+      # @param org_id [String] The organization ID to associate with this domain
       # @return [Onetime::CustomDomain] The created custom domain
       # @raise [Onetime::Problem] If domain is invalid or already exists
+      #
+      # @note BREAKING CHANGE: This method signature changed from (input, custid) to (input, org_id).
+      #   Domains are now owned by organizations, not individual customers. To migrate existing code:
+      #   OLD: CustomDomain.create!(domain, customer.custid)
+      #   NEW: CustomDomain.create!(domain, customer.organization_instances.first.orgid)
       #
       # More Info:
       # We need a minimum of a domain and organization id to create a custom
@@ -455,7 +463,7 @@ module Onetime
       # Returns a new Onetime::CustomDomain object (without saving it).
       #
       # @param input [String] The domain name to parse
-      # @param org_id [String] Organization ID associated with the domain (replaces custid)
+      # @param org_id [String] Organization ID to associate with this domain
       #
       # @return [Onetime::CustomDomain]
       #
@@ -463,6 +471,9 @@ module Onetime
       # @raise [PublicSuffix::DomainNotAllowed] If domain is not allowed
       # @raise [PublicSuffix::Error] For other PublicSuffix errors
       # @raise [Onetime::Problem] If domain exceeds MAX_SUBDOMAIN_DEPTH or MAX_TOTAL_LENGTH
+      #
+      # @note BREAKING CHANGE: Second parameter changed from custid to org_id.
+      #   See {create!} for migration details.
       #
       def parse(input, org_id)
         raise Onetime::Problem, 'Organization ID required' if org_id.to_s.empty?
