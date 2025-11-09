@@ -141,11 +141,10 @@ module Onetime
           # Locale detection middleware (after session, before domain strategy)
           # Sets env['otto.locale'] based on URL param, session, Accept-Language header
           logger.debug 'Setting up Locale detection middleware'
-          builder.use Otto::Locale::Middleware, {
+          builder.use Otto::Locale::Middleware,
             available_locales: build_available_locales,
             default_locale: OT.default_locale,
-            debug: OT.debug?,
-          }
+            debug: OT.debug?
 
           # Domain strategy middleware (after identity)
           builder.use Onetime::Middleware::DomainStrategy, application_context: application_context
