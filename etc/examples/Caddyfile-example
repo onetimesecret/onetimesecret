@@ -2,6 +2,13 @@
 # Caddy 2 Configuration - One-Time Secret (Updated: 2025-11-09)
 #
 # caddy validate -c etc/examples/Caddyfile-example
+#
+# OR via docker container
+#
+# docker run --rm \
+#  -v $PWD/etc/examples/Caddyfile-example:/etc/caddy/Caddyfile:ro \
+#  onetime-caddy:2.10 \
+#  caddy validate --config /etc/caddy/Caddyfile
 
 {
   # This email address is used for ACME (Let's Encrypt) contacts
@@ -64,25 +71,98 @@
   root * {$PUBLIC_DIR:/var/www/public}
 
   encode {
-    minimum_length 1024
+    minimum_length 512
     zstd
     gzip 7
   }
+
   # Block access to sensitive files
   @sensitive {
-    path */wp-config.php */.env* */.git/* */config.php */.htaccess */readme.html */readme.md
-    path */phpinfo.php */info.php */test.php */server-status */server-info
-    path */admin* */wp-admin
+    path */.env* */.git/* */.htaccess
+    path */Gemfile */Gemfile.lock */config.ru
+    path */bin/* */tmp/* */log/*
   }
   respond @sensitive 404
 
   # Block known bad user agents and common attack patterns
   @blocklist {
-    header_regexp User-Agent (nmap|nikto|sqlmap|gobuster|masscan|zmap|zgrab|wpscan|dirbuster)
-    path */wp-login.php */xmlrpc.php */eval-stdin.php */install.php
+    header_regexp User-Agent (nmap|nikto|sqlmap|gobuster|masscan|zmap|zgrab|dirbuster|metasploit|burp)
   }
   respond @blocklist 404
 
+  # Block path traversal attempts
+  @path_traversal {
+      path_regexp (\.\./|\.\.%2[Ff]|%00|%0[Dd]%0[Aa])
+  }
+  respond @path_traversal 400
+
+  # Enhanced rate limiting using caddy-ratelimit plugin
+  # @see https://github.com/mholt/caddy-ratelimit
+  #
+  # Rate limit calculations:
+  #    5r/m =>     300 requests/hour per IP
+  #   10r/s =>  36,000 requests/hour per IP
+  #   20r/s =>  72,000
+  #   30r/s => 108,000
+  #   99r/s => 356,400
+  #
+  # General traffic - applies to all non-matched paths
+  rate_limit {
+    zone general {
+      key {remote_ip}
+      events 20
+      window 1s
+    }
+  }
+
+  # API endpoints - moderate limits
+  @api_paths {
+    path /api/*
+  }
+  rate_limit @api_paths {
+    zone api {
+      key {remote_ip}
+      events 30
+      window 1s
+    }
+  }
+
+  # Auth mutations (login, password changes) - strict limits
+  @auth_mutations {
+    path /auth/login /auth/create-* /auth/reset-* /auth/verify-*
+    path /auth/otp-* /auth/webauthn-* /auth/email-login*
+  }
+  rate_limit @auth_mutations {
+    zone auth_mutations {
+      key {remote_ip}
+      events 5
+      window 1m
+    }
+  }
+
+  # Auth reads (account info, status checks) - moderate limits
+  @auth_reads {
+    path /auth/*
+  }
+  rate_limit @auth_reads {
+    zone auth_reads {
+      key {remote_ip}
+      events 10
+      window 1s
+    }
+  }
+
+  # Static assets - high limits
+  @static {
+    path *.js *.css *.svg *.png *.jpg *.jpeg *.woff *.woff2 *.ico *.pdf *.manifest
+  }
+  rate_limit @static {
+    zone static {
+      key {remote_ip}
+      events 99
+      window 1s
+    }
+  }
 }
 
 (onetime-headers) {
@@ -102,12 +182,18 @@
   }
 
   header {
-    # Don't send referrer information when leaving the site
-    Referrer-Policy "no-referrer"
-    X-Content-Type-Options nosniff
-    X-Frame-Options DENY
+    # Security headers
+    #
+    # CSP: Handled by application server (apps/web/core/middleware/security_headers.rb)
+    # to maintain centralized policy management.
+    #
+    # HSTS: Configured per-domain in main server block below for flexibility.
+    #
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
     X-XSS-Protection "1; mode=block"
-    X-Via -{args[0]}
+    Referrer-Policy "no-referrer"
+    Permissions-Policy ""
 
     # Prevent caching of sensitive content
     Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
@@ -116,8 +202,15 @@
     # Prevent search engines from indexing
     X-Robots-Tag "noindex, nofollow, noarchive, nosnippet, noimageindex"
 
-    # Remove Server header to minimize fingerprinting
+    # Custom header indicating which Caddy instance/config handled request.
+    # The -{args[0]} syntax removes the header if args[0] is empty, or sets it to
+    # the value passed when importing this snippet (e.g., "import onetime-headers main").
+    # Useful for multi-instance deployments or A/B config testing.
+    O-Via -{args[0]}
+
+    # Remove server identification
     -Server
+    -X-Powered-By
   }
 }
 
@@ -135,6 +228,7 @@
       # Filter request headers to prevent header smuggling
       header_down -Server
 
+      # Ruby application container. Needs to match the docker name.
       to onetime-app:3000
 
       # Load Balancer
@@ -163,8 +257,8 @@
       health_interval 20s
 
       # Consecutive checks to mark healthy/unhealthy (default: 1)
-      health_passes 1
-      health_fails 1
+      health_passes 2
+      health_fails 2
 
       # How long to wait before marking down (default: 5s)
       health_timeout 5s
@@ -179,7 +273,11 @@
 
       transport http {
         compression off
-        keepalive off # important
+
+        # There's an issue with Caddy losing connection with the application
+        # server intermittently so we keep this off even though there is
+        # performance benefit.
+        keepalive off
 
         read_timeout 15s
         write_timeout 60s
@@ -200,6 +298,8 @@
     }
 
     level INFO
+    # exclude_headers: Not available in Caddy. Handle sensitive data redaction
+    # in application logs or use log aggregation pipeline for filtering.
     #exclude_headers authorization cookie set-cookie
   }
 
@@ -244,8 +344,10 @@
   import onetime-logging
 
   # HSTS configuration
-  # NOTE: For domains that are proxied through CloudFlare, these settings are
-  # overridden and configured in the CloudFlare SSL/TLS Dashboard.
+  # Commented out: CloudFlare proxy overrides these settings via SSL/TLS Dashboard.
+  # For direct (non-proxied) deployments, uncomment and configure per-domain.
+  # Test thoroughly before enabling includeSubDomains to avoid lockout scenarios.
+  #
   #@hsts_domains {
   #  host example.com
   #}
@@ -269,49 +371,5 @@ http:// {
   # Everything else - redirect to HTTPS
   handle {
     redir https://{host}{uri} permanent
-  }
-}
-
-# If on demand certificates are enabled.
-#
-#https:// {
-#  #
-#  # The tls block must not have any cert or issue settings otherwise:
-#  #   "Error: adapting config using caddyfile: automation policy from site block is also
-#  #   default/catch-all policy because of key without hostname, and the two are in conflict"
-#  #
-#  tls {
-#    protocols tls1.3
-#    on_demand
-#  }
-#
-#  import onetime-root
-#  import onetime-headers on_demand
-#  import onetime-proxy
-#  import onetime-logging
-#}
-
-# Caddy relies on this to be available for hot reloads
-#
-# i.e. systemctl reload caddy.service
-:2019 {
-  @local_only {
-    remote_ip 127.0.0.1 ::1
-  }
-
-  # (Optional) Custom Debugging endpoint - only available locally
-  handle /debug/headers {
-    @allowed {
-      expression {remote_ip} == '127.0.0.1' || {remote_ip} == '::1'
-    }
-    respond @allowed "Headers debug endpoint" 200 {
-      close
-    }
-    respond 403
-  }
-
-  log {
-    output stdout
-    level DEBUG
   }
 }

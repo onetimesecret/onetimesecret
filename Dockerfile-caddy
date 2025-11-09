@@ -48,27 +48,35 @@
 #   * Hit Let's Encrypt rate limits (~5 certificates per domain per week)
 #   * Experience downtime during certificate re-issuance
 
+# Build stage: compile Caddy with plugins using xcaddy
+FROM golang:1.25-bookworm AS builder
+
+# Set Go environment and install xcaddy
+ENV PATH="/go/bin:${PATH}"
+RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+
+# Build Caddy with rate limit plugin
+RUN xcaddy build v2.10.2 \
+    --with github.com/mholt/caddy-ratelimit
+
+# Runtime stage: minimal image with custom Caddy binary
 FROM debian:bookworm-slim
 
 ARG PUBLIC_DIR=/var/www/public
 ARG CADDY_VERSION=2.10.2
 
-# Install dependencies and add Caddy stable repository
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y \
-    debian-keyring \
-    debian-archive-keyring \
-    apt-transport-https \
     ca-certificates \
     curl \
-   	bind9-dnsutils \
-    && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
-    && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list \
-    && chmod 644 /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
-    && chmod 644 /etc/apt/sources.list.d/caddy-stable.list \
-    && apt-get update \
-    && apt-get install -y caddy=${CADDY_VERSION} \
-    && caddy version \
+    bind9-dnsutils \
     && rm -rf /var/lib/apt/lists/*
+
+# Copy custom Caddy binary from builder (xcaddy outputs to /go/caddy by default)
+COPY --from=builder /go/caddy /usr/bin/caddy
+
+# Verify installation
+RUN caddy version
 
 # Ensure directories exist and make PUBLIC_DIR available as env var
 RUN mkdir -p /etc/caddy ${PUBLIC_DIR}
