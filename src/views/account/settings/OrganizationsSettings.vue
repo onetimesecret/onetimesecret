@@ -8,6 +8,7 @@ import BillingLayout from '@/components/layout/BillingLayout.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import CreateOrganizationModal from '@/components/organizations/CreateOrganizationModal.vue';
 import { useOrganizationStore } from '@/stores/organizationStore';
+import { useCapabilities } from '@/composables/useCapabilities';
 import type { Organization } from '@/types/organization';
 
 const { t } = useI18n();
@@ -16,6 +17,11 @@ const organizationStore = useOrganizationStore();
 
 const isLoading = ref(false);
 const showCreateModal = ref(false);
+
+// Use the first organization to check capabilities for single-org users
+const primaryOrg = computed(() => organizationStore.organizations[0] || null);
+const primaryOrgRef = computed(() => primaryOrg.value);
+const { can, CAPABILITIES } = useCapabilities(primaryOrgRef);
 
 // Filter out default orgs for individual plan users (future plan-gating logic)
 const visibleOrganizations = computed(() =>
@@ -26,6 +32,20 @@ const visibleOrganizations = computed(() =>
 );
 
 const hasOrganizations = computed(() => visibleOrganizations.value.length > 0);
+
+/**
+ * Determine if user can create multiple organizations based on capabilities.
+ * Uses capability-based framework instead of hardcoded plan checks.
+ */
+const canCreateMultipleOrgs = computed(() =>
+  // Users with team creation capability can manage multiple organizations
+   can(CAPABILITIES.CREATE_TEAMS) || can(CAPABILITIES.CREATE_TEAM)
+);
+
+/**
+ * Determine if user is on a single-user account (no team capabilities)
+ */
+const isSingleUserAccount = computed(() => !can(CAPABILITIES.CREATE_TEAM) && !can(CAPABILITIES.CREATE_TEAMS));
 
 onMounted(async () => {
   isLoading.value = true;
@@ -71,7 +91,14 @@ const handleManageOrganization = (org: Organization) => {
                 {{ t('web.organizations.title') }}
               </h2>
             </div>
+            <!--
+              Organization CTA Logic:
+              - Show "+ Create Organization" button ONLY when user has existing organizations
+              - Show "+ Create First Organization" button ONLY in empty state (no organizations)
+              - This prevents both CTAs from appearing simultaneously and provides contextual action based on user state
+            -->
             <button
+              v-if="hasOrganizations"
               @click="handleCreateOrganization"
               class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
               <OIcon
@@ -165,8 +192,29 @@ const handleManageOrganization = (org: Organization) => {
         </div>
       </section>
 
-      <!-- Info Section -->
+      <!-- Info Section - Personalized based on user capabilities -->
       <section
+        v-if="isSingleUserAccount && hasOrganizations"
+        class="rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/50 dark:bg-blue-900/10">
+        <div class="flex gap-3">
+          <OIcon
+            collection="heroicons"
+            name="information-circle"
+            class="size-5 shrink-0 text-blue-600 dark:text-blue-400"
+            aria-hidden="true" />
+          <div class="text-sm">
+            <h3 class="font-medium text-blue-900 dark:text-blue-300">
+              {{ t('web.organizations.single_user_info_title') }}
+            </h3>
+            <p class="mt-1 text-blue-700 dark:text-blue-400">
+              {{ t('web.organizations.single_user_info_description') }}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section
+        v-else-if="canCreateMultipleOrgs"
         class="rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/50 dark:bg-blue-900/10">
         <div class="flex gap-3">
           <OIcon
@@ -180,6 +228,26 @@ const handleManageOrganization = (org: Organization) => {
             </h3>
             <p class="mt-1 text-blue-700 dark:text-blue-400">
               {{ t('web.organizations.about_description') }}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section
+        v-else-if="!hasOrganizations"
+        class="rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/50 dark:bg-blue-900/10">
+        <div class="flex gap-3">
+          <OIcon
+            collection="heroicons"
+            name="information-circle"
+            class="size-5 shrink-0 text-blue-600 dark:text-blue-400"
+            aria-hidden="true" />
+          <div class="text-sm">
+            <h3 class="font-medium text-blue-900 dark:text-blue-300">
+              {{ t('web.organizations.getting_started_title') }}
+            </h3>
+            <p class="mt-1 text-blue-700 dark:text-blue-400">
+              {{ t('web.organizations.getting_started_description') }}
             </p>
           </div>
         </div>

@@ -21,7 +21,7 @@ interface NavigationItem {
 
 const sections: NavigationItem[] = [
   {
-    to: '/billing',
+    to: '/billing/overview',
     icon: { collection: 'heroicons', name: 'credit-card' },
     label: t('web.billing.overview.title'),
     description: t('web.billing.overview.description'),
@@ -48,7 +48,15 @@ const sections: NavigationItem[] = [
 
 const visibleSections = computed(() => sections.filter(section => section.visible ? section.visible() : true));
 
-const isActiveRoute = (path: string): boolean => route.path === path || route.path.startsWith(path + '/');
+/**
+ * Check if a route is currently active.
+ * Uses exact matching to avoid highlighting parent routes when on child routes.
+ * For example, /billing should not be active when on /billing/overview.
+ */
+const isActiveRoute = (path: string): boolean =>
+  // Exact match only - prevents /billing from matching when on /billing/overview
+   route.path === path
+;
 
 const isParentActive = (item: NavigationItem): boolean => {
   if (isActiveRoute(item.to)) return true;

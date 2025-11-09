@@ -158,6 +158,35 @@ onMounted(async () => {
         </div>
       </div>
 
+      <!-- Empty State: No Organizations -->
+      <div v-else-if="organizations.length === 0" class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800">
+        <OIcon
+          collection="heroicons"
+          name="building-office-2"
+          class="mx-auto size-12 text-gray-400"
+          aria-hidden="true"
+        />
+        <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+          {{ t('web.billing.overview.no_organizations_title') }}
+        </h3>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.billing.overview.no_organizations_description') }}
+        </p>
+        <div class="mt-6">
+          <router-link
+            :to="{ name: 'Billing Organizations' }"
+            class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
+            <OIcon
+              collection="heroicons"
+              name="plus"
+              class="size-4"
+              aria-hidden="true"
+            />
+            {{ t('web.organizations.create_organization') }}
+          </router-link>
+        </div>
+      </div>
+
       <!-- Content -->
       <div v-else-if="selectedOrg" class="space-y-6">
         <!-- Current Plan Card -->
@@ -192,7 +221,7 @@ onMounted(async () => {
                   class="size-4"
                   aria-hidden="true"
                 />
-                {{ planStatus === 'free' ? t('web.billing.overview.upgrade_plan') : 'Change Plan' }}
+                {{ planStatus === 'free' ? t('web.billing.overview.upgrade_plan') : t('web.billing.overview.change_plan') }}
               </router-link>
             </div>
 
@@ -276,15 +305,15 @@ onMounted(async () => {
                   {{ daysUntilBilling }}
                 </p>
                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                  days remaining
+                  {{ t('web.billing.overview.days_remaining') }}
                 </p>
                 <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Billing on {{ formatNextBillingDate(nextBillingDate) }}
+                  {{ t('web.billing.overview.billing_on', { date: formatNextBillingDate(nextBillingDate) }) }}
                 </p>
               </div>
               <div v-else class="py-4 text-center">
                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                  No upcoming billing
+                  {{ t('web.billing.overview.no_upcoming_billing') }}
                 </p>
               </div>
             </div>
@@ -312,10 +341,10 @@ onMounted(async () => {
                 />
               </div>
               <p class="mt-3 text-sm font-medium text-gray-900 dark:text-white">
-                View Plans
+                {{ t('web.billing.overview.view_plans_action') }}
               </p>
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Compare and upgrade
+                {{ t('web.billing.overview.view_plans_description') }}
               </p>
             </router-link>
 
@@ -332,10 +361,10 @@ onMounted(async () => {
                 />
               </div>
               <p class="mt-3 text-sm font-medium text-gray-900 dark:text-white">
-                View Invoices
+                {{ t('web.billing.overview.view_invoices_action') }}
               </p>
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Download history
+                {{ t('web.billing.overview.view_invoices_description') }}
               </p>
             </router-link>
 
@@ -353,10 +382,10 @@ onMounted(async () => {
                 />
               </div>
               <p class="mt-3 text-sm font-medium text-gray-900 dark:text-white">
-                Manage Billing
+                {{ t('web.billing.overview.manage_billing_action') }}
               </p>
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Update payment info
+                {{ t('web.billing.overview.manage_billing_description') }}
               </p>
             </button>
           </div>
