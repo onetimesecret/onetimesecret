@@ -22,9 +22,10 @@ module Onetime
 
     identifier_field :objid
 
+    # CRITICAL: DO NOT manually define sorted_set :members
     # Familia v2 relationships - Explicitly declare collection for participates_in
     # This is populated by Customer.participates_in Team, :members
-    sorted_set :members
+    ##sorted_set :members
 
     field :teamid
     field :display_name
