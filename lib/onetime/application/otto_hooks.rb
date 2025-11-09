@@ -9,12 +9,12 @@
 # by applications using Otto as their router (Core, V2). Applications using
 # other routers (Auth/Roda) do not need these hooks.
 
-require_relative '../logging'
+require_relative '../logger_methods'
 
 module Onetime
   module Application
     module OttoHooks
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       # Configure Otto request completion hook for operational metrics
       #
@@ -31,10 +31,11 @@ module Onetime
       #     router
       #   end
       def configure_otto_request_hook(router)
-        return unless Onetime.debug?
-
         # Register expected errors with status codes and log levels
+        router.register_error_handler(Onetime::RecordNotFound, status: 404, log_level: :info)
         router.register_error_handler(Onetime::MissingSecret, status: 404, log_level: :info)
+
+        return unless Onetime.debug?
 
         router.on_request_complete do |req, res, duration|
           # Use HTTP logger for request lifecycle events

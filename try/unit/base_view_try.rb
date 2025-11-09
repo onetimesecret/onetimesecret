@@ -60,15 +60,15 @@ env_error = Rack::MockRequest.env_for('http://example.com/')
 env_error['otto.locale'] = 'en'
 env_error['onetime.nonce'] = 'test-nonce'
 
-# Simulate ErrorHandling providing fallback values
+# Simulate fallback session (BaseView will extract from req.session)
 @fallback_session = { 'fallback_key' => 'fallback_value' }
-@fallback_cust = Onetime::Customer.anonymous
-@fallback_locale = 'en'
+env_error['rack.session'] = @fallback_session
 
 req_error = Rack::Request.new(env_error)
 
 # This should NOT crash even though strategy_result is nil
-@view_error = Core::Views::VuePoint.new(req_error, @fallback_session, @fallback_cust, @fallback_locale)
+# BaseView now extracts everything from req
+@view_error = Core::Views::VuePoint.new(req_error)
 
 ## Error recovery view should not be nil after initialization
 @view_error.nil?

@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/logging'
+require 'onetime/logger_methods'
 
 module Core
   module Views
@@ -13,7 +13,7 @@ module Core
     # complexities of CSS bundling and font preloading.
     #
     module ViteManifest
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       # Public directory for web assets
       PUBLIC_DIR = File.join(ENV.fetch('ONETIME_HOME', '.'), 'public', 'web').freeze

@@ -1,0 +1,43 @@
+# apps/web/billing/routes
+#
+# Otto Routes - Billing (Organization subscriptions)
+# Using controller-based routing with authentication strategies
+#
+# Organization billing endpoints - subscription management
+
+# Plan selection (backward compatibility with static site)
+# These maintain the existing /plans/:tier/:billing_cycle pattern
+GET    /plans/:tier/:billing_cycle              Billing::Controllers::Plans#checkout_redirect auth=noauth
+
+# Legacy welcome endpoint (redirects from Stripe Payment Links)
+# Maintained for backward compatibility
+GET    /welcome                                 Billing::Controllers::Plans#welcome auth=noauth
+
+# Stripe webhooks (CSRF exempt, signature verified in controller)
+POST   /webhook                                 Billing::Controllers::Webhooks#handle_event csrf=exempt
+
+# Customer portal redirect (authenticated only)
+GET    /portal                                  Billing::Controllers::Plans#customer_portal_redirect auth=sessionauth
+
+# Organization billing API endpoints (authenticated only)
+GET    /org/:org_id                              Billing::Controllers::Billing#overview response=json auth=sessionauth
+POST   /org/:org_id/checkout                     Billing::Controllers::Billing#create_checkout_session response=json auth=sessionauth
+GET    /org/:org_id/invoices                     Billing::Controllers::Billing#list_invoices response=json auth=sessionauth
+
+# Capability checking endpoints (authenticated only)
+GET    /capabilities                             Billing::Controllers::Capabilities#list response=json auth=sessionauth
+GET    /capabilities/:org_id                     Billing::Controllers::Capabilities#show response=json auth=sessionauth
+GET    /capabilities/:org_id/:capability         Billing::Controllers::Capabilities#check response=json auth=sessionauth
+
+# Billing is a web app so it needs to support its own root paths for
+# the initial server-rendered page loads. e.g. linking directly to
+# /billing/overview would return a 404 without these. After that
+# the Vue application handles the navigation. A common way around
+# this for SPAs is to simply return the base server-rendered page
+# for any route by default. But imagine that. A world where people
+# navigate websites blissfully unaware that their browser console is
+# filling with red 404 errors everywhere they go. So I say, no. No to
+# the 404-land dystopia. No to the absurdity. And yes to keeping it 200.
+GET   /teapot                                    Billing::Controllers::TeaPot#brew response=json auth=noauth
+GET   /overview                                  Billing::Controllers::Page#index auth=sessionauth
+GET   /*                                         Billing::Controllers::Page#index auth=sessionauth

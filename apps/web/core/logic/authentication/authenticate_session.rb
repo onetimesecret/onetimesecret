@@ -7,7 +7,7 @@ module Core::Logic
     using Familia::Refinements::TimeLiterals
 
     class AuthenticateSession < V2::Logic::Base
-      include Onetime::Logging
+      include Onetime::LoggerMethods
       attr_reader :objid, :stay, :greenlighted, :session_ttl, :potential_email_address
 
       # cust is only populated if the passphrase matches

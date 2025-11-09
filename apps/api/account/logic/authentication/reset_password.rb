@@ -7,7 +7,7 @@ module AccountAPI::Logic
     using Familia::Refinements::TimeLiterals
 
     class ResetPassword < AccountAPI::Logic::Base
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       attr_reader :secret, :is_confirmed
 

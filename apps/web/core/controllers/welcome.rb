@@ -6,6 +6,18 @@ require_relative 'base'
 
 module Core
   module Controllers
+    # Welcome Controller
+    #
+    # DEPRECATION NOTICE: This controller handles legacy billing routes for
+    # backward compatibility. New billing functionality has been moved to
+    # apps/web/billing/ (see Billing::Controllers::Plans, Billing::Controllers::Webhooks).
+    #
+    # Routes being migrated:
+    # - GET /plans/:tier/:billing_cycle → /billing/plans/:tier/:billing_cycle
+    # - GET /welcome → /billing/welcome
+    # - POST /welcome/stripe/webhook → /billing/webhook
+    # - GET /account/billing/portal → /billing/portal
+    #
     class Welcome
       include Controllers::Base
 

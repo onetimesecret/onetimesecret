@@ -15,10 +15,6 @@ module Onetime
           OT.ld "[features] #{base}: #{name}"
 
           base.include InstanceMethods
-
-          base.field :stripe_customer_id
-          base.field :stripe_subscription_id
-          base.field :stripe_checkout_email
         end
 
         module InstanceMethods

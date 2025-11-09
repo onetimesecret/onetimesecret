@@ -7,7 +7,7 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class BaseSecretAction < V2::Logic::Base
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted, :metadata,
         :secret, :share_domain, :custom_domain, :payload

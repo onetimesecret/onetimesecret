@@ -9,7 +9,7 @@ module AccountAPI::Logic
     using Familia::Refinements::TimeLiterals
 
     class ResetPasswordRequest < AccountAPI::Logic::Base
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       attr_reader :login_or_email
       attr_accessor :token

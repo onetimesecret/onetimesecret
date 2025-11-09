@@ -1,24 +1,8 @@
 <!-- src/components/layout/HeaderUserNav.vue -->
 
 <script setup lang="ts">
-  import FancyIconLink from '@/components/ctas/FancyIconLink.vue';
   import { Customer } from '@/schemas/models';
   import OIcon from '@/components/icons/OIcon.vue';
-  import { ref, computed } from 'vue';
-  import { WindowService } from '@/services/window.service';
-
-  // Access the necessary window properties with defaults
-  const windowProps = WindowService.getMultiple(['domains_enabled']);
-
-  const domainsEnabled = windowProps.domains_enabled;
-  const showUpgrade = computed(() => domainsEnabled);
-
-  // Allows for highlighting feature to user just one
-  // time to false after user has seen it once. Setting
-  // to false disables altogether but defaulting to true
-  // and flipping a localStorage flag to false after user
-  // has seen it once is a good way to handle this.
-  const isNewFeature = ref(false);
 
   defineProps<{
     cust: Customer;
@@ -33,16 +17,10 @@
       class="group text-gray-400 transition hover:text-gray-300">
       <span
         id="userEmail"
-        :class="{ 'animate-pulse': isNewFeature }"
         class="group-hover:text-gray-300">
         {{ cust.email }}
       </span>
     </router-link>
-
-    <FancyIconLink
-      v-if="showUpgrade"
-      to="/pricing"
-      :aria-label="$t('click-this-lightning-bolt-to-upgrade-for-custom-domains')" />
 
     <router-link
       v-if="colonel"

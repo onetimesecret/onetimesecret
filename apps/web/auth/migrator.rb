@@ -12,12 +12,12 @@
 require 'sequel'
 require 'logger'
 
-require 'onetime/logging'
+require 'onetime/logger_methods'
 require_relative 'database'
 
 module Auth
   module Migrator
-    extend Onetime::Logging
+    extend Onetime::LoggerMethods
 
     class << self
       # Run migrations if needed (called during warmup in advanced mode)

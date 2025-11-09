@@ -21,12 +21,10 @@ vi.mock('vue-i18n', () => ({
 }));
 
 describe('useMfa', () => {
-  let api: AxiosInstance;
   let axiosMock: AxiosMockAdapter;
 
   beforeEach(async () => {
     const setup = await setupTestPinia();
-    api = setup.api;
     axiosMock = setup.axiosMock!;
   });
 

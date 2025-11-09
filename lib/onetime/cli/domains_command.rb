@@ -122,7 +122,9 @@ module Onetime
 
     def revalidate_domain(domain)
         params           = { domain: domain.display_domain }
-        verifier         = V2::Logic::Domains::VerifyDomain.new(nil, domain.custid, params)
+        # NOTE: This uses an old initialization signature that may be broken
+        # TODO: CLI commands need proper strategy_result construction or different pattern
+        verifier         = AccountAPI::Logic::Domains::VerifyDomain.new(nil, domain.custid, params)
         verifier.raise_concerns
         verifier.process
         status           = domain.verification_state

@@ -23,7 +23,6 @@
     'email',
     'cust',
     'ui',
-    'domains_enabled',
   ]));
 
   const isColonel = computed(() => windowProps.value.cust?.role === 'colonel');
@@ -73,9 +72,6 @@
   const navigationEnabled = computed(() =>
     headerConfig.value?.navigation?.enabled !== false
   );
-
-  // Check if domains are enabled for upgrade CTA
-  const domainsEnabled = computed(() => windowProps.value.domains_enabled);
 
   // Logo component handling
   const isVueComponent = computed(() => logoConfig.value.url.endsWith('.vue'));
@@ -171,7 +167,6 @@
             :cust="windowProps.cust"
             :email="windowProps.email"
             :colonel="isColonel"
-            :show-upgrade="domainsEnabled"
             :awaiting-mfa="windowProps.awaiting_mfa" />
         </template>
 

@@ -9,7 +9,7 @@ require 'onetime/helpers/shrimp_helpers'
 module Core
   module Controllers
     module Base
-      include Onetime::Logging
+      include Onetime::LoggerMethods
       include Onetime::Helpers::SessionHelpers
       include Onetime::Helpers::ShrimpHelpers
 
@@ -107,7 +107,8 @@ module Core
       # - Simplifies server configuration and maintenance.
       # - Allows for proper handling of 404s within the Vue.js application.
       def not_found_response(message, **)
-        view       = Core::Views::VuePoint.new(req, session, cust, locale)
+        # Simplified: BaseView now extracts everything from req
+        view       = Core::Views::VuePoint.new(req)
         view.add_error(message) unless message&.empty?
         res.status = 404
         res.body   = view.render  # Render the entrypoint HTML
@@ -136,7 +137,8 @@ module Core
       # Common page rendering methods
 
       def index
-        view     = Core::Views::VuePoint.new(req, session, cust, locale)
+        # Simplified: BaseView now extracts everything from req
+        view     = Core::Views::VuePoint.new(req)
         res.body = view.render
       end
 

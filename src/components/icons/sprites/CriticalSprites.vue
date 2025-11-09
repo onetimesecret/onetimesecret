@@ -1,3 +1,4 @@
+<!-- src/components/icons/sprites/CriticalSprites.vue -->
 <!--
 Critical SVG sprites for immediate availability during initial page render.
 

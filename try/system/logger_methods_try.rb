@@ -46,39 +46,39 @@ config.key?('http')
 
 ## SemanticLogger Integration - Auth logger exists
 SemanticLogger['Auth']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - Session logger exists
 SemanticLogger['Session']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - HTTP logger exists
 SemanticLogger['HTTP']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - Familia logger exists
 SemanticLogger['Familia']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - Otto logger exists
 SemanticLogger['Otto']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - Rhales logger exists
 SemanticLogger['Rhales']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - Secret logger exists
 SemanticLogger['Secret']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - App logger exists (default)
 SemanticLogger['App']
-#=> SemanticLogger::Logger
+#=:> SemanticLogger::Logger
 
 ## Logging Module - Include in test class
 class TestLoggingClass
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_instance = TestLoggingClass.new
 test_instance.respond_to?(:logger)
@@ -86,32 +86,32 @@ test_instance.respond_to?(:logger)
 
 ## Logging Module - Auth logger accessor
 test_instance = TestLoggingClass.new
-test_instance.auth_logger.class
-#=> SemanticLogger::Logger
+test_instance.auth_logger
+#=:> SemanticLogger::Logger
 
 ## Logging Module - Session logger accessor
 test_instance = TestLoggingClass.new
-test_instance.session_logger.class
-#=> SemanticLogger::Logger
+test_instance.session_logger
+#=:> SemanticLogger::Logger
 
 ## Logging Module - HTTP logger accessor
 test_instance = TestLoggingClass.new
-test_instance.http_logger.class
-#=> SemanticLogger::Logger
+test_instance.http_logger
+#=:> SemanticLogger::Logger
 
 ## Logging Module - Secret logger accessor
 test_instance = TestLoggingClass.new
-test_instance.secret_logger.class
-#=> SemanticLogger::Logger
+test_instance.secret_logger
+#=:> SemanticLogger::Logger
 
 ## Logging Module - App logger accessor (default)
 test_instance = TestLoggingClass.new
-test_instance.app_logger.class
-#=> SemanticLogger::Logger
+test_instance.app_logger
+#=:> SemanticLogger::Logger
 
 ## Category Inference - Auth pattern detection
 class TestAuthClass
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_auth = TestAuthClass.new
 test_auth.send(:infer_category)
@@ -119,7 +119,7 @@ test_auth.send(:infer_category)
 
 ## Category Inference - Session pattern detection
 class TestSessionClass
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_session = TestSessionClass.new
 test_session.send(:infer_category)
@@ -127,7 +127,7 @@ test_session.send(:infer_category)
 
 ## Category Inference - Secret pattern detection
 class TestSecretClass
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_secret = TestSecretClass.new
 test_secret.send(:infer_category)
@@ -135,7 +135,7 @@ test_secret.send(:infer_category)
 
 ## Category Inference - HTTP/Controller pattern detection
 class TestController
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_controller = TestController.new
 test_controller.send(:infer_category)
@@ -143,7 +143,7 @@ test_controller.send(:infer_category)
 
 ## Category Inference - Default fallback
 class TestRandomClass
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_random = TestRandomClass.new
 test_random.send(:infer_category)
@@ -177,7 +177,7 @@ Thread.current[:log_category]
 
 ## Structured Logging - li with payload (uses SemanticLogger)
 class TestStructuredLogging
-  include Onetime::Logging
+  include Onetime::LoggerMethods
   def test_li_structured
     # Capture would require SemanticLogger appender configuration
     # For now, verify the method accepts keyword arguments
@@ -190,7 +190,7 @@ TestStructuredLogging.new.test_li_structured
 
 ## Structured Logging - le with payload (uses SemanticLogger)
 class TestStructuredLogging
-  include Onetime::Logging
+  include Onetime::LoggerMethods
   def test_le_structured
     Onetime.le "Error", code: 500
     true
@@ -201,7 +201,7 @@ TestStructuredLogging.new.test_le_structured
 
 ## Structured Logging - lw with payload (uses SemanticLogger)
 class TestStructuredLogging
-  include Onetime::Logging
+  include Onetime::LoggerMethods
   def test_lw_structured
     Onetime.lw "Warning", threshold: 100
     true
@@ -213,7 +213,7 @@ TestStructuredLogging.new.test_lw_structured
 ## Structured Logging - ld with payload (uses SemanticLogger)
 ENV['ONETIME_DEBUG'] = '1'
 class TestStructuredLogging
-  include Onetime::Logging
+  include Onetime::LoggerMethods
   def test_ld_structured
     Onetime.ld "Debug", step: 1
     true
@@ -226,15 +226,15 @@ result
 
 ## Logger Method - Returns SemanticLogger instance
 class TestLoggerMethod
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_logger = TestLoggerMethod.new.logger
-test_logger.class
-#=> SemanticLogger::Logger
+test_logger
+#=:> SemanticLogger::Logger
 
 ## Logger Method - Respects thread-local category
 class TestLoggerMethod
-  include Onetime::Logging
+  include Onetime::LoggerMethods
 end
 test_instance = TestLoggerMethod.new
 Thread.current[:log_category] = 'Secret'
@@ -243,22 +243,26 @@ Thread.current[:log_category] = nil
 logger_name
 #=> "Secret"
 
-## Configuration Loading - Config file structure
-config = YAML.load_file(File.join(Onetime.conf[:site][:path], 'etc', 'logging.yaml'))
-config.key?('default_level')
+## Configuration Loading - Config path from Onetime.conf
+site_path = Onetime.conf.dig(:site, :path) || Dir.pwd
+config_path = File.join(site_path, 'etc', 'logging.yaml')
+File.exist?(config_path)
 #=> true
 
-## Configuration Loading - Loggers configuration exists
-config = YAML.load_file(File.join(Onetime.conf[:site][:path], 'etc', 'logging.yaml'))
-config.key?('loggers')
+## Configuration Loading - Config loads successfully
+site_path = Onetime.conf.dig(:site, :path) || Dir.pwd
+config = YAML.load_file(File.join(site_path, 'etc', 'logging.yaml'))
+!config.nil?
 #=> true
 
-## Configuration Loading - Auth logger configured
-config = YAML.load_file(File.join(Onetime.conf[:site][:path], 'etc', 'logging.yaml'))
+## Configuration Loading - Config has required keys
+site_path = Onetime.conf.dig(:site, :path) || Dir.pwd
+config = YAML.load_file(File.join(site_path, 'etc', 'logging.yaml'))
+config.key?('default_level') && config.key?('loggers') && config.key?('http')
+#=> true
+
+## Configuration Loading - Auth logger is configured
+site_path = Onetime.conf.dig(:site, :path) || Dir.pwd
+config = YAML.load_file(File.join(site_path, 'etc', 'logging.yaml'))
 config['loggers'].key?('Auth')
-#=> true
-
-## Configuration Loading - HTTP config exists
-config = YAML.load_file(File.join(Onetime.conf[:site][:path], 'etc', 'logging.yaml'))
-config.key?('http')
 #=> true

@@ -73,7 +73,6 @@ module V2
 
     identifier_field :configid
 
-    class_sorted_set :values
     class_sorted_set :stack
     class_sorted_set :audit_log
 

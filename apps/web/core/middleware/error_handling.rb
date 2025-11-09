@@ -17,7 +17,7 @@
 module Core
   module Middleware
     class ErrorHandling
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       def initialize(app)
         @app = app
@@ -88,27 +88,11 @@ module Core
 
       def serve_vue_entry_point(env, status: 200)
         req = build_rack_request(env)
-        session = req.session
-        cust = load_customer(req)
-        locale = req.locale
 
-        view = Core::Views::VuePoint.new(req, session, cust, locale)
+        # Simplified: BaseView now extracts everything from req
+        view = Core::Views::VuePoint.new(req)
 
         [status, default_headers, [view.render]]
-      end
-
-      def load_customer(req)
-        # Use Rack::Request extension method
-        user = req.user
-        return user if user&.is_a?(Onetime::Customer)
-
-        # Fallback to anonymous
-        Onetime::Customer.anonymous
-      rescue StandardError => ex
-        http_logger.error "Failed to load customer", {
-          exception: ex
-        }
-        Onetime::Customer.anonymous
       end
 
       def build_rack_request(env)

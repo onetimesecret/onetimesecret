@@ -18,13 +18,11 @@ import type { AxiosInstance } from 'axios';
 
 describe('Language Store', () => {
   let axiosMock: AxiosMockAdapter | null;
-  let api: AxiosInstance;
 
   beforeEach(async () => {
     // Setup testing environment with all needed components
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock;
-    api = setup.api;
 
     vi.useFakeTimers();
 

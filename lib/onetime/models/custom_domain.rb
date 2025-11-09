@@ -53,7 +53,11 @@ module Onetime
 
     # NOTE: The dbkey used by older models for values is simply
     # "onetime:customdomain". We'll want to rename those at some point.
-    class_sorted_set :values
+    #
+    # "values" was Familia v1 convention. In Familia, the same functionality
+    # is provided automatically by ModelName.instances.
+    #   class_sorted_set :values
+
     class_hashkey :display_domains
     class_hashkey :owners
 

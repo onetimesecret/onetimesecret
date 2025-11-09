@@ -28,38 +28,45 @@ module Core
       include Core::Views::ViteManifest
       include Onetime::Utils::TimeUtils
 
-      # include Onetime::Helpers::ShrimpHelpers
-
       TEMPLATE_PATH = File.join(__dir__, '..', 'templates')
 
       attr_accessor :req, :form_fields, :pagename, :strategy_result, :locale, :sess, :cust
       attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
 
-      def initialize(req, session = nil, cust = nil, locale = nil)
-        @req  = req
+      # Initialize a new view with the given request
+      #
+      # All other data (session, customer, locale) is extracted from req automatically:
+      # - Session: req.env['otto.strategy_result'].session or req.session
+      # - Customer: req.env['otto.strategy_result'].user or anonymous
+      # - Locale: req.env['otto.locale'] or default
+      #
+      # @param req [Rack::Request] The current request object
+      def initialize(req)
+        @req             = req
         @strategy_result = req.env['otto.strategy_result']
 
-        # Defensive initialization: Use strategy_result when available (normal auth flow),
-        # otherwise fall back to provided params (error recovery flow).
-        # This handles cases where errors occur before Otto's auth wrapper runs.
-        @sess = @strategy_result ? @strategy_result.session : (session || {})
-        @cust = @strategy_result ? (@strategy_result.user || Onetime::Customer.anonymous)
-                                 : (cust || Onetime::Customer.anonymous)
+        # Extract session and customer from strategy_result or use fallback values
+        if @strategy_result
+          @sess = @strategy_result.session
+          @cust = @strategy_result.user || Onetime::Customer.anonymous
+        else
+          # Error recovery: Otto didn't run, use direct session access
+          @sess = begin
+            req.session
+          rescue StandardError
+            {}
+          end
+          @cust = Onetime::Customer.anonymous
+        end
 
-        # We determine locale here because it's used for i18n. Otherwise we couldn't
-        # determine the i18n messages until inside or after initialize_view_vars.
-        #
-        # Determine locale with this priority:
-        # 1. Explicitly provided locale
-        # 2. Locale from request environment (if available)
-        # 3. Application default locale as set in yaml configuration
-        @locale = locale || req.locale
+        # Extract locale from request environment
+        @locale = req.env.fetch('otto.locale', OT.default_locale)
 
         @i18n_instance = i18n
         @messages      = []
 
-        # Initialize view variables for use in rendering
-        # Pass resolved session and customer to ensure consistency
+        # Initialize view variables, passing pre-resolved sess/cust
+        # to avoid re-extraction (eliminates duplication)
         @view_vars = self.class.initialize_view_vars(req, i18n_instance, @sess, @cust)
 
         # Call subclass init hook if defined
@@ -139,13 +146,6 @@ module Core
         # provides the locale strings specifically for this view. For that to
         # work, the view being used has a matching name in the locales file.
         def pagename
-          # NOTE: There's some speculation that setting a class instance variable
-          # inside the class method could present a race condition in between the
-          # check for nil and running the expression to set it. It's possible but
-          # every thread will produce the same result. Winning by technicality is
-          # one thing but the reality of software development is another. Process
-          # is more important than clever design. Instead, a safer practice is to
-          # set the class instance variable here in the class definition.
           @pagename ||= name.split('::').last.downcase.to_sym
         end
 

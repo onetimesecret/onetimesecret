@@ -40,12 +40,14 @@ default_level: info
 formatter: color
 
 # Named logger levels
-# Each category can be configured independently
+# Each category can be configured independently. Loggers added here are
+# made available by the setup_loggers initializer.
 loggers:
   App: info       # Default application logger
   Auth: info      # Authentication/authorization flows
+  Billing: info   #
   Boot: info      # During intiaialization
-  Familia: warn   # Redis/Familia ORM operations
+  Familia: warn   # Redis/Familia main database operations
   HTTP: warn      # HTTP requests and middleware operations
   Otto: warn      # Otto framework operations
   Rhales: error   # Rhales template rendering (suppress unescaped HTML warnings)

@@ -8,7 +8,7 @@ module Core
   module Controllers
     class Authentication
       include Controllers::Base
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       def authenticate # rubocop:disable Metrics/AbcSize
         unless signin_enabled?

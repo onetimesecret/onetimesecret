@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/logging'
+require 'onetime/logger_methods'
 
 # RequestSetup middleware handles request-level initialization for Web Core.
 #
@@ -17,7 +17,7 @@ require 'onetime/logging'
 module Core
   module Middleware
     class RequestSetup
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       def initialize(app, default_content_type: 'text/html; charset=utf-8')
         @app = app

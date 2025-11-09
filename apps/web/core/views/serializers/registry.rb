@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'tsort'
-require 'onetime/logging'
+require 'onetime/logger_methods'
 
 # Dependencies-aware registry for view serializers
 #
@@ -27,7 +27,7 @@ module Core
   module Views
     class SerializerRegistry
       extend TSort
-      extend Onetime::Logging
+      extend Onetime::LoggerMethods
 
       @serializers  = []
       @dependencies = {}

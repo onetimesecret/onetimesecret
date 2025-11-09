@@ -103,11 +103,11 @@ config['http'].key?('ignore_paths')
 #=> true
 
 ## Logging Module File - Exists
-File.exist?('lib/onetime/logging.rb')
+File.exist?('lib/onetime/logger_methods.rb')
 #=> true
 
 ## Logging Module File - Valid Ruby
-system('ruby -c lib/onetime/logging.rb > /dev/null 2>&1')
+system('ruby -c lib/onetime/logger_methods.rb > /dev/null 2>&1')
 #=> true
 
 ## Migration Guide - Exists

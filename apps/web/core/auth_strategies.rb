@@ -20,12 +20,12 @@
 # @see docs/architecture/authentication.md#authstrategies
 
 require 'onetime/application/auth_strategies'
-require 'onetime/logging'
+require 'onetime/logger_methods'
 
 module Core
   module AuthStrategies
     extend self
-    extend Onetime::Logging
+    extend Onetime::LoggerMethods
 
     # Registers Onetime authentication strategies with Otto router
     #

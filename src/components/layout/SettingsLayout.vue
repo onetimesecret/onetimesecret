@@ -1,6 +1,7 @@
 <!-- src/components/layout/SettingsLayout.vue -->
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
@@ -15,6 +16,7 @@ interface NavigationItem {
   description?: string;
   badge?: string;
   children?: NavigationItem[];
+  visible?: () => boolean;
 }
 
 const sections: NavigationItem[] = [
@@ -85,9 +87,11 @@ const sections: NavigationItem[] = [
     to: '/account/settings/caution',
     icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
     label: t('web.settings.caution.title'),
-    description: t('web.settings.advanced.description'),
+    description: t('web.settings.caution.description'),
   },
 ];
+
+const visibleSections = computed(() => sections.filter(section => section.visible ? section.visible() : true));
 
 const isActiveRoute = (path: string): boolean => route.path === path || route.path.startsWith(path + '/');
 
@@ -129,7 +133,7 @@ const isParentActive = (item: NavigationItem): boolean => {
       <!-- Sidebar Navigation -->
       <aside class="w-full lg:w-72 lg:shrink-0">
         <nav class="space-y-1" aria-label="Settings navigation">
-          <template v-for="item in sections" :key="item.to">
+          <template v-for="item in visibleSections" :key="item.to">
             <!-- Parent item -->
             <div>
               <router-link

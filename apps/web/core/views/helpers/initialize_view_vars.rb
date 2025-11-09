@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/logging'
+require 'onetime/logger_methods'
 
 module Core
   module Views
@@ -12,7 +12,7 @@ module Core
     # initialize_view_vars takes the arguments it does instead of relying on
     # instance variables and their attr_reader methods.
     module InitializeViewVars
-      extend Onetime::Logging
+      extend Onetime::LoggerMethods
       # Define fields that are safe to expose to the frontend
       # Explicitly excluding :secret and :authenticity which contain sensitive data
       @safe_site_fields = %w[

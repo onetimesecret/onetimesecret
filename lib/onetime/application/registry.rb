@@ -122,9 +122,12 @@ module Onetime
 
         # Re-register application classes that are already in memory
         def reregister_loaded_applications
+          billing_enabled = Onetime.conf.dig('billing', 'enabled').to_s == 'true'
+
           ObjectSpace.each_object(Class)
             .select { |cls| cls < Onetime::Application::Base && cls.respond_to?(:uri_prefix) }
             .reject { |cls| cls.name == 'Auth::Application' && Onetime.auth_config.mode != 'advanced' }
+            .reject { |cls| cls.name == 'Billing::Application' && !billing_enabled }
             .reject { |cls| cls.instance_variable_get(:@abstract) == true } # Skip abstract base classes
             .each { |cls| register_application_class(cls) }
         end
@@ -138,6 +141,12 @@ module Onetime
           # Skip auth app in basic mode - auth endpoints handled by Core Web App
           if Onetime.auth_config.mode == 'basic'
             filepaths.reject! { |f| f.include?('web/auth/') }
+          end
+
+          # Skip billing app if not enabled in config
+          billing_enabled = Onetime.conf.dig('billing', 'enabled').to_s == 'true'
+          unless billing_enabled
+            filepaths.reject! { |f| f.include?('web/billing/') }
           end
 
           Onetime.app_logger.info "[registry] Scan found #{filepaths.size} application(s)"

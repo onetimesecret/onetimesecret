@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'public_suffix'
-require_relative '../logging'
+require_relative '../logger_methods'
 
 module Onetime
   module Middleware
@@ -24,7 +24,7 @@ module Onetime
     #
     # @note Errors are logged but do not halt request processing.
     class DomainStrategy
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       @canonical_domain        = nil
       @domains_enabled         = nil

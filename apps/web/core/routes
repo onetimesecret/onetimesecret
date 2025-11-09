@@ -29,9 +29,9 @@ POST  /auth/reset-password/:key                  Core::Controllers::Registration
 # Authentication routes - advanced mode routes that core delivers for the
 # frontend vue app to mount on. The frontend app then communicates via
 # the JSON API at /auth/verify-account etc.
-GET   /verify-account                           Core::Controllers::Page#index
-GET   /email-login                              Core::Controllers::Page#index
-GET   /mfa-verify                               Core::Controllers::Page#index
+GET   /verify-account                            Core::Controllers::Page#index
+GET   /email-login                               Core::Controllers::Page#index
+GET   /mfa-verify                                Core::Controllers::Page#index
 
 # Data export/import - public for now (may need auth review)
 GET   /window                                    Core::Controllers::Page#export_window auth=noauth

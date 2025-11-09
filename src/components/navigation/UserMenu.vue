@@ -33,18 +33,26 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuth } from '@/composables/useAuth';
 import { useTeamStore } from '@/stores/teamStore';
+import { WindowService } from '@/services/window.service';
 
 const props = defineProps<{
   cust: Customer | null;
   email?: string;  // Used when awaiting MFA (no customer object yet)
   colonel?: boolean;
-  showUpgrade?: boolean;
   awaitingMfa?: boolean;
 }>();
 
 const { t } = useI18n();
 const { logout } = useAuth();
 const teamStore = useTeamStore();
+
+const billingEnabled = computed(() => {
+  try {
+    return WindowService.get('billing_enabled') || false;
+  } catch {
+    return false;
+  }
+});
 
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
@@ -90,6 +98,14 @@ const menuItems = computed<MenuItem[]>(() => [
     icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
     condition: () => !props.awaitingMfa,
   },
+  // Billing (conditional - only show if billing enabled)
+  {
+    id: 'billing',
+    to: '/billing',
+    label: t('web.navigation.billing'),
+    icon: { collection: 'heroicons', name: 'credit-card' },
+    condition: () => !props.awaitingMfa && billingEnabled.value,
+  },
   // Teams (conditional - only show if user has teams)
   {
     id: 'teams',
@@ -97,15 +113,6 @@ const menuItems = computed<MenuItem[]>(() => [
     label: t('web.teams.menu.teams'),
     icon: { collection: 'heroicons', name: 'user-group-solid' },
     condition: () => !props.awaitingMfa && teamStore.hasTeams,
-  },
-  // Upgrade (conditional)
-  {
-    id: 'upgrade',
-    to: '/pricing',
-    label: t('upgrade-for-teams'),
-    icon: { collection: 'heroicons', name: 'sparkles-solid' },
-    variant: 'cta' as const,
-    condition: () => !props.awaitingMfa && props.showUpgrade,
   },
   // Colonel (conditional)
   {

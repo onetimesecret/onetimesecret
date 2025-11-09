@@ -11,7 +11,7 @@ module Core
 
       # /imagine/b79b17281be7264f778c/logo.png
       def imagine
-        logic = V2::Logic::Domains::GetImage.new(req, session, cust, req.params)
+        logic = AccountAPI::Logic::Domains::GetImage.new(strategy_result, req.params, locale)
         logic.raise_concerns
         logic.process
 
@@ -31,13 +31,16 @@ module Core
           has_external_id: !rack_session['external_id'].nil?,
           authenticated_check: authenticated?
         }
-        view = Core::Views::ExportWindow.new(req, session, cust, locale)
+
+        # Simplified: BaseView now extracts everything from req
+        view = Core::Views::ExportWindow.new(req)
         res.headers['content-type'] = 'application/json; charset=utf-8'
         res.body = view.serialized_data.to_json
       end
 
       def robots_txt
-        view = Core::Views::RobotsTxt.new(request, session, cust, locale)
+        # Simplified: BaseView now extracts everything from req
+        view = Core::Views::RobotsTxt.new(req)
         res.headers['content-type'] = 'text/plain'
         res.body                    = view.render
       end

@@ -70,6 +70,51 @@ module OrganizationAPI
 
       protected
 
+      # Serialize organization to API response format
+      #
+      # Provides consistent serialization across all organization endpoints:
+      # - Uses `id` (objid) instead of `orgid`
+      # - Timestamps as `created_at`/`updated_at`
+      # - Includes `is_default`, `owner_id`, `member_count`
+      # - Omits `contact_email` when empty
+      # - Includes `current_user_role`
+      #
+      # @param organization [Onetime::Organization] Organization to serialize
+      # @param current_user [Onetime::Customer] Current user for role calculation
+      # @return [Hash] Serialized organization data
+      def serialize_organization(organization, current_user = cust)
+        record = {
+          id: organization.objid,
+          display_name: organization.display_name,
+          description: organization.description || '',
+          is_default: organization.is_default || false,
+          created_at: organization.created,
+          updated_at: organization.updated,
+          owner_id: organization.owner_id,
+          member_count: organization.member_count,
+          current_user_role: determine_user_role(organization, current_user),
+        }
+
+        # Only include contact_email if present and valid
+        if organization.contact_email && !organization.contact_email.empty?
+          record[:contact_email] = organization.contact_email
+        end
+
+        record
+      end
+
+      # Determine user's role in organization
+      #
+      # @param organization [Onetime::Organization]
+      # @param user [Onetime::Customer]
+      # @return [String] Role: 'owner', 'admin', or 'member'
+      def determine_user_role(organization, user)
+        return 'owner' if organization.owner?(user)
+        # For now, non-owners are 'member'
+        # Future: Add admin role support
+        'member'
+      end
+
       # Verify current user owns the organization
       def verify_organization_owner(organization)
         unless organization.owner?(cust)

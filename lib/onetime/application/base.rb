@@ -4,7 +4,7 @@
 
 require 'rack'
 require 'familia/json_serializer'
-require_relative '../logging'
+require_relative '../logger_methods'
 
 module Onetime
   module Application
@@ -69,7 +69,7 @@ module Onetime
     #   end
     #
     class Base
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       attr_reader :options, :router, :rack_app
 

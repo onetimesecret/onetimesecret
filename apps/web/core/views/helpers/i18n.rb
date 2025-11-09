@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/logging'
+require 'onetime/logger_methods'
 
 # I18nHelpers provides localization functionality for view templates.
 #
@@ -18,7 +18,7 @@ require 'onetime/logging'
 module Core
   module Views
     module I18nHelpers
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       attr_reader :i18n_enabled
 

@@ -7,7 +7,7 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class BurnSecret < V2::Logic::Base
-      include Onetime::Logging
+      include Onetime::LoggerMethods
 
       attr_reader :identifier, :passphrase, :continue, :metadata, :secret, :correct_passphrase, :greenlighted
 

@@ -206,7 +206,8 @@ describe('useAsyncHandler', () => {
 
       const result = await wrap(outerOp);
       expect(result).toBeUndefined();
-      expect(mockOptions.log).toHaveBeenCalledTimes(1); // Only inner error logged since wrap doesn't throw
+      // Only inner error logged since wrap doesn't throw
+      expect(mockOptions.log).toHaveBeenCalledTimes(1);
     });
 
     it('maintains error context through multiple handling layers', async () => {
@@ -436,7 +437,7 @@ describe('useAsyncHandler', () => {
       const result = await wrap(async () => {
         try {
           return await mockApiCall();
-        } catch (error) {
+        } catch (_error) {
           // Retry once
           return await mockApiCall();
         }

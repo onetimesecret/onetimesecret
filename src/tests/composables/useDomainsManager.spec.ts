@@ -310,7 +310,7 @@ describe('useDomainsManager', () => {
         status: 404,
       };
       mockDependencies.domainsStore.addDomain.mockRejectedValueOnce(apiError);
-      const { handleAddDomain, error } = mountComposable(() => useDomainsManager());
+      const { handleAddDomain } = mountComposable(() => useDomainsManager());
 
       try {
         await handleAddDomain('test-domain.com');

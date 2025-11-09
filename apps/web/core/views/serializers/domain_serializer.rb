@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/middleware/domain_strategy'
-require 'onetime/logging'
+require 'onetime/logger_methods'
 
 module Core
   module Views
@@ -12,7 +12,7 @@ module Core
     # Handles custom domains, domain strategies, and domain branding
     # transformations for frontend consumption.
     module DomainSerializer
-      extend Onetime::Logging
+      extend Onetime::LoggerMethods
       # Serializes domain data from view variables
       #
       # Transforms domain strategy, custom domains, and domain branding

@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/application'
-require 'onetime/logging'
+require 'onetime/logger_methods'
 
 # Load Rodauth configuration first
 require_relative 'config'
