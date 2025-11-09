@@ -39,11 +39,11 @@ module TeamAPI::Logic
       def success_data
         {
           user_id: cust.objid,
-          team_id: team.team_id,
+          team_extid: team.extid,
           records: members.map do |member|
             {
               id: member.custid,
-              team_id: team.team_id,
+              team_extid: team.extid,
               user_id: member.custid,
               email: member.email,
               role: (team.owner?(member) ? 'owner' : 'member'),

@@ -68,7 +68,7 @@ module TeamAPI::Logic
       def success_data
         {
           user_id: cust.objid,
-          team_id: team.team_id,
+          team_extid: team.extid,
           removed: true,
           custid: @custid,
         }

@@ -64,10 +64,10 @@ module TeamAPI::Logic
       def success_data
         {
           user_id: cust.objid,
-          team_id: team.team_id,
+          team_extid: team.extid,
           record: {
             id: new_member.custid,
-            team_id: team.team_id,
+            team_extid: team.extid,
             user_id: new_member.custid,
             email: new_member.email,
             role: 'member',

@@ -34,7 +34,7 @@ module TeamAPI::Logic
         OT.ld "[DeleteTeam] Deleting team #{@team_id} for user #{cust.custid}"
 
         # Get team info before deletion
-        team_id = @team.team_id
+        team_extid = @team.extid
         display_name = @team.display_name
 
         # Remove all members first
