@@ -27,20 +27,36 @@ module Onetime
 
 
           def custom_domains_list
-            custom_domains.revmembers.collect do |domain|
-              Onetime::CustomDomain.load domain, custid
-            rescue Onetime::RecordNotFound => ex
-              OT.le "[custom_domains_list] Error: #{ex.message} (#{domain} / #{custid})"
-            end.compact
+            # Domains are now owned by organizations, not individual customers
+            # Get domains from all organizations this customer belongs to
+            organization_instances.flat_map do |org|
+              org.list_domains
+            rescue => ex
+              OT.le "[custom_domains_list] Error loading domains for org #{org.orgid}: #{ex.message}"
+              []
+            end.compact.uniq
           end
 
           def add_custom_domain(obj)
-            OT.ld "[add_custom_domain] adding #{obj} to #{self}"
-            custom_domains.add obj.display_domain # not the object identifier
+            # Domains are now managed at the organization level
+            # Add to the customer's primary organization
+            org = organization_instances.first
+            if org
+              OT.ld "[add_custom_domain] adding #{obj} to organization #{org.orgid}"
+              org.add_domain(obj)
+            else
+              OT.le "[add_custom_domain] Customer #{custid} has no organization"
+              false
+            end
           end
 
           def remove_custom_domain(obj)
-            custom_domains.remove obj.display_domain # not the object identifier
+            # Domains are now managed at the organization level
+            # Remove from the customer's organization(s)
+            organization_instances.each do |org|
+              OT.ld "[remove_custom_domain] removing #{obj} from organization #{org.orgid}"
+              org.remove_domain(obj)
+            end
           end
 
 

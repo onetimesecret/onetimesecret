@@ -24,8 +24,12 @@ module AccountAPI::Logic
         raise_form_error 'Please enter a domain' if @domain_input.empty?
         raise_form_error 'Not a valid public domain' unless Onetime::CustomDomain.valid?(@domain_input)
 
+        # Get customer's organization for domain ownership
+        org = @cust.organization_instances.first
+        raise_form_error 'Customer must belong to an organization' unless org
+
         # Only store a valid, parsed input value to @domain
-        @parsed_domain  = Onetime::CustomDomain.parse(@domain_input, @cust.custid)
+        @parsed_domain  = Onetime::CustomDomain.parse(@domain_input, org.orgid)
         @display_domain = @parsed_domain.display_domain
 
         OT.ld "[AddDomain] Display: #{@display_domain}, Identifier: #{@parsed_domain.identifier}, Exists?: #{@parsed_domain.exists?}"
@@ -35,7 +39,12 @@ module AccountAPI::Logic
       def process
         @greenlighted  = true
         OT.ld "[AddDomain] Processing #{@display_domain}"
-        @custom_domain = Onetime::CustomDomain.create!(@display_domain, @cust.custid)
+
+        # Get customer's organization for domain ownership
+        org = @cust.organization_instances.first
+        raise_form_error 'Customer must belong to an organization' unless org
+
+        @custom_domain = Onetime::CustomDomain.create!(@display_domain, org.orgid)
 
         begin
           # Create the approximated vhost for this domain. Approximated provides a
