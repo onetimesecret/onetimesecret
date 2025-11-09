@@ -154,16 +154,16 @@
                 </p>
               </div>
 
-              <!-- Disabled Toggle -->
+              <!-- Disabled Toggle (in "on" position) -->
               <div
                 role="switch"
-                aria-checked="false"
+                aria-checked="true"
                 aria-disabled="true"
-                aria-label="Analytics collection is always disabled"
-                class="relative inline-flex h-6 w-11 shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-gray-200 opacity-50 dark:bg-gray-700">
+                aria-label="Privacy protection is always enabled"
+                class="relative inline-flex h-6 w-11 shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-green-600 opacity-50 dark:bg-green-500">
                 <span
                   aria-hidden="true"
-                  class="pointer-events-none inline-block size-5 translate-x-0 transform rounded-full bg-white shadow ring-0 dark:bg-gray-300"></span>
+                  class="pointer-events-none inline-block size-5 translate-x-5 transform rounded-full bg-white shadow ring-0"></span>
               </div>
             </div>
           </div>
@@ -216,7 +216,7 @@
           <div
             v-if="windowProps.i18n_enabled"
             class="px-6 py-4">
-            <div class="space-y-4">
+            <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <OIcon
                   collection="heroicons"
@@ -232,8 +232,10 @@
                   </p>
                 </div>
               </div>
+              <LanguageToggle />
+            </div>
 
-              <LanguageToggle class="w-full max-w-xs" />
+            <div class="mt-4 space-y-4">
 
               <!-- Translation Notice -->
               <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
