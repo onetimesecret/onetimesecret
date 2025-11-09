@@ -1,4 +1,6 @@
-# apps/api/v2/logic/colonel/get_colonel_info.rb
+# apps/api/account/logic/colonel/get_colonel_info.rb
+#
+# frozen_string_literal: true
 
 require 'onetime/refinements/stripe_refinements'
 

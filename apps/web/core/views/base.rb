@@ -1,4 +1,6 @@
 # apps/web/core/views/base.rb
+#
+# frozen_string_literal: true
 
 require 'rhales'
 

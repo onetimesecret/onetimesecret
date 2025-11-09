@@ -1,5 +1,8 @@
 # apps/web/auth/config/hooks/webauthn.rb
 #
+# frozen_string_literal: true
+
+#
 # ==============================================================================
 # USER JOURNEY: WEBAUTHN AUTHENTICATION (BIOMETRIC/SECURITY KEY)
 # ==============================================================================

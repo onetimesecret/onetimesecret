@@ -1,4 +1,5 @@
 // src/tests/stores/languageStore.spec.ts
+
 import { ApplicationError } from '@/schemas';
 import { SESSION_STORAGE_KEY, useLanguageStore } from '@/stores/languageStore';
 import { setupTestPinia } from '../setup';
@@ -17,13 +18,11 @@ import type { AxiosInstance } from 'axios';
 
 describe('Language Store', () => {
   let axiosMock: AxiosMockAdapter | null;
-  let api: AxiosInstance;
 
   beforeEach(async () => {
     // Setup testing environment with all needed components
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock;
-    api = setup.api;
 
     vi.useFakeTimers();
 

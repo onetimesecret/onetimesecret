@@ -1,4 +1,6 @@
 # lib/onetime/cli/customers_command.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   class CustomersCommand < Onetime::CLI

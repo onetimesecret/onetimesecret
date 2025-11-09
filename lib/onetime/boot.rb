@@ -1,3 +1,5 @@
+# lib/onetime/boot.rb
+#
 # frozen_string_literal: true
 
 # lib/onetime/boot.rb

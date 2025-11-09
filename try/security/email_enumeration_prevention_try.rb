@@ -1,3 +1,5 @@
+# try/security/email_enumeration_prevention_try.rb
+#
 # frozen_string_literal: true
 
 # Security Tests: Email Enumeration Prevention (CWE-204)

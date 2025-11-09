@@ -1,4 +1,7 @@
-# support/smtp_test.rb
+# scripts/archive/smtp_test.rb
+#
+# frozen_string_literal: true
+
 #
 # Basic SMTP checker for OnetimeSecret
 # This utility helps test SMTP email delivery using configured environment variables

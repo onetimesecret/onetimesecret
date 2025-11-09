@@ -1,4 +1,5 @@
 <!-- src/components/layout/ImprovedFooter.vue -->
+
 <!--
   Changes from DefaultFooter:
   - Wider, changing max-w-2xl to max-w-4xl

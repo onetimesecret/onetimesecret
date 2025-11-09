@@ -1,4 +1,7 @@
 # lib/onetime/initializers/load_fortunes.rb
+#
+# frozen_string_literal: true
+
 # lib/onetime/initializers/load_fortunes.rb
 module Onetime
   module Initializers

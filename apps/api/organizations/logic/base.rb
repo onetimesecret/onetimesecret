@@ -1,4 +1,6 @@
 # apps/api/organizations/logic/base.rb
+#
+# frozen_string_literal: true
 
 # Organization API Logic Base Class
 #

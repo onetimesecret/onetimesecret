@@ -1,5 +1,8 @@
 # try/debug/familia_v2_bidirectional_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Debug Familia v2 bidirectional relationships
 #
 

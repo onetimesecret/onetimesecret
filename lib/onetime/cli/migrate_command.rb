@@ -1,4 +1,6 @@
 # lib/onetime/cli/migrate_command.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   # Migrate Command

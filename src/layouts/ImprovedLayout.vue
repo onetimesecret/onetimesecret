@@ -1,4 +1,5 @@
 <!-- src/layouts/ImprovedLayout.vue -->
+
 <!--
   Improved Layout with Optional Sidebar
 

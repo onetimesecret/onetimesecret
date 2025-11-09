@@ -1,4 +1,5 @@
 <!-- src/views/account/ChangePassword.vue -->
+
 <script setup lang="ts">
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
   import { useAuth } from '@/composables/useAuth';

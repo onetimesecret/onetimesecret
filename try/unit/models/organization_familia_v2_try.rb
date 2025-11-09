@@ -1,5 +1,8 @@
 # try/unit/models/organization_familia_v2_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Familia v2 relationship validation tests for Organization model
 # Tests verify that auto-generated methods from participates_in work correctly
 #

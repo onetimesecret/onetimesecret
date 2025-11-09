@@ -1,4 +1,5 @@
 // src/tests/fixtures/metadata.fixture.spec.ts
+
 import { MetadataState } from '@/schemas/models/metadata';
 import { SecretState } from '@/schemas/models/secret';
 import { describe, expect, it } from 'vitest';

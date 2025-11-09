@@ -1,4 +1,6 @@
 # lib/middleware/detect_host.rb
+#
+# frozen_string_literal: true
 
 require 'ipaddr'
 require_relative 'logging'

@@ -1,4 +1,6 @@
-# try/20_models/27_domains_try.rb
+# try/disabled/domains/domains_try_disabled.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test domain-related functionality using the PublicSuffix gem
 

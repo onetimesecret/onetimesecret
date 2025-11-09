@@ -1,5 +1,8 @@
 # try/integration/api/v3/rest_transformations_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Verify V3 and Account API REST transformations:
 # - Remove 'success' field (use HTTP status codes)
 # - Rename 'custid' to 'user_id'

@@ -1,4 +1,6 @@
 # lib/onetime/models/organization.rb
+#
+# frozen_string_literal: true
 
 require 'rack/utils'
 

@@ -1,4 +1,6 @@
 # lib/onetime/models/customer/features.rb
+#
+# frozen_string_literal: true
 
 # Example of a features.rb without the Autoloader
 

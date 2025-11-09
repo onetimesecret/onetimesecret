@@ -1,4 +1,6 @@
-# try/test_helpers.rb
+# try/support/test_helpers.rb
+#
+# frozen_string_literal: true
 
 ENV['RACK_ENV'] ||= 'test'
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..')).freeze

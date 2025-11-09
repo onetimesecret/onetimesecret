@@ -1,3 +1,5 @@
+# try/features/log_box_helper_try.rb
+#
 # frozen_string_literal: true
 
 # Setup - Load the application

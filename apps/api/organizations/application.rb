@@ -1,4 +1,6 @@
 # apps/api/organizations/application.rb
+#
+# frozen_string_literal: true
 
 require 'onetime/application'
 require 'onetime/application/otto_hooks'

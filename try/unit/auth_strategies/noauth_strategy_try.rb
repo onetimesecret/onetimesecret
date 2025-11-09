@@ -1,5 +1,8 @@
 # try/unit/auth_strategies/noauth_strategy_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Tests for NoAuthStrategy authentication strategy focusing on
 # proper handling of anonymous vs authenticated users.
 #

@@ -1,4 +1,6 @@
 # apps/api/account/logic/base.rb
+#
+# frozen_string_literal: true
 
 # Account API Logic Base Class
 #

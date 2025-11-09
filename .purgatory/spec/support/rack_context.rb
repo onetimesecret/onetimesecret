@@ -1,4 +1,6 @@
-# spec/support/rack_context.rb
+# .purgatory/spec/support/rack_context.rb
+#
+# frozen_string_literal: true
 
 RSpec.shared_context "rack_test_context" do
   let(:rack_request) do

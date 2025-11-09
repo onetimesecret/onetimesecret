@@ -1,4 +1,6 @@
 # lib/onetime/models/features/right_to_be_forgotten.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Models

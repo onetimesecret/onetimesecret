@@ -1,4 +1,6 @@
-# lib/onetime/mail/views/common.rb
+# .purgatory/lib-onetime-mail/views/common.rb
+#
+# frozen_string_literal: true
 
 require 'mustache'
 require 'v1/refinements'

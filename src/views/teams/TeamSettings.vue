@@ -1,4 +1,5 @@
 <!-- src/views/teams/TeamSettings.vue -->
+
 <script setup lang="ts">
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';

@@ -1,4 +1,6 @@
 # lib/onetime/models/custom_domain/features/safe_dump_fields.rb
+#
+# frozen_string_literal: true
 
 # Autoloaded extension file for Onetime::CustomDomain SafeDump configuration
 # This file is automatically loaded when the SafeDump feature is enabled

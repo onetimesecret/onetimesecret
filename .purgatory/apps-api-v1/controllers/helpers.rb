@@ -1,4 +1,6 @@
-# apps/api/v1/controllers/helpers.rb
+# .purgatory/apps-api-v1/controllers/helpers.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../../../lib/onetime/helpers/session_helpers'
 require_relative '../../../../lib/onetime/helpers/shrimp_helpers'

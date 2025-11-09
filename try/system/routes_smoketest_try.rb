@@ -1,4 +1,6 @@
-# try/90_routes_smoketest_try.rb
+# try/system/routes_smoketest_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test the existence of basic routes for web, API, and colonel interfaces.
 # We're not testing inputs and outputs, just checking if the routes are supported.

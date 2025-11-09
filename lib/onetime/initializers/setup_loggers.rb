@@ -1,4 +1,6 @@
 # lib/onetime/initializers/setup_loggers.rb
+#
+# frozen_string_literal: true
 
 require 'yaml'
 require 'semantic_logger'

@@ -1,4 +1,6 @@
 # apps/api/v2/logic/base.rb
+#
+# frozen_string_literal: true
 
 require 'timeout'
 

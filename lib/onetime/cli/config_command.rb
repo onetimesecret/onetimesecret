@@ -1,4 +1,6 @@
 # lib/onetime/cli/config_command.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   class ConfigCommand < Onetime::CLI

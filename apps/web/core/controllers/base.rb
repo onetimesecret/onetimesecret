@@ -1,3 +1,5 @@
+# apps/web/core/controllers/base.rb
+#
 # frozen_string_literal: true
 
 require_relative '../views'

@@ -1,4 +1,6 @@
 # apps/web/auth/operations/sync_session.rb
+#
+# frozen_string_literal: true
 
 #
 # Syncs the Rodauth session with the application's session format after

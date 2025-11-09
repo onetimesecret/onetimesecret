@@ -1,4 +1,6 @@
-# apps/api/v1/controllers/class_methods.rb
+# .purgatory/apps-api-v1/controllers/class_methods.rb
+#
+# frozen_string_literal: true
 
 require 'v1/refinements'
 

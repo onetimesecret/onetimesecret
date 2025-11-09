@@ -1,4 +1,6 @@
 # lib/onetime/models/metadata/features/safe_dump_fields.rb
+#
+# frozen_string_literal: true
 
 module Onetime::Metadata::Features
   module SafeDumpFields

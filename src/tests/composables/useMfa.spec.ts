@@ -1,4 +1,5 @@
 // src/tests/composables/useMfa.spec.ts
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useMfa } from '@/composables/useMfa';
 import { setupTestPinia } from '../setup';
@@ -20,12 +21,10 @@ vi.mock('vue-i18n', () => ({
 }));
 
 describe('useMfa', () => {
-  let api: AxiosInstance;
   let axiosMock: AxiosMockAdapter;
 
   beforeEach(async () => {
     const setup = await setupTestPinia();
-    api = setup.api;
     axiosMock = setup.axiosMock!;
   });
 

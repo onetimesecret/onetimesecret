@@ -1,4 +1,6 @@
 # lib/onetime/refinements/then_with_diff.rb
+#
+# frozen_string_literal: true
 
 require 'hashdiff'
 require 'familia/json_serializer'

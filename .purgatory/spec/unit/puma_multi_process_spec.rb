@@ -1,4 +1,7 @@
-# ./spec/unit/puma_multi_process_spec.rb
+# .purgatory/spec/unit/puma_multi_process_spec.rb
+#
+# frozen_string_literal: true
+
 #
 # Puma Multi-Process Integration Test for OT.instance
 #

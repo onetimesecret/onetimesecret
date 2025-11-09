@@ -1,4 +1,6 @@
-# apps/api/v2/controllers/class_settings.rb
+# .purgatory/apps-api-v2-controllers/class_settings.rb
+#
+# frozen_string_literal: true
 
 module V2
   # ControllerSettings module provides configuration options for UTF-8 and URI

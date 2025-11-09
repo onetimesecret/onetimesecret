@@ -1,4 +1,6 @@
 # lib/onetime/application/base.rb
+#
+# frozen_string_literal: true
 
 require 'rack'
 require 'familia/json_serializer'

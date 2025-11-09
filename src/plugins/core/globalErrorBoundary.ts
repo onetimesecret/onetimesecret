@@ -1,4 +1,5 @@
 // src/plugins/core/globalErrorBoundary.ts
+
 //
 import { AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 import { classifyError, errorGuards } from '@/schemas/errors';

@@ -1,4 +1,7 @@
 # try/integration/authentication/disabled_mode/public_access_try.rb
+#
+# frozen_string_literal: true
+
 # Integration tests for disabled authentication mode
 #
 # Tests public access when authentication is completely disabled

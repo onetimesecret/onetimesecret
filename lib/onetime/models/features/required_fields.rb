@@ -1,4 +1,6 @@
 # lib/onetime/models/features/required_fields.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Models

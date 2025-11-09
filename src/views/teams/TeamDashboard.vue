@@ -1,4 +1,5 @@
 <!-- src/views/teams/TeamDashboard.vue -->
+
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 import { classifyError } from '@/schemas/errors';

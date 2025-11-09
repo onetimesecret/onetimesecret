@@ -1,4 +1,6 @@
 # apps/web/core/views/serializers/registry.rb
+#
+# frozen_string_literal: true
 
 require 'tsort'
 require 'onetime/logger_methods'

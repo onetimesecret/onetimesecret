@@ -1,4 +1,6 @@
-# try/91_authentication_routes_try.rb
+# try/integration/authentication/common/routes_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test the authentication-related routes
 # and how they respond based on the authentication

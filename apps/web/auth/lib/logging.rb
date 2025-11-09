@@ -1,3 +1,5 @@
+# apps/web/auth/lib/logging.rb
+#
 # frozen_string_literal: true
 
 module Auth

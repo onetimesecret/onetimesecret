@@ -1,4 +1,6 @@
-# spec/apps/web/views/base_spec.rb
+# .purgatory/spec/apps/web/views/base_spec.rb
+#
+# frozen_string_literal: true
 
 # e.g. pnpm run rspec tests/unit/ruby/rspec/apps/web/views/base_spec.rb
 

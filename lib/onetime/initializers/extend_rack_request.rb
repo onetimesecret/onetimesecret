@@ -1,3 +1,5 @@
+# lib/onetime/initializers/extend_rack_request.rb
+#
 # frozen_string_literal: true
 
 # Extend Rack::Request with Otto and Onetime-specific methods

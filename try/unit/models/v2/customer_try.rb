@@ -1,4 +1,6 @@
-# try/25_customer_try.rb
+# try/unit/models/v2/customer_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test the customer model functionality in the Onetime application.
 # They cover various aspects of customer management, including:

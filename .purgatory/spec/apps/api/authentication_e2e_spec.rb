@@ -1,4 +1,6 @@
-# spec/apps/api/authentication_e2e_spec.rb
+# .purgatory/spec/apps/api/authentication_e2e_spec.rb
+#
+# frozen_string_literal: true
 
 require 'spec_helper'
 

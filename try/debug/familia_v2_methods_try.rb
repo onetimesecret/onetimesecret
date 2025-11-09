@@ -1,5 +1,8 @@
 # try/debug/familia_v2_methods_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Debug what methods are available from participates_in
 #
 

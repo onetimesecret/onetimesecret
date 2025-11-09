@@ -1,4 +1,6 @@
 # apps/web/core/controllers/welcome.rb
+#
+# frozen_string_literal: true
 
 require_relative 'base'
 

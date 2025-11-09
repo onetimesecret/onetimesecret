@@ -1,4 +1,6 @@
 # lib/onetime/initializers/configure_truemail.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Initializers

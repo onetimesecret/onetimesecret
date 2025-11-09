@@ -1,4 +1,6 @@
-#!/usr/bin/env ruby
+# try/system/initializers/detect_legacy_data_try.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../support/test_helpers'
 

@@ -1,4 +1,6 @@
-# spec/onetime/config_spec.rb
+# .purgatory/spec/onetime/config_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../spec_helper'
 

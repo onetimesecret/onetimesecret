@@ -1,4 +1,6 @@
 # apps/api/account/logic/domains.rb
+#
+# frozen_string_literal: true
 
 require 'public_suffix'
 

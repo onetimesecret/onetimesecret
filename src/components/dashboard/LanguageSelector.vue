@@ -1,4 +1,5 @@
 <!-- src/components/dashboard/LanguageSelector.vue -->
+
 <script setup lang="ts">
 import HoverTooltip from '@/components/common/HoverTooltip.vue';
 import OIcon from '@/components/icons/OIcon.vue';

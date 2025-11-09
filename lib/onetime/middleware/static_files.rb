@@ -1,5 +1,8 @@
 # lib/onetime/middleware/static_files.rb
 #
+# frozen_string_literal: true
+
+#
 # Static file serving middleware for the Onetime Secret application.
 # Provides static file serving capabilities which can be used when
 # running without a reverse proxy.

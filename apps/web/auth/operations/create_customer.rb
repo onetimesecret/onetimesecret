@@ -1,4 +1,6 @@
 # apps/web/auth/operations/create_customer.rb
+#
+# frozen_string_literal: true
 
 #
 # Creates or loads a Customer record and links it to a Rodauth account.

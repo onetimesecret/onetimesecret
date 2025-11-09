@@ -1,4 +1,5 @@
 // src/composables/useMagicLink.ts
+
 import { inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';

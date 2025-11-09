@@ -1,4 +1,6 @@
 # lib/onetime/models/secret/features/deprecated_fields.rb
+#
+# frozen_string_literal: true
 
 module Onetime::Secret::Features
   module DeprecatedFields

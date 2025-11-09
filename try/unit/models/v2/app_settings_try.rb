@@ -1,4 +1,6 @@
-# apps/api/v2/controllers/class_settings_try.rb
+# try/unit/models/v2/app_settings_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test the functionality ofthe V2::Controllers::ClassSettings class.
 #

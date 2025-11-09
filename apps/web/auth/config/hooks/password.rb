@@ -1,4 +1,6 @@
 # apps/web/auth/config/hooks/password.rb
+#
+# frozen_string_literal: true
 
 #
 # This file defines the Rodauth hooks related to user authentication events,

@@ -1,4 +1,6 @@
 # lib/middleware/header_logger_middleware.rb
+#
+# frozen_string_literal: true
 
 require_relative 'logging'
 

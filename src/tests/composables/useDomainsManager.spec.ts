@@ -1,4 +1,5 @@
 // src/tests/composables/useDomainsManager.spec.ts
+
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { ApplicationError } from '@/schemas/errors';
 import { mockDomains, newDomainData } from '@/tests/fixtures/domains.fixture';
@@ -309,7 +310,7 @@ describe('useDomainsManager', () => {
         status: 404,
       };
       mockDependencies.domainsStore.addDomain.mockRejectedValueOnce(apiError);
-      const { handleAddDomain, error } = mountComposable(() => useDomainsManager());
+      const { handleAddDomain } = mountComposable(() => useDomainsManager());
 
       try {
         await handleAddDomain('test-domain.com');

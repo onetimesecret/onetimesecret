@@ -1,4 +1,6 @@
-# try/00_middleware/21_handle_invalid_percent_encoding_try.rb
+# try/integration/middleware/handle_invalid_percent_encoding_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts replicate and test edge cases related to
 # Rack::Request parameter parsing, specifically focusing on scenarios involving

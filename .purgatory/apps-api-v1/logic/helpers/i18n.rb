@@ -1,4 +1,6 @@
-# apps/api/v1/logic/helpers/i18n.rb
+# .purgatory/apps-api-v1/logic/helpers/i18n.rb
+#
+# frozen_string_literal: true
 
 module V1
   module Logic

@@ -1,4 +1,6 @@
 # lib/onetime/initializers/set_secrets.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Initializers

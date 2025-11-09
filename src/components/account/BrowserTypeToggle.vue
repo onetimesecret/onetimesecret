@@ -1,4 +1,5 @@
 <!-- src/components/account/BrowserTypeToggle.vue -->
+
 <script setup lang="ts">
 defineProps<{
   modelValue: 'safari' | 'edge'

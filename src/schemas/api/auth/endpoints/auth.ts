@@ -1,4 +1,5 @@
 // src/schemas/api/endpoints/auth.ts
+
 import { z } from 'zod';
 
 /**

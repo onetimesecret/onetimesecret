@@ -1,5 +1,8 @@
 # apps/web/auth/config/hooks.rb
 #
+# frozen_string_literal: true
+
+#
 #
 # Hooks supported:
 #   before_create_account_route

@@ -1,4 +1,6 @@
 # lib/onetime/console.rb
+#
+# frozen_string_literal: true
 
 ENV['RACK_ENV']   ||= 'production'
 ENV['ONETIME_HOME'] = File.expand_path(File.join(__dir__, '..', '..')).freeze

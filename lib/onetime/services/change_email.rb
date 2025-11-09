@@ -1,4 +1,6 @@
 # lib/onetime/services/change_email.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Services

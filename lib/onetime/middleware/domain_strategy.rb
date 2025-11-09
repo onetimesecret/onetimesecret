@@ -1,4 +1,6 @@
 # lib/onetime/middleware/domain_strategy.rb
+#
+# frozen_string_literal: true
 
 require 'public_suffix'
 require_relative '../logger_methods'

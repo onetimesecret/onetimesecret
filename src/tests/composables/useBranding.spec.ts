@@ -1,8 +1,8 @@
 // src/tests/composables/useBranding.spec.ts
+
 import {
   mockCustomBrandingRed,
   mockDefaultBranding,
-  mockDomains,
 } from '@/tests/fixtures/domainBranding.fixture';
 import { useBranding } from '@/composables/useBranding';
 import { createPinia, setActivePinia } from 'pinia';

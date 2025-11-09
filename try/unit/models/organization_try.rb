@@ -1,5 +1,8 @@
 # try/unit/models/organization_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Unit tests for the Onetime::Organization model.
 # Tests cover:
 # - Organization creation with owner

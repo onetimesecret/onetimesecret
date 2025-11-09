@@ -1,4 +1,7 @@
-# support/ses_test.rb
+# scripts/archive/ses_test.rb
+#
+# frozen_string_literal: true
+
 #
 # Test script for AWS SES email delivery in OnetimeSecret
 # This utility verifies that Amazon SES is properly configured for sending emails

@@ -1,4 +1,6 @@
 # apps/web/auth/config/features/audit_logging.rb
+#
+# frozen_string_literal: true
 
 module Auth::Config::Features
   module AuditLogging

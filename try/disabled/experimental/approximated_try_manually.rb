@@ -1,4 +1,6 @@
-# try/72_approximated.rb
+# try/disabled/experimental/approximated_try_manually.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test the functionality of Approximated and the
 # Approximate API. Note that this tryouts file has no _try

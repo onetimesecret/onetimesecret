@@ -1,4 +1,6 @@
 # apps/api/account/logic/account.rb
+#
+# frozen_string_literal: true
 
 require_relative 'base'
 

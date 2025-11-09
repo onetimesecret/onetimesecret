@@ -1,4 +1,6 @@
 # apps/api/v2/logic/secrets/list_metadata.rb
+#
+# frozen_string_literal: true
 
 require 'time'
 

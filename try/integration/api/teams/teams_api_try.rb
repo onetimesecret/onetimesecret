@@ -1,5 +1,8 @@
 # try/integration/api/teams/teams_api_try.rb
 #
+# frozen_string_literal: true
+
+#
 # Integration tests for Teams CRUD API endpoints:
 # - POST /api/teams (create team)
 # - GET /api/teams (list user's teams)

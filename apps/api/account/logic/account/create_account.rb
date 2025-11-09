@@ -1,4 +1,6 @@
 # apps/api/account/logic/account/create_account.rb
+#
+# frozen_string_literal: true
 
 module AccountAPI::Logic
   module Account

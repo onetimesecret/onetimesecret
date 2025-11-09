@@ -1,4 +1,6 @@
 # lib/onetime/config.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Config

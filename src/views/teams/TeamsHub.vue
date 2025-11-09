@@ -1,4 +1,5 @@
 <!-- src/views/teams/TeamsHub.vue -->
+
 <script setup lang="ts">
 import CreateTeamModal from '@/components/teams/CreateTeamModal.vue';
 import TeamCard from '@/components/teams/TeamCard.vue';

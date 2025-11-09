@@ -1,4 +1,6 @@
 # apps/api/account/logic/domains/remove_domain_image.rb
+#
+# frozen_string_literal: true
 
 require 'onetime/cluster'
 require_relative '../base'

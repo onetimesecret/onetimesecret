@@ -1,5 +1,8 @@
 # lib/onetime/boot/manifest.rb
 #
+# frozen_string_literal: true
+
+#
 # Boot::Manifest provides structured, numbered progress tracking for the
 # application boot sequence. It outputs logs in the format:
 #   [N/M] Step description

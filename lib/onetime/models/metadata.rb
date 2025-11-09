@@ -1,4 +1,6 @@
 # lib/onetime/models/metadata.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   class Metadata < Familia::Horreum

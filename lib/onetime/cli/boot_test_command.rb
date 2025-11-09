@@ -1,5 +1,8 @@
 # lib/onetime/cli/boot_test_command.rb
 #
+# frozen_string_literal: true
+
+#
 # CLI command for testing application boot and initialization
 #
 # This command boots the application and initializes all apps via the central

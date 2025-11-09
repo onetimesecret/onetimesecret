@@ -1,4 +1,5 @@
 // src/tests/stores/authStore.spec.ts
+
 import { Customer } from '@/schemas/models';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/stores/authStore';
 import { createApi } from '@/api';
@@ -261,7 +262,7 @@ describe('authStore', () => {
         shrimp: 'tempura',
       });
 
-      const result = await store.checkWindowStatus();
+      await store.checkWindowStatus();
 
       // console.log('Final store state:', {
       //   isAuthenticated: store.isAuthenticated,
@@ -502,7 +503,9 @@ describe('authStore', () => {
 
       // Fast-forward just past the first timer (with jitter)
       // Using advanceTimersByTimeAsync to avoid infinite recursion
-      await vi.advanceTimersByTimeAsync(AUTH_CHECK_CONFIG.INTERVAL + AUTH_CHECK_CONFIG.JITTER + 1000);
+      await vi.advanceTimersByTimeAsync(
+        AUTH_CHECK_CONFIG.INTERVAL + AUTH_CHECK_CONFIG.JITTER + 1000
+      );
 
       // Verify the auth check happened
       expect(axiosMock.history.get).toHaveLength(1);

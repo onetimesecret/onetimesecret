@@ -1,4 +1,6 @@
-# spec/onetime/mail/views/secret_link_spec.rb
+# .purgatory/spec/onetime/mail/views/secret_link_spec.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../../spec_helper'
 

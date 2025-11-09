@@ -1,4 +1,6 @@
 # apps/api/organizations/auth_strategies.rb
+#
+# frozen_string_literal: true
 
 # Otto authentication strategies for Organization API (apps/api/organizations).
 #

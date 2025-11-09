@@ -1,4 +1,6 @@
 # apps/web/auth/config/hooks/error_handling.rb
+#
+# frozen_string_literal: true
 
 #
 # The around_rodauth handler is called for every route, which we use as

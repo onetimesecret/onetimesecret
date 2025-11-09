@@ -1,4 +1,5 @@
 <!-- src/components/navigation/ImprovedPrimaryNav.vue -->
+
 <!--
   Improved Primary Navigation Component
 

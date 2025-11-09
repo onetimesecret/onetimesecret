@@ -1,4 +1,6 @@
 # apps/web/core/views/helpers/i18n.rb
+#
+# frozen_string_literal: true
 
 require 'onetime/logger_methods'
 

@@ -1,4 +1,6 @@
-# try/50_middleware/21_domain_strategy_multiple_canonical_try.rb
+# try/integration/middleware/domain_strategy/multiple_canonical_try.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../../support/test_helpers'
 

@@ -1,4 +1,6 @@
 # lib/onetime/models/team.rb
+#
+# frozen_string_literal: true
 
 require 'rack/utils'
 

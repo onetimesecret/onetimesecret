@@ -1,4 +1,7 @@
 # try/integration/authentication/basic_mode/core_auth_try.rb
+#
+# frozen_string_literal: true
+
 # Integration tests for basic authentication mode
 #
 # Tests the complete authentication flow via Core app:

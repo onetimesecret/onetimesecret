@@ -1,4 +1,6 @@
 # apps/web/core/views/helpers.rb
+#
+# frozen_string_literal: true
 
 require_relative 'helpers/initialize_view_vars'
 require_relative 'helpers/sanitizer'

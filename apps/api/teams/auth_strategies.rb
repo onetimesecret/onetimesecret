@@ -1,4 +1,6 @@
 # apps/api/teams/auth_strategies.rb
+#
+# frozen_string_literal: true
 
 # Otto authentication strategies for Team API (apps/api/teams).
 #

@@ -1,0 +1,130 @@
+#!/bin/bash
+
+# Production script to fix structural conflicts in locale files
+# Resolves type mismatches between base and target locale files
+#
+# Usage: ./fix-locale-conflicts [-q] [-f] [-v] [-c] LOCALE_FILE
+# -q: quiet mode (suppress output)
+# -f: filename only output
+# -v: verbose output
+# -c: copy values from base file for missing keys
+#
+# Exit: 0 if fix succeeds, 1 if fails
+
+QUIET=${QUIET:-0}
+FILENAME_ONLY=${FILENAME_ONLY:-0}
+VERBOSE=${VERBOSE:-0}
+COPY_VALUES=${COPY_VALUES:-0}
+BASELOCALE=${BASELOCALE:-"en"}
+BASEPATH=${BASEPATH:-"src/locales/${BASELOCALE}.json"}
+
+while getopts ":qfvc" opt; do
+  case $opt in
+    q) QUIET=1 ;;
+    f) FILENAME_ONLY=1 ;;
+    v) VERBOSE=1 ;;
+    c) COPY_VALUES=1 ;;
+    \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
+  esac
+done
+shift $((OPTIND -1))
+
+LOCALE="$1"
+[ -z "$LOCALE" ] && echo "Usage: $0 [-q] [-f] [-v] [-c] LOCALE_FILE" >&2 && exit 1
+[ ! -f "$LOCALE" ] && echo "File not found: $LOCALE" >&2 && exit 1
+[ ! -f "$BASEPATH" ] && echo "Base file not found: $BASEPATH" >&2 && exit 1
+
+OUTPUT="${LOCALE%.json}.conflict-fixed.json"
+
+# Skip if analyzing the base locale against itself
+LOCALE_NAME=$(basename "$LOCALE" .json)
+BASE_NAME=$(basename "$BASEPATH" .json)
+if [ "$LOCALE_NAME" = "$BASE_NAME" ]; then
+  [ $QUIET -eq 0 ] && echo "Skipping self-fix for $LOCALE_NAME"
+  exit 0
+fi
+
+jq_fix_script='
+# Strategy: Use base structure as template, preserve target translations where compatible
+# When types conflict, prioritize base structure and relocate conflicting target content
+
+def preserve_and_fix($base; $target):
+  # Extract conflicting content that we want to preserve
+  ($target.web.colonel.dashboard // {}) as $dashboard_obj |
+  ($target.web.colonel.welcome // {}) as $welcome_obj |
+
+  # Apply base structure with target translations where compatible
+  def apply_structure($struct; $trans; $path):
+    if ($struct | type) == "object" then
+      if ($trans | type) == "object" then
+        # Both objects - recurse through structure
+        $struct | with_entries(
+          .key as $k |
+          .value as $v |
+          .value = apply_structure($v; ($trans[$k] // null); $path + [$k])
+        )
+      else
+        # Target is primitive but base expects object - use base structure with empty values
+        $struct | with_entries(.value =
+          if (.value | type) == "object" then
+            apply_structure(.value; {}; $path + [.key])
+          else
+            if '$COPY_VALUES' == 1 then .value else "" end
+          end
+        )
+      end
+    else
+      # Base is primitive
+      if ($trans | type) == ($struct | type) then
+        # Compatible types - use target value if not empty
+        if $trans != null and $trans != "" then $trans else $struct end
+      elif $trans == null then
+        # Target missing - use base or empty
+        if '$COPY_VALUES' == 1 then $struct else "" end
+      else
+        # Type mismatch - use base value
+        $struct
+      end
+    end;
+
+  # Apply the structure transformation
+  apply_structure($base; $target; []) |
+
+  # Relocate preserved object content to appropriate locations
+  if ($dashboard_obj | type) == "object" and ($dashboard_obj | keys | length) > 0 then
+    # Merge dashboard object content into web.dashboard
+    .web.dashboard = ((.web.dashboard // {}) + $dashboard_obj)
+  else . end |
+
+  if ($welcome_obj | type) == "object" and ($welcome_obj | keys | length) > 0 then
+    # Store welcome object content in a new location
+    .web.colonel.welcome_details = $welcome_obj
+  else . end;
+
+# Main execution
+preserve_and_fix($base[0]; $target[0])
+'
+
+[ $VERBOSE -eq 1 ] && echo "Fixing conflicts in $(basename "$LOCALE")..."
+
+if jq -n --slurpfile base "$BASEPATH" --slurpfile target "$LOCALE" "$jq_fix_script" > "$OUTPUT"; then
+  # Validate generated JSON
+  if ! jq empty "$OUTPUT" 2>/dev/null; then
+    [ $FILENAME_ONLY -eq 1 ] && echo "$LOCALE" && exit 1
+    [ $QUIET -eq 0 ] && echo "Generated invalid JSON for $LOCALE"
+    rm -f "$OUTPUT"
+    exit 1
+  fi
+
+  # Replace original with fixed version
+  mv "$OUTPUT" "$LOCALE"
+
+  [ $FILENAME_ONLY -eq 1 ] && exit 0
+  [ $QUIET -eq 0 ] && [ $VERBOSE -eq 1 ] && echo "✓ Fixed conflicts in $(basename "$LOCALE")"
+  exit 0
+else
+  [ $FILENAME_ONLY -eq 1 ] && echo "$LOCALE" && exit 1
+  [ $QUIET -eq 0 ] && echo "Failed to fix conflicts in $(basename "$LOCALE")"
+  rm -f "$OUTPUT" 2>/dev/null
+  exit 1
+fi

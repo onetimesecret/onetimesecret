@@ -1,4 +1,6 @@
-# spec/support/service_provider_context.rb
+# .purgatory/spec/support/service_provider_context.rb
+#
+# frozen_string_literal: true
 
 RSpec.shared_context "service_provider_context" do
   let(:base_service_config) do

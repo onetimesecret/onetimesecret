@@ -1,4 +1,6 @@
-# spec/onetime/config/after_load_spec.rb
+# .purgatory/spec/onetime/config/after_load_spec.rb
+#
+# frozen_string_literal: true
 
 require 'sentry-ruby'
 require 'tempfile'

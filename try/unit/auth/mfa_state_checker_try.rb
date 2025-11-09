@@ -1,4 +1,6 @@
 # try/unit/auth/mfa_state_checker_try.rb
+#
+# frozen_string_literal: true
 
 # These tests cover the MfaStateChecker service which queries the database
 # for MFA configuration state without depending on Rodauth internals.

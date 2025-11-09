@@ -1,4 +1,6 @@
-# apps/api/v1/logic/secrets/show_metadata_list.rb
+# .purgatory/apps-api-v1/logic/secrets/show_metadata_list.rb
+#
+# frozen_string_literal: true
 
 require 'time'
 

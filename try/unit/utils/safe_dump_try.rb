@@ -1,4 +1,6 @@
-# try/19_safe_dump_try.rb
+# try/unit/utils/safe_dump_try.rb
+#
+# frozen_string_literal: true
 
 # These tryouts test the safe dumping functionality.
 

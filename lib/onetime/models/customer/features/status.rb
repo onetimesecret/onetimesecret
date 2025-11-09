@@ -1,4 +1,6 @@
 # lib/onetime/models/customer/features/status.rb
+#
+# frozen_string_literal: true
 
 module Onetime::Customer::Features
   module Status

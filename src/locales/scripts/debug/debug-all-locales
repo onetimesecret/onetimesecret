@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Wrapper to debug all locale files against the base locale
+#
+# Usage: ./debug-all-locales [-q quiet] [-f filename-only] [-v verbose]
+#
+# Options:
+#   -q: Suppress all output except summary
+#   -f: Only output filenames of files with conflicts
+#   -v: Show verbose conflict details
+#
+# Exit: 0 if all files are clean, 1 if any have conflicts
+
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+
+EXIT_CODE=0
+CONFLICT_FILES=0
+TOTAL_FILES=0
+
+for locale in src/locales/*.json; do
+  [ "$locale" = "src/locales/en.json" ] && continue
+
+  TOTAL_FILES=$((TOTAL_FILES + 1))
+
+  if ! "$SCRIPT_DIR/debug-locale-structure.sh" "$@" "$locale"; then
+    EXIT_CODE=1
+    CONFLICT_FILES=$((CONFLICT_FILES + 1))
+  fi
+done
+
+# Summary unless in filename-only mode
+if [ "$1" != "-f" ]; then
+  echo "=========================================="
+  echo "SUMMARY: $CONFLICT_FILES of $TOTAL_FILES files have structural issues"
+  [ $CONFLICT_FILES -eq 0 ] && echo "✓ All locale files are structurally compatible"
+fi
+
+exit $EXIT_CODE

@@ -1,4 +1,6 @@
 # apps/web/auth/config/features/mfa.rb
+#
+# frozen_string_literal: true
 
 module Auth::Config::Features
   # Handle JSON-only OTP setup flow with HMAC:

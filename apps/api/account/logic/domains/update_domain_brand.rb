@@ -1,4 +1,6 @@
 # apps/api/account/logic/domains/update_domain_brand.rb
+#
+# frozen_string_literal: true
 
 require 'onetime/cluster'
 require_relative '../base'

@@ -1,4 +1,6 @@
 # apps/web/auth/operations/create_default_workspace.rb
+#
+# frozen_string_literal: true
 
 #
 # Creates a default Organization and Team for a new customer during registration.

@@ -1,4 +1,6 @@
-#!/usr/bin/env ruby
+# try/unit/config/passphrase_validation_try.rb
+#
+# frozen_string_literal: true
 
 require_relative '../../support/test_logic'
 

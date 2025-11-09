@@ -1,4 +1,6 @@
 # lib/onetime/middleware/identity_resolution.rb
+#
+# frozen_string_literal: true
 
 require 'logger'
 require 'rack/request'

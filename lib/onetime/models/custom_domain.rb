@@ -1,4 +1,6 @@
 # lib/onetime/models/custom_domain.rb
+#
+# frozen_string_literal: true
 
 require 'public_suffix'
 

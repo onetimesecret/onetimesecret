@@ -1,4 +1,5 @@
 <!-- src/layouts/AccountLayout.vue -->
+
 <script setup lang="ts">
 import type { LayoutProps } from '@/types/ui/layouts';
 import BaseLayout from './BaseLayout.vue';
