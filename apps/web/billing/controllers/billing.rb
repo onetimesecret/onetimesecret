@@ -197,7 +197,8 @@ module Billing
       def list_plans
         plans = ::Billing::Models::PlanCache.list_plans
 
-        plan_data = plans.map do |plan|
+        # Filter out nil plans (stale cache entries)
+        plan_data = plans.compact.map do |plan|
           {
             id: plan.plan_id,
             name: plan.name,
