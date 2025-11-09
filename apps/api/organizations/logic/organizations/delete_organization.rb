@@ -8,7 +8,7 @@ module OrganizationAPI::Logic
       attr_reader :organization
 
       def process_params
-        @orgid = params['orgid']
+        @extid = params['extid']
       end
 
       def raise_concerns
@@ -16,17 +16,17 @@ module OrganizationAPI::Logic
         raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
 
         # Validate orgid parameter
-        raise_form_error('Organization ID required', field: :orgid, error_type: :missing) if @orgid.to_s.empty?
+        raise_form_error('Organization ID required', field: :extid, error_type: :missing) if @extid.to_s.empty?
 
         # Load organization
-        @organization = load_organization(@orgid)
+        @organization = load_organization(@extid)
 
         # Verify user is owner
         verify_organization_owner(@organization)
       end
 
       def process
-        OT.ld "[DeleteOrganization] Deleting organization #{@orgid} for user #{cust.custid}"
+        OT.ld "[DeleteOrganization] Deleting organization #{@extid} for user #{cust.custid}"
 
         # Get organization info before deletion
         orgid = @organization.orgid
@@ -53,13 +53,13 @@ module OrganizationAPI::Logic
         {
           user_id: cust.objid,
           deleted: true,
-          orgid: @orgid,
+          orgid: @extid,
         }
       end
 
       def form_fields
         {
-          orgid: @orgid,
+          orgid: @extid,
         }
       end
     end

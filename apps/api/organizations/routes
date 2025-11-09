@@ -8,8 +8,9 @@
 # All endpoints require authentication (session or basic).
 
 # Organization Management
+# Uses extid (external ID) in URLs for security; orgid (internal ID) is for internal use only
 GET    /                                    OrganizationAPI::Logic::Organizations::ListOrganizations response=json auth=sessionauth
 POST   /                                    OrganizationAPI::Logic::Organizations::CreateOrganization response=json auth=sessionauth
-GET    /:orgid                              OrganizationAPI::Logic::Organizations::GetOrganization response=json auth=sessionauth
-PUT    /:orgid                              OrganizationAPI::Logic::Organizations::UpdateOrganization response=json auth=sessionauth
-DELETE /:orgid                              OrganizationAPI::Logic::Organizations::DeleteOrganization response=json auth=sessionauth
+GET    /:extid                              OrganizationAPI::Logic::Organizations::GetOrganization response=json auth=sessionauth
+PUT    /:extid                              OrganizationAPI::Logic::Organizations::UpdateOrganization response=json auth=sessionauth
+DELETE /:extid                              OrganizationAPI::Logic::Organizations::DeleteOrganization response=json auth=sessionauth

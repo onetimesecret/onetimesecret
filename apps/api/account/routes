@@ -8,26 +8,26 @@
 # Secret operations live in V3 API at /api/v3/*.
 
 # Account Management
-POST   /account/destroy                           AccountAPI::Logic::Account::DestroyAccount response=json auth=sessionauth
-POST   /account/change-password                   AccountAPI::Logic::Account::UpdatePassword response=json auth=sessionauth
+POST   /account/destroy                           AccountAPI::Logic::Account::DestroyAccount response=json auth=sessionauth,basicauth
+POST   /account/change-password                   AccountAPI::Logic::Account::UpdatePassword response=json auth=sessionauth,basicauth
 POST   /account/update-locale                     AccountAPI::Logic::Account::UpdateLocale response=json auth=noauth
-POST   /account/apitoken                          AccountAPI::Logic::Account::GenerateAPIToken response=json auth=sessionauth csrf=exempt
-GET    /account                                   AccountAPI::Logic::Account::GetAccount response=json auth=sessionauth
+POST   /account/apitoken                          AccountAPI::Logic::Account::GenerateAPIToken response=json auth=sessionauth,basicauth csrf=exempt
+GET    /account                                   AccountAPI::Logic::Account::GetAccount response=json auth=sessionauth,basicauth
 
 # Domain Management
-POST   /domains/add                               AccountAPI::Logic::Domains::AddDomain response=json auth=sessionauth
-POST   /domains/:domain/remove                    AccountAPI::Logic::Domains::RemoveDomain response=json auth=sessionauth
-GET    /domains/:domain                           AccountAPI::Logic::Domains::GetDomain response=json auth=sessionauth
-POST   /domains/:domain/verify                    AccountAPI::Logic::Domains::VerifyDomain response=json auth=sessionauth
-PUT    /domains/:domain/brand                     AccountAPI::Logic::Domains::UpdateDomainBrand response=json auth=sessionauth
-GET    /domains/:domain/brand                     AccountAPI::Logic::Domains::GetDomainBrand response=json auth=sessionauth
-DELETE /domains/:domain/logo                      AccountAPI::Logic::Domains::RemoveDomainImage response=json auth=sessionauth
-POST   /domains/:domain/logo                      AccountAPI::Logic::Domains::UpdateDomainImage response=json auth=sessionauth
-GET    /domains/:domain/logo                      AccountAPI::Logic::Domains::GetDomainImage response=json auth=sessionauth
-DELETE /domains/:domain/icon                      AccountAPI::Logic::Domains::RemoveDomainImage response=json auth=sessionauth
-POST   /domains/:domain/icon                      AccountAPI::Logic::Domains::UpdateDomainImage response=json auth=sessionauth
-GET    /domains/:domain/icon                      AccountAPI::Logic::Domains::GetDomainImage response=json auth=sessionauth
-GET    /domains                                   AccountAPI::Logic::Domains::ListDomains response=json auth=sessionauth
+POST   /domains/add                               AccountAPI::Logic::Domains::AddDomain response=json auth=sessionauth,basicauth
+POST   /domains/:domain/remove                    AccountAPI::Logic::Domains::RemoveDomain response=json auth=sessionauth,basicauth
+GET    /domains/:domain                           AccountAPI::Logic::Domains::GetDomain response=json auth=sessionauth,basicauth
+POST   /domains/:domain/verify                    AccountAPI::Logic::Domains::VerifyDomain response=json auth=sessionauth,basicauth
+PUT    /domains/:domain/brand                     AccountAPI::Logic::Domains::UpdateDomainBrand response=json auth=sessionauth,basicauth
+GET    /domains/:domain/brand                     AccountAPI::Logic::Domains::GetDomainBrand response=json auth=sessionauth,basicauth
+DELETE /domains/:domain/logo                      AccountAPI::Logic::Domains::RemoveDomainImage response=json auth=sessionauth,basicauth
+POST   /domains/:domain/logo                      AccountAPI::Logic::Domains::UpdateDomainImage response=json auth=sessionauth,basicauth
+GET    /domains/:domain/logo                      AccountAPI::Logic::Domains::GetDomainImage response=json auth=sessionauth,basicauth
+DELETE /domains/:domain/icon                      AccountAPI::Logic::Domains::RemoveDomainImage response=json auth=sessionauth,basicauth
+POST   /domains/:domain/icon                      AccountAPI::Logic::Domains::UpdateDomainImage response=json auth=sessionauth,basicauth
+GET    /domains/:domain/icon                      AccountAPI::Logic::Domains::GetDomainImage response=json auth=sessionauth,basicauth
+GET    /domains                                   AccountAPI::Logic::Domains::ListDomains response=json auth=sessionauth,basicauth
 
 # Colonel/Admin endpoints
 GET    /colonel/info                              AccountAPI::Logic::Colonel::GetColonelInfo response=json auth=colonelsonly

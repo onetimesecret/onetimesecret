@@ -84,7 +84,7 @@ module OrganizationAPI
       # @return [Hash] Serialized organization data
       def serialize_organization(organization, current_user = cust)
         record = {
-          id: organization.objid,
+          id: organization.extid,  # Use extid (external ID) for URLs, not objid (internal ID)
           display_name: organization.display_name,
           description: organization.description || '',
           is_default: organization.is_default || false,
@@ -130,9 +130,9 @@ module OrganizationAPI
       end
 
       # Load organization and verify it exists
-      def load_organization(orgid)
-        organization = Onetime::Organization.load(orgid)
-        raise_not_found("Organization not found: #{orgid}") if organization.nil?
+      def load_organization(extid)
+        organization = Onetime::Organization.find_by_extid(extid)
+        raise_not_found("Organization not found: #{extid}") if organization.nil?
         organization
       end
     end
