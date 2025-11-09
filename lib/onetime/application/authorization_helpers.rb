@@ -1,4 +1,4 @@
-# lib/onetime/logic/authorization_helpers.rb
+# lib/onetime/application/authorization_helpers.rb
 #
 # Shared authorization helpers for Logic classes
 #
@@ -7,9 +7,12 @@
 # - Organization role checks (owner, admin, member)
 # - Multi-condition authorization
 #
+# Located alongside auth_strategies.rb to group authentication and
+# authorization concerns together under the application namespace.
+#
 # Usage:
 #   class MyLogic < BaseLogic
-#     include Onetime::Logic::AuthorizationHelpers
+#     include Onetime::Application::AuthorizationHelpers
 #
 #     def raise_concerns
 #       verify_authenticated!
@@ -18,7 +21,7 @@
 #   end
 
 module Onetime
-  module Logic
+  module Application
     module AuthorizationHelpers
       # Check if user has a system-level role
       #
