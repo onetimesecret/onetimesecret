@@ -12,9 +12,6 @@
 #   # See available modules: https://github.com/orgs/caddy-dns/repositories?type=all
 #   $ docker build -f Dockerfile-caddy --build-arg DNS_MODULE=route53 -t onetime-caddy:2.10 .
 #
-#   # Build without DNS module
-#   $ docker build -f Dockerfile-caddy --build-arg DNS_MODULE="" -t onetime-caddy:2.10 .
-#
 #   # Prepare
 #   $ docker network create onetime-network
 #
@@ -61,9 +58,12 @@
 # Build stage: compile Caddy with plugins using xcaddy
 FROM golang:1.25-bookworm AS builder
 
-# Build arguments for configurable Caddy version and DNS module
-# DNS_MODULE: repo name from https://github.com/orgs/caddy-dns/repositories (e.g., "cloudflare", "route53")
+# Build arguments
 ARG CADDY_VERSION=2.10.2
+
+# If DNS_MODULE is set to an empty string, it will attempt to install
+# 'github.com/caddy-dns/', which is obviously invalid. Select a valid
+#  repo name from https://github.com/orgs/caddy-dns/repositories
 ARG DNS_MODULE=cloudflare
 
 # Set Go environment and install xcaddy

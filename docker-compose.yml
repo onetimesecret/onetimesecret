@@ -28,7 +28,7 @@ services:
       - '443:443'
     # Note: Port 2019 is NOT exposed externally - only to the other containers on the same network
     expose:
-      - '2019:2019'
+      - '2019'
     restart: unless-stopped
     volumes:
       - ./etc/Caddyfile:/etc/caddy/Caddyfile:ro
