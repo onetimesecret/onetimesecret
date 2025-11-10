@@ -285,6 +285,10 @@
 			fail_duration 30s
 
 			transport http {
+				# Internet → Caddy → Puma
+				#         (h1/h2/h3) (HTTP/1.1)
+				# Puma doesn't support HTTP/2
+				versions 1.1
 				compression off
 
 				# There's an issue with Caddy losing connection with the application
