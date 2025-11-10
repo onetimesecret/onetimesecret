@@ -223,10 +223,20 @@
   handle {
     # Forward all other requests to backend
     reverse_proxy {
-      # Pass custom domain relevant headers to backend
+      # Pass relevant headers to backend
       header_up Host {http.request.host}
       header_up Apx-Incoming-Host {http.request.header.Apx-Incoming-Host}
+      header_up CF-ASN {http.request.header.CF-ASN}
+      header_up CF-IPContinent {http.request.header.CF-IPContinent}
+      header_up CloudFront-Viewer-Country {http.request.header.CloudFront-Viewer-Country}
+      header_up Fastly-Geo-Country {http.request.header.Fastly-Geo-Country}
+      header_up O-API-Key {http.request.header.O-API-Key}
+      header_up O-Geo-Country {http.request.header.O-Geo-Country}
+      header_up Via {http.request.header.Via}
+      header_up X-API-Key {http.request.header.X-API-Key}
       header_up X-Forwarded-Host {http.request.header.X-Forwarded-Host}
+      header_up X-Forwarded-Proto {http.request.scheme}
+      header_up X-Geo-Country {http.request.header.X-Geo-Country}
       header_up X-Original-Host {http.request.host}
       header_up X-Real-IP {http.request.remote.host}
 
@@ -294,31 +304,28 @@
 
 (onetime-logging) {
   # Site-wide logging configuration
-  # https://github.com/caddyserver/transform-encoder?tab=readme-ov-file
+  # https://github.com/caddyserver/transform-encoder
   log {
     output stdout
     format json {
       time_format unix_milli_float
       duration_format string
     }
-
     level INFO
-    # exclude_headers: Not available in Caddy. Handle sensitive data redaction
-    # in application logs or use log aggregation pipeline for filtering.
-    #exclude_headers authorization cookie set-cookie
   }
 
-  @api_endpoints_logging {
-    path /auth /api/v3/secret /api/v2/secret /api/v1/share /api/v1/generate
+  @secrets_timeline {
+    path /api/v3/secret /api/v2/secret /api/v1/share /api/v1/generate
   }
 
-  log @api_endpoints_logging {
+  # Timeline of events affecting secrets
+  log @secrets_timeline {
     output stdout
-    #format transform "{ts} [DEBUG] host={request>host} method={request>method} path={request>uri} status={status} duration={duration} size={size} upstream_addr={upstream>dial_addr} upstream_duration={upstream>latency} dial_duration={upstream>dial_duration} client_ip={request>client_ip}" {
-    #  time_format "2006-01-02 15:04:05.000"
-    #  time_local
-    #}
-    #level DEBUG
+    format transform "{ts} {method} {uri} {status} {duration}" {
+      time_format "2006-01-02 15:04:05"
+      time_local
+    }
+    level INFO
   }
 }
 
