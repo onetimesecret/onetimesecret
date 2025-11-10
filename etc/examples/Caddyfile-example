@@ -14,321 +14,318 @@
 #   -v $PWD/etc/examples/Caddyfile-example:/etc/caddy/Caddyfile:ro \
 #   onetime-caddy:2.10 \
 #   caddy fmt --config /etc/caddy/Caddyfile
-
 {
-  # This email address is used for ACME (Let's Encrypt) contacts
-  # and depending on your customer domain privacy settings, may be
-  # publicly visible in the certificate transparency logs.
-  email {$CERTIFICATE_EMAIL:björk@example.com}
+	# This email address is used for ACME (Let's Encrypt) contacts
+	# and depending on your customer domain privacy settings, may be
+	# publicly visible in the certificate transparency logs.
+	email {$CERTIFICATE_EMAIL:björk@example.com}
 
-  admin off
+	admin off
 
-  log {
-    output stdout
-    format json
-    level INFO
-  }
+	log {
+		output stdout
+		format json
+		level INFO
+	}
 
-  # Explicitly set storage path (/data/caddy is default)
-  storage file_system {
-      root /data/caddy
-  }
+	# Explicitly set storage path (/data/caddy is default)
+	storage file_system {
+		root /data/caddy
+	}
 
-  # If disabling HTTP challenge (i.e. port 80), uncomment this setting
-  # to use TLS-ALPN challenge instead.
-  #acme_ca https://acme-v02.api.letsencrypt.org/directory
+	# If disabling HTTP challenge (i.e. port 80), uncomment this setting
+	# to use TLS-ALPN challenge instead.
+	#acme_ca https://acme-v02.api.letsencrypt.org/directory
 
-  # For testing first, use staging:
-  #acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+	# For testing first, use staging:
+	#acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 
-  servers {
-    # Optimize keepalive settings
-    keepalive_interval 20s
-    max_header_size 4kb
+	servers {
+		# Optimize keepalive settings
+		keepalive_interval 20s
+		max_header_size 4kb
 
-    # Set explicit timeouts (updated 2025-05-18)
-    timeouts {
-      read_body 30s
-      read_header 10s
-      write 60s
-      idle 5m
-    }
+		# Set explicit timeouts (updated 2025-05-18)
+		timeouts {
+			read_body 30s
+			read_header 10s
+			write 60s
+			idle 5m
+		}
 
-    # Protect against slow DoS attacks
-    protocols h1 h2 h3
+		# Protect against slow DoS attacks
+		protocols h1 h2 h3
 
-    # If we're behind a proxy, this tells caddy that it's not unsafe
-    # to trust the client IP address(es) in the forwarded-for
-    # header. It's a security measure to prevent someone from
-    # spoofing a different IP address than their own.
-    trusted_proxies static private_ranges
-    client_ip_headers X-Forwarded-For X-Real-IP
-  }
+		# If we're behind a proxy, this tells caddy that it's not unsafe
+		# to trust the client IP address(es) in the forwarded-for
+		# header. It's a security measure to prevent someone from
+		# spoofing a different IP address than their own.
+		trusted_proxies static private_ranges
+		client_ip_headers X-Forwarded-For X-Real-IP
+	}
 
-  #on_demand_tls {
-  #  # @see allowed-domains
-  #  ask http://localhost:3001/ask
-  #}
+	#on_demand_tls {
+	#  # @see allowed-domains
+	#  ask http://localhost:3001/ask
+	#}
 }
 
 (onetime-root) {
+	root * {$PUBLIC_DIR:/var/www/public}
 
-  root * {$PUBLIC_DIR:/var/www/public}
+	encode {
+		minimum_length 512
+		zstd
+		gzip 7
+	}
 
-  encode {
-    minimum_length 512
-    zstd
-    gzip 7
-  }
+	# Block access to sensitive files
+	@sensitive {
+		path */.env* */.git/* */.htaccess
+		path */Gemfile */Gemfile.lock */config.ru
+		path */bin/* */tmp/* */log/*
+	}
+	respond @sensitive 404
 
-  # Block access to sensitive files
-  @sensitive {
-    path */.env* */.git/* */.htaccess
-    path */Gemfile */Gemfile.lock */config.ru
-    path */bin/* */tmp/* */log/*
-  }
-  respond @sensitive 404
+	# Block known bad user agents and common attack patterns
+	@blocklist {
+		header_regexp User-Agent (nmap|nikto|sqlmap|gobuster|masscan|zmap|zgrab|dirbuster|metasploit|burp)
+	}
+	respond @blocklist 404
 
-  # Block known bad user agents and common attack patterns
-  @blocklist {
-    header_regexp User-Agent (nmap|nikto|sqlmap|gobuster|masscan|zmap|zgrab|dirbuster|metasploit|burp)
-  }
-  respond @blocklist 404
+	# Block path traversal attempts
+	@path_traversal {
+		path_regexp (\.\./|\.\.%2[Ff]|%00|%0[Dd]%0[Aa])
+	}
+	respond @path_traversal 400
 
-  # Block path traversal attempts
-  @path_traversal {
-      path_regexp (\.\./|\.\.%2[Ff]|%00|%0[Dd]%0[Aa])
-  }
-  respond @path_traversal 400
+	# Enhanced rate limiting using caddy-ratelimit plugin
+	# @see https://github.com/mholt/caddy-ratelimit
+	#
+	# Rate limit calculations:
+	#    5r/m =>     300 requests/hour per IP
+	#   10r/s =>  36,000 requests/hour per IP
+	#   20r/s =>  72,000
+	#   30r/s => 108,000
+	#   99r/s => 356,400
+	#
+	# General traffic - applies to all non-matched paths
+	rate_limit {
+		zone general {
+			key {remote_ip}
+			events 20
+			window 1s
+		}
+	}
 
-  # Enhanced rate limiting using caddy-ratelimit plugin
-  # @see https://github.com/mholt/caddy-ratelimit
-  #
-  # Rate limit calculations:
-  #    5r/m =>     300 requests/hour per IP
-  #   10r/s =>  36,000 requests/hour per IP
-  #   20r/s =>  72,000
-  #   30r/s => 108,000
-  #   99r/s => 356,400
-  #
-  # General traffic - applies to all non-matched paths
-  rate_limit {
-    zone general {
-      key {remote_ip}
-      events 20
-      window 1s
-    }
-  }
+	# API endpoints - moderate limits
+	@api_paths {
+		path /api/*
+	}
+	rate_limit @api_paths {
+		zone api {
+			key {remote_ip}
+			events 30
+			window 1s
+		}
+	}
 
-  # API endpoints - moderate limits
-  @api_paths {
-    path /api/*
-  }
-  rate_limit @api_paths {
-    zone api {
-      key {remote_ip}
-      events 30
-      window 1s
-    }
-  }
+	# Auth mutations (login, password changes) - strict limits
+	@auth_mutations {
+		path /auth/login /auth/create-* /auth/reset-* /auth/verify-*
+		path /auth/otp-* /auth/webauthn-* /auth/email-login*
+	}
+	rate_limit @auth_mutations {
+		zone auth_mutations {
+			key {remote_ip}
+			events 5
+			window 1m
+		}
+	}
 
-  # Auth mutations (login, password changes) - strict limits
-  @auth_mutations {
-    path /auth/login /auth/create-* /auth/reset-* /auth/verify-*
-    path /auth/otp-* /auth/webauthn-* /auth/email-login*
-  }
-  rate_limit @auth_mutations {
-    zone auth_mutations {
-      key {remote_ip}
-      events 5
-      window 1m
-    }
-  }
+	# Auth reads (account info, status checks) - moderate limits
+	@auth_reads {
+		path /auth/*
+	}
+	rate_limit @auth_reads {
+		zone auth_reads {
+			key {remote_ip}
+			events 10
+			window 1s
+		}
+	}
 
-  # Auth reads (account info, status checks) - moderate limits
-  @auth_reads {
-    path /auth/*
-  }
-  rate_limit @auth_reads {
-    zone auth_reads {
-      key {remote_ip}
-      events 10
-      window 1s
-    }
-  }
-
-  # Static assets - high limits
-  @static {
-    path *.js *.css *.svg *.png *.jpg *.jpeg *.woff *.woff2 *.ico *.pdf *.manifest
-  }
-  rate_limit @static {
-    zone static {
-      key {remote_ip}
-      events 99
-      window 1s
-    }
-  }
+	# Static assets - high limits
+	@static {
+		path *.js *.css *.svg *.png *.jpg *.jpeg *.woff *.woff2 *.ico *.pdf *.manifest
+	}
+	rate_limit @static {
+		zone static {
+			key {remote_ip}
+			events 99
+			window 1s
+		}
+	}
 }
 
 (onetime-headers) {
-  # Add a unique ID for every request for enhanced debugging and logging.
-  # Excludes favicon requests for efficiency.
-  @always {
-    not path /favicon.ico
-  }
-  # Adds the O-Request-ID header to all requests (excluding
-  # favicon.ico) using a UUID.
-  header @always O-Request-ID "{http.request.uuid}"
+	# Add a unique ID for every request for enhanced debugging and logging.
+	# Excludes favicon requests for efficiency.
+	@always {
+		not path /favicon.ico
+	}
+	# Adds the O-Request-ID header to all requests (excluding
+	# favicon.ico) using a UUID.
+	header @always O-Request-ID "{http.request.uuid}"
 
-  # Serve static files if they exist
-  @exists file
-  handle @exists {
-    file_server
-  }
+	# Serve static files if they exist
+	@exists file
+	handle @exists {
+		file_server
+	}
 
-  header {
-    # Security headers
-    #
-    # CSP: Handled by application server (apps/web/core/middleware/security_headers.rb)
-    # to maintain centralized policy management.
-    #
-    # HSTS: Configured per-domain in main server block below for flexibility.
-    #
-    X-Content-Type-Options "nosniff"
-    X-Frame-Options "DENY"
-    X-XSS-Protection "1; mode=block"
-    Referrer-Policy "no-referrer"
-    Permissions-Policy ""
+	header {
+		# Security headers
+		#
+		# CSP: Handled by application server (apps/web/core/middleware/security_headers.rb)
+		# to maintain centralized policy management.
+		#
+		# HSTS: Configured per-domain in main server block below for flexibility.
+		#
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy ""
 
-    # Prevent caching of sensitive content
-    Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
-    Pragma "no-cache"
+		# Prevent caching of sensitive content
+		Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+		Pragma "no-cache"
 
-    # Prevent search engines from indexing
-    X-Robots-Tag "noindex, nofollow, noarchive, nosnippet, noimageindex"
+		# Prevent search engines from indexing
+		X-Robots-Tag "noindex, nofollow, noarchive, nosnippet, noimageindex"
 
-    # Custom header indicating which Caddy instance/config handled request.
-    # The -{args[0]} syntax removes the header if args[0] is empty, or sets it to
-    # the value passed when importing this snippet (e.g., "import onetime-headers main").
-    # Useful for multi-instance deployments or A/B config testing.
-    O-Via -{args[0]}
+		# Custom header indicating which Caddy instance/config handled request.
+		# The -{args[0]} syntax removes the header if args[0] is empty, or sets it to
+		# the value passed when importing this snippet (e.g., "import onetime-headers main").
+		# Useful for multi-instance deployments or A/B config testing.
+		O-Via -{args[0]}
 
-    # Remove server identification
-    -Server
-    -X-Powered-By
-  }
+		# Remove server identification
+		-Server
+		-X-Powered-By
+	}
 }
 
 (onetime-proxy) {
-  handle {
-    # Forward all other requests to backend
-    reverse_proxy {
-      # Pass relevant headers to backend
-      header_up Host {http.request.host}
-      header_up Apx-Incoming-Host {http.request.header.Apx-Incoming-Host}
-      header_up CF-ASN {http.request.header.CF-ASN}
-      header_up CF-IPContinent {http.request.header.CF-IPContinent}
-      header_up CloudFront-Viewer-Country {http.request.header.CloudFront-Viewer-Country}
-      header_up Fastly-Geo-Country {http.request.header.Fastly-Geo-Country}
-      header_up O-API-Key {http.request.header.O-API-Key}
-      header_up O-Geo-Country {http.request.header.O-Geo-Country}
-      header_up Via {http.request.header.Via}
-      header_up X-API-Key {http.request.header.X-API-Key}
-      header_up X-Forwarded-Host {http.request.header.X-Forwarded-Host}
-      header_up X-Forwarded-Proto {http.request.scheme}
-      header_up X-Geo-Country {http.request.header.X-Geo-Country}
-      header_up X-Original-Host {http.request.host}
-      header_up X-Real-IP {http.request.remote.host}
+	handle {
+		# Forward all other requests to backend
+		reverse_proxy {
+			# Pass relevant headers to backend
+			header_up Host {http.request.host}
+			header_up Apx-Incoming-Host {http.request.header.Apx-Incoming-Host}
+			header_up CF-ASN {http.request.header.CF-ASN}
+			header_up CF-IPContinent {http.request.header.CF-IPContinent}
+			header_up CloudFront-Viewer-Country {http.request.header.CloudFront-Viewer-Country}
+			header_up Fastly-Geo-Country {http.request.header.Fastly-Geo-Country}
+			header_up O-API-Key {http.request.header.O-API-Key}
+			header_up O-Geo-Country {http.request.header.O-Geo-Country}
+			header_up Via {http.request.header.Via}
+			header_up X-API-Key {http.request.header.X-API-Key}
+			header_up X-Forwarded-Host {http.request.header.X-Forwarded-Host}
+			header_up X-Forwarded-Proto {http.request.scheme}
+			header_up X-Geo-Country {http.request.header.X-Geo-Country}
+			header_up X-Original-Host {http.request.host}
+			header_up X-Real-IP {http.request.remote.host}
 
-      # Filter request headers to prevent header smuggling
-      header_down -Server
+			# Filter request headers to prevent header smuggling
+			header_down -Server
 
-      # Ruby application container. Needs to match the docker name.
-      to onetime-app:3000
+			# Ruby application container. Needs to match the docker name.
+			to onetime-app:3000
 
-      # Load Balancer
-      #
-      # @see https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#load-balancing
-      lb_policy least_conn
+			# Load Balancer
+			#
+			# @see https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#load-balancing
+			lb_policy least_conn
 
-      # How many times to retry selecting available backends (default: 0).
-      # retries may stop early if the duration is reached. In other words,
-      # the retry duration takes precedence over the retry count.
-      #lb_retries 1
+			# How many times to retry selecting available backends (default: 0).
+			# retries may stop early if the duration is reached. In other words,
+			# the retry duration takes precedence over the retry count.
+			#lb_retries 1
 
-      # how long to try selecting available backends for each request if
-      # the next available host is down. (default: 0)
-      #lb_try_duration 5s
+			# how long to try selecting available backends for each request if
+			# the next available host is down. (default: 0)
+			#lb_try_duration 5s
 
-      # Active health checking
-      #
-      # @see https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#active-health-checks
-      health_uri /api/v2/status
+			# Active health checking
+			#
+			# @see https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#active-health-checks
+			health_uri /api/v2/status
 
-      # Substring or regular expression to match
-      health_body nominal
+			# Substring or regular expression to match
+			health_body nominal
 
-      # How often to check (default: 30s)
-      health_interval 20s
+			# How often to check (default: 30s)
+			health_interval 20s
 
-      # Consecutive checks to mark healthy/unhealthy (default: 1)
-      health_passes 2
-      health_fails 2
+			# Consecutive checks to mark healthy/unhealthy (default: 1)
+			health_passes 2
+			health_fails 2
 
-      # How long to wait before marking down (default: 5s)
-      health_timeout 5s
+			# How long to wait before marking down (default: 5s)
+			health_timeout 5s
 
-      # Passive health checks
-      #
-      # @see https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#passive-health-checks
+			# Passive health checks
+			#
+			# @see https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#passive-health-checks
 
-      # How long to remember a failed request; a duration > 0 enables
-      # passive health checking. (default: 30s)
-      fail_duration 30s
+			# How long to remember a failed request; a duration > 0 enables
+			# passive health checking. (default: 30s)
+			fail_duration 30s
 
-      transport http {
-        compression off
+			transport http {
+				compression off
 
-        # There's an issue with Caddy losing connection with the application
-        # server intermittently so we keep this off even though there is
-        # performance benefit.
-        keepalive off
+				# There's an issue with Caddy losing connection with the application
+				# server intermittently so we keep this off even though there is
+				# performance benefit.
+				keepalive off
 
-        read_timeout 15s
-        write_timeout 60s
-        dial_timeout 5s
-      }
-    }
-  }
+				read_timeout 15s
+				write_timeout 60s
+				dial_timeout 5s
+			}
+		}
+	}
 }
 
 (onetime-logging) {
-  # Site-wide logging configuration
-  # https://github.com/caddyserver/transform-encoder
-  log {
-    output stdout
-    format json {
-      time_format unix_milli_float
-      duration_format string
-    }
-    level INFO
-  }
+	# Site-wide logging configuration
+	# https://github.com/caddyserver/transform-encoder
+	log {
+		output stdout
+		format json {
+			time_format unix_milli_float
+			duration_format string
+		}
+		level INFO
+	}
 
-  @secrets_timeline {
-    path /api/v3/secret /api/v2/secret /api/v1/share /api/v1/generate
-  }
+	@secrets_timeline {
+		path /api/v3/secret /api/v2/secret /api/v1/share /api/v1/generate
+	}
 
-  # Timeline of events affecting secrets
-  log @secrets_timeline {
-    output stdout
-    format transform "{ts} {method} {uri} {status} {duration}" {
-      time_format "2006-01-02 15:04:05"
-      time_local
-    }
-    level INFO
-  }
+	# Timeline of events affecting secrets
+	log @secrets_timeline {
+		output stdout
+		format transform "{ts} {method} {uri} {status} {duration}" {
+			time_format "2006-01-02 15:04:05"
+			time_local
+		}
+		level INFO
+	}
 }
-
 
 ######################################################################
 #                                                                    #
@@ -337,33 +334,33 @@
 ######################################################################
 
 {$DOMAIN}:443 {
-  tls {
-    protocols tls1.3
+	tls {
+		protocols tls1.3
 
-    # When using CloudFlare Proxy DNS (Orange Cloud is on), it helps to
-    # explicitly disable http certificate validation since the incoming
-    # requests are blocked and never make it through.
-    #
-    ## Disable HTTP-01, use only TLS-ALPN-01
-    #issuer acme {
-    # disable_http_challenge
-    #}
-  }
+		# When using CloudFlare Proxy DNS (Orange Cloud is on), it helps to
+		# explicitly disable http certificate validation since the incoming
+		# requests are blocked and never make it through.
+		#
+		## Disable HTTP-01, use only TLS-ALPN-01
+		#issuer acme {
+		# disable_http_challenge
+		#}
+	}
 
-  import onetime-root
-  import onetime-headers main
-  import onetime-proxy
-  import onetime-logging
+	import onetime-root
+	import onetime-headers main
+	import onetime-proxy
+	import onetime-logging
 
-  # HSTS configuration
-  # Commented out: CloudFlare proxy overrides these settings via SSL/TLS Dashboard.
-  # For direct (non-proxied) deployments, uncomment and configure per-domain.
-  # Test thoroughly before enabling includeSubDomains to avoid lockout scenarios.
-  #
-  #@hsts_domains {
-  #  host example.com
-  #}
-  #header @hsts_domains Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+	# HSTS configuration
+	# Commented out: CloudFlare proxy overrides these settings via SSL/TLS Dashboard.
+	# For direct (non-proxied) deployments, uncomment and configure per-domain.
+	# Test thoroughly before enabling includeSubDomains to avoid lockout scenarios.
+	#
+	#@hsts_domains {
+	#  host example.com
+	#}
+	#header @hsts_domains Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
 }
 
 # Verify the http-01 challenge is configured correctly:
@@ -375,13 +372,13 @@
 #   $ curl -I http://example.com/anything-else
 #
 http:// {
-  # ACME http challenge path - no redirect
-  handle /.well-known/acme-challenge/* {
-    file_server
-  }
+	# ACME http challenge path - no redirect
+	handle /.well-known/acme-challenge/* {
+		file_server
+	}
 
-  # Everything else - redirect to HTTPS
-  handle {
-    redir https://{host}{uri} permanent
-  }
+	# Everything else - redirect to HTTPS
+	handle {
+		redir https://{host}{uri} permanent
+	}
 }
