@@ -118,7 +118,7 @@
     "autoprefixer": "10.4.21",
     "esbuild": "0.25.4",
     "eslint-config-prettier": "10.1.5",
-    "eslint-import-resolver-typescript": "4.3.4",
+    "eslint-import-resolver-typescript": "4.3.5",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-tailwindcss": "3.18.0",
     "eslint-plugin-vue": "10.4.0",
