@@ -262,28 +262,36 @@
 			# Active health checking
 			#
 			# @see https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#active-health-checks
-			health_uri /api/v2/status
+			#
+			# DISABLED: Health checks were causing HTTP/2 (PRI method) requests to Puma
+			# which doesn't support HTTP/2. Caddy's health check client may attempt
+			# protocol negotiation independently of the transport settings.
+			#
+			# TODO: Re-enable with explicit HTTP/1.1 constraint once Caddy supports
+			# per-health-check transport configuration.
+			#
+			# health_uri /api/v2/status
+			# health_body nominal
+			# health_interval 20s
+			# health_passes 2
+			# health_fails 2
+			# health_timeout 5s
 
-			# Substring or regular expression to match
-			health_body nominal
-
-			# How often to check (default: 30s)
-			health_interval 20s
-
-			# Consecutive checks to mark healthy/unhealthy (default: 1)
-			health_passes 2
-			health_fails 2
-
-			# How long to wait before marking down (default: 5s)
-			health_timeout 5s
-
-			# Passive health checks
+			# Passive health checks (ENABLED)
 			#
 			# @see https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#passive-health-checks
+			#
+			# Passive health checks monitor actual traffic and don't make separate
+			# HTTP requests, so they don't suffer from the HTTP/2 protocol issue
+			# that affects active health checks.
 
 			# How long to remember a failed request; a duration > 0 enables
 			# passive health checking. (default: 30s)
 			fail_duration 30s
+
+			# Maximum number of unhealthy requests to tolerate before marking
+			# the backend as down (optional, uses default if not specified)
+			# unhealthy_request_count 3
 
 			transport http {
 				# Internet → Caddy → Puma
