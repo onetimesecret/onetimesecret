@@ -136,7 +136,15 @@ ENV NODE_PATH=${APP_DIR}/node_modules
 # Copy dependency manifests
 COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml ./
 
-# Install Ruby dependencies
+# Install system dependencies for PostgreSQL gem
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libpq-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+
+# Install Ruby dependencies with both database adapters
 # NOTE: We can't use the more aggresive `--local deployment true` to reduce
 # the image size further b/c it requires having all git dependencies installed.
 # Can revisit if/when we can use a released rspec version.
@@ -192,6 +200,15 @@ LABEL org.opencontainers.image.version=${VERSION} \
       org.opencontainers.image.title="OneTime Secret" \
       org.opencontainers.image.description="Keep passwords out of your inboxes and chat logs with links that work only one time." \
       org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret"
+
+# Install runtime dependencies for database adapters and git gems
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        git \
+        libpq5 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 WORKDIR ${APP_DIR}
 
