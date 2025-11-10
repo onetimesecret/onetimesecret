@@ -6,9 +6,14 @@
 # OR via docker container
 #
 # docker run --rm \
-#  -v $PWD/etc/examples/Caddyfile-example:/etc/caddy/Caddyfile:ro \
-#  onetime-caddy:2.10 \
-#  caddy validate --config /etc/caddy/Caddyfile
+#   -v $PWD/etc/examples/Caddyfile-example:/etc/caddy/Caddyfile:ro \
+#   onetime-caddy:2.10 \
+#   caddy validate --config /etc/caddy/Caddyfile
+#
+# docker run --rm \
+#   -v $PWD/etc/examples/Caddyfile-example:/etc/caddy/Caddyfile:ro \
+#   onetime-caddy:2.10 \
+#   caddy fmt --config /etc/caddy/Caddyfile
 
 {
   # This email address is used for ACME (Let's Encrypt) contacts

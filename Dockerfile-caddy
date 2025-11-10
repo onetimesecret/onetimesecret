@@ -2,8 +2,18 @@
 #
 # Expects One-Time Secret to be running as onetime-app on port 3000.
 #
-#   # Build
+#   # Build (default Caddy 2.10.2 with Cloudflare DNS)
 #   $ docker build -f Dockerfile-caddy -t onetime-caddy:2.10 .
+#
+#   # Build with different Caddy version
+#   $ docker build -f Dockerfile-caddy --build-arg CADDY_VERSION=2.11.0 -t onetime-caddy:2.11 .
+#
+#   # Build with different DNS module (e.g., Route53)
+#   # See available modules: https://github.com/orgs/caddy-dns/repositories?type=all
+#   $ docker build -f Dockerfile-caddy --build-arg DNS_MODULE=route53 -t onetime-caddy:2.10 .
+#
+#   # Build without DNS module
+#   $ docker build -f Dockerfile-caddy --build-arg DNS_MODULE="" -t onetime-caddy:2.10 .
 #
 #   # Prepare
 #   $ docker network create onetime-network
@@ -51,13 +61,21 @@
 # Build stage: compile Caddy with plugins using xcaddy
 FROM golang:1.25-bookworm AS builder
 
+# Build arguments for configurable Caddy version and DNS module
+# DNS_MODULE: repo name from https://github.com/orgs/caddy-dns/repositories (e.g., "cloudflare", "route53")
+ARG CADDY_VERSION=2.10.2
+ARG DNS_MODULE=cloudflare
+
 # Set Go environment and install xcaddy
 ENV PATH="/go/bin:${PATH}"
 RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
 
-# Build Caddy with rate limit plugin
-RUN xcaddy build v2.10.2 \
-    --with github.com/mholt/caddy-ratelimit
+# Build Caddy with plugins
+RUN xcaddy build v${CADDY_VERSION} \
+    --with github.com/mholt/caddy-ratelimit \
+    --with github.com/greenpau/caddy-security \
+    --with github.com/caddyserver/transform-encoder \
+    --with github.com/caddy-dns/${DNS_MODULE}
 
 # Runtime stage: minimal image with custom Caddy binary
 FROM debian:bookworm-slim
