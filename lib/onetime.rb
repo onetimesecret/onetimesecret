@@ -74,19 +74,25 @@ end
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
 # trying to send events over the network when we're shutting down via ctrl-c.
 trap('SIGINT') do
-  OT.li 'Shutting down gracefully...'
+  # Prevent re-entry if signal is received again during cleanup
+  trap('SIGINT', 'DEFAULT')
+
+  # Cannot use semantic_logger from trap context - use direct STDERR
+  $stderr.puts 'Shutting down gracefully...'
   OT.with_diagnostics do
     begin
       Sentry.close  # Attempt graceful shutdown with a short timeout
     rescue ThreadError => ex
-      OT.ld "Sentry shutdown interrupted: #{ex} (#{ex.class})"
-    rescue StandardError => ex
-      # Ignore Sentry errors during shutdown
-      OT.le "Error during shutdown: #{ex} (#{ex.class})"
-      OT.ld ex.backtrace.join("\n")
+      $stderr.puts "Sentry shutdown interrupted: #{ex} (#{ex.class})"
+    rescue Sentry::Error, IOError, SystemCallError => ex
+      # Ignore Sentry-related/network errors during shutdown
+      $stderr.puts "Error during shutdown: #{ex} (#{ex.class})"
+      $stderr.puts(ex.backtrace&.join("\n")) if OT.debug?
     end
   end
-  exit
+
+  # Re-raise signal to trigger default handler (ensures proper exit code 130)
+  Process.kill('SIGINT', Process.pid)
 end
 
 require_relative 'onetime/alias'
