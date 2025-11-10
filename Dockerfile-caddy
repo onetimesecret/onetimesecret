@@ -3,14 +3,14 @@
 # Expects One-Time Secret to be running as onetime-app on port 3000.
 #
 #   # Build (default Caddy 2.10.2 with Cloudflare DNS)
-#   $ docker build -f Dockerfile-caddy -t onetime-caddy:2.10 .
+#   $ docker build -f Dockerfile-caddy -t onetime-caddy:v2.10.2 .
 #
-#   # Build with different Caddy version
-#   $ docker build -f Dockerfile-caddy --build-arg CADDY_VERSION=2.11.0 -t onetime-caddy:2.11 .
-#
-#   # Build with different DNS module (e.g., Route53)
+#   # Build with different Caddy version and DNS module (e.g., Route53)
 #   # See available modules: https://github.com/orgs/caddy-dns/repositories?type=all
-#   $ docker build -f Dockerfile-caddy --build-arg DNS_MODULE=route53 -t onetime-caddy:2.10 .
+#   $ CADDY_VERSION=v2.10.2; docker build -f Dockerfile-caddy \
+#     --build-arg DNS_MODULE=route53 \
+#     --build-arg CADDY_VERSION=${CADDY_VERSION} \
+#     -t onetime-caddy:${CADDY_VERSION} .
 #
 #   # Prepare
 #   $ docker network create onetime-network
@@ -24,9 +24,11 @@
 #     -v $PWD/etc/examples/Caddyfile-example:/etc/caddy/Caddyfile \
 #     -v onetime_caddy_data:/data \
 #     -e CERTIFICATE_EMAIL=björk@example.com \
+#     -e UPSTREAM_HOST=onetime-app \
+#     -e UPSTREAM_PORT=3000 \
 #     -e DOMAIN=secrets.example.com \
 #     --detach \
-#     onetime-caddy:2.10
+#     onetime-caddy:v2.10.2
 #
 #   # Double-check the persistent storage
 #   $ docker exec onetime-proxy ls -la /data/caddy
@@ -59,7 +61,9 @@
 FROM golang:1.25-bookworm AS builder
 
 # Build arguments
-ARG CADDY_VERSION=2.10.2
+ARG CADDY_VERSION=551f793700fe1550845c824470b623fd1aa03d36 # v2.10.2
+ARG XCADDY_VERSION=328cac711a1fe80041c3b79db2dfbb4e10330a05 # v0.4.5
+ARG PUBLIC_DIR=/var/www/public
 
 # If DNS_MODULE is set to an empty string, it will attempt to install
 # 'github.com/caddy-dns/', which is obviously invalid. Select a valid
@@ -68,10 +72,10 @@ ARG DNS_MODULE=cloudflare
 
 # Set Go environment and install xcaddy
 ENV PATH="/go/bin:${PATH}"
-RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@${XCADDY_VERSION}
 
 # Build Caddy with plugins
-RUN xcaddy build v${CADDY_VERSION} \
+RUN xcaddy build ${CADDY_VERSION} \
     --with github.com/mholt/caddy-ratelimit \
     --with github.com/greenpau/caddy-security \
     --with github.com/caddyserver/transform-encoder \
@@ -80,8 +84,8 @@ RUN xcaddy build v${CADDY_VERSION} \
 # Runtime stage: minimal image with custom Caddy binary
 FROM debian:bookworm-slim
 
-ARG PUBLIC_DIR=/var/www/public
-ARG CADDY_VERSION=2.10.2
+ARG PUBLIC_DIR
+ARG CADDY_VERSION
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \

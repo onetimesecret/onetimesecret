@@ -7,12 +7,12 @@
 #
 # docker run --rm \
 #   -v $PWD/etc/examples/Caddyfile-example:/etc/caddy/Caddyfile:ro \
-#   onetime-caddy:2.10 \
+#   onetime-caddy:v2.10.2 \
 #   caddy validate --config /etc/caddy/Caddyfile
 #
 # docker run --rm \
 #   -v $PWD/etc/examples/Caddyfile-example:/etc/caddy/Caddyfile:ro \
-#   onetime-caddy:2.10 \
+#   onetime-caddy:v2.10.2 \
 #   caddy fmt --config /etc/caddy/Caddyfile
 {
 	# This email address is used for ACME (Let's Encrypt) contacts
@@ -242,7 +242,7 @@
 			header_down -Server
 
 			# Ruby application container. Needs to match the docker name.
-			to onetime-app:3000
+			to {$UPSTREAM_HOST:onetime-app}:{$UPSTREAM_PORT:3000}
 
 			# Load Balancer
 			#
@@ -341,10 +341,10 @@
 		# explicitly disable http certificate validation since the incoming
 		# requests are blocked and never make it through.
 		#
-		## Disable HTTP-01, use only TLS-ALPN-01
-		#issuer acme {
-		# disable_http_challenge
-		#}
+		# Disable HTTP-01, use only TLS-ALPN-01
+		issuer acme {
+			disable_http_challenge
+		}
 	}
 
 	import onetime-root
@@ -358,7 +358,7 @@
 	# Test thoroughly before enabling includeSubDomains to avoid lockout scenarios.
 	#
 	#@hsts_domains {
-	#  host example.com
+	#  host {$DOMAIN}
 	#}
 	#header @hsts_domains Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
 }
