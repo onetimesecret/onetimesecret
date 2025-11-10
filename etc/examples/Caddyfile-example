@@ -242,7 +242,7 @@
 			header_down -Server
 
 			# Ruby application container. Needs to match the docker name.
-			to {$UPSTREAM_APP:onetime-app}:{$UPSTREAM_PORT:3000}
+			to {$UPSTREAM_HOST:onetime-app}:{$UPSTREAM_PORT:3000}
 
 			# Load Balancer
 			#
