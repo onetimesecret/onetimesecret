@@ -29,7 +29,7 @@
 #     -e CERTIFICATE_EMAIL=björk@example.com \
 #     -e DOMAIN=secrets.example.com \
 #     --detach \
-#     onetime-caddy:latest
+#     onetime-caddy:2.10
 #
 #   # Double-check the persistent storage
 #   $ docker exec onetime-proxy ls -la /data/caddy
