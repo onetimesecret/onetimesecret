@@ -79,7 +79,7 @@
     "client": "link:@vitejs/plugin-vue/client",
     "codemirror": "6.0.1",
     "date-fns": "4.1.0",
-    "dompurify": "3.2.6",
+    "dompurify": "3.2.7",
     "eslint": "~9.35.0",
     "focus-trap": "7.6.4",
     "focus-trap-vue": "4.0.3",
