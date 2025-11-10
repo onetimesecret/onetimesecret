@@ -1,0 +1,119 @@
+# Dockerfile-caddy
+#
+# Expects One-Time Secret to be running as onetime-app on port 3000.
+#
+#   # Build (default Caddy 2.10.2 with Cloudflare DNS)
+#   $ docker build -f Dockerfile-caddy -t onetime-caddy:2.10 .
+#
+#   # Build with different Caddy version
+#   $ docker build -f Dockerfile-caddy --build-arg CADDY_VERSION=2.11.0 -t onetime-caddy:2.11 .
+#
+#   # Build with different DNS module (e.g., Route53)
+#   # See available modules: https://github.com/orgs/caddy-dns/repositories?type=all
+#   $ docker build -f Dockerfile-caddy --build-arg DNS_MODULE=route53 -t onetime-caddy:2.10 .
+#
+#   # Prepare
+#   $ docker network create onetime-network
+#
+#   # Run
+#   $ docker run \
+#     --name onetime-proxy \
+#     --network onetime-network \
+#     -p 80:80 \
+#     -p 443:443 \
+#     -v $PWD/etc/examples/Caddyfile-example:/etc/caddy/Caddyfile \
+#     -v onetime_caddy_data:/data \
+#     -e CERTIFICATE_EMAIL=björk@example.com \
+#     -e DOMAIN=secrets.example.com \
+#     --detach \
+#     onetime-caddy:2.10
+#
+#   # Double-check the persistent storage
+#   $ docker exec onetime-proxy ls -la /data/caddy
+#
+#   # View caddy logs
+#   $ docker logs onetime-proxy
+#
+# The mounted volume handles all persistence automatically. Make sure your
+# Caddyfile uses valid domain names that resolve to your server.
+
+# Notes:
+#   * No systemd: Docker containers don't use systemd, so we run Caddy directly
+#     via CMD, in foreground as PID 1
+#   * Official repo: Uses Cloudsmith APT repository for stable Caddy releases
+#   * Permissions: Sets proper permissions on keyring and sources list
+#   * Cleanup: Removes apt lists to reduce image size
+#
+# What's Stored in /data
+#   * TLS/SSL certificates - Automatically obtained from Let's Encrypt or other ACME providers
+#   * Certificate private keys
+#   * OCSP staples - For certificate validation
+#   * Certificate metadata - Renewal information, timestamps
+#
+# Without persisting /data, Caddy would:
+#   * Re-request certificates on every container restart
+#   * Hit Let's Encrypt rate limits (~5 certificates per domain per week)
+#   * Experience downtime during certificate re-issuance
+
+# Build stage: compile Caddy with plugins using xcaddy
+FROM golang:1.25-bookworm AS builder
+
+# Build arguments
+ARG CADDY_VERSION=2.10.2
+
+# If DNS_MODULE is set to an empty string, it will attempt to install
+# 'github.com/caddy-dns/', which is obviously invalid. Select a valid
+#  repo name from https://github.com/orgs/caddy-dns/repositories
+ARG DNS_MODULE=cloudflare
+
+# Set Go environment and install xcaddy
+ENV PATH="/go/bin:${PATH}"
+RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+
+# Build Caddy with plugins
+RUN xcaddy build v${CADDY_VERSION} \
+    --with github.com/mholt/caddy-ratelimit \
+    --with github.com/greenpau/caddy-security \
+    --with github.com/caddyserver/transform-encoder \
+    --with github.com/caddy-dns/${DNS_MODULE}
+
+# Runtime stage: minimal image with custom Caddy binary
+FROM debian:bookworm-slim
+
+ARG PUBLIC_DIR=/var/www/public
+ARG CADDY_VERSION=2.10.2
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    curl \
+    bind9-dnsutils \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy custom Caddy binary from builder (xcaddy outputs to /go/caddy by default)
+COPY --from=builder /go/caddy /usr/bin/caddy
+
+# Verify installation
+RUN caddy version
+
+# Ensure directories exist and make PUBLIC_DIR available as env var
+RUN mkdir -p /etc/caddy ${PUBLIC_DIR}
+ENV PUBLIC_DIR=${PUBLIC_DIR}
+
+# Ensure a default configuration (can be overridden at run time)
+# via `-v path/2/Caddyfile:/etc/caddy/Caddyfile:ro`
+COPY ./etc/examples/Caddyfile-example /etc/caddy/Caddyfile
+
+# Copy static assets so they're served directly by Caddy instead of proxied
+COPY ./public/web ${PUBLIC_DIR}
+
+# Exposing ports is safe. For documentation only - Tells users which ports the container listens on
+# Metadata - Used by tools like docker-compose for automatic port mapping
+# No network effect - Ports remain isolated within the container
+EXPOSE 80 443 2019
+
+# Volumes for persistence
+VOLUME /data /config
+
+# Run Caddy directly (not via systemd)
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

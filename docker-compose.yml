@@ -1,0 +1,121 @@
+##
+# DOCKER COMPOSE - ONETIME SECRET
+#
+# See DOCKER.md for complete setup and usage documentation.
+
+services:
+  proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile-caddy
+    container_name: onetime-proxy
+    depends_on:
+      app:
+        condition: service_started
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - CERTIFICATE_EMAIL=${CERTIFICATE_EMAIL:-admin@example.com}
+      - PUBLIC_DIR=/var/www/public
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '60m'
+        max-file: '3'
+    networks:
+      - onetime-network
+    ports:
+      - '80:80'
+      - '443:443'
+    # Note: Port 2019 is NOT exposed externally - only to the other containers on the same network
+    expose:
+      - '2019'
+    restart: unless-stopped
+    volumes:
+      - ./etc/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: onetime-app
+    depends_on:
+      redis:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      - RACK_ENV=${RACK_ENV:-production}
+      - REDIS_URL=redis://redis:6379/0
+      - VALKEY_URL=redis://redis:6379/0
+      - SECRET=${SECRET:?SECRET must be set in .env}
+      - SESSION_SECRET=${SESSION_SECRET:?SESSION_SECRET must be set in .env}
+      - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-basic}
+      - ONETIME_HOME=/app
+      - PUBLIC_DIR=/var/www/public
+    entrypoint: ['./bin/entrypoint.sh']
+    stdin_open: true
+    tty: true
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '60m'
+        max-file: '3'
+    networks:
+      - onetime-network
+    expose:
+      - '3000'
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - ./etc:/app/etc
+
+  redis:
+    image: valkey/valkey:8.0-bookworm@sha256:d8c55e49e11ca5c88c2e2cc98f0ce166ea54ad0f1fb30ea1daca7f60e3af1b2e
+    container_name: onetime-redis
+    command: >
+      valkey-server
+      --appendonly yes
+      --appendfilename onetime.aof
+      --appendfsync everysec
+      --dbfilename onetime.rdb
+      --save 157680000 1
+      --bind 0.0.0.0
+      --port 6379
+      --databases 16
+      --timeout 30
+      --loglevel notice
+      --rdbcompression yes
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '60m'
+        max-file: '3'
+    networks:
+      - onetime-network
+    # Note: Port 6379 is NOT exposed externally - only to containers on the same network
+    expose:
+      - '6379'
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'valkey-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+networks:
+  onetime-network:
+    driver: bridge
+    name: onetime-network
+
+volumes:
+  redis-data:
+    name: onetime_maindb_data
+  caddy-data:
+    name: onetime_caddy_data
+  caddy-config:
+    name: onetime_caddy_config
