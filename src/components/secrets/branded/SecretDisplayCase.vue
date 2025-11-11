@@ -14,6 +14,8 @@
   import { ref, computed } from 'vue';
   import { useI18n } from 'vue-i18n';
 
+
+const { t } = useI18n();
   interface Props {
     record: Secret | null;
     details: SecretDetails | null;
@@ -175,73 +177,6 @@
         </router-link>
       </div>
     </template>
-
-    <template #content>
-      <div class="relative size-full p-0">
-        <div :class="[cornerClass, 'size-full overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600']">
-          <label
-            :for="'secret-content-' + record?.identifier"
-            class="sr-only">
-            {{ t('secret-content') }}
-          </label>
-          <textarea
-            :id="'secret-content-' + record?.identifier"
-            class="block size-full min-h-32 resize-none border-none bg-transparent font-mono text-base focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white sm:min-h-36"
-            readonly
-            :rows="details?.display_lines ?? 4"
-            :value="record?.secret_value"
-            :aria-label="t('secret-content')"
-            ref="secretContent"></textarea>
-        </div>
-      </div>
-    </template>
-
-    <template #action-button>
-      <button
-        @click="copySecretContent"
-        :title="isCopiedText"
-        class="inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium text-brand-700 shadow-sm transition-colors duration-150 ease-in-out hover:shadow focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-brand-100"
-        :class="[fontFamilyClass, cornerClass]"
-        :style="{
-          backgroundColor: brandSettings?.primary_color ??' #dc4a22',
-          color: (brandSettings?.button_text_light ?? true) ? '#ffffff' : '#000000'
-        }"
-        aria-live="polite"
-        :aria-label="isCopied ? t('secret-copied-to-clipboard') : t('copy-secret-to-clipboard')"
-        :aria-pressed="isCopied">
-        <svg
-          v-if="!isCopied"
-          xmlns="http://www.w3.org/2000/svg"
-          class="mr-2 size-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-        </svg>
-        <svg
-          v-else
-          xmlns="http://www.w3.org/2000/svg"
-          class="mr-2 size-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M5 13l4 4L19 7" />
-        </svg>
-        <span>{{ isCopied ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard') }}</span>
-      </button>
-    </template>
-  </BaseSecretDisplay>
-</template>
 
 <style scoped>
   /* Ensure focus outline is visible in all color schemes */

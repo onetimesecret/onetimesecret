@@ -1,6 +1,3 @@
-/** eslint-disable tailwindcss/classnames-order */
-<!-- src/components/dashboard/BrandSettingsBar.vue -->
-
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import type { BrandSettings } from '@/schemas/models';

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
-import 
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();{ computed } from 'vue';
 
+const { t } = useI18n();
 interface Props {
   heading: string;
   headingId: string;

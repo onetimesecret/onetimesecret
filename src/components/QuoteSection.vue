@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
 import StarsRating from "@/components/StarsRating.vue";
-import { Testimonial } from "
+import { Testimonial } from "@/sources/testimonials";
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();@/sources/testimonials";
 
+const { t } = useI18n();
 // Define props using defineProps
 const props = defineProps<{
   testimonial: Testimonial;

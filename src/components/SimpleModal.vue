@@ -1,11 +1,11 @@
 <script setup>
-import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
-import { ref
+import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n(); } from 'vue';
 
+const { t } = useI18n();
 const open = ref(true)
 </script>
 

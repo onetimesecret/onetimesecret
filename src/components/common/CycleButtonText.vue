@@ -1,11 +1,11 @@
 <!-- src/components/common/CycleButton.vue -->
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import 
 
-const { t } = useI18n();{ computed } from 'vue';
 
+const { t } = useI18n();
 interface Props {
   modelValue: string;
   options: string[];

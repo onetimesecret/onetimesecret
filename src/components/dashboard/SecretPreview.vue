@@ -154,50 +154,6 @@ const fontFamilyClass = computed(() => {
       </div>
     </template>
 
-    <template #content>
-      <textarea
-            v-if="isRevealed"
-            readonly
-            :class="[cornerClass]"
-            class="w-full resize-none border-0 bg-transparent
-            font-mono text-xs text-gray-700
-            focus:ring-0 dark:text-gray-300 sm:text-base"
-            rows="3"
-            :aria-label="t('sample-secret-content')"
-            v-model="textareaPlaceholder"></textarea>
-
-      <div
-        v-else
-        class="flex items-center text-gray-400 dark:text-gray-500"
-        :class="[cornerClass, fontFamilyClass]">
-        <OIcon
-          collection="mdi"
-          name="eye-off"
-          class="mr-2 size-5"
-        />
-        <span class="text-sm">{{ previewI18n.t('content-hidden') }}</span>
-      </div>
-    </template>
-
-    <template #action-button>
-      <!-- Action Button -->
-      <button
-        class="w-full py-3 text-base font-medium transition-colors sm:text-lg"
-        :class="[cornerClass, fontFamilyClass]"
-        :style="{
-          backgroundColor: domainBranding.primary_color ??' #dc4a22',
-          color: (domainBranding.button_text_light ?? true) ? '#ffffff' : '#000000',
-        }"
-        @click="toggleReveal"
-        :aria-expanded="isRevealed"
-        aria-controls="secretContent"
-        :aria-label="ariaLabelText">
-        {{ isRevealed ? t('hide-secret') : previewI18n.t('web.COMMON.click_to_continue') }}
-      </button>
-    </template>
-  </BaseSecretDisplay>
-</template>
-
 <style scoped>
 .line-clamp-6 {
   display: -webkit-box;

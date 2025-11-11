@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
 import { WindowService } from '@/services/window.service';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
 
 import JurisdictionInfo from './JurisdictionInfo.vue';
-import JurisdictionList from '
+import JurisdictionList from './JurisdictionList.vue';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();./JurisdictionList.vue';
 
+const { t } = useI18n();
 const cust = WindowService.get('cust');
 
 const jurisdictionStore = useJurisdictionStore();

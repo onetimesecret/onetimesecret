@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
 import { testimonials } from '@/sources/testimonials'; // Adjust the path as necessary
-import { ref
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();, computed } from 'vue';
 
+const { t } = useI18n();
 const currentIndex = ref(0);
 
 const nextTestimonial = () => {

@@ -1,8 +1,6 @@
 <!-- src/components/secrets/form/SecretForm.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-
   import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import SplitButton from '@/components/SplitButton.vue';
@@ -26,9 +24,10 @@ import { useI18n } from 'vue-i18n';
 
   import CustomDomainPreview from './../../CustomDomainPreview.vue';
   import SecretContentInputArea from './SecretContentInputArea.vue';
+import { useI18n } from 'vue-i18n';
 
-  const { t } = useI18n();
 
+const { t } = useI18n();
   export interface Props {
     enabled?: boolean;
     withRecipient?: boolean;
@@ -344,127 +343,3 @@ import { useI18n } from 'vue-i18n';
                       {{ t('web.secrets.expiresIn', { duration: option.label }) }}
                     </option>
                   </template>
-                  <option
-                    v-else
-                    value=""
-                    disabled>
-                    {{ t('web.UNITS.ttl.noOptionsAvailable') }}
-                  </option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Recipient Field -->
-          <div
-            v-if="props.withRecipient"
-            class="mt-6">
-            <h3>
-              <label
-                :for="recipientId"
-                class="mb-1 block font-brand text-sm text-gray-700 dark:text-gray-300">
-                {{ t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
-              </label>
-            </h3>
-            <div class="relative">
-              <div class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                <OIcon
-                  collection="heroicons"
-                  name="envelope"
-                  class="size-4 text-gray-400"
-                  aria-hidden="true" />
-              </div>
-              <!-- prettier-ignore-attribute class -->
-              <input
-                :value="form.recipient"
-                :id="recipientId"
-                type="email"
-                name="recipient[]"
-                :placeholder="t('web.COMMON.email_placeholder')"
-                :aria-invalid="!!getError('recipient')"
-                :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
-                :class="[cornerClass, getError('recipient') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '']"
-                class="w-full border border-gray-200
-                  bg-white px-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400
-                  focus:border-blue-500 focus:ring-2 focus:ring-blue-500
-                  dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
-                @input="(e) => updateRecipient((e.target as HTMLInputElement).value)" />
-            </div>
-          </div>
-
-          <!-- Team Selector (optional - only shows if user has teams) -->
-          <div
-            v-if="teamStore.hasTeams"
-            class="mt-6">
-            <TeamSelector
-              v-model="selectedTeamId"
-              :teams="teamStore.teams"
-              :disabled="isSubmitting" />
-          </div>
-        </div>
-
-        <!-- Pro tip Section -->
-        <div
-          v-if="showProTip"
-          class="flex items-start gap-3 bg-brandcomp-50 p-4 dark:bg-brandcomp-900/20">
-          <OIcon
-            collection="heroicons"
-            name="information-circle"
-            class="mt-0.5 size-5 shrink-0 text-brandcomp-600 dark:text-brandcomp-500" />
-          <p class="text-sm text-brandcomp-700 dark:text-brandcomp-300">
-            {{ t('web.homepage.protip1') }}
-          </p>
-        </div>
-
-        <div class="border-t border-gray-200 dark:border-gray-700">
-          <!-- Actions Container -->
-          <div class="p-6">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-              <!-- Domain Preview (grows to fill available space) -->
-              <div class="order-1 min-w-0 grow sm:order-2">
-                <CustomDomainPreview
-                  v-if="productIdentity.isCanonical"
-                  :available-domains="availableDomains"
-                  :with-domain-dropdown="domainsEnabled"
-                  @update:selected-domain="updateSelectedDomain"
-                  class="w-full" />
-              </div>
-
-              <!-- Action Button (full-width on mobile, normal width on desktop) -->
-              <div class="order-2 shrink-0 sm:order-2">
-                <div class="mb-0 mt-3 sm:mt-0">
-                  <SplitButton
-                    :with-generate="props.withGenerate"
-                    :corner-class="cornerClass"
-                    :primary-color="primaryColor"
-                    :button-text-light="buttonTextLight"
-                    :disabled="selectedAction === 'create-link' && !hasContent"
-                    :disable-generate="selectedAction === 'create-link' && hasContent"
-                    :aria-label="
-                      selectedAction === 'create-link' ? 'Create Secret Link' : 'Generate Password'
-                    "
-                    :aria-describedby="
-                      selectedAction === 'create-link'
-                        ? 'create-link-desc'
-                        : 'generate-password-desc'
-                    "
-                    @update:action="selectedAction = $event" />
-                  <div
-                    class="sr-only"
-                    id="create-link-desc">
-                    Creates a secure link to share your secret
-                  </div>
-                  <div
-                    class="sr-only"
-                    id="generate-password-desc">
-                    Generates a secure random password
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </form>
-  </div>
-</template>
