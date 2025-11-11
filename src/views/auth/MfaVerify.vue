@@ -8,7 +8,9 @@
   import { useAuthStore } from '@/stores/authStore';
   import { ref, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
 
+  const { t } = useI18n();
   const router = useRouter();
   const authStore = useAuthStore();
   const { verifyOtp, verifyRecoveryCode, fetchMfaStatus, isLoading, error, clearError } = useMfa();
@@ -104,7 +106,7 @@
 
 <template>
   <AuthView
-    heading="Two-Factor Authentication"
+    :heading="t('web.auth.mfa.title')"
     heading-id="mfa-verify-heading"
     :with-subheading="false">
     <template #form>
@@ -112,7 +114,7 @@
         <!-- OTP Mode -->
         <div v-if="!useRecoveryMode">
           <p class="mb-6 text-center text-gray-600 dark:text-gray-400">
-            {{ $t('web.auth.mfa.enter-code') }}
+            {{ t('web.auth.mfa.enter-code') }}
           </p>
 
           <!-- OTP Input -->
@@ -139,8 +141,8 @@
             :disabled="otpCode.length !== 6 || isLoading"
             type="button"
             class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mb-4">
-            <span v-if="isLoading">{{ $t('web.COMMON.processing') || 'Processing...' }}</span>
-            <span v-else>{{ $t('web.auth.mfa.verify') }}</span>
+            <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
+            <span v-else>{{ t('web.auth.mfa.verify') }}</span>
           </button>
 
           <!-- Switch to recovery code and cancel -->
@@ -149,7 +151,7 @@
               @click="toggleRecoveryMode"
               type="button"
               class="text-sm text-brand-600 transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-              {{ $t('web.auth.mfa.use-recovery-code') }}
+              {{ t('web.auth.mfa.use-recovery-code') }}
             </button>
             <div class="pt-2">
               <button
@@ -157,7 +159,7 @@
                 type="button"
                 :disabled="isLoading"
                 class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-                {{ $t('web.auth.mfa.cancel') }}
+                {{ t('web.auth.mfa.cancel') }}
               </button>
             </div>
           </div>
@@ -166,7 +168,7 @@
         <!-- Recovery Code Mode -->
         <div v-else>
           <p class="mb-6 text-center text-gray-600 dark:text-gray-400">
-            Enter one of your recovery codes
+            {{ t('web.auth.mfa.enter-recovery-code') }}
           </p>
 
           <form
@@ -177,14 +179,14 @@
               <label
                 for="recovery-code"
                 class="sr-only"
-                >Recovery Code</label
+                >{{ t('web.auth.mfa.recovery-code-label') }}</label
               >
               <input
                 id="recovery-code"
                 v-model="recoveryCode"
                 type="text"
                 :disabled="isLoading"
-                placeholder="Enter recovery code"
+                :placeholder="t('web.auth.mfa.recovery-code-placeholder')"
                 class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500" />
             </div>
 
@@ -203,8 +205,8 @@
               type="submit"
               :disabled="isLoading || !recoveryCode.trim()"
               class="w-full rounded-md bg-brand-600 px-4 py-2 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-              <span v-if="isLoading">{{ $t('web.COMMON.processing') || 'Processing...' }}</span>
-              <span v-else>Verify Recovery Code</span>
+              <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
+              <span v-else>{{ t('web.auth.mfa.verify-recovery-code') }}</span>
             </button>
 
             <!-- Switch back to OTP and cancel -->
@@ -213,7 +215,7 @@
                 @click="toggleRecoveryMode"
                 type="button"
                 class="text-sm text-brand-600 transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-                {{ $t('web.auth.mfa.back-to-code') }}
+                {{ t('web.auth.mfa.back-to-code') }}
               </button>
               <div class="pt-2">
                 <button
@@ -221,7 +223,7 @@
                 type="button"
                 :disabled="isLoading"
                 class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-                {{ $t('web.auth.mfa.cancel') }}
+                {{ t('web.auth.mfa.cancel') }}
               </button>
               </div>
             </div>

@@ -806,7 +806,14 @@
         "enter-code-description": "Enter the 6-digit code from your authenticator app",
         "enable-and-continue": "Enable MFA",
         "complete-setup": "Complete Setup",
-        "invalid-code": "Invalid code. Codes expire every 30 seconds. Try the latest code from your authenticator app."
+        "invalid-code": "Invalid code. Codes expire every 30 seconds. Try the latest code from your authenticator app.",
+        "enter-recovery-code": "Enter one of your recovery codes",
+        "recovery-code-label": "Recovery Code",
+        "recovery-code-placeholder": "Enter recovery code",
+        "verify-recovery-code": "Verify Recovery Code"
+      },
+      "passwordReset": {
+        "emailSent": "An email has been sent to you with a link to reset the password for your account"
       },
       "recovery-codes": {
         "title": "Recovery Codes",

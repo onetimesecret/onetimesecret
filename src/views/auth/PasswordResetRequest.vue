@@ -1,6 +1,8 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <!-- src/views/auth/PasswordResetRequest.vue -->
 
 <script setup lang="ts">
+import AuthView from '@/components/auth/AuthView.vue';
 import { useAuth } from '@/composables/useAuth';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -26,21 +28,19 @@ const handleSubmit = async () => {
 
   const success = await requestPasswordReset(email.value);
   if (success) {
-    successMessage.value = 'An email has been sent to you with a link to reset the password for your account';
+    successMessage.value = t('web.auth.passwordReset.emailSent');
     email.value = ''; // Clear the form
   }
 };
 </script>
 
 <template>
-  <div class="my-20">
-    <section class="my-8">
-      <h3 class="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-        {{ t('request-password-reset') }}
-      </h3>
-    </section>
-    <div class="mb-4 rounded bg-white px-8 pb-8 pt-6 shadow-md dark:bg-gray-800">
-      <p class="mb-4 text-gray-700 dark:text-gray-300">
+  <AuthView
+    :heading="t('request-password-reset')"
+    heading-id="password-reset-request-heading"
+    :with-subheading="false">
+    <template #form>
+      <p class="mb-6 text-gray-700 dark:text-gray-300">
         {{ t('enter-your-email-address-below-and-well-send-you') }}
       </p>
 
@@ -66,8 +66,9 @@ const handleSubmit = async () => {
 
       <form
         @submit.prevent="handleSubmit"
-        id="resetRequestForm">
-        <div class="mb-4">
+        id="resetRequestForm"
+        class="space-y-4">
+        <div>
           <label
             class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300"
             for="custidField">
@@ -84,7 +85,6 @@ const handleSubmit = async () => {
             :placeholder="t('web.COMMON.email_placeholder')"
           />
         </div>
-        <div class="mb-6"></div>
         <div class="flex items-center justify-between">
           <button
             type="submit"
@@ -95,14 +95,13 @@ const handleSubmit = async () => {
           </button>
         </div>
       </form>
-    </div>
-
-    <div class="mt-6 text-center">
+    </template>
+    <template #footer>
       <router-link
         to="/signin"
-        class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
+        class="font-medium text-brand-600 transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
         {{ t('back-to-sign-in') }}
       </router-link>
-    </div>
-  </div>
+    </template>
+  </AuthView>
 </template>

@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <!-- src/views/auth/VerifyAccount.vue -->
 
 <script setup lang="ts">
@@ -48,10 +49,10 @@ import { useI18n } from 'vue-i18n';
       try {
         const success = await verifyAccount(verificationKey.value);
         verificationSuccess.value = success;
-      } catch (err) {
+      } catch {
         // Handle unexpected errors (network issues, etc.)
         verificationSuccess.value = false;
-        console.error('Verification error:', err);
+        // Error is already captured in the error ref from useAuth
       } finally {
         // Always mark verification as complete, whether success or failure
         verificationComplete.value = true;
