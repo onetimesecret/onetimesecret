@@ -2,9 +2,9 @@
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
-import { us
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();eI18n } from 'vue-i18n';
+const { t } = useI18n();
 const { t, te } = useI18n();
 
 interface Props {
@@ -73,45 +73,6 @@ const statusConfig = computed(() => {
   }
   return getStatusConfig(notifications.severity);
 });
-</script>
-
-
-<script lang="ts">
-/**
- * StatusBar Component
- *
- * A floating status bar that displays notifications from the notifications store.
- * Uses portal/teleport to render outside the normal DOM flow at the bottom of the viewport.
- *
- * Features:
- * - Loading, success, error, and info states with appropriate styling
- * - Auto-dismiss with visual progress indicator
- * - Smooth transitions between states
- * - Dark mode support
- * - Accessible aria attributes
- * - Centralized notification management via Pinia store
- *
- * Portal Target:
- * Component teleports to the <body> tag by default. For custom positioning,
- * add a target element:
- * <div id="status-messages"></div>
- * Then update the Teleport "to" prop accordingly:
- * <StatusBar to="#status-messages" />
- *
- * @example
- * <!-- Component usage -->
- * <StatusBar :loading="formState.loading" />
- *
- * <!-- Show notifications via store -->
- * const notifications = useNotificationsStore();
- * notifications.show('Success message', 'success');
- * notifications.show('Error message', 'error');
- * notifications.show('Info message', 'info');
- *
- * @prop {boolean} [loading] - Whether to show loading state
- * @prop {boolean} [autoDismiss=true] - Whether to auto-dismiss after duration
- * @prop {number} [duration=5000] - Time in ms before auto-dismiss
- */
 </script>
 
 <template>

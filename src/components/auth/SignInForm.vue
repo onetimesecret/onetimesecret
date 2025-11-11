@@ -1,12 +1,11 @@
 <!-- src/components/auth/SignInForm.vue -->
 
-<script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import { useAuth } from '@/composables/useAuth';
+<script setup lang="ts">import { useAuth } from '@/composables/useAuth';
 import LockoutAlert from '@/components/auth/LockoutAlert.vue';
-im
+import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();port { ref } from 'vue';
+const { t } = useI18n();
 
 export interface Props {
   enabled?: boolean;

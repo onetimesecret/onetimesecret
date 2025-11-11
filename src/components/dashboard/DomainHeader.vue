@@ -1,11 +1,9 @@
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import OIcon from '@/components/icons/OIcon.vue';
+<script setup lang="ts">  import OIcon from '@/components/icons/OIcon.vue';
   import { useDomainStatus } from '@/composables/useDomainStatus';
   import { CustomDomain } from '@/schemas/models';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
   const props = defineProps<{
     domain: CustomDomain;

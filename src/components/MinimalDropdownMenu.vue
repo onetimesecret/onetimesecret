@@ -1,12 +1,10 @@
 <!-- src/components/MinimalDropdownMenu.vue -->
 
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import { Menu, MenuButton, MenuItems } from '@headlessui/vue';
+<script setup lang="ts">  import { Menu, MenuButton, MenuItems } from '@headlessui/vue';
   import OIcon from '@/components/icons/OIcon.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 </script>
 
 <template>

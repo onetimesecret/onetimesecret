@@ -1,13 +1,11 @@
 <!-- src/components/modals/FeedbackModal.vue -->
 
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import FeedbackModalForm from '@/components/FeedbackModalForm.vue';
+<script setup lang="ts">  import FeedbackModalForm from '@/components/FeedbackModalForm.vue';
   import { FocusTrap } from 'focus-trap-vue';
   import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
   defineProps({
     isOpen: Boolean,

@@ -1,11 +1,9 @@
-<script setup lang="ts">
-import { us
+<script setup lang="ts">import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();eI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 
 </script>
-
 
 <template>
   <div class="mb-8">

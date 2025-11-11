@@ -1,9 +1,8 @@
-<script setup lang="ts">
+<script setup lang="ts">import { computed } from 'vue';
+import type { Session } from '@/types/auth';
 import { useI18n } from 'vue-i18n';
-import { computed } from 'vue';
-import type { Sessio
 
-const { t } = useI18n();n } from '@/types/auth';
+const { t } = useI18n();
 
 interface Props {
   session: Session;

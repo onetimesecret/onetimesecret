@@ -1,12 +1,11 @@
-<script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import LanguageToggle from '@/components/LanguageToggle.vue';
+<script setup lang="ts">import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { WindowService } from '@/services/window.service';
-im
+import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();port { ref } from 'vue';
+const { t } = useI18n();
 
 const isLoading = ref(false);
 

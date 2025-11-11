@@ -1,9 +1,8 @@
-<script setup lang="ts">
+<script setup lang="ts">import OIcon from '@/components/icons/OIcon.vue';
+import { defineEmits } from 'vue';
 import { useI18n } from 'vue-i18n';
-import OIcon from '@/components/icons/OIcon.vue';
-import { d
 
-const { t } = useI18n();efineEmits } from 'vue';
+const { t } = useI18n();
 
 // Define the props expected from the parent
 defineProps<{

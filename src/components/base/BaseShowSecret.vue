@@ -1,9 +1,12 @@
 <!-- src/components/base/BaseShowSecret.vue -->
 
-<script setup lang="ts">
-import { us
+<script setup lang="ts">  import SecretSkeleton from '@/components/closet/SecretSkeleton.vue';
+  import { useSecret } from '@/composables/useSecret';
+  import { onMounted } from 'vue';
+  import { onBeforeRouteUpdate } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();eI18n } from 'vue-i18n';
+const { t } = useI18n();
 
   /**
    * Base component for secret display implementations
@@ -19,11 +22,6 @@ const { t } = useI18n();eI18n } from 'vue-i18n';
    * @slot unknown - Content shown when secret is not found
    * @slot footer - Page footer content
    */
-
-  import SecretSkeleton from '@/components/closet/SecretSkeleton.vue';
-  import { useSecret } from '@/composables/useSecret';
-  import { onMounted } from 'vue';
-  import { onBeforeRouteUpdate } from 'vue-router';
 
   export interface Props {
     secretIdentifier: string;
@@ -92,59 +90,6 @@ const { t } = useI18n();eI18n } from 'vue-i18n';
           :details="details">
         </slot>
       </template>
-
-      <!-- Main Content - Valid Secret -->
-      <div v-else-if="record && details">
-        <!-- Alerts slot for owner warnings -->
-        <slot
-          name="alerts"
-          :record="record"
-          :details="details"
-          :is-owner="details.is_owner"
-          :show-secret="details.show_secret"></slot>
-
-        <template v-if="!details.show_secret">
-          <!-- Confirmation form slot -->
-          <slot
-            name="confirmation"
-            :secret-identifier="secretIdentifier"
-            :record="record"
-            :details="details"
-            :error="state.error"
-            :is-loading="state.isLoading"
-            :on-confirm="handleUserConfirmed"></slot>
-
-          <!-- Optional onboarding/marketing slot -->
-          <slot
-            name="onboarding"
-            :record="record"
-            :details="details"></slot>
-        </template>
-
-        <template v-else>
-          <!-- Reveal content slot -->
-          <slot
-            name="reveal"
-            :record="record"
-            :details="details"></slot>
-        </template>
-      </div>
-    </div>
-
-    <!-- Footer wrapper -->
-    <footer
-      v-if="$slots.footer"
-      class="w-full bg-white dark:bg-gray-900">
-      <div class="mx-auto w-full max-w-4xl px-4">
-        <slot
-          name="footer"
-          :record="record"
-          :details="details"
-          :site-host="props.siteHost"></slot>
-      </div>
-    </footer>
-  </main>
-</template>
 
 <style scoped>
   /* Common base styles */

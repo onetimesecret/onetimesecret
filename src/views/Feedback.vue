@@ -1,9 +1,8 @@
-<script setup lang="ts">
+<script setup lang="ts">import FeedbackForm from '@/components/FeedbackForm.vue';
 import { useI18n } from 'vue-i18n';
-import FeedbackForm from '@/compo
 
-const { t } = useI18n();nents/FeedbackForm.vue';
 
+const { t } = useI18n();
 </script>
 
 <template>

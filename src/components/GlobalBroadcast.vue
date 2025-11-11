@@ -1,15 +1,13 @@
 <!-- src/components/GlobalBroadcast.vue -->
 
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import MovingGlobules from '@/components/MovingGlobules.vue';
+<script setup lang="ts">  import MovingGlobules from '@/components/MovingGlobules.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import DOMPurify from 'dompurify';
   import { computed } from 'vue';
   import { useDismissableBanner } from '@/composables/useDismissableBanner';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
   export interface Props {
     content: string | null; // Can contain HTML

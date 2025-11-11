@@ -1,13 +1,11 @@
 <!-- src/components/layout/Masthead.vue -->
 
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import { useProductIdentity } from '@/stores/identityStore';
+<script setup lang="ts">  import { useProductIdentity } from '@/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
   const productIdentity = useProductIdentity();
   const imageError = ref(false);

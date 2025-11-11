@@ -1,13 +1,11 @@
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import type { Metadata, MetadataDetails } from '@/schemas/models';
+<script setup lang="ts">  import type { Metadata, MetadataDetails } from '@/schemas/models';
   import OIcon from '@/components/icons/OIcon.vue';
   import { useSecretExpiration } from '@/composables/useSecretExpiration';
   import { formatDistanceToNow } from 'date-fns';
   import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
   interface Props {
     record: Metadata;

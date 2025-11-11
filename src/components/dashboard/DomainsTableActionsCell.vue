@@ -1,14 +1,12 @@
 <!-- src/components/dashboard/DomainsTableRowActionDropdown.vue -->
 
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import MinimalDropdownMenu from '@/components/MinimalDropdownMenu.vue';
+<script setup lang="ts">  import MinimalDropdownMenu from '@/components/MinimalDropdownMenu.vue';
   import { MenuItem } from '@headlessui/vue';
   import { CustomDomain } from '@/schemas/models'
   import OIcon from '@/components/icons/OIcon.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
   interface Props {
     domain: CustomDomain;
@@ -77,5 +75,3 @@ const { t } = useI18n();eI18n } from 'vue-i18n';
         </MenuItem>
       </div>
     </template>
-  </MinimalDropdownMenu>
-</template>

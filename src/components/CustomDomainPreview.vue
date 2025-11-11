@@ -1,10 +1,13 @@
-/** eslint-disable tailwindcss/migration-from-tailwind-2 */
-<!-- src/components/CustomDomainPreview.vue -->
+<script setup lang="ts">  import FancyIcon from '@/components/ctas/FancyIcon.vue';
+  import OIcon from '@/components/icons/OIcon.vue';
+  import { useDomainDropdown } from '@/composables/useDomainDropdown';
+  import { useDropdown } from '@/composables/useDropdown';
+  import { WindowService } from '@/services/window.service';
+  import { onClickOutside, onKeyStroke } from '@vueuse/core';
+  import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
+const { t } = useI18n();
 
   /**
    * CustomDomainPreview Component
@@ -23,14 +26,6 @@ const { t } = useI18n();eI18n } from 'vue-i18n';
    * @see {@link useDropdown} For dropdown behavior implementation
    * @see {@link useDomainDropdown} For domain selection implementation
    */
-  import FancyIcon from '@/components/ctas/FancyIcon.vue';
-  import OIcon from '@/components/icons/OIcon.vue';
-  import { useDomainDropdown } from '@/composables/useDomainDropdown';
-  import { useDropdown } from '@/composables/useDropdown';
-  import { WindowService } from '@/services/window.service';
-  import { onClickOutside, onKeyStroke } from '@vueuse/core';
-  import { ref, watch } from 'vue';
-
   const props = withDefaults(
     defineProps<{
       availableDomains?: string[];

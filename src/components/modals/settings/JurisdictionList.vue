@@ -1,9 +1,8 @@
-<script setup lang="ts">
+<script setup lang="ts">import type { Jurisdiction } from '@/schemas/models';
+import OIcon from '@/components/icons/OIcon.vue';
 import { useI18n } from 'vue-i18n';
-import type { Jurisdiction } from '@/schemas/models';
-import OIcon from '@/comp
 
-const { t } = useI18n();onents/icons/OIcon.vue';
+const { t } = useI18n();
 
 const props = defineProps<{
   jurisdictions: Jurisdiction[];

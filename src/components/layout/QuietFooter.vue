@@ -1,17 +1,15 @@
 <!-- src/components/layout/QuietFooter.vue -->
 
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import FeedbackToggle from '@/components/FeedbackToggle.vue';
+<script setup lang="ts">  import FeedbackToggle from '@/components/FeedbackToggle.vue';
   import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
   import LanguageToggle from '@/components/LanguageToggle.vue';
   import ThemeToggle from '@/components/ThemeToggle.vue';
   import { WindowService } from '@/services/window.service';
   import { useProductIdentity } from '@/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
   const productIdentity = useProductIdentity();
 
@@ -26,6 +24,7 @@ const { t } = useI18n();eI18n } from 'vue-i18n';
   ]);
 
 </script>
+
 <template>
   <footer
     class="w-full min-w-[320px] bg-gray-100 py-6 transition-colors duration-300 dark:bg-gray-800"

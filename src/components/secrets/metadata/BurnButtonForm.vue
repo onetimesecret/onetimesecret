@@ -1,15 +1,10 @@
-/** eslint-disable tailwindcss/classnames-order */
-<!-- src/components/secrets/metadata/BurnButtonForm.vue -->
-
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import OIcon from '@/components/icons/OIcon.vue';
+<script setup lang="ts">  import OIcon from '@/components/icons/OIcon.vue';
   import { useMetadata } from '@/composables/useMetadata';
   import type { Metadata, MetadataDetails } from '@/schemas/models';
   import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
   interface Props {
     record: Metadata;

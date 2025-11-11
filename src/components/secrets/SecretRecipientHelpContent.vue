@@ -1,10 +1,8 @@
 <!-- src/components/secrets/SecretRecipientHelpContent.vue -->
 
-/** eslint-disable tailwindcss/classnames-order */
-<script setup lang="ts">
-import { us
+<script setup lang="ts">import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();eI18n } from 'vue-i18n';
+const { t } = useI18n();
 
   interface Props {}
   defineProps<Props>();

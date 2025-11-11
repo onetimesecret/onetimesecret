@@ -1,9 +1,7 @@
-<script setup lang="ts">
-import { us
+<script setup lang="ts">  import { Switch } from '@headlessui/vue';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import { Switch } from '@headlessui/vue';
+const { t } = useI18n();
 
   interface Props {
     enabled: boolean;

@@ -1,13 +1,11 @@
 <!-- src/components/secrets/form/SecretContentInputArea.vue -->
 
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import { useCharCounter } from '@/composables/useCharCounter';
+<script setup lang="ts">  import { useCharCounter } from '@/composables/useCharCounter';
   import { useTextarea } from '@/composables/useTextarea';
   import { computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
   const props = withDefaults(
     defineProps<{

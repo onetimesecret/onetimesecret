@@ -1,8 +1,7 @@
-<script setup lang="ts">
+<script setup lang="ts">import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-im
 
-const { t } = useI18n();port { ref } from 'vue';
+const { t } = useI18n();
 
 withDefaults(defineProps<{
   title: string;
@@ -33,7 +32,6 @@ const cancel = () => {
   emit('cancel');
 };
 </script>
-
 
 <template>
   <div

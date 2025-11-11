@@ -1,9 +1,4 @@
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import DomainsTableDomainCell from '@/components/dashboard/DomainsTableDomainCell.vue';
+<script setup lang="ts">  import DomainsTableDomainCell from '@/components/dashboard/DomainsTableDomainCell.vue';
   import DomainsTableActionsCell from '@/components/dashboard/DomainsTableActionsCell.vue';
   import ToggleWithIcon from '@/components/common/ToggleWithIcon.vue';
   import type { CustomDomain } from '@/schemas/models/domain';
@@ -11,13 +6,16 @@ const { t } = useI18n();eI18n } from 'vue-i18n';
 
   import { useDomainsManager } from '@/composables/useDomainsManager';
 
-  const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
-
-  const { deleteDomain } = useDomainsManager();
-
   import OIcon from '@/components/icons/OIcon.vue';
   import { useBranding } from '@/composables/useBranding';
   import ConfirmDialog from './ConfirmDialog.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
+  const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
+
+  const { deleteDomain } = useDomainsManager();
 
   defineProps<{
     domains: CustomDomain[];

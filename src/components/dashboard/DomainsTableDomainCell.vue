@@ -1,14 +1,12 @@
 <!-- src/components/dashboard/DomainsTableDomainCell.vue -->
 
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import { formatDistanceToNow } from 'date-fns';
+<script setup lang="ts">  import { formatDistanceToNow } from 'date-fns';
   import type { CustomDomain } from '@/schemas/models/domain';
   import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
   import { useDomainStatus } from '@/composables/useDomainStatus';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
   interface Props {
     domain: CustomDomain;

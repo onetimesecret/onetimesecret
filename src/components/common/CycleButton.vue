@@ -1,14 +1,12 @@
 <!-- src/components/common/CycleButton.vue -->
 
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import OIcon from '@/components/icons/OIcon.vue';
+<script setup lang="ts">  import OIcon from '@/components/icons/OIcon.vue';
   import { computed } from 'vue';
 
   import HoverTooltip from './HoverTooltip.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
   interface Props {
       modelValue: string | undefined;

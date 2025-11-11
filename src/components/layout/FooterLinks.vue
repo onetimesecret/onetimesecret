@@ -1,13 +1,11 @@
 <!-- src/components/layout/FooterLinks.vue -->
 
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import { WindowService } from '@/services/window.service';
+<script setup lang="ts">  import { WindowService } from '@/services/window.service';
   import type { FooterLinksConfig } from '@/types/declarations/window';
   import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
   const windowProps = WindowService.getMultiple(['ui']);
 

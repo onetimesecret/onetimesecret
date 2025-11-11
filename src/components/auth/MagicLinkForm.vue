@@ -1,11 +1,10 @@
 <!-- src/components/auth/MagicLinkForm.vue -->
 
-<script setup lang="ts">
+<script setup lang="ts">import { ref } from 'vue';
+import { useMagicLink } from '@/composables/useMagicLink';
 import { useI18n } from 'vue-i18n';
-import { ref } from 'vue';
-import { useMagicLink } from '@/co
 
-const { t } = useI18n();mposables/useMagicLink';
+const { t } = useI18n();
 
 const { requestMagicLink, sent, isLoading, error, clearState } = useMagicLink();
 

@@ -4,10 +4,10 @@
 import HoverTooltip from './HoverTooltip.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
-import { us
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();eI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const { availableLocales } = useI18n();
 
 const props = defineProps<{

@@ -1,9 +1,8 @@
-<script setup lang="ts">
+<script setup lang="ts">import { computed } from 'vue';
+import type { LockoutStatus } from '@/types/auth';
 import { useI18n } from 'vue-i18n';
-import { computed } from 'vue';
-import type { LockoutStatu
 
-const { t } = useI18n();s } from '@/types/auth';
+const { t } = useI18n();
 
 interface Props {
   lockout?: LockoutStatus | null;

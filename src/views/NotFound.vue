@@ -1,12 +1,10 @@
-<script setup lang="ts">
+<script setup lang="ts">import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useI18n } from 'vue-i18n';
-import ThemeToggle from '@/comp
 
-const { t } = useI18n();onents/ThemeToggle.vue';
+const { t } = useI18n();
 
 // No additional script needed for this component
 </script>
-
 
 <template>
   <div>

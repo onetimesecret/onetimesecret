@@ -1,19 +1,18 @@
 <!-- src/components/layout/MicroFooter.vue -->
 
-<script setup lang="ts">
-import { us
-
-const { t } = useI18n();eI18n } from 'vue-i18n';
-
-  import type { LayoutProps } from '@/types/ui/layouts';
+<script setup lang="ts">  import type { LayoutProps } from '@/types/ui/layouts';
   import { WindowService } from '@/services/window.service';
   import FooterControls from '@/components/layout/SecretFooterControls.vue';
   import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
   withDefaults(defineProps<LayoutProps>(), {});
 
   const siteHost = WindowService.get('site_host');
 </script>
+
 <template>
   <footer
     class="w-full min-w-[320px] bg-gray-100 py-8 transition-colors duration-300 dark:bg-gray-800"

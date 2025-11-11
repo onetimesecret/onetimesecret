@@ -1,8 +1,7 @@
-<script setup lang="ts">
+<script setup lang="ts">import OIcon from '@/components/icons/OIcon.vue';
 import { useI18n } from 'vue-i18n';
-import OIcon from '@/comp
 
-const { t } = useI18n();onents/icons/OIcon.vue';
+const { t } = useI18n();
 
 defineProps({
   success: [String, Array],
