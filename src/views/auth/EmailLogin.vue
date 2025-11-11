@@ -56,6 +56,14 @@ onMounted(async () => {
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
           {{ $t('web.auth.magicLink.pleaseWait') }}
         </p>
+        <div class="mt-6">
+          <router-link
+            to="/"
+            class="text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            :aria-label="$t('return-to-home-page')">
+            {{ $t('return-home') }}
+          </router-link>
+        </div>
       </div>
 
       <!-- Error state -->
@@ -82,12 +90,22 @@ onMounted(async () => {
             <div class="mt-2 text-sm text-red-700 dark:text-red-300">
               <p>{{ error || $t('web.auth.magicLink.invalidLink') }}</p>
             </div>
-            <div class="mt-4">
-              <router-link
-                to="/signin"
-                class="text-sm font-medium text-red-700 hover:text-red-600 dark:text-red-300 dark:hover:text-red-200">
-                {{ $t('web.auth.magicLink.backToSignin') }}
-              </router-link>
+            <div class="mt-4 space-y-2">
+              <div>
+                <router-link
+                  to="/signin"
+                  class="text-sm font-medium text-red-700 hover:text-red-600 dark:text-red-300 dark:hover:text-red-200">
+                  {{ $t('web.auth.magicLink.backToSignin') }}
+                </router-link>
+              </div>
+              <div>
+                <router-link
+                  to="/"
+                  class="text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                  :aria-label="$t('return-to-home-page')">
+                  {{ $t('return-home') }}
+                </router-link>
+              </div>
             </div>
           </div>
         </div>

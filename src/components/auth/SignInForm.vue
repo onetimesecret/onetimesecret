@@ -133,8 +133,18 @@ const handleSubmit = async () => {
       </div>
     </div>
 
+    <!-- Forgot password link -->
+    <div class="flex justify-end">
+      <router-link
+        to="/forgot"
+        class="text-sm text-gray-600 transition duration-300 ease-in-out hover:underline dark:text-gray-400"
+        :aria-label="$t('forgot-password')">
+        {{ $t('web.login.forgot_your_password') }}
+      </router-link>
+    </div>
+
     <!-- Remember me checkbox -->
-    <div class="flex items-center justify-between">
+    <div class="flex items-center">
       <div class="flex items-center text-lg">
         <input
           id="remember-me"

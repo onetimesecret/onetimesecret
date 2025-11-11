@@ -126,10 +126,19 @@
         <slot name="form"></slot>
       </div>
 
-      <!-- Footer with subtle horizontal rule -->
-      <div class="mt-4 text-center">
-        <hr class="mx-auto my-4 w-1/4 border-gray-300 dark:border-gray-700" />
+      <!-- Footer -->
+      <div class="mt-6 space-y-4 text-center">
         <slot name="footer"></slot>
+
+        <!-- Subtle home link for escape route -->
+        <div class="pt-6">
+          <RouterLink
+            to="/"
+            class="inline-flex items-center text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-400"
+            :aria-label="$t('return-to-home-page')">
+            <span>{{ $t('return-home') }}</span>
+          </RouterLink>
+        </div>
       </div>
     </div>
   </div>

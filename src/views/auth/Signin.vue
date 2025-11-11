@@ -19,25 +19,11 @@ const languageStore = useLanguageStore();
     <template #form>
       <AuthMethodSelector
         :locale="languageStore.currentLocale ?? ''" />
-      <div class="mt-6 text-center">
-        <ul class="space-y-2">
-          <li>
-            <router-link
-              to="/forgot"
-              class="text-sm text-gray-600 transition duration-300 ease-in-out hover:underline dark:text-gray-400"
-              :aria-label="t('forgot-password')">
-              {{ t('web.login.forgot_your_password') }}
-            </router-link>
-          </li>
-        </ul>
-      </div>
     </template>
     <template #footer>
       <router-link
         to="/signup"
-        class="font-medium text-brand-600 transition-colors
-                          duration-200 hover:text-brand-500
-                          dark:text-brand-400 dark:hover:text-brand-300">
+        class="text-gray-600 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
         {{ t('web.login.need_an_account') }}
       </router-link>
     </template>

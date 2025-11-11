@@ -198,17 +198,27 @@ import { useI18n } from 'vue-i18n';
         </div>
 
         <!-- Action buttons -->
-        <div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <router-link
-            to="/signin"
-            class="inline-flex font-brand justify-center rounded-md bg-brand-600 px-4 py-2 text-lg  text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
-            {{ t('web.login.button_sign_in') }}
-          </router-link>
-          <router-link
-            to="/signup"
-            class="inline-flex font-brand justify-center rounded-md bg-white px-4 py-2 text-lg  text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:hover:bg-gray-700">
-            {{ t('web.auth.verify.create-new-account') }}
-          </router-link>
+        <div class="space-y-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <router-link
+              to="/signin"
+              class="inline-flex font-brand justify-center rounded-md bg-brand-600 px-4 py-2 text-lg  text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+              {{ t('web.login.button_sign_in') }}
+            </router-link>
+            <router-link
+              to="/signup"
+              class="inline-flex font-brand justify-center rounded-md bg-white px-4 py-2 text-lg  text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:hover:bg-gray-700">
+              {{ t('web.auth.verify.create-new-account') }}
+            </router-link>
+          </div>
+          <div class="text-center">
+            <router-link
+              to="/"
+              class="text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+              :aria-label="t('return-to-home-page')">
+              {{ t('return-home') }}
+            </router-link>
+          </div>
         </div>
       </div>
 
@@ -242,12 +252,22 @@ import { useI18n } from 'vue-i18n';
           </div>
         </div>
 
-        <div class="text-center">
-          <router-link
-            to="/signin"
-            class="font-medium font-brand text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-            {{ t('web.login.button_sign_in') }}
-          </router-link>
+        <div class="space-y-2 text-center">
+          <div>
+            <router-link
+              to="/signin"
+              class="font-medium font-brand text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+              {{ t('web.login.button_sign_in') }}
+            </router-link>
+          </div>
+          <div>
+            <router-link
+              to="/"
+              class="text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+              :aria-label="t('return-to-home-page')">
+              {{ t('return-home') }}
+            </router-link>
+          </div>
         </div>
       </div>
     </div>

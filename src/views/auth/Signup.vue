@@ -52,7 +52,7 @@
     <template #footer>
       <router-link
         to="/signin"
-        class="font-medium text-brand-600 transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+        class="text-gray-600 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
         {{ t('web.signup.have_an_account') }}
       </router-link>
     </template>
