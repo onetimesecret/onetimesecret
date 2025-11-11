@@ -4,7 +4,7 @@
 <script setup lang="ts">
 import AuthView from '@/components/auth/AuthView.vue';
 import { useAuth } from '@/composables/useAuth';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 export interface Props {
@@ -14,16 +14,21 @@ export interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   enabled: true,
+  resetKey: '',
 });
 
 const { t } = useI18n();
-
 const { resetPassword, isLoading, error, clearErrors } = useAuth();
 
 const newPassword = ref('');
 const confirmPassword = ref('');
 
+const hasValidResetKey = computed(() => props.resetKey && props.resetKey.trim() !== '');
+
 const handleSubmit = async () => {
+  if (!hasValidResetKey.value) {
+    return;
+  }
   clearErrors();
   await resetPassword(props.resetKey, newPassword.value, confirmPassword.value);
   // Navigation to /signin handled by useAuth composable on success
@@ -34,15 +39,26 @@ const handleSubmit = async () => {
   <AuthView
     :heading="t('choose-a-new-password')"
     heading-id="password-reset-heading"
-    :with-subheading="false">
+    :with-subheading="false"
+    :hide-icon="true">
     <template #form>
       <p class="mb-6 text-gray-700 dark:text-gray-300">
         {{ t('please-enter-your-new-password-below-make-sure-i') }}
       </p>
 
+      <!-- Missing reset key error -->
+      <div
+        v-if="!hasValidResetKey"
+        class="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20"
+        role="alert">
+        <p class="text-sm text-red-800 dark:text-red-200">
+          Invalid or missing reset key. Please request a new password reset.
+        </p>
+      </div>
+
       <!-- Error message -->
       <div
-        v-if="error"
+        v-if="error && hasValidResetKey"
         class="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20"
         role="alert">
         <p class="text-sm text-red-800 dark:text-red-200">
@@ -51,6 +67,7 @@ const handleSubmit = async () => {
       </div>
 
       <form
+        v-if="hasValidResetKey"
         @submit.prevent="handleSubmit"
         id="passwordResetForm"
         class="space-y-4">
@@ -123,7 +140,7 @@ const handleSubmit = async () => {
     <template #footer>
       <router-link
         to="/signin"
-        class="font-medium text-brand-600 transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+        class="text-gray-600 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
         {{ t('back-to-sign-in') }}
       </router-link>
     </template>

@@ -38,7 +38,8 @@ const handleSubmit = async () => {
   <AuthView
     :heading="t('request-password-reset')"
     heading-id="password-reset-request-heading"
-    :with-subheading="false">
+    :with-subheading="false"
+    :hide-icon="true">
     <template #form>
       <p class="mb-6 text-gray-700 dark:text-gray-300">
         {{ t('enter-your-email-address-below-and-well-send-you') }}

@@ -31,14 +31,12 @@ module Core
         )
       end
 
-      def request_reset
-        if req.params[:key]
-          # Password reset with token
-          reset_password_with_token
-        else
-          # Request password reset email
-          request_password_reset_email
-        end
+      def request_reset_email
+        request_password_reset_email
+      end
+
+      def reset_password
+        reset_password_with_token
       rescue Onetime::MissingSecret
         if json_requested?
           json_error('Invalid or expired reset token', field_error: %w[key invalid], status: 404)

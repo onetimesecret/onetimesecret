@@ -20,6 +20,7 @@
     titleLogo?: string | null;
     featureIcon?: IconConfig;
     withSubheading?: boolean;
+    hideIcon?: boolean;
   }
 
   // Define props with defaults
@@ -27,6 +28,7 @@
     title: null,
     titleLogo: null,
     withSubheading: false,
+    hideIcon: false,
     featureIcon: () => ({
       collection: 'material-symbols',
       name: 'mail-lock-outline',
@@ -88,7 +90,7 @@
     <!-- Page Title -->
     <div class="relative z-10 w-full min-w-[320px] max-w-2xl space-y-4">
       <!-- Title Icon -->
-      <div class="flex flex-col items-center">
+      <div v-if="!hideIcon" class="flex flex-col items-center">
         <RouterLink to="/">
           <OIcon
             :collection="iconToShow.collection"
