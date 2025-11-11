@@ -6,6 +6,26 @@ require_relative 'base'
 
 module Core
   module Controllers
+    class OAuthController
+      def self.create_session(req, res)
+        cust = req.env['otto.user']
+        sess = req.env['rack.session']
+
+        # Create session (same pattern as AuthenticateSession:138-142)
+        sess.clear
+        sess['external_id'] = cust.extid
+        sess['authenticated'] = true
+        sess['authenticated_at'] = Familia.now.to_i
+
+        # Assign role
+        colonels = OT.conf.dig('site', 'authentication', 'colonels') || []
+        cust.role = colonels.member?(cust.email) ? :colonel : :customer
+        cust.save
+
+        res.redirect '/dashboard'
+      end
+    end
+
     class Authentication
       include Controllers::Base
       include Onetime::LoggerMethods

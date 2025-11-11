@@ -121,6 +121,7 @@ module Core
 
       # Register authentication strategies for Web Core
       Core::AuthStrategies.register_essential(router)
+      Onetime::Application::AuthStrategies.register_oauth_gateway(router)
 
       # Default error responses
       headers             = { 'content-type' => 'text/html' }

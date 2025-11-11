@@ -31,8 +31,8 @@ module Onetime
 
           Onetime::Customer.find_by_extid(external_id)
         rescue StandardError => ex
-          OT.le "[auth_strategy] Failed to load customer: #{ex.message}"
-          OT.ld ex.backtrace.first(3).join("\n")
+          Onetime.auth_logger.error "[auth_strategy] Failed to load customer: #{ex.message}"
+          Onetime.auth_logger.debug ex.backtrace.first(3).join("\n")
           nil
         end
 
@@ -78,6 +78,16 @@ module Onetime
       # @param otto [Otto] Otto router instance
       def register_basic_auth(otto)
         otto.add_auth_strategy('basicauth', BasicAuthStrategy.new)
+      end
+
+      # Registers OAuth Gateway authentication strategy (opt-in)
+      #
+      # Only call this for apps that need Caddy Security OAuth integration.
+      # Requires Caddy to be configured with auth portal and header injection.
+      #
+      # @param otto [Otto] Otto router instance
+      def register_oauth_gateway(otto)
+        otto.add_auth_strategy('oauthgateway', HeaderAuthStrategy.new)
       end
 
       # Public strategy - allows all requests, loads customer from session if available
@@ -264,6 +274,113 @@ module Onetime
             # The timing is identical in both cases due to our mitigation strategy
             failure('[CREDENTIALS_INVALID] Invalid credentials')
           end
+        end
+      end
+
+      # OAuth Gateway strategy - Caddy Security header-based authentication
+      #
+      # Routes: auth=oauthgateway
+      # Access: Valid X-Token-* headers from Caddy Security auth portal
+      # User: Existing customer or newly created customer from OAuth claims
+      #
+      # Security: Requires Caddy to strip X-Token-* headers from external requests
+      # and only inject them after successful OAuth authentication.
+      #
+      # Headers expected from Caddy Security:
+      # - X-Token-Subject: Provider-specific user identifier (e.g., "github.com/delano")
+      # - X-Token-User-Email: User's email address
+      # - X-Token-User-Name: User's display name (optional)
+      #
+      # Flow:
+      # 1. User clicks "Login with GitHub" → Caddy handles OAuth flow
+      # 2. Caddy validates with provider → creates PASETO token
+      # 3. Caddy injects X-Token-* headers → this strategy extracts claims
+      # 4. Ruby finds/creates Customer → returns for session creation
+      # 5. PASETO discarded → subsequent requests use OTS session
+      class HeaderAuthStrategy < Otto::Security::AuthStrategy
+        include Helpers
+        @auth_method_name = 'oauth_gateway'
+
+        # Header names injected by Caddy Security
+        HEADER_SUBJECT = 'HTTP_X_TOKEN_SUBJECT'
+        HEADER_EMAIL = 'HTTP_X_TOKEN_USER_EMAIL'
+        HEADER_NAME = 'HTTP_X_TOKEN_USER_NAME'
+
+        def authenticate(env, _requirement)
+          # Extract OAuth claims from headers
+          subject = env[HEADER_SUBJECT]
+          email = env[HEADER_EMAIL]
+          name = env[HEADER_NAME]
+
+          # Validate required claims
+          return failure('[HEADER_MISSING] Missing X-Token-Subject header') unless subject
+          return failure('[EMAIL_MISSING] Missing X-Token-User-Email header') unless email
+
+          # Parse provider from subject (e.g., "github.com/delano" → "github.com")
+          provider = extract_provider(subject)
+
+          # Find or create customer
+          cust = find_or_create_customer(email, name, subject, provider)
+          return failure('[CUSTOMER_CREATE_FAILED] Failed to create customer') unless cust
+
+          OT.ld "[onetime_oauth_gateway] Authenticated '#{cust.objid}' via #{provider}"
+
+          success(
+            session: env['rack.session'] || {},
+            user: cust,
+            auth_method: 'oauth_gateway',
+            metadata: build_metadata(env, {
+              provider: provider,
+              oauth_subject: subject,
+              oauth_email: email,
+            }),
+          )
+        rescue StandardError => ex
+          OT.le "[oauth_gateway] Authentication failed: #{ex.message}"
+          OT.ld ex.backtrace.first(5).join("\n")
+          failure("[OAUTH_ERROR] #{ex.message}")
+        end
+
+        private
+
+        # Extracts OAuth provider from subject claim
+        #
+        # @param subject [String] Subject claim (e.g., "github.com/delano")
+        # @return [String] Provider domain (e.g., "github.com")
+        def extract_provider(subject)
+          # Subject format: "provider.com/username" or "provider.com/org/username"
+          parts = subject.split('/')
+          parts.first || 'unknown'
+        end
+
+        # Finds existing customer by email or creates new customer
+        #
+        # @param email [String] User's email address
+        # @param name [String, nil] User's display name
+        # @param subject [String] OAuth subject claim
+        # @param provider [String] OAuth provider domain
+        # @return [Onetime::Customer, nil] Customer object or nil
+        def find_or_create_customer(email, name, subject, provider)
+          # Try to find existing customer by email
+          cust = Onetime::Customer.find_by_email(email)
+
+          # Create new customer if not found
+          unless cust
+            OT.li "[oauth_gateway] Creating new customer for #{email} (#{provider})"
+
+            cust = Onetime::Customer.new(email: email)
+            cust.verified = :email  # OAuth-verified email
+            # Note: display_name can be set later via account management
+            cust.save
+
+            OT.li "[oauth_gateway] Created customer #{cust.custid} from #{provider}"
+          end
+
+          cust
+        rescue StandardError => ex
+          OT.le "[oauth_gateway] Failed to find/create customer: #{ex.message}"
+          OT.ld ex.backtrace.first(5).join("\n")
+          nil
         end
       end
     end
