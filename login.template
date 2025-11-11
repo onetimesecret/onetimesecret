@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-blue-100">
+  <head>
+    <title>{{ .MetaTitle }} - {{ .PageTitle }}</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="{{ .MetaDescription }}" />
+    <meta name="author" content="{{ .MetaAuthor }}" />
+    <link rel="shortcut icon" href="{{ pathjoin .ActionEndpoint "/assets/images/favicon.png" }}" type="image/png" />
+    <link rel="icon" href="{{ pathjoin .ActionEndpoint "/assets/images/favicon.png" }}" type="image/png" />
+    <link rel="stylesheet" href="{{ pathjoin .ActionEndpoint "/assets/google-webfonts/roboto.css" }}" />
+    <link rel="stylesheet" href="{{ pathjoin .ActionEndpoint "/assets/line-awesome/line-awesome.css" }}" />
+    <link rel="stylesheet" href="{{ pathjoin .ActionEndpoint "/assets/css/login.css" }}" />
+    {{ if eq .Data.ui_options.custom_css_required "yes" }}
+      <link rel="stylesheet" href="{{ pathjoin .ActionEndpoint "/assets/css/custom.css" }}" />
+    {{ end }}
+  </head>
+
+  {{ $authenticatorCount := len .Data.login_options.authenticators }}
+  {{ $qrCodeLink := pathjoin .ActionEndpoint "/qrcode/login.png" }}
+
+
+  <body class="h-full">
+    <div class="app-page">
+      <div class="app-content">
+        <div class="app-container">
+          <div class="logo-box">
+            {{ if .LogoURL }}
+              <img class="logo-img" src="{{ .LogoURL }}" alt="{{ .LogoDescription }}" />
+            {{ end }}
+            <h2 class="logo-txt">{{ .PageTitle }}</h2>
+          </div>
+
+          {{ if eq .Data.login_options.form_required "yes" }}
+            <div id="loginform" {{ if ne $authenticatorCount 1 }}class="hidden"{{ end }}>
+              <div>
+                <form class="space-y-6" action="{{ pathjoin .ActionEndpoint "/login" }}" method="POST">
+                  <div>
+                    <label for="username" class="block text-center pb-2 text-lg font-sans font-medium text-primary-700">Please provide username or email address</label>
+                    <div class="app-inp-box">
+                      <div class="app-inp-prf-img"><i class="las la-user"></i></div>
+                      <input class="app-inp-txt" id="username" name="username" type="text" autocorrect="off" autocapitalize="off" autocomplete="username" spellcheck="false" autofocus required />
+                    </div>
+                  </div>
+
+                  {{ if eq .Data.login_options.realm_dropdown_required "yes" }}
+                    <div class="hidden">
+                      <select id="realm" name="realm" class="app-inp-sel">
+                        {{ range .Data.login_options.realms }}
+                          {{ if eq .default "yes" }}
+                            <option value="{{ .realm }}" selected>{{ .label }}</option>
+                          {{ else }}
+                            <option value="{{ .realm }}">{{ .label }}</option>
+                          {{ end }}
+                        {{ end }}
+                      </select>
+                    </div>
+                  {{ else }}
+                    {{ range .Data.login_options.realms }}
+                      <div class="hidden">
+                        <input type="hidden" id="realm" name="realm" value="{{ .realm }}" />
+                      </div>
+                    {{ end }}
+                  {{ end }}
+
+
+                  <div class="flex gap-4">
+                    {{ if ne $authenticatorCount 1 }}
+                      <div class="flex-none">
+                        <button type="button" onclick="hideLoginForm();return false;" class="app-btn-sec">
+                          <div><i class="las la-caret-left"></i></div>
+                          <div class="pl-1 pr-2"><span>Back</span></div>
+                        </button>
+                      </div>
+                    {{ end }}
+                    <div class="grow">
+                      <button type="submit" class="app-btn-pri">
+                        <div><i class="las la-check-circle"></i></div>
+                        <div class="pl-2"><span>Proceed</span></div>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <div id="user_actions" class="flex flex-wrap pt-6 justify-center gap-4 {{ if or (ne $authenticatorCount 1) (eq .Data.login_options.hide_links "yes") }}hidden{{ end -}}">
+                <div id="user_register_link" {{ if eq .Data.login_options.hide_register_link "yes" }}class="hidden"{{ end -}}>
+                  <a class="text-primary-600" href="{{ pathjoin .ActionEndpoint "/register" .Data.login_options.default_realm }}">
+                    <i class="las la-book"></i>
+                    <span class="text-lg">Register</span>
+                  </a>
+                </div>
+
+                <div id="forgot_username_link" {{ if eq .Data.login_options.hide_forgot_username_link "yes" }}class="hidden"{{ end -}}>
+                  <a class="text-primary-600" href="{{ pathjoin .ActionEndpoint "/forgot" .Data.login_options.default_realm }}">
+                    <i class="las la-unlock"></i>
+                    <span class="text-lg">Forgot Username?</span>
+                  </a>
+                </div>
+
+                <div id="contact_support_link" {{ if eq .Data.login_options.hide_contact_support_link "yes" }}class="hidden"{{ end -}}>
+                  <a class="text-primary-600" href="{{ pathjoin .ActionEndpoint "/help" .Data.login_options.default_realm }}">
+                    <i class="las la-info-circle"></i>
+                    <span class="text-lg">Contact Support</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          {{ end }}
+
+          {{ if eq .Data.login_options.authenticators_required "yes" }}
+            <div id="authenticators" class="flex flex-col gap-2">
+              {{ range .Data.login_options.authenticators }}
+                <div>
+                  {{ if .endpoint }}
+                    <a href="{{ .endpoint }}">
+                      <div class="app-login-btn-box">
+                        <div class="p-4 bg-[{{ .background_color }}] text-[{{ .color }}] shadow-sm rounded-l-md text-2xl">
+                          <i class="{{ .class_name }}"></i>
+                        </div>
+                        <div class="app-login-btn-txt">
+                          <span class="uppercase leading-loose">{{ .text }}</span>
+                        </div>
+                      </div>
+                    </a>
+                  {{ else }}
+                    <a href="#" onclick="showLoginForm('{{ .realm }}', '{{ .registration_enabled }}', '{{ .username_recovery_enabled }}', '{{ .contact_support_enabled }}', '{{ .ActionEndpoint }}');return false;">
+                      <div class="app-login-btn-box">
+                        <div class="p-4 bg-[{{ .background_color }}] text-[{{ .color }}] shadow-sm rounded-l-md text-2xl">
+                          <i class="{{ .class_name }}"></i>
+                        </div>
+                        <div class="app-login-btn-txt">
+                          <span class="uppercase leading-loose">{{ .text }}</span>
+                        </div>
+                      </div>
+                    </a>
+                  {{ end }}
+                </div>
+              {{ end }}
+            </div>
+          {{ end }}
+        </div>
+        <div id="bookmarks" class="px-4 hidden sm:block">
+          <div onclick="showQRCode('{{ $qrCodeLink }}');return false;" class="bg-[#24292f] text-[#f6f8fa] py-1 px-1 shadow-xl rounded-b-lg pb-2 text-center" style="max-width: 3em;">
+            <i class="las la-qrcode text-3xl"></i>
+          </div>
+        </div>
+        <div id="qr" class="px-4 flex justify-center hidden">
+          <div id="qrcode" onclick="hideQRCode();return false;" class="bg-white border border-t-2 py-1 px-1 shadow-xl rounded-b-lg pb-2 max-w-xs inline-flex"></div>
+        </div>
+      </div>
+    </div>
+    <!-- JavaScript -->
+    <script src="{{ pathjoin .ActionEndpoint "/assets/js/login.js" }}"></script>
+    {{ if eq .Data.ui_options.custom_js_required "yes" }}
+      <script src="{{ pathjoin .ActionEndpoint "/assets/js/custom.js" }}"></script>
+    {{ end }}
+  </body>
+</html>

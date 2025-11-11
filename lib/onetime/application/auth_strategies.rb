@@ -87,7 +87,7 @@ module Onetime
       #
       # @param otto [Otto] Otto router instance
       def register_oauth_gateway(otto)
-        otto.add_auth_strategy('oauthgateway', HeaderAuthStrategy.new)
+        # otto.add_auth_strategy('oauthgateway', HeaderAuthStrategy.new)
       end
 
       # Public strategy - allows all requests, loads customer from session if available

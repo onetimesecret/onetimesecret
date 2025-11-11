@@ -1,0 +1,214 @@
+##
+# == Caddy configuration file for Onetime Secret labs environment
+#
+{
+	# This email address is used for ACME (Let's Encrypt) contacts
+	# and depending on your customer domain privacy settings, may be
+	# publicly visible in the certificate transparency logs.
+	email "domains@onetimesecret.com"
+
+	# Grace period for shutdown
+	grace_period 30s
+
+	order authenticate before respond
+	order authorize before basicauth
+
+	security {
+		credentials root@localhost {
+			username root
+			password foobar
+		}
+
+		messaging email provider localhost-smtp-server {
+			address 127.0.0.1:1025
+			protocol smtp
+			passwordless
+			sender root@localhost "My Auth Portal"
+			# credentials root@localhost
+			bcc greenpau@localhost
+		}
+
+		local identity store localdb {
+			realm local
+			path {$HOME}/.local/caddy/users.json
+			enable password_recovery
+			user demo {
+				name "Demo User"
+				email demo@localhost
+				password "$2a$14$e/Cm25tulm8fTq38vieYnOeKFv3J95TD67Y2uDfJ5AC0vSMqjJgQG" overwrite
+				roles authp/user
+			}
+			user admin {
+				name "Admin User"
+				email admin@localhost
+				password "$2a$14$e/Cm25tulm8fTq38vieYnOeKFv3J95TD67Y2uDfJ5AC0vSMqjJgQG" overwrite
+				roles authp/admin authp/user
+			}
+		}
+
+		oauth identity provider github {
+			realm github
+			driver github
+			client_id {env.GITHUB_CLIENT_ID}
+			client_secret {env.GITHUB_CLIENT_SECRET}
+			scopes openid email profile
+		}
+
+		user registration localdbRegistry {
+			dropbox {$HOME}/.local/caddy/registrations.json
+			title "User Registration"
+			code "NY2020"
+			require accept terms
+			require domain mx
+			admin email admin@localhost
+			email provider localhost-smtp-server
+			identity store localdb
+		}
+
+		authentication portal myportal {
+			crypto default token lifetime 3600
+			crypto key sign-verify {env.JWT_SHARED_KEY}
+			cookie domain onetime.dev
+			enable identity store localdb
+			enable identity provider github
+			ui {
+				# Custom OneTimeSecret branding
+				custom css path /Users/d/Projects/opensource/onetime/onetimesecret/etc/caddy-ui/custom.css
+				custom html header path /Users/d/Projects/opensource/onetime/onetimesecret/etc/caddy-ui/head.html
+
+				links {
+					"Home" / icon "las la-home"
+					"Dashboard" /dashboard icon "las la-tachometer-alt"
+				}
+			}
+			transform user {
+				match origin local
+				action add role authp/user
+				ui link "Portal Settings" /settings icon "las la-cog"
+			}
+			transform user {
+				match realm github
+				action add role authp/user
+			}
+		}
+
+		authorization policy guests_policy {
+			# disable auth redirect
+			allow roles authp/admin authp/user
+			crypto key verify {env.JWT_SHARED_KEY}
+			acl rule {
+				comment allow guests only
+				match role guest authp/guest
+				allow stop log info
+			}
+			acl rule {
+				comment default deny
+				match any
+				deny log warn
+			}
+		}
+
+		authorization policy users_policy {
+			set auth url https://dev.onetime.dev/auth
+			allow roles authp/admin authp/user
+			crypto key verify {env.JWT_SHARED_KEY}
+
+			# Inject PASETO claims as headers for Ruby
+			inject headers with claims
+			inject header "X-Auth-Provider" from origin
+
+			acl rule {
+				comment allow admins
+				match role authp/user
+				allow stop log info
+			}
+			acl rule {
+				comment default deny
+				match any
+				deny log warn
+			}
+		}
+
+		authorization policy admins_policy {
+			set auth url https://dev.onetime.dev/auth
+			allow roles authp/admin authp/user
+			crypto key verify {env.JWT_SHARED_KEY}
+			acl rule {
+				comment allow admins
+				match role authp/admin
+				allow stop log info
+			}
+			acl rule {
+				comment default deny
+				match any
+				deny log warn
+			}
+		}
+	}
+}
+
+https://dev.onetime.dev {
+	tls /Users/d/Projects/clients/onetime/ops-jurisdictions/dev/caddy/.certs/dev.onetime.dev.pem /Users/d/Projects/clients/onetime/ops-jurisdictions/dev/caddy/.certs/dev.onetime.dev-key.pem
+
+	# Vite dev server assets - MUST be before auth
+	handle /dist/* {
+		reverse_proxy 127.0.0.1:5173
+	}
+
+	# Authentication portal routes - MUST be first
+	handle /auth* {
+		authenticate * with myportal
+	}
+
+	# Public route - no auth required
+	handle /public* {
+		respond "Public content - no auth required" 200
+	}
+
+	# Guest route - allows anonymous access
+	handle /guest* {
+		authorize with guests_policy
+		respond "Guest content - anonymous OK" 200
+	}
+
+	# Debug endpoint - see Caddy headers
+	handle /api/v3/debug/caddy-headers {
+		authorize with users_policy
+		# Headers now injected, proxy to Ruby
+		reverse_proxy 127.0.0.1:7143
+	}
+
+	# Protected route - requires authenticated user (test with existing dashboard route)
+	handle /dashboard* {
+		authorize with users_policy
+		# Headers now injected, proxy to Ruby
+		reverse_proxy 127.0.0.1:7143
+	}
+
+	# Admin route - requires admin role
+	handle /admin* {
+		authorize with admins_policy
+		respond "Admin content - admin role required" 200
+	}
+
+	# Default fallback - proxy to backend
+	handle {
+		# Strip any X-Auth-* headers from client (prevent spoofing)
+		request_header -X-Auth-*
+
+		reverse_proxy 127.0.0.1:7143 {
+			# Disable health checks that can cause delays
+			health_uri /
+			health_interval 0
+
+			# Fast fail if backend is down
+			fail_duration 5s
+
+			# Avoid DNS lookup delays
+			transport http {
+				dial_timeout 2s
+				response_header_timeout 30s
+			}
+		}
+	}
+}

@@ -1,0 +1,146 @@
+/* OneTimeSecret Branding for Caddy Security Portal */
+
+/* Import Zilla Slab font from main site */
+@font-face {
+  font-family: 'Zilla Slab';
+  src: url('https://dev.onetime.dev/assets/fonts/zs/ZillaSlab-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: 'Zilla Slab';
+  src: url('https://dev.onetime.dev/assets/fonts/zs/ZillaSlab-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: fallback;
+}
+
+/* Global font family */
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+button,
+a {
+  font-family: 'Zilla Slab', serif !important;
+}
+
+/* Brand color palette */
+:root {
+  --brand-primary: #dc4a22;
+  --brand-hover: #c43d1b;
+  --brand-accent: #23b5dd;
+  --brand-accent-hover: #1c9cc7;
+  --brand-light: #f7dec3;
+  --brand-dark: #a32d12;
+}
+
+/* Primary buttons */
+.uk-button-primary,
+button[type="submit"],
+.uk-button.uk-button-primary {
+  background-color: var(--brand-primary) !important;
+  border-color: var(--brand-primary) !important;
+  color: white !important;
+}
+
+.uk-button-primary:hover,
+button[type="submit"]:hover,
+.uk-button.uk-button-primary:hover {
+  background-color: var(--brand-hover) !important;
+  border-color: var(--brand-hover) !important;
+}
+
+/* Secondary buttons */
+.uk-button-default {
+  border-color: var(--brand-primary) !important;
+  color: var(--brand-primary) !important;
+}
+
+.uk-button-default:hover {
+  background-color: var(--brand-light) !important;
+  color: var(--brand-dark) !important;
+}
+
+/* Links */
+a {
+  color: var(--brand-accent) !important;
+  text-decoration: none !important;
+}
+
+a:hover {
+  color: var(--brand-accent-hover) !important;
+  text-decoration: underline !important;
+}
+
+/* Header/Navigation */
+.uk-navbar-container {
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-hover)) !important;
+  border-bottom: 3px solid var(--brand-accent) !important;
+}
+
+.uk-navbar-item,
+.uk-navbar-nav > li > a {
+  color: white !important;
+}
+
+/* Form inputs */
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--brand-accent) !important;
+  outline: none !important;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+}
+
+/* Card styling */
+.uk-card-header {
+  background-color: var(--brand-light) !important;
+  border-bottom: 2px solid var(--brand-primary) !important;
+}
+
+.uk-card {
+  border: 1px solid #e5e5e5 !important;
+  border-radius: 8px !important;
+}
+
+/* OAuth provider buttons */
+.uk-button.uk-button-default[href*="github"] {
+  background-color: #24292e !important;
+  color: white !important;
+  border-color: #24292e !important;
+}
+
+.uk-button.uk-button-default[href*="github"]:hover {
+  background-color: #1a1e22 !important;
+}
+
+/* Alert/notification styling */
+.uk-alert-primary {
+  background-color: var(--brand-light) !important;
+  color: var(--brand-dark) !important;
+  border-left: 4px solid var(--brand-primary) !important;
+}
+
+.uk-alert-success {
+  border-left: 4px solid var(--brand-accent) !important;
+}
+
+/* Footer */
+.uk-footer {
+  background-color: #f8f8f8 !important;
+  color: #666 !important;
+  border-top: 1px solid #e5e5e5 !important;
+}

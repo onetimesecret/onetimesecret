@@ -51,6 +51,8 @@ module Core
 
       # Authenticated routes - requires valid session
       otto.add_auth_strategy('sessionauth', Onetime::Application::AuthStrategies::SessionAuthStrategy.new)
+
+      otto.add_auth_strategy('oauthgateway', Onetime::Application::AuthStrategies::HeaderAuthStrategy.new)
     end
   end
 end
