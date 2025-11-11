@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { us
+
+const { t } = useI18n();eI18n } from 'vue-i18n';
+
 defineProps<{
   modelValue: boolean | null | undefined;  // Update type to allow nullable values
   disabled?: boolean;
@@ -26,7 +30,7 @@ const emit = defineEmits<{
     :aria-checked="!!modelValue"
     @click="emit('update:modelValue', !modelValue)">
     <span class="sr-only">
-      {{ modelValue ? 'Disable' : 'Enable' }} {{ $t('homepage-access') }}
+      {{ modelValue ? 'Disable' : 'Enable' }} {{ t('homepage-access') }}
     </span>
     <span
       :class="[

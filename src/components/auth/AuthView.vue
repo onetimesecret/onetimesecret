@@ -112,7 +112,7 @@
           <span
             v-if="jurisdictionStore.enabled"
             class="mr-1">
-            {{ $t('serving-you-from-the') }}:
+            {{ t('serving-you-from-the') }}:
             <span lang="en">{{ currentJurisdiction.display_name }}</span>
           </span>
         </p>

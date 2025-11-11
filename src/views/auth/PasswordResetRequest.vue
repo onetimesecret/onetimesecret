@@ -3,6 +3,7 @@
 <script setup lang="ts">
 import { useAuth } from '@/composables/useAuth';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 export interface Props {
   enabled?: boolean;
@@ -11,6 +12,8 @@ export interface Props {
 withDefaults(defineProps<Props>(), {
   enabled: true,
 })
+
+const { t } = useI18n();
 
 const { requestPasswordReset, isLoading, error, clearErrors } = useAuth();
 
@@ -33,12 +36,12 @@ const handleSubmit = async () => {
   <div class="my-20">
     <section class="my-8">
       <h3 class="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-        {{ $t('request-password-reset') }}
+        {{ t('request-password-reset') }}
       </h3>
     </section>
     <div class="mb-4 rounded bg-white px-8 pb-8 pt-6 shadow-md dark:bg-gray-800">
       <p class="mb-4 text-gray-700 dark:text-gray-300">
-        {{ $t('enter-your-email-address-below-and-well-send-you') }}
+        {{ t('enter-your-email-address-below-and-well-send-you') }}
       </p>
 
       <!-- Success message -->
@@ -68,7 +71,7 @@ const handleSubmit = async () => {
           <label
             class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300"
             for="custidField">
-            {{ $t('email-address') }}
+            {{ t('email-address') }}
           </label>
           <input
             type="email"
@@ -78,7 +81,7 @@ const handleSubmit = async () => {
             :disabled="isLoading"
             class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-300"
             v-model="email"
-            :placeholder="$t('web.COMMON.email_placeholder')"
+            :placeholder="t('web.COMMON.email_placeholder')"
           />
         </div>
         <div class="mb-6"></div>
@@ -87,8 +90,8 @@ const handleSubmit = async () => {
             type="submit"
             :disabled="isLoading"
             class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed dark:bg-brand-600 dark:hover:bg-brand-800">
-            <span v-if="isLoading">{{ $t('web.COMMON.processing') || 'Processing...' }}</span>
-            <span v-else>{{ $t('request-reset') }}</span>
+            <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
+            <span v-else>{{ t('request-reset') }}</span>
           </button>
         </div>
       </form>
@@ -98,7 +101,7 @@ const handleSubmit = async () => {
       <router-link
         to="/signin"
         class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
-        {{ $t('back-to-sign-in') }}
+        {{ t('back-to-sign-in') }}
       </router-link>
     </div>
   </div>

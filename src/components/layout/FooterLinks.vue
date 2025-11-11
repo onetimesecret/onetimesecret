@@ -1,6 +1,10 @@
 <!-- src/components/layout/FooterLinks.vue -->
 
 <script setup lang="ts">
+import { us
+
+const { t } = useI18n();eI18n } from 'vue-i18n';
+
   import { WindowService } from '@/services/window.service';
   import type { FooterLinksConfig } from '@/types/declarations/window';
   import { computed } from 'vue';
@@ -35,7 +39,7 @@
         <h3
           v-if="group.i18n_key"
           class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-          {{ $t(group.i18n_key) }}
+          {{ t(group.i18n_key) }}
         </h3>
 
         <!-- Links list -->
@@ -66,13 +70,13 @@
                   :aria-hidden="true"></i>
 
                 <!-- Link text - modify link font size here (text-sm) -->
-                <span class="flex-1">{{ link.i18n_key ? $t(link.i18n_key) : link.text }}</span>
+                <span class="flex-1">{{ link.i18n_key ? t(link.i18n_key) : link.text }}</span>
 
                 <!-- External link indicator -->
                 <i
                   v-if="link.external"
                   class="icon-external-link text-xs opacity-60 flex-shrink-0"
-                  :aria-label="$t('web.COMMON.external_link')"
+                  :aria-label="t('web.COMMON.external_link')"
                   :aria-hidden="true"></i>
               </span>
             </a>
@@ -83,7 +87,7 @@
                  block
                  text-sm text-gray-400
                  dark:text-gray-500">
-              {{ link.i18n_key ? $t(link.i18n_key) : link.text }}
+              {{ link.i18n_key ? t(link.i18n_key) : link.text }}
             </span>
           </li>
         </ul>

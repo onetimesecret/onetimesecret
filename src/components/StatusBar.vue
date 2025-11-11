@@ -2,7 +2,9 @@
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { us
+
+const { t } = useI18n();eI18n } from 'vue-i18n';
 const { t, te } = useI18n();
 
 interface Props {
@@ -157,7 +159,7 @@ const statusConfig = computed(() => {
             type="button"
             class="ml-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
             @click="notifications.hide">
-            <span class="sr-only">{{ $t('web.LABELS.dismiss') }}</span>
+            <span class="sr-only">{{ t('web.LABELS.dismiss') }}</span>
             <OIcon
               collection="mdi"
               name="close"

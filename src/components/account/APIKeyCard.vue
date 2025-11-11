@@ -1,8 +1,11 @@
 <!-- src/components/ApiTokenDisplay.vue -->
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
-import { ref } from 'vue';
+im
+
+const { t } = useI18n();port { ref } from 'vue';
 
 interface Props {
   apitoken: string | undefined;
@@ -51,7 +54,7 @@ const handleCopy = () => {
       </div>
     </div>
     <p class="mt-2 text-sm font-semibold text-white">
-      {{ $t('keep-this-token-secure-it-provides-full-access-t') }}
+      {{ t('keep-this-token-secure-it-provides-full-access-t') }}
     </p>
   </div>
 </template>

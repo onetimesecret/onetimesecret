@@ -4,6 +4,7 @@
   import BaseUnknownSecret from '@/components/base/BaseUnknownSecret.vue';
   import type { BrandSettings } from '@/schemas/models/domain/brand';
   import { fontFamilyClasses, FontFamily } from '@/schemas/models/domain/brand';
+  import { useI18n } from 'vue-i18n';
 
   interface Props {
     brandSettings?: BrandSettings;
@@ -11,6 +12,8 @@
   }
 
   defineProps<Props>();
+
+  const { t } = useI18n();
 </script>
 
 <template>
@@ -51,7 +54,7 @@
             :class="brandSettings?.font_family
               ? fontFamilyClasses[brandSettings.font_family as FontFamily]
               : ''">
-            {{ $t('not-found') }}
+            {{ t('not-found') }}
           </h2>
         </div>
       </div>
@@ -64,7 +67,7 @@
           {{ brandSettings?.instructions_post_reveal }}
         </span>
         <span v-else>
-          {{ $t('information-shared-through-this-service-can-only') }}
+          {{ t('information-shared-through-this-service-can-only') }}
         </span>
       </p>
     </template>
@@ -82,7 +85,7 @@
           backgroundColor: brandSettings?.primary_color ?? '#dc4a22',
           color: brandSettings?.button_text_light ?? true ? '#ffffff' : '#222222',
         }">
-        {{ $t('return-to-home') }}
+        {{ t('return-to-home') }}
       </router-link>
     </template>
   </BaseUnknownSecret>

@@ -1,6 +1,10 @@
 <!-- src/views/BrandedHomepage.vue -->
 
 <script setup lang="ts">
+import { us
+
+const { t } = useI18n();eI18n } from 'vue-i18n';
+
   import SecretForm from '@/components/secrets/form/SecretForm.vue';
   import { useProductIdentity } from '@/stores/identityStore';
 
@@ -74,7 +78,7 @@
               </div>
               <div class="ml-3">
                 <p class="text-sm">
-                  {{ $t('this-is-a-private-instance-only-authorized-team-') }}
+                  {{ t('this-is-a-private-instance-only-authorized-team-') }}
                 </p>
               </div>
             </div>
@@ -99,7 +103,7 @@
                     d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                 </svg>
                 <p class="text-sm text-gray-600 dark:text-gray-300">
-                  {{ $t('secure-encrypted-storage') }}
+                  {{ t('secure-encrypted-storage') }}
                 </p>
               </div>
             </div>
@@ -118,7 +122,7 @@
                     d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <p class="text-sm text-gray-600 dark:text-gray-300">
-                  {{ $t('auto-expire-after-viewing') }}
+                  {{ t('auto-expire-after-viewing') }}
                 </p>
               </div>
             </div>

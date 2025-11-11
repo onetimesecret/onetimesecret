@@ -7,6 +7,9 @@
   import { CustomDomain, CustomDomainCluster } from '@/schemas/models';
   import { onMounted, ref } from 'vue';
   import { useRoute } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
+
+  const { t } = useI18n();
 
   const route = useRoute();
   const { getDomain } = useDomainsManager();
@@ -42,7 +45,7 @@
 <template>
   <div class="">
     <h1 class="mb-6 text-3xl font-bold text-gray-900 dark:text-white">
-      {{ $t('verify-your-domain') }}
+      {{ t('verify-your-domain') }}
     </h1>
 
     <DomainVerificationInfo
@@ -52,11 +55,11 @@
     <p
       v-else-if="domain"
       class="mb-6 text-lg text-gray-600 dark:text-gray-300">
-      {{ $t('before-we-can-activate-links-for') }}
+      {{ t('before-we-can-activate-links-for') }}
       <span class="bg-white text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{
         domain.display_domain
       }}</span>
-      {{ $t('youll-need-to-complete-these-steps') }}
+      {{ t('youll-need-to-complete-these-steps') }}
     </p>
 
     <MoreInfoText
@@ -65,29 +68,29 @@
       <div class="prose max-w-none">
         <div class="text-base text-gray-600 dark:text-gray-300">
           <p>
-            {{ $t('in-order-to-connect-your-domain-youll-need-to-ha') }}
+            {{ t('in-order-to-connect-your-domain-youll-need-to-ha') }}
             <span
               class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>
             at
             <span
               :title="cluster?.cluster_name ?? ''"
               class="bg-white px-2 dark:bg-gray-800"
-              >{{ cluster?.cluster_host }}</span>{{ $t('if-you-already-have-a-cname-record-for-that-addr') }}
+              >{{ cluster?.cluster_host }}</span>{{ t('if-you-already-have-a-cname-record-for-that-addr') }}
             <span
               :title="cluster?.cluster_name ?? ''"
               class="bg-white px-2 dark:bg-gray-800"
               >{{ cluster?.cluster_host }}</span>
-            {{ $t('and-remove-any-other-a-aaaa-or-cname-records-for') }}
+            {{ t('and-remove-any-other-a-aaaa-or-cname-records-for') }}
           </p>
           <p
             v-if="domain?.is_apex"
             class="border-l-4 border-yellow-500 bg-yellow-100 p-4 text-yellow-700">
             <!-- Disclaimer for apex domains -->
-            <strong>{{ $t('important') }}:</strong> {{ $t('please-note-that-for-apex-domains') }}
+            <strong>{{ t('important') }}:</strong> {{ t('please-note-that-for-apex-domains') }}
             <span
               class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400"
               >{{ domain?.display_domain }}</span
-            >{{ $t('a-cname-record-is-not-allowed-instead-youll-need') }}
+            >{{ t('a-cname-record-is-not-allowed-instead-youll-need') }}
           </p>
         </div>
         <div class="mt-4 text-sm">
@@ -109,7 +112,7 @@
     <p
       v-else
       class="text-gray-600 dark:text-gray-400">
-      {{ $t('loading-domain-information') }}
+      {{ t('loading-domain-information') }}
     </p>
   </div>
 </template>

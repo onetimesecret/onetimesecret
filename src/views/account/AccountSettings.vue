@@ -4,6 +4,9 @@
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
   import { ref } from 'vue';
   import { useRoute } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
+
+  const { t } = useI18n();
 
   const route = useRoute();
 
@@ -26,7 +29,7 @@
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-          {{ $t('web.account.settings') }}
+          {{ t('web.account.settings') }}
         </h1>
       </div>
 
@@ -45,7 +48,7 @@
                   ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
                   : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
               ]">
-              {{ $t(tab.label) }}
+              {{ t(tab.label) }}
             </router-link>
           </nav>
         </div>

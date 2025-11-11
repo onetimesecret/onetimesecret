@@ -1,6 +1,10 @@
 <!-- src/components/MinimalDropdownMenu.vue -->
 
 <script setup lang="ts">
+import { us
+
+const { t } = useI18n();eI18n } from 'vue-i18n';
+
   import { Menu, MenuButton, MenuItems } from '@headlessui/vue';
   import OIcon from '@/components/icons/OIcon.vue';
 </script>
@@ -11,7 +15,7 @@
     <div>
       <MenuButton
                   class="flex items-center rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900">
-        <span class="sr-only">{{ $t('open-options') }}</span>
+        <span class="sr-only">{{ t('open-options') }}</span>
         <OIcon class="size-5"
                collection="heroicons-solid"
                name="ellipsis-vertical" />

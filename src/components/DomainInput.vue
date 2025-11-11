@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
-import { defineEmits } from 'vue';
+import { d
+
+const { t } = useI18n();efineEmits } from 'vue';
 
 // Define the props expected from the parent
 defineProps<{
@@ -27,7 +30,7 @@ const onInput = (event: Event) => {
       for="domain"
       class="hidden bg-inherit text-xl font-medium leading-6 text-gray-900 dark:text-gray-100"
       aria-hidden="false">
-      {{ $t('domain-name') }}
+      {{ t('domain-name') }}
     </label>
     <div class="relative mt-2 rounded-md shadow-sm">
       <input

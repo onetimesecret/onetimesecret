@@ -1,7 +1,11 @@
 <!-- src/components/secrets/metadata/MetadataFAQ.vue -->
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
   import { Metadata, MetadataDetails } from '@/schemas/models';
+
+  const { t } = useI18n();
 
   interface Props {
     record: Metadata;
@@ -20,52 +24,52 @@
       <div class="flex items-center justify-between">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">F.A.Q.</h3>
         <div class="rounded-md bg-blue-50 px-3 py-1 dark:bg-blue-900/20">
-          {{ $t('web.private.expires-in-record-natural_expiration', [record.natural_expiration]) }}
+          {{ t('web.private.expires-in-record-natural_expiration', [record.natural_expiration]) }}
         </div>
       </div>
 
       <div class="space-y-4">
         <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{
-          $t('web.private.core-security-features')
+          t('web.private.core-security-features')
         }}</h4>
 
         <div
           class="rounded-lg bg-gray-50 dark:bg-gray-800/50 p-4 ring-1 ring-gray-200 dark:ring-gray-700">
           <h5 class="font-medium mb-2 text-gray-900 dark:text-gray-100">{{
-            $t('web.private.one-time-access')
+            t('web.private.one-time-access')
           }}</h5>
-          <p>{{ $t('web.private.each-secret-can-only-be-viewed-once-after-viewin') }}</p>
+          <p>{{ t('web.private.each-secret-can-only-be-viewed-once-after-viewin') }}</p>
         </div>
 
         <template v-if="details.has_passphrase">
           <div
             class="rounded-lg bg-gray-50 dark:bg-gray-800/50 p-4 ring-1 ring-gray-200 dark:ring-gray-700">
             <h5 class="font-medium mb-2 text-gray-900 dark:text-gray-100">{{
-              $t('web.private.passphrase-protection')
+              t('web.private.passphrase-protection')
             }}</h5>
             <a
               href="https://en.wikipedia.org/wiki/Bcrypt"
               class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
               >bcrypt</a
             >
-            {{ $t('web.private.and-never-stored-in-its-original-form-this-appro') }}
+            {{ t('web.private.and-never-stored-in-its-original-form-this-appro') }}
           </div>
         </template>
 
         <div
           class="rounded-lg bg-gray-50 dark:bg-gray-800/50 p-4 ring-1 ring-gray-200 dark:ring-gray-700">
           <h5 class="font-medium mb-2 text-gray-900 dark:text-gray-100">{{
-            $t('web.private.what-happens-when-i-burn-a-secret')
+            t('web.private.what-happens-when-i-burn-a-secret')
           }}</h5>
-          <p>{{ $t('web.private.burning-a-secret-permanently-deletes-it-before-a') }}</p>
+          <p>{{ t('web.private.burning-a-secret-permanently-deletes-it-before-a') }}</p>
         </div>
 
         <div
           class="rounded-lg bg-gray-50 dark:bg-gray-800/50 p-4 ring-1 ring-gray-200 dark:ring-gray-700">
           <h5 class="font-medium mb-2 text-gray-900 dark:text-gray-100">{{
-            $t('web.private.why-can-i-only-see-the-secret-value-once')
+            t('web.private.why-can-i-only-see-the-secret-value-once')
           }}</h5>
-          <p>{{ $t('web.private.we-display-the-value-for-you-so-that-you-can-ver') }}</p>
+          <p>{{ t('web.private.we-display-the-value-for-you-so-that-you-can-ver') }}</p>
         </div>
       </div>
     </div>
@@ -78,7 +82,7 @@
         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">F.A.Q.</h3>
         <div class="rounded-md bg-blue-50 dark:bg-blue-900/20 px-3 py-1">
           {{
-            $t('web.private.expires-in-record-natural_expiration-0', [record.natural_expiration])
+            t('web.private.expires-in-record-natural_expiration-0', [record.natural_expiration])
           }}
         </div>
       </div>
@@ -87,19 +91,19 @@
         <div
           class="rounded-lg bg-gray-50 dark:bg-gray-800/50 p-4 ring-1 ring-gray-200 dark:ring-gray-700">
           <h5 class="font-medium mb-2 text-gray-900 dark:text-gray-100">{{
-            $t('web.private.lost-your-secret-link')
+            t('web.private.lost-your-secret-link')
           }}</h5>
-          <p>{{ $t('web.private.for-security-reasons-we-cant-recover-lost-secret') }}</p>
+          <p>{{ t('web.private.for-security-reasons-we-cant-recover-lost-secret') }}</p>
         </div>
       </template>
 
       <div
         class="rounded-lg bg-gray-50 dark:bg-gray-800/50 p-4 ring-1 ring-gray-200 dark:ring-gray-700">
         <h5 class="font-medium mb-2 text-gray-900 dark:text-gray-100">{{
-          $t('web.private.how-does-secret-expiration-work')
+          t('web.private.how-does-secret-expiration-work')
         }}</h5>
         <p>{{
-          $t('web.private.your-secret-will-remain-available-for-record-nat', [
+          t('web.private.your-secret-will-remain-available-for-record-nat', [
             record.natural_expiration,
           ])
         }}</p>
@@ -108,14 +112,14 @@
       <div
         class="rounded-lg bg-gray-50 dark:bg-gray-800/50 p-4 ring-1 ring-gray-200 dark:ring-gray-700">
         <h5 class="font-medium mb-2 text-gray-900 dark:text-gray-100">{{
-          $t('web.private.whats-the-burn-feature')
+          t('web.private.whats-the-burn-feature')
         }}</h5>
-        <p>{{ $t('web.private.the-burn-feature-lets-you-permanently-delete-a-s') }}</p>
+        <p>{{ t('web.private.the-burn-feature-lets-you-permanently-delete-a-s') }}</p>
       </div>
     </div>
     <div class="mt-6 text-xs">
       <p
-        >{{ $t('web.private.have-more-questions-visit-our') }}
+        >{{ t('web.private.have-more-questions-visit-our') }}
         <RouterLink
           to="/docs"
           class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
@@ -125,7 +129,7 @@
         <RouterLink
           to="/feedback"
           class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
-          >{{ $t('web.private.send-feedback') }}</RouterLink>.
+          >{{ t('web.private.send-feedback') }}</RouterLink>.
       </p>
     </div>
   </div>

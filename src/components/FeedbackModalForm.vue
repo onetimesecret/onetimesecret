@@ -104,7 +104,7 @@ import { useI18n } from 'vue-i18n';
         <label
           for="feedback-message"
           class="sr-only">
-          {{ $t('your-feedback') }}
+          {{ t('your-feedback') }}
         </label>
         <!-- prettier-ignore-attribute class -->
         <textarea
@@ -118,8 +118,8 @@ import { useI18n } from 'vue-i18n';
           rows="4"
           required
           @keydown="handleKeydown"
-          :placeholder="$t('web.COMMON.feedback_text')"
-          :aria-label="$t('enter-your-feedback')"></textarea>
+          :placeholder="t('web.COMMON.feedback_text')"
+          :aria-label="t('enter-your-feedback')"></textarea>
         <div class="mt-2 flex justify-end text-gray-500 dark:text-gray-400">
           <span v-if="isDesktop">{{ submitWithText }}</span>
         </div>
@@ -141,7 +141,7 @@ import { useI18n } from 'vue-i18n';
           text-white transition-colors hover:bg-red-700
           focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-50
           disabled:cursor-not-allowed disabled:opacity-50 dark:focus:ring-offset-gray-800"
-        :aria-label="$t('web.feedback.send-feedback')">
+        :aria-label="t('web.feedback.send-feedback')">
         {{ buttonText }}
       </button>
     </form>
@@ -161,17 +161,17 @@ import { useI18n } from 'vue-i18n';
 
     <div class="mt-6 text-sm text-gray-500 dark:text-gray-400">
       <h3 class="mb-2 text-lg font-medium text-gray-500">
-        {{ $t('web.feedback.when-you-submit-feedback-well-see') }}
+        {{ t('web.feedback.when-you-submit-feedback-well-see') }}
       </h3>
       <ul class="space-y-1">
         <li v-if="cust && cust.identifier != 'anon'">
-          • {{ $t('web.account.customer-id') }}: {{ cust.email }}
+          • {{ t('web.account.customer-id') }}: {{ cust.email }}
         </li>
         <li>
-          • {{ $t('web.account.timezone') }}: {{ userTimezone }}
+          • {{ t('web.account.timezone') }}: {{ userTimezone }}
         </li>
         <li>
-          • {{ $t('web.site.website-version') }}: {{ ot_version_long }}
+          • {{ t('web.site.website-version') }}: {{ ot_version_long }}
         </li>
       </ul>
     </div>

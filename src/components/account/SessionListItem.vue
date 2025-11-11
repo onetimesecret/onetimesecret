@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
-import type { Session } from '@/types/auth';
+import type { Sessio
+
+const { t } = useI18n();n } from '@/types/auth';
 
 interface Props {
   session: Session;
@@ -71,14 +74,14 @@ const handleRemove = () => {
             v-if="isCurrent"
             class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-800 dark:bg-brand-900 dark:text-brand-200"
           >
-            {{ $t('web.auth.sessions.current') }}
+            {{ t('web.auth.sessions.current') }}
           </span>
           <span
             v-if="session.remember_enabled"
             class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
           >
             <i class="fas fa-clock mr-1"></i>
-            {{ $t('web.auth.remember.enabled') }}
+            {{ t('web.auth.remember.enabled') }}
           </span>
         </div>
 
@@ -86,15 +89,15 @@ const handleRemove = () => {
         <div class="mt-2 space-y-1 text-sm text-gray-600 dark:text-gray-400">
           <div v-if="session.ip_address" class="flex items-center gap-2">
             <i class="fas fa-map-marker-alt w-4 text-xs"></i>
-            <span>{{ $t('web.auth.sessions.ip-address') }}: {{ session.ip_address }}</span>
+            <span>{{ t('web.auth.sessions.ip-address') }}: {{ session.ip_address }}</span>
           </div>
           <div class="flex items-center gap-2">
             <i class="fas fa-clock w-4 text-xs"></i>
-            <span>{{ $t('web.auth.sessions.last-active') }}: {{ lastActiveFormatted }}</span>
+            <span>{{ t('web.auth.sessions.last-active') }}: {{ lastActiveFormatted }}</span>
           </div>
           <div class="flex items-center gap-2">
             <i class="fas fa-calendar w-4 text-xs"></i>
-            <span>{{ $t('web.auth.sessions.created') }}: {{ createdFormatted }}</span>
+            <span>{{ t('web.auth.sessions.created') }}: {{ createdFormatted }}</span>
           </div>
         </div>
       </div>
@@ -105,10 +108,10 @@ const handleRemove = () => {
         @click="handleRemove"
         type="button"
         class="ml-4 rounded-md px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:text-red-400 dark:hover:bg-red-900/20"
-        :aria-label="$t('web.auth.sessions.remove')"
+        :aria-label="t('web.auth.sessions.remove')"
       >
         <i class="fas fa-times mr-1"></i>
-        {{ $t('web.auth.sessions.remove') }}
+        {{ t('web.auth.sessions.remove') }}
       </button>
     </div>
 

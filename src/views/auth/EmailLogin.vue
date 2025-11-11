@@ -4,6 +4,9 @@
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useMagicLink } from '@/composables/useMagicLink';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const route = useRoute();
 const { verifyMagicLink, isLoading, error } = useMagicLink();
@@ -51,10 +54,10 @@ onMounted(async () => {
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
         </svg>
         <h2 class="mt-6 text-xl font-medium text-gray-900 dark:text-white">
-          {{ $t('web.auth.magicLink.signingYouIn') }}
+          {{ t('web.auth.magicLink.signingYouIn') }}
         </h2>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {{ $t('web.auth.magicLink.pleaseWait') }}
+          {{ t('web.auth.magicLink.pleaseWait') }}
         </p>
       </div>
 
@@ -77,16 +80,16 @@ onMounted(async () => {
           </svg>
           <div class="ml-3">
             <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
-              {{ $t('web.auth.magicLink.error') }}
+              {{ t('web.auth.magicLink.error') }}
             </h3>
             <div class="mt-2 text-sm text-red-700 dark:text-red-300">
-              <p>{{ error || $t('web.auth.magicLink.invalidLink') }}</p>
+              <p>{{ error || t('web.auth.magicLink.invalidLink') }}</p>
             </div>
             <div class="mt-4">
               <router-link
                 to="/signin"
                 class="text-sm font-medium text-red-700 hover:text-red-600 dark:text-red-300 dark:hover:text-red-200">
-                {{ $t('web.auth.magicLink.backToSignin') }}
+                {{ t('web.auth.magicLink.backToSignin') }}
               </router-link>
             </div>
           </div>

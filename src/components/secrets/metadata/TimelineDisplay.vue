@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { us
+
+const { t } = useI18n();eI18n } from 'vue-i18n';
+
   import type { Metadata, MetadataDetails } from '@/schemas/models';
   import OIcon from '@/components/icons/OIcon.vue';
   import { useSecretExpiration } from '@/composables/useSecretExpiration';
@@ -58,7 +62,7 @@
         </div>
         <div class="transition-transform duration-200 group-hover:translate-x-1">
           <p class="font-brand text-base text-gray-900 dark:text-gray-100">
-            {{ $t('web.STATUS.created') }}
+            {{ t('web.STATUS.created') }}
           </p>
           <time
             :datetime="record.created.toISOString()"
@@ -97,7 +101,7 @@
         </div>
         <div class="transition-transform duration-200 group-hover:translate-x-1">
           <p class="font-brand text-base text-gray-900 dark:text-gray-100">
-            {{ $t('web.STATUS.received') }}
+            {{ t('web.STATUS.received') }}
           </p>
           <time
             :datetime="record.received?.toISOString()"
@@ -131,7 +135,7 @@
         </div>
         <div class="transition-transform duration-200 group-hover:translate-x-1">
           <p class="font-brand text-base text-gray-900 dark:text-gray-100">
-            {{ $t('web.STATUS.burned') }}
+            {{ t('web.STATUS.burned') }}
           </p>
           <time
             :datetime="record.burned?.toISOString()"
@@ -165,7 +169,7 @@
         </div>
         <div class="grow transition-transform duration-200 group-hover:translate-x-1">
           <p class="font-brand text-base text-gray-900 dark:text-gray-100">
-            {{ progress >= 100 ? $t('web.STATUS.expired') : $t('web.STATUS.expires') }}
+            {{ progress >= 100 ? t('web.STATUS.expired') : t('web.STATUS.expires') }}
           </p>
 
           <!-- Expiration Progress Bar with Enhanced Design -->

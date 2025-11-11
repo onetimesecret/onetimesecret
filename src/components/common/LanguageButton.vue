@@ -4,7 +4,9 @@
 import HoverTooltip from './HoverTooltip.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { us
+
+const { t } = useI18n();eI18n } from 'vue-i18n';
 
 const { availableLocales } = useI18n();
 
@@ -51,7 +53,7 @@ const cycleValue = () => {
 
 <template>
   <div class="relative group">
-    <HoverTooltip>{{ $t('language') }}</HoverTooltip>
+    <HoverTooltip>{{ t('language') }}</HoverTooltip>
     <button
       type="button"
       @click="cycleValue"
@@ -63,7 +65,7 @@ const cycleValue = () => {
              dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700
              dark:focus:ring-brand-400 dark:focus:ring-offset-0
              transition-all duration-200"
-      :aria-label="$t('current-label-modelvalue-click-to-cycle-through-options', [displayValue])"
+      :aria-label="t('current-label-modelvalue-click-to-cycle-through-options', [displayValue])"
     >
       <div class="relative size-5 text-gray-700 dark:text-gray-200">
       {{ modelValue }}

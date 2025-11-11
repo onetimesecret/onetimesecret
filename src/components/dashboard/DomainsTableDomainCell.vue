@@ -1,6 +1,10 @@
 <!-- src/components/dashboard/DomainsTableDomainCell.vue -->
 
 <script setup lang="ts">
+import { us
+
+const { t } = useI18n();eI18n } from 'vue-i18n';
+
   import { formatDistanceToNow } from 'date-fns';
   import type { CustomDomain } from '@/schemas/models/domain';
   import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
@@ -37,7 +41,7 @@
         target="_blank"
         rel="noopener noreferrer"
         class="inline-flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-        :title="$t('open-domain-in-new-tab')">
+        :title="t('open-domain-in-new-tab')">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-4 w-4"
@@ -60,7 +64,7 @@
 
       <span class="text-xs text-gray-500 dark:text-gray-400">
         {{
-          $t('added-formatdistancetonow-domain-created-addsuffix-true', [
+          t('added-formatdistancetonow-domain-created-addsuffix-true', [
             formatDistanceToNow(domain.created, { addSuffix: true }),
           ])
         }}

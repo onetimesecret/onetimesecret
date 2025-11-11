@@ -1,9 +1,12 @@
 <!-- src/components/auth/SignInForm.vue -->
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { useAuth } from '@/composables/useAuth';
 import LockoutAlert from '@/components/auth/LockoutAlert.vue';
-import { ref } from 'vue';
+im
+
+const { t } = useI18n();port { ref } from 'vue';
 
 export interface Props {
   enabled?: boolean;
@@ -55,7 +58,7 @@ const handleSubmit = async () => {
       <div>
         <label
           for="email-address"
-          class="sr-only">{{ $t('email-address') }}</label>
+          class="sr-only">{{ t('email-address') }}</label>
         <input
           id="email-address"
           name="email"
@@ -72,7 +75,7 @@ const handleSubmit = async () => {
                       disabled:opacity-50 disabled:cursor-not-allowed
                       dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                       dark:focus:border-brand-500 dark:focus:ring-brand-500"
-          :placeholder="$t('email-address')"
+          :placeholder="t('email-address')"
           v-model="email"
         />
       </div>
@@ -81,7 +84,7 @@ const handleSubmit = async () => {
       <div class="relative">
         <label
           for="password"
-          class="sr-only">{{ $t('web.COMMON.field_password') }}</label>
+          class="sr-only">{{ t('web.COMMON.field_password') }}</label>
         <input
           id="password"
           :type="showPassword ? 'text' : 'password'"
@@ -98,7 +101,7 @@ const handleSubmit = async () => {
                  disabled:opacity-50 disabled:cursor-not-allowed
                  dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                  dark:focus:border-brand-500 dark:focus:ring-brand-500"
-          :placeholder="$t('web.COMMON.field_password')"
+          :placeholder="t('web.COMMON.field_password')"
           v-model="password"
         />
         <button
@@ -152,7 +155,7 @@ const handleSubmit = async () => {
         <label
           for="remember-me"
           class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
-          {{ $t('web.login.remember_me') }}
+          {{ t('web.login.remember_me') }}
         </label>
       </div>
     </div>
@@ -171,8 +174,8 @@ const handleSubmit = async () => {
                      focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
                      disabled:opacity-50 disabled:cursor-not-allowed
                      dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800">
-        <span v-if="isLoading">{{ $t('web.COMMON.processing') || 'Processing...' }}</span>
-        <span v-else>{{ $t('web.login.button_sign_in') }}</span>
+        <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
+        <span v-else>{{ t('web.login.button_sign_in') }}</span>
       </button>
     </div>
   </form>

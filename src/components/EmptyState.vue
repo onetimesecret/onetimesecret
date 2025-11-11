@@ -1,6 +1,10 @@
 <!-- src/components/EmptyState.vue -->
 
 <script setup lang="ts">
+import { us
+
+const { t } = useI18n();eI18n } from 'vue-i18n';
+
 defineProps<{
   actionRoute?: string;
   actionText?: string;
@@ -24,13 +28,13 @@ defineProps<{
     </div>
     <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">
       <slot name="title">
-        {{ $t('web.dashboard.title_no_recent_secrets') }}
+        {{ t('web.dashboard.title_no_recent_secrets') }}
       </slot>
     </h3>
     <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
       <slot name="description">
-        <div>{{ $t('web.dashboard.get-started-by-creating-your-first-secret') }}</div>
-        <div>{{ $t('theyll-appear-here-once-youve-shared-them') }}</div>
+        <div>{{ t('web.dashboard.get-started-by-creating-your-first-secret') }}</div>
+        <div>{{ t('theyll-appear-here-once-youve-shared-them') }}</div>
       </slot>
     </p>
     <div class="mt-6">
