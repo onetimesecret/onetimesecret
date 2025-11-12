@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 withDefaults(defineProps<{
   title: string;
@@ -51,7 +54,7 @@ const cancel = () => {
         <button
           @click="cancel"
           class="rounded px-4 py-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
-          {{ $t(cancelText) }}
+          {{ t(cancelText) }}
         </button>
         <button
           @click="confirm"
@@ -61,7 +64,7 @@ const cancel = () => {
               ? 'bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700'
               : 'bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700'
           ]">
-          <span class="font-bold">{{ $t(confirmText) }}</span>
+          <span class="font-bold">{{ t(confirmText) }}</span>
         </button>
       </div>
     </div>

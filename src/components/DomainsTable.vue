@@ -1,4 +1,5 @@
-<script setup lang="ts">
+<script setup lang="ts">import { useI18n } from 'vue-i18n';
+
   import DomainsTableDomainCell from '@/components/dashboard/DomainsTableDomainCell.vue';
   import DomainsTableActionsCell from '@/components/dashboard/DomainsTableActionsCell.vue';
   import ToggleWithIcon from '@/components/common/ToggleWithIcon.vue';
@@ -6,6 +7,8 @@
   import { useConfirmDialog } from '@vueuse/core';
 
   import { useDomainsManager } from '@/composables/useDomainsManager';
+
+const { t } = useI18n();
 
   const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
 
@@ -60,10 +63,10 @@
           <h1
             id="domains-heading"
             class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-            {{ $t('domains') }}
+            {{ t('domains') }}
           </h1>
           <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {{ $t('manage-and-configure-your-verified-custom-domains') }}
+            {{ t('manage-and-configure-your-verified-custom-domains') }}
           </p>
         </div>
         <router-link
@@ -73,7 +76,7 @@
             name="plus-20-solid"
             collection="heroicons"
             class="mr-2 size-5" />
-          {{ $t('add-domain') }}
+          {{ t('add-domain') }}
         </router-link>
       </div>
 
@@ -85,13 +88,13 @@
               <th
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
-                <span class="uppercase">{{ $t('domain') }} &amp; {{ $t('status') }}</span>
+                <span class="uppercase">{{ t('domain') }} &amp; {{ t('status') }}</span>
               </th>
               <th
                 scope="col"
                 class="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
                 <div class="flex items-center justify-center">
-                  <span class="uppercase">{{ $t('homepage-access') }}</span>
+                  <span class="uppercase">{{ t('homepage-access') }}</span>
                   <div class="group relative ml-2">
                     <OIcon
                       collection="heroicons"
@@ -99,7 +102,7 @@
                       class="size-4 text-gray-400 transition-colors duration-200 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300" />
                     <div
                       class="invisible absolute z-10 -ml-24 mt-2 w-48 rounded-md bg-white p-2 text-xs text-gray-900 shadow-lg ring-1 ring-black/5 transition-opacity duration-200 group-hover:visible dark:bg-gray-800 dark:text-gray-100 dark:shadow-gray-900/50 dark:ring-white/10">
-                      {{ $t('control-whether-users-can-create-secret-links') }}
+                      {{ t('control-whether-users-can-create-secret-links') }}
                     </div>
                   </div>
                 </div>
@@ -108,7 +111,7 @@
               <th
                 scope="col"
                 class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                {{ $t('web.LABELS.actions') }}
+                {{ t('web.LABELS.actions') }}
               </th>
             </tr>
           </thead>
@@ -151,8 +154,8 @@
       v-if="isRevealed"
       @confirm="confirm"
       @cancel="cancel"
-      :title="$t('remove-domain')"
-      :message="$t('are-you-sure-you-want-to-remove-this-domain')"
+      :title="t('remove-domain')"
+      :message="t('are-you-sure-you-want-to-remove-this-domain')"
       type="danger" />
   </div>
 </template>

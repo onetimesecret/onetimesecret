@@ -58,10 +58,10 @@ const verify = async () => {
 <template>
   <div class="mx-auto max-w-2xl rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
     <h2 class="mb-4 text-2xl font-bold text-gray-800 dark:text-white">
-      {{ $t('domain-verification-steps') }}
+      {{ t('domain-verification-steps') }}
     </h2>
     <p class="mb-6 text-lg text-gray-600 dark:text-gray-300">
-      {{ $t('follow-these-steps-to-verify-domain-ownership-an') }}
+      {{ t('follow-these-steps-to-verify-domain-ownership-an') }}
     </p>
 
     <BasicFormAlerts
@@ -93,24 +93,24 @@ const verify = async () => {
     <ol class="mb-8 space-y-6">
       <li class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ $t('1-create-a-txt-record') }}
+          {{ t('1-create-a-txt-record') }}
         </h3>
         <p class="mb-2 text-gray-600 dark:text-gray-300">
-          {{ $t('add-this-hostname-to-your-dns-configuration') }}
+          {{ t('add-this-hostname-to-your-dns-configuration') }}
         </p>
 
         <div class="rounded-lg border border-gray-200 divide-y divide-gray-200 bg-white dark:bg-gray-600 dark:border-gray-700 dark:divide-gray-700">
           <DetailField
-            :label="$t('type')"
+            :label="t('type')"
             value="TXT"
           />
           <DetailField
-            :label="$t('host')"
+            :label="t('host')"
             :value="domain.txt_validation_host"
             :appendix="`.${domain.base_domain}`"
           />
           <DetailField
-            :label="$t('value')"
+            :label="t('value')"
             :value="domain.txt_validation_value"
           />
         </div>
@@ -119,21 +119,21 @@ const verify = async () => {
         v-if="domain?.is_apex"
         class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ $t('2-create-the-a-record') }}
+          {{ t('2-create-the-a-record') }}
         </h3>
 
         <div class="rounded-lg border border-gray-200 divide-y divide-gray-200 bg-white dark:bg-gray-600 dark:border-gray-700 dark:divide-gray-700">
           <DetailField
-            :label="$t('type-0')"
+            :label="t('type-0')"
             value="A"
           />
           <DetailField
-            :label="$t('host')"
+            :label="t('host')"
             :value="domain?.trd ? domain.trd : '@'"
             :appendix="domain?.base_domain"
           />
           <DetailField
-            :label="$t('value')"
+            :label="t('value')"
             :value="cluster?.cluster_ip ?? ''"
           />
         </div>
@@ -142,43 +142,43 @@ const verify = async () => {
         v-else
         class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ $t('2-create-the-cname-record') }}
+          {{ t('2-create-the-cname-record') }}
         </h3>
 
         <div class="rounded-lg border border-gray-200 divide-y divide-gray-200 bg-white dark:bg-gray-600 dark:border-gray-700 dark:divide-gray-700">
           <DetailField
             v-if="domain?.is_apex"
-            :label="$t('type')"
+            :label="t('type')"
             value="A"
           />
           <DetailField
             v-else
-            :label="$t('type')"
+            :label="t('type')"
             value="CNAME"
           />
           <DetailField
-            :label="$t('host')"
+            :label="t('host')"
             :value="domain?.trd ? domain.trd : '@'"
             :appendix="`.${domain?.base_domain}`"
           />
           <DetailField
             v-if="domain?.is_apex"
-            :label="$t('value')"
+            :label="t('value')"
             :value="cluster?.cluster_ip ?? ''"
           />
           <DetailField
             v-else
-            :label="$t('value')"
+            :label="t('value')"
             :value="cluster?.cluster_host ?? ''"
           />
         </div>
       </li>
       <li class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ $t('3-wait-for-propagation') }}
+          {{ t('3-wait-for-propagation') }}
         </h3>
         <p class="text-gray-600 dark:text-gray-300">
-          {{ $t('dns-changes-can-take-as-little-as-60-seconds-or-') }}
+          {{ t('dns-changes-can-take-as-little-as-60-seconds-or-') }}
         </p>
       </li>
     </ol>
@@ -191,7 +191,7 @@ const verify = async () => {
         aria-hidden="true"
       />
       <p class="text-sm text-gray-500 dark:text-gray-400">
-        {{ $t('it-may-take-a-few-minutes-for-your-ssl-certifica') }}
+        {{ t('it-may-take-a-few-minutes-for-your-ssl-certifica') }}
       </p>
     </div>
   </div>

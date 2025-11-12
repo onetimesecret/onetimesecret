@@ -1,11 +1,14 @@
 <!-- src/components/GlobalBroadcast.vue -->
 
-<script setup lang="ts">
+<script setup lang="ts">import { useI18n } from 'vue-i18n';
+
   import MovingGlobules from '@/components/MovingGlobules.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import DOMPurify from 'dompurify';
   import { computed } from 'vue';
   import { useDismissableBanner } from '@/composables/useDismissableBanner';
+
+const { t } = useI18n();
 
   export interface Props {
     content: string | null; // Can contain HTML
@@ -141,7 +144,7 @@
         type="button"
         @click="dismiss"
         class="-m-3 p-3 focus-visible:outline-offset-[-4px]">
-        <span class="sr-only">{{ $t('web.LABELS.dismiss') }}</span>
+        <span class="sr-only">{{ t('web.LABELS.dismiss') }}</span>
         <OIcon
           collection="heroicons"
           name="x-mark-16-solid"
