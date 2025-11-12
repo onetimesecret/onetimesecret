@@ -118,7 +118,7 @@
           <span
             v-if="jurisdictionStore.enabled"
             class="mr-1">
-            {{ $t('serving-you-from-the') }}:
+            {{ t('serving-you-from-the') }}:
             <span>{{ currentJurisdiction.display_name }}</span>
           </span>
         </p>
@@ -141,8 +141,8 @@
           <RouterLink
             to="/"
             class="inline-flex items-center text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-400"
-            :aria-label="$t('return-to-home-page')">
-            <span>{{ $t('return-home') }}</span>
+            :aria-label="t('return-to-home-page')">
+            <span>{{ t('return-home') }}</span>
           </RouterLink>
         </div>
       </div>

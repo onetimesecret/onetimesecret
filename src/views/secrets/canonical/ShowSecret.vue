@@ -1,6 +1,7 @@
 <!-- src/views/secrets/canonical/ShowSecret.vue -->
 
-<script setup lang="ts">
+<script setup lang="ts">import { useI18n } from 'vue-i18n';
+
   /**
    * Core Onetime Secret implementation that uses distinct layouts for confirmation
    * and reveal states to optimize for marketing and user acquisition.
@@ -23,6 +24,8 @@
   import {  nextTick } from 'vue';
 
   import UnknownSecret from './UnknownSecret.vue';
+
+const { t } = useI18n();
 
   defineProps<Props>();
 
@@ -71,7 +74,7 @@
             border-4 border-brand-500 border-t-transparent"
           role="status"
           aria-live="polite">
-          <span class="sr-only">{{ $t('web.COMMON.loading') }}</span>
+          <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
         </div>
       </div>
     </template>
@@ -98,11 +101,11 @@
               hover:text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500
               dark:hover:text-amber-50"
             @click="closeWarning"
-            :aria-label="$t('dismiss-warning')">
+            :aria-label="t('dismiss-warning')">
             <span aria-hidden="true" class="text-lg">&times;</span>
           </button>
-          <strong class="font-medium">{{ $t('web.COMMON.warning') }}:</strong>
-          {{ $t('web.shared.you_created_this_secret') }}
+          <strong class="font-medium">{{ t('web.COMMON.warning') }}:</strong>
+          {{ t('web.shared.you_created_this_secret') }}
         </div>
 
         <div
@@ -117,10 +120,10 @@
               hover:text-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-500
               dark:hover:text-brand-50"
             @click="closeWarning"
-            :aria-label="$t('dismiss-notification')">
+            :aria-label="t('dismiss-notification')">
             <span aria-hidden="true" class="text-lg">&times;</span>
           </button>
-          {{ $t('web.shared.viewed_own_secret') }}
+          {{ t('web.shared.viewed_own_secret') }}
         </div>
       </template>
     </template>

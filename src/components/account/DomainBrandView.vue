@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
   heading: string;
@@ -52,7 +55,7 @@ const backgroundIcon = computed(() => props.defaultIcon);
           <img
             v-if="logoPreview"
             :src="logoPreview"
-            :alt="$t('heading-logo', [heading])"
+            :alt="t('heading-logo', [heading])"
             class="max-h-full max-w-full rounded-md object-contain"
           />
           <OIcon
@@ -96,7 +99,7 @@ const backgroundIcon = computed(() => props.defaultIcon);
           {{ heading }}
         </h1>
         <p class="text-lg text-gray-600 dark:text-gray-400">
-          {{ $t('customize-your-domain-branding') }}
+          {{ t('customize-your-domain-branding') }}
         </p>
       </div>
 
@@ -109,7 +112,7 @@ const backgroundIcon = computed(() => props.defaultIcon);
           class="mb-4 border-l-4 border-red-500 bg-red-100 p-4 text-red-700"
           role="alert">
           <p class="font-bold">
-            {{ $t('web.COMMON.error') }}
+            {{ t('web.COMMON.error') }}
           </p>
           <p>{{ error }}</p>
         </div>
@@ -118,7 +121,7 @@ const backgroundIcon = computed(() => props.defaultIcon);
           class="mb-4 border-l-4 border-green-500 bg-green-100 p-4 text-green-700"
           role="alert">
           <p class="font-bold">
-            {{ $t('web.STATUS.success') }}
+            {{ t('web.STATUS.success') }}
           </p>
           <p>{{ success }}</p>
         </div>

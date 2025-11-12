@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { LockoutStatus } from '@/types/auth';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
   lockout?: LockoutStatus | null;
@@ -48,16 +51,16 @@ const hasAttemptsRemaining = computed(() =>
         <i class="fas fa-lock mr-3 mt-0.5 text-red-600 dark:text-red-400"></i>
         <div class="flex-1">
           <h3 class="font-semibold text-red-800 dark:text-red-300">
-            {{ $t('web.auth.lockout.account-locked') }}
+            {{ t('web.auth.lockout.account-locked') }}
           </h3>
           <p class="mt-1 text-sm text-red-700 dark:text-red-400">
             <span v-if="lockout.unlock_at">
-              {{ $t('web.auth.lockout.locked-until', { time: lockoutTimeRemaining }) }}
+              {{ t('web.auth.lockout.locked-until', { time: lockoutTimeRemaining }) }}
             </span>
           </p>
           <div class="mt-3 space-y-1 text-sm text-red-700 dark:text-red-400">
-            <p>{{ $t('web.auth.lockout.try-password-reset') }}</p>
-            <p class="text-xs">{{ $t('web.auth.lockout.contact-support') }}</p>
+            <p>{{ t('web.auth.lockout.try-password-reset') }}</p>
+            <p class="text-xs">{{ t('web.auth.lockout.contact-support') }}</p>
           </div>
         </div>
       </div>
@@ -73,10 +76,10 @@ const hasAttemptsRemaining = computed(() =>
         <i class="fas fa-exclamation-triangle mr-3 mt-0.5 text-yellow-600 dark:text-yellow-400"></i>
         <div class="flex-1">
           <p class="font-medium text-yellow-800 dark:text-yellow-300">
-            {{ $t('web.auth.lockout.attempts-remaining', { count: lockout.attempts_remaining }) }}
+            {{ t('web.auth.lockout.attempts-remaining', { count: lockout.attempts_remaining }) }}
           </p>
           <p class="mt-1 text-sm text-yellow-700 dark:text-yellow-400">
-            {{ $t('web.auth.lockout.try-password-reset') }}
+            {{ t('web.auth.lockout.try-password-reset') }}
           </p>
         </div>
       </div>

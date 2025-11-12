@@ -5,6 +5,9 @@ import OIcon from '@/components/icons/OIcon.vue';
 import LockoutAlert from '@/components/auth/LockoutAlert.vue';
 import { useAuth } from '@/composables/useAuth';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 export interface Props {
   enabled?: boolean;
@@ -60,7 +63,7 @@ const handleSubmit = async () => {
         <label
           for="email-address"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          {{ $t('web.COMMON.field_email') }}
+          {{ t('web.COMMON.field_email') }}
         </label>
         <input
           id="email-address"
@@ -80,7 +83,7 @@ const handleSubmit = async () => {
                       disabled:opacity-50 disabled:cursor-not-allowed
                       dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                       dark:focus:border-brand-500 dark:focus:ring-brand-500"
-          :placeholder="$t('email-address')"
+          :placeholder="t('email-address')"
           v-model="email"
         />
       </div>
@@ -90,7 +93,7 @@ const handleSubmit = async () => {
         <label
           for="password"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          {{ $t('web.COMMON.field_password') }}
+          {{ t('web.COMMON.field_password') }}
         </label>
         <div class="relative">
           <input
@@ -111,14 +114,14 @@ const handleSubmit = async () => {
                    disabled:opacity-50 disabled:cursor-not-allowed
                    dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                    dark:focus:border-brand-500 dark:focus:ring-brand-500"
-            :placeholder="$t('web.COMMON.field_password')"
+            :placeholder="t('web.COMMON.field_password')"
             v-model="password"
           />
           <button
             type="button"
             @click="togglePasswordVisibility"
             :disabled="isLoading"
-            :aria-label="showPassword ? $t('web.COMMON.hide-password') : $t('web.COMMON.show-password')"
+            :aria-label="showPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')"
             class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50">
               <OIcon
                 collection="heroicons"
@@ -151,18 +154,18 @@ const handleSubmit = async () => {
         <label
           for="remember-me"
           class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
-          {{ $t('web.login.remember_me') }}
+          {{ t('web.login.remember_me') }}
         </label>
         <span id="remember-me-description" class="sr-only">
-          {{ $t('web.COMMON.remember-me-description') }}
+          {{ t('web.COMMON.remember-me-description') }}
         </span>
       </div>
 
       <router-link
         to="/forgot"
         class="text-sm text-gray-600 transition duration-300 ease-in-out hover:underline dark:text-gray-400"
-        :aria-label="$t('forgot-password')">
-        {{ $t('web.login.forgot_your_password') }}
+        :aria-label="t('forgot-password')">
+        {{ t('web.login.forgot_your_password') }}
       </router-link>
     </div>
 
@@ -180,15 +183,15 @@ const handleSubmit = async () => {
                      focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
                      disabled:opacity-50 disabled:cursor-not-allowed
                      dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800">
-        <span v-if="isLoading">{{ $t('web.COMMON.processing') || 'Processing...' }}</span>
-        <span v-else>{{ $t('web.login.button_sign_in') }}</span>
+        <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
+        <span v-else>{{ t('web.login.button_sign_in') }}</span>
       </button>
       <!-- Loading state announcement (screen reader only) -->
       <div v-if="isLoading"
 aria-live="polite"
 aria-atomic="true"
 class="sr-only">
-        {{ $t('web.COMMON.form-processing') }}
+        {{ t('web.COMMON.form-processing') }}
       </div>
     </div>
   </form>

@@ -1,6 +1,7 @@
 <!-- src/components/base/BaseShowSecret.vue -->
 
-<script setup lang="ts">
+<script setup lang="ts">import { useI18n } from 'vue-i18n';
+
   /**
    * Base component for secret display implementations
    * Provides core secret loading/display logic and structural slots for customization
@@ -20,6 +21,8 @@
   import { useSecret } from '@/composables/useSecret';
   import { onMounted } from 'vue';
   import { onBeforeRouteUpdate } from 'vue-router';
+
+const { t } = useI18n();
 
   export interface Props {
     secretIdentifier: string;
@@ -52,7 +55,7 @@
   <main
     class="grid min-h-screen grid-rows-[auto_minmax(0,max-content)_auto] gap-4"
     role="main"
-    :aria-label="$t('secret-viewing-page')">
+    :aria-label="t('secret-viewing-page')">
     <header
       v-if="$slots.header"
       class="w-full bg-white dark:bg-gray-900">

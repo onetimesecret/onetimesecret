@@ -92,7 +92,7 @@
         class="mb-3 size-10 text-gray-400 dark:text-gray-500"
         aria-hidden="true" />
       <p class="text-gray-500 dark:text-gray-400">
-        {{ $t('web.dashboard.title_no_recent_secrets') }}
+        {{ t('web.dashboard.title_no_recent_secrets') }}
       </p>
     </div>
 
@@ -109,7 +109,7 @@
           v-if="false"
           class="flex justify-between bg-gray-50 p-2 dark:bg-slate-800">
           <span class="text-xs text-gray-500 dark:text-gray-400">
-            {{ $t('web.LABELS.last_refreshed') }}: {{ lastRefreshed.toLocaleTimeString() }}
+            {{ t('web.LABELS.last_refreshed') }}: {{ lastRefreshed.toLocaleTimeString() }}
           </span>
           <!-- prettier-ignore-attribute class -->
           <button
@@ -121,7 +121,7 @@
               collection="heroicons"
               name="arrow-path"
               class="mr-1 size-4" />
-            {{ $t('web.LABELS.refresh') }}
+            {{ t('web.LABELS.refresh') }}
           </button>
         </div>
 
@@ -130,7 +130,7 @@
           class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
           :aria-labelledby="ariaLabelledBy">
           <caption class="sr-only">
-            {{ $t('web.LABELS.caption_recent_secrets') }}
+            {{ t('web.LABELS.caption_recent_secrets') }}
           </caption>
           <thead class="bg-gray-50 dark:bg-slate-800">
             <tr>
@@ -139,21 +139,21 @@
                 scope="col"
                 class="px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
                   text-gray-700 dark:text-gray-400">
-                {{ $t('web.LABELS.receipts') }}
+                {{ t('web.LABELS.receipts') }}
               </th>
               <!-- prettier-ignore-attribute class -->
               <th
                 scope="col"
                 class="hidden px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
                   text-gray-700 dark:text-gray-400 sm:table-cell">
-                {{ $t('web.LABELS.details') }}
+                {{ t('web.LABELS.details') }}
               </th>
               <!-- prettier-ignore-attribute class -->
               <th
                 scope="col"
                 class="px-6 py-2.5 text-right text-xs font-medium uppercase tracking-wider
                   text-gray-700 dark:text-gray-400">
-                {{ $t('web.LABELS.share') }}
+                {{ t('web.LABELS.share') }}
               </th>
             </tr>
           </thead>

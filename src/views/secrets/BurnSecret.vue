@@ -1,9 +1,12 @@
 <!-- src/views/secrets/BurnSecret.vue -->
 
-<script setup lang="ts">
+<script setup lang="ts">import { useI18n } from 'vue-i18n';
+
   import OIcon from '@/components/icons/OIcon.vue';
   import { useMetadata } from '@/composables/useMetadata';
   import { onMounted } from 'vue';
+
+const { t } = useI18n();
 
   interface Props {
     metadataIdentifier: string;
@@ -28,7 +31,7 @@
       aria-busy="true">
       <div class="h-20 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
       <div class="mx-auto h-10 w-3/4 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
-      <span class="sr-only">{{ $t('web.COMMON.loading') }}</span>
+      <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
     </div>
 
     <!-- Destroyed/Invalid State -->
@@ -48,12 +51,12 @@
           class="size-6 text-red-500 dark:text-red-400" />
         <p class="text-base font-medium text-red-800 dark:text-red-200">
           <template v-if="record?.is_received">
-            {{ $t('viewed-on-record-received', [record?.received]) }}
+            {{ t('viewed-on-record-received', [record?.received]) }}
           </template>
           <template v-else-if="record?.is_burned">
-            {{ $t('deleted-on-record-burned', [record?.burned]) }}
+            {{ t('deleted-on-record-burned', [record?.burned]) }}
           </template>
-          <template v-else> {{ $t('permanently-deleted') }} </template>
+          <template v-else> {{ t('permanently-deleted') }} </template>
         </p>
       </div>
 
@@ -69,8 +72,8 @@
             hover:bg-gray-200
             focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-700
             dark:text-gray-200 dark:hover:bg-gray-600"
-          :aria-label="$t('back-to-details')">
-          {{ $t('back-to-details') }}
+          :aria-label="t('back-to-details')">
+          {{ t('back-to-details') }}
         </router-link>
         <!-- prettier-ignore-attribute class -->
         <router-link
@@ -81,7 +84,7 @@
             hover:bg-red-700
             focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
             dark:bg-red-700 dark:hover:bg-red-600">
-          {{ $t('web.LABELS.create_new_secret') }}
+          {{ t('web.LABELS.create_new_secret') }}
         </router-link>
       </div>
     </div>
@@ -92,10 +95,10 @@
         <h1
           v-if="details?.has_passphrase"
           class="mt-2 text-2xl font-semibold text-gray-800 dark:text-gray-200">
-          {{ $t('web.COMMON.burn_this_secret_aria') }}
+          {{ t('web.COMMON.burn_this_secret_aria') }}
         </h1>
         <h2 class="text-xl text-gray-600 dark:text-gray-400">
-          {{ $t('web.COMMON.secret') }}: {{ record?.secret_shortid }}
+          {{ t('web.COMMON.secret') }}: {{ record?.secret_shortid }}
         </h2>
       </div>
 
@@ -106,7 +109,7 @@
           <label
             for="passField"
             class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ $t('web.COMMON.enter_passphrase_here') }}
+            {{ t('web.COMMON.enter_passphrase_here') }}
           </label>
           <!-- prettier-ignore-attribute class -->
           <input
@@ -134,7 +137,7 @@
             name="heroicons-fire-20-solid"
             class="mr-1 size-5 transition-all group-hover:rotate-12 group-hover:scale-125"
             aria-hidden="true" />
-          {{ $t('web.COMMON.word_confirm') }}: {{ $t('web.COMMON.burn_this_secret') }}
+          {{ t('web.COMMON.word_confirm') }}: {{ t('web.COMMON.burn_this_secret') }}
         </button>
         <!-- prettier-ignore-attribute class -->
         <a
@@ -142,13 +145,13 @@
           class="mx-auto block w-3/4 rounded bg-gray-200 px-4 py-2 text-center
             text-gray-700 transition duration-200 hover:bg-gray-300
             dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-          {{ $t('web.COMMON.word_cancel') }}
+          {{ t('web.COMMON.word_cancel') }}
         </a>
         <div class="py-6"></div>
         <p
           id="burn-action-description"
           class="text-center text-base text-gray-600 dark:text-gray-400">
-          {{ $t('web.COMMON.burn_this_secret_confirm_hint') }}
+          {{ t('web.COMMON.burn_this_secret_confirm_hint') }}
         </p>
         <div class="my-6 py-12"></div>
       </form>

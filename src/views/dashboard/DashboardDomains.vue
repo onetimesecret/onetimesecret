@@ -6,7 +6,10 @@ import EmptyState from '@/components/EmptyState.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { computed, onMounted } from 'vue';
 import type { CustomDomain } from '@/schemas/models';
+import { useI18n } from 'vue-i18n';
 import TableSkeleton from '@/components/closet/TableSkeleton.vue'
+
+const { t } = useI18n();
 
 const {
   isLoading,
@@ -47,10 +50,10 @@ onMounted(() => {
         actionRoute="/domains/add"
         actionText="Add a Domain">
         <template #title>
-          {{ $t('no-domains-found') }}
+          {{ t('no-domains-found') }}
         </template>
         <template #description>
-        {{ $t('get-started-by-adding-a-custom-domain') }}
+        {{ t('get-started-by-adding-a-custom-domain') }}
         </template>
       </EmptyState>
     </div>

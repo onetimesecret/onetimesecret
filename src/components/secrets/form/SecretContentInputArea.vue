@@ -1,9 +1,12 @@
 <!-- src/components/secrets/form/SecretContentInputArea.vue -->
 
-<script setup lang="ts">
+<script setup lang="ts">import { useI18n } from 'vue-i18n';
+
   import { useCharCounter } from '@/composables/useCharCounter';
   import { useTextarea } from '@/composables/useTextarea';
   import { computed, watch } from 'vue';
+
+const { t } = useI18n();
 
   const props = withDefaults(
     defineProps<{
@@ -63,7 +66,7 @@
       id="textarea-focus-announcement"
       aria-live="polite"
       class="sr-only">
-      {{ $t('focus-is-now-in-the-main-text-area') }}
+      {{ t('focus-is-now-in-the-main-text-area') }}
     </div> -->
     <!-- prettier-ignore-attribute class -->
     <textarea
@@ -85,8 +88,8 @@
         dark:text-white dark:placeholder:text-gray-500
         dark:focus:border-blue-400 dark:focus:ring-blue-400
       "
-      :placeholder="$t('web.COMMON.secret_placeholder')"
-      :aria-label="$t('enter-the-secret-content-here')">
+      :placeholder="t('web.COMMON.secret_placeholder')"
+      :aria-label="t('enter-the-secret-content-here')">
     </textarea>
 
     <!--

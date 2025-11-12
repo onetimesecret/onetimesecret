@@ -4,6 +4,9 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { WindowService } from '@/services/window.service';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const isLoading = ref(false);
 
@@ -42,7 +45,7 @@ const handleThemeChange = async (isDark: boolean) => {
       <h3
         id="appearance-heading"
         class="mb-2 text-lg font-semibold text-gray-900 dark:text-white sm:mb-4">
-        {{ $t('appearance') }}
+        {{ t('appearance') }}
       </h3>
       <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800 sm:p-4">
         <div class="flex items-start justify-between gap-2 rounded p-2 sm:flex-row sm:items-center sm:gap-4">
@@ -54,7 +57,7 @@ const handleThemeChange = async (isDark: boolean) => {
               aria-hidden="true"
             />
             <span class="truncate text-sm font-medium text-gray-700 dark:text-gray-300">
-              {{ $t('theme') }}
+              {{ t('theme') }}
             </span>
           </div>
           <ThemeToggle
@@ -79,7 +82,7 @@ const handleThemeChange = async (isDark: boolean) => {
       <h3
         id="language-heading"
         class="mb-2 text-lg font-semibold text-gray-900 dark:text-white sm:mb-4">
-        {{ $t('language') }}
+        {{ t('language') }}
       </h3>
       <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800 sm:p-4">
         <LanguageToggle
@@ -90,30 +93,30 @@ const handleThemeChange = async (isDark: boolean) => {
         />
         <div class="prose prose-sm prose-gray mt-4 max-w-none space-y-3 dark:prose-invert sm:mt-6 sm:space-y-4">
           <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
-            {{ $t('as-we-add-new-features-our-translations-graduall') }}
+            {{ t('as-we-add-new-features-our-translations-graduall') }}
           </p>
 
           <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
-            {{ $t('were-grateful-to-the') }}
+            {{ t('were-grateful-to-the') }}
             <router-link
               to="/translations"
               @click="$emit('close')"
               class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 focus-visible:ring-primary-500 -mx-2 inline-block px-2 py-1 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
-              {{ $t('25-contributors') }}
+              {{ t('25-contributors') }}
             </router-link>
-            {{ $t('whove-helped-with-translations-as-we-continue-to') }}
+            {{ t('whove-helped-with-translations-as-we-continue-to') }}
           </p>
 
           <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
-            {{ $t('if-youre-interested-in-translation') }}
+            {{ t('if-youre-interested-in-translation') }}
             <a
               href="https://github.com/onetimesecret/onetimesecret"
               target="_blank"
               rel="noopener noreferrer"
               class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 focus-visible:ring-primary-500 -mx-2 inline-block px-2 py-1 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
-              {{ $t('our-github-project') }}
+              {{ t('our-github-project') }}
             </a>
-            {{ $t('welcomes-contributors-for-both-existing-and-new-') }}
+            {{ t('welcomes-contributors-for-both-existing-and-new-') }}
           </p>
         </div>
       </div>

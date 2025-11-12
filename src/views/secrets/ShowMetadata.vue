@@ -1,6 +1,7 @@
 <!-- src/views/secrets/ShowMetadata.vue -->
 
-<script setup lang="ts">
+<script setup lang="ts">import { useI18n } from 'vue-i18n';
+
   import MetadataSkeleton from '@/components/closet/MetadataSkeleton.vue';
   import CopyButton from '@/components/CopyButton.vue';
   import OIcon from '@/components/icons/OIcon.vue';
@@ -15,6 +16,8 @@
   import { onMounted, onUnmounted, watch, computed, ref } from 'vue';
 
   import UnknownMetadata from './UnknownMetadata.vue';
+
+const { t } = useI18n();
 
   // Define props
   interface Props {
@@ -91,7 +94,7 @@
           collection="heroicons"
           name="arrow-left"
           size="6" />
-        {{ $t('back') }}
+        {{ t('back') }}
       </button>
 
       <MetadataSkeleton v-if="isLoading" />
@@ -130,7 +133,7 @@
                 collection="material-symbols"
                 name="mail-outline"
                 class="mr-2 size-5 text-brand-500 dark:text-brand-400" />
-              {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
+              {{ t('web.COMMON.sent_to') }} {{ record.recipients }}
             </h3>
           </div>
 
@@ -162,7 +165,7 @@
                   name="warning"
                   class="size-4 shrink-0 text-amber-600 dark:text-amber-400"
                   aria-hidden="true" />
-                {{ $t('web.private.only_see_once') }}
+                {{ t('web.private.only_see_once') }}
               </p>
               <CopyButton
                 v-if="details.secret_value"
@@ -194,7 +197,7 @@
               <span
                 class="rounded-full bg-slate-300/50 px-2 py-1
                 text-xs font-medium dark:bg-slate-700/50">
-                {{ $t('web.LABELS.encrypted') }}
+                {{ t('web.LABELS.encrypted') }}
               </span>
             </div>
           </section>
@@ -212,7 +215,7 @@
                   name="history"
                   class="mr-2"
                   size="5" />
-                {{ $t('web.LABELS.timeline') }}
+                {{ t('web.LABELS.timeline') }}
               </h2>
               <StatusBadge
                 :record="record"
@@ -234,7 +237,7 @@
             <h2
               id="section-actions"
               class="sr-only">
-              {{ $t('web.LABELS.actions') }}
+              {{ t('web.LABELS.actions') }}
             </h2>
 
             <BurnButtonForm
