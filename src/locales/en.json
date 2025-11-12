@@ -288,7 +288,8 @@
       "sharing_instructions": "Sharing Instructions",
       "share_link_instruction": "Share the link with the intended recipient",
       "share_passphrase_instruction": "Share the passphrase separately through a secure channel",
-      "secure_channel_instruction": "Use a different secure channel to share sensitive information"
+      "secure_channel_instruction": "Use a different secure channel to share sensitive information",
+      "phishing_warning": "Always verify you're on the official Onetime Secret website. Fraudsters sometimes create fake websites that look exactly like Onetime Secret to steal your secrets. To avoid phishing attacks, check the region domain before creating new links."
     },
     "ARIA": {
       "focus-is-now-in-the-main-text-area": "Focus is now in the main text area"
@@ -406,7 +407,8 @@
       "get-started-by-creating-your-first-secret": "Get started by creating your first secret."
     },
     "login": {
-      "need_an_account": "Or, create your account today",
+      "alternate_prefix": "Need an Account?",
+      "need_an_account": "Sign up.",
       "forgot_your_password": "Forgot your password?",
       "button_sign_in": "Sign In",
       "enter_your_credentials": "Enter your credentials",
@@ -414,7 +416,8 @@
     },
     "signup": {
       "create-your-account": "Create Your Account",
-      "have_an_account": "Or, sign in to your account",
+      "alternate_prefix": "Already have an Account?",
+      "have_an_account": "Sign in",
       "error_title": "Account Creation Error",
       "password_error": "Password",
       "email_error": "Email"

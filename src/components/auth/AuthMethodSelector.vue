@@ -51,23 +51,27 @@ function selectMethod(method: AuthMethod) {
     <div
       v-if="showTabs"
       class="mb-6">
-      <nav
-        class="flex space-x-2 rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-800"
-        aria-label="Auth methods">
+      <div
+        role="tablist"
+        class="flex gap-1 rounded-lg border border-gray-200 bg-gray-100 p-1 dark:border-gray-700 dark:bg-gray-900"
+        aria-label="Authentication methods">
         <button
           v-for="method in availableMethods"
           :key="method.key"
+          type="button"
+          role="tab"
           @click="selectMethod(method.key)"
           :class="[
-            'flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all',
+            'flex-1 rounded-md px-3 py-2.5 text-sm font-semibold transition-colors duration-200',
             selectedMethod === method.key
-              ? 'bg-white text-brand-700 shadow-sm dark:bg-gray-700 dark:text-brand-400'
-              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
+              ? 'bg-white text-brand-700 shadow-md ring-1 ring-gray-200 dark:bg-gray-700 dark:text-brand-300 dark:ring-gray-600'
+              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
           ]"
-          :aria-current="selectedMethod === method.key ? 'page' : undefined">
+          :aria-selected="selectedMethod === method.key"
+          :aria-pressed="selectedMethod === method.key ? 'true' : 'false'">
           {{ t(method.label) }}
         </button>
-      </nav>
+      </div>
     </div>
 
     <!-- Render selected auth method -->

@@ -19,16 +19,20 @@
     title?: string | null;
     titleLogo?: string | null;
     featureIcon?: IconConfig;
+    withHeading?: boolean;
     withSubheading?: boolean;
     hideIcon?: boolean;
+    hideBackgroundIcon?: boolean;
   }
 
   // Define props with defaults
   const props = withDefaults(defineProps<Props>(), {
     title: null,
     titleLogo: null,
+    withHeading: true,
     withSubheading: false,
     hideIcon: false,
+    hideBackgroundIcon: false,
     featureIcon: () => ({
       collection: 'material-symbols',
       name: 'mail-lock-outline',
@@ -78,17 +82,16 @@
   <div
     class="relative flex min-h-screen items-start justify-center overflow-hidden bg-gray-50 px-4 pt-12 dark:bg-gray-900 sm:px-6 sm:pt-16 lg:px-8">
     <!-- Background Icon -->
-    <div class="absolute inset-0 overflow-hidden opacity-5 dark:opacity-5">
+    <div v-if="!hideBackgroundIcon" class="absolute inset-0 overflow-hidden opacity-5 dark:opacity-5">
       <OIcon
         :collection="backgroundIcon.collection"
         :name="backgroundIcon.name"
-
         class="blur-x absolute left-1/2 top-32 h-auto w-full -translate-x-1/2 translate-y-0 scale-[9] transform-cpu object-cover object-center backdrop-invert"
         aria-hidden="true" />
     </div>
 
     <!-- Page Title -->
-    <div class="relative z-10 w-full min-w-[320px] max-w-2xl space-y-4">
+    <div class="relative z-10 w-full min-w-[320px] max-w-md space-y-10">
       <!-- Title Icon -->
       <div v-if="!hideIcon" class="flex flex-col items-center">
         <RouterLink to="/">
@@ -96,7 +99,7 @@
             :collection="iconToShow.collection"
             :name="iconToShow.name"
             size="32"
-            class="mb-8 size-24 text-brand-600 dark:text-brand-400"
+            class="size-24 text-brand-600 dark:text-brand-400"
             aria-hidden="true" />
         </RouterLink>
       </div>
@@ -105,6 +108,7 @@
       <div class="text-center">
         <h2
           :id="headingId"
+          v-if="withHeading"
           class="text-2xl font-bold text-gray-900 dark:text-white">
           {{ heading }}
         </h2>
@@ -115,23 +119,23 @@
             v-if="jurisdictionStore.enabled"
             class="mr-1">
             {{ $t('serving-you-from-the') }}:
-            <span lang="en">{{ currentJurisdiction.display_name }}</span>
+            <span>{{ currentJurisdiction.display_name }}</span>
           </span>
         </p>
       </div>
 
       <!-- Form Card -->
       <div
-        class="mt-4 rounded-lg border border-gray-200 bg-white p-6 shadow-md dark:border-gray-700 dark:bg-gray-800">
+        class="rounded-lg border border-gray-200 bg-white p-6 shadow-md dark:border-gray-700 dark:bg-gray-800">
         <slot name="form"></slot>
       </div>
 
       <!-- Footer -->
-      <div class="mt-6 space-y-4 text-center">
+      <div class="space-y-4 text-center">
         <slot name="footer"></slot>
 
         <!-- Subtle home link for escape route -->
-        <div class="pt-6">
+        <div class="">
           <RouterLink
             to="/"
             class="inline-flex items-center text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-400"

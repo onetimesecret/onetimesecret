@@ -40,7 +40,10 @@
   <AuthView
     :heading="t('web.signup.create-your-account')"
     heading-id="signup-heading"
-    :with-subheading="true">
+    :with-heading="true"
+    :with-subheading="true"
+    :hide-icon="false"
+    :hide-background-icon="true">
     <template #form>
       <SignUpForm
         :locale="languageStore.currentLocale ?? ''"
@@ -50,9 +53,13 @@
         class="hidden" />
     </template>
     <template #footer>
+      <span class="text-gray-600 dark:text-gray-400">
+        {{ t('web.signup.alternate_prefix') }}
+      </span>
+      {{ ' ' }}
       <router-link
         to="/signin"
-        class="text-gray-600 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+        class="font-medium text-brand-600 underline transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
         {{ t('web.signup.have_an_account') }}
       </router-link>
     </template>

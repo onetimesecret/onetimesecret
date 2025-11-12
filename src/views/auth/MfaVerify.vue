@@ -110,15 +110,15 @@
     heading-id="mfa-verify-heading"
     :with-subheading="false">
     <template #form>
-      <div class="mt-8 space-y-6">
+      <div class="space-y-6">
         <!-- OTP Mode -->
         <div v-if="!useRecoveryMode">
-          <p class="mb-6 text-center text-gray-600 dark:text-gray-400">
+          <p class="mb-4 text-center text-gray-600 dark:text-gray-400">
             {{ t('web.auth.mfa.enter-code') }}
           </p>
 
           <!-- OTP Input -->
-          <div class="mb-6">
+          <div class="mb-5">
             <OtpCodeInput
               ref="otpInputRef"
               :disabled="isLoading"
@@ -140,20 +140,20 @@
             @click="handleVerifyOtp"
             :disabled="otpCode.length !== 6 || isLoading"
             type="button"
-            class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mb-4">
+            class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
             <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
             <span v-else>{{ t('web.auth.mfa.verify') }}</span>
           </button>
 
           <!-- Switch to recovery code and cancel -->
-          <div class="space-y-2 text-center">
+          <div class="mt-4 space-y-2 text-center">
             <button
               @click="toggleRecoveryMode"
               type="button"
               class="text-sm text-brand-600 transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
               {{ t('web.auth.mfa.use-recovery-code') }}
             </button>
-            <div class="pt-2">
+            <div class="mt-3">
               <button
                 @click="handleCancel"
                 type="button"
@@ -167,7 +167,7 @@
 
         <!-- Recovery Code Mode -->
         <div v-else>
-          <p class="mb-6 text-center text-gray-600 dark:text-gray-400">
+          <p class="mb-4 text-center text-gray-600 dark:text-gray-400">
             {{ t('web.auth.mfa.enter-recovery-code') }}
           </p>
 
@@ -217,7 +217,7 @@
                 class="text-sm text-brand-600 transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
                 {{ t('web.auth.mfa.back-to-code') }}
               </button>
-              <div class="pt-2">
+              <div class="mt-3">
                 <button
                 @click="handleCancel"
                 type="button"
