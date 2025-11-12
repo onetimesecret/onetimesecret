@@ -13,7 +13,7 @@
 # These tests aim to ensure that the account destruction process is secure, properly validated,
 # and correctly updates the user's account state.
 #
-# The tryouts use the V2::Logic::Account::DestroyAccount class to simulate different account destruction
+# The tryouts use the AccountAPI::Logic::Account::DestroyAccount class to simulate different account destruction
 # scenarios, allowing for targeted testing of this critical functionality without affecting real user accounts.
 
 require_relative '../../../support/test_logic'
@@ -34,20 +34,20 @@ OT.boot! :test, false
 # TRYOUTS
 
 ## Can create DestroyAccount instance
-obj = V2::Logic::Account::DestroyAccount.new @strategy_result, @params
+obj = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result, @params
 obj.params[:confirmation]
 #=> @params[:confirmation]
 
 ## Processing params removes leading and trailing whitespace
 ## from current password, but not in the middle.
 password_guess = '   padded p455   '
-obj = V2::Logic::Account::DestroyAccount.new @strategy_result, {confirmation: password_guess}
+obj = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result, {confirmation: password_guess}
 obj.process_params
 #=> 'padded p455'
 
 
 ## Raises an error if no params are passed at all
-obj = V2::Logic::Account::DestroyAccount.new @strategy_result, {}
+obj = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result, {}
 begin
   obj.raise_concerns
 rescue => e
@@ -57,7 +57,7 @@ end
 
 
 ## Raises an error if the current password is nil
-obj = V2::Logic::Account::DestroyAccount.new @strategy_result, {confirmation: nil}
+obj = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result, {confirmation: nil}
 begin
   obj.raise_concerns
 rescue => e
@@ -67,7 +67,7 @@ end
 
 
 ## Raises an error if the current password is empty
-obj = V2::Logic::Account::DestroyAccount.new @strategy_result, {confirmation: ''}
+obj = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result, {confirmation: ''}
 begin
   obj.raise_concerns
 rescue => e
@@ -79,7 +79,7 @@ end
 ## Raises an error if the password is incorrect
 cust = Onetime::Customer.new email: generate_random_email
 strategy_result = MockStrategyResult.new(session: @session, user: cust)
-obj = V2::Logic::Account::DestroyAccount.new strategy_result, @params
+obj = AccountAPI::Logic::Account::DestroyAccount.new strategy_result, @params
 cust.update_passphrase 'wrong password'
 begin
   obj.raise_concerns
@@ -93,7 +93,7 @@ end
 cust = Onetime::Customer.new email: generate_random_email
 password_guess = @params[:confirmation]
 strategy_result = MockStrategyResult.new(session: @session, user: cust)
-obj = V2::Logic::Account::DestroyAccount.new strategy_result, @params
+obj = AccountAPI::Logic::Account::DestroyAccount.new strategy_result, @params
 cust.update_passphrase password_guess # update the password to be correct
 obj.raise_concerns
 #=> nil
@@ -101,7 +101,7 @@ obj.raise_concerns
 ## Attempt to process the request without calling raise_concerns first
 
 password_guess = @params[:confirmation]
-obj = V2::Logic::Account::DestroyAccount.new @strategy_result, @params
+obj = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result, @params
 begin
   obj.process
 rescue => e
@@ -112,7 +112,7 @@ end
 ## Process the request and destroy the account
 cust = Onetime::Customer.new email: generate_random_email
 strategy_result = MockStrategyResult.new(session: @session, user: cust)
-obj = V2::Logic::Account::DestroyAccount.new strategy_result, @params
+obj = AccountAPI::Logic::Account::DestroyAccount.new strategy_result, @params
 cust.update_passphrase @params[:confirmation] # set the passphrase
 obj.raise_concerns
 obj.process
@@ -133,7 +133,7 @@ end
 cust = Onetime::Customer.new email: generate_random_email
 first_token = cust.regenerate_apitoken  # first we need to set an api key
 strategy_result = MockStrategyResult.new(session: @session, user: cust)
-obj = V2::Logic::Account::DestroyAccount.new strategy_result, @params
+obj = AccountAPI::Logic::Account::DestroyAccount.new strategy_result, @params
 cust.update_passphrase @params[:confirmation]
 obj.raise_concerns
 obj.process

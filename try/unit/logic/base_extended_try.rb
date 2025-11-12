@@ -33,7 +33,7 @@ OT.boot! :test, false
 @cust = Customer.new email: @email_address
 @params = {}
 @locale = 'en'
-@obj = V2::Logic::Account::CreateAccount.new @strategy_result, {}
+@obj = AccountAPI::Logic::Account::CreateAccount.new @strategy_result, {}
 
 # A generator for valid params for creating an account
 @valid_params = lambda do
@@ -56,7 +56,7 @@ end
 
 ## Can create CreateAccount instance
 @obj.class
-#=> V2::Logic::Account::CreateAccount
+#=> AccountAPI::Logic::Account::CreateAccount
 
 ## Knows an invalid address
 @obj.valid_email?('bogusjourney')
@@ -78,7 +78,7 @@ end
 sess = {}
 strategy_result = MockStrategyResult.new(sess, nil)
 cust = Customer.new
-logic = V2::Logic::Account::CreateAccount.new strategy_result, @valid_params.call, 'en'
+logic = AccountAPI::Logic::Account::CreateAccount.new strategy_result, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
 [logic.autoverify, logic.cust.verified, OT.conf.dig('site', 'authentication', 'autoverify')]
@@ -97,7 +97,7 @@ new_conf = {
   },
 }
 OT.instance_variable_set(:@conf, new_conf)
-logic = V2::Logic::Account::CreateAccount.new strategy_result, @valid_params.call, 'en'
+logic = AccountAPI::Logic::Account::CreateAccount.new strategy_result, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
 ret = [logic.autoverify.to_s, logic.cust.verified.to_s, OT.conf.dig('site', 'authentication', 'autoverify').to_s]

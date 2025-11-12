@@ -21,7 +21,7 @@ module Onetime
   #   end
   #
   # Usage with automatic category detection:
-  #   class V2::Logic::Authentication::AuthenticateSession
+  #   class AccountAPI::Logic::Authentication::AuthenticateSession
   #     include Onetime::LoggerMethods
   #
   #     def perform

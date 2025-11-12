@@ -52,7 +52,7 @@ strategy_result = Otto::Security::Authentication::StrategyResult.new(
   auth_method: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
 )
-logic = V2::Logic::Account::CreateAccount.new(strategy_result, params, @locale)
+logic = AccountAPI::Logic::Account::CreateAccount.new(strategy_result, params, @locale)
 logic.process_params
 logic.raise_concerns
 result = logic.process
@@ -72,7 +72,7 @@ strategy_result2 = Otto::Security::Authentication::StrategyResult.new(
   auth_method: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
 )
-logic2 = V2::Logic::Account::CreateAccount.new(strategy_result2, params2, @locale)
+logic2 = AccountAPI::Logic::Account::CreateAccount.new(strategy_result2, params2, @locale)
 logic2.process_params
 logic2.raise_concerns
 result2 = logic2.process
@@ -92,7 +92,7 @@ strategy_result3 = Otto::Security::Authentication::StrategyResult.new(
   auth_method: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
 )
-logic3 = V2::Logic::Account::CreateAccount.new(strategy_result3, params3, @locale)
+logic3 = AccountAPI::Logic::Account::CreateAccount.new(strategy_result3, params3, @locale)
 logic3.process_params
 logic3.raise_concerns
 result3 = logic3.process
@@ -122,7 +122,7 @@ strategy_result4 = Otto::Security::Authentication::StrategyResult.new(
   auth_method: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
 )
-logic4 = V2::Logic::Account::CreateAccount.new(strategy_result4, params4, @locale)
+logic4 = AccountAPI::Logic::Account::CreateAccount.new(strategy_result4, params4, @locale)
 begin
   logic4.process_params
   logic4.raise_concerns
@@ -146,7 +146,7 @@ strategy_result5 = Otto::Security::Authentication::StrategyResult.new(
   auth_method: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
 )
-logic5 = V2::Logic::Account::CreateAccount.new(strategy_result5, params5, @locale)
+logic5 = AccountAPI::Logic::Account::CreateAccount.new(strategy_result5, params5, @locale)
 logic5.process_params
 begin
   logic5.raise_concerns
@@ -171,7 +171,7 @@ strategy_result6 = Otto::Security::Authentication::StrategyResult.new(
   auth_method: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
 )
-logic6 = V2::Logic::Account::CreateAccount.new(strategy_result6, params6, @locale)
+logic6 = AccountAPI::Logic::Account::CreateAccount.new(strategy_result6, params6, @locale)
 logic6.process_params
 logic6.raise_concerns
 logic6.process
@@ -199,7 +199,7 @@ time1 = Benchmark.realtime do
     session: { id: @session.identifier },
     metadata: { ip: '127.0.0.1' }
   )
-  logic_t1 = V2::Logic::Account::CreateAccount.new(strategy_t1, params_t1, @locale)
+  logic_t1 = AccountAPI::Logic::Account::CreateAccount.new(strategy_t1, params_t1, @locale)
   logic_t1.process_params
   logic_t1.raise_concerns
   logic_t1.process
@@ -218,7 +218,7 @@ time2 = Benchmark.realtime do
     session: { id: @session.identifier },
     metadata: { ip: '127.0.0.1' }
   )
-  logic_t2 = V2::Logic::Account::CreateAccount.new(strategy_t2, params_t2, @locale)
+  logic_t2 = AccountAPI::Logic::Account::CreateAccount.new(strategy_t2, params_t2, @locale)
   logic_t2.process_params
   logic_t2.raise_concerns
   logic_t2.process
@@ -237,7 +237,7 @@ time3 = Benchmark.realtime do
     session: { id: @session.identifier },
     metadata: { ip: '127.0.0.1' }
   )
-  logic_t3 = V2::Logic::Account::CreateAccount.new(strategy_t3, params_t3, @locale)
+  logic_t3 = AccountAPI::Logic::Account::CreateAccount.new(strategy_t3, params_t3, @locale)
   logic_t3.process_params
   logic_t3.raise_concerns
   logic_t3.process

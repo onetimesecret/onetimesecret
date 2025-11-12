@@ -35,7 +35,7 @@ OT.boot! :test, false
   agree: true,
   skill: ''
 }
-@logic = V2::Logic::Account::CreateAccount.new @strategy_result, @params, 'en'
+@logic = AccountAPI::Logic::Account::CreateAccount.new @strategy_result, @params, 'en'
 @logic.process_params
 @logic.raise_concerns
 @logic.process
@@ -57,7 +57,7 @@ OT.boot! :test, false
   agree: true,
   skill: ''
 }
-@logic2 = V2::Logic::Account::CreateAccount.new @auth_strategy_result, @signup_params, 'en'
+@logic2 = AccountAPI::Logic::Account::CreateAccount.new @auth_strategy_result, @signup_params, 'en'
 @logic2.process_params
 begin
   @logic2.raise_concerns
@@ -83,7 +83,7 @@ end
   agree: true,
   skill: ''
 }
-@logic3 = V2::Logic::Account::CreateAccount.new @anon_result, @duplicate_params, 'en'
+@logic3 = AccountAPI::Logic::Account::CreateAccount.new @anon_result, @duplicate_params, 'en'
 @logic3.process_params
 begin
   @logic3.raise_concerns
@@ -105,7 +105,7 @@ true
   agree: true,
   skill: ''
 }
-@logic5 = V2::Logic::Account::CreateAccount.new @anon_result, @short_pass_params, 'en'
+@logic5 = AccountAPI::Logic::Account::CreateAccount.new @anon_result, @short_pass_params, 'en'
 @logic5.process_params
 begin
   @logic5.raise_concerns
@@ -122,7 +122,7 @@ end
   agree: true,
   skill: 'I am a bot'
 }
-@logic6 = V2::Logic::Account::CreateAccount.new @anon_result, @bot_params, 'en'
+@logic6 = AccountAPI::Logic::Account::CreateAccount.new @anon_result, @bot_params, 'en'
 @logic6.process_params
 begin
   @logic6.raise_concerns

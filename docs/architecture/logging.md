@@ -19,16 +19,16 @@ SemanticLogger provides a `Loggable` mixin that automatically adds logger method
 
 **Loggable limitation:**
 ```ruby
-class V2::Logic::Authentication::AuthenticateSession
+class AccountAPI::Logic::Authentication::AuthenticateSession
   include SemanticLogger::Loggable
-  # Logger name: "V2::Logic::Authentication::AuthenticateSession" ❌
+  # Logger name: "AccountAPI::Logic::Authentication::AuthenticateSession" ❌
   # Too granular, hard to filter logs operationally
 end
 ```
 
 **Our superior pattern:**
 ```ruby
-class V2::Logic::Authentication::AuthenticateSession
+class AccountAPI::Logic::Authentication::AuthenticateSession
   include Onetime::LoggerMethods
   # Logger name: "Auth" ✅
   # All auth code logs to one strategic category
@@ -92,7 +92,7 @@ All logging goes through these operational categories:
 ### Usage Pattern
 
 ```ruby
-class V2::Logic::Authentication::AuthenticateSession
+class AccountAPI::Logic::Authentication::AuthenticateSession
   include Onetime::LoggerMethods
 
   def perform

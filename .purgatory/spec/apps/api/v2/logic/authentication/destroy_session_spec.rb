@@ -4,7 +4,7 @@
 
 require 'spec_helper'
 
-RSpec.xdescribe V2::Logic::Authentication::DestroySession do
+RSpec.xdescribe AccountAPI::Logic::Authentication::DestroySession do
   skip 'Temporarily skipped - added by #1677, extracted from an orphan branch, but never passing yet'
   let(:session) { double('Session', destroy!: true, ipaddress: '192.168.1.1') }
   let(:customer) { double('Customer', custid: 'test@example.com') }
@@ -45,7 +45,7 @@ RSpec.xdescribe V2::Logic::Authentication::DestroySession do
 
   describe 'V2 specific features' do
     it 'maintains same interface as V1 but uses V2 namespace' do
-      expect(subject).to be_a(V2::Logic::Authentication::DestroySession)
+      expect(subject).to be_a(AccountAPI::Logic::Authentication::DestroySession)
       expect(subject).to be_a(V2::Logic::Base)
     end
   end

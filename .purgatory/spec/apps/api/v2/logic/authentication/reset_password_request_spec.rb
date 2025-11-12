@@ -4,7 +4,7 @@
 
 require 'spec_helper'
 
-RSpec.xdescribe V2::Logic::Authentication::ResetPasswordRequest do
+RSpec.xdescribe AccountAPI::Logic::Authentication::ResetPasswordRequest do
   skip 'Temporarily skipped - added by #1677, extracted from an orphan branch, but never passing yet'
   let(:session) { double('Session', set_info_message: nil, set_success_message: nil, set_error_message: nil, short_identifier: 'xyz789') }
   let(:customer) { double('Customer', custid: 'test@example.com', pending?: false, :"reset_secret=" => nil) }
