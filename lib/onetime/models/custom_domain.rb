@@ -414,6 +414,31 @@ module Onetime
     module ClassMethods
       attr_reader :db, :values, :owners, :txt_validation_prefix
 
+      # Load a domain by its display_domain name
+      # @param domain_name [String] The domain name to look up
+      # @return [CustomDomain, nil] The domain if found, nil otherwise
+      def load_by_display_domain(domain_name)
+        normalized = domain_name.to_s.downcase
+        domainid = display_domains.get(normalized)
+        return nil if domainid.nil?
+
+        # Use Familia's find_by_identifier method
+        begin
+          find_by_identifier(domainid)
+        rescue Onetime::RecordNotFound, Redis::BaseError => ex
+          OT.ld "[CustomDomain.load_by_display_domain] Failed to load domain #{normalized} with id #{domainid}: #{ex.message}"
+          nil
+        end
+      end
+
+      # Check if a domain exists but has no organization (orphaned)
+      # @param domain_name [String] The domain name to check
+      # @return [Boolean] true if domain exists without org_id
+      def orphaned?(domain_name)
+        domain = load_by_display_domain(domain_name)
+        domain && domain.org_id.to_s.empty?
+      end
+
       # Creates a new custom domain record
       #
       # This method:
@@ -445,8 +470,39 @@ module Onetime
       # room for confusion.
       #
       def create!(input, org_id)
+        # Parse the domain to get normalized display_domain
         obj = parse(input, org_id)
 
+        # Check for existing domain BEFORE attempting creation
+        existing = load_by_display_domain(obj.display_domain)
+
+        if existing
+          # Scenario 1: Domain already in customer's organization (same org_id)
+          if existing.org_id.to_s == org_id.to_s
+            OT.ld "[CustomDomain.create!] Domain already in organization: #{obj.display_domain} org_id=#{org_id}"
+            raise Onetime::Problem, 'Domain already registered in your organization'
+          end
+
+          # Scenario 2: Domain in another organization (different org_id)
+          if !existing.org_id.to_s.empty?
+            OT.le "[CustomDomain.create!] Domain belongs to another organization: #{obj.display_domain} existing_org_id=#{existing.org_id} requested_org_id=#{org_id}"
+            raise Onetime::Problem, 'Domain is registered to another organization'
+          end
+
+          # Scenario 3: Orphaned domain (no org_id) - claim it
+          OT.info "[CustomDomain.create!] Claiming orphaned domain: #{obj.display_domain} for org_id=#{org_id}"
+          existing.org_id = org_id
+          existing.updated = OT.now.to_i
+          existing.save
+
+          # Add to organization_domains collection
+          org = Onetime::Organization.load(org_id)
+          existing.add_to_organization_domains(org) if org
+
+          return existing
+        end
+
+        # No existing domain - create new one
         dbclient.watch(obj.dbkey) do
           if obj.exists?
             dbclient.unwatch
@@ -468,10 +524,10 @@ module Onetime
 
         obj # Return the created object
       rescue Familia::RecordExistsError => ex
-        OT.le "[CustomDomain.create] Duplicate domain: #{ex.message}"
+        OT.le "[CustomDomain.create!] Duplicate domain: #{ex.message}"
         raise Onetime::Problem, 'Duplicate domain for organization'
       rescue Redis::BaseError => ex
-        OT.le "[CustomDomain.create] Redis error: #{ex.message}"
+        OT.le "[CustomDomain.create!] Redis error: #{ex.message}"
         raise Onetime::Problem, 'Unable to create custom domain'
       end
 
