@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const { t } = useI18n();
-const { resetPassword, isLoading, error, clearErrors } = useAuth();
+const { resetPassword, isLoading, error, fieldError, clearErrors } = useAuth();
 
 const newPassword = ref('');
 const confirmPassword = ref('');
@@ -56,13 +56,23 @@ const handleSubmit = async () => {
         </p>
       </div>
 
-      <!-- Error message -->
+      <!-- Error messages -->
       <div
         v-if="error && hasValidResetKey"
         class="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20"
-        role="alert">
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true">
+        <!-- Generic error message -->
         <p class="text-sm text-red-800 dark:text-red-200">
           {{ error }}
+        </p>
+        <!-- Field-specific error -->
+        <p
+          v-if="fieldError"
+          id="password-error"
+          class="mt-2 text-sm font-medium text-red-800 dark:text-red-200">
+          {{ t(`web.auth.field-errors.${fieldError[0]}`) || fieldError[0] }}: {{ fieldError[1] }}
         </p>
       </div>
 
@@ -96,12 +106,14 @@ const handleSubmit = async () => {
           </label>
           <input
             type="password"
-            name="newPassword"
+            name="password"
             id="passField"
             required
-            minlength="6"
+            minlength="8"
             :disabled="isLoading"
             autocomplete="new-password"
+            :aria-invalid="fieldError && (fieldError[0] === 'password' || fieldError[0] === 'password-confirm')"
+            :aria-describedby="fieldError && (fieldError[0] === 'password' || fieldError[0] === 'password-confirm') ? 'password-error' : undefined"
             class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-300"
             placeholder=""
             v-model="newPassword"
@@ -115,12 +127,14 @@ const handleSubmit = async () => {
           </label>
           <input
             type="password"
-            name="confirmPassword"
+            name="password-confirm"
             id="pass2Field"
             required
-            minlength="6"
+            minlength="8"
             :disabled="isLoading"
             autocomplete="new-password"
+            :aria-invalid="fieldError && fieldError[0] === 'password-confirm'"
+            :aria-describedby="fieldError && fieldError[0] === 'password-confirm' ? 'password-error' : undefined"
             class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-300"
             placeholder=""
             v-model="confirmPassword"

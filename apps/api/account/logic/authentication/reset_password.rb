@@ -11,11 +11,15 @@ module AccountAPI::Logic
 
       attr_reader :secret, :is_confirmed
 
+      # Parameters must match rodauth
+      # key: the secret identifier
+      # password:
+      # password-confirm:
       def process_params
-        @secret          = Onetime::Secret.load params[:key].to_s
-        @newpassword     = self.class.normalize_password(params['newpassword']) # was newp
+        @secret          = Onetime::Secret.find_by_identifier params['key'].to_s
+        @password     = self.class.normalize_password(params['password']) # was newp
         @passwordconfirm = self.class.normalize_password(params['password-confirm']) # was newp2
-        @is_confirmed    = Rack::Utils.secure_compare(@newpassword, @passwordconfirm)
+        @is_confirmed    = Rack::Utils.secure_compare(@password, @passwordconfirm)
       end
 
       def raise_concerns
@@ -23,7 +27,7 @@ module AccountAPI::Logic
         raise OT::MissingSecret if secret.custid.to_s == 'anon'
 
         raise_form_error 'New passwords do not match', field: 'password-confirm', error_type: 'mismatch' unless is_confirmed
-        raise_form_error 'New password is too short', field: 'newpassword', error_type: 'too_short' unless @newpassword.size >= 6
+        raise_form_error 'New password is too short', field: 'password', error_type: 'too_short' unless @password.size >= 6
       end
 
       def process
@@ -63,7 +67,7 @@ module AccountAPI::Logic
         end
 
         # Update the customer's passphrase
-        @cust.update_passphrase @newpassword
+        @cust.update_passphrase @password
 
         # Set a success message in the session
         sess.set_success_message 'Password changed'
