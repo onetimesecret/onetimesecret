@@ -95,6 +95,9 @@ module Core
         frontend_development = development[:enabled]
         script_element_id = 'onetime-state'
 
+        # Social metadata (OG/Twitter) should not be shown for custom domains
+        show_social_metadata = domain_strategy != :custom
+
         # Return all view variables as a hash
         {
           authenticated: authenticated,
@@ -114,6 +117,7 @@ module Core
           nonce: nonce,
           page_title: page_title,
           script_element_id: script_element_id,
+          show_social_metadata: show_social_metadata,
           shrimp: shrimp,
           site: safe_site,
         }
