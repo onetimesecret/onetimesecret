@@ -21,13 +21,12 @@ module Onetime
     end
 
     # Main authentication mode: 'basic' or 'advanced'
+    #
+    # The environment variable is capture in the config file
     def mode
-      # Environment variable takes precedence
-      env_mode = ENV['AUTHENTICATION_MODE']
-      return env_mode if env_mode&.match?(/\A(?:basic|advanced)\z/)
-
-      # Check configuration file
-      auth_config['mode'] || 'basic'
+      return nil if config.nil?
+      return config['mode'] if config['mode'].match?(/\A(?:basic|advanced)\z/)
+      'basic'
     end
 
     # Advanced configuration
