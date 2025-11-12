@@ -160,7 +160,11 @@
       "show-password": "Show password",
       "hide-password": "Hide password",
       "minimum_8_characters": "Password must be at least 8 characters",
+      "password-requirements": "Password must be at least 8 characters long",
       "passwords_do_not_match": "Passwords do not match",
+      "form-field-required": "This field is required",
+      "form-processing": "Processing your request",
+      "remember-me-description": "Keep me logged in for 30 days",
       "redirecting": "Redirecting...",
       "continue": "Continue",
       "are_you_sure": "Are you sure?",
@@ -417,7 +421,7 @@
     "signup": {
       "create-your-account": "Create Your Account",
       "alternate_prefix": "Already have an Account?",
-      "have_an_account": "Sign in",
+      "have_an_account": "Sign in.",
       "error_title": "Account Creation Error",
       "password_error": "Password",
       "email_error": "Email"
@@ -813,7 +817,12 @@
         "enter-recovery-code": "Enter one of your recovery codes",
         "recovery-code-label": "Recovery Code",
         "recovery-code-placeholder": "Enter recovery code",
-        "verify-recovery-code": "Verify Recovery Code"
+        "verify-recovery-code": "Verify Recovery Code",
+        "six-digit-code": "Enter 6-digit authentication code",
+        "recovery-code-mode-active": "Recovery code mode active",
+        "otp-mode-active": "Authentication code mode active",
+        "enter-all-digits": "Please enter all 6 digits to continue",
+        "digit-of-count": "Digit {current} of {total}"
       },
       "passwordReset": {
         "emailSent": "An email has been sent to you with a link to reset the password for your account"

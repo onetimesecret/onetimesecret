@@ -41,7 +41,7 @@ const handleSubmit = async () => {
 <template>
   <form
     @submit.prevent="handleSubmit"
-    class="space-y-6">
+    class="">
     <!-- Honeypot field for spam prevention -->
     <input
       type="text"
@@ -57,7 +57,9 @@ const handleSubmit = async () => {
     <div
       v-if="error"
       class="rounded-md bg-red-50 p-4 dark:bg-red-900/20"
-      role="alert">
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true">
       <div class="flex">
         <div class="flex-shrink-0">
           <svg
@@ -80,15 +82,17 @@ const handleSubmit = async () => {
             <!-- Show specific field error if available, otherwise show generic error -->
             <p
               v-if="fieldError && fieldError[0] === 'password'"
+              id="password-error"
               class="font-medium">
               {{ $t('web.signup.password_error') }}: {{ fieldError[1] }}
             </p>
             <p
               v-else-if="fieldError && fieldError[0] === 'login'"
+              id="email-error"
               class="font-medium">
               {{ $t('web.signup.email_error') }}: {{ fieldError[1] }}
             </p>
-            <p v-else>
+            <p v-else id="form-error">
               {{ error }}
             </p>
           </div>
@@ -96,12 +100,14 @@ const handleSubmit = async () => {
       </div>
     </div>
 
-    <div class="-space-y-px rounded-md text-lg shadow-sm">
+    <div class="space-y-4">
       <!-- Email field -->
       <div>
         <label
           for="email-address"
-          class="sr-only">{{ t('email-address') }}</label>
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {{ t('web.COMMON.field_email') }}
+        </label>
         <input
           id="email-address"
           name="email"
@@ -111,12 +117,14 @@ const handleSubmit = async () => {
           :disabled="isLoading"
           focus
           tabindex="0"
-          class="relative block w-full appearance-none rounded-none rounded-t-md
+          :aria-invalid="fieldError && fieldError[0] === 'login' ? 'true' : undefined"
+          :aria-describedby="fieldError && fieldError[0] === 'login' ? 'email-error' : undefined"
+          class="block w-full appearance-none rounded-md
                       border
                       border-gray-300 px-3
                       py-2 text-lg
                       text-gray-900 placeholder:text-gray-500
-                      focus:z-10 focus:border-brand-500 focus:outline-none focus:ring-brand-500
+                      focus:border-brand-500 focus:outline-none focus:ring-brand-500
                       disabled:opacity-50 disabled:cursor-not-allowed
                       dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                       dark:focus:border-brand-500 dark:focus:ring-brand-500"
@@ -126,42 +134,53 @@ const handleSubmit = async () => {
       </div>
 
       <!-- Password input with visibility toggle -->
-      <div class="relative">
+      <div>
         <label
           for="password"
-          class="sr-only">{{ t('web.COMMON.field_password') }}</label>
-        <input
-          id="password"
-          :type="showPassword ? 'text' : 'password'"
-          name="password"
-          autocomplete="new-password"
-          required
-          :disabled="isLoading"
-          tabindex="0"
-          class="relative block w-full appearance-none rounded-none rounded-b-md
-                 border
-                 border-gray-300 px-3
-                 py-2 pr-10 text-lg
-                 text-gray-900 placeholder:text-gray-500
-                 focus:z-10 focus:border-brand-500 focus:outline-none focus:ring-brand-500
-                 disabled:opacity-50 disabled:cursor-not-allowed
-                 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
-                 dark:focus:border-brand-500 dark:focus:ring-brand-500"
-          :placeholder="t('web.COMMON.password_placeholder')"
-          v-model="password"
-        />
-        <button
-          type="button"
-          @click="togglePasswordVisibility"
-          :disabled="isLoading"
-          class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50">
-            <OIcon
-              collection="heroicons"
-              :name="showPassword ? 'outline-eye-off' : 'solid-eye'"
-              size="20"
-              class="size-5 text-gray-400"
-              aria-hidden="true" />
-        </button>
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {{ t('web.COMMON.field_password') }}
+        </label>
+        <div class="relative">
+          <input
+            id="password"
+            :type="showPassword ? 'text' : 'password'"
+            name="password"
+            autocomplete="new-password"
+            required
+            :disabled="isLoading"
+            tabindex="0"
+            :aria-invalid="fieldError && fieldError[0] === 'password' ? 'true' : undefined"
+            :aria-describedby="fieldError && fieldError[0] === 'password' ? 'password-error' : 'password-requirements'"
+            class="block w-full appearance-none rounded-md
+                   border
+                   border-gray-300 px-3
+                   py-2 pr-10 text-lg
+                   text-gray-900 placeholder:text-gray-500
+                   focus:border-brand-500 focus:outline-none focus:ring-brand-500
+                   disabled:opacity-50 disabled:cursor-not-allowed
+                   dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
+                   dark:focus:border-brand-500 dark:focus:ring-brand-500"
+            :placeholder="t('web.COMMON.password_placeholder')"
+            v-model="password"
+          />
+          <button
+            type="button"
+            @click="togglePasswordVisibility"
+            :disabled="isLoading"
+            :aria-label="showPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')"
+            class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50">
+              <OIcon
+                collection="heroicons"
+                :name="showPassword ? 'outline-eye-off' : 'solid-eye'"
+                size="20"
+                class="size-5 text-gray-400"
+                aria-hidden="true" />
+          </button>
+        </div>
+        <!-- Password requirements (screen reader only) -->
+        <span id="password-requirements" class="sr-only">
+          {{ t('web.COMMON.password-requirements') }}
+        </span>
       </div>
     </div>
 
@@ -221,6 +240,13 @@ const handleSubmit = async () => {
         <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
         <span v-else>{{ t('create-account') }}</span>
       </button>
+      <!-- Loading state announcement (screen reader only) -->
+      <div v-if="isLoading"
+aria-live="polite"
+aria-atomic="true"
+class="sr-only">
+        {{ t('web.COMMON.form-processing') }}
+      </div>
     </div>
   </form>
 </template>
