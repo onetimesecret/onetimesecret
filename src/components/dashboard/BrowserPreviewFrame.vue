@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
 
 interface Props {
   domain: string;
@@ -36,7 +40,7 @@ defineEmits<{
           <button
             @click="$emit('toggle-browser')"
             class="size-3 rounded-full bg-[#FF5F57] transition-colors hover:bg-[#E04940]"
-            :aria-label="$t('switch-to-edge-browser-view')">
+            :aria-label="t('switch-to-edge-browser-view')">
             <svg
               class="m-auto size-2 opacity-0 transition-opacity group-hover/controls:opacity-100"
               viewBox="0 0 8 8"
@@ -50,7 +54,7 @@ defineEmits<{
           <!-- Minimize button -->
           <button
             class="size-3 rounded-full bg-[#FFBD2E] transition-colors hover:bg-[#E0A323]"
-            :aria-label="$t('minimize-window')">
+            :aria-label="t('minimize-window')">
             <svg
               class="m-auto size-2 opacity-0 transition-opacity group-hover/controls:opacity-100"
               viewBox="0 0 8 8"
@@ -64,7 +68,7 @@ defineEmits<{
           <!-- Maximize button -->
           <button
             class="size-3 rounded-full bg-[#28C840] transition-colors hover:bg-[#1FA833]"
-            :aria-label="$t('maximize-window')">
+            :aria-label="t('maximize-window')">
             <svg
               class="m-auto size-2 opacity-0 transition-opacity group-hover/controls:opacity-100"
               viewBox="0 0 8 8"
@@ -117,7 +121,7 @@ defineEmits<{
                 collection="mdi"
                 name="eye"
                 class="mr-1 size-3" />
-              {{ $t('preview') }}
+              {{ t('preview') }}
             </span>
           </div>
         </div>
@@ -149,7 +153,7 @@ defineEmits<{
                 />
               </g>
             </svg>
-            <span class="text-xs text-gray-600 dark:text-gray-300">{{ $t('microsoft-edge') }}</span>
+            <span class="text-xs text-gray-600 dark:text-gray-300">{{ t('microsoft-edge') }}</span>
           </div>
 
           <div class="flex space-x-4">
@@ -178,7 +182,7 @@ defineEmits<{
             <button
               @click="$emit('toggle-browser')"
               class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              :aria-label="$t('switch-to-safari-browser-view')">
+              :aria-label="t('switch-to-safari-browser-view')">
               <svg
                 class="size-4"
                 fill="currentColor"
@@ -239,7 +243,7 @@ defineEmits<{
                   d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                 />
               </svg>
-              {{ $t('preview') }}
+              {{ t('preview') }}
             </span>
           </div>
         </div>
@@ -260,7 +264,7 @@ defineEmits<{
           collection="material-symbols-light"
           name="preview-outline"
           class="size-3" />
-        <p>{{ $t('preview-of-the-secret-link-page-for-recipients') }}</p>
+        <p>{{ t('preview-of-the-secret-link-page-for-recipients') }}</p>
       </div>
     </div>
   </div>

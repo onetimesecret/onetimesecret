@@ -1,6 +1,11 @@
 <!-- src/components/layout/SecretFooterAttribution.vue -->
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
+
   defineProps<{
     siteHost: string;
     showNav?: boolean;
@@ -15,14 +20,14 @@
     <nav
       v-if="showNav"
       class="flex flex-wrap justify-center gap-2 space-x-2"
-      :aria-label="$t('footer-navigation')">
+      :aria-label="t('footer-navigation')">
       <a
         :href="`https://${siteHost}`"
         class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
         rel="noopener noreferrer"
         target="_blank"
-        :aria-label="$t('visit-onetime-secret-homepage')">
-        {{ $t('powered-by-onetime-secret') }}
+        :aria-label="t('visit-onetime-secret-homepage')">
+        {{ t('powered-by-onetime-secret') }}
       </a>
 
       <template v-if="showTerms">
@@ -33,8 +38,8 @@
         <router-link
           to="/info/terms"
           class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
-          :aria-label="$t('view-terms-of-service')">
-          {{ $t('terms') }}
+          :aria-label="t('view-terms-of-service')">
+          {{ t('terms') }}
         </router-link>
         <span
           aria-hidden="true"
@@ -43,8 +48,8 @@
         <router-link
           to="/info/privacy"
           class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
-          :aria-label="$t('view-privacy-policy')">
-          {{ $t('privacy') }}
+          :aria-label="t('view-privacy-policy')">
+          {{ t('privacy') }}
         </router-link>
       </template>
     </nav>
@@ -59,8 +64,8 @@
           dark:text-gray-600 dark:hover:text-gray-500"
         rel="noopener noreferrer"
         target="_blank"
-        :aria-label="$t('visit-onetime-secret-homepage')">
-        {{ $t('powered-by-onetime-secret') }}
+        :aria-label="t('visit-onetime-secret-homepage')">
+        {{ t('powered-by-onetime-secret') }}
       </a>
     </div>
   </footer>

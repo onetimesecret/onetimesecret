@@ -1,5 +1,9 @@
 <script setup lang="ts">
   import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
 
   interface Props {
     disabled: boolean;
@@ -27,11 +31,11 @@
     :class="[cornerClass, 'group relative grow']"
     class="rounded px-4 py-2 text-xl font-bold text-white transition-all duration-200 ease-in-out hover:scale-105 hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
     :disabled="disabled"
-    :aria-label="$t('web.COMMON.button_create_secret')"
+    :aria-label="t('web.COMMON.button_create_secret')"
     @click.prevent="$emit('click')"
     name="kind"
     value="conceal">
-    {{ $t('web.COMMON.button_create_secret') }}<span v-if="withAsterisk">*</span>
+    {{ t('web.COMMON.button_create_secret') }}<span v-if="withAsterisk">*</span>
 
     <!-- Screenreader only -->
     <span

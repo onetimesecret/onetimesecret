@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import ThemeToggle from '@/components/ThemeToggle.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
 
 // No additional script needed for this component
 </script>
@@ -31,11 +35,11 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
           </div>
           <h1
             class="mb-6 text-center text-3xl font-bold text-gray-800 dark:text-white"
-            :aria-label="$t('404-page-not-found')">
-            {{ $t('404-page-not-found-0') }}
+            :aria-label="t('404-page-not-found')">
+            {{ t('404-page-not-found-0') }}
           </h1>
           <p class="mb-20 text-center text-lg text-gray-600 dark:text-gray-300">
-            {{ $t('oops-the-page-you-are-looking-for-doesnt-exist-o') }}
+            {{ t('oops-the-page-you-are-looking-for-doesnt-exist-o') }}
           </p>
 
           <div class="text-center">
@@ -47,8 +51,8 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
               duration-300 ease-in-out hover:bg-gray-100
               dark:border-brand-400
               dark:bg-gray-700 dark:text-brand-400 dark:hover:bg-gray-600"
-              :aria-label="$t('return-to-home-page')">
-              {{ $t('return-home') }}
+              :aria-label="t('return-to-home-page')">
+              {{ t('return-home') }}
             </router-link>
           </div>
         </div>

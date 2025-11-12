@@ -89,7 +89,7 @@
 <template>
   <!-- Updated -->
   <BaseSecretDisplay
-    :default-title="$t('you-have-a-message')"
+    :default-title="t('you-have-a-message')"
     :preview-i18n="i18n"
     :domain-branding="safeBrandSettings"
     :corner-class="cornerClass"
@@ -132,7 +132,7 @@
           <p class="text-sm">
             {{
               submissionStatus.message ||
-                (submissionStatus.status === 'error' ? $t('an-error-occurred') : $t('web.STATUS.success'))
+                (submissionStatus.status === 'error' ? t('an-error-occurred') : t('web.STATUS.success'))
             }}
           </p>
         </div>
@@ -167,7 +167,7 @@
             <img
               v-if="logoImage && !hasImageError"
               :src="logoImage"
-              :alt="$t('brand-logo')"
+              :alt="t('brand-logo')"
               class="size-16 object-contain"
               :class="[cornerClass]"
               @error="handleImageError" />
@@ -182,7 +182,7 @@
           <label
             :for="'secret-content-' + record?.identifier"
             class="sr-only">
-            {{ $t('secret-content') }}
+            {{ t('secret-content') }}
           </label>
           <textarea
             :id="'secret-content-' + record?.identifier"
@@ -190,7 +190,7 @@
             readonly
             :rows="details?.display_lines ?? 4"
             :value="record?.secret_value"
-            :aria-label="$t('secret-content')"
+            :aria-label="t('secret-content')"
             ref="secretContent"></textarea>
         </div>
       </div>
@@ -207,7 +207,7 @@
           color: (brandSettings?.button_text_light ?? true) ? '#ffffff' : '#000000'
         }"
         aria-live="polite"
-        :aria-label="isCopied ? $t('secret-copied-to-clipboard') : $t('copy-secret-to-clipboard')"
+        :aria-label="isCopied ? t('secret-copied-to-clipboard') : t('copy-secret-to-clipboard')"
         :aria-pressed="isCopied">
         <svg
           v-if="!isCopied"
@@ -237,7 +237,7 @@
             stroke-width="2"
             d="M5 13l4 4L19 7" />
         </svg>
-        <span>{{ isCopied ? $t('web.STATUS.copied') : $t('web.LABELS.copy_to_clipboard') }}</span>
+        <span>{{ isCopied ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard') }}</span>
       </button>
     </template>
   </BaseSecretDisplay>

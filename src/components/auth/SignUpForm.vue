@@ -76,7 +76,7 @@ const handleSubmit = async () => {
         </div>
         <div class="ml-3">
           <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
-            {{ $t('web.signup.error_title') }}
+            {{ t('web.signup.error_title') }}
           </h3>
           <div class="mt-2 text-sm text-red-700 dark:text-red-300">
             <!-- Show specific field error if available, otherwise show generic error -->
@@ -84,13 +84,13 @@ const handleSubmit = async () => {
               v-if="fieldError && fieldError[0] === 'password'"
               id="password-error"
               class="font-medium">
-              {{ $t('web.signup.password_error') }}: {{ fieldError[1] }}
+              {{ t('web.signup.password_error') }}: {{ fieldError[1] }}
             </p>
             <p
               v-else-if="fieldError && fieldError[0] === 'login'"
               id="email-error"
               class="font-medium">
-              {{ $t('web.signup.email_error') }}: {{ fieldError[1] }}
+              {{ t('web.signup.email_error') }}: {{ fieldError[1] }}
             </p>
             <p v-else id="form-error">
               {{ error }}

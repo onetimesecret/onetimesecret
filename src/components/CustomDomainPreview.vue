@@ -26,6 +26,10 @@
   import { WindowService } from '@/services/window.service';
   import { onClickOutside, onKeyStroke } from '@vueuse/core';
   import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
 
   const props = withDefaults(
     defineProps<{
@@ -137,7 +141,7 @@
   <!-- prettier-ignore-attribute class -->
   <div
     v-if="withDomainDropdown"
-    :title="$t('link-preview')"
+    :title="t('link-preview')"
     class="mb-0 rounded-lg border border-dashed border-gray-300
       bg-gray-50 p-3 shadow-sm transition-all duration-200
       hover:border-gray-400 hover:shadow-md dark:border-gray-600
@@ -256,7 +260,7 @@
             <router-link
               to="/pricing"
               class="block w-full py-1
-                font-medium hover:underline">{{ $t('upgrade-for-yourdomain') }}</router-link>
+                font-medium hover:underline">{{ t('upgrade-for-yourdomain') }}</router-link>
           </div>
         </div>
       </div>

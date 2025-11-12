@@ -5,6 +5,9 @@
   import CopyButton from '@/components/CopyButton.vue';
   import type { Metadata, MetadataDetails } from '@/schemas/models';
   import { ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
+
+  const { t } = useI18n();
 
   interface Props {
     record: Metadata;
@@ -22,7 +25,7 @@
     <h1
       id="secret-header"
       class="sr-only">
-      {{ $t('web.LABELS.secret_link') }}
+      {{ t('web.LABELS.secret_link') }}
     </h1>
 
     <!-- Passphrase Indicator -->
@@ -37,7 +40,7 @@
         collection="mdi"
         name="lock"
         class="size-4" />
-      {{ $t('web.LABELS.passphrase_protected') }}
+      {{ t('web.LABELS.passphrase_protected') }}
     </div>
 
     <!-- prettier-ignore-attribute class -->
@@ -69,7 +72,7 @@
             aria-hidden="true" />
           <div class="absolute inset-0 size-full rounded-full opacity-50"></div>
         </div>
-        <span>{{ $t('web.private.created_success') }}</span>
+        <span>{{ t('web.private.created_success') }}</span>
       </div>
 
       <!-- Subsequent Message -->
@@ -101,7 +104,7 @@
               border-0 bg-slate-50 px-3 py-2.5 font-mono text-sm text-gray-900
               focus:ring-1 focus:ring-green-500
               dark:bg-slate-900 dark:text-gray-100 sm:text-base"
-            :aria-label="$t('secret-link')"></textarea>
+            :aria-label="t('secret-link')"></textarea>
         </div>
 
         <div class="ml-4 shrink-0">
@@ -123,7 +126,7 @@
             name="shield-outline"
             class="mr-2 size-4 text-brand-500 transition-transform dark:text-brand-400" />
           <span class="transition-colors group-hover:text-gray-700 dark:group-hover:text-gray-300">
-            {{ $t('web.COMMON.share_link_securely') }}
+            {{ t('web.COMMON.share_link_securely') }}
           </span>
         </div>
       </div>

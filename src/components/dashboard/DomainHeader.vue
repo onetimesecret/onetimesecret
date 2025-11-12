@@ -2,6 +2,10 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import { useDomainStatus } from '@/composables/useDomainStatus';
   import { CustomDomain } from '@/schemas/models';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
 
   const props = defineProps<{
     domain: CustomDomain;
@@ -24,7 +28,7 @@
           class="inline-flex items-center text-sm
             text-gray-600 transition-colors hover:text-gray-900
             dark:text-gray-400 dark:hover:text-gray-100"
-          :aria-label="$t('return-to-domains-list')">
+          :aria-label="t('return-to-domains-list')">
           <svg
             class="mr-2 size-5"
             fill="none"
@@ -37,7 +41,7 @@
               stroke-width="2"
               d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          {{ $t('back-to-domains') }}
+          {{ t('back-to-domains') }}
         </RouterLink>
       </div>
 
@@ -61,7 +65,7 @@
                 class="ml-1
                   text-gray-400 hover:text-gray-600
                   dark:text-gray-500 dark:hover:text-gray-300"
-                :title="$t('open-domain-in-new-tab')">
+                :title="t('open-domain-in-new-tab')">
                 <OIcon
                   collection="mdi"
                   name="open-in-new"
@@ -76,7 +80,7 @@
             <RouterLink
               :to="`/domains/${domain?.display_domain}/verify`"
               class="inline-flex items-center gap-1.5"
-              :data-tooltip="$t('web.domains.view-domain-verification-status')">
+              :data-tooltip="t('web.domains.view-domain-verification-status')">
               <OIcon
                 collection="mdi"
                 :name="statusIcon"

@@ -6,6 +6,9 @@
   import { useMetadata } from '@/composables/useMetadata';
   import type { Metadata, MetadataDetails } from '@/schemas/models';
   import { ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
+
+  const { t } = useI18n();
 
   interface Props {
     record: Metadata;
@@ -51,7 +54,7 @@
         focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2
         disabled:opacity-70 dark:focus:ring-offset-gray-900"
         :disabled="isLoading"
-        :aria-label="$t('web.COMMON.burn_this_secret_aria')"
+        :aria-label="t('web.COMMON.burn_this_secret_aria')"
         :aria-busy="isLoading"
         role="button">
         <OIcon
@@ -59,7 +62,7 @@
           name="heroicons-fire-20-solid"
           class="size-5 transition-all group-hover:rotate-12 group-hover:scale-125"
           aria-hidden="true" />
-        <span>{{ $t('web.COMMON.burn_this_secret') }}</span>
+        <span>{{ t('web.COMMON.burn_this_secret') }}</span>
       </button>
 
       <!-- Confirmation Dialog with Enhanced Design -->
@@ -83,13 +86,13 @@
           <h3
             id="burn-dialog-title"
             class="text-xl font-bold text-gray-900 dark:text-white">
-            {{ $t('web.COMMON.burn_confirmation_title') }}
+            {{ t('web.COMMON.burn_confirmation_title') }}
           </h3>
           <p
             id="burn-dialog-desc"
             class="text-sm text-gray-600
             ">
-            {{ $t('web.COMMON.burn_confirmation_message') }}
+            {{ t('web.COMMON.burn_confirmation_message') }}
           </p>
         </div>
 
@@ -103,7 +106,7 @@
               v-model="passphrase"
               id="passField"
               autocomplete="current-password"
-              :placeholder="$t('web.COMMON.enter_passphrase_here')"
+              :placeholder="t('web.COMMON.enter_passphrase_here')"
               class="w-full rounded-lg border border-gray-300
                 bg-white p-4 py-2.5 text-gray-900 shadow-sm
                 focus:border-transparent focus:ring-2 focus:ring-yellow-400
@@ -120,7 +123,7 @@
               px-4 py-2.5 text-base font-medium text-gray-900
               transition-colors duration-200 focus:outline-none focus:ring-2
               focus:ring-yellow-400 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-            {{ $t('web.LABELS.cancel') }}
+            {{ t('web.LABELS.cancel') }}
           </button>
           <!-- prettier-ignore-attribute class -->
           <button
@@ -136,7 +139,7 @@
               collection="material-symbols"
               name="local-fire-department-rounded"
               class="size-4 transition-all group-hover:rotate-12 group-hover:scale-125" />
-            <span>{{ $t('web.COMMON.confirm_burn') }}</span>
+            <span>{{ t('web.COMMON.confirm_burn') }}</span>
           </button>
         </div>
       </div>

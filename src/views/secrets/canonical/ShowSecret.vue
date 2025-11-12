@@ -21,10 +21,13 @@
   import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
   import {  nextTick } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   import UnknownSecret from './UnknownSecret.vue';
 
   defineProps<Props>();
+
+  const { t } = useI18n();
 
   // Watch for transitions between confirmation and reveal states
   // This assumes there's a showSecret or similar state variable in BaseShowSecret
@@ -71,7 +74,7 @@
             border-4 border-brand-500 border-t-transparent"
           role="status"
           aria-live="polite">
-          <span class="sr-only">{{ $t('web.COMMON.loading') }}</span>
+          <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
         </div>
       </div>
     </template>
@@ -98,11 +101,11 @@
               hover:text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500
               dark:hover:text-amber-50"
             @click="closeWarning"
-            :aria-label="$t('dismiss-warning')">
+            :aria-label="t('dismiss-warning')">
             <span aria-hidden="true" class="text-lg">&times;</span>
           </button>
-          <strong class="font-medium">{{ $t('web.COMMON.warning') }}:</strong>
-          {{ $t('web.shared.you_created_this_secret') }}
+          <strong class="font-medium">{{ t('web.COMMON.warning') }}:</strong>
+          {{ t('web.shared.you_created_this_secret') }}
         </div>
 
         <div
@@ -117,10 +120,10 @@
               hover:text-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-500
               dark:hover:text-brand-50"
             @click="closeWarning"
-            :aria-label="$t('dismiss-notification')">
+            :aria-label="t('dismiss-notification')">
             <span aria-hidden="true" class="text-lg">&times;</span>
           </button>
-          {{ $t('web.shared.viewed_own_secret') }}
+          {{ t('web.shared.viewed_own_secret') }}
         </div>
       </template>
     </template>

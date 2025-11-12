@@ -20,6 +20,9 @@
   import { useSecret } from '@/composables/useSecret';
   import { onMounted } from 'vue';
   import { onBeforeRouteUpdate } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
+
+  const { t } = useI18n();
 
   export interface Props {
     secretIdentifier: string;
@@ -52,7 +55,7 @@
   <main
     class="grid min-h-screen grid-rows-[auto_minmax(0,max-content)_auto] gap-4"
     role="main"
-    :aria-label="$t('secret-viewing-page')">
+    :aria-label="t('secret-viewing-page')">
     <header
       v-if="$slots.header"
       class="w-full bg-white dark:bg-gray-900">

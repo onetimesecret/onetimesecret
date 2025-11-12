@@ -1,6 +1,11 @@
 <!-- src/components/account/BrowserTypeToggle.vue -->
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
+
 defineProps<{
   modelValue: 'safari' | 'edge'
 }>();
@@ -20,8 +25,8 @@ defineEmits<{
           : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
       ]"
       @click="$emit('update:modelValue', 'safari')"
-      :aria-label="$t('switch-to-safari-preview')">
-      {{ $t('safari') }}
+      :aria-label="t('switch-to-safari-preview')">
+      {{ t('safari') }}
     </button>
 
     <button
@@ -32,8 +37,8 @@ defineEmits<{
           : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
       ]"
       @click="$emit('update:modelValue', 'edge')"
-      :aria-label="$t('switch-to-edge-preview')">
-      {{ $t('edge') }}
+      :aria-label="t('switch-to-edge-preview')">
+      {{ t('edge') }}
     </button>
   </div>
 </template>

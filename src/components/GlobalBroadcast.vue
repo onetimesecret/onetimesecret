@@ -6,6 +6,10 @@
   import DOMPurify from 'dompurify';
   import { computed } from 'vue';
   import { useDismissableBanner } from '@/composables/useDismissableBanner';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
 
   export interface Props {
     content: string | null; // Can contain HTML
@@ -141,7 +145,7 @@
         type="button"
         @click="dismiss"
         class="-m-3 p-3 focus-visible:outline-offset-[-4px]">
-        <span class="sr-only">{{ $t('web.LABELS.dismiss') }}</span>
+        <span class="sr-only">{{ t('web.LABELS.dismiss') }}</span>
         <OIcon
           collection="heroicons"
           name="x-mark-16-solid"

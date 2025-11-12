@@ -2,6 +2,10 @@
 import DomainForm from '@/components/DomainForm.vue';
 import ErrorDisplay from '@/components/ErrorDisplay.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
 
 const {
   isLoading,
@@ -14,7 +18,7 @@ const {
 <template>
   <div class="">
     <h1 class="mb-6 text-3xl font-bold dark:text-white">
-      {{ $t('add-your-domain') }}
+      {{ t('add-your-domain') }}
     </h1>
 
     <ErrorDisplay v-if="error" :error="error" />

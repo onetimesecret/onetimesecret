@@ -21,6 +21,9 @@
   import { nanoid } from 'nanoid';
   import { computed, onMounted, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
+
+  const { t } = useI18n();
 
   import CustomDomainPreview from './../../CustomDomainPreview.vue';
   import SecretContentInputArea from './SecretContentInputArea.vue';
@@ -178,7 +181,7 @@
                   3. Other form fields (passphrase, expiration, etc.) keep visible labels as they
                       represent configuration options that need explicit identification
                 -->
-              {{ $t('secret-content') || 'Secret Content' }}
+              {{ t('secret-content') || 'Secret Content' }}
             </label>
 
             <SecretContentInputArea
@@ -222,13 +225,13 @@
                 id="generatedPasswordHeader"
                 class="text-lg font-medium text-gray-900 dark:text-white"
                 tabindex="-1">
-                {{ $t('web.homepage.password_generation_title') }}
+                {{ t('web.homepage.password_generation_title') }}
               </h4>
 
               <p
                 id="generatedPasswordDesc"
                 class="mx-auto max-w-md text-gray-600 dark:text-gray-300">
-                {{ $t('web.homepage.password_generation_description') }}
+                {{ t('web.homepage.password_generation_description') }}
               </p>
             </div>
           </div>
@@ -241,7 +244,7 @@
                 <label
                   :for="passphraseId"
                   class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
-                  {{ $t('web.COMMON.secret_passphrase') }}
+                  {{ t('web.COMMON.secret_passphrase') }}
                   <span
                     v-if="isPassphraseRequired"
                     class="ml-1 text-red-500"
@@ -256,13 +259,13 @@
                   v-if="passphraseConfig"
                   class="text-xs text-gray-500 dark:text-gray-400">
                   <span v-if="passphraseConfig.minimum_length">
-                    {{ $t('web.secrets.passphraseMinimumLength', { length: passphraseConfig.minimum_length }) }}
+                    {{ t('web.secrets.passphraseMinimumLength', { length: passphraseConfig.minimum_length }) }}
                   </span>
                   <span v-if="passphraseConfig.minimum_length && passphraseConfig.enforce_complexity">
                     •
                   </span>
                   <span v-if="passphraseConfig.enforce_complexity">
-                    {{ $t('web.secrets.passphraseComplexityRequired') }}
+                    {{ t('web.secrets.passphraseComplexityRequired') }}
                   </span>
                 </div>
               </div>
@@ -281,7 +284,7 @@
                     text-sm text-gray-900 transition-shadow duration-200 placeholder:text-gray-400
                     focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
                     dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
-                  :placeholder="$t('web.secrets.enterPassphrase')"
+                  :placeholder="t('web.secrets.enterPassphrase')"
                   @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
                 <!-- prettier-ignore-attribute class -->
                 <button
@@ -308,7 +311,7 @@
                 <label
                   :for="lifetimeId"
                   class="mb-1 block font-brand text-sm text-gray-600 dark:text-gray-300">
-                  {{ $t('web.LABELS.expiration_time') || 'Secret Expiration' }}
+                  {{ t('web.LABELS.expiration_time') || 'Secret Expiration' }}
                 </label>
               </h3>
               <!-- Empty spacer to match passphrase field hint area -->
@@ -330,21 +333,21 @@
                   <option
                     value=""
                     disabled>
-                    {{ $t('web.secrets.selectDuration') }}
+                    {{ t('web.secrets.selectDuration') }}
                   </option>
                   <template v-if="lifetimeOptions.length > 0">
                     <option
                       v-for="option in lifetimeOptions"
                       :key="option.value"
                       :value="option.value">
-                      {{ $t('web.secrets.expiresIn', { duration: option.label }) }}
+                      {{ t('web.secrets.expiresIn', { duration: option.label }) }}
                     </option>
                   </template>
                   <option
                     v-else
                     value=""
                     disabled>
-                    {{ $t('web.UNITS.ttl.noOptionsAvailable') }}
+                    {{ t('web.UNITS.ttl.noOptionsAvailable') }}
                   </option>
                 </select>
               </div>
@@ -359,7 +362,7 @@
               <label
                 :for="recipientId"
                 class="mb-1 block font-brand text-sm text-gray-700 dark:text-gray-300">
-                {{ $t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
+                {{ t('web.COMMON.secret_recipient_address') || 'Email Recipient' }}
               </label>
             </h3>
             <div class="relative">
@@ -376,7 +379,7 @@
                 :id="recipientId"
                 type="email"
                 name="recipient[]"
-                :placeholder="$t('web.COMMON.email_placeholder')"
+                :placeholder="t('web.COMMON.email_placeholder')"
                 :aria-invalid="!!getError('recipient')"
                 :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
                 :class="[cornerClass, getError('recipient') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '']"
@@ -408,7 +411,7 @@
             name="information-circle"
             class="mt-0.5 size-5 shrink-0 text-brandcomp-600 dark:text-brandcomp-500" />
           <p class="text-sm text-brandcomp-700 dark:text-brandcomp-300">
-            {{ $t('web.homepage.protip1') }}
+            {{ t('web.homepage.protip1') }}
           </p>
         </div>
 
