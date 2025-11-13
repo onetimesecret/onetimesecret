@@ -126,7 +126,7 @@ begin
   Onetime::CustomDomain.create!("secrets.acme.com", @org.objid)
   false
 rescue Onetime::Problem => e
-  e.message.include?('Duplicate domain')
+  e.message.include?('already registered') || e.message.include?('Duplicate domain')
 end
 #=> true
 

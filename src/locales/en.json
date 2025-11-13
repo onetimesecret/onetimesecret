@@ -938,7 +938,10 @@
     },
     "domains": {
       "learn-more-dns": "Learn more about DNS configuration",
-      "view-domain-verification-status": "View domain verification status"
+      "view-domain-verification-status": "View domain verification status",
+      "domain-already-in-organization": "This domain is already registered in your organization",
+      "domain-in-other-organization": "This domain is already registered to another organization. Please contact support if you believe this is an error.",
+      "domain-claimed-successfully": "Domain successfully claimed and added to your organization"
     },
     "teams": {
       "title": "Teams",
