@@ -116,7 +116,7 @@
           <img
             v-if="logoImage && !hasImageError"
             :src="logoImage"
-            alt="t('brand-logo')"
+            :alt="t('brand-logo')"
             class="size-full object-contain"
             :class="cornerStyle"
             @error="handleImageError" />

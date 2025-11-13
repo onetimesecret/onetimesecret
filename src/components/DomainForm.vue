@@ -78,7 +78,7 @@ const handleSubmit = () => {
             focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600
             dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700
             dark:focus:ring-offset-gray-900 sm:w-1/2"
-          aria-label="`t('go-back-to-previous-page')`">
+          :aria-label="t('go-back-to-previous-page')">
           <svg
             class="-ml-1 mr-2 size-5"
             xmlns="http://www.w3.org/2000/svg"
