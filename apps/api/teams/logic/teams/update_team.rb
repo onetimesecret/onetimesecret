@@ -8,7 +8,7 @@ module TeamAPI::Logic
       attr_reader :team, :display_name, :description
 
       def process_params
-        @teamid = params['teamid']
+        @team_id = params['extid']
         @display_name = params[:display_name].to_s.strip
         @description = params[:description].to_s.strip
       end
@@ -17,11 +17,11 @@ module TeamAPI::Logic
         # Require authenticated user
         raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
 
-        # Validate teamid parameter
-        raise_form_error('Team ID required', field: :teamid, error_type: :missing) if @teamid.to_s.empty?
+        # Validate team extid parameter
+        raise_form_error('Team ID required', field: :extid, error_type: :missing) if @team_id.to_s.empty?
 
         # Load team
-        @team = load_team(@teamid)
+        @team = load_team(@team_id)
 
         # Verify user is owner
         verify_team_owner(@team)
@@ -49,7 +49,7 @@ module TeamAPI::Logic
       end
 
       def process
-        OT.ld "[UpdateTeam] Updating team #{@teamid} for user #{cust.custid}"
+        OT.ld "[UpdateTeam] Updating team #{@team_id} for user #{cust.custid}"
 
         # Update fields
         if !display_name.empty?
@@ -64,7 +64,7 @@ module TeamAPI::Logic
         @team.updated = Familia.now.to_i
         @team.save
 
-        OT.info "[UpdateTeam] Updated team #{@teamid}"
+        OT.info "[UpdateTeam] Updated team #{@team_id}"
 
         success_data
       end
@@ -72,23 +72,15 @@ module TeamAPI::Logic
       def success_data
         {
           user_id: cust.objid,
-          record: {
-            id: team.teamid,
-            display_name: team.display_name,
-            description: team.description || '',
-            owner_id: team.owner_id,
-            member_count: team.member_count,
-            is_default: team.is_default || false,
-            created_at: team.created,
-            updated_at: team.updated,
-            current_user_role: 'owner',
-          },
+          record: team.safe_dump.merge(
+            current_user_role: 'owner'
+          ),
         }
       end
 
       def form_fields
         {
-          teamid: @teamid,
+          extid: @team_id,
           display_name: display_name,
           description: description,
         }

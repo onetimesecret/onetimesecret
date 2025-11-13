@@ -8,25 +8,25 @@ module TeamAPI::Logic
       attr_reader :team, :members
 
       def process_params
-        @teamid = params['teamid']
+        @team_id = params['extid']
       end
 
       def raise_concerns
         # Require authenticated user
         raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
 
-        # Validate teamid parameter
-        raise_form_error('Team ID required', field: :teamid, error_type: :missing) if @teamid.to_s.empty?
+        # Validate team extid parameter
+        raise_form_error('Team ID required', field: :extid, error_type: :missing) if @team_id.to_s.empty?
 
         # Load team
-        @team = load_team(@teamid)
+        @team = load_team(@team_id)
 
         # Verify user is a member
         verify_team_member(@team)
       end
 
       def process
-        OT.ld "[GetTeam] Getting team #{@teamid} for user #{cust.custid}"
+        OT.ld "[GetTeam] Getting team #{@team_id} for user #{cust.custid}"
 
         # Get team members
         @members = @team.list_members
@@ -37,15 +37,7 @@ module TeamAPI::Logic
       def success_data
         {
           user_id: cust.objid,
-          record: {
-            id: team.teamid,
-            display_name: team.display_name,
-            description: team.description || '',
-            owner_id: team.owner_id,
-            member_count: team.member_count,
-            is_default: team.is_default || false,
-            created_at: team.created,
-            updated_at: team.updated,
+          record: team.safe_dump.merge(
             current_user_role: team.owner?(cust) ? 'owner' : 'member',
             members: members.map do |member|
               {
@@ -53,8 +45,8 @@ module TeamAPI::Logic
                 email: member.email,
                 role: (team.owner?(member) ? 'owner' : 'member'),
               }
-            end,
-          },
+            end
+          ),
         }
       end
     end

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 
+const { t } = useI18n();
+
+
 defineProps({
   success: [String, Array],
   error: [String, Array],
@@ -27,7 +30,7 @@ defineProps({
         </div>
         <div class="ml-3 flex-1">
           <h3 class="text-sm font-medium text-red-800 dark:text-red-100">
-            {{ $t('web.COMMON.error') }}
+            {{ t('web.COMMON.error') }}
           </h3>
           <div class="mt-2 text-sm text-red-700 dark:text-red-200">
             <!-- Single error string -->
@@ -56,7 +59,7 @@ defineProps({
         </div>
         <div class="ml-3 flex-1">
           <h3 class="text-sm font-medium text-green-800 dark:text-green-100">
-            {{ $t('web.STATUS.success') }}
+            {{ t('web.STATUS.success') }}
           </h3>
           <div class="mt-2 text-sm text-green-700 dark:text-green-200">
             <!-- Single success message -->

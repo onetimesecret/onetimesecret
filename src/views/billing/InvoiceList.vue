@@ -5,29 +5,27 @@ import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import BillingLayout from '@/components/layout/BillingLayout.vue';
 import { classifyError } from '@/schemas/errors';
+import { BillingService } from '@/services/billing.service';
 import { useOrganizationStore } from '@/stores/organizationStore';
-import type { Invoice, InvoiceStatus } from '@/types/billing';
+import type { InvoiceStatus } from '@/types/billing';
 import { formatCurrency } from '@/types/billing';
-import { AxiosInstance } from 'axios';
-import { computed, inject, onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { computed, onMounted, ref } from 'vue';
 
 const { t } = useI18n();
 const organizationStore = useOrganizationStore();
-const $api = inject('api') as AxiosInstance;
 
 const selectedOrgId = ref<string | null>(null);
-const invoices = ref<Invoice[]>([]);
+const invoices = ref<any[]>([]);
 const isLoading = ref(false);
 const error = ref('');
 
 const organizations = computed(() => organizationStore.organizations);
 
-const formatDate = (date: Date): string => new Intl.DateTimeFormat('en-US', {
+const formatDate = (timestamp: number): string => new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  }).format(date);
+  }).format(new Date(timestamp * 1000));
 
 const getStatusBadgeClass = (status: InvoiceStatus): string => {
   const classes = {
@@ -44,12 +42,17 @@ const handleOrgChange = async (orgId: string) => {
 };
 
 const loadInvoices = async (orgId: string) => {
+  const organization = organizations.value.find(org => org.id === orgId);
+  if (!organization?.extid) {
+    error.value = 'Organization not found';
+    return;
+  }
+
   isLoading.value = true;
   error.value = '';
   try {
-    const response = await $api.get(`/api/billing/org/${orgId}/invoices`);
-    // TODO: Add proper schema validation once backend is implemented
-    invoices.value = response.data.invoices || [];
+    const response = await BillingService.listInvoices(organization.extid);
+    invoices.value = response.invoices || [];
   } catch (err) {
     const classified = classifyError(err);
     error.value = classified.message || t('web.billing.invoices.load_error');
@@ -59,12 +62,13 @@ const loadInvoices = async (orgId: string) => {
   }
 };
 
-const handleDownload = async (invoice: Invoice) => {
-  if (!invoice.download_url) return;
+const handleDownload = async (invoice: any) => {
+  const url = invoice.invoice_pdf || invoice.hosted_invoice_url;
+  if (!url) return;
 
   try {
     // Open download URL in new window
-    window.open(invoice.download_url, '_blank');
+    window.open(url, '_blank');
   } catch (err) {
     console.error('[InvoiceList] Error downloading invoice:', err);
   }
@@ -177,10 +181,10 @@ onMounted(async () => {
                 :key="invoice.id"
                 class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
-                  {{ formatDate(invoice.invoice_date) }}
+                  {{ formatDate(invoice.created) }}
                 </td>
                 <td class="whitespace-nowrap px-6 py-4 font-mono text-sm text-gray-500 dark:text-gray-400">
-                  {{ invoice.id }}
+                  {{ invoice.number || invoice.id }}
                 </td>
                 <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                   {{ formatCurrency(invoice.amount, invoice.currency) }}
@@ -196,7 +200,7 @@ onMounted(async () => {
                 </td>
                 <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
                   <button
-                    v-if="invoice.download_url"
+                    v-if="invoice.invoice_pdf || invoice.hosted_invoice_url"
                     @click="handleDownload(invoice)"
                     class="inline-flex items-center gap-1 text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300">
                     <OIcon

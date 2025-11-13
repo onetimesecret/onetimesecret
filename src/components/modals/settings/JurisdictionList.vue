@@ -2,6 +2,9 @@
 import type { Jurisdiction } from '@/schemas/models';
 import OIcon from '@/components/icons/OIcon.vue';
 
+const { t } = useI18n();
+
+
 const props = defineProps<{
   jurisdictions: Jurisdiction[];
   currentJurisdiction?: Jurisdiction | null;
@@ -32,7 +35,7 @@ const isCurrentJurisdiction = (jurisdiction: Jurisdiction) =>
           :class="{ 'font-medium': isCurrentJurisdiction(jurisdiction) }"
           class="grow text-sm text-gray-700 hover:text-brand-600 dark:text-gray-200 dark:hover:text-brand-400"
           :aria-current="isCurrentJurisdiction(jurisdiction) ? 'true' : undefined"
-          :aria-label="$t('jurisdiction-display_name-iscurrentjurisdiction-', [jurisdiction.display_name, isCurrentJurisdiction(jurisdiction) ? `(Current)` : ``])">
+          :aria-label="t('jurisdiction-display_name-iscurrentjurisdiction-', [jurisdiction.display_name, isCurrentJurisdiction(jurisdiction) ? `(Current)` : ``])">
           {{ jurisdiction.display_name }}
         </a>
       </div>
@@ -41,7 +44,7 @@ const isCurrentJurisdiction = (jurisdiction: Jurisdiction) =>
         v-if="isCurrentJurisdiction(jurisdiction)"
         class="ml-auto inline-flex items-center rounded-full bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 dark:bg-brand-900/20 dark:text-brand-300"
         aria-hidden="true">
-        {{ $t('current') }}
+        {{ t('current') }}
       </span>
     </li>
   </ul>

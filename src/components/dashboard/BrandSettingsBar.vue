@@ -15,7 +15,7 @@
     fontOptions,
   } from '@/schemas/models/domain/brand';
   import { computed } from 'vue';
-  import { Composer, useI18n } from 'vue-i18n';
+  import { Composer } from 'vue-i18n';
 
   import ColorPicker from '../common/ColorPicker.vue';
   import CycleButton from '../common/CycleButton.vue';

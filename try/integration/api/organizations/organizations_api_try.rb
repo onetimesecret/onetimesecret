@@ -6,9 +6,9 @@
 # Integration tests for Organizations CRUD API endpoints:
 # - POST /api/organizations (create organization)
 # - GET /api/organizations (list user's organizations)
-# - GET /api/organizations/:orgid (get organization details)
-# - PUT /api/organizations/:orgid (update organization)
-# - DELETE /api/organizations/:orgid (delete organization)
+# - GET /api/organizations/:extid (get organization details)
+# - PUT /api/organizations/:extid (update organization)
+# - DELETE /api/organizations/:extid (delete organization)
 
 require 'rack/test'
 require_relative '../../../support/test_helpers'
@@ -51,14 +51,14 @@ last_response.status
 
 ## Can parse create organization response
 resp = JSON.parse(last_response.body)
-@orgid = resp['record']['orgid']
+@objid = resp['record']['objid']
 [resp['record']['display_name'], resp['record']['owner_id']]
 #=> ['API Test Org', @cust.custid]
 
 ## Created organization response includes all expected fields
 resp = JSON.parse(last_response.body)
 [
-  resp['record'].key?('orgid'),
+  resp['record'].key?('objid'),
   resp['record'].key?('display_name'),
   resp['record'].key?('description'),
   resp['record'].key?('contact_email'),
@@ -84,27 +84,27 @@ resp = JSON.parse(last_response.body)
 
 ## Listed organizations include the created organization
 resp = JSON.parse(last_response.body)
-org_ids = resp['records'].map { |o| o['orgid'] }
-org_ids.include?(@orgid)
+org_ids = resp['records'].map { |o| o['objid'] }
+org_ids.include?(@objid)
 #=> true
 
 ## Listed organizations have correct structure
 resp = JSON.parse(last_response.body)
 first_org = resp['records'].first
 [
-  first_org.key?('orgid'),
+  first_org.key?('objid'),
   first_org.key?('display_name'),
   first_org.key?('is_owner')
 ]
 #=> [true, true, true]
 
-## Can get organization details by orgid
-get "/api/organizations/#{@orgid}",
+## Can get organization details by external identifier
+get "/api/organizations/#{@extid}",
   {},
   { 'rack.session' => @session }
 resp = JSON.parse(last_response.body)
-[last_response.status, resp['record']['orgid'], resp['record']['display_name']]
-#=> [200, @orgid, 'API Test Org']
+[last_response.status, resp['record']['objid'], resp['record']['display_name']]
+#=> [200, @objid, 'API Test Org']
 
 ## Organization details include description and contact email
 resp = JSON.parse(last_response.body)
@@ -112,7 +112,7 @@ resp = JSON.parse(last_response.body)
 #=> ['Created via API', true]
 
 ## Can update organization display name
-put "/api/organizations/#{@orgid}",
+put "/api/organizations/#{@extid}",
   { display_name: 'Updated Org Name' }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
 resp = JSON.parse(last_response.body)
@@ -120,7 +120,7 @@ resp = JSON.parse(last_response.body)
 #=> [200, 'Updated Org Name']
 
 ## Can update organization description
-put "/api/organizations/#{@orgid}",
+put "/api/organizations/#{@extid}",
   { description: 'New description' }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
 resp = JSON.parse(last_response.body)
@@ -129,7 +129,7 @@ resp = JSON.parse(last_response.body)
 
 ## Can update organization contact email
 @new_email = "newemail#{Familia.now.to_i}@example.com"
-put "/api/organizations/#{@orgid}",
+put "/api/organizations/#{@extid}",
   { contact_email: @new_email }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
 resp = JSON.parse(last_response.body)
@@ -138,7 +138,7 @@ resp = JSON.parse(last_response.body)
 
 ## Can update all fields at once
 @final_email = "final#{Familia.now.to_i}@example.com"
-put "/api/organizations/#{@orgid}",
+put "/api/organizations/#{@extid}",
   { display_name: 'Final Org Name', description: 'Final description', contact_email: @final_email }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
 resp = JSON.parse(last_response.body)
@@ -148,7 +148,7 @@ resp = JSON.parse(last_response.body)
 ## Updated timestamp changes after update
 original_updated = JSON.parse(last_response.body)['record']['updated']
 sleep 0.01
-put "/api/organizations/#{@orgid}",
+put "/api/organizations/#{@extid}",
   { display_name: 'Timestamp Test' }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
 new_updated = JSON.parse(last_response.body)['record']['updated']
@@ -193,12 +193,12 @@ last_response.status >= 400
 #=> true
 
 ## Cannot get organization details without authentication
-get "/api/organizations/#{@orgid}", {}, {}
+get "/api/organizations/#{@extid}", {}, {}
 last_response.status >= 400
 #=> true
 
 ## Cannot update organization without authentication
-put "/api/organizations/#{@orgid}",
+put "/api/organizations/#{@extid}",
   { display_name: 'Hacked Name' }.to_json,
   { 'CONTENT_TYPE' => 'application/json' }
 last_response.status >= 400
@@ -212,21 +212,21 @@ last_response.status >= 400
 #=> true
 
 ## Can delete organization
-delete "/api/organizations/#{@orgid}",
+delete "/api/organizations/#{@extid}",
   {},
   { 'rack.session' => @session }
 last_response.status
 #=> 200
 
 ## Deleted organization no longer accessible
-get "/api/organizations/#{@orgid}",
+get "/api/organizations/#{@extid}",
   {},
   { 'rack.session' => @session }
 last_response.status >= 400
 #=> true
 
 ## Cannot delete already deleted organization
-delete "/api/organizations/#{@orgid}",
+delete "/api/organizations/#{@extid}",
   {},
   { 'rack.session' => @session }
 last_response.status >= 400
@@ -236,13 +236,13 @@ last_response.status >= 400
 post '/api/organizations',
   { display_name: 'Delete Test Org', contact_email: "deletetest#{Familia.now.to_i}@example.com" }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
-@delete_orgid = JSON.parse(last_response.body)['record']['orgid']
-delete "/api/organizations/#{@delete_orgid}", {}, {}
-[last_response.status >= 400, @delete_orgid != nil]
+@delete_objid = JSON.parse(last_response.body)['record']['objid']
+delete "/api/organizations/#{@delete_objid}", {}, {}
+[last_response.status >= 400, @delete_objid != nil]
 #=> [true, true]
 
 # Cleanup the test organization we just created
-@org_to_cleanup = Onetime::Organization.load(@delete_orgid)
+@org_to_cleanup = Onetime::Organization.load(@delete_objid)
 @org_to_cleanup.destroy! if @org_to_cleanup
 
 # Teardown

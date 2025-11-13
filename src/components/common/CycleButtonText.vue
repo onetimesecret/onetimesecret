@@ -3,6 +3,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+const { t } = useI18n();
+
 interface Props {
   modelValue: string;
   options: string[];
@@ -35,7 +37,7 @@ const cycleValue = () => {
            shadow-sm transition-colors duration-200 hover:bg-gray-50
            focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600
            dark:bg-gray-700 dark:hover:bg-gray-600"
-    :aria-label="$t('current-label-modelvalue-click-to-cycle-through-options', [label, modelValue])">
+    :aria-label="t('current-label-modelvalue-click-to-cycle-through-options', [label, modelValue])">
     <span class="text-sm text-gray-500 dark:text-gray-400">{{ label }}</span>
     <span class="block text-base font-medium text-gray-900 dark:text-gray-100">
       {{ displayValue }}

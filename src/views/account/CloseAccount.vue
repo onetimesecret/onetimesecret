@@ -4,6 +4,7 @@
   import { ref, computed } from 'vue';
   import { useAuth } from '@/composables/useAuth';
 
+  const { t } = useI18n();
   const { closeAccount, isLoading, error, fieldError, clearErrors } = useAuth();
 
   const password = ref('');
@@ -61,10 +62,10 @@
         </div>
         <div class="ml-3">
           <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
-            {{ $t('web.COMMON.caution_zone') }}
+            {{ t('web.COMMON.caution_zone') }}
           </h3>
           <div class="mt-2 text-sm text-red-700 dark:text-red-300">
-            <p>{{ $t('web.auth.close-account.warning') }}</p>
+            <p>{{ t('web.auth.close-account.warning') }}</p>
           </div>
         </div>
       </div>
@@ -73,7 +74,7 @@
     <div class="bg-white shadow dark:bg-gray-800 sm:rounded-lg">
       <div class="px-4 py-5 sm:p-6">
         <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-          {{ $t('web.auth.close-account.title') }}
+          {{ t('web.auth.close-account.title') }}
         </h3>
 
         <!-- Initial form (before confirmation) -->
@@ -96,7 +97,7 @@
             <label
               for="password"
               class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              {{ $t('web.auth.close-account.password') }}
+              {{ t('web.auth.close-account.password') }}
             </label>
             <div class="relative mt-1">
               <input
@@ -115,7 +116,7 @@
                 :disabled="isLoading"
                 class="absolute inset-y-0 right-0 flex items-center pr-3 disabled:opacity-50"
                 :aria-label="
-                  showPassword ? $t('web.COMMON.hide-password') : $t('web.COMMON.show-password')
+                  showPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')
                 ">
                 <svg
                   class="h-5 w-5 text-gray-400"
@@ -162,7 +163,7 @@
               <label
                 for="confirm"
                 class="font-medium text-gray-700 dark:text-gray-300">
-                {{ $t('web.auth.close-account.confirm') }}
+                {{ t('web.auth.close-account.confirm') }}
               </label>
             </div>
           </div>
@@ -174,13 +175,13 @@
               @click="$router.push('/account/settings')"
               :disabled="isLoading"
               class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-              {{ $t('web.auth.close-account.cancel') }}
+              {{ t('web.auth.close-account.cancel') }}
             </button>
             <button
               type="submit"
               :disabled="!password || !confirmationChecked || isLoading"
               class="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-              {{ $t('web.COMMON.continue') }}
+              {{ t('web.COMMON.continue') }}
             </button>
           </div>
         </form>
@@ -206,10 +207,10 @@
               </div>
               <div class="ml-3">
                 <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
-                  {{ $t('web.COMMON.are_you_sure') }}
+                  {{ t('web.COMMON.are_you_sure') }}
                 </h3>
                 <div class="mt-2 text-sm text-red-700 dark:text-red-300">
-                  <p>{{ $t('web.auth.close-account.warning') }}</p>
+                  <p>{{ t('web.auth.close-account.warning') }}</p>
                 </div>
               </div>
             </div>
@@ -232,15 +233,15 @@
               @click="handleCancel"
               :disabled="isLoading"
               class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-              {{ $t('web.auth.close-account.cancel') }}
+              {{ t('web.auth.close-account.cancel') }}
             </button>
             <button
               type="button"
               @click="handleFinalSubmit"
               :disabled="!canSubmit"
               class="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-              <span v-if="isLoading">{{ $t('web.COMMON.processing') }}</span>
-              <span v-else>{{ $t('web.auth.close-account.button') }}</span>
+              <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
+              <span v-else>{{ t('web.auth.close-account.button') }}</span>
             </button>
           </div>
         </div>

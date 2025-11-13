@@ -7,11 +7,33 @@ require 'rack/utils'
 module Onetime
   # Team Model (aka Group)
   #
+  # Features are loaded from lib/onetime/models/team/features.rb
+  #
+  # Primary Keys & Identifiers:
+  #   - objid - Primary key (UUID), internal
+  #   - extid - External identifier (e.g., tm%<id>s), user-facing
+  #
+  # Foreign Keys:
+  #   - team_id (underscore) - Foreign key field, stores the objid value
+  #   - All FK relationships use objid values for indexing
+  #
+  # API Layer:
+  #   - Public URLs/APIs should use extid for user-facing references
+  #   - Use find_by_extid(extid) to convert extid → object
+  #   - Internally, relationships always use objid
+  #
+  # Logging:
+  #   - Use extid. Don't log internal IDs.
+  #
+  # Easy way to remember: if you can see a UUID, it's an internal ID. If
+  # you can't, it's an external ID.
+  #
   class Team < Familia::Horreum
+    include Familia::Features::Autoloader
 
     using Familia::Refinements::TimeLiterals
 
-    feature :safe_dump
+    feature :safe_dump_fields
 
     feature :relationships
     feature :object_identifier
@@ -27,7 +49,6 @@ module Onetime
     # This is populated by Customer.participates_in Team, :members
     ##sorted_set :members
 
-    field :teamid
     field :display_name
     field :description
     field :owner_id       # custid of team owner
@@ -38,13 +59,13 @@ module Onetime
     participates_in :Organization, :teams
 
     def init
-      self.teamid ||= objid
       nil
     end
 
-    # Alias for org_id to match Organization's identifier field name
-    def orgid
-      org_id
+    # Underscore means foreign key. This is a convenience method for semantic
+    # clarity when comparing, e.g. team.team_id == entity.team_id
+    def team_id
+      objid
     end
 
     # Owner management
@@ -53,7 +74,7 @@ module Onetime
     end
 
     def owner?(customer)
-      customer && customer.custid == owner_id
+      customer && customer.user_id == owner_id
     end
 
     # Member management - Familia v2 auto-generated methods wrapper
@@ -105,7 +126,7 @@ module Onetime
 
         team = new(
           display_name: display_name,
-          owner_id: owner_customer.custid,
+          owner_id: owner_customer.user_id,
           org_id: org_id
         )
         team.save
@@ -118,7 +139,7 @@ module Onetime
           team.add_to_organization_teams(org)
         end
 
-        OT.ld "[Team.create!] teamid: #{team.teamid}, owner: #{owner_customer.custid}, org: #{org_id}"
+        OT.ld "[Team.create!] team_id: #{team.team_id}, owner: #{owner_customer.user_id}, org: #{org_id}"
         team
       end
     end

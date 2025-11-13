@@ -27,6 +27,11 @@ module Onetime
         def register_application_class(app_class)
           @application_classes << app_class unless @application_classes.include?(app_class)
           OT.ld "[registry] Registered application: #{app_class}"
+
+          if Onetime.conf.nil?
+            msg = "[register_application_class] Registering #{app_class} with nil config is probably not what you want"
+            Onetime.app_logger.warn(msg)
+          end
         end
 
         # Discover and map application classes to their respective routes
@@ -122,7 +127,7 @@ module Onetime
 
         # Re-register application classes that are already in memory
         def reregister_loaded_applications
-          billing_enabled = Onetime.conf.dig('billing', 'enabled').to_s == 'true'
+          billing_enabled = Onetime.conf&.dig('billing', 'enabled').to_s == 'true'
 
           ObjectSpace.each_object(Class)
             .select { |cls| cls < Onetime::Application::Base && cls.respond_to?(:uri_prefix) }
@@ -144,7 +149,7 @@ module Onetime
           end
 
           # Skip billing app if not enabled in config
-          billing_enabled = Onetime.conf.dig('billing', 'enabled').to_s == 'true'
+          billing_enabled = Onetime.conf&.dig('billing', 'enabled').to_s == 'true'
           unless billing_enabled
             filepaths.reject! { |f| f.include?('web/billing/') }
           end

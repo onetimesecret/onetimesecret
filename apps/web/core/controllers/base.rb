@@ -231,9 +231,12 @@ module Core
       # @param field [String, nil] Field name for error, nil to infer from message
       # @return [Hash, nil] JSON error Hash for routes with response=json, nil otherwise
       def handle_form_error(ex, redirect_path = nil, field: nil, status: 400)
+        # We pass the message here and not the exception itelf b/c SemanticLogger
+        # automatically outputs backtrace when it receives one.
         http_logger.error "Form error occurred", {
-          exception: ex,
-          field: field,
+          message: ex.message,
+          field: field || ex.field,
+          error_type: ex.error_type,
           redirect_path: redirect_path
         }
         if json_requested?

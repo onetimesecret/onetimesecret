@@ -8,7 +8,7 @@ module TeamAPI::Logic
       attr_reader :team, :member_to_remove
 
       def process_params
-        @teamid = params['teamid']
+        @team_id = params['extid']
         @custid = params['custid'].to_s.strip
       end
 
@@ -16,14 +16,14 @@ module TeamAPI::Logic
         # Require authenticated user
         raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
 
-        # Validate teamid parameter
-        raise_form_error('Team ID required', field: :teamid, error_type: :missing) if @teamid.to_s.empty?
+        # Validate team extid parameter
+        raise_form_error('Team ID required', field: :extid, error_type: :missing) if @team_id.to_s.empty?
 
         # Validate custid parameter
         raise_form_error('Customer ID required', field: :custid, error_type: :missing) if @custid.empty?
 
         # Load team
-        @team = load_team(@teamid)
+        @team = load_team(@team_id)
 
         # Load member to remove
         @member_to_remove = Onetime::Customer.load(@custid)
@@ -51,7 +51,7 @@ module TeamAPI::Logic
       end
 
       def process
-        OT.ld "[RemoveMember] Removing member #{@custid} from team #{@teamid}"
+        OT.ld "[RemoveMember] Removing member #{@custid} from team #{@team_id}"
 
         # Remove member from team
         @team.remove_member(@member_to_remove)
@@ -60,7 +60,7 @@ module TeamAPI::Logic
         @team.updated = Familia.now.to_i
         @team.save
 
-        OT.info "[RemoveMember] Removed member #{@custid} from team #{@teamid}"
+        OT.info "[RemoveMember] Removed member #{@custid} from team #{@team_id}"
 
         success_data
       end
@@ -68,7 +68,7 @@ module TeamAPI::Logic
       def success_data
         {
           user_id: cust.objid,
-          teamid: team.teamid,
+          team_extid: team.extid,
           removed: true,
           custid: @custid,
         }
@@ -76,7 +76,7 @@ module TeamAPI::Logic
 
       def form_fields
         {
-          teamid: @teamid,
+          extid: @team_id,
           custid: @custid,
         }
       end

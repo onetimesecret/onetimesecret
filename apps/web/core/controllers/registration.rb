@@ -14,7 +14,7 @@ module Core
           raise OT::Redirect.new('/')
         end
 
-        logic = V2::Logic::Account::CreateAccount.new(strategy_result, req.params, locale)
+        logic = AccountAPI::Logic::Account::CreateAccount.new(strategy_result, req.params, locale)
 
         # Determine success message based on autoverify setting
         autoverify = OT.conf.dig('site', 'authentication', 'autoverify')
@@ -31,14 +31,12 @@ module Core
         )
       end
 
-      def request_reset
-        if req.params[:key]
-          # Password reset with token
-          reset_password_with_token
-        else
-          # Request password reset email
-          request_password_reset_email
-        end
+      def request_reset_email
+        request_password_reset_email
+      end
+
+      def reset_password
+        reset_password_with_token
       rescue Onetime::MissingSecret
         if json_requested?
           json_error('Invalid or expired reset token', field_error: %w[key invalid], status: 404)
@@ -51,7 +49,7 @@ module Core
       private
 
       def reset_password_with_token
-        logic = V2::Logic::Authentication::ResetPassword.new(strategy_result, req.params, locale)
+        logic = AccountAPI::Logic::Authentication::ResetPassword.new(strategy_result, req.params, locale)
         execute_with_error_handling(
           logic,
           success_message: 'Your password has been reset',
@@ -61,7 +59,7 @@ module Core
       end
 
       def request_password_reset_email
-        logic = V2::Logic::Authentication::ResetPasswordRequest.new(strategy_result, req.params, locale)
+        logic = AccountAPI::Logic::Authentication::ResetPasswordRequest.new(strategy_result, req.params, locale)
         execute_with_error_handling(
           logic,
           success_message: 'An email has been sent to you with a link to reset the password for your account',

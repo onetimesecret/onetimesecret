@@ -13,6 +13,7 @@ GET   /signup                                    Core::Controllers::Page#index a
 GET   /signup/*                                  Core::Controllers::Page#index auth=noauth
 GET   /forgot                                    Core::Controllers::Page#index auth=noauth
 GET   /forgot/:key                               Core::Controllers::Page#index auth=noauth
+GET   /reset-password                            Core::Controllers::Page#index auth=noauth
 
 # Authentication routes - handled here in basic mode, by Auth app in advanced
 # mode. The Vue frontend uses the same /auth/* endpoints regardless of which
@@ -23,8 +24,9 @@ GET   /auth/logout                               Core::Controllers::Authenticati
 POST  /auth/logout                               Core::Controllers::Authentication#logout auth=noauth response=json
 POST  /auth/login                                Core::Controllers::Authentication#authenticate auth=noauth response=json
 POST  /auth/create-account                       Core::Controllers::Registration#create_account auth=noauth response=json
-POST  /auth/reset-password                       Core::Controllers::Registration#request_reset auth=noauth response=json
-POST  /auth/reset-password/:key                  Core::Controllers::Registration#request_reset auth=noauth response=json
+POST  /auth/reset-password-request               Core::Controllers::Registration#request_reset_email auth=noauth response=json
+POST  /auth/reset-password                       Core::Controllers::Registration#reset_password auth=noauth response=json
+POST  /auth/reset-password/:key                  Core::Controllers::Registration#reset_password auth=noauth response=json
 
 # Authentication routes - advanced mode routes that core delivers for the
 # frontend vue app to mount on. The frontend app then communicates via

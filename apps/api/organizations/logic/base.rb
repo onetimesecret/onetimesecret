@@ -14,10 +14,12 @@
 # Organization API uses same modern conventions as Account API and Team API for consistency.
 
 require_relative '../../v2/logic/base'
+require_relative '../../../../lib/onetime/application/authorization_policies'
 
 module OrganizationAPI
   module Logic
     class Base < V2::Logic::Base
+      include Onetime::Application::AuthorizationPolicies
       # Organization API-specific serialization helper
       #
       # Converts Familia model to JSON hash with native types.
@@ -73,7 +75,7 @@ module OrganizationAPI
       # Serialize organization to API response format
       #
       # Provides consistent serialization across all organization endpoints:
-      # - Uses `id` (objid) instead of `orgid`
+      # - Uses `id` (objid) internally.
       # - Timestamps as `created_at`/`updated_at`
       # - Includes `is_default`, `owner_id`, `member_count`
       # - Omits `contact_email` when empty
@@ -116,17 +118,33 @@ module OrganizationAPI
       end
 
       # Verify current user owns the organization
+      #
+      # Colonels (site admins) have automatic superuser bypass.
+      # Otherwise, user must be organization owner.
+      #
+      # @param organization [Onetime::Organization]
+      # @raise [FormError] If user is not owner and not admin
       def verify_organization_owner(organization)
-        unless organization.owner?(cust)
-          raise_form_error('Only organization owner can perform this action', field: :orgid, error_type: :forbidden)
-        end
+        verify_one_of_roles!(
+          colonel: true,
+          custom_check: -> { organization.owner?(cust) },
+          error_message: 'Only organization owner can perform this action'
+        )
       end
 
       # Verify current user is an organization member
+      #
+      # Colonels (site admins) have automatic superuser bypass.
+      # Otherwise, user must be organization member.
+      #
+      # @param organization [Onetime::Organization]
+      # @raise [FormError] If user is not a member and not admin
       def verify_organization_member(organization)
-        unless organization.member?(cust)
-          raise_form_error('You must be an organization member to perform this action', field: :orgid, error_type: :forbidden)
-        end
+        verify_one_of_roles!(
+          colonel: true,
+          custom_check: -> { organization.member?(cust) },
+          error_message: 'You must be an organization member to perform this action'
+        )
       end
 
       # Load organization and verify it exists

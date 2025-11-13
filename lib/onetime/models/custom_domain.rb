@@ -6,10 +6,6 @@ require 'public_suffix'
 
 module Onetime
 
-  # Tryouts:
-  # - tests/unit/ruby/try/20_models/27_domains_try.rb
-  # - tests/unit/ruby/try/20_models/27_domains_publicsuffix_try.rb
-
   # Custom Domain
   #
   # NOTE: CustomDomain records can only be created via V2 API
@@ -37,6 +33,24 @@ module Onetime
   # the hostname and the domain name, and include the top-level domain, the
   # format looks like [hostname].[domain].[tld]. for ex. [www].[mozilla].[org].
   #
+  # Primary Keys & Identifiers:
+  #   - objid - Primary key (UUID), internal
+  #   - extid - External identifier (e.g., dm%<id>s), user-facing
+  #
+  # Foreign Keys:
+  #   - domain_id (underscore) - Foreign key field, stores the objid value
+  #   - All FK relationships use objid values for indexing
+  #
+  # API Layer:
+  #   - Public URLs/APIs should use extid for user-facing references
+  #   - Use find_by_extid(extid) to convert extid → object
+  #   - Internally, relationships always use objid
+  #
+  # Logging:
+  #   - Use extid. Don't log internal IDs.
+  #
+  # Easy way to remember: if you can see a UUID, it's an internal ID. If
+  # you can't, it's an external ID.
   class CustomDomain < Familia::Horreum
     include Familia::Features::Autoloader
 
@@ -52,6 +66,7 @@ module Onetime
     feature :safe_dump_fields
     feature :relationships  # Enable Familia v2 features
     feature :object_identifier  # Auto-generates objid
+    feature :external_identifier, format: 'dm%<id>s'
 
     # NOTE: The dbkey used by older models for values is simply
     # "onetime:customdomain". We'll want to rename those at some point.
@@ -399,6 +414,31 @@ module Onetime
     module ClassMethods
       attr_reader :db, :values, :owners, :txt_validation_prefix
 
+      # Load a domain by its display_domain name
+      # @param domain_name [String] The domain name to look up
+      # @return [CustomDomain, nil] The domain if found, nil otherwise
+      def load_by_display_domain(domain_name)
+        normalized = domain_name.to_s.downcase
+        domainid = display_domains.get(normalized)
+        return nil if domainid.nil?
+
+        # Use Familia's find_by_identifier method
+        begin
+          find_by_identifier(domainid)
+        rescue Onetime::RecordNotFound, Redis::BaseError => ex
+          OT.ld "[CustomDomain.load_by_display_domain] Failed to load domain #{normalized} with id #{domainid}: #{ex.message}"
+          nil
+        end
+      end
+
+      # Check if a domain exists but has no organization (orphaned)
+      # @param domain_name [String] The domain name to check
+      # @return [Boolean] true if domain exists without org_id
+      def orphaned?(domain_name)
+        domain = load_by_display_domain(domain_name)
+        domain && domain.org_id.to_s.empty?
+      end
+
       # Creates a new custom domain record
       #
       # This method:
@@ -414,7 +454,7 @@ module Onetime
       # @note BREAKING CHANGE: This method signature changed from (input, custid) to (input, org_id).
       #   Domains are now owned by organizations, not individual customers. To migrate existing code:
       #   OLD: CustomDomain.create!(domain, customer.custid)
-      #   NEW: CustomDomain.create!(domain, customer.organization_instances.first.orgid)
+      #   NEW: CustomDomain.create!(domain, customer.organization_instances.first.objid)
       #
       # More Info:
       # We need a minimum of a domain and organization id to create a custom
@@ -430,8 +470,39 @@ module Onetime
       # room for confusion.
       #
       def create!(input, org_id)
+        # Parse the domain to get normalized display_domain
         obj = parse(input, org_id)
 
+        # Check for existing domain BEFORE attempting creation
+        existing = load_by_display_domain(obj.display_domain)
+
+        if existing
+          # Scenario 1: Domain already in customer's organization (same org_id)
+          if existing.org_id.to_s == org_id.to_s
+            OT.ld "[CustomDomain.create!] Domain already in organization: #{obj.display_domain} org_id=#{org_id}"
+            raise Onetime::Problem, 'Domain already registered in your organization'
+          end
+
+          # Scenario 2: Domain in another organization (different org_id)
+          if !existing.org_id.to_s.empty?
+            OT.le "[CustomDomain.create!] Domain belongs to another organization: #{obj.display_domain} existing_org_id=#{existing.org_id} requested_org_id=#{org_id}"
+            raise Onetime::Problem, 'Domain is registered to another organization'
+          end
+
+          # Scenario 3: Orphaned domain (no org_id) - claim it
+          OT.info "[CustomDomain.create!] Claiming orphaned domain: #{obj.display_domain} for org_id=#{org_id}"
+          existing.org_id = org_id
+          existing.updated = OT.now.to_i
+          existing.save
+
+          # Add to organization_domains collection
+          org = Onetime::Organization.load(org_id)
+          existing.add_to_organization_domains(org) if org
+
+          return existing
+        end
+
+        # No existing domain - create new one
         dbclient.watch(obj.dbkey) do
           if obj.exists?
             dbclient.unwatch
@@ -453,10 +524,10 @@ module Onetime
 
         obj # Return the created object
       rescue Familia::RecordExistsError => ex
-        OT.le "[CustomDomain.create] Duplicate domain: #{ex.message}"
+        OT.le "[CustomDomain.create!] Duplicate domain: #{ex.message}"
         raise Onetime::Problem, 'Duplicate domain for organization'
       rescue Redis::BaseError => ex
-        OT.le "[CustomDomain.create] Redis error: #{ex.message}"
+        OT.le "[CustomDomain.create!] Redis error: #{ex.message}"
         raise Onetime::Problem, 'Unable to create custom domain'
       end
 
@@ -594,13 +665,13 @@ module Onetime
           raise Onetime::Problem, "Cannot add custom domain with nil org_id. display_domain=#{fobj.display_domain.inspect}, identifier=#{fobj.identifier.inspect}"
         end
 
-        values.add fobj.to_s # created time, identifier
+        instances.add fobj.to_s # created time, identifier
         display_domains.put fobj.display_domain, fobj.identifier
         owners.put fobj.to_s, fobj.org_id # domainid => organization id
       end
 
       def rem(fobj)
-        values.remove fobj.to_s
+        instances.remove fobj.to_s
         display_domains.remove fobj.display_domain
         owners.remove fobj.to_s
       end
@@ -608,13 +679,13 @@ module Onetime
       def all
         # Load all instances from the sorted set. No need
         # to involve the owners HashKey here.
-        values.revrangeraw(0, -1).collect { |identifier| find_by_identifier(identifier) }
+        instances.revrangeraw(0, -1).collect { |identifier| find_by_identifier(identifier) }
       end
 
       def recent(duration = 48.hours)
         spoint = OT.now.to_i - duration
         epoint = OT.now.to_i
-        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        instances.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       # Implement a load method for CustomDomain to make sure the
@@ -657,7 +728,7 @@ module Onetime
       # Find all custom domains for a given organization
       # Uses the Familia v2 participates_in relationship
       #
-      # @param org_id [String] The organization identifier (orgid)
+      # @param org_id [String] The organization internal identifier (objid)
       # @return [Array<String>] Array of domain identifiers
       def find_all_by_org_id(org_id)
         org = Onetime::Organization.load(org_id)

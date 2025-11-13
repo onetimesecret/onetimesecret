@@ -3,6 +3,7 @@
 import Vue from '@vitejs/plugin-vue';
 import { resolve } from 'path';
 import process from 'process';
+import AutoImport from 'unplugin-auto-import/vite';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
 import { visualizer } from 'rollup-plugin-visualizer';
@@ -93,6 +94,22 @@ export default defineConfig({
          * $subscribe @ pinia.js -> devtoolsInitApp @ chunk-LR5MW2GB.js -> mount
          */
         compilerOptions: {},
+      },
+    }),
+
+    AutoImport({
+      imports: [
+        'vue',
+        'vue-router',
+        {
+          'vue-i18n': ['useI18n'],
+        },
+      ],
+      dts: 'src/auto-imports.d.ts',
+      eslintrc: {
+        enabled: true,
+        filepath: 'src/.eslintrc-auto-import.json',
+        globalsPropValue: true,
       },
     }),
 

@@ -6,6 +6,8 @@
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import OIcon from '@/components/icons/OIcon.vue';
 
+  const { t } = useI18n();
+
   interface Props {
     concealedMessage: ConcealedMessage;
   }
@@ -43,7 +45,7 @@
                 name="document-text-solid"
                 class="mr-2 size-4 text-blue-500 dark:text-blue-400"
                 aria-hidden="true" />
-              {{ $t('web.private.view_metadata') }}
+              {{ t('web.private.view_metadata') }}
             </router-link>
           </MenuItem>
           <MenuItem v-slot="{ active }">
@@ -61,7 +63,7 @@
                 name="link-20-solid"
                 class="mr-2 size-4 text-emerald-500 dark:text-emerald-400"
                 aria-hidden="true" />
-              {{ $t('web.private.open_link') }}
+              {{ t('web.private.open_link') }}
             </router-link>
           </MenuItem>
         </div>
@@ -78,7 +80,7 @@
                 name="trash-20-solid"
                 class="mr-2 size-4"
                 aria-hidden="true" />
-              {{ $t('web.COMMON.burn') }}
+              {{ t('web.COMMON.burn') }}
               </router-link>
           </MenuItem>
         </div>

@@ -5,6 +5,8 @@
   import type { LayoutProps } from '@/types/ui/layouts';
   import { ref } from 'vue';
 
+  const { t } = useI18n();
+
   const productIdentity = useProductIdentity();
   const imageError = ref(false);
 
@@ -33,7 +35,7 @@
         <div
           class="relative"
           role="region"
-          :aria-label="$t('brand-logo')">
+          :aria-label="t('brand-logo')">
           <router-link to="/">
             <div
               :class="[
@@ -43,7 +45,7 @@
               <img
                 v-if="productIdentity.logoUri && !imageError"
                 :src="productIdentity.logoUri"
-                alt="$t('company-logo')"
+                alt=""
                 class="size-16 object-contain"
                 :class="productIdentity.cornerClass"
                 @error="handleImageError" />

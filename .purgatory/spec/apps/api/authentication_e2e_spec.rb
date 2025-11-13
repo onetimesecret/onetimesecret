@@ -48,7 +48,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
       session.save
 
       # Step 3: Attempt authentication with correct credentials
-      auth_logic = V2::Logic::Authentication::AuthenticateSession.new(
+      auth_logic = AccountAPI::Logic::Authentication::AuthenticateSession.new(
         session, customer, { login: customer_email, password: initial_password }
       )
 
@@ -79,7 +79,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
       session.save
 
       # Attempt authentication with wrong password
-      auth_logic = V2::Logic::Authentication::AuthenticateSession.new(
+      auth_logic = AccountAPI::Logic::Authentication::AuthenticateSession.new(
         session, customer, { login: customer_email, password: 'wrong_password' }
       )
 
@@ -115,7 +115,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
 
     it 'completes full password reset workflow' do
       # Step 1: Request password reset
-      reset_request_logic = V2::Logic::Authentication::ResetPasswordRequest.new(
+      reset_request_logic = AccountAPI::Logic::Authentication::ResetPasswordRequest.new(
         session, customer, { login: customer_email }
       )
 
@@ -137,7 +137,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
       customer.save
 
       # Step 3: Use reset secret to change password
-      reset_logic = V2::Logic::Authentication::ResetPassword.new(
+      reset_logic = AccountAPI::Logic::Authentication::ResetPassword.new(
         session, customer, {
           key: reset_secret.key,
           newp: new_password,
@@ -160,14 +160,14 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
       expect(reloaded_customer.passphrase?(initial_password)).to be false
 
       # Step 5: Verify old password no longer works for authentication
-      auth_logic_old = V2::Logic::Authentication::AuthenticateSession.new(
+      auth_logic_old = AccountAPI::Logic::Authentication::AuthenticateSession.new(
         session, reloaded_customer, { login: customer_email, password: initial_password }
       )
       auth_logic_old.process_params
       expect(auth_logic_old.success?).to be false
 
       # Step 6: Verify new password works for authentication
-      auth_logic_new = V2::Logic::Authentication::AuthenticateSession.new(
+      auth_logic_new = AccountAPI::Logic::Authentication::AuthenticateSession.new(
         session, reloaded_customer, { login: customer_email, password: new_password }
       )
       auth_logic_new.process_params
@@ -184,7 +184,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
       customer.save
 
       # Attempt password reset with expired secret
-      reset_logic = V2::Logic::Authentication::ResetPassword.new(
+      reset_logic = AccountAPI::Logic::Authentication::ResetPassword.new(
         session, customer, {
           key: reset_secret.key,
           newp: new_password,
@@ -293,7 +293,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
     end
 
     it 'grants colonel privileges on authentication' do
-      auth_logic = V2::Logic::Authentication::AuthenticateSession.new(
+      auth_logic = AccountAPI::Logic::Authentication::AuthenticateSession.new(
         session, customer, { login: colonel_email, password: initial_password }
       )
 
@@ -377,7 +377,7 @@ RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
       v1_success = v1_auth.success?
 
       # Test V2 authentication
-      onetime_auth = V2::Logic::Authentication::AuthenticateSession.new(
+      onetime_auth = AccountAPI::Logic::Authentication::AuthenticateSession.new(
         onetime_session, onetime_customer, { login: customer_email, password: initial_password }
       )
       onetime_auth.process_params

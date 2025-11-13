@@ -2,12 +2,7 @@
 
 import { NavigationFailure, NavigationFailureType } from 'vue-router';
 
-import type {
-  ApplicationError,
-  ErrorType,
-  ErrorSeverity,
-  HttpErrorLike,
-} from './types';
+import type { ApplicationError, ErrorType, ErrorSeverity, HttpErrorLike } from './types';
 import { errorGuards } from './guards';
 import { wrapError } from './wrapper';
 import { HTTP_STATUS_CODES } from './constants';
@@ -60,18 +55,13 @@ export const errorClassifier = {
     }
 
     const status = error.status || error.response?.status;
-    const details = error.response?.data || {};
+    const rawDetails = error.response?.data || {};
+    const details =
+      typeof rawDetails === 'object' && rawDetails !== null ? rawDetails : { raw: rawDetails };
     const userMessage = this.extractUserMessage(details, error);
     const type = this.determineHttpErrorType(status, details);
 
-    return wrapError(
-      userMessage,
-      type,
-      'error',
-      error as Error,
-      status,
-      details
-    );
+    return wrapError(userMessage, type, 'error', error as Error, status, details);
   },
 
   extractUserMessage(details: any, error: HttpErrorLike): string {
@@ -122,12 +112,7 @@ export const errorClassifier = {
     // Get a more user-friendly message from the ZodError
     const formattedMessage = this.formatZodError(error);
 
-    return wrapError(
-      formattedMessage,
-      'human',
-      'error',
-      error
-    );
+    return wrapError(formattedMessage, 'human', 'error', error);
   },
 
   formatZodError(error: ZodError): string {

@@ -9,7 +9,6 @@
   import { useAccountStore } from '@/stores/accountStore';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const { accountInfo, fetchAccountInfo } = useAccount();

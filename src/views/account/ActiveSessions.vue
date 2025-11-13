@@ -3,7 +3,6 @@
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
   import { useActiveSessions } from '@/composables/useActiveSessions';
   import { computed, onMounted, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const { sessions, isLoading, error, fetchSessions, removeSession, removeAllOtherSessions } =

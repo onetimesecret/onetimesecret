@@ -16,6 +16,10 @@ module Onetime::Customer::Features
         base.field :sessid
         base.field :apitoken # TODO: use sorted set?
         base.field :contributor
+
+        # Needed for data migration. Moved to Organization.
+        base.field :stripe_customer_id       # Stripe Customer ID
+        base.field :stripe_subscription_id   # Active Stripe Subscription ID
       end
     end
 

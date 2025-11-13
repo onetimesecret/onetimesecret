@@ -8,7 +8,6 @@ import { useOrganizationStore } from '@/stores/organizationStore';
 import { createOrganizationPayloadSchema, type CreateOrganizationPayload } from '@/types/organization';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { z } from 'zod';
 
 const { t } = useI18n();

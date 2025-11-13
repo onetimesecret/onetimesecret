@@ -4,6 +4,8 @@
   import DisabledHomepageTaglines from '@/components/DisabledHomepageTaglines.vue';
   import { WindowService } from '@/services/window.service';
 
+  const { t } = useI18n();
+
   const windowProps = WindowService.getMultiple([
     'authenticated',
     'authentication',
@@ -34,8 +36,8 @@
       - Messaging must work for all audiences simultaneously since authentication state is unknown
       -->
       <DisabledHomepageTaglines
-        :tagline1="$t('web.homepage.disabled.tagline1')"
-        :tagline2="$t('web.homepage.disabled.tagline2')"
+        :tagline1="t('web.homepage.disabled.tagline1')"
+        :tagline2="t('web.homepage.disabled.tagline2')"
         v-if="!windowProps.ui?.enabled"
         class="mb-6" />
 

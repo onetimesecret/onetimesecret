@@ -8,7 +8,6 @@
   import ThemeToggle from '@/components/ThemeToggle.vue';
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { useI18n } from 'vue-i18n';
 
 
   withDefaults(defineProps<LayoutProps>(), {

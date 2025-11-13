@@ -5,7 +5,6 @@
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
   import { useAccount } from '@/composables/useAccount';
   import { computed, onMounted } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const { accountInfo, fetchAccountInfo } = useAccount();

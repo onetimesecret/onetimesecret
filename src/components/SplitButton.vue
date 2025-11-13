@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
   import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-  import { useI18n } from 'vue-i18n';
+
   const { t } = useI18n();
 
   // Action types for the button
@@ -229,7 +229,7 @@
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
         </span>
-        <span>{{ $t('web.LABELS.create-link-short') }}</span>
+        <span>{{ t('web.LABELS.create-link-short') }}</span>
       </button>
 
       <!-- prettier-ignore-attribute class -->
@@ -254,7 +254,7 @@
               d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
           </svg>
         </span>
-        <span>{{ $t('web.COMMON.button_generate_secret_short') }}</span>
+        <span>{{ t('web.COMMON.button_generate_secret_short') }}</span>
       </button>
     </div>
   </div>

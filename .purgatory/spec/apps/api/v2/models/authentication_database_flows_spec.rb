@@ -89,7 +89,7 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
     end
 
     it 'processes password reset with database operations' do
-      reset_logic = V2::Logic::Authentication::ResetPassword.new(
+      reset_logic = AccountAPI::Logic::Authentication::ResetPassword.new(
         session, customer, {
           key: reset_secret.key,
           newp: new_password,
@@ -110,7 +110,7 @@ RSpec.xdescribe 'Authentication Database Flows', :allow_redis do
     end
 
     it 'cleans up reset secret after successful password change' do
-      reset_logic = V2::Logic::Authentication::ResetPassword.new(
+      reset_logic = AccountAPI::Logic::Authentication::ResetPassword.new(
         session, customer, {
           key: reset_secret.key,
           newp: new_password,

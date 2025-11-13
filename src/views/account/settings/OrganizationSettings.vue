@@ -2,7 +2,6 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import BillingLayout from '@/components/layout/BillingLayout.vue';
 import OIcon from '@/components/icons/OIcon.vue';
@@ -11,6 +10,7 @@ import { useOrganizationStore } from '@/stores/organizationStore';
 import { useTeamStore } from '@/stores/teamStore';
 import { classifyError } from '@/schemas/errors';
 import { WindowService } from '@/services/window.service';
+import { BillingService } from '@/services/billing.service';
 import type { Organization } from '@/types/organization';
 import type { Team } from '@/types/team';
 import type { Subscription } from '@/types/billing';
@@ -24,7 +24,7 @@ const router = useRouter();
 const organizationStore = useOrganizationStore();
 const teamStore = useTeamStore();
 
-const orgId = computed(() => route.params.orgid as string);
+const orgId = computed(() => route.params.extid as string);
 const organization = ref<Organization | null>(null);
 const teams = ref<Team[]>([]);
 const subscription = ref<Subscription | null>(null);
@@ -39,7 +39,20 @@ const success = ref('');
 const billingEnabled = computed(() => WindowService.getWindowProperty('billing_enabled', false));
 
 // Capabilities
-const { capabilities } = useCapabilities(organization);
+const { capabilities, can } = useCapabilities(organization);
+
+/**
+ * Determine if this is a single-user Identity Plus account.
+ * Identity Plus has custom domains but not multi-team capabilities.
+ */
+const isIdentityPlus = computed(() =>
+  can(CAPABILITIES.CUSTOM_DOMAINS) && !can(CAPABILITIES.CREATE_TEAMS)
+);
+
+/**
+ * Determine if this is a multi-team organization.
+ */
+const isMultiTeam = computed(() => can(CAPABILITIES.CREATE_TEAMS));
 
 // Format capability for display
 const formatCapability = (cap: string): string => {
@@ -111,12 +124,32 @@ const loadBilling = async () => {
 
   isLoadingBilling.value = true;
   try {
-    // TODO: Replace with actual API call once backend implements /org/:id/billing
-    // const response = await $api.get(`/api/organizations/${orgId.value}/billing`);
-    // subscription.value = subscriptionSchema.parse(response.data.subscription);
+    if (organization.value?.extid) {
+      const overview = await BillingService.getOverview(organization.value.extid);
 
-    // Mock data for now
-    subscription.value = null;
+      // Convert API response to Subscription type
+      if (overview.subscription && overview.plan) {
+        subscription.value = {
+          id: overview.subscription.id,
+          org_id: organization.value.id,
+          plan_type: overview.plan.tier as any,
+          status: overview.subscription.status as any,
+          teams_limit: overview.plan.limits.teams || 0,
+          teams_used: overview.usage.teams,
+          members_per_team_limit: overview.plan.limits.members_per_team || 0,
+          billing_interval: overview.plan.interval as any,
+          current_period_start: new Date(overview.subscription.period_end * 1000), // Placeholder
+          current_period_end: new Date(overview.subscription.period_end * 1000),
+          cancel_at_period_end: overview.subscription.canceled,
+          created_at: new Date(),
+          updated_at: new Date(),
+        };
+      } else {
+        subscription.value = null;
+      }
+    } else {
+      subscription.value = null;
+    }
   } catch (err) {
     console.error('[OrganizationSettings] Error loading billing:', err);
   } finally {
@@ -188,7 +221,7 @@ watch(activeTab, async (newTab) => {
         <ol class="flex items-center space-x-2">
           <li>
             <router-link
-              to="/billing/organizations"
+              to="/billing/orgs"
               class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
               {{ t('web.organizations.title') }}
             </router-link>
@@ -217,9 +250,11 @@ watch(activeTab, async (newTab) => {
                 ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
-            {{ t('web.organizations.tabs.general') }}
+            {{ isIdentityPlus ? t('web.organizations.tabs.company_branding') : t('web.organizations.tabs.general') }}
           </button>
+          <!-- Teams tab only shown for multi-team organizations -->
           <button
+            v-if="isMultiTeam"
             @click="activeTab = 'teams'"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
@@ -400,7 +435,7 @@ watch(activeTab, async (newTab) => {
             <div v-else class="py-12 text-center">
               <OIcon
                 collection="heroicons"
-                name="user-group"
+                name="rectangle-group"
                 class="mx-auto size-12 text-gray-400"
                 aria-hidden="true" />
               <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">

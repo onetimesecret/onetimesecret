@@ -30,7 +30,6 @@ import OIcon from '@/components/icons/OIcon.vue';
 import FancyIcon from '@/components/ctas/FancyIcon.vue';
 import { Customer } from '@/schemas/models';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { useAuth } from '@/composables/useAuth';
 import { useTeamStore } from '@/stores/teamStore';
 import { WindowService } from '@/services/window.service';
@@ -111,7 +110,7 @@ const menuItems = computed<MenuItem[]>(() => [
     id: 'teams',
     to: '/teams',
     label: t('web.teams.menu.teams'),
-    icon: { collection: 'heroicons', name: 'user-group-solid' },
+    icon: { collection: 'heroicons', name: 'rectangle-group-solid' },
     condition: () => !props.awaitingMfa && teamStore.hasTeams,
   },
   // Colonel (conditional)

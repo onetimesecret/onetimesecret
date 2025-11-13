@@ -5,6 +5,8 @@
   import type { LayoutProps } from '@/types/ui/layouts';
   import BaseLayout from './BaseLayout.vue';
 
+  const { t } = useI18n();
+
   const sitHost = WindowService.get('site_host') ?? null;
   const props = withDefaults(defineProps<LayoutProps>(), {});
 </script>
@@ -43,8 +45,8 @@
           :href="`https://${sitHost}`"
           class="text-[0.7rem] text-gray-300 transition-colors duration-200 hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-600 dark:hover:text-gray-500"
           rel="noopener noreferrer"
-          :aria-label="$t('web.homepage.visit-onetime-secret-home')">
-          {{ $t('powered-by-onetime-secret') }}
+          :aria-label="t('web.homepage.visit-onetime-secret-home')">
+          {{ t('powered-by-onetime-secret') }}
         </a>
       </div>
     </template>

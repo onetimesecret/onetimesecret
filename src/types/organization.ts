@@ -46,6 +46,7 @@ export type OrganizationRole = (typeof ORGANIZATION_ROLES)[keyof typeof ORGANIZA
  */
 export interface Organization {
   id: string;
+  extid?: string;
   display_name: string;
   description?: string;
   contact_email?: string;
@@ -66,6 +67,7 @@ export interface Organization {
 
 export const organizationSchema = z.object({
   id: z.string(),
+  extid: z.string().optional(),
   display_name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
   contact_email: z.string().email().optional(),

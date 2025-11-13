@@ -6,6 +6,9 @@
   import FooterControls from '@/components/layout/SecretFooterControls.vue';
   import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
 
+const { t } = useI18n();
+
+
   withDefaults(defineProps<LayoutProps>(), {});
 
   const siteHost = WindowService.get('site_host');
@@ -13,7 +16,7 @@
 <template>
   <footer
     class="w-full min-w-[320px] bg-gray-100 py-8 transition-colors duration-300 dark:bg-gray-800"
-    :aria-label="$t('site-footer')">
+    :aria-label="t('site-footer')">
     <div class="flex flex-col items-center space-y-8 py-8">
       <div class="flex items-center justify-center">
         <FooterControls :show-language="true" />

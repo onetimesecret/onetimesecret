@@ -2,7 +2,6 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import BillingLayout from '@/components/layout/BillingLayout.vue';
 import OIcon from '@/components/icons/OIcon.vue';
@@ -65,11 +64,11 @@ const handleCreateOrganization = () => {
 const handleOrganizationCreated = (orgId: string) => {
   showCreateModal.value = false;
   // Navigate to the new organization's settings
-  router.push(`/billing/organization/${orgId}`);
+  router.push(`/billing/org/${orgId}`);
 };
 
 const handleManageOrganization = (org: Organization) => {
-  router.push(`/billing/organization/${org.id}`);
+  router.push(`/billing/org/${org.id}`);
 };
 </script>
 

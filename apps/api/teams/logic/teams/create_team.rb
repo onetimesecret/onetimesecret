@@ -47,7 +47,7 @@ module TeamAPI::Logic
           @team.save
         end
 
-        OT.info "[CreateTeam] Created team #{@team.teamid}"
+        OT.info "[CreateTeam] Created team #{@team.extid}"
 
         success_data
       end
@@ -55,17 +55,9 @@ module TeamAPI::Logic
       def success_data
         {
           user_id: cust.objid,
-          record: {
-            id: team.teamid,
-            display_name: team.display_name,
-            description: team.description || '',
-            owner_id: team.owner_id,
-            member_count: team.member_count,
-            is_default: team.is_default || false,
-            created_at: team.created,
-            updated_at: team.updated,
-            current_user_role: 'owner',
-          },
+          record: team.safe_dump.merge(
+            current_user_role: 'owner'
+          ),
         }
       end
 

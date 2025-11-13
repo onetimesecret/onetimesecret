@@ -8,7 +8,7 @@ module TeamAPI::Logic
       attr_reader :team, :new_member, :email
 
       def process_params
-        @teamid = params['teamid']
+        @team_id = params['extid']
         @email = params[:email].to_s.strip.downcase
       end
 
@@ -16,8 +16,8 @@ module TeamAPI::Logic
         # Require authenticated user
         raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
 
-        # Validate teamid parameter
-        raise_form_error('Team ID required', field: :teamid, error_type: :missing) if @teamid.to_s.empty?
+        # Validate team extid parameter
+        raise_form_error('Team ID required', field: :extid, error_type: :missing) if @team_id.to_s.empty?
 
         # Validate email parameter
         raise_form_error('Email address required', field: :email, error_type: :missing) if email.empty?
@@ -29,7 +29,7 @@ module TeamAPI::Logic
         end
 
         # Load team
-        @team = load_team(@teamid)
+        @team = load_team(@team_id)
 
         # Verify user is owner (only owners can add members)
         verify_team_owner(@team)
@@ -47,7 +47,7 @@ module TeamAPI::Logic
       end
 
       def process
-        OT.ld "[AddMember] Adding member #{email} to team #{@teamid}"
+        OT.ld "[AddMember] Adding member #{email} to team #{@team_id}"
 
         # Add member to team
         @team.add_member(@new_member, 'member')
@@ -56,7 +56,7 @@ module TeamAPI::Logic
         @team.updated = Familia.now.to_i
         @team.save
 
-        OT.info "[AddMember] Added member #{@new_member.custid} to team #{@teamid}"
+        OT.info "[AddMember] Added member #{@new_member.custid} to team #{@team_id}"
 
         success_data
       end
@@ -64,10 +64,10 @@ module TeamAPI::Logic
       def success_data
         {
           user_id: cust.objid,
-          teamid: team.teamid,
+          team_extid: team.extid,
           record: {
             id: new_member.custid,
-            team_id: team.teamid,
+            team_extid: team.extid,
             user_id: new_member.custid,
             email: new_member.email,
             role: 'member',
@@ -80,7 +80,7 @@ module TeamAPI::Logic
 
       def form_fields
         {
-          teamid: @teamid,
+          extid: @team_id,
           email: email,
         }
       end

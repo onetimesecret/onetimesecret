@@ -58,10 +58,10 @@ module Rack
 
       # Check if organization has capability
       if org.can?(@capability)
-        logger.debug("[CapabilityCheck] #{org.orgid} has #{@capability}")
+        logger.debug("[CapabilityCheck] #{org.objid} has #{@capability}")
         @app.call(env)
       else
-        logger.info("[CapabilityCheck] #{org.orgid} denied #{@capability}", {
+        logger.info("[CapabilityCheck] #{org.objid} denied #{@capability}", {
           current_plan: org.planid,
           upgrade_to: Onetime::Billing.upgrade_path_for(@capability, org.planid)
         })

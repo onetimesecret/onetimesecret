@@ -62,11 +62,11 @@ end
 #=> true
 
 ## Participations are tracked in Redis
-@owner.participations.to_a.any? { |p| p.include?(@team.teamid) }
+@owner.participations.to_a.any? { |p| p.include?(@team.team_id) }
 #=> true
 
 ## Member participations tracked
-@member.participations.to_a.any? { |p| p.include?(@team.teamid) }
+@member.participations.to_a.any? { |p| p.include?(@team.team_id) }
 #=> true
 
 ## Bulk loading members with load_multi
@@ -88,7 +88,7 @@ end
 #=> false
 
 ## Participations updated after removal
-@member.participations.to_a.any? { |p| p.include?(@team.teamid) }
+@member.participations.to_a.any? { |p| p.include?(@team.team_id) }
 #=> false
 
 ## Count decremented after removal

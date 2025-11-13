@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { ref, nextTick } from 'vue';
 
+const { t } = useI18n();
+
 interface Props {
   disabled?: boolean;
   autoFocus?: boolean;
+  ariaDescribedby?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   autoFocus: true,
+  ariaDescribedby: undefined,
 });
 
 const emit = defineEmits<{
@@ -128,87 +132,98 @@ defineExpose({ clear, focus });
 </script>
 
 <template>
-  <div class="flex items-center justify-center gap-2">
-    <input
-      ref="input1"
-      v-model="digit1"
-      type="text"
-      inputmode="numeric"
-      maxlength="1"
-      :disabled="disabled"
-      @input="handleInput(0, $event)"
-      @keydown="handleKeydown(0, $event)"
-      @paste="handlePaste"
-      class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-      aria-label="Digit 1"
-    />
-    <input
-      ref="input2"
-      v-model="digit2"
-      type="text"
-      inputmode="numeric"
-      maxlength="1"
-      :disabled="disabled"
-      @input="handleInput(1, $event)"
-      @keydown="handleKeydown(1, $event)"
-      @paste="handlePaste"
-      class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-      aria-label="Digit 2"
-    />
-    <input
-      ref="input3"
-      v-model="digit3"
-      type="text"
-      inputmode="numeric"
-      maxlength="1"
-      :disabled="disabled"
-      @input="handleInput(2, $event)"
-      @keydown="handleKeydown(2, $event)"
-      @paste="handlePaste"
-      class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-      aria-label="Digit 3"
-    />
+  <div>
+    <!-- Group label for screen readers -->
+    <span id="otp-code-label" class="sr-only">
+      {{ t('web.auth.mfa.six-digit-code') }}
+    </span>
 
-    <span class="text-2xl text-gray-400">-</span>
+    <div
+      role="group"
+      aria-labelledby="otp-code-label"
+      :aria-describedby="ariaDescribedby"
+      class="flex items-center justify-center gap-2">
+      <input
+        ref="input1"
+        v-model="digit1"
+        type="text"
+        inputmode="numeric"
+        maxlength="1"
+        :disabled="disabled"
+        @input="handleInput(0, $event)"
+        @keydown="handleKeydown(0, $event)"
+        @paste="handlePaste"
+        class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        :aria-label="t('web.auth.mfa.digit-of-count', { current: 1, total: 6 })"
+      />
+      <input
+        ref="input2"
+        v-model="digit2"
+        type="text"
+        inputmode="numeric"
+        maxlength="1"
+        :disabled="disabled"
+        @input="handleInput(1, $event)"
+        @keydown="handleKeydown(1, $event)"
+        @paste="handlePaste"
+        class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        :aria-label="t('web.auth.mfa.digit-of-count', { current: 2, total: 6 })"
+      />
+      <input
+        ref="input3"
+        v-model="digit3"
+        type="text"
+        inputmode="numeric"
+        maxlength="1"
+        :disabled="disabled"
+        @input="handleInput(2, $event)"
+        @keydown="handleKeydown(2, $event)"
+        @paste="handlePaste"
+        class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        :aria-label="t('web.auth.mfa.digit-of-count', { current: 3, total: 6 })"
+      />
 
-    <input
-      ref="input4"
-      v-model="digit4"
-      type="text"
-      inputmode="numeric"
-      maxlength="1"
-      :disabled="disabled"
-      @input="handleInput(3, $event)"
-      @keydown="handleKeydown(3, $event)"
-      @paste="handlePaste"
-      class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-      aria-label="Digit 4"
-    />
-    <input
-      ref="input5"
-      v-model="digit5"
-      type="text"
-      inputmode="numeric"
-      maxlength="1"
-      :disabled="disabled"
-      @input="handleInput(4, $event)"
-      @keydown="handleKeydown(4, $event)"
-      @paste="handlePaste"
-      class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-      aria-label="Digit 5"
-    />
-    <input
-      ref="input6"
-      v-model="digit6"
-      type="text"
-      inputmode="numeric"
-      maxlength="1"
-      :disabled="disabled"
-      @input="handleInput(5, $event)"
-      @keydown="handleKeydown(5, $event)"
-      @paste="handlePaste"
-      class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-      aria-label="Digit 6"
-    />
+      <span class="text-2xl text-gray-400" aria-hidden="true">-</span>
+
+      <input
+        ref="input4"
+        v-model="digit4"
+        type="text"
+        inputmode="numeric"
+        maxlength="1"
+        :disabled="disabled"
+        @input="handleInput(3, $event)"
+        @keydown="handleKeydown(3, $event)"
+        @paste="handlePaste"
+        class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        :aria-label="t('web.auth.mfa.digit-of-count', { current: 4, total: 6 })"
+      />
+      <input
+        ref="input5"
+        v-model="digit5"
+        type="text"
+        inputmode="numeric"
+        maxlength="1"
+        :disabled="disabled"
+        @input="handleInput(4, $event)"
+        @keydown="handleKeydown(4, $event)"
+        @paste="handlePaste"
+        class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        :aria-label="t('web.auth.mfa.digit-of-count', { current: 5, total: 6 })"
+      />
+      <input
+        ref="input6"
+        v-model="digit6"
+        type="text"
+        inputmode="numeric"
+        maxlength="1"
+        :disabled="disabled"
+        @input="handleInput(5, $event)"
+        @keydown="handleKeydown(5, $event)"
+        @paste="handlePaste"
+        class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        :aria-label="t('web.auth.mfa.digit-of-count', { current: 6, total: 6 })"
+      />
+    </div>
   </div>
 </template>

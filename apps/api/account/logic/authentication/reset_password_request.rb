@@ -15,7 +15,7 @@ module AccountAPI::Logic
       attr_accessor :token
 
       def process_params
-        @login_or_email = params[:u].to_s.downcase
+        @login_or_email = params[:login].to_s.downcase
       end
 
       def raise_concerns

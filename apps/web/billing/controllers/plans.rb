@@ -147,7 +147,7 @@ module Billing
         org.update_from_stripe_subscription(subscription)
 
         billing_logger.info "Organization subscription activated", {
-          orgid: org.orgid,
+          extid: org.objid,
           subscription_id: subscription.id,
           plan_id: plan_id
         }
@@ -176,7 +176,7 @@ module Billing
 
         unless org.stripe_customer_id
           billing_logger.warn "No Stripe customer ID for organization", {
-            orgid: org.orgid,
+            extid: org.objid,
             custid: cust.custid
           }
           res.redirect '/account'
@@ -194,7 +194,7 @@ module Billing
         })
 
         billing_logger.info "Customer portal session created", {
-          orgid: org.orgid,
+          extid: org.objid,
           customer_id: org.stripe_customer_id
         }
 
@@ -242,7 +242,7 @@ module Billing
         org.save
 
         billing_logger.info "Created default organization", {
-          orgid: org.orgid,
+          extid: org.objid,
           custid: customer.custid
         }
 

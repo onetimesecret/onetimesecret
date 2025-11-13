@@ -4,7 +4,6 @@
 import OIcon from '@/components/icons/OIcon.vue';
 import { getRoleBadgeColor, getRoleLabel, type TeamWithRole } from '@/types/team';
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
@@ -40,7 +39,7 @@ const handleClick = () => {
         <h3
           class="truncate text-lg font-semibold text-gray-900 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400"
         >
-          {{ team.name }}
+          {{ team.display_name }}
         </h3>
         <p
           v-if="team.description"
@@ -73,7 +72,7 @@ const handleClick = () => {
       <div class="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
         <OIcon
           collection="heroicons"
-          name="users"
+          name="rectangle-group"
           class="size-4"
           aria-hidden="true"
         />

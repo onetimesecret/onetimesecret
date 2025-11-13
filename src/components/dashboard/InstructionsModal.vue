@@ -2,7 +2,7 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import { useEventListener } from '@vueuse/core';
   import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
-  import { useI18n, Composer } from 'vue-i18n';
+  import { Composer } from 'vue-i18n';
 
   import HoverTooltip from '../common/HoverTooltip.vue';
 
@@ -202,8 +202,8 @@
             <!-- prettier-ignore-attribute class -->
             <div
               class="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-              <span>{{ $t('charactercount-500-characters', [characterCount(field.value)]) }}</span>
-              <span v-if="index === instructionFields.length - 1">{{ $t('press-esc-to-close') }}</span>
+              <span>{{ t('charactercount-500-characters', [characterCount(field.value)]) }}</span>
+              <span v-if="index === instructionFields.length - 1">{{ t('press-esc-to-close') }}</span>
             </div>
           </div>
         </div>

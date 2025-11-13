@@ -4,6 +4,9 @@
 import OIcon from '@/components/icons/OIcon.vue';
 import { ref } from 'vue';
 
+const { t } = useI18n();
+
+
 interface Props {
   apitoken: string | undefined;
   onCopy?: () => void;
@@ -51,7 +54,7 @@ const handleCopy = () => {
       </div>
     </div>
     <p class="mt-2 text-sm font-semibold text-white">
-      {{ $t('keep-this-token-secure-it-provides-full-access-t') }}
+      {{ t('keep-this-token-secure-it-provides-full-access-t') }}
     </p>
   </div>
 </template>

@@ -62,12 +62,13 @@
     "types": ["jsdom", "node"]
   },
   "include": [
-    "**/*.config.*s",
-    "src/**/*.ts",
-    "src/**/*.vue",
-    "src/content/*.md",
+    "src/auto-imports.d.ts",
+    "src/types/declarations/*.d.ts",
     "src/types/**/*.ts",
-    "src/types/declarations/*.d.ts"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "src/content/*.md"
   ],
   "exclude": ["node_modules", "dist", "build", "src/tests/**", "public/web/dist"]
 }

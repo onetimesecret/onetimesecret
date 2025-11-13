@@ -93,18 +93,56 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/account/settings',
-    redirect: '/account/settings/profile',
+    redirect: '/account/settings/profile/preferences',
   },
   {
     path: '/account/settings/profile',
-    name: 'Profile Settings',
+    redirect: '/account/settings/profile/preferences',
+  },
+  {
+    path: '/account/settings/profile/preferences',
+    name: 'Preferences Settings',
     components: {
       default: () => import('@/views/account/settings/ProfileSettings.vue'),
       header: ExpandedHeader,
       footer: ExpandedFooter,
     },
     meta: {
-      title: 'web.TITLES.profile_settings',
+      title: 'web.TITLES.preferences_settings',
+      requiresAuth: true,
+      layout: AccountLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+    },
+  },
+  {
+    path: '/account/settings/profile/privacy',
+    name: 'Privacy Settings',
+    components: {
+      default: () => import('@/views/account/settings/PrivacySettings.vue'),
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
+    },
+    meta: {
+      title: 'web.TITLES.privacy_settings',
+      requiresAuth: true,
+      layout: AccountLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+    },
+  },
+  {
+    path: '/account/settings/profile/email',
+    name: 'Change Email',
+    components: {
+      default: () => import('@/views/account/settings/ChangeEmail.vue'),
+      header: ExpandedHeader,
+      footer: ExpandedFooter,
+    },
+    meta: {
+      title: 'web.TITLES.change_email',
       requiresAuth: true,
       layout: AccountLayout,
       layoutProps: {

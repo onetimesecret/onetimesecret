@@ -7,7 +7,6 @@
   import { formatTTL } from '@/utils/formatters';
   import { formatDistanceToNow } from 'date-fns';
   import { ref, computed } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 
@@ -161,9 +160,9 @@
         <!-- Time info rows - display creation date and lifespan on separate lines -->
         <div class="ml-6 flex flex-col">
           <div class="pl-1 text-xs text-gray-700 dark:text-gray-400">
-            <span class="sr-only">{{ $t('web.LABELS.lifespan') }}</span>
+            <span class="sr-only">{{ t('web.LABELS.lifespan') }}</span>
             {{ timeRemaining }} |
-            <span class="sr-only">{{ $t('web.STATUS.created') }}</span>
+            <span class="sr-only">{{ t('web.STATUS.created') }}</span>
             {{ formattedDate }}
           </div>
         </div>
@@ -182,7 +181,7 @@
             name="key"
             class="mr-1 size-3 text-emerald-500 dark:text-emerald-400" />
           <span class="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-            {{ $t('web.LABELS.passphrase_protected') }}
+            {{ t('web.LABELS.passphrase_protected') }}
           </span>
         </div>
       </div>
@@ -208,7 +207,7 @@
               collection="heroicons"
               name="arrow-top-right-on-square"
               class="size-4" />
-            <span class="sr-only">{{ $t('web.COMMON.view_secret') }}</span>
+            <span class="sr-only">{{ t('web.COMMON.view_secret') }}</span>
           </a>
           <div class="relative">
             <!-- prettier-ignore-attribute class -->
@@ -222,7 +221,7 @@
                 collection="material-symbols"
                 :name="isCopied ? 'check' : 'content-copy-outline'"
                 class="size-4" />
-              <span class="sr-only">{{ $t('web.LABELS.copy_to_clipboard') }}</span>
+              <span class="sr-only">{{ t('web.LABELS.copy_to_clipboard') }}</span>
             </button>
             <!-- Copy Feedback Tooltip -->
             <!-- prettier-ignore-attribute class -->
@@ -231,7 +230,7 @@
               class="absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-t
               bg-gray-800
               px-2 py-1 text-xs text-white shadow-lg">
-              {{ $t('web.STATUS.copied') }}
+              {{ t('web.STATUS.copied') }}
               <!-- prettier-ignore-attribute class -->
               <div
                 class="absolute left-1/2 top-full size-2 -translate-x-1/2 rotate-45 rounded-b
@@ -245,7 +244,7 @@
           v-else
           class="text-sm">
           <span :class="statusClass">
-            {{ isExpired ? $t('web.STATUS.expired') : $t('web.STATUS.burned') }}
+            {{ isExpired ? t('web.STATUS.expired') : t('web.STATUS.burned') }}
           </span>
         </div>
       </div>

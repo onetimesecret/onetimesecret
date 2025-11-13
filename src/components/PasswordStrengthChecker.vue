@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 const password = ref('');
 const confirmPassword = ref('');
@@ -63,13 +62,15 @@ onMounted(() => {
     <div
       v-if="password"
       :class="strengthClass"
-      class="mb-4">
-      {{ $t('password-strength') }} <span class="font-bold">{{ strengthText }}</span>
+      class="mb-4"
+      aria-live="polite">
+      {{ t('password-strength') }} <span class="font-bold">{{ strengthText }}</span>
     </div>
     <div
       v-if="showMismatch && passwordMismatch"
-      class="mb-4 text-red-500 dark:text-red-400">
-      {{ $t('passwords-do-not-match') }}
+      class="mb-4 text-red-500 dark:text-red-400"
+      aria-live="polite">
+      {{ t('passwords-do-not-match') }}
     </div>
   </div>
 </template>

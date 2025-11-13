@@ -3,11 +3,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { useI18n } from 'vue-i18n';
+import { useOrganizationStore } from '@/stores/organizationStore';
 import OIcon from '@/components/icons/OIcon.vue';
 
 const route = useRoute();
 const { t } = useI18n();
+const organizationStore = useOrganizationStore();
 
 interface NavigationItem {
   to: string;
@@ -27,15 +28,22 @@ const sections: NavigationItem[] = [
     description: t('web.billing.overview.description'),
   },
   {
-    to: '/billing/organizations',
+    to: '/billing/orgs',
     icon: { collection: 'ph', name: 'building-office-bold' },
     label: t('web.organizations.title'),
     description: t('web.organizations.organizations_description'),
+    visible: () => organizationStore.hasNonDefaultOrganizations,
+  },
+  {
+    to: '/teams',
+    icon: { collection: 'heroicons', name: 'rectangle-group' },
+    label: t('web.teams.title'),
+    description: t('web.teams.teams_description'),
   },
   {
     to: '/billing/plans',
     icon: { collection: 'tabler', name: 'square-letter-s' },
-    label: t('web.billing.plans.title'),
+    label: t('web.billing.subscription.title'),
     description: t('web.billing.plans.choose_plan'),
   },
   {

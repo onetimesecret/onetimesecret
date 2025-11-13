@@ -68,7 +68,7 @@
             dark:ring-gray-700 dark:hover:bg-gray-700
             dark:focus:ring-brand-400 dark:focus:ring-offset-0"
       :aria-label="
-        $t('current-label-modelvalue-click-to-cycle-through-options', [label, modelValue])
+        t('current-label-modelvalue-click-to-cycle-through-options', [label, modelValue])
       ">
       <!-- Icon for current value -->
       <div class="relative size-5 text-gray-700 dark:text-gray-200">

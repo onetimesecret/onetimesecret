@@ -12,16 +12,15 @@ module Billing
       #
       # Returns current subscription status, plan details, and usage information.
       #
-      # GET /billing/org/:ext_id
+      # GET /billing/org/:extid
       #
       # @return [Hash] Billing overview data
       def overview
-        org = load_organization(req.params['org_id'])
+        org = load_organization(req.params['extid'])
 
         data = {
           organization: {
-            id: org.orgid,
-            external_id: org.extid,
+            id: org.extid,  # Use extid (external ID) for API, not objid (internal ID)
             display_name: org.display_name,
             billing_email: org.billing_email
           },
@@ -36,7 +35,7 @@ module Billing
       rescue StandardError => ex
         billing_logger.error "Failed to load billing overview", {
           exception: ex,
-          ext_id: req.params[:ext_id]
+          extid: req.params['extid']
         }
         json_error("Failed to load billing data", status: 500)
       end
@@ -46,14 +45,14 @@ module Billing
       # Creates a new Stripe Checkout Session for the organization to subscribe
       # or change their plan.
       #
-      # POST /billing/org/:ext_id/checkout
+      # POST /billing/org/:extid/checkout
       #
       # @param [String] tier Plan tier (from request body)
       # @param [String] billing_cycle Billing cycle (from request body)
       #
       # @return [Hash] Checkout session URL
       def create_checkout_session
-        org = load_organization(req.params[:org_id], require_owner: true)
+        org = load_organization(req.params['extid'], require_owner: true)
 
         tier = req.params['tier']
         billing_cycle = req.params['billing_cycle']
@@ -66,7 +65,7 @@ module Billing
         region = detect_region
 
         # Get plan from cache
-        plan = Billing::Models::PlanCache.get_plan(tier, billing_cycle, region)
+        plan = ::Billing::Models::PlanCache.get_plan(tier, billing_cycle, region)
 
         unless plan
           billing_logger.warn "Plan not found", {
@@ -94,11 +93,11 @@ module Billing
           success_url: success_url,
           cancel_url: cancel_url,
           customer_email: org.billing_email || cust.email,
-          client_reference_id: org.orgid,
+          client_reference_id: org.objid,
           locale: req.env['rack.locale']&.first || 'auto',
           subscription_data: {
             metadata: {
-              orgid: org.orgid,
+              orgid: org.objid,
               plan_id: plan.plan_id,
               tier: tier,
               region: region,
@@ -117,7 +116,7 @@ module Billing
         checkout_session = Stripe::Checkout::Session.create(session_params)
 
         billing_logger.info "Checkout session created for organization", {
-          orgid: org.orgid,
+          extid: org.extid,  # Use extid for logging, not objid
           session_id: checkout_session.id,
           tier: tier,
           billing_cycle: billing_cycle
@@ -133,7 +132,7 @@ module Billing
       rescue Stripe::StripeError => ex
         billing_logger.error "Stripe checkout session creation failed", {
           exception: ex,
-          ext_id: req.params[:ext_id]
+          extid: req.params['extid']
         }
         json_error("Failed to create checkout session", status: 500)
       end
@@ -142,11 +141,11 @@ module Billing
       #
       # Returns recent invoices from Stripe for the organization's customer.
       #
-      # GET /billing/org/:ext_id/invoices
+      # GET /billing/org/:extid/invoices
       #
       # @return [Hash] List of invoices
       def list_invoices
-        org = load_organization(req.params[:ext_id])
+        org = load_organization(req.params['extid'])
 
         unless org.stripe_customer_id
           return json_response({ invoices: [] })
@@ -183,9 +182,43 @@ module Billing
       rescue Stripe::StripeError => ex
         billing_logger.error "Failed to retrieve invoices", {
           exception: ex,
-          ext_id: req.params[:ext_id]
+          extid: req.params['extid']
         }
         json_error("Failed to retrieve invoices", status: 500)
+      end
+
+      # List available billing plans
+      #
+      # Returns all available plans with their pricing and features.
+      #
+      # GET /billing/plans
+      #
+      # @return [Hash] List of plans
+      def list_plans
+        plans = ::Billing::Models::PlanCache.list_plans
+
+        # Filter out nil plans (stale cache entries)
+        plan_data = plans.compact.map do |plan|
+          {
+            id: plan.plan_id,
+            name: plan.name,
+            tier: plan.tier,
+            interval: plan.interval,
+            amount: plan.amount,
+            currency: plan.currency,
+            region: plan.region,
+            features: plan.parsed_features,
+            limits: plan.parsed_limits,
+            capabilities: plan.parsed_capabilities
+          }
+        end
+
+        json_response({ plans: plan_data })
+      rescue StandardError => ex
+        billing_logger.error "Failed to list plans", {
+          exception: ex
+        }
+        json_error("Failed to list plans", status: 500)
       end
 
       private
@@ -214,7 +247,7 @@ module Billing
       def build_plan_data(org)
         return nil unless org.planid
 
-        plan = Billing::Models::PlanCache.load(org.planid)
+        plan = ::Billing::Models::PlanCache.load(org.planid)
         return nil unless plan
 
         {

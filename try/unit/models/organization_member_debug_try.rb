@@ -47,5 +47,5 @@ Familia.dbclient(6).flushdb if ENV['ENV'] == 'test'
 #=> 1
 
 ## Customer should see the org
-@customer.organization_instances.first.orgid
-#=> @org.orgid
+@customer.organization_instances.first.objid
+#=> @org.objid

@@ -5,7 +5,6 @@
   import { useAccount } from '@/composables/useAccount';
   import { useMfa } from '@/composables/useMfa';
   import { onMounted, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const { mfaStatus, isLoading, error, fetchMfaStatus, disableMfa, clearError } = useMfa();

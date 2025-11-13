@@ -5,6 +5,9 @@
   import { FocusTrap } from 'focus-trap-vue';
   import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 
+const { t } = useI18n();
+
+
   defineProps({
     isOpen: Boolean,
   });
@@ -54,13 +57,13 @@
             <h2
               id="feedback-modal-title"
               class="text-2xl font-semibold text-gray-900 dark:text-white">
-              {{ $t('share-your-feedback') }}
+              {{ t('share-your-feedback') }}
             </h2>
             <button
               ref="closeButton"
               @click="close"
               class="text-gray-400 transition-colors hover:text-gray-500 dark:hover:text-white"
-              :aria-label="$t('close-feedback-modal')">
+              :aria-label="t('close-feedback-modal')">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="size-6"
@@ -80,8 +83,8 @@
           <p class="mt-6 text-center text-sm italic text-gray-500 dark:text-gray-400">
             <RouterLink
               to="/feedback"
-              class="underline">{{ $t('help-us-improve') }}</RouterLink>.
-            {{ $t('all-feedback-welcome') }}
+              class="underline">{{ t('help-us-improve') }}</RouterLink>.
+            {{ t('all-feedback-welcome') }}
           </p>
         </div>
       </FocusTrap>

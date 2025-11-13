@@ -7,6 +7,9 @@
   import { computed, ref } from 'vue';
   import type { Jurisdiction } from '@/schemas/models/jurisdiction';
 
+const { t } = useI18n();
+
+
   /* Vue 3 Reactivity Guide: Rules for Store Access
   * ─────────────────────────────────────────
   * ❌ Destructuring breaks reactivity chain:
@@ -183,7 +186,7 @@
           @keydown="handleKeyDown">
         <li
             class="px-3 py-2 font-brand text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-100">
-          {{ $t('regions') }}
+          {{ t('regions') }}
         </li>
 
         <li v-for="(jurisdiction, index) in jurisdictions"

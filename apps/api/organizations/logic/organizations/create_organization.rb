@@ -54,7 +54,7 @@ module OrganizationAPI::Logic
           @organization.save
         end
 
-        OT.info "[CreateOrganization] Created organization #{@organization.orgid}"
+        OT.info "[CreateOrganization] Created organization #{@organization.objid}"
 
         success_data
       end

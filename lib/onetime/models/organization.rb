@@ -3,26 +3,39 @@
 # frozen_string_literal: true
 
 require 'rack/utils'
-require_relative 'organization/features'
 
 module Onetime
   # Organization Model
   #
-  # Phase 1 MVP: Nearly invisible billing/ownership container
-  # Appears ONLY in account settings, not in secret creation flows
   #
-  # Uses Familia v2.0.0-pre22 participates_in for bidirectional relationships:
-  # - Customer.participates_in :Organization, :members (defined in customer.rb)
-  # - Auto-generates: org.members (sorted_set), customer.organization_instances, etc.
+  # Primary Keys & Identifiers:
+  #   - objid - Primary key (UUID), internal
+  #   - extid - External identifier (e.g., on%<id>s), user-facing
+  #
+  # Foreign Keys:
+  #   - org_id (underscore) - Foreign key field, stores the objid value
+  #   - All FK relationships use objid values for indexing
+  #
+  # API Layer:
+  #   - Public URLs/APIs should use extid for user-facing references
+  #   - Use find_by_extid(extid) to convert extid → object
+  #   - Internally, relationships always use objid
+  #
+  # Logging:
+  #   - Use extid. Don't log internal IDs.
+  #
+  # Easy way to remember: if you can see a UUID, it's an internal ID. If
+  # you can't, it's an external ID.
   #
   class Organization < Familia::Horreum
+    include Familia::Features::Autoloader
 
     using Familia::Refinements::TimeLiterals
 
     # Use 'organization' prefix to match config_name for Familia v2 participation lookups
     prefix :organization
 
-    feature :safe_dump
+    feature :safe_dump_fields
 
     feature :relationships
     feature :object_identifier
@@ -31,13 +44,12 @@ module Onetime
     feature :with_organization_billing
     feature :with_capabilities
 
-    identifier_field :orgid
+    identifier_field :objid
 
     # Unique index for contact email (prevents duplicates, enables fast lookups)
     unique_index :contact_email, :contact_email_index
 
     # Core fields
-    field :orgid
     field :display_name
     field :description
     field :owner_id       # custid of organization owner
@@ -53,9 +65,12 @@ module Onetime
     # Manual declarations will CLOBBER the auto-generated relationship functionality!
 
     def init
-      @orgid ||= Familia.generate_id
       @planid ||= 'free'  # Default to free plan
       nil
+    end
+
+    def org_id
+      objid
     end
 
     # Owner management
@@ -95,7 +110,7 @@ module Onetime
     def add_domain(domain)
       # Prevent domains from belonging to multiple organizations
       existing_org = domain.organization_instances.first
-      if existing_org && existing_org.orgid != self.orgid
+      if existing_org && existing_org.objid != self.org_id
         raise Onetime::Problem, "Domain #{domain.display_domain} already belongs to organization #{existing_org.display_name}"
       end
 
@@ -168,7 +183,7 @@ module Onetime
         # Add owner as first member using Familia v2 auto-generated bidirectional method
         org.add_members_instance(owner_customer)
 
-        OT.ld "[Organization.create!] orgid: #{org.orgid}, owner: #{owner_customer.custid}"
+        OT.ld "[Organization.create!] org: extid.objid}, owner: #{owner_customer.custid}"
 
         org
       end

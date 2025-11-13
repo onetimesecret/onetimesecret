@@ -61,8 +61,12 @@ module AccountAPI::Logic
       def raise_concerns
         raise_form_error 'Domain is required' if @domain_input.empty?
 
+        # Get customer's organization for domain ownership
+        org = @cust.organization_instances.first
+        raise_form_error 'Customer must belong to an organization' unless org
+
         # Check if the domain exists and belongs to the current customer
-        @custom_domain = Onetime::CustomDomain.load(@domain_input, @cust.custid)
+        @custom_domain = Onetime::CustomDomain.load(@domain_input, org.objid)
         raise_form_error 'Invalid Domain' unless @custom_domain
 
         @display_domain = @domain_input

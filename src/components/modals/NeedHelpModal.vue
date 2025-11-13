@@ -10,7 +10,6 @@
     TransitionRoot,
   } from '@headlessui/vue';
   import { ref, watch, nextTick } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   const showHelp = ref(false);
   const { t } = useI18n();
@@ -120,15 +119,15 @@
                   <DialogTitle
                     id="modal-title"
                     class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                    {{ $t('web.LABELS.help_section') }}
+                    {{ t('web.LABELS.help_section') }}
                   </DialogTitle>
                   <button
                     type="button"
                     @click="showHelp = false"
                     class="rounded-md p-1 text-gray-400 hover:text-gray-500
                       focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    :aria-label="$t('web.LABELS.close')">
-                    <span class="sr-only">{{ $t('web.LABELS.close') }}</span>
+                    :aria-label="t('web.LABELS.close')">
+                    <span class="sr-only">{{ t('web.LABELS.close') }}</span>
                     <OIcon
                       collection="mdi"
                       name="close"
@@ -141,7 +140,7 @@
                 <!-- Content -->
                 <div id="modal-content" class="text-gray-700 dark:text-gray-300">
                   <slot name="content">
-                    {{ $t('web.help.default_content', 'Please contact support for assistance') }}
+                    {{ t('web.help.default_content', 'Please contact support for assistance') }}
                   </slot>
                 </div>
 
@@ -155,8 +154,8 @@
                       bg-brand-100 px-4 py-2 text-sm font-medium text-brand-900
                       hover:bg-brand-200
                       focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                    :aria-label="$t('web.LABELS.close')">
-                    {{ $t('web.LABELS.close') }}
+                    :aria-label="t('web.LABELS.close')">
+                    {{ t('web.LABELS.close') }}
                   </button>
                 </div>
               </DialogPanel>

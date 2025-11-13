@@ -99,7 +99,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
   end
 
   describe 'password reset security vulnerabilities' do
-    let(:reset_logic) { V2::Logic::Authentication::ResetPassword.new(session, customer, params) }
+    let(:reset_logic) { AccountAPI::Logic::Authentication::ResetPassword.new(session, customer, params) }
     let(:secret) { double('Secret', custid: 'security@example.com', load_customer: customer, destroy!: nil, received!: nil) }
 
     before do
@@ -248,7 +248,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
       allow(Onetime::Customer).to receive(:load).and_return(customer)
 
       params = { key: 'secret', newp: 'password1', 'password-confirm': 'password2' }
-      logic = V2::Logic::Authentication::ResetPassword.new(session, customer, params)
+      logic = AccountAPI::Logic::Authentication::ResetPassword.new(session, customer, params)
 
       expect(Rack::Utils).to receive(:secure_compare).with('password1', 'password2')
       logic.process_params
@@ -278,8 +278,8 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
   end
 
   describe 'email enumeration protection' do
-    context 'V2::Logic::Authentication::ResetPasswordRequest' do
-      let(:reset_request_logic) { V2::Logic::Authentication::ResetPasswordRequest.new(session, customer, params) }
+    context 'AccountAPI::Logic::Authentication::ResetPasswordRequest' do
+      let(:reset_request_logic) { AccountAPI::Logic::Authentication::ResetPasswordRequest.new(session, customer, params) }
 
       it 'validates email format before checking existence' do
         params = { login: 'invalid-email-format' }

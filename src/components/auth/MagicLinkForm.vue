@@ -4,6 +4,8 @@
 import { ref } from 'vue';
 import { useMagicLink } from '@/composables/useMagicLink';
 
+const { t } = useI18n();
+
 const { requestMagicLink, sent, isLoading, error, clearState } = useMagicLink();
 
 const email = ref('');
@@ -37,13 +39,13 @@ const handleTryAgain = () => {
           d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76" />
       </svg>
       <h3 class="mt-4 text-lg font-medium text-green-900 dark:text-green-100">
-        {{ $t('web.auth.magicLink.checkEmail') }}
+        {{ t('web.auth.magicLink.checkEmail') }}
       </h3>
       <p class="mt-2 text-sm text-green-800 dark:text-green-200">
-        {{ $t('web.auth.magicLink.sentTo', { email }) }}
+        {{ t('web.auth.magicLink.sentTo', { email }) }}
       </p>
       <p class="mt-3 text-xs text-green-700 dark:text-green-300">
-        {{ $t('web.auth.magicLink.linkExpiresIn') }}
+        {{ t('web.auth.magicLink.linkExpiresIn') }}
       </p>
     </div>
 
@@ -51,7 +53,7 @@ const handleTryAgain = () => {
       type="button"
       @click="handleTryAgain"
       class="text-sm text-brand-600 transition duration-300 ease-in-out hover:underline dark:text-brand-400">
-      {{ $t('web.auth.magicLink.tryDifferentEmail') }}
+      {{ t('web.auth.magicLink.tryDifferentEmail') }}
     </button>
   </div>
 
@@ -73,7 +75,7 @@ const handleTryAgain = () => {
     <!-- Description -->
     <div class="text-center">
       <p class="text-sm text-gray-600 dark:text-gray-400">
-        {{ $t('web.auth.magicLink.description') }}
+        {{ t('web.auth.magicLink.description') }}
       </p>
     </div>
 
@@ -81,7 +83,7 @@ const handleTryAgain = () => {
     <div>
       <label
         for="magic-link-email"
-        class="sr-only">{{ $t('email-address') }}</label>
+        class="sr-only">{{ t('email-address') }}</label>
       <input
         id="magic-link-email"
         name="email"
@@ -99,7 +101,7 @@ const handleTryAgain = () => {
                       disabled:cursor-not-allowed disabled:opacity-50
                       dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                       dark:focus:border-brand-500 dark:focus:ring-brand-500"
-        :placeholder="$t('web.auth.magicLink.emailPlaceholder')" />
+        :placeholder="t('web.auth.magicLink.emailPlaceholder')" />
     </div>
 
     <!-- Submit button -->
@@ -137,16 +139,16 @@ const handleTryAgain = () => {
               fill="currentColor"
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
           </svg>
-          {{ $t('web.COMMON.processing') }}
+          {{ t('web.COMMON.processing') }}
         </span>
-        <span v-else>{{ $t('web.auth.magicLink.sendLink') }}</span>
+        <span v-else>{{ t('web.auth.magicLink.sendLink') }}</span>
       </button>
     </div>
 
     <!-- Help text -->
     <div class="text-center">
       <p class="text-xs text-gray-500 dark:text-gray-400">
-        {{ $t('web.auth.magicLink.noPasswordNeeded') }}
+        {{ t('web.auth.magicLink.noPasswordNeeded') }}
       </p>
     </div>
   </form>

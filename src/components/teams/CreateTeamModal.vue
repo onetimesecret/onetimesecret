@@ -9,7 +9,6 @@ import { useOrganizationStore } from '@/stores/organizationStore';
 import { createTeamPayloadSchema, type CreateTeamPayload } from '@/types/team';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { computed, onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { z } from 'zod';
 
 const { t } = useI18n();
@@ -144,7 +143,7 @@ const handleSubmit = async () => {
                 <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900">
                   <OIcon
                     collection="heroicons"
-                    name="users"
+                    name="rectangle-group"
                     class="size-6 text-brand-600 dark:text-brand-400"
                     aria-hidden="true"
                   />

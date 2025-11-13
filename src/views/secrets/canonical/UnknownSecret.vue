@@ -6,6 +6,9 @@
   import UnknownSecretHelpContent from '@/components/secrets/UnknownSecretHelpContent.vue';
   import type { BrandSettings } from '@/schemas/models/domain/brand';
 
+const { t } = useI18n();
+
+
   interface Props {
     branded?: boolean;
     brandSettings?: BrandSettings;
@@ -25,7 +28,7 @@
           <div class="flex flex-col items-center">
             <router-link
               to="/"
-              :aria-label="$t('return-to-home')">
+              :aria-label="t('return-to-home')">
               <svg
                 class="mx-auto mb-4 size-20 text-brand-500"
                 width="60"
@@ -35,7 +38,7 @@
                 xmlns="http://www.w3.org/2000/svg"
                 role="img"
                 aria-labelledby="secret-not-available-icon-title">
-                <title id="secret-not-available-icon-title">{{ $t("that-information-is-no-longer-available") }}</title>
+                <title id="secret-not-available-icon-title">{{ t("that-information-is-no-longer-available") }}</title>
                 <path
                   d="M10 14L12 12M12 12L14 10M12 12L10 10M12 12L14 14M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
                   stroke="currentColor"
@@ -47,7 +50,7 @@
             </router-link>
 
             <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
-              {{ $t("that-information-is-no-longer-available") }}
+              {{ t("that-information-is-no-longer-available") }}
             </h1>
           </div>
 
@@ -62,8 +65,8 @@
                 text-brand-600 hover:text-brand-500
                 focus:underline focus:outline-none focus:ring-2 focus:ring-brand-500
                 dark:text-brand-400 dark:hover:text-brand-300"
-              aria-label="{{ $t('web.COMMON.open_help_dialog') }}">
-              {{ $t('web.COMMON.need_help') }}
+              :aria-label="t('web.COMMON.open_help_dialog')">
+              {{ t('web.COMMON.need_help') }}
             </button>
             <template #content>
               <UnknownSecretHelpContent />
@@ -97,8 +100,8 @@
             color: 'var(--color-brand-500)',
             borderColor: 'var(--color-brand-500)',
           }"
-          :aria-label="$t('return-to-home-page')">
-          {{ $t('return-to-home') }}
+          :aria-label="t('return-to-home-page')">
+          {{ t('return-to-home') }}
         </router-link>
 
         <router-link
@@ -112,8 +115,8 @@
             'px-6 py-3 font-brand text-lg hover:border-brand-600 dark:hover:border-brand-400',
             'w-full text-center sm:w-auto'
           ]"
-          :aria-label="$t('return-to-home-page')">
-          {{ $t('create-a-secret') }}
+          :aria-label="t('return-to-home-page')">
+          {{ t('create-a-secret') }}
         </router-link>
       </div>
     </template>

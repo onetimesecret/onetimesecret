@@ -3,7 +3,6 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted } from 'vue';
   import { useTheme } from '@/composables/useTheme';
-  import { useI18n } from 'vue-i18n';
   import OIcon from './icons/OIcon.vue';
 
   const { t } = useI18n();
@@ -38,7 +37,7 @@
 <template>
   <button
     @click="handleToggle"
-    :aria-label="$t('toggle-dark-mode')"
+    :aria-label="t('toggle-dark-mode')"
     :aria-pressed="isDarkMode"
     class="inline-flex items-center justify-center
           size-10 p-1 rounded-md transition-colors
@@ -48,7 +47,7 @@
           focus:outline-none focus:ring-2 focus:ring-brand-500
           focus:ring-offset-2 focus:ring-offset-white dark:ring-offset-gray-900
           dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
-    :title="isDarkMode ? $t('switch-to-blank-mode', ['light']) : $t('switch-to-blank-mode', ['dark'])"
+    :title="isDarkMode ? t('switch-to-blank-mode', ['light']) : t('switch-to-blank-mode', ['dark'])"
     @keydown.enter="handleToggle"
     @keydown.space.prevent="handleToggle">
     <!-- Moon icon -->

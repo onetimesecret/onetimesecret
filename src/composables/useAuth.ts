@@ -247,10 +247,13 @@ export function useAuth() {
     clearErrors();
 
     const result = await wrap(async () => {
-      const response = await $api.post<ResetPasswordRequestResponse>('/auth/reset-password', {
-        login: email,
-        shrimp: csrfStore.shrimp,
-      });
+      const response = await $api.post<ResetPasswordRequestResponse>(
+        '/auth/reset-password-request',
+        {
+          login: email,
+          shrimp: csrfStore.shrimp,
+        }
+      );
 
       const validated = resetPasswordRequestResponseSchema.parse(response.data);
 
@@ -282,9 +285,9 @@ export function useAuth() {
     clearErrors();
 
     const result = await wrap(async () => {
-      const response = await $api.post<ResetPasswordResponse>(`/auth/reset-password/${key}`, {
+      const response = await $api.post<ResetPasswordResponse>('/auth/reset-password', {
         key,
-        newp: newPassword,
+        password: newPassword,
         'password-confirm': confirmPassword,
         shrimp: csrfStore.shrimp,
       });

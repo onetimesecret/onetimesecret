@@ -5,7 +5,6 @@
   import { useColonelInfoStore } from '@/stores/colonelInfoStore';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 
@@ -58,7 +57,7 @@
   const getTotalCustomersStat = () => createStatItem(
     'web.colonel.stats.totalCustomers',
     stats.value?.counts?.customer_count?.toLocaleString() || '0',
-    'user-group'
+    'rectangle-group'
   );
 
   // Helper function to get stats data

@@ -21,6 +21,8 @@
   import { onMounted } from 'vue';
   import { onBeforeRouteUpdate } from 'vue-router';
 
+  const { t } = useI18n();
+
   export interface Props {
     secretIdentifier: string;
     siteHost: string;
@@ -52,7 +54,7 @@
   <main
     class="grid min-h-screen grid-rows-[auto_minmax(0,max-content)_auto] gap-4"
     role="main"
-    :aria-label="$t('secret-viewing-page')">
+    :aria-label="t('secret-viewing-page')">
     <header
       v-if="$slots.header"
       class="w-full bg-white dark:bg-gray-900">

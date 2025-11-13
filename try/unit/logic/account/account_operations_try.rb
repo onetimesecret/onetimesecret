@@ -45,7 +45,7 @@ OT.boot! :test, false
   planid: 'anonymous',
   skill: '' # honeypot field should be empty
 }
-logic = V2::Logic::Account::CreateAccount.new @strategy_result, @create_params
+logic = AccountAPI::Logic::Account::CreateAccount.new @strategy_result, @create_params
 logic.raise_concerns
 logic.process
 [
@@ -65,7 +65,7 @@ logic.process
   'password-confirm': 'newpass123'
 }
 @strategy_result_with_cust = MockStrategyResult.new(session: @session, user: @cust)
-logic = V2::Logic::Account::UpdatePassword.new @strategy_result_with_cust, @update_params
+logic = AccountAPI::Logic::Account::UpdatePassword.new @strategy_result_with_cust, @update_params
 logic.instance_variables.include?(:@modified)
 #=> true
 
@@ -73,19 +73,19 @@ logic.instance_variables.include?(:@modified)
 
 ## Test locale update
 @locale_params = { locale: 'es', login: @email }
-logic = V2::Logic::Account::UpdateLocale.new @strategy_result_with_cust, @locale_params
+logic = AccountAPI::Logic::Account::UpdateLocale.new @strategy_result_with_cust, @locale_params
 logic.instance_variables.include?(:@modified)
 #=> true
 
 # GenerateAPIToken Tests
 
 ## Test API token generation, but nothing happens without calling process
-logic = V2::Logic::Account::GenerateAPIToken.new @strategy_result_with_cust, {}
+logic = AccountAPI::Logic::Account::GenerateAPIToken.new @strategy_result_with_cust, {}
 [logic.apitoken.nil?, logic.greenlighted]
 #=> [true, nil]
 
 ## Test API token generation
-logic = V2::Logic::Account::GenerateAPIToken.new @strategy_result_with_cust, {}
+logic = AccountAPI::Logic::Account::GenerateAPIToken.new @strategy_result_with_cust, {}
 #logic.raise_concerns
 logic.process
 [logic.apitoken.nil?, logic.greenlighted]
@@ -94,14 +94,14 @@ logic.process
 # GetAccount Tests
 
 ## Test account retrieval
-logic = V2::Logic::Account::GetAccount.new @strategy_result_with_cust, {}
+logic = AccountAPI::Logic::Account::GetAccount.new @strategy_result_with_cust, {}
 [logic.billing_enabled, logic.stripe_customer, logic.stripe_subscription]
 #=> [false, nil, nil]
 
 # DestroyAccount Tests
 
 ## Test account deletion
-logic = V2::Logic::Account::DestroyAccount.new @strategy_result_with_cust, {}
+logic = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result_with_cust, {}
 [
   logic.raised_concerns_was_called,
   logic.greenlighted,

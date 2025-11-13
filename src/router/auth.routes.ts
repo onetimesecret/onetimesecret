@@ -60,35 +60,20 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/forgot',
-    children: [
-      {
-        path: '',
-        name: 'Forgot Password',
-        component: () => import('@/views/auth/PasswordResetRequest.vue'),
-        meta: {
-          title: 'web.TITLES.forgot_password',
-        },
-      },
-      {
-        path: ':resetKey',
-        name: 'Reset Password',
-        component: () => import('@/views/auth/PasswordReset.vue'),
-        props: true,
-        meta: {
-          title: 'web.TITLES.reset_password',
-        },
-      },
-    ],
+    name: 'Forgot Password',
+    component: () => import('@/views/auth/PasswordResetRequest.vue'),
     meta: {
+      title: 'web.TITLES.forgot_password',
       requiresAuth: false,
       isAuthRoute: true,
       layout: DefaultLayout,
       layoutProps: {
-        displayMasthead: true,
+        displayMasthead: false,
         displayNavigation: false,
         displayFooterLinks: false,
-        displayFeedback: true,
-        displayVersion: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayToggles: true,
       },
     },
   },
@@ -159,6 +144,26 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/auth/EmailLogin.vue'),
     meta: {
       title: 'web.TITLES.email_login',
+      requiresAuth: false,
+      isAuthRoute: true,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayToggles: true,
+      },
+    },
+  },
+  {
+    path: '/reset-password',
+    name: 'Reset Password (Rodauth)',
+    component: () => import('@/views/auth/PasswordReset.vue'),
+    props: (route) => ({ resetKey: route.query.key }),
+    meta: {
+      title: 'web.TITLES.reset_password',
       requiresAuth: false,
       isAuthRoute: true,
       layout: DefaultLayout,

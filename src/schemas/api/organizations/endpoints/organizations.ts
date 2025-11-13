@@ -9,8 +9,8 @@ import { z } from 'zod';
 /**
  * Single organization response
  * POST /api/organizations
- * GET /api/organizations/:orgid
- * PUT /api/organizations/:orgid
+ * GET /api/organizations/:extid
+ * PUT /api/organizations/:extid
  */
 export const organizationResponseSchema = z.object({
   record: organizationSchema,
@@ -31,14 +31,14 @@ export type OrganizationsResponse = z.infer<typeof organizationsResponseSchema>;
 
 /**
  * Delete response
- * DELETE /api/organizations/:orgid
+ * DELETE /api/organizations/:extid
  *
  * Returns minimal confirmation payload with deleted flag and organization ID
  */
 export const deleteResponseSchema = z.object({
   user_id: z.string(),
   deleted: z.boolean(),
-  orgid: z.string(),
+  id: z.string(),  // External ID (extid) of deleted organization
 });
 
 export type DeleteResponse = z.infer<typeof deleteResponseSchema>;

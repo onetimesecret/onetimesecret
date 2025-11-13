@@ -58,13 +58,13 @@ end
 
 ## Create custom domain with org_id instead of custid
 @domain_input = "secrets.acme.com"
-@domain = Onetime::CustomDomain.create!(@domain_input, @org.orgid)
+@domain = Onetime::CustomDomain.create!(@domain_input, @org.objid)
 [@domain.class, @domain.display_domain]
 #=> [Onetime::CustomDomain, "secrets.acme.com"]
 
 ## Domain has org_id field set
 @domain.org_id
-#=> @org.orgid
+#=> @org.objid
 
 ## Domain does NOT have custid field (migration complete)
 @domain.respond_to?(:custid)
@@ -83,7 +83,7 @@ end
 #=> true
 
 ## Domain participations tracked in Redis
-@domain.participations.to_a.any? { |p| p.include?(@org.orgid) }
+@domain.participations.to_a.any? { |p| p.include?(@org.objid) }
 #=> true
 
 ## Domain can find its owning organization
@@ -92,11 +92,11 @@ end
 #=> 1
 
 ## Owning organization is correct
-@orgs.first.orgid
-#=> @org.orgid
+@orgs.first.objid
+#=> @org.objid
 
 ## Create second domain for same organization
-@domain2 = Onetime::CustomDomain.create!("api.acme.com", @org.orgid)
+@domain2 = Onetime::CustomDomain.create!("api.acme.com", @org.objid)
 @domain2.display_domain
 #=> "api.acme.com"
 
@@ -123,15 +123,15 @@ end
 
 ## Unique index on display_domain prevents duplicates
 begin
-  Onetime::CustomDomain.create!("secrets.acme.com", @org.orgid)
+  Onetime::CustomDomain.create!("secrets.acme.com", @org.objid)
   false
 rescue Onetime::Problem => e
-  e.message.include?('Duplicate domain')
+  e.message.include?('already registered') || e.message.include?('Duplicate domain')
 end
 #=> true
 
 ## Multi-index on org_id enables org-scoped queries
-@org_domain_ids = Onetime::CustomDomain.find_all_by_org_id(@org.orgid)
+@org_domain_ids = Onetime::CustomDomain.find_all_by_org_id(@org.objid)
 @org_domain_ids.size
 #=> 2
 
@@ -149,7 +149,7 @@ end
 #=> 1
 
 ## Domain participations cleaned after removal
-@domain2.participations.to_a.any? { |p| p.include?(@org.orgid) }
+@domain2.participations.to_a.any? { |p| p.include?(@org.objid) }
 #=> false
 
 ## Domain no longer in organization's collection
@@ -176,8 +176,8 @@ end
 #=> 1
 
 ## Access pattern: Team Member -> Team -> Organization -> Domains
-@team = Onetime::Team.create!("Engineering", @owner, @org.orgid)
-@team_org = Onetime::Organization.load(@team.orgid)
+@team = Onetime::Team.create!("Engineering", @owner, @org.objid)
+@team_org = Onetime::Organization.load(@team.objid)
 @team_org.list_domains.map(&:display_domain)
 #=> ["secrets.acme.com"]
 
@@ -193,7 +193,7 @@ end
 
 ## Create second organization for isolation testing
 @org2 = Onetime::Organization.create!("Widget Inc", @member, "domains@widget.com")
-@domain3 = Onetime::CustomDomain.create!("secrets.widget.com", @org2.orgid)
+@domain3 = Onetime::CustomDomain.create!("secrets.widget.com", @org2.objid)
 @domain3.display_domain
 #=> "secrets.widget.com"
 
@@ -298,7 +298,7 @@ end
 #=> @owner.custid
 
 ## Convenience method: add_domain works
-@domain4 = Onetime::CustomDomain.new(display_domain: "links.acme.com", org_id: @org.orgid)
+@domain4 = Onetime::CustomDomain.new(display_domain: "links.acme.com", org_id: @org.objid)
 @domain4.save
 @org.add_domain(@domain4)
 @org.domain_count

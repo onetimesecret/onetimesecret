@@ -4,7 +4,6 @@ import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { createDomainRequestSchema } from '@/schemas/api/v3/requests';
 import { ref, computed } from 'vue';
 import { createError, type ApplicationError } from '@/schemas/errors';
-import { useI18n } from 'vue-i18n';
 
 defineProps<{
   isSubmitting?: boolean,
@@ -78,7 +77,7 @@ const handleSubmit = () => {
             focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600
             dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700
             dark:focus:ring-offset-gray-900 sm:w-1/2"
-          aria-label="`t('go-back-to-previous-page')`">
+          :aria-label="t('go-back-to-previous-page')">
           <svg
             class="-ml-1 mr-2 size-5"
             xmlns="http://www.w3.org/2000/svg"
@@ -92,7 +91,7 @@ const handleSubmit = () => {
               d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
           </svg>
-          {{ $t('back') }}
+          {{ t('back') }}
         </button>
 
         <!-- Submit Button -->
@@ -132,9 +131,9 @@ const handleSubmit = () => {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            {{ $t('adding_ellipses') }}...
+            {{ t('adding_ellipses') }}...
           </span>
-          <span v-else>{{ $t('continue') }}</span>
+          <span v-else>{{ t('continue') }}</span>
         </button>
       </div>
     </form>

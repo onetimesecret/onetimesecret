@@ -4,7 +4,6 @@
   import { WindowService } from '@/services/window.service';
   import { FocusTrap } from 'focus-trap-vue';
   import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import GeneralTab from './settings/GeneralTab.vue';
   import JurisdictionTab from './settings/JurisdictionTab.vue';
@@ -159,7 +158,7 @@
     <div
       id="settings-modal-description"
       class="sr-only">
-      {{ $t('customize-your-app-preferences-and-settings') }}
+      {{ t('customize-your-app-preferences-and-settings') }}
     </div>
 
     <FocusTrap
@@ -174,12 +173,12 @@
             <h2
               id="settings-modal-title"
               class="text-2xl font-bold text-gray-900 dark:text-white mb-0">
-              {{ $t('web.COMMON.header_settings') }}
+              {{ t('web.COMMON.header_settings') }}
             </h2>
             <button
               @click="closeModal"
               class="rounded-md p-2 text-gray-500 transition-colors duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-300 dark:hover:bg-gray-600"
-              :aria-label="$t('close-settings')">
+              :aria-label="t('close-settings')">
               <svg
                 class="size-5"
                 fill="none"
@@ -201,7 +200,7 @@
             role="tablist"
             aria-orientation="horizontal"
             @keydown="handleTabKeydown"
-            :aria-label="$t('settings-sections')">
+            :aria-label="t('settings-sections')">
             <button
               v-for="tab in tabs"
               :key="tab.id"
@@ -254,7 +253,7 @@
                   <div
                     class="size-8 animate-spin rounded-full border-y-2 border-brand-600"
                     role="status">
-                    <span class="sr-only">{{ $t('loading-settings-content') }}</span>
+                    <span class="sr-only">{{ t('loading-settings-content') }}</span>
                   </div>
                 </div>
               </template>
@@ -266,7 +265,7 @@
             <button
               @click="closeModal"
               class="rounded-md bg-brand-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
-              {{ $t('done') }}
+              {{ t('done') }}
             </button>
           </div>
         </div>

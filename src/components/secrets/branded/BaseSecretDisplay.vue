@@ -20,7 +20,8 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import { BrandSettings } from '@/schemas/models';
   import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
-  import { Composer, useI18n } from 'vue-i18n';
+  import { Composer } from 'vue-i18n';
+
   const i18n = useI18n();
 
   const props = defineProps<{

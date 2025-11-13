@@ -77,21 +77,21 @@ module TeamAPI
       # Verify current user owns the team
       def verify_team_owner(team)
         unless team.owner?(cust)
-          raise_form_error('Only team owner can perform this action', field: :teamid, error_type: :forbidden)
+          raise_form_error('Only team owner can perform this action', field: :extid, error_type: :forbidden)
         end
       end
 
       # Verify current user is a team member
       def verify_team_member(team)
         unless team.member?(cust)
-          raise_form_error('You must be a team member to perform this action', field: :teamid, error_type: :forbidden)
+          raise_form_error('You must be a team member to perform this action', field: :extid, error_type: :forbidden)
         end
       end
 
       # Load team and verify it exists
-      def load_team(teamid)
-        team = Onetime::Team.load(teamid)
-        raise_not_found("Team not found: #{teamid}") if team.nil?
+      def load_team(team_id)
+        team = Onetime::Team.load(team_id)
+        raise_not_found("Team not found: #{team_id}") if team.nil?
         team
       end
     end

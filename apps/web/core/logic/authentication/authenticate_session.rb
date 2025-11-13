@@ -13,8 +13,8 @@ module Core::Logic
       # cust is only populated if the passphrase matches
       def process_params
         # NOTE: The parameter names should match what rodauth uses.
-        @potential_email_address = params[:login].to_s.downcase.strip
-        @passwd                  = self.class.normalize_password(params[:password])
+        @potential_email_address = params['login'].to_s.downcase.strip
+        @passwd                  = self.class.normalize_password(params['password'])
         @stay                    = true # Keep sessions alive by default
         @session_ttl             = (stay ? 30.days : 20.minutes).to_i
 

@@ -6,10 +6,8 @@
   import { MetadataRecords } from '@/schemas/api/account/endpoints/recent';
   import { WindowService } from '@/services/window.service';
   import { ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
-  // We only use t in template through the v-bind
-  const { t: $t } = useI18n();
+  const { t } = useI18n();
 
   interface Props {
     notReceived: MetadataRecords[];
@@ -55,7 +53,7 @@
       <!-- Add a loading indicator here -->
       <div class="text-justify">
         <p class="text-gray-600 dark:text-gray-400">
-          {{ $t('loading_ellipses') }}
+          {{ t('loading_ellipses') }}
         </p>
       </div>
     </template>
@@ -72,7 +70,7 @@
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <caption class="sr-only">
-                {{ $t('web.dashboard.title_not_received') }}
+                {{ t('web.dashboard.title_not_received') }}
               </caption>
               <thead class="bg-gray-50 dark:bg-slate-800">
                 <tr>
@@ -81,21 +79,21 @@
                     scope="col"
                     class="px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
                       text-gray-700 dark:text-gray-400">
-                    {{ $t('web.COMMON.secret') }}
+                    {{ t('web.COMMON.secret') }}
                   </th>
                   <!-- prettier-ignore-attribute class -->
                   <th
                     scope="col"
                     class="px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
                       text-gray-700 dark:text-gray-400">
-                    {{ $t('web.LABELS.details') }}
+                    {{ t('web.LABELS.details') }}
                   </th>
                   <!-- prettier-ignore-attribute class -->
                   <th
                     scope="col"
                     class="px-6 py-2.5 text-right text-xs font-medium uppercase tracking-wider
                       text-gray-700 dark:text-gray-400">
-                    {{ $t('web.LABELS.actions') }}
+                    {{ t('web.LABELS.actions') }}
                   </th>
                 </tr>
               </thead>
@@ -116,7 +114,7 @@
                         text-gray-600 dark:text-gray-400">
                       <span
                         v-if="item.show_recipients"
-                        :aria-label="$t('web.COMMON.secret_recipient_address')"
+                        :aria-label="t('web.COMMON.secret_recipient_address')"
                         class="shrink">
                         {{ item.recipients }}
                       </span>
@@ -131,10 +129,10 @@
                         <span
                           class="ml-1 font-medium text-emerald-600 dark:text-emerald-400 sm:inline">
                           <span class="hidden sm:inline">
-                            {{ $t('web.COMMON.secret_passphrase') }}
+                            {{ t('web.COMMON.secret_passphrase') }}
                           </span>
                           <span class="sr-only sm:hidden">
-                            {{ $t('web.COMMON.secret_passphrase') }}
+                            {{ t('web.COMMON.secret_passphrase') }}
                           </span>
                         </span>
                       </div>
@@ -157,7 +155,7 @@
                             name="arrow-top-right-on-square"
                             class="size-4"
                             aria-hidden="true" />
-                          <span class="sr-only">{{ $t('web.COMMON.view_secret') }}</span>
+                          <span class="sr-only">{{ t('web.COMMON.view_secret') }}</span>
                         </a>
                         <!-- Copy Button with Tooltip -->
                         <div class="relative">
@@ -173,7 +171,7 @@
                               :name="copiedItemKey === item.identifier ? 'check' : 'clipboard'"
                               class="size-4"
                               aria-hidden="true" />
-                            <span class="sr-only">{{ $t('web.LABELS.copy_to_clipboard') }}</span>
+                            <span class="sr-only">{{ t('web.LABELS.copy_to_clipboard') }}</span>
                           </button>
                           <!-- Copy Feedback Tooltip -->
                           <!-- prettier-ignore-attribute class -->
@@ -182,7 +180,7 @@
                             class="absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap
                             rounded-t bg-gray-800
                             px-2 py-1 text-xs text-white shadow-lg">
-                            {{ $t('web.STATUS.copied') }}
+                            {{ t('web.STATUS.copied') }}
                             <div
                               class="absolute left-1/2 top-full size-2 -translate-x-1/2 rotate-45 rounded-b bg-gray-800"></div>
                           </div>
@@ -202,7 +200,7 @@
                           name="fire"
                           class="mr-1.5 size-4"
                           aria-hidden="true" />
-                        <span>{{ $t('web.COMMON.burn') }}</span>
+                        <span>{{ t('web.COMMON.burn') }}</span>
                       </router-link>
                     </div>
                   </td>
@@ -225,11 +223,11 @@
               class="mb-3 size-10 text-gray-400 dark:text-gray-500"
               aria-hidden="true" />
             <p class="text-gray-600 dark:text-gray-400">
-              {{ $t('go-on-then') }}
+              {{ t('go-on-then') }}
               <router-link
                 to="/"
                 class="text-brand-500 hover:underline">
-                {{ $t('web.COMMON.share_a_secret') }}
+                {{ t('web.COMMON.share_a_secret') }}
               </router-link>
             </p>
           </div>
@@ -243,7 +241,7 @@
         <h3
           id="received-heading"
           class="mb-4 text-xl font-medium text-gray-700 dark:text-gray-200">
-          {{ $t('web.dashboard.title_received') }}
+          {{ t('web.dashboard.title_received') }}
         </h3>
 
         <!-- Table with received secrets -->
@@ -255,7 +253,7 @@
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <caption class="sr-only">
-                {{ $t('web.dashboard.title_received') }}
+                {{ t('web.dashboard.title_received') }}
               </caption>
               <thead class="bg-gray-50 dark:bg-slate-800">
                 <tr>
@@ -264,21 +262,21 @@
                     scope="col"
                     class="px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
                       text-gray-700 dark:text-gray-400">
-                    {{ $t('web.COMMON.secret') }}
+                    {{ t('web.COMMON.secret') }}
                   </th>
                   <!-- prettier-ignore-attribute class -->
                   <th
                     scope="col"
                     class="px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
                       text-gray-700 dark:text-gray-400">
-                    {{ $t('web.LABELS.details') }}
+                    {{ t('web.LABELS.details') }}
                   </th>
                   <!-- prettier-ignore-attribute class -->
                   <th
                     scope="col"
                     class="px-6 py-2.5 text-right text-xs font-medium uppercase tracking-wider
                       text-gray-700 dark:text-gray-400">
-                    {{ $t('status') }}
+                    {{ t('status') }}
                   </th>
                 </tr>
               </thead>
@@ -297,7 +295,7 @@
                       class="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600 dark:text-gray-400">
                       <span
                         v-if="item.show_recipients"
-                        :aria-label="$t('web.COMMON.secret_recipient_address')"
+                        :aria-label="t('web.COMMON.secret_recipient_address')"
                         class="shrink">
                         {{ item.recipients }}
                       </span>
@@ -320,13 +318,13 @@
                         class="mr-1.5"
                         aria-hidden="true" />
                       <span v-if="item.is_expired">
-                        {{ $t('web.STATUS.expired') }}
+                        {{ t('web.STATUS.expired') }}
                       </span>
                       <span v-else-if="item.is_burned">
-                        {{ $t('web.STATUS.burned') }}
+                        {{ t('web.STATUS.burned') }}
                       </span>
                       <span v-else>
-                        {{ $t('web.STATUS.received') }}
+                        {{ t('web.STATUS.received') }}
                       </span>
                     </span>
                   </td>
@@ -349,7 +347,7 @@
               class="mb-3 size-10 text-gray-400 dark:text-gray-500"
               aria-hidden="true" />
             <p class="text-gray-600 dark:text-gray-400">
-              {{ $t('web.COMMON.word_none') }}
+              {{ t('web.COMMON.word_none') }}
             </p>
           </div>
         </div>
