@@ -96,8 +96,7 @@ module Core
         script_element_id = 'onetime-state'
 
         # Social metadata (OG/Twitter) should not be shown for custom domains
-        show_social_metadata = domain_strategy != :custom
-
+        show_social_metadata = domain_strategy === :canonical
         # Return all view variables as a hash
         {
           authenticated: authenticated,
