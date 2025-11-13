@@ -1,13 +1,23 @@
 // src/i18n.ts
 
+import bg from '@/locales/bg.json';
 import da_DK from '@/locales/da_DK.json';
+import de from '@/locales/de.json';
 import de_AT from '@/locales/de_AT.json';
 import el_GR from '@/locales/el_GR.json';
 import en from '@/locales/en.json';
+import es from '@/locales/es.json';
 import fr_CA from '@/locales/fr_CA.json';
 import fr_FR from '@/locales/fr_FR.json';
 import it_IT from '@/locales/it_IT.json';
+import ja from '@/locales/ja.json';
+import ko from '@/locales/ko.json';
+import mi_NZ from '@/locales/mi_NZ.json';
 import nl from '@/locales/nl.json';
+import pl from '@/locales/pl.json';
+import pt_BR from '@/locales/pt_BR.json';
+import sv_SE from '@/locales/sv_SE.json';
+import tr from '@/locales/tr.json';
 import uk from '@/locales/uk.json';
 import { type Locale } from '@/schemas/i18n/locale';
 import { WindowService } from '@/services/window.service';
@@ -61,14 +71,24 @@ export function createI18nInstance(initialLocale: string = defaultLocale) {
     missingWarn: true, // these enable browser console logging
     fallbackWarn: true, // and are removed from prod builds.
     messages: {
-      en, // Always include default messages
+      bg,
       da_DK,
+      de,
       de_AT,
       el_GR,
+      en, // Always include default messages
+      es,
       fr_CA,
       fr_FR,
       it_IT,
+      ja,
+      ko,
+      mi_NZ,
       nl,
+      pl,
+      pt_BR,
+      sv_SE,
+      tr,
       uk,
     },
     availableLocales: supportedLocales,
