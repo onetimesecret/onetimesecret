@@ -5,7 +5,6 @@
   import { MenuItem } from '@headlessui/vue';
   import { CustomDomain } from '@/schemas/models'
   import OIcon from '@/components/icons/OIcon.vue';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

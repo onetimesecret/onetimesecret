@@ -7,7 +7,6 @@ import { useDomainsManager } from '@/composables/useDomainsManager';
 import { computed, onMounted } from 'vue';
 import type { CustomDomain } from '@/schemas/models';
 import TableSkeleton from '@/components/closet/TableSkeleton.vue'
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

@@ -16,7 +16,6 @@ import {
 } from '@/types/team';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
 import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

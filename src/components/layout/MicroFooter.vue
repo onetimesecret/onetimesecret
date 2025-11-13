@@ -5,7 +5,6 @@
   import { WindowService } from '@/services/window.service';
   import FooterControls from '@/components/layout/SecretFooterControls.vue';
   import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

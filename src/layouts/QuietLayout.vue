@@ -4,7 +4,6 @@
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
   import BaseLayout from './BaseLayout.vue';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 

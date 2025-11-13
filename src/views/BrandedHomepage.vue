@@ -3,7 +3,6 @@
 <script setup lang="ts">
   import SecretForm from '@/components/secrets/form/SecretForm.vue';
   import { useProductIdentity } from '@/stores/identityStore';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

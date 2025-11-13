@@ -5,7 +5,6 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
-import { useI18n } from 'vue-i18n';
 
   const route = useRoute();
   const { t } = useI18n();

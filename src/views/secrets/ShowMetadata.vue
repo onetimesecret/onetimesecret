@@ -13,7 +13,6 @@
   import { useMetadata } from '@/composables/useMetadata';
   import { useSecretExpiration, EXPIRATION_EVENTS } from '@/composables/useSecretExpiration';
   import { onMounted, onUnmounted, watch, computed, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import UnknownMetadata from './UnknownMetadata.vue';
 

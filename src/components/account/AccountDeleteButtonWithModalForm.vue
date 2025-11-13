@@ -3,7 +3,6 @@ import { useFormSubmission } from '@/composables/useFormSubmission';
 import { Customer } from '@/schemas/models';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 const csrfStore = useCsrfStore();
 const { t } = useI18n();

@@ -2,7 +2,6 @@
 import type { ApplicationError } from '@/schemas/errors';
 import { computed } from 'vue';
 import { ZodError } from 'zod';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const props = defineProps<{

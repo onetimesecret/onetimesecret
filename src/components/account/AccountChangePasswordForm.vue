@@ -3,7 +3,6 @@
 <script setup lang="ts">
 import { usePasswordChange } from '@/composables/usePasswordChange';
 import OIcon from '@/components/icons/OIcon.vue';
-import { useI18n } from 'vue-i18n';
 
 interface Props {
   apitoken?: string;

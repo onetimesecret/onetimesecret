@@ -10,7 +10,6 @@ import { useOrganizationStore } from '@/stores/organizationStore';
 import type { InvoiceStatus } from '@/types/billing';
 import { formatCurrency } from '@/types/billing';
 import { computed, onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const organizationStore = useOrganizationStore();

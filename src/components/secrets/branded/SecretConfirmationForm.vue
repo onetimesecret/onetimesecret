@@ -10,7 +10,6 @@
   } from '@/schemas/models/domain/brand';
   import { useProductIdentity } from '@/stores/identityStore';
   import { ref, computed } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import BaseSecretDisplay from './BaseSecretDisplay.vue';
 

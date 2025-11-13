@@ -15,7 +15,6 @@
   import { WindowService } from '@/services/window.service';
   import { detectPlatform } from '@/utils';
   import { computed, onMounted, ref, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
   import { onBeforeRouteLeave } from 'vue-router';
 
   const { t } = useI18n();

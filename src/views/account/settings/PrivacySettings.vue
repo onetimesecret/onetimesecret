@@ -1,7 +1,6 @@
 <!-- src/views/account/settings/PrivacySettings.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
   import OIcon from '@/components/icons/OIcon.vue';
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
 

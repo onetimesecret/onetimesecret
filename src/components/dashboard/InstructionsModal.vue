@@ -2,7 +2,7 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import { useEventListener } from '@vueuse/core';
   import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
-  import { useI18n, Composer } from 'vue-i18n';
+  import { Composer } from 'vue-i18n';
 
   import HoverTooltip from '../common/HoverTooltip.vue';
 

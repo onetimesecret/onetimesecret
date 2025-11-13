@@ -3,7 +3,6 @@
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 </script>

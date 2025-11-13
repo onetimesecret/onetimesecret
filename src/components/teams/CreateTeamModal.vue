@@ -9,7 +9,6 @@ import { useOrganizationStore } from '@/stores/organizationStore';
 import { createTeamPayloadSchema, type CreateTeamPayload } from '@/types/team';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { computed, onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { z } from 'zod';
 
 const { t } = useI18n();

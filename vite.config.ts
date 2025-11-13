@@ -3,6 +3,7 @@
 import Vue from '@vitejs/plugin-vue';
 import { resolve } from 'path';
 import process from 'process';
+import AutoImport from 'unplugin-auto-import/vite';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
 import { visualizer } from 'rollup-plugin-visualizer';
@@ -94,6 +95,18 @@ export default defineConfig({
          */
         compilerOptions: {},
       },
+    }),
+
+    // Auto-import composables for better DX
+    AutoImport({
+      imports: [
+        'vue',
+        'vue-router',
+        {
+          'vue-i18n': ['useI18n'], // Only auto-import the composable
+        },
+      ],
+      dts: 'src/auto-imports.d.ts',
     }),
 
     visualizer({

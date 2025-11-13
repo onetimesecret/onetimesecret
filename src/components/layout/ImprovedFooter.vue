@@ -16,7 +16,6 @@
   import { WindowService } from '@/services/window.service';
   import { useDomainsStore, useMetadataListStore } from '@/stores';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { useI18n } from 'vue-i18n';
 
 
   withDefaults(defineProps<LayoutProps>(), {

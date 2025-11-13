@@ -2,7 +2,7 @@
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+
 const { t, te } = useI18n();
 
 interface Props {

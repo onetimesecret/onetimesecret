@@ -4,7 +4,6 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { WindowService } from '@/services/window.service';
 import { ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

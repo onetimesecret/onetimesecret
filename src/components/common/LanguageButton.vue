@@ -4,7 +4,6 @@
 import HoverTooltip from './HoverTooltip.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 const { t, availableLocales } = useI18n();
 

@@ -4,7 +4,6 @@
 import type { LayoutProps } from '@/types/ui/layouts';
 import BaseLayout from './BaseLayout.vue';
 import { WindowService } from '@/services/window.service';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const sitHost = WindowService.get('site_host') ?? null;

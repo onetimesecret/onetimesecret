@@ -1,7 +1,6 @@
 <!-- src/components/layout/ExpandedFooter.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
   import FeedbackToggle from '@/components/FeedbackToggle.vue';
   import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
   import LanguageToggle from '@/components/LanguageToggle.vue';

@@ -2,7 +2,6 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import { useDomainStatus } from '@/composables/useDomainStatus';
   import { CustomDomain } from '@/schemas/models';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

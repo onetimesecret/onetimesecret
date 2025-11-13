@@ -5,7 +5,6 @@
   import CopyButton from '@/components/CopyButton.vue';
   import type { Metadata, MetadataDetails } from '@/schemas/models';
   import { ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 

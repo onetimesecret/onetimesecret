@@ -5,7 +5,6 @@ import OIcon from '@/components/icons/OIcon.vue';
 import LockoutAlert from '@/components/auth/LockoutAlert.vue';
 import { useAuth } from '@/composables/useAuth';
 import { ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

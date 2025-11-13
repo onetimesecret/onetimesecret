@@ -21,7 +21,6 @@
   import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
   import {  nextTick } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import UnknownSecret from './UnknownSecret.vue';
 

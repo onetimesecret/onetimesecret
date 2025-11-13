@@ -1,7 +1,6 @@
 <!-- src/views/account/settings/CautionZone.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
   import { WindowService } from '@/services/window.service';
   import OIcon from '@/components/icons/OIcon.vue';
   import AccountDeleteButtonWithModalForm from '@/components/account/AccountDeleteButtonWithModalForm.vue';

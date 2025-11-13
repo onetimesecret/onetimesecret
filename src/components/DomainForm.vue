@@ -4,7 +4,6 @@ import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { createDomainRequestSchema } from '@/schemas/api/v3/requests';
 import { ref, computed } from 'vue';
 import { createError, type ApplicationError } from '@/schemas/errors';
-import { useI18n } from 'vue-i18n';
 
 defineProps<{
   isSubmitting?: boolean,

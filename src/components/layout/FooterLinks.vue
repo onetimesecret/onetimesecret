@@ -4,7 +4,6 @@
   import { WindowService } from '@/services/window.service';
   import type { FooterLinksConfig } from '@/types/declarations/window';
   import { computed } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 

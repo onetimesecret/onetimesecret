@@ -2,7 +2,6 @@
 
 <script setup lang="ts">
   import { computed } from 'vue';
-  import { useI18n } from 'vue-i18n';
   import OnetimeSecretIcon from '@/components/icons/OnetimeSecretIcon.vue';
 
 import { type LogoConfig } from '@/types/ui/layouts';

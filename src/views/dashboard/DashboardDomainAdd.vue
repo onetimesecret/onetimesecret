@@ -2,7 +2,6 @@
 import DomainForm from '@/components/DomainForm.vue';
 import ErrorDisplay from '@/components/ErrorDisplay.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

@@ -2,7 +2,6 @@
   import { computed, watchEffect } from 'vue';
   import { type Metadata, MetadataState, metadataStateSchema } from '@/schemas/models';
   import OIcon from '@/components/icons/OIcon.vue';
-  import { useI18n } from 'vue-i18n';
   import { getDisplayStatus, type DisplayStatus, getStatusText } from '@/utils/status';
   import { useSecretExpiration } from '@/composables/useSecretExpiration';
 

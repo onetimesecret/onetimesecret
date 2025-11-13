@@ -2,7 +2,6 @@
 
 <script setup lang="ts">
   // Import for i18n but no need for direct t usage as we use template $t
-  import { useI18n } from 'vue-i18n';
   useI18n();
 </script>
 

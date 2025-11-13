@@ -21,7 +21,6 @@
   import { nanoid } from 'nanoid';
   import { computed, onMounted, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 

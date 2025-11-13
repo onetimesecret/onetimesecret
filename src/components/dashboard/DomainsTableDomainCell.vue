@@ -5,7 +5,6 @@
   import type { CustomDomain } from '@/schemas/models/domain';
   import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
   import { useDomainStatus } from '@/composables/useDomainStatus';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

@@ -6,7 +6,6 @@
   import DOMPurify from 'dompurify';
   import { computed } from 'vue';
   import { useDismissableBanner } from '@/composables/useDismissableBanner';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

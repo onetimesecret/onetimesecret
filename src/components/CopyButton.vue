@@ -3,7 +3,6 @@
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import { ref, computed, onBeforeUnmount } from 'vue';
-  import { useI18n } from 'vue-i18n';
   const { t } = useI18n();
 
   interface Props {

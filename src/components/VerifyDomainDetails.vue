@@ -4,7 +4,6 @@ import { CustomDomainResponse } from '@/schemas/api/v3/responses';
 import { CustomDomain, CustomDomainCluster } from '@/schemas/models/domain';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 import BasicFormAlerts from './BasicFormAlerts.vue';
 import DetailField from './DetailField.vue';

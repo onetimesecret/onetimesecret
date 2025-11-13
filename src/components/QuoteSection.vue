@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import StarsRating from "@/components/StarsRating.vue";
 import { Testimonial } from "@/sources/testimonials";
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

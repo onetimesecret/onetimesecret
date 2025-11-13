@@ -5,7 +5,6 @@
   import ToastNotification from '@/components/ui/ToastNotification.vue';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { computed, ref, onMounted, onBeforeUnmount, provide } from 'vue';
-  import { useI18n } from 'vue-i18n';
   //import { useSecretStore } from '@/stores/secretStore';
 
   import SecretLinksTableRow from './SecretLinksTableRow.vue';

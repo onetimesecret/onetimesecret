@@ -4,7 +4,6 @@
 import OIcon from '@/components/icons/OIcon.vue';
 import { getRoleBadgeColor, getRoleLabel, type TeamWithRole } from '@/types/team';
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

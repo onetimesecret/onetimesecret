@@ -3,7 +3,6 @@
 <script setup lang="ts">
   import { Menu, MenuButton, MenuItems } from '@headlessui/vue';
   import OIcon from '@/components/icons/OIcon.vue';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

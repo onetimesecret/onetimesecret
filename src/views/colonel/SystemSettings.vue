@@ -14,7 +14,6 @@
   import { storeToRefs } from 'pinia';
   import { computed, onMounted } from 'vue';
   import CodeMirror from 'vue-codemirror6';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const { isDarkMode } = useTheme();

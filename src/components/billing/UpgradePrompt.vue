@@ -2,7 +2,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
 
 const { t } = useI18n();

@@ -14,7 +14,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { useI18n } from 'vue-i18n';
 import { WindowService } from '@/services/window.service';
 import { useDomainsStore, useMetadataListStore } from '@/stores';
 import OIcon from '@/components/icons/OIcon.vue';

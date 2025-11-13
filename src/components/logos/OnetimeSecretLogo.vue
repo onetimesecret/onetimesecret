@@ -3,7 +3,6 @@
 <script setup lang="ts">
   import { onKeyStroke, useEventListener } from '@vueuse/core';
   import { computed, nextTick, ref, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import OIcon from '@/components/icons/OIcon.vue';
   import OnetimeSecretIcon from '@/components/icons/OnetimeSecretIcon.vue';

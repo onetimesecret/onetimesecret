@@ -6,7 +6,6 @@ import OIcon from '@/components/icons/OIcon.vue';
 import { getRoleBadgeColor, getRoleLabel, type TeamWithRole } from '@/types/team';
 import { useEventListener } from '@vueuse/core';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

@@ -6,7 +6,6 @@
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   interface IconConfig {
     collection: string;

@@ -13,7 +13,6 @@ import { getPlanLabel } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { CAPABILITIES } from '@/types/organization';
 import { computed, onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const organizationStore = useOrganizationStore();

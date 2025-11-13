@@ -3,7 +3,6 @@ import OIcon from '@/components/icons/OIcon.vue';
 import { type MetadataRecords } from '@/schemas/api/account/endpoints/recent';
 import { formatRelativeTime } from '@/utils/format'
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
 const { t } = useI18n();
 

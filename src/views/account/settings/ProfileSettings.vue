@@ -2,7 +2,6 @@
 
 <script setup lang="ts">
   import { ref, onMounted } from 'vue';
-  import { useI18n } from 'vue-i18n';
   // import { useAccount } from '@/composables/useAccount';
   import { WindowService } from '@/services/window.service';
   import OIcon from '@/components/icons/OIcon.vue';

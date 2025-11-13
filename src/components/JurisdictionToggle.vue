@@ -6,7 +6,6 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import { computed, ref } from 'vue';
   import type { Jurisdiction } from '@/schemas/models/jurisdiction';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

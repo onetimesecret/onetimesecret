@@ -4,7 +4,6 @@
   import { WindowService } from '@/services/window.service';
   import { FocusTrap } from 'focus-trap-vue';
   import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   import GeneralTab from './settings/GeneralTab.vue';
   import JurisdictionTab from './settings/JurisdictionTab.vue';

@@ -3,7 +3,6 @@
 <script setup lang="ts">
   import DisabledHomepageTaglines from '@/components/DisabledHomepageTaglines.vue';
   import { WindowService } from '@/services/window.service';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 

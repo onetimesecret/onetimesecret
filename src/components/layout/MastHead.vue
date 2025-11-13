@@ -6,7 +6,6 @@
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, watch, type Component } from 'vue';
-  import { useI18n } from 'vue-i18n';
   import { shallowRef } from 'vue';
 
   const props = withDefaults(defineProps<LayoutProps>(), {

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { LockoutStatus } from '@/types/auth';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

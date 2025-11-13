@@ -14,7 +14,6 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import { useBranding } from '@/composables/useBranding';
   import ConfirmDialog from './ConfirmDialog.vue';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

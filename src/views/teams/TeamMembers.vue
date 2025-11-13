@@ -8,7 +8,6 @@ import { classifyError } from '@/schemas/errors';
 import { useTeamStore } from '@/stores/teamStore';
 import { inviteMemberPayloadSchema, TeamRole, type InviteMemberPayload } from '@/types/team';
 import { computed, onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { z } from 'zod';

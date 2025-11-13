@@ -3,7 +3,6 @@
 <script setup lang="ts">
   import { ref, computed } from 'vue';
   import { useAuth } from '@/composables/useAuth';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const { closeAccount, isLoading, error, fieldError, clearErrors } = useAuth();

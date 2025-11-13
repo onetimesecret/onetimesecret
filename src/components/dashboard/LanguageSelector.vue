@@ -6,7 +6,7 @@ import OIcon from '@/components/icons/OIcon.vue';
 import { useLanguage } from '@/composables/useLanguage';
 import { useEventListener } from '@vueuse/core';
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
-import { useI18n, Composer } from 'vue-i18n';
+import { Composer } from 'vue-i18n';
 
 const { t } = useI18n();
 

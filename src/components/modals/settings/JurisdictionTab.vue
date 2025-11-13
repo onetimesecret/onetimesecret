@@ -3,7 +3,6 @@ import { WindowService } from '@/services/window.service';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

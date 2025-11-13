@@ -12,7 +12,6 @@
     fontFamilyClasses
   } from '@/schemas/models/domain/brand';
   import { ref, computed } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   interface Props {
     record: Secret | null;

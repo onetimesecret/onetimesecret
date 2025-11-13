@@ -3,7 +3,7 @@
   import { WindowService } from '@/services/window.service';
   import { useCsrfStore } from '@/stores/csrfStore';
   import { onMounted, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
+
   const { t } = useI18n();
 
   const csrfStore = useCsrfStore();

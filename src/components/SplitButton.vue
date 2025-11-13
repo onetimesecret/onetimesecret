@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
   import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-  import { useI18n } from 'vue-i18n';
+
   const { t } = useI18n();
 
   // Action types for the button

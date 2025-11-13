@@ -6,7 +6,6 @@
   import { responseSchemas } from '@/schemas/api/v3/responses';
   import { useCsrfStore } from '@/stores/csrfStore';
   import { ref, watch } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   const csrfStore = useCsrfStore();
   const { t } = useI18n();

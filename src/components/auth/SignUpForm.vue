@@ -5,7 +5,6 @@ import OIcon from '@/components/icons/OIcon.vue';
 import { Jurisdiction } from '@/schemas/models';
 import { useAuth } from '@/composables/useAuth';
 import { ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 export interface Props {
   enabled?: boolean;

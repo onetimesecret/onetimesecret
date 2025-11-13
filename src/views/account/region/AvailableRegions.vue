@@ -5,7 +5,6 @@
   import JurisdictionList from '@/components/modals/settings/JurisdictionList.vue';
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';
   import { computed, onMounted } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const jurisdictionStore = useJurisdictionStore();

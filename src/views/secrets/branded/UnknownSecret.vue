@@ -4,7 +4,6 @@
   import BaseUnknownSecret from '@/components/base/BaseUnknownSecret.vue';
   import type { BrandSettings } from '@/schemas/models/domain/brand';
   import { fontFamilyClasses, FontFamily } from '@/schemas/models/domain/brand';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

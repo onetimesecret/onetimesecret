@@ -5,7 +5,6 @@
   import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
   import UnknownSecretHelpContent from '@/components/secrets/UnknownSecretHelpContent.vue';
   import type { BrandSettings } from '@/schemas/models/domain/brand';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
