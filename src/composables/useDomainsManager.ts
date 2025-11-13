@@ -5,8 +5,8 @@ import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 /**
  * Composable for managing custom domains and their brand settings
@@ -86,17 +86,48 @@ export function useDomainsManager() {
 
   const handleAddDomain = async (domain: string) =>
     wrap(async () => {
-      const result = await store.addDomain(domain);
-      if (result) {
-        router.push({ name: 'DomainVerify', params: { domain } });
-        notifications.show(t('domain-added-successfully'), 'success');
-        setTimeout(() => {
-          verifyDomain(domain);
-        }, 2000);
-        return result;
+      try {
+        const result = await store.addDomain(domain);
+        if (result) {
+          // Check if domain was reclaimed (orphaned domain)
+          const created = result.created.getTime();
+          const updated = result.updated.getTime();
+          const isReclaimed = updated > created;
+
+          if (isReclaimed) {
+            notifications.show(t('web.domains.domain-claimed-successfully'), 'success');
+          } else {
+            notifications.show(t('domain-added-successfully'), 'success');
+          }
+
+          router.push({ name: 'DomainVerify', params: { domain } });
+          setTimeout(() => {
+            verifyDomain(domain);
+          }, 2000);
+          return result;
+        }
+        error.value = createError(t('failed-to-add-domain'), 'human', 'error');
+        return null;
+      } catch (err: any) {
+        // Parse backend error messages to detect the three scenarios
+        const errorMessage = err?.response?.data?.message || err?.message || '';
+
+        if (errorMessage.includes('already registered in your organization')) {
+          // Scenario 1: Domain already in user's organization - warning and redirect
+          notifications.show(t('web.domains.domain-already-in-organization'), 'warning');
+          setTimeout(() => {
+            router.push({ name: 'DomainVerify', params: { domain } });
+          }, 2000);
+          return null;
+        } else if (errorMessage.includes('registered to another organization')) {
+          // Scenario 2: Domain in another organization - error with support suggestion
+          notifications.show(t('web.domains.domain-in-other-organization'), 'error');
+          return null;
+        }
+
+        // Re-throw for default error handling
+        throw err;
       }
-      error.value = createError(t('failed-to-add-domain'), 'human', 'error');
-      return null;
     });
 
   const deleteDomain = async (domainId: string) => {

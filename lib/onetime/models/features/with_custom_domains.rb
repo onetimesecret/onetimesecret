@@ -25,7 +25,6 @@ module Onetime
 
         module InstanceMethods
 
-
           def custom_domains_list
             # Domains are now owned by organizations, not individual customers
             # Get domains from all organizations this customer belongs to

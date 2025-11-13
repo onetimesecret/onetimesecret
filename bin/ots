@@ -248,8 +248,26 @@ class OT::CLI::Definition
   option :c, :cleanup, 'Remove all non-default organizations and teams for the user'
   command test_data: OT::TestDataCommand
 
-  usage 'ots domains'
-  option :l, :list, 'List domains'
+  usage 'ots domains [subcommand] [options]'
+  about 'Domain management tools for custom domains'
+  about ''
+  about 'Subcommands:'
+  about '  (default)              List all domains with organization info'
+  about '  info <domain>          Show detailed domain information'
+  about '  list-orphaned          List domains without organization ownership'
+  about '  transfer <domain>      Transfer domain between organizations'
+  about '  repair <domain>        Fix domain relationship issues'
+  about '  bulk-repair            Find and fix all relationship issues'
+  about ''
+  option :l, :list, 'List domains (default behavior)'
+  option nil, :orphaned, 'Filter for orphaned domains only'
+  option nil, :org_id, String, 'Filter by organization ID'
+  option nil, :verified, 'Filter for verified domains only'
+  option nil, :unverified, 'Filter for unverified domains only'
+  option nil, :from_org, String, 'Source organization for transfer'
+  option nil, :to_org, String, 'Destination organization for transfer'
+  option :f, :force, 'Skip confirmations'
+  option nil, :dry_run, 'Preview changes without applying'
   command domains: OT::DomainsCommand
 
   usage 'ots change-email OLD_EMAIL NEW_EMAIL [REALM]'

@@ -89,6 +89,14 @@ module Core
       def serve_vue_entry_point(env, status: 200)
         req = build_rack_request(env)
 
+        # Debug template path configuration
+        http_logger.debug "Template debug info", {
+          rhales_frozen: Rhales.configuration.frozen?,
+          template_paths: Rhales.configuration.template_paths,
+          current_dir: Dir.pwd,
+          template_exists: File.exist?(File.join(Dir.pwd, 'apps', 'web', 'core', 'templates', 'index.rue'))
+        }
+
         # Simplified: BaseView now extracts everything from req
         view = Core::Views::VuePoint.new(req)
 

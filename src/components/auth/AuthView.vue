@@ -64,7 +64,10 @@
     if (jurisdictionStore.enabled && getCurrentJurisdiction.value?.icon) {
       return getCurrentJurisdiction.value.icon;
     }
-    return props.featureIcon;
+    return props.featureIcon || {
+      collection: 'material-symbols',
+      name: 'mail-lock-outline',
+    };
   });
 
   // Compute the icon to show based on jurisdiction status
@@ -73,7 +76,10 @@
     if (jurisdictionStore.enabled && getCurrentJurisdiction.value?.icon) {
       return getCurrentJurisdiction.value.icon;
     }
-    return props.featureIcon;
+    return props.featureIcon || {
+      collection: 'material-symbols',
+      name: 'mail-lock-outline',
+    };
   });
 </script>
 
@@ -83,6 +89,7 @@
     <!-- Background Icon -->
     <div v-if="!hideBackgroundIcon" class="absolute inset-0 overflow-hidden opacity-5 dark:opacity-5">
       <OIcon
+        v-if="backgroundIcon && backgroundIcon.collection && backgroundIcon.name"
         :collection="backgroundIcon.collection"
         :name="backgroundIcon.name"
         class="blur-x absolute left-1/2 top-32 h-auto w-full -translate-x-1/2 translate-y-0 scale-[9] transform-cpu object-cover object-center backdrop-invert"
@@ -95,6 +102,7 @@
       <div v-if="!hideIcon" class="flex flex-col items-center">
         <RouterLink to="/">
           <OIcon
+            v-if="iconToShow && iconToShow.collection && iconToShow.name"
             :collection="iconToShow.collection"
             :name="iconToShow.name"
             size="32"

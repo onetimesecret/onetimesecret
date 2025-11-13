@@ -33,8 +33,28 @@ module AccountAPI::Logic
         @parsed_domain  = Onetime::CustomDomain.parse(@domain_input, org.objid)
         @display_domain = @parsed_domain.display_domain
 
-        OT.ld "[AddDomain] Display: #{@display_domain}, Identifier: #{@parsed_domain.identifier}, Exists?: #{@parsed_domain.exists?}"
-        raise_form_error 'Duplicate domain' if @parsed_domain.exists?
+        OT.ld "[AddDomain] Display: #{@display_domain}, Identifier: #{@parsed_domain.identifier}"
+
+        # Check for existing domain to provide specific error messages
+        existing = Onetime::CustomDomain.load_by_display_domain(@display_domain)
+
+        if existing
+          # Scenario 1: Domain already in customer's organization (same org_id)
+          if existing.org_id.to_s == org.objid.to_s
+            OT.ld "[AddDomain] Domain already in organization: #{@display_domain}"
+            raise_form_error 'Domain already registered in your organization'
+          end
+
+          # Scenario 2: Domain in another organization (different org_id)
+          if !existing.org_id.to_s.empty?
+            OT.le "[AddDomain] Domain belongs to another organization: #{@display_domain}"
+            raise_form_error 'Domain is registered to another organization'
+          end
+
+          # Scenario 3: Orphaned domain (no org_id) - will be claimed in process
+          OT.info "[AddDomain] Found orphaned domain, will claim: #{@display_domain}"
+          # Don't raise an error - let the process method claim it
+        end
       end
 
       def process
