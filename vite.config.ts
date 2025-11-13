@@ -97,16 +97,20 @@ export default defineConfig({
       },
     }),
 
-    // Auto-import composables for better DX
     AutoImport({
       imports: [
         'vue',
         'vue-router',
         {
-          'vue-i18n': ['useI18n'], // Only auto-import the composable
+          'vue-i18n': ['useI18n'],
         },
       ],
       dts: 'src/auto-imports.d.ts',
+      eslintrc: {
+        enabled: true,
+        filepath: 'src/.eslintrc-auto-import.json',
+        globalsPropValue: true,
+      },
     }),
 
     visualizer({
