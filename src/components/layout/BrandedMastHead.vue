@@ -45,7 +45,7 @@
               <img
                 v-if="productIdentity.logoUri && !imageError"
                 :src="productIdentity.logoUri"
-                :alt="t('company-logo')"
+                alt=""
                 class="size-16 object-contain"
                 :class="productIdentity.cornerClass"
                 @error="handleImageError" />
