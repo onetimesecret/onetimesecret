@@ -13,25 +13,21 @@ Migrated from a custom JSON-based internationalization system to the industry-st
 **File:** `Gemfile`
 - Added `gem 'i18n', '~> 1.14'` to the Data Processing & Utilities section
 
-### 2. Converted Locale Files
+### 2. Using Existing JSON Locale Files
 
-**Script:** `scripts/convert_locales_to_yaml.rb`
-- Created conversion script to transform all locale files from JSON to YAML format
-- Converted 30 locale files from `src/locales/*.json` to `config/locales/*.yml`
-- YAML files now have the locale code as the root key (required by ruby-i18n)
+**Note:** JSON is valid YAML, so the I18n gem can load the existing JSON files directly without conversion.
+
+- Kept existing 30 locale files in `src/locales/*.json`
+- No conversion or duplication needed
+- I18n gem loads them directly as-is
 
 **Example structure:**
-```yaml
-# Before (JSON): src/locales/en.json
+```json
+// src/locales/en.json (unchanged)
 {
   "web": { ... },
   "email": { ... }
 }
-
-# After (YAML): config/locales/en.yml
-en:
-  web: { ... }
-  email: { ... }
 ```
 
 ### 3. Updated Locale Loading Initializer
@@ -42,7 +38,7 @@ en:
 - Replaced `require 'familia/json_serializer'` with `require 'i18n'`
 - Removed custom JSON parsing and loading logic
 - Configured I18n gem with:
-  - `I18n.load_path` - Points to YAML files in `config/locales/`
+  - `I18n.load_path` - Points to existing JSON files in `src/locales/`
   - `I18n.default_locale` - Set from configuration
   - `I18n.available_locales` - Set from supported locales list
   - Fallback support using `I18n::Backend::Fallbacks`
@@ -134,7 +130,6 @@ I18n.t('web.TITLES.signin', locale: :fr)
 - `apps/api/v2/logic/secrets/burn_secret.rb` - Direct locale access update
 - `apps/web/core/middleware/request_setup.rb` - Locale synchronization
 
-## Files Created
+## Files Unchanged
 
-- `config/locales/*.yml` - 30 YAML locale files (converted from JSON)
-- `scripts/convert_locales_to_yaml.rb` - Conversion script (can be used for future updates)
+- `src/locales/*.json` - All 30 locale files remain in their original location and format

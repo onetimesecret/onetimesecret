@@ -41,8 +41,9 @@ module Onetime
         @fallback_locale   = nil
       end
 
-      # Configure I18n gem
-      I18n.load_path = Dir[File.join(Onetime::HOME, 'config', 'locales', '*.yml')]
+      # Configure I18n gem to use existing JSON locale files
+      # Note: JSON is valid YAML, so I18n can load .json files directly
+      I18n.load_path = Dir[File.join(Onetime::HOME, 'src', 'locales', '*.json')]
       I18n.default_locale = @default_locale.to_sym
       I18n.available_locales = @supported_locales.map(&:to_sym)
 
