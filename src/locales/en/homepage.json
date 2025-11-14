@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Paste a password, secret message or private link below.",
+      "tagline2": "Keep sensitive info out of your email and chat logs.",
+      "secret_hint": "* A secret link only works once and then disappears forever.",
+      "secret_form_more_text1": "Sign up for a",
+      "secret_form_more_text2": "free account",
+      "secret_form_more_text3": "and be able to send the secret by email.",
+      "cta_title": "Increase trust & share with confidence",
+      "cta_subtitle": "Elevate your brand and share with confidence",
+      "cta_feature1": "Unlimited custom domains",
+      "cta_feature2": "Unlimited secret sharing",
+      "cta_feature3": "Increase customer trust and engagement",
+      "explore_premium_plans": "With Custom Domains",
+      "need_free_account": "Just getting started? Send emails with a free account.",
+      "sign_up_free": "Free Sign-up",
+      "visit-onetime-secret-home": "Visit Onetime Secret homepage",
+      "password_generation_title": "Password Generator",
+      "password_generation_description": " Click \"Generate Password\" to create a secure random password that you can share.",
+      "protip1": "Your message will self-destruct after being viewed. The link can only be accessed once.",
+      "authonly": {
+        "tagline2": "Secure messaging service is for internal use only.",
+        "tagline1": "If you have an account, please log in to continue."
+      },
+      "disabled": {
+        "tagline2": "This service is setup for internal use only.",
+        "tagline1": "User interface and login capabilities are not available."
+      }
+    }
+  }
+}
