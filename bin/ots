@@ -33,6 +33,12 @@ ARGV.each_with_index do |arg, idx|
   end
 end
 
+# Guard for commands that require a database URL in advanced mode
+if ENV['AUTHENTICATION_MODE'].to_s == 'advanced' && ENV['DATABASE_URL'].to_s.strip.empty?
+  puts "SKIP: Advanced mode requires DATABASE_URL; set DATABASE_URL or run in basic mode."
+  exit 0
+end
+
 begin
   Dry::CLI.new(Onetime::CLI).call(arguments: remaining_args)
 rescue RuntimeError => ex

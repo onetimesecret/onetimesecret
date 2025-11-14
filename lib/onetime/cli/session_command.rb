@@ -176,8 +176,13 @@ module Onetime
           end
           puts
           puts 'Available session keys (first 10):'
-          all_keys = dbclient.keys('*session*').first(10)
-          all_keys.each { |key| puts "  - #{key}" }
+          keys = []
+          begin
+            dbclient.scan_each(match: '*session*').take(10).each { |k| keys << k }
+          rescue StandardError
+            keys = []
+          end
+          keys.each { |key| puts "  - #{key}" }
           return
         end
 

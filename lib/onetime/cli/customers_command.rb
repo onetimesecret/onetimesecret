@@ -61,6 +61,8 @@ module Onetime
           end
 
           mismatched_customers.each do |cust|
+            next if cust.nil?
+
             obscured_custid = OT::Utils.obscure_email(cust.custid)
             obscured_email  = OT::Utils.obscure_email(cust.email)
             puts "CustID and email mismatch: CustID: #{obscured_custid}, Email: #{obscured_email}"

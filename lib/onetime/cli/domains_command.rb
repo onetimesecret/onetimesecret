@@ -336,15 +336,23 @@ module Onetime
             puts "  Removed from #{from_org_obj.display_name || from_org_obj.org_id}"
           end
 
+          # TODO: Make this atomic - add_domain should handle both org_id update and collection add
           # Update domain's org_id
           domain.org_id = to_org
           domain.updated = OT.now.to_i
           domain.save
 
           # Add to new organization's collection
-          to_org_obj.add_domain(domain.domainid)
-          puts "  Added to #{to_org_obj.display_name || to_org_obj.org_id}"
-          puts "  Updated org_id field"
+          begin
+            to_org_obj.add_domain(domain.domainid)
+            puts "  Added to #{to_org_obj.display_name || to_org_obj.org_id}"
+            puts "  Updated org_id field"
+          rescue => e
+            # Rollback: restore original org_id if collection add fails
+            domain.org_id = from_org_id
+            domain.save
+            raise "Failed to add domain to organization collection: #{e.message}"
+          end
 
           OT.info "[CLI] Domain transfer: #{domain_name} from #{from_org_id || 'orphaned'} to #{to_org}"
           puts

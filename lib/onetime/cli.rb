@@ -29,7 +29,7 @@ module Onetime
       end
 
       def verbose?
-        @verbose ||= false
+        ARGV.any? { |arg| ['-v', '--verbose'].include?(arg) }
       end
 
       def debug?
@@ -48,7 +48,7 @@ module Onetime
       end
 
       def verbose?
-        @verbose ||= false
+        ARGV.any? { |arg| ['-v', '--verbose'].include?(arg) }
       end
 
       def debug?
