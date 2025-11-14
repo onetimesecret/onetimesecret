@@ -1,0 +1,151 @@
+{
+  "web": {
+    "account": {
+      "settings": "Settings",
+      "change-password": "Change Password",
+      "close-account": "Close Account",
+      "verify-account": "Verify Account",
+      "subscription_title": "Subscription",
+      "manage_subscription": "Manage Subscription",
+      "customer_information": "Customer Information",
+      "customer_since": "Customer since:",
+      "email": "Email:",
+      "region": "Region",
+      "account_balance": "Balance:",
+      "default_payment_method": "Default Payment Method",
+      "card_ending": "ending in",
+      "subscriptions_title": "Subscriptions",
+      "quantity": "Quantity:",
+      "next_billing_date": "Next billing date:",
+      "changePassword": {
+        "username": "Username",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm",
+        "updatePassword": "Update Password",
+        "updating": "Updating..."
+      },
+      "timezone": "Timezone",
+      "customer-id": "Customer ID"
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Manage your account settings and preferences",
+      "manage_your_account_settings_and_preferences": "Manage your account settings and preferences",
+      "general": "General",
+      "preferences": "Preferences",
+      "appearance": "Appearance",
+      "theme": {
+        "title": "Theme",
+        "description": "Choose light or dark theme",
+        "choose_light_or_dark_theme": "Choose light or dark theme"
+      },
+      "language": {
+        "title": "Language",
+        "description": "Select your preferred language",
+        "select_your_preferred_language": "Select your preferred language"
+      },
+      "security_settings_description": "Manage authentication and account security",
+      "profile_settings_description": "Manage your account information",
+      "profile": {
+        "title": "Profile",
+        "change-email": "Change Email",
+        "current-email": "Current Email",
+        "current-password": "Current Password",
+        "new-email": "New Email",
+        "enter-password-to-confirm": "Enter your current password",
+        "password-required-for-security": "Your password is required for security purposes",
+        "verification-email-notice": "A verification email will be sent to the new address",
+        "update-email": "Update Email",
+        "change-email-description": "Update the email address associated with your account",
+        "all-fields-required": "All fields are required",
+        "invalid-email": "Please enter a valid email address",
+        "email-same-as-current": "New email must be different from current email",
+        "email-change-success": "Email updated successfully. Please check your inbox to verify your new email address.",
+        "email-change-error": "Failed to update email. Please try again."
+      },
+      "sessions": {
+        "title": "Active Sessions",
+        "description": "Manage your active sessions",
+        "manage_active_sessions": "Manage your active sessions"
+      },
+      "password": {
+        "title": "Password",
+        "description": "Update your account password",
+        "update_account_password": "Update your account password"
+      },
+      "delete_account": {
+        "title": "Delete Account",
+        "description": "Permanently delete your account and all data",
+        "permanently_delete_your_account": "Permanently delete your account and all data"
+      },
+      "security": {
+        "security-score": "Security Score",
+        "score-description": "Your overall account security health",
+        "excellent": "Excellent",
+        "good": "Good",
+        "fair": "Fair",
+        "weak": "Weak",
+        "improve-security": "Improve your security",
+        "enable-mfa-recommendation": "Enable two-factor authentication for stronger protection",
+        "generate-recovery-codes-recommendation": "Generate recovery codes as a backup",
+        "configured": "Configured",
+        "change": "Change",
+        "manage": "Manage",
+        "enable": "Enable",
+        "codes-available": "{0} codes available",
+        "no-codes": "No codes generated",
+        "active-sessions": "{0} active session | {0} active sessions",
+        "best-practices": "Security Best Practices",
+        "use-strong-unique-password": "Use a strong, unique password for your account",
+        "enable-mfa-for-protection": "Enable two-factor authentication for additional protection",
+        "save-recovery-codes-safely": "Save your recovery codes in a secure location",
+        "review-sessions-regularly": "Review and revoke unused sessions regularly",
+        "view-details": "View details"
+      },
+      "api": {
+        "title": "API & Integrations",
+        "description": "Manage API keys and integrations",
+        "manage_api_keys": "Manage API keys and integrations",
+        "documentation": "API Documentation",
+        "documentation-description": "Learn how to integrate Onetime Secret into your applications",
+        "rest-api-reference": "REST API Reference",
+        "complete-api-documentation": "Complete API documentation and endpoints",
+        "code-examples": "Code Examples",
+        "example-code-and-libraries": "Example code and client libraries",
+        "security-best-practices": "Security Best Practices",
+        "never-commit-api-keys": "Never commit API keys to version control",
+        "use-environment-variables": "Use environment variables to store API keys",
+        "rotate-keys-regularly": "Rotate API keys regularly for security",
+        "use-https-only": "Always use HTTPS when making API requests",
+        "monitor-api-usage": "Monitor your API usage and set up alerts",
+        "important-notice": "Important Notice",
+        "regenerating-key-warning": "Regenerating your API key will invalidate the current key. Update all applications using the old key."
+      },
+      "privacy": {
+        "title": "Privacy Settings",
+        "manage-privacy-settings": "Manage your privacy preferences",
+        "your-privacy": "Your Privacy",
+        "non-negotiable": "Non-Negotiable",
+        "not-a-setting": "Not a setting",
+        "no-analytics-statement": "No analytics. No tracking. Period.",
+        "explanation": "This isn't a setting because there's nothing to turn on or off. Your privacy is built into how we operate."
+      },
+      "caution": {
+        "title": "Careful Consideration Zone",
+        "description": "Advanced settings and data management",
+        "data-export": "Data Export",
+        "export-your-data": "Export your account data",
+        "export-description": "Request a complete copy of your account data in machine-readable format",
+        "request-data-export": "Request Data Export",
+        "export-info": "Export Processing Time",
+        "export-info-description": "Exports are processed within 24 hours and sent to your email address",
+        "deletion-warning-title": "Deleting your account will:",
+        "deletion-warning-secrets": "Permanently delete all your secrets",
+        "deletion-warning-metadata": "Remove all secret metadata and history",
+        "deletion-warning-api-keys": "Invalidate all API keys",
+        "deletion-warning-irreversible": "This action cannot be undone"
+      }
+    }
+  }
+}
