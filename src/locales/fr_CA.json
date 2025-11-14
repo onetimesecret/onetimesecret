@@ -914,13 +914,6 @@
         "configureDomainsDesc": "Domain and DNS settings",
         "systemSettings": "System Settings",
         "systemSettingsDesc": "Application configuration"
-      },
-      "welcome_details": {
-        "subject": "Vérifiez votre compte sur OnetimeSecret.com",
-        "body1": "Bienvenue sur OnetimeSecret.com. On a un secret pour vous !",
-        "please_verify": "Vérifier votre compte, s'il vous plaît:",
-        "postscript1": "Ce courriel a été envoyé à",
-        "postscript2": "Si vous n’avez pas créé ce compte, supprimez ce message et nous ne vous contacterons plus."
       }
     },
     "feedback": {
