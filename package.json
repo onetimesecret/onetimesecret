@@ -81,7 +81,7 @@
     "date-fns": "4.1.0",
     "dompurify": "3.2.6",
     "eslint": "~9.35.0",
-    "focus-trap": "7.6.4",
+    "focus-trap": "7.6.6",
     "focus-trap-vue": "4.0.3",
     "highlight.js": "11.11.1",
     "marked": "15.0.11",
