@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Paste a password, secret message or private link below.",
+      "tagline2": "Keep sensitive info out of your email and chat logs.",
+      "secret_hint": "* A secret link only works once and then disappears forever.",
+      "incoming_button_create": "Send to Support Staff",
+      "incoming_secret_options": "Support Info",
+      "incoming_secret_placeholder": "Enter any information your support representative will need (e.g. system password)",
+      "incoming_ticket_number": "Enter Ticket #",
+      "incoming_ticket_number_hint": "You can find this in your email (e.g. 123456)",
+      "incoming_recipient_address": "Support recipient",
+      "incoming_success_message": "Your email has been sent",
+      "incoming_button_creating": "Creating"
+    }
+  }
+}
