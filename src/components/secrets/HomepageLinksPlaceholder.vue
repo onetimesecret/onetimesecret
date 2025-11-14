@@ -10,17 +10,16 @@
 
 <template>
   <div
-    class="group relative overflow-hidden bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center transition-all duration-300"
+    class="group relative overflow-hidden rounded-lg bg-white p-8 text-center shadow-lg transition-all duration-300 dark:bg-gray-800"
     role="region"
     :aria-label="title"
     tabindex="0">
-
     <div
-      class="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300"
+      class="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-20"
       aria-hidden="true"></div>
 
     <h3
-      class="relative text-lg font-medium text-gray-500 dark:text-gray-100 mb-2"
+      class="relative mb-2 text-lg font-medium text-gray-500 dark:text-gray-100"
       :id="title.toLowerCase().replace(/\s+/g, '-')">
       {{ title }}
     </h3>
@@ -33,7 +32,7 @@
 
     <!-- Focus outline for keyboard navigation -->
     <div
-      class="absolute inset-0 rounded-lg ring-2 ring-offset-2 ring-blue-500 opacity-0 focus-within:opacity-100"
+      class="absolute inset-0 rounded-lg opacity-0 ring-2 ring-blue-500 ring-offset-2 focus-within:opacity-100"
       aria-hidden="true"></div>
   </div>
 </template>

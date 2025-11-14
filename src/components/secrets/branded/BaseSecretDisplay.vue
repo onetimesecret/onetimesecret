@@ -102,7 +102,9 @@
             :class="[cornerClass, fontClass]"
             class="mb-2 text-base font-medium leading-normal
               text-gray-900 dark:text-gray-200 sm:mb-3 sm:text-xl">
-            <slot name="title">{{ defaultTitle }}</slot>
+            <slot name="title">
+              {{ defaultTitle }}
+            </slot>
           </h2>
 
           <div class="relative">
@@ -153,8 +155,7 @@
           <OIcon
             collection="mdi"
             name="information"
-            class="mr-1 size-4"
-          />
+            class="mr-1 size-4" />
           {{ displayComposer.t('web.COMMON.careful_only_see_once') }}
         </p>
       </slot>

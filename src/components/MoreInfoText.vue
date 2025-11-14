@@ -30,8 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
         <OIcon
           collection="heroicons"
           :name="isExpanded ? 'chevron-down' : 'chevron-right'"
-          class="mr-2 size-5"
-        />
+          class="mr-2 size-5" />
         {{ isExpanded ? 'Hide details' : 'Expand for more info' }}
       </button>
       <div

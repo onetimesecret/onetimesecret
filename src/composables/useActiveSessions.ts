@@ -3,8 +3,6 @@
  * Handles fetching, removing, and managing user sessions
  */
 
-import { ref, inject } from 'vue';
-import type { AxiosInstance } from 'axios';
 import {
   activeSessionsResponseSchema,
   removeSessionResponseSchema,
@@ -12,9 +10,11 @@ import {
   type ActiveSessionsResponse,
   type RemoveSessionResponse,
 } from '@/schemas/api/auth/endpoints/auth';
-import type { Session } from '@/types/auth';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
+import type { Session } from '@/types/auth';
+import type { AxiosInstance } from 'axios';
+import { ref, inject } from 'vue';
 
 /* eslint-disable max-lines-per-function */
 export function useActiveSessions() {

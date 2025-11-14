@@ -1,9 +1,10 @@
 <!-- src/components/common/LanguageButton.vue -->
 
 <script setup lang="ts">
-import HoverTooltip from './HoverTooltip.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
+
+import HoverTooltip from './HoverTooltip.vue';
 
 const { t, availableLocales } = useI18n();
 
@@ -49,29 +50,27 @@ const cycleValue = () => {
 </script>
 
 <template>
-  <div class="relative group">
+  <div class="group relative">
     <HoverTooltip>{{ t('language') }}</HoverTooltip>
     <button
       type="button"
       @click="cycleValue"
       class="group relative inline-flex h-11 items-center gap-2
              rounded-lg bg-white px-4
-             ring-1 ring-gray-200 shadow-sm
-             hover:bg-gray-50
-             focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-             dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700
-             dark:focus:ring-brand-400 dark:focus:ring-offset-0
-             transition-all duration-200"
-      :aria-label="t('current-label-modelvalue-click-to-cycle-through-options', [displayValue])"
-    >
+             shadow-sm ring-1 ring-gray-200
+             transition-all
+             duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2
+             focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800
+             dark:ring-gray-700 dark:hover:bg-gray-700
+             dark:focus:ring-brand-400 dark:focus:ring-offset-0"
+      :aria-label="t('current-label-modelvalue-click-to-cycle-through-options', [displayValue])">
       <div class="relative size-5 text-gray-700 dark:text-gray-200">
-      {{ modelValue }}
+        {{ modelValue }}
         <OIcon
           collection=""
           :name="getCurrentIcon"
           class="size-5 transition-all duration-200"
-          :aria-hidden="true"
-        />
+          :aria-hidden="true" />
       </div>
     </button>
   </div>

@@ -208,8 +208,7 @@
               :on-logo-upload="handleLogoUpload"
               :on-logo-remove="removeLogo"
               secret-identifier="abcd"
-              class="max-w-full transition-all duration-200 hover:scale-[1.02]"
-            />
+              class="max-w-full transition-all duration-200 hover:scale-[1.02]" />
           </BrowserPreviewFrame>
 
           <!-- Loading and Error States -->

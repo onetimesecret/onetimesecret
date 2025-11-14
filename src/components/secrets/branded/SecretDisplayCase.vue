@@ -3,7 +3,6 @@
 <script setup lang="ts">
   import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
   import { useClipboard } from '@/composables/useClipboard';
-  import { useProductIdentity } from '@/stores/identityStore';
   import { Secret, SecretDetails, brandSettingschema } from '@/schemas/models';
   import {
     CornerStyle,
@@ -11,6 +10,7 @@
     cornerStyleClasses,
     fontFamilyClasses
   } from '@/schemas/models/domain/brand';
+  import { useProductIdentity } from '@/stores/identityStore';
   import { ref, computed } from 'vue';
 
   interface Props {
@@ -53,7 +53,6 @@
     'bg-brand-50 text-brand-700 dark:bg-brand-900 dark:text-brand-100':
       props.submissionStatus?.status === 'success',
   }));
-
 
   const hasImageError = ref(false);
   const { isCopied, copyToClipboard } = useClipboard();
@@ -177,7 +176,7 @@
 
     <template #content>
       <div class="relative size-full p-0">
-        <div :class="[cornerClass, 'size-full overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600']">
+        <div :class="[cornerClass, 'size-full overflow-hidden border border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800']">
           <label
             :for="'secret-content-' + record?.identifier"
             class="sr-only">

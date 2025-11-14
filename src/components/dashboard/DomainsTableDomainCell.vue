@@ -1,13 +1,12 @@
 <!-- src/components/dashboard/DomainsTableDomainCell.vue -->
 
 <script setup lang="ts">
-  import { formatDistanceToNow } from 'date-fns';
-  import type { CustomDomain } from '@/schemas/models/domain';
   import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
   import { useDomainStatus } from '@/composables/useDomainStatus';
+  import type { CustomDomain } from '@/schemas/models/domain';
+  import { formatDistanceToNow } from 'date-fns';
 
 const { t } = useI18n();
-
 
   interface Props {
     domain: CustomDomain;
@@ -43,7 +42,7 @@ const { t } = useI18n();
         :title="t('open-domain-in-new-tab')">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-4 w-4"
+          class="size-4"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -59,7 +58,7 @@ const { t } = useI18n();
       <DomainVerificationInfo
         mode="icon"
         :domain="domain"
-        class="flex-shrink-0 -mt-0.5" />
+        class="-mt-0.5 shrink-0" />
 
       <span class="text-xs text-gray-500 dark:text-gray-400">
         {{

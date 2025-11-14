@@ -1,10 +1,11 @@
 // src/composables/usePrivacyOptions.ts
 
+import type { SecretOptions } from '@/schemas/models';
+import { WindowService } from '@/services/window.service';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { WindowService } from '@/services/window.service';
+
 import type { SecretFormData } from './useSecretForm';
-import type { SecretOptions } from '@/schemas/models';
 
 interface PrivacyConfig {
   secretOptions: SecretOptions;
@@ -32,7 +33,7 @@ interface PrivacyOptionsState {
  * - Duration formatting
  * - Password visibility
  */
-/* eslint-disable max-lines-per-function */
+
 export function usePrivacyOptions(formOperations?: {
   updateField: <K extends keyof SecretFormData>(field: K, value: SecretFormData[K]) => void;
 }) {

@@ -15,7 +15,7 @@ defineProps<Props>();
 <template>
   <div class="flex min-w-0">
     <div
-    class="flex w-24 shrink-0 items-center justify-end border-r border-gray-200 bg-gray-100 px-3 py-2 dark:border-gray-500 dark:bg-gray-800/70"
+      class="flex w-24 shrink-0 items-center justify-end border-r border-gray-200 bg-gray-100 px-3 py-2 dark:border-gray-500 dark:bg-gray-800/70"
       ref="labelContainerRef">
       <span
         class="truncate text-sm font-medium text-gray-500 dark:text-gray-300"

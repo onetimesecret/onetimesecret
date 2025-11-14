@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Jurisdiction } from '@/schemas/models';
 import OIcon from '@/components/icons/OIcon.vue';
+import type { Jurisdiction } from '@/schemas/models';
 
 const { t } = useI18n();
 
@@ -16,8 +16,7 @@ defineProps<{
         :collection="jurisdiction.icon.collection"
         :name="jurisdiction.icon.name"
         class="size-5 shrink-0"
-        aria-hidden="true"
-      />
+        aria-hidden="true" />
       <p class="m-0 text-center text-gray-700 dark:text-gray-200 sm:text-left">
         {{ t('your-account-and-data-are-protected-under-the-la') }}
         <strong class="font-medium">{{ jurisdiction.display_name }}</strong>

@@ -1,8 +1,8 @@
 <!-- src/components/layout/Masthead.vue -->
 
 <script setup lang="ts">
-  import UserMenu from '@/components/navigation/UserMenu.vue';
   import DefaultLogo from '@/components/logos/DefaultLogo.vue';
+  import UserMenu from '@/components/navigation/UserMenu.vue';
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, watch, type Component } from 'vue';
@@ -125,7 +125,6 @@
     <div class="flex flex-row items-center justify-between">
       <!-- Logo lockup -->
       <div class="flex items-center gap-3">
-
         <div v-if="isVueComponent">
           <component
             :is="logoComponent"
@@ -148,7 +147,7 @@
               :alt="logoConfig.alt" />
             <span
               v-if="logoConfig.showSiteName"
-              class="text-lg font-bold font-brand leading-tight">
+              class="font-brand text-lg font-bold leading-tight">
               {{ logoConfig.siteName }}
             </span>
           </a>

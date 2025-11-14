@@ -1,11 +1,12 @@
 // src/router/guards.routes.ts
 
+import { usePageTitle } from '@/composables/usePageTitle';
 import { WindowService } from '@/services/window.service';
 import { useAuthStore } from '@/stores/authStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { RouteLocationNormalized, Router } from 'vue-router';
+
 import { processQueryParams } from './queryParams.handler';
-import { usePageTitle } from '@/composables/usePageTitle';
 
 export async function setupRouterGuards(router: Router): Promise<void> {
   const { setTitle } = usePageTitle();

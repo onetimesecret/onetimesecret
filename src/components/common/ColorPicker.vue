@@ -77,8 +77,7 @@ const updateColor = (event: Event, isText = false) => {
             :value="currentColor"
             @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
             class="absolute inset-0 size-full cursor-pointer opacity-0"
-            :aria-labelledby="id + '-label'"
-          />
+            :aria-labelledby="id + '-label'" />
         </div>
       </div>
 
@@ -108,8 +107,7 @@ const updateColor = (event: Event, isText = false) => {
           placeholder="2ACFCF"
           maxlength="6"
           spellcheck="false"
-          :aria-label="label"
-        />
+          :aria-label="label" />
       </div>
     </div>
   </div>

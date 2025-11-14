@@ -28,7 +28,7 @@ import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
  * const { domain, isLoading, initialize, verify } = useDomain('domain-123');
  * await initialize();
  */
-/* eslint-disable max-lines-per-function */
+
 export function useDomain(domainId?: string) {
   const store = useDomainsStore();
   const notifications = useNotificationsStore();

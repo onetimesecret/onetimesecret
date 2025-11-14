@@ -6,7 +6,6 @@ import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { inject, ref } from 'vue';
 
-/* eslint-disable max-lines-per-function */
 export const useAccountStore = defineStore('account', () => {
   const $api = inject('api') as AxiosInstance;
 

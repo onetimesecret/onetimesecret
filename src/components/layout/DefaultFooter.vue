@@ -9,7 +9,6 @@
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
 
-
   withDefaults(defineProps<LayoutProps>(), {
     displayFeedback: true,
     displayFooterLinks: true,

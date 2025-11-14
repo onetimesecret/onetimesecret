@@ -3,8 +3,8 @@
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import { WindowService } from '@/services/window.service';
-import { AxiosInstance } from 'axios';
 import { useDocumentVisibility } from '@vueuse/core';
+import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { handleError, inject, ref, watch } from 'vue';
 

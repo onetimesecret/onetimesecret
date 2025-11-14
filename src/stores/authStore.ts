@@ -1,9 +1,9 @@
 // src/stores/authStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
+import { classifyError, errorGuards } from '@/schemas/errors';
 import { loggingService } from '@/services/logging.service';
 import { WindowService } from '@/services/window.service';
-import { classifyError, errorGuards } from '@/schemas/errors';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';

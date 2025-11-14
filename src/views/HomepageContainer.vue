@@ -6,9 +6,9 @@
   import { useRoute } from 'vue-router';
 
   import BrandedHomepage from './BrandedHomepage.vue';
-  import Homepage from './Homepage.vue';
   import DisabledHomepage from './DisabledHomepage.vue';
   import DisabledUI from './DisabledUI.vue';
+  import Homepage from './Homepage.vue';
 
   interface Props {}
   defineProps<Props>();

@@ -137,15 +137,13 @@
         collection="mdi"
         name="text-box-edit"
         class="size-5"
-        aria-hidden="true"
-      />
+        aria-hidden="true" />
 
       <OIcon
         collection="mdi"
         :name="isOpen ? 'chevron-up' : 'chevron-down'"
         class="size-5"
-        aria-hidden="true"
-      />
+        aria-hidden="true" />
     </button>
 
     <Transition

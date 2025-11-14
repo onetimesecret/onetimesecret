@@ -2,7 +2,6 @@
 
 const { t } = useI18n();
 
-
 interface Props {
   disabled: boolean;
 }
@@ -23,8 +22,7 @@ defineProps<Props>();
     :title="disabled ? t('web.COMMON.generate_password_disabled') : t('web.COMMON.button_generate_secret_short')"
     @click.prevent="$emit('click')"
     name="kind"
-    value="generate"
-  >
+    value="generate">
     <span class="transition-margin mr-0 inline-block opacity-80 duration-200 ease-in-out group-hover:mr-2" aria-hidden="true">🔑</span>
     <span class="sr-only">{{ t('web.COMMON.button_generate_secret_short') }}</span>
     <span class="opacity-0 transition-opacity duration-200 ease-in-out group-hover:opacity-100" aria-hidden="true">

@@ -118,8 +118,7 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
             <img
               :src="setupData.qr_code"
               alt="QR Code for authenticator app"
-              class="mb-4 rounded-lg border-4 border-white shadow-lg size-64 dark:border-gray-800"
-            />
+              class="mb-4 size-64 rounded-lg border-4 border-white shadow-lg dark:border-gray-800" />
             <p class="text-xs text-gray-500 dark:text-gray-400">
               {{ t('web.auth.mfa.supported-apps') }}
             </p>
@@ -154,8 +153,7 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
               class="sr-only"
               tabindex="-1"
               aria-hidden="true"
-              readonly
-            />
+              readonly />
 
             <div class="mb-4">
               <label for="mfa-password" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -168,8 +166,7 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
                 autocomplete="current-password"
                 :disabled="isLoading"
                 :placeholder="t('web.auth.mfa.password-placeholder')"
-                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-              />
+                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 {{ t('web.auth.mfa.password-reason') }}
               </p>
@@ -183,8 +180,7 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
               <OtpCodeInput
                 ref="otpInputRef"
                 :disabled="isLoading"
-                @complete="handleOtpComplete"
-              />
+                @complete="handleOtpComplete" />
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 {{ t('web.auth.mfa.enter-code-description') }}
               </p>

@@ -1,5 +1,5 @@
-import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { formatDistance } from 'date-fns';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 export const EXPIRATION_EVENTS = {
   EXPIRED: 'expired',
@@ -7,7 +7,6 @@ export const EXPIRATION_EVENTS = {
   UPDATED: 'updated',
 } as const;
 
-/* eslint-disable max-lines-per-function */
 export function useSecretExpiration(created: Date, ttlSeconds: number) {
   const progress = ref(0);
   const timeRemaining = ref('');

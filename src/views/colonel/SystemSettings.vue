@@ -163,7 +163,7 @@
         class="mb-4 text-sm">
         <span
           class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-          <span class="mr-1 h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+          <span class="mr-1 size-1.5 rounded-full bg-gray-400"></span>
           Read-Only
         </span>
       </div>

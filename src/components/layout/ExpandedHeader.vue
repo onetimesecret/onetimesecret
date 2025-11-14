@@ -1,8 +1,8 @@
 <!-- src/components/layout/ExpandedHeader.vue -->
 
 <script setup lang="ts">
-  import type { LayoutProps } from '@/types/ui/layouts';
   import MastHead from '@/components/layout/MastHead.vue';
+  import type { LayoutProps } from '@/types/ui/layouts';
 
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,

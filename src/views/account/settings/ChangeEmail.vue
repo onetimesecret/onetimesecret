@@ -1,9 +1,9 @@
 <!-- src/views/account/settings/ChangeEmail.vue -->
 
 <script setup lang="ts">
-  import { ref } from 'vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
+  import { ref } from 'vue';
 
   const { t } = useI18n();
 

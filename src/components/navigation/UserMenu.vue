@@ -26,13 +26,13 @@
 -->
 
 <script setup lang="ts">
-import OIcon from '@/components/icons/OIcon.vue';
 import FancyIcon from '@/components/ctas/FancyIcon.vue';
-import { Customer } from '@/schemas/models';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { useAuth } from '@/composables/useAuth';
-import { useTeamStore } from '@/stores/teamStore';
+import { Customer } from '@/schemas/models';
 import { WindowService } from '@/services/window.service';
+import { useTeamStore } from '@/stores/teamStore';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 const props = defineProps<{
   cust: Customer | null;

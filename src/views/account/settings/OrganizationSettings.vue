@@ -1,22 +1,22 @@
 <!-- src/views/account/settings/OrganizationSettings.vue -->
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import BillingLayout from '@/components/layout/BillingLayout.vue';
-import OIcon from '@/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
+import OIcon from '@/components/icons/OIcon.vue';
+import BillingLayout from '@/components/layout/BillingLayout.vue';
+import { useCapabilities } from '@/composables/useCapabilities';
+import { classifyError } from '@/schemas/errors';
+import { BillingService } from '@/services/billing.service';
+import { WindowService } from '@/services/window.service';
 import { useOrganizationStore } from '@/stores/organizationStore';
 import { useTeamStore } from '@/stores/teamStore';
-import { classifyError } from '@/schemas/errors';
-import { WindowService } from '@/services/window.service';
-import { BillingService } from '@/services/billing.service';
-import type { Organization } from '@/types/organization';
-import type { Team } from '@/types/team';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel } from '@/types/billing';
-import { useCapabilities } from '@/composables/useCapabilities';
+import type { Organization } from '@/types/organization';
 import { CAPABILITIES } from '@/types/organization';
+import type { Team } from '@/types/team';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -326,7 +326,7 @@ watch(activeTab, async (newTab) => {
                   type="text"
                   required
                   maxlength="100"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400" />
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
               </div>
 
               <!-- Description -->
@@ -341,7 +341,7 @@ watch(activeTab, async (newTab) => {
                   v-model="formData.description"
                   rows="3"
                   maxlength="500"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"></textarea>
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"></textarea>
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {{ formData.description.length }}/500
                 </p>
@@ -360,7 +360,7 @@ watch(activeTab, async (newTab) => {
                   v-model="formData.contact_email"
                   type="email"
                   required
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400" />
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {{ t('web.organizations.contact_email_help') }}
                 </p>
@@ -531,7 +531,7 @@ watch(activeTab, async (newTab) => {
 
                   <!-- Current Capabilities -->
                   <div v-if="capabilities.length > 0" class="border-t border-gray-200 pt-4 dark:border-gray-700">
-                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
+                    <p class="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                       Your Plan Includes:
                     </p>
                     <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">

@@ -4,6 +4,7 @@
   import DefaultFooter from '@/components/layout/DefaultFooter.vue';
   import DefaultHeader from '@/components/layout/DefaultHeader.vue';
   import type { LayoutProps } from '@/types/ui/layouts';
+
   import BaseLayout from './BaseLayout.vue';
 
   const props = withDefaults(defineProps<LayoutProps>(), {
@@ -25,7 +26,7 @@
 
     <template #main>
       <main
-        class="container mx-auto min-w-[320px] max-w-8xl px-4 py-8"
+        class="max-w-8xl container mx-auto min-w-[320px] px-4 py-8"
         name="DefaultLayout">
         <slot></slot>
       </main>

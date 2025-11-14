@@ -1,6 +1,5 @@
 import type { Plugin } from 'rollup';
 
-
 /**
  * This file is here because:
  * 1. It helps our code editor (like VSCode) understand Vue files.
@@ -79,7 +78,6 @@ declare module '*.vue' {
    */
   export default component
 }
-
 
 // src/build/plugins/addTrailingNewline.d.ts
 export declare function addTrailingNewline(): Plugin;

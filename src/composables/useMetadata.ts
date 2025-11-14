@@ -7,12 +7,13 @@ import { NotificationSeverity } from '@/types/ui/notifications';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
+
 import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
 /**
  *
  */
-/* eslint-disable max-lines-per-function */
+
 export function useMetadata(metadataIdentifier: string) {
   const router = useRouter();
   const notifications = useNotificationsStore();

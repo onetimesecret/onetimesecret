@@ -4,7 +4,6 @@
 
 const { t } = useI18n();
 
-
 defineProps<{
   actionRoute?: string;
   actionText?: string;
@@ -43,7 +42,7 @@ defineProps<{
           :to="actionRoute || '/'"
           class="inline-flex items-center rounded-md border border-transparent bg-brand-600 px-4 py-2 font-brand text-base font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
           <svg
-            class="mr-2 w-4 h-4"
+            class="mr-2 size-4"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -52,8 +51,7 @@ defineProps<{
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M12 4v16m8-8H4"
-            />
+              d="M12 4v16m8-8H4" />
           </svg>
           {{ actionText || 'Continue' }}
         </router-link>

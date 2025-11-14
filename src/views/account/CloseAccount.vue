@@ -1,8 +1,8 @@
 <!-- src/views/account/CloseAccount.vue -->
 
 <script setup lang="ts">
-  import { ref, computed } from 'vue';
   import { useAuth } from '@/composables/useAuth';
+  import { ref, computed } from 'vue';
 
   const { t } = useI18n();
   const { closeAccount, isLoading, error, fieldError, clearErrors } = useAuth();
@@ -47,9 +47,9 @@
     <!-- Warning banner -->
     <div class="mb-6 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
       <div class="flex">
-        <div class="flex-shrink-0">
+        <div class="shrink-0">
           <svg
-            class="h-5 w-5 text-red-400"
+            class="size-5 text-red-400"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
             fill="currentColor"
@@ -119,7 +119,7 @@
                   showPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')
                 ">
                 <svg
-                  class="h-5 w-5 text-gray-400"
+                  class="size-5 text-gray-400"
                   :class="{ hidden: showPassword, block: !showPassword }"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 576 512"
@@ -129,7 +129,7 @@
                     d="M572.52 241.4C518.29 135.59 410.93 64 288 64S57.68 135.64 3.48 241.41a32.35 32.35 0 0 0 0 29.19C57.71 376.41 165.07 448 288 448s230.32-71.64 284.52-177.41a32.35 32.35 0 0 0 0-29.19zM288 400a144 144 0 1 1 144-144 143.93 143.93 0 0 1-144 144zm0-240a95.31 95.31 0 0 0-25.31 3.79 47.85 47.85 0 0 1-66.9 66.9A95.78 95.78 0 1 0 288 160z" />
                 </svg>
                 <svg
-                  class="h-5 w-5 text-gray-400"
+                  class="size-5 text-gray-400"
                   :class="{ block: showPassword, hidden: !showPassword }"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 640 512"
@@ -157,7 +157,7 @@
                 type="checkbox"
                 v-model="confirmationChecked"
                 :disabled="isLoading"
-                class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-red-500" />
+                class="size-4 rounded border-gray-300 text-red-600 focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-red-500" />
             </div>
             <div class="ml-3 text-sm">
               <label
@@ -192,9 +192,9 @@
           class="mt-5 space-y-4">
           <div class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
             <div class="flex">
-              <div class="flex-shrink-0">
+              <div class="shrink-0">
                 <svg
-                  class="h-5 w-5 text-red-400"
+                  class="size-5 text-red-400"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"

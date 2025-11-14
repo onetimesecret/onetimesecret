@@ -105,10 +105,10 @@ export default defineConfig({
           'vue-i18n': ['useI18n'],
         },
       ],
-      dts: 'src/auto-imports.d.ts',
+      dts: 'auto-imports.d.ts',
       eslintrc: {
         enabled: true,
-        filepath: 'src/.eslintrc-auto-import.json',
+        filepath: '.eslintrc-auto-import.json',
         globalsPropValue: true,
       },
     }),

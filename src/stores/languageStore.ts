@@ -4,10 +4,10 @@ import { setGlobalLocale } from '@/i18n';
 import type { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { localeSchema } from '@/schemas/i18n/locale';
 import { WindowService } from '@/services/window.service';
+import { localeCodes } from '@/sources/languages';
 import type { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { computed, inject, ref, watch } from 'vue';
-import { localeCodes } from '@/sources/languages';
 
 export const SESSION_STORAGE_KEY = 'selected.locale';
 export const DEFAULT_LOCALE = 'en';

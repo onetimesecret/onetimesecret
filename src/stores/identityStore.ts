@@ -75,7 +75,7 @@ const getInitialState = (): IdentityState => {
  * Manages product identity state including domain context and branding
  * Identity determines how the product is presented and behaves for the current domain
  */
-/* eslint-disable max-lines-per-function */
+
 export const useProductIdentity = defineStore('productIdentity', () => {
   // Get i18n instance via injection
   const { t } = useI18n();

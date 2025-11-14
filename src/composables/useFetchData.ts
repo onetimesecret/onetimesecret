@@ -31,7 +31,6 @@ interface FetchDataOptions<T extends BaseApiRecord> {
   onError?: (error: Error, status?: number | null) => void;
 }
 
-/* eslint-disable max-lines-per-function */
 export function useFetchData<T extends BaseApiRecord>({
   url,
   onSuccess,

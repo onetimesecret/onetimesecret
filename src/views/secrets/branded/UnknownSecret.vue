@@ -7,7 +7,6 @@
 
 const { t } = useI18n();
 
-
   interface Props {
     brandSettings?: BrandSettings;
     branded?: boolean;

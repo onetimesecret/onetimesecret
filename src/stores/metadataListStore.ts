@@ -32,7 +32,7 @@ export type MetadataListStore = {
  * Store for managing metadata records and their related operations.
  * Handles fetching, caching, and state management of metadata listings.
  */
-/* eslint-disable max-lines-per-function */
+
 export const useMetadataListStore = defineStore('metadataList', () => {
   const $api = inject('api') as AxiosInstance;
 

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { ERROR_SEVERITIES, ERROR_TYPES } from './constants';
 
 /**

@@ -4,7 +4,6 @@ import { Testimonial } from "@/sources/testimonials";
 
 const { t } = useI18n();
 
-
 // Define props using defineProps
 const props = defineProps<{
   testimonial: Testimonial;

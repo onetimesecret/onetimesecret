@@ -134,8 +134,7 @@ onMounted(async () => {
             collection="heroicons"
             name="arrow-path"
             class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true"
-          />
+            aria-hidden="true" />
           <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
             {{ t('web.COMMON.loading') }}
           </p>
@@ -207,8 +206,7 @@ onMounted(async () => {
                       collection="heroicons"
                       name="arrow-down-tray"
                       class="size-4"
-                      aria-hidden="true"
-                    />
+                      aria-hidden="true" />
                     {{ t('web.billing.invoices.invoice_download') }}
                   </button>
                   <span v-else class="text-gray-400 dark:text-gray-600">
@@ -227,8 +225,7 @@ onMounted(async () => {
           collection="heroicons"
           name="document-text"
           class="mx-auto size-12 text-gray-400"
-          aria-hidden="true"
-        />
+          aria-hidden="true" />
         <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
           {{ t('web.billing.invoices.no_invoices') }}
         </h3>
@@ -238,13 +235,12 @@ onMounted(async () => {
         <div class="mt-6">
           <router-link
             :to="{ name: 'Billing Plans' }"
-            class="inline-flex items-center gap-2 rounded-md font-brand bg-brand-600 px-3 py-2 text-base font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
+            class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-base font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
             <OIcon
               collection="tabler"
               name="square-letter-s"
               class="size-4"
-              aria-hidden="true"
-            />
+              aria-hidden="true" />
             View Plans
           </router-link>
         </div>

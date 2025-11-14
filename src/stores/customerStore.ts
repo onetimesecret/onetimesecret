@@ -28,7 +28,7 @@ export type CustomerStore = {
 /**
  * Store for managing customer data, including current customer information and related actions.
  */
-/* eslint-disable max-lines-per-function */
+
 export const useCustomerStore = defineStore('customer', () => {
   const $api = inject('api') as AxiosInstance;
 

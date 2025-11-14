@@ -1,10 +1,10 @@
 <!-- src/components/secrets/SecretLinksTableRowActions.vue -->
 
 <script setup lang="ts">
-  import MinimalDropdownMenu from '@/components/MinimalDropdownMenu.vue';
-  import { MenuItem } from '@headlessui/vue';
-  import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import OIcon from '@/components/icons/OIcon.vue';
+  import MinimalDropdownMenu from '@/components/MinimalDropdownMenu.vue';
+  import { type ConcealedMessage } from '@/types/ui/concealed-message';
+  import { MenuItem } from '@headlessui/vue';
 
   const { t } = useI18n();
 
@@ -20,7 +20,7 @@
     <template #trigger>
       <button
         type="button"
-        class="inline-flex items-center justify-center rounded-md bg-white dark:bg-gray-800 p-1.5 text-gray-500 dark:text-gray-300 shadow-sm hover:text-gray-700 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 transition-all"
+        class="inline-flex items-center justify-center rounded-md bg-white p-1.5 text-gray-500 shadow-sm transition-all hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:hover:text-gray-100 dark:focus:ring-blue-400"
         title="Actions">
         <OIcon
           collection="heroicons"
@@ -29,7 +29,7 @@
       </button>
     </template>
     <template #menu-items>
-      <div class="py-1 divide-y divide-gray-100 dark:divide-gray-700">
+      <div class="divide-y divide-gray-100 py-1 dark:divide-gray-700">
         <div class="py-1">
           <MenuItem v-slot="{ active }">
             <router-link
@@ -38,7 +38,7 @@
                 active
                   ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
                   : 'text-gray-700 dark:text-gray-200',
-                'px-4 py-2 text-sm transition-colors duration-200 flex items-center',
+                'flex items-center px-4 py-2 text-sm transition-colors duration-200',
               ]">
               <OIcon
                 collection="heroicons"
@@ -56,7 +56,7 @@
                 active
                   ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
                   : 'text-gray-700 dark:text-gray-200',
-                'px-4 py-2 text-sm transition-colors duration-200 flex items-center',
+                'flex items-center px-4 py-2 text-sm transition-colors duration-200',
               ]">
               <OIcon
                 collection="heroicons"
@@ -69,8 +69,8 @@
         </div>
         <div class="py-1">
           <MenuItem v-slot="{ active }">
-          <router-link
-          :to="`/receipt/${concealedMessage.metadata_identifier}/burn`"
+            <router-link
+              :to="`/receipt/${concealedMessage.metadata_identifier}/burn`"
               :class="[
                 active ? 'bg-gray-100 dark:bg-gray-800' : '',
                 'flex w-full items-center px-4 py-2 text-sm text-red-600 transition-colors duration-200 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300',
@@ -81,7 +81,7 @@
                 class="mr-2 size-4"
                 aria-hidden="true" />
               {{ t('web.COMMON.burn') }}
-              </router-link>
+            </router-link>
           </MenuItem>
         </div>
       </div>

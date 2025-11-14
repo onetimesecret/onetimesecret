@@ -2,11 +2,11 @@
 
 <script setup lang="ts">
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
-import { BillingService } from '@/services/billing.service';
 import OIcon from '@/components/icons/OIcon.vue';
 import BillingLayout from '@/components/layout/BillingLayout.vue';
 import { useCapabilities } from '@/composables/useCapabilities';
 import { classifyError } from '@/schemas/errors';
+import { BillingService } from '@/services/billing.service';
 import { useOrganizationStore } from '@/stores/organizationStore';
 import type { PaymentMethod } from '@/types/billing';
 import { getPlanLabel } from '@/types/billing';
@@ -160,8 +160,7 @@ onMounted(async () => {
             collection="heroicons"
             name="arrow-path"
             class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true"
-          />
+            aria-hidden="true" />
           <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
             {{ t('web.COMMON.loading') }}
           </p>
@@ -174,8 +173,7 @@ onMounted(async () => {
           collection="heroicons"
           name="building-office-2"
           class="mx-auto size-12 text-gray-400"
-          aria-hidden="true"
-        />
+          aria-hidden="true" />
         <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
           {{ t('web.billing.overview.no_organizations_title') }}
         </h3>
@@ -190,8 +188,7 @@ onMounted(async () => {
               collection="heroicons"
               name="plus"
               class="size-4"
-              aria-hidden="true"
-            />
+              aria-hidden="true" />
             {{ t('web.organizations.create_organization') }}
           </router-link>
         </div>
@@ -229,8 +226,7 @@ onMounted(async () => {
                   collection="heroicons"
                   name="arrow-up-circle"
                   class="size-4"
-                  aria-hidden="true"
-                />
+                  aria-hidden="true" />
                 {{ planStatus === 'free' ? t('web.billing.overview.upgrade_plan') : t('web.billing.overview.change_plan') }}
               </router-link>
             </div>
@@ -249,8 +245,7 @@ onMounted(async () => {
                     collection="heroicons"
                     name="check-circle"
                     class="size-5 text-green-500 dark:text-green-400"
-                    aria-hidden="true"
-                  />
+                    aria-hidden="true" />
                   {{ formatCapability(cap) }}
                 </div>
               </div>
@@ -275,8 +270,7 @@ onMounted(async () => {
                       collection="heroicons"
                       name="credit-card"
                       class="size-6 text-gray-600 dark:text-gray-400"
-                      aria-hidden="true"
-                    />
+                      aria-hidden="true" />
                   </div>
                   <div>
                     <p class="text-sm font-medium text-gray-900 dark:text-white">
@@ -293,8 +287,7 @@ onMounted(async () => {
                   collection="heroicons"
                   name="credit-card"
                   class="mx-auto size-8 text-gray-400"
-                  aria-hidden="true"
-                />
+                  aria-hidden="true" />
                 <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                   {{ t('web.billing.overview.no_payment_method') }}
                 </p>
@@ -347,8 +340,7 @@ onMounted(async () => {
                   collection="tabler"
                   name="square-letter-s"
                   class="size-6 text-brand-600 dark:text-brand-400"
-                  aria-hidden="true"
-                />
+                  aria-hidden="true" />
               </div>
               <p class="mt-3 text-sm font-medium text-gray-900 dark:text-white">
                 {{ t('web.billing.overview.view_plans_action') }}
@@ -367,8 +359,7 @@ onMounted(async () => {
                   collection="heroicons"
                   name="document-text"
                   class="size-6 text-brand-600 dark:text-brand-400"
-                  aria-hidden="true"
-                />
+                  aria-hidden="true" />
               </div>
               <p class="mt-3 text-sm font-medium text-gray-900 dark:text-white">
                 {{ t('web.billing.overview.view_invoices_action') }}
@@ -388,8 +379,7 @@ onMounted(async () => {
                   collection="heroicons"
                   name="cog-6-tooth"
                   class="size-6 text-brand-600 dark:text-brand-400"
-                  aria-hidden="true"
-                />
+                  aria-hidden="true" />
               </div>
               <p class="mt-3 text-sm font-medium text-gray-900 dark:text-white">
                 {{ t('web.billing.overview.manage_billing_action') }}

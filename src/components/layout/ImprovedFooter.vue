@@ -5,18 +5,17 @@
   - Wider, changing max-w-2xl to max-w-4xl
 -->
 <script setup lang="ts">
-  import { computed } from 'vue';
-  import { useRoute } from 'vue-router';
   import FeedbackToggle from '@/components/FeedbackToggle.vue';
+  import OIcon from '@/components/icons/OIcon.vue';
   import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
   import LanguageToggle from '@/components/LanguageToggle.vue';
   import FooterLinks from '@/components/layout/FooterLinks.vue';
-  import OIcon from '@/components/icons/OIcon.vue';
   import ThemeToggle from '@/components/ThemeToggle.vue';
   import { WindowService } from '@/services/window.service';
   import { useDomainsStore, useMetadataListStore } from '@/stores';
   import type { LayoutProps } from '@/types/ui/layouts';
-
+  import { computed } from 'vue';
+  import { useRoute } from 'vue-router';
 
   withDefaults(defineProps<LayoutProps>(), {
     displayFeedback: true,
@@ -102,14 +101,13 @@
   <!-- prettier-ignore-attribute class -->
   <nav
     class="
-      fixed bottom-0 left-0 right-0
-      bg-white dark:bg-gray-900
-      border-t border-gray-200 dark:border-gray-700
-      shadow-lg
-      z-20
+      fixed inset-x-0 bottom-0 z-20
+      border-t border-gray-200
+      bg-white shadow-lg dark:border-gray-700
+      dark:bg-gray-900
       md:hidden"
     :aria-label="t('mobile-navigation')">
-    <div class="flex items-center justify-around py-3 px-2">
+    <div class="flex items-center justify-around px-2 py-3">
       <router-link
         v-for="item in mobileNavItems"
         :key="item.id"
@@ -131,8 +129,8 @@
         <!-- Count badge (if present) -->
         <span
           v-if="item.count !== undefined && item.count !== null && item.count > 0"
-          class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1
-                 rounded-full text-[10px] font-semibold leading-none bg-brand-500 text-white shadow-sm"
+          class="absolute -right-0.5 -top-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full
+                 bg-brand-500 px-1 text-[10px] font-semibold leading-none text-white shadow-sm"
           :aria-label="t('mobile-nav-item-count', { count: item.count })">
           {{ item.count > 99 ? '99+' : item.count }}
         </span>
@@ -144,13 +142,13 @@
   <!-- prettier-ignore-attribute class -->
   <footer
     class="
-      w-full min-w-[320px]
-      bg-gray-100
-      py-16 md:py-6
-      md:fixed md:bottom-0
-      dark:bg-gray-800
-      z-10
-      pb-20 md:pb-6"
+      z-10 w-full
+      min-w-[320px]
+      bg-gray-100 py-16
+      pb-20 dark:bg-gray-800
+      md:fixed
+      md:bottom-0
+      md:py-6"
     :aria-label="t('site-footer')">
     <div class="container mx-auto max-w-4xl px-4">
       <!-- Footer Links Section -->
@@ -211,7 +209,7 @@
         <!-- prettier-ignore-attribute class -->
         <div
           v-if="displayToggles"
-          class="flex w-full flex-row flex-wrap items-center justify-center gap-3 md:gap-4 md:w-auto md:justify-end">
+          class="flex w-full flex-row flex-wrap items-center justify-center gap-3 md:w-auto md:justify-end md:gap-4">
           <JurisdictionToggle v-if="windowProps.regions_enabled && windowProps.regions" />
 
           <!-- prettier-ignore-attribute class -->

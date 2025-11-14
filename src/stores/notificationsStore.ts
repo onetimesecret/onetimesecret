@@ -2,11 +2,11 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { loggingService } from '@/services/logging.service';
+import { WindowService } from '@/services/window.service';
 import { NotificationSeverity } from '@/types/ui/notifications';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';
-import { WindowService } from '@/services/window.service';
 
 export type NotificationPosition = 'top' | 'bottom';
 
@@ -56,7 +56,7 @@ export type NotificationsStore = {
  * store.show('Operation completed', 'success', 'top');
  * ```
  */
-/* eslint-disable max-lines-per-function */
+
 export const useNotificationsStore = defineStore('notifications', () => {
   const $api = inject('api') as AxiosInstance; // eslint-disable-line
 

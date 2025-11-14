@@ -3,7 +3,6 @@ import OIcon from '@/components/icons/OIcon.vue';
 
 const { t } = useI18n();
 
-
 defineProps({
   success: [String, Array],
   error: [String, Array],
@@ -25,8 +24,7 @@ defineProps({
             collection="mdi"
             name="fire-circle"
             class="size-5 text-red-400 dark:text-red-300"
-            aria-hidden="true"
-          />
+            aria-hidden="true" />
         </div>
         <div class="ml-3 flex-1">
           <h3 class="text-sm font-medium text-red-800 dark:text-red-100">
@@ -34,11 +32,15 @@ defineProps({
           </h3>
           <div class="mt-2 text-sm text-red-700 dark:text-red-200">
             <!-- Single error string -->
-            <p v-if="error && typeof error === 'string'">{{ error }}</p>
+            <p v-if="error && typeof error === 'string'">
+              {{ error }}
+            </p>
 
             <!-- Array of errors -->
-            <ul v-else-if="errors.length > 0 || (error && Array.isArray(error))" class="list-disc pl-5 space-y-1">
-              <li v-for="(err, index) in errors.length > 0 ? errors : error" :key="index">{{ err }}</li>
+            <ul v-else-if="errors.length > 0 || (error && Array.isArray(error))" class="list-disc space-y-1 pl-5">
+              <li v-for="(err, index) in errors.length > 0 ? errors : error" :key="index">
+                {{ err }}
+              </li>
             </ul>
           </div>
         </div>
@@ -54,8 +56,7 @@ defineProps({
             collection="mdi"
             name="check-circle"
             class="size-5 text-green-400 dark:text-green-300"
-            aria-hidden="true"
-          />
+            aria-hidden="true" />
         </div>
         <div class="ml-3 flex-1">
           <h3 class="text-sm font-medium text-green-800 dark:text-green-100">
@@ -63,11 +64,15 @@ defineProps({
           </h3>
           <div class="mt-2 text-sm text-green-700 dark:text-green-200">
             <!-- Single success message -->
-            <p v-if="typeof success === 'string'">{{ success }}</p>
+            <p v-if="typeof success === 'string'">
+              {{ success }}
+            </p>
 
             <!-- Array of success messages -->
-            <ul v-else-if="Array.isArray(success)" class="list-disc pl-5 space-y-1">
-              <li v-for="(msg, index) in success" :key="index">{{ msg }}</li>
+            <ul v-else-if="Array.isArray(success)" class="list-disc space-y-1 pl-5">
+              <li v-for="(msg, index) in success" :key="index">
+                {{ msg }}
+              </li>
             </ul>
           </div>
         </div>

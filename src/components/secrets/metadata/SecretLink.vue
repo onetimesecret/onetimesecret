@@ -1,8 +1,8 @@
 <!-- src/components/secrets/metadata/SecretLink.vue -->
 
 <script setup lang="ts">
-  import OIcon from '@/components/icons/OIcon.vue';
   import CopyButton from '@/components/CopyButton.vue';
+  import OIcon from '@/components/icons/OIcon.vue';
   import type { Metadata, MetadataDetails } from '@/schemas/models';
   import { ref } from 'vue';
 
@@ -108,8 +108,8 @@
 
         <div class="ml-4 shrink-0">
           <CopyButton
-                class="ml-auto transition-transform hover:scale-105"
-                :text="record.share_url" />
+            class="ml-auto transition-transform hover:scale-105"
+            :text="record.share_url" />
         </div>
       </div>
 

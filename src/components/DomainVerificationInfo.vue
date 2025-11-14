@@ -1,7 +1,7 @@
 <script setup lang="ts">
-  import { CustomDomain } from '@/schemas/models';
   import OIcon from '@/components/icons/OIcon.vue';
   import { useDomainStatus } from '@/composables/useDomainStatus';
+  import { CustomDomain } from '@/schemas/models';
   const { t } = useI18n();
 
   interface Props {
@@ -44,7 +44,7 @@
       <OIcon
         collection="mdi"
         :name="statusIcon"
-        class="opacity-75 flex-shrink-0"
+        class="shrink-0 opacity-75"
         :class="[
           'size-4 transition-opacity hover:opacity-80',
           {
@@ -79,9 +79,7 @@
             }}</span>
             <span
               :class="statusColor"
-              class="text-base"
-              >{{ domain?.vhost?.status_message }}</span
-            >
+              class="text-base">{{ domain?.vhost?.status_message }}</span>
           </div>
 
           <div class="flex flex-col">
@@ -106,11 +104,9 @@
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
               t('ssl-renews')
             }}</span>
-            <span class="text-base text-gray-900 dark:text-white"
-              ><span v-if="domain?.vhost.ssl_active_until">{{
-                domain?.vhost.ssl_active_until
-              }}</span></span
-            >
+            <span class="text-base text-gray-900 dark:text-white"><span v-if="domain?.vhost.ssl_active_until">{{
+              domain?.vhost.ssl_active_until
+            }}</span></span>
           </div>
 
           <div class="flex flex-col">

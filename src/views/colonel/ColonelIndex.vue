@@ -119,7 +119,7 @@
         <OIcon
           collection="heroicons"
           name="check-circle"
-          class="h-5 w-5 text-green-500 dark:text-green-400" />
+          class="size-5 text-green-500 dark:text-green-400" />
         <p class="ml-2 text-sm text-green-800 dark:text-green-200">
           {{ t('web.colonel.stats.systemHealth') }}:
           <span class="font-semibold">{{ t('web.colonel.stats.healthy') }}</span>
@@ -139,11 +139,11 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <div
-              class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
+              class="flex size-10 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
               <OIcon
                 :collection="stat.icon.collection"
                 :name="stat.icon.name"
-                class="h-5 w-5 text-brand-600 dark:text-brand-400" />
+                class="size-5 text-brand-600 dark:text-brand-400" />
             </div>
             <div>
               <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -176,12 +176,12 @@
           class="dark:hover:bg-gray-750 group flex items-center justify-between rounded-lg bg-white p-4 shadow transition-all duration-200 hover:shadow-md dark:bg-gray-800">
           <div class="flex items-center space-x-3">
             <div
-              class="flex h-8 w-8 items-center justify-center rounded-md text-white"
+              class="flex size-8 items-center justify-center rounded-md text-white"
               :class="action.color">
               <OIcon
                 :collection="action.icon.collection"
                 :name="action.icon.name"
-                class="h-4 w-4" />
+                class="size-4" />
             </div>
             <div>
               <h3
@@ -196,7 +196,7 @@
           <OIcon
             name="arrow-right"
             collection="heroicons"
-            class="h-4 w-4 text-gray-400 group-hover:text-brand-500 dark:group-hover:text-brand-400" />
+            class="size-4 text-gray-400 group-hover:text-brand-500 dark:group-hover:text-brand-400" />
         </a>
       </div>
     </div>

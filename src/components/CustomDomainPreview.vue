@@ -29,7 +29,6 @@
 
 const { t } = useI18n();
 
-
   const props = withDefaults(
     defineProps<{
       availableDomains?: string[];
@@ -259,7 +258,9 @@ const { t } = useI18n();
             <router-link
               to="/pricing"
               class="block w-full py-1
-                font-medium hover:underline">{{ t('upgrade-for-yourdomain') }}</router-link>
+                font-medium hover:underline">
+              {{ t('upgrade-for-yourdomain') }}
+            </router-link>
           </div>
         </div>
       </div>

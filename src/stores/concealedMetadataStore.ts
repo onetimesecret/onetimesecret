@@ -33,7 +33,7 @@ const STORAGE_KEY = 'oneTimeSecret_concealedMessages';
 /**
  * Loads concealed messages from sessionStorage
  */
-/* eslint-disable max-lines-per-function */
+
 function loadFromStorage(): ConcealedMessage[] {
   try {
     const stored = sessionStorage.getItem(STORAGE_KEY);
