@@ -68,7 +68,7 @@ module Onetime
           thread_config = parse_threads(threads)
           config.merge!(
             Threads: "#{thread_config[:min]}:#{thread_config[:max]}",
-            Workers: workers,
+            Workers: workers.to_i,
           )
         elsif server == 'thin'
           # Thin does not support threads or workers
