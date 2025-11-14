@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'familia/json_serializer'
+require 'i18n'
 
 module Onetime
   module Initializers
@@ -17,7 +17,7 @@ module Onetime
       i18n          = OT.conf.fetch('internationalization', {})
       @i18n_enabled = i18n['enabled'] || false
 
-      OT.ld '[init] Parsing through i18n locales...'
+      OT.ld '[init] Configuring ruby-i18n gem...'
 
       # Load the locales from the config in both the current and
       # legacy locations. If the locales are not set in the config,
@@ -41,36 +41,54 @@ module Onetime
         @fallback_locale   = nil
       end
 
-      # Iterate over the list of supported locales, to load their JSON
-      confs = OT.supported_locales.collect do |loc|
-        path = File.join(Onetime::HOME, 'src', 'locales', "#{loc}.json")
-        OT.ld "[init] Loading #{loc}: #{File.exist?(path)}"
-        begin
-          contents = File.read(path)
-        rescue Errno::ENOENT
-          OT.le "[init] Missing locale file: #{path}"
-          next
-        end
-        # We symbolize for locales files only (not configruation)
-        conf = Familia::JsonSerializer.parse(contents, symbolize_names: true)
-        [loc, conf]
+      # Configure I18n gem
+      I18n.load_path = Dir[File.join(Onetime::HOME, 'config', 'locales', '*.yml')]
+      I18n.default_locale = @default_locale.to_sym
+      I18n.available_locales = @supported_locales.map(&:to_sym)
+
+      # Set up fallbacks if configured
+      if @fallback_locale && I18n.respond_to?(:fallbacks)
+        require 'i18n/backend/fallbacks'
+        I18n::Backend::Simple.send(:include, I18n::Backend::Fallbacks)
+        I18n.fallbacks = @fallback_locale.transform_keys(&:to_sym).transform_values { |v| v.map(&:to_sym) }
       end
 
-      # Convert the zipped array to a hash
-      locales_defs = confs.compact.to_h
+      OT.ld "[init] I18n configured with default locale: #{I18n.default_locale}"
+      OT.ld "[init] I18n available locales: #{I18n.available_locales.join(', ')}"
 
-      default_locale_def = locales_defs.fetch(OT.default_locale, {})
-
-      # Here we overlay each locale on top of the default just
-      # in case there are keys that haven't been translated.
-      # That way, at least the default language will display.
-      locales_defs.each do |key, locale|
-        next if OT.default_locale == key
-
-        locales_defs[key] = OT::Utils.deep_merge(default_locale_def, locale)
+      # For backward compatibility, maintain the @locales hash
+      # by loading all locale data into a hash structure similar to before
+      @locales = {}
+      OT.supported_locales.each do |locale|
+        @locales[locale] = load_locale_hash(locale.to_sym)
       end
 
-      @locales = locales_defs || {}
+      OT.ld "[init] Loaded #{@locales.keys.size} locales"
+    end
+
+    private
+
+    # Helper method to load locale data into a hash for backward compatibility
+    def load_locale_hash(locale)
+      old_locale = I18n.locale
+      I18n.locale = locale
+
+      # Load the entire locale tree
+      locale_data = {}
+      %i[web email].each do |section|
+        locale_data[section] = load_section(locale, section)
+      end
+
+      I18n.locale = old_locale
+      locale_data
+    rescue StandardError => e
+      OT.le "[init] Error loading locale #{locale}: #{e.message}"
+      {}
+    end
+
+    def load_section(locale, section)
+      # Try to load the section, returning empty hash if it doesn't exist
+      I18n.t(section, locale: locale, default: {})
     end
   end
 end

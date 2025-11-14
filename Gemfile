@@ -42,6 +42,7 @@ gem 'json_schemer'
 # String and data processing
 gem 'drydock', '~> 1.0.0'
 gem 'fastimage', '~> 2.4'
+gem 'i18n', '~> 1.14'
 gem 'mail'
 gem 'mustache'
 gem 'public_suffix'

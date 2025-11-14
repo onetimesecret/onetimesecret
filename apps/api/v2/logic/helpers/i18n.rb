@@ -5,7 +5,8 @@
 module V2
   module Logic
     module I18nHelpers
-      # Retrieves and caches localized content for the current locale with fallback behavior.
+      # Retrieves and caches localized content for the current locale using
+      # ruby-i18n gem with fallback behavior.
       #
       # This implementation uses per-locale caching to prevent state conflicts when
       # the locale changes between method calls.
@@ -30,14 +31,18 @@ module V2
         # Return cached value for this specific locale if it exists
         return @i18n_cache[locale] if @i18n_cache.key?(locale)
 
-        # Safely get locale data with fallback
-        locale_data = OT.locales[locale] || OT.locales['en'] || {}
+        # Set the I18n locale
+        I18n.locale = locale.to_sym
+
+        # Get translations using I18n.t with fallback support
+        email_messages = I18n.t('email', locale: locale, default: {})
+        web_messages = I18n.t('web', locale: locale, default: {})
 
         # Create the i18n data
         result = {
           locale: locale,
-          email: locale_data[:email] || {},
-          web: locale_data[:web] || {},
+          email: email_messages,
+          web: web_messages,
         }
 
         # Cache for this specific locale
