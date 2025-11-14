@@ -343,7 +343,7 @@ export default [
           multiline: 'never',
           selfClosingTag: {
             singleline: 'never',
-            multiline: 'always',
+            multiline: 'never',
           },
         },
       ],
