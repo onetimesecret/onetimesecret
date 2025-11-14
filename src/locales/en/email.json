@@ -1,3 +1,20 @@
 {
-  "web": {}
+  "email": {
+    "incomingsupport": {
+      "subject": "[Ticket: %s]",
+      "body1": "A customer has sent the following info"
+    },
+    "secretlink": {
+      "subject": "%s sent you a secret",
+      "body1": "We have a secret for you from",
+      "body_tagline": "If you don't know the sender or believe it to be spam, send us the details here:"
+    },
+    "welcome": {
+      "subject": "Verify your Onetime Secret account",
+      "body1": "Welcome to Onetime Secret. We have a secret for you!",
+      "please_verify": "Please verify your account:",
+      "postscript1": "This email was sent to",
+      "postscript2": "If you did not make this request, you can safely ignore this email."
+    }
+  }
 }
