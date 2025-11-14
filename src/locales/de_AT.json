@@ -405,12 +405,6 @@
       "unsavedChanges": "Ungespeicherte Änderungen",
       "schemaValidationError": "Schema-Validierungsfehler: {message} ({path})",
       "unknownValidationError": "Unbekannter Validierungsfehler: {error}",
-      "dashboard": {
-        "title_received": "Empfangen",
-        "title_not_received": "Nicht erhalten",
-        "title_no_recent_secrets": "Keine neuen Geheimnisse",
-        "get-started-by-creating-your-first-secret": "Beginnen Sie mit der Erstellung Ihres ersten Geheimnisses."
-      },
       "activity": "Aktivitäten",
       "accounts": "Konten",
       "users": "Benutzer",

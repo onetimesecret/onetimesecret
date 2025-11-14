@@ -407,12 +407,6 @@
       "unsavedChanges": "Modifications non enregistrées",
       "schemaValidationError": "Erreur de validation du schéma : {message} ({path})",
       "unknownValidationError": "Erreur de validation inconnue : {error}",
-      "dashboard": {
-        "title_received": "Délivré",
-        "title_not_received": "Non délivré",
-        "title_no_recent_secrets": "Pas de secrets récents",
-        "get-started-by-creating-your-first-secret": "Commencez par créer votre premier secret."
-      },
       "activity": "Activity",
       "accounts": "Accounts",
       "users": "Users",
