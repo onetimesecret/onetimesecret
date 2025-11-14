@@ -51,7 +51,12 @@ module Onetime
       if @fallback_locale && I18n.respond_to?(:fallbacks)
         require 'i18n/backend/fallbacks'
         I18n::Backend::Simple.send(:include, I18n::Backend::Fallbacks)
-        I18n.fallbacks = @fallback_locale.transform_keys(&:to_sym).transform_values { |v| v.map(&:to_sym) }
+
+        if @fallback_locale.is_a?(Hash)
+          I18n.fallbacks = @fallback_locale.transform_keys(&:to_sym).transform_values { |v| v.map(&:to_sym) }
+        else
+          OT.ld "[init] Fallback locale configured as: #{@fallback_locale}"
+        end
       end
 
       OT.ld "[init] I18n configured with default locale: #{I18n.default_locale}"
@@ -72,19 +77,22 @@ module Onetime
     # Helper method to load locale data into a hash for backward compatibility
     def load_locale_hash(locale)
       old_locale = I18n.locale
-      I18n.locale = locale
+      begin
+        I18n.locale = locale
 
-      # Load the entire locale tree
-      locale_data = {}
-      %i[web email].each do |section|
-        locale_data[section] = load_section(locale, section)
+        # Load the entire locale tree
+        locale_data = {}
+        %i[web email].each do |section|
+          locale_data[section] = load_section(locale, section)
+        end
+
+        locale_data
+      rescue StandardError => e
+        OT.le "[init] Error loading locale #{locale}: #{e.message}"
+        {}
+      ensure
+        I18n.locale = old_locale
       end
-
-      I18n.locale = old_locale
-      locale_data
-    rescue StandardError => e
-      OT.le "[init] Error loading locale #{locale}: #{e.message}"
-      {}
     end
 
     def load_section(locale, section)
