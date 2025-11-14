@@ -26,12 +26,30 @@ module CLISpecHelper
   end
 
   # Run a CLI command with arguments
+  # Captures exit code but re-raises SystemExit for tests that need to catch it
   def run_cli_command(*args)
+    @last_exit_code = nil
     capture_output do
       begin
         Dry::CLI.new(Onetime::CLI).call(arguments: args)
+        @last_exit_code = 0  # Successful completion without exit
       rescue SystemExit => e
-        # Capture exit code but don't actually exit
+        # Capture exit code and re-raise
+        @last_exit_code = e.status
+        raise
+      end
+    end
+  end
+
+  # Run a CLI command without re-raising SystemExit
+  # Use this when you want to check output and exit code separately
+  def run_cli_command_quietly(*args)
+    @last_exit_code = nil
+    capture_output do
+      begin
+        Dry::CLI.new(Onetime::CLI).call(arguments: args)
+        @last_exit_code = 0
+      rescue SystemExit => e
         @last_exit_code = e.status
       end
     end

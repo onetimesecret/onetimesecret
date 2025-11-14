@@ -33,21 +33,21 @@ RSpec.describe 'Domains Command', type: :cli do
 
   describe 'without subcommand' do
     it 'lists all domains by default' do
-      output = run_cli_command('domains')
+      output = run_cli_command_quietly('domains')
       expect(output[:stdout]).to include('Domain Management')
     end
   end
 
   describe 'info subcommand' do
     it 'requires a domain name' do
-      output = run_cli_command('domains', 'info')
+      output = run_cli_command_quietly('domains', 'info')
       expect(output[:stdout]).to include('Error: Domain name required')
     end
 
     it 'displays domain information' do
       allow(Onetime::Models::Domain).to receive(:load).and_return(domain)
 
-      output = run_cli_command('domains', 'info', 'example.com')
+      output = run_cli_command_quietly('domains', 'info', 'example.com')
       expect(output[:stdout]).to include('Domain Information')
       expect(output[:stdout]).to include('example.com')
     end
@@ -55,19 +55,19 @@ RSpec.describe 'Domains Command', type: :cli do
     it 'handles non-existent domain' do
       allow(Onetime::Models::Domain).to receive(:load).and_return(nil)
 
-      output = run_cli_command('domains', 'info', 'notfound.com')
+      output = run_cli_command_quietly('domains', 'info', 'notfound.com')
       expect(output[:stdout]).to include('Domain not found')
     end
   end
 
   describe 'transfer subcommand' do
     it 'requires a domain name' do
-      output = run_cli_command('domains', 'transfer')
+      output = run_cli_command_quietly('domains', 'transfer')
       expect(output[:stdout]).to include('Error: Domain name required')
     end
 
     it 'requires --to-org option' do
-      output = run_cli_command('domains', 'transfer', 'example.com')
+      output = run_cli_command_quietly('domains', 'transfer', 'example.com')
       expect(output[:stdout]).to include('Error: --to-org required')
     end
 
@@ -76,7 +76,7 @@ RSpec.describe 'Domains Command', type: :cli do
       allow(domain).to receive(:org_id=)
       expect(organization).to receive(:add_domain).with('example.com')
 
-      output = run_cli_command('domains', 'transfer', 'example.com', '--to-org', 'org456')
+      output = run_cli_command_quietly('domains', 'transfer', 'example.com', '--to-org', 'org456')
       expect(output[:stdout]).to include('Transfer complete')
     end
 
@@ -89,14 +89,14 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(domain).to receive(:org_id=).with('org123')
 
       expect {
-        run_cli_command('domains', 'transfer', 'example.com', '--to-org', 'org456')
+        run_cli_command_quietly('domains', 'transfer', 'example.com', '--to-org', 'org456')
       }.to raise_error(/Failed to add domain/)
     end
   end
 
   describe 'repair subcommand' do
     it 'requires a domain name' do
-      output = run_cli_command('domains', 'repair')
+      output = run_cli_command_quietly('domains', 'repair')
       expect(output[:stdout]).to include('Error: Domain name required')
     end
 
@@ -104,7 +104,7 @@ RSpec.describe 'Domains Command', type: :cli do
       allow(Onetime::Models::Domain).to receive(:load).and_return(domain)
       allow(organization).to receive(:domains).and_return([])  # Domain not in collection
 
-      output = run_cli_command('domains', 'repair', 'example.com', '--run')
+      output = run_cli_command_quietly('domains', 'repair', 'example.com', '--run')
       expect(output[:stdout]).to include('Domain Repair')
     end
   end
@@ -114,7 +114,7 @@ RSpec.describe 'Domains Command', type: :cli do
       allow(Onetime::Models::Domain).to receive(:all).and_return([domain])
       allow(organization).to receive(:domains).and_return([])
 
-      output = run_cli_command('domains', 'bulk-repair')
+      output = run_cli_command_quietly('domains', 'bulk-repair')
       expect(output[:stdout]).to include('Bulk Domain Repair')
     end
 
@@ -122,7 +122,7 @@ RSpec.describe 'Domains Command', type: :cli do
       allow(Onetime::Models::Domain).to receive(:all).and_return([domain])
       allow(organization).to receive(:domains).and_return([])
 
-      output = run_cli_command('domains', 'bulk-repair', '--run')
+      output = run_cli_command_quietly('domains', 'bulk-repair', '--run')
       expect(output[:stdout]).to include('repairs')
     end
   end
@@ -137,7 +137,7 @@ RSpec.describe 'Domains Command', type: :cli do
       )
       allow(Onetime::Models::Domain).to receive(:all).and_return([orphaned_domain])
 
-      output = run_cli_command('domains', 'orphaned')
+      output = run_cli_command_quietly('domains', 'orphaned')
       expect(output[:stdout]).to include('Orphaned Domains')
     end
   end

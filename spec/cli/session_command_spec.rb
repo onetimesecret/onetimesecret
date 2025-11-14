@@ -22,7 +22,7 @@ RSpec.describe 'Session Command', type: :cli do
 
   describe 'without subcommand' do
     it 'displays usage information' do
-      output = run_cli_command('session')
+      output = run_cli_command_quietly('session')
       expect(output[:stdout]).to include('Session Inspector')
       expect(output[:stdout]).to include('Usage: ots session <subcommand>')
       expect(output[:stdout]).to include('inspect')
@@ -35,7 +35,7 @@ RSpec.describe 'Session Command', type: :cli do
 
   describe 'inspect subcommand' do
     it 'requires a session ID' do
-      output = run_cli_command('session', 'inspect')
+      output = run_cli_command_quietly('session', 'inspect')
       expect(output[:stdout]).to include('Error: Session ID required')
     end
 
@@ -43,7 +43,7 @@ RSpec.describe 'Session Command', type: :cli do
       allow(redis).to receive(:exists).and_return(0)
       allow(redis).to receive(:scan_each).and_return([].each)
 
-      output = run_cli_command('session', 'inspect', session_id)
+      output = run_cli_command_quietly('session', 'inspect', session_id)
       expect(output[:stdout]).to include('Session not found in Redis')
     end
 
@@ -52,7 +52,7 @@ RSpec.describe 'Session Command', type: :cli do
       allow(redis).to receive(:get).and_return(Marshal.dump(session_data))
       allow(redis).to receive(:ttl).and_return(3600)
 
-      output = run_cli_command('session', 'inspect', session_id)
+      output = run_cli_command_quietly('session', 'inspect', session_id)
       expect(output[:stdout]).to include('Session Inspector')
       expect(output[:stdout]).to include(session_id)
     end
@@ -63,7 +63,7 @@ RSpec.describe 'Session Command', type: :cli do
       # Expect scan_each, not keys
       expect(redis).to receive(:scan_each).with(match: '*session*').and_return([].each)
 
-      run_cli_command('session', 'inspect', session_id)
+      run_cli_command_quietly('session', 'inspect', session_id)
     end
   end
 
@@ -73,7 +73,7 @@ RSpec.describe 'Session Command', type: :cli do
       allow(redis).to receive(:scan_each).and_return(session_keys.each)
       allow(redis).to receive(:get).and_return(Marshal.dump(session_data))
 
-      output = run_cli_command('session', 'list')
+      output = run_cli_command_quietly('session', 'list')
       expect(output[:stdout]).to include('Active Sessions')
     end
 
@@ -82,14 +82,14 @@ RSpec.describe 'Session Command', type: :cli do
       allow(redis).to receive(:scan_each).and_return(session_keys.each)
       allow(redis).to receive(:get).and_return(Marshal.dump(session_data))
 
-      output = run_cli_command('session', 'list', '--limit', '5')
+      output = run_cli_command_quietly('session', 'list', '--limit', '5')
       expect(output[:stdout]).to include('Active Sessions (limit: 5)')
     end
   end
 
   describe 'search subcommand' do
     it 'requires a search term' do
-      output = run_cli_command('session', 'search')
+      output = run_cli_command_quietly('session', 'search')
       expect(output[:stdout]).to include('Error: Email or customer ID required')
     end
 
@@ -97,7 +97,7 @@ RSpec.describe 'Session Command', type: :cli do
       allow(redis).to receive(:scan_each).and_return(["session:#{session_id}"].each)
       allow(redis).to receive(:get).and_return(Marshal.dump(session_data))
 
-      output = run_cli_command('session', 'search', 'test@example.com')
+      output = run_cli_command_quietly('session', 'search', 'test@example.com')
       expect(output[:stdout]).to include('Searching for sessions')
       expect(output[:stdout]).to include('test@example.com')
     end
@@ -105,14 +105,14 @@ RSpec.describe 'Session Command', type: :cli do
     it 'handles no results found' do
       allow(redis).to receive(:scan_each).and_return([].each)
 
-      output = run_cli_command('session', 'search', 'notfound@example.com')
+      output = run_cli_command_quietly('session', 'search', 'notfound@example.com')
       expect(output[:stdout]).to include('No sessions found')
     end
   end
 
   describe 'delete subcommand' do
     it 'requires a session ID' do
-      output = run_cli_command('session', 'delete')
+      output = run_cli_command_quietly('session', 'delete')
       expect(output[:stdout]).to include('Error: Session ID required')
     end
 
@@ -121,7 +121,7 @@ RSpec.describe 'Session Command', type: :cli do
       allow(redis).to receive(:get).and_return(Marshal.dump(session_data))
       allow($stdin).to receive(:gets).and_return("n\n")
 
-      output = run_cli_command('session', 'delete', session_id)
+      output = run_cli_command_quietly('session', 'delete', session_id)
       expect(output[:stdout]).to include('Delete this session?')
       expect(output[:stdout]).to include('Cancelled')
     end
@@ -131,7 +131,7 @@ RSpec.describe 'Session Command', type: :cli do
       allow(redis).to receive(:get).and_return(Marshal.dump(session_data))
       expect(redis).to receive(:del).with("session:#{session_id}")
 
-      output = run_cli_command('session', 'delete', session_id, '--force')
+      output = run_cli_command_quietly('session', 'delete', session_id, '--force')
       expect(output[:stdout]).to include('Session deleted')
     end
   end
@@ -141,7 +141,7 @@ RSpec.describe 'Session Command', type: :cli do
       allow(redis).to receive(:scan_each).and_return(['session:1', 'session:2'].each)
       allow(redis).to receive(:ttl).and_return(3600, -1)
 
-      output = run_cli_command('session', 'clean')
+      output = run_cli_command_quietly('session', 'clean')
       expect(output[:stdout]).to include('Cleaning expired sessions')
       expect(output[:stdout]).to include('Summary')
     end

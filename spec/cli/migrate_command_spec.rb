@@ -19,7 +19,7 @@ RSpec.describe 'Migrate Command', type: :cli do
 
   describe 'without arguments' do
     it 'displays usage and available migrations' do
-      output = run_cli_command('migrate')
+      output = run_cli_command_quietly('migrate')
       expect(output[:stdout]).to include('Usage: ots migrate MIGRATION_SCRIPT')
       expect(output[:stdout]).to include('Available migrations')
     end
@@ -33,14 +33,14 @@ RSpec.describe 'Migrate Command', type: :cli do
     it 'runs migration in dry-run mode by default' do
       expect(Onetime::Migration).to receive(:run).with(run: false).and_return(true)
 
-      output = run_cli_command('migrate', 'test_migration.rb')
+      output = run_cli_command_quietly('migrate', 'test_migration.rb')
       expect(output[:stdout]).to include('Dry run completed successfully')
     end
 
     it 'runs migration with --run flag' do
       expect(Onetime::Migration).to receive(:run).with(run: true).and_return(true)
 
-      output = run_cli_command('migrate', 'test_migration.rb', '--run')
+      output = run_cli_command_quietly('migrate', 'test_migration.rb', '--run')
       expect(output[:stdout]).to include('Migration completed successfully')
     end
 
@@ -57,7 +57,7 @@ RSpec.describe 'Migrate Command', type: :cli do
 
   describe 'with non-existent migration' do
     it 'reports migration not found' do
-      output = run_cli_command('migrate', 'nonexistent.rb')
+      output = run_cli_command_quietly('migrate', 'nonexistent.rb')
       expect(output[:stdout]).to include('Migration script not found')
     end
   end
@@ -69,7 +69,7 @@ RSpec.describe 'Migrate Command', type: :cli do
 
     it 'accepts -r short flag' do
       expect(Onetime::Migration).to receive(:run).with(run: true).and_return(true)
-      run_cli_command('migrate', 'test_migration.rb', '-r')
+      run_cli_command_quietly('migrate', 'test_migration.rb', '-r')
     end
   end
 end

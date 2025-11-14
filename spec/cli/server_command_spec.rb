@@ -22,7 +22,7 @@ RSpec.describe 'Server Command', type: :cli do
         hash_including(Port: 7143, Host: '127.0.0.1')
       )
 
-      run_cli_command('server')
+      run_cli_command_quietly('server')
     end
 
     it 'uses development environment by default' do
@@ -31,7 +31,7 @@ RSpec.describe 'Server Command', type: :cli do
         hash_including(environment: 'development')
       )
 
-      run_cli_command('server')
+      run_cli_command_quietly('server')
     end
   end
 
@@ -42,7 +42,7 @@ RSpec.describe 'Server Command', type: :cli do
         hash_including(Port: 8080)
       )
 
-      run_cli_command('server', '--port', '8080')
+      run_cli_command_quietly('server', '--port', '8080')
     end
 
     it 'accepts -p short flag' do
@@ -51,7 +51,7 @@ RSpec.describe 'Server Command', type: :cli do
         hash_including(Port: 9000)
       )
 
-      run_cli_command('server', '-p', '9000')
+      run_cli_command_quietly('server', '-p', '9000')
     end
   end
 
@@ -62,7 +62,7 @@ RSpec.describe 'Server Command', type: :cli do
         hash_including(environment: 'production')
       )
 
-      run_cli_command('server', '--environment', 'production')
+      run_cli_command_quietly('server', '--environment', 'production')
     end
 
     it 'accepts -e short flag' do
@@ -71,7 +71,7 @@ RSpec.describe 'Server Command', type: :cli do
         hash_including(environment: 'test')
       )
 
-      run_cli_command('server', '-e', 'test')
+      run_cli_command_quietly('server', '-e', 'test')
     end
   end
 
@@ -82,7 +82,7 @@ RSpec.describe 'Server Command', type: :cli do
         hash_including(Host: '0.0.0.0')
       )
 
-      run_cli_command('server', '--bind', '0.0.0.0')
+      run_cli_command_quietly('server', '--bind', '0.0.0.0')
     end
 
     it 'accepts -b short flag' do
@@ -91,7 +91,7 @@ RSpec.describe 'Server Command', type: :cli do
         hash_including(Host: 'localhost')
       )
 
-      run_cli_command('server', '-b', 'localhost')
+      run_cli_command_quietly('server', '-b', 'localhost')
     end
   end
 
@@ -102,7 +102,7 @@ RSpec.describe 'Server Command', type: :cli do
         hash_including(Threads: '4:8')
       )
 
-      run_cli_command('server', '--threads', '4:8')
+      run_cli_command_quietly('server', '--threads', '4:8')
     end
 
     it 'accepts --workers option' do
@@ -111,7 +111,7 @@ RSpec.describe 'Server Command', type: :cli do
         hash_including(Workers: 4)
       )
 
-      run_cli_command('server', '--workers', '4')
+      run_cli_command_quietly('server', '--workers', '4')
     end
 
     it 'parses threads string correctly' do
@@ -120,7 +120,7 @@ RSpec.describe 'Server Command', type: :cli do
         hash_including(Threads: '1:2')
       )
 
-      run_cli_command('server', '-t', '1:2')
+      run_cli_command_quietly('server', '-t', '1:2')
     end
   end
 
@@ -130,12 +130,12 @@ RSpec.describe 'Server Command', type: :cli do
       allow(Rackup::Handler).to receive(:get).with('thin').and_return(thin_handler)
       expect(thin_handler).to receive(:run)
 
-      run_cli_command('server', '--server', 'thin')
+      run_cli_command_quietly('server', '--server', 'thin')
     end
 
     it 'defaults to puma without --server flag' do
       expect(Rackup::Handler).to receive(:get).with('puma').and_return(puma_handler)
-      run_cli_command('server')
+      run_cli_command_quietly('server')
     end
   end
 
@@ -146,12 +146,12 @@ RSpec.describe 'Server Command', type: :cli do
         hash_including(config_files: 'config/puma.rb')
       )
 
-      run_cli_command('server', 'config/puma.rb')
+      run_cli_command_quietly('server', 'config/puma.rb')
     end
 
     it 'rejects config file with command-line options' do
       expect {
-        run_cli_command('server', 'config/puma.rb', '--port', '8080')
+        run_cli_command_quietly('server', 'config/puma.rb', '--port', '8080')
       }.to raise_error(SystemExit)
     end
   end
@@ -159,7 +159,7 @@ RSpec.describe 'Server Command', type: :cli do
   describe 'error handling' do
     it 'logs server configuration' do
       expect(Onetime.app_logger).to receive(:debug).with(/Starting puma with config/)
-      run_cli_command('server')
+      run_cli_command_quietly('server')
     end
   end
 end

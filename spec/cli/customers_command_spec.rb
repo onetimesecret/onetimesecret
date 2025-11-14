@@ -35,14 +35,14 @@ RSpec.describe 'Customers Command', type: :cli do
 
   describe '--list option' do
     it 'lists customer domains sorted by count' do
-      output = run_cli_command('customers', '--list')
+      output = run_cli_command_quietly('customers', '--list')
       expect(output[:stdout]).to include('Customer Domains')
     end
 
     it 'handles customers with no domains' do
       allow(Onetime::Models::Customer).to receive(:all).and_return([customer2])
 
-      output = run_cli_command('customers', '--list')
+      output = run_cli_command_quietly('customers', '--list')
       expect(output[:stdout]).to include('Customer Domains')
     end
   end
@@ -51,7 +51,7 @@ RSpec.describe 'Customers Command', type: :cli do
     it 'shows customers where custid and email do not match' do
       allow(Onetime::Models::Customer).to receive(:all).and_return([mismatched_customer])
 
-      output = run_cli_command('customers', '--check')
+      output = run_cli_command_quietly('customers', '--check')
       expect(output[:stdout]).to include('Customer Record Validation')
       expect(output[:stdout]).to include('CustID and email mismatch')
     end
@@ -60,7 +60,7 @@ RSpec.describe 'Customers Command', type: :cli do
       allow(Onetime::Models::Customer).to receive(:all).and_return([nil, mismatched_customer])
 
       expect {
-        run_cli_command('customers', '--check')
+        run_cli_command_quietly('customers', '--check')
       }.not_to raise_error
     end
 
@@ -68,21 +68,21 @@ RSpec.describe 'Customers Command', type: :cli do
       allow(Onetime::Models::Customer).to receive(:all).and_return([mismatched_customer])
       allow(OT::Utils).to receive(:obscure_email).and_call_original
 
-      output = run_cli_command('customers', '--check')
+      output = run_cli_command_quietly('customers', '--check')
       expect(OT::Utils).to have_received(:obscure_email).at_least(:once)
     end
 
     it 'reports when all customers match' do
       allow(Onetime::Models::Customer).to receive(:all).and_return([customer1])
 
-      output = run_cli_command('customers', '--check')
+      output = run_cli_command_quietly('customers', '--check')
       expect(output[:stdout]).to include('All customers have matching custid and email')
     end
   end
 
   describe 'without options' do
     it 'displays usage information' do
-      output = run_cli_command('customers')
+      output = run_cli_command_quietly('customers')
       expect(output[:stdout]).to include('Customer Management')
     end
   end
