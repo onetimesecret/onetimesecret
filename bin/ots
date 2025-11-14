@@ -9,7 +9,7 @@ $LOAD_PATH.unshift(File.join(APPS_ROOT, 'api'))
 $LOAD_PATH.unshift(File.join(APPS_ROOT, 'web'))
 
 require 'onetime' # loads bundler/setup
-require 'onetime/cli_v2'
+require 'onetime/cli'
 require 'rubygems'
 
 # Separate our content from the bootstrapping banner (only in interactive terminals)
@@ -34,7 +34,7 @@ ARGV.each_with_index do |arg, idx|
 end
 
 begin
-  Dry::CLI.new(Onetime::CLI::V2).call(arguments: remaining_args)
+  Dry::CLI.new(Onetime::CLI).call(arguments: remaining_args)
 rescue RuntimeError => ex
   warn ex.message
 rescue StandardError => ex
