@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import OIcon from '@/components/icons/OIcon.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { CustomDomainResponse } from '@/schemas/api/v3/responses';
 import { CustomDomain, CustomDomainCluster } from '@/schemas/models/domain';
-import OIcon from '@/components/icons/OIcon.vue';
 import { computed, ref } from 'vue';
 
 import BasicFormAlerts from './BasicFormAlerts.vue';
@@ -65,8 +65,7 @@ const verify = async () => {
 
     <BasicFormAlerts
       :success="success"
-      :errors="error ? [error.message] : []"
-    />
+      :errors="error ? [error.message] : []" />
 
     <div class="mb-4 flex justify-end">
       <button
@@ -84,8 +83,7 @@ const verify = async () => {
           :name="isLoading ? 'loading' : 'check-circle'"
           class="size-5"
           :class="{ 'animate-spin': isLoading }"
-          aria-hidden="true"
-        />
+          aria-hidden="true" />
       </button>
     </div>
 
@@ -98,20 +96,17 @@ const verify = async () => {
           {{ t('add-this-hostname-to-your-dns-configuration') }}
         </p>
 
-        <div class="rounded-lg border border-gray-200 divide-y divide-gray-200 bg-white dark:bg-gray-600 dark:border-gray-700 dark:divide-gray-700">
+        <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
           <DetailField
             :label="t('type')"
-            value="TXT"
-          />
+            value="TXT" />
           <DetailField
             :label="t('host')"
             :value="domain.txt_validation_host"
-            :appendix="`.${domain.base_domain}`"
-          />
+            :appendix="`.${domain.base_domain}`" />
           <DetailField
             :label="t('value')"
-            :value="domain.txt_validation_value"
-          />
+            :value="domain.txt_validation_value" />
         </div>
       </li>
       <li
@@ -121,20 +116,17 @@ const verify = async () => {
           {{ t('2-create-the-a-record') }}
         </h3>
 
-        <div class="rounded-lg border border-gray-200 divide-y divide-gray-200 bg-white dark:bg-gray-600 dark:border-gray-700 dark:divide-gray-700">
+        <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
           <DetailField
             :label="t('type-0')"
-            value="A"
-          />
+            value="A" />
           <DetailField
             :label="t('host')"
             :value="domain?.trd ? domain.trd : '@'"
-            :appendix="domain?.base_domain"
-          />
+            :appendix="domain?.base_domain" />
           <DetailField
             :label="t('value')"
-            :value="cluster?.cluster_ip ?? ''"
-          />
+            :value="cluster?.cluster_ip ?? ''" />
         </div>
       </li>
       <li
@@ -144,32 +136,27 @@ const verify = async () => {
           {{ t('2-create-the-cname-record') }}
         </h3>
 
-        <div class="rounded-lg border border-gray-200 divide-y divide-gray-200 bg-white dark:bg-gray-600 dark:border-gray-700 dark:divide-gray-700">
+        <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
           <DetailField
             v-if="domain?.is_apex"
             :label="t('type')"
-            value="A"
-          />
+            value="A" />
           <DetailField
             v-else
             :label="t('type')"
-            value="CNAME"
-          />
+            value="CNAME" />
           <DetailField
             :label="t('host')"
             :value="domain?.trd ? domain.trd : '@'"
-            :appendix="`.${domain?.base_domain}`"
-          />
+            :appendix="`.${domain?.base_domain}`" />
           <DetailField
             v-if="domain?.is_apex"
             :label="t('value')"
-            :value="cluster?.cluster_ip ?? ''"
-          />
+            :value="cluster?.cluster_ip ?? ''" />
           <DetailField
             v-else
             :label="t('value')"
-            :value="cluster?.cluster_host ?? ''"
-          />
+            :value="cluster?.cluster_host ?? ''" />
         </div>
       </li>
       <li class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
@@ -187,8 +174,7 @@ const verify = async () => {
         collection="mdi"
         name="information-outline"
         class="mr-2 mt-0.5 size-5 shrink-0 text-brandcomp-700"
-        aria-hidden="true"
-      />
+        aria-hidden="true" />
       <p class="text-sm text-gray-500 dark:text-gray-400">
         {{ t('it-may-take-a-few-minutes-for-your-ssl-certifica') }}
       </p>

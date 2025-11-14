@@ -4,7 +4,6 @@
 
 const { t } = useI18n();
 
-
   defineProps<{
     siteHost: string;
     showNav?: boolean;

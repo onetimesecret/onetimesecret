@@ -11,7 +11,6 @@
   2. Ensure the transition property is applied from the beginning.
 -->
 
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 

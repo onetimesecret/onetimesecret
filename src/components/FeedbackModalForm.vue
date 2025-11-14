@@ -23,7 +23,6 @@ import { computed, onMounted, ref } from 'vue';
   const userTimezone = ref('');
   const feedbackMessage = ref('');
 
-
   const resetForm = () => {
     feedbackMessage.value = '';
     // Reset other non-hidden form fields here if you have any

@@ -1,5 +1,9 @@
 // src/stores/organizationStore.ts
 
+import {
+  organizationResponseSchema,
+  organizationsResponseSchema,
+} from '@/schemas/api/organizations';
 import type {
   CreateOrganizationPayload,
   Organization,
@@ -9,10 +13,6 @@ import {
   createOrganizationPayloadSchema,
   updateOrganizationPayloadSchema,
 } from '@/types/organization';
-import {
-  organizationResponseSchema,
-  organizationsResponseSchema,
-} from '@/schemas/api/organizations';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { computed, inject, ref } from 'vue';

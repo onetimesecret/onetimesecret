@@ -4,8 +4,8 @@
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { classifyError } from '@/schemas/errors';
-import { useTeamStore } from '@/stores/teamStore';
 import { useOrganizationStore } from '@/stores/organizationStore';
+import { useTeamStore } from '@/stores/teamStore';
 import { createTeamPayloadSchema, type CreateTeamPayload } from '@/types/team';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { computed, onMounted, ref } from 'vue';
@@ -109,12 +109,10 @@ const handleSubmit = async () => {
 <template>
   <TransitionRoot
     as="template"
-    :show="open"
-  >
+    :show="open">
     <Dialog
       class="relative z-50"
-      @close="closeModal"
-    >
+      @close="closeModal">
       <TransitionChild
         as="template"
         enter="ease-out duration-300"
@@ -122,8 +120,7 @@ const handleSubmit = async () => {
         enter-to="opacity-100"
         leave="ease-in duration-200"
         leave-from="opacity-100"
-        leave-to="opacity-0"
-      >
+        leave-to="opacity-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity dark:bg-gray-900 dark:bg-opacity-75"></div>
       </TransitionChild>
 
@@ -136,23 +133,20 @@ const handleSubmit = async () => {
             enter-to="opacity-100 translate-y-0 sm:scale-100"
             leave="ease-in duration-200"
             leave-from="opacity-100 translate-y-0 sm:scale-100"
-            leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-          >
-            <DialogPanel class="relative overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 dark:bg-gray-800">
+            leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+            <DialogPanel class="relative overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
               <div>
                 <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900">
                   <OIcon
                     collection="heroicons"
                     name="rectangle-group"
                     class="size-6 text-brand-600 dark:text-brand-400"
-                    aria-hidden="true"
-                  />
+                    aria-hidden="true" />
                 </div>
                 <div class="mt-3 text-center sm:mt-5">
                   <DialogTitle
                     as="h3"
-                    class="text-base font-semibold leading-6 text-gray-900 dark:text-white"
-                  >
+                    class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
                     {{ t('web.teams.create_team') }}
                   </DialogTitle>
                   <div class="mt-2">
@@ -166,16 +160,14 @@ const handleSubmit = async () => {
               <form @submit.prevent="handleSubmit" class="mt-5 sm:mt-6">
                 <BasicFormAlerts
                   v-if="generalError"
-                  :error="generalError"
-                />
+                  :error="generalError" />
 
                 <div class="space-y-4">
                   <!-- Team Name -->
                   <div>
                     <label
                       for="team-name"
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       {{ t('web.teams.team_name') }}
                       <span class="text-red-500">*</span>
                     </label>
@@ -188,13 +180,12 @@ const handleSubmit = async () => {
                       :placeholder="t('web.teams.team_name_placeholder')"
                       :class="[
                         'mt-1 block w-full rounded-md shadow-sm sm:text-sm',
-                        'focus:ring-brand-500 focus:border-brand-500',
-                        'dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400',
+                        'focus:border-brand-500 focus:ring-brand-500',
+                        'dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400',
                         errors.display_name
-                          ? 'border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
+                          ? 'border-red-300 text-red-900 placeholder:text-red-300 focus:border-red-500 focus:ring-red-500'
                           : 'border-gray-300 dark:border-gray-600'
-                      ]"
-                    />
+                      ]" />
                     <p v-if="errors.display_name" class="mt-1 text-sm text-red-600 dark:text-red-400">
                       {{ errors.display_name }}
                     </p>
@@ -204,21 +195,20 @@ const handleSubmit = async () => {
                   <div v-if="organizationStore.hasOrganizations">
                     <label
                       for="team-organization"
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       {{ t('web.organizations.select_organization') }}
                     </label>
                     <select
                       id="team-organization"
                       v-model="formData.org_id"
-                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
-                    >
-                      <option :value="undefined">{{ t('web.COMMON.word_none') }}</option>
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm">
+                      <option :value="undefined">
+                        {{ t('web.COMMON.word_none') }}
+                      </option>
                       <option
                         v-for="org in organizationStore.organizations"
                         :key="org.id"
-                        :value="org.id"
-                      >
+                        :value="org.id">
                         {{ org.display_name }}
                       </option>
                     </select>
@@ -231,8 +221,7 @@ const handleSubmit = async () => {
                   <div>
                     <label
                       for="team-description"
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       {{ t('web.teams.description') }}
                     </label>
                     <textarea
@@ -243,13 +232,12 @@ const handleSubmit = async () => {
                       :placeholder="t('web.teams.description_placeholder')"
                       :class="[
                         'mt-1 block w-full rounded-md shadow-sm sm:text-sm',
-                        'focus:ring-brand-500 focus:border-brand-500',
-                        'dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400',
+                        'focus:border-brand-500 focus:ring-brand-500',
+                        'dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400',
                         errors.description
-                          ? 'border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
+                          ? 'border-red-300 text-red-900 placeholder:text-red-300 focus:border-red-500 focus:ring-red-500'
                           : 'border-gray-300 dark:border-gray-600'
-                      ]"
-                    ></textarea>
+                      ]"></textarea>
                     <p v-if="errors.description" class="mt-1 text-sm text-red-600 dark:text-red-400">
                       {{ errors.description }}
                     </p>
@@ -263,8 +251,7 @@ const handleSubmit = async () => {
                   <button
                     type="submit"
                     :disabled="!isFormValid || isSubmitting"
-                    class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 sm:col-start-2 dark:bg-brand-500 dark:hover:bg-brand-400"
-                  >
+                    class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400 sm:col-start-2">
                     <span v-if="!isSubmitting">{{ t('web.teams.create') }}</span>
                     <span v-else>{{ t('web.COMMON.processing') }}</span>
                   </button>
@@ -272,8 +259,7 @@ const handleSubmit = async () => {
                     type="button"
                     @click="closeModal"
                     :disabled="isSubmitting"
-                    class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:col-start-1 sm:mt-0 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600"
-                  >
+                    class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600 sm:col-start-1 sm:mt-0">
                     {{ t('web.COMMON.word_cancel') }}
                   </button>
                 </div>

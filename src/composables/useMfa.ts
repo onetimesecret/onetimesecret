@@ -37,8 +37,7 @@
  * and proceeds to QR code generation.
  */
 
-import { ref, inject } from 'vue';
-import type { AxiosInstance } from 'axios';
+import { useAsyncHandler, createError } from '@/composables/useAsyncHandler';
 import {
   otpSetupResponseSchema,
   otpEnableResponseSchema,
@@ -54,19 +53,21 @@ import {
   type RecoveryCodesResponse,
   type MfaStatusResponse,
 } from '@/schemas/api/auth/endpoints/auth';
-import type { OtpSetupData, MfaStatus } from '@/types/auth';
+import type { ApplicationError } from '@/schemas/errors';
 import { useNotificationsStore } from '@/stores/notificationsStore';
+import type { OtpSetupData, MfaStatus } from '@/types/auth';
+import type { AxiosInstance } from 'axios';
+import { ref, inject } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import {
   generateQrCode,
   hasHmacSetupData,
   enrichSetupResponse,
   mapMfaError,
 } from './helpers/mfaHelpers';
-import { useAsyncHandler, createError } from '@/composables/useAsyncHandler';
-import type { ApplicationError } from '@/schemas/errors';
-import { useI18n } from 'vue-i18n';
 
-/* eslint-disable max-lines-per-function, complexity */
+/* eslint-disable max-lines-per-function */
 export function useMfa() {
   const { t } = useI18n();
   const $api = inject('api') as AxiosInstance;

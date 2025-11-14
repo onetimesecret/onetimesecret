@@ -1,9 +1,10 @@
 <!-- src/layouts/AccountLayout.vue -->
 
 <script setup lang="ts">
-import type { LayoutProps } from '@/types/ui/layouts';
-import BaseLayout from './BaseLayout.vue';
 import { WindowService } from '@/services/window.service';
+import type { LayoutProps } from '@/types/ui/layouts';
+
+import BaseLayout from './BaseLayout.vue';
 
 const { t } = useI18n();
 const sitHost = WindowService.get('site_host') ?? null;

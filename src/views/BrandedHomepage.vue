@@ -6,7 +6,6 @@
 
 const { t } = useI18n();
 
-
   const { allowPublicHomepage, primaryColor, cornerClass, buttonTextLight } = useProductIdentity();
 </script>
 
@@ -21,8 +20,7 @@ const { t } = useI18n();
       :corner-class="cornerClass"
       :with-recipient="false"
       :with-asterisk="false"
-      :with-generate="false"
-    />
+      :with-generate="false" />
 
     <!--
       BrandedHomepage.vue

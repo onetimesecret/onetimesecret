@@ -19,16 +19,16 @@
 <template>
   <div
     v-if="isEnabled"
-    class="w-full border-t border-gray-200 pt-8 dark:border-gray-700 flex justify-center">
+    class="flex w-full justify-center border-t border-gray-200 pt-8 dark:border-gray-700">
     <!-- prettier-ignore-attribute class -->
     <div
       class="
-      grid gap-x-12 gap-y-8
-      grid-cols-1 justify-items-start
-      [@media(min-width:640px)]:grid-cols-[repeat(auto-fit,minmax(140px,1fr))] [@media(min-width:640px)]:justify-items-center
-      [@media(min-width:768px)]:grid-cols-[repeat(auto-fit,minmax(160px,1fr))]
+      grid max-w-6xl grid-cols-1
+      justify-items-start gap-x-12
+      gap-y-8 px-4
       [@media(min-width:1024px)]:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]
-      max-w-6xl px-4">
+      [@media(min-width:640px)]:grid-cols-[repeat(auto-fit,minmax(140px,1fr))]
+      [@media(min-width:640px)]:justify-items-center [@media(min-width:768px)]:grid-cols-[repeat(auto-fit,minmax(160px,1fr))]">
       <div
         v-for="(group, groupIndex) in linkGroups"
         :key="group.name || `group-${groupIndex}`"
@@ -64,7 +64,7 @@
                 <i
                   v-if="link.icon"
                   :class="`icon-${link.icon}`"
-                  class="text-xs flex-shrink-0"
+                  class="shrink-0 text-xs"
                   :aria-hidden="true"></i>
 
                 <!-- Link text - modify link font size here (text-sm) -->
@@ -73,7 +73,7 @@
                 <!-- External link indicator -->
                 <i
                   v-if="link.external"
-                  class="icon-external-link text-xs opacity-60 flex-shrink-0"
+                  class="icon-external-link shrink-0 text-xs opacity-60"
                   :aria-label="t('web.COMMON.external_link')"
                   :aria-hidden="true"></i>
               </span>

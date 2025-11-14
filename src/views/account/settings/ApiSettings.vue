@@ -196,7 +196,9 @@
             class="size-5 shrink-0 text-yellow-600 dark:text-yellow-400"
             aria-hidden="true" />
           <div class="text-sm text-yellow-800 dark:text-yellow-300">
-            <p class="font-medium">{{ t('web.settings.api.important-notice') }}</p>
+            <p class="font-medium">
+              {{ t('web.settings.api.important-notice') }}
+            </p>
             <p class="mt-1">
               {{ t('web.settings.api.regenerating-key-warning') }}
             </p>

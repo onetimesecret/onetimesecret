@@ -1,8 +1,5 @@
 // src/composables/useWebAuthn.ts
 
-import { inject, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/authStore';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
@@ -11,6 +8,9 @@ import type {
   AuthenticationResponseJSON,
 } from '@simplewebauthn/browser';
 import type { AxiosInstance } from 'axios';
+import { inject, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 // Response types
 type WebAuthnSuccessResponse = { success: string };

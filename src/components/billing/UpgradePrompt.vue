@@ -1,8 +1,8 @@
 <!-- src/components/billing/UpgradePrompt.vue -->
 
 <script setup lang="ts">
-import { computed } from 'vue';
 import OIcon from '@/components/icons/OIcon.vue';
+import { computed } from 'vue';
 
 const { t } = useI18n();
 
@@ -55,7 +55,7 @@ const upgradeUrl = computed(() => `/account/billing/plans?upgrade_to=${props.upg
           aria-hidden="true" />
       </div>
 
-      <div class="flex-1 min-w-0">
+      <div class="min-w-0 flex-1">
         <h4
           v-if="!compact"
           class="text-base font-semibold text-gray-900 dark:text-white">

@@ -7,7 +7,6 @@
 
 const { t } = useI18n();
 
-
   const props = withDefaults(
     defineProps<{
       maxLength?: number;

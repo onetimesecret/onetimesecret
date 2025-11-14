@@ -1,6 +1,7 @@
 // src/plugins/pinia/autoInitPlugin.ts
 
 import { PiniaPluginContext } from 'pinia';
+
 import type { PiniaPluginOptions } from './types';
 
 /**

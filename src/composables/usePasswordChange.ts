@@ -2,9 +2,9 @@
 
 import { useAccountStore } from '@/stores/accountStore';
 import { computed, reactive } from 'vue';
+
 import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
-/* eslint-disable max-lines-per-function */
 export function usePasswordChange(emit: (event: 'update:password') => void) {
   const formState = reactive({
     currentPassword: '',

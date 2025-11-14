@@ -3,10 +3,10 @@
  * Handles fetching and managing user account data
  */
 
-import { ref, inject } from 'vue';
-import type { AxiosInstance } from 'axios';
 import { accountInfoResponseSchema, type AccountInfoResponse } from '@/schemas/api/auth/endpoints/auth';
 import type { AccountInfo } from '@/types/auth';
+import type { AxiosInstance } from 'axios';
+import { ref, inject } from 'vue';
 
 export function useAccount() {
   const $api = inject('api') as AxiosInstance;

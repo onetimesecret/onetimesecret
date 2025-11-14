@@ -136,8 +136,7 @@
           :details="details"
           :error="error"
           :is-submitting="isLoading"
-          @user-confirmed="onConfirm"
-        />
+          @user-confirmed="onConfirm" />
       </div>
     </template>
 
@@ -153,8 +152,7 @@
         <SecretDisplayCase
           class="w-full"
           :record="record"
-          :details="details"
-        />
+          :details="details" />
       </div>
     </template>
 
@@ -172,8 +170,7 @@
         <FooterAttribution
           :site-host="siteHost"
           :show-nav="false"
-          :show-terms="false"
-        />
+          :show-terms="false" />
       </div>
     </template>
   </BaseShowSecret>

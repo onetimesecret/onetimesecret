@@ -71,8 +71,7 @@
         collection="heroicons"
         :name="linkIconName"
         class="size-5"
-        aria-hidden="true"
-      />
+        aria-hidden="true" />
       <span v-if="linkTextLabel">{{ t(linkTextLabel) }}</span>
       <span v-else class="sr-only">{{ t('web.LABELS.need_help') }}</span>
     </button>
@@ -132,8 +131,7 @@
                       collection="mdi"
                       name="close"
                       class="size-6"
-                      aria-hidden="true"
-                    />
+                      aria-hidden="true" />
                   </button>
                 </div>
 

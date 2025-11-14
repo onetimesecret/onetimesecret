@@ -87,9 +87,11 @@
         class="mb-6 rounded-lg border border-brand-200 bg-brand-50 p-4 dark:border-brand-700 dark:bg-brand-900/20">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <div class="h-3 w-3 rounded-full bg-green-400"></div>
+            <div class="size-3 rounded-full bg-green-400"></div>
             <div>
-              <h3 class="text-sm font-medium text-gray-900 dark:text-white">Activity Overview</h3>
+              <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+                Activity Overview
+              </h3>
               <p class="text-xs text-gray-600 dark:text-gray-400">
                 {{ details?.counts.session_count }} active sessions •
                 {{ details?.counts.feedback_count }} feedback items •
@@ -100,7 +102,7 @@
               </p>
             </div>
           </div>
-          <div class="text-right flex-shrink-0">
+          <div class="shrink-0 text-right">
             <a
               href="/colonel"
               class="text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400">
@@ -118,12 +120,10 @@
           <span>Feedback ({{ details?.counts.feedback_count }})</span>
           <a
             href="#top"
-            class="ml-2"
-            ><OIcon
+            class="ml-2"><OIcon
               collection="heroicons"
               name="arrow-up"
-              size="4"
-          /></a>
+              size="4" /></a>
         </h3>
 
         <ul class="overflow-hidden bg-white text-xs shadow dark:bg-gray-800 sm:rounded-lg">
@@ -151,12 +151,10 @@
           </span>
           <a
             href="#top"
-            class="ml-2"
-            ><OIcon
+            class="ml-2"><OIcon
               collection="heroicons"
               name="arrow-up"
-              size="4"
-          /></a>
+              size="4" /></a>
         </h3>
         <ul class="space-y-3">
           <li
@@ -166,7 +164,7 @@
             <div class="flex items-center justify-between">
               <div class="min-w-0 flex-1">
                 <div class="flex items-center space-x-2">
-                  <span class="truncate font-medium text-gray-900 dark:text-gray-100 max-w-xs">{{
+                  <span class="max-w-xs truncate font-medium text-gray-900 dark:text-gray-100">{{
                     customer.custid
                   }}</span>
                   <span
@@ -180,10 +178,12 @@
                     Unverified
                   </span>
                 </div>
-                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ customer.stamp }}</p>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {{ customer.stamp }}
+                </p>
               </div>
-              <div class="text-right flex-shrink-0">
-                <p class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+              <div class="shrink-0 text-right">
+                <p class="whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                   {{ customer.secrets_created }} created • {{ customer.secrets_shared }} shared •
                   {{ customer.emails_sent }} emails
                 </p>
@@ -201,12 +201,10 @@
           <span>{{ t('redis-info') }}</span>
           <a
             href="#top"
-            class="ml-2"
-            ><OIcon
+            class="ml-2"><OIcon
               collection="heroicons"
               name="arrow-up"
-              size="4"
-          /></a>
+              size="4" /></a>
         </h3>
         <div class="rounded-lg bg-white shadow dark:bg-gray-800">
           <div class="max-h-64 overflow-y-auto p-4">

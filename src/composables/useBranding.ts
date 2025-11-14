@@ -1,16 +1,16 @@
 // src/composables/useBranding.ts
 
+import { createI18nInstance } from '@/i18n';
+import { ApplicationError } from '@/schemas';
 import { ImageProps, type BrandSettings } from '@/schemas/models';
 import { useNotificationsStore } from '@/stores';
 import { useBrandStore } from '@/stores/brandStore';
 import { shouldUseLightText } from '@/utils';
+import { AxiosError } from 'axios';
 import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { createI18nInstance } from '@/i18n';
 
 import { AsyncHandlerOptions, useAsyncHandler, createError } from './useAsyncHandler';
-import { ApplicationError } from '@/schemas';
-import { AxiosError } from 'axios';
 
 /**
  * Composable for displaying domain-specific branding settings

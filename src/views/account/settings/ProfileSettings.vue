@@ -1,13 +1,13 @@
 <!-- src/views/account/settings/ProfileSettings.vue -->
 
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
   // import { useAccount } from '@/composables/useAccount';
-  import { WindowService } from '@/services/window.service';
   import OIcon from '@/components/icons/OIcon.vue';
   import LanguageToggle from '@/components/LanguageToggle.vue';
-  import ThemeToggle from '@/components/ThemeToggle.vue';
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
+  import ThemeToggle from '@/components/ThemeToggle.vue';
+  import { WindowService } from '@/services/window.service';
+  import { ref, onMounted } from 'vue';
 
   const { t } = useI18n();
   // const { accountInfo, fetchAccountInfo } = useAccount();
@@ -101,7 +101,6 @@
             </div>
 
             <div class="mt-4 space-y-4">
-
               <!-- Translation Notice -->
               <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
                 <div class="prose prose-sm prose-blue max-w-none dark:prose-invert">

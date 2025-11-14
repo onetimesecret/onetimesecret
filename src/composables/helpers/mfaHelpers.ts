@@ -8,9 +8,9 @@
  * - Secure error message mapping to prevent information disclosure
  */
 
-import QRCode from 'qrcode';
 import { otpSetupResponseSchema } from '@/schemas/api/auth/endpoints/auth';
 import type { OtpSetupData } from '@/types/auth';
+import QRCode from 'qrcode';
 
 /**
  * Generates a QR code data URL from an OTP secret

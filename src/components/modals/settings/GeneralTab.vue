@@ -1,12 +1,11 @@
 <script setup lang="ts">
+import OIcon from '@/components/icons/OIcon.vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
-import OIcon from '@/components/icons/OIcon.vue';
 import { WindowService } from '@/services/window.service';
 import { ref } from 'vue';
 
 const { t } = useI18n();
-
 
 const isLoading = ref(false);
 
@@ -54,8 +53,7 @@ const handleThemeChange = async (isDark: boolean) => {
               collection="carbon"
               name="light-filled"
               class="size-5 shrink-0 text-gray-500 dark:text-gray-400"
-              aria-hidden="true"
-            />
+              aria-hidden="true" />
             <span class="truncate text-sm font-medium text-gray-700 dark:text-gray-300">
               {{ t('theme') }}
             </span>
@@ -64,8 +62,7 @@ const handleThemeChange = async (isDark: boolean) => {
             @theme-changed="handleThemeChange"
             :disabled="isLoading"
             :aria-busy="isLoading"
-            class="shrink-0"
-          />
+            class="shrink-0" />
         </div>
       </div>
     </section>
@@ -89,8 +86,7 @@ const handleThemeChange = async (isDark: boolean) => {
           @menu-toggled="handleMenuToggled"
           class="w-full"
           :disabled="isLoading"
-          :aria-busy="isLoading"
-        />
+          :aria-busy="isLoading" />
         <div class="prose prose-sm prose-gray mt-4 max-w-none space-y-3 dark:prose-invert sm:mt-6 sm:space-y-4">
           <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
             {{ t('as-we-add-new-features-our-translations-graduall') }}

@@ -54,7 +54,9 @@
           <template v-else-if="record?.is_burned">
             {{ t('deleted-on-record-burned', [record?.burned]) }}
           </template>
-          <template v-else> {{ t('permanently-deleted') }} </template>
+          <template v-else>
+            {{ t('permanently-deleted') }}
+          </template>
         </p>
       </div>
 

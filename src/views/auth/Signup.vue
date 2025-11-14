@@ -4,7 +4,6 @@
   import AlternateSignUpMethods from '@/components/auth/AlternateSignUpMethods.vue';
   import AuthView from '@/components/auth/AuthView.vue';
   import SignUpForm from '@/components/auth/SignUpForm.vue';
-
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';
   import { useLanguageStore } from '@/stores/languageStore';
   import { storeToRefs } from 'pinia';

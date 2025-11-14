@@ -2,8 +2,8 @@
 
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
-import { Jurisdiction } from '@/schemas/models';
 import { useAuth } from '@/composables/useAuth';
+import { Jurisdiction } from '@/schemas/models';
 import { ref } from 'vue';
 
 export interface Props {
@@ -49,8 +49,7 @@ const handleSubmit = async () => {
       aria-hidden="true"
       aria-disabled="true"
       tabindex="-1"
-      value=""
-    />
+      value="" />
 
     <!-- Error message -->
     <div
@@ -60,9 +59,9 @@ const handleSubmit = async () => {
       aria-live="assertive"
       aria-atomic="true">
       <div class="flex">
-        <div class="flex-shrink-0">
+        <div class="shrink-0">
           <svg
-            class="h-5 w-5 text-red-400"
+            class="size-5 text-red-400"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
             fill="currentColor"
@@ -104,7 +103,7 @@ const handleSubmit = async () => {
       <div>
         <label
           for="email-address"
-          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.COMMON.field_email') }}
         </label>
         <input
@@ -124,19 +123,18 @@ const handleSubmit = async () => {
                       py-2 text-lg
                       text-gray-900 placeholder:text-gray-500
                       focus:border-brand-500 focus:outline-none focus:ring-brand-500
-                      disabled:opacity-50 disabled:cursor-not-allowed
+                      disabled:cursor-not-allowed disabled:opacity-50
                       dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                       dark:focus:border-brand-500 dark:focus:ring-brand-500"
           :placeholder="t('web.COMMON.email_placeholder')"
-          v-model="email"
-        />
+          v-model="email" />
       </div>
 
       <!-- Password input with visibility toggle -->
       <div>
         <label
           for="password"
-          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.COMMON.field_password') }}
         </label>
         <div class="relative">
@@ -156,24 +154,23 @@ const handleSubmit = async () => {
                    py-2 pr-10 text-lg
                    text-gray-900 placeholder:text-gray-500
                    focus:border-brand-500 focus:outline-none focus:ring-brand-500
-                   disabled:opacity-50 disabled:cursor-not-allowed
+                   disabled:cursor-not-allowed disabled:opacity-50
                    dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                    dark:focus:border-brand-500 dark:focus:ring-brand-500"
             :placeholder="t('web.COMMON.password_placeholder')"
-            v-model="password"
-          />
+            v-model="password" />
           <button
             type="button"
             @click="togglePasswordVisibility"
             :disabled="isLoading"
             :aria-label="showPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')"
             class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50">
-              <OIcon
-                collection="heroicons"
-                :name="showPassword ? 'outline-eye-off' : 'solid-eye'"
-                size="20"
-                class="size-5 text-gray-400"
-                aria-hidden="true" />
+            <OIcon
+              collection="heroicons"
+              :name="showPassword ? 'outline-eye-off' : 'solid-eye'"
+              size="20"
+              class="size-5 text-gray-400"
+              aria-hidden="true" />
           </button>
         </div>
         <!-- Password requirements (screen reader only) -->
@@ -196,11 +193,10 @@ const handleSubmit = async () => {
           class="size-4 rounded border-gray-300
                       text-brand-600
                       focus:ring-brand-500
-                      disabled:opacity-50 disabled:cursor-not-allowed
+                      disabled:cursor-not-allowed disabled:opacity-50
                       dark:border-gray-600
                       dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-brand-500"
-          v-model="termsAgreed"
-        />
+          v-model="termsAgreed" />
         <label
           for="terms-agreement"
           class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
@@ -234,16 +230,17 @@ const handleSubmit = async () => {
                      text-lg font-medium
                      text-white hover:bg-brand-700
                      focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-                     disabled:opacity-50 disabled:cursor-not-allowed
+                     disabled:cursor-not-allowed disabled:opacity-50
                      dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800">
         <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
         <span v-else>{{ t('create-account') }}</span>
       </button>
       <!-- Loading state announcement (screen reader only) -->
-      <div v-if="isLoading"
-aria-live="polite"
-aria-atomic="true"
-class="sr-only">
+      <div
+        v-if="isLoading"
+        aria-live="polite"
+        aria-atomic="true"
+        class="sr-only">
         {{ t('web.COMMON.form-processing') }}
       </div>
     </div>

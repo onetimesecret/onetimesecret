@@ -35,7 +35,7 @@
         <div class="p-6">
           <JurisdictionList
             :jurisdictions="jurisdictions"
-            :currentJurisdiction="currentJurisdiction" />
+            :current-jurisdiction="currentJurisdiction" />
         </div>
       </section>
     </div>

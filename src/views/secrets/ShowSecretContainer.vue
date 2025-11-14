@@ -31,6 +31,5 @@ const currentComponent = computed(() => {
     :secret-identifier="secretIdentifier"
     :domain-id="domainId"
     :display-domain="displayDomain"
-    :site-host="siteHost"
-  />
+    :site-host="siteHost" />
 </template>

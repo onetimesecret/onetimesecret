@@ -247,13 +247,11 @@
                   <span
                     v-if="isPassphraseRequired"
                     class="ml-1 text-red-500"
-                    aria-label="Required"
-                    >*</span
-                  >
+                    aria-label="Required">*</span>
                 </label>
               </h3>
               <!-- Fixed height container for hints to prevent layout shifts -->
-              <div class="mb-2 min-h-[1rem]">
+              <div class="mb-2 min-h-4">
                 <div
                   v-if="passphraseConfig"
                   class="text-xs text-gray-500 dark:text-gray-400">
@@ -314,7 +312,7 @@
                 </label>
               </h3>
               <!-- Empty spacer to match passphrase field hint area -->
-              <div class="mb-2 min-h-[1rem]"></div>
+              <div class="mb-2 min-h-4"></div>
               <div class="relative">
                 <!-- prettier-ignore-attribute class -->
                 <select

@@ -3,10 +3,8 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 
 const { t } = useI18n();
 
-
 // No additional script needed for this component
 </script>
-
 
 <template>
   <div>
@@ -28,8 +26,7 @@ const { t } = useI18n();
                 stroke="currentColor"
                 stroke-width="2"
                 stroke-linecap="round"
-                stroke-linejoin="round"
-              />
+                stroke-linejoin="round" />
             </svg>
           </div>
           <h1

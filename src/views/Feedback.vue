@@ -3,7 +3,6 @@ import FeedbackForm from '@/components/FeedbackForm.vue';
 
 const { t } = useI18n();
 
-
 </script>
 
 <template>

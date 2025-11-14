@@ -13,11 +13,12 @@
 <script setup lang="ts">
   import ImprovedFooter from '@/components/layout/ImprovedFooter.vue';
   import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
-  import type { ImprovedLayoutProps } from '@/types/ui/layouts';
-  import BaseLayout from './BaseLayout.vue';
-  import { computed, onMounted } from 'vue';
   import { WindowService } from '@/services/window.service';
   import { useDomainsStore, useMetadataListStore } from '@/stores';
+  import type { ImprovedLayoutProps } from '@/types/ui/layouts';
+  import { computed, onMounted } from 'vue';
+
+  import BaseLayout from './BaseLayout.vue';
 
   const props = withDefaults(defineProps<ImprovedLayoutProps>(), {
     displayFeedback: true,
@@ -65,20 +66,20 @@
             <!-- Sidebar (Left position) -->
             <aside
               v-if="showSidebar && sidebarPosition === 'left'"
-              class="hidden md:block w-80 shrink-0">
+              class="hidden w-80 shrink-0 md:block">
               <slot name="sidebar-left">
                 <!-- Default sidebar content can go here -->
               </slot>
             </aside>
 
             <!-- Main Content Area -->
-            <main class="flex-1 min-w-0">
+            <main class="min-w-0 flex-1">
               <slot></slot>
 
               <!-- Mobile Quick Stats - Show below main content on small screens -->
               <div v-if="showSidebar && sidebarPosition === 'right'" class="mt-8 md:hidden">
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
-                  <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
+                  <h3 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
                     Quick Stats
                   </h3>
                   <slot name="quick-stats">
@@ -104,12 +105,12 @@
             <!-- Sidebar (Right position) - Desktop only -->
             <aside
               v-if="showSidebar && sidebarPosition === 'right'"
-              class="hidden md:block w-80 shrink-0">
+              class="hidden w-80 shrink-0 md:block">
               <slot name="sidebar-right">
                 <div class="space-y-6">
                   <!-- Quick Stats Card -->
-                  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                  <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
+                    <h3 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
                       Quick Stats
                     </h3>
                     <slot name="quick-stats">
@@ -131,24 +132,24 @@
                   </div>
 
                   <!-- Quick Actions Card -->
-                  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                  <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
+                    <h3 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
                       Quick Actions
                     </h3>
                     <slot name="quick-actions">
                       <div class="space-y-2">
                         <router-link
                           to="/"
-                          class="block w-full px-3 py-2 text-sm text-center font-medium
-                                 bg-brand-500 text-white rounded-lg
-                                 hover:bg-brand-600 transition-colors">
+                          class="block w-full rounded-lg bg-brand-500 px-3 py-2 text-center
+                                 text-sm font-medium text-white
+                                 transition-colors hover:bg-brand-600">
                           Create New Secret
                         </router-link>
                         <router-link
                           to="/account/settings/api"
-                          class="block w-full px-3 py-2 text-sm text-center font-medium
-                                 border border-gray-300 dark:border-gray-600 rounded-lg
-                                 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                          class="block w-full rounded-lg border border-gray-300 px-3 py-2
+                                 text-center text-sm font-medium transition-colors
+                                 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
                           Generate API Key
                         </router-link>
                       </div>
@@ -156,8 +157,8 @@
                   </div>
 
                   <!-- Help & Resources -->
-                  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                  <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
+                    <h3 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
                       Resources
                     </h3>
                     <slot name="resources">

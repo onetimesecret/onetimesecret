@@ -13,7 +13,6 @@
 
 <template>
   <div class="container mx-auto min-w-[320px] max-w-2xl">
-
     <SecretForm
       class="mb-12"
       :with-generate="true"

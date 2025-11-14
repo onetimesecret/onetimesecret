@@ -1,14 +1,14 @@
 <!-- src/views/account/settings/OrganizationsSettings.vue -->
 
 <script setup lang="ts">
+import OIcon from '@/components/icons/OIcon.vue';
+import BillingLayout from '@/components/layout/BillingLayout.vue';
+import CreateOrganizationModal from '@/components/organizations/CreateOrganizationModal.vue';
+import { useCapabilities } from '@/composables/useCapabilities';
+import { useOrganizationStore } from '@/stores/organizationStore';
+import type { Organization } from '@/types/organization';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import BillingLayout from '@/components/layout/BillingLayout.vue';
-import OIcon from '@/components/icons/OIcon.vue';
-import CreateOrganizationModal from '@/components/organizations/CreateOrganizationModal.vue';
-import { useOrganizationStore } from '@/stores/organizationStore';
-import { useCapabilities } from '@/composables/useCapabilities';
-import type { Organization } from '@/types/organization';
 
 const { t } = useI18n();
 const router = useRouter();

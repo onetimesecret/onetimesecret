@@ -1,11 +1,10 @@
 <script setup lang="ts">
-  import DomainsTableDomainCell from '@/components/dashboard/DomainsTableDomainCell.vue';
-  import DomainsTableActionsCell from '@/components/dashboard/DomainsTableActionsCell.vue';
   import ToggleWithIcon from '@/components/common/ToggleWithIcon.vue';
+  import DomainsTableActionsCell from '@/components/dashboard/DomainsTableActionsCell.vue';
+  import DomainsTableDomainCell from '@/components/dashboard/DomainsTableDomainCell.vue';
+  import { useDomainsManager } from '@/composables/useDomainsManager';
   import type { CustomDomain } from '@/schemas/models/domain';
   import { useConfirmDialog } from '@vueuse/core';
-
-  import { useDomainsManager } from '@/composables/useDomainsManager';
 
   const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
 
@@ -13,10 +12,10 @@
 
   import OIcon from '@/components/icons/OIcon.vue';
   import { useBranding } from '@/composables/useBranding';
+
   import ConfirmDialog from './ConfirmDialog.vue';
 
 const { t } = useI18n();
-
 
   defineProps<{
     domains: CustomDomain[];
@@ -121,7 +120,6 @@ const { t } = useI18n();
               v-for="domain in domains"
               :key="domain.identifier"
               class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800">
-
               <!-- Domain & Status -->
               <td class="px-6 py-4">
                 <DomainsTableDomainCell :domain="domain" />

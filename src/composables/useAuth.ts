@@ -1,10 +1,5 @@
 // src/composables/useAuth.ts
 
-import { inject, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/authStore';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { useNotificationsStore } from '@/stores/notificationsStore';
 import {
   useAsyncHandler,
   createError,
@@ -32,8 +27,13 @@ import {
   changePasswordResponseSchema,
   closeAccountResponseSchema,
 } from '@/schemas/api/auth/endpoints/auth';
-import type { AxiosInstance } from 'axios';
+import { useAuthStore } from '@/stores/authStore';
+import { useCsrfStore } from '@/stores/csrfStore';
+import { useNotificationsStore } from '@/stores/notificationsStore';
 import type { LockoutStatus } from '@/types/auth';
+import type { AxiosInstance } from 'axios';
+import { inject, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 /**
  * Authentication composable for handling login, signup, logout, and password reset
@@ -110,7 +110,7 @@ export function useAuth() {
    * @param rememberMe - Whether to keep session alive (optional)
    * @returns true if login successful, false otherwise
    */
-  /* eslint-disable complexity */
+
   async function login(
     email: string,
     password: string,

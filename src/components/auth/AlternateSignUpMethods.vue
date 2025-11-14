@@ -58,8 +58,7 @@ const gridClass = computed(() => {
             collection="heroicons"
             :name="provider.icon"
             class="size-5"
-            aria-hidden="true"
-          />
+            aria-hidden="true" />
           <span class="ml-2">{{ provider.name }}</span>
         </button>
       </div>

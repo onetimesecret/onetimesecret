@@ -62,7 +62,7 @@
                 class="relative inline-flex h-6 w-11 shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-green-600 opacity-50 dark:bg-green-500">
                 <span
                   aria-hidden="true"
-                  class="pointer-events-none inline-block size-5 translate-x-5 transform rounded-full bg-white shadow ring-0"></span>
+                  class="pointer-events-none inline-block size-5 translate-x-5 rounded-full bg-white shadow ring-0"></span>
               </div>
             </div>
           </div>

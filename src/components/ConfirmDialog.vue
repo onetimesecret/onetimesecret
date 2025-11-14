@@ -3,7 +3,6 @@ import { ref } from 'vue';
 
 const { t } = useI18n();
 
-
 withDefaults(defineProps<{
   title: string;
   message: string;
@@ -33,7 +32,6 @@ const cancel = () => {
   emit('cancel');
 };
 </script>
-
 
 <template>
   <div

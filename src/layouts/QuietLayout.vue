@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
+
   import BaseLayout from './BaseLayout.vue';
 
   const { t } = useI18n();

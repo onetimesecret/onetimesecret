@@ -11,6 +11,7 @@ import {
 } from '@/schemas/models';
 import { Stripe } from 'stripe';
 import { FallbackLocale } from 'vue-i18n';
+
 import { DiagnosticsConfig } from '../diagnostics';
 
 /**

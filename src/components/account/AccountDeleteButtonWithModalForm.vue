@@ -74,8 +74,7 @@ const closeDeleteModal = () => {
       <input
         type="hidden"
         name="shrimp"
-        :value="csrfStore.shrimp"
-      />
+        :value="csrfStore.shrimp" />
 
       <div class="rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
         <h3 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
@@ -88,8 +87,7 @@ const closeDeleteModal = () => {
         <input
           type="hidden"
           name="tabindex"
-          value="destroy"
-        />
+          value="destroy" />
 
         <div class="mb-4">
           <input
@@ -98,8 +96,7 @@ const closeDeleteModal = () => {
             type="password"
             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             autocomplete="confirmation"
-            :placeholder="t('confirm-with-your-password')"
-          />
+            :placeholder="t('confirm-with-your-password')" />
         </div>
 
         <p
@@ -136,13 +133,11 @@ const closeDeleteModal = () => {
                 cy="12"
                 r="10"
                 stroke="currentColor"
-                stroke-width="4"
-              />
+                stroke-width="4" />
               <path
                 class="opacity-75"
                 fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
             <svg
               v-else
@@ -155,8 +150,7 @@ const closeDeleteModal = () => {
               <path
                 fill-rule="evenodd"
                 d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                clip-rule="evenodd"
-              />
+                clip-rule="evenodd" />
             </svg>
             {{ isDeleting ? 'Deleting...' : 'Delete Account' }}
           </button>

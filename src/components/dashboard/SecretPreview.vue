@@ -79,7 +79,6 @@ const fontFamilyClass = computed(() => {
     :is-revealed="isRevealed"
     :corner-class="cornerClass"
     :font-class="fontFamilyClass">
-
     <!-- Logo Upload Area -->
     <template #logo>
       <div class="group relative mx-auto sm:mx-0">
@@ -99,8 +98,7 @@ const fontFamilyClass = computed(() => {
               class="size-16 object-contain"
               :class="{
                 [cornerClass]: true,
-              }"
-            />
+              }" />
             <svg
               v-else
               class="size-8 text-gray-400 dark:text-gray-500"
@@ -111,8 +109,7 @@ const fontFamilyClass = computed(() => {
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
         </label>
@@ -130,8 +127,7 @@ const fontFamilyClass = computed(() => {
           class="hidden"
           accept="image/*"
           @change="handleLogoChange"
-          aria-labelledby="logoHelp"
-        />
+          aria-labelledby="logoHelp" />
 
         <!-- Hover/Focus Controls -->
         <div
@@ -146,8 +142,7 @@ const fontFamilyClass = computed(() => {
               <OIcon
                 collection="mdi"
                 name="trash-can"
-                class="size-4"
-              />
+                class="size-4" />
               {{ t('remove') }}
             </span>
           </button>
@@ -157,15 +152,15 @@ const fontFamilyClass = computed(() => {
 
     <template #content>
       <textarea
-            v-if="isRevealed"
-            readonly
-            :class="[cornerClass]"
-            class="w-full resize-none border-0 bg-transparent
+        v-if="isRevealed"
+        readonly
+        :class="[cornerClass]"
+        class="w-full resize-none border-0 bg-transparent
             font-mono text-xs text-gray-700
             focus:ring-0 dark:text-gray-300 sm:text-base"
-            rows="3"
-            :aria-label="t('sample-secret-content')"
-            v-model="textareaPlaceholder"></textarea>
+        rows="3"
+        :aria-label="t('sample-secret-content')"
+        v-model="textareaPlaceholder"></textarea>
 
       <div
         v-else
@@ -174,8 +169,7 @@ const fontFamilyClass = computed(() => {
         <OIcon
           collection="mdi"
           name="eye-off"
-          class="mr-2 size-5"
-        />
+          class="mr-2 size-5" />
         <span class="text-sm">{{ previewI18n.t('content-hidden') }}</span>
       </div>
     </template>

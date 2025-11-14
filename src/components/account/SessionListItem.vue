@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import type { Session } from '@/types/auth';
+import { computed } from 'vue';
 
 const { t } = useI18n();
-
 
 interface Props {
   session: Session;
@@ -60,8 +59,7 @@ const handleRemove = () => {
     :class="{
       'border-brand-500 bg-brand-50 dark:bg-brand-900/20': isCurrent,
       'border-gray-200 bg-white dark:bg-gray-800': !isCurrent,
-    }"
-  >
+    }">
     <div class="flex items-start justify-between">
       <div class="flex-1">
         <!-- Device/Browser info -->
@@ -72,14 +70,12 @@ const handleRemove = () => {
           </h3>
           <span
             v-if="isCurrent"
-            class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-800 dark:bg-brand-900 dark:text-brand-200"
-          >
+            class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-800 dark:bg-brand-900 dark:text-brand-200">
             {{ t('web.auth.sessions.current') }}
           </span>
           <span
             v-if="session.remember_enabled"
-            class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-          >
+            class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
             <i class="fas fa-clock mr-1"></i>
             {{ t('web.auth.remember.enabled') }}
           </span>
@@ -108,8 +104,7 @@ const handleRemove = () => {
         @click="handleRemove"
         type="button"
         class="ml-4 rounded-md px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:text-red-400 dark:hover:bg-red-900/20"
-        :aria-label="t('web.auth.sessions.remove')"
-      >
+        :aria-label="t('web.auth.sessions.remove')">
         <i class="fas fa-times mr-1"></i>
         {{ t('web.auth.sessions.remove') }}
       </button>
@@ -120,7 +115,9 @@ const handleRemove = () => {
       <summary class="cursor-pointer hover:text-gray-700 dark:hover:text-gray-400">
         View user agent
       </summary>
-      <p class="mt-1 break-all font-mono">{{ session.user_agent }}</p>
+      <p class="mt-1 break-all font-mono">
+        {{ session.user_agent }}
+      </p>
     </details>
   </div>
 </template>

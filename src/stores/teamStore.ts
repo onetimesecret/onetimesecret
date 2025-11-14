@@ -1,5 +1,11 @@
 // src/stores/teamStore.ts
 
+import {
+  teamResponseSchema,
+  teamsResponseSchema,
+  teamMembersResponseSchema,
+  teamMemberResponseSchema,
+} from '@/schemas/api/teams';
 import type {
   CreateTeamPayload,
   InviteMemberPayload,
@@ -14,12 +20,6 @@ import {
   updateMemberRolePayloadSchema,
   updateTeamPayloadSchema,
 } from '@/types/team';
-import {
-  teamResponseSchema,
-  teamsResponseSchema,
-  teamMembersResponseSchema,
-  teamMemberResponseSchema,
-} from '@/schemas/api/teams';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { computed, inject, ref } from 'vue';

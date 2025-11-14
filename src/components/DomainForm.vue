@@ -2,8 +2,8 @@
 import DomainInput from '@/components/DomainInput.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { createDomainRequestSchema } from '@/schemas/api/v3/requests';
-import { ref, computed } from 'vue';
 import { createError, type ApplicationError } from '@/schemas/errors';
+import { ref, computed } from 'vue';
 
 defineProps<{
   isSubmitting?: boolean,
@@ -52,14 +52,12 @@ const handleSubmit = () => {
         autofocus
         required
         :placeholder="placeholderText"
-        class="dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-      />
+        class="dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
 
       <!-- Add error display -->
       <ErrorDisplay
         v-if="localError"
-        :error="localError"
-      />
+        :error="localError" />
 
       <div
         class="flex flex-col-reverse
@@ -88,8 +86,7 @@ const handleSubmit = () => {
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
+              d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           {{ t('back') }}
         </button>
@@ -123,13 +120,11 @@ const handleSubmit = () => {
                 cy="12"
                 r="10"
                 stroke="currentColor"
-                stroke-width="4"
-              />
+                stroke-width="4" />
               <path
                 class="opacity-75"
                 fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
             {{ t('adding_ellipses') }}...
           </span>

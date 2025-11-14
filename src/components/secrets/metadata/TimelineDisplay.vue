@@ -1,12 +1,11 @@
 <script setup lang="ts">
-  import type { Metadata, MetadataDetails } from '@/schemas/models';
   import OIcon from '@/components/icons/OIcon.vue';
   import { useSecretExpiration } from '@/composables/useSecretExpiration';
+  import type { Metadata, MetadataDetails } from '@/schemas/models';
   import { formatDistanceToNow } from 'date-fns';
   import { computed } from 'vue';
 
 const { t } = useI18n();
-
 
   interface Props {
     record: Metadata;

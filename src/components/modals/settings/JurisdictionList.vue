@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import type { Jurisdiction } from '@/schemas/models';
 import OIcon from '@/components/icons/OIcon.vue';
+import type { Jurisdiction } from '@/schemas/models';
 
 const { t } = useI18n();
-
 
 const props = defineProps<{
   jurisdictions: Jurisdiction[];
@@ -27,8 +26,7 @@ const isCurrentJurisdiction = (jurisdiction: Jurisdiction) =>
           :collection="jurisdiction.icon.collection"
           :name="jurisdiction.icon.name"
           class="size-5 shrink-0 text-gray-400 dark:text-gray-500"
-          aria-hidden="true"
-        />
+          aria-hidden="true" />
 
         <a
           :href="`https://${jurisdiction.domain}/signup`"

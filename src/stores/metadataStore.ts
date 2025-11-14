@@ -40,7 +40,6 @@ export type MetadataStore = {
   $reset: () => void;
 } & PiniaCustomProperties;
 
-/* eslint-disable max-lines-per-function */
 export const useMetadataStore = defineStore('metadata', () => {
   const $api = inject('api') as AxiosInstance;
   // State

@@ -1,7 +1,0 @@
-#!/bin/bash
-
-# Compatibility wrapper - redirects to new location
-# This file maintains backward compatibility for existing scripts and workflows
-
-SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-exec "$SCRIPT_DIR/harmonize/harmonize-locale-files" "$@"

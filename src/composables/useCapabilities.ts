@@ -1,8 +1,8 @@
 // src/composables/useCapabilities.ts
 
-import { computed, type Ref } from 'vue';
 import type { Organization } from '@/types/organization';
 import { CAPABILITIES } from '@/types/organization';
+import { computed, type Ref } from 'vue';
 
 /**
  * Composable for checking organization capabilities

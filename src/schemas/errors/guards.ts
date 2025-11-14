@@ -2,14 +2,15 @@
 
 // guards.ts - type guards and validation
 
+import { AxiosError } from 'axios';
 import { isNavigationFailure, type NavigationFailure } from 'vue-router';
+import { ZodError } from 'zod';
+
 import {
   applicationErrorSchema,
   ApplicationError,
   HttpErrorLike,
 } from './types';
-import { ZodError } from 'zod';
-import { AxiosError } from 'axios';
 
 export const errorGuards = {
   isApplicationError(error: unknown): error is ApplicationError {

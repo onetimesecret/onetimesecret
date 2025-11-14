@@ -78,5 +78,4 @@ const statusIcon = computed(() => {
   </div>
 
   <!-- Default View (Backward Compatible) -->
-
 </template>

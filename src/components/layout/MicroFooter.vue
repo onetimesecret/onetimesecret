@@ -1,13 +1,12 @@
 <!-- src/components/layout/MicroFooter.vue -->
 
 <script setup lang="ts">
-  import type { LayoutProps } from '@/types/ui/layouts';
-  import { WindowService } from '@/services/window.service';
-  import FooterControls from '@/components/layout/SecretFooterControls.vue';
   import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
+  import FooterControls from '@/components/layout/SecretFooterControls.vue';
+  import { WindowService } from '@/services/window.service';
+  import type { LayoutProps } from '@/types/ui/layouts';
 
 const { t } = useI18n();
-
 
   withDefaults(defineProps<LayoutProps>(), {});
 
