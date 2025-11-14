@@ -62,7 +62,6 @@ import * as importPlugin from 'eslint-plugin-import';
 import pluginTailwindCSS from 'eslint-plugin-tailwindcss';
 import pluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
-import path from 'path';
 import vueEslintParser from 'vue-eslint-parser';
 
 // @ts-expect-error - auto-import globals are generated at build time
@@ -98,7 +97,7 @@ export default [
         ...autoImportGlobals.globals,
         process: true, // Allow process global for environment variables
       },
-      parser: ['.ts', '.tsx'].includes(path.extname(import.meta.url)) ? parserTs : undefined,
+      parser: parserTs,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
@@ -367,25 +366,8 @@ export default [
         },
       ],
 
-      // ...tseslint.configs.recommended.rules,
-      '@typescript-eslint/no-unused-vars': 'error', // Prevent unused variables
-
-      // Note: you must disable the base rule as it can report incorrect errors
-      'no-unused-expressions': 'off',
-      '@typescript-eslint/no-unused-expressions': [
-        'error',
-        {
-          allowShortCircuit: true,
-          allowTernary: true,
-          allowTaggedTemplates: true,
-        },
-      ],
-
-      // Only warn explicit any in declaration files
-      '@typescript-eslint/no-explicit-any': 'warn',
-
-      '@intlify/vue-i18n/no-deprecated-modulo-syntax': 'error', // Enforce modern i18n syntax
-      // https://github.com/francoismassart/eslint-plugin-tailwindcss/tree/master/docs/rules
+      // TypeScript rules are inherited from the TypeScript configuration above
+      // Vue <script> blocks will use those rules automatically
     },
   },
   /**
