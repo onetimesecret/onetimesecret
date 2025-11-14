@@ -6,28 +6,36 @@ if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
   exit 0
 fi
 
-echo "Setting up Ruby 3.4.7 environment..."
-
 # Initialize rbenv
 export PATH="$HOME/.rbenv/bin:$PATH"
 if command -v rbenv &> /dev/null; then
   eval "$(rbenv init -)"
 else
-  echo "Warning: rbenv not found. Skipping Ruby setup."
+  echo "SKIP: rbenv not found; skipping Ruby setup for this session."
+  exit 0
+fi
+
+# Read the required Ruby version from .ruby-version file
+if [ -f "$CLAUDE_PROJECT_DIR/.ruby-version" ]; then
+  cd "$CLAUDE_PROJECT_DIR"
+  RUBY_VERSION=$(cat .ruby-version)
+  echo "Setting up Ruby version $RUBY_VERSION from .ruby-version file..."
+
+  # Check if the specified Ruby version is installed
+  if ! rbenv prefix "$RUBY_VERSION" &> /dev/null; then
+    echo "Installing Ruby $RUBY_VERSION..."
+    rbenv install --skip-existing "$RUBY_VERSION"
+    echo "Ruby $RUBY_VERSION installed successfully."
+  else
+    echo "Ruby $RUBY_VERSION is already installed."
+  fi
+
+  # Set the Ruby version as the local version for this project
+  rbenv local "$RUBY_VERSION"
+else
+  echo "Warning: .ruby-version file not found. Skipping Ruby setup."
   exit 1
 fi
-
-# Check if Ruby 3.4.7 is installed
-if ! rbenv versions | grep -q "3.4.7"; then
-  echo "Installing Ruby 3.4.7..."
-  rbenv install 3.4.7
-  echo "Ruby 3.4.7 installed successfully."
-else
-  echo "Ruby 3.4.7 is already installed."
-fi
-
-# Set Ruby 3.4.7 as the local version for this project
-rbenv local 3.4.7
 
 # Verify Ruby version
 echo "Ruby version: $(ruby -v)"
@@ -48,10 +56,15 @@ fi
 
 # Install project dependencies if Gemfile exists
 if [ -f "$CLAUDE_PROJECT_DIR/Gemfile" ]; then
-  echo "Installing project dependencies..."
   cd "$CLAUDE_PROJECT_DIR"
-  bundle install
-  echo "Dependencies installed successfully."
+  echo "Checking project dependencies..."
+  if ! bundle check &> /dev/null; then
+    echo "Installing project dependencies..."
+    bundle install
+    echo "Dependencies installed successfully."
+  else
+    echo "Dependencies are already satisfied."
+  fi
 else
   echo "Warning: Gemfile not found. Skipping bundle install."
 fi
