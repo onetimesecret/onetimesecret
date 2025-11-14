@@ -48,11 +48,10 @@ RSpec.describe 'Boot Test Command', type: :cli do
     end
 
     it 'displays success message' do
-      output = capture_output do
-        expect {
-          run_cli_command('boot-test')
-        }.to raise_error(SystemExit)
-      end
+      output = nil
+      expect {
+        output = run_cli_command('boot-test')
+      }.to raise_error(SystemExit)
 
       expect(output[:stderr]).to include('Boot test successful!')
       expect(output[:stderr]).to include('Loaded applications')
@@ -81,11 +80,10 @@ RSpec.describe 'Boot Test Command', type: :cli do
     it 'displays error message on boot failure' do
       allow(Onetime).to receive(:ready?).and_return(false)
 
-      output = capture_output do
-        expect {
-          run_cli_command('boot-test')
-        }.to raise_error(SystemExit)
-      end
+      output = nil
+      expect {
+        output = run_cli_command('boot-test')
+      }.to raise_error(SystemExit)
 
       expect(output[:stderr]).to include('Boot test failed')
     end
@@ -107,11 +105,10 @@ RSpec.describe 'Boot Test Command', type: :cli do
       allow(Onetime::Application::Registry).to receive(:prepare_application_registry)
       allow(Onetime).to receive(:ready?).and_return(true, false)
 
-      output = capture_output do
-        expect {
-          run_cli_command('boot-test')
-        }.to raise_error(SystemExit)
-      end
+      output = nil
+      expect {
+        output = run_cli_command('boot-test')
+      }.to raise_error(SystemExit)
 
       expect(output[:stderr]).to include('Application registry preparation failed')
     end
@@ -144,11 +141,10 @@ RSpec.describe 'Boot Test Command', type: :cli do
     it 'displays unhealthy applications' do
       allow(Onetime::Application::Registry).to receive(:health_check).and_return(unhealthy_status)
 
-      output = capture_output do
-        expect {
-          run_cli_command('boot-test')
-        }.to raise_error(SystemExit)
-      end
+      output = nil
+      expect {
+        output = run_cli_command('boot-test')
+      }.to raise_error(SystemExit)
 
       expect(output[:stderr]).to include('One or more applications unhealthy')
     end
@@ -158,12 +154,11 @@ RSpec.describe 'Boot Test Command', type: :cli do
     it 'catches and reports exceptions' do
       allow(Onetime).to receive(:boot!).and_raise(StandardError.new('Test error'))
 
-      output = capture_output do
-        expect {
-          run_cli_command('boot-test')
-        }.to raise_error(SystemExit) do |error|
-          expect(error.status).to eq(1)
-        end
+      output = nil
+      expect {
+        output = run_cli_command('boot-test')
+      }.to raise_error(SystemExit) do |error|
+        expect(error.status).to eq(1)
       end
 
       expect(output[:stderr]).to include('Boot test failed')
@@ -174,11 +169,10 @@ RSpec.describe 'Boot Test Command', type: :cli do
       allow(Onetime).to receive(:boot!).and_raise(StandardError.new('Test error'))
       allow(ARGV).to receive(:any?).and_return(true)
 
-      output = capture_output do
-        expect {
-          run_cli_command('boot-test', '--verbose')
-        }.to raise_error(SystemExit)
-      end
+      output = nil
+      expect {
+        output = run_cli_command('boot-test', '--verbose')
+      }.to raise_error(SystemExit)
 
       expect(output[:stderr]).to include('Backtrace')
     end

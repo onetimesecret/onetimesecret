@@ -97,11 +97,40 @@ RSpec.configure do |config|
     @last_exit_code = nil
 
     # Stub out model classes that tests will mock
-    stub_const('Onetime::Models', Module.new) unless defined?(Onetime::Models)
-    stub_const('Onetime::Models::Domain', Class.new) unless defined?(Onetime::Models::Domain)
-    stub_const('Onetime::Models::Organization', Class.new) unless defined?(Onetime::Models::Organization)
-    stub_const('Onetime::Models::Customer', Class.new) unless defined?(Onetime::Models::Customer)
-    stub_const('Onetime::Migration', Class.new) unless defined?(Onetime::Migration)
+    # Use Module/Class that allows method stubbing via RSpec
+    unless defined?(Onetime::Models)
+      stub_const('Onetime::Models', Module.new)
+    end
+
+    # Create stub classes with methods that can be mocked
+    unless defined?(Onetime::Models::Domain)
+      domain_class = Class.new do
+        def self.all; end
+        def self.load(_id); end
+      end
+      stub_const('Onetime::Models::Domain', domain_class)
+    end
+
+    unless defined?(Onetime::Models::Organization)
+      org_class = Class.new do
+        def self.load(_id); end
+      end
+      stub_const('Onetime::Models::Organization', org_class)
+    end
+
+    unless defined?(Onetime::Models::Customer)
+      customer_class = Class.new do
+        def self.all; end
+      end
+      stub_const('Onetime::Models::Customer', customer_class)
+    end
+
+    unless defined?(Onetime::Migration)
+      migration_class = Class.new do
+        def self.run(run: false); end
+      end
+      stub_const('Onetime::Migration', migration_class)
+    end
 
     # Prevent actual application boot by default
     allow(OT).to receive(:boot!)
