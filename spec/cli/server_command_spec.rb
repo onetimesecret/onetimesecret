@@ -151,8 +151,10 @@ RSpec.describe 'Server Command', type: :cli do
 
     it 'rejects config file with command-line options' do
       expect {
-        run_cli_command_quietly('server', 'config/puma.rb', '--port', '8080')
-      }.to raise_error(SystemExit)
+        run_cli_command('server', 'config/puma.rb', '--port', '8080')
+      }.to raise_error(SystemExit) do |error|
+        expect(error.status).to eq(1)
+      end
     end
   end
 

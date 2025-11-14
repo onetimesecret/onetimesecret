@@ -96,6 +96,13 @@ RSpec.configure do |config|
     # Reset exit code before each test
     @last_exit_code = nil
 
+    # Stub out model classes that tests will mock
+    stub_const('Onetime::Models', Module.new) unless defined?(Onetime::Models)
+    stub_const('Onetime::Models::Domain', Class.new) unless defined?(Onetime::Models::Domain)
+    stub_const('Onetime::Models::Organization', Class.new) unless defined?(Onetime::Models::Organization)
+    stub_const('Onetime::Models::Customer', Class.new) unless defined?(Onetime::Models::Customer)
+    stub_const('Onetime::Migration', Class.new) unless defined?(Onetime::Migration)
+
     # Prevent actual application boot by default
     allow(OT).to receive(:boot!)
     allow(Onetime).to receive(:boot!)

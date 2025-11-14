@@ -62,18 +62,15 @@ module Onetime
           Port: port,
         }
 
-        case [config_file, server]
-        when [String, _]
+        if config_file
           config.merge!(config_files: config_file)
-
-        when [nil, 'puma']
+        elsif server == 'puma'
           thread_config = parse_threads(threads)
           config.merge!(
             Threads: "#{thread_config[:min]}:#{thread_config[:max]}",
             Workers: workers,
           )
-
-        when [nil, 'thin']
+        elsif server == 'thin'
           # Thin does not support threads or workers
         end
 

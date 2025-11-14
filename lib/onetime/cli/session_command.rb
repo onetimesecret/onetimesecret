@@ -147,15 +147,42 @@ module Onetime
       end
     end
 
+    # Default session command (shows usage)
+    class SessionCommand < Dry::CLI::Command
+      desc 'Session management and inspection'
+
+      def call(**)
+        puts '=' * 80
+        puts 'Session Inspector'
+        puts '=' * 80
+        puts
+        puts 'Usage: ots session <subcommand> [options]'
+        puts
+        puts 'Available subcommands:'
+        puts '  inspect <session-id>              Show detailed session information'
+        puts '  list [--limit N]                  List active sessions'
+        puts '  search <email-or-custid>          Find sessions for a user'
+        puts '  delete <session-id> [--force]     Delete a session'
+        puts '  clean                              Remove expired sessions'
+        puts
+      end
+    end
+
     # Inspect session command
     class SessionInspectCommand < Command
       include SessionHelpers
 
       desc 'Show detailed session information'
 
-      argument :session_id, type: :string, required: true, desc: 'Session ID'
+      argument :session_id, type: :string, required: false, desc: 'Session ID'
 
-      def call(session_id:, **)
+      def call(session_id: nil, **)
+        unless session_id
+          puts 'Error: Session ID required'
+          puts 'Usage: ots session inspect <session-id>'
+          return
+        end
+
         boot_application!
 
         puts '=' * 80
@@ -245,9 +272,14 @@ module Onetime
 
       desc 'Find sessions for a user'
 
-      argument :search_term, type: :string, required: true, desc: 'Email or customer ID to search'
+      argument :search_term, type: :string, required: false, desc: 'Email or customer ID to search'
 
-      def call(search_term:, **)
+      def call(search_term: nil, **)
+        unless search_term
+          puts 'Error: Email or customer ID required'
+          puts 'Usage: ots session search <email-or-custid>'
+          return
+        end
         boot_application!
 
         puts "Searching for sessions matching: #{search_term}"
@@ -292,12 +324,17 @@ module Onetime
 
       desc 'Delete a session'
 
-      argument :session_id, type: :string, required: true, desc: 'Session ID'
+      argument :session_id, type: :string, required: false, desc: 'Session ID'
 
       option :force, type: :boolean, default: false,
              desc: 'Skip confirmation prompt'
 
-      def call(session_id:, force: false, **)
+      def call(session_id: nil, force: false, **)
+        unless session_id
+          puts 'Error: Session ID required'
+          puts 'Usage: ots session delete <session-id> [--force]'
+          return
+        end
         boot_application!
 
         dbclient    = Familia.dbclient
@@ -365,6 +402,7 @@ module Onetime
     end
 
     # Register session commands
+    register 'session', SessionCommand
     register 'session inspect', SessionInspectCommand
     register 'session list', SessionListCommand
     register 'session search', SessionSearchCommand
