@@ -40,7 +40,7 @@ gem 'semantic_logger', '~> 4.17'
 gem 'json_schemer'
 
 # String and data processing
-gem 'drydock', '~> 1.0.0'
+gem 'dry-cli', '~> 1.2'
 gem 'fastimage', '~> 2.4'
 gem 'mail'
 gem 'mustache'

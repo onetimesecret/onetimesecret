@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'drydock'
+require 'dry/cli'
 require 'onetime'
 require 'onetime/models'
 require 'onetime/migration'
@@ -10,38 +10,64 @@ require 'onetime/migration'
 require 'v2/logic'
 
 module Onetime
+  module CLI
+    extend Dry::CLI::Registry
 
-  class CLI < Drydock::Command
-    def init
-      # Make sure all the models are loaded before calling boot
-      OT.boot! :cli
+    # Base command class that boots the application
+    class Command < Dry::CLI::Command
+      def boot_application!
+        # Make sure all the models are loaded before calling boot
+        OT.boot! :cli
+      end
+
+      protected
+
+      def require_sudo
+        return if Process.uid.zero?
+
+        raise 'Must run as root or with sudo'
+      end
+
+      def verbose?
+        ARGV.any? { |arg| ['-v', '--verbose'].include?(arg) }
+      end
+
+      def debug?
+        OT.debug?
+      end
     end
 
-    private
+    # Command class that delays boot (for commands that handle boot themselves)
+    class DelayBootCommand < Dry::CLI::Command
+      protected
 
-    def require_sudo
-      return if Process.uid.zero?
+      def require_sudo
+        return if Process.uid.zero?
 
-      raise 'Must run as root or with sudo'
+        raise 'Must run as root or with sudo'
+      end
+
+      def verbose?
+        ARGV.any? { |arg| ['-v', '--verbose'].include?(arg) }
+      end
+
+      def debug?
+        OT.debug?
+      end
     end
-  end
-
-  class CLI::DelayBoot < Drydock::Command
   end
 end
 
 # Load CLI commands
+require_relative 'cli/simple_commands'
+require_relative 'cli/server_command'
+require_relative 'cli/boot_test_command'
 require_relative 'cli/migrate_command'
-require_relative 'cli/change_email_command'
 require_relative 'cli/migrate_redis_data_command'
 require_relative 'cli/sync_auth_accounts_command'
 require_relative 'cli/customers_command'
 require_relative 'cli/test_data_command'
 require_relative 'cli/domains_command'
+require_relative 'cli/change_email_command'
 require_relative 'cli/session_command'
-require_relative 'cli/server_command'
-
-require_relative 'cli/initializers_command'
-require_relative 'cli/validate_command'
-require_relative 'cli/config_command'
-require_relative 'cli/boot_test_command'
+require_relative 'cli/totp_command'
