@@ -1,22 +1,24 @@
 #!/usr/bin/env ts-node
 /**
- * Locale Migration Script
+ * Locale Feature Splitter Script (Step 2)
  *
- * Splits a single locale JSON file into multiple files based on feature domains.
+ * Splits web.json files into multiple feature-domain-specific files.
  *
  * Usage:
- *   ts-node split-locale.ts <locale-file> [<locale-file2> ...]
+ *   ts-node split-locale-step2.ts <web-json-file> [<web-json-file2> ...]
  *
  * Example:
- *   ts-node split-locale.ts src/locales/en.json
- *   ts-node split-locale.ts src/locales/en.json src/locales/fr.json
+ *   ts-node split-locale-step2.ts src/locales/en/web.json
+ *   ts-node split-locale-step2.ts src/locales/en/web.json src/locales/fr/web.json
  *
- * For each input file (e.g., src/locales/en.json), this creates:
- *   - Directory: src/locales/en/
- *   - 16 split files based on feature domains
+ * For each input file (e.g., src/locales/en/web.json), this creates
+ * 16 feature-specific files in the same directory:
+ *   - src/locales/en/_common.json
+ *   - src/locales/en/auth.json
+ *   - etc.
  *
- * The split preserves the exact JSON structure. Combining the split files
- * will produce an identical JSON object to the original.
+ * This is Step 2 of a two-step process. Run split-locale-step1.ts first
+ * to create web.json from the original locale file.
  */
 
 import * as fs from 'fs';
@@ -189,20 +191,8 @@ function splitLocaleFile(inputFilePath: string): void {
 
   const inputData: LocaleData = JSON.parse(fs.readFileSync(inputFilePath, 'utf-8'));
 
-  // Create output directory
-  const inputDir = path.dirname(inputFilePath);
-  const inputBasename = path.basename(inputFilePath, path.extname(inputFilePath));
-  const outputDir = path.join(inputDir, inputBasename);
-
-  ensureDirectoryExists(outputDir);
-
-  // Extract all top-level keys except 'web'
-  const flatKeys: any = {};
-  for (const [key, value] of Object.entries(inputData)) {
-    if (key !== 'web') {
-      flatKeys[key] = value;
-    }
-  }
+  // Output to the same directory as the input file
+  const outputDir = path.dirname(inputFilePath);
 
   // Check if we have a 'web' top-level key
   if (!inputData.web) {
@@ -251,15 +241,9 @@ function splitLocaleFile(inputFilePath: string): void {
     }
 
     // Build output content with web wrapper
-    const outputContent: any = {};
-
-    // Add flat keys to common.json
-    if (mapping.filename === 'common.json' && Object.keys(flatKeys).length > 0) {
-      Object.assign(outputContent, flatKeys);
-    }
-
-    // Add web content
-    outputContent.web = fileContent;
+    const outputContent: any = {
+      web: fileContent
+    };
 
     const outputPath = path.join(outputDir, mapping.filename);
     fs.writeFileSync(outputPath, JSON.stringify(outputContent, null, 2) + '\n', 'utf-8');
@@ -327,22 +311,23 @@ function verifyReversibility(originalPath: string, splitDir: string): boolean {
   const originalData = JSON.parse(fs.readFileSync(originalPath, 'utf-8'));
   const combinedData: any = { web: {} };
 
-  // Read all split files and combine (exclude debug directory)
-  const files = fs
-    .readdirSync(splitDir)
-    .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
+  // Read all split files and combine (exclude source files and debug directory)
+  const sourceFileName = path.basename(originalPath);
+  const files = fs.readdirSync(splitDir)
+    .filter(f => {
+      // Exclude the original source file (web.json, email.json, uncategorized.json)
+      // Exclude directories
+      // Include all feature files including _common.json
+      return f.endsWith('.json') &&
+             f !== sourceFileName &&
+             f !== '_debug' &&
+             !['web.json', 'email.json', 'uncategorized.json'].includes(f);
+    })
     .sort(); // Sort for consistent ordering
 
   for (const file of files) {
     const filePath = path.join(splitDir, file);
     const fileData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-
-    // Merge all top-level keys except 'web'
-    for (const [key, value] of Object.entries(fileData)) {
-      if (key !== 'web') {
-        combinedData[key] = value;
-      }
-    }
 
     if (fileData.web) {
       // Merge web contents
@@ -372,17 +357,15 @@ function verifyReversibility(originalPath: string, splitDir: string): boolean {
     const debugDir = path.join(splitDir, '_debug');
     ensureDirectoryExists(debugDir);
     fs.writeFileSync(
-      path.join(debugDir, 'original-sorted.json'),
+      path.join(debugDir, 'step2-original-sorted.json'),
       JSON.stringify(sortObjectKeys(originalData), null, 2) + '\n'
     );
     fs.writeFileSync(
-      path.join(debugDir, 'combined-sorted.json'),
+      path.join(debugDir, 'step2-combined-sorted.json'),
       JSON.stringify(sortObjectKeys(combinedData), null, 2) + '\n'
     );
     console.error(`Debug files written to ${debugDir}/`);
-    console.error(
-      `Compare with: diff -u ${debugDir}/original-sorted.json ${debugDir}/combined-sorted.json`
-    );
+    console.error(`Compare with: diff -u ${debugDir}/step2-original-sorted.json ${debugDir}/step2-combined-sorted.json`);
 
     return false;
   }
@@ -393,12 +376,12 @@ function main() {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
-    console.error(`Usage: ts-node split-locale.ts <locale-file> [<locale-file2> ...]`);
-    console.error(`Example: ts-node split-locale.ts src/locales/en.json`);
+    console.error(`Usage: ts-node split-locale-step2.ts <web-json-file> [<web-json-file2> ...]`);
+    console.error(`Example: ts-node split-locale-step2.ts src/locales/en/web.json`);
     process.exit(1);
   }
 
-  console.log('🌍 Locale Migration Script');
+  console.log('🌍 Locale Feature Splitter Script (Step 2)');
   console.log('━'.repeat(60));
 
   for (const filePath of args) {
@@ -406,9 +389,7 @@ function main() {
       splitLocaleFile(filePath);
 
       // Verify
-      const inputDir = path.dirname(filePath);
-      const inputBasename = path.basename(filePath, path.extname(filePath));
-      const outputDir = path.join(inputDir, inputBasename);
+      const outputDir = path.dirname(filePath);
 
       verifyReversibility(filePath, outputDir);
     } catch (error) {
