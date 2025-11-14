@@ -86,27 +86,12 @@ export default [
   },
 
   /**
-   * Exclude Config Files from Type-Aware Linting
-   * Applies globally to prevent config files from being processed by
-   * type-aware TypeScript rules that require project references
-   */
-  {
-    ignores: ['*.config.ts', '*.config.mjs', '*.config.js'],
-  },
-
-  /**
    * Global Project Configuration
-   * Applies to all JavaScript, TypeScript and Vue files
+   * Applies to all JavaScript, TypeScript and Vue files in src/
    * Handles basic ES features and import ordering
    */
   {
-    files: [
-      'src/**/*.{js,mjs,cjs,ts,vue}',
-      '!src/tests/**',
-      'eslint.config.ts',
-      'tailwind.config.ts',
-      'vite.config.ts',
-    ],
+    files: ['src/**/*.{js,mjs,cjs,ts,vue}', '!src/tests/**'],
     languageOptions: {
       globals: {
         ...globals.browser,
@@ -167,8 +152,8 @@ export default [
   },
   /**
    * Typescript Rules
-   * Applies to .ts et al. files
-   * Configures TypeScript, i18n
+   * Applies to .ts files in src/ only (excludes root config files)
+   * Configures TypeScript with type-aware linting
    */
   {
     files: ['src/**/*.{ts,d.ts}', '!src/tests/**'],
@@ -294,7 +279,7 @@ export default [
 
   /**
    * Vue Component Rules
-   * Specific rules for Vue single-file components
+   * Specific rules for Vue single-file components in src/ only
    */
   {
     files: ['src/**/*.vue', '!src/tests/**'],
@@ -532,6 +517,61 @@ export default [
       '@typescript-eslint/no-empty-function': 'off', // Allow empty mock functions
       '@typescript-eslint/no-non-null-assertion': 'off', // Allow non-null assertions in tests
       'no-console': 'off', // Allow console usage in tests
+    },
+  },
+
+  /**
+   * Config Files Override (Must be last)
+   * Ensures config files are linted without type-aware rules
+   * Overrides any previous configurations that might apply project references
+   */
+  {
+    files: ['*.config.ts', '*.config.mjs', '*.config.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        process: true,
+      },
+      parser: parserTs,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        // Explicitly NO project - config files aren't in tsconfig.json
+        project: null,
+      },
+    },
+    plugins: {
+      import: importPlugin,
+      '@typescript-eslint': tseslint,
+    },
+    rules: {
+      'no-undef': 'error',
+      '@typescript-eslint/no-unused-vars': 'error',
+      // Explicitly disable all type-aware rules
+      '@typescript-eslint/await-thenable': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/no-for-in-array': 'off',
+      '@typescript-eslint/no-implied-eval': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/restrict-plus-operands': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      'import/order': [
+        'warn',
+        {
+          groups: [['builtin', 'external', 'internal']],
+          pathGroups: [{ pattern: '@/**', group: 'internal' }],
+          pathGroupsExcludedImportTypes: ['builtin'],
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+        },
+      ],
     },
   },
 ];

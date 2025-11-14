@@ -13,7 +13,7 @@
     "config:validate": "yamale -s etc/config.schema.yaml etc/config.yaml",
     "dev": "vite --host",
     "dev:local": "vite --config vite.config.local.ts --host",
-    "format": "prettier --write .",
+    "format": "prettier --write",
     "format:check": "prettier --check .",
     "format:src": "prettier --write src/",
     "format:ruby": "prettier --write \"apps/**/*.rb\" \"lib/**/*.rb\"",
