@@ -39,6 +39,10 @@ module Core
 
       # Locale is handled by Otto::Locale::Middleware
       # Available via env['otto.locale']
+      # Set I18n.locale to match the detected locale
+      if env['otto.locale']
+        I18n.locale = env['otto.locale'].to_sym
+      end
 
       http_logger.debug "Request setup complete", { nonce: nonce[0, 8] } if OT.debug?
     end

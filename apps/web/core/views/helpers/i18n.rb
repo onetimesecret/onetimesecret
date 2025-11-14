@@ -22,8 +22,9 @@ module Core
 
       attr_reader :i18n_enabled
 
-      # Retrieves localized content for the view, implementing fallback behavior
-      # when translations aren't available for the requested locale.
+      # Retrieves localized content for the view using ruby-i18n gem,
+      # implementing fallback behavior when translations aren't available
+      # for the requested locale.
       #
       # @note PRODUCTION VS TESTING IMPACT:
       #   This implementation memoizes based on the instance variable being defined,
@@ -45,22 +46,27 @@ module Core
 
         return @i18n_cache[locale] if @i18n_cache.key?(locale)
 
+        # Set the I18n locale
+        I18n.locale = locale.to_sym
+
         pagename = self.class.pagename
-        messages = OT.locales.fetch(locale, {})
+
+        # Get translations using I18n.t with fallback support
+        web_messages = I18n.t('web', locale: locale, default: {})
 
         # Fall back to default locale if translations not available
-        if messages.empty?
+        if web_messages.empty?
           app_logger.warn "Locale not found, falling back to default", {
             requested_locale: locale,
-            available_locales: OT.locales.keys,
+            available_locales: I18n.available_locales,
             supported_locales: OT.supported_locales,
             page: pagename
           }
-          messages = OT.locales.fetch(OT.default_locale, {})
+          I18n.locale = OT.default_locale.to_sym
+          web_messages = I18n.t('web', default: {})
         end
 
         # Safe access to nested hash structure
-        web_messages    = messages.fetch(:web, {})
         common_messages = web_messages.fetch(:COMMON, {})
         page_messages   = web_messages.fetch(pagename, {})
 
