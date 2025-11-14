@@ -58,6 +58,7 @@ module Onetime
             signup: false,
             autoverify: false,
             colonels: [],
+            allowed_signup_domains: [],
           },
         },
         internationalization: {
