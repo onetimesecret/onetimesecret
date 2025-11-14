@@ -160,9 +160,11 @@ export default [
    * Typescript Rules
    * Applies to .ts et al. files
    * Configures TypeScript, i18n
+   * Excludes root config files from type-aware linting
    */
   {
     files: ['src/**/*.{ts,d.ts}', '!src/tests/**'],
+    ignores: ['*.config.ts', '*.config.mjs', '*.config.js'],
     languageOptions: {
       parserOptions: {
         parser: parserTs,
@@ -286,9 +288,11 @@ export default [
   /**
    * Vue Component Rules
    * Specific rules for Vue single-file components
+   * Excludes root config files from type-aware linting
    */
   {
     files: ['src/**/*.vue', '!src/tests/**'],
+    ignores: ['*.config.ts', '*.config.mjs', '*.config.js'],
     languageOptions: {
       parser: vueEslintParser,
       parserOptions: {
