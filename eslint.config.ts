@@ -86,6 +86,15 @@ export default [
   },
 
   /**
+   * Exclude Config Files from Type-Aware Linting
+   * Applies globally to prevent config files from being processed by
+   * type-aware TypeScript rules that require project references
+   */
+  {
+    ignores: ['*.config.ts', '*.config.mjs', '*.config.js'],
+  },
+
+  /**
    * Global Project Configuration
    * Applies to all JavaScript, TypeScript and Vue files
    * Handles basic ES features and import ordering
@@ -160,11 +169,9 @@ export default [
    * Typescript Rules
    * Applies to .ts et al. files
    * Configures TypeScript, i18n
-   * Excludes root config files from type-aware linting
    */
   {
     files: ['src/**/*.{ts,d.ts}', '!src/tests/**'],
-    ignores: ['*.config.ts', '*.config.mjs', '*.config.js'],
     languageOptions: {
       parserOptions: {
         parser: parserTs,
@@ -288,11 +295,9 @@ export default [
   /**
    * Vue Component Rules
    * Specific rules for Vue single-file components
-   * Excludes root config files from type-aware linting
    */
   {
     files: ['src/**/*.vue', '!src/tests/**'],
-    ignores: ['*.config.ts', '*.config.mjs', '*.config.js'],
     languageOptions: {
       parser: vueEslintParser,
       parserOptions: {
