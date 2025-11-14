@@ -9,7 +9,6 @@ interface TextareaOptions {
   onContentChange?: (content: string) => void;
 }
 
-/* eslint-disable max-lines-per-function */
 export function useTextarea(options: TextareaOptions) {
   const content = ref(options.initialContent || '');
   const charCount = ref(0);

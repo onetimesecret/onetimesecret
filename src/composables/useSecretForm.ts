@@ -1,8 +1,8 @@
 // src/composables/useSecretForm.ts
 
 import { transforms } from '@/schemas/transforms';
-import { reactive } from 'vue';
 import { WindowService } from '@/services/window.service';
+import { reactive } from 'vue';
 import { z } from 'zod';
 
 export interface SecretFormState {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-  import { computed, onMounted, onUnmounted, ref } from 'vue';
   import { useLanguage } from '@/composables/useLanguage';
+  import { computed, onMounted, onUnmounted, ref } from 'vue';
 
   import OIcon from './icons/OIcon.vue';
 

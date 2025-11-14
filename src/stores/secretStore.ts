@@ -41,7 +41,7 @@ export type SecretStore = {
 /**
  * Store for managing secret records and their details
  */
-/* eslint-disable max-lines-per-function */
+
 export const useSecretStore = defineStore('secrets', () => {
   const $api = inject('api') as AxiosInstance;
 

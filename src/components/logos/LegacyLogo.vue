@@ -1,10 +1,9 @@
 <!-- src/components/logos/LegacyLogo.vue -->
 
 <script setup lang="ts">
-  import { computed } from 'vue';
   import OnetimeSecretIcon from '@/components/icons/OnetimeSecretIcon.vue';
-
 import { type LogoConfig } from '@/types/ui/layouts';
+  import { computed } from 'vue';
 
   /**
    * Props for controlling logo appearance
@@ -36,7 +35,7 @@ import { type LogoConfig } from '@/types/ui/layouts';
 
 <template>
   <div
-    class="flex font-brand items-center gap-3"
+    class="flex items-center gap-3 font-brand"
     :aria-label="ariaLabel">
     <a
       :href="props.href"
@@ -53,15 +52,15 @@ import { type LogoConfig } from '@/types/ui/layouts';
       <div
         v-if="props.showSiteName && props.siteName"
         class="relative flex flex-col">
-        <div :class="[textSize, 'font-bold font-brand leading-tight']">
+        <div :class="[textSize, 'font-brand font-bold leading-tight']">
           {{ props.siteName }}
         </div>
         <!-- Colonel Overlay -->
         <div
           v-if="props.isColonelArea"
-          class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          class="pointer-events-none absolute inset-0 flex items-center justify-center">
           <span
-            class="-rotate-6 tracking-widest transform-gpu rounded-lg bg-brand-500 dark:bg-brand-600/90 px-2 py-1 text-sm font-bold text-white shadow-lg"
+            class="-rotate-6 transform-gpu rounded-lg bg-brand-500 px-2 py-1 text-sm font-bold tracking-widest text-white shadow-lg dark:bg-brand-600/90"
             style="transform-origin: center;">
             Colonels Only
           </span>
@@ -70,7 +69,7 @@ import { type LogoConfig } from '@/types/ui/layouts';
         <div
           class="text-xs text-gray-500 transition-colors dark:text-gray-400"
           aria-hidden="true">
-            {{ props.tagLine || t('web.COMMON.tagline') }}
+          {{ props.tagLine || t('web.COMMON.tagline') }}
         </div>
       </div>
     </a>

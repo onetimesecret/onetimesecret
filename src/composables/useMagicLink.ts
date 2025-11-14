@@ -1,11 +1,12 @@
 // src/composables/useMagicLink.ts
 
-import { inject, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useCsrfStore } from '@/stores/csrfStore';
 import type { AxiosInstance } from 'axios';
+import { inject, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+
 import { extractError } from './helpers/magicLinkHelpers';
 
 type MagicLinkSuccessResponse = { success: string };

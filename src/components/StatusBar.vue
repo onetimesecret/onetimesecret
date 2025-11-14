@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useNotificationsStore } from '@/stores/notificationsStore';
 import OIcon from '@/components/icons/OIcon.vue';
+import { useNotificationsStore } from '@/stores/notificationsStore';
 import { computed } from 'vue';
 
 const { t, te } = useI18n();
@@ -73,7 +73,6 @@ const statusConfig = computed(() => {
 });
 </script>
 
-
 <script lang="ts">
 /**
  * StatusBar Component
@@ -125,7 +124,7 @@ const statusConfig = computed(() => {
       leave-to-class="opacity-0">
       <div
         v-if="notifications.isVisible"
-        class="fixed inset-x-0 flex items-center justify-between px-4 py-3 shadow-lg transition-colors duration-200 z-50"
+        class="fixed inset-x-0 z-50 flex items-center justify-between px-4 py-3 shadow-lg transition-colors duration-200"
         :class="[
           statusConfig?.classes,
           effectivePosition === 'top' ? 'top-0' : 'bottom-0'
@@ -138,8 +137,7 @@ const statusConfig = computed(() => {
             :name="statusConfig?.icon || 'information'"
             class="size-5 transition-all duration-200"
             :class="statusConfig?.iconClasses"
-            aria-hidden="true"
-          />
+            aria-hidden="true" />
           <span
             class="text-sm font-medium transition-all duration-200"
             :class="statusConfig?.textClasses">
@@ -161,8 +159,7 @@ const statusConfig = computed(() => {
             <OIcon
               collection="mdi"
               name="close"
-              class="size-5"
-            />
+              class="size-5" />
           </button>
         </div>
 

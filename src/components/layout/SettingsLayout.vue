@@ -1,9 +1,9 @@
 <!-- src/components/layout/SettingsLayout.vue -->
 
 <script setup lang="ts">
+import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import OIcon from '@/components/icons/OIcon.vue';
 
 const route = useRoute();
 const { t } = useI18n();
@@ -212,7 +212,7 @@ const isParentActive = (item: NavigationItem): boolean => {
 
       <!-- Main Content Area -->
       <main class="min-w-0 flex-1">
-        <slot ></slot>
+        <slot></slot>
       </main>
     </div>
   </div>

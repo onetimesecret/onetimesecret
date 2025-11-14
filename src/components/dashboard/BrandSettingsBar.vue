@@ -83,8 +83,7 @@
                 :options="cornerStyleOptions"
                 :label="t('corner-style')"
                 :display-map="cornerStyleDisplayMap"
-                :icon-map="cornerStyleIconMap"
-              />
+                :icon-map="cornerStyleIconMap" />
               <CycleButton
                 :model-value="modelValue.font_family"
                 @update:model-value="(value) => updateBrandSetting('font_family', value)"
@@ -92,8 +91,7 @@
                 :options="fontOptions"
                 :label="t('font-family')"
                 :display-map="fontDisplayMap"
-                :icon-map="fontIconMap"
-              />
+                :icon-map="fontIconMap" />
             </div>
 
             <!-- Instructions -->
@@ -106,7 +104,6 @@
               <slot name="language-button"></slot>
             </div>
           </div>
-
 
           <!-- Save Button -->
           <div class="ml-auto shrink-0">

@@ -6,7 +6,6 @@ import { ref } from 'vue';
 
 const { t } = useI18n();
 
-
 interface Props {
   apitoken: string | undefined;
   onCopy?: () => void;
@@ -48,8 +47,7 @@ const handleCopy = () => {
           <OIcon
             collection="heroicons"
             :name="copied ? 'check' : 'clipboard'"
-            class="size-6"
-          />
+            class="size-6" />
         </button>
       </div>
     </div>

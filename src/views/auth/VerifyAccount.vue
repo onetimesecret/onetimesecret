@@ -2,9 +2,9 @@
 <!-- src/views/auth/VerifyAccount.vue -->
 
 <script setup lang="ts">
+import { useAuth } from '@/composables/useAuth';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { useAuth } from '@/composables/useAuth';
 
   const route = useRoute();
   const { t } = useI18n();
@@ -75,9 +75,9 @@ import { useAuth } from '@/composables/useAuth';
         v-if="isLoading"
         class="rounded-md bg-blue-50 p-4 dark:bg-blue-900/20">
         <div class="flex">
-          <div class="flex-shrink-0">
+          <div class="shrink-0">
             <svg
-              class="h-5 w-5 animate-spin text-blue-400"
+              class="size-5 animate-spin text-blue-400"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -108,9 +108,9 @@ import { useAuth } from '@/composables/useAuth';
         v-else-if="verificationComplete && verificationSuccess"
         class="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
         <div class="flex">
-          <div class="flex-shrink-0">
+          <div class="shrink-0">
             <svg
-              class="h-5 w-5 text-green-400"
+              class="size-5 text-green-400"
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"
               fill="currentColor"
@@ -141,9 +141,9 @@ import { useAuth } from '@/composables/useAuth';
           class="rounded-md bg-red-50 p-4 dark:bg-red-900/20"
           role="alert">
           <div class="flex">
-            <div class="flex-shrink-0">
+            <div class="shrink-0">
               <svg
-                class="h-5 w-5 text-red-400"
+                class="size-5 text-red-400"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
@@ -168,9 +168,9 @@ import { useAuth } from '@/composables/useAuth';
         <!-- Helpful information -->
         <div class="rounded-md bg-blue-50 p-4 dark:bg-blue-900/20">
           <div class="flex">
-            <div class="flex-shrink-0">
+            <div class="shrink-0">
               <svg
-                class="h-5 w-5 text-blue-400"
+                class="size-5 text-blue-400"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
@@ -201,12 +201,12 @@ import { useAuth } from '@/composables/useAuth';
           <div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <router-link
               to="/signin"
-              class="inline-flex font-brand justify-center rounded-md bg-brand-600 px-4 py-2 text-lg  text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+              class="inline-flex justify-center rounded-md bg-brand-600 px-4 py-2 font-brand text-lg  text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
               {{ t('web.login.button_sign_in') }}
             </router-link>
             <router-link
               to="/signup"
-              class="inline-flex font-brand justify-center rounded-md bg-white px-4 py-2 text-lg  text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:hover:bg-gray-700">
+              class="inline-flex justify-center rounded-md bg-white px-4 py-2 font-brand text-lg  text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:hover:bg-gray-700">
               {{ t('web.auth.verify.create-new-account') }}
             </router-link>
           </div>
@@ -227,9 +227,9 @@ import { useAuth } from '@/composables/useAuth';
         class="space-y-6">
         <div class="rounded-md bg-yellow-50 p-4 dark:bg-yellow-900/20">
           <div class="flex">
-            <div class="flex-shrink-0">
+            <div class="shrink-0">
               <svg
-                class="h-5 w-5 text-yellow-400"
+                class="size-5 text-yellow-400"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
@@ -255,7 +255,7 @@ import { useAuth } from '@/composables/useAuth';
           <div>
             <router-link
               to="/signin"
-              class="font-medium font-brand text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+              class="font-brand font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
               {{ t('web.login.button_sign_in') }}
             </router-link>
           </div>

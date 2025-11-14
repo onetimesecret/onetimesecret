@@ -11,7 +11,6 @@
 
 const { t } = useI18n();
 
-
   const productIdentity = useProductIdentity();
 
   withDefaults(defineProps<LayoutProps>(), {});

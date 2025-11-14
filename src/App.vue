@@ -1,10 +1,10 @@
 <!-- src/App.vue -->
 
 <script setup lang="ts">
+  import { iconLibraryComponents } from '@/components/icons/sprites';
+  import CriticalSprites from '@/components/icons/sprites/CriticalSprites.vue';
   import StatusBar from '@/components/StatusBar.vue';
   import QuietLayout from '@/layouts/QuietLayout.vue';
-  import CriticalSprites from '@/components/icons/sprites/CriticalSprites.vue';
-  import { iconLibraryComponents } from '@/components/icons/sprites';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, ref, onMounted, type Component, markRaw } from 'vue';
   import { useRoute } from 'vue-router';

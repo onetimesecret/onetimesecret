@@ -1,10 +1,10 @@
 <!-- src/components/layout/BillingLayout.vue -->
 
 <script setup lang="ts">
+import OIcon from '@/components/icons/OIcon.vue';
+import { useOrganizationStore } from '@/stores/organizationStore';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { useOrganizationStore } from '@/stores/organizationStore';
-import OIcon from '@/components/icons/OIcon.vue';
 
 const route = useRoute();
 const { t } = useI18n();

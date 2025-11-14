@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { type PropType, computed } from 'vue';
+
   import type { IconSet } from './sprites';
   import { iconLibraries } from './sprites';
 
@@ -28,7 +29,9 @@
       :key="name">
       <div class="border-b pb-8 dark:border-gray-700">
         <div class="mb-4 flex items-baseline justify-between">
-          <h2 class="text-xl font-medium dark:text-gray-200">{{ name }}</h2>
+          <h2 class="text-xl font-medium dark:text-gray-200">
+            {{ name }}
+          </h2>
           <div
             v-if="getLibraryInfo(icons[0].prefix)"
             class="text-sm text-gray-600 dark:text-gray-400">
@@ -40,8 +43,8 @@
             v-for="icon in icons"
             :key="icon.id"
             class="flex flex-col items-center rounded border bg-white p-4 transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:shadow-gray-800">
-            <div class="flex h-12 w-12 items-center justify-center">
-              <svg class="h-8 w-8 text-gray-700 dark:text-gray-300">
+            <div class="flex size-12 items-center justify-center">
+              <svg class="size-8 text-gray-700 dark:text-gray-300">
                 <use :href="`#${icon.id}`" />
               </svg>
             </div>

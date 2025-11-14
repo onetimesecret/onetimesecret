@@ -3,7 +3,6 @@
 
 const { t } = useI18n();
 
-
   interface Props {
     disabled: boolean;
     withAsterisk: boolean;

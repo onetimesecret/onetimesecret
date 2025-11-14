@@ -1,12 +1,12 @@
 // src/schemas/errors/classifier.ts
 
 import { NavigationFailure, NavigationFailureType } from 'vue-router';
-
-import type { ApplicationError, ErrorType, ErrorSeverity, HttpErrorLike } from './types';
-import { errorGuards } from './guards';
-import { wrapError } from './wrapper';
-import { HTTP_STATUS_CODES } from './constants';
 import { ZodError } from 'zod';
+
+import { HTTP_STATUS_CODES } from './constants';
+import { errorGuards } from './guards';
+import type { ApplicationError, ErrorType, ErrorSeverity, HttpErrorLike } from './types';
+import { wrapError } from './wrapper';
 
 /**
  * Classifies errors into application-specific categories based on their properties.

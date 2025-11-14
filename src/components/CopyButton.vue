@@ -59,7 +59,7 @@
     <!-- prettier-ignore-attribute class -->
     <div
       v-if="showTooltip"
-      class="absolute bottom-1/2 right-full mr-2 z-50 flex items-center gap-2 rounded-md
+      class="absolute bottom-1/2 right-full z-50 mr-2 flex items-center gap-2 rounded-md
         bg-slate-900 px-3.5 py-2 text-sm text-white shadow-lg transition-all duration-300
         dark:bg-slate-700"
       :class="{

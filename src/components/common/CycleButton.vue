@@ -76,8 +76,7 @@
           collection=""
           :name="getCurrentIcon"
           class="size-5 transition-all duration-200"
-          :aria-hidden="true"
-        />
+          :aria-hidden="true" />
       </div>
     </button>
   </div>

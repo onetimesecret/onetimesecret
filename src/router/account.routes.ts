@@ -1,7 +1,7 @@
 // src/router/account.routes.ts
 
-import ExpandedHeader from '@/components/layout/ExpandedHeader.vue';
 import ExpandedFooter from '@/components/layout/ExpandedFooter.vue';
+import ExpandedHeader from '@/components/layout/ExpandedHeader.vue';
 import AccountLayout from '@/layouts/AccountLayout.vue';
 import { RouteRecordRaw } from 'vue-router';
 

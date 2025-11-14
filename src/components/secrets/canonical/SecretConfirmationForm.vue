@@ -114,8 +114,7 @@
             aria-required="true"
             :aria-invalid="error ? 'true' : undefined"
             :aria-errormessage="error ? 'passphrase-error' : undefined"
-            :aria-describedby="passphraseDescriptionId"
-          />
+            :aria-describedby="passphraseDescriptionId" />
         </div>
         <p
           v-if="error"

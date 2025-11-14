@@ -4,7 +4,6 @@ import { ref, computed } from 'vue';
 
 const { t } = useI18n();
 
-
 const currentIndex = ref(0);
 
 const nextTestimonial = () => {
@@ -35,8 +34,7 @@ const currentTestimonial = computed(() => testimonials[currentIndex.value]);
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-            />
+              d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
           </svg>
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('artificial-feedback') }}</span>
         </div>
@@ -55,8 +53,7 @@ const currentTestimonial = computed(() => testimonials[currentIndex.value]);
               <path
                 fill-rule="evenodd"
                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
-                clip-rule="evenodd"
-              />
+                clip-rule="evenodd" />
             </svg>
           </div>
           <div class="ml-3">

@@ -1,14 +1,13 @@
 // src/composables/useLanguage.ts
 
-import { ref, reactive, computed } from 'vue';
 import { useLanguageStore } from '@/stores/languageStore';
+import { ref, reactive, computed } from 'vue';
 
 import { useAsyncHandler, AsyncHandlerOptions } from './useAsyncHandler';
 
 const languageListeners = new Set<(locale: string) => void>();
 const isInitialized = ref(false);
 
-/* eslint-disable max-lines-per-function */
 export function useLanguage(options?: AsyncHandlerOptions) {
   const languageStore = useLanguageStore();
 

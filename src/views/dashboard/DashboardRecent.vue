@@ -72,7 +72,6 @@
 
 <template>
   <div class="container mx-auto min-w-[320px] max-w-2xl">
-
     <section
       :id="sectionId"
       aria-labelledby="dashboard-recent-heading"

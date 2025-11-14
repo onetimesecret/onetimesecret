@@ -32,24 +32,19 @@ defineProps<{
           y2="100%">
           <stop
             offset="0%"
-            stop-color="#ff0000"
-          />
+            stop-color="#ff0000" />
           <stop
             offset="25%"
-            stop-color="#ff69b4"
-          />
+            stop-color="#ff69b4" />
           <stop
             offset="50%"
-            stop-color="#ffff00"
-          />
+            stop-color="#ffff00" />
           <stop
             offset="75%"
-            stop-color="#ff4500"
-          />
+            stop-color="#ff4500" />
           <stop
             offset="100%"
-            stop-color="#ff0000"
-          />
+            stop-color="#ff0000" />
         </linearGradient>
         <linearGradient
           id="gradientAnimation"
@@ -63,34 +58,27 @@ defineProps<{
             from="0 .5 .5"
             to="360 .5 .5"
             dur="5s"
-            repeatCount="indefinite"
-          />
+            repeatCount="indefinite" />
           <stop
             offset="0%"
-            stop-color="#ff0000"
-          />
+            stop-color="#ff0000" />
           <stop
             offset="25%"
-            stop-color="#ff69b4"
-          />
+            stop-color="#ff69b4" />
           <stop
             offset="50%"
-            stop-color="#ffff00"
-          />
+            stop-color="#ffff00" />
           <stop
             offset="75%"
-            stop-color="#ff4500"
-          />
+            stop-color="#ff4500" />
           <stop
             offset="100%"
-            stop-color="#ff0000"
-          />
+            stop-color="#ff0000" />
         </linearGradient>
         <filter id="glow">
           <feGaussianBlur
             stdDeviation="2.5"
-            result="coloredBlur"
-          />
+            result="coloredBlur" />
           <feMerge>
             <feMergeNode in="coloredBlur" />
             <feMergeNode in="SourceGraphic" />
@@ -101,8 +89,7 @@ defineProps<{
         fill-rule="evenodd"
         d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
         clip-rule="evenodd"
-        filter="url(#glow)"
-      />
+        filter="url(#glow)" />
     </svg>
     <span v-if="text">{{ text }}</span>
   </router-link>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import type { LockoutStatus } from '@/types/auth';
+import { computed } from 'vue';
 
 const { t } = useI18n();
 
@@ -44,8 +44,7 @@ const hasAttemptsRemaining = computed(() =>
     <div
       v-if="isLocked"
       role="alert"
-      class="mb-4 rounded-lg bg-red-50 p-4 dark:bg-red-900/20"
-    >
+      class="mb-4 rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
       <div class="flex items-start">
         <i class="fas fa-lock mr-3 mt-0.5 text-red-600 dark:text-red-400"></i>
         <div class="flex-1">
@@ -59,7 +58,9 @@ const hasAttemptsRemaining = computed(() =>
           </p>
           <div class="mt-3 space-y-1 text-sm text-red-700 dark:text-red-400">
             <p>{{ t('web.auth.lockout.try-password-reset') }}</p>
-            <p class="text-xs">{{ t('web.auth.lockout.contact-support') }}</p>
+            <p class="text-xs">
+              {{ t('web.auth.lockout.contact-support') }}
+            </p>
           </div>
         </div>
       </div>
@@ -69,8 +70,7 @@ const hasAttemptsRemaining = computed(() =>
     <div
       v-else-if="hasAttemptsRemaining"
       role="alert"
-      class="mb-4 rounded-lg bg-yellow-50 p-4 dark:bg-yellow-900/20"
-    >
+      class="mb-4 rounded-lg bg-yellow-50 p-4 dark:bg-yellow-900/20">
       <div class="flex items-start">
         <i class="fas fa-exclamation-triangle mr-3 mt-0.5 text-yellow-600 dark:text-yellow-400"></i>
         <div class="flex-1">

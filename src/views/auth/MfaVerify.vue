@@ -3,8 +3,8 @@
 <script setup lang="ts">
   import AuthView from '@/components/auth/AuthView.vue';
   import OtpCodeInput from '@/components/auth/OtpCodeInput.vue';
-  import { useMfa } from '@/composables/useMfa';
   import { useAuth } from '@/composables/useAuth';
+  import { useMfa } from '@/composables/useMfa';
   import { useAuthStore } from '@/stores/authStore';
   import { ref, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
@@ -159,10 +159,11 @@
           </span>
 
           <!-- Loading state announcement (screen reader only) -->
-          <div v-if="isLoading"
-aria-live="polite"
-aria-atomic="true"
-class="sr-only">
+          <div
+            v-if="isLoading"
+            aria-live="polite"
+            aria-atomic="true"
+            class="sr-only">
             {{ t('web.COMMON.form-processing') }}
           </div>
 
@@ -205,9 +206,7 @@ class="sr-only">
             <div>
               <label
                 for="recovery-code"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >{{ t('web.auth.mfa.recovery-code-label') }}</label
-              >
+                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('web.auth.mfa.recovery-code-label') }}</label>
               <input
                 id="recovery-code"
                 v-model="recoveryCode"
@@ -242,10 +241,11 @@ class="sr-only">
             </button>
 
             <!-- Loading state announcement (screen reader only) -->
-            <div v-if="isLoading"
-aria-live="polite"
-aria-atomic="true"
-class="sr-only">
+            <div
+              v-if="isLoading"
+              aria-live="polite"
+              aria-atomic="true"
+              class="sr-only">
               {{ t('web.COMMON.form-processing') }}
             </div>
 
@@ -259,12 +259,12 @@ class="sr-only">
               </button>
               <div class="mt-3">
                 <button
-                @click="handleCancel"
-                type="button"
-                :disabled="isLoading"
-                class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-                {{ t('web.auth.mfa.cancel') }}
-              </button>
+                  @click="handleCancel"
+                  type="button"
+                  :disabled="isLoading"
+                  class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                  {{ t('web.auth.mfa.cancel') }}
+                </button>
               </div>
             </div>
           </form>

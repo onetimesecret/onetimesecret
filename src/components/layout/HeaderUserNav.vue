@@ -1,8 +1,8 @@
 <!-- src/components/layout/HeaderUserNav.vue -->
 
 <script setup lang="ts">
-  import { Customer } from '@/schemas/models';
   import OIcon from '@/components/icons/OIcon.vue';
+  import { Customer } from '@/schemas/models';
 
   defineProps<{
     cust: Customer;
@@ -35,9 +35,7 @@
     <span
       class="ml-2 text-gray-400"
       aria-hidden="true"
-      role="separator"
-      >|</span
-    >
+      role="separator">|</span>
   </div>
 </template>
 

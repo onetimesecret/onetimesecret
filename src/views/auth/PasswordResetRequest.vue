@@ -80,16 +80,15 @@ const handleSubmit = async () => {
             id="custidField"
             required
             :disabled="isLoading"
-            class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-300"
+            class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300"
             v-model="email"
-            :placeholder="t('web.COMMON.email_placeholder')"
-          />
+            :placeholder="t('web.COMMON.email_placeholder')" />
         </div>
         <div class="flex items-center justify-between">
           <button
             type="submit"
             :disabled="isLoading"
-            class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed dark:bg-brand-600 dark:hover:bg-brand-800">
+            class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-800">
             <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
             <span v-else>{{ t('request-reset') }}</span>
           </button>

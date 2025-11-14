@@ -3,6 +3,7 @@
 // Ensures modulepreload works in all browsers, improving
 // performance by preloading modules.
 import { createApp } from 'vue';
+
 import 'vite/modulepreload-polyfill';
 import App from './App.vue';
 import './assets/style.css';

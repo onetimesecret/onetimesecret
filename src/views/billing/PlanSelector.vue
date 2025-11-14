@@ -2,10 +2,10 @@
 
 <script setup lang="ts">
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
-import { BillingService, type Plan as BillingPlan } from '@/services/billing.service';
 import OIcon from '@/components/icons/OIcon.vue';
 import BillingLayout from '@/components/layout/BillingLayout.vue';
 import { classifyError } from '@/schemas/errors';
+import { BillingService, type Plan as BillingPlan } from '@/services/billing.service';
 import { useOrganizationStore } from '@/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';
 import { formatCurrency } from '@/types/billing';
@@ -63,7 +63,6 @@ const getPlanPricePerMonth = (plan: BillingPlan): number => {
   // For monthly plans, show the amount as-is
   return plan.amount;
 };
-
 
 const isPlanRecommended = (plan: BillingPlan): boolean => plan.tier === 'single_team';
 
@@ -303,8 +302,7 @@ onMounted(async () => {
                     collection="heroicons"
                     name="check"
                     class="mt-0.5 size-5 shrink-0 text-green-500 dark:text-green-400"
-                    aria-hidden="true"
-                  />
+                    aria-hidden="true" />
                   <span>{{ getFeatureLabel(capability) }}</span>
                 </li>
               </ul>

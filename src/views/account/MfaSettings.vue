@@ -88,8 +88,12 @@
         <div class="flex items-center gap-3">
           <i class="fas fa-exclamation-circle text-2xl text-red-600 dark:text-red-400"></i>
           <div>
-            <h3 class="font-semibold text-red-800 dark:text-red-200">{{ error }}</h3>
-            <p class="mt-1 text-sm text-red-700 dark:text-red-300">{{ error }}</p>
+            <h3 class="font-semibold text-red-800 dark:text-red-200">
+              {{ error }}
+            </h3>
+            <p class="mt-1 text-sm text-red-700 dark:text-red-300">
+              {{ error }}
+            </p>
             <button
               @click="fetchMfaStatus"
               type="button"
@@ -276,9 +280,7 @@
             <div class="mb-4">
               <label
                 for="disable-password"
-                class="sr-only"
-                >Password</label
-              >
+                class="sr-only">Password</label>
               <input
                 id="disable-password"
                 v-model="disablePassword"

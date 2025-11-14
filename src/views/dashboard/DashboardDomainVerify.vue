@@ -2,8 +2,8 @@
   import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
   import MoreInfoText from '@/components/MoreInfoText.vue';
   import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
-  import { type CustomDomainResponse } from '@/schemas/api/v3/responses';
   import { useDomainsManager } from '@/composables/useDomainsManager';
+  import { type CustomDomainResponse } from '@/schemas/api/v3/responses';
   import { CustomDomain, CustomDomainCluster } from '@/schemas/models';
   import { onMounted, ref } from 'vue';
   import { useRoute } from 'vue-router';
@@ -72,12 +72,10 @@
             at
             <span
               :title="cluster?.cluster_name ?? ''"
-              class="bg-white px-2 dark:bg-gray-800"
-              >{{ cluster?.cluster_host }}</span>{{ t('if-you-already-have-a-cname-record-for-that-addr') }}
+              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>{{ t('if-you-already-have-a-cname-record-for-that-addr') }}
             <span
               :title="cluster?.cluster_name ?? ''"
-              class="bg-white px-2 dark:bg-gray-800"
-              >{{ cluster?.cluster_host }}</span>
+              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>
             {{ t('and-remove-any-other-a-aaaa-or-cname-records-for') }}
           </p>
           <p
@@ -86,9 +84,7 @@
             <!-- Disclaimer for apex domains -->
             <strong>{{ t('important') }}:</strong> {{ t('please-note-that-for-apex-domains') }}
             <span
-              class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400"
-              >{{ domain?.display_domain }}</span
-            >{{ t('a-cname-record-is-not-allowed-instead-youll-need') }}
+              class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>{{ t('a-cname-record-is-not-allowed-instead-youll-need') }}
           </p>
         </div>
         <div class="mt-4 text-sm">
@@ -105,7 +101,7 @@
       v-if="domain"
       :domain="domain"
       :cluster="cluster"
-      :withVerifyCTA="allowVerifyCTA"
+      :with-verify-c-t-a="allowVerifyCTA"
       @domain-verify="handleDomainVerify" />
     <p
       v-else

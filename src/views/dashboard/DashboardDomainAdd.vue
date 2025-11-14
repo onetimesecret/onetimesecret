@@ -5,7 +5,6 @@ import { useDomainsManager } from '@/composables/useDomainsManager';
 
 const { t } = useI18n();
 
-
 const {
   isLoading,
   error,
@@ -25,7 +24,6 @@ const {
     <DomainForm
       :is-submitting="isLoading"
       @submit="handleAddDomain"
-      @back="goBack"
-    />
+      @back="goBack" />
   </div>
 </template>

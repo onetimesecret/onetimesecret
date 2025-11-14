@@ -81,15 +81,16 @@ const getRoleBadge = (role: string) => ({
 
 <template>
   <div class="group relative">
-    <HoverTooltip v-if="!selectedTeam">{{ t(placeholder) }}</HoverTooltip>
+    <HoverTooltip v-if="!selectedTeam">
+      {{ t(placeholder) }}
+    </HoverTooltip>
     <button
       type="button"
       @click="toggleOpen"
       class="group relative inline-flex h-11 w-full items-center justify-between gap-2 rounded-lg bg-white px-4 shadow-sm ring-1 ring-gray-200 transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700 dark:focus:ring-brand-400 dark:focus:ring-offset-0"
       :aria-expanded="isOpen"
       :aria-label="selectedTeam ? selectedTeam.name : t(placeholder)"
-      aria-haspopup="listbox"
-    >
+      aria-haspopup="listbox">
       <span v-if="selectedTeam" class="flex min-w-0 flex-1 items-center gap-2">
         <span class="truncate text-sm font-medium text-gray-900 dark:text-white">
           {{ selectedTeam.name }}
@@ -98,8 +99,7 @@ const getRoleBadge = (role: string) => ({
           :class="[
             'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
             getRoleBadge(selectedTeam.current_user_role).color
-          ]"
-        >
+          ]">
           {{ getRoleBadge(selectedTeam.current_user_role).label }}
         </span>
       </span>
@@ -111,8 +111,7 @@ const getRoleBadge = (role: string) => ({
         collection="mdi"
         :name="isOpen ? 'chevron-up' : 'chevron-down'"
         class="size-5 shrink-0 text-gray-400"
-        aria-hidden="true"
-      />
+        aria-hidden="true" />
     </button>
 
     <Transition
@@ -121,16 +120,14 @@ const getRoleBadge = (role: string) => ({
       enter-to-class="transform scale-100 opacity-100"
       leave-active-class="transition duration-75 ease-in"
       leave-from-class="transform scale-100 opacity-100"
-      leave-to-class="transform scale-95 opacity-0"
-    >
+      leave-to-class="transform scale-95 opacity-0">
       <div
         v-if="isOpen"
         ref="listboxRef"
         role="listbox"
         :aria-activedescendant="modelValue"
         tabindex="0"
-        class="absolute left-0 right-0 z-50 mt-2 rounded-lg bg-white shadow-lg ring-1 ring-black/5 dark:bg-gray-800"
-      >
+        class="absolute inset-x-0 z-50 mt-2 rounded-lg bg-white shadow-lg ring-1 ring-black/5 dark:bg-gray-800">
         <div class="max-h-60 overflow-y-auto py-1">
           <button
             type="button"
@@ -148,8 +145,7 @@ const getRoleBadge = (role: string) => ({
                 ? 'bg-gray-50 dark:bg-gray-700'
                 : ''
             ]"
-            @click="handleTeamSelect(team.id)"
-          >
+            @click="handleTeamSelect(team.id)">
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
                 <span class="truncate text-sm font-medium">{{ team.name }}</span>
@@ -157,8 +153,7 @@ const getRoleBadge = (role: string) => ({
                   :class="[
                     'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
                     getRoleBadge(team.current_user_role).color
-                  ]"
-                >
+                  ]">
                   {{ getRoleBadge(team.current_user_role).label }}
                 </span>
               </div>
@@ -167,8 +162,7 @@ const getRoleBadge = (role: string) => ({
                   collection="heroicons"
                   name="rectangle-group"
                   class="size-3"
-                  aria-hidden="true"
-                />
+                  aria-hidden="true" />
                 <span>{{ team.member_count }} {{ team.member_count === 1 ? t('web.teams.member') : t('web.teams.members') }}</span>
               </div>
             </div>
@@ -178,14 +172,12 @@ const getRoleBadge = (role: string) => ({
               collection="heroicons"
               name="check-20-solid"
               class="size-5 shrink-0 text-brand-500 dark:text-brand-400"
-              aria-hidden="true"
-            />
+              aria-hidden="true" />
           </button>
 
           <div
             v-if="teams.length === 0"
-            class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400"
-          >
+            class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
             {{ t('web.teams.no_teams') }}
           </div>
         </div>

@@ -138,7 +138,7 @@
 </script>
 
 <template>
-<!-- Using v-if instead of v-show for modal dialogs is preferred for accessibility:
+  <!-- Using v-if instead of v-show for modal dialogs is preferred for accessibility:
      - Completely removes content from DOM and accessibility tree when closed
      - Ensures cleaner navigation for screen reader users
      - Prevents focus trapping issues since hidden content cannot receive focus
@@ -172,7 +172,7 @@
             class="flex shrink-0 items-center justify-between bg-gray-50 p-4 dark:bg-gray-700">
             <h2
               id="settings-modal-title"
-              class="text-2xl font-bold text-gray-900 dark:text-white mb-0">
+              class="mb-0 text-2xl font-bold text-gray-900 dark:text-white">
               {{ t('web.COMMON.header_settings') }}
             </h2>
             <button

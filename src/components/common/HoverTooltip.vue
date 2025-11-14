@@ -4,8 +4,8 @@
 
 <template>
   <div
-    class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2
-           opacity-0 transition-opacity duration-200 z-50
+    class="pointer-events-none absolute -top-10 left-1/2 z-50
+           -translate-x-1/2 opacity-0 transition-opacity duration-200
            group-hover:opacity-100">
     <div class="flex flex-col items-center">
       <div
@@ -14,7 +14,8 @@
                dark:bg-gray-700 dark:text-gray-100">
         <slot></slot>
       </div>
-      <div class="-mb-1 mt-0.5 size-2 rotate-45
+      <div
+        class="-mb-1 mt-0.5 size-2 rotate-45
                   bg-gray-900 dark:bg-gray-700"></div>
     </div>
   </div>

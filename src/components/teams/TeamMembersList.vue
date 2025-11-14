@@ -121,7 +121,9 @@ const getStatusBadge = (status: string) => ({
 <template>
   <div class="space-y-4">
     <div v-if="error" class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
-      <p class="text-sm text-red-800 dark:text-red-400">{{ error }}</p>
+      <p class="text-sm text-red-800 dark:text-red-400">
+        {{ error }}
+      </p>
     </div>
 
     <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow dark:border-gray-700 dark:bg-gray-800">
@@ -140,17 +142,19 @@ const getStatusBadge = (status: string) => ({
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               {{ t('web.teams.joined') }}
             </th>
-            <th v-if="canManageMembers"
-scope="col"
-class="relative px-6 py-3">
+            <th
+              v-if="canManageMembers"
+              scope="col"
+              class="relative px-6 py-3">
               <span class="sr-only">{{ t('web.teams.actions') }}</span>
             </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
-          <tr v-for="member in members"
-:key="member.id"
-class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+          <tr
+            v-for="member in members"
+            :key="member.id"
+            class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
             <td class="whitespace-nowrap px-6 py-4">
               <div class="flex items-center">
                 <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900">
@@ -158,8 +162,7 @@ class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     collection="heroicons"
                     name="user"
                     class="size-5 text-brand-600 dark:text-brand-400"
-                    aria-hidden="true"
-                  />
+                    aria-hidden="true" />
                 </div>
                 <div class="ml-4">
                   <div class="text-sm font-medium text-gray-900 dark:text-white">
@@ -176,8 +179,7 @@ class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                 :class="[
                   'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
                   getRoleBadge(member.role).color
-                ]"
-              >
+                ]">
                 {{ getRoleBadge(member.role).label }}
               </span>
             </td>
@@ -186,8 +188,7 @@ class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                 :class="[
                   'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
                   getStatusBadge(member.status).color
-                ]"
-              >
+                ]">
                 {{ getStatusBadge(member.status).label }}
               </span>
             </td>
@@ -195,17 +196,18 @@ class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
               {{ member.joined_at ? new Date(member.joined_at).toLocaleDateString() : '-' }}
             </td>
             <td v-if="canManageMembers" class="relative whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-              <Menu v-if="canModifyMember(member)"
-as="div"
-class="relative inline-block text-left">
+              <Menu
+                v-if="canModifyMember(member)"
+                as="div"
+                class="relative inline-block text-left">
                 <MenuButton
                   :disabled="isProcessing"
-                  class="flex items-center rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300"
-                >
+                  class="flex items-center rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300">
                   <span class="sr-only">{{ t('web.teams.open_options') }}</span>
-                  <OIcon collection="heroicons-solid"
-name="ellipsis-vertical"
-class="size-5" />
+                  <OIcon
+                    collection="heroicons-solid"
+                    name="ellipsis-vertical"
+                    class="size-5" />
                 </MenuButton>
 
                 <transition
@@ -214,11 +216,9 @@ class="size-5" />
                   enter-to-class="transform opacity-100 scale-100"
                   leave-active-class="transition ease-in duration-75"
                   leave-from-class="transform opacity-100 scale-100"
-                  leave-to-class="transform opacity-0 scale-95"
-                >
+                  leave-to-class="transform opacity-0 scale-95">
                   <MenuItems
-                    class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700"
-                  >
+                    class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700">
                     <div class="py-1">
                       <MenuItem v-if="team.current_user_role === TeamRole.OWNER && member.role !== TeamRole.ADMIN" v-slot="{ active }">
                         <button
@@ -226,12 +226,12 @@ class="size-5" />
                           :class="[
                             active ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white' : 'text-gray-700 dark:text-gray-300',
                             'group flex w-full items-center px-4 py-2 text-sm'
-                          ]"
-                        >
-                          <OIcon collection="heroicons"
-name="shield-check"
-class="mr-3 size-5"
-aria-hidden="true" />
+                          ]">
+                          <OIcon
+                            collection="heroicons"
+                            name="shield-check"
+                            class="mr-3 size-5"
+                            aria-hidden="true" />
                           {{ t('web.teams.make_admin') }}
                         </button>
                       </MenuItem>
@@ -241,12 +241,12 @@ aria-hidden="true" />
                           :class="[
                             active ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white' : 'text-gray-700 dark:text-gray-300',
                             'group flex w-full items-center px-4 py-2 text-sm'
-                          ]"
-                        >
-                          <OIcon collection="heroicons"
-name="user"
-class="mr-3 size-5"
-aria-hidden="true" />
+                          ]">
+                          <OIcon
+                            collection="heroicons"
+                            name="user"
+                            class="mr-3 size-5"
+                            aria-hidden="true" />
                           {{ t('web.teams.make_member') }}
                         </button>
                       </MenuItem>
@@ -256,12 +256,12 @@ aria-hidden="true" />
                           :class="[
                             active ? 'bg-red-50 text-red-900 dark:bg-red-900/20 dark:text-red-400' : 'text-red-700 dark:text-red-400',
                             'group flex w-full items-center px-4 py-2 text-sm'
-                          ]"
-                        >
-                          <OIcon collection="heroicons"
-name="user-minus"
-class="mr-3 size-5"
-aria-hidden="true" />
+                          ]">
+                          <OIcon
+                            collection="heroicons"
+                            name="user-minus"
+                            class="mr-3 size-5"
+                            aria-hidden="true" />
                           {{ t('web.teams.remove_member') }}
                         </button>
                       </MenuItem>
@@ -289,7 +289,6 @@ aria-hidden="true" />
       :cancel-text="t('web.COMMON.word_cancel')"
       type="danger"
       @confirm="handleRemoveMember"
-      @cancel="confirmDialog.show = false"
-    />
+      @cancel="confirmDialog.show = false" />
   </div>
 </template>

@@ -5,7 +5,6 @@
 
 const { t } = useI18n();
 
-
   interface Props {}
   defineProps<Props>();
 </script>

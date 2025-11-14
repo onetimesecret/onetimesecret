@@ -1,10 +1,10 @@
 <!-- src/views/account/settings/CautionZone.vue -->
 
 <script setup lang="ts">
-  import { WindowService } from '@/services/window.service';
-  import OIcon from '@/components/icons/OIcon.vue';
   import AccountDeleteButtonWithModalForm from '@/components/account/AccountDeleteButtonWithModalForm.vue';
+  import OIcon from '@/components/icons/OIcon.vue';
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
+  import { WindowService } from '@/services/window.service';
 
   const { t } = useI18n();
   const windowProps = WindowService.getMultiple(['cust']);

@@ -1,10 +1,11 @@
 <!-- src/components/auth/AuthMethodSelector.vue -->
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import { isMagicLinksEnabled } from '@/utils/features';
-import SignInForm from './SignInForm.vue';
+import { ref, computed } from 'vue';
+
 import MagicLinkForm from './MagicLinkForm.vue';
+import SignInForm from './SignInForm.vue';
 
 const { t } = useI18n();
 

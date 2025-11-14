@@ -1,9 +1,9 @@
 <script setup lang="ts">
-  import { computed, watchEffect } from 'vue';
-  import { type Metadata, MetadataState, metadataStateSchema } from '@/schemas/models';
   import OIcon from '@/components/icons/OIcon.vue';
-  import { getDisplayStatus, type DisplayStatus, getStatusText } from '@/utils/status';
   import { useSecretExpiration } from '@/composables/useSecretExpiration';
+  import { type Metadata, MetadataState, metadataStateSchema } from '@/schemas/models';
+  import { getDisplayStatus, type DisplayStatus, getStatusText } from '@/utils/status';
+  import { computed, watchEffect } from 'vue';
 
   interface Props {
     record: Metadata;
@@ -68,26 +68,24 @@
 </script>
 
 <template>
-<span
-  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-sm transition-all duration-200"
-  :class="[
-    statusClasses[status],
-    {
-      'animate-pulse': status === 'expiring_soon',
-      'transform hover:scale-105': status !== 'expired',
-      'opacity-75': status === 'expired'
-    }
-  ]"
-  :title="displayStatus.description"
-  role="status"
->
-  <OIcon
-    collection="material-symbols"
-    :name="statusIcon[status]"
-    class="w-4 h-4 mr-1.5"
-  />
-  {{ displayStatus.text }}
-</span>
+  <span
+    class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium shadow-sm transition-all duration-200"
+    :class="[
+      statusClasses[status],
+      {
+        'animate-pulse': status === 'expiring_soon',
+        'hover:scale-105': status !== 'expired',
+        'opacity-75': status === 'expired'
+      }
+    ]"
+    :title="displayStatus.description"
+    role="status">
+    <OIcon
+      collection="material-symbols"
+      :name="statusIcon[status]"
+      class="mr-1.5 size-4" />
+    {{ displayStatus.text }}
+  </span>
 </template>
 
 <style scoped>

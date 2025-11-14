@@ -1,14 +1,14 @@
 <!-- src/components/logos/OnetimeSecretLogo.vue -->
 
 <script setup lang="ts">
-  import { onKeyStroke, useEventListener } from '@vueuse/core';
-  import { computed, nextTick, ref, watch } from 'vue';
 
   import OIcon from '@/components/icons/OIcon.vue';
   import OnetimeSecretIcon from '@/components/icons/OnetimeSecretIcon.vue';
   import type { Jurisdiction } from '@/schemas/models/jurisdiction';
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';
   import type { LogoConfig } from '@/types/ui/layouts';
+  import { onKeyStroke, useEventListener } from '@vueuse/core';
+  import { computed, nextTick, ref, watch } from 'vue';
 
   /**
    * Props for controlling logo appearance
@@ -118,8 +118,7 @@
           :size="svgSize"
           :aria-label="ariaLabel"
           class="shrink-0 rounded-lg"
-          :style="{ width: `${svgSize}px`, height: `${svgSize}px` }"
-      /></a>
+          :style="{ width: `${svgSize}px`, height: `${svgSize}px` }" /></a>
 
       <!-- Jurisdiction selector button -->
       <div
@@ -221,7 +220,7 @@
       <a
         :href="props.href"
         class="transition-opacity hover:opacity-80">
-        <div :class="['text-lg font-bold font-brand leading-tight transition-colors']">
+        <div :class="['font-brand text-lg font-bold leading-tight transition-colors']">
           {{ siteName }}
         </div>
         <!-- Tagline -->
@@ -232,9 +231,7 @@
           <em>{{ t('tagline-sealed') }}. </em>
           <span class="group/tooltip relative inline-block">
             {{ t('tagline-delivered') }}.<sup
-              class="text-[0.7em] text-gray-500 [animation:pulse_4s_ease-in-out_infinite] group-hover/tooltip:[animation:none] dark:text-gray-400"
-              >*</sup
-            >
+              class="text-[0.7em] text-gray-500 [animation:pulse_4s_ease-in-out_infinite] group-hover/tooltip:[animation:none] dark:text-gray-400">*</sup>
             <span
               class="absolute left-full top-0 ml-1 hidden w-max rounded bg-gray-200/90 px-2 py-1 text-xs text-gray-600 shadow-md group-hover/tooltip:block dark:bg-gray-700/90 dark:text-gray-300">
               <sup class="text-[0.7em] text-gray-500 dark:text-gray-400">*</sup>

@@ -12,11 +12,11 @@
 -->
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import OIcon from '@/components/icons/OIcon.vue';
 import { WindowService } from '@/services/window.service';
 import { useDomainsStore, useMetadataListStore } from '@/stores';
-import OIcon from '@/components/icons/OIcon.vue';
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -106,21 +106,19 @@ const isActiveRoute = (path: string): boolean => {
   <nav
     class="flex items-center justify-between py-0"
     :aria-label="t('main-navigation')">
-
     <!-- Primary tabs -->
-    <div class="flex items-center -mb-px">
+    <div class="-mb-px flex items-center">
       <router-link
         v-for="item in primaryNavItems"
         :key="item.id"
         :to="item.path"
-        class="group relative flex items-center font-brand gap-2 px-3 py-3 text-base font-medium
-               border-b-2 transition-all duration-150"
+        class="group relative flex items-center gap-2 border-b-2 p-3 font-brand text-base font-medium
+               transition-all duration-150"
         :class="[
           isActiveRoute(item.path)
             ? 'border-brand-500 text-gray-900 dark:text-white'
-            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200'
+            : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
         ]">
-
         <!-- Icon -->
         <OIcon
           v-if="item.icon"
@@ -139,8 +137,8 @@ const isActiveRoute = (path: string): boolean => {
         <!-- Count badge -->
         <span
           v-if="item.count !== undefined && item.count !== null && item.count > 0"
-          class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5
-                 rounded-full text-xs font-medium"
+          class="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full
+                 px-1.5 text-xs font-medium"
           :class="[
             isActiveRoute(item.path)
               ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400'
@@ -160,8 +158,8 @@ const isActiveRoute = (path: string): boolean => {
         v-show="action.show"
         :key="action.id"
         :to="action.path"
-        class="inline-flex items-center font-brand gap-2 px-4 py-2 text-base font-medium
-               rounded-lg transition-all duration-150"
+        class="inline-flex items-center gap-2 rounded-lg px-4 py-2 font-brand text-base
+               font-medium transition-all duration-150"
         :class="[
           action.variant === 'primary'
             ? 'bg-brand-500 text-white hover:bg-brand-600 dark:bg-brand-600 dark:hover:bg-brand-700'
@@ -176,16 +174,14 @@ const isActiveRoute = (path: string): boolean => {
       </router-link>
 
       <!-- Future: Search bar could go here -->
-       <div
+      <div
         class="relative"
-        v-show="showSearch"
-        >
+        v-show="showSearch">
         <input
           type="search"
           placeholder="Search secrets..."
-          class="pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg
-                 focus:outline-none focus:ring-2 focus:ring-brand-500"
-        />
+          class="rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-brand-500" />
         <OIcon
           collection="heroicons"
           name="magnifying-glass-outline"

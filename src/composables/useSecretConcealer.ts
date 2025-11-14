@@ -1,17 +1,18 @@
 // src/composables/useSecretConcealer.ts
 
-import { ref } from 'vue';
-import { useSecretForm } from './useSecretForm';
-import { useSecretStore } from '@/stores/secretStore';
-import { useNotificationsStore } from '@/stores/notificationsStore';
 import {
   AsyncHandlerOptions,
   createError,
   useAsyncHandler,
 } from '@/composables/useAsyncHandler';
+import { ConcealDataResponse } from '@/schemas/api/v3';
 import { ConcealPayload, GeneratePayload } from '@/schemas/api/v3/payloads';
 import { WindowService } from '@/services/window.service';
-import { ConcealDataResponse } from '@/schemas/api/v3';
+import { useNotificationsStore } from '@/stores/notificationsStore';
+import { useSecretStore } from '@/stores/secretStore';
+import { ref } from 'vue';
+
+import { useSecretForm } from './useSecretForm';
 
 interface SecretConcealerOptions {
   onSuccess?: (response: ConcealDataResponse) => Promise<void> | void;
@@ -33,7 +34,7 @@ type SubmitType = 'conceal' | 'generate';
  * - Navigation after success
  * - Error management
  */
-/* eslint-disable max-lines-per-function */
+
 export function useSecretConcealer(options?: SecretConcealerOptions) {
   const secretStore = useSecretStore();
   const notifications = useNotificationsStore();

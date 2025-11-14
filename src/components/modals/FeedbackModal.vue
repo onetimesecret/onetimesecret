@@ -7,7 +7,6 @@
 
 const { t } = useI18n();
 
-
   defineProps({
     isOpen: Boolean,
   });
@@ -83,7 +82,9 @@ const { t } = useI18n();
           <p class="mt-6 text-center text-sm italic text-gray-500 dark:text-gray-400">
             <RouterLink
               to="/feedback"
-              class="underline">{{ t('help-us-improve') }}</RouterLink>.
+              class="underline">
+              {{ t('help-us-improve') }}
+            </RouterLink>.
             {{ t('all-feedback-welcome') }}
           </p>
         </div>

@@ -153,9 +153,8 @@ defineExpose({ clear, focus });
         @input="handleInput(0, $event)"
         @keydown="handleKeydown(0, $event)"
         @paste="handlePaste"
-        class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-        :aria-label="t('web.auth.mfa.digit-of-count', { current: 1, total: 6 })"
-      />
+        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        :aria-label="t('web.auth.mfa.digit-of-count', { current: 1, total: 6 })" />
       <input
         ref="input2"
         v-model="digit2"
@@ -166,9 +165,8 @@ defineExpose({ clear, focus });
         @input="handleInput(1, $event)"
         @keydown="handleKeydown(1, $event)"
         @paste="handlePaste"
-        class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-        :aria-label="t('web.auth.mfa.digit-of-count', { current: 2, total: 6 })"
-      />
+        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        :aria-label="t('web.auth.mfa.digit-of-count', { current: 2, total: 6 })" />
       <input
         ref="input3"
         v-model="digit3"
@@ -179,9 +177,8 @@ defineExpose({ clear, focus });
         @input="handleInput(2, $event)"
         @keydown="handleKeydown(2, $event)"
         @paste="handlePaste"
-        class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-        :aria-label="t('web.auth.mfa.digit-of-count', { current: 3, total: 6 })"
-      />
+        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        :aria-label="t('web.auth.mfa.digit-of-count', { current: 3, total: 6 })" />
 
       <span class="text-2xl text-gray-400" aria-hidden="true">-</span>
 
@@ -195,9 +192,8 @@ defineExpose({ clear, focus });
         @input="handleInput(3, $event)"
         @keydown="handleKeydown(3, $event)"
         @paste="handlePaste"
-        class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-        :aria-label="t('web.auth.mfa.digit-of-count', { current: 4, total: 6 })"
-      />
+        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        :aria-label="t('web.auth.mfa.digit-of-count', { current: 4, total: 6 })" />
       <input
         ref="input5"
         v-model="digit5"
@@ -208,9 +204,8 @@ defineExpose({ clear, focus });
         @input="handleInput(4, $event)"
         @keydown="handleKeydown(4, $event)"
         @paste="handlePaste"
-        class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-        :aria-label="t('web.auth.mfa.digit-of-count', { current: 5, total: 6 })"
-      />
+        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        :aria-label="t('web.auth.mfa.digit-of-count', { current: 5, total: 6 })" />
       <input
         ref="input6"
         v-model="digit6"
@@ -221,9 +216,8 @@ defineExpose({ clear, focus });
         @input="handleInput(5, $event)"
         @keydown="handleKeydown(5, $event)"
         @paste="handlePaste"
-        class="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-        :aria-label="t('web.auth.mfa.digit-of-count', { current: 6, total: 6 })"
-      />
+        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        :aria-label="t('web.auth.mfa.digit-of-count', { current: 6, total: 6 })" />
     </div>
   </div>
 </template>

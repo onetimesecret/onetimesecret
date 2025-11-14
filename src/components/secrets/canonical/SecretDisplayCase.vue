@@ -6,6 +6,7 @@
   import { useClipboard } from '@/composables/useClipboard';
   import { Secret, SecretDetails } from '@/schemas/models';
   import { computed } from 'vue';
+
   import BaseSecretDisplay from './BaseSecretDisplay.vue';
 
   const { t } = useI18n();
@@ -121,7 +122,7 @@
           <p class="text-sm">
             {{
               submissionStatus.message ||
-              (submissionStatus.status === 'error' ? 'An error occurred' : 'Success')
+                (submissionStatus.status === 'error' ? 'An error occurred' : 'Success')
             }}
           </p>
         </div>

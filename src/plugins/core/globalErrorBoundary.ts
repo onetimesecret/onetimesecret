@@ -5,6 +5,7 @@ import { AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 import { classifyError, errorGuards } from '@/schemas/errors';
 import { loggingService } from '@/services/logging.service';
 import type { App, Plugin } from 'vue';
+
 import { SentryInstance } from './enableDiagnostics';
 
 interface ErrorBoundaryOptions extends AsyncHandlerOptions {

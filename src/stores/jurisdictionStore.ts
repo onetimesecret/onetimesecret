@@ -42,7 +42,6 @@ export type JurisdictionStore = {
   $reset: () => void;
 } & PiniaCustomProperties;
 
-/* eslint-disable max-lines-per-function */
 export const useJurisdictionStore = defineStore('jurisdiction', () => {
   const $api = inject('api') as AxiosInstance; // eslint-disable-line
 

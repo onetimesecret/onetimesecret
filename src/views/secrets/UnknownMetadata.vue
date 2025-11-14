@@ -9,25 +9,25 @@ const { t } = useI18n();
 </script>
 
 <template>
-<BaseUnknownSecret
-  :branded="false"
-  class="my-14">
-  <template #header="{}">
-    <div class="mb-8 flex justify-center items-center flex-col">
-      <OIcon
-        collection="heroicons"
-        name="question-mark-circle-16-solid"
-        class="w-16 h-16 mb-6 text-red-500 dark:text-red-400"
-        aria-hidden="true" />
-      <h1
-        class="mb-6 text-3xl font-bold text-gray-800 dark:text-white text-center"
-        :aria-label="t('information-no-longer-available')">
-        {{ t('that-information-is-no-longer-available') }}
-      </h1>
-    </div>
-  </template>
+  <BaseUnknownSecret
+    :branded="false"
+    class="my-14">
+    <template #header="{}">
+      <div class="mb-8 flex flex-col items-center justify-center">
+        <OIcon
+          collection="heroicons"
+          name="question-mark-circle-16-solid"
+          class="mb-6 size-16 text-red-500 dark:text-red-400"
+          aria-hidden="true" />
+        <h1
+          class="mb-6 text-center text-3xl font-bold text-gray-800 dark:text-white"
+          :aria-label="t('information-no-longer-available')">
+          {{ t('that-information-is-no-longer-available') }}
+        </h1>
+      </div>
+    </template>
     <template #action="{}">
-      <div class="flex justify-center items-center">
+      <div class="flex items-center justify-center">
         <!-- Canonical action button -->
         <router-link
           to="/"

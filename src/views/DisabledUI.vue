@@ -15,7 +15,7 @@
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col justify-center items-center px-4">
+  <div class="flex min-h-screen flex-col items-center justify-center px-4">
     <div class="container mx-auto min-w-[320px] max-w-2xl">
       <!--
 

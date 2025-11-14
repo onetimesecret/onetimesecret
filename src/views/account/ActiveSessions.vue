@@ -118,7 +118,9 @@
         <div
           v-else
           class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-800">
-          <p class="text-gray-600 dark:text-gray-400">No active sessions found.</p>
+          <p class="text-gray-600 dark:text-gray-400">
+            No active sessions found.
+          </p>
         </div>
       </div>
 

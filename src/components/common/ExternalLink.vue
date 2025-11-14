@@ -12,10 +12,10 @@
     :href="href"
     target="_blank"
     rel="noopener noreferrer"
-    class="flex items-center hover:text-gray-900 dark:hover:text-gray-200 transition-colors duration-200">
+    class="flex items-center transition-colors duration-200 hover:text-gray-900 dark:hover:text-gray-200">
     <span class="mr-1">{{ label }}</span>
     <svg
-      class="w-4 h-4"
+      class="size-4"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor">

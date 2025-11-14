@@ -36,7 +36,9 @@
                 <p class="font-medium text-gray-900 dark:text-white">
                   {{ t('web.regions.trust-title') }}
                 </p>
-                <p class="mt-1">{{ t('web.regions.trust-description') }}</p>
+                <p class="mt-1">
+                  {{ t('web.regions.trust-description') }}
+                </p>
               </div>
             </li>
             <li class="flex gap-3">
@@ -49,7 +51,9 @@
                 <p class="font-medium text-gray-900 dark:text-white">
                   {{ t('web.regions.privacy-title') }}
                 </p>
-                <p class="mt-1">{{ t('web.regions.privacy-description') }}</p>
+                <p class="mt-1">
+                  {{ t('web.regions.privacy-description') }}
+                </p>
               </div>
             </li>
             <li class="flex gap-3">
@@ -62,7 +66,9 @@
                 <p class="font-medium text-gray-900 dark:text-white">
                   {{ t('web.regions.compliance-title') }}
                 </p>
-                <p class="mt-1">{{ t('web.regions.compliance-description') }}</p>
+                <p class="mt-1">
+                  {{ t('web.regions.compliance-description') }}
+                </p>
               </div>
             </li>
             <li class="flex gap-3">
@@ -75,7 +81,9 @@
                 <p class="font-medium text-gray-900 dark:text-white">
                   {{ t('web.regions.performance-title') }}
                 </p>
-                <p class="mt-1">{{ t('web.regions.performance-description') }}</p>
+                <p class="mt-1">
+                  {{ t('web.regions.performance-description') }}
+                </p>
               </div>
             </li>
           </ul>

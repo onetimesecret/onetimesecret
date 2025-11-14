@@ -1,8 +1,8 @@
 // src/composables/usePageTitle.ts
 
-import { computed, watch } from 'vue';
 import { globalComposer } from '@/i18n';
 import { WindowService } from '@/services/window.service';
+import { computed, watch } from 'vue';
 
 /**
  * Composable for managing page titles and meta tags dynamically.

@@ -35,8 +35,8 @@
  *   </div>
  * </template>
  */
-import { ref, computed, watch } from 'vue';
 import { useHash } from '@/composables/useHash';
+import { ref, computed, watch } from 'vue';
 
 interface BannerState {
   dismissed: boolean;

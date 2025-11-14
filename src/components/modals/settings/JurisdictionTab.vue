@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import OIcon from '@/components/icons/OIcon.vue';
 import { WindowService } from '@/services/window.service';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
-import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
 
 const { t } = useI18n();
@@ -36,8 +36,7 @@ const customerId = computed(() => cust?.extid);
               :collection="currentJurisdiction?.icon.collection"
               :name="currentJurisdiction?.icon.name"
               class="size-8 text-brand-600 dark:text-brand-400 sm:size-10"
-              aria-hidden="true"
-            />
+              aria-hidden="true" />
           </div>
           <div class="space-y-1 text-center sm:text-left">
             <div class="text-base font-medium text-gray-900 dark:text-white">
@@ -73,8 +72,7 @@ const customerId = computed(() => cust?.extid);
         <div class="space-y-4">
           <JurisdictionInfo
             v-if="currentJurisdiction"
-            :jurisdiction="currentJurisdiction"
-          />
+            :jurisdiction="currentJurisdiction" />
         </div>
       </div>
 
@@ -86,8 +84,7 @@ const customerId = computed(() => cust?.extid);
 
         <JurisdictionList
           :jurisdictions="jurisdictions"
-          :currentJurisdiction="currentJurisdiction"
-        />
+          :current-jurisdiction="currentJurisdiction" />
       </div>
     </section>
   </div>

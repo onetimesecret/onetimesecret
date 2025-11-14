@@ -79,7 +79,6 @@
 
 <template>
   <div class="flex flex-col">
-
     <div class="container mx-auto px-4">
       <!--  Add Back navigation link -->
       <!-- prettier-ignore-attribute class -->
@@ -119,8 +118,7 @@
               v-if="isAvailable"
               :record="record"
               :details="details"
-              :is-initial-view="!record.is_viewed"
-            />
+              :is-initial-view="!record.is_viewed" />
           </section>
 
           <!-- Recipients Section -->

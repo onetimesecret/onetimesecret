@@ -1,8 +1,8 @@
 <!-- src/components/layout/SecretFooterControls.vue -->
 
 <script setup lang="ts">
-  import ThemeToggle from '@/components/ThemeToggle.vue';
   import LanguageToggle from '@/components/LanguageToggle.vue';
+  import ThemeToggle from '@/components/ThemeToggle.vue';
 import { WindowService } from '@/services/window.service';
 
   defineProps<{
