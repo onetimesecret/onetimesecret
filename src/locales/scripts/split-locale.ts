@@ -37,97 +37,91 @@ interface FileMappingConfig {
  */
 const FILE_MAPPINGS: FileMappingConfig[] = [
   {
-    filename: 'common.json',
-    description: 'COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES',
-    keys: ['COMMON', 'LABELS', 'STATUS', 'FEATURES', 'UNITS', 'TITLES']
+    filename: '_common.json',
+    description: 'COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION',
+    keys: ['COMMON', 'LABELS', 'STATUS', 'FEATURES', 'UNITS', 'TITLES', 'ARIA', 'INSTRUCTION'],
   },
   {
-    filename: 'ui.json',
-    description: 'ARIA, INSTRUCTION, validation',
-    keys: ['ARIA', 'INSTRUCTION']
+    filename: 'email.json',
+    description: 'top level email key object',
+    keys: [],
   },
   {
     filename: 'layout.json',
     description: 'footer, navigation, site, meta, help',
-    keys: ['footer', 'navigation', 'site', 'meta', 'help']
+    keys: ['footer', 'navigation', 'site', 'meta', 'help'],
   },
   {
     filename: 'homepage.json',
     description: 'homepage marketing',
-    keys: ['homepage']
+    keys: ['homepage'],
   },
   {
     filename: 'auth.json',
     description: 'Basic auth: login, signup, forgot, verify',
-    keys: ['login', 'signup']
+    keys: ['login', 'signup'],
   },
   {
     filename: 'auth-advanced.json',
     description: 'MFA, sessions, recovery codes, WebAuthn, magic links',
-    keys: [] // We'll handle auth.* specially
+    keys: [], // We'll handle auth.* specially
   },
   {
-    filename: 'secrets.json',
+    filename: 'feature-secrets.json',
     description: 'secrets, private, shared',
-    keys: ['secrets', 'private', 'shared']
+    keys: ['secrets', 'private', 'shared'],
   },
   {
-    filename: 'incoming.json',
+    filename: 'feature-incoming.json',
     description: 'incoming workflow',
-    keys: ['incoming']
+    keys: ['incoming'],
   },
   {
     filename: 'dashboard.json',
     description: 'dashboard, recent',
-    keys: ['dashboard']
+    keys: ['dashboard'],
   },
   {
     filename: 'account.json',
     description: 'account, settings (profile, security, API, privacy)',
-    keys: ['account', 'settings']
+    keys: ['account', 'settings'],
   },
   {
-    filename: 'regions.json',
+    filename: 'feature-regions.json',
     description: 'regions/data sovereignty',
-    keys: ['regions']
+    keys: ['regions'],
   },
   {
-    filename: 'domains.json',
+    filename: 'feature-domains.json',
     description: 'domains',
-    keys: ['domains']
+    keys: ['domains'],
   },
   {
-    filename: 'teams.json',
+    filename: 'feature-teams.json',
     description: 'teams',
-    keys: ['teams']
+    keys: ['teams'],
   },
   {
-    filename: 'organizations.json',
+    filename: 'feature-organizations.json',
     description: 'organizations',
-    keys: ['organizations']
+    keys: ['organizations'],
   },
   {
-    filename: 'billing.json',
+    filename: 'account-billing.json',
     description: 'billing, plans, invoices',
-    keys: ['billing']
+    keys: ['billing'],
   },
   {
     filename: 'colonel.json',
     description: 'colonel/admin, feedback',
-    keys: ['colonel', 'feedback']
-  }
+    keys: ['colonel', 'feedback'],
+  },
 ];
 
 /**
  * Auth keys that should go into auth.json (basic auth)
  */
-const BASIC_AUTH_KEYS = [
-  'verify',
-  'change-password',
-  'close-account',
-  'passwordReset',
-  'account'
-];
+const BASIC_AUTH_KEYS = ['verify', 'change-password', 'close-account', 'passwordReset', 'account'];
 
 /**
  * Auth keys that should go into auth-advanced.json
@@ -143,7 +137,7 @@ const ADVANCED_AUTH_KEYS = [
   'security',
   'mfa_required',
   'mfa_verification_required',
-  'complete_mfa_verification'
+  'complete_mfa_verification',
 ];
 
 function ensureDirectoryExists(dirPath: string): void {
@@ -238,8 +232,7 @@ function splitLocaleFile(inputFilePath: string): void {
         }
       }
 
-      mapping.keys.forEach(k => processedKeys.add(k));
-
+      mapping.keys.forEach((k) => processedKeys.add(k));
     } else if (mapping.filename === 'auth-advanced.json') {
       // Handle advanced auth
       if (webData.auth) {
@@ -248,14 +241,13 @@ function splitLocaleFile(inputFilePath: string): void {
           fileContent.auth = advanced;
         }
       }
-
     } else {
       // Handle all other files
       const extracted = extractKeysFromWeb(webData, mapping.keys);
       if (extracted) {
         fileContent = extracted;
       }
-      mapping.keys.forEach(k => processedKeys.add(k));
+      mapping.keys.forEach((k) => processedKeys.add(k));
     }
 
     // Build output content with web wrapper
@@ -270,11 +262,7 @@ function splitLocaleFile(inputFilePath: string): void {
     outputContent.web = fileContent;
 
     const outputPath = path.join(outputDir, mapping.filename);
-    fs.writeFileSync(
-      outputPath,
-      JSON.stringify(outputContent, null, 2) + '\n',
-      'utf-8'
-    );
+    fs.writeFileSync(outputPath, JSON.stringify(outputContent, null, 2) + '\n', 'utf-8');
 
     const totalKeys = countKeys(outputContent);
     console.log(`  ✓ ${mapping.filename.padEnd(25)} (${totalKeys} keys) - ${mapping.description}`);
@@ -282,7 +270,7 @@ function splitLocaleFile(inputFilePath: string): void {
 
   // Check for unprocessed keys
   processedKeys.add('auth'); // We handled auth specially
-  const unprocessedKeys = Object.keys(webData).filter(k => !processedKeys.has(k));
+  const unprocessedKeys = Object.keys(webData).filter((k) => !processedKeys.has(k));
 
   if (unprocessedKeys.length > 0) {
     console.warn(`\n⚠ Unprocessed keys found: ${unprocessedKeys.join(', ')}`);
@@ -340,8 +328,9 @@ function verifyReversibility(originalPath: string, splitDir: string): boolean {
   const combinedData: any = { web: {} };
 
   // Read all split files and combine (exclude debug directory)
-  const files = fs.readdirSync(splitDir)
-    .filter(f => f.endsWith('.json') && !f.startsWith('_'))
+  const files = fs
+    .readdirSync(splitDir)
+    .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
     .sort(); // Sort for consistent ordering
 
   for (const file of files) {
@@ -391,7 +380,9 @@ function verifyReversibility(originalPath: string, splitDir: string): boolean {
       JSON.stringify(sortObjectKeys(combinedData), null, 2) + '\n'
     );
     console.error(`Debug files written to ${debugDir}/`);
-    console.error(`Compare with: diff -u ${debugDir}/original-sorted.json ${debugDir}/combined-sorted.json`);
+    console.error(
+      `Compare with: diff -u ${debugDir}/original-sorted.json ${debugDir}/combined-sorted.json`
+    );
 
     return false;
   }
@@ -420,7 +411,6 @@ function main() {
       const outputDir = path.join(inputDir, inputBasename);
 
       verifyReversibility(filePath, outputDir);
-
     } catch (error) {
       console.error(`❌ Error processing ${filePath}:`, error);
     }
