@@ -150,6 +150,14 @@
     # that target common admin URLs or role names.
     :colonels:
       - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
+    # Restrict sign-up to specific email domains. When set, only email
+    # addresses from these domains will be allowed to create accounts.
+    # This does NOT affect sending secrets to recipients - users can
+    # still share secrets with any email address. Leave empty or comment
+    # out to allow sign-ups from any domain.
+    # Example: Add more lines for additional domains
+    :allowed_signup_domains:
+      - <%= ENV['ALLOWED_SIGNUP_DOMAIN'] || nil %>
   # A captcha-like feature that protects the feedback form
   # from bots and other tomfoolery.
   :authenticity:

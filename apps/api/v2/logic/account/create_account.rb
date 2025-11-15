@@ -29,6 +29,7 @@ module V2::Logic
         raise OT::FormError, "You're already signed up" if sess.authenticated?
         raise_form_error "Please try another email address" if V2::Customer.exists?(custid)
         raise_form_error "Is that a valid email address?" unless valid_email?(custid)
+        raise_form_error "Email domain not allowed for sign-up" unless allowed_signup_domain?(custid)
         raise_form_error "Password is too short" unless password.size >= 6
 
         unless Onetime::Plan.plan?(planid)
@@ -79,6 +80,27 @@ module V2::Logic
       end
 
       private
+
+      # Validates if the email domain is allowed for sign-up based on configuration.
+      # This restriction ONLY applies to account creation, not to sending secrets
+      # to recipients or other email functionality.
+      #
+      # @param email [String] The email address to validate
+      # @return [Boolean] true if domain is allowed or no restrictions configured
+      def allowed_signup_domain?(email)
+        allowed_domains = OT.conf.dig(:site, :authentication, :allowed_signup_domains)
+        
+        # If no restrictions are configured, allow all domains
+        return true if allowed_domains.nil? || allowed_domains.empty?
+        
+        # Extract domain from email address
+        email_domain = email.to_s.downcase.split('@').last
+        return false if email_domain.nil? || email_domain.empty?
+        
+        # Check if the email domain is in the allowed list
+        # Convert all domains to lowercase for case-insensitive comparison
+        allowed_domains.map(&:downcase).include?(email_domain)
+      end
 
       def form_fields
         { :planid => planid, :custid => custid }
