@@ -215,7 +215,7 @@ function main() {
     }
   }
 
-  console.log('\n━'.repeat(60));
+  console.log('━'.repeat(60));
   console.log('✅ Step 1 complete!');
   console.log('📌 Next: Run split-locale-step2.ts on the generated web.json files');
 }
