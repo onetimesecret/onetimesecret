@@ -171,6 +171,22 @@ const localeFiles = import.meta.glob('./locales/en/*.json');
 - All scripts are idempotent - safe to run multiple times
 - The `_common.json` prefix ensures it loads first in alphabetical ordering
 
+## Verification
+
+After running both steps, you can verify the split was successful using the `verify-split.sh` script:
+
+```bash
+# Verify the en locale split
+./src/locales/scripts/split-locale/verify-split.sh src/locales/en.json src/locales/en
+```
+
+This script uses `jq` to:
+- Merge all split files back together
+- Compare with the original file
+- Report any missing keys or changed values
+
+**Requirements:** The `jq` command-line tool must be installed.
+
 ## Troubleshooting
 
 ### Step 1 Issues
@@ -194,3 +210,21 @@ diff -u src/locales/en/_debug/step2-original-sorted.json \
 **Missing features:**
 - Some files may have minimal content (1-2 keys) for planned features
 - This is normal and indicates features not yet fully implemented
+
+### Known Issue: email.json Overwrite
+
+⚠️ **IMPORTANT:** There is a known bug in `split-locale-step2.ts` that overwrites `email.json` created by step1.
+
+**The bug:** Step 2 includes an `email.json` mapping with empty keys (line 47-50), which causes it to write `{"web": {}}` to `email.json`, overwriting the correct email content from step1.
+
+**Workaround:** After running both steps, restore email.json from step1:
+```bash
+# After running step1 and step2, backup and restore email.json
+ts-node src/locales/scripts/split-locale-step1.ts src/locales/en.json
+cp src/locales/en/email.json src/locales/en/email.json.backup
+ts-node src/locales/scripts/split-locale-step2.ts src/locales/en/web.json
+mv src/locales/en/email.json.backup src/locales/en/email.json
+rm src/locales/en/web.json
+```
+
+**Fix:** Remove the `email.json` mapping from the `FILE_MAPPINGS` array in `split-locale-step2.ts` (lines 47-50) since step2 should only process web.json content.

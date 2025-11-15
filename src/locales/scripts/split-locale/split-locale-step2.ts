@@ -44,11 +44,6 @@ const FILE_MAPPINGS: FileMappingConfig[] = [
     keys: ['COMMON', 'LABELS', 'STATUS', 'FEATURES', 'UNITS', 'TITLES', 'ARIA', 'INSTRUCTION'],
   },
   {
-    filename: 'email.json',
-    description: 'top level email key object',
-    keys: [],
-  },
-  {
     filename: 'layout.json',
     description: 'footer, navigation, site, meta, help',
     keys: ['footer', 'navigation', 'site', 'meta', 'help'],
