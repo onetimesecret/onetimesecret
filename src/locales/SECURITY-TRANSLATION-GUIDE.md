@@ -1,6 +1,6 @@
 # Security-Critical Message Translation Guide
 
-**⚠️ IMPORTANT**: This guide is for translating authentication error messages in the `web.auth.security.*` namespace. These messages are different from normal UI text because they must prevent information disclosure to attackers.
+**⚠️ IMPORTANT**: This guide is for translating authentication error messages in any `*.security.*` namespace. These messages are different from normal UI text because they must prevent information disclosure to attackers.
 
 ## About This Document
 
