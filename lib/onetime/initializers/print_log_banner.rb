@@ -28,7 +28,8 @@ module Onetime
     # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
     def print_log_banner
       site_config = OT.conf.fetch(:site) # if :site is missing we got real problems
-      email_config = OT.conf.fetch(:emailer, {})
+      emailer_config = OT.conf.fetch(:emailer, {})
+      mail_config = Onetime.conf.fetch(:mail, {})
       redis_info = Familia.redis.info
       colonels = site_config.dig(:authentication, :colonels) || []
 
@@ -53,7 +54,12 @@ module Onetime
         output << render_section('Features', 'Configuration', feature_rows)
       end
 
-      mail_rows = build_email_section(email_config)
+      emailer_rows = build_emailer_section(emailer_config)
+      unless emailer_rows.empty?
+        output << render_section('Mail Config', 'Value', emailer_rows)
+      end
+
+      mail_rows = build_mail_section(mail_config)
       unless mail_rows.empty?
         output << render_section('Mail Config', 'Value', mail_rows)
       end
@@ -146,25 +152,36 @@ module Onetime
     end
 
     # Builds email configuration section rows
-    def build_email_section(email_config)
-      return [] if email_config.nil? || email_config.empty?
+    def build_emailer_section(emailer_config)
+      return [] if emailer_config.nil? || emailer_config.empty?
 
-      begin
-        if is_feature_disabled?(email_config)
-          [['Status', 'disabled']]
-        else
-          [
-            ['Mailer', @emailer],
-            ['Mode', email_config[:mode]],
-            ['From', "'#{email_config[:fromname]} <#{email_config[:from]}>'"],
-            ['Host', "#{email_config[:host]}:#{email_config[:port]}"],
-            ['Region', email_config[:region]],
-            ['TLS', email_config[:tls]],
-            ['Auth', email_config[:auth]],
-          ].reject { |row| row[1].nil? || row[1].to_s.empty? }
-        end
-      rescue => e
-        [['Error', "Error rendering mail config: #{e.message}"]]
+      if is_feature_disabled?(emailer_config)
+        [['Status', 'disabled']]
+      else
+        [
+          ['Mailer', @emailer],
+          ['Mode', emailer_config[:mode]],
+          ['From', "'#{emailer_config[:fromname]} <#{emailer_config[:from]}>'"],
+          ['Host', "#{emailer_config[:host]}:#{emailer_config[:port]}"],
+          ['Region', emailer_config[:region]],
+          ['TLS', emailer_config[:tls]],
+          ['Auth', emailer_config[:auth]],
+        ].reject { |row| row[1].nil? || row[1].to_s.empty? }
+      end
+    rescue => e
+      [['Error', "Error rendering mail config: #{e.message}"]]
+    end
+
+    # Builds mail settings section rows
+    def build_mail_section(mail_config)
+      return [] if mail_config.nil? || mail_config.empty?
+
+      if is_feature_disabled?(mail_config)
+        [['Status', 'disabled']]
+      else
+        [
+          ['Mail Settings', mail_config.map { |k,v| "#{k}=#{v}" }.join(', ')]
+        ]
       end
     end
 
