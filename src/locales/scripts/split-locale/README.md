@@ -178,12 +178,22 @@ After running both steps, you can verify the split was successful using the `ver
 ```bash
 # Verify the en locale split
 ./src/locales/scripts/split-locale/verify-split.sh src/locales/en.json src/locales/en
+
+# Save detailed diff output for debugging
+./src/locales/scripts/split-locale/verify-split.sh src/locales/en.json src/locales/en diff-output.txt
 ```
 
 This script uses `jq` to:
 - Merge all split files back together
 - Compare with the original file
 - Report any missing keys or changed values
+- Optionally save detailed diff output to a file
+
+**Features:**
+- ✅ Validates that all keys from original are preserved
+- ✅ Detects missing keys, extra keys, and changed values
+- ✅ Shows detailed differences with flattened key paths
+- ✅ Optional diff output file to preserve debugging info after script exits
 
 **Requirements:** The `jq` command-line tool must be installed.
 
