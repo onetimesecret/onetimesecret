@@ -8,5 +8,7 @@
 !architecture/type-safety.md
 !architecture/frontend-architecture.md
 !/api/*
+!planning/
+!planning/*.md
 !DOCKER*.md
 !README*.md
