@@ -5,11 +5,14 @@
 # Uses jq to verify that split locale files can be recombined to match
 # the original file exactly - no missing keys, no changed values.
 #
-# Usage:
-#   ./verify-split.sh <original-file> <split-directory>
+# NOTE: When verification passes, any [diff-output-file] does not get created.
 #
-# Example:
+# Usage:
+#   ./verify-split.sh <original-file> <split-directory> [diff-output-file]
+#
+# Examples:
 #   ./verify-split.sh src/locales/en.json src/locales/en
+#   ./verify-split.sh src/locales/en.json src/locales/en diff-output.txt
 #
 # This script:
 # 1. Merges all JSON files from the split directory using jq
@@ -28,14 +31,16 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Check arguments
-if [ $# -ne 2 ]; then
-  echo "Usage: $0 <original-file> <split-directory>"
+if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+  echo "Usage: $0 <original-file> <split-directory> [diff-output-file]"
   echo "Example: $0 src/locales/en.json src/locales/en"
+  echo "         $0 src/locales/en.json src/locales/en diff.txt"
   exit 1
 fi
 
 ORIGINAL_FILE="$1"
 SPLIT_DIR="$2"
+DIFF_OUTPUT_FILE="${3:-}"
 
 # Validate inputs
 if [ ! -f "$ORIGINAL_FILE" ]; then
@@ -238,13 +243,17 @@ else
 
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo ""
-  echo "Debug files saved to:"
-  echo "  Original (sorted): $ORIGINAL_SORTED"
-  echo "  Merged (sorted):   $MERGED_SORTED"
-  echo ""
-  echo "To see full diff, run:"
-  echo "  diff -u $ORIGINAL_SORTED $MERGED_SORTED | less"
-  echo ""
+  if [ -n "$DIFF_OUTPUT_FILE" ]; then
+    echo "Saving full diff to: $DIFF_OUTPUT_FILE"
+    diff -u "$ORIGINAL_SORTED" "$MERGED_SORTED" > "$DIFF_OUTPUT_FILE" || true
+    echo "To view full diff, run:"
+    echo "  less $DIFF_OUTPUT_FILE"
+    echo ""
+  else
+    echo "Run with a third argument to save diff output:"
+    echo "  $0 $ORIGINAL_FILE $SPLIT_DIR diff-output.txt"
+    echo ""
+  fi
 
   exit 1
 fi
