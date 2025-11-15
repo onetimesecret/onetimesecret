@@ -237,7 +237,7 @@ function splitLocaleFile(inputFilePath: string): void {
 
     // Build output content with web wrapper
     const outputContent: any = {
-      web: fileContent
+      web: fileContent,
     };
 
     const outputPath = path.join(outputDir, mapping.filename);
@@ -308,15 +308,18 @@ function verifyReversibility(originalPath: string, splitDir: string): boolean {
 
   // Read all split files and combine (exclude source files and debug directory)
   const sourceFileName = path.basename(originalPath);
-  const files = fs.readdirSync(splitDir)
-    .filter(f => {
+  const files = fs
+    .readdirSync(splitDir)
+    .filter((f) => {
       // Exclude the original source file (web.json, email.json, uncategorized.json)
       // Exclude directories
       // Include all feature files including _common.json
-      return f.endsWith('.json') &&
-             f !== sourceFileName &&
-             f !== '_debug' &&
-             !['web.json', 'email.json', 'uncategorized.json'].includes(f);
+      return (
+        f.endsWith('.json') &&
+        f !== sourceFileName &&
+        f !== '_debug' &&
+        !['web.json', 'email.json', 'uncategorized.json'].includes(f)
+      );
     })
     .sort(); // Sort for consistent ordering
 
@@ -360,7 +363,9 @@ function verifyReversibility(originalPath: string, splitDir: string): boolean {
       JSON.stringify(sortObjectKeys(combinedData), null, 2) + '\n'
     );
     console.error(`Debug files written to ${debugDir}/`);
-    console.error(`Compare with: diff -u ${debugDir}/step2-original-sorted.json ${debugDir}/step2-combined-sorted.json`);
+    console.error(
+      `Compare with: diff -u ${debugDir}/step2-original-sorted.json ${debugDir}/step2-combined-sorted.json`
+    );
 
     return false;
   }
@@ -392,7 +397,7 @@ function main() {
     }
   }
 
-  console.log('\n━'.repeat(60));
+  console.log('━'.repeat(60));
   console.log('✅ Migration complete!');
 }
 
