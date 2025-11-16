@@ -42,18 +42,69 @@ module Onetime
       end
 
       # Iterate over the list of supported locales, to load their JSON
+      # Supports both split locale directories (new) and monolithic files (legacy)
       confs = OT.supported_locales.collect do |loc|
-        path = File.join(Onetime::HOME, 'src', 'locales', "#{loc}.json")
-        OT.ld "[init] Loading #{loc}: #{File.exist?(path)}"
-        begin
-          contents = File.read(path)
-        rescue Errno::ENOENT
-          OT.le "[init] Missing locale file: #{path}"
+        locale_dir = File.join(Onetime::HOME, 'src', 'locales', loc)
+        locale_file = File.join(Onetime::HOME, 'src', 'locales', "#{loc}.json")
+
+        # Check if this locale uses the new split directory structure
+        if Dir.exist?(locale_dir)
+          # Glob all JSON files in deterministic order (alphabetical)
+          json_files = Dir.glob(File.join(locale_dir, '*.json')).sort
+
+          if json_files.empty?
+            OT.le "[init] No JSON files found in locale directory: #{locale_dir}"
+            next
+          end
+
+          OT.ld "[init] Loading #{loc}: #{json_files.size} split files"
+
+          # Merge all files for this locale, preserving symbol keys
+          # We use a custom merge that doesn't normalize keys like deep_merge does
+          merged_locale = json_files.each_with_object({}) do |file_path, merged|
+            begin
+              contents = File.read(file_path)
+              parsed   = Familia::JsonSerializer.parse(contents, symbolize_names: true)
+
+              # Manually merge to preserve symbol keys
+              parsed.each do |top_key, top_value|
+                if merged[top_key].is_a?(Hash) && top_value.is_a?(Hash)
+                  # Merge nested hashes (e.g., both have :web key)
+                  merged[top_key] ||= {}
+                  top_value.each do |nested_key, nested_value|
+                    merged[top_key][nested_key] = nested_value
+                  end
+                else
+                  # Direct assignment for non-hash values
+                  merged[top_key] = top_value
+                end
+              end
+            rescue Errno::ENOENT => e
+              OT.le "[init] File read error: #{file_path} - #{e.message}"
+            rescue JSON::ParserError => e
+              OT.le "[init] JSON parse error: #{file_path} - #{e.message}"
+            end
+          end
+
+          [loc, merged_locale]
+        elsif File.exist?(locale_file)
+          # Legacy: single monolithic file
+          OT.ld "[init] Loading #{loc}: monolithic file"
+          begin
+            contents = File.read(locale_file)
+            conf = Familia::JsonSerializer.parse(contents, symbolize_names: true)
+            [loc, conf]
+          rescue Errno::ENOENT
+            OT.le "[init] Missing locale file: #{locale_file}"
+            next
+          rescue JSON::ParserError => e
+            OT.le "[init] JSON parse error: #{locale_file} - #{e.message}"
+            next
+          end
+        else
+          OT.le "[init] Missing locale: #{loc} (no directory or file found)"
           next
         end
-        # We symbolize for locales files only (not configruation)
-        conf = Familia::JsonSerializer.parse(contents, symbolize_names: true)
-        [loc, conf]
       end
 
       # Convert the zipped array to a hash
