@@ -46,9 +46,9 @@ module Core
           uri = URI.parse(url)
         rescue URI::InvalidURIError => ex
           # Log an error message if the URL is invalid
-          http_logger.error "Invalid URI in URL validation", {
+          http_logger.error 'Invalid URI in URL validation', {
             exception: ex,
-            url: url
+            url: url,
           }
         else
           # Set a default host if the host is missing
@@ -129,7 +129,7 @@ module Core
       end
 
       def json_error(message, field_error: nil, status: 400)
-        body = { error: message }
+        body                = { error: message }
         body['field-error'] = field_error if field_error
         json_response(body, status: status)
       end
@@ -179,8 +179,8 @@ module Core
         # Fallback to anonymous
         Onetime::Customer.anonymous
       rescue StandardError => ex
-        http_logger.error "Failed to load customer", {
-          exception: ex
+        http_logger.error 'Failed to load customer', {
+          exception: ex,
         }
         Onetime::Customer.anonymous
       end
@@ -233,15 +233,15 @@ module Core
       def handle_form_error(ex, redirect_path = nil, field: nil, status: 400)
         # We pass the message here and not the exception itelf b/c SemanticLogger
         # automatically outputs backtrace when it receives one.
-        http_logger.error "Form error occurred", {
+        http_logger.error 'Form error occurred', {
           message: ex.message,
           field: field || ex.field,
           error_type: ex.error_type,
-          redirect_path: redirect_path
+          redirect_path: redirect_path,
         }
         if json_requested?
           # FormError must provide field and error_type
-          field ||= ex.field
+          field    ||= ex.field
           error_type = ex.error_type || ex.message.downcase
 
           json_error(ex.message, field_error: [field, error_type], status: status)
@@ -264,8 +264,8 @@ module Core
         begin
           if defined?(req) && req.respond_to?(:env)
             headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
-            http_logger.debug "Capturing error to Sentry with request headers", {
-              headers: headers
+            http_logger.debug 'Capturing error to Sentry with request headers', {
+              headers: headers,
             }
           end
 
@@ -273,12 +273,12 @@ module Core
         rescue NoMethodError => ex
           raise unless ex.message.include?('start_with?')
 
-          http_logger.error "Sentry capture error (NoMethodError)", {
-            exception: ex
+          http_logger.error 'Sentry capture error (NoMethodError)', {
+            exception: ex,
           }
         rescue StandardError => ex
-          http_logger.error "Sentry capture error", {
-            exception: ex
+          http_logger.error 'Sentry capture error', {
+            exception: ex,
           }
         end
       end
@@ -288,9 +288,9 @@ module Core
 
         Sentry.capture_message(message, level: level, &)
       rescue StandardError => ex
-        http_logger.error "Sentry capture_message error", {
+        http_logger.error 'Sentry capture_message error', {
           exception: ex,
-          message: message
+          message: message,
         }
       end
     end

@@ -79,7 +79,6 @@ module Auth
         Features::WebAuthn.configure(self)
         Hooks::WebAuthn.configure(self)
       end
-
     end
   end
 end

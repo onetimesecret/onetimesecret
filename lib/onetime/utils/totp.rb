@@ -24,7 +24,7 @@ module Onetime
         totp = ROTP::TOTP.new(secret, issuer: issuer)
 
         current_time = Time.now.to_i
-        interval = totp.interval # Usually 30 seconds
+        interval     = totp.interval # Usually 30 seconds
 
         {
           secret: secret,
@@ -70,7 +70,7 @@ module Onetime
       # @return [String] HMAC-secured version of the secret
       #
       def self.compute_hmac(raw_secret, hmac_secret = nil)
-        hmac_secret ||= ENV['HMAC_SECRET']
+        hmac_secret ||= ENV.fetch('HMAC_SECRET', nil)
 
         if hmac_secret.nil? || hmac_secret.empty?
           raise 'HMAC_SECRET environment variable must be set'
@@ -85,7 +85,7 @@ module Onetime
         raw_bytes = ROTP::Base32.decode(raw_secret)
 
         # Compute HMAC-SHA256 (Rodauth uses SHA256)
-        hmac_bytes = OpenSSL::HMAC.digest(OpenSSL::Digest::SHA256.new, hmac_secret, raw_bytes)
+        hmac_bytes = OpenSSL::HMAC.digest(OpenSSL::Digest.new('SHA256'), hmac_secret, raw_bytes)
 
         # Encode back to base32 using standard encoding
         ROTP::Base32.encode(hmac_bytes)

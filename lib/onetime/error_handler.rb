@@ -40,7 +40,7 @@ module Onetime
         app_logger.error "error-handler: #{operation} failed", {
           exception: ex,
           operation: operation,
-          **context
+          **context,
         }
       end
 
@@ -52,12 +52,11 @@ module Onetime
         key = "errors:rodauth:#{operation}:#{Date.today.strftime('%Y%m%d')}"
         Familia.dbclient.incr(key)
         Familia.dbclient.expire(key, 86_400 * 7) # Keep 7 days
-
       rescue StandardError => ex
         # Don't let tracking errors break the error handler itself
-        app_logger.error "error-handler: Failed to track error", {
+        app_logger.error 'error-handler: Failed to track error', {
           exception: ex,
-          operation: 'track_error'
+          operation: 'track_error',
         }
       end
 
@@ -70,9 +69,9 @@ module Onetime
         end
       rescue StandardError => ex
         # Don't let Sentry errors break the error handler itself
-        app_logger.error "error-handler: Failed to capture in Sentry", {
+        app_logger.error 'error-handler: Failed to capture in Sentry', {
           exception: ex,
-          operation: 'capture_error'
+          operation: 'capture_error',
         }
       end
 

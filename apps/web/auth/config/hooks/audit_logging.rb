@@ -9,7 +9,7 @@ module Auth::Config::Hooks
       # MFA Setup Events
       # ========================================================================
 
-      auth.audit_log_message_for :otp_setup, "MFA enabled via TOTP"
+      auth.audit_log_message_for :otp_setup, 'MFA enabled via TOTP'
       auth.audit_log_metadata_for :otp_setup do
         {
           ip: request.ip,
@@ -21,7 +21,7 @@ module Auth::Config::Hooks
         }
       end
 
-      auth.audit_log_message_for :otp_disable, "MFA disabled"
+      auth.audit_log_message_for :otp_disable, 'MFA disabled'
       auth.audit_log_metadata_for :otp_disable do
         {
           ip: request.ip,
@@ -35,7 +35,7 @@ module Auth::Config::Hooks
       # ========================================================================
 
       auth.audit_log_message_for :two_factor_auth_success do
-        "MFA verification successful via TOTP"
+        'MFA verification successful via TOTP'
       end
       auth.audit_log_metadata_for :two_factor_auth_success do
         {
@@ -47,7 +47,7 @@ module Auth::Config::Hooks
       end
 
       auth.audit_log_message_for :otp_auth_failure do
-        "MFA verification failed - invalid code"
+        'MFA verification failed - invalid code'
       end
       auth.audit_log_metadata_for :otp_auth_failure do
         {
@@ -63,7 +63,7 @@ module Auth::Config::Hooks
       # Recovery Code Events
       # ========================================================================
 
-      auth.audit_log_message_for :add_recovery_codes, "Recovery codes generated"
+      auth.audit_log_message_for :add_recovery_codes, 'Recovery codes generated'
       auth.audit_log_metadata_for :add_recovery_codes do
         {
           ip: request.ip,
@@ -72,7 +72,7 @@ module Auth::Config::Hooks
         }
       end
 
-      auth.audit_log_message_for :view_recovery_codes, "Recovery codes viewed"
+      auth.audit_log_message_for :view_recovery_codes, 'Recovery codes viewed'
       auth.audit_log_metadata_for :view_recovery_codes do
         {
           ip: request.ip,
@@ -82,7 +82,7 @@ module Auth::Config::Hooks
       end
 
       auth.audit_log_message_for :recovery_auth do
-        "Authenticated via recovery code"
+        'Authenticated via recovery code'
       end
       auth.audit_log_metadata_for :recovery_auth do
         {
@@ -101,9 +101,9 @@ module Auth::Config::Hooks
       auth.audit_log_message_for :login do
         mfa_required = otp_exists?
         if mfa_required
-          "Login successful - MFA required"
+          'Login successful - MFA required'
         else
-          "Login successful"
+          'Login successful'
         end
       end
       auth.audit_log_metadata_for :login do
@@ -123,7 +123,7 @@ module Auth::Config::Hooks
       end
 
       auth.audit_log_message_for :login_failure do
-        "Login failed - invalid credentials"
+        'Login failed - invalid credentials'
       end
       auth.audit_log_metadata_for :login_failure do
         {
@@ -134,7 +134,7 @@ module Auth::Config::Hooks
         }
       end
 
-      auth.audit_log_message_for :logout, "Logout"
+      auth.audit_log_message_for :logout, 'Logout'
       auth.audit_log_metadata_for :logout do
         {
           ip: request.ip,
@@ -146,7 +146,7 @@ module Auth::Config::Hooks
       # Password Events
       # ========================================================================
 
-      auth.audit_log_message_for :change_password, "Password changed"
+      auth.audit_log_message_for :change_password, 'Password changed'
       auth.audit_log_metadata_for :change_password do
         {
           ip: request.ip,
@@ -156,7 +156,7 @@ module Auth::Config::Hooks
       end
 
       auth.audit_log_message_for :reset_password_request do
-        "Password reset requested"
+        'Password reset requested'
       end
       auth.audit_log_metadata_for :reset_password_request do
         {
@@ -165,7 +165,7 @@ module Auth::Config::Hooks
         }
       end
 
-      auth.audit_log_message_for :reset_password, "Password reset completed"
+      auth.audit_log_message_for :reset_password, 'Password reset completed'
       auth.audit_log_metadata_for :reset_password do
         {
           ip: request.ip,
@@ -178,7 +178,7 @@ module Auth::Config::Hooks
       # Account Management Events
       # ========================================================================
 
-      auth.audit_log_message_for :create_account, "Account created"
+      auth.audit_log_message_for :create_account, 'Account created'
       auth.audit_log_metadata_for :create_account do
         {
           ip: request.ip,
@@ -187,7 +187,7 @@ module Auth::Config::Hooks
         }
       end
 
-      auth.audit_log_message_for :verify_account, "Account verified"
+      auth.audit_log_message_for :verify_account, 'Account verified'
       auth.audit_log_metadata_for :verify_account do
         {
           ip: request.ip,
@@ -195,7 +195,7 @@ module Auth::Config::Hooks
         }
       end
 
-      auth.audit_log_message_for :close_account, "Account closed"
+      auth.audit_log_message_for :close_account, 'Account closed'
       auth.audit_log_metadata_for :close_account do
         {
           ip: request.ip,
@@ -209,7 +209,7 @@ module Auth::Config::Hooks
       # ========================================================================
 
       auth.audit_log_message_for :account_lockout do
-        "Account locked due to failed login attempts"
+        'Account locked due to failed login attempts'
       end
       auth.audit_log_metadata_for :account_lockout do
         {

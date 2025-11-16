@@ -15,13 +15,13 @@ module Onetime
       desc 'Synchronize customer records from Redis to Auth SQL database'
 
       option :run, type: :boolean, default: false,
-             desc: 'Execute synchronization (required for actual operation)'
+        desc: 'Execute synchronization (required for actual operation)'
 
       option :help, type: :boolean, default: false, aliases: ['h'],
-             desc: 'Show help message'
+        desc: 'Show help message'
 
       option :verbose, type: :boolean, default: false, aliases: ['v'],
-             desc: 'Show detailed progress for each customer'
+        desc: 'Show detailed progress for each customer'
 
       def call(run: false, help: false, verbose: false, **)
         return show_usage_help if help
@@ -63,7 +63,7 @@ module Onetime
 
         # Get all customers from Redis (Familia v2 pattern)
         all_customer_ids = Onetime::Customer.instances.all
-        total_customers = all_customer_ids.size
+        total_customers  = all_customer_ids.size
 
         puts "\nDiscovered #{total_customers} customers in Redis"
 
@@ -81,7 +81,7 @@ module Onetime
           skipped_existing: 0,
           created: 0,
           linked: 0,
-          errors: []
+          errors: [],
         }
 
         # Verbose level (0 = none, 1 = some, 2+ = all details)
@@ -116,11 +116,10 @@ module Onetime
                 if verbose_level > 1
                   puts "  [#{idx+1}/#{total_customers}] ✓ Already synced: #{obscure_email(customer.email)} (#{existing_account[:id]})"
                 end
-              else
+              elsif dry_run
                 # Account exists but external_id needs updating
-                if dry_run
-                  puts "  [#{idx+1}/#{total_customers}] Would link account #{existing_account[:id]} → extid #{customer.extid}"
-                  stats[:linked] += 1
+                puts "  [#{idx+1}/#{total_customers}] Would link account #{existing_account[:id]} → extid #{customer.extid}"
+                stats[:linked] += 1
                 else
                   db[:accounts]
                     .where(id: existing_account[:id])
@@ -129,13 +128,11 @@ module Onetime
                   if verbose_level > 0
                     puts "  [#{idx+1}/#{total_customers}] ↔ Linked: #{obscure_email(customer.email)} → extid #{customer.extid}"
                   end
-                end
               end
-            else
+            elsif dry_run
               # Account doesn't exist - create it
-              if dry_run
-                puts "  [#{idx+1}/#{total_customers}] Would create: #{obscure_email(customer.email)}"
-                stats[:created] += 1
+              puts "  [#{idx+1}/#{total_customers}] Would create: #{obscure_email(customer.email)}"
+              stats[:created] += 1
               else
                 # Determine status based on customer state
                 status_id = customer.verified? ? 2 : 1  # 2=Verified, 1=Unverified
@@ -146,22 +143,20 @@ module Onetime
                   external_id: customer.extid,
                   status_id: status_id,
                   created_at: Sequel::CURRENT_TIMESTAMP,
-                  updated_at: Sequel::CURRENT_TIMESTAMP
+                  updated_at: Sequel::CURRENT_TIMESTAMP,
                 )
 
                 stats[:created] += 1
                 if verbose_level > 0
                   puts "  [#{idx+1}/#{total_customers}] ✓ Created: #{obscure_email(customer.email)} (#{account_id})"
                 end
-              end
             end
 
             # Progress indicator for non-verbose mode
             if verbose_level == 0 && (stats[:total] % 10 == 0)
               print "\r  Progress: #{stats[:total]}/#{total_customers} customers processed"
             end
-
-          rescue => ex
+          rescue StandardError => ex
             error_msg = "#{obscure_email(customer&.email || custid)}: #{ex.message}"
             stats[:errors] << error_msg
 
@@ -218,6 +213,7 @@ module Onetime
 
       def obscure_email(email)
         return 'anonymous' if email.to_s.empty?
+
         OT::Utils.obscure_email(email)
       end
 

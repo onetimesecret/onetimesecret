@@ -80,8 +80,7 @@ module Onetime
 
     # Builds system information section rows
     def build_system_section(redis_info)
-
-      redis_dbs = OT.conf.dig('redis', 'dbs') || {}
+      redis_dbs   = OT.conf.dig('redis', 'dbs') || {}
       system_rows = [
         ['System', "#{RUBY_ENGINE} #{RUBY_VERSION} in #{OT.env}"],
         ['Config', OT::Config.path],
@@ -90,7 +89,7 @@ module Onetime
         ['Otto', "v#{Otto::VERSION}"],
         ['I18n', OT.i18n_enabled],
         ['Diagnostics', OT.d9s_enabled],
-        ['Models', redis_dbs.inspect]
+        ['Models', redis_dbs.inspect],
       ]
 
       # Add locales if i18n is enabled
@@ -163,7 +162,7 @@ module Onetime
     # Builds authentication section rows
     def build_auth_section(site_config, colonels)
       auth_rows = [
-        ['Auth Mode', OT.auth_config.mode]
+        ['Auth Mode', OT.auth_config.mode],
       ]
 
       auth_rows << if colonels.empty?
@@ -208,7 +207,7 @@ module Onetime
         if secret_options['passphrase']
           passphrase_config = secret_options['passphrase']
           if is_feature_disabled?(passphrase_config)
-            customization_rows << ['Passphrase', 'disabled']
+            customization_rows << %w[Passphrase disabled]
           elsif passphrase_config.is_a?(Hash) && !passphrase_config.empty?
             customization_rows << ['Passphrase', format_config_value(passphrase_config)]
           end
@@ -305,10 +304,10 @@ module Onetime
 
     # Helper method to render a section as a simple formatted table
     def render_section(header1, header2, rows)
-      col1_width = 17  # Width for first column
-      col2_width = 80  # Width for second column
+      col1_width  = 17  # Width for first column
+      col2_width  = 80  # Width for second column
       total_width = col1_width + col2_width + 7  # Include borders and padding
-      separator = '-' * total_width
+      separator   = '-' * total_width
 
       output = []
       output << separator
@@ -341,7 +340,7 @@ module Onetime
 
       lines = []
       (0...max_lines).each do |i|
-        left_text = (col1_lines[i] || '').ljust(width1)
+        left_text  = (col1_lines[i] || '').ljust(width1)
         right_text = (col2_lines[i] || '').ljust(width2)
         lines << "| #{left_text} | #{right_text} |"
       end
@@ -357,10 +356,10 @@ module Onetime
       return [text] if text.length <= width
 
       # Simple wrapping at width boundary
-      lines = []
+      lines     = []
       remaining = text.dup
 
-      while remaining.length > 0
+      until remaining.empty?
         if remaining.length <= width
           lines << remaining
           break

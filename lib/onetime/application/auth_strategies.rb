@@ -111,6 +111,7 @@ module Onetime
       # Subclasses can override `additional_checks` for role/permission validation.
       class BaseSessionAuthStrategy < Otto::Security::AuthStrategy
         include Helpers
+
         @auth_method_name = nil
 
         def authenticate(env, _requirement)
@@ -159,9 +160,7 @@ module Onetime
         # Override in subclasses to customize auth method name
         #
         # @return [String] Auth method name for StrategyResult
-        def auth_method_name
-          @auth_method_name
-        end
+        attr_reader :auth_method_name
 
         # Override in subclasses to add metadata
         #
@@ -207,6 +206,7 @@ module Onetime
       # to prevent timing attacks that could enumerate valid usernames.
       class BasicAuthStrategy < Otto::Security::AuthStrategy
         include Helpers
+
         @auth_method_name = 'basicauth'
 
         def authenticate(env, _requirement)

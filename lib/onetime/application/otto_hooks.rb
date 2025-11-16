@@ -43,11 +43,11 @@ module Onetime
           logger = Onetime.get_logger('HTTP')
 
           # Extract auth context if available
-          user_id = req.env['otto.user']&.[](:id)
+          user_id         = req.env['otto.user']&.[](:id)
           strategy_result = req.env['otto.strategy_result']
-          auth_strategy = strategy_result&.strategy_name
+          auth_strategy   = strategy_result&.strategy_name
 
-          logger.trace "Request completed", {
+          logger.trace 'Request completed', {
             method: req.request_method,
             path: req.path,
             status: res.status,
@@ -55,7 +55,7 @@ module Onetime
             user_id: user_id,
             auth_strategy: auth_strategy,
             ip: req.ip,
-            user_agent: req.user_agent&.slice(0, 100)
+            user_agent: req.user_agent&.slice(0, 100),
           }
         end
       end

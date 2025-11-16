@@ -8,13 +8,13 @@ module Onetime
       desc 'List and check customer records'
 
       option :list, type: :boolean, default: false,
-             desc: 'List all customers grouped by domain'
+        desc: 'List all customers grouped by domain'
 
       option :check, type: :boolean, default: false,
-             desc: 'Check for customers with mismatched custid and email fields'
+        desc: 'Check for customers with mismatched custid and email fields'
 
       option :check_email, type: :boolean, default: false,
-             desc: 'When listing, group by email domain instead of custid'
+        desc: 'When listing, group by email domain instead of custid'
 
       def call(list: false, check: false, check_email: false, **)
         boot_application!

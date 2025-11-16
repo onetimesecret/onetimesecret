@@ -53,7 +53,7 @@ module Rack
     #   Middleware::RequestId.new(app, generator: -> { MyIDService.generate })
     #
     def initialize(app, generator: nil)
-      @app = app
+      @app       = app
       @generator = generator || -> { SecureRandom.hex }
     end
 
@@ -75,12 +75,12 @@ module Rack
     #   request_id = env['HTTP_X_REQUEST_ID']
     #
     def call(env)
-      incoming = env[HEADER].to_s
+      incoming                 = env[HEADER].to_s
       # Accept only visible ASCII, no control chars; max length 200
-      valid = incoming.match?(/\A[\x20-\x7E]{1,200}\z/)
-      request_id = valid ? incoming : @generator.call.to_s
-      env[HEADER] = request_id
-      status, headers, body = @app.call(env)
+      valid                    = incoming.match?(/\A[\x20-\x7E]{1,200}\z/)
+      request_id               = valid ? incoming : @generator.call.to_s
+      env[HEADER]              = request_id
+      status, headers, body    = @app.call(env)
       headers[RESPONSE_HEADER] = request_id
       [status, headers, body]
     end

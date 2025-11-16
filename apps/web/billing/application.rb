@@ -43,20 +43,20 @@ module Billing
       stripe_key = Onetime.conf.dig('billing', 'stripe_key')
       if stripe_key && !stripe_key.to_s.strip.empty?
         Stripe.api_key = stripe_key
-        Onetime.billing_logger.info "Stripe API key configured"
+        Onetime.billing_logger.info 'Stripe API key configured'
       else
-        Onetime.billing_logger.warn "Stripe API key not configured - billing features disabled"
+        Onetime.billing_logger.warn 'Stripe API key not configured - billing features disabled'
       end
 
       # Refresh plan cache from Stripe on application boot
-      Onetime.billing_logger.info "Refreshing plan cache from Stripe"
+      Onetime.billing_logger.info 'Refreshing plan cache from Stripe'
       begin
         Billing::Models::PlanCache.refresh_from_stripe
-        Onetime.billing_logger.info "Plan cache refreshed successfully"
+        Onetime.billing_logger.info 'Plan cache refreshed successfully'
       rescue StandardError => ex
-        Onetime.billing_logger.error "Failed to refresh plan cache", {
+        Onetime.billing_logger.error 'Failed to refresh plan cache', {
           exception: ex,
-          message: ex.message
+          message: ex.message,
         }
       end
     end

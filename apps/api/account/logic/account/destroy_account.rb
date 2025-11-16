@@ -101,9 +101,9 @@ module AccountAPI::Logic
         else
           OT.le "[destroy-account] WARNING: No auth account found for extid: #{customer.extid}"
         end
-      rescue StandardError => e
-        OT.le "[destroy-account] Error deleting auth account: #{e.message}"
-        OT.ld e.backtrace.first(5).join("\n")
+      rescue StandardError => ex
+        OT.le "[destroy-account] Error deleting auth account: #{ex.message}"
+        OT.ld ex.backtrace.first(5).join("\n")
         # Don't raise - customer is already deleted, this is cleanup
       end
     end

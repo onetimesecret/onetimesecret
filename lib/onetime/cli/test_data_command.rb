@@ -10,13 +10,13 @@ module Onetime
       argument :email, type: :string, required: true, desc: 'Customer email address'
 
       option :org_name, type: :string, default: nil,
-             desc: 'Organization name (default: auto-generated)'
+        desc: 'Organization name (default: auto-generated)'
 
       option :team_name, type: :string, default: nil,
-             desc: 'Team name (default: auto-generated)'
+        desc: 'Team name (default: auto-generated)'
 
       option :cleanup, type: :boolean, default: false,
-             desc: 'Remove all non-default orgs/teams for the user'
+        desc: 'Remove all non-default orgs/teams for the user'
 
       def call(email:, org_name: nil, team_name: nil, cleanup: false, **)
         boot_application!
@@ -42,9 +42,9 @@ module Onetime
 
         # Create non-default organization
         org_display_name = org_name || "#{cust.email.split('@').first.capitalize} Corp"
-        contact_email = "billing-#{Time.now.to_i}@example.com"
+        contact_email    = "billing-#{Time.now.to_i}@example.com"
 
-        org = Onetime::Organization.create!(org_display_name, cust, contact_email)
+        org            = Onetime::Organization.create!(org_display_name, cust, contact_email)
         org.is_default = false  # Make it non-default so it shows in UI
         org.save
 
@@ -54,7 +54,7 @@ module Onetime
 
         # Create team in organization
         team_display_name = team_name || "#{org_display_name} Team"
-        team = Onetime::Team.create!(team_display_name, cust, org.objid)
+        team              = Onetime::Team.create!(team_display_name, cust, org.objid)
 
         puts "Created team: #{team.team_id} - #{team.display_name}"
         puts "  - org_id: #{team.org_id}"
@@ -68,13 +68,12 @@ module Onetime
         puts "  Team: #{team.display_name} (#{team.team_id})"
         puts ''
         puts "Login as #{email} and visit /billing to see the org link!"
-
-      rescue Onetime::Problem => e
-        puts "Error: #{e.message}"
+      rescue Onetime::Problem => ex
+        puts "Error: #{ex.message}"
         exit 1
-      rescue StandardError => e
-        puts "Unexpected error: #{e.message}"
-        puts e.backtrace.first(5)
+      rescue StandardError => ex
+        puts "Unexpected error: #{ex.message}"
+        puts ex.backtrace.first(5)
         exit 1
       end
 
@@ -98,6 +97,7 @@ module Onetime
           org.teams.each do |team_id|
             team = Onetime::Team.load(team_id)
             next unless team
+
             puts "  Removing team: #{team.display_name}"
             team.destroy!
           end
@@ -106,13 +106,12 @@ module Onetime
         end
 
         puts "✓ Cleaned up #{orgs.size} organization(s) for #{email}"
-
-      rescue Onetime::Problem => e
-        puts "Error: #{e.message}"
+      rescue Onetime::Problem => ex
+        puts "Error: #{ex.message}"
         exit 1
-      rescue StandardError => e
-        puts "Unexpected error: #{e.message}"
-        puts e.backtrace.first(5)
+      rescue StandardError => ex
+        puts "Unexpected error: #{ex.message}"
+        puts ex.backtrace.first(5)
         exit 1
       end
     end

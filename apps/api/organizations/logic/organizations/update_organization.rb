@@ -8,9 +8,9 @@ module OrganizationAPI::Logic
       attr_reader :organization, :display_name, :description, :contact_email
 
       def process_params
-        @extid = params['extid']
-        @display_name = (params[:display_name] || params['display_name']).to_s.strip
-        @description = (params[:description] || params['description']).to_s.strip
+        @extid         = params['extid']
+        @display_name  = (params[:display_name] || params['display_name']).to_s.strip
+        @description   = (params[:description] || params['description']).to_s.strip
         @contact_email = (params[:contact_email] || params['contact_email']).to_s.strip
       end
 
@@ -28,8 +28,8 @@ module OrganizationAPI::Logic
         verify_organization_owner(@organization)
 
         # Validate display_name if provided
-        if !display_name.empty?
-          if display_name.length < 1
+        unless display_name.empty?
+          if display_name.empty?
             raise_form_error('Organization name must be at least 1 character', field: :display_name, error_type: :invalid)
           end
 
@@ -44,7 +44,7 @@ module OrganizationAPI::Logic
         end
 
         # Validate contact_email if provided
-        if !contact_email.empty?
+        unless contact_email.empty?
           # Use unique_index finder for O(1) lookup (no iteration)
           existing_org = Onetime::Organization.find_by_contact_email(contact_email)
           if existing_org && existing_org.objid != @extid
@@ -62,15 +62,15 @@ module OrganizationAPI::Logic
         OT.ld "[UpdateOrganization] Updating organization #{@extid} for user #{cust.custid}"
 
         # Update fields
-        if !display_name.empty?
+        unless display_name.empty?
           @organization.display_name = display_name
         end
 
-        if !description.empty?
+        unless description.empty?
           @organization.description = description
         end
 
-        if !contact_email.empty?
+        unless contact_email.empty?
           @organization.contact_email = contact_email
         end
 

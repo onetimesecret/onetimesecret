@@ -11,13 +11,15 @@ module Auth::Config::Hooks
   module ErrorHandling
     def self.configure(auth)
       auth.around_rodauth do |&blk|
-        Auth::Logging.log_auth_event(
-          :around_rodauth,
-          level: :debug,
-          session_id: session.id,
-          current_route: current_route,
-          request_path: request.path,
-        ) if Onetime.debug?
+        if Onetime.debug?
+          Auth::Logging.log_auth_event(
+            :around_rodauth,
+            level: :debug,
+            session_id: session.id,
+            current_route: current_route,
+            request_path: request.path,
+          )
+        end
         begin
           super(&blk)
         rescue StandardError => ex

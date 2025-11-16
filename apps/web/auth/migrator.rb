@@ -108,16 +108,16 @@ module Auth
         raise
       end
 
-    # Force run all migrations (useful for manual execution)
-    def run!
-      return unless database_connection
+      # Force run all migrations (useful for manual execution)
+      def run!
+        return unless database_connection
 
-      Sequel.extension :migration
+        Sequel.extension :migration
 
-      sequel_logger.info 'Running auth database migrations...'
-      run_migrations
-      sequel_logger.info 'Auth database migrations completed'
-    end
+        sequel_logger.info 'Running auth database migrations...'
+        run_migrations
+        sequel_logger.info 'Auth database migrations completed'
+      end
 
       private
 

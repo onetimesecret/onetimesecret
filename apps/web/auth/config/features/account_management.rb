@@ -5,7 +5,6 @@
 module Auth::Config::Features
   module AccountManagement
     def self.configure(auth)
-
       # Only configure verify_account if the feature is enabled (disabled in test)
       unless ENV['RACK_ENV'] == 'test'
         # Password is set during account creation, not during verification
@@ -29,8 +28,6 @@ module Auth::Config::Features
       # In JSON mode, this becomes the "error" field in the response
       # Field-specific errors are still returned in "field-error" array
       auth.create_account_error_flash 'Unable to create account'
-
     end
-
   end
 end

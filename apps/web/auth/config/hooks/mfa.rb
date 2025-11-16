@@ -32,7 +32,7 @@ module Auth::Config::Hooks
       # - Verification attempts (POST with OTP code)
       #
       auth.before_otp_setup_route do
-        is_post = request.post?
+        is_post      = request.post?
         has_otp_code = !param_or_nil(otp_auth_param).to_s.empty?
         has_password = !param_or_nil(password_param).to_s.empty?
 
@@ -220,8 +220,8 @@ module Auth::Config::Hooks
       # - POST requests: Submitting OTP code for verification
       #
       auth.before_otp_auth_route do
-        is_post = request.post?
-        has_otp_code = !param_or_nil(otp_auth_param).to_s.empty?
+        is_post        = request.post?
+        has_otp_code   = !param_or_nil(otp_auth_param).to_s.empty?
         correlation_id = session[:auth_correlation_id]
 
         if is_post
@@ -305,7 +305,7 @@ module Auth::Config::Hooks
       #
       auth.before_recovery_auth do
         correlation_id = session[:auth_correlation_id]
-        recovery_code = param_or_nil(recovery_codes_param)
+        recovery_code  = param_or_nil(recovery_codes_param)
 
         Auth::Logging.log_auth_event(
           :mfa_recovery_code_attempt,

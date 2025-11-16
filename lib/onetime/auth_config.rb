@@ -26,6 +26,7 @@ module Onetime
     def mode
       return nil if config.nil?
       return config['mode'] if config['mode'].match?(/\A(?:basic|advanced)\z/)
+
       'basic'
     end
 

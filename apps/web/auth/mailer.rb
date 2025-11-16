@@ -56,7 +56,7 @@ module Auth
         def deliver(email)
           require 'mail'
 
-          mail = build_mail_message(email)
+          mail     = build_mail_message(email)
           settings = smtp_settings
 
           log_smtp_attempt(settings, email[:to])
@@ -144,8 +144,8 @@ module Auth
           password = @config[:password] || ENV.fetch('SMTP_PASSWORD', nil)
 
           if username && password
-            settings[:user_name] = username
-            settings[:password] = password
+            settings[:user_name]      = username
+            settings[:password]       = password
             settings[:authentication] = :plain
           end
 
@@ -231,7 +231,7 @@ module Auth
               },
             },
           },
-                            )
+                           )
 
           log_delivery(email, 'sent', 'SES')
         rescue StandardError => ex
@@ -386,7 +386,7 @@ module Auth
       rescue ArgumentError => ex
         Onetime.auth_logger.error 'Email configuration invalid, falling back to logger delivery', {
           error: ex.message,
-          fallback_provider: 'logger'
+          fallback_provider: 'logger',
         }
         @delivery_strategy = Delivery::Logger.new
         @provider          = 'logger'

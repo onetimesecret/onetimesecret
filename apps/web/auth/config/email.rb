@@ -3,9 +3,7 @@
 # frozen_string_literal: true
 
 module Auth::Config::Email
-
   def self.configure(auth)
-
     # Configure Rodauth email settings - use lazy evaluation
     auth.email_from ENV['EMAIL_FROM'] || 'noreply@onetimesecret.com'
     auth.email_subject_prefix ENV['EMAIL_SUBJECT_PREFIX'] || '[OneTimeSecret] '
@@ -15,7 +13,7 @@ module Auth::Config::Email
       Onetime.auth_logger.debug 'send_email hook called', {
         subject: email.subject.to_s,
         to: email.to.to_s,
-        rack_env: ENV.fetch('RACK_ENV', nil)
+        rack_env: ENV.fetch('RACK_ENV', nil),
       }
 
       # Deliver email using configured mailer
@@ -28,8 +26,6 @@ module Auth::Config::Email
     # TODO: Where do we actually use the provider? Probably in Mailer.
     OT.info "[email] Email delivery will use #{provider} provider"
   end
-
-  private_class_method
 
   def self.determine_provider_for_logging
     mode = ENV['EMAILER_MODE']&.downcase

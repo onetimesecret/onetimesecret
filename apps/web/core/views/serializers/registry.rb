@@ -58,9 +58,9 @@ module Core
           ordered.reduce({}) do |result, serializer|
             output = serializer.serialize(vars, i18n)
             if output.nil?
-              app_logger.warn "Serializer returned nil", {
+              app_logger.warn 'Serializer returned nil', {
                 serializer: serializer.to_s,
-                module: "SerializerRegistry"
+                module: 'SerializerRegistry',
               }
               next result
             end
@@ -68,20 +68,20 @@ module Core
             output.each_key do |key|
               # Detect keys that are not defined in the serializer output_template
               unless serializer.output_template.key?(key)
-                app_logger.warn "Serializer key not in output template", {
+                app_logger.warn 'Serializer key not in output template', {
                   key: key,
                   serializer: serializer.to_s,
-                  module: "SerializerRegistry"
+                  module: 'SerializerRegistry',
                 }
               end
 
               # Detect key collisions with output from previous serializers
               if seen_keys.key?(key)
-                app_logger.warn "Serializer key collision detected", {
+                app_logger.warn 'Serializer key collision detected', {
                   key: key,
                   first_defined_by: seen_keys[key].to_s,
                   then_defined_by: serializer.to_s,
-                  module: "SerializerRegistry"
+                  module: 'SerializerRegistry',
                 }
               else
                 seen_keys[key] = serializer

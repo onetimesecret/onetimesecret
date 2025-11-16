@@ -78,27 +78,27 @@ module Auth
       logger.public_send(level, "[#{event}]", log_payload)
 
       # Optionally log metric alongside event
-      if log_metric
-        metric_options = if log_metric.is_a?(Hash)
-                          log_metric
-                        else
-                          { value: 1, unit: :count }
-                        end
+      return unless log_metric
 
-        # Use custom metric name if provided, otherwise use event name
-        metric_name = metric_options.delete(:metric_name) || event
+      metric_options = if log_metric.is_a?(Hash)
+                        log_metric
+                      else
+                        { value: 1, unit: :count }
+                      end
 
-        # Extract metric-specific options and preserve event payload
-        metric_payload = log_payload.dup
-        metric_payload.merge!(metric_options.except(:value, :unit))
+      # Use custom metric name if provided, otherwise use event name
+      metric_name    = metric_options.delete(:metric_name) || event
 
-        self.log_metric(
-          metric_name,
-          value: metric_options[:value],
-          unit: metric_options[:unit],
-          **metric_payload
-        )
-      end
+      # Extract metric-specific options and preserve event payload
+      metric_payload = log_payload.dup
+      metric_payload.merge!(metric_options.except(:value, :unit))
+
+      self.log_metric(
+        metric_name,
+        value: metric_options[:value],
+        unit: metric_options[:unit],
+        **metric_payload,
+      )
     end
 
     # Log an operation with consistent structure

@@ -6,7 +6,6 @@ module Auth
   module Routes
     module Health
       def handle_health_routes(r)
-
         # Health check endpoint
         r.on('health') do
           r.get do
@@ -33,7 +32,6 @@ module Auth
               }
           end
         end
-
       end
     end
   end

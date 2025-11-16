@@ -8,7 +8,6 @@ require_relative 'secret/features'
 
 module Onetime
   class Secret < Familia::Horreum
-
     using Familia::Refinements::TimeLiterals
 
     feature :object_identifier,

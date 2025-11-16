@@ -11,7 +11,6 @@ module Billing
         view     = Core::Views::VuePoint.new(req)
         res.body = view.render
       end
-
     end
   end
 end

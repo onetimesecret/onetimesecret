@@ -12,7 +12,7 @@ require 'rhales'
 class OnetimeSessionAdapter < SimpleDelegator
   def authenticated?
     # Otto authentication logic: requires session['authenticated'] == true AND external_id present
-    self['authenticated'] == true && self['external_id'].to_s.length > 0
+    self['authenticated'] == true && !self['external_id'].to_s.empty?
   end
 end
 
@@ -42,14 +42,14 @@ module Onetime
         config.hydration.injection_strategy = :earliest
 
         # Default: Schema is source of truth (production mindset)
-        config.hydration_authority = :schema  # default
+        config.hydration_authority       = :schema  # default
         config.hydration_mismatch_format = :compact  # or :multiline, :compact, :sidebyside, :json
 
         # Vue.js mounts to #app, ensure hydration happens before mount
         config.hydration.mount_point_selectors = ['#app']
 
         # Set template paths to match existing structure
-        templates_dir = File.join(OT::HOME, 'apps', 'web', 'core', 'templates')
+        templates_dir         = File.join(OT::HOME, 'apps', 'web', 'core', 'templates')
         config.template_paths = [templates_dir]
 
         # Suppress unescaped variable warnings for known safe HTML variables

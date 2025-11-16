@@ -20,6 +20,7 @@ module OrganizationAPI
   module Logic
     class Base < V2::Logic::Base
       include Onetime::Application::AuthorizationPolicies
+
       # Organization API-specific serialization helper
       #
       # Converts Familia model to JSON hash with native types.
@@ -112,6 +113,7 @@ module OrganizationAPI
       # @return [String] Role: 'owner', 'admin', or 'member'
       def determine_user_role(organization, user)
         return 'owner' if organization.owner?(user)
+
         # For now, non-owners are 'member'
         # Future: Add admin role support
         'member'
@@ -128,7 +130,7 @@ module OrganizationAPI
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.owner?(cust) },
-          error_message: 'Only organization owner can perform this action'
+          error_message: 'Only organization owner can perform this action',
         )
       end
 
@@ -143,7 +145,7 @@ module OrganizationAPI
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.member?(cust) },
-          error_message: 'You must be an organization member to perform this action'
+          error_message: 'You must be an organization member to perform this action',
         )
       end
 

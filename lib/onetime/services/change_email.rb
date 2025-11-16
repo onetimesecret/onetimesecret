@@ -269,7 +269,7 @@ module Onetime
 
       # @deprecated Use save_report_to_db instead
       # @return [String] The key where the report was stored
-      alias_method :save_report_serialize_value, :save_report_to_db
+      alias save_report_serialize_value save_report_to_db
 
       # Displays a preview of the changes to be made
       # @return [void]

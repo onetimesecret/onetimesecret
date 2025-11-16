@@ -45,7 +45,7 @@ module TeamAPI::Logic
                 email: member.email,
                 role: (team.owner?(member) ? 'owner' : 'member'),
               }
-            end
+            end,
           ),
         }
       end

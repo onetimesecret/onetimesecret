@@ -8,8 +8,8 @@ module OrganizationAPI::Logic
       attr_reader :organization, :display_name, :description, :contact_email
 
       def process_params
-        @display_name = params['display_name'].to_s.strip
-        @description = params['description'].to_s.strip
+        @display_name  = params['display_name'].to_s.strip
+        @description   = params['description'].to_s.strip
         @contact_email = params['contact_email'].to_s.strip
       end
 
@@ -22,7 +22,7 @@ module OrganizationAPI::Logic
           raise_form_error('Organization name is required', field: 'display_name', error_type: :missing)
         end
 
-        if display_name.length < 1
+        if display_name.empty?
           raise_form_error('Organization name must be at least 1 character', field: 'display_name', error_type: :invalid)
         end
 
@@ -45,11 +45,11 @@ module OrganizationAPI::Logic
         OT.ld "[CreateOrganization] Creating organization '#{display_name}' for user #{cust.custid}"
 
         # Create organization using class method (contact_email is optional)
-        email_value = contact_email.empty? ? nil : contact_email
+        email_value   = contact_email.empty? ? nil : contact_email
         @organization = Onetime::Organization.create!(display_name, cust, email_value)
 
         # Set description if provided
-        if !description.empty?
+        unless description.empty?
           @organization.description = description
           @organization.save
         end

@@ -33,7 +33,7 @@ module AccountAPI
   # - Authentication: Session-based and token-based strategies (most require auth)
   #
   class Application < BaseJSONAPI
-    @uri_prefix = '/api/account'.freeze
+    @uri_prefix = '/api/account'
 
     warmup do
       # Empty warmup - just triggers the logging

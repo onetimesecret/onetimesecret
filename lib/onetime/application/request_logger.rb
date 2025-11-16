@@ -9,13 +9,13 @@ module Onetime
         minimal: [:method, :path, :status, :duration],
         standard: [:method, :path, :status, :duration, :request_id, :ip],
         debug: [:method, :path, :status, :duration, :request_id, :ip,
-                :params, :headers, :session_id]
+                :params, :headers, :session_id],
       }.freeze
 
       def initialize(app, config)
-        @app = app
-        @config = config
-        @logger = Onetime.get_logger('HTTP')
+        @app     = app
+        @config  = config
+        @logger  = Onetime.get_logger('HTTP')
         @capture = CAPTURE_MODES[config['capture']&.to_sym || :standard]
       end
 
@@ -23,10 +23,10 @@ module Onetime
         return @app.call(env) if ignored?(env['PATH_INFO'])
 
         request = Rack::Request.new(env)
-        start = Onetime.now_in_μs
+        start   = Onetime.now_in_μs
 
         status, headers, body = @app.call(env)
-        duration = Onetime.now_in_μs - start  # Duration in microseconds
+        duration              = Onetime.now_in_μs - start  # Duration in microseconds
 
         log_request(request, status, duration)
 
@@ -37,7 +37,7 @@ module Onetime
 
       def log_request(request, status, duration)
         payload = build_payload(request, status, duration)
-        level = determine_level(status, duration)
+        level   = determine_level(status, duration)
 
         @logger.send(level, 'HTTP Request', payload)
       end
@@ -45,14 +45,14 @@ module Onetime
       def build_payload(request, status, duration)
         payload = {}
 
-        payload[:method] = request.request_method if capture?(:method)
-        payload[:path] = request.path if capture?(:path)
-        payload[:status] = status if capture?(:status)
+        payload[:method]     = request.request_method if capture?(:method)
+        payload[:path]       = request.path if capture?(:path)
+        payload[:status]     = status if capture?(:status)
         # Convert microseconds to seconds for SemanticLogger's duration formatting
-        payload[:duration] = duration / 1_000_000.0 if capture?(:duration)
+        payload[:duration]   = duration / 1_000_000.0 if capture?(:duration)
         payload[:request_id] = request.env['HTTP_X_REQUEST_ID'] if capture?(:request_id)
-        payload[:ip] = request.ip if capture?(:ip)
-        payload[:params] = redact_params(request.params) if capture?(:params)
+        payload[:ip]         = request.ip if capture?(:ip)
+        payload[:params]     = redact_params(request.params) if capture?(:params)
         payload[:session_id] = request.session.id if capture?(:session_id)
 
         if capture?(:headers)
@@ -68,10 +68,12 @@ module Onetime
 
       def determine_level(status, duration)
         return :error if status >= 500
+
         # Duration is in microseconds (μs), slow_request_ms is in milliseconds
         # Convert microseconds to milliseconds for threshold comparison
         duration_ms = duration / 1000
         return :warn if status >= 400 || duration_ms > @config['slow_request_ms']
+
         @config['level']&.to_sym || :info
       end
 

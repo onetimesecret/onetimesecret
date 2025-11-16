@@ -9,7 +9,6 @@ module Auth::Config::Features
     using Familia::Refinements::TimeLiterals
 
     def self.configure(auth)
-
       # Email Auth (Magic Links)
       # enable :email_auth
 
@@ -52,7 +51,6 @@ module Auth::Config::Features
 
       # Session key for storing token during auth flow
       auth.email_auth_session_key 'email_auth_key'
-
     end
   end
 end

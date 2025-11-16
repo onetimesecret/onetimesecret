@@ -17,7 +17,7 @@ module Auth
           # Returns list of all active sessions for the current user
           r.get do
             # Get account_id directly from session to avoid account lookup
-            account_id = rodauth.session_value
+            account_id         = rodauth.session_value
             current_session_id = rodauth.session[rodauth.session_id_session_key]
 
             # When the session_inactivity_deadline option is set it tells rodauth to:
@@ -51,7 +51,7 @@ module Auth
                 ip_address: nil,  # TODO: Store IP in table if needed
                 user_agent: nil,  # TODO: Store user agent if needed
                 is_current: session[:session_id] == current_session_id_hmac,
-                remember_enabled: false  # TODO: Check remember table if feature enabled
+                remember_enabled: false,  # TODO: Check remember table if feature enabled
               }
             end
 
@@ -60,7 +60,7 @@ module Auth
           rescue StandardError => ex
             auth_logger.error 'Error fetching active sessions', {
               exception: ex,
-              account_id: account_id
+              account_id: account_id,
             }
 
             response.status = 500
@@ -72,7 +72,7 @@ module Auth
           r.is String do |session_id|
             next unless r.delete?
 
-            current_session_id = rodauth.session[rodauth.session_id_session_key]
+            current_session_id      = rodauth.session[rodauth.session_id_session_key]
             current_session_id_hmac = current_session_id ? rodauth.compute_hmac(current_session_id) : nil
 
             # Prevent removing current session via this endpoint
@@ -89,7 +89,7 @@ module Auth
           rescue StandardError => ex
             auth_logger.error 'Error removing active session', {
               exception: ex,
-              session_id: session_id
+              session_id: session_id,
             }
 
             response.status = 500
@@ -112,10 +112,14 @@ module Auth
           { success: 'All other sessions have been removed' }
         rescue StandardError => ex
           # Use session_value for safer access to account_id
-          account_id = rodauth.session_value rescue nil
+          account_id = begin
+                         rodauth.session_value
+          rescue StandardError
+                         nil
+          end
           auth_logger.error 'Error removing all active sessions', {
             exception: ex,
-            account_id: account_id
+            account_id: account_id,
           }
 
           response.status = 500

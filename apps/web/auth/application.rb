@@ -13,7 +13,7 @@ require_relative 'router'
 
 module Auth
   class Application < Onetime::Application::Base
-    @uri_prefix = '/auth'.freeze
+    @uri_prefix = '/auth'
 
     # Auth app specific middleware (common middleware is in MiddlewareStack)
     use Rack::JSONBodyParser  # Parse JSON request bodies for Rodauth
@@ -44,8 +44,8 @@ module Auth
       # Migrations are run in build_router before loading the Router class
       # This warmup block can be used for other initialization tasks if needed
       if Onetime.auth_config.advanced_enabled?
-      # Run migrations BEFORE loading the Router class
-      # This ensures database tables exist when Rodauth validates features during plugin load
+        # Run migrations BEFORE loading the Router class
+        # This ensures database tables exist when Rodauth validates features during plugin load
 
         # Require Auth::Migrator only when needed (after config is loaded)
         #
@@ -69,7 +69,6 @@ module Auth
     protected
 
     def build_router
-
       # NOTE: Make sure that migrations BEFORE we get here to load the Router
       # class. This ensures database tables exist when Rodauth validates
       # features during plugin load.

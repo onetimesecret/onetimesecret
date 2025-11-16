@@ -5,7 +5,6 @@
 module Auth::Config::Hooks
   module Logout
     def self.configure(auth)
-
       #
       # Hook: Before Logout
       #
@@ -38,7 +37,6 @@ module Auth::Config::Hooks
           session_id: session.id,
         )
       end
-
     end
   end
 end

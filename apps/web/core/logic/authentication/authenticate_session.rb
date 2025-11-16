@@ -8,6 +8,7 @@ module Core::Logic
 
     class AuthenticateSession < V2::Logic::Base
       include Onetime::LoggerMethods
+
       attr_reader :objid, :stay, :greenlighted, :session_ttl, :potential_email_address
 
       # cust is only populated if the passphrase matches
@@ -36,29 +37,29 @@ module Core::Logic
 
       def process
         unless success?
-          auth_logger.warn "Login failed", {
+          auth_logger.warn 'Login failed', {
             email: cust.obscure_email,
             role: cust.role,
             session_id: sess&.id,
             ip: @strategy_result.metadata[:ip],
-            reason: :invalid_credentials
+            reason: :invalid_credentials,
           }
 
           raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
         end
 
         if cust.pending?
-          auth_logger.info "Login pending customer verification", {
+          auth_logger.info 'Login pending customer verification', {
             customer_id: cust.objid,
             email: cust.obscure_email,
             role: cust.role,
             session_id: sess&.id,
-            status: :pending
+            status: :pending,
           }
 
-          auth_logger.info "Resending verification email", {
+          auth_logger.info 'Resending verification email', {
             customer_id: cust.objid,
-            email: cust.obscure_email
+            email: cust.obscure_email,
           }
 
           send_verification_email nil
@@ -74,33 +75,33 @@ module Core::Logic
         sess.clear
 
         # Set session authentication data
-        sess['external_id'] = cust.extid
-        sess['authenticated'] = true
+        sess['external_id']      = cust.extid
+        sess['authenticated']    = true
         sess['authenticated_at'] = Familia.now.to_i
         cust.save
 
-        colonels = OT.conf.dig('site', 'authentication', 'colonels') || []
+        colonels  = OT.conf.dig('site', 'authentication', 'colonels') || []
         cust.role = if colonels.member?(cust.email)
           :colonel
         else
           :customer
         end
 
-        auth_logger.info "Login successful", {
+        auth_logger.info 'Login successful', {
           user_id: cust.objid,
           email: cust.obscure_email,
           role: cust.role,
           session_id: sess.id,
           ip: @strategy_result.metadata[:ip],
           stay: stay,
-          session_ttl: session_ttl
+          session_ttl: session_ttl,
         }
 
         success_data
       end
 
       def success_data
-        { objid: cust.objid, role: cust.role}
+        { objid: cust.objid, role: cust.role }
       end
 
       def success?

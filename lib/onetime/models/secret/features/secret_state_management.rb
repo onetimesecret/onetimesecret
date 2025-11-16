@@ -4,7 +4,6 @@
 
 module Onetime::Secret::Features
   module SecretStateManagement
-
     Familia::Base.add_feature self, :secret_state_management
 
     def self.included(base)
@@ -82,6 +81,5 @@ module Onetime::Secret::Features
         destroy!
       end
     end
-
   end
 end

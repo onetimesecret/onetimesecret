@@ -81,16 +81,16 @@ class BaseJSONAPI < Onetime::Application::Base
     # Default error responses matching v3 REST schema
     # Schema: { message: string, code?: string, details?: object }
     # Note: No 'success' field - HTTP status codes indicate success/error
-    headers = { 'content-type' => 'application/json' }
-    router.not_found = [
+    headers             = { 'content-type' => 'application/json' }
+    router.not_found    = [
       404,
       headers,
-      [{ message: 'Not Found', code: 'NOT_FOUND' }.to_json]
+      [{ message: 'Not Found', code: 'NOT_FOUND' }.to_json],
     ]
     router.server_error = [
       500,
       headers,
-      [{ message: 'Internal Server Error', code: 'SERVER_ERROR' }.to_json]
+      [{ message: 'Internal Server Error', code: 'SERVER_ERROR' }.to_json],
     ]
 
     router

@@ -4,7 +4,6 @@
 
 module Onetime
   module Initializers
-
     # Check for legacy data distribution before connecting to databases
     def detect_legacy_data_and_warn
       # This check runs once and then sets a marker to prevent the expensive
@@ -35,7 +34,7 @@ module Onetime
       begin
         Familia.with_isolated_dbclient(0) do |client|
           client.set(completion_key, 'true')
-          OT.ld "[init] Detect legacy data: Set completion marker to prevent future checks."
+          OT.ld '[init] Detect legacy data: Set completion marker to prevent future checks.'
         end
       rescue Redis::BaseError => ex
         OT.ld "[init] Detect legacy data: Could not set completion marker: #{ex.message}"
@@ -362,7 +361,7 @@ module Onetime
       return true if defined?(OT) && OT.mode?(:test)
 
       # Skip during testing environment (covers CI scenarios)
-      return true if defined?(OT) && (OT.env == 'testing' || OT.env == 'test')
+      return true if defined?(OT) && (%w[testing test].include?(OT.env))
 
       false
     end

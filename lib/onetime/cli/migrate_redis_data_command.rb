@@ -10,22 +10,22 @@ module Onetime
       desc 'Consolidate Redis data from multiple databases to database 0'
 
       option :run, type: :boolean, default: false,
-             desc: 'Actually apply changes (default is dry run mode)'
+        desc: 'Actually apply changes (default is dry run mode)'
 
       option :show_commands, type: :boolean, default: false,
-             desc: 'Generate redis-cli commands for manual execution'
+        desc: 'Generate redis-cli commands for manual execution'
 
       option :yes, type: :boolean, default: false, aliases: ['y'],
-             desc: 'Auto-confirm consolidation (non-interactive mode)'
+        desc: 'Auto-confirm consolidation (non-interactive mode)'
 
       option :batch_size, type: :string, default: nil,
-             desc: 'Set batch size for consolidation (default: 100, max: 10000)'
+        desc: 'Set batch size for consolidation (default: 100, max: 10000)'
 
       option :help, type: :boolean, default: false, aliases: ['h'],
-             desc: 'Show help message'
+        desc: 'Show help message'
 
       option :verbose, type: :boolean, default: false, aliases: ['v'],
-             desc: 'Show detailed progress and CLI commands'
+        desc: 'Show detailed progress and CLI commands'
 
       def call(run: false, show_commands: false, yes: false, batch_size: nil, help: false, verbose: false, **)
         # Show help if requested
@@ -259,12 +259,12 @@ module Onetime
 
         puts <<~MESSAGE
 
-         Migration completed!
+           Migration completed!
 
-        Next steps:
-        1. Restart your application to verify everything works correctly
-        2. Remove any REDIS_DBS_* environment variables if you were using them
-        3. Your configuration now uses database 0 for all models (default)
+          Next steps:
+          1. Restart your application to verify everything works correctly
+          2. Remove any REDIS_DBS_* environment variables if you were using them
+          3. Your configuration now uses database 0 for all models (default)
 
         MESSAGE
 
@@ -292,11 +292,10 @@ module Onetime
       def parse_batch_size(batch_size_str)
         if batch_size_str
           size = batch_size_str.to_i
-          if size > 0 && size <= 10_000
-            return size
-          else
-            raise "Invalid batch size: #{batch_size_str}. Must be between 1 and 10,000."
-          end
+          return size if size > 0 && size <= 10_000
+
+          raise "Invalid batch size: #{batch_size_str}. Must be between 1 and 10,000."
+
         end
         100  # Default batch size
       end

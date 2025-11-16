@@ -36,18 +36,18 @@ module Billing
           plan_name: Onetime::Billing.plan_name(org.planid),
           capabilities: org.capabilities,
           limits: build_limits_hash(org),
-          is_legacy: Onetime::Billing.legacy_plan?(org.planid)
+          is_legacy: Onetime::Billing.legacy_plan?(org.planid),
         }
 
         json_response(data)
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue StandardError => ex
-        billing_logger.error "Failed to load capabilities", {
+        billing_logger.error 'Failed to load capabilities', {
           exception: ex,
-          extid: req.params['extid']
+          extid: req.params['extid'],
         }
-        json_error("Failed to load capabilities", status: 500)
+        json_error('Failed to load capabilities', status: 500)
       end
 
       # Check specific capability for organization
@@ -78,11 +78,11 @@ module Billing
       #
       # @return [Hash] Capability check result
       def check
-        org = load_organization(req.params['extid'])
+        org        = load_organization(req.params['extid'])
         capability = req.params[:capability]
 
         if capability.to_s.empty?
-          return json_error("Capability parameter required", status: 400)
+          return json_error('Capability parameter required', status: 400)
         end
 
         # Use organization's check_capability method
@@ -91,19 +91,19 @@ module Billing
         # Enhance with upgrade messaging if needed
         if result[:upgrade_needed] && result[:upgrade_to]
           result[:upgrade_plan_name] = Onetime::Billing.plan_name(result[:upgrade_to])
-          result[:message] = build_upgrade_message(capability, result[:upgrade_to])
+          result[:message]           = build_upgrade_message(capability, result[:upgrade_to])
         end
 
         json_response(result)
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue StandardError => ex
-        billing_logger.error "Failed capability check", {
+        billing_logger.error 'Failed capability check', {
           exception: ex,
           extid: req.params['extid'],
-          capability: req.params[:capability]
+          capability: req.params[:capability],
         }
-        json_error("Failed to check capability", status: 500)
+        json_error('Failed to check capability', status: 500)
       end
 
       # List all available capabilities
@@ -133,15 +133,15 @@ module Billing
       def list
         data = {
           capabilities: Onetime::Billing::CAPABILITY_CATEGORIES,
-          plans: build_plans_summary
+          plans: build_plans_summary,
         }
 
         json_response(data)
       rescue StandardError => ex
-        billing_logger.error "Failed to list capabilities", {
-          exception: ex
+        billing_logger.error 'Failed to list capabilities', {
+          exception: ex,
         }
-        json_error("Failed to list capabilities", status: 500)
+        json_error('Failed to list capabilities', status: 500)
       end
 
       private
@@ -166,7 +166,7 @@ module Billing
       # @param upgrade_plan [String] Suggested plan ID
       # @return [String] User-friendly upgrade message
       def build_upgrade_message(capability, upgrade_plan)
-        plan_name = Onetime::Billing.plan_name(upgrade_plan)
+        plan_name       = Onetime::Billing.plan_name(upgrade_plan)
         capability_name = capability.to_s.tr('_', ' ')
 
         "This feature requires #{plan_name}. Upgrade your plan to access #{capability_name}."
@@ -184,13 +184,12 @@ module Billing
           summary[plan.plan_id] = {
             name: plan.name,
             capabilities: plan.parsed_capabilities,
-            limits: plan.parsed_limits.transform_values { |v| v == Float::INFINITY ? nil : v }
+            limits: plan.parsed_limits.transform_values { |v| v == Float::INFINITY ? nil : v },
           }
         end
 
         summary
       end
-
     end
   end
 end

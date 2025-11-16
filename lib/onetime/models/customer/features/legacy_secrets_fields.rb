@@ -4,7 +4,6 @@
 
 module Onetime::Customer::Features
   module LegacySecretsFields
-
     Onetime::Customer.add_feature self, :legacy_secrets_fields
 
     def self.included(base)

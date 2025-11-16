@@ -50,11 +50,11 @@ module Core
 
         # Fall back to default locale if translations not available
         if messages.empty?
-          app_logger.warn "Locale not found, falling back to default", {
+          app_logger.warn 'Locale not found, falling back to default', {
             requested_locale: locale,
             available_locales: OT.locales.keys,
             supported_locales: OT.supported_locales,
-            page: pagename
+            page: pagename,
           }
           messages = OT.locales.fetch(OT.default_locale, {})
         end

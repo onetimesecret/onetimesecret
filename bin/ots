@@ -17,11 +17,11 @@ puts '' if $stdout.tty?
 
 # Handle global options
 verbose = false
-debug = false
+debug   = false
 
 # Parse global options before passing to dry-cli
 remaining_args = []
-ARGV.each_with_index do |arg, idx|
+ARGV.each_with_index do |arg, _idx|
   case arg
   when '-v', '--verbose'
     verbose = true
@@ -35,7 +35,7 @@ end
 
 # Guard for commands that require a database URL in advanced mode
 if ENV['AUTHENTICATION_MODE'].to_s == 'advanced' && ENV['DATABASE_URL'].to_s.strip.empty?
-  puts "SKIP: Advanced mode requires DATABASE_URL; set DATABASE_URL or run in basic mode."
+  puts 'SKIP: Advanced mode requires DATABASE_URL; set DATABASE_URL or run in basic mode.'
   exit 0
 end
 

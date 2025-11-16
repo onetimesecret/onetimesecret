@@ -31,7 +31,7 @@ module OrganizationAPI
   # - Authentication: Session-based (sessionauth) and HTTP Basic (basicauth)
   #
   class Application < BaseJSONAPI
-    @uri_prefix = '/api/organizations'.freeze
+    @uri_prefix = '/api/organizations'
 
     warmup do
       # Empty warmup - just triggers the logging

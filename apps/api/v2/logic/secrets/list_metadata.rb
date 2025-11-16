@@ -25,7 +25,7 @@ module V2::Logic
 
         # Get the safe fields for each record using optimized bulk loading
         metadata_objects = Onetime::Metadata.load_multi(query_results).compact
-        @records = metadata_objects.map(&:safe_dump)
+        @records         = metadata_objects.map(&:safe_dump)
 
         @has_items              = records.any?
         records.sort! { |a, b| b[:updated] <=> a[:updated] }

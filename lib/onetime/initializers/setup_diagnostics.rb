@@ -63,7 +63,7 @@ module Onetime
         config.profiles_sample_rate = 0.1
 
         # Add a before_send to filter out problematic events that might cause errors
-        config.before_send = lambda do |event, _hint|
+        config.before_send = ->(event, _hint) do
           # Return nil if the event would cause errors in processing
           if event.nil? || event.request.nil? || event.request.headers.nil?
             OT.ld '[init] Sentry: Filtering out event with nil components'

@@ -64,7 +64,7 @@ module Onetime
         env['identity.authenticated'] = identity[:authenticated]
         env['identity.metadata']      = identity[:metadata]
 
-        dmsg = identity.map { |k,v| format('%s=%s', k, v)}.join(' ')
+        dmsg = identity.map { |k, v| format('%s=%s', k, v) }.join(' ')
         logger.debug "[IdentityResolution] Resolved #{dmsg}"
 
         @app.call(env)
@@ -160,7 +160,7 @@ module Onetime
         # Check session expiry
         if session['authenticated_at']
           max_age = Onetime.auth_config.session['expire_after'] || 86_400
-          age = Familia.now.to_i - session['authenticated_at'].to_i
+          age     = Familia.now.to_i - session['authenticated_at'].to_i
           return no_identity if age >= max_age
         end
 

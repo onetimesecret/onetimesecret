@@ -40,27 +40,27 @@ module Core
 
         # Prevent infinite redirect loops
         if req.get? && ex.location.to_s == req.path
-          http_logger.error "Redirect loop detected", {
+          http_logger.error 'Redirect loop detected', {
             exception: ex,
             path: req.path,
-            target: ex.location
+            target: ex.location,
           }
           ex.instance_variable_set(:@location, '/500')
         end
 
-        http_logger.info "Redirecting", {
+        http_logger.info 'Redirecting', {
           location: ex.location,
-          status: ex.status
+          status: ex.status,
         }
         [ex.status, { 'location' => ex.location }, []]
       end
 
       def handle_unauthorized(env, ex)
         req = Rack::Request.new(env)
-        http_logger.info "Unauthorized access", {
+        http_logger.info 'Unauthorized access', {
           exception: ex,
           url: req.url,
-          ip: req.ip
+          ip: req.ip,
         }
 
         # Serve Vue entry point - let Vue show login prompt
@@ -71,12 +71,12 @@ module Core
         req = Rack::Request.new(env)
 
         # Log the error with structured context
-        http_logger.error "Request processing failed", {
+        http_logger.error 'Request processing failed', {
           exception: ex,
           url: req.url,
           method: req.request_method,
           ip: req.ip,
-          backtrace: ex.backtrace&.first(20)
+          backtrace: ex.backtrace&.first(20),
         }
 
         # Track in Sentry if diagnostics enabled
@@ -90,11 +90,11 @@ module Core
         req = build_rack_request(env)
 
         # Debug template path configuration
-        http_logger.debug "Template debug info", {
+        http_logger.debug 'Template debug info', {
           rhales_frozen: Rhales.configuration.frozen?,
           template_paths: Rhales.configuration.template_paths,
           current_dir: Dir.pwd,
-          template_exists: File.exist?(File.join(Dir.pwd, 'apps', 'web', 'core', 'templates', 'index.rue'))
+          template_exists: File.exist?(File.join(Dir.pwd, 'apps', 'web', 'core', 'templates', 'index.rue')),
         }
 
         # Simplified: BaseView now extracts everything from req
@@ -104,7 +104,7 @@ module Core
       end
 
       def build_rack_request(env)
-        @rack_request ||= {}
+        @rack_request                ||= {}
         @rack_request[env.object_id] ||= Rack::Request.new(env)
       end
 
@@ -121,15 +121,16 @@ module Core
             scope.set_context('request', {
               url: req.url,
               method: req.request_method,
-              ip: req.ip
-            })
+              ip: req.ip,
+            }
+            )
           end
 
           Sentry.capture_exception(error)
         end
       rescue StandardError => ex
-        http_logger.error "Sentry capture failed", {
-          exception: ex
+        http_logger.error 'Sentry capture failed', {
+          exception: ex,
         }
       end
     end

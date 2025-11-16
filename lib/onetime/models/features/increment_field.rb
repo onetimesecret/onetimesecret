@@ -6,7 +6,6 @@ module Onetime
   module Models
     module Features
       module IncrementField
-
         Familia::Base.add_feature self, :increment_field
 
         def self.included(base)
@@ -16,7 +15,6 @@ module Onetime
         end
 
         module ClassMethods
-
           # fobj - an instance of a Familia::Horreum object
           def increment_field(fobj, field)
             return if fobj.global?
@@ -52,7 +50,6 @@ module Onetime
             self.class.increment_field(self, field)
           end
         end
-
       end
     end
   end

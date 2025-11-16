@@ -7,7 +7,6 @@ module Auth::Config::Features
   #
   module RodauthOverrides
     def self.configure(auth)
-
       # Override authenticated? to require MFA completion
       # auth.auth_class_eval do
       #   def require_authentication
@@ -57,7 +56,6 @@ module Auth::Config::Features
       #       .all
       #   end
       # end
-
     end
   end
 end

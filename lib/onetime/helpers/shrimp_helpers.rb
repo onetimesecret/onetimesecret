@@ -27,7 +27,7 @@ module Onetime
           OT.ld "[shrimp-success] Valid token for #{current_customer.custid}"
         else
           OT.ld "[shrimp-fail] Invalid token for #{current_customer.custid}"
-          raise Onetime::FormError, "Security validation failed"
+          raise Onetime::FormError, 'Security validation failed'
         end
 
         true
@@ -46,9 +46,9 @@ module Onetime
       def extract_shrimp_token
         # Check headers first (for AJAX), then form parameter
         request.env['HTTP_X_SHRIMP_TOKEN'] ||
-        request.env['HTTP_X_CSRF_TOKEN'] ||  # Standard header for compatibility
-        request.env['HTTP_ONETIME_SHRIMP'] || # Legacy header
-        params['shrimp']
+          request.env['HTTP_X_CSRF_TOKEN'] ||  # Standard header for compatibility
+          request.env['HTTP_ONETIME_SHRIMP'] || # Legacy header
+          params['shrimp']
       end
 
       # Check if CSRF verification should be skipped for this request

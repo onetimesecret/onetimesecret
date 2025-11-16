@@ -34,7 +34,7 @@ module Rack
       begin
         debug_request(env)
       rescue StandardError => ex
-        logger.error "SessionDebugger failed", {
+        logger.error 'SessionDebugger failed', {
           error: ex.message,
           error_class: ex.class.name,
           backtrace: ex.backtrace.first(3),
@@ -54,10 +54,10 @@ module Rack
       start  = Onetime.now_in_μs
 
       # Log incoming request
-      logger.debug "Session debug start", {
+      logger.debug 'Session debug start', {
         method: method,
         path: path,
-        has_cookie: env['HTTP_COOKIE']&.include?('rack.session') || false
+        has_cookie: env['HTTP_COOKIE']&.include?('rack.session') || false,
       }
 
       # Get session before processing
@@ -78,9 +78,9 @@ module Rack
 
       # Check for session ID changes
       if session_id_before != session_id_after
-        logger.warn "Session ID changed", {
+        logger.warn 'Session ID changed', {
           before: session_id_before,
-          after: session_id_after
+          after: session_id_after,
         }
       end
 
@@ -92,7 +92,7 @@ module Rack
 
       # Log response info
       duration = Onetime.now_in_μs - start
-      logger.debug "Session debug complete", {
+      logger.debug 'Session debug complete', {
         status: status,
         duration: duration,
         response_headers: headers,
@@ -115,13 +115,13 @@ module Rack
         end
       end
     rescue StandardError => ex
-      logger.error "Failed to extract session ID", { error: ex.message }
+      logger.error 'Failed to extract session ID', { error: ex.message }
       nil
     end
 
     def log_session_state(session, session_id, phase)
       if session.nil?
-        logger.warn "Session is nil", { phase: phase }
+        logger.warn 'Session is nil', { phase: phase }
         return
       end
 
@@ -133,7 +133,7 @@ module Rack
 
       auth_data = {}
       auth_keys.each do |key|
-        value = session[key]
+        value          = session[key]
         auth_data[key] = value if value
       end
 
@@ -143,7 +143,7 @@ module Rack
 
       # Log session state
       begin
-        logger.debug "Session state", {
+        logger.debug 'Session state', {
           phase: phase,
           session_class: session.class.name,
           session_id: session_id || 'NONE',
@@ -152,11 +152,11 @@ module Rack
           auth_data: auth_data,
         }
 
-        logger.warn "No auth data in session", { phase: phase } if auth_data.empty?
+        logger.warn 'No auth data in session', { phase: phase } if auth_data.empty?
       rescue StandardError => ex
-        logger.error "Could not read session keys", {
+        logger.error 'Could not read session keys', {
           phase: phase,
-          error: ex.message
+          error: ex.message,
         }
       end
     end
@@ -172,7 +172,7 @@ module Rack
           "session:#{session_id}",
           "onetime:session:#{session_id}",
           "rack:session:#{session_id}",
-          session_id
+          session_id,
         ]
 
         key_patterns.each do |key|
@@ -192,65 +192,65 @@ module Rack
             end
           end
 
-          logger.debug "Redis session found", {
+          logger.debug 'Redis session found', {
             phase: phase,
             key: key,
             ttl: ttl,
             data_size: data&.bytesize,
-            parsed: parsed.is_a?(Hash)
+            parsed: parsed.is_a?(Hash),
           }
 
           return
         end
 
         # Not found in any pattern
-        logger.warn "Redis session missing", {
+        logger.warn 'Redis session missing', {
           phase: phase,
           session_id: session_id,
-          searched_keys: key_patterns
+          searched_keys: key_patterns,
         }
 
         # List available session keys for debugging
         all_session_keys = dbclient.keys('*session*')
         if all_session_keys.any?
-          logger.debug "Available Redis session keys", {
+          logger.debug 'Available Redis session keys', {
             sample: all_session_keys.first(5),
-            total: all_session_keys.size
+            total: all_session_keys.size,
           }
         end
       rescue StandardError => ex
-        logger.error "Redis inspection failed", {
+        logger.error 'Redis inspection failed', {
           phase: phase,
-          error: ex.message
+          error: ex.message,
         }
       end
     end
 
     def log_cookies(set_cookie)
-      return logger.warn "No Set-Cookie header" unless set_cookie
+      return logger.warn 'No Set-Cookie header' unless set_cookie
 
       cookies = [set_cookie].flatten
       cookies.each do |cookie|
         next unless cookie&.start_with?('rack.session')
 
         # Parse cookie attributes (skip first part which contains the value)
-        parts = cookie.split(';').map(&:strip)
+        parts              = cookie.split(';').map(&:strip)
         _cookie_name_value = parts[0] # Intentionally discarded to avoid logging session data
-        attributes = {}
+        attributes         = {}
         parts[1..].each do |part|
           if part.include?('=')
-            key, value = part.split('=', 2)
+            key, value               = part.split('=', 2)
             attributes[key.downcase] = value
           else
             attributes[part.downcase] = true
           end
         end
 
-        logger.debug "Session cookie set", { attributes: attributes }
+        logger.debug 'Session cookie set', { attributes: attributes }
 
         # Check for common issues
-        logger.warn "Cookie missing HttpOnly" unless attributes['httponly']
-        logger.warn "Cookie missing SameSite" unless attributes['samesite']
+        logger.warn 'Cookie missing HttpOnly' unless attributes['httponly']
+        logger.warn 'Cookie missing SameSite' unless attributes['samesite']
       end
     end
   end

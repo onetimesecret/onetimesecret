@@ -11,7 +11,6 @@ module Auth::Config::Features
   # @see https://rodauth.jeremyevans.net/rdoc/files/doc/otp_rdoc.html
   module MFA
     def self.configure(auth)
-
       # Multi-Factor Authentication
       # enable :otp  # Time-based One-Time Password (TOTP)
       # enable :recovery_codes  # Backup codes for MFA

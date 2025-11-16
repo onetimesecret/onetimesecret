@@ -37,16 +37,14 @@ module Auth
 
       # Get database URL from auth config or environment
       database_url = Onetime.auth_config.database_url ||
-                    ENV['DATABASE_URL'] ||
-                    'sqlite://data/auth.db'
+                     ENV['DATABASE_URL'] ||
+                     'sqlite://data/auth.db'
 
-      db = Sequel.connect(
+      Sequel.connect(
         database_url,
         logger: Onetime.get_logger('Sequel'),
-        sql_log_level: :trace  # Log SQL statements at trace level for safety
+        sql_log_level: :trace,  # Log SQL statements at trace level for safety
       )
-
-      db
     end
   end
 end

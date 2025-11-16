@@ -23,7 +23,7 @@ module Core
       # @param development [Boolean] Whether to use development mode
       # @return [String] HTML tags for all required assets
       def vite_assets(nonce: nil, development: nil)
-        nonce ||= self['nonce'] if respond_to?(:[]) # we allow overriding the nonce for testing
+        nonce     ||= self['nonce'] if respond_to?(:[]) # we allow overriding the nonce for testing
         development = self['frontend_development'] if development.nil? && respond_to?(:[])
 
         # Development mode: direct Vite dev server links
@@ -56,9 +56,9 @@ module Core
         manifest_path = File.join(PUBLIC_DIR, 'dist', '.vite', 'manifest.json')
 
         unless File.exist?(manifest_path)
-          app_logger.error "Vite manifest not found - frontend assets unavailable", {
+          app_logger.error 'Vite manifest not found - frontend assets unavailable', {
             manifest_path: manifest_path,
-            instruction: "Run `pnpm run build` to generate assets"
+            instruction: 'Run `pnpm run build` to generate assets',
           }
           return error_script(nonce, 'Vite manifest.json not found. Run `pnpm run build`')
         end

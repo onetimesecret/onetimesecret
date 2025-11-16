@@ -23,7 +23,7 @@ module Auth
       # @param db [Sequel::Database] The database connection (optional)
       def initialize(email:, db: nil)
         @email = email
-        @db = db || Auth::Database.connection
+        @db    = db || Auth::Database.connection
       end
 
       # Executes the MFA disable operation
@@ -38,8 +38,8 @@ module Auth
 
         log_success
         true
-      rescue => e
-        log_error(e)
+      rescue StandardError => ex
+        log_error(ex)
         false
       end
 
@@ -82,7 +82,7 @@ module Auth
       # Checks if MFA is enabled for this account
       # @return [Boolean]
       def mfa_enabled?
-        @otp_key_exists = @db[:account_otp_keys].where(id: @account_id).count > 0
+        @otp_key_exists       = @db[:account_otp_keys].where(id: @account_id).count > 0
         @recovery_codes_exist = @db[:account_recovery_codes].where(id: @account_id).count > 0
 
         unless @otp_key_exists || @recovery_codes_exist
@@ -112,12 +112,12 @@ module Auth
       # Logs successful operation
       def log_success
         OT.auth_logger.info "✅ MFA successfully disabled for: #{@email}"
-        OT.auth_logger.info "⚠️  User should re-enable MFA from account settings after login"
+        OT.auth_logger.info '⚠️  User should re-enable MFA from account settings after login'
 
-        OT.auth_logger.info "[disable-mfa] MFA disabled for account", {
+        OT.auth_logger.info '[disable-mfa] MFA disabled for account', {
           email: OT::Utils.obscure_email(@email),
           id: @account_id,
-          customer_id: @customer.custid
+          customer_id: @customer.custid,
         }
       end
 
@@ -127,9 +127,9 @@ module Auth
         OT.auth_logger.info "❌ Error disabling MFA: #{error.message}"
         OT.auth_logger.info error.backtrace.first(5).join("\n")
 
-        OT.auth_logger.error "[disable-mfa] Failed to disable MFA", {
+        OT.auth_logger.error '[disable-mfa] Failed to disable MFA', {
           email: OT::Utils.obscure_email(@email),
-          error: error.message
+          error: error.message,
         }
       end
     end

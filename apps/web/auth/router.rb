@@ -95,8 +95,6 @@ module Auth
       { error: 'Endpoint not found' }
     end
 
-    private
-
     # # Returns the current customer from session or anonymous
     # # @return [Onetime::Customer]
     # def current_customer

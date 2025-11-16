@@ -46,7 +46,7 @@ module Onetime
         self.class.initialize_from_config(site_config)
         boot_logger.info 'DomainStrategy initialized', {
           app_context: @application_context,
-          canonical_domain: canonical_domain
+          canonical_domain: canonical_domain,
         }
       end
 
@@ -69,7 +69,7 @@ module Onetime
 
         http_logger.debug '[DomainStrategy] determined', {
           host: display_domain,
-          strategy: domain_strategy
+          strategy: domain_strategy,
         }
 
         @app.call(env)
@@ -106,14 +106,14 @@ module Onetime
           rescue PublicSuffix::DomainInvalid => ex
             Onetime.http_logger.debug 'Invalid domain in strategy selection', {
               exception: ex,
-              request_domain: request_domain
+              request_domain: request_domain,
             }
             nil
           rescue StandardError => ex
             Onetime.http_logger.error 'Unhandled error in domain strategy', {
               exception: ex,
               request_domain: request_domain,
-              canonical_domain: canonical_domain
+              canonical_domain: canonical_domain,
             }
             nil
           end
@@ -231,7 +231,7 @@ module Onetime
           raise ArgumentError, 'Configuration cannot be nil' if config.nil?
 
           Onetime.http_logger.debug 'DomainStrategy initializing from config', {
-            domains_enabled_before: @domains_enabled
+            domains_enabled_before: @domains_enabled,
           }
 
           @domains_enabled  = config.dig('domains', 'enabled') || false
@@ -239,7 +239,7 @@ module Onetime
 
           Onetime.http_logger.debug 'DomainStrategy config loaded', {
             domains_enabled: @domains_enabled,
-            canonical_domain: @canonical_domain
+            canonical_domain: @canonical_domain,
           }
 
           # We don't need to get into any domain parsing if domains are disabled

@@ -35,7 +35,7 @@ module Core
     #
     # @param otto [Otto] Otto router instance
     def register_essential(otto)
-      # Note: enable_authentication! is not needed - RouteAuthWrapper handles it
+      # NOTE: enable_authentication! is not needed - RouteAuthWrapper handles it
       # Authentication now happens via post-routing handler wrapping (not middleware)
 
       # Public routes - always available (anonymous or authenticated)
@@ -43,8 +43,8 @@ module Core
 
       # Check if authentication is enabled at initialization time
       unless Onetime::Application::AuthStrategies.authentication_enabled?
-        auth_logger.warn "Authentication disabled in config - skipping session strategy registration", {
-          module: "Core::AuthStrategies"
+        auth_logger.warn 'Authentication disabled in config - skipping session strategy registration', {
+          module: 'Core::AuthStrategies',
         }
         return
       end

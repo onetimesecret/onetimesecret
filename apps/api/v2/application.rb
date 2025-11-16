@@ -26,7 +26,7 @@ module V2
   class Application < Onetime::Application::Base
     include Onetime::Application::OttoHooks  # Provides configure_otto_request_hook
 
-    @uri_prefix = '/api/v2'.freeze
+    @uri_prefix = '/api/v2'
 
     # V2-specific middleware (universal middleware in MiddlewareStack)
     use Rack::JSONBodyParser # TODO: Remove since we pass: builder.use Rack::Parser, parsers: @parsers

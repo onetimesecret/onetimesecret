@@ -38,7 +38,7 @@ module Onetime
         status, headers, body = @app.call(env)
 
         # Read CSRF token from session (Rack::Protection stores as :csrf)
-        session = env['rack.session']
+        session    = env['rack.session']
         csrf_token = session&.[](:csrf) || session&.[]('csrf')
 
         # Add to response headers if present

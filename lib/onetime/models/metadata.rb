@@ -121,34 +121,32 @@ module Onetime
       end
 
       def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil)
-
         secret   = Onetime::Secret.new(owner_id: owner_id)
         metadata = Onetime::Metadata.new(owner_id: owner_id)
 
-        metadata.secret_identifier = secret.objid
+        metadata.secret_identifier  = secret.objid
         metadata.default_expiration = lifespan * 2
         metadata.save
 
-        secret.default_expiration = lifespan
-        secret.lifespan = lifespan
+        secret.default_expiration  = lifespan
+        secret.lifespan            = lifespan
         secret.metadata_identifier = metadata.objid
 
-        secret.share_domain = domain
+        secret.share_domain      = domain
         secret.ciphertext_domain = domain # transient fields need to be populated before
-        secret.passphrase = passphrase # encrypting the content fio aad protection
-        secret.ciphertext = content
+        secret.passphrase        = passphrase # encrypting the content fio aad protection
+        secret.ciphertext        = content
         secret.save
 
         metadata.secret_shortid = secret.shortid
-        metadata.secret_ttl = lifespan
-        metadata.lifespan = lifespan
-        metadata.share_domain = domain
-        metadata.passphrase = passphrase if passphrase
+        metadata.secret_ttl     = lifespan
+        metadata.lifespan       = lifespan
+        metadata.share_domain   = domain
+        metadata.passphrase     = passphrase if passphrase
         metadata.save
 
         [metadata, secret]
       end
     end
-
   end
 end

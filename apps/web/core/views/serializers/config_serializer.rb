@@ -101,10 +101,10 @@ module Core
           # Passwordless features only available in advanced mode
           if Onetime.auth_config.advanced_enabled?
             # Check if email_auth is in the advanced features list
-            advanced_features = Onetime.auth_config.advanced.fetch('features', [])
+            advanced_features       = Onetime.auth_config.advanced.fetch('features', [])
             features['magic_links'] = advanced_features.include?('email_auth')
-            features['email_auth'] = advanced_features.include?('email_auth')
-            features['webauthn'] = advanced_features.include?('webauthn')
+            features['email_auth']  = advanced_features.include?('email_auth')
+            features['webauthn']    = advanced_features.include?('webauthn')
           end
 
           features

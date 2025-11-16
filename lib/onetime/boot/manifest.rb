@@ -41,8 +41,8 @@ module Onetime
         return unless step_name
 
         @current_step += 1
-        prefix = "[#{@current_step}/#{@total}]"
-        suffix = suffix ? "(#{suffix})" : ''
+        prefix         = "[#{@current_step}/#{@total}]"
+        suffix         = suffix ? "(#{suffix})" : ''
 
         step_start     = Onetime.now_in_μs
 

@@ -29,12 +29,12 @@ class HeaderValidator
   REPO_ROOT = Pathname.new(__dir__).parent.freeze
 
   def initialize(fix: false)
-    @fix = fix
+    @fix    = fix
     @errors = []
   end
 
   def validate_all
-    puts "Validating file headers..."
+    puts 'Validating file headers...'
     puts "Fix mode: #{@fix ? 'ON' : 'OFF'}"
     puts
 
@@ -48,9 +48,9 @@ class HeaderValidator
   private
 
   def validate_ruby_files
-    puts "Checking Ruby files..."
+    puts 'Checking Ruby files...'
 
-    Dir.glob("**/*.rb", base: REPO_ROOT).each do |file_path|
+    Dir.glob('**/*.rb', base: REPO_ROOT).each do |file_path|
       next if skip_file?(file_path)
 
       full_path = REPO_ROOT / file_path
@@ -59,9 +59,9 @@ class HeaderValidator
   end
 
   def validate_typescript_files
-    puts "Checking TypeScript files..."
+    puts 'Checking TypeScript files...'
 
-    Dir.glob("src/**/*.ts", base: REPO_ROOT).each do |file_path|
+    Dir.glob('src/**/*.ts', base: REPO_ROOT).each do |file_path|
       next if skip_file?(file_path)
 
       full_path = REPO_ROOT / file_path
@@ -70,9 +70,9 @@ class HeaderValidator
   end
 
   def validate_vue_files
-    puts "Checking Vue files..."
+    puts 'Checking Vue files...'
 
-    Dir.glob("src/**/*.vue", base: REPO_ROOT).each do |file_path|
+    Dir.glob('src/**/*.vue', base: REPO_ROOT).each do |file_path|
       next if skip_file?(file_path)
 
       full_path = REPO_ROOT / file_path
@@ -179,10 +179,10 @@ class HeaderValidator
 
   def report_results
     puts
-    puts "=" * 80
+    puts '=' * 80
 
     if @errors.empty?
-      puts "✓ All file headers are valid!"
+      puts '✓ All file headers are valid!'
       exit 0
     else
       puts "✗ Found #{@errors.size} files with invalid headers:"
@@ -196,7 +196,7 @@ class HeaderValidator
         puts
       end
 
-      puts "=" * 80
+      puts '=' * 80
       puts
       puts "To fix these issues, run: ruby #{__FILE__} --fix"
       exit 1
@@ -205,6 +205,6 @@ class HeaderValidator
 end
 
 # Main execution
-fix_mode = ARGV.include?('--fix')
+fix_mode  = ARGV.include?('--fix')
 validator = HeaderValidator.new(fix: fix_mode)
 validator.validate_all

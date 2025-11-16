@@ -88,6 +88,7 @@ module Onetime
 
     def member?(customer)
       return false unless customer
+
       # members is auto-generated sorted_set
       members.member?(customer.objid)
     end
@@ -110,7 +111,7 @@ module Onetime
     def add_domain(domain)
       # Prevent domains from belonging to multiple organizations
       existing_org = domain.organization_instances.first
-      if existing_org && existing_org.objid != self.org_id
+      if existing_org && existing_org.objid != org_id
         raise Onetime::Problem, "Domain #{domain.display_domain} already belongs to organization #{existing_org.display_name}"
       end
 
@@ -123,6 +124,7 @@ module Onetime
 
     def list_domains
       return [] if domains.empty?
+
       # Bulk loading with auto-generated domains collection
       CustomDomain.load_multi(domains.to_a)
     end
@@ -140,6 +142,7 @@ module Onetime
     def can_delete?(current_user)
       # Default workspaces cannot be deleted (would break user's account)
       return false if is_default
+
       # Otherwise, only owners can delete
       owner?(current_user)
     end
@@ -176,7 +179,7 @@ module Onetime
         org = new(
           display_name: display_name,
           owner_id: owner_customer.custid,
-          contact_email: contact_email.empty? ? nil : contact_email
+          contact_email: contact_email.empty? ? nil : contact_email,
         )
         org.save
 

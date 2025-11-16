@@ -31,14 +31,15 @@ module Onetime
 
       def format_domain_row(domain)
         org_info = get_organization_info(domain)
-        status = domain.verification_state || 'unknown'
+        status   = domain.verification_state || 'unknown'
         verified = domain.verified.to_s == 'true' ? 'yes' : 'no'
 
         format('%-40s %-30s %-12s %-10s',
-               domain.display_domain[0..39],
-               org_info[0..29],
-               status[0..11],
-               verified)
+          domain.display_domain[0..39],
+          org_info[0..29],
+          status[0..11],
+          verified,
+        )
       end
 
       def get_organization_info(domain)
@@ -74,6 +75,7 @@ module Onetime
 
       def format_timestamp(timestamp)
         return 'N/A' unless timestamp
+
         Time.at(timestamp.to_i).strftime('%Y-%m-%d %H:%M:%S UTC')
       rescue StandardError
         'invalid'
@@ -87,28 +89,29 @@ module Onetime
       desc 'List all custom domains with organization info'
 
       option :orphaned, type: :boolean, default: false,
-             desc: 'Filter for orphaned domains only'
+        desc: 'Filter for orphaned domains only'
 
       option :org_id, type: :string, default: nil,
-             desc: 'Filter by organization ID'
+        desc: 'Filter by organization ID'
 
       option :verified, type: :boolean, default: false,
-             desc: 'Filter for verified domains only'
+        desc: 'Filter for verified domains only'
 
       option :unverified, type: :boolean, default: false,
-             desc: 'Filter for unverified domains only'
+        desc: 'Filter for unverified domains only'
 
       def call(orphaned: false, org_id: nil, verified: false, unverified: false, **)
         boot_application!
 
         all_domain_ids = Onetime::CustomDomain.instances.all
-        all_domains = all_domain_ids.map do |did|
+        all_domains    = all_domain_ids.map do |did|
           Onetime::CustomDomain.find_by_identifier(did)
         end.compact
 
         # Apply filters
         filtered_domains = apply_filters(all_domains, orphaned: orphaned, org_id: org_id,
-                                         verified: verified, unverified: unverified)
+          verified: verified, unverified: unverified
+        )
 
         puts format('%d custom domains', filtered_domains.size)
         return if filtered_domains.empty?
@@ -128,10 +131,11 @@ module Onetime
           else
             # Multiple records for same domain (duplicates)
             puts format('%-40s %-30s %-12s %-10s',
-                       "#{display_domain} (#{domains.size} records)",
-                       'DUPLICATES',
-                       'CHECK',
-                       '?')
+              "#{display_domain} (#{domains.size} records)",
+              'DUPLICATES',
+              'CHECK',
+              '?',
+            )
             domains.each_with_index do |domain, idx|
               org_info = get_organization_info(domain)
               puts format('  [%d] %-37s %-30s', idx + 1, domain.domainid[0..36], org_info)
@@ -238,7 +242,7 @@ module Onetime
         boot_application!
 
         all_domain_ids = Onetime::CustomDomain.instances.all
-        all_domains = all_domain_ids.map do |did|
+        all_domains    = all_domain_ids.map do |did|
           Onetime::CustomDomain.find_by_identifier(did)
         end.compact
 
@@ -252,15 +256,16 @@ module Onetime
         puts '-' * 85
 
         orphaned_domains.sort_by(&:display_domain).each do |domain|
-          status = domain.verification_state || 'unknown'
+          status   = domain.verification_state || 'unknown'
           verified = domain.verified || 'false'
-          created = format_timestamp(domain.created)
+          created  = format_timestamp(domain.created)
 
           puts format('%-40s %-12s %-10s %-20s',
-                     domain.display_domain,
-                     status,
-                     verified,
-                     created)
+            domain.display_domain,
+            status,
+            verified,
+            created,
+          )
         end
       end
     end
@@ -274,13 +279,13 @@ module Onetime
       argument :domain_name, type: :string, required: true, desc: 'Domain name'
 
       option :to_org, type: :string, required: true,
-             desc: 'Destination organization ID'
+        desc: 'Destination organization ID'
 
       option :from_org, type: :string, default: nil,
-             desc: 'Source organization ID (optional, uses domain\'s current org_id)'
+        desc: 'Source organization ID (optional, uses domain\'s current org_id)'
 
       option :force, type: :boolean, default: false,
-             desc: 'Skip confirmation prompt'
+        desc: 'Skip confirmation prompt'
 
       def call(domain_name:, to_org:, from_org: nil, force: false, **)
         boot_application!
@@ -338,7 +343,7 @@ module Onetime
 
           # TODO: Make this atomic - add_domain should handle both org_id update and collection add
           # Update domain's org_id
-          domain.org_id = to_org
+          domain.org_id  = to_org
           domain.updated = OT.now.to_i
           domain.save
 
@@ -346,12 +351,12 @@ module Onetime
           begin
             to_org_obj.add_domain(domain.domainid)
             puts "  Added to #{to_org_obj.display_name || to_org_obj.org_id}"
-            puts "  Updated org_id field"
-          rescue => e
+            puts '  Updated org_id field'
+          rescue StandardError => ex
             # Rollback: restore original org_id if collection add fails
             domain.org_id = from_org_id
             domain.save
-            raise "Failed to add domain to organization collection: #{e.message}"
+            raise "Failed to add domain to organization collection: #{ex.message}"
           end
 
           OT.info "[CLI] Domain transfer: #{domain_name} from #{from_org_id || 'orphaned'} to #{to_org}"
@@ -373,10 +378,10 @@ module Onetime
       argument :domain_name, type: :string, required: true, desc: 'Domain name'
 
       option :org_id, type: :string, default: nil,
-             desc: 'Organization ID to assign if domain is orphaned'
+        desc: 'Organization ID to assign if domain is orphaned'
 
       option :force, type: :boolean, default: false,
-             desc: 'Skip confirmation prompt'
+        desc: 'Skip confirmation prompt'
 
       def call(domain_name:, org_id: nil, force: false, **)
         boot_application!
@@ -388,17 +393,17 @@ module Onetime
         puts
 
         issues_found = []
-        repairs = []
+        repairs      = []
 
         # Check 1: Orphaned domain
         if domain.org_id.to_s.empty?
           if org_id
             issues_found << 'Domain is orphaned (no org_id)'
-            repairs << lambda {
-              domain.org_id = org_id
+            repairs << -> {
+              domain.org_id  = org_id
               domain.updated = OT.now.to_i
               domain.save
-              org = load_organization(org_id)
+              org            = load_organization(org_id)
               org.add_domain(domain.domainid) if org
               "Assigned to organization #{org_id}"
             }
@@ -414,7 +419,7 @@ module Onetime
             domains_in_org = org.list_domains
             unless domains_in_org.include?(domain.domainid)
               issues_found << "org_id is #{domain.org_id} but not in organization's domains collection"
-              repairs << lambda {
+              repairs << -> {
                 org.add_domain(domain.domainid)
                 "Added to organization #{domain.org_id} collection"
               }
@@ -466,10 +471,10 @@ module Onetime
       desc 'Find and fix all domain relationship issues'
 
       option :dry_run, type: :boolean, default: false,
-             desc: 'Preview changes without applying'
+        desc: 'Preview changes without applying'
 
       option :force, type: :boolean, default: false,
-             desc: 'Skip confirmation prompt'
+        desc: 'Skip confirmation prompt'
 
       def call(dry_run: false, force: false, **)
         boot_application!
@@ -478,11 +483,11 @@ module Onetime
         puts
 
         all_domain_ids = Onetime::CustomDomain.instances.all
-        all_domains = all_domain_ids.map do |did|
+        all_domains    = all_domain_ids.map do |did|
           Onetime::CustomDomain.find_by_identifier(did)
         end.compact
 
-        orphaned_domains = []
+        orphaned_domains   = []
         mismatched_domains = []
 
         all_domains.each do |domain|
@@ -548,20 +553,18 @@ module Onetime
 
         # Repair mismatched domains
         repaired = 0
-        failed = 0
+        failed   = 0
 
         mismatched_domains.each do |domain, org|
-          begin
             org.add_domain(domain.domainid)
             domain.updated = OT.now.to_i
             domain.save
-            repaired += 1
+            repaired      += 1
             print '.'
-          rescue StandardError => ex
+        rescue StandardError => ex
             failed += 1
             print 'F'
             OT.le "[CLI] Failed to repair #{domain.display_domain}: #{ex.message}"
-          end
         end
 
         puts

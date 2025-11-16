@@ -12,18 +12,19 @@ module Auth::Config::Hooks
       # several validation checks on the provided email address.
       #
       auth.before_create_account do
-
       end
 
       auth.login_valid_email? do |email|
         validator = Truemail.validate(email)
-        is_valid = super(email) && validator.result.valid?
+        is_valid  = super(email) && validator.result.valid?
 
-        Auth::Logging.log_auth_event(
-          :invalid_email_rejected,
-          level: :info,
-          email: email
-        ) unless is_valid
+        unless is_valid
+          Auth::Logging.log_auth_event(
+            :invalid_email_rejected,
+            level: :info,
+            email: email,
+          )
+        end
 
         is_valid
       end
@@ -40,7 +41,7 @@ module Auth::Config::Hooks
           Auth::Operations::CreateCustomer.new(
             account_id: account_id,
             account: account,
-            db: Auth::Database.connection
+            db: Auth::Database.connection,
           ).call
         end
 
@@ -70,7 +71,7 @@ module Auth::Config::Hooks
             level: :info,
             account_id: account_id,
             external_id: account[:external_id],
-            email: account[:email]
+            email: account[:email],
           )
 
           Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:extid]) do
@@ -89,7 +90,7 @@ module Auth::Config::Hooks
           :password_reset_requested,
           level: :info,
           account_id: account_id,
-          email: account[:email]
+          email: account[:email],
         )
       end
 
@@ -103,7 +104,7 @@ module Auth::Config::Hooks
           :password_reset_complete,
           level: :info,
           account_id: account_id,
-          email: account[:email]
+          email: account[:email],
         )
       end
 
@@ -118,7 +119,7 @@ module Auth::Config::Hooks
           :password_changed,
           level: :info,
           account_id: account_id,
-          email: account[:email]
+          email: account[:email],
         )
 
         # Rodauth is the source of truth for password management. Here, we just
@@ -140,14 +141,13 @@ module Auth::Config::Hooks
           level: :info,
           account_id: account_id,
           external_id: account[:external_id],
-          email: account[:email]
+          email: account[:email],
         )
 
         Onetime::ErrorHandler.safe_execute('delete_customer', account_id: account_id, extid: account[:extid]) do
           Auth::Operations::DeleteCustomer.new(account: account).call
         end
       end
-
     end
   end
 end

@@ -59,7 +59,7 @@ module Onetime
     # @return [SemanticLogger::Logger] Cached logger instance
     #
     def get_logger(name)
-      @cached_loggers ||= {}
+      @cached_loggers            ||= {}
       @cached_loggers[name.to_s] ||= SemanticLogger[name.to_s]
     end
 
@@ -98,9 +98,9 @@ module Onetime
       vertical     = '│'  # or: │ ┃ ┆ ┇ ┊ ┋ ╎ ╏ ║ ║
 
       # Build the box
-      top_border = top_left + (horizontal * width) + top_right
+      top_border    = top_left + (horizontal * width) + top_right
       bottom_border = bottom_left + (horizontal * width) + bottom_right
-      lager = send(logger_method)
+      lager         = send(logger_method)
 
       # Output the box (note: no protection against overly long lines)
       lager.send(level, top_border)
@@ -216,7 +216,7 @@ module Onetime
         /Rhales/i => 'Rhales',
         /Secret|Metadata/i => 'Secret',
         /Sequel/i => 'Sequel',
-        /Session/i => 'Session'
+        /Session/i => 'Session',
       }
 
       category_patterns.each do |pattern, category|

@@ -225,7 +225,7 @@ module Onetime
       desc 'List active sessions'
 
       option :limit, type: :string, default: '20',
-             desc: 'Number of sessions to show (default: 20)'
+        desc: 'Number of sessions to show (default: 20)'
 
       def call(limit: '20', **)
         boot_application!
@@ -327,7 +327,7 @@ module Onetime
       argument :session_id, type: :string, required: false, desc: 'Session ID'
 
       option :force, type: :boolean, default: false,
-             desc: 'Skip confirmation prompt'
+        desc: 'Skip confirmation prompt'
 
       def call(session_id: nil, force: false, **)
         unless session_id

@@ -45,7 +45,7 @@ module Auth
       # @param customer [Onetime::Customer]
       def delete_customer(customer)
         custid = customer.custid
-        extid = customer.extid
+        extid  = customer.extid
 
         customer.destroy!
 
