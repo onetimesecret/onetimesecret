@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Níže vložte heslo, tajnou zprávu nebo soukromý odkaz.",
+      "tagline2": "Udržujte citlivé informace mimo svůj email a záznamy chatů.",
+      "secret_hint": "* Tajný odkaz bude fungovat pouze jednou a pak zmizí navždy.",
+      "secret_form_more_text1": "Zaregistrujte se pro",
+      "secret_form_more_text2": "účet zdarma",
+      "secret_form_more_text3": "pro nastavení heslových frází pro větší bezpečnost spolu s více možnostmi soukromí. Můžeme za vás odeslat odkaz emailem, když budete chtít.",
+      "cta_title": "Použijte vlastní doménu",
+      "cta_subtitle": "Pozvedněte svou značku a sdílejte s jistotou",
+      "cta_feature1": "Vaše vlastní přizpůsobená doména",
+      "cta_feature2": "Neomezené sdílení tajemství",
+      "cta_feature3": "Pokročilé ovládací prvky soukromí",
+      "explore_premium_plans": "Prozkoumat prémiové plány",
+      "need_free_account": "Teprve začínáte?",
+      "sign_up_free": "Vytvořit bezplatný účet",
+      "visit-onetime-secret-home": "",
+      "password_generation_title": "",
+      "password_generation_description": "",
+      "protip1": "",
+      "authonly": {
+        "tagline2": "",
+        "tagline1": ""
+      },
+      "disabled": {
+        "tagline2": "",
+        "tagline1": ""
+      }
+    }
+  }
+}

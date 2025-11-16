@@ -1,0 +1,20 @@
+{
+  "email": {
+    "incomingsupport": {
+      "subject": "[Zgłoszenie pomocy: %s]",
+      "body1": "Klient przesłał następujące informacje"
+    },
+    "secretlink": {
+      "subject": "%s wysłał(a) Ci poufną wiadomość jednorazową",
+      "body1": "Masz poufną wiadomość od",
+      "body_tagline": "Jeśli nie znasz nadawcy lub uważasz, że to spam, wyślij nam szczegóły tutaj:"
+    },
+    "welcome": {
+      "subject": "Potwierdź swoje konto Onetime Secret",
+      "body1": "Witamy w Onetime Secret. Masz wiadomość!",
+      "please_verify": "Potwierdź proszę swoje konto:",
+      "postscript1": "Twój e-mail został wysłany do",
+      "postscript2": "Jeśli nie założyłeś tego konta, usuń tę wiadomość i nie skontaktujemy się z Tobą ponownie."
+    }
+  }
+}

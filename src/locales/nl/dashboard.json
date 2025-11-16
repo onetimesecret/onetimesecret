@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "Ontvangen",
+      "title_not_received": "Niet ontvangen",
+      "title_no_recent_secrets": "Geen recente berichten",
+      "get-started-by-creating-your-first-secret": "Begin door uw eerste bericht aan te maken."
+    }
+  }
+}

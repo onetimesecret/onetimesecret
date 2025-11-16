@@ -1,0 +1,67 @@
+{
+  "web": {
+    "colonel": {
+      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified-0": "`+customer.verified ? `потвърден` : `непотвърден`",
+      "customers-details-counts-recent_customer_count-o-0": "Клиенти ({0} от {1})",
+      "user-feedback-total-details-counts-feedback_coun-0": "Потребителска обратна връзка (Общо: {0})",
+      "metadata-secrets-details-counts-metadata_count-d-0": "Метаданни / Тайни: {0}/{1} (Общо: {2}/{3}/{4})",
+      "secrets-details-counts-secret_count-0": "Тайни ({0})",
+      "active-in-the-past-5-minutes-0": "(активен през последните 5 минути)",
+      "configEditorTitle": "",
+      "configEditorDescription": "",
+      "invalidJson": "",
+      "validationError": "",
+      "errorFetchingConfig": "",
+      "errorSavingConfig": "",
+      "configSaved": "",
+      "mustBeObject": "",
+      "multipleSectionsInvalid": "",
+      "sectionHasError": "",
+      "sectionSaved": "",
+      "saveSection": "",
+      "saveAll": "",
+      "unsavedChanges": "",
+      "schemaValidationError": "",
+      "unknownValidationError": "",
+      "dashboard": "Dashboard",
+      "activity": "",
+      "accounts": "",
+      "users": "",
+      "domains": "Домейни",
+      "settings": "",
+      "welcome": "Welcome to Colonel",
+      "welcomeDesc": "",
+      "quickActions": "",
+      "recentActivity": "",
+      "viewAll": "",
+      "activityPlaceholder": "",
+      "stats": {
+        "totalSecrets": "",
+        "activeUsers": "",
+        "secretsToday": "",
+        "secretsCreated": "",
+        "secretsShared": "",
+        "totalCustomers": "",
+        "emailsSent": "",
+        "systemHealth": "",
+        "healthy": ""
+      },
+      "actions": {
+        "viewActivity": "",
+        "viewActivityDesc": "",
+        "manageAccounts": "",
+        "manageAccountsDesc": "",
+        "configureDomains": "",
+        "configureDomainsDesc": "",
+        "systemSettings": "",
+        "systemSettingsDesc": ""
+      }
+    },
+    "feedback": {
+      "when-you-submit-feedback-well-see": "",
+      "send-feedback": "",
+      "sending-ellipses": ""
+    }
+  }
+}

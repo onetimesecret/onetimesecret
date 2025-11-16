@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "הדביקו סיסמה, סוד או קישור פרטי מטה.",
+      "tagline2": "שלחו קישור סודי הזמין לשימוש פעם אחת בלבד.",
+      "secret_hint": "* קישור סודי פועל פעם אחת ואז מושמד לעד",
+      "incoming_button_create": "שליחה לצוות התמיכה",
+      "incoming_secret_options": "פרטי תמיכה",
+      "incoming_secret_placeholder": "הזינו פרטים שנציג התמיכה עשוי להזדקק לו (כגון סיסמה)",
+      "incoming_ticket_number": "הכניסו מספר קריאה",
+      "incoming_ticket_number_hint": "תוכלו למצוא אותו במייל (לדוגמה 123456)",
+      "incoming_recipient_address": "נמען תמיכה",
+      "incoming_success_message": "המייל נשלח",
+      "incoming_button_creating": ""
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "web": {
+    "domains": {
+      "learn-more-dns": "Ako atu anō mō te whirihoranga DNS",
+      "view-domain-verification-status": "Tirohia te tūnga manatoko rohe",
+      "domain-already-in-organization": "",
+      "domain-in-other-organization": "",
+      "domain-claimed-successfully": ""
+    }
+  }
+}

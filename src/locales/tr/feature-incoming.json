@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Aşağıya bir parola, gizli mesaj veya gizli link yapıştırın.",
+      "tagline2": "Hassas bilgilerinizi sohbet geçmişinizde veya e-postalarınızda saklamayın.",
+      "secret_hint": "* Gizli linkler sadece bir defa çalışır ve ardından sonsuza dek yok olur.",
+      "incoming_button_create": "Destek Ekibine yolla",
+      "incoming_secret_options": "Destek Bilgisi",
+      "incoming_secret_placeholder": "Destek temsilcinin ihtiyacı olan bilgileri yaz (örn. sistem parolası)",
+      "incoming_ticket_number": "Bilet Numarasını Yaz",
+      "incoming_ticket_number_hint": "Bunu e-postanda bulabilirsin (örn. 123456)",
+      "incoming_recipient_address": "Destek alıcısı",
+      "incoming_success_message": "E-postan gönderildi",
+      "incoming_button_creating": "Creating"
+    }
+  }
+}

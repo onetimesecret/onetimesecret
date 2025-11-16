@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "Recibido",
+      "title_not_received": "No recibido",
+      "title_no_recent_secrets": "No hay secretos recientes",
+      "get-started-by-creating-your-first-secret": "Empieza creando tu primer secreto."
+    }
+  }
+}

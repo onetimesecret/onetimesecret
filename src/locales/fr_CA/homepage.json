@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Collez votre mot de passe, message secret ou lien privé ci-dessous",
+      "tagline2": "Ne stockez aucune information confidentielle dans vos emails ou fils de discussion.",
+      "secret_hint": "* Un lien secret ne fonctionne qu'une fois puis disparaît à jamais. *",
+      "secret_form_more_text1": "Créez un",
+      "secret_form_more_text2": "compte gratuit",
+      "secret_form_more_text3": "pour utiliser des mots de passe à sécurité accrue et acccéder à des options supplémentaires de confidentialité. Nous vous enverrons même le lien par courriel si vous le souhaitez.",
+      "cta_title": "Utilisez un domaine personnalisé",
+      "cta_subtitle": "Valorisez votre marque et partagez en toute confiance ",
+      "cta_feature1": "Votre propre domaine personnalisé",
+      "cta_feature2": "Partage illimité de secrets",
+      "cta_feature3": "Contrôles de confidentialité avancés",
+      "explore_premium_plans": "Découvrir les forfaits Premium",
+      "need_free_account": "Vous débutez ?",
+      "sign_up_free": "Créer un compte gratuit",
+      "visit-onetime-secret-home": "Visiter la page d'accueil d'Onetime Secret",
+      "password_generation_title": "Générateur de mot de passe",
+      "password_generation_description": "Cliquez sur « Générer un mot de passe » pour créer un mot de passe aléatoire sécurisé que vous pouvez partager.",
+      "protip1": "Votre message s'autodétruira après avoir été consulté. Le lien ne peut être accédé qu'une seule fois.",
+      "authonly": {
+        "tagline2": "Le service de messagerie sécurisée est réservé à un usage interne.",
+        "tagline1": "Si vous avez un compte, veuillez vous connecter pour continuer."
+      },
+      "disabled": {
+        "tagline2": "Ce service est configuré pour un usage interne uniquement.",
+        "tagline1": "L'interface utilisateur et les fonctionnalités de connexion ne sont pas disponibles."
+      }
+    }
+  }
+}

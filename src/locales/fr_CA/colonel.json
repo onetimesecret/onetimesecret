@@ -1,0 +1,67 @@
+{
+  "web": {
+    "colonel": {
+      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified-0": "`+customer.verified ? `verified` : `not verified",
+      "customers-details-counts-recent_customer_count-o-0": "Clients ({0} de {1})",
+      "user-feedback-total-details-counts-feedback_coun-0": "Commentaires des utilisateurs (Total : {0})",
+      "metadata-secrets-details-counts-metadata_count-d-0": "Métadonnées / Secrets : {0}/{1} ({2}/{3}/{4} au total)",
+      "secrets-details-counts-secret_count-0": "Secrets ({0})",
+      "active-in-the-past-5-minutes-0": "(actif dans les 5 dernières minutes)",
+      "configEditorTitle": "Paramètres",
+      "configEditorDescription": "Modifier les paramètres de configuration du système. Les modifications sont appliquées immédiatement après l'enregistrement.",
+      "invalidJson": "JSON invalide dans la section {section}",
+      "validationError": "Erreur de validation",
+      "errorFetchingConfig": "Erreur lors du chargement de la configuration",
+      "errorSavingConfig": "Erreur lors de l'enregistrement de la configuration",
+      "configSaved": "Configuration enregistrée avec succès",
+      "mustBeObject": "La configuration doit être un objet JSON",
+      "multipleSectionsInvalid": "Plusieurs sections contiennent des erreurs de validation : {sections}",
+      "sectionHasError": "La section {section} contient des erreurs de validation : {error}",
+      "sectionSaved": "Section {section} enregistrée avec succès",
+      "saveSection": "Enregistrer la section {section}",
+      "saveAll": "Tout enregistrer",
+      "unsavedChanges": "Modifications non enregistrées",
+      "schemaValidationError": "Erreur de validation du schéma : {message} ({path})",
+      "unknownValidationError": "Erreur de validation inconnue : {error}",
+      "dashboard": "Tableau de bord",
+      "activity": "Activité",
+      "accounts": "Comptes",
+      "users": "Utilisateurs",
+      "domains": "Domaines",
+      "settings": "Paramètres",
+      "welcome": "Bienvenue dans Colonel",
+      "welcomeDesc": "Panneau de contrôle administratif pour OneTimeSecret",
+      "quickActions": "Actions rapides",
+      "recentActivity": "Activité récente",
+      "viewAll": "Tout afficher",
+      "activityPlaceholder": "Les données d'activité seront affichées ici",
+      "stats": {
+        "totalSecrets": "Total des secrets",
+        "activeUsers": "Utilisateurs actifs",
+        "secretsToday": "Secrets aujourd'hui",
+        "secretsCreated": "Secrets créés",
+        "secretsShared": "Secrets partagés",
+        "totalCustomers": "Total des clients",
+        "emailsSent": "Courriels envoyés",
+        "systemHealth": "Santé du système",
+        "healthy": "En bonne santé"
+      },
+      "actions": {
+        "viewActivity": "Consulter l'activité",
+        "viewActivityDesc": "Surveiller l'activité et l'utilisation du système",
+        "manageAccounts": "Gérer les comptes",
+        "manageAccountsDesc": "Administration des comptes utilisateurs",
+        "configureDomains": "Configurer les domaines",
+        "configureDomainsDesc": "Paramètres de domaine et DNS",
+        "systemSettings": "Paramètres système",
+        "systemSettingsDesc": "Configuration de l'application"
+      }
+    },
+    "feedback": {
+      "when-you-submit-feedback-well-see": "Lorsque vous soumettez un retour d'information, nous le voyons :",
+      "send-feedback": "Envoyer un retour d'information",
+      "sending-ellipses": "Envoi..."
+    }
+  }
+}

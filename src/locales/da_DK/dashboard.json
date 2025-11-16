@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "Modtaget",
+      "title_not_received": "Ikke modtaget",
+      "title_no_recent_secrets": "Ingen nylige beskeder",
+      "get-started-by-creating-your-first-secret": "Kom i gang med at oprette din første hemmelighed."
+    }
+  }
+}

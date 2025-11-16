@@ -1,0 +1,151 @@
+{
+  "web": {
+    "account": {
+      "settings": "Einstellungen",
+      "change-password": "Passwort ändern",
+      "close-account": "Konto schließen",
+      "verify-account": "Konto verifizieren",
+      "subscription_title": "Abonnement",
+      "manage_subscription": "Abonnement verwalten",
+      "customer_information": "Informationen für Kunden",
+      "customer_since": "Kunde seit:",
+      "email": "E-Mail:",
+      "region": "Region",
+      "account_balance": "Kontostand:",
+      "default_payment_method": "Standard-Zahlungsmethode",
+      "card_ending": "endend mit",
+      "subscriptions_title": "Abonnements",
+      "quantity": "Menge:",
+      "next_billing_date": "Nächstes Rechnungsdatum:",
+      "changePassword": {
+        "username": "Benutzername",
+        "currentPassword": "Aktuelles Passwort",
+        "newPassword": "Neues Passwort",
+        "confirmPassword": "Bestätigen Sie",
+        "updatePassword": "Passwort aktualisieren",
+        "updating": "Aktualisieren..."
+      },
+      "timezone": "Zeitzone",
+      "customer-id": "Kunden-ID"
+    },
+    "settings": {
+      "title": "Einstellungen",
+      "description": "Verwalten Sie Ihre Kontoeinstellungen und Präferenzen",
+      "manage_your_account_settings_and_preferences": "Verwalten Sie Ihre Kontoeinstellungen und Präferenzen",
+      "general": "Allgemein",
+      "preferences": "Einstellungen",
+      "appearance": "Erscheinungsbild",
+      "theme": {
+        "title": "Design",
+        "description": "Wählen Sie helles oder dunkles Design",
+        "choose_light_or_dark_theme": "Wählen Sie helles oder dunkles Design"
+      },
+      "language": {
+        "title": "Sprache",
+        "description": "Wählen Sie Ihre bevorzugte Sprache",
+        "select_your_preferred_language": "Wählen Sie Ihre bevorzugte Sprache"
+      },
+      "security_settings_description": "Verwalten Sie Authentifizierung und Kontosicherheit",
+      "profile_settings_description": "Verwalten Sie Ihre Kontoinformationen",
+      "profile": {
+        "title": "Profil",
+        "change-email": "E-Mail ändern",
+        "current-email": "Aktuelle E-Mail",
+        "current-password": "Aktuelles Passwort",
+        "new-email": "Neue E-Mail",
+        "enter-password-to-confirm": "Geben Sie Ihr aktuelles Passwort ein",
+        "password-required-for-security": "Ihr Passwort wird aus Sicherheitsgründen benötigt",
+        "verification-email-notice": "Eine Verifizierungs-E-Mail wird an die neue Adresse gesendet",
+        "update-email": "E-Mail aktualisieren",
+        "change-email-description": "Aktualisieren Sie die E-Mail-Adresse, die mit Ihrem Konto verknüpft ist",
+        "all-fields-required": "Alle Felder sind erforderlich",
+        "invalid-email": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+        "email-same-as-current": "Neue E-Mail muss sich von der aktuellen E-Mail unterscheiden",
+        "email-change-success": "E-Mail erfolgreich aktualisiert. Bitte überprüfen Sie Ihren Posteingang, um Ihre neue E-Mail-Adresse zu verifizieren.",
+        "email-change-error": "E-Mail konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+      },
+      "sessions": {
+        "title": "Aktive Sitzungen",
+        "description": "Verwalten Sie Ihre aktiven Sitzungen",
+        "manage_active_sessions": "Verwalten Sie Ihre aktiven Sitzungen"
+      },
+      "password": {
+        "title": "Passwort",
+        "description": "Aktualisieren Sie Ihr Kontopasswort",
+        "update_account_password": "Aktualisieren Sie Ihr Kontopasswort"
+      },
+      "delete_account": {
+        "title": "Konto löschen",
+        "description": "Löschen Sie Ihr Konto und alle Daten dauerhaft",
+        "permanently_delete_your_account": "Löschen Sie Ihr Konto und alle Daten dauerhaft"
+      },
+      "security": {
+        "security-score": "Sicherheitsbewertung",
+        "score-description": "Ihr allgemeiner Kontosicherheitsstatus",
+        "excellent": "Ausgezeichnet",
+        "good": "Gut",
+        "fair": "Befriedigend",
+        "weak": "Schwach",
+        "improve-security": "Verbessern Sie Ihre Sicherheit",
+        "enable-mfa-recommendation": "Aktivieren Sie die Zwei-Faktor-Authentifizierung für stärkeren Schutz",
+        "generate-recovery-codes-recommendation": "Generieren Sie Wiederherstellungscodes als Backup",
+        "configured": "Konfiguriert",
+        "change": "Ändern",
+        "manage": "Verwalten",
+        "enable": "Aktivieren",
+        "codes-available": "{0} Codes verfügbar",
+        "no-codes": "Keine Codes generiert",
+        "active-sessions": "{0} aktive Sitzung | {0} aktive Sitzungen",
+        "best-practices": "Best Practices für Sicherheit",
+        "use-strong-unique-password": "Verwenden Sie ein starkes, eindeutiges Passwort für Ihr Konto",
+        "enable-mfa-for-protection": "Aktivieren Sie die Zwei-Faktor-Authentifizierung für zusätzlichen Schutz",
+        "save-recovery-codes-safely": "Speichern Sie Ihre Wiederherstellungscodes an einem sicheren Ort",
+        "review-sessions-regularly": "Überprüfen und widerrufen Sie nicht verwendete Sitzungen regelmäßig",
+        "view-details": "Details anzeigen"
+      },
+      "api": {
+        "title": "API & Integrationen",
+        "description": "Verwalten Sie API-Schlüssel und Integrationen",
+        "manage_api_keys": "Verwalten Sie API-Schlüssel und Integrationen",
+        "documentation": "API-Dokumentation",
+        "documentation-description": "Erfahren Sie, wie Sie Onetime Secret in Ihre Anwendungen integrieren",
+        "rest-api-reference": "REST-API-Referenz",
+        "complete-api-documentation": "Vollständige API-Dokumentation und Endpunkte",
+        "code-examples": "Codebeispiele",
+        "example-code-and-libraries": "Beispielcode und Client-Bibliotheken",
+        "security-best-practices": "Best Practices für Sicherheit",
+        "never-commit-api-keys": "Verpflichten Sie niemals API-Schlüssel zur Versionskontrolle",
+        "use-environment-variables": "Verwenden Sie Umgebungsvariablen zum Speichern von API-Schlüsseln",
+        "rotate-keys-regularly": "Rotieren Sie API-Schlüssel regelmäßig aus Sicherheitsgründen",
+        "use-https-only": "Verwenden Sie immer HTTPS bei API-Anfragen",
+        "monitor-api-usage": "Überwachen Sie Ihre API-Nutzung und richten Sie Benachrichtigungen ein",
+        "important-notice": "Wichtiger Hinweis",
+        "regenerating-key-warning": "Das Regenerieren Ihres API-Schlüssels macht den aktuellen Schlüssel ungültig. Aktualisieren Sie alle Anwendungen, die den alten Schlüssel verwenden."
+      },
+      "privacy": {
+        "title": "Datenschutzeinstellungen",
+        "manage-privacy-settings": "Verwalten Sie Ihre Datenschutzpräferenzen",
+        "your-privacy": "Ihr Datenschutz",
+        "non-negotiable": "Nicht verhandelbar",
+        "not-a-setting": "Keine Einstellung",
+        "no-analytics-statement": "Keine Analysen. Kein Tracking. Punkt.",
+        "explanation": "Dies ist keine Einstellung, weil es nichts ein- oder auszuschalten gibt. Ihr Datenschutz ist in unserer Arbeitsweise eingebaut."
+      },
+      "caution": {
+        "title": "Bereich für sorgfältige Überlegung",
+        "description": "Erweiterte Einstellungen und Datenverwaltung",
+        "data-export": "Datenexport",
+        "export-your-data": "Exportieren Sie Ihre Kontodaten",
+        "export-description": "Fordern Sie eine vollständige Kopie Ihrer Kontodaten in maschinenlesbarem Format an",
+        "request-data-export": "Datenexport anfordern",
+        "export-info": "Exportverarbeitungszeit",
+        "export-info-description": "Exporte werden innerhalb von 24 Stunden verarbeitet und an Ihre E-Mail-Adresse gesendet",
+        "deletion-warning-title": "Das Löschen Ihres Kontos wird:",
+        "deletion-warning-secrets": "Alle Ihre Geheimnisse dauerhaft löschen",
+        "deletion-warning-metadata": "Alle Geheimnis-Metadaten und Historie entfernen",
+        "deletion-warning-api-keys": "Alle API-Schlüssel ungültig machen",
+        "deletion-warning-irreversible": "Diese Aktion kann nicht rückgängig gemacht werden"
+      }
+    }
+  }
+}

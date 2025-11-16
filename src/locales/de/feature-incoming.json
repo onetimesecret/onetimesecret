@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Füge unten ein Passwort, eine geheime Nachricht oder einen privaten Link ein.",
+      "tagline2": "Halte sensible Informationen aus deinen Chat-Protokollen und E-Mails heraus.",
+      "secret_hint": "* Ein geheimer Link funktioniert nur einmal und verschwindet danach für immer.",
+      "incoming_button_create": "An Support-Mitarbeiter senden",
+      "incoming_secret_options": "Support-Info",
+      "incoming_secret_placeholder": "Gib alle Informationen ein, die ein Support-Mitarbeiter benötigen wird (z.B. das System-Passwort). Schreibe dein Anliegen wenn möglich auf Englisch.",
+      "incoming_ticket_number": "Ticketnummer eingeben #",
+      "incoming_ticket_number_hint": "Du findest diese in deiner E-Mail (z.B. 123456)",
+      "incoming_recipient_address": "Support-Empfänger",
+      "incoming_success_message": "Deine E-Mail wurde gesendet",
+      "incoming_button_creating": "Wird erstellt"
+    }
+  }
+}

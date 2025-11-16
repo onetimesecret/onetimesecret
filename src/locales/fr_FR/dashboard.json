@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "Messages reçus",
+      "title_not_received": "Messages en attente",
+      "title_no_recent_secrets": "Aucun message récent",
+      "get-started-by-creating-your-first-secret": "Commencez en créant votre premier message sécurisé"
+    }
+  }
+}

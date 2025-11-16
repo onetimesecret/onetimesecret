@@ -1,0 +1,67 @@
+{
+  "web": {
+    "colonel": {
+      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified-0": "+Kunde.verifiziert ? verifiziert\" : \"nicht verifiziert",
+      "customers-details-counts-recent_customer_count-o-0": "Kunden ({0} von {1})",
+      "user-feedback-total-details-counts-feedback_coun-0": "Benutzer-Rückmeldung (Insgesamt: {0})",
+      "metadata-secrets-details-counts-metadata_count-d-0": "Metadaten/Geheimnisse: {0}/{1} ({2}/{3}/{4} insgesamt)",
+      "secrets-details-counts-secret_count-0": "Geheimnisse ({0})",
+      "active-in-the-past-5-minutes-0": "(aktiv in den letzten 5 Minuten)",
+      "configEditorTitle": "Einstellungen",
+      "configEditorDescription": "Systemkonfigurationseinstellungen bearbeiten. Änderungen werden sofort nach dem Speichern angewendet.",
+      "invalidJson": "Ungültiges JSON im Abschnitt {section}",
+      "validationError": "Validierungsfehler",
+      "errorFetchingConfig": "Fehler beim Laden der Konfiguration",
+      "errorSavingConfig": "Fehler beim Speichern der Konfiguration",
+      "configSaved": "Konfiguration erfolgreich gespeichert",
+      "mustBeObject": "Konfiguration muss ein JSON-Objekt sein",
+      "multipleSectionsInvalid": "Mehrere Abschnitte weisen Validierungsfehler auf: {sections}",
+      "sectionHasError": "Abschnitt {section} weist Validierungsfehler auf: {error}",
+      "sectionSaved": "Abschnitt {section} erfolgreich gespeichert",
+      "saveSection": "Abschnitt {section} speichern",
+      "saveAll": "Alles speichern",
+      "unsavedChanges": "Ungespeicherte Änderungen",
+      "schemaValidationError": "Schema-Validierungsfehler: {message} ({path})",
+      "unknownValidationError": "Unbekannter Validierungsfehler: {error}",
+      "dashboard": "Dashboard",
+      "activity": "Aktivitäten",
+      "accounts": "Konten",
+      "users": "Benutzer",
+      "domains": "Domänen",
+      "settings": "Einstellungen",
+      "welcome": "Willkommen bei Colonel",
+      "welcomeDesc": "Administratives Steuerungs-Panel für Onetime Secret",
+      "quickActions": "Schnelle Aktionen",
+      "recentActivity": "Letzte Aktivitäten",
+      "viewAll": "Alle anzeigen",
+      "activityPlaceholder": "Aktivitätsdaten werden hier angezeigt",
+      "stats": {
+        "totalSecrets": "",
+        "activeUsers": "",
+        "secretsToday": "",
+        "secretsCreated": "",
+        "secretsShared": "",
+        "totalCustomers": "",
+        "emailsSent": "",
+        "systemHealth": "",
+        "healthy": ""
+      },
+      "actions": {
+        "viewActivity": "",
+        "viewActivityDesc": "",
+        "manageAccounts": "",
+        "manageAccountsDesc": "",
+        "configureDomains": "",
+        "configureDomainsDesc": "",
+        "systemSettings": "",
+        "systemSettingsDesc": ""
+      }
+    },
+    "feedback": {
+      "when-you-submit-feedback-well-see": "Wenn Sie ein Rückmeldung abgeben, werden wir es sehen:",
+      "send-feedback": "Rückmeldung senden",
+      "sending-ellipses": "Ich schicke..."
+    }
+  }
+}

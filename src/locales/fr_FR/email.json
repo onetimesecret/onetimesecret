@@ -1,0 +1,20 @@
+{
+  "email": {
+    "incomingsupport": {
+      "subject": "[Support: %s]",
+      "body1": "Un client a soumis la demande suivante"
+    },
+    "secretlink": {
+      "subject": "%s vous a envoyé un message sécurisé",
+      "body1": "Vous avez reçu un message sécurisé de",
+      "body_tagline": "Si vous ne reconnaissez pas l'expéditeur ou suspectez un message malveillant, veuillez nous contacter à :"
+    },
+    "welcome": {
+      "subject": "Vérification de votre compte Onetime-Secret",
+      "body1": "Bienvenue sur Onetime-Secret. Un message sécurisé vous attend.",
+      "please_verify": "Veuillez valider votre compte :",
+      "postscript1": "Cet e-mail a été envoyé à",
+      "postscript2": "Si vous n'êtes pas à l'origine de cette inscription, ignorez ce message. Aucune autre communication ne vous sera envoyée."
+    }
+  }
+}

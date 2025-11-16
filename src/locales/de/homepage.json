@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Füge unten ein Passwort, eine geheime Nachricht oder einen privaten Link ein.",
+      "tagline2": "Halte sensible Informationen aus deinen Chat-Protokollen und E-Mails heraus.",
+      "secret_hint": "* Ein geheimer Link funktioniert nur einmal und verschwindet danach für immer.",
+      "secret_form_more_text1": "Registriere dich für ein ",
+      "secret_form_more_text2": "kostenloses Konto",
+      "secret_form_more_text3": "um Passphrasen für zusätzliche Sicherheit zu setzen und zusätzliche Datenschutzoptionen nutzen zu können. Wir senden dir den Link sogar per E-Mail, wenn du möchtest.",
+      "cta_title": "Verwende eine benutzerdefinierte Domain",
+      "cta_subtitle": "Stärke deine Marke und teile mit Vertrauen",
+      "cta_feature1": "Deine eigene benutzerdefinierte Domain",
+      "cta_feature2": "Unbegrenztes Teilen von Geheimnissen",
+      "cta_feature3": "Erweiterte Datenschutzkontrollen",
+      "explore_premium_plans": "Premium-Pläne erkunden",
+      "need_free_account": "Gerade erst angefangen?",
+      "sign_up_free": "Kostenloses Konto erstellen",
+      "visit-onetime-secret-home": "Onetime Secret Startseite besuchen",
+      "password_generation_title": "Passwortgenerator",
+      "password_generation_description": " Klicke auf \"Passwort generieren\", um ein sicheres zufälliges Passwort zu erstellen, das du teilen kannst.",
+      "protip1": "Deine Nachricht zerstört sich nach dem Ansehen selbst. Der Link kann nur einmal aufgerufen werden.",
+      "authonly": {
+        "tagline2": "Der sichere Nachrichtendienst ist nur für den internen Gebrauch bestimmt.",
+        "tagline1": "Falls Sie ein Konto haben, loggen Sie sich bitte ein, um fortzufahren."
+      },
+      "disabled": {
+        "tagline2": "Dieser Dienst ist nur für den internen Gebrauch eingerichtet.",
+        "tagline1": "Benutzeroberfläche und Login-Funktionen sind nicht verfügbar."
+      }
+    }
+  }
+}

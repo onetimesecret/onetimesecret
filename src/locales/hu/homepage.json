@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Illessz be egy jelszót, titkos üzenetet vagy privát linket az alábbiakban.",
+      "tagline2": "Tartsd távol az érzékeny információkat az e-mail és a csevegési naplókból.",
+      "secret_hint": "* A titkos link csak egyszer működik, majd örökre eltűnik.",
+      "secret_form_more_text1": "Regisztrálj",
+      "secret_form_more_text2": "ingyenes fiókot",
+      "secret_form_more_text3": "és képes leszel elküldeni a titkot e-mailben.",
+      "cta_title": "Használjon egyedi domaint",
+      "cta_subtitle": "Emelje márkáját és osszon meg magabiztosan",
+      "cta_feature1": "Saját egyedi domain",
+      "cta_feature2": "Korlátlan titokkészítés",
+      "cta_feature3": "Fejlett adatvédelmi beállítások",
+      "explore_premium_plans": "Fedezze fel a Prémium csomagokat",
+      "need_free_account": "Csak most kezdi?",
+      "sign_up_free": "Ingyenes fiók létrehozása",
+      "visit-onetime-secret-home": "",
+      "password_generation_title": "",
+      "password_generation_description": "",
+      "protip1": "",
+      "authonly": {
+        "tagline2": "",
+        "tagline1": ""
+      },
+      "disabled": {
+        "tagline2": "",
+        "tagline1": ""
+      }
+    }
+  }
+}

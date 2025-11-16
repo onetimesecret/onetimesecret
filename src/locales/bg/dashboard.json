@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "Получени",
+      "title_not_received": "Неполучени",
+      "title_no_recent_secrets": "Няма последни тайни",
+      "get-started-by-creating-your-first-secret": "Започнете, като създадете първата си тайна."
+    }
+  }
+}

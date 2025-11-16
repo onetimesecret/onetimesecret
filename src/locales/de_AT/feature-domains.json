@@ -1,0 +1,11 @@
+{
+  "web": {
+    "domains": {
+      "learn-more-dns": "Mehr über DNS-Konfiguration erfahren",
+      "view-domain-verification-status": "Bereichs-Verifizierungsstatus anzeigen",
+      "domain-already-in-organization": "Dieser Bereich ist bereits in Ihrer Organisation registriert",
+      "domain-in-other-organization": "Dieser Bereich ist bereits für eine andere Organisation registriert. Bitte kontaktieren Sie den Support, falls Sie glauben, dass dies ein Fehler ist.",
+      "domain-claimed-successfully": "Bereich erfolgreich beansprucht und zu Ihrer Organisation hinzugefügt"
+    }
+  }
+}

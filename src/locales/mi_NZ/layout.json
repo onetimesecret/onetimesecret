@@ -1,0 +1,62 @@
+{
+  "web": {
+    "footer": {
+      "security": "",
+      "learn-about-our-security-measures": "",
+      "view-our-terms-and-conditions": "",
+      "terms": "",
+      "privacy": "",
+      "contact": "",
+      "support": "",
+      "legals": "",
+      "read-our-privacy-policy": "",
+      "check-our-service-status": "",
+      "explore-our-api-documentation": "",
+      "docs": "",
+      "access-our-documentation": "",
+      "view-our-source-code-on-github": "",
+      "resources": "",
+      "blog": "",
+      "read-our-latest-blog-posts": "",
+      "view-our-subscription-pricing": "",
+      "learn-about-our-company": "",
+      "company": ""
+    },
+    "navigation": {
+      "billing": "",
+      "billingOverview": "",
+      "organizations": ""
+    },
+    "site": {
+      "website-version": "Putanga Paetukutuku"
+    },
+    "meta": {
+      "were-making-onetime-secret-available-in-multiple": "Kei te whakarato mātou i a {onetime-secret} i roto i ngā reo maha. I te mea he āhuatanga hou tēnei, ka tūtaki pea koe ki ngā hapa whakamaori, kupu whakatakoto pōrearea rānei. Ka āwhina tō urupare i a mātou ki te whakapai ake - mēnā ka kitea e koe he take, tēnā {send-feedback}",
+      "translations-are-new-spotted-an-error": "He hou ngā whakamaoritanga. Kua kitea he hapa? {send-feedback}",
+      "we-recently-added-translations": "Kātahi anō mātou ka tāpiri i ngā whakamaoritanga. Kua kitea he hapa? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Me wātea te matatapu me te haumaru ki te katoa, ahakoa te reo. Kei te tāpiri mātou i ngā whakamaoritanga hei āwhina i ā mātou kaiwhakamahi me ā rātou kaiwhiwhi karere ki te mārama pai ake me pēhea te whakamahi haumaru me te uru ki ngā karere me ngā hononga haumaru. I te mea he āhuatanga hou tēnei, ka tūtaki pea koe ki ētahi hapa whakamaori, tohutohu mārama kore rānei. Hei āwhina i a mātou ki te whakapai ake i te mārama me te tika o ā mātou whakamaoritanga, otirā mō ngā ihirangi e pā ana ki te haumaru-tino, tēnā {send-feedback} mēnā ka kitea e koe he take"
+    },
+    "help": {
+      "learn_more": "Mātaki atu anō",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "He aha tēnei e titiro nei au?",
+          "description": "Kei te titiro koe ki tētahi karere haumaru i tuari ki a koe mā Onetime Secret. Ka whakaatuhia tēnei ihirangi kotahi anake ka mutu ka mukua pūmautia mai i ā mātou tūmau."
+        },
+        "can_i_view_again": {
+          "title": "Ka taea e au te tiro anō i tēnei karere huna ā muri ake?",
+          "description": "Kāore. Mō ngā take haumaru, ka kitea tēnei karere huna kotahi anake. Whai muri i te kati i tēnei whārangi, ka mukua pūmautia te ihirangi, ā, kāore e taea te whakahoki e tētahi, tae atu ki a mātou."
+        },
+        "how_to_copy": {
+          "title": "Me pēhea tāku tiaki i tēnei mōhiohio?",
+          "description": "Whakamahia te pātene 'Tārua ki te Papatopenga' ki te tārua i te karere huna katoa. Mō ngā karere huna roa ake, me whakaū kua tāruahia e koe te ihirangi katoa i mua i te wehe i tēnei whārangi."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Kei te aroturukihia taku tirohanga o tēnei karere huna?",
+          "description": "Ka whakamōhiotia te kaituku kua tirohia tā rātou karere huna, engari kāore mātou e aroturuki ko wai i tiro, mai i hea rānei. Ka tiakina tō matatapu."
+        },
+        "one_time_warning": "Ka wehe ana koe, ka tāmata anō rānei i tēnei whārangi, ka mukua pūmautia tēnei karere huna, ā, kāore e taea te whakahoki e tētahi."
+      }
+    }
+  }
+}

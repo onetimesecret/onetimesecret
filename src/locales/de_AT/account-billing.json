@@ -1,0 +1,114 @@
+{
+  "web": {
+    "billing": {
+      "upgrade": {
+        "required": "Upgrade erforderlich",
+        "viewPlans": "Pläne anzeigen",
+        "needTeams": "Mehrere Teams erfordern Multi-Team-Plan oder höher",
+        "needCustomDomains": "Benutzerdefinierte Bereiche erfordern Identity Plus oder höher",
+        "needApiAccess": "API-Zugriff erfordert Multi-Team-Plan oder höher",
+        "needPrioritySupport": "Prioritäts-Support erfordert Identity Plus oder höher",
+        "needAuditLogs": "Audit-Protokolle erfordern Multi-Team-Plan oder höher"
+      },
+      "manage_subscription_and_billing": "Verwalten Sie Ihr Abonnement, Ihre Organisationen und Abrechnungseinstellungen",
+      "overview": {
+        "title": "Abrechnungsübersicht",
+        "description": "Anzeigen und Verwalten Ihrer Abonnement- und Zahlungsdetails",
+        "organization_selector": "Organisation auswählen",
+        "current_plan": "Aktueller Plan",
+        "plan_features": "Plan-Funktionen",
+        "payment_method": "Zahlungsmethode",
+        "next_billing_date": "Nächstes Abrechnungsdatum",
+        "quick_actions": "Schnelle Aktionen",
+        "manage_billing": "Abrechnung verwalten",
+        "view_invoices": "Rechnungen anzeigen",
+        "upgrade_plan": "Plan upgraden",
+        "change_plan": "Plan ändern",
+        "no_payment_method": "Keine Zahlungsmethode hinterlegt",
+        "no_upcoming_billing": "Keine bevorstehende Abrechnung",
+        "days_remaining": "Tage verbleibend",
+        "billing_on": "Abrechnung am {date}",
+        "view_plans_action": "Pläne anzeigen",
+        "view_plans_description": "Vergleichen und upgraden",
+        "view_invoices_action": "Rechnungen anzeigen",
+        "view_invoices_description": "Historie herunterladen",
+        "manage_billing_action": "Abrechnung verwalten",
+        "manage_billing_description": "Zahlungsinformationen aktualisieren",
+        "no_organizations_title": "Keine Organisationen",
+        "no_organizations_description": "Erstellen Sie eine Organisation, um Ihre Abrechnung und Ihr Abonnement zu verwalten",
+        "capabilities": {
+          "create_secrets": "Geheimnisse erstellen",
+          "basic_sharing": "Basis-Teilen",
+          "create_team": "Team erstellen",
+          "create_teams": "Mehrere Teams erstellen",
+          "custom_domains": "Benutzerdefinierte Bereiche",
+          "api_access": "API-Zugriff",
+          "priority_support": "Prioritäts-Support",
+          "audit_logs": "Audit-Protokolle"
+        }
+      },
+      "plans": {
+        "title": "Plan auswählen",
+        "choose_plan": "Wählen Sie den Plan, der Ihren Bedürfnissen entspricht",
+        "current": "Aktueller Plan",
+        "upgrade": "Upgraden",
+        "downgrade": "Downgraden",
+        "monthly": "Monatlich",
+        "yearly": "Jährlich",
+        "save_yearly": "Sparen Sie {percent}% mit jährlicher Abrechnung",
+        "free_plan": "Kostenlos",
+        "single_team_plan": "Einzelnes Team",
+        "multi_team_plan": "Mehrere Teams",
+        "features": "Funktionen",
+        "teams_limit": "{count} Team | {count} Teams",
+        "members_limit": "{count} Mitglied pro Team | {count} Mitglieder pro Team",
+        "unlimited_secrets": "Unbegrenzte Geheimnisse",
+        "api_access": "API-Zugriff",
+        "priority_support": "Prioritäts-Support",
+        "select_plan": "Plan auswählen",
+        "contact_sales": "Vertrieb kontaktieren"
+      },
+      "invoices": {
+        "title": "Abrechnungsverlauf",
+        "view_history": "Sehen Sie Ihren Abrechnungsverlauf ein und laden Sie Rechnungen herunter",
+        "invoice_date": "Datum",
+        "invoice_amount": "Betrag",
+        "invoice_status": "Status",
+        "invoice_download": "Herunterladen",
+        "no_invoices": "Noch keine Rechnungen",
+        "paid": "Bezahlt",
+        "pending": "Ausstehend",
+        "failed": "Fehlgeschlagen",
+        "load_error": "Rechnungen konnten nicht geladen werden"
+      },
+      "notices": {
+        "org_managed": "Die Abrechnung für dieses Team wird von {orgName} verwaltet",
+        "view_org_billing": "Organisationsabrechnung anzeigen",
+        "team_billing_disabled": "Abrechnung auf Team-Ebene wird über Ihre Organisation verwaltet"
+      },
+      "limits": {
+        "teams_reached": "Sie haben Ihr Plan-Limit erreicht",
+        "teams_upgrade": "Upgraden Sie, um mehr Teams zu erstellen",
+        "members_reached": "Sie haben das Mitgliederlimit für dieses Team erreicht",
+        "members_upgrade": "Upgraden Sie, um mehr Mitglieder hinzuzufügen"
+      },
+      "subscription": {
+        "title": "Abonnement",
+        "status": "Abonnementstatus",
+        "active": "Aktiv",
+        "inactive": "Inaktiv",
+        "past_due": "Überfällig",
+        "canceled": "Gekündigt",
+        "plan_name": "Plan",
+        "team_usage": "Team-Nutzung",
+        "teams_used": "{used} von {limit} Teams genutzt"
+      },
+      "portal": {
+        "title": "Abrechnungsportal",
+        "description": "Verwalten Sie Ihr Abonnement, Zahlungsmethoden und Abrechnungsverlauf",
+        "open_portal": "Abrechnungsportal öffnen",
+        "redirecting": "Weiterleitung zum Abrechnungsportal..."
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Cole uma senha, mensagem secreta ou link privado abaixo.",
+      "tagline2": "Mantenha dados sensíveis fora de seus emails ou logs de conversa.",
+      "secret_hint": "* Um link secreto funciona apenas uma vez e depois desaparece para sempre.",
+      "incoming_button_create": "Enviar para Equipe de Suporte",
+      "incoming_secret_options": "Informações para Suporte",
+      "incoming_secret_placeholder": "Entre com qualquer informação que seu representante de suporte vai precisar (ex. senha do sistema)",
+      "incoming_ticket_number": "Entre com número do ticket #",
+      "incoming_ticket_number_hint": "Você pode encontrar este número no seu email (ex. 123456)",
+      "incoming_recipient_address": "Destinatário de Suporte",
+      "incoming_success_message": "Seu email foi enviado",
+      "incoming_button_creating": "Criando"
+    }
+  }
+}

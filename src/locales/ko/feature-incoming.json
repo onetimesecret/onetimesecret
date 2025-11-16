@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "비밀번호, 비밀 메시지 또는 개인 링크를 아래에 붙여넣으세요.",
+      "tagline2": "민감한 정보를 이메일과 채팅 로그에서 제외하세요.",
+      "secret_hint": "* 비밀 링크는 단 한 번만 작동하고 영원히 사라집니다.",
+      "incoming_button_create": "지원 직원에게 보내기",
+      "incoming_secret_options": "지원 정보",
+      "incoming_secret_placeholder": "지원 담당자가 필요로 하는 정보를 입력하세요 (예: 시스템 비밀번호)",
+      "incoming_ticket_number": "티켓 번호 입력",
+      "incoming_ticket_number_hint": "이메일에서 찾을 수 있습니다 (예: 123456)",
+      "incoming_recipient_address": "지원 수신자",
+      "incoming_success_message": "이메일이 전송되었습니다",
+      "incoming_button_creating": "생성 중"
+    }
+  }
+}

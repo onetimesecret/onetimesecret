@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": ".ضع كلمة مرور، رسالة سرية او رابطاً خاصاً أدناه",
+      "tagline2": ".لا تستخدم معلوماتك الحساسة في محادثاتك او رسائل البريد",
+      "secret_hint": ".الرابط السري سيعمل لمرة واحدة فقط ومن ثم يختفي للأبد *",
+      "incoming_button_create": "راسل فريق الدعم",
+      "incoming_secret_options": "معلومات المساعدة",
+      "incoming_secret_placeholder": "(ادخل اي بيانات قد يحتاجها ممثل الدعم (كلمة مرورك مثلاً",
+      "incoming_ticket_number": "ادخل رقم التذكرة #",
+      "incoming_ticket_number_hint": "(ستجد هذا في بريدك الالكتروني (12345 مثلاً",
+      "incoming_recipient_address": "بريد المرسل",
+      "incoming_success_message": "تم ارسال الرسالة",
+      "incoming_button_creating": ""
+    }
+  }
+}

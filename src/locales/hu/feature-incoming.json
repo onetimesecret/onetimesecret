@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Illeszd be a jelszót, titkos üzenetet vagy privát linket lentebb.",
+      "tagline2": "Tartsd távol érzékeny információidat az emailjeidtől és chat naplóktól.",
+      "secret_hint": "* Egy titkos link csak egyszer működik és aztán örökre eltűnik.",
+      "incoming_button_create": "Küldés a támogató személyzetnek",
+      "incoming_secret_options": "Támogatási információk",
+      "incoming_secret_placeholder": "Add meg az összes információt, amire a támogató képviselődnek szüksége lesz (pl. rendszerjelszó)",
+      "incoming_ticket_number": "Jegy szám megadása",
+      "incoming_ticket_number_hint": "Ezt megtalálod az emailjeidben (pl. 123456)",
+      "incoming_recipient_address": "Támogató címzett",
+      "incoming_success_message": "Az email elküldve.",
+      "incoming_button_creating": ""
+    }
+  }
+}

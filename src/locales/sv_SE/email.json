@@ -1,0 +1,20 @@
+{
+  "email": {
+    "incomingsupport": {
+      "subject": "[Ärende: %s]",
+      "body1": "En kund har skickat följande information"
+    },
+    "secretlink": {
+      "subject": "%s skickade en hemlighet till dig",
+      "body1": "Vi har en hemlighet till dig från",
+      "body_tagline": "Om du inte känner avsändaren eller tror att det är skräppost, skicka oss detaljerna här:"
+    },
+    "welcome": {
+      "subject": "Verifiera ditt Onetime Secret-konto",
+      "body1": "Välkommen till Onetime Secret. Vi har en hemlighet till dig!",
+      "please_verify": "Vänligen verifiera att det är du:",
+      "postscript1": "Detta meddelande har skickats till dig",
+      "postscript2": "Om du inte har gjort detta, vänligen radera meddelandet. Vi kommer inte att kontakta dig igen."
+    }
+  }
+}

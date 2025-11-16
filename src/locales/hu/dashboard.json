@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "Received",
+      "title_not_received": "Not Received",
+      "title_no_recent_secrets": "Nincs friss titok",
+      "get-started-by-creating-your-first-secret": ""
+    }
+  }
+}

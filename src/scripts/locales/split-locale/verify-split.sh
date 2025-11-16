@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-#
+
+# src/scripts/locales/split-locale/verify-split.sh
+
 # Locale Split Verification Script
 #
 # Uses jq to verify that split locale files can be recombined to match

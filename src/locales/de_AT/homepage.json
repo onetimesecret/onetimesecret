@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Fügen Sie unten ein Passwort, eine geheime Nachricht oder einen privaten Link ein.",
+      "tagline2": "Halten Sie sensible Informationen aus Ihren E-Mail- und Chat-Protokollen heraus.",
+      "secret_hint": "* Ein Geheimlink funktioniert nur einmal und verschwindet dann für immer.",
+      "secret_form_more_text1": "Registrieren Sie sich für eine",
+      "secret_form_more_text2": "kostenloses Konto",
+      "secret_form_more_text3": "und in der Lage sein, das Geheimnis per E-Mail zu versenden.",
+      "cta_title": "Vertrauen stärken und mit Zuversicht teilen",
+      "cta_subtitle": "Heben Sie Ihre Marke hervor und teilen Sie sie mit Vertrauen",
+      "cta_feature1": "Unbegrenzte benutzerdefinierte Bereiche",
+      "cta_feature2": "Unbegrenzte gemeinsame Nutzung von Geheimnissen",
+      "cta_feature3": "Steigern Sie das Vertrauen und das Engagement Ihrer Kunden",
+      "explore_premium_plans": "Mit benutzerdefinierten Bereiche",
+      "need_free_account": "Sie haben gerade erst angefangen? Versenden Sie E-Mails mit einem kostenlosen Konto.",
+      "sign_up_free": "Kostenlose Anmeldung",
+      "visit-onetime-secret-home": "Besuchen Sie die Homepage von Onetime Secret",
+      "password_generation_title": "Passwortgenerator",
+      "password_generation_description": "Klicken Sie auf \"Passwort generieren\", um ein sicheres Zufallspasswort zu erstellen, das Sie teilen können.",
+      "protip1": "Ihre Nachricht zerstört sich nach dem Ansehen selbst. Der Link kann nur einmal aufgerufen werden.",
+      "authonly": {
+        "tagline2": "Dieser sichere Nachrichtendienst ist ausschließlich für den internen Gebrauch bestimmt.",
+        "tagline1": "Falls Sie über ein Benutzerkonto verfügen, melden Sie sich bitte an, um fortzufahren."
+      },
+      "disabled": {
+        "tagline2": "Dieser Dienst ist ausschließlich für den internen Gebrauch eingerichtet.",
+        "tagline1": "Benutzeroberfläche und Anmeldefunktionen sind derzeit nicht verfügbar."
+      }
+    }
+  }
+}

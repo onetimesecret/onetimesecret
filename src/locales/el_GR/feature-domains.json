@@ -1,0 +1,11 @@
+{
+  "web": {
+    "domains": {
+      "learn-more-dns": "Μάθετε περισσότερα για τη διαμόρφωση DNS",
+      "view-domain-verification-status": "Προβολή κατάστασης επαλήθευσης domain",
+      "domain-already-in-organization": "",
+      "domain-in-other-organization": "",
+      "domain-claimed-successfully": ""
+    }
+  }
+}

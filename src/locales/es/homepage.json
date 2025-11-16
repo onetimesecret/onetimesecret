@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Pega una contraseña, secreto, o enlace privado abajo.",
+      "tagline2": "Mantén información confidencial fuera de tus chats y correos electrónicos.",
+      "secret_hint": "* El enlace secreto sólo funciona una vez y luego desaparece para siempre.",
+      "secret_form_more_text1": "Regístrate para obtener",
+      "secret_form_more_text2": "una cuenta gratuita",
+      "secret_form_more_text3": "y poder fijar frases de contraseña para mayor seguridad junto con opciones de privacidad adicionales. Incluso enviaremos el enlace por correo electrónico si usted lo desea.",
+      "cta_title": "Aumenta la confianza y comparte con seguridad",
+      "cta_subtitle": "Eleva tu marca y comparte con confianza",
+      "cta_feature1": "Tu propio dominio personalizado",
+      "cta_feature2": "Compartición ilimitada de secretos",
+      "cta_feature3": "Controles de privacidad avanzados",
+      "explore_premium_plans": "Explora los planes Premium",
+      "need_free_account": "¿Recién empiezas?",
+      "sign_up_free": "Crea una cuenta gratuita",
+      "visit-onetime-secret-home": "Visita la página de inicio de Onetime Secret",
+      "password_generation_title": "Generador de Contraseñas",
+      "password_generation_description": " Haz clic en \"Generar Contraseña\" para crear una contraseña aleatoria segura que puedas compartir.",
+      "protip1": "Tu mensaje se autodestruirá después de ser visto. El enlace solo se puede acceder una vez.",
+      "authonly": {
+        "tagline2": "El servicio de mensajería segura es solo para uso interno.",
+        "tagline1": "Si tiene una cuenta, inicie sesión para continuar."
+      },
+      "disabled": {
+        "tagline2": "Este servicio está configurado solo para uso interno.",
+        "tagline1": "La interfaz de usuario y las capacidades de inicio de sesión no están disponibles."
+      }
+    }
+  }
+}

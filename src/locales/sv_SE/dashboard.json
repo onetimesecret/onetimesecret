@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "Mottagen",
+      "title_not_received": "Ej mottagen",
+      "title_no_recent_secrets": "Du har inte haft några hemligheter nyligen",
+      "get-started-by-creating-your-first-secret": "Kom igång genom att skapa din första hemlighet."
+    }
+  }
+}

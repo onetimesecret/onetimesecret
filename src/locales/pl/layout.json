@@ -1,0 +1,62 @@
+{
+  "web": {
+    "footer": {
+      "security": "",
+      "learn-about-our-security-measures": "",
+      "view-our-terms-and-conditions": "",
+      "terms": "",
+      "privacy": "",
+      "contact": "",
+      "support": "",
+      "legals": "",
+      "read-our-privacy-policy": "",
+      "check-our-service-status": "",
+      "explore-our-api-documentation": "",
+      "docs": "",
+      "access-our-documentation": "",
+      "view-our-source-code-on-github": "",
+      "resources": "",
+      "blog": "",
+      "read-our-latest-blog-posts": "",
+      "view-our-subscription-pricing": "",
+      "learn-about-our-company": "",
+      "company": ""
+    },
+    "navigation": {
+      "billing": "",
+      "billingOverview": "",
+      "organizations": ""
+    },
+    "site": {
+      "website-version": "Wersja strony internetowej"
+    },
+    "meta": {
+      "were-making-onetime-secret-available-in-multiple": "Udostępniamy {onetime-secret} w wielu językach. Ponieważ jest to nowa funkcja, możesz napotkać błędy w tłumaczeniu lub niezręczne sformułowania. Twoja opinia pomaga nam się doskonalić - jeśli zauważysz jakiekolwiek problemy, prosimy {send-feedback}",
+      "translations-are-new-spotted-an-error": "Tłumaczenia są nowe. Zauważyłeś błąd? {send-feedback}",
+      "we-recently-added-translations": "Niedawno dodaliśmy tłumaczenia. Zauważyłeś błąd? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Prywatność i bezpieczeństwo powinny być dostępne dla każdego, niezależnie od języka. Dodajemy tłumaczenia, aby pomóc zarówno naszym użytkownikom, jak i odbiorcom ich wiadomości lepiej zrozumieć, jak bezpiecznie używać i uzyskiwać dostęp do bezpiecznych wiadomości i linków. Ponieważ jest to nowa funkcja, możesz napotkać błędy w tłumaczeniu lub niejasne instrukcje. Aby pomóc nam poprawić przejrzystość i dokładność naszych tłumaczeń, zwłaszcza w przypadku treści związanych z bezpieczeństwem, prosimy {send-feedback}, jeśli zauważysz jakiekolwiek problemy."
+    },
+    "help": {
+      "learn_more": "Dowiedz się więcej",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "Na co patrzę?",
+          "description": "Oglądasz bezpieczną wiadomość udostępnioną Ci przez Onetime Secret. Ta treść jest wyświetlana tylko raz, a następnie trwale usuwana z naszych serwerów."
+        },
+        "can_i_view_again": {
+          "title": "Czy mogę zobaczyć tę wiadomość ponownie później?",
+          "description": "Nie. Ze względów bezpieczeństwa ta wiadomość jest widoczna tylko raz. Po zamknięciu tej strony treść zostanie trwale usunięta i nikt, łącznie z nami, nie będzie mógł jej odzyskać."
+        },
+        "how_to_copy": {
+          "title": "Jak zapisać tę informację?",
+          "description": "Użyj przycisku 'Kopiuj do schowka', aby skopiować całą wiadomość. W przypadku dłuższych wiadomości upewnij się, że skopiowałeś całą treść przed opuszczeniem tej strony."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Czy moje oglądanie tej wiadomości jest śledzone?",
+          "description": "Nadawca zostanie powiadomiony, że jego wiadomość została wyświetlona, ale nie śledzimy, kto ją wyświetlił ani skąd. Twoja prywatność jest chroniona."
+        },
+        "one_time_warning": "Gdy opuścisz lub odświeżysz tę stronę, ta wiadomość zostanie trwale usunięta i nikt nie będzie mógł jej odzyskać."
+      }
+    }
+  }
+}

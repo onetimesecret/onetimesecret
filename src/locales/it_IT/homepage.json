@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Incolla una password, un messaggio segreto o un link privato qui sotto",
+      "tagline2": "Mantieni le informazioni sensibili fuori dalle email e dai log delle chat",
+      "secret_hint": "* Un link segreto funziona una sola volta e quindi sparisce per sempre.",
+      "secret_form_more_text1": "Iscriviti per un",
+      "secret_form_more_text2": "conto gratuito",
+      "secret_form_more_text3": "e invia i tuoi segreti per email",
+      "cta_title": "Usa un dominio personalizzato",
+      "cta_subtitle": "Eleva il tuo marchio e condividi con fiducia",
+      "cta_feature1": "Il tuo dominio personalizzato",
+      "cta_feature2": "Condivisione illimitata di segreti",
+      "cta_feature3": "Controlli avanzati sulla privacy",
+      "explore_premium_plans": "Esplora i piani Premium",
+      "need_free_account": "Stai iniziando ora?",
+      "sign_up_free": "Crea un account gratuito",
+      "visit-onetime-secret-home": "Visita la homepage di Onetime Secret",
+      "password_generation_title": "Generatore di password",
+      "password_generation_description": " Fare clic su \"Genera password\" per creare una password sicura e casuale da condividere",
+      "protip1": "Il messaggio si autodistruggerà dopo essere stato visualizzato. Il link può essere consultato una sola volta",
+      "authonly": {
+        "tagline2": "",
+        "tagline1": ""
+      },
+      "disabled": {
+        "tagline2": "",
+        "tagline1": ""
+      }
+    }
+  }
+}

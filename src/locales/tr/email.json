@@ -1,0 +1,20 @@
+{
+  "email": {
+    "incomingsupport": {
+      "subject": "[Bilet: %s]",
+      "body1": "Bir müşteri şu bilgileri gönderdi"
+    },
+    "secretlink": {
+      "subject": "%s sana bir gizli mesaj yolladı",
+      "body1": "Senin için bir gizli mesaj gönderdi, ",
+      "body_tagline": "Eğer göndereni tanımıyorsanız veya spam olduğunu düşünüyorsanız, detayları şurdan bize yollayın:"
+    },
+    "welcome": {
+      "subject": "Onetime Secret hesabınızı doğrulayın",
+      "body1": "Onetime Secret'a hoşgeldiniz. Sizin için bir gizli mesajımız var!",
+      "please_verify": "Lütfen hesabınızı doğrulayın:",
+      "postscript1": "Bu e-posta şu adrese yolandı",
+      "postscript2": "Eğer bu hesabı siz oluşturmadıysanız, bu mesajı silin ve sizi bir daha rahatsız etmeyeceğiz."
+    }
+  }
+}

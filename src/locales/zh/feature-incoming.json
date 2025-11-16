@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "在下方窗格输入您想要加密的内容。",
+      "tagline2": "使您的秘密独立于您的电子邮件和聊天记录。",
+      "secret_hint": "* 密文被加密后将只能被查看一次，之后将永久消失",
+      "incoming_button_create": "发送给技术人员",
+      "incoming_secret_options": "支持信息",
+      "incoming_secret_placeholder": "输入必要的、有代表性的支持信息（例：系统密码）",
+      "incoming_ticket_number": "输入工单编号 #",
+      "incoming_ticket_number_hint": "您将在您的电子邮件中找到它（例：123456）",
+      "incoming_recipient_address": "接受地址",
+      "incoming_success_message": "邮件已发出",
+      "incoming_button_creating": ""
+    }
+  }
+}

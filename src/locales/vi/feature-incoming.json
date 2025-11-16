@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Dán một mật khẩu, thông tin bí mật hoặc một đường dẫn riêng tư ở phía dưới.",
+      "tagline2": "Tránh lưu lại những thông tin nhạy cảm ở email hoặc lịch sử trò chuyện.",
+      "secret_hint": "* Link bí mật chỉ hoạt động duy nhất một lần và sau đó nó sẽ biến mất vĩnh viễn.",
+      "incoming_button_create": "Gởi tới bộ bận hỗ trợ",
+      "incoming_secret_options": "Thông tin hỗ trợ",
+      "incoming_secret_placeholder": "Nhập bất cứ thông tin nào mà bạn nghĩ bộ phận hỗ trợ sẽ cần (vd: mật khẩu hệ thống)",
+      "incoming_ticket_number": "Nhập mã hỗ trợ (ticket) #",
+      "incoming_ticket_number_hint": "Bạn có thể tìm thấy nó ở trong email của bạn (v.d. 123456)",
+      "incoming_recipient_address": "Người hỗ trợ",
+      "incoming_success_message": "Email của bạn đã được gởi đi",
+      "incoming_button_creating": ""
+    }
+  }
+}

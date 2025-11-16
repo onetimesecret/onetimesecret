@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "Đã nhận",
+      "title_not_received": "Chưa nhận",
+      "title_no_recent_secrets": "Không có bí mật nào ở đây cả",
+      "get-started-by-creating-your-first-secret": ""
+    }
+  }
+}

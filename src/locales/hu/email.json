@@ -1,0 +1,20 @@
+{
+  "email": {
+    "incomingsupport": {
+      "subject": "[Jegy: %s]",
+      "body1": "Egy ügyfél küldte a következő információkat"
+    },
+    "secretlink": {
+      "subject": "%s titkot küldött neked",
+      "body1": "Van egy titkos üzenetünk neked",
+      "body_tagline": "Ha nem ismered az elküldőt, vagy spamnek gondolod, kérjük, küld el nekünk az részleteket itt:"
+    },
+    "welcome": {
+      "subject": "Ellenőrizd a Onetime Secret fiókod",
+      "body1": "Üdvözöljük a Onetime Secretben. Van egy titkos üzenetünk neked!",
+      "please_verify": "Kérjük, erősítsd meg a fiókodat:",
+      "postscript1": "Ez az email elküldve ide:",
+      "postscript2": "Ha nem te hoztad létre ezt a fiókot, töröld ezt az üzenetet, és nem fogunk többé kapcsolatba lépni veled."
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "email": {
+    "incomingsupport": {
+      "subject": "[Tīkiti: %s]",
+      "body1": "Kua tukuna e tētahi kiritaki te mōhiohio e whai ake nei"
+    },
+    "secretlink": {
+      "subject": "Kua tukuna e %s tētahi karere huna ki a koe",
+      "body1": "He karere huna tā mātou mōu nā",
+      "body_tagline": "Mēnā kāore koe e mōhio ki te kaituku, e whakapono rānei he karere mokowhiti, tukuna mai ngā taipitopito ki konei:"
+    },
+    "welcome": {
+      "subject": "Whakaūngia tō pūkete Onetime Secret",
+      "body1": "Nau mai ki Onetime Secret. He karere huna tā mātou mōu!",
+      "please_verify": "Tēnā whakaūngia tō pūkete:",
+      "postscript1": "I tukuna tēnei īmēra ki",
+      "postscript2": "Mēnā kāore koe i mahi i tēnei tono, ka taea e koe te karo haumaru i tēnei īmēra."
+    }
+  }
+}

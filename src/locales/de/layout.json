@@ -1,0 +1,62 @@
+{
+  "web": {
+    "footer": {
+      "security": "",
+      "learn-about-our-security-measures": "",
+      "view-our-terms-and-conditions": "",
+      "terms": "",
+      "privacy": "",
+      "contact": "",
+      "support": "",
+      "legals": "",
+      "read-our-privacy-policy": "",
+      "check-our-service-status": "",
+      "explore-our-api-documentation": "",
+      "docs": "",
+      "access-our-documentation": "",
+      "view-our-source-code-on-github": "",
+      "resources": "",
+      "blog": "",
+      "read-our-latest-blog-posts": "",
+      "view-our-subscription-pricing": "",
+      "learn-about-our-company": "",
+      "company": ""
+    },
+    "navigation": {
+      "billing": "",
+      "billingOverview": "",
+      "organizations": ""
+    },
+    "site": {
+      "website-version": "Website-Version"
+    },
+    "meta": {
+      "were-making-onetime-secret-available-in-multiple": "Wir machen {onetime-secret} in mehreren Sprachen verfügbar. Da dies eine neue Funktion ist, können Übersetzungsfehler oder umständliche Formulierungen auftreten. Dein Feedback hilft uns bei der Verbesserung - wenn du Probleme entdeckst, bitte {send-feedback}",
+      "translations-are-new-spotted-an-error": "Übersetzungen sind neu. Fehler entdeckt? {send-feedback}",
+      "we-recently-added-translations": "Wir haben kürzlich Übersetzungen hinzugefügt. Fehler entdeckt? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Datenschutz und Sicherheit sollten für jeden zugänglich sein, unabhängig von der Sprache. Wir fügen Übersetzungen hinzu, um sowohl unseren Benutzern als auch den Empfängern ihrer Nachrichten zu helfen, besser zu verstehen, wie sie sichere Nachrichten und Links sicher verwenden und darauf zugreifen können. Da dies eine neue Funktion ist, könntest du auf Übersetzungsfehler oder unklare Anweisungen stoßen. Um uns zu helfen, die Klarheit und Genauigkeit unserer Übersetzungen zu verbessern, insbesondere bei kritischen sicherheitsrelevanten Inhalten, bitte {send-feedback}, wenn du Probleme entdeckst"
+    },
+    "help": {
+      "learn_more": "Mehr erfahren",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "Was sehe ich hier?",
+          "description": "Du siehst eine sichere Nachricht, die über Onetime Secret mit dir geteilt wurde. Dieser Inhalt wird nur einmal angezeigt und dann dauerhaft von unseren Servern gelöscht."
+        },
+        "can_i_view_again": {
+          "title": "Kann ich dieses Geheimnis später noch einmal ansehen?",
+          "description": "Nein. Aus Sicherheitsgründen kann dieses Geheimnis nur einmal angesehen werden. Nach dem Schließen dieser Seite wird der Inhalt dauerhaft gelöscht und kann von niemandem wiederhergestellt werden, auch nicht von uns."
+        },
+        "how_to_copy": {
+          "title": "Wie speichere ich diese Information?",
+          "description": "Verwende die Schaltfläche 'In die Zwischenablage kopieren', um das gesamte Geheimnis zu kopieren. Stelle bei längeren Geheimnissen sicher, dass du den vollständigen Inhalt kopiert hast, bevor du diese Seite verlässt."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Wird mein Ansehen dieses Geheimnisses verfolgt?",
+          "description": "Der Absender wird benachrichtigt, dass sein Geheimnis angesehen wurde, aber wir verfolgen nicht, wer es angesehen hat oder von welchem Ort aus. Deine Privatsphäre ist geschützt."
+        },
+        "one_time_warning": "Sobald du diese Seite verlässt oder aktualisierst, wird dieses Geheimnis dauerhaft gelöscht und kann von niemandem wiederhergestellt werden."
+      }
+    }
+  }
+}

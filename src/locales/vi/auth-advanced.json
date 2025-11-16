@@ -1,0 +1,195 @@
+{
+  "web": {
+    "auth": {
+      "mfa_required": "",
+      "mfa_verification_required": "",
+      "complete_mfa_verification": "",
+      "security": {
+        "_README": "",
+        "authentication_failed": "",
+        "rate_limited": "",
+        "session_expired": "",
+        "recovery_code_not_found": "",
+        "recovery_code_used": "",
+        "network_error": "",
+        "internal_error": "",
+        "_meta": {
+          "_purpose": "",
+          "authentication_failed": {
+            "security_note": "",
+            "owasp_ref": ""
+          },
+          "rate_limited": {
+            "security_note": "",
+            "owasp_ref": ""
+          },
+          "session_expired": {
+            "security_note": "",
+            "owasp_ref": ""
+          },
+          "recovery_code_not_found": {
+            "security_note": "",
+            "owasp_ref": ""
+          },
+          "recovery_code_used": {
+            "security_note": "",
+            "owasp_ref": ""
+          }
+        },
+        "_translation_guidelines": {
+          "DO_NOT_translate_as": [
+            "Wrong password",
+            "Invalid OTP code",
+            "Incorrect recovery code",
+            "Wait 5 minutes",
+            "3 attempts remaining",
+            "Account locked for 15 minutes"
+          ],
+          "MUST_translate_as": [
+            "Generic authentication failure (no credential specifics)",
+            "Generic rate limit message (no precise timing)",
+            "Recovery code validation (no existence confirmation)"
+          ],
+          "WHY": ""
+        },
+        "_safe_information": {
+          "format_requirements": "",
+          "expected_behavior": "",
+          "recovery_options": "",
+          "general_guidance": ""
+        }
+      },
+      "methods": {
+        "password": "",
+        "magicLink": "",
+        "webauthn": ""
+      },
+      "magicLink": {
+        "title": "",
+        "description": "",
+        "emailPlaceholder": "",
+        "sendLink": "",
+        "checkEmail": "",
+        "sentTo": "",
+        "linkExpiresIn": "",
+        "tryDifferentEmail": "",
+        "noPasswordNeeded": "",
+        "networkError": "",
+        "requestFailed": "",
+        "invalidLink": "",
+        "loginFailed": "",
+        "signingYouIn": "",
+        "pleaseWait": "",
+        "error": "",
+        "backToSignin": ""
+      },
+      "webauthn": {
+        "signIn": "",
+        "setup": "",
+        "notSupported": "",
+        "requiresModernBrowser": "",
+        "setupSuccess": "",
+        "setupFailed": "",
+        "authFailed": "",
+        "cancelled": "",
+        "processing": "",
+        "description": "",
+        "supportedMethods": ""
+      },
+      "lockout": {
+        "attempts-remaining": "",
+        "account-locked": "",
+        "locked-until": "",
+        "contact-support": "",
+        "try-password-reset": ""
+      },
+      "sessions": {
+        "title": "",
+        "current": "",
+        "other": "",
+        "device": "",
+        "location": "",
+        "ip-address": "",
+        "last-active": "",
+        "created": "",
+        "remove": "",
+        "remove-all": "",
+        "confirm-remove": "",
+        "confirm-remove-all": "",
+        "no-sessions": "",
+        "removed-success": "",
+        "removed-all-success": "",
+        "link-title": ""
+      },
+      "mfa": {
+        "title": "",
+        "enabled": "",
+        "disabled": "",
+        "enable": "",
+        "disable": "",
+        "setup-title": "",
+        "setup-description": "",
+        "step-scan": "",
+        "step-verify": "",
+        "scan-qr": "",
+        "manual-entry": "",
+        "verify-code": "",
+        "enter-code": "",
+        "verify": "",
+        "code-required": "",
+        "invalid-code": "",
+        "success-enabled": "",
+        "success-disabled": "",
+        "require-password": "",
+        "password-confirmation": "",
+        "password-reason": "",
+        "last-used": "",
+        "never-used": "",
+        "use-recovery-code": "",
+        "back-to-code": "",
+        "cancel": "",
+        "loading-status": "",
+        "protected-description": "",
+        "enable-description": "",
+        "benefit-unauthorized": "",
+        "benefit-apps": "",
+        "benefit-recovery": "",
+        "password-placeholder": "",
+        "disabling": "",
+        "disable-button": "",
+        "generating-qr": "",
+        "supported-apps": "",
+        "continue-verification": "",
+        "enter-code-description": "",
+        "enable-and-continue": "",
+        "complete-setup": "",
+        "enter-recovery-code": "",
+        "recovery-code-label": "",
+        "recovery-code-placeholder": "",
+        "verify-recovery-code": "",
+        "six-digit-code": "",
+        "recovery-code-mode-active": "",
+        "otp-mode-active": "",
+        "enter-all-digits": "",
+        "digit-of-count": ""
+      },
+      "recovery-codes": {
+        "title": "",
+        "description": "",
+        "warning": "",
+        "generate-new": "",
+        "generate-new-warning": "",
+        "download": "",
+        "print": "",
+        "copy": "",
+        "copied": "",
+        "code-used": "",
+        "code-unused": "",
+        "remaining": "",
+        "none-remaining": "",
+        "generate-success": "",
+        "link-title": ""
+      }
+    }
+  }
+}

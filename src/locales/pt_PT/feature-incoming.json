@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Cole uma palavra-passe, mensagem secreta ou link privado abaixo.",
+      "tagline2": "Mantenha informações sensíveis fora do seu e-mail e registos de chat.",
+      "secret_hint": "* Um link secreto funciona apenas uma vez e depois desaparece para sempre.",
+      "incoming_button_create": "Enviar para a Equipa de Suporte",
+      "incoming_secret_options": "Informações de Suporte",
+      "incoming_secret_placeholder": "Introduza qualquer informação que o seu representante de suporte precisará (por exemplo, palavra-passe do sistema)",
+      "incoming_ticket_number": "Introduza o Número do Ticket",
+      "incoming_ticket_number_hint": "Pode encontrar isto no seu e-mail (por exemplo, 123456)",
+      "incoming_recipient_address": "Destinatário de suporte",
+      "incoming_success_message": "O seu e-mail foi enviado",
+      "incoming_button_creating": ""
+    }
+  }
+}

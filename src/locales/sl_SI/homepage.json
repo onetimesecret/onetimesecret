@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Prilepite geslo, sporočilo ali povezavo.",
+      "tagline2": "Ohranite občutljive informacije izven el. pošte in klepetalnice.",
+      "secret_hint": "* Povezava je enkratna po uporabi izgine za vedno.",
+      "secret_form_more_text1": "Prijavite se z ",
+      "secret_form_more_text2": "zastonj uporabniškim računom",
+      "secret_form_more_text3": "in pošiljajte skrivnosti po e-pošti.",
+      "cta_title": "Uporabite prilagojeno domeno",
+      "cta_subtitle": "Dvignite svojo blagovno znamko in delite z zaupanjem",
+      "cta_feature1": "Vaša lastna prilagojena domena",
+      "cta_feature2": "Neomejeno deljenje skrivnosti",
+      "cta_feature3": "Napredne kontrole zasebnosti",
+      "explore_premium_plans": "Raziščite Premium načrte",
+      "need_free_account": "Šele začenjate?",
+      "sign_up_free": "Ustvarite brezplačen račun",
+      "visit-onetime-secret-home": "",
+      "password_generation_title": "",
+      "password_generation_description": "",
+      "protip1": "",
+      "authonly": {
+        "tagline2": "",
+        "tagline1": ""
+      },
+      "disabled": {
+        "tagline2": "",
+        "tagline1": ""
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "تم العرض",
+      "title_not_received": "لم يتم العرض",
+      "title_no_recent_secrets": "لا اسرار جديدة",
+      "get-started-by-creating-your-first-secret": ""
+    }
+  }
+}

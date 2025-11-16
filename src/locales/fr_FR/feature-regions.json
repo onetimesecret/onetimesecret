@@ -1,0 +1,24 @@
+{
+  "web": {
+    "regions": {
+      "data-sovereignty-title": "Souveraineté des données et isolation régionale",
+      "data-sovereignty-description": "Vos données résident exclusivement dans votre région choisie et ne sont jamais transférées entre régions",
+      "separate-environments-explanation": "Chaque région fonctionne comme un environnement complètement indépendant avec sa propre infrastructure, ses clés de chiffrement et son stockage de données",
+      "no-data-transfer-policy": "Nous maintenons une politique stricte : les données client ne sont jamais transférées entre régions en aucune circonstance",
+      "switching-creates-new-account": "Important : changer de région crée un nouveau compte. Vos données restent dans votre région d'origine.",
+      "your-region": "Votre région",
+      "your-current-region": "Votre région actuelle",
+      "active": "Actif",
+      "explore-other-regions": "Explorer les autres régions disponibles",
+      "why-it-matters": "Pourquoi la souveraineté des données est importante",
+      "trust-title": "Transparence et contrôle",
+      "trust-description": "Sachez exactement où résident vos données et quelles lois régissent leur protection.",
+      "privacy-title": "Droits à la vie privée",
+      "privacy-description": "Garantissez que vos informations personnelles sont traitées conformément aux lois et réglementations de votre pays en matière de confidentialité, empêchant tout accès non autorisé ou utilisation abusive.",
+      "compliance-title": "Conformité réglementaire",
+      "compliance-description": "Conformité aux exigences RGPD, HIPAA, CCPA et autres exigences régionales de protection des données",
+      "performance-title": "Accès plus rapide",
+      "performance-description": "Les données stockées près de vous signifient une latence plus faible et de meilleures performances."
+    }
+  }
+}

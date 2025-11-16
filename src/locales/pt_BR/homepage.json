@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Cole uma senha, mensagem secreta ou link privado abaixo.",
+      "tagline2": "Mantenha dados sensíveis fora de seus emails ou logs de conversa.",
+      "secret_hint": "* Um link secreto funciona apenas uma vez e depois desaparece para sempre.",
+      "secret_form_more_text1": "Cadastre-se para uma",
+      "secret_form_more_text2": "conta gratuita",
+      "secret_form_more_text3": "e seja capaz de enviar um segredo por email.",
+      "cta_title": "Use um domínio personalizado",
+      "cta_subtitle": "Eleve sua marca e compartilhe com confiança",
+      "cta_feature1": "Seu próprio domínio personalizado",
+      "cta_feature2": "Compartilhamento ilimitado de segredos",
+      "cta_feature3": "Controles avançados de privacidade",
+      "explore_premium_plans": "Explore os planos Premium",
+      "need_free_account": "Está apenas começando?",
+      "sign_up_free": "Crie uma conta gratuita",
+      "visit-onetime-secret-home": "Visitar a página inicial do Onetime Secret",
+      "password_generation_title": "Gerador de Senha",
+      "password_generation_description": " Clique em \"Gerar Senha\" para criar uma senha aleatória segura que você pode compartilhar.",
+      "protip1": "Sua mensagem se autodestruirá após ser visualizada. O link só pode ser acessado uma vez.",
+      "authonly": {
+        "tagline2": "O serviço de mensagens seguras é apenas para uso interno.",
+        "tagline1": "Se você tem uma conta, faça login para continuar."
+      },
+      "disabled": {
+        "tagline2": "Este serviço está configurado apenas para uso interno.",
+        "tagline1": "A interface do usuário e os recursos de login não estão disponíveis."
+      }
+    }
+  }
+}

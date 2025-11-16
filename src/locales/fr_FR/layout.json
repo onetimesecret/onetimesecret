@@ -1,0 +1,62 @@
+{
+  "web": {
+    "footer": {
+      "security": "Sécurité",
+      "learn-about-our-security-measures": "En savoir plus sur nos mesures de sécurité",
+      "view-our-terms-and-conditions": "Voir nos conditions générales",
+      "terms": "Conditions",
+      "privacy": "Vie privée",
+      "contact": "Contact",
+      "support": "Support",
+      "legals": "Légaux",
+      "read-our-privacy-policy": "Lire notre politique de confidentialité",
+      "check-our-service-status": "Vérifier l'état de nos services",
+      "explore-our-api-documentation": "Explorer la documentation de notre API",
+      "docs": "Docs",
+      "access-our-documentation": "Accéder à notre documentation",
+      "view-our-source-code-on-github": "Voir notre code source sur GitHub",
+      "resources": "Ressources",
+      "blog": "Blog",
+      "read-our-latest-blog-posts": "Lire nos derniers articles de blog",
+      "view-our-subscription-pricing": "Voir nos tarifs d'abonnement",
+      "learn-about-our-company": "En savoir plus sur notre entreprise",
+      "company": "Entreprise"
+    },
+    "navigation": {
+      "billing": "Facturation",
+      "billingOverview": "Vue d'ensemble",
+      "organizations": "Organisations"
+    },
+    "site": {
+      "website-version": "Version de l'application"
+    },
+    "meta": {
+      "were-making-onetime-secret-available-in-multiple": "Nous rendons {onetime-secret} disponible en plusieurs langues. Cette fonctionnalité étant nouvelle, vous pourriez rencontrer des erreurs de traduction ou des formulations maladroites. Vos retours nous aident à améliorer le service. Si vous repérez des problèmes, veuillez {send-feedback}",
+      "translations-are-new-spotted-an-error": "Les traductions sont nouvelles. Vous avez repéré une erreur ? {send-feedback}",
+      "we-recently-added-translations": "Nous avons récemment ajouté des traductions. Vous avez repéré une erreur ? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "La confidentialité et la sécurité doivent être accessibles à tous, quelle que soit la langue. Nous ajoutons des traductions pour aider nos utilisateurs et les destinataires de leurs messages à mieux comprendre comment utiliser et accéder en toute sécurité aux messages et liens sécurisés. Cette fonctionnalité étant nouvelle, vous pourriez rencontrer des erreurs de traduction ou des instructions peu claires. Pour nous aider à améliorer la clarté et l'exactitude de nos traductions, en particulier pour le contenu critique lié à la sécurité, veuillez {send-feedback} si vous repérez des problèmes"
+    },
+    "help": {
+      "learn_more": "En savoir plus",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "Qu'est-ce que je regarde ?",
+          "description": "Vous consultez un message sécurisé qui a été partagé avec vous via Onetime Secret. Ce contenu n'est affiché qu'une seule fois, puis supprimé définitivement de nos serveurs."
+        },
+        "can_i_view_again": {
+          "title": "Puis-je consulter ce message à nouveau ultérieurement ?",
+          "description": "Non. Pour des raisons de sécurité, ce message n'est visible qu'une seule fois. Après avoir fermé cette page, le contenu sera définitivement supprimé et ne pourra être récupéré par personne, y compris nous."
+        },
+        "how_to_copy": {
+          "title": "Comment puis-je sauvegarder cette information ?",
+          "description": "Utilisez le bouton 'Copier dans le presse-papiers' pour copier l'intégralité du message. Pour les messages plus longs, assurez-vous de vérifier que vous avez copié le contenu complet avant de quitter cette page."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Ma consultation de ce message est-elle suivie ?",
+          "description": "L'expéditeur sera informé que son message a été consulté, mais nous ne suivons pas qui l'a consulté ni depuis quel endroit. Votre confidentialité est protégée."
+        },
+        "one_time_warning": "Une fois que vous quittez ou actualisez cette page, ce message sera définitivement supprimé et ne pourra être récupéré par personne."
+      }
+    }
+  }
+}

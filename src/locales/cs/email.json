@@ -1,0 +1,20 @@
+{
+  "email": {
+    "incomingsupport": {
+      "subject": "[Ticket: %s]",
+      "body1": "Zákazník odeslal následující informace"
+    },
+    "secretlink": {
+      "subject": "%s vám poslal tajemství",
+      "body1": "Máme pro vás tajemství od",
+      "body_tagline": "Pokud neznáte odesílatele nebo myslíte, že jde o spam, pošlete nám detaily zde:"
+    },
+    "welcome": {
+      "subject": "Ověřte svůj účet pro jednorázové tajemství",
+      "body1": "Vítejte ve Onetime Secret. Máme pro vás tajemství!",
+      "please_verify": "Prosím ověřte svůj účet:",
+      "postscript1": "Tento email byl odeslán",
+      "postscript2": "Pokud jste nevytvořili tento účet, smažte tuto zprávu a my vás už nebudeme znovu kontaktovat."
+    }
+  }
+}

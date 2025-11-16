@@ -1,0 +1,62 @@
+{
+  "web": {
+    "footer": {
+      "security": "Sicherheit",
+      "learn-about-our-security-measures": "Erfahren Sie mehr über unsere Sicherheitsmaßnahmen",
+      "view-our-terms-and-conditions": "Unsere Allgemeinen Geschäftsbedingungen anzeigen",
+      "terms": "Bedingungen",
+      "privacy": "Datenschutz",
+      "contact": "Kontakt",
+      "support": "Support",
+      "legals": "Rechtliches",
+      "read-our-privacy-policy": "Lesen Sie unsere Datenschutzrichtlinie",
+      "check-our-service-status": "Prüfen Sie unseren Servicestatus",
+      "explore-our-api-documentation": "Erkunden Sie unsere API-Dokumentation",
+      "docs": "Dokumente",
+      "access-our-documentation": "Zugang zu unserer Dokumentation",
+      "view-our-source-code-on-github": "Unser Quellcode auf GitHub ansehen",
+      "resources": "Ressourcen",
+      "blog": "Blog",
+      "read-our-latest-blog-posts": "Lesen Sie unsere letzten Blogbeiträge",
+      "view-our-subscription-pricing": "Preise für Abonnements anzeigen",
+      "learn-about-our-company": "Erfahren Sie mehr über unser Unternehmen",
+      "company": "Unternehmen"
+    },
+    "navigation": {
+      "billing": "Abrechnung",
+      "billingOverview": "Übersicht",
+      "organizations": "Organisationen"
+    },
+    "site": {
+      "website-version": "Website-Version"
+    },
+    "meta": {
+      "were-making-onetime-secret-available-in-multiple": "Wir stellen {onetime-secret} in mehreren Sprachen zur Verfügung. Da dies eine neue Funktion ist, können Übersetzungsfehler oder umständliche Formulierungen auftreten. Ihr Feedback hilft uns bei der Verbesserung – wenn Sie Probleme entdecken, bitte {send-feedback}",
+      "translations-are-new-spotted-an-error": "Übersetzungen sind neu. Fehler entdeckt? {send-feedback}",
+      "we-recently-added-translations": "Wir haben kürzlich Übersetzungen hinzugefügt. Fehler entdeckt? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Datenschutz und Sicherheit sollten für jeden zugänglich sein, unabhängig von der Sprache. Wir fügen Übersetzungen hinzu, um sowohl unseren Benutzern als auch den Empfängern ihrer Nachrichten zu helfen, besser zu verstehen, wie sie sichere Nachrichten und Links sicher verwenden und darauf zugreifen können. Da dies eine neue Funktion ist, können Übersetzungsfehler oder unklare Anweisungen auftreten. Um die Klarheit und Genauigkeit unserer Übersetzungen zu verbessern, insbesondere bei kritischen sicherheitsrelevanten Inhalten, bitte {send-feedback}, wenn Sie Probleme entdecken"
+    },
+    "help": {
+      "learn_more": "Mehr erfahren",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "Was sehe ich hier?",
+          "description": "Sie betrachten eine sichere Nachricht, die über Onetime Secret mit Ihnen geteilt wurde. Dieser Inhalt wird nur einmal angezeigt und dann dauerhaft von unseren Servern gelöscht."
+        },
+        "can_i_view_again": {
+          "title": "Kann ich diese Nachricht später noch einmal ansehen?",
+          "description": "Nein. Aus Sicherheitsgründen ist diese Nachricht nur einmal einsehbar. Nach dem Schließen dieser Seite wird der Inhalt dauerhaft gelöscht und kann von niemandem, auch nicht von uns, wiederhergestellt werden."
+        },
+        "how_to_copy": {
+          "title": "Wie speichere ich diese Information?",
+          "description": "Verwenden Sie die Schaltfläche 'In die Zwischenablage kopieren', um die gesamte Nachricht zu kopieren. Bei längeren Nachrichten sollten Sie überprüfen, ob Sie den vollständigen Inhalt kopiert haben, bevor Sie diese Seite verlassen."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Wird meine Betrachtung dieser Nachricht verfolgt?",
+          "description": "Der Absender wird benachrichtigt, dass seine Nachricht angesehen wurde, aber wir verfolgen nicht, wer sie angesehen hat oder von welchem Standort aus. Ihre Privatsphäre wird geschützt."
+        },
+        "one_time_warning": "Sobald Sie diese Seite verlassen oder aktualisieren, wird diese Nachricht dauerhaft gelöscht und kann von niemandem wiederhergestellt werden."
+      }
+    }
+  }
+}

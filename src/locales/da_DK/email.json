@@ -1,0 +1,20 @@
+{
+  "email": {
+    "incomingsupport": {
+      "subject": "[Supportsag: %s]",
+      "body1": "En kunde har sendt følgende oplysninger"
+    },
+    "secretlink": {
+      "subject": "%s har sendt dig en besked",
+      "body1": "Vi har en besked til dig fra",
+      "body_tagline": "Hvis du ikke kender afsenderen, eller mener det er spam, så send os detaljerne her:"
+    },
+    "welcome": {
+      "subject": "Bekræft din Onetime Secret konto",
+      "body1": "Velkommen til Onetime Secret. Vi har en vigtig besked til dig!",
+      "please_verify": "Bekræft venligst din konto:",
+      "postscript1": "Denne e-mail blev sendt til",
+      "postscript2": "Hvis du ikke har bedt om at oprettelse af denne konto, kan du roligt ignorere denne e-mail."
+    }
+  }
+}

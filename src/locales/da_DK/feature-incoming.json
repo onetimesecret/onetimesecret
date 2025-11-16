@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Indsæt en adgangskode, besked eller privat link nedenfor.",
+      "tagline2": "Hold følsomme oplysninger ude af dine e-mails og chats.",
+      "secret_hint": "* Et sikkert link virker kun én gang og forsvinder derefter for altid.",
+      "incoming_button_create": "Send til supporten",
+      "incoming_secret_options": "Supportoplysninger",
+      "incoming_secret_placeholder": "Indtast de oplysninger, din supportrepræsentant har brug for (f.eks. systemadgangskode)",
+      "incoming_ticket_number": "Indtast supportsag #",
+      "incoming_ticket_number_hint": "Du kan finde dette i din e-mail indbakke (f.eks. 123456)",
+      "incoming_recipient_address": "Support modtager",
+      "incoming_success_message": "Din e-mail er blevet sendt",
+      "incoming_button_creating": "Oprettelse"
+    }
+  }
+}

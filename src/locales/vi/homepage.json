@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Dán một mật khẩu, thông tin bí mật hoặc một đường dẫn riêng tư ở phía dưới.",
+      "tagline2": "Tránh lưu lại những thông tin nhạy cảm ở email hoặc lịch sử trò chuyện.",
+      "secret_hint": "* Link bí mật chỉ hoạt động duy nhất một lần và sau đó nó sẽ biến mất vĩnh viễn.",
+      "secret_form_more_text1": "Đăng nhập để",
+      "secret_form_more_text2": "tài khoản miễn phí",
+      "secret_form_more_text3": "và có thể gởi bí mật bằng email.",
+      "cta_title": "Sử dụng tên miền tùy chỉnh",
+      "cta_subtitle": "Nâng tầm thương hiệu và chia sẻ một cách tự tin",
+      "cta_feature1": "Tên miền tùy chỉnh của riêng bạn",
+      "cta_feature2": "Chia sẻ bí mật không giới hạn",
+      "cta_feature3": "Kiểm soát quyền riêng tư nâng cao",
+      "explore_premium_plans": "Khám phá các gói Premium",
+      "need_free_account": "Mới bắt đầu?",
+      "sign_up_free": "Tạo tài khoản miễn phí",
+      "visit-onetime-secret-home": "",
+      "password_generation_title": "",
+      "password_generation_description": "",
+      "protip1": "",
+      "authonly": {
+        "tagline2": "",
+        "tagline1": ""
+      },
+      "disabled": {
+        "tagline2": "",
+        "tagline1": ""
+      }
+    }
+  }
+}
