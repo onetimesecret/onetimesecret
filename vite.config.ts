@@ -20,17 +20,11 @@ import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspect
 // environment variables to the client-side code.
 const viteBaseUrl = process.env.VITE_BASE_URL;
 
-// According to the documentation, we should be able to set the allowed hosts
-// via __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS. Here we capture the value
-// of that env var with and without the __ prefix and if either are defined,
-// add the hosts to server.allowedHosts below. Multiple hosts can be separated
-// by commas.
+// server.allowedHosts - Multiple hosts can be separated by commas.
 //
 // https://vite.dev/config/server-options.html#server-allowedhosts
 // https://github.com/vitejs/vite/security/advisories/GHSA-vg6x-rcgg-rjx6
-const viteAdditionalServerAllowedHosts =
-  process.env.__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS ??
-  process.env.VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS;
+const viteAdditionalServerAllowedHosts = process.env.VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS;
 
 /**
  * Vite Configuration - Consolidated Assets
