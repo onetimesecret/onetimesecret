@@ -11,7 +11,6 @@ import { visualizer } from 'rollup-plugin-visualizer';
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 import { DEBUG } from './src/utils/debug';
 
-//import { createHtmlPlugin } from 'vite-plugin-html'
 //import checker from 'vite-plugin-checker';
 import VueDevTools from 'vite-plugin-vue-devtools';
 import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspector
@@ -22,10 +21,10 @@ import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspect
 const viteBaseUrl = process.env.VITE_BASE_URL;
 
 // According to the documentation, we should be able to set the allowed hosts
-// via __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS but as of 5.4.15, that is not
-// working as expected. So here we capture the value of that env var with
-// and without the __ prefix and if either are defined, add the hosts to
-// server.allowedHosts below. Multiple hosts can be separated by commas.
+// via __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS. Here we capture the value
+// of that env var with and without the __ prefix and if either are defined,
+// add the hosts to server.allowedHosts below. Multiple hosts can be separated
+// by commas.
 //
 // https://vite.dev/config/server-options.html#server-allowedhosts
 // https://github.com/vitejs/vite/security/advisories/GHSA-vg6x-rcgg-rjx6
@@ -97,6 +96,8 @@ export default defineConfig({
       },
     }),
 
+    // Automatically import only true global packages that where the trade-off
+    // for being able to see explicit imports
     AutoImport({
       imports: [
         'vue',
@@ -106,6 +107,7 @@ export default defineConfig({
         },
       ],
       dts: 'auto-imports.d.ts',
+
       eslintrc: {
         enabled: true,
         filepath: '.eslintrc-auto-import.json',
