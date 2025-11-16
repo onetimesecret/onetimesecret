@@ -18,7 +18,7 @@
   <meta name="description" content="{{description}}">
 
   <!-- PWA and app metadata -->
-  <link nonce="{{app.nonce}}" rel="manifest" href="/site.webmanifest">
+  <!-- <link nonce="{{app.nonce}}" rel="manifest" href="/site.webmanifest"> -->
   <meta name="theme-color" content="#dc4a22" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
