@@ -591,7 +591,26 @@
         "deletion-warning-irreversible": ""
       }
     },
-    "regions": "Bölgeler",
+    "regions": {
+      "data-sovereignty-title": "",
+      "data-sovereignty-description": "",
+      "separate-environments-explanation": "",
+      "no-data-transfer-policy": "",
+      "switching-creates-new-account": "",
+      "your-region": "",
+      "your-current-region": "",
+      "active": "",
+      "explore-other-regions": "",
+      "why-it-matters": "",
+      "trust-title": "",
+      "trust-description": "",
+      "privacy-title": "",
+      "privacy-description": "",
+      "compliance-title": "",
+      "compliance-description": "",
+      "performance-title": "",
+      "performance-description": ""
+    },
     "auth": {
       "mfa_required": "",
       "mfa_verification_required": "",
@@ -629,8 +648,19 @@
           }
         },
         "_translation_guidelines": {
-          "DO_NOT_translate_as": "",
-          "MUST_translate_as": "",
+          "DO_NOT_translate_as": [
+            "Wrong password",
+            "Invalid OTP code",
+            "Incorrect recovery code",
+            "Wait 5 minutes",
+            "3 attempts remaining",
+            "Account locked for 15 minutes"
+          ],
+          "MUST_translate_as": [
+            "Generic authentication failure (no credential specifics)",
+            "Generic rate limit message (no precise timing)",
+            "Recovery code validation (no existence confirmation)"
+          ],
           "WHY": ""
         },
         "_safe_information": {
@@ -852,31 +882,39 @@
       "unsavedChanges": "",
       "schemaValidationError": "",
       "unknownValidationError": "",
-      "dashboard": {
-        "title_received": "Alınan",
-        "title_not_received": "Alınmayan",
-        "title_no_recent_secrets": "Yeni gizli mesaj yok",
-        "get-started-by-creating-your-first-secret": "İlk gizli mesajınızı oluşturarak başlayın."
-      },
+      "dashboard": "Dashboard",
       "activity": "",
       "accounts": "",
       "users": "",
       "domains": "Alan Adları",
       "settings": "",
-      "welcome": {
-        "subject": "Onetime Secret hesabınızı doğrulayın",
-        "body1": "Onetime Secret'a hoşgeldiniz. Sizin için bir gizli mesajımız var!",
-        "please_verify": "Lütfen hesabınızı doğrulayın:",
-        "postscript1": "Bu e-posta şu adrese yolandı",
-        "postscript2": "Eğer bu hesabı siz oluşturmadıysanız, bu mesajı silin ve sizi bir daha rahatsız etmeyeceğiz."
-      },
+      "welcome": "Welcome to Colonel",
       "welcomeDesc": "",
       "quickActions": "",
       "recentActivity": "",
       "viewAll": "",
       "activityPlaceholder": "",
-      "stats": "İstatistikler",
-      "actions": "İşlemler"
+      "stats": {
+        "totalSecrets": "",
+        "activeUsers": "",
+        "secretsToday": "",
+        "secretsCreated": "",
+        "secretsShared": "",
+        "totalCustomers": "",
+        "emailsSent": "",
+        "systemHealth": "",
+        "healthy": ""
+      },
+      "actions": {
+        "viewActivity": "",
+        "viewActivityDesc": "",
+        "manageAccounts": "",
+        "manageAccountsDesc": "",
+        "configureDomains": "",
+        "configureDomainsDesc": "",
+        "systemSettings": "",
+        "systemSettingsDesc": ""
+      }
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Geribildirim gönderdiğinizde göreceğimiz bilgiler:",

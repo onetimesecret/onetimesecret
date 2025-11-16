@@ -894,8 +894,27 @@
       "recentActivity": "Letzte Aktivitäten",
       "viewAll": "Alle anzeigen",
       "activityPlaceholder": "Aktivitätsdaten werden hier angezeigt",
-      "stats": "Statistiken",
-      "actions": "Aktionen"
+      "stats": {
+        "totalSecrets": "",
+        "activeUsers": "",
+        "secretsToday": "",
+        "secretsCreated": "",
+        "secretsShared": "",
+        "totalCustomers": "",
+        "emailsSent": "",
+        "systemHealth": "",
+        "healthy": ""
+      },
+      "actions": {
+        "viewActivity": "",
+        "viewActivityDesc": "",
+        "manageAccounts": "",
+        "manageAccountsDesc": "",
+        "configureDomains": "",
+        "configureDomainsDesc": "",
+        "systemSettings": "",
+        "systemSettingsDesc": ""
+      }
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Wenn Sie ein Rückmeldung abgeben, werden wir es sehen:",

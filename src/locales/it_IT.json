@@ -591,7 +591,26 @@
         "deletion-warning-irreversible": ""
       }
     },
-    "regions": "Regioni",
+    "regions": {
+      "data-sovereignty-title": "",
+      "data-sovereignty-description": "",
+      "separate-environments-explanation": "",
+      "no-data-transfer-policy": "",
+      "switching-creates-new-account": "",
+      "your-region": "",
+      "your-current-region": "",
+      "active": "",
+      "explore-other-regions": "",
+      "why-it-matters": "",
+      "trust-title": "",
+      "trust-description": "",
+      "privacy-title": "",
+      "privacy-description": "",
+      "compliance-title": "",
+      "compliance-description": "",
+      "performance-title": "",
+      "performance-description": ""
+    },
     "auth": {
       "mfa_required": "",
       "mfa_verification_required": "",
@@ -629,8 +648,19 @@
           }
         },
         "_translation_guidelines": {
-          "DO_NOT_translate_as": "",
-          "MUST_translate_as": "",
+          "DO_NOT_translate_as": [
+            "Wrong password",
+            "Invalid OTP code",
+            "Incorrect recovery code",
+            "Wait 5 minutes",
+            "3 attempts remaining",
+            "Account locked for 15 minutes"
+          ],
+          "MUST_translate_as": [
+            "Generic authentication failure (no credential specifics)",
+            "Generic rate limit message (no precise timing)",
+            "Recovery code validation (no existence confirmation)"
+          ],
           "WHY": ""
         },
         "_safe_information": {
@@ -852,31 +882,39 @@
       "unsavedChanges": "",
       "schemaValidationError": "",
       "unknownValidationError": "",
-      "dashboard": {
-        "title_received": "Ricevuto",
-        "title_not_received": "Non ricevuto",
-        "title_no_recent_secrets": "Nessun segreto recente",
-        "get-started-by-creating-your-first-secret": "Inizia creando il tuo primo segreto"
-      },
+      "dashboard": "Dashboard",
       "activity": "",
       "accounts": "",
       "users": "",
       "domains": "Domini",
       "settings": "",
-      "welcome": {
-        "subject": "Verifica il tuo account Onetime Secret",
-        "body1": "Benvenuto su Onetime Secret. Abbiamo un segreto per te!",
-        "please_verify": "Verifica il tuo account:",
-        "postscript1": "Questa email è stata inviata a",
-        "postscript2": "Se non hai creato questo account, elimina questo messaggio e non verrai ricontattato di nuovo"
-      },
+      "welcome": "Welcome to Colonel",
       "welcomeDesc": "",
       "quickActions": "",
       "recentActivity": "",
       "viewAll": "",
       "activityPlaceholder": "",
-      "stats": "Statistiche",
-      "actions": "Azioni"
+      "stats": {
+        "totalSecrets": "",
+        "activeUsers": "",
+        "secretsToday": "",
+        "secretsCreated": "",
+        "secretsShared": "",
+        "totalCustomers": "",
+        "emailsSent": "",
+        "systemHealth": "",
+        "healthy": ""
+      },
+      "actions": {
+        "viewActivity": "",
+        "viewActivityDesc": "",
+        "manageAccounts": "",
+        "manageAccountsDesc": "",
+        "configureDomains": "",
+        "configureDomainsDesc": "",
+        "systemSettings": "",
+        "systemSettingsDesc": ""
+      }
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Quando invii un feedback, vediamo:",
