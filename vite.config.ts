@@ -102,8 +102,10 @@ export default defineConfig({
      * locale object while maintaining the nested structure.
      */
     VueI18nPlugin({
-      // Include all locale JSON files (both split directories and any monolithic files)
-      include: [resolve(process.cwd(), './src/locales/**/*.json')],
+      // We disable the automatic locale file discovery to avoid infinite
+      // recursion when merging 17 files per locale with deeply nested structures.
+      // Instead, we manually load and merge files in src/i18n.ts
+      include: [],
 
       // compositionOnly: true
       // - Only generates Composition API code (no Options API compatibility)

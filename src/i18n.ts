@@ -1,6 +1,5 @@
 // src/i18n.ts
 
-import messages from '@intlify/unplugin-vue-i18n/messages';
 import { type Locale } from '@/schemas/i18n/locale';
 import { WindowService } from '@/services/window.service';
 import { createI18n, type Composer } from 'vue-i18n';
@@ -9,12 +8,57 @@ import { createI18n, type Composer } from 'vue-i18n';
  * Internationalization configuration and utilities.
  * Sets up Vue i18n instance with locale management and message loading.
  *
- * The @intlify/unplugin-vue-i18n plugin automatically discovers and merges
- * all locale files from src/locales/ subdirectories at build time:
- * - src/locales/en/*.json → messages.en
- * - src/locales/fr_FR/*.json → messages.fr_FR
- * - etc. for all 34+ supported locales
+ * Locale files are split into 17 categorized JSON files per locale directory
+ * (e.g., src/locales/en/*.json). We manually import and merge them to avoid
+ * infinite recursion in the Vite i18n plugin's auto-merge.
  */
+
+/**
+ * Manually import and merge all locale files for each locale.
+ * Files have two possible structures:
+ * 1. Structured: {"web": {...}, "email": {...}} - most files
+ * 2. Flat: {"key": "value", ...} - uncategorized.json
+ */
+const localeModules = import.meta.glob<{ default: Record<string, any> }>('@/locales/*/*.json', {
+  eager: true,
+});
+
+const messages: Record<string, any> = {};
+
+// Process each imported module
+for (const path in localeModules) {
+  // Extract locale code from path: /src/locales/en/file.json -> en
+  const match = path.match(/\/locales\/([^\/]+)\//);
+  if (match) {
+    const locale = match[1];
+    const content = localeModules[path].default;
+
+    // Initialize locale if not exists
+    if (!messages[locale]) {
+      messages[locale] = {};
+    }
+
+    // Check if this is a structured file (has "web" or "email" keys)
+    // or a flat file (uncategorized)
+    const hasStructuredKeys = 'web' in content || 'email' in content;
+
+    if (hasStructuredKeys) {
+      // Structured file: merge under "web" or "email" keys
+      Object.keys(content).forEach((topKey) => {
+        if (typeof content[topKey] === 'object' && content[topKey] !== null) {
+          if (!messages[locale][topKey]) {
+            messages[locale][topKey] = {};
+          }
+          Object.assign(messages[locale][topKey], content[topKey]);
+        }
+      });
+    } else {
+      // Flat file (uncategorized): merge keys directly at root level
+      Object.assign(messages[locale], content);
+    }
+  }
+}
+
 type GlobalComposer = Composer<{}, {}, {}, Locale>;
 
 /**
@@ -56,7 +100,7 @@ export function createI18nInstance(initialLocale: string = defaultLocale) {
     globalInjection: true, // allows $t to be used globally.
     missingWarn: true, // these enable browser console logging
     fallbackWarn: true, // and are removed from prod builds.
-    messages, // All locales auto-loaded via @intlify/unplugin-vue-i18n
+    messages, // All locales pre-loaded and merged via import.meta.glob()
     availableLocales: supportedLocales,
   });
 
@@ -80,9 +124,8 @@ export function createI18nInstance(initialLocale: string = defaultLocale) {
    * Updates locale for this instance only
    * @param locale - Target locale to set
    *
-   * Note: All locales are pre-loaded via @intlify/unplugin-vue-i18n,
-   * so no dynamic loading is needed. The plugin merges all locale
-   * files at build time.
+   * Note: All locales are pre-loaded and merged at module load time
+   * via import.meta.glob() in this file, so no dynamic loading is needed.
    */
   const setLocale = async (locale: string) => {
     if (!composer.availableLocales.includes(locale)) {
