@@ -13,7 +13,7 @@ QUIET=${QUIET:-0}
 FILENAME_ONLY=${FILENAME_ONLY:-0}
 VERBOSE=${VERBOSE:-0}
 BASELOCALE=${BASELOCALE:-"en"}
-BASEPATH=${BASEPATH:-"src/locales/${BASELOCALE}.json"}
+BASEPATH=${BASEPATH:-"../../locales/${BASELOCALE}.json"}
 
 while getopts ":qfv" opt; do
   case $opt in

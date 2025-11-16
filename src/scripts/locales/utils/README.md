@@ -1,3 +1,6 @@
+# src/scripts/locales/utils/README.md
+---
+
 # Utils Scripts
 
 General utility tools for locale file maintenance and analysis.

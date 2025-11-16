@@ -4,7 +4,7 @@
 # This script attempts to resolve type mismatches between base and target files
 
 BASELOCALE=${BASELOCALE:-"en"}
-BASEPATH=${BASEPATH:-"src/locales/${BASELOCALE}.json"}
+BASEPATH=${BASEPATH:-"../../locales/${BASELOCALE}.json"}
 LOCALE="$1"
 
 [ -z "$LOCALE" ] && echo "Usage: $0 LOCALE_FILE" >&2 && exit 1

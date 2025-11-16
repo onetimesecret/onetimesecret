@@ -10,7 +10,7 @@ set -e
 echo "Current directory: $(pwd)"
 echo "GitHub workspace: ${GITHUB_WORKSPACE}"
 echo "Listing script directory:"
-ls -la "${GITHUB_WORKSPACE}/src/locales/scripts/"
+ls -la "${GITHUB_WORKSPACE}/src/scripts/locales/"
 
 # Determine copy option
 COPY_OPTION=""
@@ -19,11 +19,11 @@ if [[ "$COPY_ENGLISH" == "true" ]]; then
 fi
 
 # Make scripts executable
-chmod +x "${GITHUB_WORKSPACE}/src/locales/scripts/harmonize-locale-files"
-chmod +x "${GITHUB_WORKSPACE}/src/locales/scripts/harmonize-locale-file"
+chmod +x "${GITHUB_WORKSPACE}/src/scripts/locales/harmonize/harmonize-all-locale-files"
+chmod +x "${GITHUB_WORKSPACE}/src/scripts/locales/harmonize/harmonize-locale-file"
 
 # Run the harmonize script with verbose output
-"${GITHUB_WORKSPACE}/src/locales/scripts/harmonize-locale-files" -v $COPY_OPTION
+"${GITHUB_WORKSPACE}/src/scripts/locales/harmonize/harmonize-all-locale-files" -v $COPY_OPTION
 
 # Store exit code
 HARMONIZE_EXIT_CODE=$?

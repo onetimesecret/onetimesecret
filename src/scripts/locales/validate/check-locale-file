@@ -28,7 +28,7 @@ LOCALE="$1"
 LOCALE_NAME=$(basename "$LOCALE" .json)
 
 # Extract and compare keys
-jq -r 'paths | join(".")' src/locales/en.json > "$TMPDIR/en_keys.txt"
+jq -r 'paths | join(".")' ../../locales/en.json > "$TMPDIR/en_keys.txt"
 jq -r 'paths | join(".")' "$LOCALE" > "$TMPDIR/locale_keys.txt"
 
 if ! diff --unified "$TMPDIR/en_keys.txt" "$TMPDIR/locale_keys.txt" > "$TMPDIR/diff.txt"; then

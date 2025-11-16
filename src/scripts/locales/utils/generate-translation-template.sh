@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# src/scripts/locales/utils/generate-translation-template.sh
+
 #
 # Generate translation template from harmonization changes
 #
@@ -38,8 +41,8 @@ check_requirements() {
   fi
 
   # Check if src/locales/en.json exists
-  if [[ ! -f "src/locales/en.json" ]]; then
-    echo "Error: src/locales/en.json not found"
+  if [[ ! -f "../../locales/en.json" ]]; then
+    echo "Error: ../../locales/en.json not found"
     echo "Please run this script from the project root directory"
     exit 1
   fi
@@ -52,7 +55,7 @@ generate_translation_template() {
   mkdir -p "$output_dir"
 
   # Get list of modified locale files
-  local modified_locales=($(git diff --name-only | grep 'src/locales/' | grep -v 'en.json' || true))
+  local modified_locales=($(git diff --name-only | grep '../../locales/' | grep -v 'en.json' || true))
 
   if [[ ${#modified_locales[@]} -eq 0 ]]; then
     echo "No modified locale files found. Nothing to generate."
@@ -98,7 +101,7 @@ generate_translation_template() {
         else empty
         end
       ) as $item ({}; . + $item)
-    ' "$locale_file" src/locales/en.json > "$template_file"
+    ' "$locale_file" ../../locales/en.json > "$template_file"
 
     # Check if template has any keys
     local key_count=$(jq 'keys | length' "$template_file" 2>/dev/null || echo "0")
@@ -137,10 +140,10 @@ $(cat "$template_file")
 ## Integration
 Once translated, use the apply-translations script:
 \`\`\`bash
-./src/locales/scripts/apply-translations.sh $locale-translation-needed.json $locale
+./src/scripts/locales/migrate/apply-translations.sh $locale-translation-needed.json $locale
 \`\`\`
 
-This will merge your translations back into \`src/locales/$locale.json\`
+This will merge your translations back into \`../../locales/$locale.json\`
 EOF
   done
 

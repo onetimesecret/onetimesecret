@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# src/scripts/locales/utils/search-key-usage
+
 # Search Key Usage Script
 #
 # Reads in keys.json, looks for references in source files for each locale

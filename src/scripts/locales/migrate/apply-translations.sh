@@ -25,7 +25,7 @@ show_usage() {
 apply_translations() {
   local translation_file="$1"
   local target_locale="$2"
-  local locale_file="src/locales/$target_locale.json"
+  local locale_file="../../locales/$target_locale.json"
 
   if [[ ! -f "$translation_file" ]]; then
     echo "Error: Translation file not found: $translation_file"

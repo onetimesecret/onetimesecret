@@ -17,8 +17,8 @@ EXIT_CODE=0
 CONFLICT_FILES=0
 TOTAL_FILES=0
 
-for locale in src/locales/*.json; do
-  [ "$locale" = "src/locales/en.json" ] && continue
+for locale in ../../locales/*.json; do
+  [ "$locale" = "../../locales/en.json" ] && continue
 
   TOTAL_FILES=$((TOTAL_FILES + 1))
 

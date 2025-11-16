@@ -1,3 +1,5 @@
+# src/scripts/locales/utils/fix-json-unicode.py
+
 """
 Corrects and decodes JSON files containing malformed Unicode escape sequences.
 
@@ -27,10 +29,11 @@ Arguments:
     output_file_path: Path where the corrected and properly encoded JSON
                       will be written.
 """
-import json
-import sys
+
 import io
-import re # Import the regular expression module
+import json
+import re  # Import the regular expression module
+import sys
 
 if len(sys.argv) != 3:
     print("Usage: python decode_json.py <input_file> <output_file>")
@@ -42,7 +45,7 @@ outfile_path = sys.argv[2]
 try:
     # 1. Read the entire file content as a raw string
     print(f"Reading raw content from: {infile_path}")
-    with io.open(infile_path, 'r', encoding='utf-8') as f_in:
+    with io.open(infile_path, "r", encoding="utf-8") as f_in:
         raw_content = f_in.read()
 
     # 2. Use regex to find 'u' followed by 4 hex digits (not preceded by a backslash)
@@ -52,7 +55,9 @@ try:
     #    u       - Matches the literal character 'u'.
     #    ([0-9a-fA-F]{4}) - Matches exactly 4 hexadecimal characters and captures them (group 1).
     print("Correcting malformed Unicode escape sequences (uXXXX -> \\uXXXX)...")
-    corrected_content = re.sub(r'(?<!\\)u([0-9a-fA-F]{4})', r'\\u\1', raw_content)
+    corrected_content = re.sub(
+        r"(?<!\\)u([0-9a-fA-F]{4})", r"\\u\1", raw_content
+    )
 
     # 3. Parse the corrected string containing standard JSON escapes
     print("Parsing corrected content as JSON...")
@@ -62,18 +67,24 @@ try:
     #    ensure_ascii=False prevents Python from escaping non-ASCII characters.
     #    indent=2 provides readable, pretty-printed JSON output.
     print(f"Writing decoded JSON to: {outfile_path}")
-    with io.open(outfile_path, 'w', encoding='utf-8') as f_out:
+    with io.open(outfile_path, "w", encoding="utf-8") as f_out:
         json.dump(data, f_out, ensure_ascii=False, indent=2)
 
-    print(f"Successfully corrected and decoded '{infile_path}' to '{outfile_path}'")
+    print(
+        f"Successfully corrected and decoded '{infile_path}' to '{outfile_path}'"
+    )
 
 except FileNotFoundError:
     print(f"Error: Input file not found at '{infile_path}'")
     sys.exit(1)
 except json.JSONDecodeError as json_err:
     print(f"JSON Decode Error after correction: {json_err}")
-    print(f"Error occurred near line {json_err.lineno}, column {json_err.colno}")
-    print("The file might still have structural JSON issues even after fixing escapes.")
+    print(
+        f"Error occurred near line {json_err.lineno}, column {json_err.colno}"
+    )
+    print(
+        "The file might still have structural JSON issues even after fixing escapes."
+    )
     # Optionally, write the intermediate corrected_content to a temp file for debugging
     # with open("debug_corrected_content.txt", "w", encoding="utf-8") as debug_f:
     #     debug_f.write(corrected_content)

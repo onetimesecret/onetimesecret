@@ -1,3 +1,5 @@
+# src/scripts/locales/README.md
+---
 # Locale Scripts
 
 Organized tools for managing i18n locale files in the Onetime Secret project.

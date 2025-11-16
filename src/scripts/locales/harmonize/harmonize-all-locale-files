@@ -15,8 +15,8 @@
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
 EXIT_CODE=0
-for locale in src/locales/*.json; do
-  [ "$locale" = "src/locales/en.json" ] && continue
+for locale in ../../locales/*.json; do
+  [ "$locale" = "../../locales/en.json" ] && continue
   "$SCRIPT_DIR/harmonize-locale-file" "$@" "$locale" || EXIT_CODE=1
 done
 exit $EXIT_CODE
