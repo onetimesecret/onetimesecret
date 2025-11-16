@@ -51,7 +51,7 @@ module Onetime
             ❌ Could not connect to Auth database.
 
             Please ensure your database configuration is correct:
-            - DATABASE_URL environment variable, or
+            - AUTH_DATABASE_URL environment variable, or
             - authentication.database_url in config file
 
           MESSAGE

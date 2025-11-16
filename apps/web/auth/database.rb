@@ -19,26 +19,11 @@ module Auth
       @connection ||= create_connection
     end
 
-    # Session configuration is now centralized in apps/middleware_stack.rb
-    #
-    # def self.session_config
-    #   {
-    #     expire_after: 86_400, # 24 hours
-    #     key: 'onetime.session',  # Unified cookie name
-    #     secure: ENV['RACK_ENV'] == 'production',
-    #     httponly: true,
-    #     same_site: :strict,
-    #     redis_prefix: 'session',
-    #   }
-    # end
-
     def self.create_connection
       sequel_logger.info '[Database] Creating Auth database connection'
 
       # Get database URL from auth config or environment
-      database_url = Onetime.auth_config.database_url ||
-                     ENV['DATABASE_URL'] ||
-                     'sqlite://data/auth.db'
+      database_url = Onetime.auth_config.database_url || 'sqlite://data/auth.db'
 
       Sequel.connect(
         database_url,

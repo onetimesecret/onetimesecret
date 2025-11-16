@@ -18,8 +18,8 @@ require_relative '../../../support/auth_mode_config'
 Object.new.extend(AuthModeConfig).skip_unless_mode :advanced
 
 # Ensure database URL is configured
-if ENV['DATABASE_URL'].to_s.strip.empty?
-  puts "SKIPPING: Advanced mode requires DATABASE_URL."
+if ENV['AUTH_DATABASE_URL'].to_s.strip.empty?
+  puts "SKIPPING: Advanced mode requires AUTH_DATABASE_URL."
   exit 0
 end
 
