@@ -55,11 +55,6 @@ export default defineConfig({
     },
     // Reduce concurrency to prevent test runner crashes
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true, // Run tests in single process to avoid conflicts
-      },
-    },
     // Handle unhandled promise rejections
     onConsoleLog: () => false, // Suppress console logs that crash the reporter
   },
