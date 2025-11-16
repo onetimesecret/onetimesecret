@@ -1,3 +1,7 @@
+# lib/onetime/errors.rb
+#
+# frozen_string_literal: true
+
 module Onetime
   # The Problem class inherits from RuntimeError, which is a subclass of StandardError.
   # Both RuntimeError and StandardError are standard exception classes in Ruby, but
@@ -37,7 +41,7 @@ module Onetime
 
     def initialize(message = nil, field: nil, error_type: nil)
       super(message)
-      @field = field
+      @field      = field
       @error_type = error_type
     end
   end
@@ -53,7 +57,7 @@ module Onetime
     end
 
     def report
-      got_display = got.size <= 16 ? got : got[0, 16] + '...'
+      got_display    = got.size <= 16 ? got : got[0, 16] + '...'
       wanted_display = wanted.size <= 16 ? wanted : wanted[0, 16] + '...'
       "BAD SHRIMP FOR #{@path}: #{@user}: #{got_display}/#{wanted_display}"
     end

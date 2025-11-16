@@ -25,8 +25,8 @@ module Onetime
       desc 'Test application boot and registry initialization'
 
       def call(**)
-        puts "Testing application boot..."
-        puts ""
+        puts 'Testing application boot...'
+        puts ''
 
         begin
           # Boot the application (same as config.ru)
@@ -35,8 +35,8 @@ module Onetime
 
           # Check readiness after boot
           unless Onetime.ready?
-            $stderr.puts "Boot test failed: Application boot incomplete"
-            $stderr.puts "The application failed to initialize properly."
+            warn 'Boot test failed: Application boot incomplete'
+            warn 'The application failed to initialize properly.'
             exit 1
           end
 
@@ -46,25 +46,25 @@ module Onetime
 
           # Check readiness after registry preparation
           unless Onetime.ready?
-            $stderr.puts "Boot test failed: Application registry preparation failed"
-            $stderr.puts "One or more applications failed to load. Check error output above for details."
-            $stderr.puts "Common causes: Namespace mismatches, missing files, or syntax errors"
+            warn 'Boot test failed: Application registry preparation failed'
+            warn 'One or more applications failed to load. Check error output above for details.'
+            warn 'Common causes: Namespace mismatches, missing files, or syntax errors'
             exit 1
           end
 
           # Generate the URL map to ensure all apps can be instantiated
-          url_map = Onetime::Application::Registry.generate_rack_url_map
+          Onetime::Application::Registry.generate_rack_url_map
 
           # Perform health check on all applications
           health_status = Onetime::Application::Registry.health_check
 
           unless health_status[:healthy]
-            $stderr.puts "Boot test failed: One or more applications unhealthy"
+            warn 'Boot test failed: One or more applications unhealthy'
 
             health_status[:applications].each do |app_name, health|
               next if health[:healthy]
 
-              $stderr.puts "Unhealthy application",
+              warn 'Unhealthy application',
                 application: app_name,
                 router_present: health[:router_present],
                 rack_app_present: health[:rack_app_present]
@@ -75,23 +75,22 @@ module Onetime
           sleep 0.1 # log drain
 
           # Success!
-          $stderr.puts "Boot test successful!"
-          $stderr.puts "Loaded applications:"
+          warn 'Boot test successful!'
+          warn 'Loaded applications:'
           Onetime::Application::Registry.mount_mappings.each do |path, app_class|
-            $stderr.puts "  #{path.ljust(20)} → #{app_class}"
+            warn "  #{path.ljust(20)} → #{app_class}"
           end
 
           exit 0
-
-        rescue => ex
-          $stderr.puts "❌ Boot test failed: #{ex.class}: #{ex.message}"
+        rescue StandardError => ex
+          warn "❌ Boot test failed: #{ex.class}: #{ex.message}"
           if verbose? || debug?
-            $stderr.puts ""
-            $stderr.puts "Backtrace:"
-            $stderr.puts ex.backtrace.join("\n")
+            warn ''
+            warn 'Backtrace:'
+            warn ex.backtrace.join("\n")
           else
-            $stderr.puts ""
-            $stderr.puts "Use --verbose for full backtrace"
+            warn ''
+            warn 'Use --verbose for full backtrace'
           end
           exit 1
         end

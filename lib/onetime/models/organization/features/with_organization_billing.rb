@@ -1,4 +1,6 @@
 # lib/onetime/models/organization/features/with_organization_billing.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Models
@@ -9,7 +11,6 @@ module Onetime
       # Organizations own subscriptions, not customers or teams.
       #
       module WithOrganizationBilling
-
         Familia::Base.add_feature self, :with_organization_billing
 
         def self.included(base)
@@ -33,7 +34,6 @@ module Onetime
         end
 
         module InstanceMethods
-
           # Retrieve Stripe customer object
           #
           # @return [Stripe::Customer, nil] Stripe customer or nil if not found
@@ -84,9 +84,9 @@ module Onetime
           # @param subscription [Stripe::Subscription] Stripe subscription object
           # @return [Boolean] True if saved successfully
           def update_from_stripe_subscription(subscription)
-            self.stripe_subscription_id = subscription.id
-            self.stripe_customer_id = subscription.customer
-            self.subscription_status = subscription.status
+            self.stripe_subscription_id  = subscription.id
+            self.stripe_customer_id      = subscription.customer
+            self.subscription_status     = subscription.status
             self.subscription_period_end = subscription.current_period_end.to_s
 
             # Extract plan ID from subscription metadata or price metadata
@@ -104,7 +104,7 @@ module Onetime
           # @return [Boolean] True if saved successfully
           def clear_billing_fields
             self.stripe_subscription_id = nil
-            self.subscription_status = 'canceled'
+            self.subscription_status    = 'canceled'
             save
           end
 
@@ -178,11 +178,11 @@ module Onetime
             subscriptions = Stripe::Subscription.list(
               customer: customer.id,
               status: 'active',
-              limit: 1
+              limit: 1,
             )
 
             if subscriptions.data.empty?
-              OT.info "[Organization.get_stripe_subscription] No active subscriptions found"
+              OT.info '[Organization.get_stripe_subscription] No active subscriptions found'
               nil
             else
               subscription = subscriptions.data.first
@@ -193,11 +193,8 @@ module Onetime
             OT.le "[Organization.get_stripe_subscription] Error: #{ex.message}"
             nil
           end
-
         end
-
       end
-
     end
   end
 end

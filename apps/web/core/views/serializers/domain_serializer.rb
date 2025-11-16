@@ -13,6 +13,7 @@ module Core
     # transformations for frontend consumption.
     module DomainSerializer
       extend Onetime::LoggerMethods
+
       # Serializes domain data from view variables
       #
       # Transforms domain strategy, custom domains, and domain branding
@@ -58,10 +59,10 @@ module Core
               # have some visibility which customers this will affect. We've made
               # the verification more stringent so currently many existing domains
               # would return obj.ready? == false.
-              app_logger.info "Allowing unverified custom domain", {
+              app_logger.info 'Allowing unverified custom domain', {
                 domain: obj.display_domain,
                 verified: obj.verified,
-                resolving: obj.resolving
+                resolving: obj.resolving,
               }
             end
 

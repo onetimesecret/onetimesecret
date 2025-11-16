@@ -25,16 +25,16 @@
 module Onetime
   module Helpers
     module SessionHelpers
-
       def authenticated?
         session['authenticated'] == true &&
-        session['external_id'].to_s.length > 0 &&
-        authentication_enabled?
+          !session['external_id'].to_s.empty? &&
+          authentication_enabled?
       end
 
       # Check user role without loading Customer (uses session data)
       def has_role?(role_name)
         return false unless authenticated?
+
         session['role'].to_s == role_name.to_s
       end
 
@@ -54,13 +54,13 @@ module Onetime
         request.session_options[:renew] = true if request.respond_to?(:session_options)
 
         # Set authentication data
-        session['external_id'] = customer.extid
-        session['email'] = customer.email
-        session['role'] = customer.role  # Store role for permission checks
-        session['authenticated'] = true
+        session['external_id']      = customer.extid
+        session['email']            = customer.email
+        session['role']             = customer.role  # Store role for permission checks
+        session['authenticated']    = true
         session['authenticated_at'] = Familia.now.to_i
-        session['ip_address'] = request.ip
-        session['user_agent'] = request.user_agent
+        session['ip_address']       = request.ip
+        session['user_agent']       = request.user_agent
 
         # Initialize CSRF protection
         regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
@@ -81,7 +81,7 @@ module Onetime
         return Onetime::Customer.anonymous unless customer
 
         # Update cached session data if it changed
-        session['role'] = customer.role if session['role'] != customer.role
+        session['role']      = customer.role if session['role'] != customer.role
         session['last_seen'] = Familia.now.to_i
 
         customer

@@ -1,3 +1,7 @@
+# try/integration/auth/default_workspace_creation_try.rb
+#
+# frozen_string_literal: true
+
 ## Auth::Operations::CreateDefaultWorkspace - Default Workspace Creation
 
 require 'securerandom'

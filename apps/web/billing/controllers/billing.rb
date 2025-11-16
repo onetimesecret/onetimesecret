@@ -1,4 +1,6 @@
 # apps/web/billing/controllers/billing.rb
+#
+# frozen_string_literal: true
 
 require_relative 'base'
 require 'stripe'
@@ -22,22 +24,22 @@ module Billing
           organization: {
             id: org.extid,  # Use extid (external ID) for API, not objid (internal ID)
             display_name: org.display_name,
-            billing_email: org.billing_email
+            billing_email: org.billing_email,
           },
           subscription: build_subscription_data(org),
           plan: build_plan_data(org),
-          usage: build_usage_data(org)
+          usage: build_usage_data(org),
         }
 
         json_response(data)
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue StandardError => ex
-        billing_logger.error "Failed to load billing overview", {
+        billing_logger.error 'Failed to load billing overview', {
           exception: ex,
-          extid: req.params['extid']
+          extid: req.params['extid'],
         }
-        json_error("Failed to load billing data", status: 500)
+        json_error('Failed to load billing data', status: 500)
       end
 
       # Create checkout session for organization
@@ -54,11 +56,11 @@ module Billing
       def create_checkout_session
         org = load_organization(req.params['extid'], require_owner: true)
 
-        tier = req.params['tier']
+        tier          = req.params['tier']
         billing_cycle = req.params['billing_cycle']
 
         unless tier && billing_cycle
-          return json_error("Missing tier or billing_cycle", status: 400)
+          return json_error('Missing tier or billing_cycle', status: 400)
         end
 
         # Detect region
@@ -68,27 +70,27 @@ module Billing
         plan = ::Billing::Models::PlanCache.get_plan(tier, billing_cycle, region)
 
         unless plan
-          billing_logger.warn "Plan not found", {
+          billing_logger.warn 'Plan not found', {
             tier: tier,
             billing_cycle: billing_cycle,
-            region: region
+            region: region,
           }
-          return json_error("Plan not found", status: 404)
+          return json_error('Plan not found', status: 404)
         end
 
         # Build checkout session parameters
         site_host = Onetime.conf['site']['host']
         is_secure = Onetime.conf['site']['ssl']
-        protocol = is_secure ? 'https' : 'http'
+        protocol  = is_secure ? 'https' : 'http'
 
         success_url = "#{protocol}://#{site_host}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
-        cancel_url = "#{protocol}://#{site_host}/account"
+        cancel_url  = "#{protocol}://#{site_host}/account"
 
         session_params = {
           mode: 'subscription',
           line_items: [{
             price: plan.stripe_price_id,
-            quantity: 1
+            quantity: 1,
           }],
           success_url: success_url,
           cancel_url: cancel_url,
@@ -101,9 +103,9 @@ module Billing
               plan_id: plan.plan_id,
               tier: tier,
               region: region,
-              custid: cust.custid
-            }
-          }
+              custid: cust.custid,
+            },
+          },
         }
 
         # If organization already has a Stripe customer, use it
@@ -115,26 +117,26 @@ module Billing
         # Create Stripe Checkout Session
         checkout_session = Stripe::Checkout::Session.create(session_params)
 
-        billing_logger.info "Checkout session created for organization", {
+        billing_logger.info 'Checkout session created for organization', {
           extid: org.extid,  # Use extid for logging, not objid
           session_id: checkout_session.id,
           tier: tier,
-          billing_cycle: billing_cycle
+          billing_cycle: billing_cycle,
         }
 
         json_response({
           checkout_url: checkout_session.url,
-          session_id: checkout_session.id
-        })
-
+          session_id: checkout_session.id,
+        },
+                     )
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::StripeError => ex
-        billing_logger.error "Stripe checkout session creation failed", {
+        billing_logger.error 'Stripe checkout session creation failed', {
           exception: ex,
-          extid: req.params['extid']
+          extid: req.params['extid'],
         }
-        json_error("Failed to create checkout session", status: 500)
+        json_error('Failed to create checkout session', status: 500)
       end
 
       # List invoices for organization
@@ -154,8 +156,9 @@ module Billing
         # Retrieve invoices from Stripe
         invoices = Stripe::Invoice.list({
           customer: org.stripe_customer_id,
-          limit: 12 # Last 12 invoices
-        })
+          limit: 12, # Last 12 invoices
+        },
+                                       )
 
         invoice_data = invoices.data.map do |invoice|
           {
@@ -168,23 +171,23 @@ module Billing
             due_date: invoice.due_date,
             paid_at: invoice.status_transitions&.paid_at,
             invoice_pdf: invoice.invoice_pdf,
-            hosted_invoice_url: invoice.hosted_invoice_url
+            hosted_invoice_url: invoice.hosted_invoice_url,
           }
         end
 
         json_response({
           invoices: invoice_data,
-          has_more: invoices.has_more
-        })
-
+          has_more: invoices.has_more,
+        },
+                     )
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::StripeError => ex
-        billing_logger.error "Failed to retrieve invoices", {
+        billing_logger.error 'Failed to retrieve invoices', {
           exception: ex,
-          extid: req.params['extid']
+          extid: req.params['extid'],
         }
-        json_error("Failed to retrieve invoices", status: 500)
+        json_error('Failed to retrieve invoices', status: 500)
       end
 
       # List available billing plans
@@ -209,16 +212,16 @@ module Billing
             region: plan.region,
             features: plan.parsed_features,
             limits: plan.parsed_limits,
-            capabilities: plan.parsed_capabilities
+            capabilities: plan.parsed_capabilities,
           }
         end
 
         json_response({ plans: plan_data })
       rescue StandardError => ex
-        billing_logger.error "Failed to list plans", {
-          exception: ex
+        billing_logger.error 'Failed to list plans', {
+          exception: ex,
         }
-        json_error("Failed to list plans", status: 500)
+        json_error('Failed to list plans', status: 500)
       end
 
       private
@@ -236,7 +239,7 @@ module Billing
           period_end: org.subscription_period_end,
           active: org.active_subscription?,
           past_due: org.past_due?,
-          canceled: org.canceled?
+          canceled: org.canceled?,
         }
       end
 
@@ -258,7 +261,7 @@ module Billing
           amount: plan.amount,
           currency: plan.currency,
           features: plan.parsed_features,
-          limits: plan.parsed_limits
+          limits: plan.parsed_limits,
         }
       end
 
@@ -271,11 +274,9 @@ module Billing
         # Future: Add secret counts, API usage, etc.
         {
           teams: org.teams.size,
-          members: org.members.size
+          members: org.members.size,
         }
       end
-
-
     end
   end
 end

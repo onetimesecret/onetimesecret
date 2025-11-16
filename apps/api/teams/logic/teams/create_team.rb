@@ -9,7 +9,7 @@ module TeamAPI::Logic
 
       def process_params
         @display_name = params['display_name'].to_s.strip
-        @description = params['description'].to_s.strip
+        @description  = params['description'].to_s.strip
       end
 
       def raise_concerns
@@ -42,7 +42,7 @@ module TeamAPI::Logic
         @team = Onetime::Team.create!(display_name, cust)
 
         # Set description if provided
-        if !description.empty?
+        unless description.empty?
           @team.description = description
           @team.save
         end
@@ -56,7 +56,7 @@ module TeamAPI::Logic
         {
           user_id: cust.objid,
           record: team.safe_dump.merge(
-            current_user_role: 'owner'
+            current_user_role: 'owner',
           ),
         }
       end

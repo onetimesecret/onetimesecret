@@ -1,3 +1,7 @@
+# try/cli/domains_command_try.rb
+#
+# frozen_string_literal: true
+
 require 'spec/spec_helper.rb'
 
 # CLI Domains Command Tests

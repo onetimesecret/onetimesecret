@@ -23,24 +23,32 @@ module Core
 
       def export_window
         rack_session = req.env['rack.session']
-        session_logger.debug "Exporting window state", {
+        session_logger.debug 'Exporting window state', {
           session_class: rack_session.class.name,
-          session_id: (rack_session.id.public_id rescue 'no-id'),
-          session_keys: (rack_session.keys rescue []),
+          session_id: begin
+                        rack_session.id.public_id
+          rescue StandardError
+                        'no-id'
+          end,
+          session_keys: begin
+                          rack_session.keys
+          rescue StandardError
+                          []
+          end,
           authenticated: rack_session['authenticated'],
           has_external_id: !rack_session['external_id'].nil?,
-          authenticated_check: authenticated?
+          authenticated_check: authenticated?,
         }
 
         # Simplified: BaseView now extracts everything from req
-        view = Core::Views::ExportWindow.new(req)
+        view                        = Core::Views::ExportWindow.new(req)
         res.headers['content-type'] = 'application/json; charset=utf-8'
-        res.body = view.serialized_data.to_json
+        res.body                    = view.serialized_data.to_json
       end
 
       def robots_txt
         # Simplified: BaseView now extracts everything from req
-        view = Core::Views::RobotsTxt.new(req)
+        view                        = Core::Views::RobotsTxt.new(req)
         res.headers['content-type'] = 'text/plain'
         res.body                    = view.render
       end

@@ -32,17 +32,17 @@ module Onetime
       argument :config_file, type: :string, required: false, desc: 'Path to server config file'
 
       option :server, type: :string, default: 'puma', aliases: ['s'],
-             desc: 'Server type: puma or thin'
+        desc: 'Server type: puma or thin'
       option :port, type: :integer, default: 7143, aliases: ['p'],
-             desc: 'Port to bind to'
+        desc: 'Port to bind to'
       option :environment, type: :string, default: 'development', aliases: ['e'],
-             desc: 'Environment to run in'
+        desc: 'Environment to run in'
       option :threads, type: :string, default: '2:4', aliases: ['t'],
-             desc: 'Thread pool size for Puma'
+        desc: 'Thread pool size for Puma'
       option :workers, type: :integer, default: 0, aliases: ['w'],
-             desc: 'Number of workers for Puma'
+        desc: 'Number of workers for Puma'
       option :bind, type: :string, default: '127.0.0.1', aliases: ['b'],
-             desc: 'Bind address'
+        desc: 'Bind address'
 
       def call(config_file: nil, server: 'puma', port: 7143, environment: 'development',
                threads: '2:4', workers: 0, bind: '127.0.0.1', **)

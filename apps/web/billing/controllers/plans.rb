@@ -1,4 +1,6 @@
 # apps/web/billing/controllers/plans.rb
+#
+# frozen_string_literal: true
 
 require_relative 'base'
 require 'stripe'
@@ -21,26 +23,26 @@ module Billing
       # @return [HTTP 302] Redirects to Stripe Checkout Session
       #
       def checkout_redirect
-        tier = req.params[:tier] ||= 'single_team'
+        tier          = req.params[:tier] ||= 'single_team'
         billing_cycle = req.params[:billing_cycle] ||= 'monthly'
 
         # Detect region from request (future: use GeoIP)
         region = detect_region
 
-        billing_logger.debug "Plan checkout request", {
+        billing_logger.debug 'Plan checkout request', {
           tier: tier,
           billing_cycle: billing_cycle,
-          region: region
+          region: region,
         }
 
         # Get plan from cache
         plan = Billing::Models::PlanCache.get_plan(tier, billing_cycle, region)
 
         unless plan
-          billing_logger.warn "Plan not found in cache", {
+          billing_logger.warn 'Plan not found in cache', {
             tier: tier,
             billing_cycle: billing_cycle,
-            region: region
+            region: region,
           }
           res.redirect '/signup'
           return
@@ -49,25 +51,25 @@ module Billing
         # Build checkout session parameters
         site_host = Onetime.conf['site']['host']
         is_secure = Onetime.conf['site']['ssl']
-        protocol = is_secure ? 'https' : 'http'
+        protocol  = is_secure ? 'https' : 'http'
 
         success_url = "#{protocol}://#{site_host}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
-        cancel_url = "#{protocol}://#{site_host}/plans"
+        cancel_url  = "#{protocol}://#{site_host}/plans"
 
         session_params = {
           mode: 'subscription',
           line_items: [{
             price: plan.stripe_price_id,
-            quantity: 1
+            quantity: 1,
           }],
           success_url: success_url,
           cancel_url: cancel_url,
-          locale: req.env['rack.locale']&.first || 'auto'
+          locale: req.env['rack.locale']&.first || 'auto',
         }
 
         # Pre-fill customer email if authenticated
         unless cust.anonymous?
-          session_params[:customer_email] = cust.email
+          session_params[:customer_email]      = cust.email
           session_params[:client_reference_id] = cust.custid
         end
 
@@ -77,27 +79,26 @@ module Billing
             plan_id: plan.plan_id,
             tier: tier,
             region: region,
-            custid: cust.custid
-          }
+            custid: cust.custid,
+          },
         }
 
         # Create Stripe Checkout Session
         checkout_session = Stripe::Checkout::Session.create(session_params)
 
-        billing_logger.info "Checkout session created", {
+        billing_logger.info 'Checkout session created', {
           session_id: checkout_session.id,
           tier: tier,
           billing_cycle: billing_cycle,
-          region: region
+          region: region,
         }
 
         res.redirect checkout_session.url
-
       rescue Stripe::StripeError => ex
-        billing_logger.error "Stripe checkout session creation failed", {
+        billing_logger.error 'Stripe checkout session creation failed', {
           exception: ex,
           tier: tier,
-          billing_cycle: billing_cycle
+          billing_cycle: billing_cycle,
         }
         res.redirect '/signup'
       end
@@ -112,7 +113,7 @@ module Billing
         session_id = req.params['session_id']
 
         unless session_id
-          billing_logger.warn "Welcome page accessed without session_id"
+          billing_logger.warn 'Welcome page accessed without session_id'
           res.redirect '/account'
           return
         end
@@ -120,23 +121,24 @@ module Billing
         # Retrieve checkout session from Stripe
         checkout_session = Stripe::Checkout::Session.retrieve({
           id: session_id,
-          expand: ['subscription', 'customer']
-        })
+          expand: %w[subscription customer],
+        },
+                                                             )
 
         # Extract metadata
         subscription = checkout_session.subscription
-        customer = checkout_session.customer
-        metadata = subscription.metadata
+        checkout_session.customer
+        metadata     = subscription.metadata
 
-        custid = metadata['custid']
-        tier = metadata['tier']
+        custid  = metadata['custid']
+        tier    = metadata['tier']
         plan_id = metadata['plan_id']
 
-        billing_logger.info "Processing welcome for checkout session", {
+        billing_logger.info 'Processing welcome for checkout session', {
           session_id: session_id,
           custid: custid,
           tier: tier,
-          subscription_id: subscription.id
+          subscription_id: subscription.id,
         }
 
         # Load or create organization for this customer
@@ -146,18 +148,17 @@ module Billing
         # Update organization with subscription details
         org.update_from_stripe_subscription(subscription)
 
-        billing_logger.info "Organization subscription activated", {
+        billing_logger.info 'Organization subscription activated', {
           extid: org.objid,
           subscription_id: subscription.id,
-          plan_id: plan_id
+          plan_id: plan_id,
         }
 
         res.redirect '/account'
-
       rescue Stripe::StripeError => ex
-        billing_logger.error "Stripe session retrieval failed", {
+        billing_logger.error 'Stripe session retrieval failed', {
           exception: ex,
-          session_id: session_id
+          session_id: session_id,
         }
         res.redirect '/account'
       end
@@ -175,35 +176,35 @@ module Billing
         org = find_or_create_default_organization(cust)
 
         unless org.stripe_customer_id
-          billing_logger.warn "No Stripe customer ID for organization", {
+          billing_logger.warn 'No Stripe customer ID for organization', {
             extid: org.objid,
-            custid: cust.custid
+            custid: cust.custid,
           }
           res.redirect '/account'
           return
         end
 
-        site_host = Onetime.conf['site']['host']
-        is_secure = Onetime.conf['site']['ssl']
+        site_host  = Onetime.conf['site']['host']
+        is_secure  = Onetime.conf['site']['ssl']
         return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
 
         # Create Stripe Customer Portal session
         portal_session = Stripe::BillingPortal::Session.create({
           customer: org.stripe_customer_id,
-          return_url: return_url
-        })
+          return_url: return_url,
+        },
+                                                              )
 
-        billing_logger.info "Customer portal session created", {
+        billing_logger.info 'Customer portal session created', {
           extid: org.objid,
-          customer_id: org.stripe_customer_id
+          customer_id: org.stripe_customer_id,
         }
 
         res.redirect portal_session.url
-
       rescue Stripe::StripeError => ex
-        billing_logger.error "Stripe portal session creation failed", {
+        billing_logger.error 'Stripe portal session creation failed', {
           exception: ex,
-          customer_id: org&.stripe_customer_id
+          customer_id: org&.stripe_customer_id,
         }
         res.redirect '/account'
       end
@@ -227,28 +228,27 @@ module Billing
       # @return [Onetime::Organization] Default organization
       def find_or_create_default_organization(customer)
         # Find existing default organization
-        orgs = customer.organization_instances.to_a
+        orgs        = customer.organization_instances.to_a
         default_org = orgs.find { |org| org.is_default }
 
         return default_org if default_org
 
         # Create default organization
-        org = Onetime::Organization.create!(
+        org            = Onetime::Organization.create!(
           "#{customer.email}'s Workspace",
           customer,
-          customer.email
+          customer.email,
         )
         org.is_default = true
         org.save
 
-        billing_logger.info "Created default organization", {
+        billing_logger.info 'Created default organization', {
           extid: org.objid,
-          custid: customer.custid
+          custid: customer.custid,
         }
 
         org
       end
-
     end
   end
 end

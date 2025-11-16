@@ -23,9 +23,9 @@ module OrganizationAPI::Logic
         @organizations = cust.organization_instances
 
         # Fallback if reverse lookup not working - use org: prefix (not organization:)
-        if @organizations.empty? && cust.participations.size > 0
-          org_keys = cust.participations.to_a.select { |k| k.start_with?('org:') && k.end_with?(':members') }
-          org_ids = org_keys.map { |k| k.split(':')[1] }.uniq
+        if @organizations.empty? && !cust.participations.empty?
+          org_keys       = cust.participations.to_a.select { |k| k.start_with?('org:') && k.end_with?(':members') }
+          org_ids        = org_keys.map { |k| k.split(':')[1] }.uniq
           @organizations = Onetime::Organization.load_multi(org_ids).compact if org_ids.any?
         end
 

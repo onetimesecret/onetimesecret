@@ -17,7 +17,7 @@ module AccountAPI::Logic
       # password-confirm:
       def process_params
         @secret          = Onetime::Secret.find_by_identifier params['key'].to_s
-        @password     = self.class.normalize_password(params['password']) # was newp
+        @password        = self.class.normalize_password(params['password']) # was newp
         @passwordconfirm = self.class.normalize_password(params['password-confirm']) # was newp2
         @is_confirmed    = Rack::Utils.secure_compare(@password, @passwordconfirm)
       end
@@ -44,7 +44,7 @@ module AccountAPI::Logic
             customer_id: @cust.custid,
             email: @cust.obscure_email,
             secret_identifier: secret.identifier,
-            ip: @strategy_result&.metadata&.dig(:ip)
+            ip: @strategy_result&.metadata&.dig(:ip),
           }
 
           raise_form_error 'Invalid reset secret'
@@ -60,7 +60,7 @@ module AccountAPI::Logic
             customer_id: @cust.custid,
             email: @cust.obscure_email,
             status: :pending,
-            ip: @strategy_result&.metadata&.dig(:ip)
+            ip: @strategy_result&.metadata&.dig(:ip),
           }
 
           raise_form_error 'Account not verified'
@@ -81,7 +81,7 @@ module AccountAPI::Logic
           customer_id: @cust.custid,
           email: @cust.obscure_email,
           ip: @strategy_result&.metadata&.dig(:ip),
-          session_id: sess&.id
+          session_id: sess&.id,
         }
 
         success_data

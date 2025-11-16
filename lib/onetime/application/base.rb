@@ -74,22 +74,21 @@ module Onetime
       attr_reader :options, :router, :rack_app
 
       def initialize(options = {})
-        app_logger.debug "Initializing", {
+        app_logger.debug 'Initializing', {
           application: self.class.name,
-          options: options
+          options: options,
         }
         @options  = options
 
-        app_logger.debug "Building router", {
-          application: self.class.name
+        app_logger.debug 'Building router', {
+          application: self.class.name,
         }
         @router   = build_router
 
-        app_logger.debug "Building rack app", {
-          application: self.class.name
+        app_logger.debug 'Building rack app', {
+          application: self.class.name,
         }
         @rack_app = build_rack_app
-
       end
 
       def call(env)
@@ -133,7 +132,7 @@ module Onetime
           application: self.class.name,
           healthy: healthy?,
           router_present: !router.nil?,
-          rack_app_present: !rack_app.nil?
+          rack_app_present: !rack_app.nil?,
         }
       end
 
@@ -157,7 +156,7 @@ module Onetime
           prefix: base_klass.uri_prefix,
         }
 
-        app = Rack::Builder.new do |builder|
+        Rack::Builder.new do |builder|
           MiddlewareStack.configure(builder, application_context: app_context)
 
           (base_klass.middleware || []).each do |middleware, args, block|
@@ -167,8 +166,8 @@ module Onetime
           # Wrap the warmup to log before and after actual execution
           if base_klass.warmup
             builder.warmup do |built_app|
-              Onetime.app_logger.debug "Warmup started", {
-                application: app_context[:name]
+              Onetime.app_logger.debug 'Warmup started', {
+                application: app_context[:name],
               }
 
               # Call the actual warmup block
@@ -184,8 +183,6 @@ module Onetime
 
           builder.run router_instance
         end.to_app
-
-        app
       end
 
       class << self
@@ -200,8 +197,8 @@ module Onetime
         def inherited(subclass)
           # Keep track subclasses without immediate registration
           Registry.register_application_class(subclass)
-          Onetime.app_logger.debug "Application registered", {
-            application: subclass.name
+          Onetime.app_logger.debug 'Application registered', {
+            application: subclass.name,
           }
         end
 

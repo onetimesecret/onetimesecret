@@ -37,6 +37,7 @@ module Onetime
       # In other environments, raise to catch unintended double-boot bugs
       if OT.ready?
         return if OT.testing?
+
         raise OT::Problem, 'Boot already completed'
       end
 

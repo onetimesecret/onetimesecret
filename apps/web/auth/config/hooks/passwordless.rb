@@ -168,7 +168,6 @@ module Auth::Config::Hooks
         # When user clicks link and authenticates, the base after_login
         # hook will fire to sync session and log successful authentication
       end
-
     end
   end
 end

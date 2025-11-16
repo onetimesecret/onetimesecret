@@ -1,3 +1,7 @@
+# try/billing/04_capabilities_try.rb
+#
+# frozen_string_literal: true
+
 require_relative '../support/test_helpers'
 
 # Billing Capabilities System Tests

@@ -25,7 +25,7 @@ module V2
 
       attr_accessor :domain_strategy, :display_domain
 
-      def initialize(strategy_result, params, locale = nil)
+      def initialize(strategy_result, params, _locale = nil)
         @strategy_result = strategy_result
         @params          = params
 
@@ -113,12 +113,12 @@ module V2
       # Session message helpers for user feedback
       def set_info_message(_message)
         # In test environment, sess might be a plain hash
-        warn %q!sess['info_message'] = message if sess.respond_to?(:[]=)!
+        warn "sess['info_message'] = message if sess.respond_to?(:[]=)"
       end
 
       def set_error_message(_message)
         # In test environment, sess might be a plain hash
-        warn %q!sess['error_message'] = message if sess.respond_to?(:[]=)!
+        warn "sess['error_message'] = message if sess.respond_to?(:[]=)"
       end
 
       # Requires the implementing class to have cust and session fields

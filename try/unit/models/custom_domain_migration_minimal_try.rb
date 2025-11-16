@@ -1,3 +1,7 @@
+# try/unit/models/custom_domain_migration_minimal_try.rb
+#
+# frozen_string_literal: true
+
 # Minimal test to debug the setup issue
 
 require_relative '../../support/test_models'

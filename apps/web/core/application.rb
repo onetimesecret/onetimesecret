@@ -31,7 +31,7 @@ module Core
     include Onetime::LoggerMethods
     include Onetime::Application::OttoHooks  # Provides configure_otto_request_hook
 
-    @uri_prefix = '/'.freeze
+    @uri_prefix = '/'
 
     # Core-specific middleware (universal middleware in MiddlewareStack)
     #
@@ -74,10 +74,10 @@ module Core
               '/api',
               '/public',
             ]
-          rhales_logger.debug "Schema validation middleware enabled"
+          rhales_logger.debug 'Schema validation middleware enabled'
         rescue LoadError => ex
-          rhales_logger.warn "Could not load schema validation middleware - json_schemer gem not available", {
-            exception: ex
+          rhales_logger.warn 'Could not load schema validation middleware - json_schemer gem not available', {
+            exception: ex,
           }
         end
       end

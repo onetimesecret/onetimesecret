@@ -45,16 +45,16 @@ module Auth
       # @param logger [Logger, nil] Optional logger for audit trail
       def initialize(session:, account_id:, email:, external_id: nil, correlation_id: nil, logger: nil)
         # Validate inputs
-        raise InvalidInput, "session must be present" if session.nil?
-        raise InvalidInput, "account_id must be present" if account_id.nil? || account_id.to_s.empty?
-        raise InvalidInput, "email must be present" if email.nil? || email.to_s.empty?
+        raise InvalidInput, 'session must be present' if session.nil?
+        raise InvalidInput, 'account_id must be present' if account_id.nil? || account_id.to_s.empty?
+        raise InvalidInput, 'email must be present' if email.nil? || email.to_s.empty?
 
-        @session = session
-        @account_id = account_id.to_i
-        @email = email.to_s
-        @external_id = external_id&.to_s
+        @session        = session
+        @account_id     = account_id.to_i
+        @email          = email.to_s
+        @external_id    = external_id&.to_s
         @correlation_id = correlation_id
-        @logger = logger || Onetime.get_logger('Auth::PrepareMfaSession')
+        @logger         = logger || Onetime.get_logger('Auth::PrepareMfaSession')
       end
 
       # Convenience class method for direct calls
@@ -70,7 +70,7 @@ module Auth
           account_id: account_id,
           email: email,
           external_id: external_id,
-          correlation_id: correlation_id
+          correlation_id: correlation_id,
         ).call
       end
 
@@ -78,19 +78,19 @@ module Auth
       # @return [Boolean] true if session was prepared successfully
       def call
         # Log session preparation (before mutation)
-        @logger.info "Preparing session for MFA flow",
+        @logger.info 'Preparing session for MFA flow',
           account_id: @account_id,
           email: OT::Utils.obscure_email(@email),
           has_external_id: !@external_id.nil?,
           correlation_id: @correlation_id,
-          module: "PrepareMfaSession"
+          module: 'PrepareMfaSession'
 
         # Set MFA flow flag (prevents premature authenticated access)
         @session['awaiting_mfa'] = true
 
         # Set minimal account data for MFA UI
         @session['account_id'] = @account_id
-        @session['email'] = @email
+        @session['email']      = @email
 
         # Store external_id if present (for customer linkage)
         if @external_id
@@ -103,11 +103,11 @@ module Auth
         end
 
         # Log successful preparation
-        @logger.debug "Session prepared for MFA",
+        @logger.debug 'Session prepared for MFA',
           account_id: @account_id,
           session_keys: session_keys_set,
           correlation_id: @correlation_id,
-          module: "PrepareMfaSession"
+          module: 'PrepareMfaSession'
 
         true
       end
@@ -117,7 +117,7 @@ module Auth
       # Get list of session keys that were set (for logging)
       # @return [Array<String, Symbol>]
       def session_keys_set
-        keys = ['awaiting_mfa', 'account_id', 'email']
+        keys = %w[awaiting_mfa account_id email]
         keys << 'external_id' if @external_id
         keys << :mfa_correlation_id if @correlation_id
         keys

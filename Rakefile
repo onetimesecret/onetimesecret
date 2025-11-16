@@ -1,5 +1,7 @@
 # Rakefile
 #
+# frozen_string_literal: true
+#
 # This file loads Rhales rake tasks for schema generation and validation.
 #
 
@@ -12,5 +14,5 @@ if File.exist?(rhales_tasks)
   load rhales_tasks
 else
   warn "Warning: Rhales tasks not found at #{rhales_tasks}"
-  warn "Ensure rhales gem is installed and the path is correct."
+  warn 'Ensure rhales gem is installed and the path is correct.'
 end

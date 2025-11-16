@@ -43,7 +43,6 @@ module Auth::Config::Hooks
           Auth::Operations::UpdatePasswordMetadata.new(account: account).call
         end
       end
-
     end
   end
 end

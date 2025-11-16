@@ -1,4 +1,6 @@
 # apps/web/billing/models/plan_cache.rb
+#
+# frozen_string_literal: true
 
 require 'stripe'
 
@@ -93,7 +95,6 @@ module Billing
       end
 
       class << self
-
         # Refresh plan cache from Stripe API
         #
         # Fetches all active products and prices from Stripe, filters by app metadata,
@@ -104,20 +105,21 @@ module Billing
           # Skip Stripe sync in CI/test environments without API key
           stripe_key = Onetime.conf.dig('billing', 'stripe_key')
           if stripe_key.to_s.strip.empty?
-            OT.lw "[PlanCache.refresh_from_stripe] Skipping Stripe sync: No API key configured"
+            OT.lw '[PlanCache.refresh_from_stripe] Skipping Stripe sync: No API key configured'
             return 0
           end
 
           # Configure Stripe SDK with API key
           Stripe.api_key = stripe_key
 
-          OT.li "[PlanCache.refresh_from_stripe] Starting Stripe sync"
+          OT.li '[PlanCache.refresh_from_stripe] Starting Stripe sync'
 
           # Fetch all active products with onetimesecret metadata
           products = Stripe::Product.list({
             active: true,
-            limit: 100
-          })
+            limit: 100,
+          },
+                                         )
 
           plan_count = 0
 
@@ -131,16 +133,17 @@ module Billing
             prices = Stripe::Price.list({
               product: product.id,
               active: true,
-              limit: 100
-            })
+              limit: 100,
+            },
+                                       )
 
             prices.auto_paging_each do |price|
               # Skip non-recurring prices
               next unless price.type == 'recurring'
 
               interval = price.recurring.interval # 'month' or 'year'
-              tier = product.metadata['tier']
-              region = product.metadata['region']
+              tier     = product.metadata['tier']
+              region   = product.metadata['region']
 
               # Use explicit plan_id from metadata, or compute from tier_interval_region
               plan_id = product.metadata['plan_id'] || "#{tier}_#{interval}ly_#{region}"
@@ -148,14 +151,15 @@ module Billing
               # Extract capabilities from product metadata
               # Expected format: "create_secrets,create_team,custom_domains"
               capabilities_str = product.metadata['capabilities'] || ''
-              capabilities = capabilities_str.split(',').map(&:strip).reject(&:empty?)
+              capabilities     = capabilities_str.split(',').map(&:strip).reject(&:empty?)
 
               # Extract limits from product metadata
               # -1 or "infinity" means Float::INFINITY
               limits = {}
               product.metadata.each do |key, value|
                 next unless key.start_with?('limit_')
-                resource = key.sub('limit_', '').to_sym
+
+                resource         = key.sub('limit_', '').to_sym
                 limits[resource] = if value.to_s == '-1' || value.to_s.downcase == 'infinity'
                                      Float::INFINITY
                                    else
@@ -176,14 +180,14 @@ module Billing
                 region: region,
                 capabilities: capabilities.to_json,
                 features: (product.marketing_features&.map(&:name) || []).to_json,
-                limits: limits.to_json
+                limits: limits.to_json,
               )
               plan.save
 
               OT.ld "[PlanCache] Cached plan: #{plan_id}", {
                 stripe_price_id: price.id,
                 amount: price.unit_amount,
-                currency: price.currency
+                currency: price.currency,
               }
 
               plan_count += 1
@@ -193,9 +197,9 @@ module Billing
           OT.li "[PlanCache.refresh_from_stripe] Cached #{plan_count} plans"
           plan_count
         rescue Stripe::StripeError => ex
-          OT.le "[PlanCache.refresh_from_stripe] Stripe error", {
+          OT.le '[PlanCache.refresh_from_stripe] Stripe error', {
             exception: ex,
-            message: ex.message
+            message: ex.message,
           }
           raise
         end
@@ -236,7 +240,6 @@ module Billing
           end
           values.clear
         end
-
       end
     end
   end

@@ -4,13 +4,13 @@
 
 module Onetime::Customer::Features
   module SafeDumpFields
-	# Register our custom SafeDump feature with a unique
+    # Register our custom SafeDump feature with a unique
     Onetime::Customer.add_feature self, :safe_dump_fields
 
     def self.included(base)
       # Lambda to handle counter fields that may be nil/empty - returns '0'
       # if empty, otherwise the string value
-      counter_field_handler = lambda { |cust, field_name|
+      counter_field_handler = ->(cust, field_name) {
         value = cust.send(field_name).to_s
         value.empty? ? '0' : value
       }

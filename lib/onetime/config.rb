@@ -46,8 +46,8 @@ module Onetime
                 'numbers' => true,
                 'symbols' => false,
                 'exclude_ambiguous' => true,
-              }
-            }
+              },
+            },
           },
           'interface' => {
             'ui' => { 'enabled' => true },
@@ -63,8 +63,7 @@ module Onetime
             'colonels' => [],
           },
         },
-        'features' => {
-        },
+        'features' => {},
         'internationalization' => {
           'enabled' => false,
           'default_locale' => 'en',
@@ -250,7 +249,6 @@ module Onetime
       elsif length_options.is_a?(Array)
         conf['site']['secret_options']['password_generation']['length_options'] = length_options.map(&:to_i)
       end
-
 
       # Apply the defaults to sentry backend and frontend configs
       # and set our local config with the merged values.

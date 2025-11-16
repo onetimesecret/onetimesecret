@@ -5,9 +5,7 @@
 module Auth
   module Routes
     module MFA
-      def handle_mfa_routes(r)
-
-      end
+      def handle_mfa_routes(r); end
     end
   end
 end

@@ -1,3 +1,7 @@
+# try/unit/migrations/custom_domains_data_generator_try.rb
+#
+# frozen_string_literal: true
+
 require_relative '../../support/test_models'
 require_relative '../../../migrations/core/custom_domains_to_orgs_data_generator'
 

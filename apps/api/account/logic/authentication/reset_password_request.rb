@@ -34,7 +34,7 @@ module AccountAPI::Logic
           auth_logger.info 'Resending verification email for pending customer', {
             customer_id: cust.objid,
             email: cust.obscure_email,
-            status: :pending
+            status: :pending,
           }
 
           send_verification_email
@@ -55,7 +55,7 @@ module AccountAPI::Logic
           customer_id: cust.objid,
           email: cust.obscure_email,
           secret_identifier: secret.identifier,
-          token: token&.slice(0, 8) # Only log first 8 chars for debugging
+          token: token&.slice(0, 8), # Only log first 8 chars for debugging
         }
 
         begin
@@ -66,7 +66,7 @@ module AccountAPI::Logic
             customer_id: cust.objid,
             email: cust.obscure_email,
             error: ex.message,
-            session_id: sess&.id
+            session_id: sess&.id,
           }
 
           set_error_message(errmsg)
@@ -75,7 +75,7 @@ module AccountAPI::Logic
             customer_id: cust.objid,
             email: cust.obscure_email,
             session_id: sess&.id,
-            secret_identifier: secret.identifier
+            secret_identifier: secret.identifier,
           }
 
           set_info_message "We sent instructions to #{cust.objid}"

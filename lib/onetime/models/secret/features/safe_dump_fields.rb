@@ -9,10 +9,6 @@ module Onetime::Secret::Features
     def self.included(base)
       # Lambda to handle counter fields that may be nil/empty - returns '0'
       # if empty, otherwise the string value
-      counter_field_handler = lambda { |cust, field_name|
-        value = cust.send(field_name).to_s
-        value.empty? ? '0' : value
-      }
 
       # Enable the Familia SafeDump feature
       base.feature :safe_dump
@@ -32,7 +28,6 @@ module Onetime::Secret::Features
       # base.safe_dump_field :is_truncated, ->(m) { m.truncated? }
       base.safe_dump_field :created
       base.safe_dump_field :updated
-
     end
   end
 end

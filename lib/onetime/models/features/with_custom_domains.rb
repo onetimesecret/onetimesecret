@@ -5,10 +5,7 @@
 module Onetime
   module Models
     module Features
-      #
-      #
       module WithCustomDomains
-
         Familia::Base.add_feature self, :with_custom_domains
 
         def self.included(base)
@@ -24,13 +21,12 @@ module Onetime
         end
 
         module InstanceMethods
-
           def custom_domains_list
             # Domains are now owned by organizations, not individual customers
             # Get domains from all organizations this customer belongs to
             organization_instances.flat_map do |org|
               org.list_domains
-            rescue => ex
+            rescue StandardError => ex
               OT.le "[custom_domains_list] Error loading domains for org #{org.objid}: #{ex.message}"
               []
             end.compact.uniq
@@ -57,10 +53,7 @@ module Onetime
               org.remove_domain(obj)
             end
           end
-
-
         end
-
       end
     end
   end

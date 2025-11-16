@@ -1,5 +1,7 @@
 # lib/onetime/billing/plan_definitions.rb
 #
+# frozen_string_literal: true
+#
 # Plan Utility Methods
 #
 # NOTE: Plan definitions are now stored in Stripe and cached via PlanCache.
@@ -10,30 +12,29 @@
 
 module Onetime
   module Billing
-
     # Capability categories for documentation and UI grouping
     CAPABILITY_CATEGORIES = {
-      core: [
-        'create_secrets',
-        'basic_sharing',
-        'view_metadata',
+      core: %w[
+        create_secrets
+        basic_sharing
+        view_metadata
       ],
-      collaboration: [
-        'create_team',
-        'create_teams',
+      collaboration: %w[
+        create_team
+        create_teams
       ],
-      infrastructure: [
-        'custom_domains',
-        'api_access',
+      infrastructure: %w[
+        custom_domains
+        api_access
       ],
       support: [
         'priority_support',
       ],
-      advanced: [
-        'audit_logs',
-        'advanced_analytics',
-        'extended_lifetime',
-      ]
+      advanced: %w[
+        audit_logs
+        advanced_analytics
+        extended_lifetime
+      ],
     }.freeze
 
     # Get upgrade path when capability is missing
@@ -48,7 +49,7 @@ module Onetime
     # @example
     #   Billing.upgrade_path_for('custom_domains', 'free')
     #   # => "identity_v1_monthly"
-    def self.upgrade_path_for(capability, current_plan = nil)
+    def self.upgrade_path_for(capability, _current_plan = nil)
       # Query all cached plans for those with the capability
       plans_with_capability = ::Billing::Models::PlanCache.list_plans.select do |plan|
         plan.parsed_capabilities.include?(capability.to_s)
@@ -58,7 +59,7 @@ module Onetime
 
       # Sort by tier preference: free < single_team < multi_team
       # Return first (cheapest) matching plan
-      tier_order = ['free', 'single_team', 'multi_team']
+      tier_order   = %w[free single_team multi_team]
       sorted_plans = plans_with_capability.sort_by do |plan|
         tier_order.index(plan.tier) || 999
       end
@@ -124,6 +125,5 @@ module Onetime
         .reject { |plan| legacy_plan?(plan.plan_id) }
         .map(&:plan_id)
     end
-
   end
 end

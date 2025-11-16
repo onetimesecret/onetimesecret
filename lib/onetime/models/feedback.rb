@@ -4,9 +4,7 @@
 
 module Onetime
   class Feedback < Familia::Horreum
-
     using Familia::Refinements::TimeLiterals
-
 
     module ClassMethods
       def add(msg)

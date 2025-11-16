@@ -32,7 +32,7 @@ module V3
   # - Authentication: Token-based and session-based strategies
   #
   class Application < BaseJSONAPI
-    @uri_prefix = '/api/v3'.freeze
+    @uri_prefix = '/api/v3'
 
     warmup do
       # Empty warmup - just triggers the logging

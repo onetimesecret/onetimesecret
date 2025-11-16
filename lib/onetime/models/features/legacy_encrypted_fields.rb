@@ -186,7 +186,7 @@ module Onetime
 
           def update_passphrase(val)
             self.passphrase_encryption = '1'
-            self.passphrase = BCrypt::Password.create(val, cost: 12).to_s
+            self.passphrase            = BCrypt::Password.create(val, cost: 12).to_s
             self  # Enable chaining
           end
 
@@ -203,13 +203,11 @@ module Onetime
             # Constant-time comparison prevents timing attacks that could leak
             # the hash prefix by measuring how long the comparison takes to fail.
             BCrypt::Password.new(passphrase) == val
-
           rescue BCrypt::Errors::InvalidHash => ex
             prefix = '[passphrase?]'
             OT.li "#{prefix} Invalid passphrase hash: #{ex.message}"
             false
           end
-
         end
       end
     end

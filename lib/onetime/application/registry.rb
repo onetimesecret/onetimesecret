@@ -17,8 +17,8 @@ module Onetime
     module Registry
       # These class instance vars are populated at start-time and then readonly.
       # rubocop:disable ThreadSafety/MutableClassInstanceVariable
-      @application_classes = []
-      @mount_mappings      = {}
+      @application_classes   = []
+      @mount_mappings        = {}
       @application_instances = {}
 
       class << self
@@ -56,14 +56,14 @@ module Onetime
           sorted_mappings = mount_mappings.sort_by { |path, _| [-path.length, path] }.to_h
 
           # Track warmup progress for [N of M] numbering
-          total_apps = sorted_mappings.size
+          total_apps     = sorted_mappings.size
           warmup_counter = 0
 
-          mappings = sorted_mappings.transform_values do |app_class, path|
-            warmup_counter += 1
+          mappings = sorted_mappings.transform_values do |app_class, _path|
+            warmup_counter                   += 1
             # Pass warmup context to application initialization
-            Thread.current[:warmup_context] = { current: warmup_counter, total: total_apps }
-            instance = app_class.new
+            Thread.current[:warmup_context]   = { current: warmup_counter, total: total_apps }
+            instance                          = app_class.new
             # Store instance for health checks
             @application_instances[app_class] = instance
             instance
@@ -85,13 +85,13 @@ module Onetime
         def health_check
           results = {
             healthy: true,
-            applications: {}
+            applications: {},
           }
 
           application_instances.each do |app_class, instance|
-            health = instance.health_check
+            health                                 = instance.health_check
             results[:applications][app_class.name] = health
-            results[:healthy] = false unless health[:healthy]
+            results[:healthy]                      = false unless health[:healthy]
           end
 
           results
@@ -117,8 +117,8 @@ module Onetime
         # In production, this is called during boot. In tests, it's called
         # between test runs to ensure clean state.
         def reset!
-          @mount_mappings = {}
-          @application_classes = []
+          @mount_mappings        = {}
+          @application_classes   = []
           @application_instances = {}
 
           # Re-register classes that are already loaded in memory
@@ -165,7 +165,7 @@ module Onetime
 
           Onetime.log_box(
             ["AUTHENTICATION MODE: #{auth_mode_msg}"],
-            logger_method: :auth_logger
+            logger_method: :auth_logger,
           )
 
           filepaths.each_with_index do |f, idx|
@@ -178,9 +178,9 @@ module Onetime
               Onetime.log_box(
                 [
                   '❌ APPLICATION LOAD FAILED',
-                  "   >> #{pretty_path} <<"
+                  "   >> #{pretty_path} <<",
                 ],
-                level: :error
+                level: :error,
               )
               Onetime.app_logger.info "\n"
               raise ex
@@ -218,7 +218,6 @@ module Onetime
         def register(path, app_class)
           @mount_mappings[path] = app_class
         end
-
       end
     end
   end

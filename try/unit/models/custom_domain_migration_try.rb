@@ -1,5 +1,7 @@
 # try/unit/models/custom_domain_migration_try.rb
 #
+# frozen_string_literal: true
+
 # TDD test suite for CustomDomain custid -> org_id migration
 #
 # CURRENT STATE (pre-migration):

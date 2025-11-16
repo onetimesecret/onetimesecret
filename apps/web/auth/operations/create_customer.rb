@@ -17,8 +17,8 @@ module Auth
       # @param db [Sequel::Database] The database connection (optional)
       def initialize(account_id:, account:, db: nil)
         @account_id = account_id
-        @account = account
-        @db = db || Auth::Database.connection
+        @account    = account
+        @db         = db || Auth::Database.connection
       end
 
       # Executes the customer creation/loading operation

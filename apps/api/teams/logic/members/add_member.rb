@@ -9,7 +9,7 @@ module TeamAPI::Logic
 
       def process_params
         @team_id = params['extid']
-        @email = params[:email].to_s.strip.downcase
+        @email   = params[:email].to_s.strip.downcase
       end
 
       def raise_concerns
@@ -42,7 +42,7 @@ module TeamAPI::Logic
 
         # Check if already a member
         if @team.member?(@new_member)
-          raise_form_error("User is already a team member", field: :email, error_type: :already_exists)
+          raise_form_error('User is already a team member', field: :email, error_type: :already_exists)
         end
       end
 

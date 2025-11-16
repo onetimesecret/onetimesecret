@@ -47,7 +47,7 @@ module Billing
       end
 
       def json_error(message, field_error: nil, status: 400)
-        body = { error: message }
+        body                = { error: message }
         body['field-error'] = field_error if field_error
         json_response(body, status: status)
       end
@@ -72,16 +72,16 @@ module Billing
         begin
           uri = URI.parse(url)
         rescue URI::InvalidURIError => ex
-          billing_logger.error "Invalid URI in URL validation", {
+          billing_logger.error 'Invalid URI in URL validation', {
             exception: ex,
-            url: url
+            url: url,
           }
         else
           uri.host ||= OT.conf['site']['host']
           if (OT.conf['site']['ssl']) && (uri.scheme.nil? || uri.scheme != 'https')
             uri.scheme = 'https'
           end
-          uri = nil unless uri.is_a?(URI::HTTP)
+          uri        = nil unless uri.is_a?(URI::HTTP)
           OT.info "[validate_url] Validated URI: #{uri}"
         end
 
@@ -101,8 +101,8 @@ module Billing
 
         Onetime::Customer.anonymous
       rescue StandardError => ex
-        billing_logger.error "Failed to load customer", {
-          exception: ex
+        billing_logger.error 'Failed to load customer', {
+          exception: ex,
         }
         Onetime::Customer.anonymous
       end
@@ -125,14 +125,14 @@ module Billing
       #
       # @return [void]
       def ensure_customer_has_workspace
-        billing_logger.debug "[ensure_customer_has_workspace] Checking customer workspace"
+        billing_logger.debug '[ensure_customer_has_workspace] Checking customer workspace'
         return if cust.anonymous?
 
         # Use Familia v2 auto-generated reverse collection method for O(1) lookup
         return if cust.organization_instances.any?
 
-        billing_logger.info "[self-healing] Customer has no organization, creating default workspace", {
-          user: cust.extid
+        billing_logger.info '[self-healing] Customer has no organization, creating default workspace', {
+          user: cust.extid,
         }
 
         # Call CreateDefaultWorkspace operation
@@ -140,21 +140,20 @@ module Billing
         result = Auth::Operations::CreateDefaultWorkspace.new(customer: cust).call
 
         if result
-          billing_logger.info "[self-healing] Successfully created default workspace", {
+          billing_logger.info '[self-healing] Successfully created default workspace', {
             user: cust.extid,
             extid: result[:organization]&.extid,
-            team_id: result[:team]&.team_id
+            team_id: result[:team]&.team_id,
           }
         end
-
       rescue StandardError => ex
         # Errors are logged but NOT raised - this is a self-healing operation
         # The user experience should continue even if workspace creation fails
-        billing_logger.error "[self-healing] Failed to create default workspace", {
+        billing_logger.error '[self-healing] Failed to create default workspace', {
           exception: ex,
           user: cust.extid,
           message: ex.message,
-          backtrace: ex.backtrace&.first(5)
+          backtrace: ex.backtrace&.first(5),
         }
       end
 
@@ -166,22 +165,22 @@ module Billing
       # @raise [OT::Problem] If organization not found or access denied
       def load_organization(extid, require_owner: false)
         org = Onetime::Organization.find_by_extid(extid)
-        raise OT::Problem, "Organization not found" unless org
+        raise OT::Problem, 'Organization not found' unless org
 
         unless org.member?(cust)
-          billing_logger.warn "Access denied to organization", {
+          billing_logger.warn 'Access denied to organization', {
             extid: extid,
-            user: cust.extid
+            user: cust.extid,
           }
-          raise OT::Problem, "Access denied"
+          raise OT::Problem, 'Access denied'
         end
 
         if require_owner && !org.owner?(cust)
-          billing_logger.warn "Owner access required", {
+          billing_logger.warn 'Owner access required', {
             extid: extid,
-            user: cust.extid
+            user: cust.extid,
           }
-          raise OT::Problem, "Owner access required"
+          raise OT::Problem, 'Owner access required'
         end
 
         org

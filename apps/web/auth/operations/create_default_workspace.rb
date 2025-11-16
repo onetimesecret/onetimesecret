@@ -25,7 +25,7 @@ module Auth
       def call
         return if workspace_already_exists?
 
-        org = create_default_organization
+        org  = create_default_organization
         team = create_default_team(org)
 
         auth_logger.info "[create-default-workspace] Created workspace for #{@customer.custid}: org=#{org.objid}, team=#{team.team_id}"
@@ -53,17 +53,17 @@ module Auth
       # @return [Onetime::Organization]
       def create_default_organization
         org = Onetime::Organization.create!(
-          "Default Organization",  # Not shown to individual plan users
+          'Default Organization',  # Not shown to individual plan users
           @customer,
-          @customer.email
+          @customer.email,
         )
 
         # Mark as default workspace (prevents deletion)
         org.is_default! true
 
         org
-      rescue => e
-        auth_logger.error "[create-default-workspace] Failed to create organization: #{e.message}"
+      rescue StandardError => ex
+        auth_logger.error "[create-default-workspace] Failed to create organization: #{ex.message}"
         raise
       end
 
@@ -72,17 +72,17 @@ module Auth
       # @return [Onetime::Team]
       def create_default_team(org)
         team = Onetime::Team.create!(
-          "Default Team",  # Not shown to individual plan users
+          'Default Team',  # Not shown to individual plan users
           @customer,
-          org.objid
+          org.objid,
         )
 
         # Mark as default workspace (prevents deletion)
         team.is_default! true
 
         team
-      rescue => e
-        auth_logger.error "[create-default-workspace] Failed to create team: #{e.message}"
+      rescue StandardError => ex
+        auth_logger.error "[create-default-workspace] Failed to create team: #{ex.message}"
         raise
       end
     end

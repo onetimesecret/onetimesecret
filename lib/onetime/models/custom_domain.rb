@@ -5,7 +5,6 @@
 require 'public_suffix'
 
 module Onetime
-
   # Custom Domain
   #
   # NOTE: CustomDomain records can only be created via V2 API
@@ -110,8 +109,6 @@ module Onetime
 
     @txt_validation_prefix = '_onetime-challenge'
 
-
-
     def init
       # Display domain should already be set via accessor methods
       # The ObjectIdentifier feature provides objid automatically via lazy generation
@@ -119,16 +116,16 @@ module Onetime
       OT.ld "[CustomDomain.init] #{display_domain} id:#{domainid} org_id:#{org_id}"
 
       # Parse the domain structure (will raise if invalid)
-      if display_domain && !display_domain.empty?
-        ps_domain = PublicSuffix.parse(display_domain, default_rule: nil)
+      return unless display_domain && !display_domain.empty?
 
-        # Store the individual domain parts that PublicSuffix parsed out
-        @base_domain = ps_domain.domain.to_s
-        @subdomain   = ps_domain.subdomain.to_s
-        @trd         = ps_domain.trd.to_s
-        @tld         = ps_domain.tld.to_s
-        @sld         = ps_domain.sld.to_s
-      end
+      ps_domain    = PublicSuffix.parse(display_domain, default_rule: nil)
+
+      # Store the individual domain parts that PublicSuffix parsed out
+      @base_domain = ps_domain.domain.to_s
+      @subdomain   = ps_domain.subdomain.to_s
+      @trd         = ps_domain.trd.to_s
+      @tld         = ps_domain.tld.to_s
+      @sld         = ps_domain.sld.to_s
 
       # Don't call generate_txt_validation_record here otherwise we'll
       # create a new validation record every time we instantiate a
@@ -146,6 +143,7 @@ module Onetime
     def save
       raise Onetime::Problem, 'Organization ID required' if org_id.to_s.empty?
       raise Onetime::Problem, 'Display domain required' if display_domain.to_s.empty?
+
       super
     end
 
@@ -214,7 +212,7 @@ module Onetime
     # @param args [Array] Additional arguments to pass to the superclass destroy method
     # @return [Object] The result of the superclass destroy method
     def delete!(*args)
-      OT.le "[CustomDomain#delete!] DEPRECATED: Use destroy! instead for proper organization cleanup"
+      OT.le '[CustomDomain#delete!] DEPRECATED: Use destroy! instead for proper organization cleanup'
       Onetime::CustomDomain.rem self
       super # we may prefer to call self.clear here instead
     end
@@ -419,7 +417,7 @@ module Onetime
       # @return [CustomDomain, nil] The domain if found, nil otherwise
       def load_by_display_domain(domain_name)
         normalized = domain_name.to_s.downcase
-        domainid = display_domains.get(normalized)
+        domainid   = display_domains.get(normalized)
         return nil if domainid.nil?
 
         # Use Familia's find_by_identifier method
@@ -484,14 +482,14 @@ module Onetime
           end
 
           # Scenario 2: Domain in another organization (different org_id)
-          if !existing.org_id.to_s.empty?
+          unless existing.org_id.to_s.empty?
             OT.le "[CustomDomain.create!] Domain belongs to another organization: #{obj.display_domain} existing_org_id=#{existing.org_id} requested_org_id=#{org_id}"
             raise Onetime::Problem, 'Domain is registered to another organization'
           end
 
           # Scenario 3: Orphaned domain (no org_id) - claim it
           OT.info "[CustomDomain.create!] Claiming orphaned domain: #{obj.display_domain} for org_id=#{org_id}"
-          existing.org_id = org_id
+          existing.org_id  = org_id
           existing.updated = OT.now.to_i
           existing.save
 
@@ -598,12 +596,12 @@ module Onetime
       #
       def display_domain(input)
         ps_domain = PublicSuffix.parse(input, default_rule: nil)
-        result = ps_domain.subdomain || ps_domain.domain
+        result    = ps_domain.subdomain || ps_domain.domain
 
         # Safety check to prevent nil display_domain which causes serialization issues
         if result.nil?
           OT.le "[CustomDomain.display_domain] Parsed domain resulted in nil: subdomain=#{ps_domain.subdomain.inspect}, domain=#{ps_domain.domain.inspect} for input `#{input}`"
-          raise Onetime::Problem, "Invalid domain format - unable to determine display domain"
+          raise Onetime::Problem, 'Invalid domain format - unable to determine display domain'
         end
 
         result
@@ -646,20 +644,20 @@ module Onetime
         # Safety checks to prevent serialization errors
         if fobj.display_domain.nil?
           OT.le "[CustomDomain.add] display_domain is nil for #{fobj.class}:#{fobj.identifier}"
-          raise Onetime::Problem, "Cannot add custom domain with nil display_domain"
+          raise Onetime::Problem, 'Cannot add custom domain with nil display_domain'
         end
 
         if fobj.identifier.nil?
           OT.le "[CustomDomain.add] identifier is nil for #{fobj.class}:#{fobj.display_domain}"
-          raise Onetime::Problem, "Cannot add custom domain with nil identifier"
+          raise Onetime::Problem, 'Cannot add custom domain with nil identifier'
         end
 
         if fobj.org_id.nil?
           OT.le "[CustomDomain.add] org_id is nil for #{fobj.class}:#{fobj.display_domain}:#{fobj.identifier}"
           debug_info = begin
             { to_h: fobj.to_h, methods: fobj.methods.grep(/org/) }
-          rescue => e
-            { error: e.message }
+          rescue StandardError => ex
+            { error: ex.message }
           end
           OT.le "[CustomDomain.add] fobj debug: #{debug_info.inspect}"
           raise Onetime::Problem, "Cannot add custom domain with nil org_id. display_domain=#{fobj.display_domain.inspect}, identifier=#{fobj.identifier.inspect}"

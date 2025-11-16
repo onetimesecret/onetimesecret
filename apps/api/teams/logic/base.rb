@@ -21,7 +21,7 @@ module TeamAPI
       # Validation constants
       MAX_DISPLAY_NAME_LENGTH = 100
       MIN_DISPLAY_NAME_LENGTH = 3
-      MAX_DESCRIPTION_LENGTH = 500
+      MAX_DESCRIPTION_LENGTH  = 500
       # Team API-specific serialization helper
       #
       # Converts Familia model to JSON hash with native types.

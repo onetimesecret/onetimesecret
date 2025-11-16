@@ -8,7 +8,6 @@ module AccountAPI
   module Logic
     module Account
       using Familia::Refinements::TimeLiterals
-
     end
   end
 end

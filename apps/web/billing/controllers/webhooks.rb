@@ -1,4 +1,6 @@
 # apps/web/billing/controllers/webhooks.rb
+#
+# frozen_string_literal: true
 
 require_relative 'base'
 require 'stripe'
@@ -19,21 +21,21 @@ module Billing
       # @return [HTTP 400] Invalid payload or signature
       #
       def handle_event
-        payload = req.body.read
+        payload    = req.body.read
         sig_header = req.env['HTTP_STRIPE_SIGNATURE']
 
         unless sig_header
-          billing_logger.warn "Webhook received without signature header"
+          billing_logger.warn 'Webhook received without signature header'
           res.status = 400
-          return json_error("Missing signature header", status: 400)
+          return json_error('Missing signature header', status: 400)
         end
 
         # Verify webhook signature
         webhook_secret = OT.conf.dig('billing', 'webhook_signing_secret')
         unless webhook_secret
-          billing_logger.error "Webhook signing secret not configured"
+          billing_logger.error 'Webhook signing secret not configured'
           res.status = 500
-          return json_error("Webhook not configured", status: 500)
+          return json_error('Webhook not configured', status: 500)
         end
 
         begin
@@ -41,22 +43,22 @@ module Billing
             payload, sig_header, webhook_secret
           )
         rescue JSON::ParserError => ex
-          billing_logger.error "Invalid webhook payload", {
-            exception: ex
+          billing_logger.error 'Invalid webhook payload', {
+            exception: ex,
           }
           res.status = 400
-          return json_error("Invalid payload", status: 400)
+          return json_error('Invalid payload', status: 400)
         rescue Stripe::SignatureVerificationError => ex
-          billing_logger.error "Invalid webhook signature", {
-            exception: ex
+          billing_logger.error 'Invalid webhook signature', {
+            exception: ex,
           }
           res.status = 400
-          return json_error("Invalid signature", status: 400)
+          return json_error('Invalid signature', status: 400)
         end
 
-        billing_logger.info "Webhook event received", {
+        billing_logger.info 'Webhook event received', {
           event_type: event.type,
-          event_id: event.id
+          event_id: event.id,
         }
 
         # Process event based on type
@@ -70,13 +72,13 @@ module Billing
         when 'product.updated', 'price.updated'
           handle_product_or_price_updated(event.data.object)
         else
-          billing_logger.debug "Unhandled webhook event type", {
-            event_type: event.type
+          billing_logger.debug 'Unhandled webhook event type', {
+            event_type: event.type,
           }
         end
 
         res.status = 200
-        json_success("Event processed")
+        json_success('Event processed')
       end
 
       private
@@ -88,19 +90,19 @@ module Billing
       #
       # @param session [Stripe::Checkout::Session] Completed checkout session
       def handle_checkout_completed(session)
-        billing_logger.info "Processing checkout.session.completed", {
+        billing_logger.info 'Processing checkout.session.completed', {
           session_id: session.id,
-          customer_id: session.customer
+          customer_id: session.customer,
         }
 
         # Expand subscription to get full details
         subscription = Stripe::Subscription.retrieve(session.subscription)
-        metadata = subscription.metadata
+        metadata     = subscription.metadata
 
         custid = metadata['custid']
         unless custid
-          billing_logger.warn "No custid in subscription metadata", {
-            subscription_id: subscription.id
+          billing_logger.warn 'No custid in subscription metadata', {
+            subscription_id: subscription.id,
           }
           return
         end
@@ -108,21 +110,21 @@ module Billing
         # Load customer
         customer = Onetime::Customer.load(custid)
         unless customer
-          billing_logger.error "Customer not found", {
-            custid: custid
+          billing_logger.error 'Customer not found', {
+            custid: custid,
           }
           return
         end
 
         # Find or create default organization
         orgs = customer.organization_instances.to_a
-        org = orgs.find { |o| o.is_default }
+        org  = orgs.find { |o| o.is_default }
 
         unless org
-          org = Onetime::Organization.create!(
+          org            = Onetime::Organization.create!(
             "#{customer.email}'s Workspace",
             customer,
-            customer.email
+            customer.email,
           )
           org.is_default = true
           org.save
@@ -131,10 +133,10 @@ module Billing
         # Update organization with subscription details
         org.update_from_stripe_subscription(subscription)
 
-        billing_logger.info "Checkout completed - organization subscription activated", {
+        billing_logger.info 'Checkout completed - organization subscription activated', {
           orgid: org.objid,
           subscription_id: subscription.id,
-          custid: custid
+          custid: custid,
         }
       end
 
@@ -145,17 +147,17 @@ module Billing
       #
       # @param subscription [Stripe::Subscription] Updated subscription
       def handle_subscription_updated(subscription)
-        billing_logger.info "Processing customer.subscription.updated", {
+        billing_logger.info 'Processing customer.subscription.updated', {
           subscription_id: subscription.id,
-          status: subscription.status
+          status: subscription.status,
         }
 
         # Find organization by subscription ID
         org = find_organization_by_subscription(subscription.id)
 
         unless org
-          billing_logger.warn "Organization not found for subscription", {
-            subscription_id: subscription.id
+          billing_logger.warn 'Organization not found for subscription', {
+            subscription_id: subscription.id,
           }
           return
         end
@@ -163,10 +165,10 @@ module Billing
         # Update organization with new subscription data
         org.update_from_stripe_subscription(subscription)
 
-        billing_logger.info "Subscription updated", {
+        billing_logger.info 'Subscription updated', {
           orgid: org.objid,
           subscription_id: subscription.id,
-          status: subscription.status
+          status: subscription.status,
         }
       end
 
@@ -176,16 +178,16 @@ module Billing
       #
       # @param subscription [Stripe::Subscription] Deleted subscription
       def handle_subscription_deleted(subscription)
-        billing_logger.info "Processing customer.subscription.deleted", {
-          subscription_id: subscription.id
+        billing_logger.info 'Processing customer.subscription.deleted', {
+          subscription_id: subscription.id,
         }
 
         # Find organization by subscription ID
         org = find_organization_by_subscription(subscription.id)
 
         unless org
-          billing_logger.warn "Organization not found for subscription", {
-            subscription_id: subscription.id
+          billing_logger.warn 'Organization not found for subscription', {
+            subscription_id: subscription.id,
           }
           return
         end
@@ -193,9 +195,9 @@ module Billing
         # Clear billing fields
         org.clear_billing_fields
 
-        billing_logger.info "Subscription deleted - organization marked as canceled", {
+        billing_logger.info 'Subscription deleted - organization marked as canceled', {
           orgid: org.objid,
-          subscription_id: subscription.id
+          subscription_id: subscription.id,
         }
       end
 
@@ -205,18 +207,18 @@ module Billing
       #
       # @param object [Stripe::Product, Stripe::Price] Updated product or price
       def handle_product_or_price_updated(object)
-        billing_logger.info "Processing product/price update - refreshing plan cache", {
+        billing_logger.info 'Processing product/price update - refreshing plan cache', {
           object_type: object.object,
-          object_id: object.id
+          object_id: object.id,
         }
 
         begin
           Billing::Models::PlanCache.refresh_from_stripe
-          billing_logger.info "Plan cache refreshed successfully"
+          billing_logger.info 'Plan cache refreshed successfully'
         rescue StandardError => ex
-          billing_logger.error "Failed to refresh plan cache", {
+          billing_logger.error 'Failed to refresh plan cache', {
             exception: ex,
-            message: ex.message
+            message: ex.message,
           }
         end
       end
@@ -232,7 +234,6 @@ module Billing
         # Use Familia auto-generated finder from unique_index for O(1) lookup
         Onetime::Organization.find_by_stripe_subscription_id(subscription_id)
       end
-
     end
   end
 end

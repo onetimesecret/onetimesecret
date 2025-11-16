@@ -27,7 +27,7 @@ module Onetime
       desc 'Ruby irb with Onetime preloaded'
 
       option :delay_boot, type: :boolean, default: false, aliases: ['B'],
-             desc: 'Bring up the console without initializing'
+        desc: 'Bring up the console without initializing'
 
       def call(delay_boot: false, **)
         cmd = format('irb -I%s -ronetime/console', File.join(Onetime::HOME, 'lib'))

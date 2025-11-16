@@ -41,7 +41,6 @@ module AccountAPI::Logic
           cust.stripe_subscription_id = stripe_subscription.id
         end
 
-
         cust.save
 
         success_data

@@ -1,4 +1,6 @@
 # Gemfile
+#
+# frozen_string_literal: true
 # typed: false
 
 #
@@ -16,11 +18,11 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
-gem 'rodauth-tools', git: 'https://github.com/delano/rodauth-tools'
 gem 'otto', git: 'https://github.com/delano/otto'
 gem 'rhales', git: 'https://github.com/onetimesecret/rhales'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
+gem 'rodauth-tools', git: 'https://github.com/delano/rodauth-tools'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'
@@ -125,6 +127,7 @@ group :development do
   gem 'rubocop', '~> 1.81.1', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
+  gem 'rubocop-sequel', require: false
   gem 'rubocop-thread_safety', require: false
   gem 'ruby-lsp', require: false
   gem 'syntax_tree', require: false

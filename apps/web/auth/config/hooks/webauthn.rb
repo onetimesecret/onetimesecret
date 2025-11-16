@@ -74,7 +74,6 @@
 module Auth::Config::Hooks
       module WebAuthn
         def self.configure(auth)
-
       # CONFIGURATION NOTE:
       # Passwordless WebAuthn login is enabled by default - users can sign in
       # with ONLY their biometric/security key, no password required.
@@ -126,7 +125,8 @@ module Auth::Config::Hooks
         # This helps users identify recently added credentials
         db[webauthn_keys_table]
           .where(webauthn_keys_account_id_column => account_id,
-                  webauthn_keys_webauthn_id_column => param(webauthn_setup_webauthn_id_param))
+            webauthn_keys_webauthn_id_column => param(webauthn_setup_webauthn_id_param),
+          )
           .update(webauthn_keys_last_use_column => Sequel::CURRENT_TIMESTAMP)
       end
 
@@ -275,7 +275,6 @@ module Auth::Config::Hooks
         # Consider sending notification email to account owner
         # System may prevent removal if it's the only auth method
       end
-
-    end
+        end
   end
 end

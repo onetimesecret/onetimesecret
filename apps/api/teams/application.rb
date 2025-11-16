@@ -32,7 +32,7 @@ module TeamAPI
   # - Authentication: Session-based (sessionauth) and HTTP Basic (basicauth)
   #
   class Application < BaseJSONAPI
-    @uri_prefix = '/api/teams'.freeze
+    @uri_prefix = '/api/teams'
 
     warmup do
       # Empty warmup - just triggers the logging

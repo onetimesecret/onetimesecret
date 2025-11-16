@@ -4,7 +4,6 @@
 
 module Onetime::Secret::Features
   module DeprecatedFields
-
     Familia::Base.add_feature self, :deprecated_fields
 
     def self.included(base)
@@ -22,7 +21,6 @@ module Onetime::Secret::Features
         base.field :key
         base.field :secret_key
       end
-
     end
 
     module ClassMethods
@@ -30,6 +28,5 @@ module Onetime::Secret::Features
 
     module InstanceMethods
     end
-
   end
 end

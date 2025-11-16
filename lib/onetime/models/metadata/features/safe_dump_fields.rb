@@ -10,10 +10,6 @@ module Onetime::Metadata::Features
     def self.included(base)
       # Lambda to handle counter fields that may be nil/empty - returns '0'
       # if empty, otherwise the string value
-      counter_field_handler = lambda { |cust, field_name|
-        value = cust.send(field_name).to_s
-        value.empty? ? '0' : value
-      }
 
       # Enable the Familia SafeDump feature
       base.feature :safe_dump
@@ -45,7 +41,7 @@ module Onetime::Metadata::Features
       base.safe_dump_field :is_burned, ->(m) { m.state?(:burned) }
       base.safe_dump_field :is_expired, ->(m) { m.state?(:expired) }
       base.safe_dump_field :is_orphaned, ->(m) { m.state?(:orphaned) }
-      base.safe_dump_field :is_destroyed, lambda { |m|
+      base.safe_dump_field :is_destroyed, ->(m) {
         m.state?(:received) || m.state?(:burned) || m.state?(:expired) || m.state?(:orphaned)
       }
       # We use the hash syntax here since `:truncated?` is not a valid symbol.

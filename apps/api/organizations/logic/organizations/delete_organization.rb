@@ -29,7 +29,7 @@ module OrganizationAPI::Logic
         OT.ld "[DeleteOrganization] Deleting organization #{@extid} for user #{cust.custid}"
 
         # Get organization info before deletion
-        objid = @organization.objid
+        objid        = @organization.objid
         display_name = @organization.display_name
 
         # Remove all members first

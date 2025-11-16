@@ -1,4 +1,6 @@
 # lib/middleware/capability_check.rb
+#
+# frozen_string_literal: true
 
 module Rack
   # CapabilityCheck Middleware
@@ -33,8 +35,8 @@ module Rack
     include Middleware::Logging
 
     def initialize(app, capability:, logger: nil)
-      @app = app
-      @capability = capability.to_s
+      @app           = app
+      @capability    = capability.to_s
       @custom_logger = logger
     end
 
@@ -49,10 +51,10 @@ module Rack
 
       # If no org context, deny access (auth should happen upstream)
       unless org
-        logger.warn("[CapabilityCheck] No organization in request context")
+        logger.warn('[CapabilityCheck] No organization in request context')
         return denial_response(
           error: 'Authentication required',
-          capability: @capability
+          capability: @capability,
         )
       end
 
@@ -63,15 +65,16 @@ module Rack
       else
         logger.info("[CapabilityCheck] #{org.objid} denied #{@capability}", {
           current_plan: org.planid,
-          upgrade_to: Onetime::Billing.upgrade_path_for(@capability, org.planid)
-        })
+          upgrade_to: Onetime::Billing.upgrade_path_for(@capability, org.planid),
+        }
+        )
 
         denial_response(
           error: 'Feature not available',
           capability: @capability,
           current_plan: org.planid,
           upgrade_to: Onetime::Billing.upgrade_path_for(@capability, org.planid),
-          message: upgrade_message(org)
+          message: upgrade_message(org),
         )
       end
     end
@@ -98,12 +101,12 @@ module Rack
     # @return [String] Upgrade message
     def upgrade_message(org)
       upgrade_plan = Onetime::Billing.upgrade_path_for(@capability, org.planid)
-      plan_name = Onetime::Billing.plan_name(upgrade_plan) if upgrade_plan
+      plan_name    = Onetime::Billing.plan_name(upgrade_plan) if upgrade_plan
 
       if plan_name
         "This feature requires #{plan_name}. Upgrade your plan to access #{@capability.tr('_', ' ')}."
       else
-        "This feature is not available on your current plan."
+        'This feature is not available on your current plan.'
       end
     end
 
@@ -116,11 +119,10 @@ module Rack
         403,
         {
           'Content-Type' => 'application/json',
-          'X-Capability-Required' => @capability
+          'X-Capability-Required' => @capability,
         },
-        [payload.to_json]
+        [payload.to_json],
       ]
     end
-
   end
 end

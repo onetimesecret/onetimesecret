@@ -19,10 +19,10 @@
 #   MAX_WORKER_REQUESTS - Restart workers after N requests (production)
 
 _rack_env = ENV.fetch('RACK_ENV', 'production').downcase
-_port = ENV.fetch('PORT', 3000)
+_port     = ENV.fetch('PORT', 3000)
 
 # Worker count defaults: 2 for production (cluster mode), 0 for development (single-process)
-_worker_count = ENV.fetch('WEB_CONCURRENCY') { _rack_env == 'production' ? 2 : 0 }.to_i
+_worker_count      = ENV.fetch('WEB_CONCURRENCY') { _rack_env == 'production' ? 2 : 0 }.to_i
 _threads_count_min = ENV.fetch('MIN_THREADS') { _rack_env == 'production' ? 1 : 0 }.to_i
 _threads_count_max = ENV.fetch('MAX_THREADS', 5).to_i
 

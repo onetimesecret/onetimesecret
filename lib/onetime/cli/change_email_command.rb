@@ -11,10 +11,10 @@ module Onetime
       argument :email_filter, type: :string, required: false, desc: 'Filter by email address'
 
       option :limit, type: :string, default: '10',
-             desc: 'Number of reports to show (default: 10)'
+        desc: 'Number of reports to show (default: 10)'
 
       option :verbose, type: :boolean, default: false, aliases: ['v'],
-             desc: 'Show full report details'
+        desc: 'Show full report details'
 
       def call(email_filter: nil, limit: '10', verbose: false, **)
         boot_application!
@@ -70,7 +70,7 @@ module Onetime
       argument :old_email, type: :string, required: true, desc: 'Current email address'
       argument :new_email, type: :string, required: true, desc: 'New email address'
       argument :realm, type: :string, required: false, default: 'US',
-               desc: 'Geographic region (US/EU/CA/NZ), defaults to US'
+        desc: 'Geographic region (US/EU/CA/NZ), defaults to US'
 
       def call(old_email:, new_email:, realm: 'US', **)
         boot_application!

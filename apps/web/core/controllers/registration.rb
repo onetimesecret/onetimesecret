@@ -17,7 +17,7 @@ module Core
         logic = AccountAPI::Logic::Account::CreateAccount.new(strategy_result, req.params, locale)
 
         # Determine success message based on autoverify setting
-        autoverify = OT.conf.dig('site', 'authentication', 'autoverify')
+        autoverify      = OT.conf.dig('site', 'authentication', 'autoverify')
         success_message = if autoverify.to_s == 'true'
                             'Your account has been created. Please sign in.'
                           else

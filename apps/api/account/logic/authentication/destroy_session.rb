@@ -12,10 +12,10 @@ module AccountAPI::Logic
       def process_params; end
 
       def raise_concerns
-        auth_logger.debug "Session destruction initiated", {
+        auth_logger.debug 'Session destruction initiated', {
           customer_id: @custid,
           session_id: sess&.id,
-          ip: @strategy_result&.metadata&.dig(:ip)
+          ip: @strategy_result&.metadata&.dig(:ip),
         }
       end
 
@@ -23,10 +23,10 @@ module AccountAPI::Logic
         # Rack session doesn't have destroy! - use clear to remove all data
         sess.clear
 
-        auth_logger.info "Session destroyed", {
+        auth_logger.info 'Session destroyed', {
           customer_id: @custid,
           session_id: sess&.id,
-          ip: @strategy_result&.metadata&.dig(:ip)
+          ip: @strategy_result&.metadata&.dig(:ip),
         }
 
         success_data

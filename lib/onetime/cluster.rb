@@ -1,3 +1,7 @@
+# lib/onetime/cluster.rb
+#
+# frozen_string_literal: true
+
 require 'httparty'
 
 module Onetime

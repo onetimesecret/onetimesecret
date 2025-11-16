@@ -52,6 +52,7 @@ module Onetime
   #
   class Customer < Familia::Horreum
     include Onetime::LoggerMethods
+
     require_relative 'customer/features'
 
     using Familia::Refinements::TimeLiterals
@@ -180,10 +181,10 @@ module Onetime
 
         raise Familia::RecordExistsError, "Customer exists #{loggable_email}" if email_exists?(email)
 
-        Onetime.auth_logger.info "Creating customer", {
+        Onetime.auth_logger.info 'Creating customer', {
           email: loggable_email,
           kwargs: kwargs.keys,
-          action: 'create'
+          action: 'create',
         }
 
         # Ensure email is in kwargs for super
@@ -195,12 +196,12 @@ module Onetime
         # updating all unique indexes (only objid?). Likely an upstream bug.
         cust.save
 
-        Onetime.auth_logger.info "Customer created successfully", {
+        Onetime.auth_logger.info 'Customer created successfully', {
           customer_id: cust.custid,
           email: loggable_email,
           role: cust.role,
           action: 'create',
-          result: :success
+          result: :success,
         }
 
         cust

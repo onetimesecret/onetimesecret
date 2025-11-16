@@ -7,7 +7,6 @@ require 'semantic_logger'
 
 module Onetime
   module Initializers
-
     # Configure SemanticLogger with strategic categories for debugging and
     # operational instrumentation. Categories: Auth, Session, HTTP, Familia,
     # Otto, Rhales, Secret, App (default).
@@ -20,7 +19,7 @@ module Onetime
     # the level settings are lost.
     #
     def setup_loggers
-      $stderr.puts ' entering configure_loggers' if Onetime.debug?
+      warn ' entering configure_loggers' if Onetime.debug?
       config = load_logging_config
 
       # Base configuration - set default level first
@@ -33,7 +32,7 @@ module Onetime
       #
       # NOTE: It's not clear what effect this has on output, Leaving for
       # now so we can do more testing in various scenarios.
-      backtrace_level = ENV['BACKTRACE_LEVEL']&.to_sym || :error
+      ENV['BACKTRACE_LEVEL']&.to_sym || :error
       SemanticLogger.backtrace_level = :info
 
       # Add appender
@@ -52,7 +51,7 @@ module Onetime
       # to the configured loggers in @cached_loggers.
       @cached_loggers = {}
       config['loggers']&.each do |name, level|
-        $stderr.puts " initialize #{name}=#{level}" if Onetime.debug?
+        warn " initialize #{name}=#{level}" if Onetime.debug?
         logger                = SemanticLogger[name]
         logger.level          = level.to_sym
         @cached_loggers[name] = logger
@@ -67,7 +66,7 @@ module Onetime
       # Log final effective configuration
       log_effective_configuration
 
-      $stderr.puts " exiting configure_loggers (level: #{SemanticLogger.default_level})"
+      warn " exiting configure_loggers (level: #{SemanticLogger.default_level})"
     end
 
     private
@@ -165,9 +164,9 @@ module Onetime
       end
 
       if overrides.any?
-        $stderr.puts " default=#{default}, overrides: #{overrides.join(', ')}"
+        warn " default=#{default}, overrides: #{overrides.join(', ')}"
       else
-        $stderr.puts " default=#{default} (no overrides)"
+        warn " default=#{default} (no overrides)"
       end
     end
 
@@ -238,7 +237,7 @@ module Onetime
           familia_logger.debug 'Redis command', {
             command: cmd,
             duration: duration,
-            context: context
+            context: context,
           }
         end
       end
@@ -251,7 +250,7 @@ module Onetime
           event: event,
           class: instance.class.name,
           identifier: instance.respond_to?(:identifier) ? instance.identifier : nil,
-          context: context
+          context: context,
         }
       end
     end

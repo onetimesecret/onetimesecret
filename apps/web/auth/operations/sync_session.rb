@@ -29,12 +29,12 @@ module Auth
       # @param correlation_id [String] Optional correlation ID for tracking
       # @param db [Sequel::Database] The database connection (optional, uses Auth::Database if not provided)
       def initialize(account:, account_id:, session:, request:, correlation_id: nil, db: nil)
-        @account = account
-        @account_id = account_id
-        @session = session
-        @request = request
+        @account        = account
+        @account_id     = account_id
+        @session        = session
+        @request        = request
         @correlation_id = correlation_id || session[:auth_correlation_id]
-        @db = db || Auth::Database.connection
+        @db             = db || Auth::Database.connection
       end
 
       # Convenience class method for direct calls
@@ -52,7 +52,7 @@ module Auth
           session: session,
           request: request,
           correlation_id: correlation_id,
-          db: db
+          db: db,
         ).call
       end
 
@@ -64,7 +64,7 @@ module Auth
           level: :info,
           account_id: @account_id,
           external_id: @account[:external_id],
-          correlation_id: @correlation_id
+          correlation_id: @correlation_id,
         )
 
         # Check idempotency - skip if already processed
@@ -74,7 +74,7 @@ module Auth
             level: :info,
             account_id: @account_id,
             reason: 'already_processed',
-            correlation_id: @correlation_id
+            correlation_id: @correlation_id,
           )
           return existing_customer
         end
@@ -86,25 +86,23 @@ module Auth
         customer = Auth::Logging.measure(
           :session_sync,
           account_id: @account_id,
-          correlation_id: @correlation_id
+          correlation_id: @correlation_id,
         ) do
-          begin
             clear_rate_limiting
             customer = ensure_customer_exists
             populate_session(customer)
             track_request_metadata
             customer
-          rescue StandardError => ex
+        rescue StandardError => ex
             # Compensation: clear idempotency key to allow retry
             clear_idempotency_key
             Auth::Logging.log_error(
               :session_sync_failed,
               exception: ex,
               account_id: @account_id,
-              correlation_id: @correlation_id
+              correlation_id: @correlation_id,
             )
             raise
-          end
         end
 
         Auth::Logging.log_operation(
@@ -113,7 +111,7 @@ module Auth
           account_id: @account_id,
           email: @session['email'],
           customer_id: customer.custid,
-          correlation_id: @correlation_id
+          correlation_id: @correlation_id,
         )
 
         customer
@@ -138,7 +136,7 @@ module Auth
       # Finds existing customer by external_id or email
       # @return [Onetime::Customer, nil]
       def find_existing_customer
-        customer = Onetime::Customer.find_by_extid(@account[:external_id]) if @account[:external_id]
+        customer   = Onetime::Customer.find_by_extid(@account[:external_id]) if @account[:external_id]
         customer ||= Onetime::Customer.find_by_email(@account[:email])
         customer
       end
@@ -150,13 +148,13 @@ module Auth
           :customer_create_start,
           level: :info,
           email: @account[:email],
-          correlation_id: @correlation_id
+          correlation_id: @correlation_id,
         )
 
         customer = Onetime::Customer.create!(
           email: @account[:email],
           role: 'customer',
-          verified: rodauth_status_verified? ? '1' : '0'
+          verified: rodauth_status_verified? ? '1' : '0',
         )
 
         Auth::Logging.log_operation(
@@ -164,7 +162,7 @@ module Auth
           level: :info,
           customer_id: customer.custid,
           external_id: customer.extid,
-          correlation_id: @correlation_id
+          correlation_id: @correlation_id,
         )
         customer
       end
@@ -193,20 +191,20 @@ module Auth
           level: :info,
           customer_id: customer.custid,
           account_id: @account_id,
-          correlation_id: @correlation_id
+          correlation_id: @correlation_id,
         )
       end
 
       # Populates the application session with user data
       # @param customer [Onetime::Customer]
       def populate_session(customer)
-        @session['authenticated'] = true
+        @session['authenticated']    = true
         @session['authenticated_at'] = Familia.now.to_i
-        @session['account_id'] = @account_id
-        @session['external_id'] = customer.extid
-        @session['email'] = customer.email
-        @session['role'] = customer.role
-        @session['locale'] = customer.locale || 'en'
+        @session['account_id']       = @account_id
+        @session['external_id']      = customer.extid
+        @session['email']            = customer.email
+        @session['role']             = customer.role
+        @session['locale']           = customer.locale || 'en'
 
         # Clear MFA waiting flag - user has completed full authentication
         @session.delete(:awaiting_mfa)
@@ -227,7 +225,11 @@ module Auth
       def idempotency_key
         @idempotency_key ||= begin
           # Use session ID if available, otherwise generate unique ID to prevent collisions
-          session_id = @session['session_id'] || (@session.id rescue SecureRandom.hex(16))
+          session_id = @session['session_id'] || begin
+                                                   @session.id
+          rescue StandardError
+                                                   SecureRandom.hex(16)
+          end
 
           # Use 5-minute time window to allow re-sync after timeout
           timestamp_window = (Familia.now.to_i / IDEMPOTENCY_TTL).to_i
@@ -249,7 +251,7 @@ module Auth
             level: :debug,
             account_id: @account_id,
             idempotency_key: idempotency_key,
-            correlation_id: @correlation_id
+            correlation_id: @correlation_id,
           )
           return true
         end
@@ -260,7 +262,7 @@ module Auth
           :idempotency_check_error,
           exception: ex,
           account_id: @account_id,
-          correlation_id: @correlation_id
+          correlation_id: @correlation_id,
         )
         # Fail open - allow operation to proceed without idempotency protection
         false
@@ -277,14 +279,14 @@ module Auth
           account_id: @account_id,
           idempotency_key: idempotency_key,
           ttl: IDEMPOTENCY_TTL,
-          correlation_id: @correlation_id
+          correlation_id: @correlation_id,
         )
       rescue Redis::BaseError => ex
         Auth::Logging.log_error(
           :idempotency_key_set_error,
           exception: ex,
           account_id: @account_id,
-          correlation_id: @correlation_id
+          correlation_id: @correlation_id,
         )
         # Continue without protection - logged for monitoring
       end
@@ -299,14 +301,14 @@ module Auth
           level: :debug,
           account_id: @account_id,
           idempotency_key: idempotency_key,
-          correlation_id: @correlation_id
+          correlation_id: @correlation_id,
         )
       rescue Redis::BaseError => ex
         Auth::Logging.log_error(
           :idempotency_key_clear_error,
           exception: ex,
           account_id: @account_id,
-          correlation_id: @correlation_id
+          correlation_id: @correlation_id,
         )
         # Non-critical - key will expire naturally
       end
@@ -321,7 +323,7 @@ module Auth
         end
 
         # Fall back to finding by account linkage or email
-        find_existing_customer || raise(OT::Problem, "Customer not found for already-processed sync")
+        find_existing_customer || raise(OT::Problem, 'Customer not found for already-processed sync')
       end
 
       # Checks if Redis is available for idempotency checks
@@ -336,7 +338,7 @@ module Auth
             :redis_unavailable,
             exception: ex,
             account_id: @account_id,
-            correlation_id: @correlation_id
+            correlation_id: @correlation_id,
           )
           false
         end

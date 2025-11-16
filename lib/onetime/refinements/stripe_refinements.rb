@@ -23,7 +23,7 @@ module Onetime::StripeRefinements
       :trial_end,
       :livemode,
 
-      { items: lambda { |sub|
+      { items: ->(sub) {
         sub.items.data.map do |item|
           {
             price_id: item.price.id,
@@ -33,15 +33,15 @@ module Onetime::StripeRefinements
         end
       } },
 
-      { current_period_remaining: lambda { |sub|
+      { current_period_remaining: ->(sub) {
         (Time.at(sub.current_period_end) - Familia.now).to_i
       } },
 
-      { on_trial: lambda { |sub|
+      { on_trial: ->(sub) {
         sub.trial_end && Familia.now < Time.at(sub.trial_end)
       } },
 
-      { plan: lambda { |sub|
+      { plan: ->(sub) {
         if sub.plan
   {
     id: sub.plan.id,
@@ -87,7 +87,7 @@ end
       :preferred_locales,
       :currency,
 
-      { address: lambda { |cust|
+      { address: ->(cust) {
         if cust.address
   {
     city: cust.address.city,
@@ -100,11 +100,11 @@ end
 end
       } },
 
-      { has_payment_method: lambda { |cust|
+      { has_payment_method: ->(cust) {
         !cust.default_source.nil?
       } },
 
-      { metadata: lambda { |cust|
+      { metadata: ->(cust) {
         # Only include safe metadata fields
         safe_metadata_identifiers = [:public_note, :preferred_language]
         cust.metadata_list.select { |k, _| safe_metadata_identifiers.include?(k.to_sym) }

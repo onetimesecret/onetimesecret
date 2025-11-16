@@ -8,9 +8,9 @@ module TeamAPI::Logic
       attr_reader :team, :display_name, :description
 
       def process_params
-        @team_id = params['extid']
+        @team_id      = params['extid']
         @display_name = params[:display_name].to_s.strip
-        @description = params[:description].to_s.strip
+        @description  = params[:description].to_s.strip
       end
 
       def raise_concerns
@@ -27,7 +27,7 @@ module TeamAPI::Logic
         verify_team_owner(@team)
 
         # Validate display_name if provided
-        if !display_name.empty?
+        unless display_name.empty?
           if display_name.length < MIN_DISPLAY_NAME_LENGTH
             raise_form_error("Team name must be at least #{MIN_DISPLAY_NAME_LENGTH} characters", field: :display_name, error_type: :invalid)
           end
@@ -52,11 +52,11 @@ module TeamAPI::Logic
         OT.ld "[UpdateTeam] Updating team #{@team_id} for user #{cust.custid}"
 
         # Update fields
-        if !display_name.empty?
+        unless display_name.empty?
           @team.display_name = display_name
         end
 
-        if !description.empty?
+        unless description.empty?
           @team.description = description
         end
 
@@ -73,7 +73,7 @@ module TeamAPI::Logic
         {
           user_id: cust.objid,
           record: team.safe_dump.merge(
-            current_user_role: 'owner'
+            current_user_role: 'owner',
           ),
         }
       end

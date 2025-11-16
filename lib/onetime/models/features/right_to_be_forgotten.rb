@@ -70,7 +70,6 @@ module Onetime
             save
           end
         end
-
       end
     end
   end

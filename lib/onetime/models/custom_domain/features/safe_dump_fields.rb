@@ -6,11 +6,9 @@
 # This file is automatically loaded when the SafeDump feature is enabled
 module Onetime::CustomDomain::Features
   module SafeDump
-
     Onetime::CustomDomain.add_feature self, :safe_dump_fields
 
     def self.included(base)
-
       base.feature :safe_dump
 
       base.safe_dump_field :identifier, ->(obj) { obj.identifier }

@@ -15,7 +15,7 @@ require 'bcrypt'
 begin
   require 'sendgrid-ruby'
 rescue LoadError
-  warn "SendGrid is not installed. Mailer not available."
+  warn 'SendGrid is not installed. Mailer not available.'
 end
 
 require 'rack'
@@ -32,7 +32,6 @@ Warning[:deprecated] = %w[development dev test testing].include?(ENV['RACK_ENV']
 #
 # NOTE: Use STDOUT the immuntable constant here, not $stdout (global var).
 #
-
 
 # Onetime is the core of the Onetime Secret application.
 # It contains the core classes and modules that make up
@@ -78,17 +77,15 @@ trap('SIGINT') do
   trap('SIGINT', 'DEFAULT')
 
   # Cannot use semantic_logger from trap context - use direct STDERR
-  $stderr.puts 'Shutting down gracefully...'
+  warn 'Shutting down gracefully...'
   OT.with_diagnostics do
-    begin
       Sentry.close  # Attempt graceful shutdown with a short timeout
     rescue ThreadError => ex
-      $stderr.puts "Sentry shutdown interrupted: #{ex} (#{ex.class})"
+      warn "Sentry shutdown interrupted: #{ex} (#{ex.class})"
     rescue Sentry::Error, IOError, SystemCallError => ex
       # Ignore Sentry-related/network errors during shutdown
-      $stderr.puts "Error during shutdown: #{ex} (#{ex.class})"
-      $stderr.puts(ex.backtrace&.join("\n")) if OT.debug?
-    end
+      warn "Error during shutdown: #{ex} (#{ex.class})"
+      warn(ex.backtrace&.join("\n")) if OT.debug?
   end
 
   # Re-raise signal to trigger default handler (ensures proper exit code 130)

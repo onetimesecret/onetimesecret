@@ -1,5 +1,7 @@
 # lib/onetime/application/authorization_policies.rb
 #
+# frozen_string_literal: true
+#
 # Authorization policy module for Logic classes
 #
 # Provides declarative authorization patterns across all APIs:
@@ -39,9 +41,9 @@ module Onetime
         when 'colonel'
           cust.role == 'colonel'
         when 'admin'
-          ['colonel', 'admin'].include?(cust.role)
+          %w[colonel admin].include?(cust.role)
         when 'staff'
-          ['colonel', 'admin', 'staff'].include?(cust.role)
+          %w[colonel admin staff].include?(cust.role)
         else
           false
         end
@@ -99,7 +101,7 @@ module Onetime
         message = error_message || build_authorization_error_message(
           colonel: colonel,
           admin: admin,
-          has_custom: !custom_check.nil?
+          has_custom: !custom_check.nil?,
         )
 
         raise_form_error(message, field: :user_id, error_type: :forbidden)
@@ -124,19 +126,19 @@ module Onetime
       def verify_all_roles!(colonel: false, admin: false, custom_check: nil, error_message: nil)
         # Check colonel if required
         if colonel && !has_system_role?('colonel')
-          message = error_message || "Requires colonel role"
+          message = error_message || 'Requires colonel role'
           raise_form_error(message, field: :user_id, error_type: :forbidden)
         end
 
         # Check admin if required
         if admin && !has_system_role?('admin')
-          message = error_message || "Requires admin role"
+          message = error_message || 'Requires admin role'
           raise_form_error(message, field: :user_id, error_type: :forbidden)
         end
 
         # Check custom condition if specified
         if custom_check && !custom_check.call
-          message = error_message || "Insufficient permissions"
+          message = error_message || 'Insufficient permissions'
           raise_form_error(message, field: :user_id, error_type: :forbidden)
         end
 
@@ -149,12 +151,12 @@ module Onetime
       def build_authorization_error_message(colonel:, admin:, has_custom:)
         conditions = []
 
-        conditions << "site admin" if colonel
-        conditions << "system admin" if admin
-        conditions << "sufficient permissions" if has_custom
+        conditions << 'site admin' if colonel
+        conditions << 'system admin' if admin
+        conditions << 'sufficient permissions' if has_custom
 
         if conditions.empty?
-          "Insufficient permissions"
+          'Insufficient permissions'
         elsif conditions.size == 1
           "Requires #{conditions.first}"
         else

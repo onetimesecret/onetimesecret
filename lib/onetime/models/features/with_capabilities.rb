@@ -1,4 +1,6 @@
 # lib/onetime/models/features/with_capabilities.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Models
@@ -17,7 +19,6 @@ module Onetime
       #   org.check_capability('api_access') # => {allowed: false, upgrade_needed: true, ...}
       #
       module WithCapabilities
-
         Familia::Base.add_feature self, :with_capabilities
 
         def self.included(base)
@@ -26,7 +27,6 @@ module Onetime
         end
 
         module InstanceMethods
-
           # Check if organization has a specific capability
           #
           # @param capability [String, Symbol] Capability to check
@@ -110,14 +110,14 @@ module Onetime
           #   # }
           def check_capability(capability)
             allowed = can?(capability)
-            result = {
+            result  = {
               allowed: allowed,
               capability: capability.to_s,
               current_plan: planid,
-              upgrade_needed: !allowed
+              upgrade_needed: !allowed,
             }
 
-            if !allowed
+            unless allowed
               result[:upgrade_to] = Onetime::Billing.upgrade_path_for(capability, planid)
             end
 
@@ -139,11 +139,8 @@ module Onetime
 
             current_count >= limit
           end
-
         end
-
       end
-
     end
   end
 end

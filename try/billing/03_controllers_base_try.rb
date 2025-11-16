@@ -1,3 +1,7 @@
+# try/billing/03_controllers_base_try.rb
+#
+# frozen_string_literal: true
+
 require_relative '../support/test_helpers'
 
 # Billing Controllers Base tests

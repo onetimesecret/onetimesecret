@@ -1,3 +1,7 @@
+# lib/middleware/handle_invalid_utf8.rb
+#
+# frozen_string_literal: true
+
 require 'rack'
 require_relative 'logging'
 

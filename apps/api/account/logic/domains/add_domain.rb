@@ -38,23 +38,23 @@ module AccountAPI::Logic
         # Check for existing domain to provide specific error messages
         existing = Onetime::CustomDomain.load_by_display_domain(@display_domain)
 
-        if existing
-          # Scenario 1: Domain already in customer's organization (same org_id)
-          if existing.org_id.to_s == org.objid.to_s
-            OT.ld "[AddDomain] Domain already in organization: #{@display_domain}"
-            raise_form_error 'Domain already registered in your organization'
-          end
+        return unless existing
 
-          # Scenario 2: Domain in another organization (different org_id)
-          if !existing.org_id.to_s.empty?
-            OT.le "[AddDomain] Domain belongs to another organization: #{@display_domain}"
-            raise_form_error 'Domain is registered to another organization'
-          end
-
-          # Scenario 3: Orphaned domain (no org_id) - will be claimed in process
-          OT.info "[AddDomain] Found orphaned domain, will claim: #{@display_domain}"
-          # Don't raise an error - let the process method claim it
+        # Scenario 1: Domain already in customer's organization (same org_id)
+        if existing.org_id.to_s == org.objid.to_s
+          OT.ld "[AddDomain] Domain already in organization: #{@display_domain}"
+          raise_form_error 'Domain already registered in your organization'
         end
+
+        # Scenario 2: Domain in another organization (different org_id)
+        unless existing.org_id.to_s.empty?
+          OT.le "[AddDomain] Domain belongs to another organization: #{@display_domain}"
+          raise_form_error 'Domain is registered to another organization'
+        end
+
+        # Scenario 3: Orphaned domain (no org_id) - will be claimed in process
+        OT.info "[AddDomain] Found orphaned domain, will claim: #{@display_domain}"
+        # Don't raise an error - let the process method claim it
       end
 
       def process

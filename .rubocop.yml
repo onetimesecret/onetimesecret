@@ -17,9 +17,10 @@
 # https://docs.rubocop.org/rubocop/cops.html
 
 plugins:
-  - rubocop-thread_safety
   - rubocop-performance
   - rubocop-rspec
+  - rubocop-sequel
+  - rubocop-thread_safety
 
 AllCops:
   NewCops: enable
@@ -430,4 +431,9 @@ Lint/MissingSuper:
 Lint/EmptyFile:
   Enabled: false
 Lint/RescueException:
+  Enabled: false
+
+# rubocop-sequel plugin
+Sequel/SaveChanges:
+  # Does not differentiate between Sequel models and Familia models.
   Enabled: false

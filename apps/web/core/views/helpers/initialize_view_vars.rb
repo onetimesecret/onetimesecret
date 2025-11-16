@@ -13,6 +13,7 @@ module Core
     # instance variables and their attr_reader methods.
     module InitializeViewVars
       extend Onetime::LoggerMethods
+
       # Define fields that are safe to expose to the frontend
       # Explicitly excluding :secret and :authenticity which contain sensitive data
       @safe_site_fields = %w[
@@ -45,7 +46,7 @@ module Core
         # - Internal infrastructure details
         #
         site_config = OT.conf.fetch('site', {})
-        features    = OT.conf.fetch('features', {})
+        OT.conf.fetch('features', {})
         development = OT.conf.fetch('development', {})
         diagnostics = OT.conf.fetch('diagnostics', {})
 
@@ -59,9 +60,9 @@ module Core
         safe_site = InitializeViewVars.safe_site_fields.each_with_object({}) do |field, hash|
           field_str = field.to_s
           unless site_config.key?(field_str)
-            Onetime.app_logger.debug "Site config missing expected field", {
+            Onetime.app_logger.debug 'Site config missing expected field', {
               field: field_str,
-              module: "InitializeViewVars"
+              module: 'InitializeViewVars',
             }
             next
           end
@@ -88,8 +89,8 @@ module Core
 
           if strategy_result
             # Normal flow: Otto ran, strategy_result available
-            sess ||= strategy_result.session
-            cust ||= strategy_result.user || Onetime::Customer.anonymous
+            sess        ||= strategy_result.session
+            cust        ||= strategy_result.user || Onetime::Customer.anonymous
             authenticated = strategy_result.authenticated? || false
           else
             # Error recovery flow: Otto didn't run, use fallback values
@@ -98,13 +99,13 @@ module Core
             rescue NoMethodError, RuntimeError
               sess = {}
             end
-            cust ||= Onetime::Customer.anonymous
+            cust        ||= Onetime::Customer.anonymous
             authenticated = false
           end
         else
           # Using pre-resolved values from BaseView#initialize
           strategy_result = req.env.fetch('otto.strategy_result', nil)
-          authenticated = strategy_result&.authenticated? || false
+          authenticated   = strategy_result&.authenticated? || false
         end
 
         # Rack::Protection::AuthenticityToken stores CSRF token in session[:csrf]
@@ -114,12 +115,12 @@ module Core
         awaiting_mfa  = sess&.[]('awaiting_mfa') || false
 
         # DEBUG: Log session state
-        Onetime.session_logger.debug "Session", {
+        Onetime.session_logger.debug 'Session', {
           account_id: sess&.[]('account_id'),
           external_id: sess&.[]('external_id'),
-          module: "InitializeViewVars",
+          module: 'InitializeViewVars',
           awaiting_mfa: awaiting_mfa,
-          authenticated: authenticated
+          authenticated: authenticated,
         }
 
         # When awaiting_mfa is true, user has NOT completed authentication
@@ -141,7 +142,7 @@ module Core
 
         # Use the display domain name for branded instances, otherwise use the default app name.
         # This provides a default title for initial page load before Vue takes over title management.
-        site_name = site_config.dig('interface', 'ui', 'header', 'branding', 'site_name')
+        site_name            = site_config.dig('interface', 'ui', 'header', 'branding', 'site_name')
         page_title           = display_domain || site_name || 'One-Time Secret'
         no_cache             = false
         frontend_host        = development['frontend_host']

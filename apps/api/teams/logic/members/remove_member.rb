@@ -9,7 +9,7 @@ module TeamAPI::Logic
 
       def process_params
         @team_id = params['extid']
-        @custid = params['custid'].to_s.strip
+        @custid  = params['custid'].to_s.strip
       end
 
       def raise_concerns
@@ -33,12 +33,12 @@ module TeamAPI::Logic
 
         # Check if target is a member
         unless @team.member?(@member_to_remove)
-          raise_form_error("User is not a team member", field: :custid, error_type: :not_found)
+          raise_form_error('User is not a team member', field: :custid, error_type: :not_found)
         end
 
         # Authorization: owner can remove anyone, members can only remove themselves
         is_owner = @team.owner?(cust)
-        is_self = (@member_to_remove.custid == cust.custid)
+        is_self  = (@member_to_remove.custid == cust.custid)
 
         unless is_owner || is_self
           raise_form_error('Only team owner can remove other members', field: :custid, error_type: :forbidden)

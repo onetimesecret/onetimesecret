@@ -16,9 +16,9 @@ module Onetime
   module ClassMethods
     prepend Onetime::LoggerMethods
 
-    @env   = nil
-    @mode  ||= :app
-    @debug = nil
+    @env    = nil
+    @mode ||= :app
+    @debug  = nil
     @logger = nil
 
     attr_accessor :mode, :env
@@ -306,7 +306,8 @@ module Onetime
 
     def debug
       return @debug unless @debug.nil?
-      @debug = Onetime::Utils.yes?(ENV['ONETIME_DEBUG'])
+
+      @debug = Onetime::Utils.yes?(ENV.fetch('ONETIME_DEBUG', nil))
     end
 
     def stdout(prefix, msg)
@@ -329,15 +330,16 @@ module Onetime
 
     # Warn about legacy logging usage (only once per file to avoid spam)
     def warn_about_legacy_logging
-      caller_file = caller(2..2).first&.split(':')&.first
+      caller_file            = caller(2..2).first&.split(':')&.first
       @legacy_log_warnings ||= Set.new
 
       return if @legacy_log_warnings.include?(caller_file)
+
       @legacy_log_warnings << caller_file
 
-      logger.warn "Legacy logging detected - use keyword arguments for structured logging", {
+      logger.warn 'Legacy logging detected - use keyword arguments for structured logging', {
         file: caller_file,
-        migration_guide: 'docs/logging-migration-guide.md'
+        migration_guide: 'docs/logging-migration-guide.md',
       }
     end
     private :warn_about_legacy_logging
