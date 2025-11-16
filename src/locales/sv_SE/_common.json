@@ -7,7 +7,7 @@
       "website_url": "",
       "button_generate_secret_short": "Generera lösenord",
       "generate_password_disabled": "Generera lösenord är inaktiverat när formuläret är giltigt",
-      "email_placeholder": "t.ex. tom@example.com",
+      "email_placeholder": "t.ex. tom{'@'}example.com",
       "password_placeholder": "Ange ditt lösenord",
       "custom_domains_title": "Anpassade domäner",
       "custom_domains_description": "Stärk relationer och bygg förtroende med dina egna varumärkta hemliga länkar.",

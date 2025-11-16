@@ -36,7 +36,7 @@
       "invite_member": "Mitglied einladen",
       "invite_new_member": "Neues Mitglied einladen",
       "email_address": "E-Mail-Adresse",
-      "email_placeholder": "kollege@beispiel.com",
+      "email_placeholder": "kollege{'@'}beispiel.com",
       "role": "Rolle",
       "send_invite": "Einladung senden",
       "invite_error": "Einladung konnte nicht gesendet werden",

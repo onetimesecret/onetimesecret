@@ -1,6 +1,7 @@
 // vite.config.ts
 
 import Vue from '@vitejs/plugin-vue';
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
 import { resolve } from 'path';
 import process from 'process';
 import AutoImport from 'unplugin-auto-import/vite';
@@ -11,7 +12,7 @@ import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 import { DEBUG } from './src/utils/debug';
 
 import VueDevTools from 'vite-plugin-vue-devtools';
-import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspector
+import Inspector from 'vite-plugin-vue-inspector';
 
 // Remember, for security reasons, only variables prefixed with VITE_ are
 // available here to prevent accidental exposure of sensitive
@@ -86,6 +87,65 @@ export default defineConfig({
          */
         compilerOptions: {},
       },
+    }),
+
+    /**
+     * Vue I18n Plugin - Handles internationalization
+     * ------------------------------------------------
+     * Automatically discovers and merges split locale files:
+     * - src/locales/en/*.json → messages.en
+     * - src/locales/fr_FR/*.json → messages.fr_FR
+     * - etc. for all 34+ locales
+     *
+     * Each locale directory contains 17 categorized JSON files
+     * that are automatically merged at build time into a single
+     * locale object while maintaining the nested structure.
+     */
+    VueI18nPlugin({
+      // Include all locale JSON files (both split directories and any monolithic files)
+      include: [resolve(process.cwd(), './src/locales/**/*.json')],
+
+      // compositionOnly: true
+      // - Only generates Composition API code (no Options API compatibility)
+      // - Smaller bundle size, modern Vue 3 approach
+      // - Requires using useI18n() instead of $t in <script>
+      compositionOnly: true,
+
+      // runtimeOnly: false
+      // - Includes the full message compiler at runtime (not just pre-compiled)
+      // - Allows dynamic message compilation and runtime template features
+      // - Better Vue devtools support for inspecting translations
+      // - Trade-off: ~8KB larger bundle vs. full runtime capabilities
+      runtimeOnly: false,
+
+      // fullInstall: true
+      // - Includes all i18n APIs (datetime, number formatting, pluralization, etc.)
+      // What fullInstall provides but you DON'T use:
+      // - $d() / d() - datetime formatting (0 instances)
+      // - $n() / n() - number formatting (0 instances)
+      // - $tm() / tm() - translation message object access (0 instances)
+      // - Advanced composition functions beyond t()
+      // - Trade-off: Larger bundle vs. complete i18n functionality
+      fullInstall: true,
+
+      // strictMessage: true
+      // - Enforces strict message format validation during compilation
+      // - Special characters (@, {, }, etc.) must be properly escaped
+      // - Catches syntax errors early at build time
+      // - Prevents runtime message parsing failures
+      // - Example: Use "email{'@'}example.com" not "email@example.com"
+      strictMessage: true,
+
+      // escapeHtml: true
+      // - Automatically escapes HTML entities in translation strings
+      // - Use v-html directive if intentional HTML formatting needed
+      escapeHtml: true,
+
+      // defaultSFCLang: 'json'
+      // - Default language format for Single File Component i18n blocks
+      // - Specifies that <i18n> blocks in .vue files use JSON format
+      // - Alternatives: 'yaml', 'json5', 'yml'
+      defaultSFCLang: 'json',
     }),
 
     // Automatically import only true global packages that where the trade-off

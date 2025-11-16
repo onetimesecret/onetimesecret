@@ -36,7 +36,7 @@
       "invite_member": "Invite Member",
       "invite_new_member": "Invite New Member",
       "email_address": "Email Address",
-      "email_placeholder": "colleague@example.com",
+      "email_placeholder": "colleague{'@'}example.com",
       "role": "Role",
       "send_invite": "Send Invite",
       "invite_error": "Failed to send invite",

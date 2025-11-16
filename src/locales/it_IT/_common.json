@@ -203,7 +203,7 @@
         "noOptionsAvailable": "---"
       },
       "ttl_remaining": {
-        "duration": "{conteggio} {unità} rimanente",
+        "duration": "{count} {unit} rimanente",
         "time": {
           "day": "giorno rimanente | giorni rimanenti",
           "hour": "ora rimanente | ore rimanenti",

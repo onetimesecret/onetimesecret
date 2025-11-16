@@ -127,6 +127,7 @@
     "@eslint/plugin-kit": "^0.5.0",
     "@intlify/devtools-types": "11.1.12",
     "@intlify/eslint-plugin-vue-i18n": "4.1.0",
+    "@intlify/unplugin-vue-i18n": "^11.0.1",
     "@pinia/testing": "1.0.2",
     "@playwright/test": "1.52.0",
     "@sentry/vite-plugin": "^3.6.1",
