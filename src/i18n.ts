@@ -25,6 +25,27 @@ const localeModules = import.meta.glob<{ default: Record<string, any> }>('@/loca
 
 const messages: Record<string, any> = {};
 
+/**
+ * Deep merge helper function to recursively merge nested objects.
+ * Prevents namespace collisions when multiple locale files share the same top-level keys.
+ * @param target - The target object to merge into
+ * @param source - The source object to merge from
+ * @returns The merged target object
+ */
+function deepMerge(target: Record<string, any>, source: Record<string, any>): Record<string, any> {
+  for (const key in source) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      if (!target[key]) {
+        target[key] = {};
+      }
+      deepMerge(target[key], source[key]);
+    } else {
+      target[key] = source[key];
+    }
+  }
+  return target;
+}
+
 // Process each imported module
 for (const path in localeModules) {
   // Extract locale code from path: /src/locales/en/file.json -> en
@@ -43,13 +64,14 @@ for (const path in localeModules) {
     const hasStructuredKeys = 'web' in content || 'email' in content;
 
     if (hasStructuredKeys) {
-      // Structured file: merge under "web" or "email" keys
+      // Structured file: merge under "web" or "email" keys using deep merge
+      // to prevent namespace collisions (e.g., auth.json and auth-advanced.json both use web.auth)
       Object.keys(content).forEach((topKey) => {
         if (typeof content[topKey] === 'object' && content[topKey] !== null) {
           if (!messages[locale][topKey]) {
             messages[locale][topKey] = {};
           }
-          Object.assign(messages[locale][topKey], content[topKey]);
+          deepMerge(messages[locale][topKey], content[topKey]);
         }
       });
     } else {
