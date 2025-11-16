@@ -13,12 +13,11 @@
  * @see docs/i18n-security-messages.md for complete guidelines
  */
 
-import { describe, it, expect } from 'vitest';
-import enMessages from '@/locales/en.json';
+import authAdvancedMessages from '@/locales/en/auth-advanced.json';
 
 describe('Security Message Compliance', () => {
   // Extract security messages from the i18n file
-  const securityMessages = enMessages.web.auth.security;
+  const securityMessages = (authAdvancedMessages as any)?.web?.auth?.security;
 
   // Forbidden patterns that should NEVER appear in security messages
   const forbiddenPatterns = {
@@ -57,7 +56,7 @@ describe('Security Message Compliance', () => {
   };
 
   describe('Authentication Failed Message', () => {
-    const message = securityMessages.authentication_failed;
+    const message = securityMessages?.authentication_failed;
 
     it('should not reveal which credential failed', () => {
       forbiddenPatterns.credentialSpecific.forEach((pattern) => {
@@ -79,7 +78,7 @@ describe('Security Message Compliance', () => {
   });
 
   describe('Rate Limited Message', () => {
-    const message = securityMessages.rate_limited;
+    const message = securityMessages?.rate_limited;
 
     it('should not reveal precise timing information', () => {
       forbiddenPatterns.timingSpecific.forEach((pattern) => {
@@ -101,7 +100,7 @@ describe('Security Message Compliance', () => {
   });
 
   describe('Session Expired Message', () => {
-    const message = securityMessages.session_expired;
+    const message = securityMessages?.session_expired;
 
     it('should be safe to mention session (not credential-specific)', () => {
       expect(message.toLowerCase()).toContain('session');
@@ -120,7 +119,7 @@ describe('Security Message Compliance', () => {
 
   describe('Recovery Code Messages', () => {
     it('recovery_code_not_found should be safely generic', () => {
-      const message = securityMessages.recovery_code_not_found;
+      const message = securityMessages?.recovery_code_not_found;
 
       // This message IS allowed to mention "recovery code" because
       // the user explicitly selected recovery code authentication
@@ -136,7 +135,7 @@ describe('Security Message Compliance', () => {
     });
 
     it('recovery_code_used should explain expected behavior', () => {
-      const message = securityMessages.recovery_code_used;
+      const message = securityMessages?.recovery_code_used;
 
       // Safe to explain recovery codes are single-use
       expect(message.toLowerCase()).toContain('recovery code');
@@ -147,7 +146,7 @@ describe('Security Message Compliance', () => {
 
   describe('Network and Internal Errors', () => {
     it('network_error should be generic', () => {
-      const message = securityMessages.network_error;
+      const message = securityMessages?.network_error;
 
       expect(message.toLowerCase()).toContain('network');
       expect(message).not.toMatch(/timeout/i);
@@ -155,7 +154,7 @@ describe('Security Message Compliance', () => {
     });
 
     it('internal_error should not reveal system details', () => {
-      const message = securityMessages.internal_error;
+      const message = securityMessages?.internal_error;
 
       expect(message).not.toMatch(/database/i);
       expect(message).not.toMatch(/server/i);
@@ -167,22 +166,21 @@ describe('Security Message Compliance', () => {
 
   describe('All Security Messages - General Compliance', () => {
     // Get all actual message values (exclude metadata keys starting with _)
-    const messageKeys = Object.keys(securityMessages).filter((key) => !key.startsWith('_'));
+    const messageKeys = Object.keys(securityMessages || {}).filter((key) => !key.startsWith('_'));
     const messages = messageKeys.map((key) => ({
       key,
-      // @ts-expect-error - we know these are strings but TypeScript doesn't after filtering
-      message: securityMessages[key as keyof typeof securityMessages],
+      message: (securityMessages as any)[key] as string,
     }));
 
     it('should all be strings (not objects or arrays)', () => {
-      messages.forEach(({ key, message }) => {
+      messages.forEach(({ message }) => {
         expect(typeof message).toBe('string');
         expect(message.length).toBeGreaterThan(0);
       });
     });
 
     it('should not contain HTML or JavaScript', () => {
-      messages.forEach(({ key, message }) => {
+      messages.forEach(({ message }) => {
         expect(message).not.toMatch(/<script/i);
         expect(message).not.toMatch(/<iframe/i);
         expect(message).not.toMatch(/javascript:/i);
@@ -191,7 +189,7 @@ describe('Security Message Compliance', () => {
     });
 
     it('should have proper capitalization and punctuation', () => {
-      messages.forEach(({ key, message }) => {
+      messages.forEach(({ message }) => {
         // Should start with capital letter
         expect(message[0]).toMatch(/[A-Z]/);
 
@@ -203,7 +201,7 @@ describe('Security Message Compliance', () => {
     });
 
     it('should be concise (under 150 characters)', () => {
-      messages.forEach(({ key, message }) => {
+      messages.forEach(({ message }) => {
         expect(message.length).toBeLessThan(150);
       });
     });
@@ -211,44 +209,44 @@ describe('Security Message Compliance', () => {
 
   describe('Metadata Presence', () => {
     it('should have _README with security warning', () => {
-      expect(securityMessages._README).toBeDefined();
-      expect(securityMessages._README).toContain('SECURITY-CRITICAL');
-      expect(securityMessages._README).toContain('SECURITY-TRANSLATION-GUIDE');
+      expect(securityMessages?._README).toBeDefined();
+      expect(securityMessages?._README).toContain('SECURITY-CRITICAL');
+      expect(securityMessages?._README).toContain('SECURITY-TRANSLATION-GUIDE');
     });
 
     it('should have _meta with detailed security guidance', () => {
-      expect(securityMessages._meta).toBeDefined();
-      expect(securityMessages._meta._purpose).toBeDefined();
-      expect(securityMessages._meta._purpose).toContain('OWASP');
-      expect(securityMessages._meta._purpose).toContain('credential enumeration');
+      expect(securityMessages?._meta).toBeDefined();
+      expect(securityMessages?._meta?._purpose).toBeDefined();
+      expect(securityMessages?._meta?._purpose).toContain('OWASP');
+      expect(securityMessages?._meta?._purpose).toContain('credential enumeration');
     });
 
     it('should have _meta with security notes for critical messages', () => {
-      expect(securityMessages._meta).toBeDefined();
-      expect(securityMessages._meta.authentication_failed).toBeDefined();
-      expect(securityMessages._meta.authentication_failed.security_note).toContain(
+      expect(securityMessages?._meta).toBeDefined();
+      expect(securityMessages?._meta?.authentication_failed).toBeDefined();
+      expect(securityMessages?._meta?.authentication_failed?.security_note).toContain(
         'MUST NOT reveal'
       );
-      expect(securityMessages._meta.authentication_failed.owasp_ref).toContain('ASVS');
+      expect(securityMessages?._meta?.authentication_failed?.owasp_ref).toContain('ASVS');
     });
 
     it('should have _translation_guidelines', () => {
-      expect(securityMessages._translation_guidelines).toBeDefined();
-      expect(securityMessages._translation_guidelines.DO_NOT_translate_as).toBeInstanceOf(Array);
-      expect(securityMessages._translation_guidelines.MUST_translate_as).toBeInstanceOf(Array);
-      expect(securityMessages._translation_guidelines.WHY).toBeDefined();
+      expect(securityMessages?._translation_guidelines).toBeDefined();
+      expect(securityMessages?._translation_guidelines?.DO_NOT_translate_as).toBeInstanceOf(Array);
+      expect(securityMessages?._translation_guidelines?.MUST_translate_as).toBeInstanceOf(Array);
+      expect(securityMessages?._translation_guidelines?.WHY).toBeDefined();
     });
 
     it('should have _safe_information guidance', () => {
-      expect(securityMessages._safe_information).toBeDefined();
-      expect(securityMessages._safe_information.format_requirements).toBeDefined();
-      expect(securityMessages._safe_information.expected_behavior).toBeDefined();
+      expect(securityMessages?._safe_information).toBeDefined();
+      expect(securityMessages?._safe_information?.format_requirements).toBeDefined();
+      expect(securityMessages?._safe_information?.expected_behavior).toBeDefined();
     });
   });
 
   describe('Message Consistency', () => {
     it('authentication_failed for 401 and 403 should use same generic message', () => {
-      const message = securityMessages.authentication_failed;
+      const message = securityMessages?.authentication_failed;
 
       // Should be fully generic - usable for any auth failure
       expect(message).not.toMatch(/password/i);
@@ -261,7 +259,7 @@ describe('Security Message Compliance', () => {
     });
 
     it('rate_limited should not leak any timing or count information', () => {
-      const message = securityMessages.rate_limited;
+      const message = securityMessages?.rate_limited;
 
       // Must not contain ANY numbers
       expect(message).not.toMatch(/\d/);
