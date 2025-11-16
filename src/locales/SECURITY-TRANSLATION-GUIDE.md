@@ -231,6 +231,40 @@ If your translation would help an attacker distinguish between:
 
 ...then it's too specific. Make it more generic.
 
+## Abbreviation Usage: Two-Factor Authentication
+
+**Best for highest quality translations:**
+
+**Use "Two-Factor Authentication" spelled out** in message content, not abbreviations.
+
+**Rationale:**
+- Abbreviations don't translate well (French becomes "A2F", Spanish "A2F", etc.)
+- Your audience includes non-technical users (age 18-80 per guide)
+- Spelling out allows natural, clear translations in each language
+- First-time users understand immediately without tech knowledge
+
+**Pattern:**
+```json
+// Primary contexts - spell out
+"title": "Two-Factor Authentication"
+"enable": "Enable Two-Factor Authentication"
+
+// Subsequent/space-constrained - can abbreviate if established
+"disable-button": "Disable 2FA"  // After concept established
+```
+
+**In translations:**
+- English: "Two-Factor Authentication" → "2FA" (subsequent)
+- French: "Authentification à deux facteurs" → "A2F"
+- German: "Zwei-Faktor-Authentifizierung" → "2FA"
+- Spanish: "Autenticación de dos factores" → "A2F"
+
+**JSON keys:** Keep `mfa` (keys never translate, changing breaks code)
+
+**Between MFA/2FA:** Use **2FA** when abbreviating - more consumer-friendly, matches your actual two-factor implementation (password + TOTP).
+
+**Bottom line:** Spell out fully in primary content, let each language translate naturally. Reserve abbreviations for secondary mentions or space-constrained UI only.
+
 ## References
 
 - OWASP ASVS 2.2.2 - Generic authentication failure messages
