@@ -1,0 +1,151 @@
+{
+  "web": {
+    "account": {
+      "settings": "Paramètres",
+      "change-password": "Modifier le mot de passe",
+      "close-account": "Fermer le compte",
+      "verify-account": "Vérifier le compte",
+      "subscription_title": "Abonnement",
+      "manage_subscription": "Gérer mon abonnement",
+      "customer_information": "Informations client",
+      "customer_since": "Date d'inscription :",
+      "email": "Adresse e-mail :",
+      "region": "Région",
+      "account_balance": "Solde actuel :",
+      "default_payment_method": "Moyen de paiement par défaut",
+      "card_ending": "se terminant par",
+      "subscriptions_title": "Abonnements",
+      "quantity": "Quantité :",
+      "next_billing_date": "Prochaine échéance :",
+      "changePassword": {
+        "username": "Identifiant",
+        "currentPassword": "Mot de passe actuel",
+        "newPassword": "Nouveau mot de passe",
+        "confirmPassword": "Confirmation",
+        "updatePassword": "Modifier le mot de passe",
+        "updating": "Modification en cours..."
+      },
+      "timezone": "Fuseau horaire",
+      "customer-id": "Numéro client"
+    },
+    "settings": {
+      "title": "Paramètres",
+      "description": "Gérer les paramètres et préférences de votre compte",
+      "manage_your_account_settings_and_preferences": "Gérer les paramètres et préférences de votre compte",
+      "general": "Général",
+      "preferences": "Préférences",
+      "appearance": "Apparence",
+      "theme": {
+        "title": "Thème",
+        "description": "Choisir le thème clair ou sombre",
+        "choose_light_or_dark_theme": "Choisir le thème clair ou sombre"
+      },
+      "language": {
+        "title": "Langue",
+        "description": "Sélectionner votre langue préférée",
+        "select_your_preferred_language": "Sélectionner votre langue préférée"
+      },
+      "security_settings_description": "Gérer l'authentification et la sécurité du compte",
+      "profile_settings_description": "Gérer les informations de votre compte",
+      "profile": {
+        "title": "Profil",
+        "change-email": "Modifier l'adresse e-mail",
+        "current-email": "Adresse e-mail actuelle",
+        "current-password": "Mot de passe actuel",
+        "new-email": "Nouvelle adresse e-mail",
+        "enter-password-to-confirm": "Saisissez votre mot de passe actuel",
+        "password-required-for-security": "Votre mot de passe est requis pour des raisons de sécurité",
+        "verification-email-notice": "Un e-mail de vérification sera envoyé à la nouvelle adresse",
+        "update-email": "Mettre à jour l'adresse e-mail",
+        "change-email-description": "Modifier l'adresse e-mail associée à votre compte",
+        "all-fields-required": "Tous les champs sont requis",
+        "invalid-email": "Veuillez saisir une adresse e-mail valide",
+        "email-same-as-current": "La nouvelle adresse e-mail doit être différente de l'adresse actuelle",
+        "email-change-success": "Adresse e-mail mise à jour avec succès. Veuillez consulter votre boîte de réception pour vérifier votre nouvelle adresse e-mail.",
+        "email-change-error": "Échec de la mise à jour de l'adresse e-mail. Veuillez réessayer."
+      },
+      "sessions": {
+        "title": "Sessions actives",
+        "description": "Gérer vos sessions actives",
+        "manage_active_sessions": "Gérer vos sessions actives"
+      },
+      "password": {
+        "title": "Mot de passe",
+        "description": "Modifier le mot de passe de votre compte",
+        "update_account_password": "Modifier le mot de passe de votre compte"
+      },
+      "delete_account": {
+        "title": "Supprimer le compte",
+        "description": "Supprimer définitivement votre compte et toutes vos données",
+        "permanently_delete_your_account": "Supprimer définitivement votre compte et toutes vos données"
+      },
+      "security": {
+        "security-score": "Score de sécurité",
+        "score-description": "État général de la sécurité de votre compte",
+        "excellent": "Excellent",
+        "good": "Bon",
+        "fair": "Acceptable",
+        "weak": "Faible",
+        "improve-security": "Améliorer votre sécurité",
+        "enable-mfa-recommendation": "Activez l'authentification à deux facteurs pour une protection renforcée",
+        "generate-recovery-codes-recommendation": "Générez des codes de récupération comme sauvegarde",
+        "configured": "Configuré",
+        "change": "Modifier",
+        "manage": "Gérer",
+        "enable": "Activer",
+        "codes-available": "{0} code disponible | {0} codes disponibles",
+        "no-codes": "Aucun code généré",
+        "active-sessions": "{0} session active | {0} sessions actives",
+        "best-practices": "Bonnes pratiques de sécurité",
+        "use-strong-unique-password": "Utilisez un mot de passe fort et unique pour votre compte",
+        "enable-mfa-for-protection": "Activez l'authentification à deux facteurs pour une protection supplémentaire",
+        "save-recovery-codes-safely": "Conservez vos codes de récupération dans un endroit sécurisé",
+        "review-sessions-regularly": "Examinez et révoquez régulièrement les sessions inutilisées",
+        "view-details": "Afficher les détails"
+      },
+      "api": {
+        "title": "API et intégrations",
+        "description": "Gérer les clés API et les intégrations",
+        "manage_api_keys": "Gérer les clés API et les intégrations",
+        "documentation": "Documentation API",
+        "documentation-description": "Découvrez comment intégrer Onetime Secret dans vos applications",
+        "rest-api-reference": "Référence API REST",
+        "complete-api-documentation": "Documentation complète de l'API et des points de terminaison",
+        "code-examples": "Exemples de code",
+        "example-code-and-libraries": "Exemples de code et bibliothèques clientes",
+        "security-best-practices": "Bonnes pratiques de sécurité",
+        "never-commit-api-keys": "Ne commitez jamais les clés API dans le contrôle de version",
+        "use-environment-variables": "Utilisez des variables d'environnement pour stocker les clés API",
+        "rotate-keys-regularly": "Renouvelez régulièrement les clés API pour la sécurité",
+        "use-https-only": "Utilisez toujours HTTPS lors des requêtes API",
+        "monitor-api-usage": "Surveillez votre utilisation de l'API et configurez des alertes",
+        "important-notice": "Avis important",
+        "regenerating-key-warning": "Régénérer votre clé API invalidera la clé actuelle. Mettez à jour toutes les applications utilisant l'ancienne clé."
+      },
+      "privacy": {
+        "title": "Paramètres de confidentialité",
+        "manage-privacy-settings": "Gérer vos préférences de confidentialité",
+        "your-privacy": "Votre confidentialité",
+        "non-negotiable": "Non négociable",
+        "not-a-setting": "Pas un paramètre",
+        "no-analytics-statement": "Aucune analyse. Aucun suivi. Point final.",
+        "explanation": "Ce n'est pas un paramètre car il n'y a rien à activer ou désactiver. Votre confidentialité est intégrée dans notre fonctionnement."
+      },
+      "caution": {
+        "title": "Zone de prudence",
+        "description": "Paramètres avancés et gestion des données",
+        "data-export": "Export de données",
+        "export-your-data": "Exporter les données de votre compte",
+        "export-description": "Demander une copie complète des données de votre compte dans un format lisible par machine",
+        "request-data-export": "Demander l'export de données",
+        "export-info": "Délai de traitement de l'export",
+        "export-info-description": "Les exports sont traités sous 24 heures et envoyés à votre adresse e-mail",
+        "deletion-warning-title": "La suppression de votre compte entraînera :",
+        "deletion-warning-secrets": "Suppression définitive de tous vos secrets",
+        "deletion-warning-metadata": "Suppression de toutes les métadonnées et de l'historique des secrets",
+        "deletion-warning-api-keys": "Invalidation de toutes les clés API",
+        "deletion-warning-irreversible": "Cette action est irréversible"
+      }
+    }
+  }
+}

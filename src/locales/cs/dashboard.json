@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "Přijato",
+      "title_not_received": "Nepřijato",
+      "title_no_recent_secrets": "Žádná nedávná tajemství",
+      "get-started-by-creating-your-first-secret": ""
+    }
+  }
+}

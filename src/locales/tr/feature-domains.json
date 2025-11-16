@@ -1,0 +1,11 @@
+{
+  "web": {
+    "domains": {
+      "learn-more-dns": "DNS yapılandırması hakkında daha fazla bilgi edinin",
+      "view-domain-verification-status": "Alan adı doğrulama durumunu görüntüle",
+      "domain-already-in-organization": "",
+      "domain-in-other-organization": "",
+      "domain-claimed-successfully": ""
+    }
+  }
+}

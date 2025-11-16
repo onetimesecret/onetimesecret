@@ -1,37 +1,29 @@
 // vite.config.ts
 
 import Vue from '@vitejs/plugin-vue';
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
 import { resolve } from 'path';
 import process from 'process';
 import AutoImport from 'unplugin-auto-import/vite';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
-import { visualizer } from 'rollup-plugin-visualizer';
 
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 import { DEBUG } from './src/utils/debug';
 
-//import { createHtmlPlugin } from 'vite-plugin-html'
-//import checker from 'vite-plugin-checker';
 import VueDevTools from 'vite-plugin-vue-devtools';
-import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspector
+import Inspector from 'vite-plugin-vue-inspector';
 
 // Remember, for security reasons, only variables prefixed with VITE_ are
 // available here to prevent accidental exposure of sensitive
 // environment variables to the client-side code.
 const viteBaseUrl = process.env.VITE_BASE_URL;
 
-// According to the documentation, we should be able to set the allowed hosts
-// via __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS but as of 5.4.15, that is not
-// working as expected. So here we capture the value of that env var with
-// and without the __ prefix and if either are defined, add the hosts to
-// server.allowedHosts below. Multiple hosts can be separated by commas.
+// server.allowedHosts - Multiple hosts can be separated by commas.
 //
 // https://vite.dev/config/server-options.html#server-allowedhosts
 // https://github.com/vitejs/vite/security/advisories/GHSA-vg6x-rcgg-rjx6
-const viteAdditionalServerAllowedHosts =
-  process.env.__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS ??
-  process.env.VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS;
+const viteAdditionalServerAllowedHosts = process.env.VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS;
 
 /**
  * Vite Configuration - Consolidated Assets
@@ -97,6 +89,69 @@ export default defineConfig({
       },
     }),
 
+    /**
+     * Vue I18n Plugin - Handles internationalization
+     * ------------------------------------------------
+     * Automatically discovers and merges split locale files:
+     * - src/locales/en/*.json → messages.en
+     * - src/locales/fr_FR/*.json → messages.fr_FR
+     * - etc. for all 34+ locales
+     *
+     * Each locale directory contains 17 categorized JSON files
+     * that are automatically merged at build time into a single
+     * locale object while maintaining the nested structure.
+     */
+    VueI18nPlugin({
+      // We disable the automatic locale file discovery to avoid modifying the
+      // message object structure using the basenames of the JSON files.
+      // Instead, we manually load and merge files in src/i18n.ts
+      include: [],
+
+      // compositionOnly: true
+      // - Only generates Composition API code (no Options API compatibility)
+      // - Smaller bundle size, modern Vue 3 approach
+      // - Requires using useI18n() instead of $t in <script>
+      compositionOnly: true,
+
+      // runtimeOnly: false
+      // - Includes the full message compiler at runtime (not just pre-compiled)
+      // - Allows dynamic message compilation and runtime template features
+      // - Better Vue devtools support for inspecting translations
+      // - Trade-off: ~8KB larger bundle vs. full runtime capabilities
+      runtimeOnly: false,
+
+      // fullInstall: true
+      // - Includes all i18n APIs (datetime, number formatting, pluralization, etc.)
+      // What fullInstall provides but you DON'T use:
+      // - $d() / d() - datetime formatting (0 instances)
+      // - $n() / n() - number formatting (0 instances)
+      // - $tm() / tm() - translation message object access (0 instances)
+      // - Advanced composition functions beyond t()
+      // - Trade-off: Larger bundle vs. complete i18n functionality
+      fullInstall: true,
+
+      // strictMessage: true
+      // - Enforces strict message format validation during compilation
+      // - Special characters (@, {, }, etc.) must be properly escaped
+      // - Catches syntax errors early at build time
+      // - Prevents runtime message parsing failures
+      // - Example: Use "email{'@'}example.com" not "email@example.com"
+      strictMessage: true,
+
+      // escapeHtml: true
+      // - Automatically escapes HTML entities in translation strings
+      // - Use v-html directive if intentional HTML formatting needed
+      escapeHtml: true,
+
+      // defaultSFCLang: 'json'
+      // - Default language format for Single File Component i18n blocks
+      // - Specifies that <i18n> blocks in .vue files use JSON format
+      // - Alternatives: 'yaml', 'json5', 'yml'
+      defaultSFCLang: 'json',
+    }),
+
+    // Automatically import only true global packages that where the trade-off
+    // for being able to see explicit imports
     AutoImport({
       imports: [
         'vue',
@@ -106,19 +161,12 @@ export default defineConfig({
         },
       ],
       dts: 'auto-imports.d.ts',
+
       eslintrc: {
         enabled: true,
         filepath: '.eslintrc-auto-import.json',
         globalsPropValue: true,
       },
-    }),
-
-    visualizer({
-      filename: '../public/web/dist/stats.html',
-      open: false,
-      gzipSize: true,
-      brotliSize: true,
-      template: 'treemap',
     }),
 
     // Enable Vue Devtools
@@ -143,7 +191,7 @@ export default defineConfig({
      *
      * @see ./src/build/plugins/addTrailingNewline.ts for implementation details.
      */
-    addTrailingNewline(),
+    addTrailingNewline() as any,
   ],
 
   resolve: {

@@ -1,0 +1,151 @@
+{
+  "web": {
+    "account": {
+      "settings": "",
+      "change-password": "",
+      "close-account": "",
+      "verify-account": "",
+      "subscription_title": "Abbonamento",
+      "manage_subscription": "Gestisci abbonamento",
+      "customer_information": "Informazioni sul cliente",
+      "customer_since": "Cliente da:",
+      "email": "Email:",
+      "region": "",
+      "account_balance": "Saldo del conto:",
+      "default_payment_method": "Metodo di pagamento predefinito",
+      "card_ending": "che termina in",
+      "subscriptions_title": "Abbonamenti",
+      "quantity": "Quantità:",
+      "next_billing_date": "Prossima data di fatturazione:",
+      "changePassword": {
+        "username": "Nome utente",
+        "currentPassword": "Current Password",
+        "newPassword": "Nuova password",
+        "confirmPassword": "Conferma",
+        "updatePassword": "Aggiorna Password",
+        "updating": "Aggiornamento..."
+      },
+      "timezone": "Timezone",
+      "customer-id": "ID cliente"
+    },
+    "settings": {
+      "title": "",
+      "description": "",
+      "manage_your_account_settings_and_preferences": "",
+      "general": "",
+      "preferences": "",
+      "appearance": "",
+      "theme": {
+        "title": "",
+        "description": "",
+        "choose_light_or_dark_theme": ""
+      },
+      "language": {
+        "title": "",
+        "description": "",
+        "select_your_preferred_language": ""
+      },
+      "security_settings_description": "",
+      "profile_settings_description": "",
+      "profile": {
+        "title": "",
+        "change-email": "",
+        "current-email": "",
+        "current-password": "",
+        "new-email": "",
+        "enter-password-to-confirm": "",
+        "password-required-for-security": "",
+        "verification-email-notice": "",
+        "update-email": "",
+        "change-email-description": "",
+        "all-fields-required": "",
+        "invalid-email": "",
+        "email-same-as-current": "",
+        "email-change-success": "",
+        "email-change-error": ""
+      },
+      "sessions": {
+        "title": "",
+        "description": "",
+        "manage_active_sessions": ""
+      },
+      "password": {
+        "title": "",
+        "description": "",
+        "update_account_password": ""
+      },
+      "delete_account": {
+        "title": "",
+        "description": "",
+        "permanently_delete_your_account": ""
+      },
+      "security": {
+        "security-score": "",
+        "score-description": "",
+        "excellent": "",
+        "good": "",
+        "fair": "",
+        "weak": "",
+        "improve-security": "",
+        "enable-mfa-recommendation": "",
+        "generate-recovery-codes-recommendation": "",
+        "configured": "",
+        "change": "",
+        "manage": "",
+        "enable": "",
+        "codes-available": "",
+        "no-codes": "",
+        "active-sessions": "",
+        "best-practices": "",
+        "use-strong-unique-password": "",
+        "enable-mfa-for-protection": "",
+        "save-recovery-codes-safely": "",
+        "review-sessions-regularly": "",
+        "view-details": ""
+      },
+      "api": {
+        "title": "",
+        "description": "",
+        "manage_api_keys": "",
+        "documentation": "",
+        "documentation-description": "",
+        "rest-api-reference": "",
+        "complete-api-documentation": "",
+        "code-examples": "",
+        "example-code-and-libraries": "",
+        "security-best-practices": "",
+        "never-commit-api-keys": "",
+        "use-environment-variables": "",
+        "rotate-keys-regularly": "",
+        "use-https-only": "",
+        "monitor-api-usage": "",
+        "important-notice": "",
+        "regenerating-key-warning": ""
+      },
+      "privacy": {
+        "title": "",
+        "manage-privacy-settings": "",
+        "your-privacy": "",
+        "non-negotiable": "",
+        "not-a-setting": "",
+        "no-analytics-statement": "",
+        "explanation": ""
+      },
+      "caution": {
+        "title": "",
+        "description": "",
+        "data-export": "",
+        "export-your-data": "",
+        "export-description": "",
+        "request-data-export": "",
+        "export-info": "",
+        "export-info-description": "",
+        "deletion-warning-title": "",
+        "deletion-warning-secrets": "",
+        "deletion-warning-metadata": "",
+        "deletion-warning-api-keys": "",
+        "deletion-warning-irreversible": ""
+      }
+    }
+  }
+}

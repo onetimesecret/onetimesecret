@@ -1,0 +1,20 @@
+{
+  "email": {
+    "incomingsupport": {
+      "subject": "[工单号: %s]",
+      "body1": "一位我们的客户发送了以下信息："
+    },
+    "secretlink": {
+      "subject": "%s 给您发送了一条密文",
+      "body1": "我们有一条给您的密文，来自",
+      "body_tagline": "如果您不认识发送者，或者认为这可能是垃圾信息，在这里告诉我们详细信息："
+    },
+    "welcome": {
+      "subject": "验证您的 Onetime Secret 帐户",
+      "body1": "欢迎使用 Onetime Secret ，这里有一条我们发送给您的密文！",
+      "please_verify": "请验证您的帐户:",
+      "postscript1": "这封电子邮件被送至",
+      "postscript2": "如果您并未创建此帐户，请您删除此邮件。我们将不会再和您联系。"
+    }
+  }
+}

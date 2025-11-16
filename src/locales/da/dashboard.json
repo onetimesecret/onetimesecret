@@ -1,0 +1,9 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "Received",
+      "title_not_received": "Not Received",
+      "title_no_recent_secrets": "No recent secrets"
+    }
+  }
+}

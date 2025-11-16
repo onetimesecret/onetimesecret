@@ -1,0 +1,11 @@
+{
+  "web": {
+    "domains": {
+      "learn-more-dns": "DNS設定についてもっと詳しく",
+      "view-domain-verification-status": "ドメイン確認ステータスを表示",
+      "domain-already-in-organization": "",
+      "domain-in-other-organization": "",
+      "domain-claimed-successfully": ""
+    }
+  }
+}

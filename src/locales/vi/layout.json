@@ -1,0 +1,62 @@
+{
+  "web": {
+    "footer": {
+      "security": "",
+      "learn-about-our-security-measures": "",
+      "view-our-terms-and-conditions": "",
+      "terms": "",
+      "privacy": "",
+      "contact": "",
+      "support": "",
+      "legals": "",
+      "read-our-privacy-policy": "",
+      "check-our-service-status": "",
+      "explore-our-api-documentation": "",
+      "docs": "",
+      "access-our-documentation": "",
+      "view-our-source-code-on-github": "",
+      "resources": "",
+      "blog": "",
+      "read-our-latest-blog-posts": "",
+      "view-our-subscription-pricing": "",
+      "learn-about-our-company": "",
+      "company": ""
+    },
+    "navigation": {
+      "billing": "",
+      "billingOverview": "",
+      "organizations": ""
+    },
+    "site": {
+      "website-version": ""
+    },
+    "meta": {
+      "were-making-onetime-secret-available-in-multiple": "",
+      "translations-are-new-spotted-an-error": "",
+      "we-recently-added-translations": "",
+      "privacy-and-security-should-be-accessible": ""
+    },
+    "help": {
+      "learn_more": "",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "",
+          "description": ""
+        },
+        "can_i_view_again": {
+          "title": "",
+          "description": ""
+        },
+        "how_to_copy": {
+          "title": "",
+          "description": ""
+        },
+        "is_my_viewing_tracked": {
+          "title": "",
+          "description": ""
+        },
+        "one_time_warning": ""
+      }
+    }
+  }
+}

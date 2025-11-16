@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "הדביקו סיסמה, סוד או קישור פרטי מטה.",
+      "tagline2": "שלחו קישור סודי הזמין לשימוש פעם אחת בלבד.",
+      "secret_hint": "* קישור סודי פועל פעם אחת ואז מושמד לעד",
+      "secret_form_more_text1": "רישום ל",
+      "secret_form_more_text2": "חשבון חינם",
+      "secret_form_more_text3": "ותוכלו לשלוח את הסוד במייל.",
+      "cta_title": "השתמש בדומיין מותאם אישית",
+      "cta_subtitle": "העצם את המותג שלך ושתף בביטחון",
+      "cta_feature1": "הדומיין המותאם אישית שלך",
+      "cta_feature2": "שיתוף סודות בלתי מוגבל",
+      "cta_feature3": "בקרות פרטיות מתקדמות",
+      "explore_premium_plans": "גלה תוכניות פרימיום",
+      "need_free_account": "רק מתחיל?",
+      "sign_up_free": "צור חשבון חינם",
+      "visit-onetime-secret-home": "",
+      "password_generation_title": "",
+      "password_generation_description": "",
+      "protip1": "",
+      "authonly": {
+        "tagline2": "",
+        "tagline1": ""
+      },
+      "disabled": {
+        "tagline2": "",
+        "tagline1": ""
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "Ληφθέντα",
+      "title_not_received": "Μη Ληφθέντα",
+      "title_no_recent_secrets": "Δεν υπάρχουν πρόσφατα μυστικά",
+      "get-started-by-creating-your-first-secret": "Ξεκινήστε δημιουργώντας το πρώτο σας μυστικό."
+    }
+  }
+}

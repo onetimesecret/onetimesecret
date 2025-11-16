@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "Prejeto",
+      "title_not_received": "Ni prejeto",
+      "title_no_recent_secrets": "No recent secrets",
+      "get-started-by-creating-your-first-secret": ""
+    }
+  }
+}

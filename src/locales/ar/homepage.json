@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": ".ضع كلمة مرور، رسالة سرية او رابطاً خاصاً أدناه",
+      "tagline2": "لا تستخدم معلوماتك الحساسة في محادثاتك او رسائل البريد",
+      "secret_hint": ".الرابط السري سيعمل لمرة واحدة فقط ومن ثم يختفي للأبد *",
+      "secret_form_more_text1": "قم بأنشاء ",
+      "secret_form_more_text2": "حساب مجاني",
+      "secret_form_more_text3": ".وتمكن من ارسال السر عبر البريد الالكتروني",
+      "cta_title": "استخدم نطاقًا مخصصًا",
+      "cta_subtitle": "ارفع مستوى علامتك التجارية وشارك بثقة",
+      "cta_feature1": "نطاقك المخصص الخاص",
+      "cta_feature2": "مشاركة أسرار غير محدودة",
+      "cta_feature3": "ضوابط خصوصية متقدمة",
+      "explore_premium_plans": "استكشف الخطط المميزة",
+      "need_free_account": "هل تبدأ للتو؟",
+      "sign_up_free": "أنشئ حسابًا مجانيًا",
+      "visit-onetime-secret-home": "",
+      "password_generation_title": "",
+      "password_generation_description": "",
+      "protip1": "",
+      "authonly": {
+        "tagline2": "",
+        "tagline1": ""
+      },
+      "disabled": {
+        "tagline2": "",
+        "tagline1": ""
+      }
+    }
+  }
+}

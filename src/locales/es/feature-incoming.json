@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Pega una contraseña, mensaje secreto o enlace privado a continuación.",
+      "tagline2": "Mantén la información sensible fuera de tus correos electrónicos y registros de chat.",
+      "secret_hint": "* Un enlace secreto solo funciona una vez y luego desaparece para siempre.",
+      "incoming_button_create": "Enviar al Personal de Soporte",
+      "incoming_secret_options": "Información de Soporte",
+      "incoming_secret_placeholder": "Introduce cualquier información que tu representante de soporte necesite (ej. contraseña del sistema)",
+      "incoming_ticket_number": "Introduce el Nº de Ticket",
+      "incoming_ticket_number_hint": "Puedes encontrarlo en tu correo electrónico (ej. 123456)",
+      "incoming_recipient_address": "Destinatario de Soporte",
+      "incoming_success_message": "Tu correo electrónico ha sido enviado",
+      "incoming_button_creating": "Creando"
+    }
+  }
+}

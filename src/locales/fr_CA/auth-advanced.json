@@ -1,0 +1,195 @@
+{
+  "web": {
+    "auth": {
+      "mfa_required": "Vérification MFA requise",
+      "mfa_verification_required": "Vérification MFA requise pour accéder à votre compte",
+      "complete_mfa_verification": "Compléter la vérification MFA",
+      "security": {
+        "_README": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md",
+        "authentication_failed": "Échec de l'authentification. Veuillez vérifier vos identifiants et réessayer.",
+        "rate_limited": "Trop de tentatives. Veuillez réessayer plus tard.",
+        "session_expired": "Session expirée. Veuillez vous connecter à nouveau.",
+        "recovery_code_not_found": "Code de récupération introuvable. Veuillez vérifier que vous l'avez saisi correctement.",
+        "recovery_code_used": "Ce code de récupération a déjà été utilisé. Chaque code ne peut être utilisé qu'une seule fois.",
+        "network_error": "Erreur réseau. Veuillez vérifier votre connexion et réessayer.",
+        "internal_error": "Une erreur s'est produite. Veuillez réessayer.",
+        "_meta": {
+          "_purpose": "These messages follow OWASP/NIST guidelines to prevent information disclosure. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. Never reveal: which credential failed, precise timing, account existence, or attack progress.",
+          "authentication_failed": {
+            "security_note": "MUST NOT reveal which credential failed (password, OTP, or recovery code). This prevents attackers from determining valid credentials or enumerating accounts.",
+            "owasp_ref": "ASVS 2.2.2 - Authentication failure responses must be generic"
+          },
+          "rate_limited": {
+            "security_note": "MUST NOT reveal precise lockout duration, attempt counts, or remaining attempts. This prevents timing attacks and progress tracking.",
+            "owasp_ref": "ASVS 2.2.1 - Account lockout must not be timing-based enumerable"
+          },
+          "session_expired": {
+            "security_note": "Safe to indicate session issue as it doesn't reveal credential information. Helps users understand they need to re-authenticate.",
+            "owasp_ref": "Session management best practices"
+          },
+          "recovery_code_not_found": {
+            "security_note": "Safe to indicate recovery code context as user explicitly selected this authentication method. Does not reveal whether code exists.",
+            "owasp_ref": "Recovery code validation guidance"
+          },
+          "recovery_code_used": {
+            "security_note": "Safe expected behavior message. Users need to know recovery codes are single-use to prevent confusion.",
+            "owasp_ref": "User guidance for recovery mechanisms"
+          }
+        },
+        "_translation_guidelines": {
+          "DO_NOT_translate_as": [
+            "Wrong password",
+            "Invalid OTP code",
+            "Incorrect recovery code",
+            "Wait 5 minutes",
+            "3 attempts remaining",
+            "Account locked for 15 minutes"
+          ],
+          "MUST_translate_as": [
+            "Generic authentication failure (no credential specifics)",
+            "Generic rate limit message (no precise timing)",
+            "Recovery code validation (no existence confirmation)"
+          ],
+          "WHY": "These restrictions prevent attackers from: (1) determining valid usernames/emails, (2) knowing which credential to focus attacks on, (3) conducting timing attacks, (4) measuring attack progress"
+        },
+        "_safe_information": {
+          "format_requirements": "Safe to specify format rules (e.g., 'OTP must be 6 digits')",
+          "expected_behavior": "Safe to describe how features work (e.g., 'Codes expire every 30 seconds')",
+          "recovery_options": "Safe to offer alternatives (e.g., 'Use a recovery code instead')",
+          "general_guidance": "Safe to provide help (e.g., 'Check your authenticator app')"
+        }
+      },
+      "methods": {
+        "password": "Mot de passe",
+        "magicLink": "Lien courriel",
+        "webauthn": "Biométrique"
+      },
+      "magicLink": {
+        "title": "Connexion par courriel",
+        "description": "Nous vous enverrons un lien de connexion sécurisé",
+        "emailPlaceholder": "Saisissez votre courriel",
+        "sendLink": "Envoyer le lien de connexion",
+        "checkEmail": "Vérifiez votre courriel",
+        "sentTo": "Nous avons envoyé un lien de connexion à {email}",
+        "linkExpiresIn": "Ce lien expirera dans 15 minutes",
+        "tryDifferentEmail": "Essayer un autre courriel",
+        "noPasswordNeeded": "Aucun mot de passe requis — cliquez simplement sur le lien dans votre courriel",
+        "networkError": "Erreur réseau. Veuillez réessayer.",
+        "requestFailed": "Échec de l'envoi du lien de connexion. Veuillez réessayer.",
+        "invalidLink": "Lien de connexion invalide ou manquant",
+        "loginFailed": "Échec de la connexion. Veuillez réessayer.",
+        "signingYouIn": "Connexion en cours...",
+        "pleaseWait": "Veuillez patienter pendant que nous vérifions votre lien",
+        "error": "Erreur d'authentification",
+        "backToSignin": "Retour à la connexion"
+      },
+      "webauthn": {
+        "signIn": "Connexion avec Face ID / Touch ID",
+        "setup": "Configurer la connexion biométrique",
+        "notSupported": "L'authentification biométrique n'est pas prise en charge par ce navigateur",
+        "requiresModernBrowser": "Veuillez utiliser un navigateur moderne prenant en charge WebAuthn (Chrome, Safari, Firefox ou Edge)",
+        "setupSuccess": "La connexion biométrique a été activée",
+        "setupFailed": "Échec de la configuration de la connexion biométrique",
+        "authFailed": "Échec de l'authentification biométrique. Veuillez réessayer.",
+        "cancelled": "L'authentification a été annulée",
+        "processing": "Authentification en cours...",
+        "description": "Utiliser votre empreinte digitale, votre visage ou une clé de sécurité pour vous connecter",
+        "supportedMethods": "Prend en charge Face ID, Touch ID, Windows Hello et les clés de sécurité"
+      },
+      "lockout": {
+        "attempts-remaining": "Attention : {count} tentative(s) de connexion restante(s)",
+        "account-locked": "Compte verrouillé en raison de trop nombreuses tentatives de connexion échouées",
+        "locked-until": "Votre compte est verrouillé jusqu'à {time}",
+        "contact-support": "Contacter le support si vous avez besoin d'un accès immédiat",
+        "try-password-reset": "Vous pouvez réinitialiser votre mot de passe à la place"
+      },
+      "sessions": {
+        "title": "Sessions actives",
+        "current": "Session actuelle",
+        "other": "Autres sessions",
+        "device": "Appareil",
+        "location": "Emplacement",
+        "ip-address": "Adresse IP",
+        "last-active": "Dernière activité",
+        "created": "Créée",
+        "remove": "Supprimer",
+        "remove-all": "Déconnecter toutes les autres sessions",
+        "confirm-remove": "Êtes-vous certain de vouloir supprimer cette session?",
+        "confirm-remove-all": "Ceci vous déconnectera de tous les autres appareils. Êtes-vous certain?",
+        "no-sessions": "Aucune autre session active",
+        "removed-success": "Session supprimée avec succès",
+        "removed-all-success": "Toutes les autres sessions ont été déconnectées",
+        "link-title": "Sessions actives"
+      },
+      "mfa": {
+        "title": "Authentification à deux facteurs",
+        "enabled": "L'authentification à deux facteurs est activée",
+        "disabled": "L'authentification à deux facteurs est désactivée",
+        "enable": "Activer l'authentification à deux facteurs",
+        "disable": "Désactiver l'authentification à deux facteurs",
+        "setup-title": "Configurer l'authentification à deux facteurs",
+        "setup-description": "Ajouter une couche de sécurité supplémentaire à votre compte",
+        "step-scan": "1. Numériser le code QR",
+        "step-verify": "2. Vérifier la configuration",
+        "scan-qr": "Numérisez ce code QR avec votre application d'authentification",
+        "manual-entry": "Ou saisissez ce code manuellement",
+        "verify-code": "Saisissez le code à 6 chiffres de votre application",
+        "enter-code": "Saisir le code d'authentification",
+        "verify": "Vérifier et activer",
+        "code-required": "Le code d'authentification est requis",
+        "invalid-code": "Code invalide. Les codes expirent toutes les 30 secondes. Essayez le code le plus récent de votre application d'authentification.",
+        "success-enabled": "L'authentification à deux facteurs a été activée",
+        "success-disabled": "L'authentification à deux facteurs a été désactivée",
+        "require-password": "Saisissez votre mot de passe pour désactiver l'A2F",
+        "password-confirmation": "Mot de passe",
+        "password-reason": "Confirmez votre identité pour modifier les paramètres d'authentification à deux facteurs",
+        "last-used": "Dernière utilisation : {time}",
+        "never-used": "Jamais utilisé",
+        "use-recovery-code": "Utiliser un code de récupération à la place",
+        "back-to-code": "Retour au code d'authentification",
+        "cancel": "Annuler et retourner à la connexion",
+        "loading-status": "Chargement du statut MFA...",
+        "protected-description": "Votre compte est protégé par l'authentification à deux facteurs",
+        "enable-description": "Protégez votre compte avec une couche de sécurité supplémentaire",
+        "benefit-unauthorized": "Empêcher l'accès non autorisé même si votre mot de passe est compromis",
+        "benefit-apps": "Fonctionne avec Google Authenticator, Authy et d'autres applications TOTP",
+        "benefit-recovery": "Codes de récupération de sauvegarde pour l'accès d'urgence",
+        "password-placeholder": "Saisissez votre mot de passe",
+        "disabling": "Désactivation en cours...",
+        "disable-button": "Désactiver l'A2F",
+        "generating-qr": "Génération du code QR...",
+        "supported-apps": "Utiliser Google Authenticator, Authy ou toute application TOTP",
+        "continue-verification": "Continuer vers la vérification",
+        "enter-code-description": "Saisissez le code à 6 chiffres de votre application d'authentification",
+        "enable-and-continue": "Activer MFA",
+        "complete-setup": "Terminer la configuration",
+        "enter-recovery-code": "Saisissez un de vos codes de récupération",
+        "recovery-code-label": "Code de récupération",
+        "recovery-code-placeholder": "Saisir le code de récupération",
+        "verify-recovery-code": "Vérifier le code de récupération",
+        "six-digit-code": "Saisir le code d'authentification à 6 chiffres",
+        "recovery-code-mode-active": "Mode code de récupération actif",
+        "otp-mode-active": "Mode code d'authentification actif",
+        "enter-all-digits": "Veuillez saisir les 6 chiffres pour continuer",
+        "digit-of-count": "Chiffre {current} de {total}"
+      },
+      "recovery-codes": {
+        "title": "Codes de récupération",
+        "description": "Sauvegardez ces codes dans un endroit sûr. Chacun peut être utilisé une fois si vous perdez l'accès à votre application d'authentification.",
+        "warning": "Ces codes ne seront affichés qu'une seule fois",
+        "generate-new": "Générer de nouveaux codes",
+        "generate-new-warning": "Ceci invalidera tous les codes de récupération existants",
+        "download": "Télécharger les codes",
+        "print": "Imprimer les codes",
+        "copy": "Copier tous les codes",
+        "copied": "Codes copiés dans le presse-papiers",
+        "code-used": "Utilisé",
+        "code-unused": "Inutilisé",
+        "remaining": "{count} code(s) de récupération restant(s)",
+        "none-remaining": "Aucun code de récupération restant",
+        "generate-success": "De nouveaux codes de récupération ont été générés",
+        "link-title": "Codes de récupération"
+      }
+    }
+  }
+}

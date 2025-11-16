@@ -1,0 +1,67 @@
+{
+  "web": {
+    "colonel": {
+      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified-0": "`+customer.verified ? `επαληθευμένο` : `μη επαληθευμένο`",
+      "customers-details-counts-recent_customer_count-o-0": "Πελάτες ({0} από {1})",
+      "user-feedback-total-details-counts-feedback_coun-0": "Σχόλια Χρηστών (Σύνολο: {0})",
+      "metadata-secrets-details-counts-metadata_count-d-0": "Μεταδεδομένα / Μυστικά: {0}/{1} ({2}/{3}/{4} σύνολο)",
+      "secrets-details-counts-secret_count-0": "Μυστικά ({0})",
+      "active-in-the-past-5-minutes-0": "(ενεργό τα τελευταία 5 λεπτά)",
+      "configEditorTitle": "",
+      "configEditorDescription": "",
+      "invalidJson": "",
+      "validationError": "",
+      "errorFetchingConfig": "",
+      "errorSavingConfig": "",
+      "configSaved": "",
+      "mustBeObject": "",
+      "multipleSectionsInvalid": "",
+      "sectionHasError": "",
+      "sectionSaved": "",
+      "saveSection": "",
+      "saveAll": "",
+      "unsavedChanges": "",
+      "schemaValidationError": "",
+      "unknownValidationError": "",
+      "dashboard": "Dashboard",
+      "activity": "",
+      "accounts": "",
+      "users": "",
+      "domains": "Domains",
+      "settings": "",
+      "welcome": "Welcome to Colonel",
+      "welcomeDesc": "",
+      "quickActions": "",
+      "recentActivity": "",
+      "viewAll": "",
+      "activityPlaceholder": "",
+      "stats": {
+        "totalSecrets": "",
+        "activeUsers": "",
+        "secretsToday": "",
+        "secretsCreated": "",
+        "secretsShared": "",
+        "totalCustomers": "",
+        "emailsSent": "",
+        "systemHealth": "",
+        "healthy": ""
+      },
+      "actions": {
+        "viewActivity": "",
+        "viewActivityDesc": "",
+        "manageAccounts": "",
+        "manageAccountsDesc": "",
+        "configureDomains": "",
+        "configureDomainsDesc": "",
+        "systemSettings": "",
+        "systemSettingsDesc": ""
+      }
+    },
+    "feedback": {
+      "when-you-submit-feedback-well-see": "Όταν υποβάλλετε σχόλια, θα δούμε:",
+      "send-feedback": "Αποστολή σχολίων",
+      "sending-ellipses": "Αποστολή..."
+    }
+  }
+}

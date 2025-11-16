@@ -1,0 +1,62 @@
+{
+  "web": {
+    "footer": {
+      "security": "",
+      "learn-about-our-security-measures": "",
+      "view-our-terms-and-conditions": "",
+      "terms": "",
+      "privacy": "",
+      "contact": "",
+      "support": "",
+      "legals": "",
+      "read-our-privacy-policy": "",
+      "check-our-service-status": "",
+      "explore-our-api-documentation": "",
+      "docs": "",
+      "access-our-documentation": "",
+      "view-our-source-code-on-github": "",
+      "resources": "",
+      "blog": "",
+      "read-our-latest-blog-posts": "",
+      "view-our-subscription-pricing": "",
+      "learn-about-our-company": "",
+      "company": ""
+    },
+    "navigation": {
+      "billing": "",
+      "billingOverview": "",
+      "organizations": ""
+    },
+    "site": {
+      "website-version": "Web Sitesi Sürümü"
+    },
+    "meta": {
+      "were-making-onetime-secret-available-in-multiple": "{onetime-secret} özelliğini birden fazla dilde kullanıma sunuyoruz. Bu yeni bir özellik olduğundan, çeviri hataları veya garip ifadelerle karşılaşabilirsiniz. Geri bildirimleriniz bize yardımcı olur - herhangi bir sorunla karşılaşırsanız, lütfen {send-feedback}",
+      "translations-are-new-spotted-an-error": "Çeviriler yenidir. Bir hata mı gördünüz? {send-feedback}",
+      "we-recently-added-translations": "Çevirileri kısa süre önce ekledik. Bir hata mı gördünüz? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Gizlilik ve güvenlik, dil farkı gözetmeksizin herkes için erişilebilir olmalıdır. Kullanıcılarımızın ve mesaj alıcılarının güvenli mesajları ve bağlantıları nasıl güvenli bir şekilde kullanacaklarını ve erişeceklerini daha iyi anlamalarına yardımcı olmak için çeviriler ekliyoruz. Bu yeni bir özellik olduğundan, bazı çeviri hataları veya belirsiz talimatlarla karşılaşabilirsiniz. Çevirilerimizin netliğini ve doğruluğunu, özellikle güvenlikle ilgili kritik içeriklerde iyileştirmemize yardımcı olmak için, herhangi bir sorun fark ederseniz lütfen {send-feedback}"
+    },
+    "help": {
+      "learn_more": "Learn more",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "Neye bakıyorum?",
+          "description": "Onetime Secret aracılığıyla sizinle paylaşılan güvenli bir mesaja bakıyorsunuz. Bu içerik yalnızca bir kez görüntülenir ve ardından sunucularımızdan kalıcı olarak silinir."
+        },
+        "can_i_view_again": {
+          "title": "Bu gizli mesajı daha sonra tekrar görüntüleyebilir miyim?",
+          "description": "Hayır. Güvenlik nedeniyle, bu gizli mesaj yalnızca bir kez görüntülenebilir. Bu sayfayı kapattıktan sonra, içerik kalıcı olarak silinir ve bizim de dahil olduğumuz hiç kimse tarafından kurtarılamaz."
+        },
+        "how_to_copy": {
+          "title": "Bu bilgiyi nasıl kaydederim?",
+          "description": "Tüm gizli mesajı kopyalamak için 'Panoya Kopyala' düğmesini kullanın. Daha uzun gizli mesajlar için, bu sayfadan ayrılmadan önce tüm içeriği kopyaladığınızdan emin olun."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Bu gizli mesajı görüntülemem takip ediliyor mu?",
+          "description": "Gönderene, gizli mesajının görüntülendiği bildirilecek, ancak kimin görüntülediğini veya hangi konumdan görüntülediğini takip etmiyoruz. Gizliliğiniz korunmaktadır."
+        },
+        "one_time_warning": "Bu sayfadan ayrıldığınızda veya yenilediğinizde, bu gizli mesaj kalıcı olarak silinecek ve hiç kimse tarafından kurtarılamayacaktır."
+      }
+    }
+  }
+}

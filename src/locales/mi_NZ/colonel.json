@@ -1,0 +1,67 @@
+{
+  "web": {
+    "colonel": {
+      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified-0": "`+customer.verified ? `verified` : `not verified",
+      "customers-details-counts-recent_customer_count-o-0": "Ngā Kiritaki ({0} o {1})",
+      "user-feedback-total-details-counts-feedback_coun-0": "Urupare Kaiwhakamahi (Tapeke: {0})",
+      "metadata-secrets-details-counts-metadata_count-d-0": "Metadata / Ngā Karere Huna: {0}/{1} ({2}/{3}/{4} tapeke)",
+      "secrets-details-counts-secret_count-0": "Ngā Karere Huna ({0})",
+      "active-in-the-past-5-minutes-0": "(hohe i ngā meneti 5 kua hipa)",
+      "configEditorTitle": "",
+      "configEditorDescription": "",
+      "invalidJson": "",
+      "validationError": "",
+      "errorFetchingConfig": "",
+      "errorSavingConfig": "",
+      "configSaved": "",
+      "mustBeObject": "",
+      "multipleSectionsInvalid": "",
+      "sectionHasError": "",
+      "sectionSaved": "",
+      "saveSection": "",
+      "saveAll": "",
+      "unsavedChanges": "",
+      "schemaValidationError": "",
+      "unknownValidationError": "",
+      "dashboard": "Dashboard",
+      "activity": "",
+      "accounts": "",
+      "users": "",
+      "domains": "Ngā Rohe",
+      "settings": "",
+      "welcome": "Welcome to Colonel",
+      "welcomeDesc": "",
+      "quickActions": "",
+      "recentActivity": "",
+      "viewAll": "",
+      "activityPlaceholder": "",
+      "stats": {
+        "totalSecrets": "",
+        "activeUsers": "",
+        "secretsToday": "",
+        "secretsCreated": "",
+        "secretsShared": "",
+        "totalCustomers": "",
+        "emailsSent": "",
+        "systemHealth": "",
+        "healthy": ""
+      },
+      "actions": {
+        "viewActivity": "",
+        "viewActivityDesc": "",
+        "manageAccounts": "",
+        "manageAccountsDesc": "",
+        "configureDomains": "",
+        "configureDomainsDesc": "",
+        "systemSettings": "",
+        "systemSettingsDesc": ""
+      }
+    },
+    "feedback": {
+      "when-you-submit-feedback-well-see": "Ina tuku koe i te urupare, ka kite mātou:",
+      "send-feedback": "Tuku urupare",
+      "sending-ellipses": "Kei te tuku..."
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Umieść hasło, tajną wiadomość lub prywatny link poniżej.",
+      "tagline2": "Bezpiecznie przekazuj poufne informacje na czatach i pocztą e-mail.",
+      "secret_hint": "* Link do wiadomości działa tylko raz, a następnie wygasa na zawsze.",
+      "secret_form_more_text1": "Zarejestruj się po",
+      "secret_form_more_text2": "darmowe konto",
+      "secret_form_more_text3": "i uzyskaj możliwość wysyłania wiadomości przez e-mail.",
+      "cta_title": "Użyj niestandardowej domeny",
+      "cta_subtitle": "Podnieś wartość swojej marki i udostępniaj z pewnością",
+      "cta_feature1": "Twoja własna niestandardowa domena",
+      "cta_feature2": "Nieograniczone udostępnianie wiadomości",
+      "cta_feature3": "Zaawansowane kontrole prywatności",
+      "explore_premium_plans": "Odkryj plany Premium",
+      "need_free_account": "Dopiero zaczynasz?",
+      "sign_up_free": "Utwórz darmowe konto",
+      "visit-onetime-secret-home": "Odwiedź stronę główną Onetime Secret",
+      "password_generation_title": "Generator haseł",
+      "password_generation_description": " Kliknij \"Generuj hasło\", aby utworzyć bezpieczne losowe hasło, które możesz udostępnić.",
+      "protip1": "Twoja wiadomość ulegnie samozniszczeniu po wyświetleniu. Link można otworzyć tylko raz.",
+      "authonly": {
+        "tagline2": "Usługa bezpiecznego przesyłania wiadomości jest przeznaczona wyłącznie do użytku wewnętrznego.",
+        "tagline1": "Jeśli masz konto, zaloguj się, aby kontynuować."
+      },
+      "disabled": {
+        "tagline2": "Ta usługa jest skonfigurowana wyłącznie do użytku wewnętrznego.",
+        "tagline1": "Interfejs użytkownika i możliwość logowania nie są dostępne."
+      }
+    }
+  }
+}

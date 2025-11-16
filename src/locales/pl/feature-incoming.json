@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Umieść hasło, tajną wiadomość lub prywatny link poniżej.",
+      "tagline2": "Bezpiecznie przekazuj poufne informacje na czatach i pocztą e-mail.",
+      "secret_hint": "* Link do wiadomości działa tylko raz, a następnie wygasa na zawsze.",
+      "incoming_button_create": "Wyślij do Pomocy Technicznej",
+      "incoming_secret_options": "Informacje dla Pomocy Technicznej",
+      "incoming_secret_placeholder": "Podaj wszelkie niezbędne informacje, które mogą być potrzebne konsultantowi pomocy technicznej (np. hasło systemowe)",
+      "incoming_ticket_number": "Podaj numer zgłoszenia",
+      "incoming_ticket_number_hint": "Znajdziesz go w Twoim e-mailu (np. 123456)",
+      "incoming_recipient_address": "Odbiorca pomocy technicznej",
+      "incoming_success_message": "Twój e-mail został wysłany",
+      "incoming_button_creating": "Tworzenie..."
+    }
+  }
+}

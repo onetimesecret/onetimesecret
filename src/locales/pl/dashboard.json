@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "Odebrane",
+      "title_not_received": "Nieodebrane",
+      "title_no_recent_secrets": "Brak ostatnich wiadomości",
+      "get-started-by-creating-your-first-secret": "Zacznij od utworzenia swojej pierwszej wiadomości."
+    }
+  }
+}

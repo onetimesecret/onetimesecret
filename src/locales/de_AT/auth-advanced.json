@@ -1,0 +1,195 @@
+{
+  "web": {
+    "auth": {
+      "mfa_required": "MFA-Verifizierung erforderlich",
+      "mfa_verification_required": "MFA-Verifizierung erforderlich, um auf Ihr Konto zuzugreifen",
+      "complete_mfa_verification": "MFA-Verifizierung abschließen",
+      "security": {
+        "_README": "⚠️ SICHERHEITSKRITISCH: Nachrichten verhindern Informationspreisgabe. Siehe src/locales/SECURITY-TRANSLATION-GUIDE.md",
+        "authentication_failed": "Authentifizierung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten und versuchen Sie es erneut.",
+        "rate_limited": "Zu viele Versuche. Bitte versuchen Sie es später erneut.",
+        "session_expired": "Sitzung abgelaufen. Bitte melden Sie sich erneut an.",
+        "recovery_code_not_found": "Wiederherstellungscode nicht gefunden. Bitte überprüfen Sie, ob Sie ihn korrekt eingegeben haben.",
+        "recovery_code_used": "Dieser Wiederherstellungscode wurde bereits verwendet. Jeder Code kann nur einmal verwendet werden.",
+        "network_error": "Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+        "internal_error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+        "_meta": {
+          "_purpose": "Diese Nachrichten folgen OWASP/NIST-Richtlinien, um Informationspreisgabe zu verhindern. Übersetzungen MÜSSEN generische Formulierungen beibehalten, um Aufzählung von Anmeldedaten und Timing-Angriffe zu verhindern. Niemals offenlegen: welche Anmeldedaten fehlgeschlagen sind, genaue Zeitangaben, Kontoexistenz oder Angriffsfortschritt.",
+          "authentication_failed": {
+            "security_note": "DARF NICHT offenlegen, welche Anmeldedaten fehlgeschlagen sind (Passwort, OTP oder Wiederherstellungscode). Dies verhindert, dass Angreifer gültige Anmeldedaten ermitteln oder Konten aufzählen.",
+            "owasp_ref": "ASVS 2.2.2 - Authentifizierungsfehlermeldungen müssen generisch sein"
+          },
+          "rate_limited": {
+            "security_note": "DARF NICHT genaue Sperrdauer, Versuchszählungen oder verbleibende Versuche offenlegen. Dies verhindert Timing-Angriffe und Fortschrittsverfolgung.",
+            "owasp_ref": "ASVS 2.2.1 - Kontosperrung darf nicht zeitbasiert aufzählbar sein"
+          },
+          "session_expired": {
+            "security_note": "Sicher, Sitzungsproblem anzugeben, da es keine Anmeldeinformationen offenlegt. Hilft Benutzern zu verstehen, dass sie sich neu authentifizieren müssen.",
+            "owasp_ref": "Best Practices für Sitzungsverwaltung"
+          },
+          "recovery_code_not_found": {
+            "security_note": "Sicher, Wiederherstellungscode-Kontext anzugeben, da Benutzer diese Authentifizierungsmethode explizit gewählt haben. Offenbart nicht, ob Code existiert.",
+            "owasp_ref": "Leitfaden zur Validierung von Wiederherstellungscodes"
+          },
+          "recovery_code_used": {
+            "security_note": "Sichere erwartete Verhaltensnachricht. Benutzer müssen wissen, dass Wiederherstellungscodes nur einmal verwendet werden können, um Verwirrung zu vermeiden.",
+            "owasp_ref": "Benutzeranleitung für Wiederherstellungsmechanismen"
+          }
+        },
+        "_translation_guidelines": {
+          "DO_NOT_translate_as": [
+            "Falsches Passwort",
+            "Ungültiger OTP-Code",
+            "Falscher Wiederherstellungscode",
+            "Warten Sie 5 Minuten",
+            "3 Versuche verbleibend",
+            "Konto für 15 Minuten gesperrt"
+          ],
+          "MUST_translate_as": [
+            "Generischer Authentifizierungsfehler (keine spezifischen Anmeldedaten)",
+            "Generische Rate-Limit-Nachricht (keine genaue Zeitangabe)",
+            "Wiederherstellungscode-Validierung (keine Existenzbestätigung)"
+          ],
+          "WHY": "Diese Einschränkungen verhindern, dass Angreifer: (1) gültige Benutzernamen/E-Mails ermitteln, (2) wissen, auf welche Anmeldedaten sie Angriffe konzentrieren sollen, (3) Timing-Angriffe durchführen, (4) Angriffsfortschritt messen"
+        },
+        "_safe_information": {
+          "format_requirements": "Sicher, Formatregeln anzugeben (z.B. 'OTP muss 6 Ziffern haben')",
+          "expected_behavior": "Sicher, zu beschreiben, wie Funktionen funktionieren (z.B. 'Codes laufen alle 30 Sekunden ab')",
+          "recovery_options": "Sicher, Alternativen anzubieten (z.B. 'Verwenden Sie stattdessen einen Wiederherstellungscode')",
+          "general_guidance": "Sicher, Hilfe zu leisten (z.B. 'Überprüfen Sie Ihre Authenticator-App')"
+        }
+      },
+      "methods": {
+        "password": "Passwort",
+        "magicLink": "E-Mail-Link",
+        "webauthn": "Biometrisch"
+      },
+      "magicLink": {
+        "title": "Mit E-Mail anmelden",
+        "description": "Wir senden Ihnen einen sicheren Anmeldelink",
+        "emailPlaceholder": "Geben Sie Ihre E-Mail ein",
+        "sendLink": "Anmeldelink senden",
+        "checkEmail": "Überprüfen Sie Ihre E-Mail",
+        "sentTo": "Wir haben einen Anmeldelink an {email} gesendet",
+        "linkExpiresIn": "Dieser Link läuft in 15 Minuten ab",
+        "tryDifferentEmail": "Eine andere E-Mail ausprobieren",
+        "noPasswordNeeded": "Kein Passwort erforderlich — klicken Sie einfach auf den Link in Ihrer E-Mail",
+        "networkError": "Netzwerkfehler. Bitte versuchen Sie es erneut.",
+        "requestFailed": "Senden des Anmeldelinks fehlgeschlagen. Bitte versuchen Sie es erneut.",
+        "invalidLink": "Ungültiger oder fehlender Anmeldelink",
+        "loginFailed": "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+        "signingYouIn": "Sie werden angemeldet...",
+        "pleaseWait": "Bitte warten Sie, während wir Ihren Link verifizieren",
+        "error": "Authentifizierungsfehler",
+        "backToSignin": "Zurück zur Anmeldung"
+      },
+      "webauthn": {
+        "signIn": "Mit Face ID / Touch ID anmelden",
+        "setup": "Biometrische Anmeldung einrichten",
+        "notSupported": "Biometrische Authentifizierung wird in diesem Browser nicht unterstützt",
+        "requiresModernBrowser": "Bitte verwenden Sie einen modernen Browser, der WebAuthn unterstützt (Chrome, Safari, Firefox oder Edge)",
+        "setupSuccess": "Biometrische Anmeldung wurde aktiviert",
+        "setupFailed": "Einrichtung der biometrischen Anmeldung fehlgeschlagen",
+        "authFailed": "Biometrische Authentifizierung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+        "cancelled": "Authentifizierung wurde abgebrochen",
+        "processing": "Authentifizierung läuft...",
+        "description": "Verwenden Sie Ihren Fingerabdruck, Ihr Gesicht oder einen Sicherheitsschlüssel zur Anmeldung",
+        "supportedMethods": "Unterstützt Face ID, Touch ID, Windows Hello und Sicherheitsschlüssel"
+      },
+      "lockout": {
+        "attempts-remaining": "Warnung: {count} Anmeldeversuch(e) verbleibend",
+        "account-locked": "Konto wegen zu vieler fehlgeschlagener Anmeldeversuche gesperrt",
+        "locked-until": "Ihr Konto ist bis {time} gesperrt",
+        "contact-support": "Kontaktieren Sie den Support, falls Sie sofortigen Zugriff benötigen",
+        "try-password-reset": "Sie können stattdessen Ihr Passwort zurücksetzen"
+      },
+      "sessions": {
+        "title": "Aktive Sitzungen",
+        "current": "Aktuelle Sitzung",
+        "other": "Andere Sitzungen",
+        "device": "Gerät",
+        "location": "Standort",
+        "ip-address": "IP-Adresse",
+        "last-active": "Zuletzt aktiv",
+        "created": "Erstellt",
+        "remove": "Entfernen",
+        "remove-all": "Alle anderen Sitzungen abmelden",
+        "confirm-remove": "Sind Sie sicher, dass Sie diese Sitzung entfernen möchten?",
+        "confirm-remove-all": "Dies meldet Sie von allen anderen Geräten ab. Sind Sie sicher?",
+        "no-sessions": "Keine anderen aktiven Sitzungen",
+        "removed-success": "Sitzung erfolgreich entfernt",
+        "removed-all-success": "Alle anderen Sitzungen wurden abgemeldet",
+        "link-title": "Aktive Sitzungen"
+      },
+      "mfa": {
+        "title": "Zwei-Faktor-Authentifizierung",
+        "enabled": "Zwei-Faktor-Authentifizierung ist aktiviert",
+        "disabled": "Zwei-Faktor-Authentifizierung ist deaktiviert",
+        "enable": "Zwei-Faktor-Authentifizierung aktivieren",
+        "disable": "Zwei-Faktor-Authentifizierung deaktivieren",
+        "setup-title": "Zwei-Faktor-Authentifizierung einrichten",
+        "setup-description": "Fügen Sie eine zusätzliche Sicherheitsebene zu Ihrem Konto hinzu",
+        "step-scan": "1. QR-Code scannen",
+        "step-verify": "2. Einrichtung verifizieren",
+        "scan-qr": "Scannen Sie diesen QR-Code mit Ihrer Authenticator-App",
+        "manual-entry": "Oder geben Sie diesen Code manuell ein",
+        "verify-code": "Geben Sie den 6-stelligen Code aus Ihrer App ein",
+        "enter-code": "Authentifizierungscode eingeben",
+        "verify": "Verifizieren und aktivieren",
+        "code-required": "Authentifizierungscode ist erforderlich",
+        "invalid-code": "Ungültiger Code. Codes laufen alle 30 Sekunden ab. Versuchen Sie den neuesten Code aus Ihrer Authenticator-App.",
+        "success-enabled": "Zwei-Faktor-Authentifizierung wurde aktiviert",
+        "success-disabled": "Zwei-Faktor-Authentifizierung wurde deaktiviert",
+        "require-password": "Geben Sie Ihr Passwort ein, um 2FA zu deaktivieren",
+        "password-confirmation": "Passwort",
+        "password-reason": "Bestätigen Sie Ihre Identität, um die Zwei-Faktor-Authentifizierungseinstellungen zu ändern",
+        "last-used": "Zuletzt verwendet: {time}",
+        "never-used": "Nie verwendet",
+        "use-recovery-code": "Verwenden Sie stattdessen einen Wiederherstellungscode",
+        "back-to-code": "Zurück zum Authentifizierungscode",
+        "cancel": "Abbrechen und zur Anmeldung zurückkehren",
+        "loading-status": "MFA-Status wird geladen...",
+        "protected-description": "Ihr Konto ist mit Zwei-Faktor-Authentifizierung geschützt",
+        "enable-description": "Schützen Sie Ihr Konto mit einer zusätzlichen Sicherheitsebene",
+        "benefit-unauthorized": "Verhindern Sie unbefugten Zugriff, selbst wenn Ihr Passwort kompromittiert wurde",
+        "benefit-apps": "Funktioniert mit Google Authenticator, Authy und anderen TOTP-Apps",
+        "benefit-recovery": "Backup-Wiederherstellungscodes für Notfallzugriff",
+        "password-placeholder": "Geben Sie Ihr Passwort ein",
+        "disabling": "Wird deaktiviert...",
+        "disable-button": "2FA deaktivieren",
+        "generating-qr": "QR-Code wird generiert...",
+        "supported-apps": "Verwenden Sie Google Authenticator, Authy oder eine TOTP-App",
+        "continue-verification": "Weiter zur Verifizierung",
+        "enter-code-description": "Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein",
+        "enable-and-continue": "MFA aktivieren",
+        "complete-setup": "Einrichtung abschließen",
+        "enter-recovery-code": "Geben Sie einen Ihrer Wiederherstellungscodes ein",
+        "recovery-code-label": "Wiederherstellungscode",
+        "recovery-code-placeholder": "Wiederherstellungscode eingeben",
+        "verify-recovery-code": "Wiederherstellungscode verifizieren",
+        "six-digit-code": "6-stelligen Authentifizierungscode eingeben",
+        "recovery-code-mode-active": "Wiederherstellungscode-Modus aktiv",
+        "otp-mode-active": "Authentifizierungscode-Modus aktiv",
+        "enter-all-digits": "Bitte geben Sie alle 6 Ziffern ein, um fortzufahren",
+        "digit-of-count": "Ziffer {current} von {total}"
+      },
+      "recovery-codes": {
+        "title": "Wiederherstellungscodes",
+        "description": "Speichern Sie diese Codes an einem sicheren Ort. Jeder kann einmal verwendet werden, falls Sie den Zugriff auf Ihren Authenticator verlieren.",
+        "warning": "Diese Codes werden nur einmal angezeigt",
+        "generate-new": "Neue Codes generieren",
+        "generate-new-warning": "Dies macht alle bestehenden Wiederherstellungscodes ungültig",
+        "download": "Codes herunterladen",
+        "print": "Codes drucken",
+        "copy": "Alle Codes kopieren",
+        "copied": "Codes in Zwischenablage kopiert",
+        "code-used": "Verwendet",
+        "code-unused": "Unbenutzt",
+        "remaining": "{count} Wiederherstellungscode(s) verbleibend",
+        "none-remaining": "Keine Wiederherstellungscodes verbleibend",
+        "generate-success": "Neue Wiederherstellungscodes wurden generiert",
+        "link-title": "Wiederherstellungscodes"
+      }
+    }
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "web": {
+    "billing": {
+      "upgrade": {
+        "required": "Mise à niveau requise",
+        "viewPlans": "Voir les forfaits",
+        "needTeams": "Plusieurs équipes nécessitent le forfait Multi-équipes ou supérieur",
+        "needCustomDomains": "Les domaines personnalisés nécessitent Identity Plus ou supérieur",
+        "needApiAccess": "L'accès API nécessite le forfait Multi-équipes ou supérieur",
+        "needPrioritySupport": "Le support prioritaire nécessite Identity Plus ou supérieur",
+        "needAuditLogs": "Les journaux d'audit nécessitent le forfait Multi-équipes ou supérieur"
+      },
+      "manage_subscription_and_billing": "Gérer votre abonnement, vos organisations et vos paramètres de facturation",
+      "overview": {
+        "title": "Vue d'ensemble de la facturation",
+        "description": "Afficher et gérer votre abonnement et les détails de paiement",
+        "organization_selector": "Sélectionner l'organisation",
+        "current_plan": "Forfait actuel",
+        "plan_features": "Fonctionnalités du forfait",
+        "payment_method": "Moyen de paiement",
+        "next_billing_date": "Prochaine date de facturation",
+        "quick_actions": "Actions rapides",
+        "manage_billing": "Gérer la facturation",
+        "view_invoices": "Afficher les factures",
+        "upgrade_plan": "Mettre à niveau le forfait",
+        "change_plan": "Modifier le forfait",
+        "no_payment_method": "Aucun moyen de paiement enregistré",
+        "no_upcoming_billing": "Aucune facturation à venir",
+        "days_remaining": "jours restants",
+        "billing_on": "Facturation le {date}",
+        "view_plans_action": "Voir les forfaits",
+        "view_plans_description": "Comparer et mettre à niveau",
+        "view_invoices_action": "Afficher les factures",
+        "view_invoices_description": "Télécharger l'historique",
+        "manage_billing_action": "Gérer la facturation",
+        "manage_billing_description": "Mettre à jour les informations de paiement",
+        "no_organizations_title": "Aucune organisation",
+        "no_organizations_description": "Créez une organisation pour gérer votre facturation et votre abonnement",
+        "capabilities": {
+          "create_secrets": "Créer des secrets",
+          "basic_sharing": "Partage basique",
+          "create_team": "Créer une équipe",
+          "create_teams": "Créer plusieurs équipes",
+          "custom_domains": "Domaines personnalisés",
+          "api_access": "Accès API",
+          "priority_support": "Support prioritaire",
+          "audit_logs": "Journaux d'audit"
+        }
+      },
+      "plans": {
+        "title": "Sélectionner un forfait",
+        "choose_plan": "Choisissez le forfait qui correspond à vos besoins",
+        "current": "Forfait actuel",
+        "upgrade": "Mettre à niveau",
+        "downgrade": "Rétrograder",
+        "monthly": "Mensuel",
+        "yearly": "Annuel",
+        "save_yearly": "Économisez {percent}% avec la facturation annuelle",
+        "free_plan": "Gratuit",
+        "single_team_plan": "Équipe unique",
+        "multi_team_plan": "Multi-équipes",
+        "features": "Fonctionnalités",
+        "teams_limit": "{count} équipe | {count} équipes",
+        "members_limit": "{count} membre par équipe | {count} membres par équipe",
+        "unlimited_secrets": "Secrets illimités",
+        "api_access": "Accès API",
+        "priority_support": "Support prioritaire",
+        "select_plan": "Sélectionner le forfait",
+        "contact_sales": "Contacter les ventes"
+      },
+      "invoices": {
+        "title": "Historique de facturation",
+        "view_history": "Afficher votre historique de facturation et télécharger les factures",
+        "invoice_date": "Date",
+        "invoice_amount": "Montant",
+        "invoice_status": "Statut",
+        "invoice_download": "Télécharger",
+        "no_invoices": "Aucune facture pour le moment",
+        "paid": "Payé",
+        "pending": "En attente",
+        "failed": "Échec",
+        "load_error": "Échec du chargement des factures"
+      },
+      "notices": {
+        "org_managed": "La facturation de cette équipe est gérée par {orgName}",
+        "view_org_billing": "Afficher la facturation de l'organisation",
+        "team_billing_disabled": "La facturation au niveau de l'équipe est gérée via votre organisation"
+      },
+      "limits": {
+        "teams_reached": "Vous avez atteint la limite de votre forfait",
+        "teams_upgrade": "Mettez à niveau pour créer plus d'équipes",
+        "members_reached": "Vous avez atteint la limite de membres pour cette équipe",
+        "members_upgrade": "Mettez à niveau pour ajouter plus de membres"
+      },
+      "subscription": {
+        "title": "Abonnement",
+        "status": "État de l'abonnement",
+        "active": "Actif",
+        "inactive": "Inactif",
+        "past_due": "En retard",
+        "canceled": "Annulé",
+        "plan_name": "Forfait",
+        "team_usage": "Utilisation des équipes",
+        "teams_used": "{used} équipe(s) sur {limit} utilisée(s)"
+      },
+      "portal": {
+        "title": "Portail de facturation",
+        "description": "Gérer votre abonnement, vos moyens de paiement et votre historique de facturation",
+        "open_portal": "Ouvrir le portail de facturation",
+        "redirecting": "Redirection vers le portail de facturation..."
+      }
+    }
+  }
+}

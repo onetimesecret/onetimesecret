@@ -1,0 +1,67 @@
+{
+  "web": {
+    "colonel": {
+      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified-0": "`+customer.verified ? `підтверджено` : `не підтверджено`",
+      "customers-details-counts-recent_customer_count-o-0": "Клієнти ({0} з {1})",
+      "user-feedback-total-details-counts-feedback_coun-0": "Відгуки користувачів (Всього: {0})",
+      "metadata-secrets-details-counts-metadata_count-d-0": "Метадані / Секрети: {0}/{1} (Всього: {2}/{3}/{4})",
+      "secrets-details-counts-secret_count-0": "Секрети ({0})",
+      "active-in-the-past-5-minutes-0": "(активний за останні 5 хвилин)",
+      "configEditorTitle": "",
+      "configEditorDescription": "",
+      "invalidJson": "",
+      "validationError": "",
+      "errorFetchingConfig": "",
+      "errorSavingConfig": "",
+      "configSaved": "",
+      "mustBeObject": "",
+      "multipleSectionsInvalid": "",
+      "sectionHasError": "",
+      "sectionSaved": "",
+      "saveSection": "",
+      "saveAll": "",
+      "unsavedChanges": "",
+      "schemaValidationError": "",
+      "unknownValidationError": "",
+      "dashboard": "Dashboard",
+      "activity": "",
+      "accounts": "",
+      "users": "",
+      "domains": "Домени",
+      "settings": "",
+      "welcome": "Welcome to Colonel",
+      "welcomeDesc": "",
+      "quickActions": "",
+      "recentActivity": "",
+      "viewAll": "",
+      "activityPlaceholder": "",
+      "stats": {
+        "totalSecrets": "",
+        "activeUsers": "",
+        "secretsToday": "",
+        "secretsCreated": "",
+        "secretsShared": "",
+        "totalCustomers": "",
+        "emailsSent": "",
+        "systemHealth": "",
+        "healthy": ""
+      },
+      "actions": {
+        "viewActivity": "",
+        "viewActivityDesc": "",
+        "manageAccounts": "",
+        "manageAccountsDesc": "",
+        "configureDomains": "",
+        "configureDomainsDesc": "",
+        "systemSettings": "",
+        "systemSettingsDesc": ""
+      }
+    },
+    "feedback": {
+      "when-you-submit-feedback-well-see": "Коли ви надсилаєте відгук, ми побачимо:",
+      "send-feedback": "Надіслати відгук",
+      "sending-ellipses": "Надсилання..."
+    }
+  }
+}

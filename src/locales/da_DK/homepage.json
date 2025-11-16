@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Indsæt en adgangskode, besked eller privat link nedenfor.",
+      "tagline2": "Hold følsomme oplysninger ude af dine e-mails og chats.",
+      "secret_hint": "* Et sikkert link virker kun én gang og forsvinder derefter for altid.",
+      "secret_form_more_text1": "Tilmeld dig for en",
+      "secret_form_more_text2": "gratis konto",
+      "secret_form_more_text3": "og få mulighed for at sende sikre links via e-mail.",
+      "cta_title": "Øg tilliden & del sikkert",
+      "cta_subtitle": "Styrk dit brand og del med selvtillid",
+      "cta_feature1": "Ubegrænsede brugerdefinerede domæner",
+      "cta_feature2": "Ubegrænset deling af beskeder",
+      "cta_feature3": "Øg kundetillid og engagement",
+      "explore_premium_plans": "Med brugerdefinerede domæner",
+      "need_free_account": "Lige begyndt? Send e-mails med en gratis konto.",
+      "sign_up_free": "Gratis tilmelding",
+      "visit-onetime-secret-home": "Besøg Onetimes hemmelige hjemmeside",
+      "password_generation_title": "Adgangskodegenerator",
+      "password_generation_description": "Klik på \"Generate Password\" for at oprette en sikker, tilfældig adgangskode, som du kan dele.",
+      "protip1": "Din besked vil ødelægge sig selv, når den er blevet set. Linket kan kun tilgås én gang.",
+      "authonly": {
+        "tagline2": "Den sikre beskedtjeneste er kun til intern brug.",
+        "tagline1": "Hvis du har en konto, skal du logge ind for at fortsætte."
+      },
+      "disabled": {
+        "tagline2": "Denne tjeneste er kun sat op til intern brug.",
+        "tagline1": "Brugergrænseflade og login-funktioner er ikke tilgængelige."
+      }
+    }
+  }
+}

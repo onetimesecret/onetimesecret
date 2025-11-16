@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "パスワード、秘密のメッセージ、またはプライベートリンクを以下に貼り付けてください。",
+      "tagline2": "機密情報をメールやチャットログから除外してください。",
+      "secret_hint": "* 秘密リンクは 1 回しか機能せず、その後は永遠に消えます。",
+      "incoming_button_create": "サポートスタッフに送信",
+      "incoming_secret_options": "サポート情報",
+      "incoming_secret_placeholder": "サポート担当者が必要とする情報を入力してください（例：システムパスワード）",
+      "incoming_ticket_number": "チケット番号を入力",
+      "incoming_ticket_number_hint": "メールでこれを見つけることができます（例：123456）",
+      "incoming_recipient_address": "サポート受信者",
+      "incoming_success_message": "メールが送信されました",
+      "incoming_button_creating": "作成中"
+    }
+  }
+}

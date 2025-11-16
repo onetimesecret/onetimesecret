@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "Отримано",
+      "title_not_received": "Не отримано",
+      "title_no_recent_secrets": "Немає недавніх секретів",
+      "get-started-by-creating-your-first-secret": "Почніть зі створення вашого першого секрету."
+    }
+  }
+}

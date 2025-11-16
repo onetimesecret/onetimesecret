@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Whakapiri he kupuhipa, karere huna, hononga tūmataiti rānei ki raro.",
+      "tagline2": "Puritia ngā mōhiohio tairongo kei waho i tō īmēra me ō rārangi kōrerorero.",
+      "secret_hint": "* Ka mahi kotahi noa te hononga karere huna, kātahi ka ngaro mō ake tonu atu.",
+      "secret_form_more_text1": "Waitohu mō tētahi",
+      "secret_form_more_text2": "pūkete koreutu",
+      "secret_form_more_text3": "ā, ka taea te tuku i te karere huna mā te īmēra.",
+      "cta_title": "Whakanui i te whakawhirinaki me te tuari i te māia",
+      "cta_subtitle": "Whakapiki i tō waitohu me te tuari i te māia",
+      "cta_feature1": "Ngā rohe ritenga mutunga kore",
+      "cta_feature2": "Tuari karere huna mutunga kore",
+      "cta_feature3": "Whakapiki i te whakawhirinaki me te whai wāhi o ngā kiritaki",
+      "explore_premium_plans": "Me ngā Rohe Ritenga",
+      "need_free_account": "Kātahi anō ka tīmata? Tukua ngā īmēra ki tētahi pūkete koreutu.",
+      "sign_up_free": "Waitohu Koreutu",
+      "visit-onetime-secret-home": "Toro ki te whārangi matua o Onetime Secret",
+      "password_generation_title": "Waihanga Kupuhipa",
+      "password_generation_description": "Pāwhiri \"Waihanga Kupuhipa\" hei hanga i tētahi kupuhipa matapōkere haumaru ka taea e koe te tuari.",
+      "protip1": "Ka whakangaromia-anō tō karere whai muri i te tirohanga. Ka taea te uru ki te hononga kotahi anake te wā.",
+      "authonly": {
+        "tagline2": "Ko tēnei ratonga mō te whakamahi ā-rohe anake.",
+        "tagline1": "Ki te whai pūkenga koe, tēnā whakauru mai kia haere tonu."
+      },
+      "disabled": {
+        "tagline2": "Kua whakaritea tēnei ratonga mō te whakamahi ā-rohe anake.",
+        "tagline1": "Kāore e wātea te atanga kaiwhakamahi me ngā āheinga whakauru."
+      }
+    }
+  }
+}

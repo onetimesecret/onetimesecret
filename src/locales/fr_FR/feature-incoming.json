@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Coller un mot de passe, message secret ou un lien privé ci-dessous",
+      "tagline2": "Ne stockez pas de données sensibles dans les journaux de vos logiciels de chat ou de messagerie.",
+      "secret_hint": "* Un lien secret ne fonctionne qu'une fois puis disparaît à jamais.",
+      "incoming_button_create": "Envoyez au support",
+      "incoming_secret_options": "Informations sur le support",
+      "incoming_secret_placeholder": "Entrez les informations dont votre interlocuteur au support aura besoin (par exemple votre mot de passe du système)",
+      "incoming_ticket_number": "Entrez l'identifiant # du ticket",
+      "incoming_ticket_number_hint": "Vous pouvez le trouver dans votre mail (par exemple 123456)",
+      "incoming_recipient_address": "Destinataire du support",
+      "incoming_success_message": " Votre email a été envoyé",
+      "incoming_button_creating": "Création"
+    }
+  }
+}

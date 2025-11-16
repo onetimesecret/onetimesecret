@@ -1,0 +1,62 @@
+{
+  "web": {
+    "footer": {
+      "security": "",
+      "learn-about-our-security-measures": "",
+      "view-our-terms-and-conditions": "",
+      "terms": "",
+      "privacy": "",
+      "contact": "",
+      "support": "",
+      "legals": "",
+      "read-our-privacy-policy": "",
+      "check-our-service-status": "",
+      "explore-our-api-documentation": "",
+      "docs": "",
+      "access-our-documentation": "",
+      "view-our-source-code-on-github": "",
+      "resources": "",
+      "blog": "",
+      "read-our-latest-blog-posts": "",
+      "view-our-subscription-pricing": "",
+      "learn-about-our-company": "",
+      "company": ""
+    },
+    "navigation": {
+      "billing": "",
+      "billingOverview": "",
+      "organizations": ""
+    },
+    "site": {
+      "website-version": "웹사이트 버전"
+    },
+    "meta": {
+      "were-making-onetime-secret-available-in-multiple": "저희는 {onetime-secret}을 여러 언어로 제공하고 있습니다. 이는 새로운 기능이므로 번역 오류나 어색한 표현이 있을 수 있습니다. 귀하의 피드백은 저희가 개선하는 데 도움이 됩니다 - 문제를 발견하셨다면 {send-feedback}해 주세요",
+      "translations-are-new-spotted-an-error": "번역은 새로 추가되었습니다. 오류를 발견하셨나요? {send-feedback}해 주세요",
+      "we-recently-added-translations": "저희는 최근에 번역을 추가했습니다. 오류를 발견하셨나요? {send-feedback}해 주세요",
+      "privacy-and-security-should-be-accessible": "개인 정보 보호와 보안은 언어에 관계없이 모든 사람이 접근할 수 있어야 합니다. 저희는 사용자와 메시지 수신자가 보안 메시지와 링크를 안전하게 사용하고 접근하는 방법을 더 잘 이해할 수 있도록 번역을 추가하고 있습니다. 이는 새로운 기능이므로 일부 번역 오류나 불명확한 지침이 있을 수 있습니다. 특히 중요한 보안 관련 콘텐츠의 명확성과 정확성을 개선하는 데 도움이 되도록, 문제를 발견하시면 {send-feedback}해 주세요"
+    },
+    "help": {
+      "learn_more": "더 알아보기",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "지금 무엇을 보고 있나요?",
+          "description": "Onetime Secret을 통해 공유된 보안 메시지를 보고 계십니다. 이 내용은 단 한 번만 표시되며 이후 저희 서버에서 영구적으로 삭제됩니다."
+        },
+        "can_i_view_again": {
+          "title": "이 메시지를 나중에 다시 볼 수 있나요?",
+          "description": "아니요. 보안상의 이유로 이 메시지는 단 한 번만 볼 수 있습니다. 이 페이지를 닫은 후에는 내용이 영구적으로 삭제되며 저희를 포함한 누구도 복구할 수 없습니다."
+        },
+        "how_to_copy": {
+          "title": "이 정보를 어떻게 저장하나요?",
+          "description": "'클립보드에 복사' 버튼을 사용하여 전체 메시지를 복사하세요. 긴 메시지의 경우, 이 페이지를 떠나기 전에 전체 내용이 제대로 복사되었는지 확인하세요."
+        },
+        "is_my_viewing_tracked": {
+          "title": "제가 이 메시지를 보는 것이 추적되나요?",
+          "description": "발신자에게는 메시지가 열람되었다는 알림이 가지만, 누가 어디서 열람했는지는 추적하지 않습니다. 귀하의 개인정보는 보호됩니다."
+        },
+        "one_time_warning": "이 페이지를 떠나거나 새로고침하면, 이 메시지는 영구적으로 삭제되며 누구도 복구할 수 없습니다."
+      }
+    }
+  }
+}

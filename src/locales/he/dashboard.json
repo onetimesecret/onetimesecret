@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "התקבל",
+      "title_not_received": "לא התקבל",
+      "title_no_recent_secrets": "אין סודות אחרונים",
+      "get-started-by-creating-your-first-secret": ""
+    }
+  }
+}

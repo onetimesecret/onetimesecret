@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "비밀번호, 비밀 메시지 또는 개인 링크를 아래에 붙여넣으세요.",
+      "tagline2": "민감한 정보를 이메일과 채팅 로그에서 제외하세요.",
+      "secret_hint": "* 비밀 링크는 단 한 번만 작동하고 영원히 사라집니다.",
+      "secret_form_more_text1": "가입하여",
+      "secret_form_more_text2": "무료 계정",
+      "secret_form_more_text3": "을 만들고 이메일로 비밀을 보낼 수 있습니다.",
+      "cta_title": "신뢰를 높이고 자신 있게 공유하세요",
+      "cta_subtitle": "브랜드를 향상시키고 자신 있게 공유하세요",
+      "cta_feature1": "무제한 맞춤 도메인",
+      "cta_feature2": "무제한 비밀 공유",
+      "cta_feature3": "고객 신뢰와 참여도 향상",
+      "explore_premium_plans": "맞춤 도메인 포함",
+      "need_free_account": "막 시작하셨나요? 무료 계정으로 이메일을 보내세요.",
+      "sign_up_free": "무료 가입",
+      "visit-onetime-secret-home": "Onetime Secret 홈페이지 방문",
+      "password_generation_title": "비밀번호 생성기",
+      "password_generation_description": "\"비밀번호 생성\" 버튼을 클릭하여 공유할 수 있는 안전한 무작위 비밀번호를 생성하세요.",
+      "protip1": "메시지는 열람 후 자동으로 파기됩니다. 링크는 단 한 번만 접근할 수 있습니다.",
+      "authonly": {
+        "tagline2": "보안 메시징 서비스는 내부 전용입니다.",
+        "tagline1": "계정이 있는 경우 로그인하여 계속하세요."
+      },
+      "disabled": {
+        "tagline2": "이 서비스는 내부 사용만을 위해 설정되었습니다.",
+        "tagline1": "사용자 인터페이스 및 로그인 기능을 사용할 수 없습니다."
+      }
+    }
+  }
+}

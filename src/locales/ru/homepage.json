@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Вставьте пароль, тайное сообщение или закрытую ссылку ниже.",
+      "tagline2": "Не пересылайте конфиденциальную информацию через беседы и эл-почту.",
+      "secret_hint": "* Ссылка сработает только один раз, а затем удалится навсегда.",
+      "secret_form_more_text1": "Создайте",
+      "secret_form_more_text2": "бесплатную учётную запись",
+      "secret_form_more_text3": "и получите возможность отправлять тайны по эл-почте.",
+      "cta_title": "Используйте собственный домен",
+      "cta_subtitle": "Поднимите свой бренд и делитесь с уверенностью",
+      "cta_feature1": "Ваш собственный настраиваемый домен",
+      "cta_feature2": "Безлимитный обмен секретами",
+      "cta_feature3": "Расширенные настройки конфиденциальности",
+      "explore_premium_plans": "Изучите премиум-планы",
+      "need_free_account": "Только начинаете?",
+      "sign_up_free": "Создать бесплатный аккаунт",
+      "visit-onetime-secret-home": "Visit Onetime Secret homepage",
+      "password_generation_title": "Password Generator",
+      "password_generation_description": " Click \"Generate Password\" to create a secure random password that you can share.",
+      "protip1": "Your message will self-destruct after being viewed. The link can only be accessed once.",
+      "authonly": {
+        "tagline2": "",
+        "tagline1": ""
+      },
+      "disabled": {
+        "tagline2": "",
+        "tagline1": ""
+      }
+    }
+  }
+}

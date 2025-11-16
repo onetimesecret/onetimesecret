@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Plak het wachtwoord, geheime bericht of privé link hieronder",
+      "tagline2": "Hou gevoelige informatie buiten chat logs en e-mail",
+      "secret_hint": "* Een geheime link werkt maar één keer en verdwijnt daarna voor altijd.",
+      "incoming_button_create": "Stuur naar een supportmedewerker",
+      "incoming_secret_options": "Supportinformatie",
+      "incoming_secret_placeholder": "Geef willekeurige informatie die uw supportmedewerker nodig heeft (bijvoorbeeld een systeemwachtwoord)",
+      "incoming_ticket_number": "Vul ticket # in",
+      "incoming_ticket_number_hint": "U kunt dit terugvinden in uw e-mail (bijv. 123456)",
+      "incoming_recipient_address": "Support ontvanger",
+      "incoming_success_message": "Uw e-mailbericht is verstuurd.",
+      "incoming_button_creating": "Aanmaken"
+    }
+  }
+}

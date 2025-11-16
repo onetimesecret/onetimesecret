@@ -1,0 +1,20 @@
+{
+  "email": {
+    "incomingsupport": {
+      "subject": "[Ticket: %s]",
+      "body1": "Có một khách hàng đã gởi thông tin sau"
+    },
+    "secretlink": {
+      "subject": "%s gởi cho bạn một bí mật",
+      "body1": "Chúng tôi có một bí mật cho bạn, từ",
+      "body_tagline": "Nếu bạn không biết ai gởi hoặc nghĩ đây là spam, hãy gởi cho chúng tôi chi tiết ở đây:"
+    },
+    "welcome": {
+      "subject": "Xác thực tài khoản Onetime Secret",
+      "body1": "Chào mừng đến với Onetime Secret. Chúng tôi có một bí mật dành cho bạn!",
+      "please_verify": "Vui lòng xác nhận tài khoản:",
+      "postscript1": "Email này đã được gởi tới",
+      "postscript2": "Nếu bạn không tạo tài khoản này, vui lòng xóa tin nhắn này đi, chúng tôi sẽ không làm phiền bạn nữa."
+    }
+  }
+}

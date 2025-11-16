@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Whakapiri he kupuhipa, karere huna, hononga tūmataiti rānei ki raro.",
+      "tagline2": "Puritia ngā mōhiohio tairongo kei waho i tō īmēra me ō rārangi kōrerorero.",
+      "secret_hint": "* Ka mahi kotahi noa te hononga karere huna, kātahi ka ngaro mō ake tonu atu.",
+      "incoming_button_create": "Tukua ki te Kapa Tautoko",
+      "incoming_secret_options": "Mōhiohio Tautoko",
+      "incoming_secret_placeholder": "Tāurua ngā mōhiohio katoa e hiahia ai tō māngai tautoko (hei tauira, kupuhipa pūnaha)",
+      "incoming_ticket_number": "Tāuru Tīkiti #",
+      "incoming_ticket_number_hint": "Ka kitea tēnei i tō īmēra (hei tauira. 123456)",
+      "incoming_recipient_address": "Kaiwhiwhi tautoko",
+      "incoming_success_message": "Kua tukuna tō īmēra",
+      "incoming_button_creating": "Kei te waihanga"
+    }
+  }
+}

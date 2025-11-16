@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Incolla una password, un messaggio segreto o un link privato qui sotto",
+      "tagline2": "Mantieni le informazioni sensibili fuori dalle email e dai log delle chat",
+      "secret_hint": "* Un link segreto funziona una sola volta e quindi sparisce per sempre.",
+      "incoming_button_create": "Invia alla squadra di supporto",
+      "incoming_secret_options": "Informazioni supporto",
+      "incoming_secret_placeholder": "Inserisci le informazioni di cui il tuo rappresentante di supporto avrà bisogno (p.e. password di sistema)",
+      "incoming_ticket_number": "Inserisci ticket #",
+      "incoming_ticket_number_hint": "Lo puoi trovare nella tua email (p.e. 123456)",
+      "incoming_recipient_address": "Destinatario supporto",
+      "incoming_success_message": "La tua e-mail è stata inviata",
+      "incoming_button_creating": "Creazione"
+    }
+  }
+}

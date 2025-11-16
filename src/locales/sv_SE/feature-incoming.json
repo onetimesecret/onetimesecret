@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Klistra in lösenord, hemligt meddelande eller en hemlig länk nedan.",
+      "tagline2": "Dela känslig information utan att behöva skriva det i e-post eller chattar.",
+      "secret_hint": "* En hemlig länk fungerar bara en gång och försvinner sedan för alltid!.",
+      "incoming_button_create": "Skicka till IT-support",
+      "incoming_secret_options": "Information för IT-support",
+      "incoming_secret_placeholder": "Ange all information din supportrepresentant behöver (t.ex. systemlösenord)",
+      "incoming_ticket_number": "Ange ärendenummer",
+      "incoming_ticket_number_hint": "Du hittar detta i din e-post (t.ex. 123456)",
+      "incoming_recipient_address": "Supportmottagare",
+      "incoming_success_message": "Ditt e-postmeddelande har skickats",
+      "incoming_button_creating": "Skapar"
+    }
+  }
+}

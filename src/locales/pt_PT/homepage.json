@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Cole uma palavra-passe, mensagem secreta ou link privado abaixo.",
+      "tagline2": "Mantenha informações sensíveis fora do seu e-mail e registos de chat.",
+      "secret_hint": "* Um link secreto funciona apenas uma vez e depois desaparece para sempre.",
+      "secret_form_more_text1": "Registe-se para uma",
+      "secret_form_more_text2": "conta gratuita",
+      "secret_form_more_text3": "e poder enviar o segredo por e-mail.",
+      "cta_title": "Use um Domínio Personalizado",
+      "cta_subtitle": "Eleve a sua marca e partilhe com confiança",
+      "cta_feature1": "O seu próprio domínio personalizado",
+      "cta_feature2": "Partilha ilimitada de segredos",
+      "cta_feature3": "Controlos de privacidade avançados",
+      "explore_premium_plans": "Explore os Planos Premium",
+      "need_free_account": "Está a começar?",
+      "sign_up_free": "Crie uma conta gratuita",
+      "visit-onetime-secret-home": "",
+      "password_generation_title": "",
+      "password_generation_description": "",
+      "protip1": "",
+      "authonly": {
+        "tagline2": "",
+        "tagline1": ""
+      },
+      "disabled": {
+        "tagline2": "",
+        "tagline1": ""
+      }
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "web": {
+    "footer": {
+      "security": "",
+      "learn-about-our-security-measures": "",
+      "view-our-terms-and-conditions": "",
+      "terms": "",
+      "privacy": "",
+      "contact": "",
+      "support": "",
+      "legals": "",
+      "read-our-privacy-policy": "",
+      "check-our-service-status": "",
+      "explore-our-api-documentation": "",
+      "docs": "",
+      "access-our-documentation": "",
+      "view-our-source-code-on-github": "",
+      "resources": "",
+      "blog": "",
+      "read-our-latest-blog-posts": "",
+      "view-our-subscription-pricing": "",
+      "learn-about-our-company": "",
+      "company": ""
+    },
+    "navigation": {
+      "billing": "",
+      "billingOverview": "",
+      "organizations": ""
+    },
+    "site": {
+      "website-version": "Website versie"
+    },
+    "meta": {
+      "were-making-onetime-secret-available-in-multiple": "We maken {onetime-secret} beschikbaar in meerdere talen. Aangezien dit een nieuwe functie is, kunt u vertaalfouten of onhandige formuleringen tegenkomen. Uw feedback helpt ons te verbeteren - als u problemen opmerkt, {send-feedback}",
+      "translations-are-new-spotted-an-error": "Vertalingen zijn nieuw. Een fout gespot? {send-feedback}",
+      "we-recently-added-translations": "We hebben onlangs vertalingen toegevoegd. Een fout gespot? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Privacy en veiligheid moeten voor iedereen toegankelijk zijn, ongeacht taal. We voegen vertalingen toe om zowel onze gebruikers als hun berichtontvangers beter te laten begrijpen hoe ze veilig gebruik kunnen maken van en toegang kunnen krijgen tot beveiligde berichten en links. Aangezien dit een nieuwe functie is, kunt u enkele vertaalfouten of onduidelijke instructies tegenkomen. Om ons te helpen de duidelijkheid en nauwkeurigheid van onze vertalingen te verbeteren, vooral voor kritieke beveiligingsgerelateerde inhoud, {send-feedback} als u problemen opmerkt."
+    },
+    "help": {
+      "learn_more": "Meer informatie",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "Wat bekijk ik?",
+          "description": "U bekijkt een beveiligde bericht dat met u is gedeeld via Onetime Secret. Deze inhoud wordt slechts één keer weergegeven en vervolgens permanent van onze servers verwijderd."
+        },
+        "can_i_view_again": {
+          "title": "Kan ik dit bericht later opnieuw bekijken?",
+          "description": "Nee. Om veiligheidsredenen is dit bericht slechts één keer te bekijken. Na het sluiten van deze pagina wordt de inhoud permanent verwijderd en kan deze door niemand, ook niet door ons, worden teruggehaald."
+        },
+        "how_to_copy": {
+          "title": "Hoe bewaar ik deze informatie?",
+          "description": "Gebruik de knop 'Kopiëren naar klembord' om het volledige bericht te kopiëren. Controleer bij langere berichten of u de volledige inhoud heeft gekopieerd voordat u deze pagina verlaat."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Wordt mijn weergave van dit bericht bijgehouden?",
+          "description": "De afzender wordt op de hoogte gebracht dat zijn bericht is bekeken, maar we houden niet bij wie het heeft bekeken of vanaf welke locatie. Uw privacy wordt beschermd."
+        },
+        "one_time_warning": "Zodra u deze pagina verlaat of vernieuwt, wordt dit bericht permanent verwijderd en kan het door niemand worden teruggehaald."
+      }
+    }
+  }
+}

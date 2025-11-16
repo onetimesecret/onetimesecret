@@ -1,0 +1,67 @@
+{
+  "web": {
+    "colonel": {
+      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified-0": "`+customer.verified ? `verificado` : `não verificado`",
+      "customers-details-counts-recent_customer_count-o-0": "Clientes ({0} de {1})",
+      "user-feedback-total-details-counts-feedback_coun-0": "Feedback do Usuário (Total: {0})",
+      "metadata-secrets-details-counts-metadata_count-d-0": "Metadados / Segredos: {0}/{1} ({2}/{3}/{4} total)",
+      "secrets-details-counts-secret_count-0": "Segredos ({0})",
+      "active-in-the-past-5-minutes-0": "(ativo nos últimos 5 minutos)",
+      "configEditorTitle": "",
+      "configEditorDescription": "",
+      "invalidJson": "",
+      "validationError": "",
+      "errorFetchingConfig": "",
+      "errorSavingConfig": "",
+      "configSaved": "",
+      "mustBeObject": "",
+      "multipleSectionsInvalid": "",
+      "sectionHasError": "",
+      "sectionSaved": "",
+      "saveSection": "",
+      "saveAll": "",
+      "unsavedChanges": "",
+      "schemaValidationError": "",
+      "unknownValidationError": "",
+      "dashboard": "Dashboard",
+      "activity": "",
+      "accounts": "",
+      "users": "",
+      "domains": "Domínios",
+      "settings": "",
+      "welcome": "Welcome to Colonel",
+      "welcomeDesc": "",
+      "quickActions": "",
+      "recentActivity": "",
+      "viewAll": "",
+      "activityPlaceholder": "",
+      "stats": {
+        "totalSecrets": "",
+        "activeUsers": "",
+        "secretsToday": "",
+        "secretsCreated": "",
+        "secretsShared": "",
+        "totalCustomers": "",
+        "emailsSent": "",
+        "systemHealth": "",
+        "healthy": ""
+      },
+      "actions": {
+        "viewActivity": "",
+        "viewActivityDesc": "",
+        "manageAccounts": "",
+        "manageAccountsDesc": "",
+        "configureDomains": "",
+        "configureDomainsDesc": "",
+        "systemSettings": "",
+        "systemSettingsDesc": ""
+      }
+    },
+    "feedback": {
+      "when-you-submit-feedback-well-see": "Quando você envia feedback, nós veremos:",
+      "send-feedback": "Enviar feedback",
+      "sending-ellipses": "Enviando..."
+    }
+  }
+}

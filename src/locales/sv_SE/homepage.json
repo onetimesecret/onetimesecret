@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Klistra in en hemlighet, lösenord eller hemlig länk här.",
+      "tagline2": "Håll känslig information borta från dina e-post- och chattloggar.",
+      "secret_hint": "* En länk som bara kan användas en gång och sedan försvinner för alltid.",
+      "secret_form_more_text1": "Skapa ett",
+      "secret_form_more_text2": "gratis konto",
+      "secret_form_more_text3": "för att kunna skicka via e-post.",
+      "cta_title": "Använd en anpassad domän",
+      "cta_subtitle": "Lyft ditt varumärke och dela med förtroende",
+      "cta_feature1": "Din egen anpassade domän",
+      "cta_feature2": "Obegränsad delning av hemligheter",
+      "cta_feature3": "Avancerade sekretesskontroller",
+      "explore_premium_plans": "Utforska Premium-planer",
+      "need_free_account": "Nyss börjat?",
+      "sign_up_free": "Skapa ett gratis konto",
+      "visit-onetime-secret-home": "Besök Onetime Secrets hemsida",
+      "password_generation_title": "Lösenordsgenerator",
+      "password_generation_description": " Klicka på \"Generera lösenord\" för att skapa ett säkert slumpmässigt lösenord som du kan dela.",
+      "protip1": "Ditt meddelande kommer att självförstöras efter att det har visats. Länken kan endast nås en gång.",
+      "authonly": {
+        "tagline2": "",
+        "tagline1": ""
+      },
+      "disabled": {
+        "tagline2": "",
+        "tagline1": ""
+      }
+    }
+  }
+}

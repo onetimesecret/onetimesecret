@@ -1,0 +1,11 @@
+{
+  "web": {
+    "domains": {
+      "learn-more-dns": "En savoir plus sur la configuration DNS",
+      "view-domain-verification-status": "Afficher l'état de vérification du domaine",
+      "domain-already-in-organization": "Ce domaine est déjà enregistré dans votre organisation",
+      "domain-in-other-organization": "Ce domaine est déjà enregistré auprès d'une autre organisation. Veuillez contacter le support si vous pensez qu'il s'agit d'une erreur.",
+      "domain-claimed-successfully": "Domaine revendiqué avec succès et ajouté à votre organisation"
+    }
+  }
+}

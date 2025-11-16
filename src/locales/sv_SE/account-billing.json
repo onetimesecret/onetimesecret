@@ -1,0 +1,114 @@
+{
+  "web": {
+    "billing": {
+      "upgrade": {
+        "required": "",
+        "viewPlans": "",
+        "needTeams": "",
+        "needCustomDomains": "",
+        "needApiAccess": "",
+        "needPrioritySupport": "",
+        "needAuditLogs": ""
+      },
+      "manage_subscription_and_billing": "",
+      "overview": {
+        "title": "",
+        "description": "",
+        "organization_selector": "",
+        "current_plan": "",
+        "plan_features": "",
+        "payment_method": "",
+        "next_billing_date": "",
+        "quick_actions": "",
+        "manage_billing": "",
+        "view_invoices": "",
+        "upgrade_plan": "",
+        "change_plan": "",
+        "no_payment_method": "",
+        "no_upcoming_billing": "",
+        "days_remaining": "",
+        "billing_on": "",
+        "view_plans_action": "",
+        "view_plans_description": "",
+        "view_invoices_action": "",
+        "view_invoices_description": "",
+        "manage_billing_action": "",
+        "manage_billing_description": "",
+        "no_organizations_title": "",
+        "no_organizations_description": "",
+        "capabilities": {
+          "create_secrets": "",
+          "basic_sharing": "",
+          "create_team": "",
+          "create_teams": "",
+          "custom_domains": "",
+          "api_access": "",
+          "priority_support": "",
+          "audit_logs": ""
+        }
+      },
+      "plans": {
+        "title": "",
+        "choose_plan": "",
+        "current": "",
+        "upgrade": "",
+        "downgrade": "",
+        "monthly": "",
+        "yearly": "",
+        "save_yearly": "",
+        "free_plan": "",
+        "single_team_plan": "",
+        "multi_team_plan": "",
+        "features": "",
+        "teams_limit": "",
+        "members_limit": "",
+        "unlimited_secrets": "",
+        "api_access": "",
+        "priority_support": "",
+        "select_plan": "",
+        "contact_sales": ""
+      },
+      "invoices": {
+        "title": "",
+        "view_history": "",
+        "invoice_date": "",
+        "invoice_amount": "",
+        "invoice_status": "",
+        "invoice_download": "",
+        "no_invoices": "",
+        "paid": "",
+        "pending": "",
+        "failed": "",
+        "load_error": ""
+      },
+      "notices": {
+        "org_managed": "",
+        "view_org_billing": "",
+        "team_billing_disabled": ""
+      },
+      "limits": {
+        "teams_reached": "",
+        "teams_upgrade": "",
+        "members_reached": "",
+        "members_upgrade": ""
+      },
+      "subscription": {
+        "title": "",
+        "status": "",
+        "active": "",
+        "inactive": "",
+        "past_due": "",
+        "canceled": "",
+        "plan_name": "",
+        "team_usage": "",
+        "teams_used": ""
+      },
+      "portal": {
+        "title": "",
+        "description": "",
+        "open_portal": "",
+        "redirecting": ""
+      }
+    }
+  }
+}

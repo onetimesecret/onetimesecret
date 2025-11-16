@@ -1,0 +1,10 @@
+{
+  "web": {
+    "dashboard": {
+      "title_received": "受信済み",
+      "title_not_received": "未受信",
+      "title_no_recent_secrets": "最近のシークレットはありません",
+      "get-started-by-creating-your-first-secret": "最初のシークレットを作成して始めましょう。"
+    }
+  }
+}

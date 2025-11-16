@@ -1,0 +1,11 @@
+{
+  "web": {
+    "domains": {
+      "learn-more-dns": "Per saperne di più sulla configurazione DNS",
+      "view-domain-verification-status": "Visualizza lo stato di verifica del dominio",
+      "domain-already-in-organization": "",
+      "domain-in-other-organization": "",
+      "domain-claimed-successfully": ""
+    }
+  }
+}

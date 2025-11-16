@@ -53,7 +53,7 @@ pnpm run test:database:stop
 
 **SQL Database** (advanced mode only):
 - PostgreSQL or SQLite for Rodauth account storage
-- Configure via `DATABASE_URL` environment variable
+- Configure via `AUTH_DATABASE_URL` environment variable
 - Examples:
   - PostgreSQL: `postgresql://user:pass@localhost/onetime_test`
   - SQLite: `sqlite://db/test.db`

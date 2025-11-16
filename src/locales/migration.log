@@ -1,0 +1,2939 @@
+2025-11-15
+                                                                                    25.1.0 21:13:03
+~/Projects/opensource/onetime/onetimesecret i18n/separate-locales-files*
+
+❯ pnpm exec ts-node src/locales/scripts/split-locale/split-locale-step1.ts src/locales/*.json
+🌍 Locale Pre-processor Script (Step 1)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📄 Processing: src/locales/ar.json
+✓ Created directory: src/locales/ar
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/ar.json into src/locales/ar/
+   Next step: Run split-locale-step2.ts on src/locales/ar/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/bg.json
+✓ Created directory: src/locales/bg
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/bg.json into src/locales/bg/
+   Next step: Run split-locale-step2.ts on src/locales/bg/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/ca_ES.json
+✓ Created directory: src/locales/ca_ES
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/ca_ES.json into src/locales/ca_ES/
+   Next step: Run split-locale-step2.ts on src/locales/ca_ES/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/cs.json
+✓ Created directory: src/locales/cs
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/cs.json into src/locales/cs/
+   Next step: Run split-locale-step2.ts on src/locales/cs/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/da_DK.json
+✓ Created directory: src/locales/da_DK
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/da_DK.json into src/locales/da_DK/
+   Next step: Run split-locale-step2.ts on src/locales/da_DK/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/de.json
+✓ Created directory: src/locales/de
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/de.json into src/locales/de/
+   Next step: Run split-locale-step2.ts on src/locales/de/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/de_AT.json
+✓ Created directory: src/locales/de_AT
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/de_AT.json into src/locales/de_AT/
+   Next step: Run split-locale-step2.ts on src/locales/de_AT/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/el_GR.json
+✓ Created directory: src/locales/el_GR
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/el_GR.json into src/locales/el_GR/
+   Next step: Run split-locale-step2.ts on src/locales/el_GR/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/es.json
+✓ Created directory: src/locales/es
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/es.json into src/locales/es/
+   Next step: Run split-locale-step2.ts on src/locales/es/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/fr_CA.json
+✓ Created directory: src/locales/fr_CA
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/fr_CA.json into src/locales/fr_CA/
+   Next step: Run split-locale-step2.ts on src/locales/fr_CA/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/fr_FR.json
+✓ Created directory: src/locales/fr_FR
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/fr_FR.json into src/locales/fr_FR/
+   Next step: Run split-locale-step2.ts on src/locales/fr_FR/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/he.json
+✓ Created directory: src/locales/he
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/he.json into src/locales/he/
+   Next step: Run split-locale-step2.ts on src/locales/he/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/hu.json
+✓ Created directory: src/locales/hu
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/hu.json into src/locales/hu/
+   Next step: Run split-locale-step2.ts on src/locales/hu/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/it_IT.json
+✓ Created directory: src/locales/it_IT
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/it_IT.json into src/locales/it_IT/
+   Next step: Run split-locale-step2.ts on src/locales/it_IT/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/ja.json
+✓ Created directory: src/locales/ja
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/ja.json into src/locales/ja/
+   Next step: Run split-locale-step2.ts on src/locales/ja/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/ko.json
+✓ Created directory: src/locales/ko
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/ko.json into src/locales/ko/
+   Next step: Run split-locale-step2.ts on src/locales/ko/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/mi_NZ.json
+✓ Created directory: src/locales/mi_NZ
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/mi_NZ.json into src/locales/mi_NZ/
+   Next step: Run split-locale-step2.ts on src/locales/mi_NZ/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/nl.json
+✓ Created directory: src/locales/nl
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/nl.json into src/locales/nl/
+   Next step: Run split-locale-step2.ts on src/locales/nl/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/pl.json
+✓ Created directory: src/locales/pl
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/pl.json into src/locales/pl/
+   Next step: Run split-locale-step2.ts on src/locales/pl/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/pt_BR.json
+✓ Created directory: src/locales/pt_BR
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/pt_BR.json into src/locales/pt_BR/
+   Next step: Run split-locale-step2.ts on src/locales/pt_BR/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/pt_PT.json
+✓ Created directory: src/locales/pt_PT
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/pt_PT.json into src/locales/pt_PT/
+   Next step: Run split-locale-step2.ts on src/locales/pt_PT/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/ru.json
+✓ Created directory: src/locales/ru
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/ru.json into src/locales/ru/
+   Next step: Run split-locale-step2.ts on src/locales/ru/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/sl_SI.json
+✓ Created directory: src/locales/sl_SI
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/sl_SI.json into src/locales/sl_SI/
+   Next step: Run split-locale-step2.ts on src/locales/sl_SI/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/sv_SE.json
+✓ Created directory: src/locales/sv_SE
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/sv_SE.json into src/locales/sv_SE/
+   Next step: Run split-locale-step2.ts on src/locales/sv_SE/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/tr.json
+✓ Created directory: src/locales/tr
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/tr.json into src/locales/tr/
+   Next step: Run split-locale-step2.ts on src/locales/tr/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/uk.json
+✓ Created directory: src/locales/uk
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/uk.json into src/locales/uk/
+   Next step: Run split-locale-step2.ts on src/locales/uk/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/vi.json
+✓ Created directory: src/locales/vi
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/vi.json into src/locales/vi/
+   Next step: Run split-locale-step2.ts on src/locales/vi/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/zh.json
+✓ Created directory: src/locales/zh
+  ✓ web.json               (1089 keys)
+  ✓ email.json             (14 keys)
+  ✓ uncategorized.json     (429 keys)
+
+✅ Successfully split src/locales/zh.json into src/locales/zh/
+   Next step: Run split-locale-step2.ts on src/locales/zh/web.json
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Step 1 complete!
+📌 Next: Run split-locale-step2.ts on the generated web.json files
+
+                                                                                 1s 25.1.0 21:13:41
+❯ ls -l --tree src/locales
+drwxr-xr-x d staff  2.0 KB Sat Nov 15 21:13:03 2025  locales
+.rw-r--r-- d staff   88 KB Sat Nov 15 19:12:53 2025 ├──  -en.json-
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  ar
+.rw-r--r-- d staff  909 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   14 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   36 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   51 KB Sat Nov 15 21:04:14 2025 ├──  ar.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  bg
+.rw-r--r-- d staff 1009 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   41 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   51 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   93 KB Sat Nov 15 21:04:14 2025 ├──  bg.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  ca_ES
+.rw-r--r-- d staff  800 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   14 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   35 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   50 KB Sat Nov 15 21:04:14 2025 ├──  ca_ES.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  cs
+.rw-r--r-- d staff  774 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   14 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   35 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   50 KB Sat Nov 15 21:04:14 2025 ├──  cs.json
+drwxr-xr-x d staff  608 B  Sat Nov 15 18:31:00 2025 ├──  da
+.rw-r--r-- d staff  6.5 KB Sat Nov 15 18:31:00 2025 │   ├──  _common.json
+.rw-r--r-- d staff   16 B  Sat Nov 15 18:31:00 2025 │   ├──  account-billing.json
+.rw-r--r-- d staff   16 B  Sat Nov 15 18:31:00 2025 │   ├──  account.json
+.rw-r--r-- d staff   16 B  Sat Nov 15 18:31:00 2025 │   ├──  auth-advanced.json
+.rw-r--r-- d staff  359 B  Sat Nov 15 18:31:00 2025 │   ├──  auth.json
+.rw-r--r-- d staff   16 B  Sat Nov 15 18:31:00 2025 │   ├──  colonel.json
+.rw-r--r-- d staff  177 B  Sat Nov 15 18:31:00 2025 │   ├──  dashboard.json
+.rw-r--r-- d staff  704 B  Sat Nov 15 18:31:00 2025 │   ├──  email.json
+.rw-r--r-- d staff   16 B  Sat Nov 15 18:31:00 2025 │   ├──  feature-domains.json
+.rw-r--r-- d staff  762 B  Sat Nov 15 18:31:00 2025 │   ├──  feature-incoming.json
+.rw-r--r-- d staff   16 B  Sat Nov 15 18:31:00 2025 │   ├──  feature-organizations.json
+.rw-r--r-- d staff   16 B  Sat Nov 15 18:31:00 2025 │   ├──  feature-regions.json
+.rw-r--r-- d staff  1.6 KB Sat Nov 15 18:31:00 2025 │   ├──  feature-secrets.json
+.rw-r--r-- d staff   16 B  Sat Nov 15 18:31:00 2025 │   ├──  feature-teams.json
+.rw-r--r-- d staff  1.7 KB Sat Nov 15 18:31:00 2025 │   ├──  homepage.json
+.rw-r--r-- d staff   16 B  Sat Nov 15 18:31:00 2025 │   ├──  layout.json
+.rw-r--r-- d staff  359 B  Sat Nov 15 18:31:00 2025 │   └──  uncategorized.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  da_DK
+.rw-r--r-- d staff  758 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   29 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   42 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   72 KB Sat Nov 15 21:04:14 2025 ├──  da_DK.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  de
+.rw-r--r-- d staff  839 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   30 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   44 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   74 KB Sat Nov 15 21:04:14 2025 ├──  de.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  de_AT
+.rw-r--r-- d staff  823 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   31 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   68 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   99 KB Sat Nov 15 21:04:14 2025 ├──  de_AT.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  el_GR
+.rw-r--r-- d staff  1.3 KB Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   44 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   53 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   98 KB Sat Nov 15 21:04:14 2025 ├──  el_GR.json
+drwxr-xr-x d staff  608 B  Sat Nov 15 18:31:00 2025 ├──  en
+.rw-r--r-- d staff   12 KB Sat Nov 15 18:31:00 2025 │   ├──  _common.json
+.rw-r--r-- d staff  4.6 KB Sat Nov 15 18:31:00 2025 │   ├──  account-billing.json
+.rw-r--r-- d staff  7.1 KB Sat Nov 15 18:31:00 2025 │   ├──  account.json
+.rw-r--r-- d staff   11 KB Sat Nov 15 18:31:00 2025 │   ├──  auth-advanced.json
+.rw-r--r-- d staff  3.4 KB Sat Nov 15 18:31:00 2025 │   ├──  auth.json
+.rw-r--r-- d staff  3.0 KB Sat Nov 15 18:31:00 2025 │   ├──  colonel.json
+.rw-r--r-- d staff  274 B  Sat Nov 15 18:31:00 2025 │   ├──  dashboard.json
+.rw-r--r-- d staff  704 B  Sat Nov 15 18:31:00 2025 │   ├──  email.json
+.rw-r--r-- d staff  532 B  Sat Nov 15 18:31:00 2025 │   ├──  feature-domains.json
+.rw-r--r-- d staff  808 B  Sat Nov 15 18:31:00 2025 │   ├──  feature-incoming.json
+.rw-r--r-- d staff  3.8 KB Sat Nov 15 18:31:00 2025 │   ├──  feature-organizations.json
+.rw-r--r-- d staff  1.6 KB Sat Nov 15 18:31:00 2025 │   ├──  feature-regions.json
+.rw-r--r-- d staff  4.4 KB Sat Nov 15 18:31:00 2025 │   ├──  feature-secrets.json
+.rw-r--r-- d staff  3.3 KB Sat Nov 15 18:31:00 2025 │   ├──  feature-teams.json
+.rw-r--r-- d staff  1.6 KB Sat Nov 15 18:31:00 2025 │   ├──  homepage.json
+.rw-r--r-- d staff  3.5 KB Sat Nov 15 18:31:00 2025 │   ├──  layout.json
+.rw-r--r-- d staff   27 KB Sat Nov 15 18:31:00 2025 │   └──  uncategorized.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  es
+.rw-r--r-- d staff  778 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   30 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   43 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   74 KB Sat Nov 15 21:04:14 2025 ├──  es.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  fr_CA
+.rw-r--r-- d staff  846 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   31 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   69 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff  101 KB Sat Nov 15 21:04:14 2025 ├──  fr_CA.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  fr_FR
+.rw-r--r-- d staff  852 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   31 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   68 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff  100 KB Sat Nov 15 21:04:14 2025 ├──  fr_FR.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  he
+.rw-r--r-- d staff  874 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   14 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   35 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   50 KB Sat Nov 15 21:04:14 2025 ├──  he.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  hu
+.rw-r--r-- d staff  822 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   14 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   35 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   50 KB Sat Nov 15 21:04:14 2025 ├──  hu.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  it_IT
+.rw-r--r-- d staff  770 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   30 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   43 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   73 KB Sat Nov 15 21:04:14 2025 ├──  it_IT.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  ja
+.rw-r--r-- d staff  881 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   34 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   46 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   81 KB Sat Nov 15 21:04:14 2025 ├──  ja.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  ko
+.rw-r--r-- d staff  900 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   30 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   44 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   76 KB Sat Nov 15 21:04:14 2025 ├──  ko.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  mi_NZ
+.rw-r--r-- d staff  830 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   30 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   44 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   74 KB Sat Nov 15 21:04:14 2025 ├──  mi_NZ.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  nl
+.rw-r--r-- d staff  781 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   28 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   42 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   71 KB Sat Nov 15 21:04:14 2025 ├──  nl.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  pl
+.rw-r--r-- d staff  791 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   29 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   44 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   74 KB Sat Nov 15 21:04:14 2025 ├──  pl.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  pt_BR
+.rw-r--r-- d staff  762 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   30 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   43 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   74 KB Sat Nov 15 21:04:14 2025 ├──  pt_BR.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  pt_PT
+.rw-r--r-- d staff  728 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   14 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   35 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   49 KB Sat Nov 15 21:04:14 2025 ├──  pt_PT.json
+.rw-r--r-- d staff  2.3 KB Sat Nov 15 18:31:00 2025 ├──  README.md
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  ru
+.rw-r--r-- d staff  1.1 KB Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   27 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   44 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   72 KB Sat Nov 15 21:04:14 2025 ├──  ru.json
+drwxr-xr-x d staff  352 B  Sat Nov 15 11:31:11 2025 ├──  scripts
+drwxr-xr-x d staff  160 B  Sat Nov 15 11:31:11 2025 │   ├──  debug
+.rwxr-xr-x d staff 1012 B  Sat Nov 15 11:31:11 2025 │   │   ├──  debug-all-locales
+.rwxr-xr-x d staff  4.1 KB Sat Nov 15 11:31:11 2025 │   │   ├──  debug-locale-structure.sh
+.rw-r--r-- d staff  414 B  Sat Nov 15 11:31:11 2025 │   │   └──  README.md
+drwxr-xr-x d staff  160 B  Sat Nov 15 11:31:11 2025 │   ├──  experiments
+.rwxr-xr-x d staff  4.9 KB Sat Nov 15 11:31:11 2025 │   │   ├──  experiment-fix-conflicts.sh
+.rw-r--r-- d staff  416 B  Sat Nov 15 11:31:11 2025 │   │   ├──  README.md
+.rwxr-xr-x d staff  3.8 KB Sat Nov 15 11:31:11 2025 │   │   └──  simple-fix-experiment.sh
+drwxr-xr-x d staff  256 B  Sat Nov 15 21:03:22 2025 │   ├──  harmonize
+.rwxr-xr-x d staff  1.2 KB Sat Nov 15 11:31:11 2025 │   │   ├──  fix-all-locale-conflicts
+.rwxr-xr-x d staff  4.3 KB Sat Nov 15 20:58:45 2025 │   │   ├──  fix-locale-conflicts
+.rwxr-xr-x d staff  1.0 KB Sat Nov 15 11:31:11 2025 │   │   ├──  github-action-harmonize.sh
+.rwxr-xr-x d staff  574 B  Sat Nov 15 11:31:11 2025 │   │   ├──  harmonize-all-locale-files
+.rwxr-xr-x d staff  3.1 KB Sat Nov 15 11:31:11 2025 │   │   ├──  harmonize-locale-file
+.rw-r--r-- d staff  536 B  Sat Nov 15 11:31:11 2025 │   │   └──  README.md
+drwxr-xr-x d staff  192 B  Sat Nov 15 11:31:11 2025 │   ├──  migrate
+.rwxr-xr-x d staff  2.3 KB Sat Nov 15 11:31:11 2025 │   │   ├──  apply-translations.sh
+.rw-r--r-- d staff   13 KB Sat Nov 15 11:31:11 2025 │   │   ├──  migrate-keys.py
+.rw-r--r-- d staff  7.7 KB Sat Nov 15 11:31:11 2025 │   │   ├──  migrate-locale.py
+.rw-r--r-- d staff  499 B  Sat Nov 15 11:31:11 2025 │   │   └──  README.md
+.rw-r--r-- d staff  2.6 KB Sat Nov 15 11:31:11 2025 │   ├──  README.md
+drwxr-xr-x d staff  192 B  Sat Nov 15 18:31:00 2025 │   ├──  split-locale
+.rw-r--r-- d staff  9.0 KB Sat Nov 15 18:31:00 2025 │   │   ├──  README.md
+.rwxr-xr-x d staff  6.8 KB Sat Nov 15 18:31:00 2025 │   │   ├──  split-locale-step1.ts
+.rwxr-xr-x d staff   11 KB Sat Nov 15 18:31:00 2025 │   │   ├──  split-locale-step2.ts
+.rwxr-xr-x d staff  7.9 KB Sat Nov 15 18:31:00 2025 │   │   └──  verify-split.sh
+drwxr-xr-x d staff  192 B  Sat Nov 15 11:31:11 2025 │   ├──  utils
+.rw-r--r-- d staff  3.8 KB Sat Nov 15 11:31:11 2025 │   │   ├──  fix-json-unicode.py
+.rwxr-xr-x d staff  5.0 KB Sat Nov 15 11:31:11 2025 │   │   ├──  generate-translation-template.sh
+.rw-r--r-- d staff  427 B  Sat Nov 15 11:31:11 2025 │   │   ├──  README.md
+.rwxr-xr-x d staff  1.5 KB Sat Nov 15 11:31:11 2025 │   │   └──  search-key-usage
+drwxr-xr-x d staff  160 B  Sat Nov 15 11:31:11 2025 │   └──  validate
+.rwxr-xr-x d staff  1.4 KB Sat Nov 15 11:31:11 2025 │       ├──  check-locale-file
+.rwxr-xr-x d staff  544 B  Sat Nov 15 11:31:11 2025 │       ├──  check-locale-files
+.rw-r--r-- d staff  400 B  Sat Nov 15 11:31:11 2025 │       └──  README.md
+.rw-r--r-- d staff  8.2 KB Sat Nov 15 18:31:00 2025 ├──  SECURITY-TRANSLATION-GUIDE.md
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  sl_SI
+.rw-r--r-- d staff  723 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   14 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   34 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   49 KB Sat Nov 15 21:04:14 2025 ├──  sl_SI.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  sv_SE
+.rw-r--r-- d staff  801 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   28 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   42 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   72 KB Sat Nov 15 21:04:15 2025 ├──  sv_SE.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  tr
+.rw-r--r-- d staff  827 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   30 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   43 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   74 KB Sat Nov 15 21:04:15 2025 ├──  tr.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  uk
+.rw-r--r-- d staff  1.1 KB Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   41 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   52 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   94 KB Sat Nov 15 21:04:15 2025 ├──  uk.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  vi
+.rw-r--r-- d staff  905 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   14 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   36 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   51 KB Sat Nov 15 21:04:15 2025 ├──  vi.json
+drwxr-xr-x d staff  160 B  Sat Nov 15 21:13:03 2025 ├──  zh
+.rw-r--r-- d staff  806 B  Sat Nov 15 21:13:03 2025 │   ├──  email.json
+.rw-r--r-- d staff   14 KB Sat Nov 15 21:13:03 2025 │   ├──  uncategorized.json
+.rw-r--r-- d staff   34 KB Sat Nov 15 21:13:03 2025 │   └──  web.json
+.rw-r--r-- d staff   49 KB Sat Nov 15 21:04:15 2025 └──  zh.json
+
+                                                                                 0s 25.1.0 21:18:05
+❯ git mv src/locales/scripts src/scripts/locales
+fatal: renaming 'src/locales/scripts' failed: No such file or directory
+
+                                                                                 0s 25.1.0 21:20:39
+venv3.11 (exit 128) ❯ mkdir src/scripts
+
+                                                                                 0s 25.1.0 21:20:44
+❯ git mv src/locales/scripts src/scripts/locales
+
+                                                                                 0s 25.1.0 21:20:44
+❯
+
+                                                                                 0s 25.1.0 21:22:21
+❯ pnpm exec ts-node src/scripts/locales/split-locale/split-locale-step2.ts src/locales/**/web.json
+🌍 Locale Feature Splitter Script (Step 2)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📄 Processing: src/locales/ar/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/ar/web.json into src/locales/ar/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/bg/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/bg/web.json into src/locales/bg/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/ca_ES/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/ca_ES/web.json into src/locales/ca_ES/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/cs/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/cs/web.json into src/locales/cs/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/da_DK/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/da_DK/web.json into src/locales/da_DK/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/de/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/de/web.json into src/locales/de/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/de_AT/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/de_AT/web.json into src/locales/de_AT/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/el_GR/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/el_GR/web.json into src/locales/el_GR/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/es/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/es/web.json into src/locales/es/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/fr_CA/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/fr_CA/web.json into src/locales/fr_CA/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/fr_FR/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/fr_FR/web.json into src/locales/fr_FR/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/he/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/he/web.json into src/locales/he/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/hu/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/hu/web.json into src/locales/hu/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/it_IT/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/it_IT/web.json into src/locales/it_IT/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/ja/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/ja/web.json into src/locales/ja/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/ko/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/ko/web.json into src/locales/ko/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/mi_NZ/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/mi_NZ/web.json into src/locales/mi_NZ/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/nl/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/nl/web.json into src/locales/nl/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/pl/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/pl/web.json into src/locales/pl/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/pt_BR/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/pt_BR/web.json into src/locales/pt_BR/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/pt_PT/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/pt_PT/web.json into src/locales/pt_PT/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/ru/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/ru/web.json into src/locales/ru/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/sl_SI/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/sl_SI/web.json into src/locales/sl_SI/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/sv_SE/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/sv_SE/web.json into src/locales/sv_SE/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/tr/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/tr/web.json into src/locales/tr/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/uk/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/uk/web.json into src/locales/uk/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/vi/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/vi/web.json into src/locales/vi/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+
+📄 Processing: src/locales/zh/web.json
+  ✓ _common.json              (264 keys) - COMMON, LABELS, STATUS, FEATURES, UNITS, TITLES, ARIA, INSTRUCTION
+  ✓ layout.json               (49 keys) - footer, navigation, site, meta, help
+  ✓ homepage.json             (26 keys) - homepage marketing
+  ✓ auth.json                 (67 keys) - Basic auth: login, signup, forgot, verify
+  ✓ auth-advanced.json        (164 keys) - MFA, sessions, recovery codes, WebAuthn, magic links
+  ✓ feature-secrets.json      (54 keys) - secrets, private, shared
+  ✓ feature-incoming.json     (13 keys) - incoming workflow
+  ✓ dashboard.json            (6 keys) - dashboard, recent
+  ✓ account.json              (135 keys) - account, settings (profile, security, API, privacy)
+  ✓ feature-regions.json      (20 keys) - regions/data sovereignty
+  ✓ feature-domains.json      (7 keys) - domains
+  ✓ feature-teams.json        (77 keys) - teams
+  ✓ feature-organizations.json (61 keys) - organizations
+  ✓ account-billing.json      (101 keys) - billing, plans, invoices
+  ✓ colonel.json              (60 keys) - colonel/admin, feedback
+
+✅ Successfully split src/locales/zh/web.json into src/locales/zh/
+
+🔍 Verifying reversibility...
+✅ Verification passed! Split files can be recombined into identical JSON.
+   (Key order may differ, but all content is preserved)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Migration complete!
+
+                                                                                 1s 25.1.0 21:29:22
+❯ rm -v src/locales/**/web.json
+src/locales/ar/web.json
+src/locales/bg/web.json
+src/locales/ca_ES/web.json
+src/locales/cs/web.json
+src/locales/da_DK/web.json
+src/locales/de/web.json
+src/locales/de_AT/web.json
+src/locales/el_GR/web.json
+src/locales/es/web.json
+src/locales/fr_CA/web.json
+src/locales/fr_FR/web.json
+src/locales/he/web.json
+src/locales/hu/web.json
+src/locales/it_IT/web.json
+src/locales/ja/web.json
+src/locales/ko/web.json
+src/locales/mi_NZ/web.json
+src/locales/nl/web.json
+src/locales/pl/web.json
+src/locales/pt_BR/web.json
+src/locales/pt_PT/web.json
+src/locales/ru/web.json
+src/locales/sl_SI/web.json
+src/locales/sv_SE/web.json
+src/locales/tr/web.json
+src/locales/uk/web.json
+src/locales/vi/web.json
+src/locales/zh/web.json
+
+                                   ⇡                                             0s 25.1.0 21:29:44
+❯ ./src/scripts/locales/verify-split.sh src/locales/en.json src/locales/en
+zsh: no such file or directory: ./src/scripts/locales/verify-split.sh
+
+                                   ⇡                                             0s 25.1.0 21:30:03
+venv3.11 (exit 127) ❯ src/scripts/locales/split-locale/verify-split.sh src/locales/en.json src/locales/en
+❌ Original file not found: src/locales/en.json
+
+                                   ⇡                                             0s 25.1.0 21:30:15
+venv3.11 (exit 1) ❯ src/scripts/locales/split-locale/verify-split.sh src/locales/-en.json- src/locales/en
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/-en.json-
+Split directory: src/locales/en
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+
+                                   ⇡                                             0s 25.1.0 21:30:30
+❯ src/scripts/locales/split-locale/verify-split.sh src/locales/vi.json src/locales/vi
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/vi.json
+Split directory: src/locales/vi
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+
+                                   ⇡                                             0s 25.1.0 21:31:27
+❯ src/scripts/locales/split-locale/verify-split.sh src/locales/vi.json src/locales/vi
+
+                                   ⇡                                                25.1.0 21:31:28
+SIGINT(2)❯
+
+                                   ⇡                                                25.1.0 21:31:28
+SIGINT(2)❯
+
+                                   ⇡                                                25.1.0 21:31:31
+SIGINT(2)❯ for locale in src/locales/*/; do locale_code=$(basename "$locale"); echo "=== Verifying $locale_code ==="; src/scripts/locales/split-locale/verify-split.sh "src/locales/${locale_code}.json" "$locale"; done
+=== Verifying ar ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/ar.json
+Split directory: src/locales/ar/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying bg ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/bg.json
+Split directory: src/locales/bg/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying ca_ES ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/ca_ES.json
+Split directory: src/locales/ca_ES/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying cs ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/cs.json
+Split directory: src/locales/cs/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying da ===
+❌ Original file not found: src/locales/da.json
+=== Verifying da_DK ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/da_DK.json
+Split directory: src/locales/da_DK/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying de ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/de.json
+Split directory: src/locales/de/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying de_AT ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/de_AT.json
+Split directory: src/locales/de_AT/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying el_GR ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/el_GR.json
+Split directory: src/locales/el_GR/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying en ===
+❌ Original file not found: src/locales/en.json
+=== Verifying es ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/es.json
+Split directory: src/locales/es/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying fr_CA ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/fr_CA.json
+Split directory: src/locales/fr_CA/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying fr_FR ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/fr_FR.json
+Split directory: src/locales/fr_FR/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying he ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/he.json
+Split directory: src/locales/he/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying hu ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/hu.json
+Split directory: src/locales/hu/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying it_IT ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/it_IT.json
+Split directory: src/locales/it_IT/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying ja ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/ja.json
+Split directory: src/locales/ja/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying ko ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/ko.json
+Split directory: src/locales/ko/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying mi_NZ ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/mi_NZ.json
+Split directory: src/locales/mi_NZ/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying nl ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/nl.json
+Split directory: src/locales/nl/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying pl ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/pl.json
+Split directory: src/locales/pl/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying pt_BR ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/pt_BR.json
+Split directory: src/locales/pt_BR/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying pt_PT ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/pt_PT.json
+Split directory: src/locales/pt_PT/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying ru ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/ru.json
+Split directory: src/locales/ru/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying sl_SI ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/sl_SI.json
+Split directory: src/locales/sl_SI/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying sv_SE ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/sv_SE.json
+Split directory: src/locales/sv_SE/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying tr ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/tr.json
+Split directory: src/locales/tr/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying uk ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/uk.json
+Split directory: src/locales/uk/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying vi ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/vi.json
+Split directory: src/locales/vi/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+=== Verifying zh ===
+🔍 Locale Split Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Original file: src/locales/zh.json
+Split directory: src/locales/zh/
+
+📁 Finding split files...
+Found files:
+  - _common.json
+  - account-billing.json
+  - account.json
+  - auth-advanced.json
+  - auth.json
+  - colonel.json
+  - dashboard.json
+  - email.json
+  - feature-domains.json
+  - feature-incoming.json
+  - feature-organizations.json
+  - feature-regions.json
+  - feature-secrets.json
+  - feature-teams.json
+  - homepage.json
+  - layout.json
+  - uncategorized.json
+
+🔄 Merging split files...
+  Merging _common.json...
+  Merging account-billing.json...
+  Merging account.json...
+  Merging auth-advanced.json...
+  Merging auth.json...
+  Merging colonel.json...
+  Merging dashboard.json...
+  Merging email.json...
+  Merging feature-domains.json...
+  Merging feature-incoming.json...
+  Merging feature-organizations.json...
+  Merging feature-regions.json...
+  Merging feature-secrets.json...
+  Merging feature-teams.json...
+  Merging homepage.json...
+  Merging layout.json...
+  Merging uncategorized.json...
+
+📊 Sorting JSON for comparison...
+🔍 Comparing files...
+
+✅ VERIFICATION PASSED!
+
+The split files can be recombined to exactly match the original file.
+  ✓ All keys present
+  ✓ All values unchanged
+
+
+                                ⇡                            6s 25.1.0 21:31:38
+❯

@@ -1,0 +1,20 @@
+{
+  "email": {
+    "incomingsupport": {
+      "subject": "[티켓: %s]",
+      "body1": "고객이 다음 정보를 보냈습니다"
+    },
+    "secretlink": {
+      "subject": "%s님이 비밀 메시지를 보냈습니다",
+      "body1": "다음 발신자로부터 비밀 메시지가 도착했습니다",
+      "body_tagline": "발신자를 모르거나 스팸으로 의심되는 경우, 다음 주소로 세부 정보를 보내주세요:"
+    },
+    "welcome": {
+      "subject": "Onetime Secret 계정을 인증하세요",
+      "body1": "Onetime Secret에 오신 것을 환영합니다. 귀하를 위한 비밀 메시지가 있습니다!",
+      "please_verify": "계정을 인증해 주세요:",
+      "postscript1": "이 이메일은 다음 주소로 전송되었습니다",
+      "postscript2": "이 요청을 하지 않으셨다면, 이 이메일을 무시하셔도 됩니다."
+    }
+  }
+}

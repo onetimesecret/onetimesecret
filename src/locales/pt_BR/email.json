@@ -1,0 +1,20 @@
+{
+  "email": {
+    "incomingsupport": {
+      "subject": "[Ticket: %s]",
+      "body1": "Um cliente te enviou a seguinte informação"
+    },
+    "secretlink": {
+      "subject": "%s te enviou um segredo",
+      "body1": "Temos um segredo para você de",
+      "body_tagline": "Se você não conhece o remetente ou acredita ser spam, envie-nos os detalhes aqui:"
+    },
+    "welcome": {
+      "subject": "Verifique sua conta Onetime Secret",
+      "body1": "Bem-vindo(a) ao Onetime Secret. Temos um segredo para você!",
+      "please_verify": "Por favor, verifique sua conta:",
+      "postscript1": "Este email foi enviado para",
+      "postscript2": "Se você não criou esta conta, apague esta mensagem e nós não iremos lhe contatar novamente."
+    }
+  }
+}

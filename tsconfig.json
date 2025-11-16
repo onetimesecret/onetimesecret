@@ -26,8 +26,8 @@
 // - tsc-files package: https://www.npmjs.com/package/tsc-files
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Node 22",
-  "_version": "22.0.0",
+  "display": "Node 25",
+  "_version": "25.1.0",
   // See:
   // https://www.typescriptlang.org/tsconfig/
   // https://github.com/tsconfig/bases/pull/265

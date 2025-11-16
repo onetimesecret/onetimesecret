@@ -1,0 +1,17 @@
+{
+  "web": {
+    "incoming": {
+      "tagline1": "Enganxa una contrasenya, un missatge secret o un enllaç privat a sota.",
+      "tagline2": "Mantingues fora la informació sensible del teu correu electrònic i sessions de xat.",
+      "secret_hint": "* Un enllaç secret que només funciona una vegada i després desapareix per sempre.",
+      "incoming_button_create": "Envia a la colla del centre d'assistència tècnica",
+      "incoming_secret_options": "Informació de l'assistència tècnica",
+      "incoming_secret_placeholder": "Introdueix la informació que haurà de menester el teu representant del servei de l'assistència tècnica (per exemple la teva contrasenya)",
+      "incoming_ticket_number": "Introdueix el Tiquet#",
+      "incoming_ticket_number_hint": "Pots trobar això en el teu correu electrònic (per ex., 123456)",
+      "incoming_recipient_address": "Destinatari del servei tècnic",
+      "incoming_success_message": "El teu correu electrònic ha estat enviat",
+      "incoming_button_creating": ""
+    }
+  }
+}

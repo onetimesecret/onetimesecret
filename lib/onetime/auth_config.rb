@@ -52,7 +52,7 @@ module Onetime
 
     # Advanced database URL
     def database_url
-      ENV['DATABASE_URL'] || advanced['database_url'] || 'sqlite://data/auth.db'
+      ENV['AUTH_DATABASE_URL'] || advanced['database_url'] || 'sqlite://data/auth.db'
     end
 
     # Whether Advanced mode is enabled

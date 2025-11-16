@@ -110,7 +110,7 @@ class DatabaseCleaner
   end
 
   def load_database_config
-    database_url = ENV['DATABASE_URL'] || ENV['VALKEY_URL'] || ENV['REDIS_URL']
+    database_url = ENV['AUTH_DATABASE_URL'] || ENV['VALKEY_URL'] || ENV['REDIS_URL']
 
     if database_url
       # Parse environment variable (e.g., redis://localhost:6379/0)

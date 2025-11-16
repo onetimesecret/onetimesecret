@@ -1,0 +1,32 @@
+{
+  "web": {
+    "homepage": {
+      "tagline1": "Plak het wachtwoord, geheime bericht of privé link hieronder",
+      "tagline2": "Hou gevoelige informatie buiten chat logs en e-mail",
+      "secret_hint": "* Een geheime link werkt maar één keer en verdwijnt daarna voor altijd.",
+      "secret_form_more_text1": "Schrijf in voor een",
+      "secret_form_more_text2": "gratis account",
+      "secret_form_more_text3": "voor wachtwoordzinnen voor extra beveiliging samen met aanvullende privacy opties. We sturen u zelfs een link als u dat wilt.",
+      "cta_title": "Gebruik een aangepast domein",
+      "cta_subtitle": "Verhoog uw merk en deel met vertrouwen",
+      "cta_feature1": "Uw eigen aangepaste domein",
+      "cta_feature2": "Onbeperkt berichten delen",
+      "cta_feature3": "Geavanceerde privacycontroles",
+      "explore_premium_plans": "Verken premium-abonnementen",
+      "need_free_account": "Net begonnen?",
+      "sign_up_free": "Maak een gratis account aan",
+      "visit-onetime-secret-home": "Bezoek Onetime Secret homepage",
+      "password_generation_title": "",
+      "password_generation_description": "",
+      "protip1": "",
+      "authonly": {
+        "tagline2": "De beveiligde berichtenservice is alleen voor intern gebruik.",
+        "tagline1": "Als u een account heeft, log dan in om verder te gaan."
+      },
+      "disabled": {
+        "tagline2": "Deze service is ingesteld voor alleen intern gebruik.",
+        "tagline1": "Gebruikersinterface en login-mogelijkheden zijn niet beschikbaar."
+      }
+    }
+  }
+}

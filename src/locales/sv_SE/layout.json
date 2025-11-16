@@ -1,0 +1,62 @@
+{
+  "web": {
+    "footer": {
+      "security": "",
+      "learn-about-our-security-measures": "",
+      "view-our-terms-and-conditions": "",
+      "terms": "",
+      "privacy": "",
+      "contact": "",
+      "support": "",
+      "legals": "",
+      "read-our-privacy-policy": "",
+      "check-our-service-status": "",
+      "explore-our-api-documentation": "",
+      "docs": "",
+      "access-our-documentation": "",
+      "view-our-source-code-on-github": "",
+      "resources": "",
+      "blog": "",
+      "read-our-latest-blog-posts": "",
+      "view-our-subscription-pricing": "",
+      "learn-about-our-company": "",
+      "company": ""
+    },
+    "navigation": {
+      "billing": "",
+      "billingOverview": "",
+      "organizations": ""
+    },
+    "site": {
+      "website-version": "Webbplatsversion"
+    },
+    "meta": {
+      "were-making-onetime-secret-available-in-multiple": "Vi gör {onetime-secret} tillgängligt på flera språk. Eftersom detta är en ny funktion kan du stöta på översättningsfel eller klumpiga formuleringar. Din feedback hjälper oss att förbättra - om du upptäcker några problem, vänligen {send-feedback}",
+      "translations-are-new-spotted-an-error": "Översättningar är nya. Upptäckt ett fel? {send-feedback}",
+      "we-recently-added-translations": "Vi lade nyligen till översättningar. Upptäckt ett fel? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Integritet och säkerhet bör vara tillgängligt för alla, oavsett språk. Vi lägger till översättningar för att hjälpa både våra användare och deras meddelandemottagare att bättre förstå hur man säkert använder och får åtkomst till säkra meddelanden och länkar. Eftersom detta är en ny funktion kan du stöta på några översättningsfel eller oklara instruktioner. För att hjälpa oss att förbättra tydligheten och noggrannheten i våra översättningar, särskilt för kritiskt säkerhetsrelaterat innehåll, vänligen {send-feedback} om du upptäcker några problem"
+    },
+    "help": {
+      "learn_more": "Läs mer",
+      "secret_view_faq": {
+        "what_am_i_looking_at": {
+          "title": "Vad är det jag tittar på?",
+          "description": "Du tittar på ett säkert meddelande som delats med dig via Onetime Secret. Detta innehåll visas endast en gång och raderas sedan permanent från våra servrar."
+        },
+        "can_i_view_again": {
+          "title": "Kan jag se denna hemlighet igen senare?",
+          "description": "Nej. Av säkerhetsskäl kan denna hemlighet endast ses en gång. Efter att du stängt denna sida kommer innehållet att raderas permanent och kan inte återställas av någon, inklusive oss."
+        },
+        "how_to_copy": {
+          "title": "Hur sparar jag denna information?",
+          "description": "Använd knappen 'Kopiera till urklipp' för att kopiera hela hemligheten. För längre hemligheter, se till att verifiera att du har kopierat hela innehållet innan du lämnar sidan."
+        },
+        "is_my_viewing_tracked": {
+          "title": "Spåras min visning av denna hemlighet?",
+          "description": "Avsändaren kommer att meddelas om att deras hemlighet har visats, men vi spårar inte vem som tittade på den eller från vilken plats. Din integritet är skyddad."
+        },
+        "one_time_warning": "När du lämnar eller uppdaterar denna sida kommer denna hemlighet att raderas permanent och kan inte återställas av någon."
+      }
+    }
+  }
+}

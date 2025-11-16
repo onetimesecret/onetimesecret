@@ -1,0 +1,11 @@
+{
+  "web": {
+    "domains": {
+      "learn-more-dns": "Дізнатися більше про конфігурацію DNS",
+      "view-domain-verification-status": "Переглянути статус верифікації домену",
+      "domain-already-in-organization": "",
+      "domain-in-other-organization": "",
+      "domain-claimed-successfully": ""
+    }
+  }
+}
