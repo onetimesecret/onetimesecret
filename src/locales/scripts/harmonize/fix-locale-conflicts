@@ -69,7 +69,7 @@ def preserve_and_fix($base; $target):
           if (.value | type) == "object" then
             apply_structure(.value; {}; $path + [.key])
           else
-            if '$COPY_VALUES' == 1 then .value else "" end
+            if '$COPY_VALUES' == "1" then .value else "" end
           end
         )
       end
@@ -77,10 +77,10 @@ def preserve_and_fix($base; $target):
       # Base is primitive
       if ($trans | type) == ($struct | type) then
         # Compatible types - use target value if not empty
-        if $trans != null and $trans != "" then $trans else $struct end
+        if $trans != null and $trans != "" then $trans else (if '$COPY_VALUES' == "1" then $struct else "" end) end
       elif $trans == null then
         # Target missing - use base or empty
-        if '$COPY_VALUES' == 1 then $struct else "" end
+        if '$COPY_VALUES' == "1" then $struct else "" end
       else
         # Type mismatch - use base value
         $struct
