@@ -1,3 +1,7 @@
+# try/billing/02_organization_billing_try.rb
+#
+# frozen_string_literal: true
+
 require_relative '../support/test_helpers'
 
 # Organization Billing Feature tests

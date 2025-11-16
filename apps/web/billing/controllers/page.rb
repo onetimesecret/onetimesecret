@@ -1,4 +1,6 @@
 # apps/web/billing/controllers/page.rb
+#
+# frozen_string_literal: true
 
 require_relative 'base'
 

@@ -1,5 +1,7 @@
 # lib/onetime/application/authorization_policies.rb
 #
+# frozen_string_literal: true
+#
 # Authorization policy module for Logic classes
 #
 # Provides declarative authorization patterns across all APIs:

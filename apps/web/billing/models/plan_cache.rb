@@ -1,4 +1,6 @@
 # apps/web/billing/models/plan_cache.rb
+#
+# frozen_string_literal: true
 
 require 'stripe'
 

@@ -1,4 +1,6 @@
 # lib/onetime/models/features/with_capabilities.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Models

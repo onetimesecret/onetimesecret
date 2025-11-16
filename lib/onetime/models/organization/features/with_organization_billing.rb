@@ -1,4 +1,6 @@
 # lib/onetime/models/organization/features/with_organization_billing.rb
+#
+# frozen_string_literal: true
 
 module Onetime
   module Models

@@ -1,3 +1,7 @@
+# lib/onetime/errors.rb
+#
+# frozen_string_literal: true
+
 module Onetime
   # The Problem class inherits from RuntimeError, which is a subclass of StandardError.
   # Both RuntimeError and StandardError are standard exception classes in Ruby, but

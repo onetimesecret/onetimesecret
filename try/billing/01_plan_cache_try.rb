@@ -1,3 +1,7 @@
+# try/billing/01_plan_cache_try.rb
+#
+# frozen_string_literal: true
+
 require_relative '../support/test_helpers'
 
 # Billing PlanCache tests

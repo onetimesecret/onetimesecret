@@ -1,5 +1,7 @@
 # Rakefile
 #
+# frozen_string_literal: true
+#
 # This file loads Rhales rake tasks for schema generation and validation.
 #
 

@@ -1,3 +1,7 @@
+# try/unit/models/custom_domain_migration_setup_try.rb
+#
+# frozen_string_literal: true
+
 # Minimal test - just create customers and orgs, no domains
 
 require_relative '../../support/test_models'

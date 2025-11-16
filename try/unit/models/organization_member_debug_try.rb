@@ -1,3 +1,7 @@
+# try/unit/models/organization_member_debug_try.rb
+#
+# frozen_string_literal: true
+
 require_relative '../../support/test_models'
 
 begin

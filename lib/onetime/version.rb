@@ -1,3 +1,7 @@
+# lib/onetime/version.rb
+#
+# frozen_string_literal: true
+
 require 'familia/json_serializer'
 
 module Onetime

@@ -1,5 +1,7 @@
 # config.ru
 #
+# frozen_string_literal: true
+#
 # Usage:
 #
 #   $ thin -e dev -R config.ru -p 3000 start

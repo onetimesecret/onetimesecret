@@ -1,4 +1,6 @@
 # lib/middleware/capability_check.rb
+#
+# frozen_string_literal: true
 
 module Rack
   # CapabilityCheck Middleware

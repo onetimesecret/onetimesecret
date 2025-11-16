@@ -1,5 +1,7 @@
 # lib/onetime/billing/plan_definitions.rb
 #
+# frozen_string_literal: true
+#
 # Plan Utility Methods
 #
 # NOTE: Plan definitions are now stored in Stripe and cached via PlanCache.

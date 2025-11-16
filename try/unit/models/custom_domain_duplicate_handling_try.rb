@@ -1,5 +1,7 @@
 # try/unit/models/custom_domain_duplicate_handling_try.rb
 #
+# frozen_string_literal: true
+#
 # Tests enhanced duplicate domain handling in CustomDomain model
 # Validates three scenarios:
 # 1. Domain already in customer's organization (same org_id)

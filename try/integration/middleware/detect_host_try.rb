@@ -1,3 +1,7 @@
+# try/integration/middleware/detect_host_try.rb
+#
+# frozen_string_literal: true
+
 # These tryouts test the DetectHost middleware functionality.
 # The DetectHost middleware is responsible for determining the correct hostname
 # from various HTTP headers, while filtering out invalid hosts like localhost
