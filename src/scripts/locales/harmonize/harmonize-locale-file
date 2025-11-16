@@ -1,14 +1,17 @@
 #!/bin/bash
 
-# Repairs i18n locale files to match base en.json key structure
+# Repairs i18n locale files to match base en/ key structure
 # Preserves existing translations while moving/adding keys. To put it another
 # way, the `keys` move but the existing values are preserved.
 #
-# Usage: ./harmonize-locale-file [-q] [-f] [-v] [-c] LOCALE_FILE
+# Usage: ./harmonize-locale-file [-q] [-f] [-v] [-c] LOCALE
 # -q: quiet mode
 # -f: filename only output
 # -v: verbose output
 # -c: copy values from base file
+#
+# LOCALE should be a locale code (e.g., "es", "fr") corresponding to a directory
+# in ../../../locales/ containing locale JSON files
 #
 # Exit: 0 if repair succeeds, 1 if fails
 
@@ -17,7 +20,7 @@ FILENAME_ONLY=${FILENAME_ONLY:-0}
 VERBOSE=${VERBOSE:-0}
 COPY_VALUES=${COPY_VALUES:-0}
 BASELOCALE=${BASELOCALE:-"en"}
-BASEPATH=${BASEPATH:-"../../locales/${BASELOCALE}.json"}
+BASEDIR=${BASEDIR:-"../../../locales/${BASELOCALE}"}
 
 while getopts ":qfvc" opt; do
   case $opt in
@@ -31,10 +34,11 @@ done
 shift $((OPTIND -1))
 
 LOCALE="$1"
-[ -z "$LOCALE" ] && echo "Usage: $0 [-q] [-f] [-v] [-c] LOCALE_FILE" >&2 && exit 1
-[ ! -f "$LOCALE" ] && echo "File not found: $LOCALE" >&2 && exit 1
+[ -z "$LOCALE" ] && echo "Usage: $0 [-q] [-f] [-v] [-c] LOCALE" >&2 && exit 1
 
-OUTPUT="${LOCALE%.json}.transformed.json"
+LOCALEDIR="../../../locales/${LOCALE}"
+[ ! -d "$LOCALEDIR" ] && echo "Locale directory not found: $LOCALEDIR" >&2 && exit 1
+[ ! -d "$BASEDIR" ] && echo "Base locale directory not found: $BASEDIR" >&2 && exit 1
 
 # `find_value` searches for a key's value anywhere in the object structure
 #  `walk`:
@@ -106,13 +110,41 @@ def walk($base; $target_root):
 $target[0] | walk($base[0]; $target[0])
 '
 
-if ! DEBUG="$DEBUG" jq -n --slurpfile base "$BASEPATH" --slurpfile target "$LOCALE" "$jq_script" > "$OUTPUT"; then
-  [ $FILENAME_ONLY -eq 1 ] && echo "$LOCALE" && exit 1
-  [ $QUIET -eq 1 ] && exit 1
-  [ $VERBOSE -eq 1 ] && echo "Failed repairing $LOCALE"
+# Process each JSON file in the locale directory
+ERROR_COUNT=0
+SUCCESS_COUNT=0
+
+for LOCALE_FILE in "$LOCALEDIR"/*.json; do
+  [ ! -f "$LOCALE_FILE" ] && continue
+
+  FILENAME=$(basename "$LOCALE_FILE")
+  BASEFILE="$BASEDIR/$FILENAME"
+
+  # Skip if corresponding base file doesn't exist
+  if [ ! -f "$BASEFILE" ]; then
+    [ $VERBOSE -eq 1 ] && echo "Skipping $FILENAME (no corresponding base file)"
+    continue
+  fi
+
+  OUTPUT="${LOCALE_FILE%.json}.transformed.json"
+
+  if ! DEBUG="$DEBUG" jq -n --slurpfile base "$BASEFILE" --slurpfile target "$LOCALE_FILE" "$jq_script" > "$OUTPUT"; then
+    [ $FILENAME_ONLY -eq 1 ] && echo "$LOCALE_FILE"
+    [ $VERBOSE -eq 1 ] && echo "Failed repairing $LOCALE_FILE"
+    ERROR_COUNT=$((ERROR_COUNT + 1))
+    continue
+  fi
+
+  mv "$OUTPUT" "$LOCALE_FILE"
+  [ $VERBOSE -eq 1 ] && echo "Repaired $LOCALE_FILE"
+  SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+done
+
+[ $QUIET -eq 0 ] && [ $VERBOSE -eq 0 ] && echo "Harmonized $SUCCESS_COUNT file(s) for locale '$LOCALE'"
+
+if [ $ERROR_COUNT -gt 0 ]; then
+  [ $QUIET -eq 0 ] && echo "Failed to harmonize $ERROR_COUNT file(s)" >&2
   exit 1
 fi
 
-mv "$OUTPUT" "$LOCALE"
-[ $VERBOSE -eq 1 ] && echo "Repaired $LOCALE"
 exit 0
