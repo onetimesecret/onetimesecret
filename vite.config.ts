@@ -102,8 +102,8 @@ export default defineConfig({
      * locale object while maintaining the nested structure.
      */
     VueI18nPlugin({
-      // We disable the automatic locale file discovery to avoid infinite
-      // recursion when merging 17 files per locale with deeply nested structures.
+      // We disable the automatic locale file discovery to avoid modifying the
+      // message object structure using the basenames of the JSON files.
       // Instead, we manually load and merge files in src/i18n.ts
       include: [],
 
