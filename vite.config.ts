@@ -6,12 +6,10 @@ import process from 'process';
 import AutoImport from 'unplugin-auto-import/vite';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
-import { visualizer } from 'rollup-plugin-visualizer';
 
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 import { DEBUG } from './src/utils/debug';
 
-//import checker from 'vite-plugin-checker';
 import VueDevTools from 'vite-plugin-vue-devtools';
 import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspector
 
@@ -109,14 +107,6 @@ export default defineConfig({
       },
     }),
 
-    visualizer({
-      filename: '../public/web/dist/stats.html',
-      open: false,
-      gzipSize: true,
-      brotliSize: true,
-      template: 'treemap',
-    }),
-
     // Enable Vue Devtools
     VueDevTools({ launchEditor: 'zed' }),
     Inspector(),
@@ -139,7 +129,7 @@ export default defineConfig({
      *
      * @see ./src/build/plugins/addTrailingNewline.ts for implementation details.
      */
-    addTrailingNewline(),
+    addTrailingNewline() as any,
   ],
 
   resolve: {
