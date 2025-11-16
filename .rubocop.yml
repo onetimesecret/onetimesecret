@@ -432,3 +432,8 @@ Lint/EmptyFile:
   Enabled: false
 Lint/RescueException:
   Enabled: false
+
+# rubocop-sequel plugin
+Sequel/SaveChanges:
+  # Does not differentiate between Sequel models and Familia models.
+  Enabled: false
