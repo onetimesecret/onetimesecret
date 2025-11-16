@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Wrapper to fix structural conflicts in all locale files
+# Wrapper to fix structural conflicts in all locale directories
 #
 # Usage: ./fix-all-locale-conflicts [-q quiet] [-f filename-only] [-v verbose] [-c copy-values]
 #
@@ -15,29 +15,32 @@
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
 EXIT_CODE=0
-FIXED_FILES=0
-FAILED_FILES=0
-TOTAL_FILES=0
+FIXED_LOCALES=0
+FAILED_LOCALES=0
+TOTAL_LOCALES=0
 
-for locale in ../../locales/*.json; do
-  [ "$locale" = "../../locales/en.json" ] && continue
+for locale_dir in ../../../locales/*/; do
+  [ ! -d "$locale_dir" ] && continue
 
-  TOTAL_FILES=$((TOTAL_FILES + 1))
+  locale_name=$(basename "$locale_dir")
+  [ "$locale_name" = "en" ] && continue
 
-  if "$SCRIPT_DIR/fix-locale-conflicts" "$@" "$locale"; then
-    FIXED_FILES=$((FIXED_FILES + 1))
+  TOTAL_LOCALES=$((TOTAL_LOCALES + 1))
+
+  if "$SCRIPT_DIR/fix-locale-conflicts" "$@" "$locale_name"; then
+    FIXED_LOCALES=$((FIXED_LOCALES + 1))
   else
     EXIT_CODE=1
-    FAILED_FILES=$((FAILED_FILES + 1))
+    FAILED_LOCALES=$((FAILED_LOCALES + 1))
   fi
 done
 
 # Summary unless in filename-only mode
 if [ "$1" != "-f" ]; then
   echo "=========================================="
-  echo "CONFLICT FIX SUMMARY: $FIXED_FILES fixed, $FAILED_FILES failed of $TOTAL_FILES files"
-  [ $FAILED_FILES -eq 0 ] && echo "✓ All locale files have been fixed for structural conflicts"
-  [ $FAILED_FILES -gt 0 ] && echo "⚠ $FAILED_FILES files still have issues"
+  echo "CONFLICT FIX SUMMARY: $FIXED_LOCALES fixed, $FAILED_LOCALES failed of $TOTAL_LOCALES locales"
+  [ $FAILED_LOCALES -eq 0 ] && echo "✓ All locale directories have been fixed for structural conflicts"
+  [ $FAILED_LOCALES -gt 0 ] && echo "⚠ $FAILED_LOCALES locales still have issues"
 fi
 
 exit $EXIT_CODE
