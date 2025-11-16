@@ -121,9 +121,11 @@ pnpm run test:all:clean
 ```
 
 ## i18n Requirements
-- All text via `$t('key.path')` from `src/locales/en.json`
+- All text via `$t('key.path')` from locale files in `src/locales/`
 - Hierarchical keys (e.g., `web.secrets.enterPassphrase`)
 - NO hardcoded text
+- **UX guidance:** `src/locales/UX-TRANSLATION-GUIDE.md` (button text, character limits, pluralization)
+- **Security guidance:** `src/locales/SECURITY-TRANSLATION-GUIDE.md` (auth error messages)
 
 ## Project Structure
 - Components: `src/components/`, `src/views/`
