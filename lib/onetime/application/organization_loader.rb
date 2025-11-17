@@ -43,33 +43,48 @@ module Onetime
       def load_organization_context(customer, session, env)
         return {} if customer.nil? || customer.anonymous?
 
-        # Check session cache first
+        # Check session cache first (only stores IDs, not full objects)
         cache_key = "org_context:#{customer.objid}"
         cached    = session[cache_key] if session
 
         if cached && cached[:expires_at] && cached[:expires_at] > Familia.now.to_i
-          OT.ld "[OrganizationLoader] Using cached context for #{customer.objid}"
-          return cached
+          OT.ld "[OrganizationLoader] Using cached IDs for #{customer.objid}"
+
+          # Reload objects from cached IDs
+          org = cached[:organization_id] ? Onetime::Organization.load(cached[:organization_id]) : nil
+          team = cached[:team_id] ? Onetime::Team.load(cached[:team_id]) : nil
+
+          return {
+            organization: org,
+            organization_id: org&.objid,
+            team: team,
+            team_id: team&.objid,
+            expires_at: cached[:expires_at]
+          }
         end
 
         # Determine organization and team
         org  = determine_organization(customer, session, env)
         team = determine_team(org, customer, session) if org
 
-        context = {
+        # Store only IDs in session cache (not full objects - they can't serialize)
+        if session
+          session[cache_key] = {
+            organization_id: org&.objid,
+            team_id: team&.objid,
+            expires_at: Familia.now.to_i + 300, # 5 minute cache
+          }
+        end
+
+        OT.ld "[OrganizationLoader] Loaded context for #{customer.objid}: org=#{org&.objid}, team=#{team&.objid}"
+
+        {
           organization: org,
           organization_id: org&.objid,
           team: team,
           team_id: team&.objid,
-          expires_at: Familia.now.to_i + 300, # 5 minute cache
+          expires_at: Familia.now.to_i + 300,
         }
-
-        # Cache in session
-        session[cache_key] = context if session
-
-        OT.ld "[OrganizationLoader] Loaded context for #{customer.objid}: org=#{org&.objid}, team=#{team&.objid}"
-
-        context
       end
 
       # Clear organization context cache for customer

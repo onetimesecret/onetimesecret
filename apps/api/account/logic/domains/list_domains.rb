@@ -13,12 +13,16 @@ module AccountAPI::Logic
         @with_brand = !params[:with_brand].to_s.empty?
       end
 
-      def raise_concerns; end
+      def raise_concerns
+        require_organization!
+      end
 
       def process
-        OT.ld "[ListDomains] Processing #{cust.custom_domains.size} #{cust.custom_domains.dbkey}"
+        domains = organization.list_domains
 
-        @custom_domains = cust.custom_domains_list.map do |domain|
+        OT.ld "[ListDomains] Processing #{domains.size} domains for org #{organization.objid}"
+
+        @custom_domains = domains.map do |domain|
           domain.safe_dump
         end
 
@@ -28,6 +32,7 @@ module AccountAPI::Logic
       def success_data
         {
           user_id: @cust.objid,
+          organization: organization.safe_dump,
           records: @custom_domains,
           count: @custom_domains.length,
           details: {

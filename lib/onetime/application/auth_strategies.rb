@@ -86,6 +86,9 @@ module Onetime
       # Access: Everyone (including authenticated)
       # User: Customer.anonymous or authenticated Customer
       class NoAuthStrategy < Otto::Security::AuthStrategy
+        include Helpers
+        include Onetime::Application::OrganizationLoader
+
         @auth_method_name = 'noauth'
 
         def authenticate(env, _requirement)
@@ -94,15 +97,20 @@ module Onetime
           # Load customer from session or use anonymous
           cust = load_user_from_session(session) || Onetime::Customer.anonymous
 
+          # Load organization context if user is authenticated
+          org_context = if cust && !cust.anonymous?
+                          load_organization_context(cust, session, env)
+                        else
+                          {}
+                        end
+
           success(
             session: session,
             user: cust.anonymous? ? nil : cust,  # Pass nil for anonymous users
             auth_method: 'noauth',
-            metadata: build_metadata(env),
+            metadata: build_metadata(env).merge(organization_context: org_context),
           )
         end
-
-        include Helpers
       end
 
       # Base strategy for authenticated routes
@@ -212,6 +220,7 @@ module Onetime
       # to prevent timing attacks that could enumerate valid usernames.
       class BasicAuthStrategy < Otto::Security::AuthStrategy
         include Helpers
+        include Onetime::Application::OrganizationLoader
 
         @auth_method_name = 'basicauth'
 
@@ -257,11 +266,18 @@ module Onetime
           if cust && valid_credentials
             OT.ld "[onetime_basic_auth] Authenticated '#{cust.objid}' via API key"
 
+            # Load organization context for API key auth
+            # Note: No session for stateless Basic auth, pass empty hash
+            session = env['rack.session'] || {}
+            org_context = load_organization_context(cust, session, env)
+
             success(
               session: {},  # No session for Basic auth (stateless)
               user: cust,
               auth_method: 'basic_auth',
-              metadata: build_metadata(env, { auth_type: 'basic' }),
+              metadata: build_metadata(env, { auth_type: 'basic' }).merge(
+                organization_context: org_context
+              ),
             )
           else
             # Return generic error for both cases:

@@ -19,14 +19,14 @@ module AccountAPI::Logic
         raise_form_error 'Not a valid public domain' unless Onetime::CustomDomain.valid?(@domain_input)
 
         # Get customer's organization for domain ownership
-        org = @cust.organization_instances.first
-        raise_form_error 'Customer must belong to an organization' unless org
+        # Organization available via @organization
+        require_organization!
 
         # Getting the domain record based on `req.params[:domain]` (which is
         # the display_domain). That way we need to combine with the org_id
         # in order to find it. It's a way of proving ownership. Vs passing the
         # domainid in the URL path which gives up the goods.
-        @custom_domain = Onetime::CustomDomain.load(@domain_input, org.objid)
+        @custom_domain = Onetime::CustomDomain.load(@domain_input, organization.objid)
 
         raise_form_error 'Domain not found' unless @custom_domain
       end
