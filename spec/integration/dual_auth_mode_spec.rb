@@ -21,6 +21,16 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       ENV['RACK_ENV'] = 'test'
       ENV['AUTHENTICATION_MODE'] = 'basic'
 
+      # Set up FakeRedis mocking before boot
+      redis_client = FakeRedis::Redis.new
+      allow(Familia).to receive(:dbclient).and_return(redis_client)
+      allow(Redis).to receive(:new).and_return(redis_client)
+
+      fake_pool = double('ConnectionPool')
+      allow(fake_pool).to receive(:with).and_yield(redis_client)
+      allow(fake_pool).to receive(:ping).and_return('PONG')
+      allow(OT).to receive(:database_pool).and_return(fake_pool)
+
       # Reset registry to clear any apps loaded during spec_helper
       Onetime::Application::Registry.reset!
 

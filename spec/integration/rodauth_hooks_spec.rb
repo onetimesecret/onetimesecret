@@ -13,10 +13,22 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
     ENV['RACK_ENV'] = 'test'
     ENV['AUTHENTICATION_MODE'] = 'advanced'
 
-    Onetime.boot! :test
+    # Set up FakeRedis before boot to avoid connection errors
+    RSpec::Mocks.with_temporary_scope do
+      redis_client = FakeRedis::Redis.new
+      allow(Familia).to receive(:dbclient).and_return(redis_client)
+      allow(Redis).to receive(:new).and_return(redis_client)
 
-    # Prepare the application registry
-    Onetime::Application::Registry.prepare_application_registry
+      fake_pool = double('ConnectionPool')
+      allow(fake_pool).to receive(:with).and_yield(redis_client)
+      allow(fake_pool).to receive(:ping).and_return('PONG')
+      allow(OT).to receive(:database_pool).and_return(fake_pool)
+
+      Onetime.boot! :test
+
+      # Prepare the application registry
+      Onetime::Application::Registry.prepare_application_registry
+    end
   end
 
   def app
