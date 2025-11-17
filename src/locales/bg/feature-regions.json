@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "Суверенитет на данните и регионална изолация",
+      "data-sovereignty-description": "Вашите данни се съхраняват изключително във вашия избран регион и никога не се прехвърлят между региони",
+      "separate-environments-explanation": "Всеки регион функционира като напълно независима среда със собствена инфраструктура, ключове за шифриране и съхранение на данни",
+      "no-data-transfer-policy": "Поддържаме стриктна политика: данните на клиентите никога не се прехвърлят между региони при никакви обстоятелства",
+      "switching-creates-new-account": "Важно: Превключването към друг регион създава нов акаунт. Вашите данни остават в оригиналния ви регион.",
+      "your-region": "Вашият регион",
+      "your-current-region": "Вашият текущ регион",
+      "active": "Активен",
+      "explore-other-regions": "Разгледайте други налични региони",
+      "why-it-matters": "Защо суверенитетът на данните е важен",
+      "trust-title": "Прозрачност и контрол",
+      "trust-description": "Знайте точно къде се съхраняват вашите данни и кои закони регулират тяхната защита.",
+      "privacy-title": "Права на поверителност",
+      "privacy-description": "Уверете се, че вашата лична информация се обработва в съответствие със законите и разпоредбите за поверителност на вашата държава, предотвратявайки неоторизиран достъп или злоупотреба.",
+      "compliance-title": "Спазване на нормативните изисквания",
+      "compliance-description": "Спазвайте GDPR, HIPAA, CCPA и други регионални изисквания за защита на данните",
+      "performance-title": "По-бърз достъп",
+      "performance-description": "Данните, съхранявани по-близо до вас, означават по-ниска латентност и по-добра производителност."
     }
   }
 }
