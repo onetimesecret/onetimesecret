@@ -1,31 +1,31 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "セキュリティ",
+      "learn-about-our-security-measures": "セキュリティ対策について学ぶ",
+      "view-our-terms-and-conditions": "利用規約を表示",
+      "terms": "利用規約",
+      "privacy": "プライバシー",
+      "contact": "お問い合わせ",
+      "support": "サポート",
+      "legals": "法的情報",
+      "read-our-privacy-policy": "プライバシーポリシーを読む",
+      "check-our-service-status": "サービスステータスを確認",
+      "explore-our-api-documentation": "APIドキュメントを探索",
+      "docs": "ドキュメント",
+      "access-our-documentation": "ドキュメントにアクセス",
+      "view-our-source-code-on-github": "GitHubでソースコードを表示",
+      "resources": "リソース",
+      "blog": "ブログ",
+      "read-our-latest-blog-posts": "最新のブログ投稿を読む",
+      "view-our-subscription-pricing": "サブスクリプション価格を表示",
+      "learn-about-our-company": "会社について学ぶ",
+      "company": "会社"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "請求",
+      "billingOverview": "概要",
+      "organizations": "組織"
     },
     "site": {
       "website-version": "サイトバージョン"
@@ -41,7 +41,7 @@
       "secret_view_faq": {
         "what_am_i_looking_at": {
           "title": "これは何ですか？",
-          "description": "Onetime Secret を通じて共有された安全なメッセージを閲覧しています。このコンテンツは一度だけ表示され、その後サーバーから完全に削除されます。"
+          "description": "Onetime Secretを通じて共有された安全なメッセージを閲覧しています。このコンテンツは一度だけ表示され、その後サーバーから完全に削除されます。"
         },
         "can_i_view_again": {
           "title": "このシークレットを後でもう一度見ることはできますか？",
