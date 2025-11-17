@@ -12,6 +12,7 @@ module Onetime::CustomDomain::Features
       base.feature :safe_dump
 
       base.safe_dump_field :identifier, ->(obj) { obj.identifier }
+      base.safe_dump_field :extid
       base.safe_dump_field :domainid
       base.safe_dump_field :display_domain
       base.safe_dump_field :custid
