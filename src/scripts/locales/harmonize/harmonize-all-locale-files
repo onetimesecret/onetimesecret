@@ -21,6 +21,6 @@ for locale_dir in ../../../locales/*/; do
   locale_name=$(basename "$locale_dir")
   [ "$locale_name" = "en" ] && continue
 
-  "$SCRIPT_DIR/harmonize-locale-file" "$@" "$locale_name" || EXIT_CODE=1
+  "$SCRIPT_DIR/harmonize-locale-file.py" "$@" "$locale_name" || EXIT_CODE=1
 done
 exit $EXIT_CODE
