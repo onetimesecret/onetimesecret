@@ -15,17 +15,17 @@
       "explore_premium_plans": "Explore os Planos Premium",
       "need_free_account": "Está a começar?",
       "sign_up_free": "Crie uma conta gratuita",
-      "visit-onetime-secret-home": "",
-      "password_generation_title": "",
-      "password_generation_description": "",
-      "protip1": "",
+      "visit-onetime-secret-home": "Visitar a página inicial do Onetime Secret",
+      "password_generation_title": "Gerador de Palavras-passe",
+      "password_generation_description": " Clique em \"Gerar Palavra-passe\" para criar uma palavra-passe aleatória segura que pode partilhar.",
+      "protip1": "A sua mensagem vai autodestruir-se após ser visualizada. O link só pode ser acedido uma vez.",
       "authonly": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Mantenha informações sensíveis fora do seu e-mail e registos de chat.",
+        "tagline1": "Cole uma palavra-passe, mensagem secreta ou link privado abaixo."
       },
       "disabled": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Mantenha informações sensíveis fora do seu e-mail e registos de chat.",
+        "tagline1": "Cole uma palavra-passe, mensagem secreta ou link privado abaixo."
       }
     }
   }

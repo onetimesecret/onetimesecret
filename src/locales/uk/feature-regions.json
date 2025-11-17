@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "Суверенність даних та регіональна ізоляція",
+      "data-sovereignty-description": "Ваші дані зберігаються виключно у вибраному вами регіоні та ніколи не передаються між регіонами",
+      "separate-environments-explanation": "Кожен регіон працює як повністю незалежне середовище з власною інфраструктурою, ключами шифрування та сховищем даних",
+      "no-data-transfer-policy": "Ми дотримуємося суворої політики: дані клієнтів ніколи не передаються між регіонами за будь-яких обставин",
+      "switching-creates-new-account": "Важливо: Перемикання на інший регіон створює новий обліковий запис. Ваші дані залишаються у вашому початковому регіоні.",
+      "your-region": "Ваш регіон",
+      "your-current-region": "Ваш поточний регіон",
+      "active": "Активний",
+      "explore-other-regions": "Дослідіть інші доступні регіони",
+      "why-it-matters": "Чому важлива суверенність даних",
+      "trust-title": "Прозорість та контроль",
+      "trust-description": "Точно знайте, де зберігаються ваші дані та які закони регулюють їх захист.",
+      "privacy-title": "Права конфіденційності",
+      "privacy-description": "Переконайтеся, що ваша особиста інформація обробляється відповідно до законів про конфіденційність вашої країни та правил, запобігаючи несанкціонованому доступу або зловживанню.",
+      "compliance-title": "Відповідність нормативним вимогам",
+      "compliance-description": "Відповідність GDPR, HIPAA, CCPA та іншим регіональним вимогам захисту даних",
+      "performance-title": "Швидший доступ",
+      "performance-description": "Дані, що зберігаються ближче до вас, означають меншу затримку та кращу продуктивність."
     }
   }
 }

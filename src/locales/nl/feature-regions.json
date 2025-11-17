@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "Datasoevereiniteit en regionale isolatie",
+      "data-sovereignty-description": "Je gegevens blijven uitsluitend in de door jou gekozen regio en worden nooit tussen regio's overgedragen",
+      "separate-environments-explanation": "Elke regio werkt als een volledig onafhankelijke omgeving met eigen infrastructuur, versleutelingssleutels en data-opslag",
+      "no-data-transfer-policy": "We hanteren een strikt beleid: klantgegevens worden onder geen enkele omstandigheid tussen regio's overgedragen",
+      "switching-creates-new-account": "Belangrijk: overschakelen naar een andere regio maakt een nieuw account aan. Je gegevens blijven in je oorspronkelijke regio",
+      "your-region": "Je regio",
+      "your-current-region": "Je huidige regio",
+      "active": "Actief",
+      "explore-other-regions": "Verken andere beschikbare regio's",
+      "why-it-matters": "Waarom datasoevereiniteit belangrijk is",
+      "trust-title": "Transparantie en controle",
+      "trust-description": "Precies weten waar je gegevens zich bevinden en welke wetten de bescherming ervan regelen",
+      "privacy-title": "Privacyrechten",
+      "privacy-description": "Ervoor zorgen dat je persoonlijke informatie wordt behandeld volgens de privacywetten van jouw land, om ongeautoriseerde toegang of misbruik te voorkomen",
+      "compliance-title": "Naleving van regelgeving",
+      "compliance-description": "Voldoen aan regionale gegevensbeschermingsvereisten zoals AVG, HIPAA, CCPA en anderen",
+      "performance-title": "Snellere toegang",
+      "performance-description": "Gegevens die dichter bij jou worden opgeslagen betekenen lagere latentie en betere prestaties"
     }
   }
 }

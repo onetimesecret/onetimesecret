@@ -1,31 +1,31 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Сигурност",
+      "learn-about-our-security-measures": "Научете повече за нашите мерки за сигурност",
+      "view-our-terms-and-conditions": "Прегледайте нашите Общи условия",
+      "terms": "Условия",
+      "privacy": "Поверителност",
+      "contact": "Контакт",
+      "support": "Поддръжка",
+      "legals": "Правни документи",
+      "read-our-privacy-policy": "Прочетете нашата Политика за поверителност",
+      "check-our-service-status": "Проверете състоянието на нашата услуга",
+      "explore-our-api-documentation": "Разгледайте нашата API документация",
+      "docs": "Документация",
+      "access-our-documentation": "Достъп до нашата документация",
+      "view-our-source-code-on-github": "Прегледайте нашия изходен код в GitHub",
+      "resources": "Ресурси",
+      "blog": "Блог",
+      "read-our-latest-blog-posts": "Прочетете нашите последни блог публикации",
+      "view-our-subscription-pricing": "Прегледайте нашите цени за абонаменти",
+      "learn-about-our-company": "Научете повече за нашата компания",
+      "company": "Компания"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Фактуриране",
+      "billingOverview": "Общ преглед",
+      "organizations": "Организации"
     },
     "site": {
       "website-version": "Версия на уебсайта"

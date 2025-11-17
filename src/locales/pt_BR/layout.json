@@ -1,31 +1,31 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Security",
+      "learn-about-our-security-measures": "Learn about our security measures",
+      "view-our-terms-and-conditions": "View our Terms and Conditions",
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "contact": "Contact",
+      "support": "Support",
+      "legals": "Legals",
+      "read-our-privacy-policy": "Read our Privacy Policy",
+      "check-our-service-status": "Check our service status",
+      "explore-our-api-documentation": "Explore our API documentation",
+      "docs": "Docs",
+      "access-our-documentation": "Access our documentation",
+      "view-our-source-code-on-github": "View our source code on GitHub",
+      "resources": "Resources",
+      "blog": "Blog",
+      "read-our-latest-blog-posts": "Read our latest blog posts",
+      "view-our-subscription-pricing": "View our subscription pricing",
+      "learn-about-our-company": "Learn about our company",
+      "company": "Company"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Billing",
+      "billingOverview": "Overview",
+      "organizations": "Organizations"
     },
     "site": {
       "website-version": "Versão do Site"

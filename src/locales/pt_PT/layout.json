@@ -1,61 +1,61 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Segurança",
+      "learn-about-our-security-measures": "Saiba mais sobre as nossas medidas de segurança",
+      "view-our-terms-and-conditions": "Ver os nossos Termos e Condições",
+      "terms": "Termos",
+      "privacy": "Privacidade",
+      "contact": "Contacto",
+      "support": "Suporte",
+      "legals": "Legais",
+      "read-our-privacy-policy": "Leia a nossa Política de Privacidade",
+      "check-our-service-status": "Verifique o estado do nosso serviço",
+      "explore-our-api-documentation": "Explore a nossa documentação API",
+      "docs": "Documentação",
+      "access-our-documentation": "Aceda à nossa documentação",
+      "view-our-source-code-on-github": "Veja o nosso código-fonte no GitHub",
+      "resources": "Recursos",
+      "blog": "Blog",
+      "read-our-latest-blog-posts": "Leia as nossas últimas publicações no blog",
+      "view-our-subscription-pricing": "Ver os nossos preços de subscrição",
+      "learn-about-our-company": "Saiba mais sobre a nossa empresa",
+      "company": "Empresa"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Faturação",
+      "billingOverview": "Visão Geral",
+      "organizations": "Organizações"
     },
     "site": {
-      "website-version": ""
+      "website-version": "Versão do Website"
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "",
-      "translations-are-new-spotted-an-error": "",
-      "we-recently-added-translations": "",
-      "privacy-and-security-should-be-accessible": ""
+      "were-making-onetime-secret-available-in-multiple": "Estamos a disponibilizar {onetime-secret} em vários idiomas. Como esta é uma funcionalidade nova, pode encontrar erros de tradução ou frases desajeitadas. O seu feedback ajuda-nos a melhorar - se detetar algum problema, por favor {send-feedback}",
+      "translations-are-new-spotted-an-error": "As traduções são novas. Detetou um erro? {send-feedback}",
+      "we-recently-added-translations": "Adicionámos recentemente traduções. Detetou um erro? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "A privacidade e a segurança devem ser acessíveis a todos, independentemente do idioma. Estamos a adicionar traduções para ajudar tanto os nossos utilizadores como os destinatários das mensagens a compreender melhor como usar e aceder de forma segura a mensagens e links seguros. Como esta é uma funcionalidade nova, pode encontrar alguns erros de tradução ou instruções pouco claras. Para nos ajudar a melhorar a clareza e precisão das nossas traduções, especialmente para conteúdo crítico relacionado com segurança, por favor {send-feedback} se detetar algum problema"
     },
     "help": {
-      "learn_more": "",
+      "learn_more": "Saber mais",
       "secret_view_faq": {
         "what_am_i_looking_at": {
-          "title": "",
-          "description": ""
+          "title": "O que estou a ver?",
+          "description": "Está a visualizar uma mensagem segura que foi partilhada consigo através do Onetime Secret. Este conteúdo é apresentado apenas uma vez e depois eliminado permanentemente dos nossos servidores."
         },
         "can_i_view_again": {
-          "title": "",
-          "description": ""
+          "title": "Posso ver este segredo novamente mais tarde?",
+          "description": "Não. Por razões de segurança, este segredo só pode ser visualizado uma vez. Após fechar esta página, o conteúdo será permanentemente eliminado e não pode ser recuperado por ninguém, incluindo nós."
         },
         "how_to_copy": {
-          "title": "",
-          "description": ""
+          "title": "Como guardo esta informação?",
+          "description": "Use o botão 'Copiar para a área de transferência' para copiar todo o segredo. Para segredos mais longos, certifique-se de que copiou o conteúdo completo antes de sair desta página."
         },
         "is_my_viewing_tracked": {
-          "title": "",
-          "description": ""
+          "title": "A minha visualização deste segredo é rastreada?",
+          "description": "O remetente será notificado de que o seu segredo foi visualizado, mas não rastreamos quem o visualizou ou de que localização. A sua privacidade está protegida."
         },
-        "one_time_warning": ""
+        "one_time_warning": "Assim que sair ou atualizar esta página, este segredo será permanentemente eliminado e não poderá ser recuperado por ninguém."
       }
     }
   }

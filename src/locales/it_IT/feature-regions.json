@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "Sovranità dei dati e isolamento regionale",
+      "data-sovereignty-description": "I tuoi dati risiedono esclusivamente nella regione scelta e non vengono mai trasferiti tra regioni",
+      "separate-environments-explanation": "Ogni regione opera come ambiente completamente indipendente con propria infrastruttura, chiavi di crittografia e archiviazione dati",
+      "no-data-transfer-policy": "Manteniamo una politica rigorosa: i dati dei clienti non vengono mai trasferiti tra regioni in nessuna circostanza",
+      "switching-creates-new-account": "Importante: passare a una regione diversa crea un nuovo account. I tuoi dati rimangono nella tua regione originale",
+      "your-region": "La tua regione",
+      "your-current-region": "La tua regione attuale",
+      "active": "Attiva",
+      "explore-other-regions": "Esplora altre regioni disponibili",
+      "why-it-matters": "Perché la sovranità dei dati è importante",
+      "trust-title": "Trasparenza e controllo",
+      "trust-description": "Sapere esattamente dove risiedono i tuoi dati e quali leggi ne governano la protezione",
+      "privacy-title": "Diritti alla privacy",
+      "privacy-description": "Assicurare che le tue informazioni personali siano gestite secondo le leggi sulla privacy del tuo paese, prevenendo accessi non autorizzati o abusi",
+      "compliance-title": "Conformità normativa",
+      "compliance-description": "Soddisfare i requisiti di protezione dei dati regionali come GDPR, HIPAA, CCPA e altri",
+      "performance-title": "Accesso più veloce",
+      "performance-description": "I dati archiviati più vicino a te significano latenza inferiore e prestazioni migliori"
     }
   }
 }
