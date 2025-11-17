@@ -426,6 +426,6 @@
   "an-error-occurred": "エラーが発生しました",
   "copy-secret-to-clipboard": "シークレットをクリップボードにコピー",
   "secret-copied-to-clipboard": "シークレットがクリップボードにコピーされました",
-  "パスフレーズを再確認してください": "パスフレーズを再確認してください",
+  "Double check that passphrase": "Double check that passphrase",
   "press_copy_button_below": "下のコピーボタンを押してください。"
 }

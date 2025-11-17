@@ -426,6 +426,6 @@
   "an-error-occurred": "Възникна грешка",
   "copy-secret-to-clipboard": "Копирай тайната в клипборда",
   "secret-copied-to-clipboard": "Тайната е копирана в клипборда",
-  "double-check-that-passphrase": "Проверете отново ключовата фраза",
+  "Double check that passphrase": "Double check that passphrase",
   "press_copy_button_below": "Натиснете бутона за копиране по-долу."
 }
