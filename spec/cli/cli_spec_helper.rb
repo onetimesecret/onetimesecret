@@ -80,6 +80,12 @@ module CLISpecHelper
     path = File.join(dir, name)
     File.write(path, content)
     path
+  rescue Errno::EACCES => e
+    raise "Permission denied creating migration file: #{e.message}"
+  rescue Errno::ENOSPC => e
+    raise "No space left on device: #{e.message}"
+  rescue StandardError => e
+    raise "Failed to create migration file: #{e.message}"
   end
 
   # Clean up temporary migration files
@@ -96,7 +102,35 @@ RSpec.configure do |config|
     # Reset exit code before each test
     @last_exit_code = nil
 
-    # Mock Familia/Redis to prevent actual database connections
+    # Mock Redis connection to prevent actual Redis connections
+    redis_mock = double('Redis')
+    allow(redis_mock).to receive_messages(
+      get: nil,
+      set: nil,
+      setex: nil,
+      del: nil,
+      exists: false,
+      keys: [],
+      scan: [0, []],
+      scan_each: [],
+      ttl: -1,
+      expire: true,
+      incr: 1,
+      decr: 0,
+      incrby: 1,
+      decrby: 0,
+      lpush: 1,
+      rpush: 1,
+      lpop: nil,
+      rpop: nil,
+      lrange: [],
+      llen: 0,
+      flushdb: true,
+      ping: 'PONG'
+    )
+    allow(Familia).to receive(:dbclient).and_return(redis_mock)
+
+    # Mock Familia/Redis instances for Familia models
     fake_redis_instances = double('Instances', size: 0, all: [])
     allow(fake_redis_instances).to receive(:size).and_return(0)
     allow(fake_redis_instances).to receive(:all).and_return([])
@@ -160,9 +194,11 @@ RSpec.configure do |config|
     end
 
     unless defined?(Onetime::Migration)
-      # Create a simple class that can be mocked by RSpec
+      # Create a migration class with methods that can be mocked
       migration_class = Class.new do
-        def self.run(options = {}); end
+        def self.run(options = {})
+          true  # Return true by default for successful migration
+        end
         def self.load(file); end
       end
       stub_const('Onetime::Migration', migration_class)

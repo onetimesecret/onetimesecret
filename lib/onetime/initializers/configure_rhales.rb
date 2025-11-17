@@ -26,7 +26,11 @@ module Onetime
     # - Set template paths to match existing structure
     #
     def configure_rhales
-      Rhales.logger = Onetime.rhales_logger
+      # Set Rhales logger if supported (Rhales 0.5+)
+      # Uses respond_to? check for backward compatibility with earlier versions
+      if Rhales.respond_to?(:logger=)
+        Rhales.logger = Onetime.rhales_logger
+      end
 
       # Guard against multiple configuration attempts
       # Rhales.configure freezes the config after first call
