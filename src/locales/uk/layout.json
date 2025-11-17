@@ -1,31 +1,31 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Безпека",
+      "learn-about-our-security-measures": "Дізнайтеся про наші заходи безпеки",
+      "view-our-terms-and-conditions": "Переглянути наші Умови надання послуг",
+      "terms": "Умови",
+      "privacy": "Конфіденційність",
+      "contact": "Контакт",
+      "support": "Підтримка",
+      "legals": "Юридичне",
+      "read-our-privacy-policy": "Прочитайте нашу Політику конфіденційності",
+      "check-our-service-status": "Перевірте статус нашого сервісу",
+      "explore-our-api-documentation": "Ознайомтеся з нашою документацією API",
+      "docs": "Документація",
+      "access-our-documentation": "Отримайте доступ до нашої документації",
+      "view-our-source-code-on-github": "Переглянути наш вихідний код на GitHub",
+      "resources": "Ресурси",
+      "blog": "Блог",
+      "read-our-latest-blog-posts": "Прочитайте наші останні записи в блозі",
+      "view-our-subscription-pricing": "Переглянути ціни на підписку",
+      "learn-about-our-company": "Дізнайтеся про нашу компанію",
+      "company": "Компанія"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Виставлення рахунків",
+      "billingOverview": "Огляд",
+      "organizations": "Організації"
     },
     "site": {
       "website-version": "Версія веб-сайту"
