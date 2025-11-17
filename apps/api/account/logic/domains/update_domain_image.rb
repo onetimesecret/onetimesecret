@@ -28,21 +28,21 @@ module AccountAPI::Logic
       end
 
       # Processes the parameters for the domain logo update.
-      # Extracts and sets instance variables for the display domain and uploaded image file.
+      # Extracts and sets instance variables for the domain extid and uploaded image file.
       # Handles cases where the image parameter is either a hash (from a form upload) or a file object directly.
       def process_params
-        # Strip any leading/trailing whitespace from the domain parameter and set it to an instance variable.
-        @domain_input = params[:domain].to_s.strip
+        # Strip any leading/trailing whitespace from the extid parameter and set it to an instance variable.
+        @extid = params['extid'].to_s.strip
 
         # Retrieve the image parameter from the request.
-        @image = params[:image]
+        @image = params['image']
 
         # Check if the image parameter is a hash (typical for form uploads).
-        if @image.is_a?(Hash) && @image[:tempfile]
+        if @image.is_a?(Hash) && @image['tempfile']
           # Extract the tempfile, filename, and content type from the hash.
-          @uploaded_file = @image[:tempfile]
-          @filename      = @image[:filename]
-          @content_type  = @image[:type]
+          @uploaded_file = @image['tempfile']
+          @filename      = @image['filename']
+          @content_type  = @image['type']
 
         # Check if the image parameter is a file object directly
         # (e.g. it's the Tempfile or StringIO).
@@ -59,17 +59,22 @@ module AccountAPI::Logic
       # Validate the input parameters
       # Sets error messages if any parameter is invalid
       def raise_concerns
-        raise_form_error 'Domain is required' if @domain_input.empty?
+        raise_form_error 'Domain ID is required' if @extid.empty?
 
         # Get customer's organization for domain ownership
-        org = @cust.organization_instances.first
-        raise_form_error 'Customer must belong to an organization' unless org
+        # Organization available via @organization
+        require_organization!
 
         # Check if the domain exists and belongs to the current customer
-        @custom_domain = Onetime::CustomDomain.load(@domain_input, org.objid)
+        @custom_domain = Onetime::CustomDomain.find_by_extid(@extid)
         raise_form_error 'Invalid Domain' unless @custom_domain
 
-        @display_domain = @domain_input
+        # Verify the customer owns this domain through their organization
+        unless @custom_domain.owner?(@cust)
+          raise_form_error 'Invalid Domain'
+        end
+
+        @display_domain = @custom_domain.display_domain
 
         # Validate the logo file
         raise_form_error 'Image file is required' unless @uploaded_file

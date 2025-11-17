@@ -30,6 +30,7 @@ export type DomainStrategy = (typeof DomainStrategyValues)[keyof typeof DomainSt
 export const customDomainSchema = createModelSchema({
   // Core identifiers
   domainid: z.string(),
+  extid: z.string(),
   custid: z.string().nullable(),
 
   // Domain parts

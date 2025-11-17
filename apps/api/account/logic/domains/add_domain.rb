@@ -25,12 +25,11 @@ module AccountAPI::Logic
         raise_form_error 'Please enter a domain' if @domain_input.empty?
         raise_form_error 'Not a valid public domain' unless Onetime::CustomDomain.valid?(@domain_input)
 
-        # Get customer's organization for domain ownership
-        org = @cust.organization_instances.first
-        raise_form_error 'Customer must belong to an organization' unless org
+        # Require organization for domain ownership
+        require_organization!
 
         # Only store a valid, parsed input value to @domain
-        @parsed_domain  = Onetime::CustomDomain.parse(@domain_input, org.objid)
+        @parsed_domain  = Onetime::CustomDomain.parse(@domain_input, organization.objid)
         @display_domain = @parsed_domain.display_domain
 
         OT.ld "[AddDomain] Display: #{@display_domain}, Identifier: #{@parsed_domain.identifier}"
@@ -41,7 +40,7 @@ module AccountAPI::Logic
         return unless existing
 
         # Scenario 1: Domain already in customer's organization (same org_id)
-        if existing.org_id.to_s == org.objid.to_s
+        if existing.org_id.to_s == organization.objid.to_s
           OT.ld "[AddDomain] Domain already in organization: #{@display_domain}"
           raise_form_error 'Domain already registered in your organization'
         end
@@ -61,11 +60,7 @@ module AccountAPI::Logic
         @greenlighted  = true
         OT.ld "[AddDomain] Processing #{@display_domain}"
 
-        # Get customer's organization for domain ownership
-        org = @cust.organization_instances.first
-        raise_form_error 'Customer must belong to an organization' unless org
-
-        @custom_domain = Onetime::CustomDomain.create!(@display_domain, org.objid)
+        @custom_domain = Onetime::CustomDomain.create!(@display_domain, organization.objid)
 
         begin
           # Create the approximated vhost for this domain. Approximated provides a

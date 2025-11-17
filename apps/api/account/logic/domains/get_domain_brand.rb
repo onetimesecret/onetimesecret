@@ -11,20 +11,24 @@ module AccountAPI::Logic
       attr_reader :brand_settings, :display_domain, :custom_domain
 
       def process_params
-        @domain_input = params[:domain].to_s.strip
+        @extid = params['extid'].to_s.strip
       end
 
       def raise_concerns
-        raise_form_error 'Please enter a domain' if @domain_input.empty?
-        raise_form_error 'Not a valid public domain' unless Onetime::CustomDomain.valid?(@domain_input)
+        raise_form_error 'Please provide a domain ID' if @extid.empty?
 
         # Get customer's organization for domain ownership
-        org = @cust.organization_instances.first
-        raise_form_error 'Customer must belong to an organization' unless org
+        # Organization available via @organization
+        require_organization!
 
-        @custom_domain = Onetime::CustomDomain.load(@domain_input, org.objid)
+        @custom_domain = Onetime::CustomDomain.find_by_extid(@extid)
 
         raise_form_error 'Domain not found' unless @custom_domain
+
+        # Verify the customer owns this domain through their organization
+        unless @custom_domain.owner?(@cust)
+          raise_form_error 'Domain not found'
+        end
       end
 
       def process

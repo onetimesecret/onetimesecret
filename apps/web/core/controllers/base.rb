@@ -5,6 +5,7 @@
 require_relative '../views'
 require 'onetime/helpers/session_helpers'
 require 'onetime/helpers/shrimp_helpers'
+require 'onetime/controllers/organization_context'
 
 module Core
   module Controllers
@@ -12,6 +13,7 @@ module Core
       include Onetime::LoggerMethods
       include Onetime::Helpers::SessionHelpers
       include Onetime::Helpers::ShrimpHelpers
+      include Onetime::Controllers::OrganizationContext
 
       attr_reader :req, :res, :locale
 

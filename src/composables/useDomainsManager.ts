@@ -57,9 +57,9 @@ export function useDomainsManager() {
    */
   const fetch = async () => wrap(async () => await store.fetchList());
 
-  const getDomain = async (domainName: string) =>
+  const getDomain = async (extid: string) =>
     wrap(async () => {
-      const domainData = await store.getDomain(domainName);
+      const domainData = await store.getDomain(extid);
       const domain = domainData.record;
       const currentTime = Math.floor(Date.now() / 1000);
       const lastMonitored = domain?.vhost?.last_monitored_unix ?? 0;
@@ -77,55 +77,52 @@ export function useDomainsManager() {
       };
     });
 
-  const verifyDomain = async (domainName: string) =>
+  const verifyDomain = async (extid: string) =>
     wrap(async () => {
-      const result = await store.verifyDomain(domainName);
+      const result = await store.verifyDomain(extid);
       notifications.show(t('domain-verification-initiated-successfully'), 'success');
       return result;
     });
+
+  const handleDomainExistsError = async (domain: string, errorMessage: string) => {
+    if (errorMessage.includes('already registered in your organization')) {
+      notifications.show(t('web.domains.domain-already-in-organization'), 'warning');
+      await store.fetchList();
+      const existingDomain = store.records?.find(d => d.display_domain === domain);
+      if (existingDomain) {
+        setTimeout(() => {
+          router.push({ name: 'DomainVerify', params: { extid: existingDomain.extid } });
+        }, 2000);
+      }
+      return null;
+    }
+    if (errorMessage.includes('registered to another organization')) {
+      notifications.show(t('web.domains.domain-in-other-organization'), 'error');
+      return null;
+    }
+    return undefined; // Signal to re-throw
+  };
 
   const handleAddDomain = async (domain: string) =>
     wrap(async () => {
       try {
         const result = await store.addDomain(domain);
-        if (result) {
-          // Check if domain was reclaimed (orphaned domain)
-          const created = result.created.getTime();
-          const updated = result.updated.getTime();
-          const isReclaimed = updated > created;
-
-          if (isReclaimed) {
-            notifications.show(t('web.domains.domain-claimed-successfully'), 'success');
-          } else {
-            notifications.show(t('domain-added-successfully'), 'success');
-          }
-
-          router.push({ name: 'DomainVerify', params: { domain } });
-          setTimeout(() => {
-            verifyDomain(domain);
-          }, 2000);
-          return result;
+        if (!result) {
+          error.value = createError(t('failed-to-add-domain'), 'human', 'error');
+          return null;
         }
-        error.value = createError(t('failed-to-add-domain'), 'human', 'error');
-        return null;
+
+        const isReclaimed = result.updated.getTime() > result.created.getTime();
+        const message = isReclaimed ? 'web.domains.domain-claimed-successfully' : 'domain-added-successfully';
+        notifications.show(t(message), 'success');
+
+        router.push({ name: 'DomainVerify', params: { extid: result.extid } });
+        setTimeout(() => verifyDomain(result.extid), 2000);
+        return result;
       } catch (err: any) {
-        // Parse backend error messages to detect the three scenarios
         const errorMessage = err?.response?.data?.message || err?.message || '';
-
-        if (errorMessage.includes('already registered in your organization')) {
-          // Scenario 1: Domain already in user's organization - warning and redirect
-          notifications.show(t('web.domains.domain-already-in-organization'), 'warning');
-          setTimeout(() => {
-            router.push({ name: 'DomainVerify', params: { domain } });
-          }, 2000);
-          return null;
-        } else if (errorMessage.includes('registered to another organization')) {
-          // Scenario 2: Domain in another organization - error with support suggestion
-          notifications.show(t('web.domains.domain-in-other-organization'), 'error');
-          return null;
-        }
-
-        // Re-throw for default error handling
+        const handled = await handleDomainExistsError(domain, errorMessage);
+        if (handled !== undefined) return handled;
         throw err;
       }
     });

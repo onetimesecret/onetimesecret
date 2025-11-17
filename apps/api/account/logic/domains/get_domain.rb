@@ -11,24 +11,27 @@ module AccountAPI::Logic
       attr_reader :greenlighted, :display_domain, :custom_domain
 
       def process_params
-        @domain_input = params[:domain].to_s.strip
+        @extid = params['extid'].to_s.strip
       end
 
       def raise_concerns
-        raise_form_error 'Please enter a domain' if @domain_input.empty?
-        raise_form_error 'Not a valid public domain' unless Onetime::CustomDomain.valid?(@domain_input)
+        raise_form_error 'Please provide a domain ID' if @extid.empty?
 
         # Get customer's organization for domain ownership
-        org = @cust.organization_instances.first
-        raise_form_error 'Customer must belong to an organization' unless org
+        # Organization available via @organization
+        require_organization!
 
-        # Getting the domain record based on `req.params[:domain]` (which is
-        # the display_domain). That way we need to combine with the org_id
-        # in order to find it. It's a way of proving ownership. Vs passing the
-        # domainid in the URL path which gives up the goods.
-        @custom_domain = Onetime::CustomDomain.load(@domain_input, org.objid)
+        # Load domain by extid (e.g., dm1234567890)
+        # Using extid in the URL path is secure since it's not guessable
+        # and we still verify ownership through organization membership
+        @custom_domain = Onetime::CustomDomain.find_by_extid(@extid)
 
         raise_form_error 'Domain not found' unless @custom_domain
+
+        # Verify the customer owns this domain through their organization
+        unless @custom_domain.owner?(@cust)
+          raise_form_error 'Domain not found'
+        end
       end
 
       def process

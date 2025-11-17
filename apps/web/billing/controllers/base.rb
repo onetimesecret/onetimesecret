@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 require 'onetime/helpers/session_helpers'
+require 'onetime/controllers/organization_context'
 
 module Billing
   module Controllers
     module Base
       include Onetime::LoggerMethods
       include Onetime::Helpers::SessionHelpers
+      include Onetime::Controllers::OrganizationContext
 
       attr_reader :req, :res, :locale, :region
 

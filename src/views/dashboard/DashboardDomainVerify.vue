@@ -17,8 +17,8 @@
   const allowVerifyCTA = ref(true);
 
   const fetchDomain = async (): Promise<void> => {
-    const domainName = route.params.domain as string;
-    const result = await getDomain(domainName);
+    const extid = route.params.extid as string;
+    const result = await getDomain(extid);
     if (!result) return;
 
     domain.value = result.domain;
@@ -26,7 +26,7 @@
     if (result.cluster) {
       cluster.value = result.cluster;
     } else {
-      console.warn('No cluster data available for domain:', domainName);
+      console.warn('No cluster data available for extid:', extid);
       cluster.value = null;
     }
     allowVerifyCTA.value = result.canVerify;

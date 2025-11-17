@@ -17,22 +17,27 @@ module AccountAPI::Logic
       end
 
       def process_params
-        @domain_input = params['domain'].to_s.strip
+        @extid = params['extid'].to_s.strip
       end
 
       def raise_concerns
-        OT.ld "[#{self.class}] Raising concerns for domain_input: #{@domain_input}"
+        OT.ld "[#{self.class}] Raising concerns for extid: #{@extid}"
 
-        raise_form_error 'Domain is required' if @domain_input.empty?
+        raise_form_error 'Domain ID is required' if @extid.empty?
 
         # Get customer's organization for domain ownership
-        org = @cust.organization_instances.first
-        raise_form_error 'Customer must belong to an organization' unless org
+        # Organization available via @organization
+        require_organization!
 
-        @custom_domain = Onetime::CustomDomain.load(@domain_input, org.objid)
+        @custom_domain = Onetime::CustomDomain.find_by_extid(@extid)
         raise_form_error 'Invalid Domain' unless @custom_domain
 
-        @display_domain = @domain_input
+        # Verify the customer owns this domain through their organization
+        unless @custom_domain.owner?(@cust)
+          raise_form_error 'Invalid Domain'
+        end
+
+        @display_domain = @custom_domain.display_domain
 
         raise_form_error 'No image exists for this domain' unless image_exists?
 

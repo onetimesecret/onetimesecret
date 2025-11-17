@@ -16,17 +16,17 @@ GET    /account                                   AccountAPI::Logic::Account::Ge
 
 # Domain Management
 POST   /domains/add                               AccountAPI::Logic::Domains::AddDomain response=json auth=sessionauth,basicauth
-POST   /domains/:domain/remove                    AccountAPI::Logic::Domains::RemoveDomain response=json auth=sessionauth,basicauth
-GET    /domains/:domain                           AccountAPI::Logic::Domains::GetDomain response=json auth=sessionauth,basicauth
-POST   /domains/:domain/verify                    AccountAPI::Logic::Domains::VerifyDomain response=json auth=sessionauth,basicauth
-PUT    /domains/:domain/brand                     AccountAPI::Logic::Domains::UpdateDomainBrand response=json auth=sessionauth,basicauth
-GET    /domains/:domain/brand                     AccountAPI::Logic::Domains::GetDomainBrand response=json auth=sessionauth,basicauth
-DELETE /domains/:domain/logo                      AccountAPI::Logic::Domains::RemoveDomainImage response=json auth=sessionauth,basicauth
-POST   /domains/:domain/logo                      AccountAPI::Logic::Domains::UpdateDomainImage response=json auth=sessionauth,basicauth
-GET    /domains/:domain/logo                      AccountAPI::Logic::Domains::GetDomainImage response=json auth=sessionauth,basicauth
-DELETE /domains/:domain/icon                      AccountAPI::Logic::Domains::RemoveDomainImage response=json auth=sessionauth,basicauth
-POST   /domains/:domain/icon                      AccountAPI::Logic::Domains::UpdateDomainImage response=json auth=sessionauth,basicauth
-GET    /domains/:domain/icon                      AccountAPI::Logic::Domains::GetDomainImage response=json auth=sessionauth,basicauth
+POST   /domains/:extid/remove                     AccountAPI::Logic::Domains::RemoveDomain response=json auth=sessionauth,basicauth
+GET    /domains/:extid                            AccountAPI::Logic::Domains::GetDomain response=json auth=sessionauth,basicauth
+POST   /domains/:extid/verify                     AccountAPI::Logic::Domains::VerifyDomain response=json auth=sessionauth,basicauth
+PUT    /domains/:extid/brand                      AccountAPI::Logic::Domains::UpdateDomainBrand response=json auth=sessionauth,basicauth
+GET    /domains/:extid/brand                      AccountAPI::Logic::Domains::GetDomainBrand response=json auth=sessionauth,basicauth
+DELETE /domains/:extid/logo                       AccountAPI::Logic::Domains::RemoveDomainLogo response=json auth=sessionauth,basicauth
+POST   /domains/:extid/logo                       AccountAPI::Logic::Domains::UpdateDomainLogo response=json auth=sessionauth,basicauth
+GET    /domains/:extid/logo                       AccountAPI::Logic::Domains::GetDomainLogo response=json auth=sessionauth,basicauth
+DELETE /domains/:extid/icon                       AccountAPI::Logic::Domains::RemoveDomainIcon response=json auth=sessionauth,basicauth
+POST   /domains/:extid/icon                       AccountAPI::Logic::Domains::UpdateDomainIcon response=json auth=sessionauth,basicauth
+GET    /domains/:extid/icon                       AccountAPI::Logic::Domains::GetDomainIcon response=json auth=sessionauth,basicauth
 GET    /domains                                   AccountAPI::Logic::Domains::ListDomains response=json auth=sessionauth,basicauth
 
 # Colonel/Admin endpoints

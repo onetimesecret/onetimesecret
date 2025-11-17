@@ -104,8 +104,9 @@ module Onetime
     # Participate in Organization.domains collection (auto-generated sorted_set)
     participates_in :Organization, :domains, score: :created
 
-    # Global unique index - domain can only exist once
-    unique_index :display_domain, :display_domain_index
+    # Global unique indexes
+    unique_index :display_domain, :display_domain_index  # Domain can only exist once
+    unique_index :extid, :extid_index                    # External ID is globally unique
 
     @txt_validation_prefix = '_onetime-challenge'
 
@@ -560,7 +561,7 @@ module Onetime
         obj._original_value = input
 
         # Debug the created object
-        OT.ld "[CustomDomain.parse] Created object: display_domain=#{obj.display_domain.inspect}, org_id=#{obj.org_id.inspect}, identifier=#{obj.identifier.inspect}"
+        OT.ld "[CustomDomain.parse] display_domain=#{obj.display_domain.inspect}, org_id=#{obj.org_id.inspect}, identifier=#{obj.identifier.inspect}"
 
         obj
       end

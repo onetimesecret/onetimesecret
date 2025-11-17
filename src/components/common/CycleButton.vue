@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   import HoverTooltip from './HoverTooltip.vue';
 
@@ -30,6 +31,7 @@
     defaultValue: '',
   });
 
+  const { t } = useI18n();
   const emit = defineEmits<{
     (e: 'update:modelValue', value: string): void;
   }>();

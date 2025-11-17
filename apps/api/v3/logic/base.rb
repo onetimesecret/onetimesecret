@@ -16,9 +16,16 @@
 
 # require_relative '../../v2/logic/base'
 
+require 'onetime/logic/organization_context'
+
 module V3
   module Logic
     module Base
+      # Include organization context for classes that use V3::Logic::Base
+      # without inheriting from V2::Logic::Base
+      def self.included(base)
+        base.include Onetime::Logic::OrganizationContext
+      end
       # V3-specific serialization helper
       #
       # Converts Familia model to JSON hash with native types.

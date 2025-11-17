@@ -36,22 +36,22 @@ export type DomainsStore = {
   // Actions
   addDomain: (domain: string) => Promise<CustomDomain>;
   fetchList: () => Promise<void>;
-  getDomain: (domainName: string) => Promise<CustomDomain>;
+  getDomain: (extid: string) => Promise<CustomDomain>;
   updateDomain: (domain: CustomDomain) => Promise<CustomDomain>;
-  verifyDomain: (domainName: string) => Promise<CustomDomain>;
-  deleteDomain: (domainName: string) => Promise<void>;
+  verifyDomain: (extid: string) => Promise<CustomDomain>;
+  deleteDomain: (extid: string) => Promise<void>;
 
-  uploadLogo: (domain: string, file: File) => Promise<void>;
-  fetchLogo: (domain: string) => Promise<ImageProps>;
-  removeLogo: (domain: string) => Promise<void>;
+  uploadLogo: (extid: string, file: File) => Promise<void>;
+  fetchLogo: (extid: string) => Promise<ImageProps>;
+  removeLogo: (extid: string) => Promise<void>;
 
   refreshRecords: () => Promise<CustomDomain[]>;
-  getBrandSettings: (domain: string) => Promise<BrandSettings>;
+  getBrandSettings: (extid: string) => Promise<BrandSettings>;
   updateDomainBrand: (
-    domain: string,
+    extid: string,
     brandUpdate: UpdateDomainBrandRequest
   ) => Promise<CustomDomain>;
-  updateBrandSettings: (domain: string, settings: Partial<BrandSettings>) => Promise<BrandSettings>;
+  updateBrandSettings: (extid: string, settings: Partial<BrandSettings>) => Promise<BrandSettings>;
 
   reset: () => void;
 } & PiniaCustomProperties;
@@ -106,25 +106,23 @@ export const useDomainsStore = defineStore('domains', () => {
     return validated;
   }
 
-  async function getDomain(domainName: string) {
-    const response = await $api.get(`/api/account/domains/${domainName}`);
+  async function getDomain(extid: string) {
+    const response = await $api.get(`/api/account/domains/${extid}`);
     const validated = responseSchemas.customDomain.parse(response.data);
     return validated;
   }
 
-  async function verifyDomain(domainName: string) {
-    const response = await $api.post(`/api/account/domains/${domainName}/verify`, {
-      domain: domainName,
-    });
+  async function verifyDomain(extid: string) {
+    const response = await $api.post(`/api/account/domains/${extid}/verify`);
     const validated = responseSchemas.customDomain.parse(response.data);
     return validated;
   }
 
-  async function uploadLogo(domain: string, file: File) {
+  async function uploadLogo(extid: string, file: File) {
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await $api.post(`/api/account/domains/${domain}/logo`, formData, {
+    const response = await $api.post(`/api/account/domains/${extid}/logo`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
@@ -133,24 +131,24 @@ export const useDomainsStore = defineStore('domains', () => {
     return validated.record;
   }
 
-  async function fetchLogo(domain: string): Promise<ImageProps | null> {
+  async function fetchLogo(extid: string): Promise<ImageProps | null> {
     try {
-      const response = await $api.get(`/api/account/domains/${domain}/logo`);
+      const response = await $api.get(`/api/account/domains/${extid}/logo`);
       // Use the existing schema to validate the response
       const validated = responseSchemas.imageProps.parse(response.data);
       return validated.record;
     } catch (error: unknown) {
       // Handle 404 or other expected errors silently
       if ((error as AxiosError).response?.status === 404) {
-        console.debug(`[domainsStore] No logo found for domain: ${domain}`);
+        console.debug(`[domainsStore] No logo found for extid: ${extid}`);
         return null;
       }
       throw error;
     }
   }
 
-  async function removeLogo(domain: string) {
-    await $api.delete(`/api/account/domains/${domain}/logo`);
+  async function removeLogo(extid: string) {
+    await $api.delete(`/api/account/domains/${extid}/logo`);
   }
 
   async function refreshRecords(force = false) {
@@ -161,20 +159,20 @@ export const useDomainsStore = defineStore('domains', () => {
   }
 
   /**
-   * Delete a domain by name
+   * Delete a domain by extid
    */
-  async function deleteDomain(domainName: string) {
-    await $api.post(`/api/account/domains/${domainName}/remove`);
+  async function deleteDomain(extid: string) {
+    await $api.post(`/api/account/domains/${extid}/remove`);
     if (!records.value) return;
-    records.value = records.value.filter((domain) => domain.display_domain !== domainName);
+    records.value = records.value.filter((domain) => domain.extid !== extid);
   }
 
   /**
    * Get brand settings for a domain
    */
   // Ensure getBrandSettings always returns valid data
-  async function getBrandSettings(domain: string): Promise<BrandSettings> {
-    const response = await $api.get(`/api/account/domains/${domain}/brand`);
+  async function getBrandSettings(extid: string): Promise<BrandSettings> {
+    const response = await $api.get(`/api/account/domains/${extid}/brand`);
     const validated = responseSchemas.brandSettings.parse(response.data);
     return validated.record;
   }
@@ -182,8 +180,8 @@ export const useDomainsStore = defineStore('domains', () => {
   /**
    * Update brand settings for a domain
    */
-  async function updateBrandSettings(domain: string, settings: Partial<BrandSettings>) {
-    const response = await $api.put(`/api/account/domains/${domain}/brand`, {
+  async function updateBrandSettings(extid: string, settings: Partial<BrandSettings>) {
+    const response = await $api.put(`/api/account/domains/${extid}/brand`, {
       brand: settings,
     });
     return responseSchemas.brandSettings.parse(response.data);
@@ -192,12 +190,12 @@ export const useDomainsStore = defineStore('domains', () => {
   /**
    * Update brand settings for a domain
    */
-  async function updateDomainBrand(domain: string, brandUpdate: UpdateDomainBrandRequest) {
-    const response = await $api.put(`/api/account/domains/${domain}/brand`, brandUpdate);
+  async function updateDomainBrand(extid: string, brandUpdate: UpdateDomainBrandRequest) {
+    const response = await $api.put(`/api/account/domains/${extid}/brand`, brandUpdate);
     const validated = responseSchemas.customDomain.parse(response.data);
     if (!records.value) return validated.record;
 
-    const domainIndex = records.value.findIndex((d) => d.display_domain === domain);
+    const domainIndex = records.value.findIndex((d) => d.extid === extid);
     if (domainIndex !== -1) {
       records.value[domainIndex] = validated.record;
     }
@@ -208,11 +206,11 @@ export const useDomainsStore = defineStore('domains', () => {
    * Update an existing domain
    */
   async function updateDomain(domain: CustomDomain) {
-    const response = await $api.put(`/api/account/domains/${domain.display_domain}`, domain);
+    const response = await $api.put(`/api/account/domains/${domain.extid}`, domain);
     const validated = responseSchemas.customDomain.parse(response.data);
 
     if (!records.value) records.value = [];
-    const domainIndex = records.value.findIndex((d) => d.display_domain === domain.display_domain);
+    const domainIndex = records.value.findIndex((d) => d.extid === domain.extid);
 
     if (domainIndex !== -1) {
       records.value[domainIndex] = validated.record;
