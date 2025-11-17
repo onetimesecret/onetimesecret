@@ -16,9 +16,9 @@
       "need_free_account": "Net begonnen?",
       "sign_up_free": "Maak een gratis account aan",
       "visit-onetime-secret-home": "Bezoek Onetime Secret homepage",
-      "password_generation_title": "",
-      "password_generation_description": "",
-      "protip1": "",
+      "password_generation_title": "Password Generator",
+      "password_generation_description": " Click \"Generate Password\" to create a secure random password that you can share.",
+      "protip1": "Your message will self-destruct after being viewed. The link can only be accessed once.",
       "authonly": {
         "tagline2": "De beveiligde berichtenservice is alleen voor intern gebruik.",
         "tagline1": "Als u een account heeft, log dan in om verder te gaan."
