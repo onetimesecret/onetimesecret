@@ -3,9 +3,9 @@
     "domains": {
       "learn-more-dns": "DNS 구성에 대해 더 알아보기",
       "view-domain-verification-status": "도메인 인증 상태 보기",
-      "domain-already-in-organization": "",
-      "domain-in-other-organization": "",
-      "domain-claimed-successfully": ""
+      "domain-already-in-organization": "이 도메인은 이미 조직에 등록되어 있습니다",
+      "domain-in-other-organization": "이 도메인은 이미 다른 조직에 등록되어 있습니다. 오류라고 생각되면 지원팀에 문의하세요.",
+      "domain-claimed-successfully": "도메인이 성공적으로 청구되어 조직에 추가되었습니다"
     }
   }
 }
