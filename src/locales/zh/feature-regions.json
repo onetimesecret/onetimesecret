@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "数据主权与区域隔离",
+      "data-sovereignty-description": "您的数据仅存储在您选择的区域，永不跨区域传输",
+      "separate-environments-explanation": "每个区域作为完全独立的环境运行，拥有自己的基础设施、加密密钥和数据存储",
+      "no-data-transfer-policy": "我们坚持严格的政策：客户数据在任何情况下都不会在区域之间传输",
+      "switching-creates-new-account": "重要提示：切换到不同区域会创建新账户。您的数据保留在原始区域。",
+      "your-region": "您的区域",
+      "your-current-region": "您的当前区域",
+      "active": "活跃",
+      "explore-other-regions": "探索其他可用区域",
+      "why-it-matters": "数据主权的重要性",
+      "trust-title": "透明度与控制",
+      "trust-description": "准确了解您的数据存储位置以及管辖其保护的法律。",
+      "privacy-title": "隐私权",
+      "privacy-description": "确保您的个人信息根据您所在国家的隐私法律和法规处理，防止未经授权的访问或滥用。",
+      "compliance-title": "监管合规",
+      "compliance-description": "满足 GDPR、HIPAA、CCPA 和其他区域数据保护要求",
+      "performance-title": "更快的访问",
+      "performance-description": "数据存储在离您更近的地方意味着更低的延迟和更好的性能。"
     }
   }
 }
