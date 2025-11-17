@@ -205,7 +205,7 @@
   "formattedcharcount-formattedmaxlength-chars": "{0} / {1} caractères",
   "enter-a-passphrase": "Entrez une phrase secrète",
   "go-on-then": "Continuez donc.",
-  "loading_ellipses": "Loading...",
+  "loading_ellipses": "Chargement...",
   "not-received": "NON REÇU",
   "received": "REÇU",
   "secrets-example-dot-com": "secrets.exemple.com",
@@ -426,6 +426,6 @@
   "an-error-occurred": "Une erreur s'est produite",
   "copy-secret-to-clipboard": "Copier le secret dans le presse-papiers",
   "secret-copied-to-clipboard": "Secret copié dans le presse-papiers",
-  "Double check that passphrase": "Vérifier à nouveau la phrase de passe",
-  "press_copy_button_below": "Press the copy button below."
+  "Double check that passphrase": "Vérifier à nouveau la phrase secrète",
+  "press_copy_button_below": "Appuyez sur le bouton de copie ci-dessous."
 }
