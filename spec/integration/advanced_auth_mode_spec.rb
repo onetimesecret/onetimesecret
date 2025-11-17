@@ -14,27 +14,15 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
     ENV['AUTHENTICATION_MODE'] = 'advanced'
     ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../..'))
 
-    # Skip Redis connection during boot for tests
-    # We'll mock it in before(:each) blocks for actual test execution
-    RSpec::Mocks.with_temporary_scope do
-      redis_client = FakeRedis::Redis.new
-      allow(Familia).to receive(:dbclient).and_return(redis_client)
-      allow(Redis).to receive(:new).and_return(redis_client)
+    # Reset registry to clear any apps loaded during spec_helper
+    Onetime::Application::Registry.reset!
 
-      fake_pool = double('ConnectionPool')
-      allow(fake_pool).to receive(:with).and_yield(redis_client)
-      allow(fake_pool).to receive(:ping).and_return('PONG')
-      allow(OT).to receive(:database_pool).and_return(fake_pool)
+    # Boot application (which will configure but not yet load apps)
+    # Redis mocking is handled globally by integration_spec_helper.rb
+    Onetime.boot! :test
 
-      # Reset registry to clear any apps loaded during spec_helper
-      Onetime::Application::Registry.reset!
-
-      # Boot application (which will configure but not yet load apps)
-      Onetime.boot! :test
-
-      # Now prepare registry with advanced mode ENV set
-      Onetime::Application::Registry.prepare_application_registry
-    end
+    # Now prepare registry with advanced mode ENV set
+    Onetime::Application::Registry.prepare_application_registry
   end
 
   def app
