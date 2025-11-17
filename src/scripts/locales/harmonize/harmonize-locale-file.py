@@ -47,29 +47,49 @@ def empty_structure(value: Any) -> Any:
 
 
 def walk(
-    target: Any, base: Any, target_root: Any, copy_values: bool = False
+    target: Any,
+    base: Any,
+    target_root: Any,
+    copy_values: bool = False,
+    fill_empty: bool = False,
 ) -> Any:
-    """Restructure target to match base, with type-safe key recovery."""
+    """Restructure target to match base, with type-safe key recovery.
+
+    Args:
+        target: Target locale data
+        base: Base locale structure
+        target_root: Root of target for deep searches
+        copy_values: Copy base values when key is missing
+        fill_empty: Also copy base values when target value is empty string
+    """
     if not isinstance(base, dict):
         # Base is primitive
-        return base if (target is None and copy_values) else (target or "")
+        if copy_values and (target is None or (fill_empty and target == "")):
+            return base
+        return target or ""
 
     # Base is object - iterate through its structure
     result = {}
     for key, base_value in base.items():
-        if (
+        target_value = target.get(key) if isinstance(target, dict) else None
+
+        # Check if we have a usable value at expected location
+        has_value = (
             isinstance(target, dict)
             and key in target
-            and target[key] is not None
-        ):
-            # Key exists in expected location
+            and target_value is not None
+            and (not fill_empty or target_value != "")
+        )
+
+        if has_value:
+            # Key exists with non-empty value in expected location
             result[key] = walk(
-                target[key], base_value, target_root, copy_values
+                target_value, base_value, target_root, copy_values, fill_empty
             )
         else:
-            # Key missing - search entire target tree
+            # Key missing or empty - search entire target tree
             existing = find_compatible_value(key, base_value, target_root)
-            if existing is not None:
+            if existing is not None and (not fill_empty or existing != ""):
                 result[key] = existing
             elif copy_values:
                 result[key] = base_value
@@ -80,16 +100,38 @@ def walk(
 
 
 def harmonize_file(
-    base_file: Path, locale_file: Path, copy_values: bool = False
-) -> dict:
-    """Harmonize a single locale file to match base structure."""
+    base_file: Path,
+    locale_file: Path,
+    copy_values: bool = False,
+    fill_empty: bool = False,
+) -> tuple[dict, bool]:
+    """Harmonize a single locale file to match base structure.
+
+    Returns: (harmonized_data, changed)
+    """
     with open(base_file, "r", encoding="utf-8") as f:
         base = json.load(f)
 
     with open(locale_file, "r", encoding="utf-8") as f:
         target = json.load(f)
 
-    return walk(target, base, target, copy_values)
+    result = walk(target, base, target, copy_values, fill_empty)
+
+    # Check if changes were made
+    changed = json.dumps(target, sort_keys=True) != json.dumps(
+        result, sort_keys=True
+    )
+
+    return result, changed
+
+
+def get_relative_path(path: Path) -> str:
+    """Get path relative to current working directory."""
+    try:
+        return str(path.relative_to(Path.cwd()))
+    except ValueError:
+        # If path is not relative to cwd, return as-is
+        return str(path)
 
 
 def main():
@@ -100,9 +142,9 @@ def main():
     parser.add_argument("-q", "--quiet", action="store_true", help="Quiet mode")
     parser.add_argument(
         "-f",
-        "--filename-only",
+        "--fill-empty",
         action="store_true",
-        help="Filename only output",
+        help="With -c, also replace empty strings with base values",
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Verbose output"
@@ -111,7 +153,7 @@ def main():
         "-c",
         "--copy-values",
         action="store_true",
-        help="Copy values from base file",
+        help="Copy values from base file for missing keys",
     )
     parser.add_argument(
         "--base-locale", default="en", help="Base locale (default: en)"
@@ -158,23 +200,25 @@ def main():
 
         try:
             # Harmonize the file
-            result = harmonize_file(base_file, locale_file, args.copy_values)
+            result, changed = harmonize_file(
+                base_file, locale_file, args.copy_values, args.fill_empty
+            )
 
             # Write back to the same file
             with open(locale_file, "w", encoding="utf-8") as f:
                 json.dump(result, f, ensure_ascii=False, indent=2)
                 f.write("\n")
 
-            if args.verbose:
-                print(f"Repaired {locale_file}")
+            if args.verbose and changed:
+                rel_path = get_relative_path(locale_file)
+                print(f"Repaired {rel_path}")
 
             success_count += 1
 
         except Exception as e:
-            if args.filename_only:
-                print(locale_file)
             if args.verbose:
-                print(f"Failed repairing {locale_file}: {e}")
+                rel_path = get_relative_path(locale_file)
+                print(f"Failed repairing {rel_path}: {e}", file=sys.stderr)
             error_count += 1
 
     # Summary output
