@@ -92,7 +92,7 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
-    path: '/domains/:domain/verify',
+    path: '/domains/:extid/verify',
     name: 'DomainVerify',
     components: {
       default: () => import('@/views/dashboard/DashboardDomainVerify.vue'),
@@ -110,7 +110,7 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
-    path: '/domains/:domain/brand',
+    path: '/domains/:extid/brand',
     name: 'DomainBrand',
     components: {
       default: () => import('@/views/dashboard/DashboardDomainBrand.vue'),
