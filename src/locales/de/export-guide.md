@@ -1,3 +1,8 @@
+---
+title: Übersetzungsanleitung für Deutsch
+description: Umfassende Anleitung zur Übersetzung von Onetime Secret ins Deutsche mit Glossar und Sprachhinweisen
+---
+
 # Translation Guidance for German (Deutsch)
 
 This document combines the translation glossary and language-specific notes to provide comprehensive guidance for translating Onetime Secret content into German. It serves as a reference for maintaining consistency, accuracy, and appropriate tone across all German translations.

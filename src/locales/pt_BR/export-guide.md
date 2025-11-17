@@ -1,3 +1,8 @@
+---
+title: Guia de tradução para português brasileiro
+description: Guia completo para traduzir o Onetime Secret para português brasileiro, combinando glossário e notas linguísticas
+---
+
 # Translation Guidance for Portuguese (Português Brasileiro)
 
 This document combines the complete glossary and language-specific translation notes for Portuguese (Brazilian) translations of Onetime Secret. It serves as the authoritative reference for maintaining consistency, accuracy, and natural language flow across all Portuguese (Brazilian) content.

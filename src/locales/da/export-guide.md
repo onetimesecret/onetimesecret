@@ -1,3 +1,8 @@
+---
+title: Oversættelsesvejledning til dansk
+description: Omfattende vejledning til oversættelse af Onetime Secret til dansk, der kombinerer ordliste og sproglige noter
+---
+
 # Translation Guidance for Danish (Dansk)
 
 This document combines the glossary of standardized terms and language-specific translation notes for Danish translations of Onetime Secret. It serves as a comprehensive reference for translators working on the Danish locale to ensure consistency, accuracy, and natural phrasing.

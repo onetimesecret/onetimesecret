@@ -1,3 +1,8 @@
+---
+title: 한국어 번역 가이드
+description: Onetime Secret의 한국어 번역을 위한 포괄적인 가이드. 용어집과 언어별 주석을 결합합니다
+---
+
 # Translation Guidance for Korean (한국어)
 
 This document combines the glossary and language-specific translation notes for Korean (ko) localization of Onetime Secret. It provides standardized terminology, translation principles, and practical examples to ensure consistency and quality across all Korean translations.

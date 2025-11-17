@@ -1,3 +1,8 @@
+---
+title: Aratohu Whakamāori ki te Reo Māori
+description: Aratohu whānui mō te whakamāori i a Onetime Secret ki te reo Māori, e whakakotahi ana i te papakupu me ngā tuhipoka reo
+---
+
 # Translation Guidance for Māori (Te Reo Māori)
 
 This document combines the comprehensive glossary and language-specific translation notes for Māori (mi-NZ) translations of Onetime Secret. It provides standardized terminology, cultural guidance, and detailed translation decisions to ensure consistency and quality across all Māori translations.

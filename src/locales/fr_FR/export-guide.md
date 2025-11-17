@@ -1,3 +1,8 @@
+---
+title: Guide de traduction pour le français
+description: Guide complet pour traduire Onetime Secret en français, combinant glossaire et notes linguistiques
+---
+
 # Translation Guidance for French (Français)
 
 This document combines the glossary and language-specific notes for French translations of Onetime Secret. It provides standardized translations for key terms and critical translation rules to ensure consistency across all French-language content.

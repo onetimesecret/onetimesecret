@@ -1,3 +1,8 @@
+---
+title: Guía de traducción al español
+description: Guía completa para traducir Onetime Secret al español, que combina glosario y notas lingüísticas
+---
+
 # Translation Guidance for Spanish (Español)
 
 This document combines the glossary of standardized terms and language-specific translation notes for Spanish translations of Onetime Secret. It serves as a comprehensive reference for translators working on the Spanish locale to ensure consistency, accuracy, and natural phrasing.

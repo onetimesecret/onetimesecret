@@ -1,3 +1,8 @@
+---
+title: Guida alla traduzione per l'italiano
+description: Guida completa per tradurre Onetime Secret in italiano, che combina glossario e note linguistiche
+---
+
 # Translation Guidance for Italian (Italiano)
 
 This document combines the Onetime Secret glossary and Italian-specific language notes to provide comprehensive translation guidance for Italian localizations. It is designed to ensure consistency, accuracy, and cultural appropriateness across all Italian translations of the Onetime Secret platform.

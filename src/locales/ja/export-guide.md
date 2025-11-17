@@ -1,3 +1,8 @@
+---
+title: 日本語翻訳ガイド
+description: Onetime Secretの日本語翻訳のための包括的なガイド。用語集と言語固有の注意事項を組み合わせています
+---
+
 # Translation Guidance for Japanese (日本語)
 
 This document combines the Onetime Secret translation glossary and language-specific translation notes for Japanese. It serves as a comprehensive reference for translators and the saas-translator skill to ensure consistency, accuracy, and cultural appropriateness in Japanese translations.

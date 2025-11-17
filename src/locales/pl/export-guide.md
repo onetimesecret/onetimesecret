@@ -1,3 +1,8 @@
+---
+title: Przewodnik tłumaczenia na polski
+description: Kompleksowy przewodnik tłumaczenia Onetime Secret na język polski, łączący słowniczek i notatki językowe
+---
+
 # Translation Guidance for Polish (Polski)
 
 This document combines the glossary of standardized terms and language-specific translation notes for Polish translations of Onetime Secret. It serves as a comprehensive reference for translators working on the Polish locale to ensure consistency, accuracy, and natural phrasing.

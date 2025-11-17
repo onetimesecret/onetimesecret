@@ -1,3 +1,8 @@
+---
+title: Ръководство за превод на български
+description: Цялостно ръководство за превод на Onetime Secret на български език, съчетаващо речник на термините и езикови бележки
+---
+
 # Translation Guidance for Bulgarian (Български)
 
 This document combines the glossary and language-specific translation notes to provide comprehensive guidance for translating Onetime Secret into Bulgarian. It serves as a reference for maintaining consistency, clarity, and cultural appropriateness across the application.

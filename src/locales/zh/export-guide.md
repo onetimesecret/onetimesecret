@@ -1,3 +1,8 @@
+---
+title: 简体中文翻译指南
+description: Onetime Secret 简体中文翻译综合指南，结合术语表和语言注释
+---
+
 # Translation Guidance for Simplified Chinese (简体中文)
 
 This document combines translation glossary and language-specific notes to provide comprehensive guidance for translating Onetime Secret into Simplified Chinese. It serves as the authoritative reference for maintaining consistency, quality, and cultural appropriateness in Chinese translations.

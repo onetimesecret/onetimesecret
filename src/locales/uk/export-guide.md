@@ -1,3 +1,8 @@
+---
+title: Керівництво з перекладу українською
+description: Вичерпний посібник з перекладу Onetime Secret українською мовою, що поєднує глосарій та мовні примітки
+---
+
 # Translation Guidance for Ukrainian (Українська)
 
 This document combines the glossary of standardized terms and language-specific translation notes for Ukrainian translations of Onetime Secret. It serves as a comprehensive reference for translators working on the Ukrainian locale to ensure consistency, accuracy, and natural phrasing.
