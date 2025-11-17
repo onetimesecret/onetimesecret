@@ -8,26 +8,30 @@ require_relative '../base'
 module AccountAPI::Logic
   module Domains
     class RemoveDomain < AccountAPI::Logic::Base
-      attr_reader :greenlighted, :domain_input, :display_domain
+      attr_reader :greenlighted, :extid, :display_domain
 
       def process_params
-        @domain_input = params[:domain].to_s.strip
+        @extid = params['extid'].to_s.strip
       end
 
       def raise_concerns
-        raise_form_error 'Please enter a domain' if @domain_input.empty?
-        raise_form_error 'Not a valid public domain' unless Onetime::CustomDomain.valid?(@domain_input)
+        raise_form_error 'Please provide a domain ID' if @extid.empty?
 
         # Get customer's organization for domain ownership
         # Organization available via @organization
         require_organization!
 
-        @custom_domain = Onetime::CustomDomain.load(@domain_input, organization.objid)
+        @custom_domain = Onetime::CustomDomain.find_by_extid(@extid)
         raise_form_error 'Domain not found' unless @custom_domain
+
+        # Verify the customer owns this domain through their organization
+        unless @custom_domain.owner?(@cust)
+          raise_form_error 'Domain not found'
+        end
       end
 
       def process
-        OT.ld "[RemoveDomain] Processing #{domain_input} for #{@custom_domain.identifier}"
+        OT.ld "[RemoveDomain] Processing #{@extid} (#{@custom_domain.display_domain})"
         @greenlighted   = true
         @display_domain = @custom_domain.display_domain
 

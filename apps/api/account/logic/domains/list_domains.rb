@@ -10,7 +10,7 @@ module AccountAPI::Logic
       attr_reader :custom_domains, :with_brand
 
       def process_params
-        @with_brand = !params[:with_brand].to_s.empty?
+        @with_brand = !params['with_brand'].to_s.empty?
       end
 
       def raise_concerns

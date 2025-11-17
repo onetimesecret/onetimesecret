@@ -11,7 +11,7 @@ module AccountAPI::Logic
       attr_reader :greenlighted, :brand_settings, :display_domain, :custom_domain
 
       def process_params
-        @domain_id = params[:domain].to_s.strip
+        @extid = params['extid'].to_s.strip
         valid_keys = [
           :logo, # e.g. "image1"
           :primary_color,
@@ -33,7 +33,7 @@ module AccountAPI::Logic
       # Validate the input parameters
       # Sets error messages if any parameter is invalid
       def raise_concerns
-        OT.ld "[UpdateDomainBrand] Validating domain: #{@domain_id} with settings: #{@brand_settings.keys}"
+        OT.ld "[UpdateDomainBrand] Validating domain: #{@extid} with settings: #{@brand_settings.keys}"
 
         validate_domain
         validate_brand_settings
@@ -96,7 +96,7 @@ module AccountAPI::Logic
       private
 
       def validate_domain
-        if @domain_id.nil? || @domain_id.empty?
+        if @extid.nil? || @extid.empty?
           OT.ld '[UpdateDomainBrand] Error: Missing domain ID'
           raise_form_error 'Please provide a domain ID'
         end
@@ -105,11 +105,15 @@ module AccountAPI::Logic
         # Organization available via @organization
         require_organization!
 
-        @custom_domain = Onetime::CustomDomain.load(@domain_id, organization.objid)
-        return if custom_domain&.exists?
+        @custom_domain = Onetime::CustomDomain.find_by_extid(@extid)
 
-        OT.ld "[UpdateDomainBrand] Error: Domain #{@domain_id} not found for organization #{organization.objid}"
-        raise_form_error 'Domain not found'
+        raise_form_error 'Domain not found' unless @custom_domain&.exists?
+
+        # Verify the customer owns this domain through their organization
+        unless @custom_domain.owner?(@cust)
+          OT.ld "[UpdateDomainBrand] Error: Domain #{@extid} not owned by organization #{organization.objid}"
+          raise_form_error 'Domain not found'
+        end
       end
 
       def validate_brand_settings
