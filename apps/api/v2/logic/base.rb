@@ -22,6 +22,7 @@ module V2
       include V2::Logic::UriHelpers
 
       attr_reader :context, :sess, :cust, :params, :locale, :processed_params, :site, :authentication, :domains_enabled
+      attr_reader :organization, :team
 
       attr_accessor :domain_strategy, :display_domain
 
@@ -33,6 +34,11 @@ module V2
         @sess   = strategy_result.session
         @cust   = strategy_result.user
         @locale = @params[:locale] || OT.default_locale
+
+        # Extract organization and team context from StrategyResult metadata
+        org_context = strategy_result.metadata[:organization_context] || {}
+        @organization = org_context[:organization]
+        @team = org_context[:team]
 
         @processed_params ||= {} # TODO: Remove
         process_settings

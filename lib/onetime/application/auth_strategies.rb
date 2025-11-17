@@ -111,6 +111,7 @@ module Onetime
       # Subclasses can override `additional_checks` for role/permission validation.
       class BaseSessionAuthStrategy < Otto::Security::AuthStrategy
         include Helpers
+        include Onetime::Application::OrganizationLoader
 
         @auth_method_name = nil
 
@@ -138,11 +139,16 @@ module Onetime
 
           log_success(cust)
 
+          # Load organization and team context
+          org_context = load_organization_context(cust, session, env)
+
           success(
             session: session,
             user: cust,
             auth_method: auth_method_name,
-            metadata: build_metadata(env, additional_metadata(cust)),
+            metadata: build_metadata(env, additional_metadata(cust)).merge(
+              organization_context: org_context
+            ),
           )
         end
 

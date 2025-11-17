@@ -67,6 +67,103 @@ class Rack::Request
     user.is_a?(Onetime::Customer) ? user : Onetime::Customer.anonymous
   end
 
+  # Get current organization from strategy result metadata
+  #
+  # @return [Onetime::Organization, nil] Current organization or nil
+  def organization
+    return @organization if defined?(@organization)
+
+    result = strategy_result
+    return nil unless result
+
+    context = result.metadata[:organization_context]
+    @organization = context[:organization] if context
+  end
+
+  # Get current organization ID
+  #
+  # @return [String, nil] Organization objid or nil
+  def organization_id
+    organization&.objid
+  end
+
+  # Get current team from strategy result metadata
+  #
+  # @return [Onetime::Team, nil] Current team or nil
+  def team
+    return @team if defined?(@team)
+
+    result = strategy_result
+    return nil unless result
+
+    context = result.metadata[:organization_context]
+    @team = context[:team] if context
+  end
+
+  # Get current team ID
+  #
+  # @return [String, nil] Team objid or nil
+  def team_id
+    team&.objid
+  end
+
+  # Switch to a different organization
+  #
+  # Updates session and clears cache. Organization change takes effect
+  # on the next request.
+  #
+  # @param org_id [String] Organization objid to switch to
+  # @return [Boolean] true if switch was successful
+  def switch_organization(org_id)
+    return false unless user && org_id
+    return false unless env['rack.session']
+
+    org = Onetime::Organization.load(org_id)
+    return false unless org && org.member?(user)
+
+    session['organization_id'] = org_id
+
+    # Clear cache to force reload on next request
+    cache_key = "org_context:#{user.objid}"
+    session.delete(cache_key)
+
+    # Update current request's memoized value
+    @organization = org
+
+    true
+  rescue StandardError => ex
+    OT.le "[Rack::Request#switch_organization] Failed to switch: #{ex.message}"
+    false
+  end
+
+  # Switch to a different team within current organization
+  #
+  # @param team_id [String] Team objid to switch to
+  # @return [Boolean] true if switch was successful
+  def switch_team(team_id)
+    return false unless user && team_id && organization
+    return false unless env['rack.session']
+
+    team = Onetime::Team.load(team_id)
+    return false unless team
+    return false unless team.organization_id == organization.objid
+    return false unless team.member?(user)
+
+    session['team_id'] = team_id
+
+    # Clear cache to force reload on next request
+    cache_key = "org_context:#{user.objid}"
+    session.delete(cache_key)
+
+    # Update current request's memoized value
+    @team = team
+
+    true
+  rescue StandardError => ex
+    OT.le "[Rack::Request#switch_team] Failed to switch: #{ex.message}"
+    false
+  end
+
   # =========================================================================
   # LOCALE (Otto Locale Detection)
   # =========================================================================
