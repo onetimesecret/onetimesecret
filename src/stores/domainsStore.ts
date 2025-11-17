@@ -37,7 +37,6 @@ export type DomainsStore = {
   addDomain: (domain: string) => Promise<CustomDomain>;
   fetchList: () => Promise<void>;
   getDomain: (extid: string) => Promise<CustomDomain>;
-  updateDomain: (domain: CustomDomain) => Promise<CustomDomain>;
   verifyDomain: (extid: string) => Promise<CustomDomain>;
   deleteDomain: (extid: string) => Promise<void>;
 
@@ -188,7 +187,10 @@ export const useDomainsStore = defineStore('domains', () => {
   }
 
   /**
-   * Update brand settings for a domain
+   * Update brand settings for a domain and update the full domain record in store
+   *
+   * Unlike updateBrandSettings() which only updates brand settings,
+   * this function returns the full domain object and updates store state.
    */
   async function updateDomainBrand(extid: string, brandUpdate: UpdateDomainBrandRequest) {
     const response = await $api.put(`/api/domains/${extid}/brand`, brandUpdate);
@@ -198,24 +200,6 @@ export const useDomainsStore = defineStore('domains', () => {
     const domainIndex = records.value.findIndex((d) => d.extid === extid);
     if (domainIndex !== -1) {
       records.value[domainIndex] = validated.record;
-    }
-    return validated.record;
-  }
-
-  /**
-   * Update an existing domain
-   */
-  async function updateDomain(domain: CustomDomain) {
-    const response = await $api.put(`/api/domains/${domain.extid}`, domain);
-    const validated = responseSchemas.customDomain.parse(response.data);
-
-    if (!records.value) records.value = [];
-    const domainIndex = records.value.findIndex((d) => d.extid === domain.extid);
-
-    if (domainIndex !== -1) {
-      records.value[domainIndex] = validated.record;
-    } else {
-      records.value.push(validated.record);
     }
     return validated.record;
   }
@@ -246,7 +230,6 @@ export const useDomainsStore = defineStore('domains', () => {
     deleteDomain,
     getDomain,
     verifyDomain,
-    updateDomain,
 
     updateDomainBrand,
     getBrandSettings,
