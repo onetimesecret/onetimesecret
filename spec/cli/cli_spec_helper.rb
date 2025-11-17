@@ -80,6 +80,12 @@ module CLISpecHelper
     path = File.join(dir, name)
     File.write(path, content)
     path
+  rescue Errno::EACCES => e
+    raise "Permission denied creating migration file: #{e.message}"
+  rescue Errno::ENOSPC => e
+    raise "No space left on device: #{e.message}"
+  rescue StandardError => e
+    raise "Failed to create migration file: #{e.message}"
   end
 
   # Clean up temporary migration files

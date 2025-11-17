@@ -72,6 +72,20 @@ end
 OT.mode = :test
 OT::Config.path = File.join(Onetime::HOME, 'spec', 'config.test.yaml')
 
+# Shared helper for creating a memoized FakeRedis instance
+module SpecHelpers
+  # Create a memoized FakeRedis instance for use across tests
+  # This prevents creating a new instance for every test
+  def self.fake_redis
+    @fake_redis ||= Redis.new
+  end
+
+  # Reset the memoized instance (useful for cleanup)
+  def self.reset_fake_redis!
+    @fake_redis = nil
+  end
+end
+
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
     # Use default expectations configuration
@@ -84,78 +98,12 @@ RSpec.configure do |config|
   # Configure FakeRedis for all tests (except where explicitly disabled)
   config.before(:each) do
     # Ensure FakeRedis is used for all Redis connections
-    # FakeRedis automatically replaces Redis when required
-    fake_redis = Redis.new
-    allow(Familia).to receive(:dbclient).and_return(fake_redis)
+    # Using memoized instance for better performance
+    allow(Familia).to receive(:dbclient).and_return(SpecHelpers.fake_redis)
   end
 
   config.filter_run_when_matching :focus
   config.warnings = :none
   config.order = :random
   Kernel.srand config.seed
-end
-
-__END__
-RSpec.configure do |config|
-  # Expectations
-  config.expect_with :rspec do |expectations|
-    expectations.include_chain_clauses_in_custom_matcher_descriptions = true
-  end
-
-  # Mocks
-  config.mock_with :rspec do |mocks|
-    # When enabled, RSpec will:
-    #
-    # - Verify that stubbed methods actually exist on the real object
-    # - Check method arity (number of arguments) matches
-    # - Ensure you're not stubbing non-existent methods
-    #
-    mocks.verify_partial_doubles = true
-  end
-
-  # General configuration
-  config.default_formatter = 'doc' if config.files_to_run.one?
-
-  # Show only when requested
-  config.profile_examples = 10 if ENV['PROFILE_TESTS'] || ARGV.include?('--profile')
-
-  # Metadata
-  #
-  # Applies shared context metadata to host groups, enhancing test organization.
-  # Will be default in RSpec 4
-  config.shared_context_metadata_behavior = :apply_to_host_groups
-  #
-  # RSpec will create this file to keep track of example statuses, and
-  # powers the the --only-failures flag.
-  config.example_status_persistence_file_path = 'spec/.rspec_status'
-
-  # Suppresses Ruby warnings during test runs for a cleaner output.
-  config.warnings = true
-
-  # Execution
-  config.order = :defined
-  config.filter_run_when_matching :focus
-  config.disable_monkey_patching!
-  # Let Rspec handle the randomization, leave these settings unchanged:
-  # config.seed = 12345
-  # Kernel.srand config.seed
-
-  # Aggregate failures for better signal-to-noise
-  config.define_derived_metadata do |meta|
-    meta[:aggregate_failures] = true unless meta.key?(:aggregate_failures)
-  end
-
-  # Silence noise
-  config.before(:each) do
-    allow(OT).to receive(:ld).and_return(nil)
-    allow(OT).to receive(:li).and_return(nil)
-    allow(OT).to receive(:le).and_return(nil) unless defined?(@preserve_error_logs) && @preserve_error_logs
-  end
-
-  # Prevent accidental external dependencies
-  config.before(:each) do |example|
-    unless example.metadata[:allow_redis]
-      allow(Redis).to receive(:new).and_raise("No external Redis in tests")
-    end
-  end
 end

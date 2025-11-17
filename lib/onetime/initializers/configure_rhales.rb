@@ -27,6 +27,7 @@ module Onetime
     #
     def configure_rhales
       # Set Rhales logger if supported (Rhales 0.5+)
+      # Uses respond_to? check for backward compatibility with earlier versions
       if Rhales.respond_to?(:logger=)
         Rhales.logger = Onetime.rhales_logger
       end
