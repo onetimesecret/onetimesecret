@@ -59,7 +59,7 @@ module Onetime
           app: app,
           environment: environment,
           Host: bind,
-          Port: port,
+          Port: port.to_i,
         }
 
         if config_file

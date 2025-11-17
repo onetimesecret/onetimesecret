@@ -4,13 +4,13 @@
 # typed: false
 
 #
-# Recommended: Ruby 3.4+
+# Recommended: Ruby 3.3.6+
 #   status: normal maintenance
 #   release date: 2024-12-25
 #   normal maintenance until: TBD
 #   end of life: 2028ish
 #
-ruby '>= 3.4'
+ruby '>= 3.3.6'
 
 source 'https://rubygems.org/'
 
@@ -60,7 +60,7 @@ gem 'truemail'
 # ====================================
 
 # ORMs and database drivers
-gem 'familia', git: 'https://github.com/delano/familia'
+gem 'familia', git: 'https://github.com/delano/familia', branch: 'main'
 gem 'sequel', '~> 5.0'
 
 case ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase

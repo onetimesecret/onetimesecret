@@ -127,7 +127,11 @@ RSpec.configure do |config|
 
     unless defined?(Onetime::Migration)
       # Create a simple class that can be mocked by RSpec
-      stub_const('Onetime::Migration', Class.new)
+      migration_class = Class.new do
+        def self.run(options = {}); end
+        def self.load(file); end
+      end
+      stub_const('Onetime::Migration', migration_class)
     end
 
     # Prevent actual application boot by default
