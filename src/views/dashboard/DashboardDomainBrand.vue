@@ -19,7 +19,7 @@
 
   const { t } = useI18n();
 
-  const props = defineProps<{ domain: string }>();
+  const props = defineProps<{ extid: string }>();
   const {
     isLoading,
     error,
@@ -33,15 +33,15 @@
     saveBranding,
     handleLogoUpload,
     removeLogo,
-  } = useBranding(props.domain);
+  } = useBranding(props.extid);
 
   const {
     domain: customDomainRecord,
     isLoading: domainLoading,
     initialize: initializeDomain,
-  } = useDomain(props.domain);
+  } = useDomain(props.extid);
 
-  const displayDomain = computed(() => props.domain);
+  const displayDomain = computed(() => customDomainRecord.value?.display_domain);
 
   const color = computed(() => primaryColor.value);
   const browserType = ref<'safari' | 'edge'>(detectPlatform());
