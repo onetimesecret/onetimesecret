@@ -9,13 +9,13 @@
       "complete_mfa_verification": "Complete MFA Verification",
       "security": {
         "_README": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md",
-        "authentication_failed": "Authentication failed. Please verify your credentials and try again.",
-        "rate_limited": "Too many attempts. Please try again later.",
-        "session_expired": "Session expired. Please log in again.",
-        "recovery_code_not_found": "Recovery code not found. Please verify you entered it correctly.",
-        "recovery_code_used": "This recovery code has already been used. Each code can only be used once.",
-        "network_error": "Network error. Please check your connection and try again.",
-        "internal_error": "An error occurred. Please try again.",
+        "authentication_failed": "I rahua te whakaūnga. Tēnā manatoko i ō taipitopito whakaūnga ka ngana anō.",
+        "rate_limited": "He maha rawa ngā ngana. Tēnā ngana anō i muri mai.",
+        "session_expired": "Kua pau te wātū. Tēnā takiuru anō.",
+        "recovery_code_not_found": "Kāore i kitea te waehere whakaora. Tēnā manatoko i tō tāurunga.",
+        "recovery_code_used": "Kua whakamahia kē tēnei waehere whakaora. Ka taea te whakamahi kotahi ia waehere.",
+        "network_error": "Hapa whatunga. Tēnā tirotiro i tō hononga ka ngana anō.",
+        "internal_error": "I puta tētahi hapa. Tēnā ngana anō.",
         "_meta": {
           "_purpose": "These messages follow OWASP/NIST guidelines to prevent information disclosure. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. Never reveal: which credential failed, precise timing, account existence, or attack progress.",
           "authentication_failed": {

@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "Data Sovereignty & Regional Isolation",
-      "data-sovereignty-description": "Your data resides exclusively in your chosen region and is never transferred across regions",
-      "separate-environments-explanation": "Each region operates as a completely independent environment with its own infrastructure, encryption keys, and data storage",
-      "no-data-transfer-policy": "We maintain a strict policy: customer data is never transferred between regions under any circumstances",
-      "switching-creates-new-account": "Important: Switching to a different region creates a new account. Your data stays in your original region.",
-      "your-region": "Your Region",
-      "your-current-region": "Your Current Region",
-      "active": "Active",
-      "explore-other-regions": "Explore other available regions",
-      "why-it-matters": "Why Data Sovereignty Matters",
-      "trust-title": "Transparency & Control",
-      "trust-description": "Know exactly where your data resides and which laws govern its protection.",
-      "privacy-title": "Privacy Rights",
-      "privacy-description": "Ensure your personal information is handled according to your country's privacy laws and regulations, preventing unauthorized access or misuse.",
-      "compliance-title": "Regulatory Compliance",
-      "compliance-description": "Meet GDPR, HIPAA, CCPA, and other regional data protection requirements",
-      "performance-title": "Faster Access",
-      "performance-description": "Data stored closer to you means lower latency and better performance."
+      "data-sovereignty-title": "Soberania de Dados e Isolamento Regional",
+      "data-sovereignty-description": "Seus dados residem exclusivamente na região escolhida e nunca são transferidos entre regiões",
+      "separate-environments-explanation": "Cada região opera como um ambiente completamente independente com sua própria infraestrutura, chaves de criptografia e armazenamento de dados",
+      "no-data-transfer-policy": "Mantemos uma política rigorosa: os dados dos clientes nunca são transferidos entre regiões sob nenhuma circunstância",
+      "switching-creates-new-account": "Importante: Mudar para uma região diferente cria uma nova conta. Seus dados permanecem na região original.",
+      "your-region": "Sua Região",
+      "your-current-region": "Sua Região Atual",
+      "active": "Ativo",
+      "explore-other-regions": "Explorar outras regiões disponíveis",
+      "why-it-matters": "Por Que a Soberania de Dados é Importante",
+      "trust-title": "Transparência e Controle",
+      "trust-description": "Saiba exatamente onde seus dados residem e quais leis governam sua proteção.",
+      "privacy-title": "Direitos de Privacidade",
+      "privacy-description": "Garanta que suas informações pessoais sejam tratadas de acordo com as leis e regulamentações de privacidade do seu país, evitando acesso não autorizado ou uso indevido.",
+      "compliance-title": "Conformidade Regulatória",
+      "compliance-description": "Atenda aos requisitos de proteção de dados regionais como GDPR, HIPAA, CCPA e outros",
+      "performance-title": "Acesso Mais Rápido",
+      "performance-description": "Dados armazenados mais perto de você significam menor latência e melhor desempenho."
     }
   }
 }

@@ -1,31 +1,31 @@
 {
   "web": {
     "footer": {
-      "security": "Security",
-      "learn-about-our-security-measures": "Learn about our security measures",
-      "view-our-terms-and-conditions": "View our Terms and Conditions",
-      "terms": "Terms",
+      "security": "Beveiliging",
+      "learn-about-our-security-measures": "Leer meer over onze beveiligingsmaatregelen",
+      "view-our-terms-and-conditions": "Bekijk onze voorwaarden",
+      "terms": "Voorwaarden",
       "privacy": "Privacy",
       "contact": "Contact",
-      "support": "Support",
-      "legals": "Legals",
-      "read-our-privacy-policy": "Read our Privacy Policy",
-      "check-our-service-status": "Check our service status",
-      "explore-our-api-documentation": "Explore our API documentation",
-      "docs": "Docs",
-      "access-our-documentation": "Access our documentation",
-      "view-our-source-code-on-github": "View our source code on GitHub",
-      "resources": "Resources",
+      "support": "Ondersteuning",
+      "legals": "Juridisch",
+      "read-our-privacy-policy": "Lees ons privacybeleid",
+      "check-our-service-status": "Controleer onze servicestatus",
+      "explore-our-api-documentation": "Verken onze API-documentatie",
+      "docs": "Documentatie",
+      "access-our-documentation": "Toegang tot onze documentatie",
+      "view-our-source-code-on-github": "Bekijk onze broncode op GitHub",
+      "resources": "Bronnen",
       "blog": "Blog",
-      "read-our-latest-blog-posts": "Read our latest blog posts",
-      "view-our-subscription-pricing": "View our subscription pricing",
-      "learn-about-our-company": "Learn about our company",
-      "company": "Company"
+      "read-our-latest-blog-posts": "Lees onze nieuwste blogposts",
+      "view-our-subscription-pricing": "Bekijk onze abonnementsprijzen",
+      "learn-about-our-company": "Leer meer over ons bedrijf",
+      "company": "Bedrijf"
     },
     "navigation": {
-      "billing": "Billing",
-      "billingOverview": "Overview",
-      "organizations": "Organizations"
+      "billing": "Facturering",
+      "billingOverview": "Overzicht",
+      "organizations": "Organisaties"
     },
     "site": {
       "website-version": "Website versie"
