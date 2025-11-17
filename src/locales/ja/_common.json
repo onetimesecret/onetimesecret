@@ -6,7 +6,7 @@
       "powered_by": "提供元",
       "website_url": "https://onetimesecret.com/ja",
       "button_generate_secret_short": "パスワードを生成",
-      "generate_password_disabled": "フォームが有効な場合、Generate Password は無効になります",
+      "generate_password_disabled": "フォームが有効な場合、パスワード生成は無効になります",
       "email_placeholder": "例: tom{'@'}myspace.com",
       "password_placeholder": "パスワードを入力してください",
       "custom_domains_title": "カスタム ドメイン",

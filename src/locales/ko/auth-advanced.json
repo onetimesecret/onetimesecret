@@ -9,13 +9,13 @@
       "complete_mfa_verification": "Complete MFA Verification",
       "security": {
         "_README": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md",
-        "authentication_failed": "Authentication failed. Please verify your credentials and try again.",
-        "rate_limited": "Too many attempts. Please try again later.",
-        "session_expired": "Session expired. Please log in again.",
-        "recovery_code_not_found": "Recovery code not found. Please verify you entered it correctly.",
-        "recovery_code_used": "This recovery code has already been used. Each code can only be used once.",
-        "network_error": "Network error. Please check your connection and try again.",
-        "internal_error": "An error occurred. Please try again.",
+        "authentication_failed": "인증에 실패했습니다. 자격 증명을 확인하고 다시 시도해 주세요.",
+        "rate_limited": "시도 횟수가 너무 많습니다. 나중에 다시 시도해 주세요.",
+        "session_expired": "세션이 만료되었습니다. 다시 로그인해 주세요.",
+        "recovery_code_not_found": "복구 코드를 찾을 수 없습니다. 올바르게 입력했는지 확인해 주세요.",
+        "recovery_code_used": "이 복구 코드는 이미 사용되었습니다. 각 코드는 한 번만 사용할 수 있습니다.",
+        "network_error": "네트워크 오류입니다. 연결을 확인하고 다시 시도해 주세요.",
+        "internal_error": "오류가 발생했습니다. 다시 시도해 주세요.",
         "_meta": {
           "_purpose": "These messages follow OWASP/NIST guidelines to prevent information disclosure. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. Never reveal: which credential failed, precise timing, account existence, or attack progress.",
           "authentication_failed": {
