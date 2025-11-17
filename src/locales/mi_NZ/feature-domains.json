@@ -3,9 +3,9 @@
     "domains": {
       "learn-more-dns": "Ako atu anō mō te whirihoranga DNS",
       "view-domain-verification-status": "Tirohia te tūnga manatoko rohe",
-      "domain-already-in-organization": "",
-      "domain-in-other-organization": "",
-      "domain-claimed-successfully": ""
+      "domain-already-in-organization": "Kei roto kē tēnei rohe i tō whakahaere",
+      "domain-in-other-organization": "Kei roto kē tēnei rohe i tētahi atu whakahaere. Tēnā whakapā ki te tautoko mēnā e whakapono ana koe he hapa tēnei.",
+      "domain-claimed-successfully": "Kua angituhia te tiki i te rohe me te tāpiri ki tō whakahaere"
     }
   }
 }
