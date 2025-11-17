@@ -1,61 +1,61 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "安全",
+      "learn-about-our-security-measures": "了解我们的安全措施",
+      "view-our-terms-and-conditions": "查看我们的条款和条件",
+      "terms": "条款",
+      "privacy": "隐私",
+      "contact": "联系",
+      "support": "支持",
+      "legals": "法律",
+      "read-our-privacy-policy": "阅读我们的隐私政策",
+      "check-our-service-status": "检查我们的服务状态",
+      "explore-our-api-documentation": "探索我们的 API 文档",
+      "docs": "文档",
+      "access-our-documentation": "访问我们的文档",
+      "view-our-source-code-on-github": "在 GitHub 上查看我们的源代码",
+      "resources": "资源",
+      "blog": "博客",
+      "read-our-latest-blog-posts": "阅读我们的最新博客文章",
+      "view-our-subscription-pricing": "查看我们的订阅定价",
+      "learn-about-our-company": "了解我们的公司",
+      "company": "公司"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "账单",
+      "billingOverview": "概览",
+      "organizations": "组织"
     },
     "site": {
-      "website-version": ""
+      "website-version": "网站版本"
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "",
-      "translations-are-new-spotted-an-error": "",
-      "we-recently-added-translations": "",
-      "privacy-and-security-should-be-accessible": ""
+      "were-making-onetime-secret-available-in-multiple": "我们正在使 {onetime-secret} 支持多种语言。由于这是一项新功能，您可能会遇到翻译错误或措辞不当的情况。您的反馈有助于我们改进 - 如果您发现任何问题，请{send-feedback}",
+      "translations-are-new-spotted-an-error": "翻译是新功能。发现错误？{send-feedback}",
+      "we-recently-added-translations": "我们最近添加了翻译。发现错误？{send-feedback}",
+      "privacy-and-security-should-be-accessible": "无论语言如何，隐私和安全都应该人人可及。我们正在添加翻译，以帮助我们的用户和他们的消息接收者更好地理解如何安全地使用和访问安全消息和链接。由于这是一项新功能，您可能会遇到一些翻译错误或不清楚的说明。为了帮助我们提高翻译的清晰度和准确性，特别是对于关键的安全相关内容，如果您发现任何问题，请{send-feedback}"
     },
     "help": {
-      "learn_more": "",
+      "learn_more": "了解更多",
       "secret_view_faq": {
         "what_am_i_looking_at": {
-          "title": "",
-          "description": ""
+          "title": "我在查看什么？",
+          "description": "您正在查看通过 Onetime Secret 与您分享的安全消息。此内容仅显示一次，然后从我们的服务器永久删除。"
         },
         "can_i_view_again": {
-          "title": "",
-          "description": ""
+          "title": "我以后可以再次查看此内容吗？",
+          "description": "不可以。出于安全原因，此内容仅可查看一次。关闭此页面后，内容将被永久删除，任何人（包括我们）都无法恢复。"
         },
         "how_to_copy": {
-          "title": "",
-          "description": ""
+          "title": "如何保存此信息？",
+          "description": "使用"复制"按钮复制整个内容。对于较长的内容，请确保在离开此页面之前验证您已复制完整内容。"
         },
         "is_my_viewing_tracked": {
-          "title": "",
-          "description": ""
+          "title": "我查看此内容的行为会被跟踪吗？",
+          "description": "发送者将收到其内容已被查看的通知，但我们不会跟踪谁查看了它或从哪个位置查看。您的隐私受到保护。"
         },
-        "one_time_warning": ""
+        "one_time_warning": "一旦您离开或刷新此页面，此内容将被永久删除，任何人都无法恢复。"
       }
     }
   }
