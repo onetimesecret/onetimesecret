@@ -31,7 +31,7 @@ module Onetime
 
           migration_dirs.each do |dir|
             Dir[File.join(dir, '*.rb')].each do |file|
-              OT.li "  - #{File.basename(file)}"
+              puts "  - #{File.basename(file)}"
             end
           end
           return
@@ -41,7 +41,7 @@ module Onetime
         migration_path  = migration_paths.find { |path| File.exist?(path) }
 
         unless migration_path
-          OT.li "Migration script not found: #{migration_file}"
+          puts "Migration script not found: #{migration_file}"
           return
         end
 
@@ -52,17 +52,17 @@ module Onetime
           # Run the migration with options
           success = Onetime::Migration.run(run: run)
           if run
-            OT.li success ? 'Migration completed successfully' : 'Migration did not run'
+            puts success ? 'Migration completed successfully' : 'Migration did not run'
           else
-            OT.li success ? 'Dry run completed successfully' : 'Dry run failed'
+            puts success ? 'Dry run completed successfully' : 'Dry run failed'
           end
           exit(success ? 0 : 1)
         rescue LoadError => ex
-          OT.le "Error loading migration: #{ex.message}"
+          warn "Error loading migration: #{ex.message}"
           exit 1
         rescue StandardError => ex
-          OT.le "Migration error: #{ex.message}"
-          OT.le ex.backtrace if OT.debug?
+          warn "Migration error: #{ex.message}"
+          warn ex.backtrace if OT.debug?
           exit 1
         end
       end

@@ -1,6 +1,7 @@
 GIT
   remote: https://github.com/delano/familia
   revision: e0b800d42e9eb46ecb80b846c790fa6fb4b7f99b
+  branch: main
   specs:
     familia (2.0.0.pre21)
       benchmark (~> 0.4)
@@ -15,7 +16,7 @@ GIT
 
 GIT
   remote: https://github.com/delano/otto
-  revision: 3a673d292981b26d56ac7631763a4b65f0345f80
+  revision: 8bca9e2e94d6281ae8ad47757f86ac3934baebff
   specs:
     otto (2.0.0.pre7)
       concurrent-ruby (~> 1.3, < 2.0)
@@ -29,7 +30,7 @@ GIT
 
 GIT
   remote: https://github.com/delano/rodauth-tools
-  revision: 8e63e3768383417ca8c8939e8428f49649aa5c3f
+  revision: 249d940a35e06ff6d51e49d22fcc90fe4ee65fca
   specs:
     rodauth-tools (0.3.0)
       dry-inflector (~> 1.1)
@@ -41,7 +42,7 @@ GIT
 
 GIT
   remote: https://github.com/onetimesecret/rhales
-  revision: 93cdcd6a482a29186aa74868e424289f10b88741
+  revision: 14aaff512e4f7ddd132e7bc232f49abfc67e21e2
   specs:
     rhales (0.5.3)
       json_schemer (~> 2.3)
@@ -50,7 +51,7 @@ GIT
 
 GIT
   remote: https://github.com/rspec/rspec
-  revision: ce23a3ad7c8a418259eaddd46785476218adfc1b
+  revision: 0c37a88d4ff511debd563d68e10c1c7672318c3c
   specs:
     rspec (4.0.0.pre)
       rspec-core (= 4.0.0.pre)
@@ -59,7 +60,7 @@ GIT
 
 GIT
   remote: https://github.com/rspec/rspec
-  revision: ce23a3ad7c8a418259eaddd46785476218adfc1b
+  revision: 0c37a88d4ff511debd563d68e10c1c7672318c3c
   glob: rspec-core/rspec-core.gemspec
   specs:
     rspec-core (4.0.0.pre)
@@ -67,7 +68,7 @@ GIT
 
 GIT
   remote: https://github.com/rspec/rspec
-  revision: ce23a3ad7c8a418259eaddd46785476218adfc1b
+  revision: 0c37a88d4ff511debd563d68e10c1c7672318c3c
   glob: rspec-expectations/rspec-expectations.gemspec
   specs:
     rspec-expectations (4.0.0.pre)
@@ -76,7 +77,7 @@ GIT
 
 GIT
   remote: https://github.com/rspec/rspec
-  revision: ce23a3ad7c8a418259eaddd46785476218adfc1b
+  revision: 0c37a88d4ff511debd563d68e10c1c7672318c3c
   glob: rspec-mocks/rspec-mocks.gemspec
   specs:
     rspec-mocks (4.0.0.pre)
@@ -85,7 +86,7 @@ GIT
 
 GIT
   remote: https://github.com/rspec/rspec
-  revision: ce23a3ad7c8a418259eaddd46785476218adfc1b
+  revision: 0c37a88d4ff511debd563d68e10c1c7672318c3c
   glob: rspec-support/rspec-support.gemspec
   specs:
     rspec-support (4.0.0.pre)
@@ -96,8 +97,8 @@ GEM
     android_key_attestation (0.3.0)
     ast (2.4.3)
     aws-eventstream (1.4.0)
-    aws-partitions (1.1171.0)
-    aws-sdk-core (3.233.0)
+    aws-partitions (1.1182.0)
+    aws-sdk-core (3.237.0)
       aws-eventstream (~> 1, >= 1.3.0)
       aws-partitions (~> 1, >= 1.992.0)
       aws-sigv4 (~> 1.9)
@@ -105,8 +106,8 @@ GEM
       bigdecimal
       jmespath (~> 1, >= 1.6.1)
       logger
-    aws-sdk-sesv2 (1.85.0)
-      aws-sdk-core (~> 3, >= 3.231.0)
+    aws-sdk-sesv2 (1.87.0)
+      aws-sdk-core (~> 3, >= 3.234.0)
       aws-sigv4 (~> 1.5)
     aws-sigv4 (1.12.1)
       aws-eventstream (~> 1, >= 1.0.2)
@@ -138,16 +139,21 @@ GEM
     dry-cli (1.3.0)
     dry-inflector (1.2.0)
     encryptor (1.1.3)
-    erb (5.1.3)
+    erb (6.0.0)
     eventmachine (1.2.7)
     facets (3.1.0)
     faker (3.5.2)
       i18n (>= 1.8.11, < 2)
     fakeredis (0.1.4)
     fastimage (2.4.0)
-    ffi (1.17.2)
+    ffi (1.17.2-aarch64-linux-gnu)
+    ffi (1.17.2-aarch64-linux-musl)
+    ffi (1.17.2-arm-linux-gnu)
+    ffi (1.17.2-arm-linux-musl)
     ffi (1.17.2-arm64-darwin)
+    ffi (1.17.2-x86_64-darwin)
     ffi (1.17.2-x86_64-linux-gnu)
+    ffi (1.17.2-x86_64-linux-musl)
     hana (1.3.7)
     httparty (0.23.2)
       csv
@@ -157,7 +163,7 @@ GEM
       concurrent-ruby (~> 1.0)
     io-console (0.8.1)
     ipaddr (1.2.7)
-    irb (1.15.2)
+    irb (1.15.3)
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
@@ -179,14 +185,14 @@ GEM
     loofah (2.24.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
-    mail (2.8.1)
+    mail (2.9.0)
+      logger
       mini_mime (>= 0.1.1)
       net-imap
       net-pop
       net-smtp
     mini_mime (1.1.5)
-    mini_portile2 (2.8.9)
-    minitest (5.26.0)
+    minitest (5.26.1)
     multi_xml (0.7.2)
       bigdecimal (~> 3.1)
     mustache (1.1.1)
@@ -199,18 +205,27 @@ GEM
       timeout
     net-smtp (0.5.1)
       net-protocol
-    nio4r (2.7.4)
-    nokogiri (1.18.10)
-      mini_portile2 (~> 2.8.2)
+    nio4r (2.7.5)
+    nokogiri (1.18.10-aarch64-linux-gnu)
+      racc (~> 1.4)
+    nokogiri (1.18.10-aarch64-linux-musl)
+      racc (~> 1.4)
+    nokogiri (1.18.10-arm-linux-gnu)
+      racc (~> 1.4)
+    nokogiri (1.18.10-arm-linux-musl)
       racc (~> 1.4)
     nokogiri (1.18.10-arm64-darwin)
       racc (~> 1.4)
+    nokogiri (1.18.10-x86_64-darwin)
+      racc (~> 1.4)
     nokogiri (1.18.10-x86_64-linux-gnu)
+      racc (~> 1.4)
+    nokogiri (1.18.10-x86_64-linux-musl)
       racc (~> 1.4)
     oj (3.16.12)
       bigdecimal (>= 3.0)
       ostruct (>= 0.2)
-    openssl (3.3.1)
+    openssl (3.3.2)
     openssl-signature_algorithm (1.3.0)
       openssl (> 2.0)
     ostruct (0.6.3)
@@ -237,7 +252,7 @@ GEM
       rack (< 4)
     rack-parser (0.7.0)
       rack
-    rack-protection (4.2.0)
+    rack-protection (4.2.1)
       base64 (>= 0.1.0)
       logger (>= 1.6.0)
       rack (>= 3.0.0, < 4)
@@ -267,12 +282,12 @@ GEM
     redis-client (0.26.1)
       connection_pool
     regexp_parser (2.11.3)
-    reline (0.6.2)
+    reline (0.6.3)
       io-console (~> 0.5)
     rerun (0.14.0)
       listen (~> 3.0)
     rexml (3.4.4)
-    roda (3.97.0)
+    roda (3.98.0)
       rack
     rodauth (2.41.0)
       roda (>= 2.6.0)
@@ -298,13 +313,13 @@ GEM
     rubocop-ast (1.48.0)
       parser (>= 3.3.7.2)
       prism (~> 1.4)
-    rubocop-performance (1.26.0)
+    rubocop-performance (1.26.1)
       lint_roller (~> 1.1)
       rubocop (>= 1.75.0, < 2.0)
-      rubocop-ast (>= 1.44.0, < 2.0)
-    rubocop-rspec (3.7.0)
+      rubocop-ast (>= 1.47.1, < 2.0)
+    rubocop-rspec (3.8.0)
       lint_roller (~> 1.1)
-      rubocop (~> 1.72, >= 1.72.1)
+      rubocop (~> 1.81)
     rubocop-sequel (0.4.1)
       lint_roller (~> 1.1)
       rubocop (>= 1.72.1, < 2)
@@ -312,7 +327,7 @@ GEM
       lint_roller (~> 1.1)
       rubocop (~> 1.72, >= 1.72.1)
       rubocop-ast (>= 1.44.0, < 2.0)
-    ruby-lsp (0.26.1)
+    ruby-lsp (0.26.3)
       language_server-protocol (~> 3.17.0)
       prism (>= 1.2, < 2.0)
       rbs (>= 3, < 5)
@@ -324,7 +339,7 @@ GEM
       concurrent-ruby (~> 1.0)
     sendgrid-ruby (6.7.0)
       ruby_http_client (~> 3.4)
-    sentry-ruby (5.28.0)
+    sentry-ruby (6.1.0)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
     sequel (5.98.0)
@@ -336,11 +351,14 @@ GEM
     simplecov-html (0.13.2)
     simplecov_json_formatter (0.1.4)
     simpleidn (0.2.3)
-    sqlite3 (1.7.3)
-      mini_portile2 (~> 2.8.0)
+    sqlite3 (1.7.3-aarch64-linux)
+    sqlite3 (1.7.3-arm-linux)
+    sqlite3 (1.7.3-arm64-darwin)
+    sqlite3 (1.7.3-x86_64-darwin)
+    sqlite3 (1.7.3-x86_64-linux)
     stackprof (0.2.27)
     stringio (3.1.8)
-    stripe (17.0.0)
+    stripe (17.2.0)
     syntax_tree (6.3.0)
       prettier_print (>= 1.2.0)
     thin (2.0.1)
@@ -349,7 +367,7 @@ GEM
       logger
       rack (>= 1, < 4)
     tilt (2.6.1)
-    timeout (0.4.3)
+    timeout (0.4.4)
     tpm-key_attestation (0.14.1)
       bindata (~> 2.4)
       openssl (> 2.0)
@@ -373,7 +391,7 @@ GEM
       unicode-emoji (~> 4.1)
     unicode-emoji (4.1.0)
     uri-valkey (1.4.0)
-    webauthn (3.4.2)
+    webauthn (3.4.3)
       android_key_attestation (~> 0.3.0)
       bindata (~> 2.4)
       cbor (~> 0.5.9)
@@ -383,8 +401,16 @@ GEM
       tpm-key_attestation (~> 0.14.0)
 
 PLATFORMS
-  arm64-darwin-25
-  x86_64-linux
+  aarch64-linux
+  aarch64-linux-gnu
+  aarch64-linux-musl
+  arm-linux
+  arm-linux-gnu
+  arm-linux-musl
+  arm64-darwin
+  x86_64-darwin
+  x86_64-linux-gnu
+  x86_64-linux-musl
 
 DEPENDENCIES
   aws-sdk-sesv2 (~> 1.74)
@@ -455,7 +481,7 @@ DEPENDENCIES
   webauthn (~> 3.0)
 
 RUBY VERSION
-   ruby 3.4.6p54
+   ruby 3.3.6p108
 
 BUNDLED WITH
    2.7.2
