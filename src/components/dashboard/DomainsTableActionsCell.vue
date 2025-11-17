@@ -32,7 +32,7 @@ const { t } = useI18n();
           <router-link
             :to="{
               name: 'DomainBrand',
-              params: { domain: domain.display_domain },
+              params: { extid: domain.extid },
             }"
             :class="[
               active
@@ -47,7 +47,7 @@ const { t } = useI18n();
           <router-link
             :to="{
               name: 'DomainVerify',
-              params: { domain: domain.display_domain },
+              params: { extid: domain.extid },
             }"
             :class="[
               active
@@ -60,7 +60,7 @@ const { t } = useI18n();
         </MenuItem>
         <MenuItem v-slot="{ active }">
           <button
-            @click="handleDelete(domain.display_domain)"
+            @click="handleDelete(domain.extid)"
             :class="[
               active ? 'bg-gray-100 dark:bg-gray-800' : '',
               'flex w-full items-center px-4 py-2 text-sm text-red-600 transition-colors duration-200 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300',

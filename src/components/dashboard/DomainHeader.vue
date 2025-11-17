@@ -76,7 +76,7 @@ const { t } = useI18n();
             class="flex shrink-0 items-center rounded-md
               bg-gray-100 px-3 py-1.5 dark:bg-gray-700">
             <RouterLink
-              :to="`/domains/${domain?.display_domain}/verify`"
+              :to="`/domains/${domain?.extid}/verify`"
               class="inline-flex items-center gap-1.5"
               :data-tooltip="t('web.domains.view-domain-verification-status')">
               <OIcon

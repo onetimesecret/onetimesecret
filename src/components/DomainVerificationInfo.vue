@@ -38,7 +38,7 @@
   <div class="m-0 p-0 leading-none">
     <RouterLink
       v-if="mode === 'icon'"
-      :to="`/domains/${domain?.display_domain}/verify`"
+      :to="`/domains/${domain?.extid}/verify`"
       class="tooltip inline-flex items-center gap-1.5"
       :data-tooltip="t('web.domains.view-domain-verification-status')">
       <OIcon

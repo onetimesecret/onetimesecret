@@ -22,13 +22,13 @@ const { t } = useI18n();
     <div class="flex items-center space-x-2">
       <router-link
         v-if="status.isActive.value"
-        :to="{ name: 'DomainBrand', params: { domain: domain.display_domain } }"
+        :to="{ name: 'DomainBrand', params: { extid: domain.extid } }"
         class="font-brand text-lg text-brandcomp-600 hover:text-brandcomp-700 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
         {{ domain.display_domain }}
       </router-link>
       <router-link
         v-else
-        :to="{ name: 'DomainVerify', params: { domain: domain.display_domain } }"
+        :to="{ name: 'DomainVerify', params: { extid: domain.extid } }"
         class="font-brand text-lg text-brandcomp-600 hover:text-brandcomp-700 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
         {{ domain.display_domain }}
       </router-link>
