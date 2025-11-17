@@ -1,11 +1,11 @@
 {
   "web": {
     "domains": {
-      "learn-more-dns": "",
-      "view-domain-verification-status": "",
-      "domain-already-in-organization": "",
-      "domain-in-other-organization": "",
-      "domain-claimed-successfully": ""
+      "learn-more-dns": "了解有关 DNS 配置的更多信息",
+      "view-domain-verification-status": "查看域名验证状态",
+      "domain-already-in-organization": "此域名已在您的组织中注册",
+      "domain-in-other-organization": "此域名已注册到其他组织。如果您认为这是错误，请联系支持。",
+      "domain-claimed-successfully": "域名已成功认领并添加到您的组织"
     }
   }
 }

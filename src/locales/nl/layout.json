@@ -1,31 +1,31 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Beveiliging",
+      "learn-about-our-security-measures": "Leer meer over onze beveiligingsmaatregelen",
+      "view-our-terms-and-conditions": "Bekijk onze voorwaarden",
+      "terms": "Voorwaarden",
+      "privacy": "Privacy",
+      "contact": "Contact",
+      "support": "Ondersteuning",
+      "legals": "Juridisch",
+      "read-our-privacy-policy": "Lees ons privacybeleid",
+      "check-our-service-status": "Controleer onze servicestatus",
+      "explore-our-api-documentation": "Verken onze API-documentatie",
+      "docs": "Documentatie",
+      "access-our-documentation": "Toegang tot onze documentatie",
+      "view-our-source-code-on-github": "Bekijk onze broncode op GitHub",
+      "resources": "Bronnen",
+      "blog": "Blog",
+      "read-our-latest-blog-posts": "Lees onze nieuwste blogposts",
+      "view-our-subscription-pricing": "Bekijk onze abonnementsprijzen",
+      "learn-about-our-company": "Leer meer over ons bedrijf",
+      "company": "Bedrijf"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Facturering",
+      "billingOverview": "Overzicht",
+      "organizations": "Organisaties"
     },
     "site": {
       "website-version": "Website versie"

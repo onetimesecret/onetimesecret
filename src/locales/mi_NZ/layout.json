@@ -1,31 +1,31 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Haumaru",
+      "learn-about-our-security-measures": "Ako mō ā mātou tikanga haumaru",
+      "view-our-terms-and-conditions": "Tirohia ā mātou Tikanga me ngā Kaupapa Here",
+      "terms": "Ngā Tikanga",
+      "privacy": "Matatapu",
+      "contact": "Whakapā",
+      "support": "Tautoko",
+      "legals": "Ngā Ture",
+      "read-our-privacy-policy": "Pānuitia tā mātou Kaupapa Here Matatapu",
+      "check-our-service-status": "Tirohia te tūnga ratonga",
+      "explore-our-api-documentation": "Tūhuratia ā mātou tuhinga API",
+      "docs": "Ngā Tuhinga",
+      "access-our-documentation": "Uru ki ā mātou tuhinga",
+      "view-our-source-code-on-github": "Tirohia tā mātou waehere pūtake i GitHub",
+      "resources": "Ngā Rauemi",
+      "blog": "Rangitaki",
+      "read-our-latest-blog-posts": "Pānuitia ā mātou rangitaki hou rawa atu",
+      "view-our-subscription-pricing": "Tirohia ā mātou utu ohaurunga",
+      "learn-about-our-company": "Ako mō tō mātou kamupene",
+      "company": "Kamupene"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Utu",
+      "billingOverview": "Tirohanga Whānui",
+      "organizations": "Ngā Whakahaere"
     },
     "site": {
       "website-version": "Putanga Paetukutuku"

@@ -76,7 +76,7 @@
   "dashboard-navigation": "Übersichtsseite-Navigation",
   "mobile-navigation": "Mobile Navigation",
   "main-navigation": "Hauptnavigation",
-  "mobile-nav-item-count": "{count} items",
+  "mobile-nav-item-count": "{count} Elemente",
   "custom-domain": "Benutzerdefinierter Bereich",
   "open-domain-in-new-tab": "Bereich in neuer Registerkarte öffnen",
   "back-to-domains": "Zurück zu Bereiche",
@@ -343,7 +343,7 @@
   "email-address-copied-to-clipboard": "E-Mail Adresse in die Zwischenablage kopiert!",
   "send-feedback": "feedback senden",
   "customize-your-domain-branding": "Passen Sie Ihr Bereich-Branding an",
-  "heading-logo": "{0} Logo",
+  "heading-logo": "{0}-Logo",
   "edge": "Kante",
   "switch-to-edge-preview": "Zur Edge-Vorschau wechseln",
   "safari": "Safari",
@@ -427,5 +427,5 @@
   "copy-secret-to-clipboard": "Geheimnis in die Zwischenablage kopieren",
   "secret-copied-to-clipboard": "Geheimnis in die Zwischenablage kopiert",
   "Double check that passphrase": "Überprüfen Sie die Sicherheitsphrase doppelt",
-  "press_copy_button_below": "Press the copy button below."
+  "press_copy_button_below": "Klicken Sie unten auf die Schaltfläche zum Kopieren."
 }

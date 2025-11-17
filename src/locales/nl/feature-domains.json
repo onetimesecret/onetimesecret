@@ -3,9 +3,9 @@
     "domains": {
       "learn-more-dns": "Meer informatie over DNS-configuratie",
       "view-domain-verification-status": "Bekijk domeinverificatiestatus",
-      "domain-already-in-organization": "",
-      "domain-in-other-organization": "",
-      "domain-claimed-successfully": ""
+      "domain-already-in-organization": "Dit domein is al geregistreerd in je organisatie",
+      "domain-in-other-organization": "Dit domein is al geregistreerd bij een andere organisatie. Neem contact op met ondersteuning als je denkt dat dit een fout is.",
+      "domain-claimed-successfully": "Domein succesvol geclaimd en toegevoegd aan je organisatie"
     }
   }
 }

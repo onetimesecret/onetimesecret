@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "データ主権 & リージョン分離",
+      "data-sovereignty-description": "データは選択したリージョンにのみ存在し、リージョン間で転送されることはありません",
+      "separate-environments-explanation": "各リージョンは、独自のインフラストラクチャ、暗号化キー、データストレージを持つ完全に独立した環境として運用されます",
+      "no-data-transfer-policy": "私たちは厳格なポリシーを維持しています: 顧客データはいかなる状況でもリージョン間で転送されません",
+      "switching-creates-new-account": "重要: 別のリージョンに切り替えると、新しいアカウントが作成されます。データは元のリージョンに残ります。",
+      "your-region": "あなたのリージョン",
+      "your-current-region": "現在のリージョン",
+      "active": "アクティブ",
+      "explore-other-regions": "他の利用可能なリージョンを探索",
+      "why-it-matters": "データ主権が重要な理由",
+      "trust-title": "透明性 & コントロール",
+      "trust-description": "データがどこにあるか、どの法律がその保護を管理しているかを正確に把握できます。",
+      "privacy-title": "プライバシー権",
+      "privacy-description": "個人情報が国のプライバシー法と規制に従って処理され、不正アクセスや誤用を防ぎます。",
+      "compliance-title": "規制準拠",
+      "compliance-description": "GDPR、HIPAA、CCPA、その他の地域データ保護要件を満たします",
+      "performance-title": "高速アクセス",
+      "performance-description": "データが近くに保存されるため、レイテンシが低く、パフォーマンスが向上します。"
     }
   }
 }

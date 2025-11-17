@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "Mana Motuhake Raraunga me te Motuhake Rohe",
+      "data-sovereignty-description": "Ka noho ō raraunga i tō rohe i kōwhiria e koe anake, ā, kāore e tukuna ki ngā rohe kē",
+      "separate-environments-explanation": "Ka mahi ia rohe hei taiao motuhake tino me ōna ake hanganga, kī whakamuhumuhu, me te rokiroki raraunga",
+      "no-data-transfer-policy": "Kei a mātou tētahi kaupapa here mārō: kāore e tukuna ngā raraunga kiritaki i waenga i ngā rohe i raro i ngā āhuatanga katoa",
+      "switching-creates-new-account": "Nui te take: Ko te huri ki tētahi rohe kē ka hanga i tētahi pūkete hou. Ka noho ō raraunga i tō rohe taketake.",
+      "your-region": "Tō Rohe",
+      "your-current-region": "Tō Rohe o Nāianei",
+      "active": "Hohe",
+      "explore-other-regions": "Tūhuratia ngā rohe kē e wātea ana",
+      "why-it-matters": "He Aha Te Take o te Mana Motuhake Raraunga",
+      "trust-title": "Māramatanga me te Mana",
+      "trust-description": "Mōhio tika ki te wāhi e noho ana ō raraunga me ngā ture e whakahaere ana i tōna tiaki.",
+      "privacy-title": "Ngā Tika Matatapu",
+      "privacy-description": "Whakaū ka whakahaerea ō mōhiohio whaiaro e ai ki ngā ture me ngā ture matatapu o tō whenua, hei ārai i te urunga kore mana, te kino whakamahi rānei.",
+      "compliance-title": "Whakaū Ture",
+      "compliance-description": "Whakatutuki i ngā whakaritenga tiaki raraunga rohe pērā i GDPR, HIPAA, CCPA, me ētahi atu",
+      "performance-title": "Urunga Tere Ake",
+      "performance-description": "Ko ngā raraunga kua rokirokihia tata ki a koe, ka iti ake te wā takaroa, ka pai ake te mahi."
     }
   }
 }

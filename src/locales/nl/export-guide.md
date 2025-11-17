@@ -1,3 +1,8 @@
+---
+title: Vertaalhandleiding voor Nederlands
+description: Uitgebreide handleiding voor het vertalen van Onetime Secret naar het Nederlands, met woordenlijst en taalkundige notities
+---
+
 # Translation Guidance for Dutch (Nederlands)
 
 This document combines the glossary and language-specific translation notes for Dutch localization of Onetime Secret. It provides comprehensive guidance for maintaining consistency, cultural appropriateness, and technical accuracy in Dutch translations.
