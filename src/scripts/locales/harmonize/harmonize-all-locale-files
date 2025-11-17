@@ -15,12 +15,12 @@
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
 EXIT_CODE=0
-for locale_dir in ../../../locales/*/; do
+for locale_dir in src/locales/*/; do
   [ ! -d "$locale_dir" ] && continue
 
   locale_name=$(basename "$locale_dir")
   [ "$locale_name" = "en" ] && continue
-
+  echo "-> $locale_name"
   "$SCRIPT_DIR/harmonize-locale-file.py" "$@" "$locale_name" || EXIT_CODE=1
 done
 exit $EXIT_CODE
