@@ -1,4 +1,4 @@
-# apps/api/account/logic/domains.rb
+# apps/api/domains/logic/domains.rb
 #
 # frozen_string_literal: true
 
@@ -8,7 +8,7 @@ require 'onetime/cluster'
 
 require_relative 'base'
 
-module AccountAPI
+module DomainsAPI
   module Logic
     module Domains
       # This file serves as a namespace and requires all domain-related files

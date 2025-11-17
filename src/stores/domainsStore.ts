@@ -86,7 +86,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * Add a new custom domain
    */
   async function addDomain(domain: string) {
-    const response = await $api.post('/api/account/domains/add', { domain });
+    const response = await $api.post('/api/domains/add', { domain });
     const validated = responseSchemas.customDomain.parse(response.data);
     if (!records.value) records.value = [];
     records.value.push(validated.record);
@@ -97,7 +97,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * Load all domains if not already _initialized
    */
   async function fetchList() {
-    const response = await $api.get('/api/account/domains');
+    const response = await $api.get('/api/domains');
     const validated = responseSchemas.customDomainList.parse(response.data);
     records.value = validated.records ?? [];
     details.value = validated.details ?? {};
@@ -107,13 +107,13 @@ export const useDomainsStore = defineStore('domains', () => {
   }
 
   async function getDomain(extid: string) {
-    const response = await $api.get(`/api/account/domains/${extid}`);
+    const response = await $api.get(`/api/domains/${extid}`);
     const validated = responseSchemas.customDomain.parse(response.data);
     return validated;
   }
 
   async function verifyDomain(extid: string) {
-    const response = await $api.post(`/api/account/domains/${extid}/verify`);
+    const response = await $api.post(`/api/domains/${extid}/verify`);
     const validated = responseSchemas.customDomain.parse(response.data);
     return validated;
   }
@@ -122,7 +122,7 @@ export const useDomainsStore = defineStore('domains', () => {
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await $api.post(`/api/account/domains/${extid}/logo`, formData, {
+    const response = await $api.post(`/api/domains/${extid}/logo`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
@@ -133,7 +133,7 @@ export const useDomainsStore = defineStore('domains', () => {
 
   async function fetchLogo(extid: string): Promise<ImageProps | null> {
     try {
-      const response = await $api.get(`/api/account/domains/${extid}/logo`);
+      const response = await $api.get(`/api/domains/${extid}/logo`);
       // Use the existing schema to validate the response
       const validated = responseSchemas.imageProps.parse(response.data);
       return validated.record;
@@ -148,7 +148,7 @@ export const useDomainsStore = defineStore('domains', () => {
   }
 
   async function removeLogo(extid: string) {
-    await $api.delete(`/api/account/domains/${extid}/logo`);
+    await $api.delete(`/api/domains/${extid}/logo`);
   }
 
   async function refreshRecords(force = false) {
@@ -162,7 +162,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * Delete a domain by extid
    */
   async function deleteDomain(extid: string) {
-    await $api.post(`/api/account/domains/${extid}/remove`);
+    await $api.post(`/api/domains/${extid}/remove`);
     if (!records.value) return;
     records.value = records.value.filter((domain) => domain.extid !== extid);
   }
@@ -172,7 +172,7 @@ export const useDomainsStore = defineStore('domains', () => {
    */
   // Ensure getBrandSettings always returns valid data
   async function getBrandSettings(extid: string): Promise<BrandSettings> {
-    const response = await $api.get(`/api/account/domains/${extid}/brand`);
+    const response = await $api.get(`/api/domains/${extid}/brand`);
     const validated = responseSchemas.brandSettings.parse(response.data);
     return validated.record;
   }
@@ -181,7 +181,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * Update brand settings for a domain
    */
   async function updateBrandSettings(extid: string, settings: Partial<BrandSettings>) {
-    const response = await $api.put(`/api/account/domains/${extid}/brand`, {
+    const response = await $api.put(`/api/domains/${extid}/brand`, {
       brand: settings,
     });
     return responseSchemas.brandSettings.parse(response.data);
@@ -191,7 +191,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * Update brand settings for a domain
    */
   async function updateDomainBrand(extid: string, brandUpdate: UpdateDomainBrandRequest) {
-    const response = await $api.put(`/api/account/domains/${extid}/brand`, brandUpdate);
+    const response = await $api.put(`/api/domains/${extid}/brand`, brandUpdate);
     const validated = responseSchemas.customDomain.parse(response.data);
     if (!records.value) return validated.record;
 
@@ -206,7 +206,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * Update an existing domain
    */
   async function updateDomain(domain: CustomDomain) {
-    const response = await $api.put(`/api/account/domains/${domain.extid}`, domain);
+    const response = await $api.put(`/api/domains/${domain.extid}`, domain);
     const validated = responseSchemas.customDomain.parse(response.data);
 
     if (!records.value) records.value = [];

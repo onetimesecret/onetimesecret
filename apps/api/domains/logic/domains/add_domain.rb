@@ -1,4 +1,4 @@
-# apps/api/account/logic/domains/add_domain.rb
+# apps/api/domains/logic/domains/add_domain.rb
 #
 # frozen_string_literal: true
 
@@ -7,9 +7,9 @@ require 'public_suffix'
 require 'onetime/cluster'
 require_relative '../base'
 
-module AccountAPI::Logic
+module DomainsAPI::Logic
   module Domains
-    class AddDomain < AccountAPI::Logic::Base
+    class AddDomain < DomainsAPI::Logic::Base
       attr_reader :greenlighted, :custom_domain, :domain_input, :display_domain
 
       def process_params

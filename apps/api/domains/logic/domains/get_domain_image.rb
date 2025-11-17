@@ -1,12 +1,12 @@
-# apps/api/account/logic/domains/get_domain_image.rb
+# apps/api/domains/logic/domains/get_domain_image.rb
 #
 # frozen_string_literal: true
 
 require 'base64'
 
-module AccountAPI::Logic
+module DomainsAPI::Logic
   module Domains
-    class GetDomainImage < AccountAPI::Logic::Base
+    class GetDomainImage < DomainsAPI::Logic::Base
       attr_reader :display_domain, :image_field, :image, :custom_domain
 
       @field = nil

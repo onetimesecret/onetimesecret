@@ -1,13 +1,13 @@
-# apps/api/account/logic/domains/remove_domain.rb
+# apps/api/domains/logic/domains/remove_domain.rb
 #
 # frozen_string_literal: true
 
 require 'onetime/cluster'
 require_relative '../base'
 
-module AccountAPI::Logic
+module DomainsAPI::Logic
   module Domains
-    class RemoveDomain < AccountAPI::Logic::Base
+    class RemoveDomain < DomainsAPI::Logic::Base
       attr_reader :greenlighted, :extid, :display_domain
 
       def process_params

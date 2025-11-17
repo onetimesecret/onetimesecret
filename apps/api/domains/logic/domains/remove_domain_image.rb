@@ -1,13 +1,13 @@
-# apps/api/account/logic/domains/remove_domain_image.rb
+# apps/api/domains/logic/domains/remove_domain_image.rb
 #
 # frozen_string_literal: true
 
 require 'onetime/cluster'
 require_relative '../base'
 
-module AccountAPI::Logic
+module DomainsAPI::Logic
   module Domains
-    class RemoveDomainImage < AccountAPI::Logic::Base
+    class RemoveDomainImage < DomainsAPI::Logic::Base
       attr_reader :greenlighted, :display_domain, :custom_domain
 
       @field = nil

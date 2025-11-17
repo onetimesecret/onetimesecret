@@ -1,12 +1,12 @@
-# apps/api/account/logic/domains/list_domains.rb
+# apps/api/domains/logic/domains/list_domains.rb
 #
 # frozen_string_literal: true
 
 require_relative '../base'
 
-module AccountAPI::Logic
+module DomainsAPI::Logic
   module Domains
-    class ListDomains < AccountAPI::Logic::Base
+    class ListDomains < DomainsAPI::Logic::Base
       attr_reader :custom_domains, :with_brand
 
       def process_params
