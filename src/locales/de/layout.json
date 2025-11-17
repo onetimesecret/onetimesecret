@@ -1,31 +1,31 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Sicherheit",
+      "learn-about-our-security-measures": "Erfahre mehr über unsere Sicherheitsmaßnahmen",
+      "view-our-terms-and-conditions": "Siehe unsere Allgemeinen Geschäftsbedingungen",
+      "terms": "Bedingungen",
+      "privacy": "Datenschutz",
+      "contact": "Kontakt",
+      "support": "Support",
+      "legals": "Rechtliches",
+      "read-our-privacy-policy": "Lies unsere Datenschutzrichtlinie",
+      "check-our-service-status": "Überprüfe unseren Service-Status",
+      "explore-our-api-documentation": "Erkunde unsere API-Dokumentation",
+      "docs": "Dokumentation",
+      "access-our-documentation": "Greife auf unsere Dokumentation zu",
+      "view-our-source-code-on-github": "Sieh dir unseren Quellcode auf GitHub an",
+      "resources": "Ressourcen",
+      "blog": "Blog",
+      "read-our-latest-blog-posts": "Lies unsere neuesten Blog-Beiträge",
+      "view-our-subscription-pricing": "Sieh dir unsere Abonnementpreise an",
+      "learn-about-our-company": "Erfahre mehr über unser Unternehmen",
+      "company": "Unternehmen"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Abrechnung",
+      "billingOverview": "Übersicht",
+      "organizations": "Organisationen"
     },
     "site": {
       "website-version": "Website-Version"
