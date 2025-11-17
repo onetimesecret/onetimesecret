@@ -206,7 +206,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     end
 
     describe 'POST /logout (WITH authentication)' do
-      before(:each) do
+      around(:each) do |example|
         # Clear database and create test customer
         dbclient.flushdb
         @test_cust = create_test_customer
@@ -217,9 +217,10 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
           json_request_headers
 
         @session_cookie = last_response.headers['Set-Cookie']
-      end
 
-      after(:each) do
+        # Run the test
+        example.run
+      ensure
         @test_cust&.destroy! if @test_cust
         dbclient.flushdb
       end
@@ -261,7 +262,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     end
 
     describe 'POST /auth/logout (WITH authentication)' do
-      before(:each) do
+      around(:each) do |example|
         # Clear database and create test customer
         dbclient.flushdb
         @test_cust = create_test_customer
@@ -272,9 +273,10 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
           json_request_headers
 
         @session_cookie = last_response.headers['Set-Cookie']
-      end
 
-      after(:each) do
+        # Run the test
+        example.run
+      ensure
         @test_cust&.destroy! if @test_cust
         dbclient.flushdb
       end
@@ -341,18 +343,18 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     end
 
     describe 'Session Lifecycle (Full Authentication Flow)' do
-      before(:each) do
-        # Clear database to ensure clean state for each test
+      around(:each) do |example|
+        # Clear database before test
         dbclient.flushdb
 
         # Create test customer for each test
         @test_cust = create_test_customer
-      end
 
-      after(:each) do
-        # Clean up test customer
+        # Run the test
+        example.run
+      ensure
+        # Clean up test customer and database
         @test_cust&.destroy! if @test_cust
-        # Ensure database is clean after test
         dbclient.flushdb
       end
 

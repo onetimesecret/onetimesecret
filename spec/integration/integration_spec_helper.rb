@@ -11,28 +11,30 @@ require 'fakeredis'
 # Global FakeRedis setup for integration tests
 # This uses module prepending instead of RSpec mocks, so it works in before(:all) blocks
 module FakeRedisGlobalStub
-  # Store FakeRedis instances per database number
-  @redis_instances = {}
-  @mutex = Mutex.new
+  require 'concurrent'
+
+  # Store FakeRedis instances per database number with thread-safe hash
+  @redis_instances = Concurrent::Hash.new
 
   def self.redis_for_db(db_num = 0)
-    @mutex.synchronize do
-      @redis_instances[db_num] ||= FakeRedis::Redis.new
-    end
+    # Thread-safe lazy initialization using Concurrent::Hash
+    @redis_instances[db_num] ||= FakeRedis::Redis.new
   end
 
   def self.reset_all!
-    @mutex.synchronize do
-      @redis_instances.each_value do |redis|
-        begin
-          redis.flushdb
-        rescue StandardError => e
-          # Ignore cleanup errors but log them for debugging
-          warn "FakeRedis cleanup error: #{e.message}" if ENV['DEBUG']
+    @redis_instances.each_value do |redis|
+      begin
+        redis.flushdb
+      rescue StandardError => e
+        # Log cleanup errors for debugging (Rails logger if available, otherwise stderr)
+        if defined?(Rails) && Rails.logger
+          Rails.logger.warn "FakeRedis cleanup error: #{e.message}"
+        elsif ENV['DEBUG']
+          warn "FakeRedis cleanup error: #{e.message}"
         end
       end
-      @redis_instances.clear
     end
+    @redis_instances.clear
   end
 end
 
@@ -134,7 +136,11 @@ RSpec.configure do |config|
       # Silently ignore known cleanup errors
       # Redis::BaseConnectionError - connection already closed
       # FakeRedis::CommandNotSupported - unsupported command in cleanup
-      warn "FakeRedis cleanup failed: #{e.class} - #{e.message}" if ENV['DEBUG']
+      if defined?(Rails) && Rails.logger
+        Rails.logger.warn "FakeRedis cleanup failed: #{e.class} - #{e.message}"
+      elsif ENV['DEBUG']
+        warn "FakeRedis cleanup failed: #{e.class} - #{e.message}"
+      end
     end
   end
 
@@ -143,7 +149,11 @@ RSpec.configure do |config|
       FakeRedisGlobalStub.reset_all!
     rescue Redis::BaseConnectionError, FakeRedis::CommandNotSupported => e
       # Silently ignore known cleanup errors
-      warn "FakeRedis cleanup failed: #{e.class} - #{e.message}" if ENV['DEBUG']
+      if defined?(Rails) && Rails.logger
+        Rails.logger.warn "FakeRedis cleanup failed: #{e.class} - #{e.message}"
+      elsif ENV['DEBUG']
+        warn "FakeRedis cleanup failed: #{e.class} - #{e.message}"
+      end
     end
   end
 end
