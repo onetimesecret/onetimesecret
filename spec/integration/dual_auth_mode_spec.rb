@@ -8,8 +8,7 @@
 # tests to see the database commands in stderr. Be careful how many tests
 # you run at one time: it is a lot of output for small context windows.
 
-require 'spec_helper'
-require 'rack/test'
+require_relative 'integration_spec_helper'
 require 'json'
 require 'familia'
 

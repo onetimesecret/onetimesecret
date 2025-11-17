@@ -27,6 +27,9 @@
 # spec/spec_helper.rb
 # Test harness for Onetime.
 
+# Set test environment variables
+ENV['SECRET'] ||= 'test-secret-key-for-rspec-tests-only-not-for-production-use-12345678901234567890'
+
 require 'rspec'
 require 'yaml'
 require 'tempfile'
@@ -87,7 +90,7 @@ RSpec.configure do |config|
   end
 
   config.filter_run_when_matching :focus
-  config.warnings = false
+  config.warnings = :none
   config.order = :random
   Kernel.srand config.seed
 end
