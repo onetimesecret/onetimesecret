@@ -3,9 +3,9 @@
     "domains": {
       "learn-more-dns": "Дізнатися більше про конфігурацію DNS",
       "view-domain-verification-status": "Переглянути статус верифікації домену",
-      "domain-already-in-organization": "",
-      "domain-in-other-organization": "",
-      "domain-claimed-successfully": ""
+      "domain-already-in-organization": "Цей домен вже зареєстровано у вашій організації",
+      "domain-in-other-organization": "Цей домен вже зареєстровано в іншій організації. Будь ласка, зв'яжіться з підтримкою, якщо ви вважаєте, що це помилка.",
+      "domain-claimed-successfully": "Домен успішно заявлено та додано до вашої організації"
     }
   }
 }
