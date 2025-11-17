@@ -116,7 +116,7 @@
 
 <template>
   <div
-    class="relative inline-flex w-full sm:w-auto"
+    class="group/button relative inline-flex w-full sm:w-auto"
     ref="buttonRef">
     <!-- Visually hidden announcement for screen readers when action changes -->
     <div
@@ -131,10 +131,12 @@
         corners.leftCorner,
         textColorClass,
         leftButtonFocusClass,
-        'flex items-center justify-center gap-2 px-4 py-3 text-lg font-semibold transition-colors',
-        'focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
+        'group relative flex items-center justify-center gap-2.5 overflow-hidden px-6 py-3.5 text-base font-semibold transition-all duration-200',
+        'shadow-lg shadow-brand-600/25 hover:shadow-xl hover:shadow-brand-600/30',
+        'focus:z-10 focus:outline-none focus:ring-4 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
         {
-          'cursor-not-allowed opacity-60 disabled:hover:opacity-70 dark:opacity-60': isMainButtonDisabled,
+          'cursor-not-allowed opacity-50 shadow-none hover:shadow-none': isMainButtonDisabled,
+          'hover:-translate-y-0.5 active:translate-y-0': !isMainButtonDisabled,
         },
       ]"
       :style="{
@@ -145,7 +147,9 @@
       @click="handleMainClick"
       :disabled="isMainButtonDisabled"
       :aria-label="buttonConfig.label">
-      <span class="flex items-center text-current">
+      <!-- Gradient overlay on hover -->
+      <div class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100"></div>
+      <span class="relative flex items-center text-current">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="20"
@@ -154,11 +158,11 @@
           fill="none"
           stroke="currentColor"
           stroke-width="2"
-          class="size-5"
+          class="size-5 transition-transform duration-200 group-hover:scale-110"
           v-html="buttonConfig.icon"
         />
       </span>
-      <span>{{ buttonConfig.label }}</span>
+      <span class="relative">{{ buttonConfig.label }}</span>
     </button>
 
     <!-- prettier-ignore-attribute class -->
@@ -168,10 +172,11 @@
         corners.rightCorner,
         textColorClass,
         rightButtonFocusClass,
-        'flex items-center justify-center',
-        'focus:z-10 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
-        'border-l p-3 transition-colors',
-        'hover:opacity-100',
+        'group relative flex items-center justify-center overflow-hidden',
+        'focus:z-10 focus:outline-none focus:ring-4 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
+        'border-l border-white/20 p-3.5 transition-all duration-200',
+        'shadow-lg shadow-brand-600/25 hover:shadow-xl hover:shadow-brand-600/30',
+        'hover:-translate-y-0.5 active:translate-y-0',
       ]"
       :style="{
         backgroundColor: `${primaryColor}`,
@@ -183,6 +188,8 @@
       :aria-expanded="isDropdownOpen"
       aria-haspopup="true"
       aria-controls="split-button-dropdown">
+      <!-- Gradient overlay on hover -->
+      <div class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100"></div>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="20"
@@ -191,7 +198,7 @@
         fill="none"
         stroke="currentColor"
         stroke-width="2"
-        class="size-5">
+        :class="['relative size-5 transition-transform duration-200', isDropdownOpen ? 'rotate-180' : '']">
         <polyline points="6 9 12 15 18 9" />
       </svg>
     </button>
@@ -201,16 +208,20 @@
       v-if="isDropdownOpen"
       id="split-button-dropdown"
       :class="cornerClass"
-      class="absolute right-0 top-full z-10 mt-1 w-52
-        bg-white shadow-lg dark:bg-gray-800">
+      class="absolute right-0 top-full z-10 mt-2 w-60 origin-top-right
+        animate-in fade-in slide-in-from-top-2 duration-200
+        overflow-hidden border border-gray-200/50
+        bg-white shadow-2xl ring-1 ring-black/5
+        dark:border-gray-700/50 dark:bg-gray-800 dark:ring-white/10">
       <!-- prettier-ignore-attribute class -->
       <button
         type="button"
-        class="flex w-full items-center gap-2 border-0 bg-transparent px-4
-          py-2.5 text-left text-gray-800 transition-colors hover:bg-gray-100
-          dark:text-gray-200 dark:hover:bg-gray-700"
+        class="group/item flex w-full items-center gap-3 border-0 bg-transparent px-4
+          py-3 text-left text-sm font-medium text-gray-700 transition-all duration-150
+          hover:bg-gray-50 active:bg-gray-100
+          dark:text-gray-200 dark:hover:bg-gray-700/50 dark:active:bg-gray-700"
         @click="setAction('create-link')">
-        <span class="flex items-center text-current">
+        <span class="flex items-center text-gray-500 transition-colors duration-150 group-hover/item:text-brand-600 dark:text-gray-400 dark:group-hover/item:text-brand-400">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20"
@@ -238,11 +249,12 @@
       <button
         type="button"
         v-if="props.withGenerate"
-        class="flex w-full items-center gap-2 border-0 bg-transparent px-4 py-2.5
-          text-left text-gray-800 transition-colors hover:bg-gray-100
-          dark:text-gray-200 dark:hover:bg-gray-700"
+        class="group/item flex w-full items-center gap-3 border-0 bg-transparent px-4 py-3
+          text-left text-sm font-medium text-gray-700 transition-all duration-150
+          hover:bg-brand-50 active:bg-brand-100
+          dark:text-gray-200 dark:hover:bg-brand-900/20 dark:active:bg-brand-900/30"
         @click="setAction('generate-password')">
-        <span class="flex items-center text-brand-500 dark:text-brand-400">
+        <span class="flex items-center text-brand-500 transition-colors duration-150 group-hover/item:text-brand-600 dark:text-brand-400 dark:group-hover/item:text-brand-300">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20"

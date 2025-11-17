@@ -58,7 +58,7 @@
 </script>
 
 <template>
-  <div class="relative">
+  <div class="group/textarea relative">
     <!-- <div
       id="textarea-focus-announcement"
       aria-live="polite"
@@ -76,14 +76,18 @@
       :style="{ minHeight: minHeight + 'px', maxHeight: maxHeight + 'px' }"
       class="
         block w-full resize-none
-        rounded-lg border border-gray-200 p-4
+        rounded-xl border-2 border-gray-300/60 bg-white/50 p-5
         font-mono text-base leading-relaxed
-        text-gray-900 transition-all
-        duration-200 placeholder:text-gray-400 focus:border-blue-500
-        focus:ring-2 focus:ring-blue-500
-        disabled:bg-gray-50 disabled:text-gray-500 dark:border-gray-700 dark:bg-slate-800
+        text-gray-900 backdrop-blur-sm transition-all
+        duration-200 placeholder:text-gray-400
+        hover:border-gray-400/60 hover:bg-white/80
+        focus:border-blue-500 focus:bg-white
+        focus:outline-none focus:ring-4 focus:ring-blue-500/20
+        disabled:bg-gray-50 disabled:text-gray-500
+        dark:border-gray-600/60 dark:bg-slate-800/50
         dark:text-white dark:placeholder:text-gray-500
-        dark:focus:border-blue-400 dark:focus:ring-blue-400
+        dark:hover:border-gray-500/60 dark:hover:bg-slate-800/80
+        dark:focus:border-blue-400 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20
       "
       :placeholder="$t('web.COMMON.secret_placeholder')"
       :aria-label="$t('enter-the-secret-content-here')">
@@ -98,14 +102,16 @@
     <!-- prettier-ignore-attribute class -->
     <div
       v-if="showCounter"
-      class="pointer-events-none absolute bottom-3 right-3 flex select-none items-center gap-1.5
-        rounded-full bg-white/90 px-3 py-1 text-sm shadow-sm
-        backdrop-blur-sm transition-colors duration-200 dark:bg-gray-800/90">
+      class="pointer-events-none absolute bottom-4 right-4 flex select-none items-center gap-2
+        rounded-full bg-white/95 px-3.5 py-2 text-sm shadow-lg
+        ring-1 ring-gray-900/5
+        backdrop-blur-md transition-all duration-300
+        dark:bg-gray-800/95 dark:ring-white/10">
       <span
-        :class="[statusColor, 'size-2.5 rounded-full']"
+        :class="[statusColor, 'size-2 rounded-full shadow-sm']"
         aria-hidden="true"></span>
-      <span class="font-medium text-gray-600 dark:text-gray-400">
-        {{ formattedCharCount }} / {{ formattedMaxLength }}
+      <span class="font-semibold tabular-nums text-gray-700 dark:text-gray-300">
+        {{ formattedCharCount }} <span class="text-gray-400 dark:text-gray-500">/</span> {{ formattedMaxLength }}
       </span>
     </div>
   </div>
