@@ -1,11 +1,11 @@
 {
   "web": {
     "domains": {
-      "learn-more-dns": "",
-      "view-domain-verification-status": "",
-      "domain-already-in-organization": "",
-      "domain-in-other-organization": "",
-      "domain-claimed-successfully": ""
+      "learn-more-dns": "Saiba mais sobre configuração DNS",
+      "view-domain-verification-status": "Ver estado de verificação do domínio",
+      "domain-already-in-organization": "Este domínio já está registado na sua organização",
+      "domain-in-other-organization": "Este domínio já está registado noutra organização. Por favor, contacte o suporte se acredita que isto é um erro.",
+      "domain-claimed-successfully": "Domínio reivindicado com sucesso e adicionado à sua organização"
     }
   }
 }

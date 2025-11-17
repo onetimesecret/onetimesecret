@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "Data Sovereignty & Regional Isolation",
+      "data-sovereignty-description": "Your data resides exclusively in your chosen region and is never transferred across regions",
+      "separate-environments-explanation": "Each region operates as a completely independent environment with its own infrastructure, encryption keys, and data storage",
+      "no-data-transfer-policy": "We maintain a strict policy: customer data is never transferred between regions under any circumstances",
+      "switching-creates-new-account": "Important: Switching to a different region creates a new account. Your data stays in your original region.",
+      "your-region": "Your Region",
+      "your-current-region": "Your Current Region",
+      "active": "Active",
+      "explore-other-regions": "Explore other available regions",
+      "why-it-matters": "Why Data Sovereignty Matters",
+      "trust-title": "Transparency & Control",
+      "trust-description": "Know exactly where your data resides and which laws govern its protection.",
+      "privacy-title": "Privacy Rights",
+      "privacy-description": "Ensure your personal information is handled according to your country's privacy laws and regulations, preventing unauthorized access or misuse.",
+      "compliance-title": "Regulatory Compliance",
+      "compliance-description": "Meet GDPR, HIPAA, CCPA, and other regional data protection requirements",
+      "performance-title": "Faster Access",
+      "performance-description": "Data stored closer to you means lower latency and better performance."
     }
   }
 }
