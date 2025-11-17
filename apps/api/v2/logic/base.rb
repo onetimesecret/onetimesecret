@@ -5,6 +5,7 @@
 require 'timeout'
 
 require 'onetime/refinements/stripe_refinements'
+require 'onetime/logic/organization_context'
 
 require_relative 'helpers'
 
@@ -20,9 +21,9 @@ module V2
       # variable is the way to go so that all logic subclasses can see the thing.
       include V2::Logic::I18nHelpers
       include V2::Logic::UriHelpers
+      include Onetime::Logic::OrganizationContext
 
       attr_reader :context, :sess, :cust, :params, :locale, :processed_params, :site, :authentication, :domains_enabled
-      attr_reader :organization, :team
 
       attr_accessor :domain_strategy, :display_domain
 
@@ -36,9 +37,7 @@ module V2
         @locale = @params[:locale] || OT.default_locale
 
         # Extract organization and team context from StrategyResult metadata
-        org_context = strategy_result.metadata[:organization_context] || {}
-        @organization = org_context[:organization]
-        @team = org_context[:team]
+        extract_organization_context(strategy_result)
 
         @processed_params ||= {} # TODO: Remove
         process_settings
