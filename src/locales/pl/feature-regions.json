@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "Suwerenność danych i izolacja regionalna",
+      "data-sovereignty-description": "Twoje dane znajdują się wyłącznie w wybranym przez Ciebie regionie i nigdy nie są przesyłane między regionami",
+      "separate-environments-explanation": "Każdy region działa jako całkowicie niezależne środowisko z własną infrastrukturą, kluczami szyfrowania i przechowywaniem danych",
+      "no-data-transfer-policy": "Przestrzegamy ścisłej polityki: dane klientów nigdy nie są przesyłane między regionami w żadnych okolicznościach",
+      "switching-creates-new-account": "Ważne: Przejście do innego regionu tworzy nowe konto. Twoje dane pozostają w oryginalnym regionie.",
+      "your-region": "Twój region",
+      "your-current-region": "Twój bieżący region",
+      "active": "Aktywny",
+      "explore-other-regions": "Poznaj inne dostępne regiony",
+      "why-it-matters": "Dlaczego suwerenność danych ma znaczenie",
+      "trust-title": "Przejrzystość i kontrola",
+      "trust-description": "Wiedz dokładnie, gdzie znajdują się Twoje dane i które prawa regulują ich ochronę.",
+      "privacy-title": "Prawa do prywatności",
+      "privacy-description": "Zapewnij, że Twoje dane osobowe są przetwarzane zgodnie z przepisami prawa Twojego kraju dotyczącymi prywatności, zapobiegając nieautoryzowanemu dostępowi lub nadużyciom.",
+      "compliance-title": "Zgodność regulacyjna",
+      "compliance-description": "Spełniaj wymogi RODO, HIPAA, CCPA i innych regionalnych przepisów dotyczących ochrony danych",
+      "performance-title": "Szybszy dostęp",
+      "performance-description": "Dane przechowywane bliżej Ciebie oznaczają niższe opóźnienia i lepszą wydajność."
     }
   }
 }
