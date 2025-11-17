@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "데이터 주권 및 지역 격리",
+      "data-sovereignty-description": "귀하의 데이터는 선택한 지역에만 독점적으로 저장되며 절대 지역 간에 전송되지 않습니다",
+      "separate-environments-explanation": "각 지역은 자체 인프라, 암호화 키 및 데이터 저장소를 갖춘 완전히 독립적인 환경으로 운영됩니다",
+      "no-data-transfer-policy": "저희는 엄격한 정책을 유지합니다: 고객 데이터는 어떤 상황에서도 지역 간에 전송되지 않습니다",
+      "switching-creates-new-account": "중요: 다른 지역으로 전환하면 새 계정이 생성됩니다. 귀하의 데이터는 원래 지역에 남아 있습니다.",
+      "your-region": "귀하의 지역",
+      "your-current-region": "현재 지역",
+      "active": "활성",
+      "explore-other-regions": "다른 사용 가능한 지역 탐색",
+      "why-it-matters": "데이터 주권이 중요한 이유",
+      "trust-title": "투명성 및 제어",
+      "trust-description": "데이터가 정확히 어디에 있는지, 어떤 법률이 보호하는지 알 수 있습니다.",
+      "privacy-title": "개인정보 보호 권리",
+      "privacy-description": "귀하의 개인 정보가 귀하의 국가의 개인정보 보호 법률 및 규정에 따라 처리되도록 하여 무단 접근이나 오용을 방지합니다.",
+      "compliance-title": "규제 준수",
+      "compliance-description": "GDPR, HIPAA, CCPA 및 기타 지역 데이터 보호 요구사항을 충족합니다",
+      "performance-title": "더 빠른 접근",
+      "performance-description": "가까운 곳에 저장된 데이터는 지연 시간이 낮아지고 성능이 향상됩니다."
     }
   }
 }

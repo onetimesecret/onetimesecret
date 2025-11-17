@@ -1,31 +1,31 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "보안",
+      "learn-about-our-security-measures": "보안 조치에 대해 알아보기",
+      "view-our-terms-and-conditions": "이용약관 보기",
+      "terms": "약관",
+      "privacy": "개인정보 보호",
+      "contact": "문의",
+      "support": "지원",
+      "legals": "법적 고지",
+      "read-our-privacy-policy": "개인정보 보호정책 읽기",
+      "check-our-service-status": "서비스 상태 확인",
+      "explore-our-api-documentation": "API 문서 탐색",
+      "docs": "문서",
+      "access-our-documentation": "문서 접근",
+      "view-our-source-code-on-github": "GitHub에서 소스 코드 보기",
+      "resources": "리소스",
+      "blog": "블로그",
+      "read-our-latest-blog-posts": "최신 블로그 게시물 읽기",
+      "view-our-subscription-pricing": "구독 가격 보기",
+      "learn-about-our-company": "회사에 대해 알아보기",
+      "company": "회사"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "결제",
+      "billingOverview": "개요",
+      "organizations": "조직"
     },
     "site": {
       "website-version": "웹사이트 버전"
