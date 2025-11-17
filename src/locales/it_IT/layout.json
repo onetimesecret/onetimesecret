@@ -1,31 +1,31 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Sicurezza",
+      "learn-about-our-security-measures": "Scopri le nostre misure di sicurezza",
+      "view-our-terms-and-conditions": "Visualizza i nostri termini e condizioni",
+      "terms": "Termini",
+      "privacy": "Privacy",
+      "contact": "Contatti",
+      "support": "Supporto",
+      "legals": "Note legali",
+      "read-our-privacy-policy": "Leggi la nostra informativa sulla privacy",
+      "check-our-service-status": "Controlla lo stato del nostro servizio",
+      "explore-our-api-documentation": "Esplora la nostra documentazione API",
+      "docs": "Documentazione",
+      "access-our-documentation": "Accedi alla nostra documentazione",
+      "view-our-source-code-on-github": "Visualizza il nostro codice sorgente su GitHub",
+      "resources": "Risorse",
+      "blog": "Blog",
+      "read-our-latest-blog-posts": "Leggi i nostri ultimi post del blog",
+      "view-our-subscription-pricing": "Visualizza i prezzi degli abbonamenti",
+      "learn-about-our-company": "Scopri la nostra azienda",
+      "company": "Azienda"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Fatturazione",
+      "billingOverview": "Panoramica",
+      "organizations": "Organizzazioni"
     },
     "site": {
       "website-version": "Versione del sito web"
@@ -45,11 +45,11 @@
         },
         "can_i_view_again": {
           "title": "Posso visualizzare nuovamente questo segreto in un secondo momento?",
-          "description": "No. Per motivi di sicurezza, questo segreto è visualizzabile solo una volta. Dopo la chiusura di questa pagina, il contenuto verrà eliminato in modo permanente e non potrà essere recuperato da nessuno, compresi noi."
+          "description": "No. Per motivi di sicurezza, questo segreto è visualizzabile solo una volta. Dopo la chiusura di questa pagina, il contenuto verrà eliminato in modo permanente e non potrà essere recuperato da nessuno, compresi noi"
         },
         "how_to_copy": {
           "title": "Come faccio a salvare queste informazioni?",
-          "description": "Utilizzare il pulsante 'Copia negli appunti' per copiare l'intero segreto. Per i segreti più lunghi, assicuratevi di aver copiato l'intero contenuto prima di lasciare questa pagina."
+          "description": "Utilizzare il pulsante 'Copia negli appunti' per copiare l'intero segreto. Per i segreti più lunghi, assicuratevi di aver copiato l'intero contenuto prima di lasciare questa pagina"
         },
         "is_my_viewing_tracked": {
           "title": "La mia visualizzazione di questo segreto è tracciata?",

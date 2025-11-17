@@ -20,12 +20,12 @@
       "password_generation_description": " Fare clic su \"Genera password\" per creare una password sicura e casuale da condividere",
       "protip1": "Il messaggio si autodistruggerà dopo essere stato visualizzato. Il link può essere consultato una sola volta",
       "authonly": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Mantieni le informazioni sensibili fuori dalle email e dai log delle chat",
+        "tagline1": "Incolla una password, un messaggio segreto o un link privato qui sotto"
       },
       "disabled": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Mantieni le informazioni sensibili fuori dalle email e dai log delle chat",
+        "tagline1": "Incolla una password, un messaggio segreto o un link privato qui sotto"
       }
     }
   }
