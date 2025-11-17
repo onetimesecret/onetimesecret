@@ -108,7 +108,7 @@ module Onetime
             session: session,
             user: cust.anonymous? ? nil : cust,  # Pass nil for anonymous users
             auth_method: 'noauth',
-            metadata: build_metadata(env).merge(organization_context: org_context),
+            **build_metadata(env, { organization_context: org_context }),
           )
         end
       end
@@ -150,13 +150,16 @@ module Onetime
           # Load organization and team context
           org_context = load_organization_context(cust, session, env)
 
+          # Build complete metadata hash, then splat it into success()
+          metadata_hash = build_metadata(env, additional_metadata(cust)).merge(
+            organization_context: org_context
+          )
+
           success(
             session: session,
             user: cust,
             auth_method: auth_method_name,
-            metadata: build_metadata(env, additional_metadata(cust)).merge(
-              organization_context: org_context
-            ),
+            **metadata_hash,
           )
         end
 
@@ -271,13 +274,16 @@ module Onetime
             session = env['rack.session'] || {}
             org_context = load_organization_context(cust, session, env)
 
+            # Build complete metadata hash, then splat it into success()
+            metadata_hash = build_metadata(env, { auth_type: 'basic' }).merge(
+              organization_context: org_context
+            )
+
             success(
               session: {},  # No session for Basic auth (stateless)
               user: cust,
               auth_method: 'basic_auth',
-              metadata: build_metadata(env, { auth_type: 'basic' }).merge(
-                organization_context: org_context
-              ),
+              **metadata_hash,
             )
           else
             # Return generic error for both cases:
