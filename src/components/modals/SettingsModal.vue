@@ -276,6 +276,8 @@
 </template>
 
 <style scoped>
+  @reference "../../assets/style.css";
+
   /* Add focus styles that work in all color schemes */
   .focus-visible:focus {
     @apply outline-none ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-gray-800;
