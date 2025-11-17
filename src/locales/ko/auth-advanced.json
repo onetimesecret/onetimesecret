@@ -4,7 +4,7 @@
       "_context_mfa_required": "Page heading shown when user must complete MFA to proceed",
       "mfa_required": "MFA verification required",
       "_context_mfa_verification_required": "Explanatory text below the heading",
-      "mfa_verification_required": "MFA verification required to access your account",
+      "mfa_verification_required": "계정에 액세스하려면 MFA 인증이 필요합니다",
       "_context_complete_mfa_verification": "Primary button text to submit MFA verification",
       "complete_mfa_verification": "Complete MFA Verification",
       "security": {
