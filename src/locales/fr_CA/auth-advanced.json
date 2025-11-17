@@ -1,8 +1,11 @@
 {
   "web": {
     "auth": {
+      "_context_mfa_required": "Page heading shown when user must complete MFA to proceed",
       "mfa_required": "Vérification MFA requise",
+      "_context_mfa_verification_required": "Explanatory text below the heading",
       "mfa_verification_required": "Vérification MFA requise pour accéder à votre compte",
+      "_context_complete_mfa_verification": "Primary button text to submit MFA verification",
       "complete_mfa_verification": "Compléter la vérification MFA",
       "security": {
         "_README": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md",
@@ -65,6 +68,7 @@
         "webauthn": "Biométrique"
       },
       "magicLink": {
+        "_context": "Passwordless authentication via email link",
         "title": "Connexion par courriel",
         "description": "Nous vous enverrons un lien de connexion sécurisé",
         "emailPlaceholder": "Saisissez votre courriel",
@@ -104,6 +108,7 @@
         "try-password-reset": "Vous pouvez réinitialiser votre mot de passe à la place"
       },
       "sessions": {
+        "_context": "User's logged-in devices/browsers management page",
         "title": "Sessions actives",
         "current": "Session actuelle",
         "other": "Autres sessions",
