@@ -5,7 +5,7 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import { useMetadata } from '@/composables/useMetadata';
   import type { Metadata, MetadataDetails } from '@/schemas/models';
-  import { ref } from 'vue';
+  import { ref, onMounted, onBeforeUnmount } from 'vue';
 
   const { t } = useI18n();
 
@@ -20,6 +20,7 @@
 
   const showConfirmation = ref(false);
   const isHovered = ref(false);
+  const bounceInterval = ref<ReturnType<typeof setInterval> | null>(null);
 
   // Add hover effect for the burn icon
   const startBounce = () => {
@@ -30,7 +31,16 @@
   };
 
   // Trigger bounce animation periodically
-  setInterval(startBounce, 5000);
+  onMounted(() => {
+    bounceInterval.value = setInterval(startBounce, 5000);
+  });
+
+  // Clean up interval on component unmount
+  onBeforeUnmount(() => {
+    if (bounceInterval.value) {
+      clearInterval(bounceInterval.value);
+    }
+  });
 </script>
 
 <template>
