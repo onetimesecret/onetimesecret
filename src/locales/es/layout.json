@@ -1,31 +1,31 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Seguridad",
+      "learn-about-our-security-measures": "Conoce nuestras medidas de seguridad",
+      "view-our-terms-and-conditions": "Ver nuestros Términos y Condiciones",
+      "terms": "Términos",
+      "privacy": "Privacidad",
+      "contact": "Contacto",
+      "support": "Soporte",
+      "legals": "Legal",
+      "read-our-privacy-policy": "Lee nuestra Política de Privacidad",
+      "check-our-service-status": "Verifica el estado de nuestro servicio",
+      "explore-our-api-documentation": "Explora nuestra documentación de API",
+      "docs": "Documentación",
+      "access-our-documentation": "Accede a nuestra documentación",
+      "view-our-source-code-on-github": "Ver nuestro código fuente en GitHub",
+      "resources": "Recursos",
+      "blog": "Blog",
+      "read-our-latest-blog-posts": "Lee nuestras últimas publicaciones de blog",
+      "view-our-subscription-pricing": "Ver nuestros precios de suscripción",
+      "learn-about-our-company": "Conoce nuestra empresa",
+      "company": "Empresa"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Facturación",
+      "billingOverview": "Resumen",
+      "organizations": "Organizaciones"
     },
     "site": {
       "website-version": "Versión del Sitio Web"
