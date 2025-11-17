@@ -98,7 +98,7 @@
   },
   "devDependencies": {
     "@eslint/js": "9.26.0",
-    "@intlify/devtools-types": "11.1.5",
+    "@intlify/devtools-types": "11.1.12",
     "@intlify/eslint-plugin-vue-i18n": "3.2.0",
     "@pinia/testing": "1.0.1",
     "@playwright/test": "1.52.0",
