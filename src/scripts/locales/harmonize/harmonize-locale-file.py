@@ -128,7 +128,9 @@ def harmonize_file(
 def get_relative_path(path: Path) -> str:
     """Get path relative to current working directory."""
     try:
-        return str(path.relative_to(Path.cwd()))
+        # Resolve to absolute path first to clean up any ../.. patterns
+        resolved = path.resolve()
+        return str(resolved.relative_to(Path.cwd().resolve()))
     except ValueError:
         # If path is not relative to cwd, return as-is
         return str(path)
@@ -183,6 +185,7 @@ def main():
     # Process files
     error_count = 0
     success_count = 0
+    failed_files = []
 
     for locale_file in sorted(locale_dir.glob("*.json")):
         if not locale_file.is_file():
@@ -216,8 +219,9 @@ def main():
             success_count += 1
 
         except Exception as e:
+            rel_path = get_relative_path(locale_file)
+            failed_files.append(rel_path)
             if args.verbose:
-                rel_path = get_relative_path(locale_file)
                 print(f"Failed repairing {rel_path}: {e}", file=sys.stderr)
             error_count += 1
 
@@ -227,7 +231,9 @@ def main():
 
     if error_count > 0:
         if not args.quiet:
-            print(f"Failed to harmonize {error_count} file(s)", file=sys.stderr)
+            print(f"Failed to harmonize {error_count} file(s):", file=sys.stderr)
+            for failed_file in failed_files:
+                print(f"  {failed_file}", file=sys.stderr)
         return 1
 
     return 0
