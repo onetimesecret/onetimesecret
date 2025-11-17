@@ -24,6 +24,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       # Reset registry to clear any apps loaded during spec_helper
       Onetime::Application::Registry.reset!
 
+      # Boot application (Redis mocking is handled globally by integration_spec_helper.rb)
       Onetime.boot! :test
 
       # Prepare registry with basic mode ENV set

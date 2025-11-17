@@ -13,6 +13,7 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
     ENV['RACK_ENV'] = 'test'
     ENV['AUTHENTICATION_MODE'] = 'advanced'
 
+    # Boot application (Redis mocking is handled globally by integration_spec_helper.rb)
     Onetime.boot! :test
 
     # Prepare the application registry
