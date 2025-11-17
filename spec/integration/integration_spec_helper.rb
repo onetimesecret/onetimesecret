@@ -51,6 +51,28 @@ class FakeRedis::Redis
       'PONG'
     end
   end
+
+  # Add watch method for optimistic locking support
+  # In tests, we can make this a no-op since we're not testing concurrent access
+  unless method_defined?(:watch)
+    def watch(*keys)
+      # FakeRedis doesn't support WATCH for optimistic locking,
+      # but we provide a no-op implementation for test compatibility
+      if block_given?
+        yield
+        'OK'
+      else
+        'OK'
+      end
+    end
+  end
+
+  # Add unwatch method (companion to watch)
+  unless method_defined?(:unwatch)
+    def unwatch
+      'OK'
+    end
+  end
 end
 
 # Global stub for Redis.new to return FakeRedis in test environment
