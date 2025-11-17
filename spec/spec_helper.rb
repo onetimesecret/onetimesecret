@@ -32,6 +32,9 @@ require 'yaml'
 require 'tempfile'
 require 'fileutils'
 
+# Configure FakeRedis for testing
+require 'fakeredis'
+
 # Path setup - do one thing well
 base_path = File.expand_path('..', __dir__)
 apps_root = File.join(base_path, 'apps').freeze
@@ -73,6 +76,14 @@ RSpec.configure do |config|
 
   config.mock_with :rspec do |mocks|
     mocks.verify_partial_doubles = true
+  end
+
+  # Configure FakeRedis for all tests (except where explicitly disabled)
+  config.before(:each) do
+    # Ensure FakeRedis is used for all Redis connections
+    # FakeRedis automatically replaces Redis when required
+    fake_redis = Redis.new
+    allow(Familia).to receive(:dbclient).and_return(fake_redis)
   end
 
   config.filter_run_when_matching :focus

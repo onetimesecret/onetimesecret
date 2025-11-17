@@ -96,6 +96,34 @@ RSpec.configure do |config|
     # Reset exit code before each test
     @last_exit_code = nil
 
+    # Mock Redis connection to prevent actual Redis connections
+    redis_mock = double('Redis')
+    allow(redis_mock).to receive_messages(
+      get: nil,
+      set: nil,
+      setex: nil,
+      del: nil,
+      exists: false,
+      keys: [],
+      scan: [0, []],
+      scan_each: [],
+      ttl: -1,
+      expire: true,
+      incr: 1,
+      decr: 0,
+      incrby: 1,
+      decrby: 0,
+      lpush: 1,
+      rpush: 1,
+      lpop: nil,
+      rpop: nil,
+      lrange: [],
+      llen: 0,
+      flushdb: true,
+      ping: 'PONG'
+    )
+    allow(Familia).to receive(:dbclient).and_return(redis_mock)
+
     # Stub out model classes that tests will mock
     # Use Module/Class that allows method stubbing via RSpec
     unless defined?(Onetime::Models)
@@ -126,8 +154,13 @@ RSpec.configure do |config|
     end
 
     unless defined?(Onetime::Migration)
-      # Create a simple class that can be mocked by RSpec
-      stub_const('Onetime::Migration', Class.new)
+      # Create a migration class with a run method that can be mocked
+      migration_class = Class.new do
+        def self.run(run: false)
+          true
+        end
+      end
+      stub_const('Onetime::Migration', migration_class)
     end
 
     # Prevent actual application boot by default

@@ -19,7 +19,7 @@ source 'https://rubygems.org/'
 # ====================================
 
 gem 'otto', git: 'https://github.com/delano/otto'
-gem 'rhales', git: 'https://github.com/onetimesecret/rhales'
+gem 'rhales', path: '/tmp/rhales-local'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
 gem 'rodauth-tools', git: 'https://github.com/delano/rodauth-tools'
