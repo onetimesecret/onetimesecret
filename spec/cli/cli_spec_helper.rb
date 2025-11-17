@@ -96,6 +96,11 @@ RSpec.configure do |config|
     # Reset exit code before each test
     @last_exit_code = nil
 
+    # Mock Familia/Redis to prevent actual database connections
+    fake_redis_instances = double('Instances', size: 0, all: [])
+    allow(fake_redis_instances).to receive(:size).and_return(0)
+    allow(fake_redis_instances).to receive(:all).and_return([])
+
     # Stub out model classes that tests will mock
     # Use Module/Class that allows method stubbing via RSpec
     unless defined?(Onetime::Models)
@@ -111,6 +116,21 @@ RSpec.configure do |config|
       stub_const('Onetime::Models::Domain', domain_class)
     end
 
+    # Mock Onetime::CustomDomain (Familia model) for CLI tests
+    unless defined?(Onetime::CustomDomain)
+      custom_domain_class = Class.new do
+        def self.instances
+          @instances ||= double('Instances', size: 0, all: [])
+        end
+        def self.load(domainid); end
+        def self.load_by_display_domain(domain); end
+      end
+      stub_const('Onetime::CustomDomain', custom_domain_class)
+    else
+      # If already defined, just mock the instances method
+      allow(Onetime::CustomDomain).to receive(:instances).and_return(fake_redis_instances)
+    end
+
     unless defined?(Onetime::Models::Organization)
       org_class = Class.new do
         def self.load(_id); end
@@ -123,6 +143,20 @@ RSpec.configure do |config|
         def self.all; end
       end
       stub_const('Onetime::Models::Customer', customer_class)
+    end
+
+    # Mock Onetime::Customer (Familia model) for CLI tests
+    unless defined?(Onetime::Customer)
+      customer_familia_class = Class.new do
+        def self.instances
+          @instances ||= double('Instances', size: 0, all: [])
+        end
+        def self.load(custid); end
+      end
+      stub_const('Onetime::Customer', customer_familia_class)
+    else
+      # If already defined, just mock the instances method
+      allow(Onetime::Customer).to receive(:instances).and_return(fake_redis_instances)
     end
 
     unless defined?(Onetime::Migration)

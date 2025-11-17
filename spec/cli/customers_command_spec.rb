@@ -30,34 +30,54 @@ RSpec.describe 'Customers Command', type: :cli do
   end
 
   before do
-    allow(Onetime::Models::Customer).to receive(:all).and_return([customer1, customer2])
+    # Mock Onetime::Customer (Familia model) instances
+    instances_double = double('instances')
+    allow(instances_double).to receive(:size).and_return(2)
+    allow(instances_double).to receive(:all).and_return(['customer1@example.com', 'customer2@example.com'])
+    allow(Onetime::Customer).to receive(:instances).and_return(instances_double)
+    allow(Onetime::Customer).to receive(:load).with('customer1@example.com').and_return(customer1)
+    allow(Onetime::Customer).to receive(:load).with('customer2@example.com').and_return(customer2)
   end
 
   describe '--list option' do
     it 'lists customer domains sorted by count' do
       output = run_cli_command_quietly('customers', '--list')
-      expect(output[:stdout]).to include('Customer Domains')
+      expect(output[:stdout]).to include('2 customers')
+      expect(output[:stdout]).to include('example.com')
     end
 
     it 'handles customers with no domains' do
-      allow(Onetime::Models::Customer).to receive(:all).and_return([customer2])
+      instances_double = double('instances')
+      allow(instances_double).to receive(:size).and_return(1)
+      allow(instances_double).to receive(:all).and_return(['customer2@example.com'])
+      allow(Onetime::Customer).to receive(:instances).and_return(instances_double)
+      allow(Onetime::Customer).to receive(:load).with('customer2@example.com').and_return(customer2)
 
       output = run_cli_command_quietly('customers', '--list')
-      expect(output[:stdout]).to include('Customer Domains')
+      expect(output[:stdout]).to include('1 customers')
     end
   end
 
   describe '--check option' do
     it 'shows customers where custid and email do not match' do
-      allow(Onetime::Models::Customer).to receive(:all).and_return([mismatched_customer])
+      instances_double = double('instances')
+      allow(instances_double).to receive(:size).and_return(1)
+      allow(instances_double).to receive(:all).and_return(['old@example.com'])
+      allow(Onetime::Customer).to receive(:instances).and_return(instances_double)
+      allow(Onetime::Customer).to receive(:load).with('old@example.com').and_return(mismatched_customer)
 
       output = run_cli_command_quietly('customers', '--check')
-      expect(output[:stdout]).to include('Customer Record Validation')
+      expect(output[:stdout]).to include('1 customers')
       expect(output[:stdout]).to include('CustID and email mismatch')
     end
 
     it 'handles nil customers safely' do
-      allow(Onetime::Models::Customer).to receive(:all).and_return([nil, mismatched_customer])
+      instances_double = double('instances')
+      allow(instances_double).to receive(:size).and_return(2)
+      allow(instances_double).to receive(:all).and_return(['nil', 'old@example.com'])
+      allow(Onetime::Customer).to receive(:instances).and_return(instances_double)
+      allow(Onetime::Customer).to receive(:load).with('nil').and_return(nil)
+      allow(Onetime::Customer).to receive(:load).with('old@example.com').and_return(mismatched_customer)
 
       expect {
         run_cli_command_quietly('customers', '--check')
@@ -65,7 +85,11 @@ RSpec.describe 'Customers Command', type: :cli do
     end
 
     it 'obscures email addresses in output' do
-      allow(Onetime::Models::Customer).to receive(:all).and_return([mismatched_customer])
+      instances_double = double('instances')
+      allow(instances_double).to receive(:size).and_return(1)
+      allow(instances_double).to receive(:all).and_return(['old@example.com'])
+      allow(Onetime::Customer).to receive(:instances).and_return(instances_double)
+      allow(Onetime::Customer).to receive(:load).with('old@example.com').and_return(mismatched_customer)
       allow(OT::Utils).to receive(:obscure_email).and_call_original
 
       output = run_cli_command_quietly('customers', '--check')
@@ -73,7 +97,12 @@ RSpec.describe 'Customers Command', type: :cli do
     end
 
     it 'reports when all customers match' do
-      allow(Onetime::Models::Customer).to receive(:all).and_return([customer1])
+      instances_double = double('instances')
+      allow(instances_double).to receive(:size).and_return(2)
+      allow(instances_double).to receive(:all).and_return(['customer1@example.com', 'customer2@example.com'])
+      allow(Onetime::Customer).to receive(:instances).and_return(instances_double)
+      allow(Onetime::Customer).to receive(:load).with('customer1@example.com').and_return(customer1)
+      allow(Onetime::Customer).to receive(:load).with('customer2@example.com').and_return(customer2)
 
       output = run_cli_command_quietly('customers', '--check')
       expect(output[:stdout]).to include('All customers have matching custid and email')

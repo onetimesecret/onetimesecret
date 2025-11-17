@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'spec_helper'
+require_relative 'integration_spec_helper'
 require 'rack/test'
 
 RSpec.describe 'Advanced Authentication Mode', type: :integration do
