@@ -67,6 +67,8 @@ site:
         icon:
           collection: heroicon
           name: mail
+
+features:
   domains:
     enabled: false
     # The default domain used for link URLs. When not set or empty,
@@ -77,7 +79,6 @@ site:
     # application itself is responsible for handling multiple domains.
     cluster:
       type: <%= ENV['CLUSTER_TYPE'] || nil %>
-features:
 
 redis:
   uri: 'redis://127.0.0.1:2121/0'

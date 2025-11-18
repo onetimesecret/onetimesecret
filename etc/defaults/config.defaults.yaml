@@ -158,6 +158,8 @@ site:
   regions:
     enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
     current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
+
+features:
   domains:
     enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>
     # The default domain used for link URLs. When not set or empty,
@@ -188,7 +190,6 @@ site:
       listen_address: <%= ENV['ACME_LISTEN_ADDRESS'] || '127.0.0.1' %>
       # Port for the ACME endpoint (Caddy will call this)
       port: <%= ENV['ACME_PORT'] || '12020' %>
-features:
 
 # Main Database Configuration
 redis:

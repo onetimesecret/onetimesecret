@@ -68,18 +68,23 @@ site:
     enabled: any(str(), bool())
     current_jurisdiction: str(required=False)
     jurisdictions: list(include('jurisdiction'), required=False)
+
+features:
   domains:
     enabled: any()
     default: str(required=False)
+    strategy: str(required=False)
+    strict_strategy: bool(required=False)
     cluster:
-      type: str(required=False)
       api_key: str(required=False)
       cluster_ip: str(required=False)
       cluster_host: str(required=False)
       cluster_name: str(required=False)
       vhost_target: str(required=False)
-
-features:
+    acme:
+      enabled: any(str(), bool(), required=False)
+      listen_address: str(required=False)
+      port: any(str(), int(), required=False)
 
 
 redis:
