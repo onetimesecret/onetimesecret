@@ -19,26 +19,26 @@ module Onetime
         @config = config
       end
 
-      def validate_ownership(custom_domain)
+      def validate_ownership(_custom_domain)
         # With Caddy on-demand, we don't validate ownership ourselves.
         # Caddy will perform the ACME challenge when it receives a TLS request.
         {
           validated: true,
           message: 'Validation delegated to Caddy on-demand TLS',
-          mode: 'caddy_on_demand'
+          mode: 'caddy_on_demand',
         }
       end
 
-      def request_certificate(custom_domain)
+      def request_certificate(_custom_domain)
         # Caddy handles certificate requests automatically via on-demand TLS
         {
           status: 'delegated',
           message: 'Certificate issuance delegated to Caddy',
-          mode: 'caddy_on_demand'
+          mode: 'caddy_on_demand',
         }
       end
 
-      def check_status(custom_domain)
+      def check_status(_custom_domain)
         # We can't easily check Caddy's certificate status from here,
         # so we just report that the domain is ready if it's in our database
         {
@@ -46,7 +46,7 @@ module Onetime
           message: 'Domain registered for Caddy on-demand TLS',
           mode: 'caddy_on_demand',
           has_ssl: nil, # Unknown - managed by Caddy
-          is_resolving: nil # Unknown - managed by Caddy
+          is_resolving: nil, # Unknown - managed by Caddy
         }
       end
     end

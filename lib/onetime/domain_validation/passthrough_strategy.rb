@@ -15,29 +15,29 @@ module Onetime
         @config = config
       end
 
-      def validate_ownership(custom_domain)
+      def validate_ownership(_custom_domain)
         {
           validated: true,
           message: 'External validation (passthrough mode)',
-          mode: 'passthrough'
+          mode: 'passthrough',
         }
       end
 
-      def request_certificate(custom_domain)
+      def request_certificate(_custom_domain)
         {
           status: 'external',
           message: 'Certificate management handled externally',
-          mode: 'passthrough'
+          mode: 'passthrough',
         }
       end
 
-      def check_status(custom_domain)
+      def check_status(_custom_domain)
         {
           ready: true,
           message: 'External management (passthrough mode)',
           mode: 'passthrough',
           has_ssl: true, # Assumed
-          is_resolving: true # Assumed
+          is_resolving: true, # Assumed
         }
       end
     end

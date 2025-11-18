@@ -1,6 +1,7 @@
 # lib/onetime/domain_validation/strategy.rb
 #
 # frozen_string_literal: true
+
 #
 # Domain Validation Strategy Pattern
 #
@@ -33,7 +34,7 @@ module Onetime
       # @raise [ArgumentError] If strategy is unknown and strict mode is enabled
       def self.for_config(config)
         strategy_name = config.dig('site', 'domains', 'strategy')&.to_s || 'approximated'
-        strict_mode = config.dig('site', 'domains', 'strict_strategy') == true
+        strict_mode   = config.dig('site', 'domains', 'strict_strategy') == true
 
         strategy = case strategy_name.downcase
                    when 'approximated'
@@ -60,11 +61,11 @@ module Onetime
       def self.handle_unknown_strategy(strategy_name, strict_mode, config)
         if strict_mode
           raise ArgumentError, "Unknown domain validation strategy: '#{strategy_name}'. " \
-                               "Valid options: approximated, passthrough, caddy_on_demand"
+                               'Valid options: approximated, passthrough, caddy_on_demand'
         end
 
         OT.le "[DomainValidation] Unknown strategy: '#{strategy_name}', " \
-              "falling back to passthrough mode. Set strict_strategy: true to fail instead."
+              'falling back to passthrough mode. Set strict_strategy: true to fail instead.'
         PassthroughStrategy.new(config)
       end
     end

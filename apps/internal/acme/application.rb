@@ -1,6 +1,7 @@
 # apps/internal/acme/application.rb
 #
 # frozen_string_literal: true
+
 #
 # Internal ACME Application
 #
@@ -36,20 +37,20 @@ module Internal
 
         if domain.to_s.empty?
           OT.ld '[Internal::ACME] Missing domain parameter'
-          res.status = 400
+          res.status          = 400
           res['content-type'] = 'text/plain'
-          res.body = ['Bad Request - domain parameter required']
+          res.body            = ['Bad Request - domain parameter required']
           return
         end
 
         allowed = Application.domain_allowed?(domain)
-        status = allowed ? 200 : 403
+        status  = allowed ? 200 : 403
 
         OT.info "[Internal::ACME] Domain check: #{domain} -> #{status}"
 
-        res.status = status
+        res.status          = status
         res['content-type'] = 'text/plain'
-        res.body = [allowed ? 'OK' : 'Forbidden']
+        res.body            = [allowed ? 'OK' : 'Forbidden']
       end
     end
 
@@ -92,8 +93,8 @@ module Internal
           # This proves the customer actually owns the domain before Caddy issues a cert.
           # The ACME HTTP challenge (handled by Caddy) is separate from DNS ownership proof.
           custom_domain.ready?
-        rescue StandardError => e
-          OT.le "[Internal::ACME] Error checking domain #{domain}: #{e.message}"
+        rescue StandardError => ex
+          OT.le "[Internal::ACME] Error checking domain #{domain}: #{ex.message}"
           false
         end
       end

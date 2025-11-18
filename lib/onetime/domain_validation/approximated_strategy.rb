@@ -31,29 +31,29 @@ module Onetime
         res = Onetime::Cluster::Approximated.check_records_match_exactly(api_key, records)
 
         if res.code == 200
-          payload = res.parsed_response
+          payload       = res.parsed_response
           match_records = payload['records']
-          found_match = match_records.any? { |record| record['match'] == true }
+          found_match   = match_records.any? { |record| record['match'] == true }
 
           {
             validated: found_match,
             message: found_match ? 'TXT record validated' : 'TXT record not found or mismatch',
-            data: match_records
+            data: match_records,
           }
         else
           {
             validated: false,
             message: "Validation check failed: #{res.code}",
-            error: res.parsed_response
+            error: res.parsed_response,
           }
         end
-      rescue StandardError => e
-        OT.le "[ApproximatedStrategy] Error validating #{custom_domain.display_domain}: #{e.message}"
-        { validated: false, message: "Error: #{e.message}" }
+      rescue StandardError => ex
+        OT.le "[ApproximatedStrategy] Error validating #{custom_domain.display_domain}: #{ex.message}"
+        { validated: false, message: "Error: #{ex.message}" }
       end
 
       def request_certificate(custom_domain)
-        api_key = Onetime::Cluster::Features.api_key
+        api_key      = Onetime::Cluster::Features.api_key
         vhost_target = Onetime::Cluster::Features.vhost_target
 
         if api_key.to_s.empty?
@@ -64,7 +64,7 @@ module Onetime
           api_key,
           custom_domain.display_domain,
           vhost_target,
-          '443'
+          '443',
         )
 
         if res.code == 200
@@ -72,18 +72,18 @@ module Onetime
           {
             status: 'requested',
             message: 'Virtual host created',
-            data: payload['data']
+            data: payload['data'],
           }
         else
           {
             status: 'error',
             message: "Failed to create vhost: #{res.code}",
-            error: res.parsed_response
+            error: res.parsed_response,
           }
         end
-      rescue HTTParty::ResponseError => e
-        OT.le "[ApproximatedStrategy] Error requesting cert for #{custom_domain.display_domain}: #{e.message}"
-        { status: 'error', message: "Error: #{e.message}" }
+      rescue HTTParty::ResponseError => ex
+        OT.le "[ApproximatedStrategy] Error requesting cert for #{custom_domain.display_domain}: #{ex.message}"
+        { status: 'error', message: "Error: #{ex.message}" }
       end
 
       def check_status(custom_domain)
@@ -95,12 +95,12 @@ module Onetime
 
         res = Onetime::Cluster::Approximated.get_vhost_by_incoming_address(
           api_key,
-          custom_domain.display_domain
+          custom_domain.display_domain,
         )
 
         if res.code == 200
           payload = res.parsed_response
-          data = payload['data']
+          data    = payload['data']
 
           {
             ready: data['status'] == 'ACTIVE_SSL',
@@ -108,18 +108,18 @@ module Onetime
             is_resolving: data['is_resolving'],
             status: data['status'],
             status_message: data['status_message'],
-            data: data
+            data: data,
           }
         else
           {
             ready: false,
             message: "Status check failed: #{res.code}",
-            error: res.parsed_response
+            error: res.parsed_response,
           }
         end
-      rescue HTTParty::ResponseError => e
-        OT.le "[ApproximatedStrategy] Error checking status for #{custom_domain.display_domain}: #{e.message}"
-        { ready: false, message: "Error: #{e.message}" }
+      rescue HTTParty::ResponseError => ex
+        OT.le "[ApproximatedStrategy] Error checking status for #{custom_domain.display_domain}: #{ex.message}"
+        { ready: false, message: "Error: #{ex.message}" }
       end
     end
   end
