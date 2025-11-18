@@ -11,8 +11,8 @@ This document provides a complete knowledge transfer for the Tailwind CSS v3 →
 3. [Configuration Migration](#configuration-migration)
 4. [Breaking Changes](#breaking-changes)
 5. [How to Use Custom Theme](#how-to-use-custom-theme)
-6. [Troubleshooting](#troubleshooting)
-7. [Rolling Back](#rolling-back)
+6. [Auditing CSS Class Usage](#auditing-css-class-usage)
+7. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -315,6 +315,138 @@ We have 4 custom color palettes (50-950 shades each):
 
 ---
 
+## Auditing CSS Class Usage
+
+Before or during a Tailwind migration, you need to audit your codebase to identify all custom class usage. This helps ensure nothing breaks during the upgrade.
+
+### 1. Find All Custom Brand Color Usage
+
+**Search for brand color classes**:
+```bash
+# Find all brand color usage in templates
+grep -r "brand-[0-9]" src/ --include="*.vue" --include="*.html" --include="*.jsx" --include="*.tsx"
+
+# Find specific color variants
+grep -r "bg-brand\|text-brand\|border-brand\|ring-brand" src/ --include="*.vue"
+```
+
+**Expected results**: Classes like `bg-brand-500`, `text-brandcomp-600`, `hover:bg-branddim-700`
+
+**Count usage by color palette**:
+```bash
+grep -roh "brand-[0-9]\+" src/ | sort | uniq -c | sort -rn
+grep -roh "branddim-[0-9]\+" src/ | sort | uniq -c | sort -rn
+grep -roh "brandcomp-[0-9]\+" src/ | sort | uniq -c | sort -rn
+grep -roh "brandcompdim-[0-9]\+" src/ | sort | uniq -c | sort -rn
+```
+
+### 2. Find All Custom Animation Usage
+
+**Search for custom animations**:
+```bash
+# Find animate-* classes
+grep -r "animate-" src/ --include="*.vue" --include="*.html"
+
+# Find specific custom animations
+grep -r "animate-kitt-rider\|animate-gradient-x\|animate-spin-slow" src/
+```
+
+### 3. Find @apply Directives in Components
+
+**Critical for v4**: `@apply` in scoped styles needs `@reference` directive
+
+```bash
+# Find all @apply usage in Vue scoped styles
+grep -r "@apply" src/ --include="*.vue" -B 5 | grep -E "(<style scoped>|@apply)"
+
+# Get list of files with @apply in scoped styles
+grep -l "@apply" src/**/*.vue | xargs grep -l "scoped"
+```
+
+**Action needed**: Every file found needs `@reference "../../assets/style.css"` added
+
+### 4. Find All font-brand Usage
+
+**Search for brand font usage**:
+```bash
+# In templates
+grep -r "font-brand" src/ --include="*.vue" --include="*.html"
+
+# In CSS files
+grep -r "font-family.*brand" src/ --include="*.css" --include="*.vue"
+```
+
+### 5. Identify Dynamically Generated Classes
+
+**Check for safelist requirements**:
+```bash
+# Find template literals or computed classes
+grep -r '`.*class.*`' src/ --include="*.vue" --include="*.ts" --include="*.js"
+
+# Find :class bindings
+grep -r ':class=' src/ --include="*.vue"
+```
+
+**Current safelist** (in `tailwind.config.ts`):
+- `rounded-l-*` variants (sm, md, lg, xl, 2xl, 3xl, full)
+- `rounded-r-*` variants (sm, md, lg, xl, 2xl, 3xl, full)
+
+### 6. Audit Results from This Migration
+
+**Custom colors found**:
+- 4 color palettes × 11 shades = 44 custom colors
+- Used in: `SettingsModal.vue` (ring-brand-500), and throughout templates
+
+**Custom animations found**:
+- `animate-spin-slow` (2s spin)
+- `animate-kitt-rider` (Knight Rider effect)
+- `animate-gradient-x` (gradient animation)
+
+**@apply usage found**:
+- `src/components/modals/SettingsModal.vue:281` - Required `@reference` fix
+
+**Theme functions found**:
+- `theme('fontFamily.serif')` in `src/assets/style.css`
+- Still works in v4 within CSS files
+
+### 7. Production CSS Bundle Analysis
+
+**Before migration** (v3.4.17):
+```bash
+pnpm run build
+# Check bundle size in output
+```
+
+**After migration** (v4.1.17):
+- CSS bundle: **129.55 kB** (gzipped: **19.38 kB**)
+
+**Compare sizes**:
+```bash
+# Build and save output
+pnpm run build 2>&1 | grep "style.*\.css"
+
+# Check for significant size changes (>10% increase/decrease)
+```
+
+### 8. Quick Migration Audit Commands
+
+**Run all checks at once**:
+```bash
+echo "=== Custom Colors ==="
+grep -roh "\(brand\|branddim\|brandcomp\|brandcompdim\)-[0-9]\+" src/ | sort | uniq -c | sort -rn
+
+echo -e "\n=== Custom Animations ==="
+grep -roh "animate-\(kitt-rider\|gradient-x\|spin-slow\)" src/ | sort | uniq -c
+
+echo -e "\n=== @apply in Scoped Styles ==="
+grep -l "@apply" src/**/*.vue | xargs grep -l "scoped" | wc -l
+
+echo -e "\n=== Brand Font Usage ==="
+grep -roh "font-brand" src/ | wc -l
+```
+
+---
+
 ## Troubleshooting
 
 ### Build Fails: "Cannot apply unknown utility class"
@@ -387,61 +519,6 @@ document.documentElement.classList.toggle('dark');
 2. Use utilities:
 ```html
 <div class="bg-white dark:bg-gray-800">
-```
-
----
-
-## Rolling Back
-
-If you need to revert to Tailwind v3:
-
-### 1. Restore Packages
-
-```bash
-pnpm add -D \
-  tailwindcss@3.4.17 \
-  autoprefixer@10.4.21 \
-  prettier-plugin-tailwindcss@0.6.11 \
-  eslint-plugin-tailwindcss@3.18.2
-
-pnpm remove @tailwindcss/postcss
-```
-
-### 2. Restore PostCSS Config
-
-```javascript
-import tailwindcss from 'tailwindcss';  // Not '@tailwindcss/postcss'
-import autoprefixer from 'autoprefixer';
-
-export default {
-  plugins: [tailwindcss, autoprefixer]
-};
-```
-
-### 3. Restore CSS File
-
-```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  html {
-    font-family: theme('fontFamily.serif');
-  }
-  /* ... rest of base styles ... */
-}
-```
-
-### 4. Restore Full `tailwind.config.ts`
-
-See git history: `git show HEAD~1:tailwind.config.ts`
-
-### 5. Remove Vue `@reference` Directives
-
-Find and remove:
-```bash
-grep -r "@reference" src/components --include="*.vue"
 ```
 
 ---
