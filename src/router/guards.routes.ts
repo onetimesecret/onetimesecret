@@ -187,30 +187,42 @@ async function validateAuthentication(
   store: AuthValidator, // tried AuthStore, etc
   route: RouteLocationNormalized
 ): Promise<boolean> {
-  console.group('🔍 validateAuthentication');
-  console.log('Route requires auth:', requiresAuthentication(route));
-  console.log('Store needsCheck:', store.needsCheck);
-  console.log('Store isAuthenticated:', store.isAuthenticated);
+  if (import.meta.env.DEV) {
+    console.group('🔍 validateAuthentication');
+    console.log('Route requires auth:', requiresAuthentication(route));
+    console.log('Store needsCheck:', store.needsCheck);
+    console.log('Store isAuthenticated:', store.isAuthenticated);
+  }
 
   if (!requiresAuthentication(route)) {
-    console.log('Route does not require auth, returning true');
-    console.groupEnd();
+    if (import.meta.env.DEV) {
+      console.log('Route does not require auth, returning true');
+      console.groupEnd();
+    }
     return true;
   }
 
   if (store.needsCheck) {
-    console.log('Needs check, calling checkWindowStatus...');
+    if (import.meta.env.DEV) {
+      console.log('Needs check, calling checkWindowStatus...');
+    }
     const authStatus = await store.checkWindowStatus();
-    console.log('checkWindowStatus returned:', authStatus);
+    if (import.meta.env.DEV) {
+      console.log('checkWindowStatus returned:', authStatus);
+    }
     const result = authStatus ?? false;
-    console.log('Final result (after coalescing):', result);
-    console.groupEnd();
+    if (import.meta.env.DEV) {
+      console.log('Final result (after coalescing):', result);
+      console.groupEnd();
+    }
     return result;
   }
 
   const result = store.isAuthenticated ?? false;
-  console.log('Using cached auth state:', result);
-  console.groupEnd();
+  if (import.meta.env.DEV) {
+    console.log('Using cached auth state:', result);
+    console.groupEnd();
+  }
   return result;
 }
 

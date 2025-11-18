@@ -36,16 +36,11 @@ import type { Plugin } from 'rollup';
 
 /**
  * Extend Vite's ImportMetaEnv interface to include our custom environment variables
+ * Note: Vite already provides BASE_URL, MODE, DEV, PROD, SSR in ImportMeta.env
  */
 interface ImportMetaEnv {
   readonly VITE_AUTH_URL?: string
-  // Include other Vite default env vars
   readonly VITE_APP_TITLE?: string
-  readonly MODE: string
-  readonly BASE_URL: string
-  readonly PROD: boolean
-  readonly DEV: boolean
-  readonly SSR: boolean
 }
 
 /**

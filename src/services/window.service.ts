@@ -23,7 +23,7 @@ export const WindowService = {
     const value = state[key];
 
     // Only log for auth-related keys to avoid spam
-    if (key === 'authenticated' || key === 'awaiting_mfa') {
+    if (import.meta.env.DEV && (key === 'authenticated' || key === 'awaiting_mfa')) {
       console.log(`🪟 WindowService.get('${String(key)}'):`, value);
     }
 
