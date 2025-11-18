@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "Suverenost podatkov in regionalna izolacija",
+      "data-sovereignty-description": "Vaši podatki se nahajajo izključno v vaši izbrani regiji in se nikoli ne prenašajo preko regij",
+      "separate-environments-explanation": "Vsaka regija deluje kot popolnoma neodvisno okolje z lastno infrastrukturo, šifrirnimi ključi in shranjevanjem podatkov",
+      "no-data-transfer-policy": "Vzdrževamo strogo politiko: podatki strank se nikoli ne prenašajo med regijami pod nobenim pogojem",
+      "switching-creates-new-account": "Pomembno: Preklop v drugo regijo ustvari nov račun. Vaši podatki ostanejo v vaši izvirni regiji.",
+      "your-region": "Vaša regija",
+      "your-current-region": "Vaša trenutna regija",
+      "active": "Aktivno",
+      "explore-other-regions": "Raziščite druge razpoložljive regije",
+      "why-it-matters": "Zakaj je suverenost podatkov pomembna",
+      "trust-title": "Preglednost in nadzor",
+      "trust-description": "Veste točno, kje se nahajajo vaši podatki in katere zakone urejajo njihovo zaščito.",
+      "privacy-title": "Pravice do zasebnosti",
+      "privacy-description": "Zagotovite, da se vaše osebne informacije obravnavajo v skladu z zakoni o zasebnosti vaše države in predpisi, kar preprečuje nepooblaščen dostop ali zlorabo.",
+      "compliance-title": "Skladnost s predpisi",
+      "compliance-description": "Izpolnite zahteve GDPR, HIPAA, CCPA in druge regionalne zahteve za zaščito podatkov",
+      "performance-title": "Hitrejši dostop",
+      "performance-description": "Podatki, shranjeni bliže vam, pomenijo nižjo zakasn itev in boljšo zmogljivost."
     }
   }
 }

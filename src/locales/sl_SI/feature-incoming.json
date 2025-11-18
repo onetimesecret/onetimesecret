@@ -1,17 +1,17 @@
 {
   "web": {
     "incoming": {
-      "tagline1": "Paste a password, secret message or private link below.",
-      "tagline2": "Keep sensitive info out of your email and chat logs.",
-      "secret_hint": "* A secret link only works once and then disappears forever.",
-      "incoming_button_create": "Send to Support Staff",
-      "incoming_secret_options": "Support Info",
-      "incoming_secret_placeholder": "Enter any information your support representative will need (e.g. system password)",
-      "incoming_ticket_number": "Enter Ticket #",
-      "incoming_ticket_number_hint": "You can find this in your email (e.g. 123456)",
-      "incoming_recipient_address": "Support recipient",
-      "incoming_success_message": "Your email has been sent",
-      "incoming_button_creating": ""
+      "tagline1": "Spodaj prilepite geslo, skrivno sporočilo ali zasebno povezavo.",
+      "tagline2": "Ohranite občutljive informacije izven svoje e-pošte in dnevnikov klepeta.",
+      "secret_hint": "* Skrivna povezava deluje samo enkrat in nato izgine za vedno.",
+      "incoming_button_create": "Pošlji osebju za podporo",
+      "incoming_secret_options": "Informacije za podporo",
+      "incoming_secret_placeholder": "Vnesite vse informacije, ki jih bo potreboval vaš predstavnik za podporo (npr. sistemsko geslo)",
+      "incoming_ticket_number": "Vnesite št. zahtevka",
+      "incoming_ticket_number_hint": "To lahko najdete v svoji e-pošti (npr. 123456)",
+      "incoming_recipient_address": "Prejemnik podpore",
+      "incoming_success_message": "Vaša e-pošta je bila poslana",
+      "incoming_button_creating": "Ustvarjam"
     }
   }
 }
