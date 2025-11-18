@@ -261,7 +261,6 @@ emailer:
   pass: <%= ENV['SMTP_PASSWORD'] %>
   auth: <%= ENV['SMTP_AUTH'] || nil %>
   tls: <%= ENV['SMTP_TLS'] %>
-billing: {}
 mail:
   truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp
