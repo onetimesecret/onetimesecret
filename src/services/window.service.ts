@@ -20,7 +20,14 @@ export const WindowService = {
    */
   get<K extends keyof OnetimeWindow>(key: K): OnetimeWindow[K] {
     const state = this.getState();
-    return state[key];
+    const value = state[key];
+
+    // Only log for auth-related keys to avoid spam
+    if (key === 'authenticated' || key === 'awaiting_mfa') {
+      console.log(`🪟 WindowService.get('${String(key)}'):`, value);
+    }
+
+    return value;
   },
 
   getState(): OnetimeWindow {

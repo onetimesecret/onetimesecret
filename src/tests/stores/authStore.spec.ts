@@ -625,23 +625,23 @@ describe('authStore', () => {
     });
 
     it('preserves auth state when server returns error page with authenticated=false', () => {
-      // Simulate: user was authenticated and navigated to a page
+      // Simulate: user was authenticated and navigated to a page that 500'd
       // 1. Set up stored auth state (would have been set during previous successful login)
       sessionStorage.setItem('ots_auth_state', 'true');
 
-      // 2. Set session cookie (simulates valid session)
-      document.cookie = 'sess=test_session_id; path=/;';
-
-      // 3. Server returns error page with authenticated: false
+      // 2. Server returns error page with:
+      //    - authenticated: false (error page default)
+      //    - had_valid_session: true (server checked session cookie and it was valid)
       (window as any).__ONETIME_STATE__ = {
         authenticated: false,
+        had_valid_session: true,
         cust: null,
       };
 
-      // 4. Store initializes
+      // 3. Store initializes
       store.init();
 
-      // 5. Should preserve auth state despite server saying unauthenticated
+      // 4. Should preserve auth state because server confirmed valid session
       expect(store.isAuthenticated).toBe(true);
     });
 
@@ -662,22 +662,20 @@ describe('authStore', () => {
       expect(store.isAuthenticated).toBe(false);
     });
 
-    it('respects authenticated=false when no session cookie exists', () => {
-      // Simulate: stored state exists but session expired
+    it('respects authenticated=false when server says had_valid_session=false', () => {
+      // Simulate: stored state exists but session actually expired
       sessionStorage.setItem('ots_auth_state', 'true');
 
-      // No session cookie (expired or cleared)
-      document.cookie = 'sess=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-
-      // Server says not authenticated
+      // Server says not authenticated AND no valid session
       (window as any).__ONETIME_STATE__ = {
         authenticated: false,
+        had_valid_session: false,
         cust: null,
       };
 
       store.init();
 
-      // Should trust server since session cookie is missing
+      // Should trust server since had_valid_session=false
       expect(store.isAuthenticated).toBe(false);
       // Should clean up stale stored auth state
       expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
@@ -686,10 +684,10 @@ describe('authStore', () => {
     it('respects authenticated=true from server regardless of stored state', () => {
       // Simulate: server correctly says authenticated
       sessionStorage.removeItem('ots_auth_state');
-      document.cookie = 'sess=test_session_id; path=/;';
 
       (window as any).__ONETIME_STATE__ = {
         authenticated: true,
+        had_valid_session: true,
         cust: mockCustomer,
       };
 
@@ -735,34 +733,53 @@ describe('authStore', () => {
       expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
     });
 
-    it('correctly detects session cookie presence (no partial matches)', () => {
-      // Setup: cookie that contains "sess" but isn't named "sess"
-      document.cookie = 'nonsess=value; path=/';
+    it('requires both server confirmation AND stored state to preserve auth', () => {
+      // Edge case: Server says had_valid_session=true but user cleared sessionStorage
+      // This could happen if:
+      // - User manually cleared browser storage
+      // - Different browser tab/window
+      // - SessionStorage expired in browser
 
-      // Access hasCookie via store internals or re-implement check inline
-      const result = !document.cookie.split(';')
-        .some(c => c.trim().startsWith('sess='));
+      // No stored state (user cleared it or never had it in this context)
+      sessionStorage.removeItem('ots_auth_state');
 
-      expect(result).toBe(true); // Should not match partial name
+      // Server says there was a valid session (checked httpOnly cookie server-side)
+      (window as any).__ONETIME_STATE__ = {
+        authenticated: false,
+        had_valid_session: true,
+        cust: null,
+      };
 
-      // Cleanup
-      document.cookie = 'nonsess=; expires=Thu, 01 Jan 1970 00:00:00 UTC; ' +
-        'path=/';
+      store.init();
+
+      // Should NOT preserve auth - we require BOTH server AND client agreement
+      // This is correct because we can't confirm user's expectation without stored state
+      expect(store.isAuthenticated).toBe(false);
     });
 
-    it('correctly detects actual session cookie with exact name match', () => {
-      // Setup: actual session cookie
-      document.cookie = 'sess=test-session-id; path=/';
+    it('handles MFA flow correctly - does not interfere with awaiting_mfa state', () => {
+      // MFA scenario: User passed first factor but awaiting second factor
+      // - authenticated: false (not fully authenticated yet)
+      // - awaiting_mfa: true (partial auth state)
+      // - had_valid_session: true (they do have a session)
+      // - storedAuthState: 'false' (we never stored 'true' for partial auth)
 
-      // Access hasCookie via store internals or re-implement check inline
-      const result = document.cookie.split(';')
-        .some(c => c.trim().startsWith('sess='));
+      sessionStorage.removeItem('ots_auth_state'); // No stored auth (correct for MFA flow)
 
-      expect(result).toBe(true); // Should match exact name
+      (window as any).__ONETIME_STATE__ = {
+        authenticated: false,
+        awaiting_mfa: true,
+        had_valid_session: true,
+        cust: null,
+      };
 
-      // Cleanup
-      document.cookie = 'sess=; expires=Thu, 01 Jan 1970 00:00:00 UTC; ' +
-        'path=/';
+      store.init();
+
+      // Should respect authenticated=false because:
+      // 1. authenticated=false from server (MFA not complete)
+      // 2. No stored auth state (we only store on full authentication)
+      // The recovery logic should NOT interfere with MFA flow
+      expect(store.isAuthenticated).toBe(false);
     });
   });
 
