@@ -254,6 +254,33 @@ for (const route of accountRoutes.routes) {
     : openApiPath;
   const fullPath = routePath ? '/api/account' + routePath : '/api/account';
 
+  // Build request object
+  let request: any = undefined;
+  if (mapping.openapi.requestSchema && params) {
+    request = {
+      body: {
+        content: {
+          'application/json': {
+            schema: mapping.openapi.requestSchema
+          }
+        }
+      },
+      params
+    };
+  } else if (mapping.openapi.requestSchema) {
+    request = {
+      body: {
+        content: {
+          'application/json': {
+            schema: mapping.openapi.requestSchema
+          }
+        }
+      }
+    };
+  } else if (params) {
+    request = { params };
+  }
+
   // Register the path using the configuration
   registry.registerPath({
     method: route.method.toLowerCase() as any,
@@ -262,19 +289,8 @@ for (const route of accountRoutes.routes) {
     description: mapping.openapi.description,
     tags,
     security,
-    request: mapping.openapi.requestSchema
-      ? {
-          body: {
-            content: {
-              'application/json': {
-                schema: mapping.openapi.requestSchema
-              }
-            }
-          },
-          ...(params ? { params } : {})
-        }
-      : params ? { params } : undefined,
-    responses: mapping.openapi.responses
+    request,
+    responses: mapping.openapi.responses!
   });
 }
 

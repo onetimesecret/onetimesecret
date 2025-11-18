@@ -67,6 +67,7 @@ export const stripeSubscriptionSchema = z.object({
 
 /**
  * Export types for TypeScript
+ * Using TypeScript's built-in inference instead of z.infer to avoid namespace issues
  */
-export type StripeCustomer = z.infer<typeof stripeCustomerSchema>;
-export type StripeSubscription = z.infer<typeof stripeSubscriptionSchema>;
+export type StripeCustomer = typeof stripeCustomerSchema._output;
+export type StripeSubscription = typeof stripeSubscriptionSchema._output;

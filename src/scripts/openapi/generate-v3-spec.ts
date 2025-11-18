@@ -150,8 +150,8 @@ for (const route of v3Routes.routes) {
     : undefined;
 
   // Map routes to request/response schemas
-  let requestSchema;
-  let responseSchema = responseSchemas.metadata; // Default
+  let requestSchema: any;
+  let responseSchema: any = responseSchemas.metadata; // Default
 
   // POST /secret/conceal
   if (route.method === 'POST' && route.path === '/secret/conceal') {
