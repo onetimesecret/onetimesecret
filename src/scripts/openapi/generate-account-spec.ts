@@ -18,22 +18,20 @@ import {
   toOpenAPIPath,
   type OttoRoute
 } from './otto-routes-parser';
+import { findRouteMapping, mergeResponses, type RouteMapping } from './route-config';
 
 // Import Account schemas
 import { apiTokenSchema, checkAuthDetailsSchema } from '@/schemas/api/account/endpoints/account';
 import { colonelInfoDetailsSchema, colonelStatsDetailsSchema } from '@/schemas/api/account/endpoints/colonel';
 import { customerSchema } from '@/schemas/models/customer';
+import { stripeCustomerSchema, stripeSubscriptionSchema } from '@/schemas/api/account/stripe-types';
 
-// Create OpenAPI-compatible account schema (Stripe types can't be auto-converted)
+// Create OpenAPI-compatible account schema with proper Stripe types
 const accountSchemaForOpenAPI = z.object({
   cust: customerSchema,
   apitoken: z.string().optional(),
-  stripe_customer: z.record(z.string(), z.unknown()).nullable().openapi({
-    description: 'Stripe Customer object - see https://stripe.com/docs/api/customers/object'
-  }),
-  stripe_subscriptions: z.array(z.record(z.string(), z.unknown())).nullable().openapi({
-    description: 'Array of Stripe Subscription objects - see https://stripe.com/docs/api/subscriptions/object'
-  })
+  stripe_customer: stripeCustomerSchema.nullable(),
+  stripe_subscriptions: z.array(stripeSubscriptionSchema).nullable()
 }).openapi('Account');
 
 console.log('🔨 Generating OpenAPI Specification for Account API...\n');
@@ -102,10 +100,141 @@ function getSecurityArray(route: OttoRoute) {
   return security.length > 0 ? security : [{}];
 }
 
-// Process each route
+// Request schemas for endpoints that accept input
+const changePasswordRequestSchema = z.object({
+  current_password: z.string(),
+  new_password: z.string().min(6),
+  confirm_password: z.string()
+}).openapi('ChangePasswordRequest');
+
+const updateLocaleRequestSchema = z.object({
+  locale: z.string().regex(/^[a-z]{2}(-[A-Z]{2})?$/).describe('Language code (e.g., en, es, fr)')
+}).openapi('UpdateLocaleRequest');
+
+/**
+ * Route mapping configuration - declarative approach
+ * This replaces the manual if/else chain for better maintainability
+ */
+const routeMappings: RouteMapping[] = [
+  {
+    matcher: { method: 'POST', path: '/account/destroy' },
+    openapi: {
+      summary: 'Destroy account',
+      description: 'Permanently delete the user account and all associated data. This action cannot be undone.',
+      responses: mergeResponses({
+        200: { description: 'Account destroyed successfully' }
+      }, [401, 500])
+    }
+  },
+  {
+    matcher: { method: 'POST', path: '/account/change-password' },
+    openapi: {
+      summary: 'Change password',
+      description: 'Update the account password. Requires current password verification.',
+      requestSchema: changePasswordRequestSchema,
+      responses: mergeResponses({
+        200: { description: 'Password changed successfully' }
+      }, [400, 401])
+    }
+  },
+  {
+    matcher: { method: 'POST', path: '/account/update-locale' },
+    openapi: {
+      summary: 'Update locale preference',
+      description: 'Change the user\'s language preference for the interface.',
+      requestSchema: updateLocaleRequestSchema,
+      responses: mergeResponses({
+        200: { description: 'Locale updated successfully' }
+      }, [400])
+    }
+  },
+  {
+    matcher: { method: 'POST', path: '/account/apitoken' },
+    openapi: {
+      summary: 'Generate API token',
+      description: 'Generate a new API token for programmatic access. Previous token will be invalidated.',
+      responseSchema: apiTokenSchema,
+      responses: mergeResponses({
+        200: {
+          description: 'API token generated successfully',
+          content: {
+            'application/json': {
+              schema: apiTokenSchema
+            }
+          }
+        }
+      }, [401])
+    }
+  },
+  {
+    matcher: { method: 'GET', path: '/account' },
+    openapi: {
+      summary: 'Get account details',
+      description: 'Retrieve complete account information including Stripe subscription data if applicable.',
+      responseSchema: accountSchemaForOpenAPI,
+      responses: mergeResponses({
+        200: {
+          description: 'Account details retrieved successfully',
+          content: {
+            'application/json': {
+              schema: accountSchemaForOpenAPI
+            }
+          }
+        }
+      }, [401])
+    }
+  },
+  {
+    matcher: { method: 'GET', path: '/colonel/info' },
+    openapi: {
+      summary: 'Get colonel dashboard info',
+      description: 'Retrieve comprehensive dashboard information for administrators. Requires colonel role.',
+      responseSchema: colonelInfoDetailsSchema,
+      tags: ['account', 'colonel'],
+      responses: mergeResponses({
+        200: {
+          description: 'Colonel info retrieved successfully',
+          content: {
+            'application/json': {
+              schema: colonelInfoDetailsSchema
+            }
+          }
+        }
+      }, [401, 403])
+    }
+  },
+  {
+    matcher: { method: 'GET', path: '/colonel/stats' },
+    openapi: {
+      summary: 'Get colonel statistics',
+      description: 'Retrieve system-wide statistics for administrators. Requires colonel role.',
+      responseSchema: colonelStatsDetailsSchema,
+      tags: ['account', 'colonel'],
+      responses: mergeResponses({
+        200: {
+          description: 'Colonel stats retrieved successfully',
+          content: {
+            'application/json': {
+              schema: colonelStatsDetailsSchema
+            }
+          }
+        }
+      }, [401, 403])
+    }
+  }
+];
+
+// Process each route using the declarative configuration
 for (const route of accountRoutes.routes) {
   const openApiPath = toOpenAPIPath(route.path);
-  const tags = route.path.includes('/colonel') ? ['account', 'colonel'] : ['account'];
+  const mapping = findRouteMapping(route, routeMappings);
+
+  if (!mapping) {
+    console.log(`  ⚠️  No mapping found for: ${route.method} ${route.path}`);
+    continue;
+  }
+
+  const tags = mapping.openapi.tags || (route.path.includes('/colonel') ? ['account', 'colonel'] : ['account']);
   const security = getSecurityArray(route);
 
   // Path parameters
@@ -118,189 +247,28 @@ for (const route of accountRoutes.routes) {
       }
     : undefined;
 
-  // Route-specific mappings
-  if (route.method === 'POST' && route.path === '/account/destroy') {
-    registry.registerPath({
-      method: 'post',
-      path: '/api/account' + openApiPath,
-      summary: 'Destroy account',
-      description: 'Permanently delete the user account and all associated data. This action cannot be undone.',
-      tags,
-      security,
-      responses: {
-        200: {
-          description: 'Account destroyed successfully'
-        },
-        401: {
-          description: 'Unauthorized - authentication required'
-        },
-        500: {
-          description: 'Server error during account destruction'
-        }
-      }
-    });
-  }
-  else if (route.method === 'POST' && route.path === '/account/change-password') {
-    registry.registerPath({
-      method: 'post',
-      path: '/api/account' + openApiPath,
-      summary: 'Change password',
-      description: 'Update the account password. Requires current password verification.',
-      tags,
-      security,
-      request: {
-        body: {
-          content: {
-            'application/json': {
-              schema: z.object({
-                current_password: z.string(),
-                new_password: z.string().min(6),
-                confirm_password: z.string()
-              })
+  // Register the path using the configuration
+  registry.registerPath({
+    method: route.method.toLowerCase() as any,
+    path: '/api/account' + openApiPath,
+    summary: mapping.openapi.summary,
+    description: mapping.openapi.description,
+    tags,
+    security,
+    request: mapping.openapi.requestSchema
+      ? {
+          body: {
+            content: {
+              'application/json': {
+                schema: mapping.openapi.requestSchema
+              }
             }
-          }
+          },
+          ...(params ? { params } : {})
         }
-      },
-      responses: {
-        200: {
-          description: 'Password changed successfully'
-        },
-        400: {
-          description: 'Invalid request - passwords don\'t match or don\'t meet requirements'
-        },
-        401: {
-          description: 'Unauthorized - current password incorrect'
-        }
-      }
-    });
-  }
-  else if (route.method === 'POST' && route.path === '/account/update-locale') {
-    registry.registerPath({
-      method: 'post',
-      path: '/api/account' + openApiPath,
-      summary: 'Update locale preference',
-      description: 'Change the user\'s language preference for the interface.',
-      tags,
-      security,
-      request: {
-        body: {
-          content: {
-            'application/json': {
-              schema: z.object({
-                locale: z.string().regex(/^[a-z]{2}(-[A-Z]{2})?$/).describe('Language code (e.g., en, es, fr)')
-              })
-            }
-          }
-        }
-      },
-      responses: {
-        200: {
-          description: 'Locale updated successfully'
-        },
-        400: {
-          description: 'Invalid locale code'
-        }
-      }
-    });
-  }
-  else if (route.method === 'POST' && route.path === '/account/apitoken') {
-    registry.registerPath({
-      method: 'post',
-      path: '/api/account' + openApiPath,
-      summary: 'Generate API token',
-      description: 'Generate a new API token for programmatic access. Previous token will be invalidated.',
-      tags,
-      security,
-      responses: {
-        200: {
-          description: 'API token generated successfully',
-          content: {
-            'application/json': {
-              schema: apiTokenSchema
-            }
-          }
-        },
-        401: {
-          description: 'Unauthorized - authentication required'
-        }
-      }
-    });
-  }
-  else if (route.method === 'GET' && route.path === '/account') {
-    registry.registerPath({
-      method: 'get',
-      path: '/api/account' + openApiPath,
-      summary: 'Get account details',
-      description: 'Retrieve complete account information including Stripe subscription data if applicable.',
-      tags,
-      security,
-      responses: {
-        200: {
-          description: 'Account details retrieved successfully',
-          content: {
-            'application/json': {
-              schema: accountSchemaForOpenAPI
-            }
-          }
-        },
-        401: {
-          description: 'Unauthorized - authentication required'
-        }
-      }
-    });
-  }
-  else if (route.method === 'GET' && route.path === '/colonel/info') {
-    registry.registerPath({
-      method: 'get',
-      path: '/api/account' + openApiPath,
-      summary: 'Get colonel dashboard info',
-      description: 'Retrieve comprehensive dashboard information for administrators. Requires colonel role.',
-      tags,
-      security,
-      responses: {
-        200: {
-          description: 'Colonel info retrieved successfully',
-          content: {
-            'application/json': {
-              schema: colonelInfoDetailsSchema
-            }
-          }
-        },
-        401: {
-          description: 'Unauthorized - authentication required'
-        },
-        403: {
-          description: 'Forbidden - colonel role required'
-        }
-      }
-    });
-  }
-  else if (route.method === 'GET' && route.path === '/colonel/stats') {
-    registry.registerPath({
-      method: 'get',
-      path: '/api/account' + openApiPath,
-      summary: 'Get colonel statistics',
-      description: 'Retrieve system-wide statistics for administrators. Requires colonel role.',
-      tags,
-      security,
-      responses: {
-        200: {
-          description: 'Colonel stats retrieved successfully',
-          content: {
-            'application/json': {
-              schema: colonelStatsDetailsSchema
-            }
-          }
-        },
-        401: {
-          description: 'Unauthorized - authentication required'
-        },
-        403: {
-          description: 'Forbidden - colonel role required'
-        }
-      }
-    });
-  }
+      : params ? { params } : undefined,
+    responses: mapping.openapi.responses
+  });
 }
 
 console.log(`✅ Registered ${accountRoutes.routes.length} paths\n`);
