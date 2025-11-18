@@ -280,7 +280,7 @@ RSpec.describe "Onetime boot configuration process" do
 
       processed_config = Onetime::Config.after_load(config)
 
-      expect(processed_config['site']['regions']).to eq({ 'enabled' => false })
+      expect(processed_config['features']['regions']).to eq({ 'enabled' => false })
     end
 
     it 'disables authentication sub-features when main feature is off' do
