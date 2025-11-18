@@ -187,7 +187,7 @@ site:
     # This endpoint allows Caddy to verify domains before issuing certificates
     acme:
       # Enable the internal ACME endpoint at /api/internal/acme/ask
-      enabled: <%= ENV['ACME_ENDPOINT_ENABLED'] == 'true' || false %>
+      enabled: <%= ENV['ACME_ENDPOINT_ENABLED'] == 'true' %>
       # IP address to bind to (should always be localhost for security)
       listen_address: <%= ENV['ACME_LISTEN_ADDRESS'] || '127.0.0.1' %>
       # Port for the ACME endpoint (Caddy will call this)

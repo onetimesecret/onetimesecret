@@ -20,9 +20,15 @@
 #
 # Response Codes:
 #   200 - Domain is allowed (found in CustomDomain database)
-#   403 - Domain is not allowed
-#   401 - Request not from localhost (security violation)
 #   400 - Bad request (missing domain parameter)
+#   401 - Unauthorized (request not from localhost - security violation)
+#   403 - Forbidden (domain not found in database)
+#   429 - Too Many Requests (rate limit exceeded for domain)
+#
+# Rate Limiting:
+#   - 60 requests per domain per minute
+#   - Prevents abuse even from localhost
+#   - Uses Redis for distributed rate limiting
 #
 
 require 'onetime/application'
@@ -78,6 +84,10 @@ module InternalACME
         # Only allow requests from localhost
         use LocalhostOnly
 
+        # Rate limiting to prevent abuse (even from localhost)
+        # Limits: 60 requests per domain per minute
+        use RateLimiter, limit: 60, window: 60
+
         # Simple logging for debugging (development only)
         use Rack::CommonLogger if Onetime.development?
       end
@@ -117,6 +127,53 @@ module InternalACME
         end
 
         @app.call(env)
+      end
+    end
+
+    # Middleware to rate limit ACME validation requests
+    #
+    # Prevents abuse by limiting requests per domain per time window.
+    # Uses Redis for distributed rate limiting.
+    #
+    class RateLimiter
+      def initialize(app, limit: 60, window: 60)
+        @app = app
+        @limit = limit
+        @window = window
+      end
+
+      def call(env)
+        req = Rack::Request.new(env)
+        domain = req.params['domain']
+
+        # Skip rate limiting if no domain parameter (will fail with 400 anyway)
+        return @app.call(env) if domain.to_s.empty?
+
+        # Check rate limit
+        unless check_rate_limit(domain)
+          OT.le "[InternalACME] Rate limit exceeded for domain: #{domain}"
+          return [429, { 'content-type' => 'text/plain' }, ['Too Many Requests - rate limit exceeded']]
+        end
+
+        @app.call(env)
+      end
+
+      private
+
+      def check_rate_limit(domain)
+        key = "acme:ratelimit:#{domain}"
+
+        # Use Redis to track request counts
+        redis = Familia.redis(db: OT.conf.dig('redis', 'databases', 'logs') || 0)
+
+        count = redis.incr(key)
+        redis.expire(key, @window) if count == 1
+
+        count <= @limit
+      rescue StandardError => ex
+        # Log error but allow request to proceed (fail open)
+        OT.le "[InternalACME] Rate limit check error: #{ex.message}"
+        true
       end
     end
   end

@@ -49,20 +49,42 @@ module Onetime
       #
       # @param config [Hash] Configuration hash from OT.conf
       # @return [Strategy] Appropriate strategy instance
+      # @raise [ArgumentError] If strategy is unknown and strict mode is enabled
       def self.for_config(config)
         strategy_name = config.dig('site', 'domains', 'strategy')&.to_s || 'approximated'
+        strict_mode = config.dig('site', 'domains', 'strict_strategy') == true
 
-        case strategy_name.downcase
-        when 'approximated'
-          ApproximatedStrategy.new(config)
-        when 'passthrough', 'external'
-          PassthroughStrategy.new(config)
-        when 'caddy_on_demand', 'caddy'
-          CaddyOnDemandStrategy.new(config)
-        else
-          OT.le "[DomainValidation] Unknown strategy: #{strategy_name}, defaulting to passthrough"
-          PassthroughStrategy.new(config)
+        strategy = case strategy_name.downcase
+                   when 'approximated'
+                     ApproximatedStrategy.new(config)
+                   when 'passthrough', 'external'
+                     PassthroughStrategy.new(config)
+                   when 'caddy_on_demand', 'caddy'
+                     CaddyOnDemandStrategy.new(config)
+                   else
+                     handle_unknown_strategy(strategy_name, strict_mode, config)
+                   end
+
+        OT.info "[DomainValidation] Using strategy: #{strategy.class.name}"
+        strategy
+      end
+
+      # Handles unknown strategy configuration
+      #
+      # @param strategy_name [String] The unknown strategy name
+      # @param strict_mode [Boolean] Whether to raise error or fall back
+      # @param config [Hash] Configuration hash
+      # @return [Strategy] Fallback strategy instance
+      # @raise [ArgumentError] If strict mode is enabled
+      def self.handle_unknown_strategy(strategy_name, strict_mode, config)
+        if strict_mode
+          raise ArgumentError, "Unknown domain validation strategy: '#{strategy_name}'. " \
+                               "Valid options: approximated, passthrough, caddy_on_demand"
         end
+
+        OT.le "[DomainValidation] Unknown strategy: '#{strategy_name}', " \
+              "falling back to passthrough mode. Set strict_strategy: true to fail instead."
+        PassthroughStrategy.new(config)
       end
     end
 

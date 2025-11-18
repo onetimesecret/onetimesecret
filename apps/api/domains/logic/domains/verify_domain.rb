@@ -36,14 +36,25 @@ module DomainsAPI::Logic
         OT.info "[VerifyDomain.refresh_status] #{display_domain} -> #{result[:ready]}"
 
         # Update custom domain with status information
-        custom_domain.vhost = result[:data].to_json if result[:data]
+        custom_domain.vhost = safe_json_serialize(result[:data]) if result[:data]
 
-        custom_domain.resolving = result[:is_resolving].to_s if result[:is_resolving]
+        # Handle boolean values correctly (including false)
+        unless result[:is_resolving].nil?
+          custom_domain.resolving = result[:is_resolving].to_s
+        end
 
         custom_domain.updated = OT.now.to_i
         custom_domain.save
       rescue StandardError => ex
         OT.le "[VerifyDomain.refresh_status] Error: #{ex.message}"
+      end
+
+      # Safely serialize data to JSON, handling non-serializable objects
+      def safe_json_serialize(data)
+        data.to_json
+      rescue JSON::GeneratorError, TypeError => ex
+        OT.le "[VerifyDomain] JSON serialization error: #{ex.message}"
+        {}.to_json # Return empty JSON object on error
       end
 
       # Validate domain ownership via TXT record
