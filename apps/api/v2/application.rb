@@ -49,7 +49,7 @@ module V2
     #
     # @return [Otto] Configured router instance
     def build_router
-      routes_path = File.join(__dir__, 'routes')
+      routes_path = File.join(__dir__, 'routes.txt')
       router      = Otto.new(routes_path)
 
       # Configure Otto request lifecycle hooks (from OttoHooks module)

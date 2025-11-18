@@ -63,7 +63,7 @@ class BaseJSONAPI < Onetime::Application::Base
   #
   # @return [Otto] Configured router instance
   def build_router
-    routes_path = File.join(self.class.root_path, 'routes')
+    routes_path = File.join(self.class.root_path, 'routes.txt')
     router      = Otto.new(routes_path)
 
     # Configure Otto request lifecycle hooks (from OttoHooks module)
