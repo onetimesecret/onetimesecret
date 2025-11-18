@@ -3,7 +3,7 @@
  * Defines request/response schemas for team management endpoints
  */
 
-import { teamWithRoleSchema, teamMemberSchema } from '@/types/team';
+import { teamMemberSchema, teamWithRoleSchema } from '@/schemas/models/team';
 import { z } from 'zod';
 
 /**
