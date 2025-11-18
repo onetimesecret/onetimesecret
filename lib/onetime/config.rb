@@ -14,7 +14,6 @@ module Onetime
       DEFAULTS      = {
         'site' => {
           'secret' => nil,
-          'domains' => { 'enabled' => false },
           'regions' => { 'enabled' => false },
           'secret_options' => {
             'default_ttl' => 7.days,
@@ -63,7 +62,9 @@ module Onetime
             'colonels' => [],
           },
         },
-        'features' => {},
+        'features' => {
+          'domains' => { 'enabled' => false },
+        },
         'internationalization' => {
           'enabled' => false,
           'default_locale' => 'en',

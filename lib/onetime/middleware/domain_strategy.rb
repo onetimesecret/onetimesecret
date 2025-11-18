@@ -42,8 +42,8 @@ module Onetime
       def initialize(app, application_context: nil)
         @app                 = app
         @application_context = application_context
-        site_config          = OT.conf&.dig('site') || {}
-        self.class.initialize_from_config(site_config)
+        features_config      = OT.conf&.dig('features') || {}
+        self.class.initialize_from_config(features_config)
         boot_logger.info 'DomainStrategy initialized', {
           app_context: @application_context,
           canonical_domain: canonical_domain,

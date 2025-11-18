@@ -23,7 +23,8 @@ module V2
       include V2::Logic::UriHelpers
       include Onetime::Logic::OrganizationContext
 
-      attr_reader :context, :sess, :cust, :params, :locale, :processed_params, :site, :authentication, :domains_enabled
+      attr_reader :context, :sess, :cust, :params, :locale, :processed_params,
+                  :site, :features, :authentication, :domains_enabled
 
       attr_accessor :domain_strategy, :display_domain
 
@@ -57,9 +58,10 @@ module V2
 
       def process_settings
         @site            = OT.conf.fetch('site', {})
-        site.fetch('domains', {})
+        @features        = OT.conf.fetch('features', {})
+
         @authentication  = site.fetch('authentication', {})
-        domains          = site.fetch('domains', {})
+        domains          = features.fetch('domains', {})
         @domains_enabled = domains['enabled'] || false
       end
 

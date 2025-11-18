@@ -22,6 +22,7 @@ module Core
 
         # NOTE: The keys available in view_vars are defined in initialize_view_vars
         site        = view_vars['site'] || {}
+        features    = view_vars['features'] || {}
         development = view_vars['development']
         diagnostics = view_vars['diagnostics']
 
@@ -30,7 +31,7 @@ module Core
         output['secret_options'] = site['secret_options']
         output['site_host']      = site['host']
         regions                  = site['regions'] || {}
-        domains                  = site['domains'] || {}
+        domains                  = features.fetch('domains', {})
 
         # Only send the regions config when the feature is enabled.
         output['regions_enabled'] = regions.fetch('enabled', false)

@@ -1,19 +1,18 @@
-# spec/apps/api/internal/acme/application_spec.rb
+# spec/apps/internal/acme/application_spec.rb
 #
 # frozen_string_literal: true
 
 require 'spec_helper'
 require 'rack/test'
-require_relative '../../../../../apps/api/internal/acme/application'
+require_relative '../../../../apps/internal/acme/application'
 
-RSpec.describe InternalACME::Application do
-  # Skip these tests - they require Otto API compatibility fixes
-  # The Otto router API may have changed (router.add method not found)
-  # TODO: Investigate Otto API and update ACME application implementation
+RSpec.describe Internal::ACME::Application do
+  # These tests now work with Otto's plain-text routes API
 
-  before(:all) do
-    skip 'Requires Otto API compatibility investigation'
-  end
+  # Uncomment when ready to enable tests
+  # before(:all) do
+  #   skip 'Requires Otto API compatibility investigation'
+  # end
 
   include Rack::Test::Methods
 
