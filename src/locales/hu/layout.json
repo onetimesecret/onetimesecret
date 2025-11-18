@@ -1,61 +1,61 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Biztonság",
+      "learn-about-our-security-measures": "Ismerje meg biztonsági intézkedéseinket",
+      "view-our-terms-and-conditions": "Tekintse meg Feltételeinket",
+      "terms": "Feltételek",
+      "privacy": "Adatvédelem",
+      "contact": "Kapcsolat",
+      "support": "Támogatás",
+      "legals": "Jogi információk",
+      "read-our-privacy-policy": "Olvassa el Adatvédelmi irányelveinket",
+      "check-our-service-status": "Ellenőrizze szolgáltatásunk állapotát",
+      "explore-our-api-documentation": "Fedezze fel API dokumentációnkat",
+      "docs": "Dokumentáció",
+      "access-our-documentation": "Hozzáférés dokumentációnkhoz",
+      "view-our-source-code-on-github": "Tekintse meg forráskódunkat a GitHub-on",
+      "resources": "Források",
+      "blog": "Blog",
+      "read-our-latest-blog-posts": "Olvassa el legfrissebb blogbejegyzéseinket",
+      "view-our-subscription-pricing": "Tekintse meg előfizetési árazásunkat",
+      "learn-about-our-company": "Ismerje meg cégünket",
+      "company": "Cég"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Számlázás",
+      "billingOverview": "Áttekintés",
+      "organizations": "Szervezetek"
     },
     "site": {
-      "website-version": ""
+      "website-version": "Weboldal verzió"
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "",
-      "translations-are-new-spotted-an-error": "",
-      "we-recently-added-translations": "",
-      "privacy-and-security-should-be-accessible": ""
+      "were-making-onetime-secret-available-in-multiple": "Az {onetime-secret}-et több nyelven is elérhetővé tesszük. Mivel ez egy új funkció, fordítási hibákba vagy furcsa megfogalmazásokba ütközhet. Visszajelzése segít fejlődnünk - ha bármilyen problémát észlel, kérjük, {send-feedback}",
+      "translations-are-new-spotted-an-error": "A fordítások újak. Hibát észlelt? {send-feedback}",
+      "we-recently-added-translations": "Nemrég adtunk hozzá fordításokat. Hibát észlelt? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Az adatvédelemnek és biztonságnak mindenkisz számára elérhetőnek kell lennie, nyelvtől függetlenül. Fordításokat adunk hozzá, hogy segítsük felhasználóinkat és üzeneteik címzettjeit jobban megérteni, hogyan használják biztonságosan az üzeneteket és hivatkozásokat. Mivel ez egy új funkció, néhány fordítási hibába vagy nem egyértelmű utasításba ütközhet. Hogy segítsen nekünk javítani fordításaink egyértelműségét és pontosságát, különösen a kritikus biztonsági tartalmak esetében, kérjük, {send-feedback}, ha bármilyen problémát észlel"
     },
     "help": {
-      "learn_more": "",
+      "learn_more": "További információ",
       "secret_view_faq": {
         "what_am_i_looking_at": {
-          "title": "",
-          "description": ""
+          "title": "Mit látok?",
+          "description": "Egy biztonságos üzenetet tekint meg, amelyet az Onetime Secret-en keresztül osztottak meg önnel. Ez a tartalom csak egyszer jelenik meg, majd véglegesen törlődik szervereinkről."
         },
         "can_i_view_again": {
-          "title": "",
-          "description": ""
+          "title": "Később újra megtekinthetем ezt a titkot?",
+          "description": "Nem. Biztonsági okokból ez a titok csak egyszer tekinthető meg. Az oldal bezárása után a tartalom véglegesen törlődik, és senki nem tudja visszaállítani, beleértve minket is."
         },
         "how_to_copy": {
-          "title": "",
-          "description": ""
+          "title": "Hogyan menthetem el ezt az információt?",
+          "description": "Használja a 'Másolás vágólapra' gombot a teljes titok másolásához. Hosszabb titkok esetén győződjön meg róla, hogy az oldal elhagyása előtt átmásolta a teljes tartalmat."
         },
         "is_my_viewing_tracked": {
-          "title": "",
-          "description": ""
+          "title": "Követik a titok megtekintését?",
+          "description": "A feladó értesítést kap arról, hogy titkát megtekintették, de nem követjük, hogy ki vagy honnan tekintette meg. Adatvédelme védett."
         },
-        "one_time_warning": ""
+        "one_time_warning": "Miután elhagyja vagy frissíti ezt az oldalt, ez a titok véglegesen törlődik, és senki nem tudja visszaállítani."
       }
     }
   }
