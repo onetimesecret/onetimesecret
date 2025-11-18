@@ -20,8 +20,9 @@ module Onetime
     @mode ||= :app
     @debug  = nil
     @logger = nil
+    @logging_conf = nil
 
-    attr_accessor :mode, :env
+    attr_accessor :mode, :env, :logging_conf
     attr_writer :debug
 
     # Returns the current wall clock time as microseconds since Unix epoch
