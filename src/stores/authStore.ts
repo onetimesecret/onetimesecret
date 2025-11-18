@@ -119,13 +119,36 @@ export const useAuthStore = defineStore('auth', () => {
 
     const inputValue = WindowService.get('authenticated');
 
-    // Regardless of what the value is, if it isn't exactly true, it's false.
-    // i.e. unlimited ways to fail, only one way to succeed.
-    isAuthenticated.value = inputValue === true;
+    // Detect if this might be an error page masquerading as unauthenticated:
+    // - Window says authenticated = false
+    // - But we have a recent auth state stored in sessionStorage
+    // - And we have a session cookie present
+    // This scenario happens when server returns 500 error page which defaults
+    // to authenticated = false even though the user has a valid session.
+    const storedAuthState = sessionStorage.getItem('ots_auth_state');
+    const hasSessionCookie = document.cookie.includes('sess=');
 
+    if (inputValue === false && storedAuthState === 'true' && hasSessionCookie) {
+      // Likely a server error page, preserve the stored auth state
+      loggingService.warn(
+        'Window state shows unauthenticated but session cookie exists - ' +
+        'likely server error page, preserving auth state'
+      );
+      isAuthenticated.value = true;
+    } else {
+      // Normal flow: trust window state
+      // Regardless of what the value is, if it isn't exactly true, it's false.
+      // i.e. unlimited ways to fail, only one way to succeed.
+      isAuthenticated.value = inputValue === true;
+    }
+
+    // Store auth state for error recovery
     if (isAuthenticated.value) {
-      lastCheckTime.value = Date.now(); // Add this
+      sessionStorage.setItem('ots_auth_state', 'true');
+      lastCheckTime.value = Date.now();
       $scheduleNextCheck();
+    } else {
+      sessionStorage.removeItem('ots_auth_state');
     }
 
     _initialized.value = true;
@@ -275,6 +298,7 @@ export const useAuthStore = defineStore('auth', () => {
     failureCount.value = null;
     lastCheckTime.value = null;
     _initialized.value = false;
+    sessionStorage.removeItem('ots_auth_state');
   }
 
   /**
@@ -285,10 +309,13 @@ export const useAuthStore = defineStore('auth', () => {
   async function setAuthenticated(value: boolean) {
     isAuthenticated.value = value;
 
+    // Update sessionStorage for error recovery
     if (value) {
+      sessionStorage.setItem('ots_auth_state', 'true');
       // Fetch fresh window state immediately to get customer data
       await checkWindowStatus();
     } else {
+      sessionStorage.removeItem('ots_auth_state');
       await $stopAuthCheck();
     }
 

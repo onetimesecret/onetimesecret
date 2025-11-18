@@ -610,6 +610,132 @@ describe('authStore', () => {
     });
   });
 
+  describe('Error Page Auth State Recovery', () => {
+    beforeEach(() => {
+      // Clear sessionStorage before each test
+      sessionStorage.clear();
+      // Clear cookies
+      document.cookie = 'sess=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    });
+
+    afterEach(() => {
+      sessionStorage.clear();
+      document.cookie = 'sess=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      store.$reset();
+    });
+
+    it('preserves auth state when server returns error page with authenticated=false', () => {
+      // Simulate: user was authenticated and navigated to a page
+      // 1. Set up stored auth state (would have been set during previous successful login)
+      sessionStorage.setItem('ots_auth_state', 'true');
+
+      // 2. Set session cookie (simulates valid session)
+      document.cookie = 'sess=test_session_id; path=/;';
+
+      // 3. Server returns error page with authenticated: false
+      (window as any).__ONETIME_STATE__ = {
+        authenticated: false,
+        cust: null,
+      };
+
+      // 4. Store initializes
+      store.init();
+
+      // 5. Should preserve auth state despite server saying unauthenticated
+      expect(store.isAuthenticated).toBe(true);
+    });
+
+    it('respects authenticated=false when no stored auth state exists', () => {
+      // Simulate: first visit or user was never authenticated
+      // No stored auth state
+      sessionStorage.removeItem('ots_auth_state');
+
+      // Server says not authenticated
+      (window as any).__ONETIME_STATE__ = {
+        authenticated: false,
+        cust: null,
+      };
+
+      store.init();
+
+      // Should trust server and set authenticated to false
+      expect(store.isAuthenticated).toBe(false);
+    });
+
+    it('respects authenticated=false when no session cookie exists', () => {
+      // Simulate: stored state exists but session expired
+      sessionStorage.setItem('ots_auth_state', 'true');
+
+      // No session cookie (expired or cleared)
+      document.cookie = 'sess=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+      // Server says not authenticated
+      (window as any).__ONETIME_STATE__ = {
+        authenticated: false,
+        cust: null,
+      };
+
+      store.init();
+
+      // Should trust server since session cookie is missing
+      expect(store.isAuthenticated).toBe(false);
+      // Should clean up stale stored auth state
+      expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
+    });
+
+    it('respects authenticated=true from server regardless of stored state', () => {
+      // Simulate: server correctly says authenticated
+      sessionStorage.removeItem('ots_auth_state');
+      document.cookie = 'sess=test_session_id; path=/;';
+
+      (window as any).__ONETIME_STATE__ = {
+        authenticated: true,
+        cust: mockCustomer,
+      };
+
+      store.init();
+
+      // Should trust server
+      expect(store.isAuthenticated).toBe(true);
+      // Should store auth state for future error recovery
+      expect(sessionStorage.getItem('ots_auth_state')).toBe('true');
+    });
+
+    it('clears stored auth state when logging out', async () => {
+      // Set up authenticated state
+      sessionStorage.setItem('ots_auth_state', 'true');
+      store.$patch({ isAuthenticated: true });
+
+      // Logout
+      await store.logout();
+
+      // Should clear stored auth state
+      expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
+      expect(store.isAuthenticated).toBeNull();
+    });
+
+    it('updates stored auth state when setAuthenticated is called', async () => {
+      // Mock successful window status check
+      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
+        authenticated: true,
+        cust: mockCustomer,
+        shrimp: 'tempura',
+      });
+
+      // Set authenticated to true
+      await store.setAuthenticated(true);
+
+      // Should store auth state
+      expect(sessionStorage.getItem('ots_auth_state')).toBe('true');
+
+      // Set authenticated to false
+      await store.setAuthenticated(false);
+
+      // Should remove stored auth state
+      expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
+    });
+  });
+
   describe('Error Handling', () => {
     beforeEach(() => {
       // Set window state properly, preserving __ONETIME_STATE__
