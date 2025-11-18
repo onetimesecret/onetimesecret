@@ -73,9 +73,6 @@ module Onetime
           'enabled' => false,
         },
         'mail' => {},
-        'logging' => {
-          'http_requests' => true,
-        },
         'diagnostics' => {
           'enabled' => false,
         },

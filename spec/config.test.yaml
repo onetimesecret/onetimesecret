@@ -89,8 +89,6 @@ redis:
     metadata: 0
     secret: 0
     feedback: 0
-logging:
-  http_requests: true
 emailer:
   mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
   from: <%= ENV['FROM_EMAIL'] || ENV['FROM_EMAIL'] || 'tests@example.com' %>
