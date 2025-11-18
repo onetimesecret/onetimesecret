@@ -87,19 +87,19 @@
   <div
     class="relative flex min-h-screen items-start justify-center overflow-hidden bg-gray-50 px-4 pt-12 dark:bg-gray-900 sm:px-6 sm:pt-16 lg:px-8">
     <!-- Background Icon -->
-    <div v-if="!hideBackgroundIcon" class="absolute inset-0 overflow-hidden opacity-5 dark:opacity-5">
+    <div v-if="!hideBackgroundIcon" class="absolute inset-0 overflow-hidden opacity-5 dark:opacity-5 blur-md">
       <OIcon
         v-if="backgroundIcon && backgroundIcon.collection && backgroundIcon.name"
         :collection="backgroundIcon.collection"
         :name="backgroundIcon.name"
-        class="blur-x absolute left-1/2 top-32 h-auto w-full -translate-x-1/2 translate-y-0 scale-[9] transform-cpu object-cover object-center backdrop-invert"
+        class="absolute left-1/2 top-32 h-auto w-full -translate-x-1/2 translate-y-0 scale-[9] transform-cpu object-cover object-center backdrop-invert"
         aria-hidden="true" />
     </div>
 
     <!-- Page Title -->
     <div class="relative z-10 w-full min-w-[320px] max-w-md space-y-12">
       <!-- Title Icon -->
-      <div v-if="!hideIcon" class="flex flex-col items-center">
+      <div class="flex flex-col items-center" :class="{ 'invisible': hideIcon }">
         <RouterLink to="/" class="group">
           <div class="relative">
             <!-- Subtle glow effect -->
