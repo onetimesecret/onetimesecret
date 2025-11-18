@@ -89,9 +89,9 @@ module TeamAPI
       end
 
       # Load team and verify it exists
-      def load_team(team_id)
-        team = Onetime::Team.load(team_id)
-        raise_not_found("Team not found: #{team_id}") if team.nil?
+      def load_team(extid)
+        team = Onetime::Team.find_by_extid(extid)
+        raise_not_found("Team not found: #{extid}") if team.nil?
         team
       end
     end

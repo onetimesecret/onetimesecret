@@ -43,6 +43,9 @@ export interface TeamMember {
  * Team interface
  */
 export interface Team {
+  id: string; // Internal identifier (UUID) - same as identifier/objid from API
+  identifier: string; // Alias for id - from API response
+  objid: string; // Object ID - from API response
   extid: string; // External identifier (e.g., tm123456) - used in URLs
   display_name: string;
   description?: string;
@@ -69,34 +72,82 @@ export const teamRoleSchema = z.nativeEnum(TeamRole);
 
 export const teamMemberStatusSchema = z.nativeEnum(TeamMemberStatus);
 
-export const teamMemberSchema = z.object({
+// API member schema (matches API response)
+const teamMemberApiSchema = z.object({
   id: z.string(),
-  team_id: z.string(),
+  team_extid: z.string(), // API uses team_extid, not team_id
   user_id: z.string(),
   email: z.string().email(),
   role: teamRoleSchema,
   status: teamMemberStatusSchema,
-  invited_at: z.number().transform(val => new Date(val * 1000)).optional(),
-  joined_at: z.number().transform(val => new Date(val * 1000)).optional(),
-  created_at: z.number().transform(val => new Date(val * 1000)),
-  updated_at: z.number().transform(val => new Date(val * 1000)),
+  invited_at: z.number().optional(),
+  joined_at: z.number().optional(),
+  created_at: z.number(),
+  updated_at: z.number(),
 });
 
-export const teamSchema = z.object({
+// Transform to frontend format
+export const teamMemberSchema = teamMemberApiSchema.transform((data): TeamMember => ({
+  id: data.id,
+  team_id: data.team_extid, // Map team_extid to team_id
+  user_id: data.user_id,
+  email: data.email,
+  role: data.role,
+  status: data.status,
+  invited_at: data.invited_at ? new Date(data.invited_at * 1000) : undefined,
+  joined_at: data.joined_at ? new Date(data.joined_at * 1000) : undefined,
+  created_at: new Date(data.created_at * 1000),
+  updated_at: new Date(data.updated_at * 1000),
+}));
+
+// Base schema matching API response
+const teamApiSchema = z.object({
+  identifier: z.string(), // Internal UUID from API
+  objid: z.string(), // Object ID from API
   extid: z.string(), // External identifier (e.g., tm123456) - used in URLs
   display_name: z.string().min(1).max(100),
-  description: z.string().max(500).optional(),
+  description: z.string().max(500).optional().nullable(),
   owner_id: z.string(),
-  org_id: z.string().optional(),
+  org_id: z.string().optional().nullable(),
   member_count: z.number().int().min(0),
-  is_default: z.boolean(),
-  created_at: z.number().transform(val => new Date(val * 1000)),
-  updated_at: z.number().transform(val => new Date(val * 1000)),
+  is_default: z.boolean().nullable(),
+  created: z.number(),
+  updated: z.number(),
 });
 
-export const teamWithRoleSchema = teamSchema.extend({
+// Transform to frontend format
+export const teamSchema = teamApiSchema.transform((data): Team => ({
+  id: data.identifier, // Map identifier to id for convenience
+  identifier: data.identifier,
+  objid: data.objid,
+  extid: data.extid,
+  display_name: data.display_name,
+  description: data.description ?? undefined,
+  owner_id: data.owner_id,
+  org_id: data.org_id ?? undefined,
+  member_count: data.member_count,
+  is_default: data.is_default ?? false, // Default to false if null
+  created_at: new Date(data.created * 1000),
+  updated_at: new Date(data.updated * 1000),
+}));
+
+export const teamWithRoleSchema = teamApiSchema.extend({
   current_user_role: teamRoleSchema,
-});
+}).transform((data): TeamWithRole => ({
+  id: data.identifier, // Map identifier to id for convenience
+  identifier: data.identifier,
+  objid: data.objid,
+  extid: data.extid,
+  display_name: data.display_name,
+  description: data.description ?? undefined,
+  owner_id: data.owner_id,
+  org_id: data.org_id ?? undefined,
+  member_count: data.member_count,
+  is_default: data.is_default ?? false, // Default to false if null
+  created_at: new Date(data.created * 1000),
+  updated_at: new Date(data.updated * 1000),
+  current_user_role: data.current_user_role,
+}));
 
 /**
  * Request payload schemas

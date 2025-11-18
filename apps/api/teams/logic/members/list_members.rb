@@ -8,7 +8,7 @@ module TeamAPI::Logic
       attr_reader :team, :members
 
       def process_params
-        @team_id = params['extid']
+        @team_extid = params['extid']
       end
 
       def raise_concerns
@@ -16,17 +16,17 @@ module TeamAPI::Logic
         raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
 
         # Validate team extid parameter
-        raise_form_error('Team ID required', field: :extid, error_type: :missing) if @team_id.to_s.empty?
+        raise_form_error('Team ID required', field: :extid, error_type: :missing) if @team_extid.to_s.empty?
 
         # Load team
-        @team = load_team(@team_id)
+        @team = load_team(@team_extid)
 
         # Verify user is a member
         verify_team_member(@team)
       end
 
       def process
-        OT.ld "[ListMembers] Listing members for team #{@team_id}"
+        OT.ld "[ListMembers] Listing members for team #{@team_extid}"
 
         # Get all team members
         @members = @team.list_members

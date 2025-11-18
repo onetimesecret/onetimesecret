@@ -89,11 +89,11 @@ const getRoleBadge = (role: string) => ({
       @click="toggleOpen"
       class="group relative inline-flex h-11 w-full items-center justify-between gap-2 rounded-lg bg-white px-4 shadow-sm ring-1 ring-gray-200 transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700 dark:focus:ring-brand-400 dark:focus:ring-offset-0"
       :aria-expanded="isOpen"
-      :aria-label="selectedTeam ? selectedTeam.name : t(placeholder)"
+      :aria-label="selectedTeam ? selectedTeam.display_name : t(placeholder)"
       aria-haspopup="listbox">
       <span v-if="selectedTeam" class="flex min-w-0 flex-1 items-center gap-2">
         <span class="truncate text-sm font-medium text-gray-900 dark:text-white">
-          {{ selectedTeam.name }}
+          {{ selectedTeam.display_name }}
         </span>
         <span
           :class="[
@@ -148,7 +148,7 @@ const getRoleBadge = (role: string) => ({
             @click="handleTeamSelect(team.id)">
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
-                <span class="truncate text-sm font-medium">{{ team.name }}</span>
+                <span class="truncate text-sm font-medium">{{ team.display_name }}</span>
                 <span
                   :class="[
                     'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',

@@ -19,7 +19,7 @@
   const activeTab = ref<'overview' | 'members' | 'settings'>('overview');
   const error = ref('');
 
-  const teamId = computed(() => route.params.teamid as string);
+  const teamId = computed(() => route.params.extid as string);
 
   onMounted(async () => {
     try {
@@ -31,11 +31,11 @@
   });
 
   const navigateToMembers = () => {
-    router.push({ name: 'Team Members', params: { teamid: teamId.value } });
+    router.push({ name: 'Team Members', params: { extid: teamId.value } });
   };
 
   const navigateToSettings = () => {
-    router.push({ name: 'Team Settings', params: { teamid: teamId.value } });
+    router.push({ name: 'Team Settings', params: { extid: teamId.value } });
   };
 
   const getRoleBadge = computed(() => {

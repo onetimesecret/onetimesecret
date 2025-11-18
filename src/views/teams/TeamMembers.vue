@@ -29,7 +29,7 @@
   const isInviting = ref(false);
   const error = ref('');
 
-  const teamId = computed(() => route.params.teamid as string);
+  const teamId = computed(() => route.params.extid as string);
 
   const canManageMembers = computed(() => {
     if (!activeTeam.value) return false;
@@ -88,7 +88,7 @@
   };
 
   const navigateToTeam = () => {
-    router.push({ name: 'Team Dashboard', params: { teamid: teamId.value } });
+    router.push({ name: 'Team Dashboard', params: { extid: teamId.value } });
   };
 </script>
 

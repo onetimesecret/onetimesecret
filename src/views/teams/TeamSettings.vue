@@ -20,7 +20,7 @@
   const { activeTeam, loading } = storeToRefs(teamStore);
 
   const formData = ref<UpdateTeamPayload>({
-    name: '',
+    display_name: '',
     description: '',
   });
   const errors = ref<Record>({});
@@ -30,21 +30,21 @@
   const showDeleteConfirm = ref(false);
   const isDeleting = ref(false);
 
-  const teamId = computed(() => route.params.teamid as string);
+  const teamId = computed(() => route.params.extid as string);
 
   const isOwner = computed(() => activeTeam.value?.current_user_role === 'owner');
 
   const isFormDirty = computed(() => {
     if (!activeTeam.value) return false;
     return (
-      formData.value.name !== activeTeam.value.name ||
+      formData.value.display_name !== activeTeam.value.display_name ||
       formData.value.description !== (activeTeam.value.description || '')
     );
   });
 
   onMounted(async () => {
     if (!isOwner.value) {
-      router.push({ name: 'Team Dashboard', params: { teamid: teamId.value } });
+      router.push({ name: 'Team Dashboard', params: { extid: teamId.value } });
       return;
     }
 
@@ -63,7 +63,7 @@
     (team) => {
       if (team) {
         formData.value = {
-          name: team.name,
+          display_name: team.display_name,
           description: team.description || '',
         };
       }
@@ -118,7 +118,7 @@
   };
 
   const navigateToTeam = () => {
-    router.push({ name: 'Team Dashboard', params: { teamid: teamId.value } });
+    router.push({ name: 'Team Dashboard', params: { extid: teamId.value } });
   };
 </script>
 
@@ -247,7 +247,7 @@
               </label>
               <input
                 id="team-name"
-                v-model="formData.name"
+                v-model="formData.display_name"
                 type="text"
                 required
                 maxlength="100"
@@ -256,14 +256,14 @@
                   'mt-1 block w-full rounded-md shadow-sm sm:text-sm',
                   'focus:border-brand-500 focus:ring-brand-500',
                   'dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400',
-                  errors.name
+                  errors.display_name
                     ? 'border-red-300 text-red-900 placeholder:text-red-300 focus:border-red-500 focus:ring-red-500'
                     : 'border-gray-300 dark:border-gray-600',
                 ]" />
               <p
-                v-if="errors.name"
+                v-if="errors.display_name"
                 class="mt-1 text-sm text-red-600 dark:text-red-400">
-                {{ errors.name }}
+                {{ errors.display_name }}
               </p>
             </div>
 
