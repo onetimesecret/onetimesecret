@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
-import { getRoleBadgeColor, getRoleLabel, type TeamWithRole } from '@/types/team';
+import { getRoleBadgeColor, getRoleLabel, type TeamWithRole } from '@/schemas/models/team';
 import { computed } from 'vue';
 
 const { t } = useI18n();
