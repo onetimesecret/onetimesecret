@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OneTimeSecret - Create Secret (Prototype)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Custom animations and styles */
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-slide-down {
+      animation: slideDown 0.2s ease-out;
+    }
+
+    .strength-meter {
+      height: 4px;
+      background: #e5e7eb;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .strength-fill {
+      height: 100%;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .strength-weak {
+      width: 33%;
+      background: #ef4444;
+    }
+
+    .strength-medium {
+      width: 66%;
+      background: #f59e0b;
+    }
+
+    .strength-strong {
+      width: 100%;
+      background: #10b981;
+    }
+
+    .ttl-option {
+      transition: all 0.15s ease;
+    }
+
+    .ttl-option:hover:not(.ttl-option--selected) {
+      border-color: #60a5fa;
+      background-color: #eff6ff;
+    }
+
+    .ttl-option--selected {
+      border-color: #2563eb;
+      background-color: #dbeafe;
+      border-width: 2px;
+    }
+
+    .ttl-option--recommended {
+      position: relative;
+    }
+
+    .badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #10b981;
+      color: white;
+      font-size: 0.625rem;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    /* Auto-growing textarea */
+    textarea {
+      resize: none;
+      overflow: hidden;
+    }
+
+    .prototype-banner {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .contextual-hint {
+      transition: opacity 0.2s ease;
+    }
+  </style>
+</head>
+<body class="h-full bg-gray-50">
+
+  <!-- Prototype Notice Banner -->
+  <div class="prototype-banner text-white py-3 px-4 text-center">
+    <div class="container mx-auto max-w-4xl flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <i class="fas fa-flask"></i>
+        <span class="font-medium">Interactive Prototype - Progressive Enhancement Approach</span>
+      </div>
+      <div class="flex gap-3 text-sm">
+        <button onclick="toggleView('desktop')" id="btn-desktop" class="px-3 py-1 bg-white/20 rounded hover:bg-white/30 transition">
+          <i class="fas fa-desktop"></i> Desktop
+        </button>
+        <button onclick="toggleView('mobile')" id="btn-mobile" class="px-3 py-1 bg-white/20 rounded hover:bg-white/30 transition">
+          <i class="fas fa-mobile-alt"></i> Mobile
+        </button>
+        <a href="comparison.html" class="px-3 py-1 bg-white/20 rounded hover:bg-white/30 transition">
+          <i class="fas fa-columns"></i> Compare
+        </a>
+        <a href="notes.html" class="px-3 py-1 bg-white/20 rounded hover:bg-white/30 transition">
+          <i class="fas fa-sticky-note"></i> Notes
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="min-h-screen py-8" id="main-container">
+    <div class="container mx-auto max-w-2xl px-4">
+
+      <!-- First-Time User Banner (Dismissible) -->
+      <div id="first-time-banner" class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 animate-slide-down">
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0">
+            <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+          </div>
+          <div class="flex-1">
+            <h3 class="font-semibold text-blue-900 mb-1">Share secrets securely—links self-destruct</h3>
+            <p class="text-sm text-blue-800">Your secret is encrypted and can only be viewed once. The link automatically expires.</p>
+          </div>
+          <button onclick="dismissBanner()" class="flex-shrink-0 text-blue-600 hover:text-blue-800">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Taglines (for non-authenticated users) -->
+      <div class="text-center mb-8">
+        <h1 class="text-2xl text-gray-700 mb-2">Keep sensitive info out of your email and chat logs.</h1>
+        <p class="text-gray-600">Paste a password, secret message or private link below.</p>
+      </div>
+
+      <!-- Main Form Card -->
+      <div class="bg-white border border-gray-200 shadow-lg rounded-lg overflow-hidden">
+        <form id="secret-form" class="p-6 space-y-6">
+
+          <!-- 1. SECRET CONTENT -->
+          <div>
+            <label for="secret-content" class="sr-only">Secret Content</label>
+            <textarea
+              id="secret-content"
+              rows="6"
+              placeholder="Paste or type your secret here..."
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-base"
+              oninput="handleSecretInput(this)"
+            ></textarea>
+
+            <!-- Contextual Hints -->
+            <div class="flex items-center justify-between mt-2">
+              <p id="char-count" class="text-xs text-gray-500">0 characters</p>
+              <p id="contextual-hint" class="text-xs text-gray-600 contextual-hint opacity-0"></p>
+            </div>
+          </div>
+
+          <!-- 2. SECURITY ESSENTIALS -->
+          <div class="grid md:grid-cols-2 gap-6">
+
+            <!-- Passphrase Field -->
+            <div>
+              <div class="flex items-center gap-2 mb-2">
+                <label for="passphrase-input" class="block text-sm font-medium text-gray-700">
+                  🔒 Passphrase (Recommended)
+                </label>
+                <button type="button" onclick="togglePassphraseHelp()" class="text-blue-600 hover:text-blue-700">
+                  <i class="fas fa-question-circle text-sm"></i>
+                </button>
+              </div>
+
+              <!-- Help Tooltip -->
+              <div id="passphrase-help" class="mb-3 text-sm bg-blue-50 border border-blue-200 p-3 rounded-lg hidden animate-slide-down">
+                <p class="text-blue-900 mb-2">A passphrase adds security by requiring your recipient to know both:</p>
+                <ol class="list-decimal ml-4 space-y-1 text-blue-800">
+                  <li>The secret link (send via email/chat)</li>
+                  <li>The passphrase (send via text/call)</li>
+                </ol>
+              </div>
+
+              <!-- Passphrase Mode Selection -->
+              <div class="space-y-3 mb-3">
+                <!-- Auto-generate option -->
+                <label class="flex items-start cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="passphrase-mode"
+                    value="auto"
+                    checked
+                    onchange="handlePassphraseModeChange('auto')"
+                    class="mt-1 mr-3 text-blue-600 focus:ring-blue-500"
+                  />
+                  <div class="flex-1">
+                    <span class="font-medium text-gray-900">Auto-generate (recommended)</span>
+                    <div id="auto-passphrase-preview" class="mt-2 flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
+                      <code id="generated-passphrase" class="flex-1 font-mono text-sm text-gray-900">crystal-mountain-84</code>
+                      <button
+                        type="button"
+                        onclick="regeneratePassphrase()"
+                        class="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        <i class="fas fa-sync-alt"></i> Regenerate
+                      </button>
+                    </div>
+                  </div>
+                </label>
+
+                <!-- Manual option -->
+                <label class="flex items-start cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="passphrase-mode"
+                    value="manual"
+                    onchange="handlePassphraseModeChange('manual')"
+                    class="mt-1 mr-3 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span class="font-medium text-gray-900">Create my own</span>
+                </label>
+
+                <!-- Manual Input (hidden by default) -->
+                <div id="manual-passphrase-container" class="hidden animate-slide-down pl-7">
+                  <div class="relative">
+                    <input
+                      type="password"
+                      id="passphrase-input"
+                      placeholder="At least 8 characters..."
+                      oninput="validatePassphrase(this.value)"
+                      class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onclick="togglePassphraseVisibility()"
+                      class="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                    >
+                      <i id="eye-icon" class="fas fa-eye"></i>
+                    </button>
+                  </div>
+
+                  <!-- Strength Meter -->
+                  <div id="strength-meter-container" class="hidden">
+                    <div class="strength-meter">
+                      <div id="strength-fill" class="strength-fill"></div>
+                    </div>
+                    <p id="strength-text" class="text-xs text-gray-600 mt-1"></p>
+                  </div>
+
+                  <!-- Validation Error -->
+                  <p id="passphrase-error" class="text-sm text-red-600 mt-1 hidden" role="alert"></p>
+
+                  <!-- Hint -->
+                  <p class="text-xs text-gray-500 mt-1">
+                    💡 Tip: Use a phrase like "coffee-mountain-92!"
+                  </p>
+                </div>
+
+                <!-- No passphrase option -->
+                <label class="flex items-start cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="passphrase-mode"
+                    value="none"
+                    onchange="handlePassphraseModeChange('none')"
+                    class="mt-1 mr-3 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span class="text-sm text-gray-700">No passphrase (anyone with link can view)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Expiration Selector -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ⏱️ Expires in...
+              </label>
+
+              <div class="grid grid-cols-2 gap-2">
+                <!-- 30 minutes -->
+                <button
+                  type="button"
+                  onclick="selectTtl(1800, '30 min', this)"
+                  class="ttl-option flex flex-col items-center justify-center py-3 px-2 min-h-[80px] border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <span class="text-xs text-gray-500 uppercase tracking-wide">Expires</span>
+                  <span class="text-base font-medium text-gray-900">30 min</span>
+                </button>
+
+                <!-- 12 hours -->
+                <button
+                  type="button"
+                  onclick="selectTtl(43200, '12 hours', this)"
+                  class="ttl-option flex flex-col items-center justify-center py-3 px-2 min-h-[80px] border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <span class="text-xs text-gray-500 uppercase tracking-wide">Expires</span>
+                  <span class="text-base font-medium text-gray-900">12 hours</span>
+                </button>
+
+                <!-- 1 day (Recommended) -->
+                <button
+                  type="button"
+                  onclick="selectTtl(86400, '1 day', this)"
+                  class="ttl-option ttl-option--selected ttl-option--recommended flex flex-col items-center justify-center py-3 px-2 min-h-[80px] border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <span class="badge">Recommended</span>
+                  <span class="text-xs text-gray-500 uppercase tracking-wide">Expires</span>
+                  <span class="text-base font-medium text-gray-900">1 day</span>
+                </button>
+
+                <!-- 7 days -->
+                <button
+                  type="button"
+                  onclick="selectTtl(604800, '7 days', this)"
+                  class="ttl-option flex flex-col items-center justify-center py-3 px-2 min-h-[80px] border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <span class="text-xs text-gray-500 uppercase tracking-wide">Expires</span>
+                  <span class="text-base font-medium text-gray-900">7 days</span>
+                </button>
+              </div>
+
+              <p id="ttl-selected" class="text-xs text-gray-600 mt-2">
+                Your secret will expire in <strong>1 day</strong> or after being viewed once, whichever comes first.
+              </p>
+            </div>
+          </div>
+
+          <!-- Security Summary Card -->
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-start gap-3">
+              <i class="fas fa-shield-alt text-blue-600 text-lg mt-0.5"></i>
+              <div class="flex-1">
+                <h3 class="font-semibold text-blue-900 mb-2 text-sm">🔒 Your Secret is Protected</h3>
+                <ul class="space-y-1 text-sm text-blue-800">
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-blue-600 text-xs"></i>
+                    <span>Encrypted in transit and at rest</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-blue-600 text-xs"></i>
+                    <span id="security-destructs">Self-destructs after 1 view</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-blue-600 text-xs"></i>
+                    <span id="security-expires">Expires in 1 day</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-blue-600 text-xs"></i>
+                    <span id="security-passphrase">Protected by passphrase</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. ADVANCED OPTIONS (Collapsed) -->
+          <div>
+            <button
+              type="button"
+              onclick="toggleAdvancedOptions()"
+              class="flex items-center justify-between w-full text-left text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
+            >
+              <span class="flex items-center gap-2">
+                <i id="advanced-icon" class="fas fa-chevron-right text-xs transition-transform"></i>
+                Advanced Options
+              </span>
+              <span class="text-xs text-gray-500">Optional features</span>
+            </button>
+
+            <div id="advanced-options" class="hidden mt-4 space-y-4 border-l-2 border-gray-200 pl-4 animate-slide-down">
+
+              <!-- Recipient Email -->
+              <div>
+                <label for="recipient-email" class="block text-sm font-medium text-gray-700 mb-1">
+                  📧 Send to recipient's email
+                </label>
+                <input
+                  type="email"
+                  id="recipient-email"
+                  placeholder="recipient@example.com"
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p class="text-xs text-gray-500 mt-1">
+                  Requires sign-in • Free accounts get 5/day
+                </p>
+              </div>
+
+              <!-- Custom Domain -->
+              <div>
+                <label for="custom-domain" class="block text-sm font-medium text-gray-700 mb-1">
+                  🌐 Share via custom domain
+                </label>
+                <select
+                  id="custom-domain"
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option>onetimesecret.com (default)</option>
+                  <option>secrets.company.com</option>
+                  <option>share.myapp.io</option>
+                </select>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Pro Tip -->
+          <div class="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <i class="fas fa-lightbulb text-amber-600 text-lg mt-0.5"></i>
+            <div class="flex-1 text-sm">
+              <p class="text-amber-900">
+                <strong>Pro tip:</strong> Send the secret link and passphrase separately (e.g., link via email, passphrase via text message) for maximum security.
+              </p>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex flex-col gap-3">
+            <!-- Primary Action -->
+            <button
+              type="submit"
+              onclick="handleSubmit(event)"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition shadow-sm flex items-center justify-center gap-2"
+            >
+              <i class="fas fa-lock"></i>
+              <span>Create Secret Link</span>
+            </button>
+
+            <!-- Secondary Action -->
+            <a
+              href="#generate-password"
+              onclick="showGeneratePassword(event)"
+              class="text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Generate a random password instead →
+            </a>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Design Annotations (toggle with "A" key) -->
+      <div id="annotations" class="mt-8 bg-purple-50 border border-purple-200 rounded-lg p-6 hidden">
+        <h2 class="text-lg font-bold text-purple-900 mb-4">
+          <i class="fas fa-pencil-ruler"></i> Design Annotations
+        </h2>
+        <ul class="space-y-3 text-sm text-purple-800">
+          <li class="flex gap-3">
+            <span class="font-bold">1.</span>
+            <span><strong>Auto-passphrase generation</strong> increases adoption by reducing friction. Default is "auto-generate" with visible preview.</span>
+          </li>
+          <li class="flex gap-3">
+            <span class="font-bold">2.</span>
+            <span><strong>Visual TTL selector</strong> replaces dropdown with button group. No mental math (1800 seconds = ?), clear recommendation.</span>
+          </li>
+          <li class="flex gap-3">
+            <span class="font-bold">3.</span>
+            <span><strong>Security summary card</strong> provides trust signals and real-time feedback on selected options.</span>
+          </li>
+          <li class="flex gap-3">
+            <span class="font-bold">4.</span>
+            <span><strong>Progressive disclosure</strong>: Advanced options collapsed by default, reducing cognitive load for 80% use case.</span>
+          </li>
+          <li class="flex gap-3">
+            <span class="font-bold">5.</span>
+            <span><strong>Contextual hints</strong> appear as user types (e.g., "Good length for sharing" at 500 chars).</span>
+          </li>
+        </ul>
+        <p class="text-xs text-purple-600 mt-4 border-t border-purple-200 pt-3">
+          Press <kbd class="px-2 py-1 bg-purple-200 rounded">A</kbd> to hide annotations
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // State management
+    let selectedTtlValue = 86400; // 1 day
+    let selectedTtlLabel = '1 day';
+    let passphraseMode = 'auto';
+    let passphraseVisible = false;
+
+    // Generate random passphrase
+    const adjectives = ['crystal', 'mountain', 'river', 'forest', 'ocean', 'desert', 'thunder', 'whisper', 'shadow', 'golden'];
+    const nouns = ['eagle', 'wolf', 'tiger', 'dragon', 'phoenix', 'falcon', 'leopard', 'panther', 'cobra', 'hawk'];
+
+    function generateRandomPassphrase() {
+      const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+      const noun = nouns[Math.floor(Math.random() * nouns.length)];
+      const num = Math.floor(Math.random() * 100);
+      const symbols = ['!', '@', '#', '$', '%'];
+      const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+      return `${adj}-${noun}-${num}${symbol}`;
+    }
+
+    function regeneratePassphrase() {
+      const newPassphrase = generateRandomPassphrase();
+      document.getElementById('generated-passphrase').textContent = newPassphrase;
+    }
+
+    function handlePassphraseModeChange(mode) {
+      passphraseMode = mode;
+      const manualContainer = document.getElementById('manual-passphrase-container');
+      const autoPreview = document.getElementById('auto-passphrase-preview');
+
+      if (mode === 'manual') {
+        manualContainer.classList.remove('hidden');
+        autoPreview.classList.add('hidden');
+      } else if (mode === 'auto') {
+        manualContainer.classList.add('hidden');
+        autoPreview.classList.remove('hidden');
+      } else {
+        manualContainer.classList.add('hidden');
+        autoPreview.classList.add('hidden');
+      }
+
+      updateSecuritySummary();
+    }
+
+    function togglePassphraseVisibility() {
+      passphraseVisible = !passphraseVisible;
+      const input = document.getElementById('passphrase-input');
+      const icon = document.getElementById('eye-icon');
+
+      input.type = passphraseVisible ? 'text' : 'password';
+      icon.className = passphraseVisible ? 'fas fa-eye-slash' : 'fas fa-eye';
+    }
+
+    function validatePassphrase(value) {
+      if (!value) {
+        document.getElementById('strength-meter-container').classList.add('hidden');
+        return;
+      }
+
+      document.getElementById('strength-meter-container').classList.remove('hidden');
+
+      const strengthFill = document.getElementById('strength-fill');
+      const strengthText = document.getElementById('strength-text');
+      const errorEl = document.getElementById('passphrase-error');
+
+      // Simple strength calculation
+      let strength = 0;
+      if (value.length >= 8) strength++;
+      if (value.length >= 12) strength++;
+      if (/[A-Z]/.test(value)) strength++;
+      if (/[a-z]/.test(value)) strength++;
+      if (/[0-9]/.test(value)) strength++;
+      if (/[^A-Za-z0-9]/.test(value)) strength++;
+
+      if (strength <= 2) {
+        strengthFill.className = 'strength-fill strength-weak';
+        strengthText.textContent = 'Weak passphrase. Add uppercase, numbers, and symbols.';
+        strengthText.className = 'text-xs text-red-600 mt-1';
+      } else if (strength <= 4) {
+        strengthFill.className = 'strength-fill strength-medium';
+        strengthText.textContent = 'Medium strength. Consider adding more variety.';
+        strengthText.className = 'text-xs text-amber-600 mt-1';
+      } else {
+        strengthFill.className = 'strength-fill strength-strong';
+        strengthText.textContent = '✓ Strong passphrase';
+        strengthText.className = 'text-xs text-green-600 mt-1';
+      }
+
+      // Validation errors
+      if (value.length < 8) {
+        errorEl.textContent = 'Passphrase must be at least 8 characters';
+        errorEl.classList.remove('hidden');
+      } else {
+        errorEl.classList.add('hidden');
+      }
+    }
+
+    function togglePassphraseHelp() {
+      const help = document.getElementById('passphrase-help');
+      help.classList.toggle('hidden');
+    }
+
+    function selectTtl(value, label, button) {
+      selectedTtlValue = value;
+      selectedTtlLabel = label;
+
+      // Update UI
+      document.querySelectorAll('.ttl-option').forEach(btn => {
+        btn.classList.remove('ttl-option--selected');
+      });
+      button.classList.add('ttl-option--selected');
+
+      document.getElementById('ttl-selected').innerHTML =
+        `Your secret will expire in <strong>${label}</strong> or after being viewed once, whichever comes first.`;
+
+      updateSecuritySummary();
+    }
+
+    function updateSecuritySummary() {
+      document.getElementById('security-expires').textContent = `Expires in ${selectedTtlLabel}`;
+
+      const passphraseText = passphraseMode === 'none' ? 'No passphrase protection' : 'Protected by passphrase';
+      document.getElementById('security-passphrase').textContent = passphraseText;
+    }
+
+    function toggleAdvancedOptions() {
+      const options = document.getElementById('advanced-options');
+      const icon = document.getElementById('advanced-icon');
+
+      options.classList.toggle('hidden');
+
+      if (options.classList.contains('hidden')) {
+        icon.style.transform = 'rotate(0deg)';
+      } else {
+        icon.style.transform = 'rotate(90deg)';
+      }
+    }
+
+    function handleSecretInput(textarea) {
+      const length = textarea.value.length;
+      const charCount = document.getElementById('char-count');
+      const hint = document.getElementById('contextual-hint');
+
+      charCount.textContent = `${length} characters`;
+
+      // Contextual hints
+      if (length === 0) {
+        hint.textContent = '';
+        hint.style.opacity = '0';
+      } else if (length < 50) {
+        hint.textContent = '• Looks like a password or key';
+        hint.style.opacity = '1';
+      } else if (length < 500) {
+        hint.textContent = '• Good length for a message';
+        hint.style.opacity = '1';
+      } else if (length < 5000) {
+        hint.textContent = '• Good for sharing';
+        hint.style.opacity = '1';
+      } else if (length < 9000) {
+        hint.textContent = `• ${Math.round((length/10000)*100)}% of limit`;
+        hint.style.opacity = '1';
+      } else {
+        hint.textContent = '⚠️ Approaching character limit (10,000)';
+        hint.style.opacity = '1';
+        hint.className = 'text-xs text-amber-600 contextual-hint';
+      }
+
+      // Auto-grow textarea
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
+    function dismissBanner() {
+      document.getElementById('first-time-banner').style.display = 'none';
+      localStorage.setItem('ots_banner_dismissed', 'true');
+    }
+
+    function handleSubmit(event) {
+      event.preventDefault();
+
+      const secret = document.getElementById('secret-content').value;
+      if (!secret.trim()) {
+        alert('Please enter a secret to share');
+        return;
+      }
+
+      // Simulate submission
+      alert('✓ Secret created!\n\nIn the real app, this would:\n1. Submit to API\n2. Navigate to receipt page\n3. Display shareable link\n\nThis is a static prototype.');
+    }
+
+    function showGeneratePassword(event) {
+      event.preventDefault();
+      alert('Generate Password Mode\n\nIn the real app, this would:\n1. Switch to password generation mode\n2. Hide the secret textarea\n3. Show password generation options\n4. Generate and share a random password');
+    }
+
+    function toggleView(view) {
+      const container = document.getElementById('main-container');
+      const desktopBtn = document.getElementById('btn-desktop');
+      const mobileBtn = document.getElementById('btn-mobile');
+
+      if (view === 'mobile') {
+        container.style.maxWidth = '400px';
+        container.style.margin = '0 auto';
+        mobileBtn.classList.add('bg-white/40');
+        desktopBtn.classList.remove('bg-white/40');
+      } else {
+        container.style.maxWidth = '';
+        container.style.margin = '';
+        desktopBtn.classList.add('bg-white/40');
+        mobileBtn.classList.remove('bg-white/40');
+      }
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'a' || e.key === 'A') {
+        if (!e.target.matches('input, textarea')) {
+          document.getElementById('annotations').classList.toggle('hidden');
+        }
+      }
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check if banner was dismissed
+      if (localStorage.getItem('ots_banner_dismissed')) {
+        document.getElementById('first-time-banner').style.display = 'none';
+      }
+
+      // Set desktop view active by default
+      document.getElementById('btn-desktop').classList.add('bg-white/40');
+
+      // Initialize with a generated passphrase
+      regeneratePassphrase();
+    });
+  </script>
+
+</body>
+</html>

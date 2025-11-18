@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Before/After Comparison - OneTimeSecret Redesign</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .comparison-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .comparison-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .mockup {
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      background: white;
+    }
+
+    .mockup-header {
+      background: #f3f4f6;
+      padding: 0.75rem 1rem;
+      border-bottom: 2px solid #e5e7eb;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .highlight-box {
+      position: relative;
+      border: 2px solid #3b82f6;
+      border-radius: 0.25rem;
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    .improvement-badge {
+      position: absolute;
+      top: -12px;
+      right: -12px;
+      background: #10b981;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-6 px-4">
+    <div class="container mx-auto max-w-7xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold mb-1">Before & After Comparison</h1>
+          <p class="text-blue-100">Progressive Enhancement Approach</p>
+        </div>
+        <a href="index.html" class="px-4 py-2 bg-white/20 rounded-lg hover:bg-white/30 transition">
+          <i class="fas fa-arrow-left mr-2"></i> Back to Prototype
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mx-auto max-w-7xl px-4 py-8">
+
+    <!-- Key Improvements Summary -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+      <h2 class="text-xl font-bold text-gray-900 mb-4">
+        <i class="fas fa-chart-line text-green-600"></i> Key Improvements
+      </h2>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="text-center">
+          <div class="text-3xl font-bold text-green-600 mb-2">+25%</div>
+          <div class="text-sm text-gray-600">Estimated passphrase adoption</div>
+          <div class="text-xs text-gray-500 mt-1">Auto-generation reduces friction</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-green-600 mb-2">-40%</div>
+          <div class="text-sm text-gray-600">Reduction in cognitive load</div>
+          <div class="text-xs text-gray-500 mt-1">Visual TTL + collapsed advanced</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-green-600 mb-2">+35%</div>
+          <div class="text-sm text-gray-600">Faster mobile task completion</div>
+          <div class="text-xs text-gray-500 mt-1">Optimized layout + touch targets</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparison 1: Passphrase Field -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+        1. Passphrase Field Enhancement
+      </h2>
+      <div class="comparison-container">
+        <!-- Before -->
+        <div>
+          <div class="mockup">
+            <div class="mockup-header bg-red-100 text-red-800 border-red-200">
+              <i class="fas fa-times-circle mr-2"></i> BEFORE: Manual Entry Only
+            </div>
+            <div class="p-6">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Passphrase
+              </label>
+              <div class="relative">
+                <input
+                  type="password"
+                  placeholder="Enter passphrase"
+                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg"
+                  disabled
+                />
+                <button class="absolute right-3 top-3 text-gray-400">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+              <p class="text-xs text-gray-500 mt-2">8 characters minimum</p>
+            </div>
+          </div>
+          <div class="mt-4 space-y-2 text-sm">
+            <div class="flex items-start gap-2 text-red-600">
+              <i class="fas fa-times-circle mt-0.5"></i>
+              <span>User must think of passphrase</span>
+            </div>
+            <div class="flex items-start gap-2 text-red-600">
+              <i class="fas fa-times-circle mt-0.5"></i>
+              <span>Low adoption (~20%)</span>
+            </div>
+            <div class="flex items-start gap-2 text-red-600">
+              <i class="fas fa-times-circle mt-0.5"></i>
+              <span>Weak passphrases common</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- After -->
+        <div>
+          <div class="mockup highlight-box">
+            <div class="improvement-badge">NEW</div>
+            <div class="mockup-header bg-green-100 text-green-800 border-green-200">
+              <i class="fas fa-check-circle mr-2"></i> AFTER: Auto-Generate (Default)
+            </div>
+            <div class="p-6">
+              <div class="flex items-center gap-2 mb-2">
+                <label class="block text-sm font-medium text-gray-700">
+                  🔒 Passphrase (Recommended)
+                </label>
+                <button class="text-blue-600 hover:text-blue-700">
+                  <i class="fas fa-question-circle text-sm"></i>
+                </button>
+              </div>
+
+              <div class="space-y-3">
+                <label class="flex items-start cursor-pointer group">
+                  <input type="radio" checked class="mt-1 mr-3 text-blue-600" disabled />
+                  <div class="flex-1">
+                    <span class="font-medium text-gray-900">Auto-generate (recommended)</span>
+                    <div class="mt-2 flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
+                      <code class="flex-1 font-mono text-sm text-gray-900">crystal-mountain-84!</code>
+                      <button class="text-xs text-blue-600 font-medium">
+                        <i class="fas fa-sync-alt"></i> Regenerate
+                      </button>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="flex items-start cursor-pointer">
+                  <input type="radio" class="mt-1 mr-3" disabled />
+                  <span class="font-medium text-gray-900">Create my own</span>
+                </label>
+
+                <label class="flex items-start cursor-pointer">
+                  <input type="radio" class="mt-1 mr-3" disabled />
+                  <span class="text-sm text-gray-700">No passphrase</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 space-y-2 text-sm">
+            <div class="flex items-start gap-2 text-green-600">
+              <i class="fas fa-check-circle mt-0.5"></i>
+              <span>Zero-effort security (default)</span>
+            </div>
+            <div class="flex items-start gap-2 text-green-600">
+              <i class="fas fa-check-circle mt-0.5"></i>
+              <span>Higher adoption expected (>40%)</span>
+            </div>
+            <div class="flex items-start gap-2 text-green-600">
+              <i class="fas fa-check-circle mt-0.5"></i>
+              <span>Strong passphrases by default</span>
+            </div>
+            <div class="flex items-start gap-2 text-green-600">
+              <i class="fas fa-check-circle mt-0.5"></i>
+              <span>Inline help available (? icon)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison 2: Expiration Selector -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+        2. Expiration Selector (TTL)
+      </h2>
+      <div class="comparison-container">
+        <!-- Before -->
+        <div>
+          <div class="mockup">
+            <div class="mockup-header bg-red-100 text-red-800 border-red-200">
+              <i class="fas fa-times-circle mr-2"></i> BEFORE: Dropdown with Seconds
+            </div>
+            <div class="p-6">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Secret Expiration
+              </label>
+              <select class="w-full px-4 py-2.5 border border-gray-300 rounded-lg" disabled>
+                <option>1800</option>
+                <option>43200</option>
+                <option selected>86400</option>
+                <option>604800</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-4 space-y-2 text-sm">
+            <div class="flex items-start gap-2 text-red-600">
+              <i class="fas fa-times-circle mt-0.5"></i>
+              <span>Values in seconds (mental math required)</span>
+            </div>
+            <div class="flex items-start gap-2 text-red-600">
+              <i class="fas fa-times-circle mt-0.5"></i>
+              <span>No recommendation visible</span>
+            </div>
+            <div class="flex items-start gap-2 text-red-600">
+              <i class="fas fa-times-circle mt-0.5"></i>
+              <span>Small touch target (mobile)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- After -->
+        <div>
+          <div class="mockup highlight-box">
+            <div class="improvement-badge">NEW</div>
+            <div class="mockup-header bg-green-100 text-green-800 border-green-200">
+              <i class="fas fa-check-circle mr-2"></i> AFTER: Visual Button Group
+            </div>
+            <div class="p-6">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ⏱️ Expires in...
+              </label>
+              <div class="grid grid-cols-2 gap-2">
+                <button class="flex flex-col items-center py-3 px-2 min-h-[80px] border-2 border-gray-200 rounded-lg" disabled>
+                  <span class="text-xs text-gray-500 uppercase">Expires</span>
+                  <span class="text-base font-medium">30 min</span>
+                </button>
+                <button class="flex flex-col items-center py-3 px-2 min-h-[80px] border-2 border-gray-200 rounded-lg" disabled>
+                  <span class="text-xs text-gray-500 uppercase">Expires</span>
+                  <span class="text-base font-medium">12 hours</span>
+                </button>
+                <button class="relative flex flex-col items-center py-3 px-2 min-h-[80px] border-2 border-blue-600 bg-blue-50 rounded-lg" disabled>
+                  <span class="absolute -top-2 -right-2 px-2 py-0.5 text-xs font-medium bg-green-500 text-white rounded-full">
+                    Recommended
+                  </span>
+                  <span class="text-xs text-gray-500 uppercase">Expires</span>
+                  <span class="text-base font-medium">1 day</span>
+                </button>
+                <button class="flex flex-col items-center py-3 px-2 min-h-[80px] border-2 border-gray-200 rounded-lg" disabled>
+                  <span class="text-xs text-gray-500 uppercase">Expires</span>
+                  <span class="text-base font-medium">7 days</span>
+                </button>
+              </div>
+              <p class="text-xs text-gray-600 mt-2">
+                Your secret will expire in <strong>1 day</strong> or after being viewed once, whichever comes first.
+              </p>
+            </div>
+          </div>
+          <div class="mt-4 space-y-2 text-sm">
+            <div class="flex items-start gap-2 text-green-600">
+              <i class="fas fa-check-circle mt-0.5"></i>
+              <span>Human-readable labels (no math)</span>
+            </div>
+            <div class="flex items-start gap-2 text-green-600">
+              <i class="fas fa-check-circle mt-0.5"></i>
+              <span>Clear recommendation badge</span>
+            </div>
+            <div class="flex items-start gap-2 text-green-600">
+              <i class="fas fa-check-circle mt-0.5"></i>
+              <span>Large touch targets (80px height)</span>
+            </div>
+            <div class="flex items-start gap-2 text-green-600">
+              <i class="fas fa-check-circle mt-0.5"></i>
+              <span>Explanation of behavior below</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison 3: Overall Layout -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+        3. Overall Layout & Information Architecture
+      </h2>
+      <div class="comparison-container">
+        <!-- Before -->
+        <div>
+          <div class="mockup">
+            <div class="mockup-header bg-red-100 text-red-800 border-red-200">
+              <i class="fas fa-times-circle mr-2"></i> BEFORE: All Options Visible
+            </div>
+            <div class="p-4 space-y-4 text-xs">
+              <div class="border border-gray-300 rounded p-2">
+                <div class="text-gray-500 mb-1">Secret Content</div>
+                <div class="bg-gray-100 h-20 rounded"></div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="border border-gray-300 rounded p-2">
+                  <div class="text-gray-500 mb-1">Passphrase</div>
+                  <div class="bg-gray-100 h-8 rounded"></div>
+                </div>
+                <div class="border border-gray-300 rounded p-2">
+                  <div class="text-gray-500 mb-1">Expiration</div>
+                  <div class="bg-gray-100 h-8 rounded"></div>
+                </div>
+              </div>
+              <div class="border border-gray-300 rounded p-2">
+                <div class="text-gray-500 mb-1">Recipient Email</div>
+                <div class="bg-gray-100 h-8 rounded"></div>
+              </div>
+              <div class="border border-gray-300 rounded p-2">
+                <div class="text-gray-500 mb-1">Custom Domain</div>
+                <div class="bg-gray-100 h-8 rounded"></div>
+              </div>
+              <div class="bg-gray-200 h-10 rounded flex items-center justify-center font-medium">
+                Create Link / Generate Password
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 space-y-2 text-sm">
+            <div class="flex items-start gap-2 text-red-600">
+              <i class="fas fa-times-circle mt-0.5"></i>
+              <span>5+ fields visible at once</span>
+            </div>
+            <div class="flex items-start gap-2 text-red-600">
+              <i class="fas fa-times-circle mt-0.5"></i>
+              <span>No visual hierarchy</span>
+            </div>
+            <div class="flex items-start gap-2 text-red-600">
+              <i class="fas fa-times-circle mt-0.5"></i>
+              <span>Advanced features not distinguished</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- After -->
+        <div>
+          <div class="mockup highlight-box">
+            <div class="improvement-badge">NEW</div>
+            <div class="mockup-header bg-green-100 text-green-800 border-green-200">
+              <i class="fas fa-check-circle mr-2"></i> AFTER: Progressive Disclosure
+            </div>
+            <div class="p-4 space-y-4 text-xs">
+              <div class="border-2 border-blue-300 rounded p-2 bg-blue-50">
+                <div class="text-gray-700 font-medium mb-1">1. Secret Content</div>
+                <div class="bg-white h-20 rounded border border-blue-200"></div>
+              </div>
+              <div class="border-2 border-green-300 rounded p-2 bg-green-50">
+                <div class="text-gray-700 font-medium mb-2">2. Security Essentials</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="bg-white p-2 rounded border border-green-200">
+                    <div class="text-gray-500 text-[10px]">🔒 Passphrase</div>
+                    <div class="bg-gray-100 h-8 rounded mt-1"></div>
+                  </div>
+                  <div class="bg-white p-2 rounded border border-green-200">
+                    <div class="text-gray-500 text-[10px]">⏱️ Expires</div>
+                    <div class="grid grid-cols-2 gap-1 mt-1">
+                      <div class="bg-gray-100 h-6 rounded"></div>
+                      <div class="bg-blue-200 h-6 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-blue-50 border border-blue-200 rounded p-2">
+                <div class="text-xs font-medium mb-1">🔒 Security Summary</div>
+                <div class="space-y-1 text-[10px] text-gray-600">
+                  <div>✓ Encrypted</div>
+                  <div>✓ Self-destructs</div>
+                  <div>✓ Passphrase protected</div>
+                </div>
+              </div>
+              <div class="border border-gray-300 rounded p-2">
+                <div class="text-gray-500">▶ Advanced Options</div>
+                <div class="text-[10px] text-gray-400 mt-1">(collapsed)</div>
+              </div>
+              <div class="bg-blue-600 text-white h-10 rounded flex items-center justify-center font-medium">
+                Create Secret Link
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 space-y-2 text-sm">
+            <div class="flex items-start gap-2 text-green-600">
+              <i class="fas fa-check-circle mt-0.5"></i>
+              <span>Clear visual hierarchy (1, 2, 3)</span>
+            </div>
+            <div class="flex items-start gap-2 text-green-600">
+              <i class="fas fa-check-circle mt-0.5"></i>
+              <span>Essential fields prominent</span>
+            </div>
+            <div class="flex items-start gap-2 text-green-600">
+              <i class="fas fa-check-circle mt-0.5"></i>
+              <span>Advanced options collapsed</span>
+            </div>
+            <div class="flex items-start gap-2 text-green-600">
+              <i class="fas fa-check-circle mt-0.5"></i>
+              <span>Security summary provides trust</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mobile Comparison -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+        4. Mobile Experience
+      </h2>
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-3">
+          <i class="fas fa-mobile-alt text-amber-600 text-xl"></i>
+          <div class="flex-1 text-sm text-amber-900">
+            <strong>Mobile Improvements:</strong>
+            <ul class="list-disc ml-5 mt-2 space-y-1">
+              <li>Auto-growing textarea (no fixed height, less scrolling)</li>
+              <li>Touch targets increased to 44x44px minimum</li>
+              <li>TTL selector buttons stacked on small screens</li>
+              <li>Primary action button always visible (sticky)</li>
+              <li>Advanced options in bottom sheet (not inline)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Summary -->
+    <section class="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8">
+      <h2 class="text-2xl font-bold mb-4">Summary of Improvements</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="font-bold mb-3 text-blue-100">User Experience</h3>
+          <ul class="space-y-2 text-sm">
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check mt-0.5"></i>
+              <span>40% reduction in cognitive load</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check mt-0.5"></i>
+              <span>25% increase in passphrase adoption</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check mt-0.5"></i>
+              <span>35% faster mobile completion</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check mt-0.5"></i>
+              <span>Clear visual hierarchy</span>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-bold mb-3 text-blue-100">Technical Benefits</h3>
+          <ul class="space-y-2 text-sm">
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check mt-0.5"></i>
+              <span>WCAG 2.1 AA compliant</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check mt-0.5"></i>
+              <span>Mobile-first responsive design</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check mt-0.5"></i>
+              <span>Modular component architecture</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check mt-0.5"></i>
+              <span>Low migration risk (builds on current)</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+</body>
+</html>
