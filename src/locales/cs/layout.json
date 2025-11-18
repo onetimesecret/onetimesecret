@@ -1,61 +1,61 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Zabezpečení",
+      "learn-about-our-security-measures": "Nauč se o našich bezpečnostních opatřeních",
+      "view-our-terms-and-conditions": "Zobraz naše podmínky používání",
+      "terms": "Podmínky",
+      "privacy": "Soukromí",
+      "contact": "Kontakt",
+      "support": "Podpora",
+      "legals": "Právní informace",
+      "read-our-privacy-policy": "Přečti si naše zásady ochrany soukromí",
+      "check-our-service-status": "Zkontroluj stav naší služby",
+      "explore-our-api-documentation": "Prozkoumej naši dokumentaci API",
+      "docs": "Dokumentace",
+      "access-our-documentation": "Přistup k naší dokumentaci",
+      "view-our-source-code-on-github": "Zobraz náš zdrojový kód na GitHubu",
+      "resources": "Zdroje",
+      "blog": "Blog",
+      "read-our-latest-blog-posts": "Přečti si naše nejnovější příspěvky na blogu",
+      "view-our-subscription-pricing": "Zobraz naše předplatné a ceny",
+      "learn-about-our-company": "Nauč se o naší společnosti",
+      "company": "Společnost"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Fakturace",
+      "billingOverview": "Přehled",
+      "organizations": "Organizace"
     },
     "site": {
-      "website-version": ""
+      "website-version": "Verze webu"
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "",
-      "translations-are-new-spotted-an-error": "",
-      "we-recently-added-translations": "",
-      "privacy-and-security-should-be-accessible": ""
+      "were-making-onetime-secret-available-in-multiple": "Zpřístupňujeme {onetime-secret} ve více jazycích. Protože jde o novou funkci, můžeš narazit na překladové chyby nebo neohrabané formulace. Tvá zpětná vazba nám pomáhá se zlepšovat - pokud narazíš na nějaké problémy, prosím {send-feedback}",
+      "translations-are-new-spotted-an-error": "Překlady jsou nové. Našel jsi chybu? {send-feedback}",
+      "we-recently-added-translations": "Nedávno jsme přidali překlady. Našel jsi chybu? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Soukromí a zabezpečení by měly být přístupné všem, bez ohledu na jazyk. Přidáváme překlady, abychom pomohli našim uživatelům i příjemcům jejich zpráv lépe porozumět, jak bezpečně používat a přistupovat k bezpečným zprávám a odkazům. Protože jde o novou funkci, můžeš narazit na překladové chyby nebo nejasné instrukce. Abys nám pomohl zlepšit jasnost a přesnost našich překladů, zejména u kritického obsahu týkajícího se zabezpečení, prosím {send-feedback}, pokud narazíš na nějaké problémy"
     },
     "help": {
-      "learn_more": "",
+      "learn_more": "Zjistit více",
       "secret_view_faq": {
         "what_am_i_looking_at": {
-          "title": "",
-          "description": ""
+          "title": "Na co se dívám?",
+          "description": "Prohlížíš si bezpečnou zprávu, která byla s tebou sdílena přes Onetime Secret. Tento obsah je zobrazen pouze jednou a poté je trvale smazán z našich serverů."
         },
         "can_i_view_again": {
-          "title": "",
-          "description": ""
+          "title": "Můžu si toto tajemství zobrazit znovu později?",
+          "description": "Ne. Z bezpečnostních důvodů je toto tajemství zobrazitelné pouze jednou. Po zavření této stránky bude obsah trvale smazán a nemůže být obnoven nikým, včetně nás."
         },
         "how_to_copy": {
-          "title": "",
-          "description": ""
+          "title": "Jak mohu uložit tyto informace?",
+          "description": "Použij tlačítko 'Zkopírovat do schránky' pro zkopírování celého tajemství. U delších tajemství se ujisti, že jsi zkopíroval kompletní obsah před opuštěním této stránky."
         },
         "is_my_viewing_tracked": {
-          "title": "",
-          "description": ""
+          "title": "Je mé zobrazení tohoto tajemství sledováno?",
+          "description": "Odesílatel bude upozorněn, že jeho tajemství bylo zobrazeno, ale nesledujeme, kdo ho zobrazil nebo z jakého umístění. Tvé soukromí je chráněno."
         },
-        "one_time_warning": ""
+        "one_time_warning": "Jakmile opustíš nebo obnovíš tuto stránku, toto tajemství bude trvale smazáno a nemůže být obnoven nikým."
       }
     }
   }
