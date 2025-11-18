@@ -86,20 +86,12 @@ module DomainsAPI::Logic
 
         # Store the result data if available (for strategies like Approximated)
         if result[:data]
-          @custom_domain.vhost   = safe_json_serialize(result[:data])
+          @custom_domain.vhost   = result[:data].to_json
           @custom_domain.updated = OT.now.to_i
           @custom_domain.save
         end
 
         result
-      end
-
-      # Safely serialize data to JSON, handling non-serializable objects
-      def safe_json_serialize(data)
-        data.to_json
-      rescue JSON::GeneratorError, TypeError => ex
-        OT.le "[AddDomain] JSON serialization error: #{ex.message}"
-        {}.to_json # Return empty JSON object on error
       end
 
       # Legacy method for backward compatibility

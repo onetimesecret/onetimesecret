@@ -19,16 +19,10 @@
 # with ?domain=example.com to check if the domain is allowed.
 #
 # Response Codes:
-#   200 - Domain is allowed (found in CustomDomain database)
+#   200 - Domain is allowed (verified in CustomDomain database)
 #   400 - Bad request (missing domain parameter)
 #   401 - Unauthorized (request not from localhost - security violation)
-#   403 - Forbidden (domain not found in database)
-#   429 - Too Many Requests (rate limit exceeded for domain)
-#
-# Rate Limiting:
-#   - 60 requests per domain per minute
-#   - Prevents abuse even from localhost
-#   - Uses Redis for distributed rate limiting
+#   403 - Forbidden (domain not verified or not found)
 #
 
 require 'onetime/application'
@@ -81,12 +75,8 @@ module InternalACME
     def build_middleware_stack
       Rack::Builder.new do
         # Security middleware - MUST be first
-        # Only allow requests from localhost
+        # Only allow requests from localhost (Caddy running on same host)
         use LocalhostOnly
-
-        # Rate limiting to prevent abuse (even from localhost)
-        # Limits: 60 requests per domain per minute
-        use RateLimiter, limit: 60, window: 60
 
         # Simple logging for debugging (development only)
         use Rack::CommonLogger if Onetime.development?
@@ -97,14 +87,14 @@ module InternalACME
 
     def domain_allowed?(domain)
       # Load and check if this domain exists in our CustomDomain database
-      # This uses the class-level display_domains hashkey for O(1) lookup
       custom_domain = Onetime::CustomDomain.load_by_display_domain(domain)
 
-      # Domain is allowed if it exists
-      # For Caddy on-demand TLS, we only check if the domain exists
-      # in our database. The validation state doesn't matter because
-      # Caddy will handle the ACME challenge itself.
-      !custom_domain.nil?
+      return false if custom_domain.nil?
+
+      # IMPORTANT: Only allow domains that have been verified via DNS TXT record.
+      # This proves the customer actually owns the domain before Caddy issues a cert.
+      # The ACME HTTP challenge (handled by Caddy) is separate from DNS ownership proof.
+      custom_domain.ready?
     rescue StandardError => e
       OT.le "[InternalACME] Error checking domain #{domain}: #{e.message}"
       false
@@ -127,53 +117,6 @@ module InternalACME
         end
 
         @app.call(env)
-      end
-    end
-
-    # Middleware to rate limit ACME validation requests
-    #
-    # Prevents abuse by limiting requests per domain per time window.
-    # Uses Redis for distributed rate limiting.
-    #
-    class RateLimiter
-      def initialize(app, limit: 60, window: 60)
-        @app = app
-        @limit = limit
-        @window = window
-      end
-
-      def call(env)
-        req = Rack::Request.new(env)
-        domain = req.params['domain']
-
-        # Skip rate limiting if no domain parameter (will fail with 400 anyway)
-        return @app.call(env) if domain.to_s.empty?
-
-        # Check rate limit
-        unless check_rate_limit(domain)
-          OT.le "[InternalACME] Rate limit exceeded for domain: #{domain}"
-          return [429, { 'content-type' => 'text/plain' }, ['Too Many Requests - rate limit exceeded']]
-        end
-
-        @app.call(env)
-      end
-
-      private
-
-      def check_rate_limit(domain)
-        key = "acme:ratelimit:#{domain}"
-
-        # Use Redis to track request counts
-        redis = Familia.redis(db: OT.conf.dig('redis', 'databases', 'logs') || 0)
-
-        count = redis.incr(key)
-        redis.expire(key, @window) if count == 1
-
-        count <= @limit
-      rescue StandardError => ex
-        # Log error but allow request to proceed (fail open)
-        OT.le "[InternalACME] Rate limit check error: #{ex.message}"
-        true
       end
     end
   end
