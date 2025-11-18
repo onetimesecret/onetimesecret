@@ -1179,8 +1179,8 @@
   "paths": {
     "/api/v3/receipt/recent": {
       "get": {
-        "summary": "Get secret metadata",
-        "description": "Retrieve metadata for a secret without revealing its value. Shows expiration, state, and other receipt information.",
+        "summary": "List recent receipts",
+        "description": "Retrieve a list of recently created secret receipts.",
         "tags": [
           "v3",
           "metadata"
@@ -1190,281 +1190,284 @@
         ],
         "responses": {
           "200": {
-            "description": "Metadata retrieved successfully",
+            "description": "Recent receipts retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "user_id": {
-                      "type": "string"
-                    },
-                    "shrimp": {
-                      "type": "string",
-                      "default": ""
-                    },
-                    "record": {
-                      "type": "object",
-                      "properties": {
-                        "identifier": {
-                          "type": "string"
-                        },
-                        "created": {
-                          "type": "string",
-                          "nullable": true,
-                          "format": "date"
-                        },
-                        "updated": {
-                          "type": "string",
-                          "nullable": true,
-                          "format": "date"
-                        },
-                        "key": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "shortid": {
-                          "type": "string"
-                        },
-                        "secret_shortid": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "recipients": {
-                          "anyOf": [
-                            {
-                              "type": "array",
-                              "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "user_id": {
+                        "type": "string"
+                      },
+                      "shrimp": {
+                        "type": "string",
+                        "default": ""
+                      },
+                      "record": {
+                        "type": "object",
+                        "properties": {
+                          "identifier": {
+                            "type": "string"
+                          },
+                          "created": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date"
+                          },
+                          "updated": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date"
+                          },
+                          "key": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "shortid": {
+                            "type": "string"
+                          },
+                          "secret_shortid": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "recipients": {
+                            "anyOf": [
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              {
                                 "type": "string"
+                              },
+                              {
+                                "nullable": true
                               }
-                            },
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "nullable": true
-                            }
-                          ]
+                            ]
+                          },
+                          "share_domain": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "secret_ttl": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "metadata_ttl": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "lifespan": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "new",
+                              "shared",
+                              "received",
+                              "burned",
+                              "viewed",
+                              "expired",
+                              "orphaned"
+                            ]
+                          },
+                          "has_passphrase": {
+                            "type": "boolean"
+                          },
+                          "shared": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date"
+                          },
+                          "received": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date"
+                          },
+                          "burned": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date"
+                          },
+                          "viewed": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date"
+                          },
+                          "is_viewed": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_received": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_burned": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_destroyed": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_expired": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_orphaned": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "secret_identifier": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "secret_state": {
+                            "type": "string",
+                            "nullable": true,
+                            "enum": [
+                              "new",
+                              "shared",
+                              "received",
+                              "burned",
+                              "viewed",
+                              "expired",
+                              "orphaned"
+                            ]
+                          },
+                          "natural_expiration": {
+                            "type": "string"
+                          },
+                          "expiration": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date"
+                          },
+                          "expiration_in_seconds": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "share_path": {
+                            "type": "string"
+                          },
+                          "burn_path": {
+                            "type": "string"
+                          },
+                          "metadata_path": {
+                            "type": "string"
+                          },
+                          "share_url": {
+                            "type": "string"
+                          },
+                          "metadata_url": {
+                            "type": "string"
+                          },
+                          "burn_url": {
+                            "type": "string"
+                          }
                         },
-                        "share_domain": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "secret_ttl": {
-                          "type": "number",
-                          "nullable": true
-                        },
-                        "metadata_ttl": {
-                          "type": "number",
-                          "nullable": true
-                        },
-                        "lifespan": {
-                          "type": "number",
-                          "nullable": true
-                        },
-                        "state": {
-                          "type": "string",
-                          "enum": [
-                            "new",
-                            "shared",
-                            "received",
-                            "burned",
-                            "viewed",
-                            "expired",
-                            "orphaned"
-                          ]
-                        },
-                        "has_passphrase": {
-                          "type": "boolean"
-                        },
-                        "shared": {
-                          "type": "string",
-                          "nullable": true,
-                          "format": "date"
-                        },
-                        "received": {
-                          "type": "string",
-                          "nullable": true,
-                          "format": "date"
-                        },
-                        "burned": {
-                          "type": "string",
-                          "nullable": true,
-                          "format": "date"
-                        },
-                        "viewed": {
-                          "type": "string",
-                          "nullable": true,
-                          "format": "date"
-                        },
-                        "is_viewed": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "is_received": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "is_burned": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "is_destroyed": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "is_expired": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "is_orphaned": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "secret_identifier": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "secret_state": {
-                          "type": "string",
-                          "nullable": true,
-                          "enum": [
-                            "new",
-                            "shared",
-                            "received",
-                            "burned",
-                            "viewed",
-                            "expired",
-                            "orphaned"
-                          ]
-                        },
-                        "natural_expiration": {
-                          "type": "string"
-                        },
-                        "expiration": {
-                          "type": "string",
-                          "nullable": true,
-                          "format": "date"
-                        },
-                        "expiration_in_seconds": {
-                          "type": "number",
-                          "nullable": true
-                        },
-                        "share_path": {
-                          "type": "string"
-                        },
-                        "burn_path": {
-                          "type": "string"
-                        },
-                        "metadata_path": {
-                          "type": "string"
-                        },
-                        "share_url": {
-                          "type": "string"
-                        },
-                        "metadata_url": {
-                          "type": "string"
-                        },
-                        "burn_url": {
-                          "type": "string"
-                        }
+                        "required": [
+                          "identifier",
+                          "created",
+                          "updated",
+                          "shortid",
+                          "state",
+                          "natural_expiration",
+                          "expiration",
+                          "share_path",
+                          "burn_path",
+                          "metadata_path",
+                          "share_url",
+                          "metadata_url",
+                          "burn_url"
+                        ]
                       },
-                      "required": [
-                        "identifier",
-                        "created",
-                        "updated",
-                        "shortid",
-                        "state",
-                        "natural_expiration",
-                        "expiration",
-                        "share_path",
-                        "burn_path",
-                        "metadata_path",
-                        "share_url",
-                        "metadata_url",
-                        "burn_url"
-                      ]
+                      "details": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "record"
+                            ]
+                          },
+                          "display_lines": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "no_cache": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "secret_realttl": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "view_count": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "has_passphrase": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "can_decrypt": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "secret_value": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "show_secret": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "show_secret_link": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "show_metadata_link": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "show_metadata": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "show_recipients": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_orphaned": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_expired": {
+                            "type": "boolean",
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "type"
+                        ]
+                      }
                     },
-                    "details": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "record"
-                          ]
-                        },
-                        "display_lines": {
-                          "type": "number",
-                          "nullable": true
-                        },
-                        "no_cache": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "secret_realttl": {
-                          "type": "number",
-                          "nullable": true
-                        },
-                        "view_count": {
-                          "type": "number",
-                          "nullable": true
-                        },
-                        "has_passphrase": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "can_decrypt": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "secret_value": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "show_secret": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "show_secret_link": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "show_metadata_link": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "show_metadata": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "show_recipients": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "is_orphaned": {
-                          "type": "boolean",
-                          "nullable": true
-                        },
-                        "is_expired": {
-                          "type": "boolean",
-                          "nullable": true
-                        }
-                      },
-                      "required": [
-                        "type"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "record"
-                  ]
+                    "required": [
+                      "record"
+                    ]
+                  }
                 }
               }
             }
           },
-          "404": {
-            "description": "Metadata not found or expired"
+          "401": {
+            "description": "Unauthorized - authentication required"
           }
         }
       }
@@ -1802,6 +1805,301 @@
         }
       }
     },
+    "/api/v3/private/recent": {
+      "get": {
+        "summary": "List recent private secrets",
+        "description": "Retrieve a list of recently created private secrets.",
+        "tags": [
+          "v3",
+          "metadata"
+        ],
+        "security": [
+          {}
+        ],
+        "responses": {
+          "200": {
+            "description": "Recent private secrets retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "user_id": {
+                        "type": "string"
+                      },
+                      "shrimp": {
+                        "type": "string",
+                        "default": ""
+                      },
+                      "record": {
+                        "type": "object",
+                        "properties": {
+                          "identifier": {
+                            "type": "string"
+                          },
+                          "created": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date"
+                          },
+                          "updated": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date"
+                          },
+                          "key": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "shortid": {
+                            "type": "string"
+                          },
+                          "secret_shortid": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "recipients": {
+                            "anyOf": [
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "nullable": true
+                              }
+                            ]
+                          },
+                          "share_domain": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "secret_ttl": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "metadata_ttl": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "lifespan": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "new",
+                              "shared",
+                              "received",
+                              "burned",
+                              "viewed",
+                              "expired",
+                              "orphaned"
+                            ]
+                          },
+                          "has_passphrase": {
+                            "type": "boolean"
+                          },
+                          "shared": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date"
+                          },
+                          "received": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date"
+                          },
+                          "burned": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date"
+                          },
+                          "viewed": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date"
+                          },
+                          "is_viewed": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_received": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_burned": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_destroyed": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_expired": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_orphaned": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "secret_identifier": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "secret_state": {
+                            "type": "string",
+                            "nullable": true,
+                            "enum": [
+                              "new",
+                              "shared",
+                              "received",
+                              "burned",
+                              "viewed",
+                              "expired",
+                              "orphaned"
+                            ]
+                          },
+                          "natural_expiration": {
+                            "type": "string"
+                          },
+                          "expiration": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date"
+                          },
+                          "expiration_in_seconds": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "share_path": {
+                            "type": "string"
+                          },
+                          "burn_path": {
+                            "type": "string"
+                          },
+                          "metadata_path": {
+                            "type": "string"
+                          },
+                          "share_url": {
+                            "type": "string"
+                          },
+                          "metadata_url": {
+                            "type": "string"
+                          },
+                          "burn_url": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "identifier",
+                          "created",
+                          "updated",
+                          "shortid",
+                          "state",
+                          "natural_expiration",
+                          "expiration",
+                          "share_path",
+                          "burn_path",
+                          "metadata_path",
+                          "share_url",
+                          "metadata_url",
+                          "burn_url"
+                        ]
+                      },
+                      "details": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "record"
+                            ]
+                          },
+                          "display_lines": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "no_cache": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "secret_realttl": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "view_count": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "has_passphrase": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "can_decrypt": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "secret_value": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "show_secret": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "show_secret_link": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "show_metadata_link": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "show_metadata": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "show_recipients": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_orphaned": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "is_expired": {
+                            "type": "boolean",
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "type"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "record"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          }
+        }
+      }
+    },
     "/api/v3/private/{identifier}/burn": {
       "post": {
         "summary": "Burn a secret",
@@ -1829,6 +2127,308 @@
           },
           "404": {
             "description": "Secret not found or already burned"
+          }
+        }
+      }
+    },
+    "/api/v3/private/{identifier}": {
+      "get": {
+        "summary": "Get secret metadata",
+        "description": "Retrieve metadata for a secret without revealing its value. Shows expiration, state, and other receipt information.",
+        "tags": [
+          "v3",
+          "metadata"
+        ],
+        "security": [
+          {}
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "identifier",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Metadata retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user_id": {
+                      "type": "string"
+                    },
+                    "shrimp": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "record": {
+                      "type": "object",
+                      "properties": {
+                        "identifier": {
+                          "type": "string"
+                        },
+                        "created": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date"
+                        },
+                        "updated": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date"
+                        },
+                        "key": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "shortid": {
+                          "type": "string"
+                        },
+                        "secret_shortid": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "recipients": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "nullable": true
+                            }
+                          ]
+                        },
+                        "share_domain": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "secret_ttl": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "metadata_ttl": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "lifespan": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "new",
+                            "shared",
+                            "received",
+                            "burned",
+                            "viewed",
+                            "expired",
+                            "orphaned"
+                          ]
+                        },
+                        "has_passphrase": {
+                          "type": "boolean"
+                        },
+                        "shared": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date"
+                        },
+                        "received": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date"
+                        },
+                        "burned": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date"
+                        },
+                        "viewed": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date"
+                        },
+                        "is_viewed": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_received": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_burned": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_destroyed": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_expired": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_orphaned": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "secret_identifier": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "secret_state": {
+                          "type": "string",
+                          "nullable": true,
+                          "enum": [
+                            "new",
+                            "shared",
+                            "received",
+                            "burned",
+                            "viewed",
+                            "expired",
+                            "orphaned"
+                          ]
+                        },
+                        "natural_expiration": {
+                          "type": "string"
+                        },
+                        "expiration": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date"
+                        },
+                        "expiration_in_seconds": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "share_path": {
+                          "type": "string"
+                        },
+                        "burn_path": {
+                          "type": "string"
+                        },
+                        "metadata_path": {
+                          "type": "string"
+                        },
+                        "share_url": {
+                          "type": "string"
+                        },
+                        "metadata_url": {
+                          "type": "string"
+                        },
+                        "burn_url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "identifier",
+                        "created",
+                        "updated",
+                        "shortid",
+                        "state",
+                        "natural_expiration",
+                        "expiration",
+                        "share_path",
+                        "burn_path",
+                        "metadata_path",
+                        "share_url",
+                        "metadata_url",
+                        "burn_url"
+                      ]
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "record"
+                          ]
+                        },
+                        "display_lines": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "no_cache": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "secret_realttl": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "view_count": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "has_passphrase": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "can_decrypt": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "secret_value": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "show_secret": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "show_secret_link": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "show_metadata_link": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "show_metadata": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "show_recipients": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_orphaned": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "is_expired": {
+                          "type": "boolean",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "type"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "record"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Metadata not found or expired"
           }
         }
       }

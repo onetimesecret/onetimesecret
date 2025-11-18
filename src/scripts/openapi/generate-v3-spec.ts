@@ -15,7 +15,6 @@ import { z } from '@/schemas/openapi-setup';
 import {
   parseApiRoutes,
   getAuthRequirements,
-  isCsrfExempt,
   toOpenAPIPath,
   type OttoRoute
 } from './otto-routes-parser';
@@ -235,8 +234,56 @@ for (const route of v3Routes.routes) {
       }
     });
   }
-  // GET /receipt/:identifier
-  else if (route.method === 'GET' && route.path.startsWith('/receipt/') && !route.path.includes('/burn')) {
+  // GET /receipt/recent - List recent receipts (must check before parameterized route)
+  else if (route.method === 'GET' && route.path === '/receipt/recent') {
+    registry.registerPath({
+      method: 'get',
+      path: '/api/v3' + openApiPath,
+      summary: 'List recent receipts',
+      description: 'Retrieve a list of recently created secret receipts.',
+      tags,
+      security,
+      responses: {
+        200: {
+          description: 'Recent receipts retrieved successfully',
+          content: {
+            'application/json': {
+              schema: z.array(responseSchemas.metadata)
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized - authentication required'
+        }
+      }
+    });
+  }
+  // GET /private/recent - List recent private secrets (must check before parameterized route)
+  else if (route.method === 'GET' && route.path === '/private/recent') {
+    registry.registerPath({
+      method: 'get',
+      path: '/api/v3' + openApiPath,
+      summary: 'List recent private secrets',
+      description: 'Retrieve a list of recently created private secrets.',
+      tags,
+      security,
+      responses: {
+        200: {
+          description: 'Recent private secrets retrieved successfully',
+          content: {
+            'application/json': {
+              schema: z.array(responseSchemas.metadata)
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized - authentication required'
+        }
+      }
+    });
+  }
+  // GET /receipt/:identifier or /private/:identifier - Get metadata by ID
+  else if (route.method === 'GET' && (route.path.startsWith('/receipt/') || route.path.startsWith('/private/')) && !route.path.includes('/burn')) {
     registry.registerPath({
       method: 'get',
       path: '/api/v3' + openApiPath,

@@ -670,7 +670,7 @@
     "parameters": {}
   },
   "paths": {
-    "/api/account/account/destroy": {
+    "/api/account/destroy": {
       "post": {
         "summary": "Destroy account",
         "description": "Permanently delete the user account and all associated data. This action cannot be undone.",
@@ -698,7 +698,7 @@
         }
       }
     },
-    "/api/account/account/change-password": {
+    "/api/account/change-password": {
       "post": {
         "summary": "Change password",
         "description": "Update the account password. Requires current password verification.",
@@ -735,7 +735,7 @@
         }
       }
     },
-    "/api/account/account/update-locale": {
+    "/api/account/update-locale": {
       "post": {
         "summary": "Update locale preference",
         "description": "Change the user's language preference for the interface.",
@@ -764,7 +764,7 @@
         }
       }
     },
-    "/api/account/account/apitoken": {
+    "/api/account/apitoken": {
       "post": {
         "summary": "Generate API token",
         "description": "Generate a new API token for programmatic access. Previous token will be invalidated.",
@@ -808,7 +808,7 @@
         }
       }
     },
-    "/api/account/account": {
+    "/api/account": {
       "get": {
         "summary": "Get account details",
         "description": "Retrieve complete account information including Stripe subscription data if applicable.",

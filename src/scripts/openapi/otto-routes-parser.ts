@@ -15,7 +15,7 @@
  * - csrf: exempt
  */
 
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
 
 export interface OttoRoute {
@@ -191,11 +191,41 @@ export function groupRoutesByTag(routes: OttoRoute[]): Map<string, OttoRoute[]> 
 }
 
 /**
+ * Discover available API names by scanning the apps/api directory
+ */
+export function discoverApiNames(): string[] {
+  const apiDir = join(process.cwd(), 'apps', 'api');
+
+  try {
+    // Read all directories in apps/api/
+    const entries = readdirSync(apiDir, { withFileTypes: true });
+
+    // Filter for directories that contain a 'routes' file
+    const apiNames = entries
+      .filter(entry => entry.isDirectory())
+      .map(entry => entry.name)
+      .filter(name => {
+        const routesPath = join(apiDir, name, 'routes');
+        return existsSync(routesPath);
+      });
+
+    return apiNames.sort();
+  } catch (error) {
+    console.warn('Warning: Could not discover API names, using fallback list:', error);
+    // Fallback to known APIs if discovery fails
+    return ['v2', 'v3', 'account', 'domains', 'organizations', 'teams'];
+  }
+}
+
+/**
  * Parse all API routes for OpenAPI generation
+ * Automatically discovers available APIs by scanning apps/api directory
  */
 export function parseAllApiRoutes(): Record<string, ParsedRoutes> {
-  const apis = ['v2', 'v3', 'account', 'domains', 'organizations', 'teams'];
+  const apis = discoverApiNames();
   const results: Record<string, ParsedRoutes> = {};
+
+  console.log(`Discovered ${apis.length} APIs: ${apis.join(', ')}`);
 
   for (const api of apis) {
     try {

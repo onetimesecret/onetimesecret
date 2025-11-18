@@ -247,10 +247,17 @@ for (const route of accountRoutes.routes) {
       }
     : undefined;
 
+  // Construct full path - strip /account prefix from route path since it's in the base URL
+  // Routes like "/account/destroy" should become "/api/account/destroy", not "/api/account/account/destroy"
+  const routePath = openApiPath.startsWith('/account')
+    ? (openApiPath.slice('/account'.length) || '')
+    : openApiPath;
+  const fullPath = routePath ? '/api/account' + routePath : '/api/account';
+
   // Register the path using the configuration
   registry.registerPath({
     method: route.method.toLowerCase() as any,
-    path: '/api/account' + openApiPath,
+    path: fullPath,
     summary: mapping.openapi.summary,
     description: mapping.openapi.description,
     tags,
