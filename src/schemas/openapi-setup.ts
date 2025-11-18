@@ -45,6 +45,14 @@ export type {
   ZodUnion,
   ZodLiteral,
   ZodNullable,
-  ZodOptional,
-  infer as ZodInfer
+  ZodOptional
 } from 'zod';
+
+/**
+ * Type Inference Usage:
+ * For type inference from Zod schemas, use the built-in z.infer utility:
+ *
+ * Example:
+ *   const userSchema = z.object({ name: z.string() });
+ *   type User = z.infer<typeof userSchema>;
+ */

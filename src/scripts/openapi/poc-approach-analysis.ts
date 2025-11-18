@@ -12,7 +12,7 @@
  * This PoC tests both approaches to determine the best path forward.
  */
 
-import { extendZodWithOpenApi, OpenAPIRegistry, OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
+import { extendZodWithOpenApi, OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 
 console.log('🔍 Analyzing OpenAPI Integration Approaches...\n');
@@ -53,6 +53,8 @@ const schemaBeforeExtension = z.object({
 const registryB = new OpenAPIRegistry();
 
 // registerComponent lets us directly specify the OpenAPI schema
+// Note: We could convert schemaBeforeExtension to JSON Schema manually,
+// but this approach shows direct OpenAPI schema definition
 registryB.registerComponent('schemas', 'PreExistingSchema', {
   type: 'object',
   properties: {
@@ -62,7 +64,9 @@ registryB.registerComponent('schemas', 'PreExistingSchema', {
   required: ['id', 'value']
 });
 
-console.log('✅ Can register pre-existing schema using registerComponent\n');
+// Verify both schemas (before and after extension) work in their respective ways
+console.log('✅ Can register pre-existing schema using registerComponent');
+console.log(`   Schema has .openapi()? ${typeof schemaBeforeExtension.openapi === 'function'}\n`);
 
 // ============================================================================
 // RECOMMENDATION

@@ -207,23 +207,92 @@ pnpm exec tsx src/scripts/openapi/poc-approach-analysis.ts
 
 ---
 
+## Maintenance Procedures
+
+### Regular Maintenance
+
+#### When Adding New API Endpoints
+1. Add route to appropriate `apps/api/*/routes` file using Otto format
+2. Create Zod schemas in `src/schemas/api/` (import from `@/schemas/openapi-setup`)
+3. Map route to schema in the appropriate generator script
+4. Regenerate OpenAPI spec: `pnpm run openapi:generate`
+5. Validate the generated spec
+6. Commit both schema changes and generated spec
+
+#### When Modifying Existing Schemas
+1. Update Zod schema in `src/schemas/`
+2. Regenerate affected OpenAPI specs: `pnpm run openapi:generate`
+3. Review diff to ensure changes are correct
+4. Update any affected tests
+5. Commit changes
+
+#### When Upgrading Dependencies
+Check compatibility when upgrading:
+- `zod` - Ensure `@asteasolutions/zod-to-openapi` supports the new version
+- `@asteasolutions/zod-to-openapi` - Review changelog for breaking changes
+- Test with: `pnpm run openapi:poc && pnpm run openapi:generate`
+
+### Validation Checklist
+
+Before committing OpenAPI spec changes:
+- [ ] Run `pnpm run openapi:generate` successfully
+- [ ] Validate generated JSON structure
+- [ ] Check that all new endpoints are documented
+- [ ] Verify security schemes are correctly applied
+- [ ] Ensure examples are realistic and valid
+- [ ] Review that descriptions are clear and accurate
+
+### Troubleshooting
+
+**Problem**: "schema.openapi is not a function"
+- **Cause**: Schema imported from 'zod' instead of '@/schemas/openapi-setup'
+- **Fix**: Update import to use `@/schemas/openapi-setup`
+
+**Problem**: Route not appearing in generated spec
+- **Cause**: Route not mapped in generator script
+- **Fix**: Add route mapping in `generate-*-spec.ts` file
+
+**Problem**: Schema not showing in components
+- **Cause**: Schema not registered with `registry.register()`
+- **Fix**: Add registration in generator script
+
+### Version Compatibility
+
+Current versions:
+- Zod: 4.1.11
+- @asteasolutions/zod-to-openapi: 8.1.0
+- OpenAPI: 3.0.3
+
+Known compatible Zod patterns:
+- ✅ Factory functions
+- ✅ Custom transforms
+- ✅ Complex nested objects
+- ✅ Enums and unions
+- ✅ Optional/nullable fields
+- ✅ Generic types
+
+Incompatible patterns:
+- ❌ `z.lazy()` (not tested - may require migration to zod-openapi)
+
+---
+
 ## Next Steps
 
 ### Immediate (This Week)
 1. ✅ Complete PoC validation
-2. ⏳ Create Otto routes parser
-3. ⏳ Build basic generation script for V3 API
+2. ✅ Create Otto routes parser
+3. ✅ Build basic generation script for V3 API
 
 ### Short-term (Next 2 Weeks)
 4. Extend to all 6 API applications
 5. Add OpenAPI metadata to key schemas
 6. Set up validation pipeline
+7. ✅ Document maintenance procedures
 
 ### Medium-term (Weeks 3-4)
-7. Create CI/CD automation
-8. Generate documentation site
-9. Add contract testing
-10. Document maintenance procedures
+8. Create CI/CD automation
+9. Generate documentation site
+10. Add contract testing
 
 ---
 

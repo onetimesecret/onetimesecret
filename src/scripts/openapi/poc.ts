@@ -63,11 +63,14 @@ console.log('✅ Factory function works with .openapi()\n');
 // ============================================================================
 console.log('Test 3: Custom transform compatibility');
 
+// IMPORTANT: In OpenAPI metadata for transforms, `type` refers to the INPUT type
+// (what the API accepts), NOT the output type (what Zod produces after transformation).
+// This schema accepts a string "42" from the API, then transforms it to number 42 internally.
 const transformTestSchema = z.object({
   count: z.string().transform((val) => parseInt(val, 10)).openapi({
     description: 'Count as string that transforms to number',
     example: '42',
-    type: 'string'
+    type: 'string'  // Input type for API - output will be number after transform
   })
 }).openapi('TransformTest');
 
