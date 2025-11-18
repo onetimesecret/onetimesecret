@@ -4,6 +4,7 @@
   import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
   import ConfirmDialog from '@/components/ConfirmDialog.vue';
   import OIcon from '@/components/icons/OIcon.vue';
+  import { useAsyncHandler } from '@/composables/useAsyncHandler';
   import { classifyError } from '@/schemas/errors';
   import { updateTeamPayloadSchema, type UpdateTeamPayload } from '@/schemas/models/team';
   import { useTeamStore } from '@/stores/teamStore';
@@ -18,6 +19,10 @@
   const teamStore = useTeamStore();
 
   const { activeTeam, loading } = storeToRefs(teamStore);
+
+  const { wrap } = useAsyncHandler({
+    notify: false, // Using local error state instead of notifications
+  });
 
   const formData = ref<UpdateTeamPayload>({
     display_name: '',
@@ -48,13 +53,11 @@
       return;
     }
 
-    try {
-      if (!activeTeam.value || activeTeam.value.extid !== teamId.value) {
-        await teamStore.fetchTeam(teamId.value);
+    if (!activeTeam.value || activeTeam.value.extid !== teamId.value) {
+      const result = await wrap(() => teamStore.fetchTeam(teamId.value));
+      if (!result) {
+        generalError.value = t('web.teams.fetch_team_error');
       }
-    } catch (err) {
-      const classified = classifyError(err);
-      generalError.value = classified.userMessage || t('web.teams.fetch_team_error');
     }
   });
 

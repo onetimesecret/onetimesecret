@@ -5,8 +5,8 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import CreateTeamModal from '@/components/teams/CreateTeamModal.vue';
   import TeamCard from '@/components/teams/TeamCard.vue';
+  import { useAsyncHandler } from '@/composables/useAsyncHandler';
   import { useCapabilities } from '@/composables/useCapabilities';
-  import { classifyError } from '@/schemas/errors';
   import { useOrganizationStore } from '@/stores/organizationStore';
   import { useTeamStore } from '@/stores/teamStore';
   import { storeToRefs } from 'pinia';
@@ -25,6 +25,10 @@
   const { can, hasReachedLimit, limit, upgradePath, CAPABILITIES } =
     useCapabilities(currentOrganization);
 
+  const { wrap } = useAsyncHandler({
+    notify: false, // Using local error state instead of notifications
+  });
+
   const activeTab = ref<'my-teams' | 'new-team'>('my-teams');
   const showCreateModal = ref(false);
   const error = ref('');
@@ -42,11 +46,9 @@
   });
 
   onMounted(async () => {
-    try {
-      await teamStore.fetchTeams();
-    } catch (err) {
-      const classified = classifyError(err);
-      error.value = classified.userMessage || t('web.teams.fetch_teams_error');
+    const result = await wrap(() => teamStore.fetchTeams());
+    if (!result) {
+      error.value = t('web.teams.fetch_teams_error');
     }
   });
 

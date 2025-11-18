@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
-  import { classifyError } from '@/schemas/errors';
+  import { useAsyncHandler } from '@/composables/useAsyncHandler';
   import { getRoleBadgeColor, getRoleLabel } from '@/schemas/models/team';
   import { useTeamStore } from '@/stores/teamStore';
   import { storeToRefs } from 'pinia';
@@ -16,17 +16,19 @@
 
   const { activeTeam, loading } = storeToRefs(teamStore);
 
+  const { wrap } = useAsyncHandler({
+    notify: false, // Using local error state instead of notifications
+  });
+
   const activeTab = ref<'overview' | 'members' | 'settings'>('overview');
   const error = ref('');
 
   const teamId = computed(() => route.params.extid as string);
 
   onMounted(async () => {
-    try {
-      await teamStore.fetchTeam(teamId.value);
-    } catch (err) {
-      const classified = classifyError(err);
-      error.value = classified.userMessage || t('web.teams.fetch_team_error');
+    const result = await wrap(() => teamStore.fetchTeam(teamId.value));
+    if (!result) {
+      error.value = t('web.teams.fetch_team_error');
     }
   });
 

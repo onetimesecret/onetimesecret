@@ -4,6 +4,7 @@
   import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import TeamMembersList from '@/components/teams/TeamMembersList.vue';
+  import { useAsyncHandler } from '@/composables/useAsyncHandler';
   import { classifyError } from '@/schemas/errors';
   import { inviteMemberPayloadSchema, TeamRole, type InviteMemberPayload } from '@/schemas/models/team';
   import { useTeamStore } from '@/stores/teamStore';
@@ -18,6 +19,10 @@
   const teamStore = useTeamStore();
 
   const { activeTeam, members, loading } = storeToRefs(teamStore);
+
+  const { wrap } = useAsyncHandler({
+    notify: false, // Using local error state instead of notifications
+  });
 
   const showInviteForm = ref(false);
   const inviteFormData = ref<InviteMemberPayload>({
@@ -43,14 +48,17 @@
   const currentUserId = computed(() => window.__ONETIME_STATE__?.customer?.custid);
 
   onMounted(async () => {
-    try {
-      if (!activeTeam.value || activeTeam.value.extid !== teamId.value) {
-        await teamStore.fetchTeam(teamId.value);
+    let result;
+    if (!activeTeam.value || activeTeam.value.extid !== teamId.value) {
+      result = await wrap(() => teamStore.fetchTeam(teamId.value));
+      if (!result) {
+        error.value = t('web.teams.fetch_members_error');
+        return;
       }
-      await teamStore.fetchMembers(teamId.value);
-    } catch (err) {
-      const classified = classifyError(err);
-      error.value = classified.userMessage || t('web.teams.fetch_members_error');
+    }
+    result = await wrap(() => teamStore.fetchMembers(teamId.value));
+    if (!result) {
+      error.value = t('web.teams.fetch_members_error');
     }
   });
 
