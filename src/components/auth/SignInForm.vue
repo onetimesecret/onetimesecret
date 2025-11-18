@@ -123,8 +123,8 @@ const handleSubmit = async () => {
             <OIcon
               collection="heroicons"
               :name="showPassword ? 'outline-eye-off' : 'solid-eye'"
-              size="20"
-              class="size-5 text-gray-400"
+              size="5"
+              class="text-gray-400"
               aria-hidden="true" />
           </button>
         </div>
