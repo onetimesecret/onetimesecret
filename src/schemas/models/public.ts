@@ -202,6 +202,7 @@ const supportSchema = z.object({
  * Schema for features configuration
  */
 export const featuresSchema = z.object({
+  regions: regionsSchema,
   domains: domainsSchema,
 });
 
@@ -216,7 +217,6 @@ export const publicSettingsSchema = z
     // secret: z.string(),
     authenticity: authenticitySchema,
     support: supportSchema,
-    regions: regionsSchema,
     secret_options: secretOptionsSchema,
   })
   .strict();

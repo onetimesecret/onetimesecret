@@ -16,7 +16,7 @@ module Billing
         @req    = req
         @res    = res
         @locale = req.locale
-        @region = OT.conf&.dig('site', 'regions', 'current_jurisdiction') || 'LL'
+        @region = OT.conf&.dig('features', 'regions', 'current_jurisdiction') || 'LL'
 
         # Self-healing: Ensure customer has a default workspace
         # This is a background operation - errors are logged but not surfaced to the user

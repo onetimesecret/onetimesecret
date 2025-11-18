@@ -51,6 +51,8 @@ site:
     required: false
     colonels:
       - 'CHANGEME@EXAMPLE.com'
+
+features:
   regions:
     enabled: <%= ENV['REGIONS_ENABLED'] || false %>
     current_jurisdiction: <%= ENV['JURISDICTION'] || 'EU' %>
@@ -67,8 +69,6 @@ site:
         icon:
           collection: heroicon
           name: mail
-
-features:
   domains:
     enabled: false
     # The default domain used for link URLs. When not set or empty,

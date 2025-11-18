@@ -64,12 +64,12 @@ site:
     secret_key: any(str(), int())
   support:
     host: str(required=False)
+
+features:
   regions:
     enabled: any(str(), bool())
     current_jurisdiction: str(required=False)
     jurisdictions: list(include('jurisdiction'), required=False)
-
-features:
   domains:
     enabled: any()
     default: str(required=False)
