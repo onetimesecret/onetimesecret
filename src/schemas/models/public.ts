@@ -199,12 +199,18 @@ const supportSchema = z.object({
 });
 
 /**
+ * Schema for features configuration
+ */
+export const featuresSchema = z.object({
+  domains: domainsSchema,
+});
+
+/**
  * Combined Schema for PublicSettings based on :site in config.schema.yaml
  */
 export const publicSettingsSchema = z
   .object({
     host: z.string(),
-    domains: domainsSchema,
     ssl: transforms.fromString.boolean,
     authentication: authenticationSchema,
     // secret: z.string(),
@@ -219,3 +225,8 @@ export const publicSettingsSchema = z
  * Inferred TypeScript type for PublicSettings
  */
 export type PublicSettings = z.infer<typeof publicSettingsSchema>;
+
+/**
+ * Inferred TypeScript type for Features
+ */
+export type Features = z.infer<typeof featuresSchema>;
