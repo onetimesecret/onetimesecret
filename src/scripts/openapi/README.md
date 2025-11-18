@@ -7,8 +7,12 @@ This directory contains the infrastructure for generating OpenAPI 3.0.3 specific
 ### Quick Start
 
 ```bash
-# Generate V3 API specification
+# Generate all API specifications (V3 + Account)
 pnpm run openapi:generate
+
+# Generate individual API specifications
+pnpm run openapi:generate:v3
+pnpm run openapi:generate:account
 
 # Test the Otto routes parser (finds 68 routes across 6 APIs)
 pnpm run openapi:test-parser
@@ -19,15 +23,27 @@ pnpm run openapi:poc
 
 ### Generated Files
 
-- `docs/api/v3-openapi.json` - V3 API OpenAPI specification
+- `docs/api/v3-openapi.json` - V3 API OpenAPI specification (7 of 18 routes mapped)
+- `docs/api/account-openapi.json` - Account API OpenAPI specification (all 7 routes mapped)
 
 ### Implementation Files
 
-- `otto-routes-parser.ts` - Parses Otto route files to extract endpoint metadata
-- `generate-v3-spec.ts` - Generates complete OpenAPI spec for V3 API
+- `otto-routes-parser.ts` - Parses Otto route files to extract endpoint metadata (discovers all 68 routes)
+- `generate-all-specs.ts` - Master script that generates all API specs
+- `generate-v3-spec.ts` - Generates complete OpenAPI spec for V3 API (public secrets)
+- `generate-account-spec.ts` - Generates complete OpenAPI spec for Account API (account management)
 - `test-parser.ts` - Test suite for the routes parser
 - `poc.ts` - Original proof of concept validation
 - `poc-approach-analysis.ts` - Integration approach analysis
+
+### CI/CD Automation
+
+The OpenAPI specs are automatically regenerated via GitHub Actions when:
+- Schema files in `src/schemas/` are modified
+- Otto routes files in `apps/api/*/routes` are updated
+- OpenAPI generator scripts are changed
+
+See `.github/workflows/openapi-generation.yml` for the workflow configuration.
 
 ---
 
@@ -276,32 +292,56 @@ Incompatible patterns:
 
 ---
 
-## Next Steps
+## Implementation Status
 
-### Immediate (This Week)
+### Phase 1: Foundation - ✅ COMPLETED
 1. ✅ Complete PoC validation
 2. ✅ Create Otto routes parser
-3. ✅ Build basic generation script for V3 API
+3. ✅ Build generation scripts (V3 API, Account API)
+4. ✅ Create master generation script (generate-all-specs.ts)
+5. ✅ Set up CI/CD automation (GitHub Actions workflow)
+6. ✅ Document maintenance procedures
 
-### Short-term (Next 2 Weeks)
-4. Extend to all 6 API applications
-5. Add OpenAPI metadata to key schemas
-6. Set up validation pipeline
-7. ✅ Document maintenance procedures
+### Phase 2: Expansion - 🚧 IN PROGRESS
+4. ⏳ Expand V3 API generator to cover all 18 routes (currently 7/18)
+5. ⏳ Create generators for remaining APIs:
+   - V2 API (17 routes)
+   - Domains API (13 routes)
+   - Organizations API (5 routes)
+   - Teams API (8 routes)
+6. ⏳ Add OpenAPI metadata to key schemas for richer documentation
+7. ⏳ Set up validation pipeline
 
-### Medium-term (Weeks 3-4)
-8. Create CI/CD automation
-9. Generate documentation site
-10. Add contract testing
+### Phase 3: Enhancement - 📋 PLANNED
+8. Generate documentation site (Redoc/Swagger UI)
+9. Add contract testing
+10. Set up API versioning strategy
 
 ---
 
 ## Files Created
 
-- ✅ `poc.ts` - Basic functionality test
-- ✅ `poc-approach-analysis.ts` - Approach comparison
-- ✅ `../schemas/openapi-setup.ts` - Global Zod extension
+### Infrastructure
+- ✅ `../schemas/openapi-setup.ts` - Global Zod extension point
+- ✅ `otto-routes-parser.ts` - Route discovery and parsing (68 routes across 6 APIs)
+- ✅ `generate-all-specs.ts` - Master generation orchestrator
+
+### Generators
+- ✅ `generate-v3-spec.ts` - V3 API specification generator (7/18 routes mapped)
+- ✅ `generate-account-spec.ts` - Account API specification generator (7/7 routes mapped)
+
+### Testing & Validation
+- ✅ `test-parser.ts` - Route parser test suite
+- ✅ `poc.ts` - Original PoC validation
+- ✅ `poc-approach-analysis.ts` - Integration approach analysis
+
+### Documentation
 - ✅ `README.md` - This file
+- ✅ `../../.github/workflows/openapi-generation.yml` - CI/CD workflow
+
+### Generated Outputs
+- ✅ `../../../docs/api/v3-openapi.json` - V3 API OpenAPI 3.0.3 spec
+- ✅ `../../../docs/api/account-openapi.json` - Account API OpenAPI 3.0.3 spec
 
 ---
 

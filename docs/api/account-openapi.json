@@ -1,0 +1,935 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Onetime Secret Account API",
+    "version": "1.0.0",
+    "description": "Account management API for Onetime Secret.\n\n**Base URL**: `/api/account`\n\nThis API handles user account operations including:\n- Account management (get, update, delete)\n- Password changes\n- Locale preferences\n- API token generation\n- Administrator (colonel) dashboard and statistics\n\n**Authentication**: Most endpoints require session or HTTP Basic authentication.\nSome endpoints are restricted to users with the colonel (administrator) role.",
+    "contact": {
+      "name": "Onetime Secret Support",
+      "url": "https://onetimesecret.com",
+      "email": "support@onetimesecret.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://onetimesecret.com",
+      "description": "Production server"
+    },
+    {
+      "url": "https://test.onetimesecret.com",
+      "description": "Test server"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development"
+    }
+  ],
+  "tags": [
+    {
+      "name": "account",
+      "description": "Account management operations"
+    },
+    {
+      "name": "colonel",
+      "description": "Administrator-only operations (requires colonel role)"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BasicAuth": {
+        "type": "http",
+        "scheme": "basic",
+        "description": "HTTP Basic Authentication using API credentials (username:api_token)"
+      },
+      "SessionAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "sess",
+        "description": "Session-based authentication via browser cookie"
+      }
+    },
+    "schemas": {
+      "Account": {
+        "type": "object",
+        "properties": {
+          "cust": {
+            "type": "object",
+            "properties": {
+              "identifier": {
+                "type": "string"
+              },
+              "created": {
+                "type": "string",
+                "format": "date"
+              },
+              "updated": {
+                "type": "string",
+                "format": "date"
+              },
+              "objid": {
+                "type": "string"
+              },
+              "extid": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "customer",
+                  "colonel",
+                  "recipient",
+                  "user_deleted_self"
+                ]
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              },
+              "verified": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "active": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "contributor": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "secrets_created": {
+                "type": "number",
+                "nullable": true,
+                "default": 0
+              },
+              "secrets_burned": {
+                "type": "number",
+                "nullable": true,
+                "default": 0
+              },
+              "secrets_shared": {
+                "type": "number",
+                "nullable": true,
+                "default": 0
+              },
+              "emails_sent": {
+                "type": "number",
+                "nullable": true,
+                "default": 0
+              },
+              "last_login": {
+                "type": "string",
+                "nullable": true,
+                "format": "date"
+              },
+              "locale": {
+                "type": "string",
+                "nullable": true
+              },
+              "stripe_customer_id": {
+                "type": "string",
+                "nullable": true
+              },
+              "stripe_subscription_id": {
+                "type": "string",
+                "nullable": true
+              },
+              "stripe_checkout_email": {
+                "type": "string",
+                "nullable": true
+              },
+              "feature_flags": {
+                "type": "object",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "default": {}
+              }
+            },
+            "required": [
+              "identifier",
+              "created",
+              "updated",
+              "objid",
+              "extid",
+              "role",
+              "email",
+              "locale",
+              "stripe_customer_id",
+              "stripe_subscription_id",
+              "stripe_checkout_email"
+            ],
+            "additionalProperties": false
+          },
+          "apitoken": {
+            "type": "string"
+          },
+          "stripe_customer": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Stripe Customer object - see https://stripe.com/docs/api/customers/object"
+          },
+          "stripe_subscriptions": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "nullable": true
+              }
+            },
+            "description": "Array of Stripe Subscription objects - see https://stripe.com/docs/api/subscriptions/object"
+          }
+        },
+        "required": [
+          "cust",
+          "stripe_customer",
+          "stripe_subscriptions"
+        ]
+      },
+      "ApiToken": {
+        "type": "object",
+        "properties": {
+          "apitoken": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean",
+            "nullable": true
+          }
+        },
+        "required": [
+          "apitoken"
+        ]
+      },
+      "CheckAuthDetails": {
+        "type": "object",
+        "properties": {
+          "authenticated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "authenticated"
+        ]
+      },
+      "ColonelInfo": {
+        "type": "object",
+        "properties": {
+          "recent_customers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "custid": {
+                  "type": "string"
+                },
+                "colonel": {
+                  "type": "boolean"
+                },
+                "secrets_created": {
+                  "type": "number",
+                  "nullable": true
+                },
+                "secrets_shared": {
+                  "type": "number",
+                  "nullable": true
+                },
+                "emails_sent": {
+                  "type": "number",
+                  "nullable": true
+                },
+                "verified": {
+                  "type": "boolean"
+                },
+                "stamp": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "custid",
+                "colonel",
+                "verified",
+                "stamp"
+              ]
+            },
+            "default": []
+          },
+          "today_feedback": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1500
+                },
+                "stamp": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "msg",
+                "stamp"
+              ]
+            },
+            "default": []
+          },
+          "yesterday_feedback": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1500
+                },
+                "stamp": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "msg",
+                "stamp"
+              ]
+            },
+            "default": []
+          },
+          "older_feedback": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1500
+                },
+                "stamp": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "msg",
+                "stamp"
+              ]
+            },
+            "default": null
+          },
+          "dbclient_info": {
+            "type": "string",
+            "default": ""
+          },
+          "billing_enabled": {
+            "type": "boolean",
+            "default": false
+          },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "customer_count": {
+                "type": "number",
+                "nullable": true
+              },
+              "emails_sent": {
+                "type": "number",
+                "nullable": true
+              },
+              "feedback_count": {
+                "type": "number",
+                "nullable": true
+              },
+              "metadata_count": {
+                "type": "number",
+                "nullable": true
+              },
+              "older_feedback_count": {
+                "type": "number",
+                "nullable": true
+              },
+              "recent_customer_count": {
+                "type": "number",
+                "nullable": true
+              },
+              "secret_count": {
+                "type": "number",
+                "nullable": true
+              },
+              "secrets_created": {
+                "type": "number",
+                "nullable": true
+              },
+              "secrets_shared": {
+                "type": "number",
+                "nullable": true
+              },
+              "session_count": {
+                "type": "number",
+                "nullable": true
+              },
+              "today_feedback_count": {
+                "type": "number",
+                "nullable": true
+              },
+              "yesterday_feedback_count": {
+                "type": "number",
+                "nullable": true
+              }
+            }
+          }
+        },
+        "required": [
+          "counts"
+        ]
+      },
+      "ColonelStats": {
+        "type": "object",
+        "properties": {
+          "counts": {
+            "type": "object",
+            "properties": {
+              "customer_count": {
+                "type": "number",
+                "nullable": true
+              },
+              "emails_sent": {
+                "type": "number",
+                "nullable": true
+              },
+              "metadata_count": {
+                "type": "number",
+                "nullable": true
+              },
+              "secret_count": {
+                "type": "number",
+                "nullable": true
+              },
+              "secrets_created": {
+                "type": "number",
+                "nullable": true
+              },
+              "secrets_shared": {
+                "type": "number",
+                "nullable": true
+              },
+              "session_count": {
+                "type": "number",
+                "nullable": true
+              }
+            }
+          }
+        },
+        "required": [
+          "counts"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/api/account/account/destroy": {
+      "post": {
+        "summary": "Destroy account",
+        "description": "Permanently delete the user account and all associated data. This action cannot be undone.",
+        "tags": [
+          "account"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "BasicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account destroyed successfully"
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          },
+          "500": {
+            "description": "Server error during account destruction"
+          }
+        }
+      }
+    },
+    "/api/account/account/change-password": {
+      "post": {
+        "summary": "Change password",
+        "description": "Update the account password. Requires current password verification.",
+        "tags": [
+          "account"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "BasicAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "current_password": {
+                    "type": "string"
+                  },
+                  "new_password": {
+                    "type": "string",
+                    "minLength": 6
+                  },
+                  "confirm_password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "current_password",
+                  "new_password",
+                  "confirm_password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed successfully"
+          },
+          "400": {
+            "description": "Invalid request - passwords don't match or don't meet requirements"
+          },
+          "401": {
+            "description": "Unauthorized - current password incorrect"
+          }
+        }
+      }
+    },
+    "/api/account/account/update-locale": {
+      "post": {
+        "summary": "Update locale preference",
+        "description": "Change the user's language preference for the interface.",
+        "tags": [
+          "account"
+        ],
+        "security": [
+          {}
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "locale": {
+                    "type": "string",
+                    "pattern": "^[a-z]{2}(-[A-Z]{2})?$",
+                    "description": "Language code (e.g., en, es, fr)"
+                  }
+                },
+                "required": [
+                  "locale"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Locale updated successfully"
+          },
+          "400": {
+            "description": "Invalid locale code"
+          }
+        }
+      }
+    },
+    "/api/account/account/apitoken": {
+      "post": {
+        "summary": "Generate API token",
+        "description": "Generate a new API token for programmatic access. Previous token will be invalidated.",
+        "tags": [
+          "account"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "BasicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API token generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "apitoken": {
+                      "type": "string"
+                    },
+                    "active": {
+                      "type": "boolean",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "apitoken"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          }
+        }
+      }
+    },
+    "/api/account/account": {
+      "get": {
+        "summary": "Get account details",
+        "description": "Retrieve complete account information including Stripe subscription data if applicable.",
+        "tags": [
+          "account"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "BasicAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account details retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          }
+        }
+      }
+    },
+    "/api/account/colonel/info": {
+      "get": {
+        "summary": "Get colonel dashboard info",
+        "description": "Retrieve comprehensive dashboard information for administrators. Requires colonel role.",
+        "tags": [
+          "account",
+          "colonel"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Colonel info retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "recent_customers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "custid": {
+                            "type": "string"
+                          },
+                          "colonel": {
+                            "type": "boolean"
+                          },
+                          "secrets_created": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "secrets_shared": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "emails_sent": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "verified": {
+                            "type": "boolean"
+                          },
+                          "stamp": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "custid",
+                          "colonel",
+                          "verified",
+                          "stamp"
+                        ]
+                      },
+                      "default": []
+                    },
+                    "today_feedback": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 1500
+                          },
+                          "stamp": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg",
+                          "stamp"
+                        ]
+                      },
+                      "default": []
+                    },
+                    "yesterday_feedback": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 1500
+                          },
+                          "stamp": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg",
+                          "stamp"
+                        ]
+                      },
+                      "default": []
+                    },
+                    "older_feedback": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "msg": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 1500
+                          },
+                          "stamp": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "msg",
+                          "stamp"
+                        ]
+                      },
+                      "default": null
+                    },
+                    "dbclient_info": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "billing_enabled": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "counts": {
+                      "type": "object",
+                      "properties": {
+                        "customer_count": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "emails_sent": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "feedback_count": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "metadata_count": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "older_feedback_count": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "recent_customer_count": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "secret_count": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "secrets_created": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "secrets_shared": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "session_count": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "today_feedback_count": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "yesterday_feedback_count": {
+                          "type": "number",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "counts"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          },
+          "403": {
+            "description": "Forbidden - colonel role required"
+          }
+        }
+      }
+    },
+    "/api/account/colonel/stats": {
+      "get": {
+        "summary": "Get colonel statistics",
+        "description": "Retrieve system-wide statistics for administrators. Requires colonel role.",
+        "tags": [
+          "account",
+          "colonel"
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Colonel stats retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "counts": {
+                      "type": "object",
+                      "properties": {
+                        "customer_count": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "emails_sent": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "metadata_count": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "secret_count": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "secrets_created": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "secrets_shared": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "session_count": {
+                          "type": "number",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "counts"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          },
+          "403": {
+            "description": "Forbidden - colonel role required"
+          }
+        }
+      }
+    }
+  }
+}
