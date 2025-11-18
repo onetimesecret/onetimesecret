@@ -48,6 +48,16 @@ export const teamMemberStatusSchema = z.enum([
 ]);
 
 /**
+ * Team member info schema (simplified member data in team responses)
+ * Used in the members array of team API responses
+ */
+export const teamMemberInfoSchema = z.object({
+  custid: z.string(),
+  email: z.string().email(),
+  role: teamRoleSchema,
+});
+
+/**
  * Team schema
  * Maps API response to frontend Team model
  */
@@ -75,6 +85,7 @@ export const teamSchema = withFeatureFlags(
  */
 export const teamWithRoleSchema = teamSchema.extend({
   current_user_role: teamRoleSchema,
+  members: z.array(teamMemberInfoSchema).optional(),
 });
 
 /**
@@ -143,6 +154,8 @@ export type TeamWithRole = Omit<z.infer<typeof teamWithRoleSchema>, 'created' | 
   created: Date;
   updated: Date;
 };
+
+export type TeamMemberInfo = z.infer<typeof teamMemberInfoSchema>;
 
 // TeamMember type with proper Date typing and team_id transformation
 export type TeamMember = Omit<z.infer<typeof teamMemberSchema>, 'created' | 'updated'> & {
