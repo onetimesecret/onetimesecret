@@ -30,7 +30,7 @@ module Core
         output['authentication'] = site.fetch('authentication', nil)
         output['secret_options'] = site['secret_options']
         output['site_host']      = site['host']
-        regions                  = site['regions'] || {}
+        regions                  = features.fetch('regions', {})
         domains                  = features.fetch('domains', {})
 
         # Only send the regions config when the feature is enabled.
