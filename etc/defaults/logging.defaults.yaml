@@ -1,5 +1,5 @@
 # etc/defaults/logging.defaults.yaml
-
+---
 # Onetime Secret - Logging Configuration
 #
 # Strategic categories for debugging and operational instrumentation:
@@ -59,8 +59,12 @@ loggers:
 
 # HTTP request logging configuration
 http:
-  enabled: true
-  level: info
+  # Set LOG_HTTP_REQUESTS=false to disable. Useful when running a reverse proxy
+  # which already logs requests and you consolidate logs into one stream to
+  # avoid redundant information.
+  enabled: <%= ENV['LOG_HTTP_REQUESTS'] != 'false' %>
+  # Overrides loggers.HTTP level for requests
+  level: <%= ENV['LOG_HTTP_REQUESTS_LEVEL'] || nil %>
 
   # Capture mode determines what data is logged per request
   # Options: minimal, standard, debug
@@ -76,8 +80,10 @@ http:
   ignore_paths:
     - /api/v1/status
     - /api/v2/status
+    - /api/v3/status
     - /health
     - /healthcheck
     - /favicon.ico
     - /_vite/*
     - /assets/*
+    - /dist/*

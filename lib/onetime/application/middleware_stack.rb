@@ -151,8 +151,8 @@ module Onetime
 
           # Load the logger early so it's ready to log request errors
           unless Onetime.logging_conf&.dig('http', 'enabled').eql?(false)
-            logger.debug 'Setting up CommonLogger middleware'
-            builder.use Rack::CommonLogger
+            logger.debug 'Setting up RequestLogger middleware'
+            builder.use Onetime::Application::RequestLogger, Onetime.logging_conf['http']
           end
 
           # Error Monitoring Integration
