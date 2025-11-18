@@ -166,17 +166,13 @@ site:
 
     # Domain validation and certificate management strategy
     # Options:
+    #   - passthrough: No validation or cert management
     #   - approximated: Use approximated.app API for SSL certs and validation (requires cluster config)
-    #   - passthrough: No validation or cert management (for external reverse proxy handling)
     #   - caddy_on_demand: Use Caddy's on-demand TLS (requires internal ACME endpoint)
-    strategy: <%= ENV['DOMAIN_STRATEGY'] || 'approximated' %>
+    strategy: <%= ENV['DOMAIN_STRATEGY'] || 'passthrough' %>
 
     # Cluster configuration (required for 'approximated' strategy)
-    # The cluster type determines how the application will support
-    # multiple domains. The default is nil which means that the
-    # application itself is responsible for handling multiple domains.
     cluster:
-      type: <%= ENV['CLUSTER_TYPE'] || nil %>
       api_key: <%= ENV['APPROXIMATED_API_KEY'] || nil %>
       cluster_ip: <%= ENV['APPROXIMATED_PROXY_CLUSTER_IP'] || '<CLUSTER_IP>' %>
       cluster_host: <%= ENV['APPROXIMATED_PROXY_CLUSTER_HOST'] || '<CLUSTER_HOST>' %>
