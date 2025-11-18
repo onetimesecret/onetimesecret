@@ -17,13 +17,14 @@ module Core
       # Define fields that are safe to expose to the frontend
       # Explicitly excluding :secret and :authenticity which contain sensitive data
       @safe_site_fields = %w[
-        host ssl interface domains
+        host ssl interface
         secret_options authentication regions
       ]
 
       class << self
         attr_reader :safe_site_fields
       end
+
       # Initialize core variables used throughout view rendering. These values
       # are the source of truth for te values that they represent. Any other
       # values that the serializers want can be derived from here.
@@ -46,39 +47,12 @@ module Core
         # - Internal infrastructure details
         #
         site_config = OT.conf.fetch('site', {})
-        OT.conf.fetch('features', {})
+        features_config = OT.conf.fetch('features', {})
         development = OT.conf.fetch('development', {})
         diagnostics = OT.conf.fetch('diagnostics', {})
 
-        # Populate a new hash with the site config settings that are safe
-        # to share with the front-end app (i.e. public).
-        #
-        # SECURITY: This is an opt-in approach that explicitly selects which
-        # configuration values to share with the frontend while protecting
-        # sensitive data. We copy only the whitelisted fields and then
-        # filter specific nested sensitive data from complex structures.
-        safe_site = InitializeViewVars.safe_site_fields.each_with_object({}) do |field, hash|
-          field_str = field.to_s
-          unless site_config.key?(field_str)
-            Onetime.app_logger.debug 'Site config missing expected field', {
-              field: field_str,
-              module: 'InitializeViewVars',
-            }
-            next
-          end
-
-          # Perform deep copy to prevent unintended mutations to the original config
-          hash[field] = OT::Config.deep_clone(site_config[field_str])
-        end
-
-        # Additional filtering for nested sensitive data
-        if (safe_site['domains']) && safe_site['domains'].is_a?(Hash)
-          safe_site['domains'].delete('cluster')
-        end
-
-        if (safe_site['authentication']) && safe_site['authentication'].is_a?(Hash)
-          safe_site['authentication'].delete('colonels')
-        end
+        safe_site = build_safe_site_config(site_config)
+        safe_features = build_safe_features_config(features_config)
 
         # Extract values from session
         #
@@ -165,6 +139,7 @@ module Core
           'diagnostics' => diagnostics,
           'display_domain' => display_domain,
           'domain_strategy' => domain_strategy,
+          'features' => safe_features,
           'frontend_development' => frontend_development,
           'frontend_host' => frontend_host,
           'keywords' => keywords,
@@ -180,6 +155,65 @@ module Core
           'site' => safe_site,
           'site_host' => site_host,
         }
+      end
+
+      # Build safe site configuration for frontend exposure
+      #
+      # Filters site configuration to include only whitelisted fields and removes
+      # nested sensitive data like cluster credentials and authentication secrets.
+      #
+      # @param site_config [Hash] Raw site configuration from OT.conf
+      # @return [Hash] Filtered configuration safe for frontend
+      def build_safe_site_config(site_config)
+        # Populate a new hash with the site config settings that are safe
+        # to share with the front-end app (i.e. public).
+        #
+        # SECURITY: This is an opt-in approach that explicitly selects which
+        # configuration values to share with the frontend while protecting
+        # sensitive data. We copy only the whitelisted fields and then
+        # filter specific nested sensitive data from complex structures.
+        safe_site = InitializeViewVars.safe_site_fields.each_with_object({}) do |field, hash|
+          field_str = field.to_s
+          unless site_config.key?(field_str)
+            log_metadata = {
+              field: field_str,
+              module: 'InitializeViewVars',
+            }
+            Onetime.app_logger.debug('Site config missing expected field', log_metadata)
+            next
+          end
+
+          # Perform deep copy to prevent unintended mutations to the original config
+          hash[field] = OT::Config.deep_clone(site_config[field_str])
+        end
+
+        # Additional filtering for nested sensitive data
+        if (safe_site['authentication']) && safe_site['authentication'].is_a?(Hash)
+          safe_site['authentication'].delete('colonels')
+        end
+
+        safe_site
+      end
+
+      # Build safe features configuration for frontend exposure
+      #
+      # Filters features configuration to include only safe fields and removes
+      # nested sensitive data like cluster credentials.
+      #
+      # @param features_config [Hash] Raw features configuration from OT.conf
+      # @return [Hash] Filtered configuration safe for frontend
+      def build_safe_features_config(features_config)
+        return {} if features_config.nil? || features_config.empty?
+
+        # Deep copy to prevent mutations
+        safe_features = OT::Config.deep_clone(features_config)
+
+        # Remove sensitive cluster credentials from domains config
+        if safe_features.dig('domains', 'cluster')
+          safe_features['domains'].delete('cluster')
+        end
+
+        safe_features
       end
     end
   end
