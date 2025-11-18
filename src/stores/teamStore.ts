@@ -1,10 +1,10 @@
 // src/stores/teamStore.ts
 
 import {
+  teamMemberResponseSchema,
+  teamMembersResponseSchema,
   teamResponseSchema,
   teamsResponseSchema,
-  teamMembersResponseSchema,
-  teamMemberResponseSchema,
 } from '@/schemas/api/teams';
 import type {
   CreateTeamPayload,
@@ -13,13 +13,13 @@ import type {
   TeamWithRole,
   UpdateMemberRolePayload,
   UpdateTeamPayload,
-} from '@/types/team';
+} from '@/schemas/models/team';
 import {
   createTeamPayloadSchema,
   inviteMemberPayloadSchema,
   updateMemberRolePayloadSchema,
   updateTeamPayloadSchema,
-} from '@/types/team';
+} from '@/schemas/models/team';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { computed, inject, ref } from 'vue';
@@ -55,7 +55,7 @@ export const useTeamStore = defineStore('team', () => {
   const getTeamById = computed(
     () =>
       (teamId: string): TeamWithRole | undefined =>
-        teams.value.find((t) => t.id === teamId)
+        teams.value.find((t) => t.extid === teamId)
   );
 
   const isInitialized = computed(() => _initialized.value);
@@ -120,7 +120,7 @@ export const useTeamStore = defineStore('team', () => {
       activeTeam.value = validated.record;
 
       // Update in teams array if exists
-      const index = teams.value.findIndex((t) => t.id === teamId);
+      const index = teams.value.findIndex((t) => t.extid === teamId);
       if (index !== -1) {
         teams.value[index] = validated.record;
       } else {
@@ -168,13 +168,13 @@ export const useTeamStore = defineStore('team', () => {
       const teamData = teamResponseSchema.parse(response.data);
 
       // Update in teams array
-      const index = teams.value.findIndex((t) => t.id === teamId);
+      const index = teams.value.findIndex((t) => t.extid === teamId);
       if (index !== -1) {
         teams.value[index] = teamData.record;
       }
 
       // Update activeTeam if it's the same team
-      if (activeTeam.value?.id === teamId) {
+      if (activeTeam.value?.extid === teamId) {
         activeTeam.value = teamData.record;
       }
 
@@ -194,10 +194,10 @@ export const useTeamStore = defineStore('team', () => {
       await $api.delete(`/api/teams/${teamId}`);
 
       // Remove from teams array
-      teams.value = teams.value.filter((t) => t.id !== teamId);
+      teams.value = teams.value.filter((t) => t.extid !== teamId);
 
       // Clear activeTeam if it's the deleted team
-      if (activeTeam.value?.id === teamId) {
+      if (activeTeam.value?.extid === teamId) {
         activeTeam.value = null;
         members.value = [];
       }
@@ -242,11 +242,11 @@ export const useTeamStore = defineStore('team', () => {
       members.value.push(memberData.record);
 
       // Update member count in team
-      const team = teams.value.find((t) => t.id === teamId);
-      if (team) {
+      const team = teams.value.find((t) => t.extid === teamId);
+      if (team && team.member_count !== null) {
         team.member_count += 1;
       }
-      if (activeTeam.value?.id === teamId) {
+      if (activeTeam.value?.extid === teamId && activeTeam.value.member_count !== null) {
         activeTeam.value.member_count += 1;
       }
 
@@ -298,11 +298,11 @@ export const useTeamStore = defineStore('team', () => {
       members.value = members.value.filter((m) => m.id !== memberId);
 
       // Update member count in team
-      const team = teams.value.find((t) => t.id === teamId);
-      if (team) {
+      const team = teams.value.find((t) => t.extid === teamId);
+      if (team && team.member_count !== null) {
         team.member_count -= 1;
       }
-      if (activeTeam.value?.id === teamId) {
+      if (activeTeam.value?.extid === teamId && activeTeam.value.member_count !== null) {
         activeTeam.value.member_count -= 1;
       }
     } finally {
