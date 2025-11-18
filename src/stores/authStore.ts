@@ -113,22 +113,76 @@ export const useAuthStore = defineStore('auth', () => {
   // Actions
 
   function init(options?: StoreOptions) {
-    if (_initialized.value) return { needsCheck, isInitialized };
+    console.group('🔐 Auth State Initialization');
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('Already initialized:', _initialized.value);
+
+    if (_initialized.value) {
+      console.log('⚠️ Skipping - already initialized');
+      console.groupEnd();
+      return { needsCheck, isInitialized };
+    }
 
     if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
 
     const inputValue = WindowService.get('authenticated');
+    const hadValidSession = WindowService.get('had_valid_session');
+    const storedAuthState = sessionStorage.getItem('ots_auth_state');
 
-    // Regardless of what the value is, if it isn't exactly true, it's false.
-    // i.e. unlimited ways to fail, only one way to succeed.
-    isAuthenticated.value = inputValue === true;
+    console.log('Window state authenticated:', inputValue);
+    console.log('Window state had_valid_session:', hadValidSession);
+    console.log('Stored auth state (sessionStorage):', storedAuthState);
 
+    // Detect if this might be an error page masquerading as unauthenticated:
+    // - Window says authenticated = false
+    // - But server indicates there was a valid session (had_valid_session = true)
+    // - And we have a recent auth state stored in sessionStorage
+    // This scenario happens when server returns 500 error page which defaults
+    // to authenticated = false even though the user has a valid session.
+    // The server sets had_valid_session by checking the session cookie on its side.
+    if (inputValue === false && hadValidSession === true && storedAuthState === 'true') {
+      // Likely a server error page, preserve the stored auth state
+      console.warn('⚠️ Preserving auth state despite server showing unauthenticated');
+      console.log('Reason: Server confirms valid session existed (had_valid_session=true)');
+      loggingService.warn(
+        'Window state shows unauthenticated but server had valid session - ' +
+        'likely server error page, preserving auth state'
+      );
+      isAuthenticated.value = true;
+    } else {
+      // Normal flow: trust window state
+      // Regardless of what the value is, if it isn't exactly true, it's false.
+      // i.e. unlimited ways to fail, only one way to succeed.
+      if (import.meta.env.DEV) {
+        console.log('✅ Using server auth state (normal flow)');
+      }
+      isAuthenticated.value = inputValue === true;
+    }
+
+    if (import.meta.env.DEV) {
+      console.log('Final isAuthenticated value:', isAuthenticated.value);
+    }
+
+    // Store auth state for error recovery
     if (isAuthenticated.value) {
-      lastCheckTime.value = Date.now(); // Add this
+      if (import.meta.env.DEV) {
+        console.log('📝 Storing auth state in sessionStorage');
+      }
+      sessionStorage.setItem('ots_auth_state', 'true');
+      lastCheckTime.value = Date.now();
       $scheduleNextCheck();
+    } else {
+      if (import.meta.env.DEV) {
+        console.log('📝 Removing auth state from sessionStorage');
+      }
+      sessionStorage.removeItem('ots_auth_state');
     }
 
     _initialized.value = true;
+    if (import.meta.env.DEV) {
+      console.log('Initialization complete');
+      console.groupEnd();
+    }
     return { needsCheck, isInitialized };
   }
 
@@ -241,6 +295,12 @@ export const useAuthStore = defineStore('auth', () => {
    * is cleared and the store is returned to its default state.
    */
   async function logout() {
+    if (import.meta.env.DEV) {
+      console.group('🚪 logout called');
+      console.log('Timestamp:', new Date().toISOString());
+      console.log('Stack trace:', new Error().stack);
+    }
+
     await $stopAuthCheck();
 
     $reset();
@@ -253,6 +313,11 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Clear all session storage;
     sessionStorage.clear();
+
+    if (import.meta.env.DEV) {
+      console.log('Logout complete');
+      console.groupEnd();
+    }
 
     // Remove any and all lingering store state
     // context.pinia.state.value = {};
@@ -270,11 +335,23 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function $reset() {
+    if (import.meta.env.DEV) {
+      console.group('🔄 $reset called');
+      console.log('Timestamp:', new Date().toISOString());
+      console.log('Stack trace:', new Error().stack);
+    }
+
     isAuthenticated.value = null;
     authCheckTimer.value = null;
     failureCount.value = null;
     lastCheckTime.value = null;
     _initialized.value = false;
+    sessionStorage.removeItem('ots_auth_state');
+
+    if (import.meta.env.DEV) {
+      console.log('Reset complete');
+      console.groupEnd();
+    }
   }
 
   /**
@@ -283,18 +360,43 @@ export const useAuthStore = defineStore('auth', () => {
    * @param value - The authentication state to set
    */
   async function setAuthenticated(value: boolean) {
+    if (import.meta.env.DEV) {
+      console.group('📝 setAuthenticated called');
+      console.log('Setting authenticated:', value);
+      console.log('Current value:', isAuthenticated.value);
+    }
+
     isAuthenticated.value = value;
 
+    // Update sessionStorage for error recovery
     if (value) {
+      if (import.meta.env.DEV) {
+        console.log('📝 Storing in sessionStorage: true');
+      }
+      sessionStorage.setItem('ots_auth_state', 'true');
+      if (import.meta.env.DEV) {
+        console.log('Fetching fresh window state...');
+      }
       // Fetch fresh window state immediately to get customer data
       await checkWindowStatus();
     } else {
+      if (import.meta.env.DEV) {
+        console.log('📝 Removing from sessionStorage');
+      }
+      sessionStorage.removeItem('ots_auth_state');
       await $stopAuthCheck();
     }
 
     // Sync window state flag
     if (window.__ONETIME_STATE__) {
+      if (import.meta.env.DEV) {
+        console.log('Syncing window.__ONETIME_STATE__.authenticated:', value);
+      }
       window.__ONETIME_STATE__.authenticated = value;
+    }
+
+    if (import.meta.env.DEV) {
+      console.groupEnd();
     }
   }
 

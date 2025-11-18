@@ -11,6 +11,8 @@ export const stateFixture: OnetimeWindow = {
   clearInterval: clearIntervalMock,
 
   authenticated: false,
+  awaiting_mfa: false,
+  had_valid_session: false,
   baseuri: 'https://dev.onetimesecret.com',
   cust: null,
   custid: '',
