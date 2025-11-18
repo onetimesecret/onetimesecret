@@ -176,6 +176,11 @@ module Onetime
 
       raise_concerns(conf)
 
+      # MIGRATION VALIDATION: Check for legacy configuration locations
+      # Warn if both old (site.*) and new (features.*) config exist
+      validate_domains_migration(conf)
+      validate_regions_migration(conf)
+
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
       # config state.
@@ -312,6 +317,34 @@ module Onetime
 
       unless conf['mail'].key?('truemail')
         raise OT::ConfigError, 'No TrueMail config found'
+      end
+    end
+
+    # Validates domains configuration migration from site to features
+    #
+    # Checks if both legacy (site.domains) and new (features.domains) configurations
+    # exist, logging a warning if both are present. The features.domains configuration
+    # takes precedence.
+    #
+    # @param conf [Hash] The loaded configuration
+    # @return [void]
+    def validate_domains_migration(conf)
+      if conf.dig('site', 'domains') && conf.dig('features', 'domains')
+        OT.le 'CONFIG MIGRATION WARNING: Both site.domains and features.domains configured. Using features.domains'
+      end
+    end
+
+    # Validates regions configuration migration from site to features
+    #
+    # Checks if both legacy (site.regions) and new (features.regions) configurations
+    # exist, logging a warning if both are present. The features.regions configuration
+    # takes precedence.
+    #
+    # @param conf [Hash] The loaded configuration
+    # @return [void]
+    def validate_regions_migration(conf)
+      if conf.dig('site', 'regions') && conf.dig('features', 'regions')
+        OT.le 'CONFIG MIGRATION WARNING: Both site.regions and features.regions configured. Using features.regions'
       end
     end
 
