@@ -13,35 +13,60 @@ export async function setupRouterGuards(router: Router): Promise<void> {
   let currentTitle: string | null = null;
 
   router.beforeEach(async (to: RouteLocationNormalized) => {
+    console.group('🛣️ Router Guard: beforeEach');
+    console.log('Navigating to:', to.path);
+    console.log('Route name:', to.name);
+    console.log('Timestamp:', new Date().toISOString());
+
     const authStore = useAuthStore();
     const languageStore = useLanguageStore();
+
+    console.log('Auth store state:', {
+      isAuthenticated: authStore.isAuthenticated,
+      isInitialized: authStore.isInitialized,
+      needsCheck: authStore.needsCheck,
+    });
 
     processQueryParams(to.query as Record<string, string>);
 
     if (to.name === 'NotFound') {
+      console.log('Route is NotFound, allowing');
+      console.groupEnd();
       return true;
     }
 
     // Handle MFA requirement checks
     const mfaRedirect = handleMfaAccess(to, authStore.isAuthenticated);
     if (mfaRedirect) {
+      console.log('MFA redirect required:', mfaRedirect);
+      console.groupEnd();
       return mfaRedirect;
     }
 
     // Handle root path redirect
     if (to.path === '/') {
-      return authStore.isAuthenticated ? { name: 'Dashboard' } : true;
+      const redirect = authStore.isAuthenticated ? { name: 'Dashboard' } : true;
+      console.log('Root path redirect:', redirect);
+      console.groupEnd();
+      return redirect;
     }
 
     // Redirect authenticated users away from auth routes
     if (isAuthRoute(to) && authStore.isAuthenticated) {
+      console.log('Auth route with authenticated user, redirecting to Dashboard');
+      console.groupEnd();
       return { name: 'Dashboard' };
     }
 
     // Validate authentication for protected routes
     if (requiresAuthentication(to)) {
+      console.log('Route requires authentication, validating...');
       const isAuthenticated = await validateAuthentication(authStore, to);
+      console.log('Validation result:', isAuthenticated);
+
       if (!isAuthenticated) {
+        console.warn('❌ Authentication failed, redirecting to signin');
+        console.groupEnd();
         return redirectToSignIn(to);
       }
 
@@ -51,6 +76,8 @@ export async function setupRouterGuards(router: Router): Promise<void> {
       }
     }
 
+    console.log('✅ Navigation allowed');
+    console.groupEnd();
     return true; // Always return true for non-auth routes
   });
 
@@ -160,13 +187,43 @@ async function validateAuthentication(
   store: AuthValidator, // tried AuthStore, etc
   route: RouteLocationNormalized
 ): Promise<boolean> {
-  if (!requiresAuthentication(route)) return true;
+  if (import.meta.env.DEV) {
+    console.group('🔍 validateAuthentication');
+    console.log('Route requires auth:', requiresAuthentication(route));
+    console.log('Store needsCheck:', store.needsCheck);
+    console.log('Store isAuthenticated:', store.isAuthenticated);
+  }
+
+  if (!requiresAuthentication(route)) {
+    if (import.meta.env.DEV) {
+      console.log('Route does not require auth, returning true');
+      console.groupEnd();
+    }
+    return true;
+  }
 
   if (store.needsCheck) {
+    if (import.meta.env.DEV) {
+      console.log('Needs check, calling checkWindowStatus...');
+    }
     const authStatus = await store.checkWindowStatus();
-    return authStatus ?? false; // Coalesce null to false
+    if (import.meta.env.DEV) {
+      console.log('checkWindowStatus returned:', authStatus);
+    }
+    const result = authStatus ?? false;
+    if (import.meta.env.DEV) {
+      console.log('Final result (after coalescing):', result);
+      console.groupEnd();
+    }
+    return result;
   }
-  return store.isAuthenticated ?? false;
+
+  const result = store.isAuthenticated ?? false;
+  if (import.meta.env.DEV) {
+    console.log('Using cached auth state:', result);
+    console.groupEnd();
+  }
+  return result;
 }
 
 /**

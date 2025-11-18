@@ -93,6 +93,15 @@ export interface OnetimeWindow {
    * The user menu will appear with an amber badge during this state.
    */
   awaiting_mfa: boolean;
+
+  /**
+   * Indicates whether the request had a valid session at the time of response.
+   * This is crucial for error pages where authenticated=false but the user
+   * had a valid session. The frontend uses this to preserve auth state and
+   * avoid incorrect redirects to signin on server errors.
+   */
+  had_valid_session: boolean;
+
   baseuri: string;
   cust: Customer | null;
   custid: string;

@@ -29,6 +29,19 @@ describe('Team Store', () => {
     updated: new Date('2024-01-01T00:00:00Z'),
   };
 
+  // Raw API response format
+  const mockMemberApiResponse = {
+    id: 'member-123',
+    team_extid: 'team-123',
+    user_id: 'user-456',
+    email: 'member@example.com',
+    role: TeamRole.MEMBER,
+    status: 'active' as const,
+    created_at: 1704067200,
+    updated_at: 1704067200,
+  };
+
+  // Transformed format (what the store returns after schema transformation)
   const mockMember = {
     id: 'member-123',
     team_id: 'team-123',
@@ -36,8 +49,8 @@ describe('Team Store', () => {
     email: 'member@example.com',
     role: TeamRole.MEMBER,
     status: 'active' as const,
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
+    created: new Date(1704067200 * 1000),
+    updated: new Date(1704067200 * 1000),
   };
 
   beforeEach(async () => {
@@ -178,7 +191,7 @@ describe('Team Store', () => {
 
     it('fetches team members', async () => {
       axiosMock?.onGet('/api/teams/team-123/members').reply(200, {
-        records: [mockMember],
+        records: [mockMemberApiResponse],
         count: 1,
       });
 
@@ -195,10 +208,14 @@ describe('Team Store', () => {
         role: TeamRole.MEMBER,
       };
 
+      const newMemberApiResponse = {
+        ...mockMemberApiResponse,
+        email: 'newmember@example.com',
+      };
       const newMember = { ...mockMember, email: 'newmember@example.com' };
 
       axiosMock?.onPost('/api/teams/team-123/members').reply(200, {
-        record: newMember,
+        record: newMemberApiResponse,
       });
 
       const member = await store.inviteMember('team-123', invitePayload);
@@ -210,10 +227,10 @@ describe('Team Store', () => {
     it('updates a member role', async () => {
       store.members = [mockMember];
 
-      const updatedMember = { ...mockMember, role: TeamRole.ADMIN };
+      const updatedMemberApiResponse = { ...mockMemberApiResponse, role: TeamRole.ADMIN };
 
       axiosMock?.onPatch('/api/teams/team-123/members/member-123').reply(200, {
-        record: updatedMember,
+        record: updatedMemberApiResponse,
       });
 
       const result = await store.updateMemberRole('team-123', 'member-123', {

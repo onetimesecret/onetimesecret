@@ -610,6 +610,179 @@ describe('authStore', () => {
     });
   });
 
+  describe('Error Page Auth State Recovery', () => {
+    beforeEach(() => {
+      // Clear sessionStorage before each test
+      sessionStorage.clear();
+      // Clear cookies
+      document.cookie = 'sess=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    });
+
+    afterEach(() => {
+      sessionStorage.clear();
+      document.cookie = 'sess=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      store.$reset();
+    });
+
+    it('preserves auth state when server returns error page with authenticated=false', () => {
+      // Simulate: user was authenticated and navigated to a page that 500'd
+      // 1. Set up stored auth state (would have been set during previous successful login)
+      sessionStorage.setItem('ots_auth_state', 'true');
+
+      // 2. Server returns error page with:
+      //    - authenticated: false (error page default)
+      //    - had_valid_session: true (server checked session cookie and it was valid)
+      (window as any).__ONETIME_STATE__ = {
+        authenticated: false,
+        had_valid_session: true,
+        cust: null,
+      };
+
+      // 3. Store initializes
+      store.init();
+
+      // 4. Should preserve auth state because server confirmed valid session
+      expect(store.isAuthenticated).toBe(true);
+    });
+
+    it('respects authenticated=false when no stored auth state exists', () => {
+      // Simulate: first visit or user was never authenticated
+      // No stored auth state
+      sessionStorage.removeItem('ots_auth_state');
+
+      // Server says not authenticated
+      (window as any).__ONETIME_STATE__ = {
+        authenticated: false,
+        cust: null,
+      };
+
+      store.init();
+
+      // Should trust server and set authenticated to false
+      expect(store.isAuthenticated).toBe(false);
+    });
+
+    it('respects authenticated=false when server says had_valid_session=false', () => {
+      // Simulate: stored state exists but session actually expired
+      sessionStorage.setItem('ots_auth_state', 'true');
+
+      // Server says not authenticated AND no valid session
+      (window as any).__ONETIME_STATE__ = {
+        authenticated: false,
+        had_valid_session: false,
+        cust: null,
+      };
+
+      store.init();
+
+      // Should trust server since had_valid_session=false
+      expect(store.isAuthenticated).toBe(false);
+      // Should clean up stale stored auth state
+      expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
+    });
+
+    it('respects authenticated=true from server regardless of stored state', () => {
+      // Simulate: server correctly says authenticated
+      sessionStorage.removeItem('ots_auth_state');
+
+      (window as any).__ONETIME_STATE__ = {
+        authenticated: true,
+        had_valid_session: true,
+        cust: mockCustomer,
+      };
+
+      store.init();
+
+      // Should trust server
+      expect(store.isAuthenticated).toBe(true);
+      // Should store auth state for future error recovery
+      expect(sessionStorage.getItem('ots_auth_state')).toBe('true');
+    });
+
+    it('clears stored auth state when logging out', async () => {
+      // Set up authenticated state
+      sessionStorage.setItem('ots_auth_state', 'true');
+      store.$patch({ isAuthenticated: true });
+
+      // Logout
+      await store.logout();
+
+      // Should clear stored auth state
+      expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
+      expect(store.isAuthenticated).toBeNull();
+    });
+
+    it('updates stored auth state when setAuthenticated is called', async () => {
+      // Mock successful window status check
+      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
+        authenticated: true,
+        cust: mockCustomer,
+        shrimp: 'tempura',
+      });
+
+      // Set authenticated to true
+      await store.setAuthenticated(true);
+
+      // Should store auth state
+      expect(sessionStorage.getItem('ots_auth_state')).toBe('true');
+
+      // Set authenticated to false
+      await store.setAuthenticated(false);
+
+      // Should remove stored auth state
+      expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
+    });
+
+    it('requires both server confirmation AND stored state to preserve auth', () => {
+      // Edge case: Server says had_valid_session=true but user cleared sessionStorage
+      // This could happen if:
+      // - User manually cleared browser storage
+      // - Different browser tab/window
+      // - SessionStorage expired in browser
+
+      // No stored state (user cleared it or never had it in this context)
+      sessionStorage.removeItem('ots_auth_state');
+
+      // Server says there was a valid session (checked httpOnly cookie server-side)
+      (window as any).__ONETIME_STATE__ = {
+        authenticated: false,
+        had_valid_session: true,
+        cust: null,
+      };
+
+      store.init();
+
+      // Should NOT preserve auth - we require BOTH server AND client agreement
+      // This is correct because we can't confirm user's expectation without stored state
+      expect(store.isAuthenticated).toBe(false);
+    });
+
+    it('handles MFA flow correctly - does not interfere with awaiting_mfa state', () => {
+      // MFA scenario: User passed first factor but awaiting second factor
+      // - authenticated: false (not fully authenticated yet)
+      // - awaiting_mfa: true (partial auth state)
+      // - had_valid_session: true (they do have a session)
+      // - storedAuthState: 'false' (we never stored 'true' for partial auth)
+
+      sessionStorage.removeItem('ots_auth_state'); // No stored auth (correct for MFA flow)
+
+      (window as any).__ONETIME_STATE__ = {
+        authenticated: false,
+        awaiting_mfa: true,
+        had_valid_session: true,
+        cust: null,
+      };
+
+      store.init();
+
+      // Should respect authenticated=false because:
+      // 1. authenticated=false from server (MFA not complete)
+      // 2. No stored auth state (we only store on full authentication)
+      // The recovery logic should NOT interfere with MFA flow
+      expect(store.isAuthenticated).toBe(false);
+    });
+  });
+
   describe('Error Handling', () => {
     beforeEach(() => {
       // Set window state properly, preserving __ONETIME_STATE__

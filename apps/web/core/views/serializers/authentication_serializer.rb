@@ -25,6 +25,13 @@ module Core
 
         output['cust'] = cust.safe_dump
 
+        # Check if there was a valid session at the time of this response
+        # This is crucial for error pages where authenticated=false but the user
+        # had a valid session. The frontend uses this to avoid incorrect logouts.
+        # A valid session has 'external_id' present (customer identifier in session)
+        sess = view_vars['sess']
+        output['had_valid_session'] = !!(sess && !sess.empty? && !sess['external_id'].to_s.empty?)
+
         # When authenticated, provide full customer data
         if output['authenticated']
           output['custid']         = cust.custid
@@ -48,6 +55,7 @@ module Core
           {
             'authenticated' => nil,
             'awaiting_mfa' => false,
+            'had_valid_session' => false,
             'custid' => nil,
             'cust' => nil,
             'email' => nil,

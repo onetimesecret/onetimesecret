@@ -48,6 +48,16 @@ export const teamMemberStatusSchema = z.enum([
 ]);
 
 /**
+ * Team member info schema (simplified member data in team responses)
+ * Used in the members array of team API responses
+ */
+export const teamMemberInfoSchema = z.object({
+  custid: z.string(),
+  email: z.string().email(),
+  role: teamRoleSchema,
+});
+
+/**
  * Team schema
  * Maps API response to frontend Team model
  */
@@ -59,13 +69,13 @@ export const teamSchema = withFeatureFlags(
 
     // Core fields
     display_name: z.string().min(1).max(100),
-    description: z.string().max(500).optional(),
+    description: z.string().max(500).optional().nullable(),
     owner_id: z.string(),
     org_id: z.string().optional().nullable(),
 
     // Metadata
     member_count: transforms.fromString.number.default(0),
-    is_default: transforms.fromString.boolean,
+    is_default: transforms.fromString.boolean.nullable(),
   }).strict()
 );
 
@@ -75,34 +85,50 @@ export const teamSchema = withFeatureFlags(
  */
 export const teamWithRoleSchema = teamSchema.extend({
   current_user_role: teamRoleSchema,
+  members: z.array(teamMemberInfoSchema).optional(),
 });
 
 /**
  * Team member schema
  * Maps API response to frontend TeamMember model
  *
- * Note: API returns team_extid, which we transform to team_id for frontend consistency
+ * Note: Members API uses different field names than teams API:
+ * - Uses 'created_at'/'updated_at' instead of 'created'/'updated'
+ * - Uses 'id' instead of 'identifier'
+ * - Returns 'team_extid' which we transform to 'team_id'
  */
-export const teamMemberSchema = createModelSchema({
-  // Identifiers
-  id: z.string(),
-  team_extid: z.string(),
-  user_id: z.string(),
+export const teamMemberSchema = z
+  .object({
+    // Identifiers
+    id: z.string(),
+    team_extid: z.string(),
+    user_id: z.string(),
 
-  // User info
-  email: z.string().email(),
+    // User info
+    email: z.string().email(),
 
-  // Role and status
-  role: teamRoleSchema,
-  status: teamMemberStatusSchema,
+    // Role and status
+    role: teamRoleSchema,
+    status: teamMemberStatusSchema,
 
-  // Timestamps (nullable for invited but not joined members)
-  invited_at: transforms.fromString.dateNullable,
-  joined_at: transforms.fromString.dateNullable,
-}).transform((data) => ({
-  ...data,
-  team_id: data.team_extid, // Transform team_extid to team_id for frontend
-}));
+    // Timestamps - API uses created_at/updated_at for members
+    invited_at: z.number().optional(),
+    joined_at: z.number().optional(),
+    created_at: z.number(),
+    updated_at: z.number(),
+  })
+  .transform((data) => ({
+    id: data.id,
+    team_id: data.team_extid, // Transform team_extid to team_id for frontend
+    user_id: data.user_id,
+    email: data.email,
+    role: data.role,
+    status: data.status,
+    invited_at: data.invited_at ? new Date(data.invited_at * 1000) : undefined,
+    joined_at: data.joined_at ? new Date(data.joined_at * 1000) : undefined,
+    created: new Date(data.created_at * 1000), // Map created_at to created
+    updated: new Date(data.updated_at * 1000), // Map updated_at to updated
+  }));
 
 /**
  * Request payload schemas
@@ -144,8 +170,18 @@ export type TeamWithRole = Omit<z.infer<typeof teamWithRoleSchema>, 'created' | 
   updated: Date;
 };
 
-// TeamMember type with proper Date typing and team_id transformation
-export type TeamMember = Omit<z.infer<typeof teamMemberSchema>, 'created' | 'updated'> & {
+export type TeamMemberInfo = z.infer<typeof teamMemberInfoSchema>;
+
+// TeamMember type with proper Date typing
+export type TeamMember = {
+  id: string;
+  team_id: string;
+  user_id: string;
+  email: string;
+  role: TeamRole;
+  status: TeamMemberStatus;
+  invited_at?: Date;
+  joined_at?: Date;
   created: Date;
   updated: Date;
 };

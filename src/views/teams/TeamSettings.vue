@@ -4,6 +4,7 @@
   import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
   import ConfirmDialog from '@/components/ConfirmDialog.vue';
   import OIcon from '@/components/icons/OIcon.vue';
+  import { useAsyncHandler } from '@/composables/useAsyncHandler';
   import { classifyError } from '@/schemas/errors';
   import { updateTeamPayloadSchema, type UpdateTeamPayload } from '@/schemas/models/team';
   import { useTeamStore } from '@/stores/teamStore';
@@ -19,6 +20,10 @@
 
   const { activeTeam, loading } = storeToRefs(teamStore);
 
+  const { wrap } = useAsyncHandler({
+    notify: false, // Using local error state instead of notifications
+  });
+
   const formData = ref<UpdateTeamPayload>({
     display_name: '',
     description: '',
@@ -30,7 +35,7 @@
   const showDeleteConfirm = ref(false);
   const isDeleting = ref(false);
 
-  const teamId = computed(() => route.params.teamid as string);
+  const teamId = computed(() => route.params.extid as string);
 
   const isOwner = computed(() => activeTeam.value?.current_user_role === 'owner');
 
@@ -44,17 +49,15 @@
 
   onMounted(async () => {
     if (!isOwner.value) {
-      router.push({ name: 'Team Dashboard', params: { teamid: teamId.value } });
+      router.push({ name: 'Team Dashboard', params: { extid: teamId.value } });
       return;
     }
 
-    try {
-      if (!activeTeam.value || activeTeam.value.extid !== teamId.value) {
-        await teamStore.fetchTeam(teamId.value);
+    if (!activeTeam.value || activeTeam.value.extid !== teamId.value) {
+      const result = await wrap(() => teamStore.fetchTeam(teamId.value));
+      if (!result) {
+        generalError.value = t('web.teams.fetch_team_error');
       }
-    } catch (err) {
-      const classified = classifyError(err);
-      generalError.value = classified.userMessage || t('web.teams.fetch_team_error');
     }
   });
 
@@ -118,7 +121,7 @@
   };
 
   const navigateToTeam = () => {
-    router.push({ name: 'Team Dashboard', params: { teamid: teamId.value } });
+    router.push({ name: 'Team Dashboard', params: { extid: teamId.value } });
   };
 </script>
 
@@ -247,7 +250,7 @@
               </label>
               <input
                 id="team-name"
-                v-model="formData.name"
+                v-model="formData.display_name"
                 type="text"
                 required
                 maxlength="100"
@@ -256,14 +259,14 @@
                   'mt-1 block w-full rounded-md shadow-sm sm:text-sm',
                   'focus:border-brand-500 focus:ring-brand-500',
                   'dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400',
-                  errors.name
+                  errors.display_name
                     ? 'border-red-300 text-red-900 placeholder:text-red-300 focus:border-red-500 focus:ring-red-500'
                     : 'border-gray-300 dark:border-gray-600',
                 ]" />
               <p
-                v-if="errors.name"
+                v-if="errors.display_name"
                 class="mt-1 text-sm text-red-600 dark:text-red-400">
-                {{ errors.name }}
+                {{ errors.display_name }}
               </p>
             </div>
 
