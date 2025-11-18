@@ -163,6 +163,15 @@ site:
     # The default domain used for link URLs. When not set or empty,
     # site.host is used.
     default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
+
+    # Domain validation and certificate management strategy
+    # Options:
+    #   - approximated: Use approximated.app API for SSL certs and validation (requires cluster config)
+    #   - passthrough: No validation or cert management (for external reverse proxy handling)
+    #   - caddy_on_demand: Use Caddy's on-demand TLS (requires internal ACME endpoint)
+    strategy: <%= ENV['DOMAIN_STRATEGY'] || 'approximated' %>
+
+    # Cluster configuration (required for 'approximated' strategy)
     # The cluster type determines how the application will support
     # multiple domains. The default is nil which means that the
     # application itself is responsible for handling multiple domains.
@@ -173,6 +182,16 @@ site:
       cluster_host: <%= ENV['APPROXIMATED_PROXY_CLUSTER_HOST'] || '<CLUSTER_HOST>' %>
       cluster_name: <%= ENV['APPROXIMATED_PROXY_CLUSTER_NAME'] || '<CLUSTER_NAME>' %>
       vhost_target: <%= ENV['APPROXIMATED_PROXY_VHOST_TARGET'] || '<VHOST_TARGET>' %>
+
+    # Internal ACME endpoint configuration (for 'caddy_on_demand' strategy)
+    # This endpoint allows Caddy to verify domains before issuing certificates
+    acme:
+      # Enable the internal ACME endpoint at /api/internal/acme/ask
+      enabled: <%= ENV['ACME_ENDPOINT_ENABLED'] == 'true' || false %>
+      # IP address to bind to (should always be localhost for security)
+      listen_address: <%= ENV['ACME_LISTEN_ADDRESS'] || '127.0.0.1' %>
+      # Port for the ACME endpoint (Caddy will call this)
+      port: <%= ENV['ACME_PORT'] || '12020' %>
 features:
 
 # Main Database Configuration

@@ -5,6 +5,7 @@
 require 'public_suffix'
 
 require 'onetime/cluster'
+require 'onetime/domain_validation/strategy'
 require_relative '../base'
 
 module DomainsAPI::Logic
@@ -63,31 +64,40 @@ module DomainsAPI::Logic
         @custom_domain = Onetime::CustomDomain.create!(@display_domain, organization.objid)
 
         begin
-          # Create the approximated vhost for this domain. Approximated provides a
-          # custom domain as a service API. If no API key is set, then this will
-          # simply log a message and return.
-          create_vhost
+          # Request certificate using the configured strategy
+          # This delegates to the appropriate backend (Approximated, Caddy, passthrough, etc.)
+          request_certificate
         rescue HTTParty::ResponseError => ex
-          OT.le format('[AddDomain.create_vhost error] %s %s %s', @cust.custid, @display_domain, ex)
-          # Continue processing despite vhost error
+          OT.le format('[AddDomain.request_certificate error] %s %s %s', @cust.custid, @display_domain, ex)
+          # Continue processing despite certificate request error
+        rescue StandardError => ex
+          OT.le "[AddDomain] Unexpected error: #{ex.message}"
+          # Continue processing despite error
         end
 
         success_data
       end
 
+      def request_certificate
+        strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
+        result   = strategy.request_certificate(@custom_domain)
+
+        OT.info "[AddDomain.request_certificate] #{@display_domain} -> #{result[:status]}"
+
+        # Store the result data if available (for strategies like Approximated)
+        if result[:data]
+          custom_domain.vhost   = result[:data].to_json
+          custom_domain.updated = OT.now.to_i
+          custom_domain.save
+        end
+
+        result
+      end
+
+      # Legacy method for backward compatibility
+      # @deprecated Use request_certificate instead
       def create_vhost
-        api_key      = Onetime::Cluster::Features.api_key
-        vhost_target = Onetime::Cluster::Features.vhost_target
-
-        return OT.info '[AddDomain.create_vhost] Approximated API key not set' if api_key.to_s.empty?
-
-        res     = Onetime::Cluster::Approximated.create_vhost(api_key, @display_domain, vhost_target, '443')
-        payload = res.parsed_response
-
-        OT.info '[AddDomain.create_vhost] %s' % payload
-        custom_domain.vhost   = payload['data'].to_json
-        custom_domain.updated = OT.now.to_i
-        custom_domain.save
+        request_certificate
       end
 
       def success_data
