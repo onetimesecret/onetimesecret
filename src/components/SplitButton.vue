@@ -63,17 +63,15 @@
   // Compute the ring color based on primaryColor availability
   const ringColorStyle = computed(() => props.primaryColor ? props.primaryColor : 'var(--color-brand-600)');
 
-  // Button labels and icons based on selected action
+  // Button labels based on selected action
   const buttonConfig = computed(() => {
     const configs = {
       'create-link': {
         label: t('web.LABELS.create-link-short'),
-        icon: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />',
         emit: () => emit('create-link'),
       },
       'generate-password': {
         label: t('web.COMMON.button_generate_secret_short'),
-        icon: '<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />',
         emit: () => emit('generate-password'),
       },
     };
@@ -152,7 +150,9 @@
       <span class="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true"></span>
 
       <span class="flex items-center text-current relative z-10 transition-transform duration-300 group-hover:scale-110">
+        <!-- Create Link Icon -->
         <svg
+          v-if="selectedAction === 'create-link'"
           xmlns="http://www.w3.org/2000/svg"
           width="20"
           height="20"
@@ -160,8 +160,28 @@
           fill="none"
           stroke="currentColor"
           stroke-width="2"
-          class="size-5"
-          v-html="buttonConfig.icon" />
+          class="size-5">
+          <rect x="3"
+y="11"
+width="18"
+height="11"
+rx="2"
+ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        <!-- Generate Password Icon -->
+        <svg
+          v-else-if="selectedAction === 'generate-password'"
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          class="size-5">
+          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+        </svg>
       </span>
       <span class="relative z-10">{{ buttonConfig.label }}</span>
     </button>
