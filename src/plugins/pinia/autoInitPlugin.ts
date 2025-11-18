@@ -107,16 +107,7 @@ import type { PiniaPluginOptions } from './types';
 export function autoInitPlugin(options: PiniaPluginOptions = {}) {
   return ({ store }: PiniaPluginContext) => {
     if (typeof store.init === 'function') {
-      if (import.meta.env.DEV) {
-        console.group('🔌 Pinia autoInitPlugin');
-        console.log('Initializing store:', store.$id);
-        console.log('Timestamp:', new Date().toISOString());
-      }
       store.init(options);
-      if (import.meta.env.DEV) {
-        console.log('Store initialized');
-        console.groupEnd();
-      }
     }
   };
 }
