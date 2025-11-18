@@ -261,40 +261,20 @@ describe('domainsStore', () => {
     });
   });
 
-  describe.skip('State Management', () => {
-    it('should update domain in place when it exists', async () => {
-      const domain = mockDomains['domain-1'];
-      const updatedDomain = {
-        ...domain,
-        brand: mockCustomBranding,
-      };
-
-      store.domains = [domain];
-
-      axiosMock.onPut(`/api/domains/${domain.extid}`).reply(200, {
-        record: updatedDomain,
-      });
-
-      await store.updateDomain(updatedDomain);
-      expect(store.domains).toHaveLength(1);
-      expect(store.domains[0]).toEqual(updatedDomain);
-    });
-
-    it('should add domain when updating non-existent domain', async () => {
-      const newDomain = mockDomains['domain-2'];
-
-      axiosMock.onPut(`/api/domains/${newDomain.extid}`).reply(200, {
-        record: newDomain,
-      });
-
-      await store.updateDomain(newDomain);
-      expect(store.domains).toContainEqual(newDomain);
-    });
-
+  describe('State Management', () => {
     it('should prevent duplicate refreshes when initialized', async () => {
-      store.initialized = true;
+      // First call initializes the store
+      axiosMock.onGet('/api/domains').reply(200, {
+        records: Object.values(mockDomains),
+        count: Object.keys(mockDomains).length,
+      });
+
       await store.refreshRecords();
-      expect(axiosMock.history.get).toHaveLength(0);
+      expect(axiosMock.history.get).toHaveLength(1);
+
+      // Second call should skip fetching because store is initialized
+      await store.refreshRecords();
+      expect(axiosMock.history.get).toHaveLength(1); // Still 1, not 2
     });
   });
 });

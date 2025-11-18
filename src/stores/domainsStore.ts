@@ -187,9 +187,9 @@ export const useDomainsStore = defineStore('domains', () => {
   }
 
   /**
-   * Update brand settings for a domain and update the full domain record in store
+   * Update brand settings for a domain via PUT /:extid/brand endpoint
    *
-   * Unlike updateBrandSettings() which only updates brand settings,
+   * Unlike updateBrandSettings() which returns only brand settings,
    * this function returns the full domain object and updates store state.
    */
   async function updateDomainBrand(extid: string, brandUpdate: UpdateDomainBrandRequest) {
