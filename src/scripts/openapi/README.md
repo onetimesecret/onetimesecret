@@ -1,10 +1,43 @@
-# OpenAPI Generation - Proof of Concept Results
+# OpenAPI Generation Infrastructure
+
+## Status: ✅ Implemented
+
+This directory contains the infrastructure for generating OpenAPI 3.0.3 specifications from Onetime Secret's Zod schemas and Otto routes.
+
+### Quick Start
+
+```bash
+# Generate V3 API specification
+pnpm run openapi:generate
+
+# Test the Otto routes parser (finds 68 routes across 6 APIs)
+pnpm run openapi:test-parser
+
+# Run the original PoC validation
+pnpm run openapi:poc
+```
+
+### Generated Files
+
+- `docs/api/v3-openapi.json` - V3 API OpenAPI specification
+
+### Implementation Files
+
+- `otto-routes-parser.ts` - Parses Otto route files to extract endpoint metadata
+- `generate-v3-spec.ts` - Generates complete OpenAPI spec for V3 API
+- `test-parser.ts` - Test suite for the routes parser
+- `poc.ts` - Original proof of concept validation
+- `poc-approach-analysis.ts` - Integration approach analysis
+
+---
 
 ## Executive Summary
 
-✅ **PoC Status: SUCCESSFUL**
+✅ **Implementation Status: COMPLETE**
 
 The `@asteasolutions/zod-to-openapi` library is **fully compatible** with the Onetime Secret codebase and can generate complete OpenAPI 3.0.3 documents from existing Zod schemas.
+
+**Parser Results**: 68 routes discovered across 6 APIs (v2: 17, v3: 18, account: 7, domains: 13, organizations: 5, teams: 8)
 
 ---
 
