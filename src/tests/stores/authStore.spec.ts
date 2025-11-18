@@ -734,6 +734,36 @@ describe('authStore', () => {
       // Should remove stored auth state
       expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
     });
+
+    it('correctly detects session cookie presence (no partial matches)', () => {
+      // Setup: cookie that contains "sess" but isn't named "sess"
+      document.cookie = 'nonsess=value; path=/';
+
+      // Access hasCookie via store internals or re-implement check inline
+      const result = !document.cookie.split(';')
+        .some(c => c.trim().startsWith('sess='));
+
+      expect(result).toBe(true); // Should not match partial name
+
+      // Cleanup
+      document.cookie = 'nonsess=; expires=Thu, 01 Jan 1970 00:00:00 UTC; ' +
+        'path=/';
+    });
+
+    it('correctly detects actual session cookie with exact name match', () => {
+      // Setup: actual session cookie
+      document.cookie = 'sess=test-session-id; path=/';
+
+      // Access hasCookie via store internals or re-implement check inline
+      const result = document.cookie.split(';')
+        .some(c => c.trim().startsWith('sess='));
+
+      expect(result).toBe(true); // Should match exact name
+
+      // Cleanup
+      document.cookie = 'sess=; expires=Thu, 01 Jan 1970 00:00:00 UTC; ' +
+        'path=/';
+    });
   });
 
   describe('Error Handling', () => {

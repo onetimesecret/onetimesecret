@@ -126,7 +126,7 @@ export const useAuthStore = defineStore('auth', () => {
     // This scenario happens when server returns 500 error page which defaults
     // to authenticated = false even though the user has a valid session.
     const storedAuthState = sessionStorage.getItem('ots_auth_state');
-    const hasSessionCookie = document.cookie.includes('sess=');
+    const hasSessionCookie = hasCookie('sess');
 
     if (inputValue === false && storedAuthState === 'true' && hasSessionCookie) {
       // Likely a server error page, preserve the stored auth state
@@ -350,6 +350,27 @@ export const useAuthStore = defineStore('auth', () => {
     $reset,
   };
 });
+
+/**
+ * Check if a cookie with the given name exists
+ *
+ * Uses proper cookie parsing to avoid false positives from partial matches.
+ * For example, a cookie named "nonsess" should not match when checking for
+ * "sess".
+ *
+ * Note: This only checks for cookie presence, not validity. An expired
+ * session cookie will still return true. This is acceptable because:
+ * - User sees authenticated UI briefly
+ * - Next API call returns 401 if session is invalid
+ * - 401 triggers proper signin redirect
+ * - Better UX than redirecting on every server error
+ *
+ * @param name - The exact cookie name to check for
+ * @returns true if cookie exists, false otherwise
+ */
+function hasCookie(name: string): boolean {
+  return document.cookie.split(';').some(c => c.trim().startsWith(`${name}=`));
+}
 
 const deleteCookie = (name: string) => {
   console.debug('Deleting cookie:', name);

@@ -175,6 +175,65 @@ function extractKeysFromWeb(webData: any, keys: string[]): any {
   return Object.keys(result).length > 0 ? result : null;
 }
 
+/**
+ * Process basic auth file content
+ */
+function processBasicAuth(webData: any, mapping: FileMappingConfig, processedKeys: Set<string>): any {
+  let fileContent: any = {};
+
+  const extractedKeys = extractKeysFromWeb(webData, mapping.keys);
+  if (extractedKeys) {
+    fileContent = { ...extractedKeys };
+  }
+
+  // Add basic auth parts from web.auth
+  if (!webData.auth) {
+    mapping.keys.forEach((k) => processedKeys.add(k));
+    return fileContent;
+  }
+
+  const { basic } = splitAuthObject(webData.auth);
+  if (Object.keys(basic).length > 0) {
+    fileContent.auth = basic;
+  }
+
+  mapping.keys.forEach((k) => processedKeys.add(k));
+  return fileContent;
+}
+
+/**
+ * Process advanced auth file content
+ */
+function processAdvancedAuth(webData: any): any {
+  const fileContent: any = {};
+
+  if (!webData.auth) {
+    return fileContent;
+  }
+
+  const { advanced } = splitAuthObject(webData.auth);
+  if (Object.keys(advanced).length > 0) {
+    fileContent.auth = advanced;
+  }
+
+  return fileContent;
+}
+
+/**
+ * Process standard file content
+ */
+function processStandardFile(webData: any, mapping: FileMappingConfig, processedKeys: Set<string>): any {
+  let fileContent: any = {};
+
+  const extracted = extractKeysFromWeb(webData, mapping.keys);
+  if (extracted) {
+    fileContent = extracted;
+  }
+
+  mapping.keys.forEach((k) => processedKeys.add(k));
+  return fileContent;
+}
+
 function splitLocaleFile(inputFilePath: string): void {
   console.log(`\n📄 Processing: ${inputFilePath}`);
 
@@ -204,35 +263,13 @@ function splitLocaleFile(inputFilePath: string): void {
 
     if (mapping.filename === 'auth.json') {
       // Handle basic auth
-      const extractedKeys = extractKeysFromWeb(webData, mapping.keys);
-      if (extractedKeys) {
-        fileContent = { ...extractedKeys };
-      }
-
-      // Add basic auth parts from web.auth
-      if (webData.auth) {
-        const { basic } = splitAuthObject(webData.auth);
-        if (Object.keys(basic).length > 0) {
-          fileContent.auth = basic;
-        }
-      }
-
-      mapping.keys.forEach((k) => processedKeys.add(k));
+      fileContent = processBasicAuth(webData, mapping, processedKeys);
     } else if (mapping.filename === 'auth-advanced.json') {
       // Handle advanced auth
-      if (webData.auth) {
-        const { advanced } = splitAuthObject(webData.auth);
-        if (Object.keys(advanced).length > 0) {
-          fileContent.auth = advanced;
-        }
-      }
+      fileContent = processAdvancedAuth(webData);
     } else {
       // Handle all other files
-      const extracted = extractKeysFromWeb(webData, mapping.keys);
-      if (extracted) {
-        fileContent = extracted;
-      }
-      mapping.keys.forEach((k) => processedKeys.add(k));
+      fileContent = processStandardFile(webData, mapping, processedKeys);
     }
 
     // Build output content with web wrapper
@@ -300,6 +337,23 @@ function deepEqual(obj1: any, obj2: any): boolean {
   return JSON.stringify(sortObjectKeys(obj1)) === JSON.stringify(sortObjectKeys(obj2));
 }
 
+/**
+ * Merge web content from a file into combined data
+ */
+function mergeWebContent(combinedData: any, webContent: any): void {
+  for (const [key, value] of Object.entries(webContent)) {
+    if (key === 'auth') {
+      // Special handling for auth - merge auth objects
+      if (!combinedData.web.auth) {
+        combinedData.web.auth = {};
+      }
+      Object.assign(combinedData.web.auth, value);
+    } else {
+      combinedData.web[key] = value;
+    }
+  }
+}
+
 function verifyReversibility(originalPath: string, splitDir: string): boolean {
   console.log(`\n🔍 Verifying reversibility...`);
 
@@ -310,17 +364,17 @@ function verifyReversibility(originalPath: string, splitDir: string): boolean {
   const sourceFileName = path.basename(originalPath);
   const files = fs
     .readdirSync(splitDir)
-    .filter((f) => {
+    .filter((f) =>
       // Exclude the original source file (web.json, email.json, uncategorized.json)
       // Exclude directories
       // Include all feature files including _common.json
-      return (
+       (
         f.endsWith('.json') &&
         f !== sourceFileName &&
         f !== '_debug' &&
         !['web.json', 'email.json', 'uncategorized.json'].includes(f)
-      );
-    })
+      )
+    )
     .sort(); // Sort for consistent ordering
 
   for (const file of files) {
@@ -328,18 +382,7 @@ function verifyReversibility(originalPath: string, splitDir: string): boolean {
     const fileData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
     if (fileData.web) {
-      // Merge web contents
-      for (const [key, value] of Object.entries(fileData.web)) {
-        if (key === 'auth') {
-          // Special handling for auth - merge auth objects
-          if (!combinedData.web.auth) {
-            combinedData.web.auth = {};
-          }
-          Object.assign(combinedData.web.auth, value);
-        } else {
-          combinedData.web[key] = value;
-        }
-      }
+      mergeWebContent(combinedData, fileData.web);
     }
   }
 
