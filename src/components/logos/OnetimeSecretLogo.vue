@@ -220,7 +220,7 @@
       <a
         :href="props.href"
         class="transition-opacity hover:opacity-80">
-        <div :class="['font-brand text-lg font-bold leading-tight transition-colors']">
+        <div :class="['font-brand text-xl font-bold leading-tight transition-colors']">
           {{ siteName }}
         </div>
         <!-- Tagline -->
