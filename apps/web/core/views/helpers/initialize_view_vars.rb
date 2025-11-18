@@ -174,6 +174,7 @@ module Core
           'nonce' => nonce,
           'page_title' => page_title,
           'script_element_id' => script_element_id,
+          'sess' => sess,
           'session_email' => session_email,
           'shrimp' => shrimp,
           'site' => safe_site,

@@ -1,5 +1,11 @@
 <schema lang="js-zod" version="2" window="__ONETIME_STATE__">
 import { z } from 'zod';
+/**
+* After modifying the schema here, the actual JSON schemas need to be
+* updated as well by running: `pnpm run build:schemas`. You will
+* continue to see Rhales schema mismatch warnings in the server logs
+* until this is done.
+**/
 
 const schema = z.object({
   // ConfigSerializer fields
@@ -27,6 +33,7 @@ const schema = z.object({
   // AuthenticationSerializer fields
   authenticated: z.boolean(),
   awaiting_mfa: z.boolean().optional(),
+  had_valid_session: z.boolean(),
   custid: z.string().nullable(),
   cust: z.object({}),
   email: z.string().nullable(),

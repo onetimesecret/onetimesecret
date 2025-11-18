@@ -45,7 +45,8 @@ module Onetime
         # :earliest ensures window.__ONETIME_STATE__ is available when Vue mounts
         config.hydration.injection_strategy = :earliest
 
-        # Default: Schema is source of truth (production mindset)
+        # Schema is source of truth (production mindset)
+        # Schema defined in apps/web/core/templates/index.rue
         config.hydration_authority       = :schema  # default
         config.hydration_mismatch_format = :compact  # or :multiline, :compact, :sidebyside, :json
 
