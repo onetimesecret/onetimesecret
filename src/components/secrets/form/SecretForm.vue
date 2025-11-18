@@ -164,10 +164,14 @@
       <div
         ref="div1"
         :class="[cornerClass]"
-        class="overflow-visible border border-gray-200
-          bg-white shadow-lg dark:border-gray-700 dark:bg-slate-900">
+        class="overflow-visible border border-gray-200/50
+          bg-gradient-to-br from-white to-gray-50/30
+          shadow-[0_8px_30px_rgb(0,0,0,0.12),0_2px_8px_rgb(0,0,0,0.08)]
+          backdrop-blur-sm
+          dark:border-gray-700/50 dark:from-slate-900 dark:to-slate-800/30
+          dark:shadow-[0_8px_30px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
         <!-- Main Content Section -->
-        <div class="p-6">
+        <div class="p-8">
           <!-- Secret Input Section -->
           <span v-show="selectedAction === 'create-link'">
             <label
@@ -197,14 +201,26 @@
           <div
             v-show="selectedAction === 'generate-password'"
             :class="[cornerClass]"
-            class="rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-slate-800/50"
+            class="rounded-lg border border-brand-200/50 bg-gradient-to-br from-brand-50/80 to-purple-50/40
+              shadow-[0_4px_20px_rgb(0,0,0,0.08)]
+              backdrop-blur-sm
+              dark:border-brand-700/50 dark:from-brand-900/30 dark:to-purple-900/20
+              dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)]
+              relative overflow-hidden"
             aria-labelledby="generatedPasswordHeader"
             aria-describedby="generatedPasswordDesc"
             role="region"
             ref="generatePasswordSection">
-            <div class="space-y-4 p-4 pb-6 text-center">
+            <!-- Decorative blur orbs -->
+            <div class="absolute -top-12 -left-12 size-32 rounded-full bg-gradient-to-br from-brand-300/30 to-purple-300/20 blur-3xl pointer-events-none" aria-hidden="true"></div>
+            <div class="absolute -bottom-12 -right-12 size-32 rounded-full bg-gradient-to-br from-purple-300/30 to-brand-300/20 blur-3xl pointer-events-none" aria-hidden="true"></div>
+
+            <div class="space-y-4 p-6 pb-8 text-center relative z-10">
               <div class="flex justify-center">
-                <div class="rounded-full bg-brand-100 p-3 dark:bg-brand-900/30">
+                <div class="rounded-full bg-gradient-to-br from-brand-100 to-purple-100 p-4
+                  shadow-[0_0_0_0_rgba(var(--color-brand-500),0.5)]
+                  animate-[pulse_2s_ease-in-out_infinite]
+                  dark:from-brand-900/50 dark:to-purple-900/50">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -213,7 +229,7 @@
                     fill="none"
                     stroke="currentColor"
                     stroke-width="2"
-                    class="size-6 text-brand-600 dark:text-brand-400">
+                    class="size-7 text-brand-600 dark:text-brand-400">
                     <path
                       d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
                   </svg>
@@ -276,11 +292,14 @@
                   autocomplete="off"
                   :aria-invalid="!!getError('passphrase')"
                   :aria-errormessage="getError('passphrase') ? passphraseErrorId : undefined"
-                  :class="[cornerClass, getError('passphrase') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '']"
-                  class="w-full border border-gray-200 bg-white py-2.5 pl-5 pr-10
-                    text-sm text-gray-900 transition-shadow duration-200 placeholder:text-gray-400
-                    focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
-                    dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
+                  :class="[cornerClass, getError('passphrase') ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20' : '']"
+                  class="w-full border border-gray-200/60 bg-white/80 backdrop-blur-sm py-2.5 pl-5 pr-10
+                    text-sm text-gray-900 transition-all duration-300 placeholder:text-gray-400
+                    hover:border-gray-300/80 hover:bg-white/90
+                    focus:border-blue-500/80 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/20
+                    dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-gray-500
+                    dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
+                    dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
                   :placeholder="t('web.secrets.enterPassphrase')"
                   @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)" />
                 <!-- prettier-ignore-attribute class -->
@@ -321,11 +340,14 @@
                   name="ttl"
                   :aria-invalid="!!getError('ttl')"
                   :aria-describedby="getError('ttl') ? lifetimeErrorId : undefined"
-                  :class="[cornerClass, getError('ttl') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '']"
-                  class="w-full appearance-none border border-gray-200
-                    bg-white py-2.5 pl-5 pr-10 text-sm text-gray-600 transition-shadow duration-200
-                    focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
-                    dark:border-gray-700 dark:bg-slate-800 dark:text-white"
+                  :class="[cornerClass, getError('ttl') ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20' : '']"
+                  class="w-full appearance-none border border-gray-200/60
+                    bg-white/80 backdrop-blur-sm py-2.5 pl-5 pr-10 text-sm text-gray-600 transition-all duration-300
+                    hover:border-gray-300/80 hover:bg-white/90
+                    focus:border-blue-500/80 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/20
+                    dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white
+                    dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
+                    dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
                   @change="(e) => updateTtl(Number((e.target as HTMLSelectElement).value))">
                   <option
                     value=""
@@ -379,11 +401,14 @@
                 :placeholder="t('web.COMMON.email_placeholder')"
                 :aria-invalid="!!getError('recipient')"
                 :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
-                :class="[cornerClass, getError('recipient') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : '']"
-                class="w-full border border-gray-200
-                  bg-white px-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400
-                  focus:border-blue-500 focus:ring-2 focus:ring-blue-500
-                  dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
+                :class="[cornerClass, getError('recipient') ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20' : '']"
+                class="w-full border border-gray-200/60
+                  bg-white/80 backdrop-blur-sm px-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all duration-300
+                  hover:border-gray-300/80 hover:bg-white/90
+                  focus:border-blue-500/80 focus:bg-white focus:ring-4 focus:ring-blue-500/20
+                  dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-gray-500
+                  dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
+                  dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
                 @input="(e) => updateRecipient((e.target as HTMLInputElement).value)" />
             </div>
           </div>
@@ -402,19 +427,22 @@
         <!-- Pro tip Section -->
         <div
           v-if="showProTip"
-          class="flex items-start gap-3 bg-brandcomp-50 p-4 dark:bg-brandcomp-900/20">
+          class="flex items-start gap-3 bg-gradient-to-r from-brandcomp-50/90 to-brandcomp-100/60 backdrop-blur-sm p-5 relative overflow-hidden
+            dark:from-brandcomp-900/30 dark:to-brandcomp-800/20">
+          <!-- Decorative blur orb -->
+          <div class="absolute -right-8 -bottom-8 size-24 rounded-full bg-brandcomp-200/40 blur-2xl pointer-events-none dark:bg-brandcomp-700/30" aria-hidden="true"></div>
           <OIcon
             collection="heroicons"
             name="information-circle"
-            class="mt-0.5 size-5 shrink-0 text-brandcomp-600 dark:text-brandcomp-500" />
-          <p class="text-sm text-brandcomp-700 dark:text-brandcomp-300">
+            class="mt-0.5 size-5 shrink-0 text-brandcomp-600 dark:text-brandcomp-500 relative z-10" />
+          <p class="text-sm text-brandcomp-700 dark:text-brandcomp-300 relative z-10">
             {{ t('web.homepage.protip1') }}
           </p>
         </div>
 
-        <div class="border-t border-gray-200 dark:border-gray-700">
+        <div class="border-t border-gray-200/50 dark:border-gray-700/50">
           <!-- Actions Container -->
-          <div class="p-6">
+          <div class="p-8">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <!-- Domain Preview (grows to fill available space) -->
               <div class="order-1 min-w-0 grow sm:order-2">
