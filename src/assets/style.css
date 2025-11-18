@@ -1,27 +1,141 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  /* Brand color palette - 11 shades */
+  --color-brand-50: #fcf8f2;
+  --color-brand-100: #fcf4e8;
+  --color-brand-200: #f7dec3;
+  --color-brand-300: #f0c39e;
+  --color-brand-400: #e68b5e;
+  --color-brand-500: #dc4a22;
+  --color-brand-600: #c43d1b;
+  --color-brand-700: #a32d12;
+  --color-brand-800: #85200c;
+  --color-brand-900: #631507;
+  --color-brand-950: #400b03;
+
+  /* Dimmed brand colors - 11 shades */
+  --color-branddim-50: #fcf8f2;
+  --color-branddim-100: #faf0e3;
+  --color-branddim-200: #f0d7bd;
+  --color-branddim-300: #e8bb99;
+  --color-branddim-400: #d67e56;
+  --color-branddim-500: #c43d1b;
+  --color-branddim-600: #b03317;
+  --color-branddim-700: #94270f;
+  --color-branddim-800: #751b09;
+  --color-branddim-900: #591205;
+  --color-branddim-950: #380902;
+
+  /* Complementary brand colors (blue) - 11 shades */
+  --color-brandcomp-50: #f2fbfc;
+  --color-brandcomp-100: #e8fafc;
+  --color-brandcomp-200: #c3f0f7;
+  --color-brandcomp-300: #a0e6f2;
+  --color-brandcomp-400: #5fcfe8;
+  --color-brandcomp-500: #23b5dd;
+  --color-brandcomp-600: #1c9cc7;
+  --color-brandcomp-700: #1478a6;
+  --color-brandcomp-800: #0d5985;
+  --color-brandcomp-900: #073b63;
+  --color-brandcomp-950: #032140;
+
+  /* Dimmed complementary colors - 11 shades */
+  --color-brandcompdim-50: #f2fbfc;
+  --color-brandcompdim-100: #e3f7fa;
+  --color-brandcompdim-200: #bfebf2;
+  --color-brandcompdim-300: #99dae8;
+  --color-brandcompdim-400: #57bdd9;
+  --color-brandcompdim-500: #1c9cc7;
+  --color-brandcompdim-600: #1786b3;
+  --color-brandcompdim-700: #0f6594;
+  --color-brandcompdim-800: #0a4c78;
+  --color-brandcompdim-900: #053359;
+  --color-brandcompdim-950: #021e3b;
+
+  /* Custom animations */
+  --animate-gradient-x: gradient-x 5s ease-in-out infinite;
+
+  /* Custom background sizes */
+  --background-size-200%: 200% 100%;
+}
+
+/* Custom keyframe animations */
+@keyframes gradient-x {
+  0%, 100% {
+    background-size: 200% 100%;
+    background-position: left center;
+  }
+  50% {
+    background-size: 200% 100%;
+    background-position: right center;
+  }
+}
 
 @layer base {
-  html {
-    font-family: theme('fontFamily.serif');
+  /* Zilla Slab font faces */
+  @font-face {
+    font-family: 'Zilla Slab';
+    src: url('./fonts/zs/ZillaSlab-Regular.woff2') format('woff2'),
+         url('./fonts/zs/ZillaSlab-Regular.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: fallback;
   }
+
+  @font-face {
+    font-family: 'Zilla Slab';
+    src: url('./fonts/zs/ZillaSlab-Bold.woff2') format('woff2'),
+         url('./fonts/zs/ZillaSlab-Bold.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+    font-display: fallback;
+  }
+
+  @font-face {
+    font-family: 'Zilla Slab';
+    src: url('./fonts/zs/ZillaSlab-Italic.woff2') format('woff2'),
+         url('./fonts/zs/ZillaSlab-Italic.woff') format('woff');
+    font-weight: 400;
+    font-style: italic;
+    font-display: fallback;
+  }
+
+  @font-face {
+    font-family: 'Zilla Slab';
+    src: url('./fonts/zs/ZillaSlab-BoldItalic.woff2') format('woff2'),
+         url('./fonts/zs/ZillaSlab-BoldItalic.woff') format('woff');
+    font-weight: 700;
+    font-style: italic;
+    font-display: fallback;
+  }
+
+  /* Base element styles */
+  html {
+    font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  }
+
   h1,
   h2,
   h3,
   h4,
   h5 {
-    font-family: theme('fontFamily.brand');
+    font-family: 'Zilla Slab', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
     /*margin: theme('spacing.5') 0;*/
   }
 
   button,
   a.block {
-    font-family: theme('fontFamily.brand');
+    font-family: 'Zilla Slab', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   }
+
   h1 {
     @apply mb-3 text-4xl font-bold text-gray-900;
   }
+
   h2 {
     @apply mb-3 text-3xl font-bold text-gray-800;
   }

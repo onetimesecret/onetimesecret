@@ -7,6 +7,7 @@ import process from 'process';
 import AutoImport from 'unplugin-auto-import/vite';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 import { DEBUG } from './src/utils/debug';
@@ -55,7 +56,10 @@ export default defineConfig({
   root: './src',
 
   plugins: [
-    // Plugin order matters: Vue first, then transformations, then diagnostics
+    // Plugin order matters: Tailwind CSS first for stylesheet processing
+    tailwindcss(),
+
+    // Then Vue for component compilation
     Vue({
       include: [/\.vue$/, /\.md$/], // <-- allows Vue to compile Markdown files
       template: {

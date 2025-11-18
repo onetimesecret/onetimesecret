@@ -43,7 +43,7 @@ const gridClass = computed(() => {
         </div>
       </div>
 
-      <div class="z-5 absolute inset-0 bg-gray-50 bg-opacity-50 dark:bg-gray-800 dark:bg-opacity-50"></div>
+      <div class="z-5 absolute inset-0 bg-gray-50/50 dark:bg-gray-800/50"></div>
       <div :class="gridClass">
         <button
           v-for="provider in alternateProviders"

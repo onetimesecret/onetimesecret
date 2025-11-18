@@ -161,7 +161,7 @@ const selected = ref(moods[5])
                   leave-from-class="opacity-100"
                   leave-to-class="opacity-0">
                   <ListboxOptions
-                    class="absolute bottom-10 z-10 -ml-6 w-60 rounded-lg bg-white py-3 text-base shadow ring-1 ring-black ring-opacity-5 focus:outline-none sm:ml-auto sm:w-64 sm:text-sm">
+                    class="absolute bottom-10 z-10 -ml-6 w-60 rounded-lg bg-white py-3 text-base shadow ring-1 ring-black/5 focus:outline-none sm:ml-auto sm:w-64 sm:text-sm">
                     <ListboxOption
                       as="template"
                       v-for="mood in moods"

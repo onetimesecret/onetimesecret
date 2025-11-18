@@ -127,7 +127,7 @@
       <!-- Confirmation modal for removing all sessions -->
       <div
         v-if="showRemoveAllConfirm"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
         @click.self="showRemoveAllConfirm = false">
         <div
           class="mx-4 max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"

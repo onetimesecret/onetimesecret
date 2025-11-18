@@ -59,23 +59,11 @@ export default {
     './src/**/*.{vue,js,ts,jsx,tsx,mjs}',
     './templates/web/**/*.html',
     './apps/web/auth/views/**/*.erb',  // Include auth service templates
+    './src/assets/tailwind-safelist.ts',  // v4 safelist workaround for dynamic classes
   ],
-  safelist: [
-    'rounded-l-sm',
-    'rounded-r-sm',
-    'rounded-l-md',
-    'rounded-r-md',
-    'rounded-l-lg',
-    'rounded-r-lg',
-    'rounded-l-xl',
-    'rounded-r-xl',
-    'rounded-l-2xl',
-    'rounded-r-2xl',
-    'rounded-l-3xl',
-    'rounded-r-3xl',
-    'rounded-l-full',
-    'rounded-r-full',
-  ],
+  // Note: Tailwind v4 removed the safelist option. Dynamic classes must be
+  // explicitly present in source files for the scanner to detect them.
+  // See: src/assets/tailwind-safelist.ts
   darkMode: 'class',
   theme: {
     fontFamily: {
@@ -141,27 +129,7 @@ export default {
           '950': '#021e3b',
         },
       },
-      animation: {
-        'spin-slow': 'spin 2s linear infinite',
-        'kitt-rider': 'kitt-rider 3s linear infinite',
-        'gradient-x': 'gradient-x 5s ease-in-out infinite',
-      },
-      keyframes: {
-        'kitt-rider': {
-          '0%': { transform: 'translateX(-100%)' },
-          '100%': { transform: 'translateX(100%)' },
-        },
-        'gradient-x': {
-          '0%, 100%': {
-            'background-size': '200% 100%',
-            'background-position': 'left center',
-          },
-          '50%': {
-            'background-size': '200% 100%',
-            'background-position': 'right center',
-          },
-        },
-      },
+      // Note: Custom animations migrated to src/assets/style.css @theme and @keyframes
       backgroundSize: {
         '200%': '200% 100%',
       },
@@ -170,40 +138,6 @@ export default {
   plugins: [
     forms(),
     typography(),
-
-    function ({ addBase }: { addBase: (config: any) => void }) {
-      addBase({
-        '@font-face': [
-          {
-            fontFamily: 'Zilla Slab',
-            src: "url('./fonts/zs/ZillaSlab-Regular.woff2') format('woff2'), url('./fonts/zs/ZillaSlab-Regular.woff') format('woff')",
-            fontWeight: '400',
-            fontStyle: 'normal',
-            fontDisplay: 'fallback',
-          },
-          {
-            fontFamily: 'Zilla Slab',
-            src: "url('./fonts/zs/ZillaSlab-Bold.woff2') format('woff2'), url('./fonts/zs/ZillaSlab-Bold.woff') format('woff')",
-            fontWeight: '700',
-            fontStyle: 'normal',
-            fontDisplay: 'fallback',
-          },
-          {
-            fontFamily: 'Zilla Slab',
-            src: "url('./fonts/zs/ZillaSlab-Italic.woff2') format('woff2'), url('./fonts/zs/ZillaSlab-Italic.woff') format('woff')",
-            fontWeight: '400',
-            fontStyle: 'italic',
-            fontDisplay: 'fallback',
-          },
-          {
-            fontFamily: 'Zilla Slab',
-            src: "url('./fonts/zs/ZillaSlab-BoldItalic.woff2') format('woff2'), url('./fonts/zs/ZillaSlab-BoldItalic.woff') format('woff')",
-            fontWeight: '700', // bold weight for italic
-            fontStyle: 'italic',
-            fontDisplay: 'fallback',
-          },
-        ],
-      });
-    },
+    // Font-face definitions moved to src/assets/style.css @layer base (Tailwind v4)
   ],
 };

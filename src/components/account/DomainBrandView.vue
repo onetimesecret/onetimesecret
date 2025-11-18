@@ -63,7 +63,7 @@ const backgroundIcon = computed(() => props.defaultIcon);
             aria-hidden="true" />
           <div
             v-if="loading"
-            class="absolute inset-0 flex items-center justify-center rounded-md bg-gray-200 bg-opacity-75 dark:bg-gray-800 dark:bg-opacity-75">
+            class="absolute inset-0 flex items-center justify-center rounded-md bg-gray-200/75 dark:bg-gray-800/75">
             <svg
               class="size-8 animate-spin text-brand-600"
               xmlns="http://www.w3.org/2000/svg"

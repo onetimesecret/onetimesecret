@@ -78,7 +78,7 @@
     if (isViewed.value) return 'bg-amber-50/30 dark:bg-amber-900/5';
 
     const percentage = getTtlPercentage.value;
-    if (percentage > 75) return 'bg-opacity-0 dark:bg-opacity-0';
+    if (percentage > 75) return 'bg-transparent';
     if (percentage > 50) return 'bg-emerald-50/30 dark:bg-emerald-900/10';
     if (percentage > 25) return 'bg-amber-50/40 dark:bg-amber-900/15';
     return 'bg-red-50/40 dark:bg-red-900/10';

@@ -140,11 +140,13 @@
       </div>
 
       <!-- Footer -->
-      <div class="space-y-4 text-center">
-        <slot name="footer"></slot>
+      <div class="space-y-6 text-center">
+        <div class="text-sm">
+          <slot name="footer"></slot>
+        </div>
 
         <!-- Subtle home link for escape route -->
-        <div class="">
+        <div class="border-t border-gray-200 pt-6 dark:border-gray-700">
           <RouterLink
             to="/"
             class="inline-flex items-center text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-400"
