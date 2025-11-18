@@ -3,7 +3,6 @@
 <script setup lang="ts">
   import UpgradePrompt from '@/components/billing/UpgradePrompt.vue';
   import OIcon from '@/components/icons/OIcon.vue';
-  import BillingLayout from '@/components/layout/BillingLayout.vue';
   import CreateTeamModal from '@/components/teams/CreateTeamModal.vue';
   import TeamCard from '@/components/teams/TeamCard.vue';
   import { useCapabilities } from '@/composables/useCapabilities';
@@ -71,7 +70,7 @@
 </script>
 
 <template>
-  <BillingLayout>
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
     <div class="space-y-6">
       <!-- Header -->
       <div>
@@ -236,5 +235,5 @@
         @close="closeCreateModal"
         @created="handleTeamCreated" />
     </div>
-  </BillingLayout>
+  </div>
 </template>

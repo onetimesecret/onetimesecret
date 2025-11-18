@@ -77,6 +77,14 @@ const primaryNavItems = computed((): NavItem[] => {
     });
   }
 
+  // Add teams navigation
+  items.push({
+    id: 'teams',
+    path: '/teams',
+    label: t('web.teams.title'),
+    icon: 'rectangle-group',
+  });
+
   return items;
 });
 
