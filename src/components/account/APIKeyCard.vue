@@ -38,7 +38,7 @@ const handleCopy = () => {
     v-if="apitoken"
     class="mb-4 rounded-lg bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 p-4 shadow-lg">
     <div class="font-mono text-lg text-white">
-      <div class="relative flex items-center overflow-x-auto rounded bg-black bg-opacity-20 p-3">
+      <div class="relative flex items-center overflow-x-auto rounded bg-black/20 p-3">
         <span class="break-all pr-10">{{ apitoken }}</span>
         <button
           @click.stop="handleCopy"

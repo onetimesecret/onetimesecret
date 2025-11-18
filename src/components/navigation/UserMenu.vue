@@ -308,7 +308,7 @@ onUnmounted(() => {
       <div
         v-if="isOpen"
         class="absolute right-0 z-50 mt-2 w-64 origin-top-right
-          rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5
+          rounded-lg bg-white shadow-lg ring-1 ring-black/5
           focus:outline-none dark:bg-gray-800 dark:ring-gray-700"
         role="menu"
         :aria-label="t('web.COMMON.user_menu')">

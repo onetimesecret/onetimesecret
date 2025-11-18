@@ -31,7 +31,7 @@ const { t } = useI18n();
       leave-from-class="transform opacity-100 scale-100"
       leave-to-class="transform opacity-0 scale-95">
       <MenuItems
-        class="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 dark:shadow-lg dark:shadow-gray-900/50 dark:ring-gray-700 dark:ring-opacity-70">
+        class="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:shadow-lg dark:shadow-gray-900/50 dark:ring-gray-700/70">
         <div class="py-1">
           <slot name="menu-items"></slot>
         </div>

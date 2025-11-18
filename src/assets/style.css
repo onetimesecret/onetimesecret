@@ -57,8 +57,6 @@
   --color-brandcompdim-950: #021e3b;
 
   /* Custom animations */
-  --animate-spin-slow: spin 2s linear infinite;
-  --animate-kitt-rider: kitt-rider 3s linear infinite;
   --animate-gradient-x: gradient-x 5s ease-in-out infinite;
 
   /* Custom background sizes */
@@ -66,15 +64,6 @@
 }
 
 /* Custom keyframe animations */
-@keyframes kitt-rider {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
 @keyframes gradient-x {
   0%, 100% {
     background-size: 200% 100%;

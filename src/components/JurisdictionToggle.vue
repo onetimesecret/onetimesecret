@@ -184,7 +184,7 @@ const { t } = useI18n();
         ref="listboxRef"
         class="absolute bottom-full left-0 z-50 mb-1 max-h-60 w-max min-w-[200px] max-w-xs
                 overflow-auto rounded-md bg-white py-1 text-base shadow-lg
-                ring-1 ring-black ring-opacity-5 focus:outline-none
+                ring-1 ring-black/5 focus:outline-none
                 dark:bg-gray-700 sm:text-sm"
         role="listbox"
         :aria-labelledby="'jurisdiction-label'"
