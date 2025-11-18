@@ -30,6 +30,7 @@ describe('domainsStore', () => {
       created: new Date('2024-12-31T21:35:45.367Z'), // Date object
       updated: new Date('2024-12-31T21:35:45.367Z'), // Date object
       domainid: 'did-123',
+      extid: 'dm-ext-123',
       custid: 'cust-123',
       display_domain: 'example.com',
       base_domain: 'example.com',
@@ -56,7 +57,7 @@ describe('domainsStore', () => {
 
     it('should add a new domain', async () => {
       // Setup mock response with valid data
-      axiosMock.onPost('/api/account/domains/add').reply(200, {
+      axiosMock.onPost('/api/domains/add').reply(200, {
         record: mockNewDomain,
       });
 
@@ -78,7 +79,7 @@ describe('domainsStore', () => {
 
   describe('Domain Operations', () => {
     it('should add a new domain (schema validation issues)', async () => {
-      axiosMock.onPost('/api/account/domains/add').reply(200, {
+      axiosMock.onPost('/api/domains/add').reply(200, {
         record: newDomainData,
       });
 
@@ -89,7 +90,7 @@ describe('domainsStore', () => {
 
     it('should refresh domain records (schema validation issues)', async () => {
       // Use mockDomains from the fixture instead of undefined mockDomainsList
-      axiosMock.onGet('/api/account/domains').reply(200, {
+      axiosMock.onGet('/api/domains').reply(200, {
         records: Object.values(mockDomains),
         count: Object.keys(mockDomains).length,
       });
@@ -113,7 +114,7 @@ describe('domainsStore', () => {
       // console.log('Brand update:', JSON.stringify(brandUpdate, null, 2));
 
       // Setup mock response
-      axiosMock.onPut(`/api/v2/domains/${domain.display_domain}/brand`).reply(200, {
+      axiosMock.onPut(`/api/domains/${domain.extid}/brand`).reply(200, {
         record: {
           ...domain, // Use all fields from correct fixture
           brand: mockCustomBranding,
@@ -121,14 +122,14 @@ describe('domainsStore', () => {
       });
 
       // Debug mock setup
-      console.log('Mock URL:', `/api/v2/domains/${domain.display_domain}/brand`);
+      console.log('Mock URL:', `/api/domains/${domain.extid}/brand`);
       console.log('Mock Config:', axiosMock.history.put);
 
       store.domains = [domain];
       // console.log('Store domains after setup:', JSON.stringify(store.domains, null, 2));
 
       try {
-        await store.updateDomainBrand(domain.display_domain, brandUpdate);
+        await store.updateDomainBrand(domain.extid, brandUpdate);
         // console.log('Update successful');
         // console.log('Updated store domains:', JSON.stringify(store.domains, null, 2));
       } catch (error) {
@@ -146,10 +147,10 @@ describe('domainsStore', () => {
       const domain = mockDomains['domain-1'];
       store.records = [domain];
 
-      // Fix: Use display_domain instead of name
-      axiosMock.onPost(`/api/v2/domains/${domain.display_domain}/remove`).reply(200);
+      // Fix: Use extid instead of display_domain
+      axiosMock.onPost(`/api/domains/${domain.extid}/remove`).reply(200);
 
-      await store.deleteDomain(domain.display_domain);
+      await store.deleteDomain(domain.extid);
       expect(store.domains).toHaveLength(0);
     });
 
@@ -161,7 +162,7 @@ describe('domainsStore', () => {
       };
 
       // Mock the exact response format expected by the brandSettings schema
-      axiosMock.onPut(`/api/v2/domains/${domain.display_domain}/brand`).reply(200, {
+      axiosMock.onPut(`/api/domains/${domain.extid}/brand`).reply(200, {
         // This shape matches what the schema expects directly
         record: {
           ...mockCustomBranding,
@@ -169,7 +170,7 @@ describe('domainsStore', () => {
         },
       });
 
-      const result = await store.updateBrandSettings(domain.display_domain, newSettings);
+      const result = await store.updateBrandSettings(domain.extid, newSettings);
 
       // Update assertion to match actual response shape
       expect(result.record).toMatchObject(newSettings);
@@ -203,7 +204,7 @@ describe('domainsStore', () => {
 
       store.domains = [domain]; // Set initial state
 
-      axiosMock.onPut(`/api/v2/domains/${domain.display_domain}/brand`).reply(200, {
+      axiosMock.onPut(`/api/domains/${domain.extid}/brand`).reply(200, {
         record: {
           ...domain,
           brand: {
@@ -213,24 +214,24 @@ describe('domainsStore', () => {
         },
       });
 
-      await store.updateBrandSettings(domain.display_domain, newSettings);
+      await store.updateBrandSettings(domain.extid, newSettings);
 
       // Verify store state was updated
-      const updatedDomain = store.domains.find((d) => d.display_domain === domain.display_domain);
+      const updatedDomain = store.domains.find((d) => d.extid === domain.extid);
       expect(updatedDomain?.brand).toMatchObject(newSettings);
     });
   });
 
   describe('Error Handling', () => {
     it('should handle network errors', async () => {
-      axiosMock.onGet('/api/account/domains').networkError();
+      axiosMock.onGet('/api/domains').networkError();
 
       // Expect raw AxiosError, not ApplicationError
       await expect(store.refreshRecords()).rejects.toThrow();
     });
 
     it('should handle validation errors', async () => {
-      axiosMock.onGet('/api/account/domains').reply(200, {
+      axiosMock.onGet('/api/domains').reply(200, {
         records: [{ invalid_field: true }],
       });
 
@@ -240,20 +241,20 @@ describe('domainsStore', () => {
 
     it('should handle permission errors', async () => {
       const domain = mockDomains['domain-1'];
-      axiosMock.onPost(`/api/v2/domains/${domain.display_domain}/remove`).reply(403);
+      axiosMock.onPost(`/api/domains/${domain.extid}/remove`).reply(403);
 
       // Expect raw AxiosError, not ApplicationError
-      await expect(store.deleteDomain(domain.display_domain)).rejects.toThrow();
+      await expect(store.deleteDomain(domain.extid)).rejects.toThrow();
     });
 
     it('should maintain state consistency during errors', async () => {
       const domain = mockDomains['domain-1'];
       store.records = [domain];
 
-      axiosMock.onPut(`/api/v2/domains/${domain.display_domain}/brand`).networkError();
+      axiosMock.onPut(`/api/domains/${domain.extid}/brand`).networkError();
 
       await expect(
-        store.updateDomainBrand(domain.display_domain, { brand: mockCustomBranding })
+        store.updateDomainBrand(domain.extid, { brand: mockCustomBranding })
       ).rejects.toThrow();
 
       expect(store.records).toEqual([domain]);
@@ -270,7 +271,7 @@ describe('domainsStore', () => {
 
       store.domains = [domain];
 
-      axiosMock.onPut(`/api/v2/domains/${domain.name}`).reply(200, {
+      axiosMock.onPut(`/api/domains/${domain.extid}`).reply(200, {
         record: updatedDomain,
       });
 
@@ -282,7 +283,7 @@ describe('domainsStore', () => {
     it('should add domain when updating non-existent domain', async () => {
       const newDomain = mockDomains['domain-2'];
 
-      axiosMock.onPut(`/api/v2/domains/${newDomain.name}`).reply(200, {
+      axiosMock.onPut(`/api/domains/${newDomain.extid}`).reply(200, {
         record: newDomain,
       });
 

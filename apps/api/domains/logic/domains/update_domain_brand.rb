@@ -1,13 +1,13 @@
-# apps/api/account/logic/domains/update_domain_brand.rb
+# apps/api/domains/logic/domains/update_domain_brand.rb
 #
 # frozen_string_literal: true
 
 require 'onetime/cluster'
 require_relative '../base'
 
-module AccountAPI::Logic
+module DomainsAPI::Logic
   module Domains
-    class UpdateDomainBrand < AccountAPI::Logic::Base
+    class UpdateDomainBrand < DomainsAPI::Logic::Base
       attr_reader :greenlighted, :brand_settings, :display_domain, :custom_domain
 
       def process_params

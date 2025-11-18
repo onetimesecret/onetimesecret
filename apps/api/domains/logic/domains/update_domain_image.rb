@@ -1,4 +1,4 @@
-# apps/api/account/logic/domains/update_domain_image.rb
+# apps/api/domains/logic/domains/update_domain_image.rb
 #
 # frozen_string_literal: true
 
@@ -8,7 +8,7 @@ require 'fastimage'
 require 'onetime/cluster'
 require_relative '../base'
 
-module AccountAPI::Logic
+module DomainsAPI::Logic
   module Domains
     unless defined?(IMAGE_MIME_TYPES)
       IMAGE_MIME_TYPES = %w[
@@ -17,7 +17,7 @@ module AccountAPI::Logic
       MAX_IMAGE_BYTES  = 1 * 1024 * 1024 # 1 MB
     end
 
-    class UpdateDomainImage < AccountAPI::Logic::Base
+    class UpdateDomainImage < DomainsAPI::Logic::Base
       attr_reader :greenlighted, :image, :display_domain, :custom_domain, :content_type, :filename, :height, :width,
         :ratio, :bytes
 

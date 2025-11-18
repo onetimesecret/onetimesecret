@@ -1,11 +1,11 @@
-# apps/api/account/logic/domains/verify_domain.rb
+# apps/api/domains/logic/domains/verify_domain.rb
 #
 # frozen_string_literal: true
 
 require 'onetime/cluster'
 require_relative 'get_domain'
 
-module AccountAPI::Logic
+module DomainsAPI::Logic
   module Domains
     class VerifyDomain < GetDomain
       def raise_concerns

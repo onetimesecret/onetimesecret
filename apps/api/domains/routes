@@ -1,0 +1,23 @@
+# apps/api/domains/routes
+#
+# Otto Routes - Domains API (Site-Only Endpoints)
+# Using direct Logic class routing with authentication strategies
+#
+# Domains API handles custom domain management endpoints.
+# These endpoints are not part of the public API and don't need versioning.
+# All endpoints require authentication and organization context.
+
+# Domain Management
+POST   /add                               DomainsAPI::Logic::Domains::AddDomain response=json auth=sessionauth,basicauth
+POST   /:extid/remove                     DomainsAPI::Logic::Domains::RemoveDomain response=json auth=sessionauth,basicauth
+GET    /:extid                            DomainsAPI::Logic::Domains::GetDomain response=json auth=sessionauth,basicauth
+POST   /:extid/verify                     DomainsAPI::Logic::Domains::VerifyDomain response=json auth=sessionauth,basicauth
+PUT    /:extid/brand                      DomainsAPI::Logic::Domains::UpdateDomainBrand response=json auth=sessionauth,basicauth
+GET    /:extid/brand                      DomainsAPI::Logic::Domains::GetDomainBrand response=json auth=sessionauth,basicauth
+DELETE /:extid/logo                       DomainsAPI::Logic::Domains::RemoveDomainLogo response=json auth=sessionauth,basicauth
+POST   /:extid/logo                       DomainsAPI::Logic::Domains::UpdateDomainLogo response=json auth=sessionauth,basicauth
+GET    /:extid/logo                       DomainsAPI::Logic::Domains::GetDomainLogo response=json auth=sessionauth,basicauth
+DELETE /:extid/icon                       DomainsAPI::Logic::Domains::RemoveDomainIcon response=json auth=sessionauth,basicauth
+POST   /:extid/icon                       DomainsAPI::Logic::Domains::UpdateDomainIcon response=json auth=sessionauth,basicauth
+GET    /:extid/icon                       DomainsAPI::Logic::Domains::GetDomainIcon response=json auth=sessionauth,basicauth
+GET    /                                  DomainsAPI::Logic::Domains::ListDomains response=json auth=sessionauth,basicauth
