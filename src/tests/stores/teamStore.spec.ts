@@ -3,9 +3,9 @@
 import { setupTestPinia } from '../setup';
 import { setupWindowState } from '../setupWindow';
 
+import type { TeamWithRole } from '@/schemas/models/team';
+import { TeamRole } from '@/schemas/models/team';
 import { useTeamStore } from '@/stores/teamStore';
-import type { TeamWithRole } from '@/types/team';
-import { TeamRole } from '@/types/team';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 
@@ -14,14 +14,19 @@ describe('Team Store', () => {
   let store: ReturnType<typeof useTeamStore>;
 
   const mockTeam: TeamWithRole = {
-    id: 'team-123',
+    identifier: 'team-123-identifier',
+    objid: 'team-123-objid',
+    extid: 'team-123',
     display_name: 'Test Team',
     description: 'A test team',
     owner_id: 'user-123',
+    org_id: null,
     member_count: 3,
+    is_default: false,
     current_user_role: TeamRole.OWNER,
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
+    feature_flags: {},
+    created: new Date('2024-01-01T00:00:00Z'),
+    updated: new Date('2024-01-01T00:00:00Z'),
   };
 
   const mockMember = {

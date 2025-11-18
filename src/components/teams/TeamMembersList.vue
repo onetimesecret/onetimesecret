@@ -4,7 +4,6 @@
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { classifyError } from '@/schemas/errors';
-import { useTeamStore } from '@/stores/teamStore';
 import {
   getRoleBadgeColor,
   getRoleLabel,
@@ -13,7 +12,8 @@ import {
   TeamRole,
   type TeamMember,
   type TeamWithRole,
-} from '@/types/team';
+} from '@/schemas/models/team';
+import { useTeamStore } from '@/stores/teamStore';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
 import { computed, ref } from 'vue';
 
@@ -64,7 +64,7 @@ const handleRemoveMember = async () => {
   error.value = '';
 
   try {
-    await teamStore.removeMember(props.team.id, memberId);
+    await teamStore.removeMember(props.team.extid, memberId);
     emit('member-removed', memberId);
   } catch (err) {
     const classified = classifyError(err);
@@ -81,7 +81,7 @@ const handleChangeRole = async (memberId: string, newRole: TeamRole) => {
   error.value = '';
 
   try {
-    await teamStore.updateMemberRole(props.team.id, memberId, { role: newRole });
+    await teamStore.updateMemberRole(props.team.extid, memberId, { role: newRole });
     emit('role-changed', memberId, newRole);
   } catch (err) {
     const classified = classifyError(err);

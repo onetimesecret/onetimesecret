@@ -5,8 +5,8 @@
   import ConfirmDialog from '@/components/ConfirmDialog.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import { classifyError } from '@/schemas/errors';
+  import { updateTeamPayloadSchema, type UpdateTeamPayload } from '@/schemas/models/team';
   import { useTeamStore } from '@/stores/teamStore';
-  import { updateTeamPayloadSchema, type UpdateTeamPayload } from '@/types/team';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref, watch } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
@@ -20,7 +20,7 @@
   const { activeTeam, loading } = storeToRefs(teamStore);
 
   const formData = ref<UpdateTeamPayload>({
-    name: '',
+    display_name: '',
     description: '',
   });
   const errors = ref<Record>({});
@@ -37,7 +37,7 @@
   const isFormDirty = computed(() => {
     if (!activeTeam.value) return false;
     return (
-      formData.value.name !== activeTeam.value.name ||
+      formData.value.display_name !== activeTeam.value.display_name ||
       formData.value.description !== (activeTeam.value.description || '')
     );
   });
@@ -49,7 +49,7 @@
     }
 
     try {
-      if (!activeTeam.value || activeTeam.value.id !== teamId.value) {
+      if (!activeTeam.value || activeTeam.value.extid !== teamId.value) {
         await teamStore.fetchTeam(teamId.value);
       }
     } catch (err) {
@@ -63,7 +63,7 @@
     (team) => {
       if (team) {
         formData.value = {
-          name: team.name,
+          display_name: team.display_name,
           description: team.description || '',
         };
       }

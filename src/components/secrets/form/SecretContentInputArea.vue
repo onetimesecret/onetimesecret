@@ -78,14 +78,21 @@ const { t } = useI18n();
       :style="{ minHeight: minHeight + 'px', maxHeight: maxHeight + 'px' }"
       class="
         block w-full resize-none
-        rounded-lg border border-gray-200 p-4
+        rounded-lg border border-gray-200/60 p-5
         font-mono text-base leading-relaxed
         text-gray-900 transition-all
-        duration-200 placeholder:text-gray-400 focus:border-blue-500
-        focus:ring-2 focus:ring-blue-500
-        disabled:bg-gray-50 disabled:text-gray-500 dark:border-gray-700 dark:bg-slate-800
+        duration-300 placeholder:text-gray-400
+        bg-white/80 backdrop-blur-sm
+        hover:border-gray-300/80 hover:bg-white/90
+        focus:border-blue-500/80 focus:bg-white
+        focus:ring-4 focus:ring-blue-500/20
+        disabled:bg-gray-50/80 disabled:text-gray-500
+        dark:border-gray-700/60 dark:bg-slate-800/80
         dark:text-white dark:placeholder:text-gray-500
-        dark:focus:border-blue-400 dark:focus:ring-blue-400
+        dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
+        dark:focus:border-blue-400/80 dark:focus:bg-slate-800
+        dark:focus:ring-blue-400/20
+        dark:disabled:bg-slate-900/50
       "
       :placeholder="t('web.COMMON.secret_placeholder')"
       :aria-label="t('enter-the-secret-content-here')">
@@ -100,13 +107,16 @@ const { t } = useI18n();
     <!-- prettier-ignore-attribute class -->
     <div
       v-if="showCounter"
-      class="pointer-events-none absolute bottom-3 right-3 flex select-none items-center gap-1.5
-        rounded-full bg-white/90 px-3 py-1 text-sm shadow-sm
-        backdrop-blur-sm transition-colors duration-200 dark:bg-gray-800/90">
+      class="pointer-events-none absolute bottom-4 right-4 flex select-none items-center gap-2
+        rounded-full bg-white/95 px-3.5 py-1.5 text-sm
+        shadow-[0_4px_12px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)]
+        backdrop-blur-md transition-all duration-300 border border-gray-200/40
+        dark:bg-gray-800/95 dark:border-gray-700/40
+        dark:shadow-[0_4px_12px_rgba(0,0,0,0.3),0_1px_3px_rgba(0,0,0,0.2)]">
       <span
-        :class="[statusColor, 'size-2.5 rounded-full']"
+        :class="[statusColor, 'size-2.5 rounded-full shadow-sm']"
         aria-hidden="true"></span>
-      <span class="font-medium text-gray-600 dark:text-gray-400">
+      <span class="font-semibold text-gray-700 dark:text-gray-300 tabular-nums">
         {{ formattedCharCount }} / {{ formattedMaxLength }}
       </span>
     </div>

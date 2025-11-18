@@ -3,7 +3,7 @@
 <script setup lang="ts">
 import HoverTooltip from '@/components/common/HoverTooltip.vue';
 import OIcon from '@/components/icons/OIcon.vue';
-import { getRoleBadgeColor, getRoleLabel, type TeamWithRole } from '@/types/team';
+import { getRoleBadgeColor, getRoleLabel, type TeamWithRole } from '@/schemas/models/team';
 import { useEventListener } from '@vueuse/core';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
@@ -25,7 +25,7 @@ const emit = defineEmits<{
 const isOpen = ref(false);
 const listboxRef = ref<HTMLElement | null>(null);
 
-const selectedTeam = computed(() => props.teams.find((t) => t.id === props.modelValue));
+const selectedTeam = computed(() => props.teams.find((t) => t.extid === props.modelValue));
 
 const toggleOpen = () => {
   isOpen.value = !isOpen.value;
@@ -89,11 +89,11 @@ const getRoleBadge = (role: string) => ({
       @click="toggleOpen"
       class="group relative inline-flex h-11 w-full items-center justify-between gap-2 rounded-lg bg-white px-4 shadow-sm ring-1 ring-gray-200 transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700 dark:focus:ring-brand-400 dark:focus:ring-offset-0"
       :aria-expanded="isOpen"
-      :aria-label="selectedTeam ? selectedTeam.name : t(placeholder)"
+      :aria-label="selectedTeam ? selectedTeam.display_name : t(placeholder)"
       aria-haspopup="listbox">
       <span v-if="selectedTeam" class="flex min-w-0 flex-1 items-center gap-2">
         <span class="truncate text-sm font-medium text-gray-900 dark:text-white">
-          {{ selectedTeam.name }}
+          {{ selectedTeam.display_name }}
         </span>
         <span
           :class="[
@@ -132,23 +132,23 @@ const getRoleBadge = (role: string) => ({
           <button
             type="button"
             v-for="team in teams"
-            :key="team.id"
+            :key="team.extid"
             role="option"
-            :aria-selected="modelValue === team.id"
+            :aria-selected="modelValue === team.extid"
             :class="[
               'flex w-full items-center justify-between gap-2',
               'px-4 py-3 text-left transition-colors',
               'text-gray-900 dark:text-gray-100',
               'hover:bg-gray-100 dark:hover:bg-gray-700',
               'focus:bg-gray-100 focus:outline-none dark:focus:bg-gray-700',
-              modelValue === team.id
+              modelValue === team.extid
                 ? 'bg-gray-50 dark:bg-gray-700'
                 : ''
             ]"
-            @click="handleTeamSelect(team.id)">
+            @click="handleTeamSelect(team.extid)">
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
-                <span class="truncate text-sm font-medium">{{ team.name }}</span>
+                <span class="truncate text-sm font-medium">{{ team.display_name }}</span>
                 <span
                   :class="[
                     'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
@@ -168,7 +168,7 @@ const getRoleBadge = (role: string) => ({
             </div>
 
             <OIcon
-              v-if="modelValue === team.id"
+              v-if="modelValue === team.extid"
               collection="heroicons"
               name="check-20-solid"
               class="size-5 shrink-0 text-brand-500 dark:text-brand-400"
