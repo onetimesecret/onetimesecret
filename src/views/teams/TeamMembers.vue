@@ -5,8 +5,8 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import TeamMembersList from '@/components/teams/TeamMembersList.vue';
   import { classifyError } from '@/schemas/errors';
+  import { inviteMemberPayloadSchema, TeamRole, type InviteMemberPayload } from '@/schemas/models/team';
   import { useTeamStore } from '@/stores/teamStore';
-  import { inviteMemberPayloadSchema, TeamRole, type InviteMemberPayload } from '@/types/team';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
@@ -44,7 +44,7 @@
 
   onMounted(async () => {
     try {
-      if (!activeTeam.value || activeTeam.value.id !== teamId.value) {
+      if (!activeTeam.value || activeTeam.value.extid !== teamId.value) {
         await teamStore.fetchTeam(teamId.value);
       }
       await teamStore.fetchMembers(teamId.value);

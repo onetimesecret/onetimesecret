@@ -8,13 +8,13 @@ import { useCapabilities } from '@/composables/useCapabilities';
 import { classifyError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
 import { WindowService } from '@/services/window.service';
+import type { Team } from '@/schemas/models/team';
 import { useOrganizationStore } from '@/stores/organizationStore';
 import { useTeamStore } from '@/stores/teamStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { CAPABILITIES } from '@/types/organization';
-import type { Team } from '@/types/team';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -192,7 +192,7 @@ const handleCancel = () => {
 };
 
 const handleTeamClick = (team: Team) => {
-  router.push(`/teams/${team.id}`);
+  router.push(`/teams/${team.extid}`);
 };
 
 onMounted(async () => {
@@ -414,7 +414,7 @@ watch(activeTab, async (newTab) => {
             <div v-if="teams.length > 0" class="space-y-3">
               <div
                 v-for="team in teams"
-                :key="team.id"
+                :key="team.extid"
                 @click="handleTeamClick(team)"
                 class="flex cursor-pointer items-center justify-between rounded-lg border border-gray-200 p-4 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/50">
                 <div>

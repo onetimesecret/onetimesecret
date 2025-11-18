@@ -3,8 +3,8 @@
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import { classifyError } from '@/schemas/errors';
+  import { getRoleBadgeColor, getRoleLabel } from '@/schemas/models/team';
   import { useTeamStore } from '@/stores/teamStore';
-  import { getRoleBadgeColor, getRoleLabel } from '@/types/team';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
@@ -250,7 +250,7 @@
                 {{ t('web.teams.created') }}
               </dt>
               <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                {{ new Date(activeTeam.created_at).toLocaleDateString() }}
+                {{ activeTeam.created.toLocaleDateString() }}
               </dd>
             </div>
             <div>
@@ -258,7 +258,7 @@
                 {{ t('web.teams.last_updated') }}
               </dt>
               <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                {{ new Date(activeTeam.updated_at).toLocaleDateString() }}
+                {{ activeTeam.updated.toLocaleDateString() }}
               </dd>
             </div>
           </dl>

@@ -4,9 +4,9 @@
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { classifyError } from '@/schemas/errors';
+import { createTeamPayloadSchema, type CreateTeamPayload } from '@/schemas/models/team';
 import { useOrganizationStore } from '@/stores/organizationStore';
 import { useTeamStore } from '@/stores/teamStore';
-import { createTeamPayloadSchema, type CreateTeamPayload } from '@/types/team';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { computed, onMounted, ref } from 'vue';
 import { z } from 'zod';
@@ -83,7 +83,7 @@ const handleSubmit = async () => {
     const team = await teamStore.createTeam(formData.value);
 
     // Success - emit event and close
-    emit('created', team.id);
+    emit('created', team.extid);
     closeModal();
   } catch (error) {
     if (error instanceof z.ZodError && error.errors) {
