@@ -28,6 +28,30 @@
 require 'onetime/application'
 
 module InternalACME
+  # Handler for ACME domain validation endpoint
+  class AskHandler
+    def self.call(req, res)
+      domain = req.params['domain']
+
+      if domain.to_s.empty?
+        OT.ld '[InternalACME] Missing domain parameter'
+        res.status = 400
+        res['content-type'] = 'text/plain'
+        res.body = ['Bad Request - domain parameter required']
+        return
+      end
+
+      allowed = Application.domain_allowed?(domain)
+      status = allowed ? 200 : 403
+
+      OT.info "[InternalACME] Domain check: #{domain} -> #{status}"
+
+      res.status = status
+      res['content-type'] = 'text/plain'
+      res.body = [allowed ? 'OK' : 'Forbidden']
+    end
+  end
+
   # Simple Rack application for ACME domain validation
   class Application < Onetime::Application::Base
     @uri_prefix = '/api/internal/acme'
@@ -40,35 +64,8 @@ module InternalACME
     protected
 
     def build_router
-      router = Otto.new
-
-      # Define the /ask endpoint
-      router.add(:GET, '/ask') do |req, res|
-        domain = req.params['domain']
-
-        if domain.to_s.empty?
-          OT.ld '[InternalACME] Missing domain parameter'
-          res.status = 400
-          res['content-type'] = 'text/plain'
-          res.body = ['Bad Request - domain parameter required']
-          next
-        end
-
-        allowed = domain_allowed?(domain)
-        status = allowed ? 200 : 403
-
-        OT.info "[InternalACME] Domain check: #{domain} -> #{status}"
-
-        res.status = status
-        res['content-type'] = 'text/plain'
-        res.body = [allowed ? 'OK' : 'Forbidden']
-      end
-
-      # Default responses
-      router.not_found = [404, { 'content-type' => 'text/plain' }, ['Not Found']]
-      router.server_error = [500, { 'content-type' => 'text/plain' }, ['Internal Server Error']]
-
-      router
+      routes_path = File.join(__dir__, 'routes.txt')
+      Otto.new(routes_path)
     end
 
     # Build middleware stack
@@ -83,21 +80,21 @@ module InternalACME
       end
     end
 
-    private
+    class << self
+      def domain_allowed?(domain)
+        # Load and check if this domain exists in our CustomDomain database
+        custom_domain = Onetime::CustomDomain.load_by_display_domain(domain)
 
-    def domain_allowed?(domain)
-      # Load and check if this domain exists in our CustomDomain database
-      custom_domain = Onetime::CustomDomain.load_by_display_domain(domain)
+        return false if custom_domain.nil?
 
-      return false if custom_domain.nil?
-
-      # IMPORTANT: Only allow domains that have been verified via DNS TXT record.
-      # This proves the customer actually owns the domain before Caddy issues a cert.
-      # The ACME HTTP challenge (handled by Caddy) is separate from DNS ownership proof.
-      custom_domain.ready?
-    rescue StandardError => e
-      OT.le "[InternalACME] Error checking domain #{domain}: #{e.message}"
-      false
+        # IMPORTANT: Only allow domains that have been verified via DNS TXT record.
+        # This proves the customer actually owns the domain before Caddy issues a cert.
+        # The ACME HTTP challenge (handled by Caddy) is separate from DNS ownership proof.
+        custom_domain.ready?
+      rescue StandardError => e
+        OT.le "[InternalACME] Error checking domain #{domain}: #{e.message}"
+        false
+      end
     end
 
     # Middleware to restrict access to localhost only
