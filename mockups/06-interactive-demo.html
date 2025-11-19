@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneTimeSecret - Interactive Demo (Adaptive Progressive UX)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fcf8f2',
+                            100: '#fcf4e8',
+                            200: '#f7dec3',
+                            300: '#f0c39e',
+                            400: '#e68b5e',
+                            500: '#dc4a22',
+                            600: '#c43d1b',
+                            700: '#a32d12',
+                            800: '#85200c',
+                            900: '#631507',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .transition-height {
+            transition: min-height 0.3s ease-out;
+        }
+        .slide-enter {
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl mx-auto">
+
+        <!-- Demo Controls -->
+        <div class="mb-6 p-4 bg-white rounded-xl shadow-md border-2 border-brand-200">
+            <h3 class="font-bold text-sm text-gray-900 mb-3">Interactive Demo Controls</h3>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="resetDemo()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors">
+                    Reset
+                </button>
+                <button onclick="simulateTyping()" class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm rounded-lg transition-colors">
+                    Simulate Typing
+                </button>
+                <button onclick="toggleOptions()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors">
+                    Toggle Options
+                </button>
+                <button onclick="applySuggestion()" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg transition-colors">
+                    Apply Suggestion
+                </button>
+            </div>
+            <p class="mt-2 text-xs text-gray-500">
+                Try typing in the textarea to see progressive disclosure in action!
+            </p>
+        </div>
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="flex items-center justify-center mb-4">
+                <svg class="w-12 h-12 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">
+                Share a Secret
+            </h1>
+            <p class="text-lg text-gray-600">
+                Keep sensitive information out of email
+            </p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="bg-white rounded-2xl shadow-lg p-8">
+
+            <!-- Secret Input -->
+            <div class="mb-4">
+                <div class="relative">
+                    <textarea
+                        id="secret-input"
+                        oninput="handleInput(event)"
+                        placeholder="Paste a password, API key, or message..."
+                        rows="3"
+                        class="transition-height w-full px-4 py-4 text-base border-2 border-gray-200 rounded-lg focus:border-brand-500 focus:ring-0 focus:outline-none resize-none placeholder-gray-400"
+                        style="min-height: 100px;"
+                    ></textarea>
+
+                    <!-- Checkmark indicator (hidden initially) -->
+                    <div id="check-indicator" class="hidden absolute top-3 right-3 fade-in">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Character Counter & Status (hidden initially) -->
+                <div id="char-counter" class="hidden flex items-center justify-between mt-2 fade-in">
+                    <div class="flex items-center text-sm text-green-600">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Ready to share</span>
+                    </div>
+                    <span id="char-count" class="text-sm text-gray-400">0 / 10,000</span>
+                </div>
+            </div>
+
+            <!-- Smart Suggestion Panel (hidden initially) -->
+            <div id="suggestion-panel" class="hidden mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg slide-enter">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <h3 class="text-sm font-semibold text-blue-900 mb-1">
+                            API key detected
+                        </h3>
+                        <p class="text-sm text-blue-800 mb-3">
+                            We recommend a shorter expiration and a passphrase for extra security
+                        </p>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="applySuggestion()" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                Apply settings
+                            </button>
+                            <button onclick="dismissSuggestion()" class="px-4 py-2 bg-white text-blue-600 text-sm font-medium rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors">
+                                Use defaults
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Options Disclosure (hidden initially) -->
+            <div id="options-section" class="hidden mb-6 slide-enter">
+                <button id="options-toggle" onclick="toggleOptions()" class="flex items-center justify-between w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-left transition-colors group">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        </svg>
+                        <span class="text-sm font-medium text-gray-700">Options</span>
+                        <span class="ml-2 text-xs text-gray-500">(passphrase, expiration)</span>
+                    </div>
+                    <svg id="options-chevron" class="w-5 h-5 text-gray-400 transition-transform group-hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <!-- Options Panel (expanded when toggled) -->
+                <div id="options-panel" class="hidden mt-4 px-4 py-4 bg-gray-50 rounded-lg border-2 border-gray-200">
+                    <div class="mb-4">
+                        <label class="flex items-center text-sm font-medium text-gray-700 mb-2">
+                            <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            Passphrase
+                            <span class="ml-2 text-xs text-gray-500 font-normal">(optional)</span>
+                        </label>
+                        <input
+                            type="password"
+                            placeholder="Add extra security..."
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-brand-500 focus:ring-0 focus:outline-none text-base"
+                        />
+                        <p class="mt-2 text-xs text-gray-500">
+                            Adds an extra layer of protection
+                        </p>
+                    </div>
+
+                    <div class="border-t border-gray-300 my-4"></div>
+
+                    <div>
+                        <label class="flex items-center text-sm font-medium text-gray-700 mb-3">
+                            <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Link expires in
+                        </label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <button id="ttl-1h" onclick="selectTTL('1h')" class="px-4 py-3 bg-white border-2 border-gray-300 hover:border-brand-400 rounded-lg text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
+                                1 hour
+                            </button>
+                            <button id="ttl-1d" onclick="selectTTL('1d')" class="px-4 py-3 bg-white border-2 border-gray-300 hover:border-brand-400 rounded-lg text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
+                                1 day
+                            </button>
+                            <button id="ttl-7d" onclick="selectTTL('7d')" class="px-4 py-3 bg-brand-500 border-2 border-brand-500 rounded-lg text-sm font-medium text-white shadow-sm">
+                                7 days
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Primary Action (hidden initially) -->
+            <div id="primary-action" class="hidden space-y-3 slide-enter">
+                <button class="w-full px-6 py-4 bg-brand-500 hover:bg-brand-600 text-white text-lg font-semibold rounded-lg shadow-md hover:shadow-lg transition-all">
+                    Create Secret Link
+                </button>
+                <div class="text-center text-sm text-gray-500">
+                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono">⌘</kbd>
+                    <span class="mx-1">+</span>
+                    <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Enter</kbd>
+                    <span class="ml-2">to create</span>
+                </div>
+            </div>
+
+            <!-- Secondary Action (always visible) -->
+            <div id="secondary-action" class="text-center mt-6">
+                <a href="#" class="inline-flex items-center text-sm text-brand-600 hover:text-brand-700 font-medium">
+                    or generate a secure password
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Trust Signals (always visible) -->
+        <div class="mt-8 text-center">
+            <div class="flex items-center justify-center space-x-6 text-sm text-gray-500">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <span>AES-256 Encrypted</span>
+                </div>
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>One-time view</span>
+                </div>
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Auto-expires</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let optionsExpanded = false;
+        let suggestionDismissed = false;
+
+        function handleInput(event) {
+            const value = event.target.value;
+            const charCount = value.length;
+            const input = document.getElementById('secret-input');
+            const checkIndicator = document.getElementById('check-indicator');
+            const charCounter = document.getElementById('char-counter');
+            const charCountSpan = document.getElementById('char-count');
+            const suggestionPanel = document.getElementById('suggestion-panel');
+            const optionsSection = document.getElementById('options-section');
+            const primaryAction = document.getElementById('primary-action');
+            const secondaryAction = document.getElementById('secondary-action');
+
+            // Update character count
+            charCountSpan.textContent = `${charCount} / 10,000`;
+
+            if (charCount > 0) {
+                // Expand input
+                input.style.minHeight = '140px';
+                input.classList.remove('border-gray-200');
+                input.classList.add('border-brand-500');
+
+                // Show elements
+                checkIndicator.classList.remove('hidden');
+                charCounter.classList.remove('hidden');
+                optionsSection.classList.remove('hidden');
+                primaryAction.classList.remove('hidden');
+
+                // Detect API key pattern
+                if (!suggestionDismissed && (value.startsWith('sk_') || value.startsWith('pk_'))) {
+                    suggestionPanel.classList.remove('hidden');
+                } else {
+                    suggestionPanel.classList.add('hidden');
+                }
+
+                // Hide secondary action when content exists
+                secondaryAction.classList.add('hidden');
+            } else {
+                // Reset to initial state
+                resetDemo();
+            }
+        }
+
+        function resetDemo() {
+            const input = document.getElementById('secret-input');
+            input.value = '';
+            input.style.minHeight = '100px';
+            input.classList.remove('border-brand-500');
+            input.classList.add('border-gray-200');
+
+            document.getElementById('check-indicator').classList.add('hidden');
+            document.getElementById('char-counter').classList.add('hidden');
+            document.getElementById('suggestion-panel').classList.add('hidden');
+            document.getElementById('options-section').classList.add('hidden');
+            document.getElementById('primary-action').classList.add('hidden');
+            document.getElementById('secondary-action').classList.remove('hidden');
+
+            optionsExpanded = false;
+            suggestionDismissed = false;
+            document.getElementById('options-panel').classList.add('hidden');
+            document.getElementById('options-chevron').style.transform = '';
+        }
+
+        function simulateTyping() {
+            const input = document.getElementById('secret-input');
+            const text = 'sk_test_EXAMPLE1234567890NotARealKeyJustForDemo';
+
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < text.length) {
+                    input.value += text[i];
+                    handleInput({ target: input });
+                    i++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 50);
+        }
+
+        function toggleOptions() {
+            optionsExpanded = !optionsExpanded;
+            const panel = document.getElementById('options-panel');
+            const chevron = document.getElementById('options-chevron');
+            const toggle = document.getElementById('options-toggle');
+
+            if (optionsExpanded) {
+                panel.classList.remove('hidden');
+                chevron.style.transform = 'rotate(180deg)';
+                toggle.classList.remove('bg-gray-50');
+                toggle.classList.add('bg-gray-100');
+            } else {
+                panel.classList.add('hidden');
+                chevron.style.transform = '';
+                toggle.classList.remove('bg-gray-100');
+                toggle.classList.add('bg-gray-50');
+            }
+        }
+
+        function applySuggestion() {
+            // Select 1 hour TTL
+            selectTTL('1h');
+
+            // Expand options to show the change
+            if (!optionsExpanded) {
+                toggleOptions();
+            }
+
+            // Dismiss suggestion
+            dismissSuggestion();
+
+            // Show visual feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Applied';
+            btn.classList.add('bg-green-600', 'hover:bg-green-700');
+            btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            setTimeout(() => {
+                document.getElementById('suggestion-panel').classList.add('hidden');
+            }, 1000);
+        }
+
+        function dismissSuggestion() {
+            suggestionDismissed = true;
+            document.getElementById('suggestion-panel').classList.add('hidden');
+        }
+
+        function selectTTL(period) {
+            // Reset all buttons
+            ['1h', '1d', '7d'].forEach(p => {
+                const btn = document.getElementById(`ttl-${p}`);
+                btn.classList.remove('bg-brand-500', 'border-brand-500', 'text-white');
+                btn.classList.add('bg-white', 'border-gray-300', 'text-gray-700');
+            });
+
+            // Highlight selected
+            const selectedBtn = document.getElementById(`ttl-${period}`);
+            selectedBtn.classList.remove('bg-white', 'border-gray-300', 'text-gray-700');
+            selectedBtn.classList.add('bg-brand-500', 'border-brand-500', 'text-white');
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Cmd/Ctrl + Enter to "submit"
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                const input = document.getElementById('secret-input');
+                if (input.value.length > 0) {
+                    alert('🎉 Secret would be created!\n\nThis is a demo, so we\'re not actually creating a secret.');
+                }
+            }
+
+            // Escape to reset
+            if (e.key === 'Escape') {
+                resetDemo();
+            }
+        });
+    </script>
+
+</body>
+</html>

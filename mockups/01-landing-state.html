@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneTimeSecret - Landing State (Adaptive Progressive)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fcf8f2',
+                            100: '#fcf4e8',
+                            200: '#f7dec3',
+                            300: '#f0c39e',
+                            400: '#e68b5e',
+                            500: '#dc4a22',
+                            600: '#c43d1b',
+                            700: '#a32d12',
+                            800: '#85200c',
+                            900: '#631507',
+                        },
+                        brandcomp: {
+                            500: '#23b5dd',
+                        }
+                    },
+                    fontFamily: {
+                        brand: ['Georgia', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Smooth transitions for interactive demo */
+        * {
+            transition: all 0.3s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <!-- Main Container -->
+    <div class="w-full max-w-2xl mx-auto">
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="flex items-center justify-center mb-4">
+                <svg class="w-12 h-12 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+            <h1 class="text-4xl font-brand font-bold text-gray-900 mb-2">
+                Share a Secret
+            </h1>
+            <p class="text-lg text-gray-600">
+                Keep sensitive information out of email
+            </p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="bg-white rounded-2xl shadow-lg p-8">
+
+            <!-- Secret Input - Compact Initial State -->
+            <div class="mb-6">
+                <div class="relative">
+                    <textarea
+                        placeholder="Paste a password, API key, or message..."
+                        rows="3"
+                        class="w-full px-4 py-4 text-base border-2 border-gray-200 rounded-lg focus:border-brand-500 focus:ring-0 focus:outline-none resize-none placeholder-gray-400 transition-all duration-300"
+                        style="min-height: 100px;"
+                    ></textarea>
+                </div>
+            </div>
+
+            <!-- Secondary Action Link -->
+            <div class="text-center">
+                <a href="#" class="inline-flex items-center text-sm text-brand-600 hover:text-brand-700 font-medium">
+                    or generate a secure password
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Trust Signals -->
+        <div class="mt-8 text-center">
+            <div class="flex items-center justify-center space-x-6 text-sm text-gray-500">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <span>AES-256 Encrypted</span>
+                </div>
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>One-time view</span>
+                </div>
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Auto-expires</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- State Indicator -->
+        <div class="mt-8 text-center">
+            <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                Mockup: Landing State
+            </span>
+        </div>
+
+    </div>
+
+    <!-- Annotation Layer -->
+    <div class="fixed bottom-4 right-4 bg-white rounded-lg shadow-xl p-4 max-w-xs border-2 border-brand-200">
+        <h3 class="font-bold text-sm text-gray-900 mb-2">Design Notes:</h3>
+        <ul class="text-xs text-gray-600 space-y-1">
+            <li>• <strong>Single input field</strong> - No visible config</li>
+            <li>• <strong>100px height</strong> - Compact but inviting</li>
+            <li>• <strong>~70% whitespace</strong> - Breathable, focused</li>
+            <li>• <strong>Trust signals</strong> - Build confidence</li>
+            <li>• <strong>Secondary action</strong> - Generate password link</li>
+        </ul>
+    </div>
+
+</body>
+</html>

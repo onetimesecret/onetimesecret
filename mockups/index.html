@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneTimeSecret UX Redesign - Mockup Gallery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#dc4a22',
+                            600: '#c43d1b',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen py-12 px-4">
+
+    <div class="max-w-6xl mx-auto">
+
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <div class="flex items-center justify-center mb-4">
+                <svg class="w-16 h-16 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+            <h1 class="text-5xl font-bold text-gray-900 mb-3">
+                OneTimeSecret UX Redesign
+            </h1>
+            <p class="text-xl text-gray-600 mb-2">
+                Adaptive Progressive Create Secret Experience
+            </p>
+            <p class="text-sm text-gray-500">
+                Interactive mockups &amp; static state demonstrations
+            </p>
+        </div>
+
+        <!-- Quick Start -->
+        <div class="mb-12 p-6 bg-brand-50 border-2 border-brand-200 rounded-2xl">
+            <h2 class="text-2xl font-bold text-brand-900 mb-3">🚀 Quick Start</h2>
+            <p class="text-brand-800 mb-4">
+                Start with the interactive demo to experience the full user journey, then explore individual states for detailed design review.
+            </p>
+            <a href="06-interactive-demo.html" class="inline-block px-8 py-4 bg-brand-500 hover:bg-brand-600 text-white font-bold text-lg rounded-lg shadow-lg transition-colors">
+                Launch Interactive Demo →
+            </a>
+        </div>
+
+        <!-- Mockup Gallery -->
+        <div class="space-y-8">
+
+            <!-- Desktop States -->
+            <section>
+                <h2 class="text-3xl font-bold text-gray-900 mb-6 flex items-center">
+                    <svg class="w-8 h-8 mr-3 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Desktop States
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <!-- Mockup 1 -->
+                    <a href="01-landing-state.html" class="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow overflow-hidden border-2 border-transparent hover:border-brand-300">
+                        <div class="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center border-b border-gray-300">
+                            <svg class="w-20 h-20 text-gray-400 group-hover:text-brand-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-lg font-bold text-gray-900">01. Landing State</h3>
+                                <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">Desktop</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">
+                                Clean, focused initial state with single input field. No visible configuration options.
+                            </p>
+                            <div class="flex items-center text-sm text-brand-600 group-hover:text-brand-700 font-medium">
+                                View mockup
+                                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Mockup 2 -->
+                    <a href="02-typing-state.html" class="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow overflow-hidden border-2 border-transparent hover:border-brand-300">
+                        <div class="aspect-video bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center border-b border-blue-300">
+                            <svg class="w-20 h-20 text-blue-400 group-hover:text-brand-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-lg font-bold text-gray-900">02. After Typing</h3>
+                                <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">Desktop</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">
+                                Smart suggestion panel detects API key. Character counter and primary CTA appear.
+                            </p>
+                            <div class="flex items-center text-sm text-brand-600 group-hover:text-brand-700 font-medium">
+                                View mockup
+                                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Mockup 3 -->
+                    <a href="03-options-expanded.html" class="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow overflow-hidden border-2 border-transparent hover:border-brand-300">
+                        <div class="aspect-video bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center border-b border-purple-300">
+                            <svg class="w-20 h-20 text-purple-400 group-hover:text-brand-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                            </svg>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-lg font-bold text-gray-900">03. Options Expanded</h3>
+                                <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">Desktop</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">
+                                Full disclosure panel with passphrase, TTL button group, and recipient fields.
+                            </p>
+                            <div class="flex items-center text-sm text-brand-600 group-hover:text-brand-700 font-medium">
+                                View mockup
+                                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Mockup 4 -->
+                    <a href="04-success-state.html" class="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow overflow-hidden border-2 border-transparent hover:border-brand-300">
+                        <div class="aspect-video bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center border-b border-green-300">
+                            <svg class="w-20 h-20 text-green-400 group-hover:text-brand-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-lg font-bold text-gray-900">04. Success State</h3>
+                                <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">Desktop</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">
+                                Celebration state with auto-copied link, security details, and sharing options.
+                            </p>
+                            <div class="flex items-center text-sm text-brand-600 group-hover:text-brand-700 font-medium">
+                                View mockup
+                                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+
+                </div>
+            </section>
+
+            <!-- Mobile States -->
+            <section>
+                <h2 class="text-3xl font-bold text-gray-900 mb-6 flex items-center">
+                    <svg class="w-8 h-8 mr-3 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Mobile Responsive
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <!-- Mockup 5 -->
+                    <a href="05-mobile-states.html" class="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow overflow-hidden border-2 border-transparent hover:border-brand-300">
+                        <div class="aspect-video bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center border-b border-indigo-300">
+                            <svg class="w-20 h-20 text-indigo-400 group-hover:text-brand-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-lg font-bold text-gray-900">05. Mobile States</h3>
+                                <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Mobile</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">
+                                Three phone mockups showing landing, typing, and options states. Sticky button, large touch targets.
+                            </p>
+                            <div class="flex items-center text-sm text-brand-600 group-hover:text-brand-700 font-medium">
+                                View mockup
+                                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Mockup 6 -->
+                    <a href="06-interactive-demo.html" class="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow overflow-hidden border-2 border-brand-300">
+                        <div class="aspect-video bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center border-b border-brand-300">
+                            <svg class="w-20 h-20 text-brand-400 group-hover:text-brand-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-lg font-bold text-gray-900">06. Interactive Demo ⭐</h3>
+                                <span class="px-3 py-1 bg-brand-100 text-brand-800 text-xs font-medium rounded-full">Interactive</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">
+                                Fully functional prototype with live typing, smart detection, and keyboard shortcuts. Start here!
+                            </p>
+                            <div class="flex items-center text-sm text-brand-600 group-hover:text-brand-700 font-bold">
+                                Launch demo
+                                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Documentation -->
+        <div class="mt-12 p-6 bg-white rounded-2xl shadow-md border border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">📖 Documentation</h2>
+            <p class="text-gray-700 mb-4">
+                For detailed design rationale, implementation notes, and metrics, see the README:
+            </p>
+            <a href="README.md" class="inline-flex items-center px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-medium rounded-lg transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Read README.md
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-12 text-center text-sm text-gray-500">
+            <p>OneTimeSecret UX Redesign Mockups</p>
+            <p class="mt-1">Design Approach: Adaptive Progressive</p>
+            <p class="mt-1">Last Updated: 2025-11-19</p>
+        </div>
+
+    </div>
+
+</body>
+</html>
