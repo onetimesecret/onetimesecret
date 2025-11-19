@@ -5,13 +5,28 @@
 - Stripe account ([create one](https://dashboard.stripe.com/register))
 - Stripe API keys ([find them here](https://dashboard.stripe.com/apikeys))
 
-## Environment Variables
+## Setup
 
-```bash
-BILLING_ENABLED=true
-STRIPE_KEY=sk_test_...              # Secret key from Stripe dashboard
-STRIPE_WEBHOOK_SECRET=whsec_...     # From webhook endpoint setup
-```
+Billing is optional and disabled by default. To enable:
+
+1. **Copy the template:**
+   ```bash
+   cp etc/defaults/billing.defaults.yaml etc/billing.yaml
+   ```
+
+2. **Configure environment variables** (or edit `etc/billing.yaml` directly):
+   ```bash
+   STRIPE_KEY=sk_test_...              # Secret key from Stripe dashboard
+   STRIPE_WEBHOOK_SECRET=whsec_...     # From webhook endpoint setup
+   ```
+
+3. **Enable billing** in `etc/billing.yaml`:
+   ```yaml
+   billing:
+     enabled: true
+   ```
+
+The billing app only loads when `etc/billing.yaml` exists with `enabled: true`. See `lib/onetime/billing_config.rb` for implementation details.
 
 ## Product Setup
 

@@ -78,6 +78,7 @@ Key configuration areas:
 - **Authentication**: Enable/disable login requirements
 - **Email**: SMTP or SendGrid setup
 - **UI settings**: Customize user experience
+- **Billing** (optional): Stripe integration for paid plans — see [docs/billing/stripe-configuration.md](./docs/billing/stripe-configuration.md)
 
 ### Environment Variables
 
