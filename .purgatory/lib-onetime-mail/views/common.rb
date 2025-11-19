@@ -36,7 +36,7 @@ module Onetime
         self[:custid]         = cust.custid
         self[:sender_email]   = cust.email
         self[:email_address]  = recipient
-        self[:from_name]      = OT.conf['emailer']['fromname']
+        self[:from_name]      = OT.conf['emailer']['from_name'] || OT.conf['emailer']['fromname'] # since v0.23
         self[:from]           = OT.conf['emailer']['from']
         self[:signature_link] = 'https://onetimesecret.com/'
       end

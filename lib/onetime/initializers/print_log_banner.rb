@@ -140,18 +140,23 @@ module Onetime
     def build_email_section(email_config)
       return [] if email_config.nil? || email_config.empty?
 
+      _email_config = email_config.dup
+
+      # fromname is deprecated as of v0.23
+      _email_config['from_name'] = email_config['fromname'] if email_config.key?('fromname')
+
       begin
         if is_feature_disabled?(email_config)
           [%w[Status disabled]]
         else
           [
             ['Mailer', @emailer],
-            ['Mode', email_config['mode']],
-            ['From', "'#{email_config['fromname']} <#{email_config['from']}>'"],
-            ['Host', "#{email_config['host']}:#{email_config['port']}"],
-            ['Region', email_config['region']],
-            ['TLS', email_config['tls']],
-            ['Auth', email_config['auth']],
+            ['Mode', _email_config['mode']],
+            ['From', "'#{_email_config['from_name']} <#{_email_config['from']}>'"],
+            ['Host', "#{_email_config['host']}:#{_email_config['port']}"],
+            ['Region', _email_config['region']],
+            ['TLS', _email_config['tls']],
+            ['Auth', _email_config['auth']],
           ].reject { |row| row[1].nil? || row[1].to_s.empty? }
         end
       rescue StandardError => ex

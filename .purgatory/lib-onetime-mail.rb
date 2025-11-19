@@ -18,18 +18,18 @@ module Onetime
       @mailer ||= begin
         provider = OT.conf['emailer']['provider'] || 'smtp'
         from     = OT.conf['emailer']['from']
-        fromname = OT.conf['emailer']['fromname']
+        from_name = OT.conf['emailer']['from_name'] || OT.conf['emailer']['from_name'] # since v0.23
 
         case provider.to_s.downcase
         when 'sendgrid'
           Mailer::SendGridMailer.setup
-          Mailer::SendGridMailer.new(from, fromname)
+          Mailer::SendGridMailer.new(from, from_name)
         when 'ses'
           Mailer::SESMailer.setup
-          Mailer::SESMailer.new(from, fromname)
+          Mailer::SESMailer.new(from, from_name)
         else # default to smtp
           Mailer::SMTPMailer.setup
-          Mailer::SMTPMailer.new(from, fromname)
+          Mailer::SMTPMailer.new(from, from_name)
         end
       end
     end
