@@ -98,7 +98,7 @@ module Core
         attr_accessor :payload, :stripe_signature
 
         def process_params
-          @endpoint_secret = OT.conf.dig('billing', 'webhook_signing_secret')
+          @endpoint_secret = OT.billing_config.webhook_signing_secret
           @event           = nil
         end
 

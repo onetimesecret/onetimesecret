@@ -14,8 +14,7 @@ module AccountAPI::Logic
 
       def process_params
         OT.ld "[GetAccount#process_params] params: #{params.inspect}"
-        billing          = OT.conf.fetch('billing', {})
-        @billing_enabled = billing.fetch('enabled', false)
+        @billing_enabled = OT.billing_config.enabled?
       end
 
       def raise_concerns; end

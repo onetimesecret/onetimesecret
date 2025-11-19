@@ -31,7 +31,7 @@ module Billing
         end
 
         # Verify webhook signature
-        webhook_secret = OT.conf.dig('billing', 'webhook_signing_secret')
+        webhook_secret = OT.billing_config.webhook_signing_secret
         unless webhook_secret
           billing_logger.error 'Webhook signing secret not configured'
           res.status = 500

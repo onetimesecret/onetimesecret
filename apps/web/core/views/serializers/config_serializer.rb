@@ -41,8 +41,7 @@ module Core
         output['domains']         = domains if output['domains_enabled']
 
         # Link to the pricing page can be seen regardless of authentication status
-        billing                   = OT.conf.fetch('billing', {})
-        output['billing_enabled'] = billing.fetch('enabled', false)
+        output['billing_enabled'] = OT.billing_config.enabled?
 
         output['frontend_development'] = development['enabled'] || false
         output['frontend_host']        = development['frontend_host'] || ''

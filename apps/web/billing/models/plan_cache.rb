@@ -103,7 +103,7 @@ module Billing
         # @return [Integer] Number of plans cached
         def refresh_from_stripe
           # Skip Stripe sync in CI/test environments without API key
-          stripe_key = Onetime.conf.dig('billing', 'stripe_key')
+          stripe_key = Onetime.billing_config.stripe_key
           if stripe_key.to_s.strip.empty?
             OT.lw '[PlanCache.refresh_from_stripe] Skipping Stripe sync: No API key configured'
             return 0

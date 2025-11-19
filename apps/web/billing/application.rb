@@ -26,7 +26,7 @@ module Billing
   #
   # ## Conditional Loading
   #
-  # This application is only loaded when `conf.dig('billing', 'enabled')` is true.
+  # This application is only loaded when billing.yaml exists and enabled is true.
   # See lib/onetime/application/registry.rb for loading logic.
   #
   class Application < Onetime::Application::Base
@@ -41,8 +41,8 @@ module Billing
     use Onetime::Middleware::CsrfResponseHeader
 
     warmup do
-      # Configure Stripe API key
-      stripe_key = Onetime.conf.dig('billing', 'stripe_key')
+      # Configure Stripe API key (already set by configure_billing initializer)
+      stripe_key = Onetime.billing_config.stripe_key
       if stripe_key && !stripe_key.to_s.strip.empty?
         Stripe.api_key = stripe_key
         Onetime.billing_logger.info 'Stripe API key configured'
