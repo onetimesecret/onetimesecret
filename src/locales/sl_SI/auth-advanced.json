@@ -6,7 +6,7 @@
       "_context_mfa_verification_required": "Explanatory text below the heading",
       "mfa_verification_required": "Preverjanje MFA je potrebno za dostop do vašega računa",
       "_context_complete_mfa_verification": "Primary button text to submit MFA verification",
-      "complete_mfa_verification": "Dokonč aj preverjanje MFA",
+      "complete_mfa_verification": "Dokončaj preverjanje MFA",
       "security": {
         "_README": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md",
         "authentication_failed": "Avtentikacija ni uspela. Preverite svoje poverilnice in poskusite znova.",
