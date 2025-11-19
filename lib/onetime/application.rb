@@ -15,6 +15,7 @@ require_relative 'application/base'
 require_relative 'application/registry'
 require_relative 'application/organization_loader'
 require_relative 'application/auth_strategies'
+require_relative 'application/request_logger'
 require_relative 'application/middleware_stack'
 
 module Onetime

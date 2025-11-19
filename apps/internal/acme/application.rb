@@ -55,6 +55,21 @@ module Internal
     end
 
     # Simple Rack application for ACME domain validation
+    #
+    # Design Principles (Microservices Pattern):
+    #
+    # - No shared configuration: This app intentionally uses Rack::CommonLogger
+    #   instead of the main application's RequestLogger. It does not depend on
+    #   Onetime.logging_conf to remain self-contained and independent.
+    #
+    # - Self-contained: All logging decisions are made within this module.
+    #   Not coupled to main application's logging infrastructure, allowing
+    #   this service to be extracted or deployed independently if needed.
+    #
+    # - Single responsibility: Validates domains for Caddy's on-demand TLS.
+    #   Extremely low traffic (only Caddy calls it), simple logging is sufficient.
+    #   Application-level logging happens in the handler for domain validation results.
+    #
     class Application < Onetime::Application::Base
       @uri_prefix = '/api/internal/acme'
 

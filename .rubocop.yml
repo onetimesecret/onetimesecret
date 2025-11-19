@@ -300,7 +300,8 @@ Performance/Size:
   Exclude: []
 
 Naming/AsciiIdentifiers:
-  Enabled: true
+  Enabled: false
+  AutoCorrect: false
 
 Metrics/CyclomaticComplexity:
   Enabled: false

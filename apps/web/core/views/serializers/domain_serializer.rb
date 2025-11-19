@@ -41,7 +41,6 @@ module Core
           custom_domain             = Onetime::CustomDomain.from_display_domain(output['display_domain'])
           output['domain_id']       = custom_domain&.domainid
           output['domain_branding'] = (custom_domain&.brand&.hgetall || {}).to_h
-          output['domain_logo']     = (custom_domain&.logo&.hgetall || {}).to_h
 
           domain_locale           = output['domain_branding'].fetch('locale', nil)
           output['domain_locale'] = domain_locale
@@ -58,7 +57,7 @@ module Core
               # have some visibility which customers this will affect. We've made
               # the verification more stringent so currently many existing domains
               # would return obj.ready? == false.
-              app_logger.info 'Allowing unverified custom domain', {
+              app_logger.warn 'Serializing unverified custom domain', {
                 domain: obj.display_domain,
                 verified: obj.verified,
                 resolving: obj.resolving,

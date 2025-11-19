@@ -154,7 +154,7 @@ export interface OnetimeWindow {
   domain_id: string;
   display_domain: string;
   domain_branding: BrandSettings;
-  domain_logo: ImageProps;
+  domain_logo: ImageProps | null;
 
   messages: Message[];
 

@@ -70,9 +70,11 @@ module Onetime
       # initializers are loaded in the correct order.
       load_locales
 
+      # The manifest knows how to log, even before the SemanticLogger is setup
+      # so there's no risk of inadvertently auto-creating a default appender
+      # with Raggedy Andy formatting.
       manifest.checkpoint(:logging_setup)
       setup_loggers
-      manifest.logger = Onetime.boot_logger
 
       manifest.checkpoint(:diagnostics_init) do
         setup_diagnostics
@@ -131,9 +133,6 @@ module Onetime
       raise ex unless mode?(:cli) # allows for debugging in the console
     rescue Redis::CannotConnectError => ex
       OT.le "Cannot connect to the database #{Familia.uri} (#{ex.class})"
-      raise ex unless mode?(:cli)
-    rescue StandardError => ex
-      OT.le 'Unexpected error', exception: ex
       raise ex unless mode?(:cli)
     end
 

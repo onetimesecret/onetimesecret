@@ -111,7 +111,7 @@ module Onetime
           [key.to_s.capitalize, 'disabled']
         else
           [key.to_s.capitalize, format_config_value(config_value)]
-                    end
+        end
       end
 
       dev_rows
@@ -243,18 +243,18 @@ module Onetime
           end
         end
       else
-      # Fallback: check for standalone ui and api configs
-      %w[ui api].each do |key|
-        next unless site_config.key?(key)
+        # Fallback: check for standalone ui and api configs
+        %w[ui api].each do |key|
+          next unless site_config.key?(key)
 
-        config = site_config[key]
-        if is_feature_disabled?(config)
-          customization_rows << [key.to_s.upcase, 'disabled']
-        elsif !config.empty?
-          customization_rows << [key.to_s.upcase, format_config_value(config)]
+          config = site_config[key]
+          if is_feature_disabled?(config)
+            customization_rows << [key.to_s.upcase, 'disabled']
+          elsif !config.empty?
+            customization_rows << [key.to_s.upcase, format_config_value(config)]
+          end
         end
       end
-    end
 
       customization_rows
     end

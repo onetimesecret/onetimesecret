@@ -17,13 +17,13 @@ OT.boot! :test, false
 # Basic Configuration Tests
 
 ## Config initialization with domains enabled
-config = { 'domains' => { 'enabled' => true, 'default' => @canonical_domain } }
+config = { 'features' => { 'domains' => { 'enabled' => true, 'default' => @canonical_domain } } }
 Onetime::Middleware::DomainStrategy.initialize_from_config(config)
 Onetime::Middleware::DomainStrategy.canonical_domain
 #=> 'onetimesecret.com'
 
 ## Config initialization with domains disabled uses fallback host
-config = { 'domains' => { 'enabled' => false }, 'host' => 'fallback.com' }
+config = { 'features' => { 'domains' => { 'enabled' => false }, 'host' => 'fallback.com' } }
 Onetime::Middleware::DomainStrategy.initialize_from_config(config)
 Onetime::Middleware::DomainStrategy.canonical_domain
 #=> 'fallback.com'
@@ -114,7 +114,7 @@ end
 #=> true
 
 ## Disables domains when canonical domain is invalid
-config = { 'domains' => { 'enabled' => true, 'default' => '..invalid..' } }
+config = { 'features' => { domains' => { 'enabled' => true, 'default' => '..invalid..' } } }
 Onetime::Middleware::DomainStrategy.initialize_from_config(config)
 Onetime::Middleware::DomainStrategy.domains_enabled?
 #=> false

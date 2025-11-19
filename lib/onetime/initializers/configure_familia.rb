@@ -17,13 +17,16 @@ module Onetime
     # @return [void]
     #
     def configure_familia
-      uri = OT.conf.dig('redis', 'uri')
+      uri = OT.conf.dig('redis', 'uri') || ''
 
       # Early validation: Check if Redis URI is properly configured
-      if uri.nil? || uri.empty? || uri.include?('CHANGEME')
-        OT.boot_logger.info "[init] Configure Familia URI: Invalid URI: #{uri || '<nil>'}"
-        raise Onetime::Problem, "Redis URI not configured (#{uri})"
+      raise_error = if uri.empty?
+        OT.boot_logger.fatal '[configure_familia] Invalid URI'
+      elsif uri.include?('CHANGEME')
+        OT.boot_logger.warn "[configure_familia] WARNING: Redis password is 'CHANGEME'"
       end
+
+      raise Onetime::Problem, "Redis URI not configured (#{uri})" if raise_error
 
       # Set Familia's URI so it's available for isolated connections
       # during legacy data detection and other pre-connection operations

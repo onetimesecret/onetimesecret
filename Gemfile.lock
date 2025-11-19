@@ -42,7 +42,7 @@ GIT
 
 GIT
   remote: https://github.com/onetimesecret/rhales
-  revision: 14aaff512e4f7ddd132e7bc232f49abfc67e21e2
+  revision: 733994f05eee37354c34700721c47c32a13735d6
   specs:
     rhales (0.5.3)
       json_schemer (~> 2.3)

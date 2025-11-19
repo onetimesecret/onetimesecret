@@ -230,10 +230,6 @@ redis:
     secret: <%= ENV['VALKEY_DBS_SECRET'] || ENV['REDIS_DBS_SECRET'] || 0 %>
     feedback: <%= ENV['VALKEY_DBS_FEEDBACK'] || ENV['REDIS_DBS_FEEDBACK'] || 0 %>
 
-logging:
-  # HTTP request logs (Rack::CommonLogger)
-  http_requests: <%= ENV['LOG_HTTP_REQUESTS'] != 'false' %>
-
 # Sending Emails
 emailer:
   # Local Development with Mailpit
@@ -265,7 +261,6 @@ emailer:
   pass: <%= ENV['SMTP_PASSWORD'] %>
   auth: <%= ENV['SMTP_AUTH'] || nil %>
   tls: <%= ENV['SMTP_TLS'] %>
-billing: {}
 mail:
   truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp

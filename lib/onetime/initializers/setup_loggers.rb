@@ -22,6 +22,9 @@ module Onetime
       warn ' entering configure_loggers' if Onetime.debug?
       config = load_logging_config
 
+      # Store config for access throughout the application
+      Onetime.logging_conf = config
+
       # Base configuration - set default level first
       SemanticLogger.default_level = config['default_level']&.to_sym || :info
 
@@ -77,7 +80,10 @@ module Onetime
       config_path = File.join(site_path, 'etc', 'logging.yaml')
 
       if File.exist?(config_path)
-        YAML.load_file(config_path) || {}
+        # Parse ERB template first (allows environment variable interpolation)
+        content = File.read(config_path)
+        parsed_template = ERB.new(content)
+        YAML.load(parsed_template.result) || {}
       else
         # Don't log error during boot, just return defaults
         {}

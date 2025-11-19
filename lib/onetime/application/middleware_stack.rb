@@ -150,9 +150,10 @@ module Onetime
           builder.use Onetime::Middleware::DomainStrategy, application_context: application_context
 
           # Load the logger early so it's ready to log request errors
-          unless Onetime.conf&.dig(:logging, :http_requests).eql?(false)
-            logger.debug 'Setting up CommonLogger middleware'
-            builder.use Rack::CommonLogger
+          # Only add middleware if logging config exists and HTTP logging is enabled
+          if Onetime.logging_conf && Onetime.logging_conf.dig('http', 'enabled') != false
+            logger.debug 'Setting up RequestLogger middleware'
+            builder.use Onetime::Application::RequestLogger, Onetime.logging_conf['http']
           end
 
           # Error Monitoring Integration

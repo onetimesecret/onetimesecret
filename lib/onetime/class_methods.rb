@@ -20,8 +20,9 @@ module Onetime
     @mode ||= :app
     @debug  = nil
     @logger = nil
+    @logging_conf = nil
 
-    attr_accessor :mode, :env
+    attr_accessor :mode, :env, :logging_conf
     attr_writer :debug
 
     # Returns the current wall clock time as microseconds since Unix epoch
@@ -259,9 +260,10 @@ module Onetime
       if exception.is_a?(Exception)
         msg = msgs.join(' ')
         msg = "#{exception.class.name}" if msg.empty?
-        logger.error(msg, exception, payload)
+        # Pass exception as keyword argument, not positional
+        logger.error(msg, **payload, exception: exception)
       else
-        logger.error(msgs.join(' '), payload)
+        logger.error(msgs.join(' '), **payload)
       end
     end
 
