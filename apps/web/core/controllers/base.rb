@@ -23,6 +23,16 @@ module Core
         @locale = req.locale
       end
 
+      def index
+        # Check for header-based homepage protection before rendering
+        # This sets a flag in the request env that the view layer can serialize
+        req.env['onetime.homepage_mode'] = check_protected_by_request_header
+
+        # Simplified: BaseView now extracts everything from req
+        view     = Core::Views::VuePoint.new(req)
+        res.body = view.render
+      end
+
       # Access the current customer from Otto auth middleware or session
       def cust
         @cust ||= load_current_customer
@@ -31,6 +41,55 @@ module Core
       # Access the current session
       def session
         req.env['rack.session']
+      end
+
+      # Check if the request contains the homepage protection header
+      #
+      # When site.interface.ui.homepage.mode=protected, this
+      # checks if the configured HTTP header contains the value 'protected'.
+      # Returns true when the header matches, nil otherwise.
+      #
+      # SECURITY:
+      # - The request header can only RESTRICT access, never EXPAND it. It has
+      #   not effect on authentication settings or API routes.
+      # - The frontend Vue router checks homepage_mode determine homepage state
+      #
+      # @return [Boolean, nil] true if header matches 'protected', nil otherwise
+      def check_protected_by_request_header
+        ui_config = OT.conf.dig('site', 'interface', 'ui') || {}
+        homepage_mode = ui_config.dig('homepage', 'mode')
+        homepage_request_header = ui_config.dig('homepage', 'request_header')
+
+        http_logger.debug '[check_protected_by_request_header] check initiated with settings', {
+          mode: homepage_mode,
+          header_name: homepage_request_header,
+        }
+
+        return nil unless homepage_mode == 'protected'
+
+        # Require request_header to be configured
+        return nil if homepage_request_header.nil? || homepage_request_header.empty?
+
+        # Normalize header name to HTTP_* format for env lookup
+        # Convert dashes to underscores and prepend HTTP_ if not present
+        header_key = homepage_request_header.upcase.tr('-', '_')
+        header_key = "HTTP_#{header_key}" unless header_key.start_with?('HTTP_')
+
+        # Get the actual header value from the request
+        header_value = req.env[header_key]
+
+        http_logger.debug '[check_protected_by_request_header] protection header value', {
+          header_key: header_key,
+          header_present: !header_value.nil?,
+          header_empty: header_value&.empty?,
+        }
+
+        # Return nil if header is missing or empty
+        return nil if header_value.nil? || header_value.empty?
+
+        # Check for exact match with 'protected' (case-sensitive and set to
+        # a literal value for safety, security, and peace of mind).
+        header_value == 'protected' ? 'protected' : nil
       end
 
       # Validates a given URL and ensures it can be safely redirected to.
@@ -134,14 +193,6 @@ module Core
         body                = { error: message }
         body['field-error'] = field_error if field_error
         json_response(body, status: status)
-      end
-
-      # Common page rendering methods
-
-      def index
-        # Simplified: BaseView now extracts everything from req
-        view     = Core::Views::VuePoint.new(req)
-        res.body = view.render
       end
 
       protected
