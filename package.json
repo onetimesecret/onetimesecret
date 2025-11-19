@@ -115,7 +115,7 @@
     "@vue/runtime-core": "3.5.13",
     "@vue/test-utils": "2.4.6",
     "@vueuse/core": "12.8.2",
-    "autoprefixer": "10.4.21",
+    "autoprefixer": "10.4.22",
     "esbuild": "0.25.12",
     "eslint-config-prettier": "10.1.5",
     "eslint-import-resolver-typescript": "4.3.5",
