@@ -36,10 +36,10 @@ module Onetime
       private
 
       def log_request(request, status, duration)
-        payload = build_payload(request, status, duration)
         level   = determine_level(status, duration)
+        payload = build_payload(request, status, duration)
 
-        @logger.send(level, 'HTTP Request', payload)
+        @logger.send(level, status, payload)
       end
 
       def build_payload(request, status, duration)
@@ -48,8 +48,6 @@ module Onetime
         payload[:method]     = request.request_method if capture?(:method)
         payload[:path]       = request.path if capture?(:path)
         payload[:status]     = status if capture?(:status)
-        # Convert microseconds to millisecond
-        payload[:duration_ms]   = duration / 1000.0 if capture?(:duration_ms)
         payload[:request_id] = request.env['HTTP_X_REQUEST_ID'] if capture?(:request_id)
         payload[:ip]         = request.ip if capture?(:ip)
         payload[:params]     = redact_params(request.params) if capture?(:params)
@@ -58,6 +56,9 @@ module Onetime
         if capture?(:headers)
           payload[:headers] = request.env.select { |k, _| k.start_with?('HTTP_') }
         end
+
+        # Add duration last so it appears rightmost in logs
+        payload[:duration_ms] = duration / 1000.0 if capture?(:duration_ms)
 
         payload
       end
