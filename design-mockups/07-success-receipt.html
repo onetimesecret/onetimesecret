@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OneTimeSecret - Success / Receipt Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: #f9fafb;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .mockup-container {
+      max-width: 375px;
+      margin: 0 auto;
+      background: white;
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div class="mockup-container">
+    <!-- Header -->
+    <header class="border-b border-gray-200 bg-white px-4 py-3">
+      <div class="flex items-center justify-between">
+        <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <h1 class="text-lg font-semibold text-gray-900">OneTimeSecret</h1>
+        <button class="text-sm text-gray-600">Sign in</button>
+      </div>
+    </header>
+
+    <!-- Success Banner -->
+    <div class="border-b-2 border-green-500 bg-green-50 px-4 py-4">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-green-500">
+          <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h2 class="text-base font-semibold text-green-900">Secret created successfully!</h2>
+          <p class="text-xs text-green-700 mt-0.5">Share the link below with your recipient</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="px-4 py-6 space-y-6">
+      <!-- Secret Link -->
+      <div>
+        <label class="block text-sm font-medium text-gray-900 mb-3">
+          Your secure link
+        </label>
+        <div class="rounded-lg border-2 border-indigo-200 bg-indigo-50 p-4">
+          <div class="mb-3 flex items-start gap-2">
+            <svg class="h-5 w-5 flex-shrink-0 text-indigo-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+            <code class="flex-1 break-all text-xs font-mono text-indigo-900">
+              https://onetimesecret.com/secret/abc123xyz789
+            </code>
+          </div>
+          <button
+            type="button"
+            class="w-full flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700 active:bg-indigo-800 transition-colors"
+          >
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            Copy Link
+          </button>
+        </div>
+      </div>
+
+      <!-- Important Warning -->
+      <div class="rounded-lg border-2 border-amber-200 bg-amber-50 p-4">
+        <div class="flex items-start gap-3">
+          <svg class="h-5 w-5 flex-shrink-0 text-amber-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div class="flex-1">
+            <h3 class="text-sm font-semibold text-amber-900 mb-1">
+              Important
+            </h3>
+            <ul class="space-y-1 text-xs text-amber-800">
+              <li>• This link can only be viewed <strong>one time</strong></li>
+              <li>• Secret expires in <strong>1 day</strong></li>
+              <li>• Passphrase required: Share it separately!</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Secret Details -->
+      <div>
+        <h3 class="text-sm font-medium text-gray-900 mb-3">Secret Details</h3>
+        <div class="space-y-3 rounded-lg border border-gray-200 bg-white p-4">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600">Status</span>
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+              <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+              Active
+            </span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600">Created</span>
+            <span class="font-medium text-gray-900">Just now</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600">Expires</span>
+            <span class="font-medium text-gray-900">In 1 day</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600">Views remaining</span>
+            <span class="font-medium text-gray-900">1</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600">Passphrase</span>
+            <span class="inline-flex items-center gap-1 font-medium text-green-700">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Protected
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- How to Share -->
+      <div>
+        <h3 class="text-sm font-medium text-gray-900 mb-3">How to Share</h3>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-600">
+              1
+            </div>
+            <div class="flex-1 pt-1">
+              <p class="text-sm text-gray-900 font-medium">Copy the link above</p>
+              <p class="text-xs text-gray-600 mt-0.5">Use the "Copy Link" button</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-600">
+              2
+            </div>
+            <div class="flex-1 pt-1">
+              <p class="text-sm text-gray-900 font-medium">Send via email, chat, or text</p>
+              <p class="text-xs text-gray-600 mt-0.5">Choose any secure channel</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-600">
+              3
+            </div>
+            <div class="flex-1 pt-1">
+              <p class="text-sm text-gray-900 font-medium">Share the passphrase separately</p>
+              <p class="text-xs text-gray-600 mt-0.5">Don't send it in the same message!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="space-y-2 pt-2">
+        <button
+          type="button"
+          class="w-full flex items-center justify-center gap-2 rounded-lg border-2 border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+        >
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Create Another Secret
+        </button>
+        <button
+          type="button"
+          class="w-full flex items-center justify-center gap-2 rounded-lg border-2 border-red-200 bg-white px-4 py-3 text-sm font-medium text-red-700 hover:bg-red-50 active:bg-red-100 transition-colors"
+        >
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Burn Secret (Delete Now)
+        </button>
+      </div>
+
+      <!-- Spacer for bottom -->
+      <div class="h-8"></div>
+    </main>
+
+    <!-- Mockup Label -->
+    <div class="fixed top-2 right-2 bg-yellow-100 border border-yellow-400 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium shadow-lg">
+      📱 MOCKUP: Success/Receipt
+    </div>
+  </div>
+</body>
+</html>
