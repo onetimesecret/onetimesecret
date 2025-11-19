@@ -85,7 +85,9 @@ module Onetime
       end
 
       def ignored?(path)
-        @config['ignore_paths']&.any? { |pattern| File.fnmatch(pattern, path) }
+        return false if path.nil? || @config.nil? || @config['ignore_paths'].nil?
+
+        @config['ignore_paths'].any? { |pattern| File.fnmatch(pattern, path) }
       end
     end
   end
