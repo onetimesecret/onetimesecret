@@ -11,6 +11,9 @@ module Onetime
     #
     # Classifies incoming request domains and determines the appropriate routing strategy.
     #
+    # Instantiated once per Rack application in the modular monolith. Multiple instances
+    # share class-level configuration while maintaining isolated request processing.
+    #
     # @example Domain Classification
     #   example.com        #=> :canonical (configured primary domain)
     #   www.example.com    #=> :canonical (www variant of primary)
@@ -18,11 +21,9 @@ module Onetime
     #   partner.com        #=> :custom (partner domain from database)
     #   invalid.tld        #=> :invalid (malformed or unrecognized)
     #
-    # @note This middleware adds the following to the Rack environment:
+    # @note Adds to Rack environment:
     #   - env['onetime.display_domain']  : Normalized domain for display
-    #   - env['onetime.domain_strategy'] : Classification symbol
-    #
-    # @note Errors are logged but do not halt request processing.
+    #   - env['onetime.domain_strategy'] : Classification symbol (:canonical, :subdomain, :custom, :invalid)
     class DomainStrategy
       include Onetime::LoggerMethods
 
@@ -35,10 +36,29 @@ module Onetime
         MAX_TOTAL_LENGTH    = 253 # RFC 1034 section 3.1
       end
 
-      # Initializes the DomainStrategy middleware.
+      # Initializes the DomainStrategy middleware instance.
       #
-      # @param app [Object] The Rack application.
+      # Each Rack application in the monolith gets its own DomainStrategy instance.
+      # Multiple instances share CLASS-LEVEL state for efficiency (see ClassMethods below).
+      #
+      # ## Instance vs. Class State
+      #
+      # Instance-level state (per app):
+      #   - @app: The next Rack application in the middleware chain
+      #   - @application_context: Metadata about which app this middleware serves
+      #
+      # Class-level state (shared by all instances):
+      #   - @canonical_domain: The configured primary domain
+      #   - @domains_enabled: Whether custom domain feature is active
+      #   - @canonical_domain_parsed: Pre-parsed domain object
+      #
+      # The initialize call to `initialize_from_config()` is idempotent across instances.
+      # Subsequent calls overwrite class variables, but this is safe because configuration
+      # is static at boot time and identical for all instances.
+      #
+      # @param app [Object] The Rack application to wrap
       # @param application_context [Hash] Optional context about the application
+      #   (e.g., { name: 'Core::Application', prefix: '/' })
       def initialize(app, application_context: nil)
         @app                 = app
         @application_context = application_context
@@ -51,6 +71,22 @@ module Onetime
       end
 
       # Processes the incoming request and classifies the domain.
+      #
+      # This method is called for EVERY REQUEST routed to this middleware instance.
+      # In a modular monolith with multiple apps, different instances handle different
+      # URL prefixes, but all share the same domain classification logic via class state.
+      #
+      # ## Request Flow
+      #
+      # 1. Reads detected host from env (set by Rack::DetectHost middleware)
+      # 2. Uses class-level state (@canonical_domain) to classify the domain
+      # 3. Stores classification results in env (request-specific)
+      # 4. Passes env to next middleware via @app.call(env)
+      #
+      # ## Rack Environment Variables
+      #
+      # - env['onetime.display_domain']: Normalized domain for rendering/logging
+      # - env['onetime.domain_strategy']: Classification (:canonical, :subdomain, :custom, :invalid)
       #
       # @param env [Hash] The Rack environment hash
       # @return [Array] Standard Rack response array [status, headers, body]
@@ -221,25 +257,39 @@ module Onetime
         end
       end
 
+      # Shared Configuration State
+      #
+      # This module extends the DomainStrategy class to provide shared configuration
+      # across all middleware instances.
+      #
+      # ## Why Class-Level State?
+      #
+      # DomainStrategy instances are created multiple times (once per Rack app), but
+      # the configuration (canonical domain, feature flags) is the same for all instances.
+      # Class variables avoid redundant parsing and initialization.
+      #
+      #
+      # @note If dynamic reconfiguration is needed, consider using a thread-safe
+      #   configuration store (e.g., monitor pattern) instead of class variables.
       module ClassMethods
         attr_reader :canonical_domain, :domains_enabled, :canonical_domain_parsed
 
         alias domains_enabled? domains_enabled
 
         # Sets class instance variables based on the site configuration.
-        def initialize_from_config(config)
-          raise ArgumentError, 'Configuration cannot be nil' if config.nil?
+        def initialize_from_config(domains_config)
+          raise ArgumentError, 'Configuration cannot be nil' if domains_config.nil?
 
           Onetime.http_logger.debug 'DomainStrategy initializing from config', {
-            domains_enabled_before: @domains_enabled,
+            domains_enabled_before: domains_enabled,
           }
 
-          @domains_enabled  = config.dig('domains', 'enabled') || false
-          @canonical_domain = get_canonical_domain(config)
+          @domains_enabled  = domains_config.fetch('enabled', false)
+          @canonical_domain = get_canonical_domain(domains_config)
 
           Onetime.http_logger.debug 'DomainStrategy config loaded', {
-            domains_enabled: @domains_enabled,
-            canonical_domain: @canonical_domain,
+            domains_enabled: domains_enabled,
+            canonical_domain: canonical_domain,
           }
 
           # We don't need to get into any domain parsing if domains are disabled
@@ -247,15 +297,15 @@ module Onetime
 
           @canonical_domain_parsed = Parser.parse(canonical_domain)
         rescue PublicSuffix::DomainInvalid => ex
-          OT.le "[middleware] DomainStrategy: Invalid canonical domain: #{@canonical_domain.inspect} error=#{ex.message}"
+          OT.le "[middleware] DomainStrategy: Invalid canonical domain: #{canonical_domain.inspect} error=#{ex.message}"
           @domains_enabled = false
         end
 
         # The canonical domain is the configured default domain or the site host.
         # @return [String, nil] The canonical domain or nil
-        def get_canonical_domain(config)
-          default_domain = @domains_enabled ? config.dig('domains', 'default') : nil
-          site_host      = config.fetch('host', nil)
+        def get_canonical_domain(domains_config)
+          default_domain = domains_enabled ? domains_config.fetch('default') : nil
+          site_host      = OT.conf.dig('site', 'host') || nil
           default_domain || site_host
         end
 
