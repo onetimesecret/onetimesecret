@@ -1,11 +1,11 @@
 {
   "web": {
     "domains": {
-      "learn-more-dns": "",
-      "view-domain-verification-status": "",
-      "domain-already-in-organization": "",
-      "domain-in-other-organization": "",
-      "domain-claimed-successfully": ""
+      "learn-more-dns": "Tìm hiểu thêm về cấu hình DNS",
+      "view-domain-verification-status": "Xem trạng thái xác minh tên miền",
+      "domain-already-in-organization": "Tên miền này đã được đăng ký trong tổ chức của bạn",
+      "domain-in-other-organization": "Tên miền này đã được đăng ký cho một tổ chức khác. Vui lòng liên hệ bộ phận hỗ trợ nếu bạn cho rằng đây là lỗi.",
+      "domain-claimed-successfully": "Đã nhận quyền sở hữu tên miền và thêm vào tổ chức của bạn thành công"
     }
   }
 }
