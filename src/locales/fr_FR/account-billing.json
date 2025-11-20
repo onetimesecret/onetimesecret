@@ -99,7 +99,7 @@
         "inactive": "Inactif",
         "past_due": "En retard",
         "canceled": "Annulé",
-        "plan_name": "Forfait",
+        "catalog_name": "Forfait",
         "team_usage": "Utilisation des équipes",
         "teams_used": "{used} équipe(s) sur {limit} utilisée(s)"
       },

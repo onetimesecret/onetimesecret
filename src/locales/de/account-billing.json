@@ -99,7 +99,7 @@
         "inactive": "Inaktiv",
         "past_due": "Überfällig",
         "canceled": "Gekündigt",
-        "plan_name": "Plan",
+        "catalog_name": "Plan",
         "team_usage": "Team-Nutzung",
         "teams_used": "{used} von {limit} Teams genutzt"
       },

@@ -16,14 +16,14 @@ require_relative '../support/test_helpers'
 
 ## Setup: Load models and billing modules
 require 'lib/onetime/models/organization'
-require 'lib/onetime/billing/plan_definitions'
-require 'apps/web/billing/models/plan_cache'
+require 'lib/onetime/billing/catalog_definitions'
+require 'apps/web/billing/models/catalog_cache'
 
 ## Setup: Populate PlanCache with test data (replaces hardcoded PLAN_DEFINITIONS)
-Billing::Models::PlanCache.clear_cache
+Billing::Models::CatalogCache.clear_cache
 
 ## Free plan
-Billing::Models::PlanCache.new(
+Billing::Models::CatalogCache.new(
   plan_id: 'free',
   tier: 'free',
   interval: 'month',
@@ -33,7 +33,7 @@ Billing::Models::PlanCache.new(
 ).save
 
 ## Identity Plus v1
-Billing::Models::PlanCache.new(
+Billing::Models::CatalogCache.new(
   plan_id: 'identity_v1',
   tier: 'single_team',
   interval: 'month',
@@ -43,7 +43,7 @@ Billing::Models::PlanCache.new(
 ).save
 
 ## Multi-Team v1
-Billing::Models::PlanCache.new(
+Billing::Models::CatalogCache.new(
   plan_id: 'multi_team_v1',
   tier: 'multi_team',
   interval: 'month',
@@ -53,7 +53,7 @@ Billing::Models::PlanCache.new(
 ).save
 
 ## Legacy Identity v0 (for testing legacy plan support)
-Billing::Models::PlanCache.new(
+Billing::Models::CatalogCache.new(
   plan_id: 'identity_v0',
   tier: 'single_team',
   interval: 'month',
@@ -250,15 +250,15 @@ Onetime::Billing.upgrade_path_for('nonexistent_capability', 'free')
 #=> nil
 
 ## Test: Plan name for free
-Onetime::Billing.plan_name('free')
+Onetime::Billing.catalog_name('free')
 #=> "Free"
 
 ## Test: Plan name for identity_v1
-Onetime::Billing.plan_name('identity_v1')
+Onetime::Billing.catalog_name('identity_v1')
 #=> "Identity Plus"
 
 ## Test: Plan name for multi_team_v1
-Onetime::Billing.plan_name('multi_team_v1')
+Onetime::Billing.catalog_name('multi_team_v1')
 #=> "Multi-Team"
 
 ## Test: Legacy plan detection for v0
@@ -270,11 +270,11 @@ Onetime::Billing.legacy_plan?('identity_v1')
 #=> false
 
 ## Test: Available plans includes identity_v1
-Onetime::Billing.available_plans.include?('identity_v1')
+Onetime::Billing.available_catalogs.include?('identity_v1')
 #=> true
 
 ## Test: Available plans excludes legacy identity_v0
-Onetime::Billing.available_plans.include?('identity_v0')
+Onetime::Billing.available_catalogs.include?('identity_v0')
 #=> false
 
 ## Test: Capability categories are defined

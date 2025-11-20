@@ -99,7 +99,7 @@
         "inactive": "未激活",
         "past_due": "逾期",
         "canceled": "已取消",
-        "plan_name": "套餐",
+        "catalog_name": "套餐",
         "team_usage": "团队使用情况",
         "teams_used": "已使用 {used} 个（共 {limit} 个）团队"
       },

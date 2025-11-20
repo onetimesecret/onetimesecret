@@ -99,7 +99,7 @@
         "inactive": "Inactive",
         "past_due": "Past Due",
         "canceled": "Canceled",
-        "plan_name": "Plan",
+        "catalog_name": "Plan",
         "team_usage": "Team Usage",
         "teams_used": "{used} of {limit} teams used"
       },

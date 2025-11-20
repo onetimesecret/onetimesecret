@@ -99,7 +99,7 @@
         "inactive": "Không hoạt động",
         "past_due": "Quá hạn",
         "canceled": "Đã hủy",
-        "plan_name": "Gói",
+        "catalog_name": "Gói",
         "team_usage": "Sử dụng nhóm",
         "teams_used": "Đã sử dụng {used} trong số {limit} nhóm"
       },

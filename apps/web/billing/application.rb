@@ -58,7 +58,7 @@ module Billing
       # Refresh plan cache from Stripe on application boot
       Onetime.billing_logger.info 'Refreshing plan cache from Stripe'
       begin
-        Billing::Models::PlanCache.refresh_from_stripe
+        Billing::Models::CatalogCache.refresh_from_stripe
         Onetime.billing_logger.info 'Plan cache refreshed successfully'
       rescue StandardError => ex
         Onetime.billing_logger.error 'Failed to refresh plan cache', {

@@ -99,7 +99,7 @@
         "inactive": "לא פעיל",
         "past_due": "באיחור",
         "canceled": "בוטל",
-        "plan_name": "תוכנית",
+        "catalog_name": "תוכנית",
         "team_usage": "שימוש בצוותים",
         "teams_used": "{used} מתוך {limit} צוותים בשימוש"
       },

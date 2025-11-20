@@ -99,7 +99,7 @@
         "inactive": "Inattivo",
         "past_due": "Scaduto",
         "canceled": "Annullato",
-        "plan_name": "Piano",
+        "catalog_name": "Piano",
         "team_usage": "Utilizzo team",
         "teams_used": "{used} di {limit} team utilizzati"
       },

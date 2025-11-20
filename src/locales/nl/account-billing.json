@@ -99,7 +99,7 @@
         "inactive": "Inactief",
         "past_due": "Achterstallig",
         "canceled": "Geannuleerd",
-        "plan_name": "Abonnement",
+        "catalog_name": "Abonnement",
         "team_usage": "Teamgebruik",
         "teams_used": "{used} van {limit} teams gebruikt"
       },

@@ -101,10 +101,10 @@ module Rack
     # @return [String] Upgrade message
     def upgrade_message(org)
       upgrade_plan = Onetime::Billing.upgrade_path_for(@capability, org.planid)
-      plan_name    = Onetime::Billing.plan_name(upgrade_plan) if upgrade_plan
+      catalog_name    = Onetime::Billing.catalog_name(upgrade_plan) if upgrade_plan
 
-      if plan_name
-        "This feature requires #{plan_name}. Upgrade your plan to access #{@capability.tr('_', ' ')}."
+      if catalog_name
+        "This feature requires #{catalog_name}. Upgrade your plan to access #{@capability.tr('_', ' ')}."
       else
         'This feature is not available on your current plan.'
       end

@@ -1,4 +1,4 @@
-# try/billing/01_plan_cache_try.rb
+# try/billing/01_catalog_cache_try.rb
 #
 # frozen_string_literal: true
 
@@ -10,14 +10,14 @@ require_relative '../support/test_helpers'
 # Uses mock Stripe API responses to avoid external dependencies.
 
 ## Setup: Load billing models
-require 'apps/web/billing/models/plan_cache'
+require 'apps/web/billing/models/catalog_cache'
 
 ## Clear any existing plan cache
-Billing::Models::PlanCache.clear_cache.class
+Billing::Models::CatalogCache.clear_cache.class
 #=> Integer
 
 ## Create a mock plan manually (metadata-based plan_id with interval)
-@plan = Billing::Models::PlanCache.new(
+@plan = Billing::Models::CatalogCache.new(
   plan_id: 'identity_v1_monthly',
   stripe_price_id: 'price_test123',
   stripe_product_id: 'prod_test123',
@@ -34,11 +34,11 @@ Billing::Models::PlanCache.clear_cache.class
 #=> true
 
 ## Verify plan was saved
-Billing::Models::PlanCache.values.size
+Billing::Models::CatalogCache.values.size
 #=> 1
 
 ## Retrieve plan by ID (metadata-based with interval)
-@retrieved = Billing::Models::PlanCache.load('identity_v1_monthly')
+@retrieved = Billing::Models::CatalogCache.load('identity_v1_monthly')
 @retrieved.tier
 #=> 'single_team'
 
@@ -50,13 +50,13 @@ Billing::Models::PlanCache.values.size
 @retrieved.parsed_limits
 #=> {"teams"=>1, "members_per_team"=>10}
 
-## Get plan using tier, interval, region
-@monthly_plan = Billing::Models::PlanCache.get_plan('single_team', 'monthly', 'us-east')
-@monthly_plan.plan_id
+## Get catalog using tier, interval, region
+@monthly_catalog = Billing::Models::CatalogCache.get_catalog('single_team', 'monthly', 'us-east')
+@monthly_catalog.catalog_id
 #=> 'identity_v1_monthly'
 
 ## Get plan with yearly interval (different plan_id for yearly)
-@yearly_plan = Billing::Models::PlanCache.new(
+@yearly_plan = Billing::Models::CatalogCache.new(
   plan_id: 'identity_v1_yearly',
   stripe_price_id: 'price_yearly123',
   stripe_product_id: 'prod_test123',
@@ -69,16 +69,16 @@ Billing::Models::PlanCache.values.size
   features: '["Feature 1", "Feature 2"]',
   limits: '{"teams": 1, "members_per_team": 10}'
 )
-@yearly_plan.save
-@yearly_retrieved = Billing::Models::PlanCache.get_plan('single_team', 'yearly', 'us-east')
-@yearly_retrieved.plan_id
+@yearly_catalog.save
+@yearly_retrieved = Billing::Models::CatalogCache.get_catalog('single_team', 'yearly', 'us-east')
+@yearly_retrieved.catalog_id
 #=> 'identity_v1_yearly'
 
 ## List all plans
-Billing::Models::PlanCache.list_plans.size
+Billing::Models::CatalogCache.list_catalogs.size
 #=> 2
 
 ## Clear cache
-Billing::Models::PlanCache.clear_cache
-Billing::Models::PlanCache.values.size
+Billing::Models::CatalogCache.clear_cache
+Billing::Models::CatalogCache.values.size
 #=> 0
