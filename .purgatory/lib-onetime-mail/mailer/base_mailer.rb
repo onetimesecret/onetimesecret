@@ -7,12 +7,12 @@ module Onetime
     module Mailer
       class BaseMailer
         attr_accessor :reply_to
-        attr_reader :from, :fromname
+        attr_reader :from, :from_name
 
-        def initialize(from, fromname, reply_to = nil)
-          OT.ld "[mail-init] from:#{from}, fromname:#{fromname}, reply-to:#{reply_to}"
+        def initialize(from, from_name, reply_to = nil)
+          OT.ld "[mail-init] from:#{from}, from_name:#{from_name}, reply-to:#{reply_to}"
           @from     = from
-          @fromname = fromname
+          @from_name = from_name
           @reply_to = reply_to
         end
 

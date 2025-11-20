@@ -19,7 +19,7 @@ RSpec.shared_context "mail_test_context" do
       'emailer' => {
         'mode' => :smtp,
         'from' => 'sender@example.com',
-        'fromname' => 'Test Sender',
+        'from_name' => 'Test Sender',
         'host' => 'smtp.example.com',
         'port' => 587,
         'user' => 'testuser',
@@ -102,7 +102,7 @@ RSpec.shared_context "mail_test_context" do
       allow(emailer).to receive(:send_email)
         .and_return({ status: 'sent', message_id: 'test123' })
       # Expect this to be called during initialization
-      allow(emailer).to receive(:fromname) #.with('Onetime Secret')
+      allow(emailer).to receive(:from_name) #.with('Onetime Secret')
     end
   end
 
@@ -122,7 +122,7 @@ RSpec.shared_context "mail_test_context" do
     allow(OT::Mail::Mailer::SMTPMailer).to receive(:new)
       .with(
         mail_config['emailer']['from'],
-        mail_config['emailer']['fromname'],
+        mail_config['emailer']['from_name'],
         anything,  # This allows any third parameter for reply_to
       )
       .and_return(mailer)
@@ -130,7 +130,7 @@ RSpec.shared_context "mail_test_context" do
     allow(OT::Mail::Mailer::SendGridMailer).to receive(:new)
       .with(
         mail_config['emailer']['from'],
-        mail_config['emailer']['fromname'],
+        mail_config['emailer']['from_name'],
         anything,  # This allows any third parameter for reply_to
       )
       .and_return(mailer)

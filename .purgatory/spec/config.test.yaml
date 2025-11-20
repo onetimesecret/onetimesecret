@@ -96,7 +96,7 @@ logging:
 emailer:
   mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
   from: <%= ENV['FROM_EMAIL'] || ENV['FROM_EMAIL'] || 'tests@example.com' %>
-  fromname: <%= ENV['FROMNAME'] || 'Jan' %>
+  from_name: <%= ENV['from_name'] || 'Jan' %>
   host: <%= ENV['SMTP_HOST'] || 'localhost' %>
   port: <%= ENV['SMTP_PORT'] || 587 %>
   user: <%= ENV['SMTP_USERNAME'] || 'user' %>

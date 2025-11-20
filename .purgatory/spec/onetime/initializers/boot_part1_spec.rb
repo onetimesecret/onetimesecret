@@ -179,7 +179,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!", :allow_redis do
         emailer:
           mode: 'smtp'
           from: 'x@y.z'
-          fromname: 'N'
+          from_name: 'N'
           host: 'h'
           port: 1
           user: ''
