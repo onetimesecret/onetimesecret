@@ -1,20 +1,20 @@
 {
   "email": {
     "incomingsupport": {
-      "subject": "[Ticket: %s]",
-      "body1": "A customer has sent the following info"
+      "subject": "[Zahtevek: %s]",
+      "body1": "Stranka je poslala naslednje informacije"
     },
     "secretlink": {
-      "subject": "%s sent you a secret",
-      "body1": "We have a secret for you from",
-      "body_tagline": "If you don't know the sender or believe it to be spam, send us the details here:"
+      "subject": "%s vam je poslal skrivnost",
+      "body1": "Imamo skrivnost za vas od",
+      "body_tagline": "Če ne poznate pošiljatelja ali menite, da gre za neželeno pošto, nam pošljite podrobnosti tukaj:"
     },
     "welcome": {
-      "subject": "Verify your Onetime Secret account",
-      "body1": "Welcome to Onetime Secret. We have a secret for you!",
-      "please_verify": "Please verify your account:",
-      "postscript1": "This email was sent to",
-      "postscript2": "If you didn't create this account, delete this message and we won't contact you again."
+      "subject": "Preverite svoj račun Onetime Secret",
+      "body1": "Dobrodošli v Onetime Secret. Imamo skrivnost za vas!",
+      "please_verify": "Preverite svoj račun:",
+      "postscript1": "Ta e-pošta je bila poslana na",
+      "postscript2": "Če niste ustvarili tega računa, izbrišite to sporočilo in vas ne bomo več kontaktirali."
     }
   }
 }

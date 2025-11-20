@@ -1,61 +1,61 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Seguretat",
+      "learn-about-our-security-measures": "Més informació sobre les nostres mesures de seguretat",
+      "view-our-terms-and-conditions": "Consulta els nostres termes i condicions",
+      "terms": "Termes",
+      "privacy": "Privadesa",
+      "contact": "Contacte",
+      "support": "Assistència",
+      "legals": "Aspectes legals",
+      "read-our-privacy-policy": "Llegeix la nostra política de privadesa",
+      "check-our-service-status": "Comprova l'estat del nostre servei",
+      "explore-our-api-documentation": "Explora la nostra documentació de l'API",
+      "docs": "Documentació",
+      "access-our-documentation": "Accedeix a la nostra documentació",
+      "view-our-source-code-on-github": "Visualitza el nostre codi font a GitHub",
+      "resources": "Recursos",
+      "blog": "Blog",
+      "read-our-latest-blog-posts": "Llegeix les nostres últimes entrades del blog",
+      "view-our-subscription-pricing": "Consulta els nostres preus de subscripció",
+      "learn-about-our-company": "Més informació sobre la nostra empresa",
+      "company": "Empresa"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Facturació",
+      "billingOverview": "Resum",
+      "organizations": "Organitzacions"
     },
     "site": {
-      "website-version": ""
+      "website-version": "Versió del lloc web"
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "",
-      "translations-are-new-spotted-an-error": "",
-      "we-recently-added-translations": "",
-      "privacy-and-security-should-be-accessible": ""
+      "were-making-onetime-secret-available-in-multiple": "Estem fent que {onetime-secret} estigui disponible en diversos idiomes. Com que aquesta és una funció nova, és possible que trobis errors de traducció o redacció estranya. Els teus comentaris ens ajuden a millorar: si detectes algun problema, {send-feedback}",
+      "translations-are-new-spotted-an-error": "Les traduccions són noves. Has detectat un error? {send-feedback}",
+      "we-recently-added-translations": "Recentment hem afegit traduccions. Has detectat un error? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "La privadesa i la seguretat han de ser accessibles per a tothom, independentment de l'idioma. Estem afegint traduccions per ajudar tant els nostres usuaris com els destinataris dels seus missatges a entendre millor com utilitzar i accedir de manera segura als missatges i enllaços segurs. Com que aquesta és una funció nova, és possible que trobis alguns errors de traducció o instruccions poc clares. Per ajudar-nos a millorar la claredat i la precisió de les nostres traduccions, especialment per al contingut crític relacionat amb la seguretat, {send-feedback} si detectes algun problema"
     },
     "help": {
-      "learn_more": "",
+      "learn_more": "Més informació",
       "secret_view_faq": {
         "what_am_i_looking_at": {
-          "title": "",
-          "description": ""
+          "title": "Què estic veient?",
+          "description": "Estàs visualitzant un missatge segur que s'ha compartit amb tu a través d'Onetime Secret. Aquest contingut es mostra només una vegada i després se suprimeix permanentment dels nostres servidors."
         },
         "can_i_view_again": {
-          "title": "",
-          "description": ""
+          "title": "Puc tornar a veure aquest secret més tard?",
+          "description": "No. Per motius de seguretat, aquest secret només es pot visualitzar una vegada. Després de tancar aquesta pàgina, el contingut se suprimirà permanentment i ningú el podrà recuperar, ni tan sols nosaltres."
         },
         "how_to_copy": {
-          "title": "",
-          "description": ""
+          "title": "Com puc desar aquesta informació?",
+          "description": "Utilitza el botó 'Copia al porta-retalls' per copiar el secret complet. Per a secrets més llargs, assegura't de verificar que has copiat el contingut complet abans de sortir d'aquesta pàgina."
         },
         "is_my_viewing_tracked": {
-          "title": "",
-          "description": ""
+          "title": "Es fa un seguiment de la meva visualització d'aquest secret?",
+          "description": "El remitent serà notificat que el seu secret s'ha visualitzat, però no fem un seguiment de qui l'ha visualitzat ni des d'on. La teva privadesa està protegida."
         },
-        "one_time_warning": ""
+        "one_time_warning": "Una vegada que sortis o actualitzis aquesta pàgina, aquest secret se suprimirà permanentment i ningú el podrà recuperar."
       }
     }
   }

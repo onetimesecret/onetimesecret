@@ -1,20 +1,20 @@
 {
   "email": {
     "incomingsupport": {
-      "subject": "[Ticket:% s]",
-      "body1": "Un client ha enviat la següent informació"
+      "subject": "[Tiquet:% s]",
+      "body1": "Un client ha enviat la informació següent"
     },
     "secretlink": {
-      "subject": "% s us ha enviat un secret",
-      "body1": "Tenim un secret per a tu de la part de",
-      "body_tagline": "Si no coneixes l'expedidor o creus que és correu porqueria, envia'ns-en els detalls aquí:"
+      "subject": "% s t'ha enviat un secret",
+      "body1": "Tenim un secret per a tu de part de",
+      "body_tagline": "Si no coneixes el remitent o creus que és correu brossa, envia'ns els detalls aquí:"
     },
     "welcome": {
-      "subject": "Verifiqueu el vostre compte secret d'un sol ús",
-      "body1": "Benvingut al compte secret d'un sol ús. Tenim un secret per a vós!",
-      "please_verify": "Verifiqueu el vostre compte:",
+      "subject": "Verifica el teu compte d'Onetime Secret",
+      "body1": "Benvingut a Onetime Secret. Tenim un secret per a tu!",
+      "please_verify": "Verifica el teu compte:",
       "postscript1": "Aquest correu electrònic s'ha enviat a",
-      "postscript2": "Si no heu creat aquest compte, esborra aquest missatge i ja no us escriurem pas més."
+      "postscript2": "Si no has creat aquest compte, suprimeix aquest missatge i no et tornarem a escriure."
     }
   }
 }

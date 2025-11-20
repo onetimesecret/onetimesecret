@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "Chủ quyền dữ liệu & Cô lập khu vực",
+      "data-sovereignty-description": "Dữ liệu của bạn chỉ lưu trữ trong khu vực bạn chọn và không bao giờ được chuyển qua các khu vực khác",
+      "separate-environments-explanation": "Mỗi khu vực hoạt động như một môi trường hoàn toàn độc lập với cơ sở hạ tầng, khóa mã hóa và lưu trữ dữ liệu riêng",
+      "no-data-transfer-policy": "Chúng tôi duy trì chính sách nghiêm ngặt: dữ liệu khách hàng không bao giờ được chuyển giữa các khu vực trong bất kỳ trường hợp nào",
+      "switching-creates-new-account": "Quan trọng: Chuyển sang khu vực khác sẽ tạo một tài khoản mới. Dữ liệu của bạn vẫn ở khu vực ban đầu.",
+      "your-region": "Khu vực của bạn",
+      "your-current-region": "Khu vực hiện tại của bạn",
+      "active": "Hoạt động",
+      "explore-other-regions": "Khám phá các khu vực khả dụng khác",
+      "why-it-matters": "Tại sao chủ quyền dữ liệu quan trọng",
+      "trust-title": "Minh bạch & Kiểm soát",
+      "trust-description": "Biết chính xác nơi lưu trữ dữ liệu của bạn và luật pháp nào chi phối việc bảo vệ dữ liệu đó.",
+      "privacy-title": "Quyền riêng tư",
+      "privacy-description": "Đảm bảo thông tin cá nhân của bạn được xử lý theo luật pháp và quy định về quyền riêng tư của quốc gia bạn, ngăn chặn truy cập trái phép hoặc lạm dụng.",
+      "compliance-title": "Tuân thủ quy định",
+      "compliance-description": "Đáp ứng GDPR, HIPAA, CCPA và các yêu cầu bảo vệ dữ liệu khu vực khác",
+      "performance-title": "Truy cập nhanh hơn",
+      "performance-description": "Dữ liệu lưu trữ gần bạn hơn có nghĩa là độ trễ thấp hơn và hiệu suất tốt hơn."
     }
   }
 }

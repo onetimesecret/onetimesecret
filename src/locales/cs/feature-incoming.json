@@ -1,17 +1,17 @@
 {
   "web": {
     "incoming": {
-      "tagline1": "Níže vložte heslo, tajnou zprávu nebo soukromý odkaz.",
-      "tagline2": "Udržujte citlivé informace mimo svůj email a záznamy chatů.",
-      "secret_hint": "* Tajný odkaz bude fungovat pouze jednou a pak zmizí navždy.",
-      "incoming_button_create": "Odeslat na oddělení podpory",
-      "incoming_secret_options": "Informace podpory",
-      "incoming_secret_placeholder": "Zadejte informace, které bude potřebovat pracovník podpory (např. systémové heslo)",
-      "incoming_ticket_number": "Zadejte číslo ticketu",
-      "incoming_ticket_number_hint": "Můžete jej nalézt ve svém emailu (např. 123456)",
-      "incoming_recipient_address": "Adresa podpory",
-      "incoming_success_message": "Váš email byl odeslán",
-      "incoming_button_creating": ""
+      "tagline1": "Níže vlož heslo, tajnou zprávu nebo soukromý odkaz.",
+      "tagline2": "Udržuj citlivé informace mimo svůj e-mail a záznamy chatů.",
+      "secret_hint": "* Tajný odkaz funguje pouze jednou a pak navždy zmizí.",
+      "incoming_button_create": "Odeslat pracovníkům podpory",
+      "incoming_secret_options": "Informace pro podporu",
+      "incoming_secret_placeholder": "Zadej jakékoli informace, které bude pracovník podpory potřebovat (např. systémové heslo)",
+      "incoming_ticket_number": "Zadej číslo ticketu",
+      "incoming_ticket_number_hint": "Najdeš ho ve svém e-mailu (např. 123456)",
+      "incoming_recipient_address": "Příjemce podpory",
+      "incoming_success_message": "Tvůj e-mail byl odeslán",
+      "incoming_button_creating": "Vytvářím"
     }
   }
 }

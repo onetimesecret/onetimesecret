@@ -15,17 +15,17 @@
       "explore_premium_plans": "استكشف الخطط المميزة",
       "need_free_account": "هل تبدأ للتو؟",
       "sign_up_free": "أنشئ حسابًا مجانيًا",
-      "visit-onetime-secret-home": "",
-      "password_generation_title": "",
-      "password_generation_description": "",
-      "protip1": "",
+      "visit-onetime-secret-home": "زيارة الصفحة الرئيسية لـ Onetime Secret",
+      "password_generation_title": "مولد كلمات المرور",
+      "password_generation_description": " انقر على \"توليد كلمة المرور\" لإنشاء كلمة مرور عشوائية آمنة يمكنك مشاركتها.",
+      "protip1": "رسالتك ستدمر نفسها تلقائياً بعد عرضها. لا يمكن الوصول إلى الرابط إلا مرة واحدة.",
       "authonly": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "لا تستخدم معلوماتك الحساسة في محادثاتك او رسائل البريد",
+        "tagline1": ".ضع كلمة مرور، رسالة سرية او رابطاً خاصاً أدناه"
       },
       "disabled": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "لا تستخدم معلوماتك الحساسة في محادثاتك او رسائل البريد",
+        "tagline1": ".ضع كلمة مرور، رسالة سرية او رابطاً خاصاً أدناه"
       }
     }
   }

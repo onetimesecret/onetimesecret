@@ -2,30 +2,30 @@
   "web": {
     "homepage": {
       "tagline1": "Enganxa una contrasenya, un missatge secret o un enllaç privat a sota.",
-      "tagline2": "Mantenir protegida la informació sensible del correu electrònic i dels registres de xat",
-      "secret_hint": "* Un enllaç secret que solament funciona una vegada i després desapareix per sempre.",
-      "secret_form_more_text1": "Inscriu-t'hi per a obtenir un",
+      "tagline2": "Mantén protegida la informació sensible del correu electrònic i dels registres de xat",
+      "secret_hint": "* Un enllaç secret que només funciona una vegada i després desapareix per sempre.",
+      "secret_form_more_text1": "Registra't per obtenir un",
       "secret_form_more_text2": "compte gratuït",
-      "secret_form_more_text3": "afegeix frases de contrasenya per a una més gran seguretat com també amb les opcions de privadesa addicionals Fins i tot t'enviem un correu electrònic cap a l'enllaç, si ho desitges.",
-      "cta_title": "Utilitzeu un domini personalitzat",
-      "cta_subtitle": "Eleveu la vostra marca i compartiu amb confiança",
-      "cta_feature1": "El vostre propi domini personalitzat",
+      "secret_form_more_text3": "afegeix frases de contrasenya per a una major seguretat, així com opcions de privadesa addicionals. Fins i tot t'enviem un correu electrònic amb l'enllaç, si ho desitges.",
+      "cta_title": "Utilitza un domini personalitzat",
+      "cta_subtitle": "Eleva la teva marca i comparteix amb confiança",
+      "cta_feature1": "El teu propi domini personalitzat",
       "cta_feature2": "Compartició il·limitada de secrets",
       "cta_feature3": "Controls de privadesa avançats",
-      "explore_premium_plans": "Exploreu els plans premium",
+      "explore_premium_plans": "Explora els plans premium",
       "need_free_account": "Només començant?",
-      "sign_up_free": "Creeu un compte gratuït",
-      "visit-onetime-secret-home": "",
-      "password_generation_title": "",
-      "password_generation_description": "",
-      "protip1": "",
+      "sign_up_free": "Crea un compte gratuït",
+      "visit-onetime-secret-home": "Visita la pàgina inicial d'Onetime Secret",
+      "password_generation_title": "Generador de contrasenyes",
+      "password_generation_description": "Fes clic a \"Genera una contrasenya\" per crear una contrasenya aleatòria segura que puguis compartir.",
+      "protip1": "El teu missatge s'autodestruirà després de ser visualitzat. L'enllaç només es pot accedir una vegada.",
       "authonly": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Mantén protegida la informació sensible del correu electrònic i dels registres de xat",
+        "tagline1": "Enganxa una contrasenya, un missatge secret o un enllaç privat a sota."
       },
       "disabled": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Mantén protegida la informació sensible del correu electrònic i dels registres de xat",
+        "tagline1": "Enganxa una contrasenya, un missatge secret o un enllaç privat a sota."
       }
     }
   }

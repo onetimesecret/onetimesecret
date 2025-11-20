@@ -7,25 +7,25 @@
       "secret_form_more_text1": "Zaregistrujte se pro",
       "secret_form_more_text2": "účet zdarma",
       "secret_form_more_text3": "pro nastavení heslových frází pro větší bezpečnost spolu s více možnostmi soukromí. Můžeme za vás odeslat odkaz emailem, když budete chtít.",
-      "cta_title": "Použijte vlastní doménu",
-      "cta_subtitle": "Pozvedněte svou značku a sdílejte s jistotou",
-      "cta_feature1": "Vaše vlastní přizpůsobená doména",
+      "cta_title": "Zvyš důvěru a sdílej s jistotou",
+      "cta_subtitle": "Pozvedni svou značku a sdílej s jistotou",
+      "cta_feature1": "Neomezené vlastní domény",
       "cta_feature2": "Neomezené sdílení tajemství",
-      "cta_feature3": "Pokročilé ovládací prvky soukromí",
-      "explore_premium_plans": "Prozkoumat prémiové plány",
-      "need_free_account": "Teprve začínáte?",
-      "sign_up_free": "Vytvořit bezplatný účet",
-      "visit-onetime-secret-home": "",
-      "password_generation_title": "",
-      "password_generation_description": "",
-      "protip1": "",
+      "cta_feature3": "Zvyš důvěru zákazníků a zapojení",
+      "explore_premium_plans": "S vlastními doménami",
+      "need_free_account": "Teprve začínáš? Posílej e-maily s bezplatným účtem.",
+      "sign_up_free": "Bezplatná registrace",
+      "visit-onetime-secret-home": "Navštívit domovskou stránku Onetime Secret",
+      "password_generation_title": "Generátor hesel",
+      "password_generation_description": " Klikni na „Vygenerovat heslo" pro vytvoření bezpečného náhodného hesla, které můžeš sdílet.",
+      "protip1": "Tvá zpráva se samo-zničí po zobrazení. Odkaz lze otevřít pouze jednou.",
       "authonly": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Služba bezpečného zasílání zpráv je pouze pro interní použití.",
+        "tagline1": "Pokud máš účet, přihlas se prosím pro pokračování."
       },
       "disabled": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Tato služba je nastavena pouze pro interní použití.",
+        "tagline1": "Uživatelské rozhraní a možnosti přihlášení nejsou k dispozici."
       }
     }
   }

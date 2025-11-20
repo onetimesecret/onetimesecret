@@ -1,10 +1,10 @@
 {
   "web": {
     "dashboard": {
-      "title_received": "Received",
-      "title_not_received": "Not Received",
-      "title_no_recent_secrets": "Nincs friss titok",
-      "get-started-by-creating-your-first-secret": ""
+      "title_received": "Megkapva",
+      "title_not_received": "Nem kapott meg",
+      "title_no_recent_secrets": "Nincsenek legutóbbi titkok",
+      "get-started-by-creating-your-first-secret": "Kezdje el első titka létrehozásával."
     }
   }
 }
