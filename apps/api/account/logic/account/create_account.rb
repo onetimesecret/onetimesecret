@@ -33,6 +33,7 @@ module AccountAPI::Logic
         # success response in both cases. This prevents attackers from discovering which
         # emails are registered in the system by observing different validation error messages.
         raise_form_error 'Is that a valid email address?', field: 'login', error_type: 'invalid' unless valid_email?(email)
+        raise_form_error 'Email domain not allowed for sign-up', field: 'login', error_type: 'invalid' unless allowed_signup_domain?(email)
         raise_form_error 'Password is too short', field: 'password', error_type: 'too_short' unless password.size >= 6
       end
 
@@ -107,6 +108,17 @@ module AccountAPI::Logic
 
       def form_fields
         { email: email }
+      end
+
+      def allowed_signup_domain?(email)
+        allowed_domains = OT.conf.dig('site', 'authentication', 'allowed_signup_domains')
+
+        return true if allowed_domains.nil? || allowed_domains.empty?
+
+        email_domain = email.to_s.downcase.split('@').last
+        return false if email_domain.nil? || email_domain.empty?
+
+        allowed_domains.map(&:downcase).include?(email_domain)
       end
     end
   end
