@@ -114,6 +114,46 @@ end
 @canceled_sub2.status
 #=> 'canceled'
 
+## Sprint 2 Tests: Subscription Pause/Resume and Customer Show
+
+## Setup: Create another subscription for pause/resume testing
+@subscription3 = Stripe::Subscription.create({
+  customer: @customer_id,
+  items: [{ price: @price.id }],
+  payment_behavior: 'default_incomplete'
+})
+
+## Test: Pause subscription via CLI
+`bin/ots billing subscriptions pause #{@subscription3.id} --force` =~ /Subscription paused successfully/
+#=> 0
+
+## Test: Verify subscription is paused in Stripe
+@paused_sub = Stripe::Subscription.retrieve(@subscription3.id)
+@paused_sub.pause_collection.present?
+#=> true
+
+## Test: Resume paused subscription via CLI
+`bin/ots billing subscriptions resume #{@subscription3.id} --force` =~ /Subscription resumed successfully/
+#=> 0
+
+## Test: Verify subscription is no longer paused
+@resumed_sub = Stripe::Subscription.retrieve(@subscription3.id)
+@resumed_sub.pause_collection.nil?
+#=> true
+
+## Test: Show customer details via CLI includes email
+`bin/ots billing customers show #{@customer_id}` =~ /Email: #{Regexp.escape(@customer.email)}/
+#=> 0
+
+## Test: Show customer details includes payment methods
+@show_output = `bin/ots billing customers show #{@customer_id}`
+@show_output.include?('Payment Methods:') && @show_output.include?('****4242')
+#=> true
+
+## Test: Show customer details includes subscriptions
+@show_output.include?('Subscriptions:') && @show_output.include?(@subscription3.id)
+#=> true
+
 ## Teardown: Clean up test resources
 Stripe::Customer.delete(@customer_id)
 Stripe::Product.delete(@product.id) if defined?(@product) && @product
