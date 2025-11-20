@@ -36,6 +36,7 @@ module Onetime
     #     header: 'O-Access-Mode'
     #     allow: 'normal'
     #     deny: 'protected'
+    #   trusted_proxy_depth: 1  # Number of trusted proxies in chain
     # ```
     #
     # ## Usage
@@ -64,6 +65,23 @@ module Onetime
     # - Only trusted infrastructure (reverse proxy, load balancer) knows secret
     # - Separation of concerns: middleware signals, application enforces
     # - Runs before IPPrivacyMiddleware to access original IPs
+    #
+    # ⚠️  CRITICAL: X-Forwarded-For Security
+    #
+    # By default (trusted_proxy_depth: 0), X-Forwarded-For is IGNORED to prevent
+    # IP spoofing attacks. Only set trusted_proxy_depth > 0 when ALL these conditions are met:
+    #
+    # 1. Application is behind a trusted reverse proxy
+    # 2. Direct access to application is BLOCKED by firewall
+    # 3. Proxy strips/overrides any client-provided X-Forwarded-For headers
+    #
+    # Example attack without firewall protection:
+    #   curl -H "X-Forwarded-For: 10.0.0.1" http://app:3000/
+    #   # Attacker spoofs internal IP, bypassing allowlist
+    #
+    # Safe configuration requires both:
+    # - trusted_proxy_depth matching your proxy chain length
+    # - Firewall rules blocking direct access to application
     #
     class AccessControl
       include ::Middleware::Logging
@@ -152,6 +170,7 @@ module Onetime
             allow: config.dig(:mode, :allow) || 'normal',
             deny: config.dig(:mode, :deny) || 'protected',
           },
+          trusted_proxy_depth: config[:trusted_proxy_depth].nil? ? 0 : config[:trusted_proxy_depth].to_i,
         }
       end
 
@@ -186,21 +205,33 @@ module Onetime
       # Extract client IP address from request
       #
       # Priority:
-      # 1. X-Forwarded-For (first IP in list)
+      # 1. X-Forwarded-For (with trusted proxy depth consideration)
       # 2. REMOTE_ADDR
+      #
+      # Security: When trusted_proxy_depth is 0 (default), X-Forwarded-For is
+      # IGNORED to prevent IP spoofing. Only use trusted_proxy_depth > 0 when:
+      # - Application is behind a trusted reverse proxy
+      # - Direct access to application is blocked by firewall
+      # - Proxy is configured to strip/override client-provided X-Forwarded-For
       #
       # @param env [Hash] Rack environment
       # @return [String, nil] Client IP address or nil
       def extract_client_ip(env)
-        # Try X-Forwarded-For first (proxy/load balancer environment)
-        if env['HTTP_X_FORWARDED_FOR']
+        # Only trust X-Forwarded-For if explicitly configured
+        if @config[:trusted_proxy_depth] > 0 && env['HTTP_X_FORWARDED_FOR']
           forwarded_ips = env['HTTP_X_FORWARDED_FOR'].split(',').map(&:strip)
-          ip = forwarded_ips.first
-          logger.debug("[AccessControl] Using X-Forwarded-For: #{ip}")
+
+          # Take the rightmost IP that's outside our proxy chain
+          # If trusted_proxy_depth = 1, take the last IP (closest to us)
+          # If trusted_proxy_depth = 2, take second-to-last IP, etc.
+          index = -(1 + @config[:trusted_proxy_depth])
+          ip = forwarded_ips[index] || forwarded_ips.first
+
+          logger.debug("[AccessControl] Using X-Forwarded-For[#{index}]: #{ip} (depth: #{@config[:trusted_proxy_depth]})")
           return ip
         end
 
-        # Fallback to REMOTE_ADDR
+        # Default: Use REMOTE_ADDR (most secure, can't be spoofed)
         ip = env['REMOTE_ADDR']
         logger.debug("[AccessControl] Using REMOTE_ADDR: #{ip}")
         ip

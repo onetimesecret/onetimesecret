@@ -47,7 +47,7 @@ access_control:
   enabled: true
 
   trigger:
-    header: 'X-Access-Control-Trigger'
+    header: 'O-Access-Control-Trigger'
     secret: '<STRONG_RANDOM_SECRET>'  # openssl rand -base64 32
 
   allowed_cidrs:
@@ -98,7 +98,7 @@ example.com {
     # Homepage access control
     @homepage path /
     handle @homepage {
-        header_up X-Access-Control-Trigger "your-shared-secret-here"
+        header_up O-Access-Control-Trigger "your-shared-secret-here"
         reverse_proxy localhost:3000
     }
 
@@ -116,7 +116,7 @@ server {
 
     location / {
         # Set trigger header for homepage
-        proxy_set_header X-Access-Control-Trigger "your-shared-secret-here";
+        proxy_set_header O-Access-Control-Trigger "your-shared-secret-here";
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_pass http://localhost:3000;
     }
@@ -137,7 +137,7 @@ frontend https_frontend
 
     # Set trigger header for homepage
     acl is_homepage path -i /
-    http-request set-header X-Access-Control-Trigger "your-shared-secret-here" if is_homepage
+    http-request set-header O-Access-Control-Trigger "your-shared-secret-here" if is_homepage
 
     default_backend app_backend
 
@@ -258,12 +258,12 @@ end
 
 ```bash
 # Test with internal IP (should allow)
-curl -H "X-Access-Control-Trigger: your-secret" \
+curl -H "O-Access-Control-Trigger: your-secret" \
      -H "X-Forwarded-For: 10.0.0.1" \
      http://localhost:3000/
 
 # Test with external IP (should restrict)
-curl -H "X-Access-Control-Trigger: your-secret" \
+curl -H "O-Access-Control-Trigger: your-secret" \
      -H "X-Forwarded-For: 203.0.113.1" \
      http://localhost:3000/
 
@@ -272,7 +272,7 @@ curl -H "X-Forwarded-For: 203.0.113.1" \
      http://localhost:3000/
 
 # Check mode header in response (for debugging)
-curl -v -H "X-Access-Control-Trigger: your-secret" \
+curl -v -H "O-Access-Control-Trigger: your-secret" \
         -H "X-Forwarded-For: 10.0.0.1" \
         http://localhost:3000/ 2>&1 | grep -i x-access-mode
 ```
@@ -382,7 +382,7 @@ curl -v http://localhost:3000/ 2>&1 | grep -i forward
 example.com {
     @homepage path /
     handle @homepage {
-        header_up X-Access-Control-Trigger "shared-secret-123"
+        header_up O-Access-Control-Trigger "shared-secret-123"
         reverse_proxy localhost:3000
     }
     reverse_proxy localhost:3000
@@ -424,14 +424,14 @@ example.com {
     # Protected routes - require internal IP
     @protected path /admin /dashboard
     handle @protected {
-        header_up X-Access-Control-Trigger "admin-secret"
+        header_up O-Access-Control-Trigger "admin-secret"
         reverse_proxy localhost:3000
     }
 
     # API routes - different secret
     @api path /api/*
     handle @api {
-        header_up X-Access-Control-Trigger "api-secret"
+        header_up O-Access-Control-Trigger "api-secret"
         reverse_proxy localhost:3000
     }
 

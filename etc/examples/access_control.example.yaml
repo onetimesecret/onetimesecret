@@ -23,7 +23,7 @@
 # example.com {
 #     @homepage path /
 #     handle @homepage {
-#         header_up X-Access-Control-Trigger "your-shared-secret"
+#         header_up O-Access-Control-Trigger "your-shared-secret"
 #         reverse_proxy localhost:3000
 #     }
 #     reverse_proxy localhost:3000
@@ -34,7 +34,7 @@
 #
 # ```
 # location / {
-#     proxy_set_header X-Access-Control-Trigger "your-shared-secret";
+#     proxy_set_header O-Access-Control-Trigger "your-shared-secret";
 #     proxy_pass http://localhost:3000;
 # }
 # ```
@@ -70,7 +70,7 @@ access_control:
     # Header name that reverse proxy will set
     # Standard practice: Use 'X-' prefix for custom headers
     #
-    header: <%= ENV['ACCESS_CONTROL_TRIGGER_HEADER'] || 'X-Access-Control-Trigger' %>
+    header: <%= ENV['ACCESS_CONTROL_TRIGGER_HEADER'] || 'O-Access-Control-Trigger' %>
 
     # Shared secret between infrastructure and application
     #
@@ -83,6 +83,33 @@ access_control:
     # Generate with: openssl rand -base64 32
     #
     secret: <%= ENV['ACCESS_CONTROL_TRIGGER_SECRET'] %>
+
+  # Trusted Proxy Depth
+  #
+  # ⚠️  CRITICAL SECURITY SETTING
+  #
+  # Number of trusted proxies in your infrastructure chain. This determines
+  # how X-Forwarded-For header is interpreted to prevent IP spoofing.
+  #
+  # DEFAULT: 0 (X-Forwarded-For IGNORED, uses REMOTE_ADDR only)
+  #
+  # Only set > 0 when ALL these conditions are met:
+  # 1. Application is behind a trusted reverse proxy
+  # 2. Direct access to application is BLOCKED by firewall
+  # 3. Proxy strips/overrides client-provided X-Forwarded-For
+  #
+  # Values:
+  # - 0: Ignore X-Forwarded-For, use REMOTE_ADDR (SAFEST, DEFAULT)
+  # - 1: Trust 1 proxy (use rightmost IP in X-Forwarded-For)
+  # - 2: Trust 2 proxies (use 2nd rightmost IP)
+  #
+  # Example without firewall protection (VULNERABLE):
+  #   curl -H "X-Forwarded-For: 10.0.0.1" http://app:3000/
+  #   # Attacker spoofs internal IP, bypasses allowlist
+  #
+  # See security documentation for firewall configuration examples.
+  #
+  trusted_proxy_depth: <%= ENV['TRUSTED_PROXY_DEPTH'] || '0' %>
 
   # IP Allowlist
   #
@@ -153,6 +180,9 @@ access_control:
 # export ACCESS_CONTROL_TRIGGER_HEADER="O-Access-Control-Trigger"
 # export ACCESS_CONTROL_TRIGGER_SECRET="$(openssl rand -base64 32)"
 #
+# # Trusted proxy depth (IMPORTANT FOR SECURITY)
+# export TRUSTED_PROXY_DEPTH=1  # Only if behind reverse proxy with firewall
+#
 # # IP allowlist (comma-separated CIDRs, no limit)
 # # Single CIDR:
 # export ALLOWED_CIDRS="10.0.0.0/8"
@@ -165,3 +195,37 @@ access_control:
 # export ACCESS_CONTROL_MODE_HEADER="O-Access-Mode"
 # export ACCESS_MODE_ALLOW="normal"
 # export ACCESS_MODE_DENY="protected"
+#
+# Firewall Configuration Examples
+#
+# ⚠️  CRITICAL: Block direct access to application when using trusted_proxy_depth > 0
+#
+# UFW (Ubuntu):
+# ```bash
+# # Allow only from reverse proxy
+# sudo ufw allow from 10.0.1.100 to any port 3000 proto tcp
+# sudo ufw deny 3000
+# ```
+#
+# iptables:
+# ```bash
+# # Allow only from reverse proxy at 10.0.1.100
+# iptables -A INPUT -p tcp -s 10.0.1.100 --dport 3000 -j ACCEPT
+# iptables -A INPUT -p tcp --dport 3000 -j DROP
+# ```
+#
+# Docker network isolation:
+# ```yaml
+# services:
+#   app:
+#     networks:
+#       - internal  # Not exposed to internet
+#   proxy:
+#     networks:
+#       - internal
+#       - external
+# networks:
+#   internal:
+#     internal: true
+#   external:
+# ```
