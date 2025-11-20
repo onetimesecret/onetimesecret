@@ -174,6 +174,15 @@ site:
     # that target common admin URLs or role names.
     colonels:
       - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
+    # Restrict account creation to specific email domains while allowing
+    # secret-sharing with any email address. When set, only email addresses
+    # from the listed domains can create accounts. This is useful for
+    # organizations that want to limit signups to their own domains while
+    # still allowing secrets to be shared with anyone.
+    # Format: List of domain names (e.g., example.com, company.org)
+    # If empty or not set, signups are allowed from any domain (default).
+    # Environment variable: ALLOWED_SIGNUP_DOMAIN (comma-separated list)
+    allowed_signup_domains: <%= ENV['ALLOWED_SIGNUP_DOMAIN']&.split(',')&.map(&:strip) || [] %>
   # Links to documentation. For onetimesecret.com, this is
   # docs.onetimesecret.com.
   support:

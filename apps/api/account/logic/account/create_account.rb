@@ -33,6 +33,8 @@ module AccountAPI::Logic
         # success response in both cases. This prevents attackers from discovering which
         # emails are registered in the system by observing different validation error messages.
         raise_form_error 'Is that a valid email address?', field: 'login', error_type: 'invalid' unless valid_email?(email)
+        # Security: Use generic error message to prevent domain enumeration
+        raise_form_error 'Is that a valid email address?', field: 'login', error_type: 'invalid' unless allowed_signup_domain?(email)
         raise_form_error 'Password is too short', field: 'password', error_type: 'too_short' unless password.size >= 6
       end
 
@@ -107,6 +109,38 @@ module AccountAPI::Logic
 
       def form_fields
         { email: email }
+      end
+
+      # Validates if the email domain is allowed for account creation
+      #
+      # @param email [String] The email address to validate
+      # @return [Boolean] true if domain is allowed or no restrictions configured
+      #
+      # @note This method is security-sensitive:
+      #   - Returns true when no restrictions are configured (default behavior)
+      #   - Returns false for malformed emails (no @ or empty domain)
+      #   - Uses case-insensitive domain matching
+      #   - Does not reveal which domains are allowed in error messages
+      def allowed_signup_domain?(email)
+        allowed_domains = OT.conf.dig('site', 'authentication', 'allowed_signup_domains')
+
+        # No restrictions configured - allow all domains
+        return true if allowed_domains.nil? || allowed_domains.empty?
+
+        # Extract domain from email, handling edge cases
+        email_parts = email.to_s.strip.downcase.split('@')
+
+        # Reject malformed emails (no @ symbol or multiple @ symbols)
+        return false if email_parts.length != 2
+
+        email_domain = email_parts.last
+
+        # Reject emails with empty domain (e.g., "user@")
+        return false if email_domain.nil? || email_domain.empty?
+
+        # Case-insensitive domain matching
+        normalized_domains = allowed_domains.map(&:downcase)
+        normalized_domains.include?(email_domain)
       end
     end
   end
