@@ -99,7 +99,7 @@
         "inactive": "Neaktivní",
         "past_due": "Po splatnosti",
         "canceled": "Zrušeno",
-        "plan_name": "Tarif",
+        "catalog_name": "Tarif",
         "team_usage": "Využití týmů",
         "teams_used": "{used} z {limit} týmů použito"
       },

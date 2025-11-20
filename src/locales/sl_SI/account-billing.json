@@ -99,7 +99,7 @@
         "inactive": "Neaktivno",
         "past_due": "Zamujeno",
         "canceled": "Preklicano",
-        "plan_name": "Paket",
+        "catalog_name": "Paket",
         "team_usage": "Uporaba ekip",
         "teams_used": "{used} od {limit} ekip uporabljenih"
       },

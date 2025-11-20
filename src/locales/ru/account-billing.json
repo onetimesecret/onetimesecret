@@ -99,7 +99,7 @@
         "inactive": "Неактивна",
         "past_due": "Просрочена",
         "canceled": "Отменена",
-        "plan_name": "Тариф",
+        "catalog_name": "Тариф",
         "team_usage": "Использование команд",
         "teams_used": "{used} из {limit} команд используется"
       },

@@ -100,7 +100,7 @@ module Billing
           subscription_data: {
             metadata: {
               orgid: org.objid,
-              plan_id: plan.plan_id,
+              catalog_id: plan.catalog_id,
               tier: tier,
               region: region,
               custid: cust.custid,
@@ -203,7 +203,7 @@ module Billing
         # Filter out nil plans (stale cache entries)
         plan_data = plans.compact.map do |plan|
           {
-            id: plan.plan_id,
+            id: plan.catalog_id,
             name: plan.name,
             tier: plan.tier,
             interval: plan.interval,

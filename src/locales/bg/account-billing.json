@@ -99,7 +99,7 @@
         "inactive": "Неактивен",
         "past_due": "Просрочен",
         "canceled": "Отменен",
-        "plan_name": "План",
+        "catalog_name": "План",
         "team_usage": "Използване на екипи",
         "teams_used": "{used} от {limit} екипа използвани"
       },

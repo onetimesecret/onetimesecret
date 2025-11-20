@@ -250,15 +250,15 @@ Onetime::Billing.upgrade_path_for('nonexistent_capability', 'free')
 #=> nil
 
 ## Test: Plan name for free
-Onetime::Billing.plan_name('free')
+Onetime::Billing.catalog_name('free')
 #=> "Free"
 
 ## Test: Plan name for identity_v1
-Onetime::Billing.plan_name('identity_v1')
+Onetime::Billing.catalog_name('identity_v1')
 #=> "Identity Plus"
 
 ## Test: Plan name for multi_team_v1
-Onetime::Billing.plan_name('multi_team_v1')
+Onetime::Billing.catalog_name('multi_team_v1')
 #=> "Multi-Team"
 
 ## Test: Legacy plan detection for v0
@@ -270,11 +270,11 @@ Onetime::Billing.legacy_plan?('identity_v1')
 #=> false
 
 ## Test: Available plans includes identity_v1
-Onetime::Billing.available_plans.include?('identity_v1')
+Onetime::Billing.available_catalogs.include?('identity_v1')
 #=> true
 
 ## Test: Available plans excludes legacy identity_v0
-Onetime::Billing.available_plans.include?('identity_v0')
+Onetime::Billing.available_catalogs.include?('identity_v0')
 #=> false
 
 ## Test: Capability categories are defined

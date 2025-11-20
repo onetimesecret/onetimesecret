@@ -99,7 +99,7 @@
         "inactive": "Inaktív",
         "past_due": "Lejárt",
         "canceled": "Megszakítva",
-        "plan_name": "Csomag",
+        "catalog_name": "Csomag",
         "team_usage": "Csapat használat",
         "teams_used": "{used} / {limit} csapat használatban"
       },

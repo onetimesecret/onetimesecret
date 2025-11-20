@@ -99,7 +99,7 @@
         "inactive": "غير نشط",
         "past_due": "متأخر السداد",
         "canceled": "ملغى",
-        "plan_name": "الخطة",
+        "catalog_name": "الخطة",
         "team_usage": "استخدام الفريق",
         "teams_used": "{used} من {limit} فريق مستخدم"
       },

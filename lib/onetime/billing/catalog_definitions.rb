@@ -8,7 +8,7 @@
 # See docs/billing/catalog-definitions.md for reference documentation.
 #
 # These utility methods provide helpers for catalog names and upgrade paths
-# based on plan_id naming conventions.
+# based on catalog_id naming conventions.
 
 module Onetime
   module Billing
@@ -43,8 +43,8 @@ module Onetime
     # by querying the cached catalog.
     #
     # @param capability [String] Required capability
-    # @param current_plan [String, nil] Current plan ID (unused, for compatibility)
-    # @return [String, nil] Suggested plan ID or nil
+    # @param current_plan [String, nil] Current catalog ID (unused, for compatibility)
+    # @return [String, nil] Suggested catalog ID or nil
     #
     # @example
     #   Billing.upgrade_path_for('custom_domains', 'free')
@@ -64,29 +64,29 @@ module Onetime
         tier_order.index(item.tier) || 999
       end
 
-      sorted_catalog.first&.plan_id
+      sorted_catalog.first&.catalog_id
     end
 
-    # Get human-readable plan name
+    # Get human-readable catalog name
     #
-    # Converts plan_id to display name based on naming conventions.
+    # Converts catalog_id to display name based on naming conventions.
     # Falls back to CatalogCache name if available.
     #
-    # @param plan_id [String] Plan identifier
-    # @return [String] Formatted plan name
+    # @param catalog_id [String] Catalog identifier
+    # @return [String] Formatted catalog name
     #
     # @example
-    #   Billing.plan_name('identity_v1_monthly')  # => "Identity Plus"
-    #   Billing.plan_name('multi_team_v1')        # => "Multi-Team"
-    def self.plan_name(plan_id)
-      return plan_id if plan_id.to_s.empty?
+    #   Billing.catalog_name('identity_v1_monthly')  # => "Identity Plus"
+    #   Billing.catalog_name('multi_team_v1')        # => "Multi-Team"
+    def self.catalog_name(catalog_id)
+      return catalog_id if catalog_id.to_s.empty?
 
-      # Try to get name from cached plan first
-      plan = ::Billing::Models::CatalogCache.load(plan_id)
-      return plan.name if plan&.name
+      # Try to get name from cached catalog first
+      item = ::Billing::Models::CatalogCache.load(catalog_id)
+      return item.name if item&.name
 
-      # Fall back to pattern matching on plan_id
-      case plan_id
+      # Fall back to pattern matching on catalog_id
+      case catalog_id
       when 'free'
         'Free'
       when /identity_v(\d+)/
@@ -96,34 +96,34 @@ module Onetime
         version = Regexp.last_match(1)
         version == '1' ? 'Multi-Team' : "Multi-Team (v#{version})"
       else
-        # Try to make a readable name from plan_id
-        plan_id.split('_').map(&:capitalize).join(' ')
+        # Try to make a readable name from catalog_id
+        catalog_id.split('_').map(&:capitalize).join(' ')
       end
     end
 
-    # Check if plan is legacy
+    # Check if catalog item is legacy
     #
-    # Determines if a plan is a legacy/grandfathered plan based on version number.
-    # v0 plans are considered legacy, v1+ are current.
+    # Determines if a catalog item is legacy/grandfathered based on version number.
+    # v0 items are considered legacy, v1+ are current.
     #
-    # @param plan_id [String] Plan identifier
-    # @return [Boolean] True if plan is legacy (v0)
-    def self.legacy_plan?(plan_id)
-      return false if plan_id.to_s.empty?
+    # @param catalog_id [String] Catalog identifier
+    # @return [Boolean] True if catalog item is legacy (v0)
+    def self.legacy_plan?(catalog_id)
+      return false if catalog_id.to_s.empty?
 
       # v0 plans are legacy, v1+ are current
-      plan_id.match?(/_v0(_|$)/)
+      catalog_id.match?(/_v0(_|$)/)
     end
 
-    # Get all available (non-legacy) plan IDs
+    # Get all available (non-legacy) catalog IDs
     #
-    # Returns list of current catalog items, excluding legacy v0 plans.
+    # Returns list of current catalog items, excluding legacy v0 items.
     #
-    # @return [Array<String>] List of current plan IDs
-    def self.available_plans
+    # @return [Array<String>] List of current catalog IDs
+    def self.available_catalogs
       ::Billing::Models::CatalogCache.list_catalog
-        .reject { |item| legacy_plan?(item.plan_id) }
-        .map(&:plan_id)
+        .reject { |item| legacy_plan?(item.catalog_id) }
+        .map(&:catalog_id)
     end
   end
 end

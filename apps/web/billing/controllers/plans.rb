@@ -76,7 +76,7 @@ module Billing
         # Add metadata for webhook processing
         session_params[:subscription_data] = {
           metadata: {
-            plan_id: plan.plan_id,
+            catalog_id: plan.catalog_id,
             tier: tier,
             region: region,
             custid: cust.custid,
