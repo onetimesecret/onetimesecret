@@ -5,6 +5,12 @@
 require 'stripe'
 
 module Billing
+
+  unless defined?(RECORD_LIMIT)
+    # Maximum number of active Stripe products to retrieve at one time.
+    RECORD_LIMIT = 25
+  end
+
   module Models
     # CatalogCache - Stripe Product + Price Catalog Cache
     #
@@ -18,9 +24,9 @@ module Billing
     #
     #   {
     #     "app": "onetimesecret",
-    #     "plan_id": "identity_v1",
+    #     "catalog_id": "identity_v1",
     #     "tier": "single_team",
-    #     "region": "us-east",
+    #     "region": "EU",
     #     "capabilities": "create_secrets,create_team,custom_domains",
     #     "limit_teams": "1",
     #     "limit_members_per_team": "-1"
@@ -40,54 +46,56 @@ module Billing
       feature :safe_dump
       feature :expiration
 
-      default_expiration 1.hour # Auto-expire after 1 hour
+      default_expiration 12.hour      # Auto-expire after 12 hours
 
-      identifier_field :plan_id   # Computed: tier_interval_region
+      identifier_field :catalog_id    # Computed: tier_interval_region (previously: "plan_id")
 
       # Catalog entry fields
-      field :plan_id              # Computed: tier_interval_region (identifier)
-      field :stripe_price_id      # Stripe Price ID (price_xxx)
-      field :stripe_product_id    # Stripe Product ID (prod_xxx)
-      field :stripe_updated_at    # Stripe's updated timestamp (for idempotency)
-      field :name                 # Product name
-      field :tier                 # e.g., 'single_team', 'multi_team'
-      field :interval             # 'month' or 'year'
-      field :amount               # Price in cents
-      field :currency             # 'usd', 'eur', etc.
-      field :region               # 'us-east', 'eu-west', etc.
-      field :deleted              # Boolean: soft-deleted in Stripe
+      field :catalog_id               # Computed: tier_interval_region (identifier)
+      field :stripe_price_id          # Stripe Price ID (price_xxx)
+      field :stripe_product_id        # Stripe Product ID (prod_xxx)
+      field :stripe_updated_at        # Stripe's updated timestamp (for idempotency)
+      field :name                     # Product name
+      field :tier                     # e.g., 'single_team', 'multi_team'
+      field :interval                 # 'month' or 'year'
+      field :amount                   # Price in cents
+      field :currency                 # 'usd', 'eur', etc.
+      field :region                   # EU, CA, US, NZ, etc
+      field :tenancy                  # One of: multitenant, dedicated
+      field :is_soft_deleted          # Boolean: soft-deleted in Stripe
 
-      # Metadata stored as JSON strings
-      field :capabilities         # JSON: Capability strings array
-      field :features             # JSON: Feature list (marketing)
-      field :limits               # JSON: Usage limits (teams, members_per_team, etc.)
+      # Metadata stored as JSON
+      field :capabilities             # JSON: Capability array of strings
+      field :features                 # JSON: Feature list (marketing)
+      field :limits                   # JSON: Usage limits (teams, members_per_team, etc.)
 
       def init
-        @capabilities ||= '[]'
-        @features     ||= '[]'
-        @limits       ||= '{}'
-        @stripe_updated_at ||= '0'
-        @deleted ||= 'false'
-        nil
-      end
-
-      # Override save to track plans in class-level sorted set
-      def save(**)
-        result = super
-        self.class.instances.add(plan_id) if result && plan_id
-        result
+        super
+        @capabilities ||= []
+        @features     ||= []
+        @limits       ||= {}
+        @stripe_updated_at ||= 0
+        @is_soft_deleted ||= false
       end
 
       # Parse JSON fields
       def parsed_capabilities
         JSON.parse(capabilities)
-      rescue JSON::ParserError
+      rescue JSON::ParserError => ex
+        Onetime.billing_logger.error "Failed to parse capabilities JSON", {
+          catalog_id: catalog_id,
+          capabilities: capabilities
+        }
         []
       end
 
       def parsed_features
         JSON.parse(features)
-      rescue JSON::ParserError
+      rescue JSON::ParserError => ex
+        Onetime.billing_logger.error "Failed to parse features JSON", {
+          catalog_id: catalog_id,
+          features: features
+        }
         []
       end
 
@@ -95,17 +103,21 @@ module Billing
         parsed = JSON.parse(limits)
         # Convert -1 to Float::INFINITY for unlimited resources
         parsed.transform_values { |v| v == -1 ? Float::INFINITY : v }
-      rescue JSON::ParserError
+      rescue JSON::ParserError => ex
+        Onetime.billing_logger.error "Failed to parse limits JSON", {
+          catalog_id: catalog_id,
+          limits: limits
+        }
         {}
       end
 
       class << self
-        # Refresh plan cache from Stripe API
+        # Refresh catalog cache from Stripe API
         #
         # Fetches all active products and prices from Stripe, filters by app metadata,
-        # and caches them in Redis with computed plan IDs.
+        # and caches them in Redis with computed catalog IDs.
         #
-        # @return [Integer] Number of plans cached
+        # @return [Integer] Number of catalogs cached
         def refresh_from_stripe
           # Skip Stripe sync in CI/test environments without API key
           stripe_key = Onetime.billing_config.stripe_key
@@ -122,11 +134,10 @@ module Billing
           # Fetch all active products with onetimesecret metadata
           products = Stripe::Product.list({
             active: true,
-            limit: 100,
-          },
-                                         )
+            limit: RECORD_LIMIT,
+          })
 
-          plan_count = 0
+          items_count = 0
 
           products.auto_paging_each do |product|
             # Skip products without required metadata
@@ -171,8 +182,8 @@ module Billing
               tier     = product.metadata['tier']
               region   = product.metadata['region']
 
-              # Use explicit plan_id from metadata, or compute from tier_interval_region
-              plan_id = product.metadata['plan_id'] || "#{tier}_#{interval}ly_#{region}"
+              # Use explicit catalog_id from metadata, or compute from tier_interval_region
+              catalog_id = product.metadata['catalog_id'] || "#{tier}_#{interval}ly_#{region}"
 
               # Extract capabilities from product metadata
               # Expected format: "create_secrets,create_team,custom_domains"
@@ -193,9 +204,9 @@ module Billing
                                    end
               end
 
-              # Create or update plan cache
-              plan = new(
-                plan_id: plan_id,
+              # Create or update catalog cache
+              catalog = new(
+                catalog_id: catalog_id,
                 stripe_price_id: price.id,
                 stripe_product_id: product.id,
                 name: product.name,
@@ -208,20 +219,20 @@ module Billing
                 features: (product.marketing_features&.map(&:name) || []).to_json,
                 limits: limits.to_json,
               )
-              plan.save
+              catalog.save
 
-              OT.ld "[CatalogCache] Cached plan: #{plan_id}", {
+              OT.ld "[CatalogCache] Cached catalog: #{catalog_id}", {
                 stripe_price_id: price.id,
                 amount: price.unit_amount,
                 currency: price.currency,
               }
 
-              plan_count += 1
+              items_count += 1
             end
           end
 
-          OT.li "[CatalogCache.refresh_from_stripe] Cached #{plan_count} plans"
-          plan_count
+          OT.li "[CatalogCache.refresh_from_stripe] Cached #{items_count} catalogs"
+          items_count
         rescue Stripe::StripeError => ex
           OT.le '[CatalogCache.refresh_from_stripe] Stripe error', {
             exception: ex,
@@ -230,39 +241,39 @@ module Billing
           raise
         end
 
-        # Get plan by tier, interval, and region
+        # Get catalog by tier, interval, and region
         #
-        # Searches cached plans by tier/interval/region fields instead of
-        # constructing a computed plan_id. Supports metadata-based plan IDs.
+        # Searches cached catalogs by tier/interval/region fields instead of
+        # constructing a computed catalog_id. Supports metadata-based catalog IDs.
         #
-        # @param tier [String] Plan tier (e.g., 'single_team')
+        # @param tier [String] catalog tier (e.g., 'single_team')
         # @param interval [String] Billing interval ('monthly' or 'yearly')
-        # @param region [String] Region code (e.g., 'us-east')
-        # @return [CatalogCache, nil] Cached plan or nil if not found
-        def get_plan(tier, interval, region = 'us-east')
+        # @param region [String] Region code (e.g., 'EU')
+        # @return [CatalogCache, nil] Cached catalog or nil if not found
+        def get_catalog(tier, interval, region = nil)
           # Normalize interval to singular form (monthly -> month)
           interval = interval.to_s.sub(/ly$/, '')
 
-          # Search through all cached plans for matching tier/interval/region
-          list_catalog.find do |plan|
-            plan.tier == tier &&
-              plan.interval == interval &&
-              plan.region == region
+          # Search through all cached catalogs for matching tier/interval/region
+          list_catalogs.find do |catalog|
+            catalog.tier == tier &&
+              catalog.interval == interval &&
+              catalog.region == region
           end
         end
 
-        # List all cached plans
+        # List all cached catalogs
         #
-        # @return [Array<CatalogCache>] All cached plans
-        def list_catalog
+        # @return [Array<CatalogCache>] All cached catalogs
+        def list_catalogs
           load_multi(instances.to_a)
         end
 
-        # Clear all cached plans (for testing or forced refresh)
+        # Clear all cached catalogs (for testing or forced refresh)
         def clear_cache
-          values.to_a.each do |plan_id|
-            plan = load(plan_id)
-            plan&.destroy!
+          values.to_a.each do |catalog_id|
+            catalog = load(catalog_id)
+            catalog&.destroy!
           end
           values.clear
         end

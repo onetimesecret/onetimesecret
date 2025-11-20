@@ -261,7 +261,7 @@ module Onetime
           puts
         end
 
-        catalog = Billing::Models::CatalogCache.list_catalog
+        catalog = Billing::Models::CatalogCache.list_catalogs
         if catalog.empty?
           puts 'No catalog entries found. Run with --refresh to sync from Stripe.'
           return
