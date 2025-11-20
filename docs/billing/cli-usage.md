@@ -676,6 +676,137 @@ Common types: customer.created, customer.updated, invoice.paid,
 
 ---
 
+### `bin/ots billing customers create`
+
+Create a new Stripe customer.
+
+**Options:**
+- `--email STRING` - Customer email (required)
+- `--name STRING` - Customer name (optional)
+- `--interactive` - Interactive mode with prompts
+
+**Examples:**
+```bash
+# Command-line mode
+bin/ots billing customers create --email user@example.com --name "John Doe"
+
+# Interactive mode
+bin/ots billing customers create --interactive
+Email: user@example.com
+Name (optional): John Doe
+
+Creating customer:
+  Email: user@example.com
+  Name: John Doe
+
+Proceed? (y/n): y
+
+Customer created successfully:
+  ID: cus_ABC123xyz
+  Email: user@example.com
+  Name: John Doe
+```
+
+---
+
+### `bin/ots billing subscriptions cancel`
+
+Cancel a subscription either at period end or immediately.
+
+**Arguments:**
+- `subscription_id` - Subscription ID (sub_xxx)
+
+**Options:**
+- `--immediately` - Cancel immediately instead of at period end (default: false)
+- `--force` - Skip confirmation prompt (default: false)
+
+**Examples:**
+```bash
+# Cancel at period end (default - allows customer to use service until paid period ends)
+bin/ots billing subscriptions cancel sub_ABC123xyz
+
+Subscription: sub_ABC123xyz
+Customer: cus_DEF456abc
+Status: active
+Current period end: 2025-12-19 00:00:00 UTC
+
+Will cancel at period end: 2025-12-19 00:00:00 UTC
+
+Proceed? (y/n): y
+
+Subscription canceled successfully
+Status: active
+Will end at: 2025-12-19 00:00:00 UTC
+
+# Cancel immediately (terminates access immediately)
+bin/ots billing subscriptions cancel sub_ABC123xyz --immediately
+
+⚠️  Will cancel IMMEDIATELY
+
+Proceed? (y/n): y
+
+Subscription canceled successfully
+Status: canceled
+Canceled at: 2025-11-19 14:30:00 UTC
+
+# Cancel without confirmation (for automation)
+bin/ots billing subscriptions cancel sub_ABC123xyz --immediately --force
+```
+
+**Behavior:**
+- **Default**: Subscription continues until end of current billing period, then cancels
+- **--immediately**: Subscription terminates immediately, access revoked
+- Both methods are non-destructive - subscription data remains in Stripe
+
+---
+
+### `bin/ots billing test create-customer`
+
+Create a test customer with attached payment method for development/testing. **Test mode only.**
+
+**Options:**
+- `--with-card` - Attach test card (default: true)
+
+**Examples:**
+```bash
+# Create test customer with card
+bin/ots billing test create-customer
+
+Creating test customer:
+  Email: test-a3f9@example.com
+
+Customer created:
+  ID: cus_TEST123xyz
+  Email: test-a3f9@example.com
+
+Test card attached:
+  Payment method: pm_TEST456abc
+  Card: Visa ****4242
+  Expiry: 12/2027
+
+Test customer ready for use!
+
+Next steps:
+  bin/ots billing subscriptions create --customer cus_TEST123xyz
+
+# Create without payment method
+bin/ots billing test create-customer --no-with-card
+```
+
+**Test Card Details:**
+- Card number: 4242 4242 4242 4242
+- Brand: Visa
+- Always succeeds for test charges
+- See [Stripe test cards](https://stripe.com/docs/testing) for other scenarios
+
+**Notes:**
+- Only works with test API keys (sk_test_*)
+- Generates random email address to avoid conflicts
+- Customer includes description with creation timestamp
+- Useful for testing subscription flows, payments, webhooks
+
+---
+
 ## Advanced Workflows
 
 ### Monitor Payment Issues
@@ -746,9 +877,12 @@ bin/ots billing events --type payment_intent.payment_failed
 | `billing prices` | List Stripe prices | `--product`, `--active-only` |
 | `billing prices create` | Create price | `--amount`, `--interval`, `--currency` |
 | `billing customers` | List customers | `--email`, `--limit` |
+| `billing customers create` | Create new customer | `--email`, `--name`, `--interactive` |
 | `billing subscriptions` | List subscriptions | `--status`, `--customer`, `--limit` |
+| `billing subscriptions cancel` | Cancel subscription | `--immediately`, `--force` |
 | `billing invoices` | List invoices | `--status`, `--customer`, `--subscription` |
 | `billing events` | View recent events | `--type`, `--limit` |
+| `billing test create-customer` | Create test customer with card | `--with-card` |
 | `billing sync` | Sync Stripe to cache | - |
 | `billing validate` | Validate metadata | - |
 
