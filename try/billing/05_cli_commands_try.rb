@@ -90,7 +90,7 @@ end
 #=~ /incomplete|active|trialing/
 
 ## Test: Cancel subscription at period end via CLI
-`bin/ots billing subscriptions cancel #{@subscription.id} --force` =~ /Subscription canceled successfully/
+`bin/ots billing subscriptions cancel #{@subscription.id} --yes` =~ /Subscription canceled successfully/
 #=> 0
 
 ## Test: Verify subscription marked for cancellation
@@ -106,7 +106,7 @@ end
 })
 
 ## Test: Cancel subscription immediately via CLI
-`bin/ots billing subscriptions cancel #{@subscription2.id} --immediately --force` =~ /Subscription canceled successfully/
+`bin/ots billing subscriptions cancel #{@subscription2.id} --immediately --yes` =~ /Subscription canceled successfully/
 #=> 0
 
 ## Test: Verify subscription is canceled
@@ -124,7 +124,7 @@ end
 })
 
 ## Test: Pause subscription via CLI
-`bin/ots billing subscriptions pause #{@subscription3.id} --force` =~ /Subscription paused successfully/
+`bin/ots billing subscriptions pause #{@subscription3.id} --yes` =~ /Subscription paused successfully/
 #=> 0
 
 ## Test: Verify subscription is paused in Stripe
@@ -133,7 +133,7 @@ end
 #=> true
 
 ## Test: Resume paused subscription via CLI
-`bin/ots billing subscriptions resume #{@subscription3.id} --force` =~ /Subscription resumed successfully/
+`bin/ots billing subscriptions resume #{@subscription3.id} --yes` =~ /Subscription resumed successfully/
 #=> 0
 
 ## Test: Verify subscription is no longer paused
@@ -228,7 +228,7 @@ end
 end
 
 ## Test: Customer delete with force flag works even with subscriptions
-`bin/ots billing customers delete #{@customer_id} --force` =~ /Customer deleted successfully/
+`bin/ots billing customers delete #{@customer_id} --yes` =~ /Customer deleted successfully/
 #=> 0
 
 ## Test: Verify customer deleted in Stripe
@@ -282,7 +282,7 @@ Stripe::Customer.update(@refund_customer.id, {
 #=> true
 
 ## Test: Create refund via CLI
-`bin/ots billing refunds create --charge #{@charge_id} --reason requested_by_customer --force` =~ /Refund created successfully/
+`bin/ots billing refunds create --charge #{@charge_id} --reason requested_by_customer --yes` =~ /Refund created successfully/
 #=> 0
 
 ## Test: Verify refund exists in Stripe
