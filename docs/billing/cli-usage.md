@@ -1118,6 +1118,144 @@ Default: pm_ABC123xyz
 
 ---
 
+### `bin/ots billing refunds`
+
+List all refunds with optional filtering by charge.
+
+**Options:**
+- `--charge STRING` - Filter by charge ID (ch_xxx)
+- `--limit INTEGER` - Maximum results to return (default: 100)
+
+**Examples:**
+```bash
+# List all refunds
+bin/ots billing refunds
+
+Fetching refunds from Stripe...
+ID                     CHARGE                 AMOUNT       STATUS     CREATED
+------------------------------------------------------------------------------------------
+re_ABC123xyz           ch_DEF456abc           USD 9.00     succeeded  2024-11-19 14:00:00
+re_GHI789def           ch_JKL012ghi           USD 29.00    succeeded  2024-11-19 13:30:00
+
+Total: 2 refund(s)
+
+# List refunds for specific charge
+bin/ots billing refunds --charge ch_ABC123xyz
+
+# List recent refunds only
+bin/ots billing refunds --limit 10
+```
+
+**Displayed Information:**
+- Refund ID
+- Charge ID (original payment)
+- Refund amount and currency
+- Status (succeeded, pending, failed, canceled)
+- Creation timestamp
+
+---
+
+### `bin/ots billing refunds create`
+
+Create a refund for a charge (full or partial).
+
+**Options:**
+- `--charge STRING` - Charge ID (ch_xxx) **required**
+- `--amount INTEGER` - Amount in cents (leave empty for full refund)
+- `--reason STRING` - Refund reason: duplicate, fraudulent, requested_by_customer
+- `--force` - Skip confirmation prompt
+
+**Examples:**
+```bash
+# Full refund with confirmation
+bin/ots billing refunds create --charge ch_ABC123xyz --reason requested_by_customer
+
+Charge: ch_ABC123xyz
+Amount: USD 29.00
+Customer: cus_DEF456ghi
+
+Refund amount: USD 29.00
+Reason: requested_by_customer
+
+Create refund? (y/n): y
+
+Refund created successfully:
+  ID: re_GHI789jkl
+  Amount: USD 29.00
+  Status: succeeded
+
+# Partial refund (50%)
+bin/ots billing refunds create --charge ch_ABC123xyz --amount 1450 --reason duplicate
+
+# Full refund without confirmation
+bin/ots billing refunds create --charge ch_ABC123xyz --reason fraudulent --force
+```
+
+**Refund Reasons:**
+- `duplicate` - Duplicate charge
+- `fraudulent` - Fraudulent transaction
+- `requested_by_customer` - Customer requested refund
+
+**Behavior:**
+- Default: Full refund of charge amount
+- Partial: Specify --amount in cents
+- Customer receives refund to original payment method
+- Refund processes asynchronously (usually instant for test mode)
+- Stripe fee is not refunded
+
+---
+
+### `bin/ots billing test trigger-webhook`
+
+Trigger test webhook events for development/testing. **Requires Stripe CLI.**
+
+**Arguments:**
+- `event_type` - Stripe event type (e.g., customer.subscription.updated)
+
+**Options:**
+- `--subscription STRING` - Subscription ID for subscription events
+- `--customer STRING` - Customer ID for customer events
+
+**Examples:**
+```bash
+# Trigger customer creation event
+bin/ots billing test trigger-webhook customer.created
+
+Triggering test webhook: customer.created
+Command: stripe trigger customer.created
+
+[Stripe CLI output...]
+
+# Trigger subscription update with context
+bin/ots billing test trigger-webhook customer.subscription.updated --subscription sub_ABC123xyz
+
+# Trigger invoice payment with customer
+bin/ots billing test trigger-webhook invoice.payment_succeeded --customer cus_DEF456abc
+```
+
+**Common Event Types:**
+- `customer.created` - New customer
+- `customer.subscription.created` - New subscription
+- `customer.subscription.updated` - Subscription changed
+- `customer.subscription.deleted` - Subscription canceled
+- `invoice.payment_succeeded` - Payment succeeded
+- `invoice.payment_failed` - Payment failed
+- `charge.succeeded` - Charge succeeded
+- `charge.refunded` - Charge refunded
+
+**Prerequisites:**
+- Stripe CLI installed: https://stripe.com/docs/stripe-cli
+- Test API key (sk_test_*)
+- Webhook endpoint configured locally or with `stripe listen --forward-to`
+
+**Use Cases:**
+- Test webhook handlers during development
+- Verify subscription lifecycle events
+- Debug payment flow edge cases
+- Integration testing for automated workflows
+
+---
+
 ## Advanced Workflows
 
 ### Monitor Payment Issues
@@ -1197,9 +1335,12 @@ bin/ots billing events --type payment_intent.payment_failed
 | `billing subscriptions resume` | Resume paused subscription | `--force` |
 | `billing subscriptions update` | Update subscription price/quantity | `--price`, `--quantity`, `--prorate` |
 | `billing invoices` | List invoices | `--status`, `--customer`, `--subscription` |
+| `billing refunds` | List refunds | `--charge`, `--limit` |
+| `billing refunds create` | Create refund | `--charge`, `--amount`, `--reason`, `--force` |
 | `billing payment-methods set-default` | Set default payment method | `--customer` |
 | `billing events` | View recent events | `--type`, `--limit` |
 | `billing test create-customer` | Create test customer with card | `--with-card` |
+| `billing test trigger-webhook` | Trigger test webhook event | `--subscription`, `--customer` |
 | `billing sync` | Sync Stripe to cache | - |
 | `billing validate` | Validate metadata | - |
 
