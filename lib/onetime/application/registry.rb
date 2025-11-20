@@ -129,10 +129,21 @@ module Onetime
         def reregister_loaded_applications
           ObjectSpace.each_object(Class)
             .select { |cls| cls < Onetime::Application::Base && cls.respond_to?(:uri_prefix) }
-            .reject { |cls| cls.name == 'Auth::Application' && Onetime.auth_config.mode != 'advanced' }
-            .reject { |cls| cls.name == 'Billing::Application' && !Onetime.billing_config.enabled? }
             .reject { |cls| cls.instance_variable_get(:@abstract) == true } # Skip abstract base classes
+            .reject { |cls| should_skip_application?(cls) }
             .each { |cls| register_application_class(cls) }
+        end
+
+        # Determine if an application should be skipped based on configuration
+        def should_skip_application?(app_class)
+          case app_class.name
+          when 'Auth::Application'
+            Onetime.auth_config.mode != 'advanced'
+          when 'Billing::Application'
+            !Onetime.billing_config.enabled?
+          else
+            false
+          end
         end
 
         private
