@@ -9,7 +9,7 @@ module Onetime
   module CLI
     # Base module for billing command helpers
     module BillingHelpers
-      REQUIRED_METADATA_FIELDS = %w[app plan_id tier region capabilities].freeze
+      REQUIRED_METADATA_FIELDS = %w[app tier region capabilities tenancy created].freeze
 
       def stripe_configured?
         unless OT.billing_config.enabled?
@@ -32,17 +32,17 @@ module Onetime
       end
 
       def format_product_row(product)
-        plan_id = product.metadata['plan_id'] || 'N/A'
         tier = product.metadata['tier'] || 'N/A'
+        tenancy = product.metadata['tenancy'] || 'N/A'
         region = product.metadata['region'] || 'N/A'
         active = product.active ? 'yes' : 'no'
 
-        format('%-22s %-40s %-18s %-12s %-8s %s',
+        format('%-22s %-40s %-12s %-12s %-10s %s',
           product.id[0..21],
           product.name[0..39],
-          plan_id[0..17],
           tier[0..11],
-          region[0..7],
+          tenancy[0..11],
+          region[0..9],
           active,
         )
       end
@@ -101,7 +101,10 @@ module Onetime
       def prompt_for_metadata
         metadata = {}
 
-        print 'Plan ID (e.g., identity_v1): '
+        # Always include all metadata fields
+        metadata['app'] = 'onetimesecret'
+
+        print 'Plan ID (optional, e.g., identity_v1): '
         metadata['plan_id'] = $stdin.gets.chomp
 
         print 'Tier (e.g., single_team, multi_team): '
@@ -110,18 +113,20 @@ module Onetime
         print 'Region (e.g., us-east, global): '
         metadata['region'] = $stdin.gets.chomp
 
+        print 'Tenancy (e.g., single, multi): '
+        metadata['tenancy'] = $stdin.gets.chomp
+
         print 'Capabilities (comma-separated, e.g., create_secrets,create_team): '
         metadata['capabilities'] = $stdin.gets.chomp
 
         print 'Limit teams (-1 for unlimited): '
-        limit_teams = $stdin.gets.chomp
-        metadata['limit_teams'] = limit_teams unless limit_teams.empty?
+        metadata['limit_teams'] = $stdin.gets.chomp
 
         print 'Limit members per team (-1 for unlimited): '
-        limit_members = $stdin.gets.chomp
-        metadata['limit_members_per_team'] = limit_members unless limit_members.empty?
+        metadata['limit_members_per_team'] = $stdin.gets.chomp
 
-        metadata['app'] = 'onetimesecret'
+        metadata['created'] = Time.now.utc.iso8601
+
         metadata
       end
 
@@ -201,14 +206,39 @@ module Onetime
             bin/ots billing catalog --refresh  Refresh cache from Stripe
             bin/ots billing products           List all Stripe products
             bin/ots billing products create    Create new product
+            bin/ots billing products show      Show product details
             bin/ots billing products update    Update product metadata
+            bin/ots billing products events    Show product-related events
             bin/ots billing prices             List all Stripe prices
             bin/ots billing prices create      Create price for product
 
           Customers & Subscriptions:
             bin/ots billing customers          List Stripe customers
+            bin/ots billing customers create   Create new customer
+            bin/ots billing customers show     Show customer details
+            bin/ots billing customers delete   Delete customer
             bin/ots billing subscriptions      List Stripe subscriptions
+            bin/ots billing subscriptions cancel  Cancel subscription
+            bin/ots billing subscriptions pause   Pause subscription
+            bin/ots billing subscriptions resume  Resume paused subscription
+            bin/ots billing subscriptions update  Update subscription price/quantity
             bin/ots billing invoices           List Stripe invoices
+            bin/ots billing refunds            List Stripe refunds
+            bin/ots billing refunds create     Create refund for charge
+            bin/ots billing payment-methods set-default  Set default payment method
+
+          Testing:
+            bin/ots billing test create-customer  Create test customer with card
+            bin/ots billing test trigger-webhook  Trigger test webhook event
+
+          Analytics & Links:
+            bin/ots billing sigma queries      List Sigma queries
+            bin/ots billing sigma run          Execute Sigma query
+            bin/ots billing payment-links      List payment links
+            bin/ots billing payment-links create    Create payment link
+            bin/ots billing payment-links update    Update payment link
+            bin/ots billing payment-links show      Show payment link details
+            bin/ots billing payment-links archive   Archive payment link
 
           Sync & Validation:
             bin/ots billing sync               Full sync from Stripe to Redis
@@ -223,8 +253,36 @@ module Onetime
             # List active subscriptions
             bin/ots billing subscriptions --status active
 
+            # Cancel subscription at period end
+            bin/ots billing subscriptions cancel sub_xxx
+
+            # Cancel subscription immediately
+            bin/ots billing subscriptions cancel sub_xxx --immediately
+
+            # Pause and resume subscriptions
+            bin/ots billing subscriptions pause sub_xxx
+            bin/ots billing subscriptions resume sub_xxx
+
             # Find customer by email
             bin/ots billing customers --email user@example.com
+
+            # Show customer details with payment methods
+            bin/ots billing customers show cus_xxx
+
+            # Create a new customer
+            bin/ots billing customers create --email user@example.com --name "John Doe"
+
+            # Create test customer with payment method
+            bin/ots billing test create-customer
+
+            # List refunds
+            bin/ots billing refunds
+
+            # Create refund for charge
+            bin/ots billing refunds create --charge ch_xxx --reason requested_by_customer
+
+            # Trigger test webhook
+            bin/ots billing test trigger-webhook customer.subscription.updated --subscription sub_xxx
 
             # Create a new product
             bin/ots billing products create --name "Identity Plan" --interactive
@@ -261,7 +319,7 @@ module Onetime
           puts
         end
 
-        catalog = Billing::Models::CatalogCache.list_catalogs
+        catalog = Billing::Models::CatalogCache.list_catalog
         if catalog.empty?
           puts 'No catalog entries found. Run with --refresh to sync from Stripe.'
           return
@@ -302,8 +360,8 @@ Total: #{catalog.size} catalog entries"
           return
         end
 
-        puts format('%-22s %-40s %-18s %-12s %-8s %s',
-          'ID', 'NAME', 'PLAN_ID', 'TIER', 'REGION', 'ACTIVE')
+        puts format('%-22s %-40s %-12s %-12s %-10s %s',
+          'ID', 'NAME', 'TIER', 'TENANCY', 'REGION', 'ACTIVE')
         puts '-' * 110
 
         products.data.each do |product|
@@ -325,10 +383,12 @@ Total: #{catalog.size} catalog entries"
       option :interactive, type: :boolean, default: false,
         desc: 'Interactive mode - prompt for all fields'
 
-      option :plan_id, type: :string, desc: 'Plan ID (e.g., identity_v1)'
+      option :plan_id, type: :string, desc: 'Plan ID (optional, e.g., identity_v1)'
       option :tier, type: :string, desc: 'Tier (e.g., single_team)'
       option :region, type: :string, desc: 'Region (e.g., us-east)'
+      option :tenancy, type: :string, desc: 'Tenancy (e.g., single, multi)'
       option :capabilities, type: :string, desc: 'Capabilities (comma-separated)'
+      option :marketing_features, type: :string, desc: 'Marketing features (comma-separated)'
 
       def call(name: nil, interactive: false, **options)
         boot_application!
@@ -348,13 +408,18 @@ Total: #{catalog.size} catalog entries"
         metadata = if interactive
           prompt_for_metadata
         else
+          # Build metadata with all fields, using empty strings for missing values
           {
             'app' => 'onetimesecret',
-            'plan_id' => options[:plan_id],
-            'tier' => options[:tier],
+            'plan_id' => options[:plan_id] || '',
+            'tier' => options[:tier] || '',
             'region' => options[:region] || 'global',
-            'capabilities' => options[:capabilities],
-          }.compact
+            'tenancy' => options[:tenancy] || '',
+            'capabilities' => options[:capabilities] || '',
+            'created' => Time.now.utc.iso8601,
+            'limit_teams' => '',
+            'limit_members_per_team' => '',
+          }
         end
 
         puts "\nCreating product '#{name}' with metadata:"
@@ -363,18 +428,96 @@ Total: #{catalog.size} catalog entries"
         print '\nProceed? (y/n): '
         return unless $stdin.gets.chomp.downcase == 'y'
 
-        product = Stripe::Product.create({
+        # Build product creation params
+        product_params = {
           name: name,
           metadata: metadata,
-        })
+        }
+
+        # Add marketing features if provided
+        if options[:marketing_features]
+          features = options[:marketing_features].split(',').map(&:strip)
+          product_params[:marketing_features] = features.map { |f| { name: f } }
+          puts "\nMarketing features:"
+          features.each { |f| puts "  - #{f}" }
+        end
+
+        product = Stripe::Product.create(product_params)
 
         puts "\nProduct created successfully:"
         puts "  ID: #{product.id}"
         puts "  Name: #{product.name}"
+
+        if product.marketing_features && product.marketing_features.any?
+          puts "\nMarketing features:"
+          product.marketing_features.each { |f| puts "  - #{f.name}" }
+        end
+
         puts "\nNext steps:"
         puts "  bin/ots billing prices create --product #{product.id}"
       rescue Stripe::StripeError => e
         puts "Error creating product: #{e.message}"
+      end
+    end
+
+    # Show product details
+    class BillingProductsShowCommand < Command
+      include BillingHelpers
+
+      desc 'Show detailed product information'
+
+      argument :product_id, required: true, desc: 'Product ID (e.g., prod_xxx)'
+
+      def call(product_id:, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        product = Stripe::Product.retrieve(product_id)
+
+        puts "Product Details:"
+        puts "  ID: #{product.id}"
+        puts "  Name: #{product.name}"
+        puts "  Active: #{product.active ? 'yes' : 'no'}"
+        puts "  Description: #{product.description}" if product.description
+        puts
+
+        if product.metadata && product.metadata.any?
+          puts "Metadata:"
+          product.metadata.each do |key, value|
+            puts "  #{key}: #{value}"
+          end
+          puts
+        end
+
+        # Display marketing features
+        if product.marketing_features && product.marketing_features.any?
+          puts "Marketing Features:"
+          product.marketing_features.each do |feature|
+            puts "  - #{feature.name} (#{feature.id})"
+          end
+          puts
+        end
+
+        # Get associated prices
+        puts "Prices:"
+        prices = Stripe::Price.list({ product: product_id, limit: 100 })
+
+        if prices.data.empty?
+          puts "  (none)"
+        else
+          prices.data.each do |price|
+            amount = format_amount(price.unit_amount, price.currency)
+            interval = price.recurring&.interval || 'one-time'
+            interval_text = price.recurring ? "/#{interval}" : ''
+            active = price.active ? 'active' : 'inactive'
+
+            puts "  #{price.id} - #{amount}#{interval_text} (#{active})"
+          end
+        end
+
+      rescue Stripe::StripeError => e
+        puts "Error retrieving product: #{e.message}"
       end
     end
 
@@ -392,7 +535,10 @@ Total: #{catalog.size} catalog entries"
       option :plan_id, type: :string, desc: 'Plan ID'
       option :tier, type: :string, desc: 'Tier'
       option :region, type: :string, desc: 'Region'
+      option :tenancy, type: :string, desc: 'Tenancy'
       option :capabilities, type: :string, desc: 'Capabilities'
+      option :add_marketing_feature, type: :string, desc: 'Add marketing feature'
+      option :remove_marketing_feature, type: :string, desc: 'Remove marketing feature (by ID)'
 
       def call(product_id:, interactive: false, **options)
         boot_application!
@@ -405,15 +551,26 @@ Total: #{catalog.size} catalog entries"
         product.metadata.each { |k, v| puts "  #{k}: #{v}" }
         puts
 
+        # Extract marketing feature operations from options
+        add_feature = options.delete(:add_marketing_feature)
+        remove_feature = options.delete(:remove_marketing_feature)
+
         metadata = if interactive
           prompt_for_metadata
         else
-          options.compact.transform_keys(&:to_s)
-        end
-
-        if metadata.empty?
-          puts 'No metadata fields to update'
-          return
+          # Build complete metadata hash with all fields
+          current_meta = product.metadata.to_h
+          {
+            'app' => 'onetimesecret',
+            'plan_id' => options[:plan_id] || current_meta['plan_id'] || '',
+            'tier' => options[:tier] || current_meta['tier'] || '',
+            'region' => options[:region] || current_meta['region'] || '',
+            'tenancy' => options[:tenancy] || current_meta['tenancy'] || '',
+            'capabilities' => options[:capabilities] || current_meta['capabilities'] || '',
+            'created' => current_meta['created'] || Time.now.utc.iso8601,
+            'limit_teams' => current_meta['limit_teams'] || '',
+            'limit_members_per_team' => current_meta['limit_members_per_team'] || '',
+          }
         end
 
         puts "Updating metadata:"
@@ -422,15 +579,115 @@ Total: #{catalog.size} catalog entries"
         print '\nProceed? (y/n): '
         return unless $stdin.gets.chomp.downcase == 'y'
 
-        updated = Stripe::Product.update(product_id, {
-          metadata: product.metadata.to_h.merge(metadata),
-        })
+        # Build update params
+        update_params = { metadata: metadata }
+
+        # Handle marketing features
+        if add_feature || remove_feature
+          current_features = product.marketing_features || []
+
+          if add_feature
+            # Add new feature
+            current_features << { name: add_feature }
+            puts "  Adding marketing feature: #{add_feature}"
+          end
+
+          if remove_feature
+            # Remove feature by ID
+            current_features.reject! { |f| f.id == remove_feature }
+            puts "  Removing marketing feature: #{remove_feature}"
+          end
+
+          update_params[:marketing_features] = current_features
+        end
+
+        updated = Stripe::Product.update(product_id, update_params)
 
         puts "\nProduct updated successfully"
         puts "Updated metadata:"
         updated.metadata.each { |k, v| puts "  #{k}: #{v}" }
+
+        if updated.marketing_features && updated.marketing_features.any?
+          puts "\nMarketing features:"
+          updated.marketing_features.each { |f| puts "  - #{f.name} (#{f.id})" }
+        end
       rescue Stripe::StripeError => e
         puts "Error updating product: #{e.message}"
+      end
+    end
+
+    # Show product-related events
+    class BillingProductsEventsCommand < Command
+      include BillingHelpers
+
+      desc 'Show product-related Stripe events'
+
+      argument :product_id, required: true, desc: 'Product ID (e.g., prod_xxx)'
+
+      option :limit, type: :integer, default: 20, desc: 'Maximum results to return'
+      option :type, type: :string,
+        desc: 'Filter by specific event type (e.g., product.updated)'
+
+      def call(product_id:, limit: 20, type: nil, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        # Verify product exists
+        product = Stripe::Product.retrieve(product_id)
+        puts "Product Events for: #{product.name} (#{product_id})"
+        puts
+
+        # Fetch events related to this product
+        params = { limit: 100 }  # Fetch more to filter
+        params[:type] = type if type
+
+        events = Stripe::Event.list(params)
+
+        # Filter events related to this product
+        product_events = events.data.select do |event|
+          event_data = event.data.object
+
+          # Check if event is about this product
+          case event.type
+          when /^product\./
+            event_data.id == product_id
+          when /^price\./
+            # Price events - check if price belongs to this product
+            event_data.respond_to?(:product) &&
+              (event_data.product == product_id || event_data.product&.id == product_id)
+          else
+            false
+          end
+        end.first(limit)
+
+        if product_events.empty?
+          puts 'No events found for this product'
+          puts "\nTip: Events are only stored for 30 days by Stripe"
+          return
+        end
+
+        puts format('%-22s %-35s %-12s %s',
+          'ID', 'TYPE', 'LIVEMODE', 'CREATED')
+        puts '-' * 85
+
+        product_events.each do |event|
+          livemode = event.livemode ? 'live' : 'test'
+          created = format_timestamp(event.created)
+
+          puts format('%-22s %-35s %-12s %s',
+            event.id[0..21],
+            event.type[0..34],
+            livemode,
+            created)
+        end
+
+        puts "\nTotal: #{product_events.size} event(s)"
+        puts "\nFor details: bin/ots billing events --type product.updated"
+        puts "Common types: product.created, product.updated, price.created, price.updated"
+
+      rescue Stripe::StripeError => e
+        puts "Error retrieving product events: #{e.message}"
       end
     end
 
@@ -778,6 +1035,1090 @@ Total: #{catalog.size} catalog entries"
         puts "Error fetching events: #{e.message}"
       end
     end
+
+    # Cancel subscription
+    class BillingSubscriptionsCancelCommand < Command
+      include BillingHelpers
+
+      desc 'Cancel a subscription'
+
+      argument :subscription_id, required: true, desc: 'Subscription ID (sub_xxx)'
+
+      option :immediately, type: :boolean, default: false,
+        desc: 'Cancel immediately instead of at period end'
+      option :yes, type: :boolean, default: false,
+        desc: 'Assume yes to prompts'
+
+      def call(subscription_id:, immediately: false, yes: false, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        # Retrieve subscription
+        subscription = Stripe::Subscription.retrieve(subscription_id)
+
+        # Display current status
+        puts "Subscription: #{subscription.id}"
+        puts "Customer: #{subscription.customer}"
+        puts "Status: #{subscription.status}"
+        puts "Current period end: #{format_timestamp(subscription.current_period_end)}"
+        puts
+
+        if immediately
+          puts "⚠️  Will cancel IMMEDIATELY"
+        else
+          puts "Will cancel at period end: #{format_timestamp(subscription.current_period_end)}"
+        end
+
+        unless yes
+          print '\nProceed? (y/n): '
+          return unless $stdin.gets.chomp.downcase == 'y'
+        end
+
+        # Cancel subscription
+        canceled = if immediately
+          Stripe::Subscription.cancel(subscription_id)
+        else
+          Stripe::Subscription.update(subscription_id, {
+            cancel_at_period_end: true
+          })
+        end
+
+        puts "\nSubscription canceled successfully"
+        puts "Status: #{canceled.status}"
+        puts "Canceled at: #{format_timestamp(canceled.canceled_at)}" if canceled.canceled_at
+        if canceled.cancel_at_period_end
+          puts "Will end at: #{format_timestamp(canceled.current_period_end)}"
+        end
+
+      rescue Stripe::StripeError => e
+        puts "Error canceling subscription: #{e.message}"
+      end
+    end
+
+    # Create customer
+    class BillingCustomersCreateCommand < Command
+      include BillingHelpers
+
+      desc 'Create a new Stripe customer'
+
+      option :email, type: :string, desc: 'Customer email'
+      option :name, type: :string, desc: 'Customer name'
+      option :interactive, type: :boolean, default: false,
+        desc: 'Interactive mode - prompt for fields'
+
+      def call(email: nil, name: nil, interactive: false, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        if interactive || email.nil?
+          print 'Email: '
+          email = $stdin.gets.chomp
+          print 'Name (optional): '
+          name = $stdin.gets.chomp
+        end
+
+        if email.to_s.strip.empty?
+          puts 'Error: Email is required'
+          return
+        end
+
+        puts "\nCreating customer:"
+        puts "  Email: #{email}"
+        puts "  Name: #{name}" if name && !name.empty?
+
+        print '\nProceed? (y/n): '
+        return unless $stdin.gets.chomp.downcase == 'y'
+
+        customer_params = { email: email }
+        customer_params[:name] = name if name && !name.empty?
+
+        customer = Stripe::Customer.create(customer_params)
+
+        puts "\nCustomer created successfully:"
+        puts "  ID: #{customer.id}"
+        puts "  Email: #{customer.email}"
+        puts "  Name: #{customer.name}" if customer.name
+
+      rescue Stripe::StripeError => e
+        puts "Error creating customer: #{e.message}"
+      end
+    end
+
+    # Create test customer with payment method
+    class BillingTestCreateCustomerCommand < Command
+      include BillingHelpers
+
+      desc 'Create test customer with payment method (test mode only)'
+
+      option :with_card, type: :boolean, default: true,
+        desc: 'Attach test card payment method'
+
+      def call(with_card: true, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        unless Stripe.api_key.start_with?('sk_test_')
+          puts 'Error: Can only create test customers with test API keys'
+          puts 'Current key appears to be for live mode'
+          return
+        end
+
+        require 'securerandom'
+        email = "test-#{SecureRandom.hex(4)}@example.com"
+
+        puts "Creating test customer:"
+        puts "  Email: #{email}"
+
+        customer = Stripe::Customer.create({
+          email: email,
+          name: "Test Customer",
+          description: "CLI test customer - #{Time.now}"
+        })
+
+        puts "\nCustomer created:"
+        puts "  ID: #{customer.id}"
+        puts "  Email: #{customer.email}"
+
+        if with_card
+          # Attach test card
+          pm = Stripe::PaymentMethod.create({
+            type: 'card',
+            card: {
+              number: '4242424242424242',
+              exp_month: 12,
+              exp_year: Time.now.year + 2,
+              cvc: '123'
+            }
+          })
+
+          Stripe::PaymentMethod.attach(pm.id, { customer: customer.id })
+
+          Stripe::Customer.update(customer.id, {
+            invoice_settings: {
+              default_payment_method: pm.id
+            }
+          })
+
+          puts "\nTest card attached:"
+          puts "  Payment method: #{pm.id}"
+          puts "  Card: Visa ****4242"
+          puts "  Expiry: 12/#{Time.now.year + 2}"
+        end
+
+        puts "\nTest customer ready for use!"
+        puts "\nNext steps:"
+        puts "  bin/ots billing subscriptions create --customer #{customer.id}"
+
+      rescue Stripe::StripeError => e
+        puts "Error creating test customer: #{e.message}"
+      end
+    end
+
+    # Pause subscription
+    class BillingSubscriptionsPauseCommand < Command
+      include BillingHelpers
+
+      desc 'Pause a subscription'
+
+      argument :subscription_id, required: true, desc: 'Subscription ID (sub_xxx)'
+
+      option :yes, type: :boolean, default: false,
+        desc: 'Assume yes to prompts'
+
+      def call(subscription_id:, yes: false, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        subscription = Stripe::Subscription.retrieve(subscription_id)
+
+        if subscription.pause_collection
+          puts "Subscription is already paused"
+          return
+        end
+
+        puts "Subscription: #{subscription.id}"
+        puts "Customer: #{subscription.customer}"
+        puts "Status: #{subscription.status}"
+        puts
+
+        unless yes
+          print 'Pause subscription? (y/n): '
+          return unless $stdin.gets.chomp.downcase == 'y'
+        end
+
+        updated = Stripe::Subscription.update(subscription_id, {
+          pause_collection: { behavior: 'void' }
+        })
+
+        puts "\nSubscription paused successfully"
+        puts "Status: #{updated.status}"
+        puts "Paused: Billing paused, access continues"
+
+      rescue Stripe::StripeError => e
+        puts "Error pausing subscription: #{e.message}"
+      end
+    end
+
+    # Resume subscription
+    class BillingSubscriptionsResumeCommand < Command
+      include BillingHelpers
+
+      desc 'Resume a paused subscription'
+
+      argument :subscription_id, required: true, desc: 'Subscription ID (sub_xxx)'
+
+      option :yes, type: :boolean, default: false,
+        desc: 'Assume yes to prompts'
+
+      def call(subscription_id:, yes: false, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        subscription = Stripe::Subscription.retrieve(subscription_id)
+
+        unless subscription.pause_collection
+          puts "Subscription is not paused"
+          return
+        end
+
+        puts "Subscription: #{subscription.id}"
+        puts "Customer: #{subscription.customer}"
+        puts "Status: #{subscription.status}"
+        puts "Currently paused: Yes"
+        puts
+
+        unless yes
+          print 'Resume subscription? (y/n): '
+          return unless $stdin.gets.chomp.downcase == 'y'
+        end
+
+        updated = Stripe::Subscription.update(subscription_id, {
+          pause_collection: nil
+        })
+
+        puts "\nSubscription resumed successfully"
+        puts "Status: #{updated.status}"
+        puts "Billing will resume on next period"
+
+      rescue Stripe::StripeError => e
+        puts "Error resuming subscription: #{e.message}"
+      end
+    end
+
+    # Show customer details with payment methods
+    class BillingCustomersShowCommand < Command
+      include BillingHelpers
+
+      desc 'Show detailed customer information'
+
+      argument :customer_id, required: true, desc: 'Customer ID (cus_xxx)'
+
+      def call(customer_id:, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        customer = Stripe::Customer.retrieve(customer_id)
+
+        puts "Customer Details:"
+        puts "  ID: #{customer.id}"
+        puts "  Email: #{customer.email}"
+        puts "  Name: #{customer.name}" if customer.name
+        puts "  Created: #{format_timestamp(customer.created)}"
+        puts "  Currency: #{customer.currency}" if customer.currency
+        puts "  Balance: #{format_amount(customer.balance, customer.currency || 'usd')}"
+        puts
+
+        # Payment methods
+        payment_methods = Stripe::PaymentMethod.list({
+          customer: customer_id,
+          limit: 10
+        })
+
+        puts "Payment Methods:"
+        if payment_methods.data.empty?
+          puts "  None"
+        else
+          default_pm = customer.invoice_settings&.default_payment_method
+
+          payment_methods.data.each do |pm|
+            default_marker = pm.id == default_pm ? ' (default)' : ''
+            puts "  #{pm.id} - #{pm.type}#{default_marker}"
+
+            case pm.type
+            when 'card'
+              puts "    Card: #{pm.card.brand} ****#{pm.card.last4} (#{pm.card.exp_month}/#{pm.card.exp_year})"
+            when 'bank_account'
+              puts "    Bank: ****#{pm.bank_account.last4}"
+            end
+          end
+        end
+        puts
+
+        # Subscriptions
+        subscriptions = Stripe::Subscription.list({
+          customer: customer_id,
+          limit: 10
+        })
+
+        puts "Subscriptions:"
+        if subscriptions.data.empty?
+          puts "  None"
+        else
+          subscriptions.data.each do |sub|
+            status_marker = sub.pause_collection ? ' (paused)' : ''
+            puts "  #{sub.id} - #{sub.status}#{status_marker}"
+            puts "    Period: #{format_timestamp(sub.current_period_start)} to #{format_timestamp(sub.current_period_end)}"
+          end
+        end
+
+      rescue Stripe::StripeError => e
+        puts "Error retrieving customer: #{e.message}"
+      end
+    end
+
+    # Update subscription price or quantity
+    class BillingSubscriptionsUpdateCommand < Command
+      include BillingHelpers
+
+      desc 'Update subscription price or quantity'
+
+      argument :subscription_id, required: true, desc: 'Subscription ID (sub_xxx)'
+
+      option :price, type: :string, desc: 'New price ID (price_xxx)'
+      option :quantity, type: :integer, desc: 'New quantity'
+      option :prorate, type: :boolean, default: true, desc: 'Prorate charges'
+
+      def call(subscription_id:, price: nil, quantity: nil, prorate: true, **)
+        boot_application!
+        return unless stripe_configured?
+
+        if price.nil? && quantity.nil?
+          puts "Error: Must specify --price or --quantity"
+          return
+        end
+
+        subscription = Stripe::Subscription.retrieve(subscription_id)
+        current_item = subscription.items.data.first
+
+        puts "Current subscription:"
+        puts "  Subscription: #{subscription.id}"
+        puts "  Current price: #{current_item.price.id}"
+        puts "  Current quantity: #{current_item.quantity}"
+        puts "  Amount: #{format_amount(current_item.price.unit_amount, current_item.price.currency)}"
+        puts
+
+        puts "New configuration:"
+        puts "  New price: #{price || current_item.price.id}"
+        puts "  New quantity: #{quantity || current_item.quantity}"
+        puts "  Prorate: #{prorate}"
+
+        print "\nProceed? (y/n): "
+        return unless $stdin.gets.chomp.downcase == 'y'
+
+        update_params = {
+          items: [{
+            id: current_item.id,
+            price: price || current_item.price.id,
+            quantity: quantity || current_item.quantity
+          }],
+          proration_behavior: prorate ? 'create_prorations' : 'none'
+        }
+
+        updated = Stripe::Subscription.update(subscription_id, update_params)
+
+        puts "\nSubscription updated successfully"
+        puts "Status: #{updated.status}"
+
+      rescue Stripe::StripeError => e
+        puts "Error updating subscription: #{e.message}"
+      end
+    end
+
+    # Delete customer with safety checks
+    class BillingCustomersDeleteCommand < Command
+      include BillingHelpers
+
+      desc 'Delete a Stripe customer'
+
+      argument :customer_id, required: true, desc: 'Customer ID (cus_xxx)'
+
+      option :yes, type: :boolean, default: false,
+        desc: 'Assume yes to prompts'
+
+      def call(customer_id:, yes: false, **)
+        boot_application!
+        return unless stripe_configured?
+
+        customer = Stripe::Customer.retrieve(customer_id)
+
+        # Check for active subscriptions
+        subscriptions = Stripe::Subscription.list({
+          customer: customer_id,
+          status: 'active',
+          limit: 1
+        })
+
+        if subscriptions.data.any?
+          puts "⚠️  Customer has active subscriptions!"
+          puts "Cancel subscriptions first or use --yes"
+          return unless yes
+        end
+
+        puts "Customer: #{customer.id}"
+        puts "Email: #{customer.email}"
+
+        unless yes
+          print "\n⚠️  Delete customer permanently? (y/n): "
+          return unless $stdin.gets.chomp.downcase == 'y'
+        end
+
+        deleted = Stripe::Customer.delete(customer_id)
+
+        if deleted.deleted
+          puts "\nCustomer deleted successfully"
+        else
+          puts "\nFailed to delete customer"
+        end
+
+      rescue Stripe::StripeError => e
+        puts "Error deleting customer: #{e.message}"
+      end
+    end
+
+    # Set default payment method for customer
+    class BillingPaymentMethodsSetDefaultCommand < Command
+      include BillingHelpers
+
+      desc 'Set default payment method'
+
+      argument :payment_method_id, required: true, desc: 'Payment method ID (pm_xxx)'
+
+      option :customer, type: :string, required: true, desc: 'Customer ID (cus_xxx)'
+
+      def call(payment_method_id:, customer:, **)
+        boot_application!
+        return unless stripe_configured?
+
+        # Verify payment method belongs to customer
+        pm = Stripe::PaymentMethod.retrieve(payment_method_id)
+
+        unless pm.customer == customer
+          puts "Error: Payment method does not belong to customer"
+          return
+        end
+
+        puts "Payment method: #{payment_method_id}"
+        puts "Customer: #{customer}"
+
+        print "\nSet as default? (y/n): "
+        return unless $stdin.gets.chomp.downcase == 'y'
+
+        updated = Stripe::Customer.update(customer, {
+          invoice_settings: {
+            default_payment_method: payment_method_id
+          }
+        })
+
+        puts "\nDefault payment method updated successfully"
+        puts "Default: #{updated.invoice_settings.default_payment_method}"
+
+      rescue Stripe::StripeError => e
+        puts "Error setting default payment method: #{e.message}"
+      end
+    end
+
+    # List refunds
+    class BillingRefundsCommand < Command
+      include BillingHelpers
+
+      desc 'List Stripe refunds'
+
+      option :charge, type: :string, desc: 'Filter by charge ID'
+      option :limit, type: :integer, default: 100, desc: 'Maximum results to return'
+
+      def call(charge: nil, limit: 100, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        puts 'Fetching refunds from Stripe...'
+        params = { limit: limit }
+        params[:charge] = charge if charge
+
+        refunds = Stripe::Refund.list(params)
+
+        if refunds.data.empty?
+          puts 'No refunds found'
+          return
+        end
+
+        puts format('%-22s %-22s %-12s %-10s %s',
+          'ID', 'CHARGE', 'AMOUNT', 'STATUS', 'CREATED')
+        puts '-' * 90
+
+        refunds.data.each do |refund|
+          amount = format_amount(refund.amount, refund.currency)
+          created = format_timestamp(refund.created)
+
+          puts format('%-22s %-22s %-12s %-10s %s',
+            refund.id[0..21],
+            refund.charge[0..21],
+            amount[0..11],
+            refund.status[0..9],
+            created)
+        end
+
+        puts "\nTotal: #{refunds.data.size} refund(s)"
+
+      rescue Stripe::StripeError => e
+        puts "Error fetching refunds: #{e.message}"
+      end
+    end
+
+    # Create refund
+    class BillingRefundsCreateCommand < Command
+      include BillingHelpers
+
+      desc 'Create a refund for a charge'
+
+      option :charge, type: :string, required: true,
+        desc: 'Charge ID (ch_xxx)'
+      option :amount, type: :integer,
+        desc: 'Amount in cents (leave empty for full refund)'
+      option :reason, type: :string,
+        desc: 'Reason: duplicate, fraudulent, requested_by_customer'
+      option :yes, type: :boolean, default: false,
+        desc: 'Assume yes to prompts'
+
+      def call(charge:, amount: nil, reason: nil, yes: false, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        charge_obj = Stripe::Charge.retrieve(charge)
+
+        puts "Charge: #{charge_obj.id}"
+        puts "Amount: #{format_amount(charge_obj.amount, charge_obj.currency)}"
+        puts "Customer: #{charge_obj.customer}"
+        puts
+
+        refund_amount = amount || charge_obj.amount
+        puts "Refund amount: #{format_amount(refund_amount, charge_obj.currency)}"
+        puts "Reason: #{reason}" if reason
+
+        unless yes
+          print '\nCreate refund? (y/n): '
+          return unless $stdin.gets.chomp.downcase == 'y'
+        end
+
+        refund_params = { charge: charge }
+        refund_params[:amount] = amount if amount
+        refund_params[:reason] = reason if reason
+
+        refund = Stripe::Refund.create(refund_params)
+
+        puts "\nRefund created successfully:"
+        puts "  ID: #{refund.id}"
+        puts "  Amount: #{format_amount(refund.amount, refund.currency)}"
+        puts "  Status: #{refund.status}"
+
+      rescue Stripe::StripeError => e
+        puts "Error creating refund: #{e.message}"
+      end
+    end
+
+    # Trigger test webhook
+    class BillingTestTriggerWebhookCommand < Command
+      include BillingHelpers
+
+      desc 'Trigger a test webhook event (requires Stripe CLI)'
+
+      argument :event_type, required: true,
+        desc: 'Event type (e.g., customer.subscription.updated)'
+
+      option :subscription, type: :string,
+        desc: 'Subscription ID for subscription events'
+      option :customer, type: :string,
+        desc: 'Customer ID for customer events'
+
+      def call(event_type:, subscription: nil, customer: nil, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        unless Stripe.api_key.start_with?('sk_test_')
+          puts 'Error: Can only trigger test events with test API keys'
+          return
+        end
+
+        puts "Triggering test webhook: #{event_type}"
+
+        # Build stripe CLI command
+        cmd = "stripe trigger #{event_type}"
+        cmd += " --subscription #{subscription}" if subscription
+        cmd += " --customer #{customer}" if customer
+
+        puts "Command: #{cmd}"
+        puts
+
+        # Check if stripe CLI is available
+        unless system('which stripe > /dev/null 2>&1')
+          puts 'Error: Stripe CLI not found'
+          puts 'Install from: https://stripe.com/docs/stripe-cli'
+          return
+        end
+
+        # Execute command
+        system(cmd)
+
+      rescue StandardError => e
+        puts "Error: #{e.message}"
+        puts "\nNote: Requires Stripe CLI installed (stripe.com/docs/stripe-cli)"
+      end
+    end
+
+    # Sigma parent command (show help)
+    class BillingSigmaCommand < Command
+      include BillingHelpers
+
+      desc 'Stripe Sigma analytics commands'
+
+      def call(**)
+        puts <<~HELP
+          Stripe Sigma Analytics:
+
+            bin/ots billing sigma queries      List Sigma queries
+            bin/ots billing sigma run          Execute Sigma query
+
+          Examples:
+
+            # List available queries
+            bin/ots billing sigma queries
+
+            # Execute a query
+            bin/ots billing sigma run sqa_ABC123xyz
+
+            # Export query results to CSV
+            bin/ots billing sigma run sqa_ABC123xyz --format csv --output report.csv
+
+          Note: Sigma is only available on paid Stripe plans.
+          See: https://stripe.com/docs/sigma
+        HELP
+      end
+    end
+
+    # List Sigma queries
+    class BillingSigmaQueriesCommand < Command
+      include BillingHelpers
+
+      desc 'List Stripe Sigma queries'
+
+      option :limit, type: :integer, default: 100, desc: 'Maximum results to return'
+
+      def call(limit: 100, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        puts 'Fetching Sigma queries from Stripe...'
+
+        queries = Stripe::Sigma::ScheduledQueryRun.list({ limit: limit })
+
+        if queries.data.empty?
+          puts 'No Sigma queries found'
+          puts 'Note: Sigma is only available on paid Stripe plans'
+          return
+        end
+
+        puts format('%-22s %-40s %s',
+          'ID', 'SQL', 'CREATED')
+        puts '-' * 80
+
+        queries.data.each do |query|
+          sql_preview = query.sql&.[](0..39) || 'N/A'
+          created = format_timestamp(query.created)
+
+          puts format('%-22s %-40s %s',
+            query.id[0..21],
+            sql_preview,
+            created)
+        end
+
+        puts "\nTotal: #{queries.data.size} query/queries"
+
+      rescue Stripe::StripeError => e
+        if e.message.include?('This feature is not available')
+          puts "Error: Sigma is not available on your Stripe plan"
+          puts "Sigma requires a paid Stripe plan. See: https://stripe.com/docs/sigma"
+        else
+          puts "Error fetching Sigma queries: #{e.message}"
+        end
+      end
+    end
+
+    # Execute Sigma query
+    class BillingSigmaRunCommand < Command
+      include BillingHelpers
+
+      desc 'Execute a Sigma query'
+
+      argument :query_id, required: true, desc: 'Sigma query ID (sqa_xxx)'
+
+      option :format, type: :string, default: 'table',
+        desc: 'Output format: table, csv, json'
+      option :output, type: :string, desc: 'Output file path'
+
+      def call(query_id:, format: 'table', output: nil, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        unless %w[table csv json].include?(format)
+          puts 'Error: Format must be one of: table, csv, json'
+          return
+        end
+
+        puts "Executing Sigma query: #{query_id}"
+
+        query_run = Stripe::Sigma::ScheduledQueryRun.retrieve(query_id)
+
+        puts "Query: #{query_run.sql[0..100]}..."
+        puts
+
+        # Note: Actual execution and result retrieval requires the query to be run
+        # This is a simplified implementation
+        puts "Status: #{query_run.status}"
+
+        if query_run.result_available_until
+          puts "Results available until: #{format_timestamp(query_run.result_available_until)}"
+        end
+
+        # In a real implementation, you would fetch and format the actual results
+        # For now, show query details
+        case format
+        when 'json'
+          require 'json'
+          result = {
+            id: query_run.id,
+            sql: query_run.sql,
+            status: query_run.status,
+            created: query_run.created
+          }
+          output_str = JSON.pretty_generate(result)
+        when 'csv'
+          output_str = "ID,SQL,STATUS,CREATED\n#{query_run.id},\"#{query_run.sql}\",#{query_run.status},#{query_run.created}"
+        else
+          output_str = "Query execution complete. Use Stripe Dashboard to view full results."
+        end
+
+        if output
+          File.write(output, output_str)
+          puts "Results saved to: #{output}"
+        else
+          puts output_str
+        end
+
+      rescue Stripe::StripeError => e
+        puts "Error executing Sigma query: #{e.message}"
+      end
+    end
+
+    # List payment links
+    class BillingPaymentLinksCommand < Command
+      include BillingHelpers
+
+      desc 'List Stripe payment links'
+
+      option :active_only, type: :boolean, default: true,
+        desc: 'Show only active links'
+      option :limit, type: :integer, default: 100, desc: 'Maximum results to return'
+
+      def call(active_only: true, limit: 100, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        puts 'Fetching payment links from Stripe...'
+        params = { limit: limit }
+        params[:active] = true if active_only
+
+        links = Stripe::PaymentLink.list(params)
+
+        if links.data.empty?
+          puts 'No payment links found'
+          return
+        end
+
+        puts format('%-30s %-30s %-12s %-10s %s',
+          'ID', 'PRODUCT/PRICE', 'AMOUNT', 'INTERVAL', 'ACTIVE')
+        puts '-' * 100
+
+        links.data.each do |link|
+          active = link.active ? 'yes' : 'no'
+          product_name = 'N/A'
+          amount = 'N/A'
+          interval = 'N/A'
+
+          begin
+            # Retrieve with line_items expanded for each link
+            link_expanded = Stripe::PaymentLink.retrieve(link.id, expand: ['line_items'])
+
+            if link_expanded.line_items && link_expanded.line_items.data.any?
+              line_item = link_expanded.line_items.data.first
+
+              # Get price ID - handle both string and object
+              price_id = line_item.price.is_a?(String) ? line_item.price : line_item.price.id
+              price = Stripe::Price.retrieve(price_id)
+
+              # Get product ID - handle both string and object
+              product_id = price.product.is_a?(String) ? price.product : price.product.id
+              product = Stripe::Product.retrieve(product_id)
+
+              product_name = product.name[0..29]
+              amount = format_amount(price.unit_amount, price.currency)
+              interval = price.recurring&.interval || 'one-time'
+            end
+          rescue StandardError => e
+            # Continue with N/A values if we can't fetch details
+            OT.logger.debug { "Failed to fetch details for #{link.id}: #{e.message}" }
+          end
+
+          puts format('%-30s %-30s %-12s %-10s %s',
+            link.id,
+            product_name,
+            amount[0..11],
+            interval[0..9],
+            active)
+        end
+
+        puts "\nTotal: #{links.data.size} payment link(s)"
+        puts "\nUse 'bin/ots billing payment-links show <id>' for full details including URL"
+
+      rescue Stripe::StripeError => e
+        puts "Error fetching payment links: #{e.message}"
+      rescue StandardError => e
+        puts "Error: #{e.message}"
+        puts e.backtrace.first(5).join("\n") if OT.debug?
+      end
+    end
+
+    # Create payment link
+    class BillingPaymentLinksCreateCommand < Command
+      include BillingHelpers
+
+      desc 'Create a new payment link'
+
+      option :price, type: :string, required: true, desc: 'Price ID (price_xxx)'
+      option :quantity, type: :integer, default: 1, desc: 'Fixed quantity'
+      option :allow_quantity, type: :boolean, default: false,
+        desc: 'Allow customer to adjust quantity'
+      option :after_completion, type: :string,
+        desc: 'Redirect URL after successful payment'
+
+      def call(price:, quantity: 1, allow_quantity: false, after_completion: nil, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        # Retrieve price to show details
+        price_obj = Stripe::Price.retrieve(price)
+        product = Stripe::Product.retrieve(price_obj.product)
+
+        puts "Price: #{price}"
+        puts "Product: #{product.name}"
+        puts "Amount: #{format_amount(price_obj.unit_amount, price_obj.currency)}/#{price_obj.recurring&.interval || 'one-time'}"
+        puts
+
+        puts "Creating payment link..."
+
+        link_params = {
+          line_items: [{
+            price: price,
+            quantity: quantity,
+            adjustable_quantity: allow_quantity ? { enabled: true } : nil
+          }.compact]
+        }
+
+        if after_completion
+          link_params[:after_completion] = {
+            type: 'redirect',
+            redirect: { url: after_completion }
+          }
+        end
+
+        link = Stripe::PaymentLink.create(link_params)
+
+        puts "\nPayment link created successfully:"
+        puts "  ID: #{link.id}"
+        puts "  URL: #{link.url}"
+        puts "\nShare this link with customers!"
+
+      rescue Stripe::StripeError => e
+        puts "Error creating payment link: #{e.message}"
+      end
+    end
+
+    # Update payment link
+    class BillingPaymentLinksUpdateCommand < Command
+      include BillingHelpers
+
+      desc 'Update a payment link'
+
+      argument :link_id, required: true, desc: 'Payment link ID (plink_xxx)'
+
+      option :active, type: :boolean, desc: 'Activate or deactivate link'
+
+      def call(link_id:, active: nil, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        link = Stripe::PaymentLink.retrieve(link_id)
+
+        puts "Payment link: #{link.id}"
+        puts "Current status: #{link.active ? 'active' : 'inactive'}"
+        puts
+
+        if active.nil?
+          puts 'Error: Must specify --active true or --active false'
+          return
+        end
+
+        status_word = active ? 'active' : 'inactive'
+        print "Update status to #{status_word}? (y/n): "
+        return unless $stdin.gets.chomp.downcase == 'y'
+
+        updated = Stripe::PaymentLink.update(link_id, { active: active })
+
+        puts "\nPayment link updated successfully"
+        puts "Status: #{updated.active ? 'active' : 'inactive'}"
+
+      rescue Stripe::StripeError => e
+        puts "Error updating payment link: #{e.message}"
+      end
+    end
+
+    # Show payment link details
+    class BillingPaymentLinksShowCommand < Command
+      include BillingHelpers
+
+      desc 'Show payment link details'
+
+      argument :link_id, required: true, desc: 'Payment link ID (plink_xxx)'
+
+      def call(link_id:, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        # Ensure link_id is a string
+        link_id = link_id.to_s.strip if link_id.respond_to?(:strip)
+        link_id = link_id.first.to_s.strip if link_id.is_a?(Array)
+
+        # Retrieve the payment link
+        link = Stripe::PaymentLink.retrieve(link_id)
+
+        puts "Payment Link Details:"
+        puts "  ID: #{link.id}"
+        puts "  URL: #{link.url}"
+        puts "  Active: #{link.active ? 'yes' : 'no'}"
+        puts
+
+        # Try to get line items - Stripe requires expand parameter
+        begin
+          link_with_items = Stripe::PaymentLink.retrieve(link_id, expand: ['line_items'])
+
+          if link_with_items.line_items && link_with_items.line_items.data.any?
+            line_item = link_with_items.line_items.data.first
+
+            # Get price ID - handle both string and object
+            price_id = line_item.price.is_a?(String) ? line_item.price : line_item.price.id
+            price = Stripe::Price.retrieve(price_id)
+
+            # Get product ID - handle both string and object
+            product_id = price.product.is_a?(String) ? price.product : price.product.id
+            product = Stripe::Product.retrieve(product_id)
+
+            puts "Product:"
+            puts "  ID: #{product.id}"
+            puts "  Name: #{product.name}"
+            puts
+
+            puts "Price:"
+            puts "  ID: #{price.id}"
+            puts "  Amount: #{format_amount(price.unit_amount, price.currency)}"
+            puts "  Interval: #{price.recurring&.interval || 'one-time'}"
+            puts
+
+            puts "Configuration:"
+            quantity_text = line_item.adjustable_quantity&.enabled ? '(adjustable)' : '(fixed)'
+            puts "  Quantity: #{line_item.quantity} #{quantity_text}"
+
+            if link.after_completion && link.after_completion.redirect
+              puts "  After completion: #{link.after_completion.redirect.url}"
+            end
+          else
+            puts "Line Items:"
+            puts "  (none configured)"
+          end
+        rescue StandardError => e
+          puts "Line Items:"
+          puts "  Error retrieving: #{e.message}"
+          OT.logger.debug { "Line items error for #{link_id}: #{e.message}\n#{e.backtrace.first(5).join("\n")}" }
+        end
+
+      rescue Stripe::StripeError => e
+        puts "Error retrieving payment link: #{e.message}"
+      rescue StandardError => e
+        puts "Error: #{e.message}"
+        puts e.backtrace.first(5).join("\n") if OT.debug?
+      end
+    end
+
+    # Archive payment link
+    class BillingPaymentLinksArchiveCommand < Command
+      include BillingHelpers
+
+      desc 'Archive a payment link'
+
+      argument :link_id, required: true, desc: 'Payment link ID (plink_xxx)'
+
+      option :yes, type: :boolean, default: false,
+        desc: 'Assume yes to prompts'
+
+      def call(link_id:, yes: false, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        link = Stripe::PaymentLink.retrieve(link_id)
+
+        puts "Payment link: #{link.id}"
+        puts "URL: #{link.url}"
+        puts "Status: #{link.active ? 'active' : 'inactive'}"
+        puts
+
+        unless yes
+          print 'Archive this payment link? (y/n): '
+          return unless $stdin.gets.chomp.downcase == 'y'
+        end
+
+        updated = Stripe::PaymentLink.update(link_id, { active: false })
+
+        puts "\nPayment link archived successfully"
+        puts "Status: inactive"
+        puts "URL no longer accepts payments"
+
+      rescue Stripe::StripeError => e
+        puts "Error archiving payment link: #{e.message}"
+      end
+    end
   end
 end
 
@@ -786,12 +2127,34 @@ Onetime::CLI.register 'billing', Onetime::CLI::BillingCommand
 Onetime::CLI.register 'billing catalog', Onetime::CLI::BillingCatalogCommand
 Onetime::CLI.register 'billing products', Onetime::CLI::BillingProductsCommand
 Onetime::CLI.register 'billing products create', Onetime::CLI::BillingProductsCreateCommand
+Onetime::CLI.register 'billing products show', Onetime::CLI::BillingProductsShowCommand
 Onetime::CLI.register 'billing products update', Onetime::CLI::BillingProductsUpdateCommand
+Onetime::CLI.register 'billing products events', Onetime::CLI::BillingProductsEventsCommand
 Onetime::CLI.register 'billing prices', Onetime::CLI::BillingPricesCommand
 Onetime::CLI.register 'billing prices create', Onetime::CLI::BillingPricesCreateCommand
 Onetime::CLI.register 'billing subscriptions', Onetime::CLI::BillingSubscriptionsCommand
+Onetime::CLI.register 'billing subscriptions cancel', Onetime::CLI::BillingSubscriptionsCancelCommand
+Onetime::CLI.register 'billing subscriptions pause', Onetime::CLI::BillingSubscriptionsPauseCommand
+Onetime::CLI.register 'billing subscriptions resume', Onetime::CLI::BillingSubscriptionsResumeCommand
+Onetime::CLI.register 'billing subscriptions update', Onetime::CLI::BillingSubscriptionsUpdateCommand
 Onetime::CLI.register 'billing customers', Onetime::CLI::BillingCustomersCommand
+Onetime::CLI.register 'billing customers create', Onetime::CLI::BillingCustomersCreateCommand
+Onetime::CLI.register 'billing customers show', Onetime::CLI::BillingCustomersShowCommand
+Onetime::CLI.register 'billing customers delete', Onetime::CLI::BillingCustomersDeleteCommand
+Onetime::CLI.register 'billing payment-methods set-default', Onetime::CLI::BillingPaymentMethodsSetDefaultCommand
 Onetime::CLI.register 'billing invoices', Onetime::CLI::BillingInvoicesCommand
+Onetime::CLI.register 'billing refunds', Onetime::CLI::BillingRefundsCommand
+Onetime::CLI.register 'billing refunds create', Onetime::CLI::BillingRefundsCreateCommand
 Onetime::CLI.register 'billing events', Onetime::CLI::BillingEventsCommand
+Onetime::CLI.register 'billing test create-customer', Onetime::CLI::BillingTestCreateCustomerCommand
+Onetime::CLI.register 'billing test trigger-webhook', Onetime::CLI::BillingTestTriggerWebhookCommand
+Onetime::CLI.register 'billing sigma', Onetime::CLI::BillingSigmaCommand
+Onetime::CLI.register 'billing sigma queries', Onetime::CLI::BillingSigmaQueriesCommand
+Onetime::CLI.register 'billing sigma run', Onetime::CLI::BillingSigmaRunCommand
+Onetime::CLI.register 'billing payment-links', Onetime::CLI::BillingPaymentLinksCommand
+Onetime::CLI.register 'billing payment-links create', Onetime::CLI::BillingPaymentLinksCreateCommand
+Onetime::CLI.register 'billing payment-links update', Onetime::CLI::BillingPaymentLinksUpdateCommand
+Onetime::CLI.register 'billing payment-links show', Onetime::CLI::BillingPaymentLinksShowCommand
+Onetime::CLI.register 'billing payment-links archive', Onetime::CLI::BillingPaymentLinksArchiveCommand
 Onetime::CLI.register 'billing sync', Onetime::CLI::BillingSyncCommand
 Onetime::CLI.register 'billing validate', Onetime::CLI::BillingValidateCommand

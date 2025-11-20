@@ -43,7 +43,7 @@ Create products in [Stripe Dashboard → Products](https://dashboard.stripe.com/
 }
 ```
 
-**Available plan_id values:** See `lib/onetime/billing/plan_definitions.rb`
+**Available plan_id values:** See `lib/onetime/billing/catalog_definitions.rb`
 
 **Capabilities list:** See `CAPABILITIES` constant in same file
 
