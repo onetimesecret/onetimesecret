@@ -1,4 +1,4 @@
-# lib/onetime/billing/plan_definitions.rb
+# lib/onetime/billing/catalog_definitions.rb
 #
 # frozen_string_literal: true
 #
