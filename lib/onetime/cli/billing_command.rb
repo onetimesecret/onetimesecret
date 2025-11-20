@@ -209,11 +209,14 @@ module Onetime
             bin/ots billing customers          List Stripe customers
             bin/ots billing customers create   Create new customer
             bin/ots billing customers show     Show customer details
+            bin/ots billing customers delete   Delete customer
             bin/ots billing subscriptions      List Stripe subscriptions
             bin/ots billing subscriptions cancel  Cancel subscription
             bin/ots billing subscriptions pause   Pause subscription
             bin/ots billing subscriptions resume  Resume paused subscription
+            bin/ots billing subscriptions update  Update subscription price/quantity
             bin/ots billing invoices           List Stripe invoices
+            bin/ots billing payment-methods set-default  Set default payment method
 
           Testing:
             bin/ots billing test create-customer  Create test customer with card
@@ -1151,6 +1154,157 @@ Total: #{catalog.size} catalog entries"
         puts "Error retrieving customer: #{e.message}"
       end
     end
+
+    # Update subscription price or quantity
+    class BillingSubscriptionsUpdateCommand < Command
+      include BillingHelpers
+
+      desc 'Update subscription price or quantity'
+
+      argument :subscription_id, required: true, desc: 'Subscription ID (sub_xxx)'
+
+      option :price, type: :string, desc: 'New price ID (price_xxx)'
+      option :quantity, type: :integer, desc: 'New quantity'
+      option :prorate, type: :boolean, default: true, desc: 'Prorate charges'
+
+      def call(subscription_id:, price: nil, quantity: nil, prorate: true, **)
+        boot_application!
+        return unless stripe_configured?
+
+        if price.nil? && quantity.nil?
+          puts "Error: Must specify --price or --quantity"
+          return
+        end
+
+        subscription = Stripe::Subscription.retrieve(subscription_id)
+        current_item = subscription.items.data.first
+
+        puts "Current subscription:"
+        puts "  Subscription: #{subscription.id}"
+        puts "  Current price: #{current_item.price.id}"
+        puts "  Current quantity: #{current_item.quantity}"
+        puts "  Amount: #{format_amount(current_item.price.unit_amount, current_item.price.currency)}"
+        puts
+
+        puts "New configuration:"
+        puts "  New price: #{price || current_item.price.id}"
+        puts "  New quantity: #{quantity || current_item.quantity}"
+        puts "  Prorate: #{prorate}"
+
+        print "\nProceed? (y/n): "
+        return unless $stdin.gets.chomp.downcase == 'y'
+
+        update_params = {
+          items: [{
+            id: current_item.id,
+            price: price || current_item.price.id,
+            quantity: quantity || current_item.quantity
+          }],
+          proration_behavior: prorate ? 'create_prorations' : 'none'
+        }
+
+        updated = Stripe::Subscription.update(subscription_id, update_params)
+
+        puts "\nSubscription updated successfully"
+        puts "Status: #{updated.status}"
+
+      rescue Stripe::StripeError => e
+        puts "Error updating subscription: #{e.message}"
+      end
+    end
+
+    # Delete customer with safety checks
+    class BillingCustomersDeleteCommand < Command
+      include BillingHelpers
+
+      desc 'Delete a Stripe customer'
+
+      argument :customer_id, required: true, desc: 'Customer ID (cus_xxx)'
+
+      option :force, type: :boolean, default: false,
+        desc: 'Skip confirmation'
+
+      def call(customer_id:, force: false, **)
+        boot_application!
+        return unless stripe_configured?
+
+        customer = Stripe::Customer.retrieve(customer_id)
+
+        # Check for active subscriptions
+        subscriptions = Stripe::Subscription.list({
+          customer: customer_id,
+          status: 'active',
+          limit: 1
+        })
+
+        if subscriptions.data.any?
+          puts "⚠️  Customer has active subscriptions!"
+          puts "Cancel subscriptions first or use --force"
+          return unless force
+        end
+
+        puts "Customer: #{customer.id}"
+        puts "Email: #{customer.email}"
+
+        unless force
+          print "\n⚠️  Delete customer permanently? (y/n): "
+          return unless $stdin.gets.chomp.downcase == 'y'
+        end
+
+        deleted = Stripe::Customer.delete(customer_id)
+
+        if deleted.deleted
+          puts "\nCustomer deleted successfully"
+        else
+          puts "\nFailed to delete customer"
+        end
+
+      rescue Stripe::StripeError => e
+        puts "Error deleting customer: #{e.message}"
+      end
+    end
+
+    # Set default payment method for customer
+    class BillingPaymentMethodsSetDefaultCommand < Command
+      include BillingHelpers
+
+      desc 'Set default payment method'
+
+      argument :payment_method_id, required: true, desc: 'Payment method ID (pm_xxx)'
+
+      option :customer, type: :string, required: true, desc: 'Customer ID (cus_xxx)'
+
+      def call(payment_method_id:, customer:, **)
+        boot_application!
+        return unless stripe_configured?
+
+        # Verify payment method belongs to customer
+        pm = Stripe::PaymentMethod.retrieve(payment_method_id)
+
+        unless pm.customer == customer
+          puts "Error: Payment method does not belong to customer"
+          return
+        end
+
+        puts "Payment method: #{payment_method_id}"
+        puts "Customer: #{customer}"
+
+        print "\nSet as default? (y/n): "
+        return unless $stdin.gets.chomp.downcase == 'y'
+
+        updated = Stripe::Customer.update(customer, {
+          invoice_settings: {
+            default_payment_method: payment_method_id
+          }
+        })
+
+        puts "\nDefault payment method updated successfully"
+        puts "Default: #{updated.invoice_settings.default_payment_method}"
+
+      rescue Stripe::StripeError => e
+        puts "Error setting default payment method: #{e.message}"
+      end
+    end
   end
 end
 
@@ -1166,9 +1320,12 @@ Onetime::CLI.register 'billing subscriptions', Onetime::CLI::BillingSubscription
 Onetime::CLI.register 'billing subscriptions cancel', Onetime::CLI::BillingSubscriptionsCancelCommand
 Onetime::CLI.register 'billing subscriptions pause', Onetime::CLI::BillingSubscriptionsPauseCommand
 Onetime::CLI.register 'billing subscriptions resume', Onetime::CLI::BillingSubscriptionsResumeCommand
+Onetime::CLI.register 'billing subscriptions update', Onetime::CLI::BillingSubscriptionsUpdateCommand
 Onetime::CLI.register 'billing customers', Onetime::CLI::BillingCustomersCommand
 Onetime::CLI.register 'billing customers create', Onetime::CLI::BillingCustomersCreateCommand
 Onetime::CLI.register 'billing customers show', Onetime::CLI::BillingCustomersShowCommand
+Onetime::CLI.register 'billing customers delete', Onetime::CLI::BillingCustomersDeleteCommand
+Onetime::CLI.register 'billing payment-methods set-default', Onetime::CLI::BillingPaymentMethodsSetDefaultCommand
 Onetime::CLI.register 'billing invoices', Onetime::CLI::BillingInvoicesCommand
 Onetime::CLI.register 'billing events', Onetime::CLI::BillingEventsCommand
 Onetime::CLI.register 'billing test create-customer', Onetime::CLI::BillingTestCreateCustomerCommand
