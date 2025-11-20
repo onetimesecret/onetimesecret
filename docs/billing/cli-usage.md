@@ -20,7 +20,7 @@ The `bin/ots billing` command suite provides tools for managing Stripe products,
 
 ```bash
 bin/ots billing                 # Show help
-bin/ots billing plans           # List cached plans
+bin/ots billing catalog           # List cached plans
 bin/ots billing products        # List Stripe products
 bin/ots billing prices          # List Stripe prices
 bin/ots billing sync            # Sync from Stripe to cache
@@ -29,7 +29,7 @@ bin/ots billing validate        # Validate product metadata
 
 ## Command Reference
 
-### `bin/ots billing plans`
+### `bin/ots billing catalog`
 
 List plans cached in Redis from previous Stripe sync.
 
@@ -39,10 +39,10 @@ List plans cached in Redis from previous Stripe sync.
 **Examples:**
 ```bash
 # List cached plans
-bin/ots billing plans
+bin/ots billing catalog
 
 # Refresh and list
-bin/ots billing plans --refresh
+bin/ots billing catalog --refresh
 ```
 
 **Output:**
@@ -283,7 +283,7 @@ Syncing from Stripe to Redis cache...
 Successfully synced 5 plan(s) to cache
 
 To view cached plans:
-  bin/ots billing plans
+  bin/ots billing catalog
 ```
 
 **What it does:**
@@ -353,7 +353,7 @@ bin/ots billing sync
 
 # 5. Verify
 bin/ots billing validate
-bin/ots billing plans
+bin/ots billing catalog
 ```
 
 ### Updating Existing Product
@@ -380,7 +380,7 @@ bin/ots billing products
 bin/ots billing prices
 
 # Check what's cached
-bin/ots billing plans
+bin/ots billing catalog
 
 # Validate metadata
 bin/ots billing validate
@@ -739,7 +739,7 @@ bin/ots billing events --type payment_intent.payment_failed
 
 | Command | Description | Key Options |
 |---------|-------------|-------------|
-| `billing plans` | List cached plans | `--refresh` |
+| `billing catalog` | List cached plans | `--refresh` |
 | `billing products` | List Stripe products | `--active-only` |
 | `billing products create` | Create product | `--interactive`, `--plan-id`, `--tier` |
 | `billing products update` | Update product metadata | `--interactive`, metadata fields |
