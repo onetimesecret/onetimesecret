@@ -154,8 +154,93 @@ end
 @show_output.include?('Subscriptions:') && @show_output.include?(@subscription3.id)
 #=> true
 
+## Sprint 3 Tests: Subscription Update, Customer Delete, Payment Method Default
+
+## Setup: Create another subscription for update testing
+@subscription4 = Stripe::Subscription.create({
+  customer: @customer_id,
+  items: [{ price: @price.id }],
+  payment_behavior: 'default_incomplete'
+})
+
+## Test: Update subscription quantity via CLI
+`bin/ots billing subscriptions update #{@subscription4.id} --quantity 2 <<< 'y'` =~ /Subscription updated successfully/
+#=> 0
+
+## Test: Verify subscription quantity updated in Stripe
+@updated_sub = Stripe::Subscription.retrieve(@subscription4.id)
+@updated_sub.items.data.first.quantity
+#=> 2
+
+## Setup: Get another active price for price update test
+@prices2 = Stripe::Price.list({ active: true, limit: 2 })
+if @prices2.data.size >= 2
+  @new_price = @prices2.data.find { |p| p.id != @price.id }
+else
+  # Create another price for testing
+  @new_price = Stripe::Price.create({
+    product: @product.id,
+    unit_amount: 1900,
+    currency: 'usd',
+    recurring: { interval: 'month' }
+  })
+end
+
+## Test: Update subscription price via CLI
+`bin/ots billing subscriptions update #{@subscription4.id} --price #{@new_price.id} <<< 'y'` =~ /Subscription updated successfully/
+#=> 0
+
+## Test: Verify subscription price updated in Stripe
+@updated_sub2 = Stripe::Subscription.retrieve(@subscription4.id)
+@updated_sub2.items.data.first.price.id
+#=> @new_price.id
+
+## Test: Update subscription with no-prorate option
+`bin/ots billing subscriptions update #{@subscription4.id} --quantity 3 --no-prorate <<< 'y'` =~ /Subscription updated successfully/
+#=> 0
+
+## Test: Verify quantity updated to 3
+@updated_sub3 = Stripe::Subscription.retrieve(@subscription4.id)
+@updated_sub3.items.data.first.quantity
+#=> 3
+
+## Test: Set default payment method via CLI
+`bin/ots billing payment-methods set-default #{@pm.id} --customer #{@customer_id} <<< 'y'` =~ /Default payment method updated successfully/
+#=> 0
+
+## Test: Verify default payment method set in Stripe
+@customer_updated = Stripe::Customer.retrieve(@customer_id)
+@customer_updated.invoice_settings.default_payment_method
+#=> @pm.id
+
+## Test: Customer delete blocked with active subscription
+@delete_output = `bin/ots billing customers delete #{@customer_id} 2>&1`
+@delete_output.include?('Customer has active subscriptions')
+#=> true
+
+## Setup: Cancel all subscriptions for customer
+[@subscription, @subscription2, @subscription3, @subscription4].each do |sub|
+  begin
+    Stripe::Subscription.update(sub.id, { cancel_at_period_end: true })
+  rescue Stripe::InvalidRequestError
+    # Already canceled
+  end
+end
+
+## Test: Customer delete with force flag works even with subscriptions
+`bin/ots billing customers delete #{@customer_id} --force` =~ /Customer deleted successfully/
+#=> 0
+
+## Test: Verify customer deleted in Stripe
+begin
+  Stripe::Customer.retrieve(@customer_id)
+  false
+rescue Stripe::InvalidRequestError => e
+  e.message.include?('No such customer')
+end
+#=> true
+
 ## Teardown: Clean up test resources
-Stripe::Customer.delete(@customer_id)
 Stripe::Product.delete(@product.id) if defined?(@product) && @product
 
 ## Test: Cleanup successful
