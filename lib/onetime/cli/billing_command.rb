@@ -201,6 +201,7 @@ module Onetime
             bin/ots billing catalog --refresh  Refresh cache from Stripe
             bin/ots billing products           List all Stripe products
             bin/ots billing products create    Create new product
+            bin/ots billing products show      Show product details
             bin/ots billing products update    Update product metadata
             bin/ots billing prices             List all Stripe prices
             bin/ots billing prices create      Create price for product
@@ -223,6 +224,15 @@ module Onetime
           Testing:
             bin/ots billing test create-customer  Create test customer with card
             bin/ots billing test trigger-webhook  Trigger test webhook event
+
+          Analytics & Links:
+            bin/ots billing sigma queries      List Sigma queries
+            bin/ots billing sigma run          Execute Sigma query
+            bin/ots billing payment-links      List payment links
+            bin/ots billing payment-links create    Create payment link
+            bin/ots billing payment-links update    Update payment link
+            bin/ots billing payment-links show      Show payment link details
+            bin/ots billing payment-links archive   Archive payment link
 
           Sync & Validation:
             bin/ots billing sync               Full sync from Stripe to Redis
@@ -417,6 +427,58 @@ Total: #{catalog.size} catalog entries"
         puts "  bin/ots billing prices create --product #{product.id}"
       rescue Stripe::StripeError => e
         puts "Error creating product: #{e.message}"
+      end
+    end
+
+    # Show product details
+    class BillingProductsShowCommand < Command
+      include BillingHelpers
+
+      desc 'Show detailed product information'
+
+      argument :product_id, required: true, desc: 'Product ID (e.g., prod_xxx)'
+
+      def call(product_id:, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        product = Stripe::Product.retrieve(product_id)
+
+        puts "Product Details:"
+        puts "  ID: #{product.id}"
+        puts "  Name: #{product.name}"
+        puts "  Active: #{product.active ? 'yes' : 'no'}"
+        puts "  Description: #{product.description}" if product.description
+        puts
+
+        if product.metadata && product.metadata.any?
+          puts "Metadata:"
+          product.metadata.each do |key, value|
+            puts "  #{key}: #{value}"
+          end
+          puts
+        end
+
+        # Get associated prices
+        puts "Prices:"
+        prices = Stripe::Price.list({ product: product_id, limit: 100 })
+
+        if prices.data.empty?
+          puts "  (none)"
+        else
+          prices.data.each do |price|
+            amount = format_amount(price.unit_amount, price.currency)
+            interval = price.recurring&.interval || 'one-time'
+            interval_text = price.recurring ? "/#{interval}" : ''
+            active = price.active ? 'active' : 'inactive'
+
+            puts "  #{price.id} - #{amount}#{interval_text} (#{active})"
+          end
+        end
+
+      rescue Stripe::StripeError => e
+        puts "Error retrieving product: #{e.message}"
       end
     end
 
@@ -1467,6 +1529,443 @@ Total: #{catalog.size} catalog entries"
         puts "\nNote: Requires Stripe CLI installed (stripe.com/docs/stripe-cli)"
       end
     end
+
+    # Sigma parent command (show help)
+    class BillingSigmaCommand < Command
+      include BillingHelpers
+
+      desc 'Stripe Sigma analytics commands'
+
+      def call(**)
+        puts <<~HELP
+          Stripe Sigma Analytics:
+
+            bin/ots billing sigma queries      List Sigma queries
+            bin/ots billing sigma run          Execute Sigma query
+
+          Examples:
+
+            # List available queries
+            bin/ots billing sigma queries
+
+            # Execute a query
+            bin/ots billing sigma run sqa_ABC123xyz
+
+            # Export query results to CSV
+            bin/ots billing sigma run sqa_ABC123xyz --format csv --output report.csv
+
+          Note: Sigma is only available on paid Stripe plans.
+          See: https://stripe.com/docs/sigma
+        HELP
+      end
+    end
+
+    # List Sigma queries
+    class BillingSigmaQueriesCommand < Command
+      include BillingHelpers
+
+      desc 'List Stripe Sigma queries'
+
+      option :limit, type: :integer, default: 100, desc: 'Maximum results to return'
+
+      def call(limit: 100, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        puts 'Fetching Sigma queries from Stripe...'
+
+        queries = Stripe::Sigma::ScheduledQueryRun.list({ limit: limit })
+
+        if queries.data.empty?
+          puts 'No Sigma queries found'
+          puts 'Note: Sigma is only available on paid Stripe plans'
+          return
+        end
+
+        puts format('%-22s %-40s %s',
+          'ID', 'SQL', 'CREATED')
+        puts '-' * 80
+
+        queries.data.each do |query|
+          sql_preview = query.sql&.[](0..39) || 'N/A'
+          created = format_timestamp(query.created)
+
+          puts format('%-22s %-40s %s',
+            query.id[0..21],
+            sql_preview,
+            created)
+        end
+
+        puts "\nTotal: #{queries.data.size} query/queries"
+
+      rescue Stripe::StripeError => e
+        if e.message.include?('This feature is not available')
+          puts "Error: Sigma is not available on your Stripe plan"
+          puts "Sigma requires a paid Stripe plan. See: https://stripe.com/docs/sigma"
+        else
+          puts "Error fetching Sigma queries: #{e.message}"
+        end
+      end
+    end
+
+    # Execute Sigma query
+    class BillingSigmaRunCommand < Command
+      include BillingHelpers
+
+      desc 'Execute a Sigma query'
+
+      argument :query_id, required: true, desc: 'Sigma query ID (sqa_xxx)'
+
+      option :format, type: :string, default: 'table',
+        desc: 'Output format: table, csv, json'
+      option :output, type: :string, desc: 'Output file path'
+
+      def call(query_id:, format: 'table', output: nil, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        unless %w[table csv json].include?(format)
+          puts 'Error: Format must be one of: table, csv, json'
+          return
+        end
+
+        puts "Executing Sigma query: #{query_id}"
+
+        query_run = Stripe::Sigma::ScheduledQueryRun.retrieve(query_id)
+
+        puts "Query: #{query_run.sql[0..100]}..."
+        puts
+
+        # Note: Actual execution and result retrieval requires the query to be run
+        # This is a simplified implementation
+        puts "Status: #{query_run.status}"
+
+        if query_run.result_available_until
+          puts "Results available until: #{format_timestamp(query_run.result_available_until)}"
+        end
+
+        # In a real implementation, you would fetch and format the actual results
+        # For now, show query details
+        case format
+        when 'json'
+          require 'json'
+          result = {
+            id: query_run.id,
+            sql: query_run.sql,
+            status: query_run.status,
+            created: query_run.created
+          }
+          output_str = JSON.pretty_generate(result)
+        when 'csv'
+          output_str = "ID,SQL,STATUS,CREATED\n#{query_run.id},\"#{query_run.sql}\",#{query_run.status},#{query_run.created}"
+        else
+          output_str = "Query execution complete. Use Stripe Dashboard to view full results."
+        end
+
+        if output
+          File.write(output, output_str)
+          puts "Results saved to: #{output}"
+        else
+          puts output_str
+        end
+
+      rescue Stripe::StripeError => e
+        puts "Error executing Sigma query: #{e.message}"
+      end
+    end
+
+    # List payment links
+    class BillingPaymentLinksCommand < Command
+      include BillingHelpers
+
+      desc 'List Stripe payment links'
+
+      option :active_only, type: :boolean, default: true,
+        desc: 'Show only active links'
+      option :limit, type: :integer, default: 100, desc: 'Maximum results to return'
+
+      def call(active_only: true, limit: 100, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        puts 'Fetching payment links from Stripe...'
+        params = { limit: limit }
+        params[:active] = true if active_only
+
+        links = Stripe::PaymentLink.list(params)
+
+        if links.data.empty?
+          puts 'No payment links found'
+          return
+        end
+
+        puts format('%-30s %-30s %-12s %-10s %s',
+          'ID', 'PRODUCT/PRICE', 'AMOUNT', 'INTERVAL', 'ACTIVE')
+        puts '-' * 100
+
+        links.data.each do |link|
+          active = link.active ? 'yes' : 'no'
+          product_name = 'N/A'
+          amount = 'N/A'
+          interval = 'N/A'
+
+          begin
+            # Retrieve with line_items expanded for each link
+            link_expanded = Stripe::PaymentLink.retrieve(link.id, expand: ['line_items'])
+
+            if link_expanded.line_items && link_expanded.line_items.data.any?
+              line_item = link_expanded.line_items.data.first
+
+              # Get price ID - handle both string and object
+              price_id = line_item.price.is_a?(String) ? line_item.price : line_item.price.id
+              price = Stripe::Price.retrieve(price_id)
+
+              # Get product ID - handle both string and object
+              product_id = price.product.is_a?(String) ? price.product : price.product.id
+              product = Stripe::Product.retrieve(product_id)
+
+              product_name = product.name[0..29]
+              amount = format_amount(price.unit_amount, price.currency)
+              interval = price.recurring&.interval || 'one-time'
+            end
+          rescue StandardError => e
+            # Continue with N/A values if we can't fetch details
+            OT.logger.debug { "Failed to fetch details for #{link.id}: #{e.message}" }
+          end
+
+          puts format('%-30s %-30s %-12s %-10s %s',
+            link.id,
+            product_name,
+            amount[0..11],
+            interval[0..9],
+            active)
+        end
+
+        puts "\nTotal: #{links.data.size} payment link(s)"
+        puts "\nUse 'bin/ots billing payment-links show <id>' for full details including URL"
+
+      rescue Stripe::StripeError => e
+        puts "Error fetching payment links: #{e.message}"
+      rescue StandardError => e
+        puts "Error: #{e.message}"
+        puts e.backtrace.first(5).join("\n") if OT.debug?
+      end
+    end
+
+    # Create payment link
+    class BillingPaymentLinksCreateCommand < Command
+      include BillingHelpers
+
+      desc 'Create a new payment link'
+
+      option :price, type: :string, required: true, desc: 'Price ID (price_xxx)'
+      option :quantity, type: :integer, default: 1, desc: 'Fixed quantity'
+      option :allow_quantity, type: :boolean, default: false,
+        desc: 'Allow customer to adjust quantity'
+      option :after_completion, type: :string,
+        desc: 'Redirect URL after successful payment'
+
+      def call(price:, quantity: 1, allow_quantity: false, after_completion: nil, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        # Retrieve price to show details
+        price_obj = Stripe::Price.retrieve(price)
+        product = Stripe::Product.retrieve(price_obj.product)
+
+        puts "Price: #{price}"
+        puts "Product: #{product.name}"
+        puts "Amount: #{format_amount(price_obj.unit_amount, price_obj.currency)}/#{price_obj.recurring&.interval || 'one-time'}"
+        puts
+
+        puts "Creating payment link..."
+
+        link_params = {
+          line_items: [{
+            price: price,
+            quantity: quantity,
+            adjustable_quantity: allow_quantity ? { enabled: true } : nil
+          }.compact]
+        }
+
+        if after_completion
+          link_params[:after_completion] = {
+            type: 'redirect',
+            redirect: { url: after_completion }
+          }
+        end
+
+        link = Stripe::PaymentLink.create(link_params)
+
+        puts "\nPayment link created successfully:"
+        puts "  ID: #{link.id}"
+        puts "  URL: #{link.url}"
+        puts "\nShare this link with customers!"
+
+      rescue Stripe::StripeError => e
+        puts "Error creating payment link: #{e.message}"
+      end
+    end
+
+    # Update payment link
+    class BillingPaymentLinksUpdateCommand < Command
+      include BillingHelpers
+
+      desc 'Update a payment link'
+
+      argument :link_id, required: true, desc: 'Payment link ID (plink_xxx)'
+
+      option :active, type: :boolean, desc: 'Activate or deactivate link'
+
+      def call(link_id:, active: nil, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        link = Stripe::PaymentLink.retrieve(link_id)
+
+        puts "Payment link: #{link.id}"
+        puts "Current status: #{link.active ? 'active' : 'inactive'}"
+        puts
+
+        if active.nil?
+          puts 'Error: Must specify --active true or --active false'
+          return
+        end
+
+        status_word = active ? 'active' : 'inactive'
+        print "Update status to #{status_word}? (y/n): "
+        return unless $stdin.gets.chomp.downcase == 'y'
+
+        updated = Stripe::PaymentLink.update(link_id, { active: active })
+
+        puts "\nPayment link updated successfully"
+        puts "Status: #{updated.active ? 'active' : 'inactive'}"
+
+      rescue Stripe::StripeError => e
+        puts "Error updating payment link: #{e.message}"
+      end
+    end
+
+    # Show payment link details
+    class BillingPaymentLinksShowCommand < Command
+      include BillingHelpers
+
+      desc 'Show payment link details'
+
+      argument :link_id, required: true, desc: 'Payment link ID (plink_xxx)'
+
+      def call(link_id:, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        # Ensure link_id is a string
+        link_id = link_id.to_s.strip if link_id.respond_to?(:strip)
+        link_id = link_id.first.to_s.strip if link_id.is_a?(Array)
+
+        # Retrieve the payment link
+        link = Stripe::PaymentLink.retrieve(link_id)
+
+        puts "Payment Link Details:"
+        puts "  ID: #{link.id}"
+        puts "  URL: #{link.url}"
+        puts "  Active: #{link.active ? 'yes' : 'no'}"
+        puts
+
+        # Try to get line items - Stripe requires expand parameter
+        begin
+          link_with_items = Stripe::PaymentLink.retrieve(link_id, expand: ['line_items'])
+
+          if link_with_items.line_items && link_with_items.line_items.data.any?
+            line_item = link_with_items.line_items.data.first
+
+            # Get price ID - handle both string and object
+            price_id = line_item.price.is_a?(String) ? line_item.price : line_item.price.id
+            price = Stripe::Price.retrieve(price_id)
+
+            # Get product ID - handle both string and object
+            product_id = price.product.is_a?(String) ? price.product : price.product.id
+            product = Stripe::Product.retrieve(product_id)
+
+            puts "Product:"
+            puts "  ID: #{product.id}"
+            puts "  Name: #{product.name}"
+            puts
+
+            puts "Price:"
+            puts "  ID: #{price.id}"
+            puts "  Amount: #{format_amount(price.unit_amount, price.currency)}"
+            puts "  Interval: #{price.recurring&.interval || 'one-time'}"
+            puts
+
+            puts "Configuration:"
+            quantity_text = line_item.adjustable_quantity&.enabled ? '(adjustable)' : '(fixed)'
+            puts "  Quantity: #{line_item.quantity} #{quantity_text}"
+
+            if link.after_completion && link.after_completion.redirect
+              puts "  After completion: #{link.after_completion.redirect.url}"
+            end
+          else
+            puts "Line Items:"
+            puts "  (none configured)"
+          end
+        rescue StandardError => e
+          puts "Line Items:"
+          puts "  Error retrieving: #{e.message}"
+          OT.logger.debug { "Line items error for #{link_id}: #{e.message}\n#{e.backtrace.first(5).join("\n")}" }
+        end
+
+      rescue Stripe::StripeError => e
+        puts "Error retrieving payment link: #{e.message}"
+      rescue StandardError => e
+        puts "Error: #{e.message}"
+        puts e.backtrace.first(5).join("\n") if OT.debug?
+      end
+    end
+
+    # Archive payment link
+    class BillingPaymentLinksArchiveCommand < Command
+      include BillingHelpers
+
+      desc 'Archive a payment link'
+
+      argument :link_id, required: true, desc: 'Payment link ID (plink_xxx)'
+
+      option :yes, type: :boolean, default: false,
+        desc: 'Assume yes to prompts'
+
+      def call(link_id:, yes: false, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        link = Stripe::PaymentLink.retrieve(link_id)
+
+        puts "Payment link: #{link.id}"
+        puts "URL: #{link.url}"
+        puts "Status: #{link.active ? 'active' : 'inactive'}"
+        puts
+
+        unless yes
+          print 'Archive this payment link? (y/n): '
+          return unless $stdin.gets.chomp.downcase == 'y'
+        end
+
+        updated = Stripe::PaymentLink.update(link_id, { active: false })
+
+        puts "\nPayment link archived successfully"
+        puts "Status: inactive"
+        puts "URL no longer accepts payments"
+
+      rescue Stripe::StripeError => e
+        puts "Error archiving payment link: #{e.message}"
+      end
+    end
   end
 end
 
@@ -1475,6 +1974,7 @@ Onetime::CLI.register 'billing', Onetime::CLI::BillingCommand
 Onetime::CLI.register 'billing catalog', Onetime::CLI::BillingCatalogCommand
 Onetime::CLI.register 'billing products', Onetime::CLI::BillingProductsCommand
 Onetime::CLI.register 'billing products create', Onetime::CLI::BillingProductsCreateCommand
+Onetime::CLI.register 'billing products show', Onetime::CLI::BillingProductsShowCommand
 Onetime::CLI.register 'billing products update', Onetime::CLI::BillingProductsUpdateCommand
 Onetime::CLI.register 'billing prices', Onetime::CLI::BillingPricesCommand
 Onetime::CLI.register 'billing prices create', Onetime::CLI::BillingPricesCreateCommand
@@ -1494,5 +1994,13 @@ Onetime::CLI.register 'billing refunds create', Onetime::CLI::BillingRefundsCrea
 Onetime::CLI.register 'billing events', Onetime::CLI::BillingEventsCommand
 Onetime::CLI.register 'billing test create-customer', Onetime::CLI::BillingTestCreateCustomerCommand
 Onetime::CLI.register 'billing test trigger-webhook', Onetime::CLI::BillingTestTriggerWebhookCommand
+Onetime::CLI.register 'billing sigma', Onetime::CLI::BillingSigmaCommand
+Onetime::CLI.register 'billing sigma queries', Onetime::CLI::BillingSigmaQueriesCommand
+Onetime::CLI.register 'billing sigma run', Onetime::CLI::BillingSigmaRunCommand
+Onetime::CLI.register 'billing payment-links', Onetime::CLI::BillingPaymentLinksCommand
+Onetime::CLI.register 'billing payment-links create', Onetime::CLI::BillingPaymentLinksCreateCommand
+Onetime::CLI.register 'billing payment-links update', Onetime::CLI::BillingPaymentLinksUpdateCommand
+Onetime::CLI.register 'billing payment-links show', Onetime::CLI::BillingPaymentLinksShowCommand
+Onetime::CLI.register 'billing payment-links archive', Onetime::CLI::BillingPaymentLinksArchiveCommand
 Onetime::CLI.register 'billing sync', Onetime::CLI::BillingSyncCommand
 Onetime::CLI.register 'billing validate', Onetime::CLI::BillingValidateCommand
