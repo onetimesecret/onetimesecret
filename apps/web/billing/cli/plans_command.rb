@@ -1,4 +1,4 @@
-# apps/web/billing/cli/catalog_command.rb
+# apps/web/billing/cli/plans_command.rb
 #
 # frozen_string_literal: true
 

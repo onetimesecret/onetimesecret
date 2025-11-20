@@ -16,9 +16,9 @@ module Onetime
         puts <<~HELP
           Billing Management Commands:
 
-          Catalog & Products:
-            bin/ots billing catalog            List product catalog from Redis
-            bin/ots billing catalog --refresh  Refresh cache from Stripe
+          Plans & Products:
+            bin/ots billing plans              List billing plans from Redis
+            bin/ots billing plans --refresh    Refresh cache from Stripe
             bin/ots billing products           List all Stripe products
             bin/ots billing products create    Create new product
             bin/ots billing products show      Show product details
