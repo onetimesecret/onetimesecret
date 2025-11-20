@@ -1,4 +1,4 @@
-# apps/web/billing/models/catalog_cache.rb
+# apps/web/billing/models/plan.rb
 #
 # frozen_string_literal: true
 
@@ -12,7 +12,7 @@ module Billing
   end
 
   module Models
-    # CatalogCache - Stripe Product + Price Catalog Cache
+    # Plan - Stripe Product + Price Plan Cache
     #
     # Caches Stripe product/price information in Redis for fast lookups.
     # Combines Product metadata with Price data for application convenience.
@@ -24,34 +24,34 @@ module Billing
     #
     #   {
     #     "app": "onetimesecret",
-    #     "catalog_id": "identity_v1",
+    #     "plan_id": "identity_v1_monthly",
     #     "tier": "single_team",
-    #     "region": "EU",
+    #     "region": "us-east",
     #     "capabilities": "create_secrets,create_team,custom_domains",
     #     "limit_teams": "1",
     #     "limit_members_per_team": "-1"
     #   }
     #
-    # ## Catalog ID Format
+    # ## Plan ID Format
     #
-    # Catalog IDs combine tier, interval, and region:
+    # Plan IDs combine tier, interval, and region:
     #   - single_team_monthly_us_east
     #   - multi_team_yearly_eu_west
     #
-    class CatalogCache < Familia::Horreum
+    class Plan < Familia::Horreum
       using Familia::Refinements::TimeLiterals
 
-      prefix :billing_catalog
+      prefix :billing_plan
 
       feature :safe_dump
       feature :expiration
 
       default_expiration 12.hour      # Auto-expire after 12 hours
 
-      identifier_field :catalog_id    # Computed: tier_interval_region (previously: "plan_id")
+      identifier_field :plan_id       # Computed: tier_interval_region
 
-      # Catalog entry fields
-      field :catalog_id               # Computed: tier_interval_region (identifier)
+      # Plan entry fields
+      field :plan_id                  # Computed: tier_interval_region (identifier)
       field :stripe_price_id          # Stripe Price ID (price_xxx)
       field :stripe_product_id        # Stripe Product ID (prod_xxx)
       field :stripe_updated_at        # Stripe's updated timestamp (for idempotency)
@@ -83,7 +83,7 @@ module Billing
         JSON.parse(capabilities)
       rescue JSON::ParserError => ex
         Onetime.billing_logger.error "Failed to parse capabilities JSON", {
-          catalog_id: catalog_id,
+          plan_id: plan_id,
           capabilities: capabilities
         }
         []
@@ -93,7 +93,7 @@ module Billing
         JSON.parse(features)
       rescue JSON::ParserError => ex
         Onetime.billing_logger.error "Failed to parse features JSON", {
-          catalog_id: catalog_id,
+          plan_id: plan_id,
           features: features
         }
         []
@@ -105,31 +105,31 @@ module Billing
         parsed.transform_values { |v| v == -1 ? Float::INFINITY : v }
       rescue JSON::ParserError => ex
         Onetime.billing_logger.error "Failed to parse limits JSON", {
-          catalog_id: catalog_id,
+          plan_id: plan_id,
           limits: limits
         }
         {}
       end
 
       class << self
-        # Refresh catalog cache from Stripe API
+        # Refresh plan cache from Stripe API
         #
         # Fetches all active products and prices from Stripe, filters by app metadata,
-        # and caches them in Redis with computed catalog IDs.
+        # and caches them in Redis with computed plan IDs.
         #
-        # @return [Integer] Number of catalogs cached
+        # @return [Integer] Number of plans cached
         def refresh_from_stripe
           # Skip Stripe sync in CI/test environments without API key
           stripe_key = Onetime.billing_config.stripe_key
           if stripe_key.to_s.strip.empty?
-            OT.lw '[CatalogCache.refresh_from_stripe] Skipping Stripe sync: No API key configured'
+            OT.lw '[Plan.refresh_from_stripe] Skipping Stripe sync: No API key configured'
             return 0
           end
 
           # Configure Stripe SDK with API key
           Stripe.api_key = stripe_key
 
-          OT.li '[CatalogCache.refresh_from_stripe] Starting Stripe sync'
+          OT.li '[Plan.refresh_from_stripe] Starting Stripe sync'
 
           # Fetch all active products with onetimesecret metadata
           products = Stripe::Product.list({
@@ -142,7 +142,7 @@ module Billing
           products.auto_paging_each do |product|
             # Skip products without required metadata
             unless product.metadata['app'] == 'onetimesecret'
-              OT.ld "[CatalogCache.refresh_from_stripe] Skipping product (not onetimesecret app)", {
+              OT.ld "[Plan.refresh_from_stripe] Skipping product (not onetimesecret app)", {
                 product_id: product.id,
                 product_name: product.name,
                 app: product.metadata['app']
@@ -151,7 +151,7 @@ module Billing
             end
 
             unless product.metadata['tier']
-              OT.lw "[CatalogCache.refresh_from_stripe] Skipping product (missing tier)", {
+              OT.lw "[Plan.refresh_from_stripe] Skipping product (missing tier)", {
                 product_id: product.id,
                 product_name: product.name
               }
@@ -159,7 +159,7 @@ module Billing
             end
 
             unless product.metadata['region']
-              OT.lw "[CatalogCache.refresh_from_stripe] Skipping product (missing region)", {
+              OT.lw "[Plan.refresh_from_stripe] Skipping product (missing region)", {
                 product_id: product.id,
                 product_name: product.name
               }
@@ -182,8 +182,11 @@ module Billing
               tier     = product.metadata['tier']
               region   = product.metadata['region']
 
-              # Use explicit catalog_id from metadata, or compute from tier_interval_region
-              catalog_id = product.metadata['catalog_id'] || "#{tier}_#{interval}ly_#{region}"
+              # Use explicit plan_id from metadata, or fall back to catalog_id (legacy),
+              # or compute from tier_interval_region
+              plan_id = product.metadata['plan_id'] ||
+                        product.metadata['catalog_id'] ||
+                        "#{tier}_#{interval}ly_#{region}"
 
               # Extract capabilities from product metadata
               # Expected format: "create_secrets,create_team,custom_domains"
@@ -204,9 +207,9 @@ module Billing
                                    end
               end
 
-              # Create or update catalog cache
-              catalog = new(
-                catalog_id: catalog_id,
+              # Create or update plan cache
+              plan = new(
+                plan_id: plan_id,
                 stripe_price_id: price.id,
                 stripe_product_id: product.id,
                 name: product.name,
@@ -219,9 +222,9 @@ module Billing
                 features: (product.marketing_features&.map(&:name) || []).to_json,
                 limits: limits.to_json,
               )
-              catalog.save
+              plan.save
 
-              OT.ld "[CatalogCache] Cached catalog: #{catalog_id}", {
+              OT.ld "[Plan] Cached plan: #{plan_id}", {
                 stripe_price_id: price.id,
                 amount: price.unit_amount,
                 currency: price.currency,
@@ -231,49 +234,49 @@ module Billing
             end
           end
 
-          OT.li "[CatalogCache.refresh_from_stripe] Cached #{items_count} catalogs"
+          OT.li "[Plan.refresh_from_stripe] Cached #{items_count} plans"
           items_count
         rescue Stripe::StripeError => ex
-          OT.le '[CatalogCache.refresh_from_stripe] Stripe error', {
+          OT.le '[Plan.refresh_from_stripe] Stripe error', {
             exception: ex,
             message: ex.message,
           }
           raise
         end
 
-        # Get catalog by tier, interval, and region
+        # Get plan by tier, interval, and region
         #
-        # Searches cached catalogs by tier/interval/region fields instead of
-        # constructing a computed catalog_id. Supports metadata-based catalog IDs.
+        # Searches cached plans by tier/interval/region fields instead of
+        # constructing a computed plan_id. Supports metadata-based plan IDs.
         #
-        # @param tier [String] catalog tier (e.g., 'single_team')
+        # @param tier [String] plan tier (e.g., 'single_team')
         # @param interval [String] Billing interval ('monthly' or 'yearly')
-        # @param region [String] Region code (e.g., 'EU')
-        # @return [CatalogCache, nil] Cached catalog or nil if not found
-        def get_catalog(tier, interval, region = nil)
+        # @param region [String] Region code (e.g., 'us-east')
+        # @return [Plan, nil] Cached plan or nil if not found
+        def get_plan(tier, interval, region = nil)
           # Normalize interval to singular form (monthly -> month)
           interval = interval.to_s.sub(/ly$/, '')
 
-          # Search through all cached catalogs for matching tier/interval/region
-          list_catalogs.find do |catalog|
-            catalog.tier == tier &&
-              catalog.interval == interval &&
-              catalog.region == region
+          # Search through all cached plans for matching tier/interval/region
+          list_plans.find do |plan|
+            plan.tier == tier &&
+              plan.interval == interval &&
+              plan.region == region
           end
         end
 
-        # List all cached catalogs
+        # List all cached plans
         #
-        # @return [Array<CatalogCache>] All cached catalogs
-        def list_catalogs
+        # @return [Array<Plan>] All cached plans
+        def list_plans
           load_multi(instances.to_a)
         end
 
-        # Clear all cached catalogs (for testing or forced refresh)
-        def clear_cache
-          values.to_a.each do |catalog_id|
-            catalog = load(catalog_id)
-            catalog&.destroy!
+        # Clear all cached plans (for testing or forced refresh)
+        def clear_plans_cache
+          values.to_a.each do |plan_id|
+            plan = load(plan_id)
+            plan&.destroy!
           end
           values.clear
         end

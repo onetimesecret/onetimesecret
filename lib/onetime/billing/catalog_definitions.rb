@@ -50,21 +50,21 @@ module Onetime
     #   Billing.upgrade_path_for('custom_domains', 'free')
     #   # => "identity_v1_monthly"
     def self.upgrade_path_for(capability, _current_plan = nil)
-      # Query cached catalog for items with the capability
-      catalog_with_capability = ::Billing::Models::CatalogCache.list_catalog.select do |item|
+      # Query cached plans for items with the capability
+      plans_with_capability = ::Billing::Models::Plan.list_plans.select do |item|
         item.parsed_capabilities.include?(capability.to_s)
       end
 
-      return nil if catalog_with_capability.empty?
+      return nil if plans_with_capability.empty?
 
       # Sort by tier preference: free < single_team < multi_team
       # Return first (cheapest) matching item
       tier_order = %w[free single_team multi_team]
-      sorted_catalog = catalog_with_capability.sort_by do |item|
+      sorted_plans = plans_with_capability.sort_by do |item|
         tier_order.index(item.tier) || 999
       end
 
-      sorted_catalog.first&.catalog_id
+      sorted_plans.first&.plan_id
     end
 
     # Get human-readable catalog name
@@ -81,8 +81,8 @@ module Onetime
     def self.catalog_name(catalog_id)
       return catalog_id if catalog_id.to_s.empty?
 
-      # Try to get name from cached catalog first
-      item = ::Billing::Models::CatalogCache.load(catalog_id)
+      # Try to get name from cached plan first
+      item = ::Billing::Models::Plan.load(catalog_id)
       return item.name if item&.name
 
       # Fall back to pattern matching on catalog_id
@@ -117,13 +117,13 @@ module Onetime
 
     # Get all available (non-legacy) catalog IDs
     #
-    # Returns list of current catalog items, excluding legacy v0 items.
+    # Returns list of current plan items, excluding legacy v0 items.
     #
-    # @return [Array<String>] List of current catalog IDs
+    # @return [Array<String>] List of current plan IDs
     def self.available_catalogs
-      ::Billing::Models::CatalogCache.list_catalog
-        .reject { |item| legacy_plan?(item.catalog_id) }
-        .map(&:catalog_id)
+      ::Billing::Models::Plan.list_plans
+        .reject { |item| legacy_plan?(item.plan_id) }
+        .map(&:plan_id)
     end
   end
 end
