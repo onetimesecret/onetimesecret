@@ -1,20 +1,20 @@
-# Plan Definitions Reference
+# Catalogue Definitions Reference
 
 This document describes the plan structure and capabilities for Onetime Secret billing.
 
-**Note:** Plan definitions are now stored in Stripe product metadata and cached in Redis via `Billing::Models::PlanCache`. This document serves as reference for understanding plan structure and configuring Stripe products.
+**Note:** Catalogue definitions are now stored in Stripe product metadata and cached in Redis via `Billing::Models::CatalogueCache`. This document serves as reference for understanding plan structure and configuring Stripe products.
 
-## Plan Structure
+## Catalogue Structure
 
 Each plan consists of:
 - **plan_id**: Unique identifier (e.g., `'identity_v1_monthly'`, `'multi_team_v1_yearly'`)
 - **capabilities**: Array of feature strings
 - **limits**: Hash of resource limits (`-1` represents unlimited/infinity)
-- **tier**: Plan tier (e.g., `'free'`, `'single_team'`, `'multi_team'`)
+- **tier**: Catalogue tier (e.g., `'free'`, `'single_team'`, `'multi_team'`)
 - **interval**: Billing interval (`'month'` or `'year'`)
 - **region**: Geographic region (e.g., `'us-east'`)
 
-## Current Plan Tiers
+## Current Catalogue Tiers
 
 ### Free Tier
 Default for all organizations without subscription.
@@ -28,15 +28,14 @@ Default for all organizations without subscription.
 - `secrets_per_day`: 10
 - `secret_lifetime`: 604800 (7 days in seconds)
 
-### Identity Plus (v1)
+### Identity Plus (v2)
 Single team plan for professionals.
 
 **Capabilities:**
 - All Free tier capabilities
 - `create_team` - Can create ONE team
 - `custom_domains` - Can configure custom domains
-- `priority_support` - Priority customer support
-- `extended_lifetime` - Longer secret retention
+- `extended_default_expiration` - Longer secret retention
 
 **Limits:**
 - `teams`: 1
@@ -44,7 +43,7 @@ Single team plan for professionals.
 - `custom_domains`: -1 (unlimited)
 - `secret_lifetime`: 2592000 (30 days)
 
-### Multi-Team (v1)
+### Team Plus (v1)
 Unlimited teams for organizations.
 
 **Capabilities:**
@@ -52,7 +51,6 @@ Unlimited teams for organizations.
 - `create_teams` - Can create MULTIPLE teams (note plural vs. singular)
 - `api_access` - API access enabled
 - `audit_logs` - Access to audit log features
-- `advanced_analytics` - Advanced usage analytics
 
 **Limits:**
 - `teams`: -1 (unlimited)
@@ -61,7 +59,7 @@ Unlimited teams for organizations.
 - `api_rate_limit`: 10000 (requests per hour)
 - `secret_lifetime`: 7776000 (90 days)
 
-## Legacy Plans (Grandfathered)
+## Legacy "Plans" (Grandfathered)
 
 ### Identity Plus (v0)
 Lower limits than v1, no custom domains.
@@ -69,28 +67,14 @@ Lower limits than v1, no custom domains.
 **Capabilities:**
 - `create_secrets`, `basic_sharing`, `view_metadata`
 - `create_team`
-- `priority_support`
 - **No** `custom_domains`
 
 **Limits:**
 - `teams`: 1
 - `members_per_team`: 10
-- `secret_lifetime`: 1209600 (14 days)
+- `secret_lifetime`: 30 days
+- `custom_domains`: 25 (more available by request -- sold as "unlimited")
 
-### Multi-Team (v0)
-Legacy multi-team plan with lower limits.
-
-**Capabilities:**
-- `create_secrets`, `basic_sharing`, `view_metadata`
-- `create_teams`
-- `api_access`, `priority_support`
-- **No** `custom_domains` or `audit_logs`
-
-**Limits:**
-- `teams`: -1 (unlimited)
-- `members_per_team`: 25
-- `api_rate_limit`: 5000
-- `secret_lifetime`: 2592000 (30 days)
 
 ## Capability Categories
 
@@ -104,10 +88,12 @@ Legacy multi-team plan with lower limits.
 - `custom_domains`, `api_access`
 
 **Support:**
-- `priority_support`
+- `none`
+- `basic_email`: 14 days.
+
 
 **Advanced:**
-- `audit_logs`, `advanced_analytics`, `extended_lifetime`
+- `audit_logs`, `extended_default_expiration`
 
 ## Stripe Product Configuration
 
@@ -119,7 +105,7 @@ Each Stripe product should include metadata:
   "plan_id": "identity_v1_monthly",
   "tier": "single_team",
   "region": "us-east",
-  "capabilities": "create_secrets,basic_sharing,view_metadata,create_team,custom_domains,priority_support,extended_lifetime",
+  "capabilities": "create_secrets,basic_sharing,view_metadata,create_team,custom_domains,extended_default_expiration",
   "limit_teams": "1",
   "limit_members_per_team": "-1",
   "limit_custom_domains": "-1",
@@ -135,7 +121,7 @@ Recommended upgrade paths for missing capabilities:
 - Need `api_access` or `audit_logs`: Identity Plus → Multi-Team
 - Need `create_teams` (multiple teams): Free or Identity → Multi-Team
 
-## Plan Naming
+## Catalogue Naming
 
 Human-readable plan names:
 - `free` → "Free"
