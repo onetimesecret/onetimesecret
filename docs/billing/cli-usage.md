@@ -155,6 +155,45 @@ bin/ots billing products create \
 
 ---
 
+### `bin/ots billing products show`
+
+Show detailed information about a specific product including metadata and associated prices.
+
+**Arguments:**
+- `product_id` - Product ID (required, e.g., prod_ABC123xyz)
+
+**Examples:**
+```bash
+bin/ots billing products show prod_ABC123xyz
+
+Product Details:
+  ID: prod_ABC123xyz
+  Name: Identity Plan
+  Active: yes
+  Description: Professional plan for individuals
+
+Metadata:
+  app: onetimesecret
+  plan_id: identity_v1
+  tier: single_team
+  region: us-east
+  capabilities: create_secrets,create_team,custom_domains
+  limit_teams: 1
+  limit_members_per_team: -1
+
+Prices:
+  price_123ABC - USD 9.00/month (active)
+  price_456DEF - USD 90.00/year (active)
+```
+
+**Displayed Information:**
+- Product ID, name, and active status
+- Product description (if set)
+- All metadata fields (app, plan_id, tier, capabilities, limits)
+- All associated prices with amounts and intervals
+
+---
+
 ### `bin/ots billing products update`
 
 Update metadata for an existing Stripe product.
@@ -1256,6 +1295,296 @@ bin/ots billing test trigger-webhook invoice.payment_succeeded --customer cus_DE
 
 ---
 
+### `bin/ots billing sigma queries`
+
+List available Stripe Sigma queries for data analysis and reporting.
+
+**Options:**
+- `--limit INTEGER` - Maximum results to return (default: 100)
+
+**Examples:**
+```bash
+# List all saved queries
+bin/ots billing sigma queries
+
+Fetching Sigma queries from Stripe...
+ID                     NAME                                     CREATED
+--------------------------------------------------------------------------------
+sqa_ABC123xyz          Monthly Revenue by Plan                  2024-11-19
+sqa_DEF456abc          Active Subscriptions Report              2024-11-18
+sqa_GHI789def          Churn Analysis                           2024-11-15
+
+Total: 3 query/queries
+```
+
+**Note:** Sigma is only available on Stripe paid plans. See [Stripe Sigma docs](https://stripe.com/docs/sigma) for details.
+
+---
+
+### `bin/ots billing sigma run`
+
+Execute a Sigma query and display results.
+
+**Arguments:**
+- `query_id` - Sigma query ID (sqa_xxx)
+
+**Options:**
+- `--format STRING` - Output format: table, csv, json (default: table)
+- `--output FILE` - Save results to file instead of stdout
+
+**Examples:**
+```bash
+# Run query and display as table
+bin/ots billing sigma run sqa_ABC123xyz
+
+Executing Sigma query: Monthly Revenue by Plan
+Query: SELECT date_trunc('month', created) as month, ...
+
+MONTH        PLAN_ID          REVENUE
+------------------------------------------
+2024-11-01   identity_v1      USD 450.00
+2024-11-01   multi_team_v1    USD 870.00
+2024-10-01   identity_v1      USD 360.00
+
+Total: 3 row(s)
+
+# Export to CSV
+bin/ots billing sigma run sqa_ABC123xyz --format csv --output revenue.csv
+
+Query executed successfully
+Results saved to: revenue.csv
+
+# Get JSON output
+bin/ots billing sigma run sqa_ABC123xyz --format json
+```
+
+**Output Formats:**
+- `table` - Human-readable ASCII table (default)
+- `csv` - Comma-separated values for spreadsheets
+- `json` - JSON array for programmatic processing
+
+**Common Queries to Create in Stripe Dashboard:**
+- Monthly Recurring Revenue (MRR) by plan
+- Subscription churn rate
+- Customer lifetime value (LTV)
+- Failed payment analysis
+- Revenue by region/tier
+
+---
+
+### `bin/ots billing payment-links`
+
+List all Stripe payment links.
+
+**Options:**
+- `--active-only` - Show only active links (default: true)
+- `--no-active-only` - Show all links including archived
+- `--limit INTEGER` - Maximum results to return (default: 100)
+
+**Examples:**
+```bash
+# List active payment links
+bin/ots billing payment-links
+
+Fetching payment links from Stripe...
+ID                             PRODUCT/PRICE                  AMOUNT       INTERVAL   ACTIVE
+----------------------------------------------------------------------------------------------------
+plink_1Q1cjPHA8OZxV3CL         Identity Plan                  USD 9.00     month      yes
+plink_1Pq2CEHA8OZxV3CL         Team Plus                      USD 29.00    month      yes
+
+Total: 2 payment link(s)
+
+# List all including archived
+bin/ots billing payment-links --no-active-only
+```
+
+**Output Information:**
+- Payment link ID (full)
+- Product name
+- Price amount and currency
+- Billing interval
+- Active status
+
+---
+
+### `bin/ots billing payment-links create`
+
+Create a new payment link for a product price.
+
+**Options:**
+- `--price STRING` - Price ID (price_xxx) **required**
+- `--quantity INTEGER` - Fixed quantity (default: 1)
+- `--allow-quantity` - Allow customer to adjust quantity (default: false)
+- `--after-completion STRING` - Redirect URL after successful payment
+
+**Examples:**
+```bash
+# Create basic payment link
+bin/ots billing payment-links create --price price_ABC123xyz
+
+Price: price_ABC123xyz
+Product: Identity Plan
+Amount: USD 9.00/month
+
+Creating payment link...
+
+Payment link created successfully:
+  ID: plink_DEF456ghi
+  URL: https://pay.stripe.com/live/def456ghi
+
+Share this link with customers!
+
+# Create with quantity adjustment allowed
+bin/ots billing payment-links create --price price_ABC123xyz --allow-quantity
+
+# Create with custom redirect
+bin/ots billing payment-links create \
+  --price price_ABC123xyz \
+  --after-completion https://onetimesecret.com/welcome
+
+# Create for quantity-based pricing
+bin/ots billing payment-links create \
+  --price price_GHI789jkl \
+  --quantity 5 \
+  --allow-quantity
+```
+
+**Behavior:**
+- Creates shareable URL for direct checkout
+- No login required for customers
+- Automatically creates customer in Stripe
+- Starts subscription immediately upon payment
+- Link remains active until archived
+
+**Use Cases:**
+- Email campaigns with direct upgrade links
+- Marketing pages with "Buy Now" buttons
+- Sales team sharing with prospects
+- Self-service upgrade paths
+- Social media promotions
+
+---
+
+### `bin/ots billing payment-links update`
+
+Update an existing payment link's configuration.
+
+**Arguments:**
+- `link_id` - Payment link ID (plink_xxx)
+
+**Options:**
+- `--active BOOLEAN` - Activate or deactivate link
+- `--allow-quantity BOOLEAN` - Enable/disable quantity adjustment
+- `--after-completion STRING` - Update redirect URL
+
+**Examples:**
+```bash
+# Deactivate a payment link
+bin/ots billing payment-links update plink_ABC123xyz --active false
+
+Payment link: plink_ABC123xyz
+Current status: active
+
+Update status to inactive? (y/n): y
+
+Payment link updated successfully
+Status: inactive
+
+# Update redirect URL
+bin/ots billing payment-links update plink_ABC123xyz \
+  --after-completion https://onetimesecret.com/thank-you
+
+# Enable quantity adjustment
+bin/ots billing payment-links update plink_ABC123xyz --allow-quantity true
+```
+
+**Note:** Cannot change the associated price on existing link. Create a new link for different price.
+
+---
+
+### `bin/ots billing payment-links show`
+
+Display detailed information about a payment link.
+
+**Arguments:**
+- `link_id` - Payment link ID (plink_xxx)
+
+**Examples:**
+```bash
+bin/ots billing payment-links show plink_ABC123xyz
+
+Payment Link Details:
+  ID: plink_ABC123xyz
+  URL: https://pay.stripe.com/live/abc123xyz
+  Active: yes
+
+Product:
+  ID: prod_DEF456ghi
+  Name: Identity Plan
+
+Price:
+  ID: price_GHI789jkl
+  Amount: USD 9.00
+  Interval: month
+
+Configuration:
+  Quantity: 1 (fixed)
+  After completion: https://onetimesecret.com/welcome
+```
+
+**Displayed Information:**
+- Link ID and shareable URL
+- Active status
+- Associated product and price details
+- Quantity configuration (fixed or adjustable)
+- Redirect settings (if configured)
+
+---
+
+### `bin/ots billing payment-links archive`
+
+Archive a payment link (prevents future use while preserving data).
+
+**Arguments:**
+- `link_id` - Payment link ID (plink_xxx)
+
+**Options:**
+- `--yes` - Skip confirmation prompt
+
+**Examples:**
+```bash
+# Archive with confirmation
+bin/ots billing payment-links archive plink_ABC123xyz
+
+Payment link: plink_ABC123xyz
+URL: https://pay.stripe.com/live/abc123xyz
+Status: active
+
+Archive this payment link? (y/n): y
+
+Payment link archived successfully
+Status: inactive
+URL no longer accepts payments
+
+# Archive without confirmation
+bin/ots billing payment-links archive plink_ABC123xyz --yes
+```
+
+**Behavior:**
+- Link becomes inactive immediately
+- URL no longer accepts new payments
+- Existing subscriptions from link remain active
+- Link data preserved for reporting
+- Can be reactivated if needed
+
+**Use Cases:**
+- End of promotional campaign
+- Deprecate old pricing
+- Replace with updated link
+- Seasonal offer expiration
+
+---
+
 ## Advanced Workflows
 
 ### Monitor Payment Issues
@@ -1313,6 +1642,45 @@ bin/ots billing events --type subscription.updated --limit 20
 bin/ots billing events --type payment_intent.payment_failed
 ```
 
+### Analytics with Sigma
+
+```bash
+# List available reports
+bin/ots billing sigma queries
+
+# Run revenue analysis
+bin/ots billing sigma run sqa_ABC123xyz --format table
+
+# Export monthly data to CSV
+bin/ots billing sigma run sqa_DEF456abc --format csv --output mrr-report.csv
+
+# Get churn data as JSON for dashboards
+bin/ots billing sigma run sqa_GHI789def --format json
+```
+
+### Payment Link Management
+
+```bash
+# Create payment link for a plan
+bin/ots billing payment-links create --price price_ABC123xyz \
+  --after-completion https://onetimesecret.com/welcome
+
+# List all active links
+bin/ots billing payment-links
+
+# Check performance of a specific link
+bin/ots billing payment-links show plink_DEF456ghi
+
+# Archive expired campaign link
+bin/ots billing payment-links archive plink_OLD123xyz --yes
+
+# Create quantity-based link for team seats
+bin/ots billing payment-links create \
+  --price price_TEAM789 \
+  --allow-quantity \
+  --after-completion https://onetimesecret.com/team-setup
+```
+
 ---
 
 ## Quick Reference
@@ -1322,6 +1690,7 @@ bin/ots billing events --type payment_intent.payment_failed
 | `billing catalog` | List cached plans | `--refresh` |
 | `billing products` | List Stripe products | `--active-only` |
 | `billing products create` | Create product | `--interactive`, `--plan-id`, `--tier` |
+| `billing products show` | Show product details | - |
 | `billing products update` | Update product metadata | `--interactive`, metadata fields |
 | `billing prices` | List Stripe prices | `--product`, `--active-only` |
 | `billing prices create` | Create price | `--amount`, `--interval`, `--currency` |
@@ -1341,6 +1710,13 @@ bin/ots billing events --type payment_intent.payment_failed
 | `billing events` | View recent events | `--type`, `--limit` |
 | `billing test create-customer` | Create test customer with card | `--with-card` |
 | `billing test trigger-webhook` | Trigger test webhook event | `--subscription`, `--customer` |
+| `billing sigma queries` | List Sigma queries | `--limit` |
+| `billing sigma run` | Execute Sigma query | `--format`, `--output` |
+| `billing payment-links` | List payment links | `--active-only`, `--limit` |
+| `billing payment-links create` | Create payment link | `--price`, `--quantity`, `--allow-quantity`, `--after-completion` |
+| `billing payment-links update` | Update payment link | `--active`, `--allow-quantity`, `--after-completion` |
+| `billing payment-links show` | Show payment link details | - |
+| `billing payment-links archive` | Archive payment link | `--yes` |
 | `billing sync` | Sync Stripe to cache | - |
 | `billing validate` | Validate metadata | - |
 
