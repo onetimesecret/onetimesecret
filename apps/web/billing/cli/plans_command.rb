@@ -22,12 +22,12 @@ module Onetime
 
         if refresh
           puts 'Refreshing plans from Stripe...'
-          count = Billing::Models::Plan.refresh_from_stripe
+          count = Billing::Plan.refresh_from_stripe
           puts "Refreshed #{count} plan entries"
           puts
         end
 
-        plans = Billing::Models::Plan.list_plans
+        plans = Billing::Plan.list_plans
         if plans.empty?
           puts 'No plan entries found. Run with --refresh to sync from Stripe.'
           return

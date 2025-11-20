@@ -153,7 +153,7 @@ module Billing
       # @param org [Onetime::Organization] Organization instance
       # @return [Hash] Limits with nil for infinity
       def build_limits_hash(org)
-        plan = ::Billing::Models::Plan.load(org.planid)
+        plan = ::Billing::Plan.load(org.planid)
         return {} unless plan
 
         limits = plan.parsed_limits
@@ -180,7 +180,7 @@ module Billing
       def build_plans_summary
         summary = {}
 
-        ::Billing::Models::Plan.list_plans.each do |plan|
+        ::Billing::Plan.list_plans.each do |plan|
           next unless plan
 
           summary[plan.plan_id] = {

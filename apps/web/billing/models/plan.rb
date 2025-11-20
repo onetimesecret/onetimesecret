@@ -11,272 +11,270 @@ module Billing
     RECORD_LIMIT = 25
   end
 
-  module Models
-    # Plan - Stripe Product + Price Plan Cache
-    #
-    # Caches Stripe product/price information in Redis for fast lookups.
-    # Combines Product metadata with Price data for application convenience.
-    # Refreshes from Stripe API via webhooks or on demand.
-    #
-    # ## Stripe Product Metadata Requirements
-    #
-    # Products must include metadata for filtering and organization:
-    #
-    #   {
-    #     "app": "onetimesecret",
-    #     "plan_id": "identity_v1",
-    #     "tier": "single_team",
-    #     "region": "EU",
-    #     "capabilities": "create_secrets,create_team,custom_domains",
-    #     "limit_teams": "1",
-    #     "limit_members_per_team": "-1"
-    #   }
-    #
-    # ## Plan ID Format
-    #
-    # Plan IDs combine tier, interval, and region:
-    #   - single_team_monthly_us_east
-    #   - multi_team_yearly_eu_west
-    #
-    class Plan < Familia::Horreum
-      using Familia::Refinements::TimeLiterals
+  # Plan - Stripe Product + Price Plan Cache
+  #
+  # Caches Stripe product/price information in Redis for fast lookups.
+  # Combines Product metadata with Price data for application convenience.
+  # Refreshes from Stripe API via webhooks or on demand.
+  #
+  # ## Stripe Product Metadata Requirements
+  #
+  # Products must include metadata for filtering and organization:
+  #
+  #   {
+  #     "app": "onetimesecret",
+  #     "plan_id": "identity_v1",
+  #     "tier": "single_team",
+  #     "region": "EU",
+  #     "capabilities": "create_secrets,create_team,custom_domains",
+  #     "limit_teams": "1",
+  #     "limit_members_per_team": "-1"
+  #   }
+  #
+  # ## Plan ID Format
+  #
+  # Plan IDs combine tier, interval, and region:
+  #   - single_team_monthly_us_east
+  #   - multi_team_yearly_eu_west
+  #
+  class Plan < Familia::Horreum
+    using Familia::Refinements::TimeLiterals
 
-      prefix :billing_plan
+    prefix :billing_plan
 
-      feature :safe_dump
-      feature :expiration
+    feature :safe_dump
+    feature :expiration
 
-      default_expiration 12.hour      # Auto-expire after 12 hours
+    default_expiration 12.hour      # Auto-expire after 12 hours
 
-      identifier_field :plan_id    # Computed: tier_interval_region
+    identifier_field :plan_id    # Computed: tier_interval_region
 
-      # Plan entry fields
-      field :plan_id                  # Computed: tier_interval_region (identifier)
-      field :stripe_price_id          # Stripe Price ID (price_xxx)
-      field :stripe_product_id        # Stripe Product ID (prod_xxx)
-      field :stripe_updated_at        # Stripe's updated timestamp (for idempotency)
-      field :name                     # Product name
-      field :tier                     # e.g., 'single_team', 'multi_team'
-      field :interval                 # 'month' or 'year'
-      field :amount                   # Price in cents
-      field :currency                 # 'usd', 'eur', etc.
-      field :region                   # EU, CA, US, NZ, etc
-      field :tenancy                  # One of: multitenant, dedicated
-      field :is_soft_deleted          # Boolean: soft-deleted in Stripe
+    # Plan entry fields
+    field :plan_id                  # Computed: tier_interval_region (identifier)
+    field :stripe_price_id          # Stripe Price ID (price_xxx)
+    field :stripe_product_id        # Stripe Product ID (prod_xxx)
+    field :stripe_updated_at        # Stripe's updated timestamp (for idempotency)
+    field :name                     # Product name
+    field :tier                     # e.g., 'single_team', 'multi_team'
+    field :interval                 # 'month' or 'year'
+    field :amount                   # Price in cents
+    field :currency                 # 'usd', 'eur', etc.
+    field :region                   # EU, CA, US, NZ, etc
+    field :tenancy                  # One of: multitenant, dedicated
+    field :is_soft_deleted          # Boolean: soft-deleted in Stripe
 
-      # Metadata stored as JSON
-      field :capabilities             # JSON: Capability array of strings
-      field :features                 # JSON: Feature list (marketing)
-      field :limits                   # JSON: Usage limits (teams, members_per_team, etc.)
+    # Metadata stored as JSON
+    field :capabilities             # JSON: Capability array of strings
+    field :features                 # JSON: Feature list (marketing)
+    field :limits                   # JSON: Usage limits (teams, members_per_team, etc.)
 
-      def init
-        super
-        @capabilities ||= []
-        @features     ||= []
-        @limits       ||= {}
-        @stripe_updated_at ||= 0
-        @is_soft_deleted ||= false
-      end
+    def init
+      super
+      @capabilities ||= []
+      @features     ||= []
+      @limits       ||= {}
+      @stripe_updated_at ||= 0
+      @is_soft_deleted ||= false
+    end
 
-      # Parse JSON fields
-      def parsed_capabilities
-        JSON.parse(capabilities)
-      rescue JSON::ParserError => ex
-        Onetime.billing_logger.error "Failed to parse capabilities JSON", {
-          plan_id: plan_id,
-          capabilities: capabilities
-        }
-        []
-      end
+    # Parse JSON fields
+    def parsed_capabilities
+      JSON.parse(capabilities)
+    rescue JSON::ParserError => ex
+      Onetime.billing_logger.error "Failed to parse capabilities JSON", {
+        plan_id: plan_id,
+        capabilities: capabilities
+      }
+      []
+    end
 
-      def parsed_features
-        JSON.parse(features)
-      rescue JSON::ParserError => ex
-        Onetime.billing_logger.error "Failed to parse features JSON", {
-          plan_id: plan_id,
-          features: features
-        }
-        []
-      end
+    def parsed_features
+      JSON.parse(features)
+    rescue JSON::ParserError => ex
+      Onetime.billing_logger.error "Failed to parse features JSON", {
+        plan_id: plan_id,
+        features: features
+      }
+      []
+    end
 
-      def parsed_limits
-        parsed = JSON.parse(limits)
-        # Convert -1 to Float::INFINITY for unlimited resources
-        parsed.transform_values { |v| v == -1 ? Float::INFINITY : v }
-      rescue JSON::ParserError => ex
-        Onetime.billing_logger.error "Failed to parse limits JSON", {
-          plan_id: plan_id,
-          limits: limits
-        }
-        {}
-      end
+    def parsed_limits
+      parsed = JSON.parse(limits)
+      # Convert -1 to Float::INFINITY for unlimited resources
+      parsed.transform_values { |v| v == -1 ? Float::INFINITY : v }
+    rescue JSON::ParserError => ex
+      Onetime.billing_logger.error "Failed to parse limits JSON", {
+        plan_id: plan_id,
+        limits: limits
+      }
+      {}
+    end
 
-      class << self
-        # Refresh plan cache from Stripe API
-        #
-        # Fetches all active products and prices from Stripe, filters by app metadata,
-        # and caches them in Redis with computed plan IDs.
-        #
-        # @return [Integer] Number of plans cached
-        def refresh_from_stripe
-          # Skip Stripe sync in CI/test environments without API key
-          stripe_key = Onetime.billing_config.stripe_key
-          if stripe_key.to_s.strip.empty?
-            OT.lw '[Plan.refresh_from_stripe] Skipping Stripe sync: No API key configured'
-            return 0
+    class << self
+      # Refresh plan cache from Stripe API
+      #
+      # Fetches all active products and prices from Stripe, filters by app metadata,
+      # and caches them in Redis with computed plan IDs.
+      #
+      # @return [Integer] Number of plans cached
+      def refresh_from_stripe
+        # Skip Stripe sync in CI/test environments without API key
+        stripe_key = Onetime.billing_config.stripe_key
+        if stripe_key.to_s.strip.empty?
+          OT.lw '[Plan.refresh_from_stripe] Skipping Stripe sync: No API key configured'
+          return 0
+        end
+
+        # Configure Stripe SDK with API key
+        Stripe.api_key = stripe_key
+
+        OT.li '[Plan.refresh_from_stripe] Starting Stripe sync'
+
+        # Fetch all active products with onetimesecret metadata
+        products = Stripe::Product.list({
+          active: true,
+          limit: RECORD_LIMIT,
+        })
+
+        items_count = 0
+
+        products.auto_paging_each do |product|
+          # Skip products without required metadata
+          unless product.metadata['app'] == 'onetimesecret'
+            OT.ld "[Plan.refresh_from_stripe] Skipping product (not onetimesecret app)", {
+              product_id: product.id,
+              product_name: product.name,
+              app: product.metadata['app']
+            }
+            next
           end
 
-          # Configure Stripe SDK with API key
-          Stripe.api_key = stripe_key
+          unless product.metadata['tier']
+            OT.lw "[Plan.refresh_from_stripe] Skipping product (missing tier)", {
+              product_id: product.id,
+              product_name: product.name
+            }
+            next
+          end
 
-          OT.li '[Plan.refresh_from_stripe] Starting Stripe sync'
+          unless product.metadata['region']
+            OT.lw "[Plan.refresh_from_stripe] Skipping product (missing region)", {
+              product_id: product.id,
+              product_name: product.name
+            }
+            next
+          end
 
-          # Fetch all active products with onetimesecret metadata
-          products = Stripe::Product.list({
+          # Fetch all active prices for this product
+          prices = Stripe::Price.list({
+            product: product.id,
             active: true,
-            limit: RECORD_LIMIT,
-          })
+            limit: 100,
+          },
+                                     )
 
-          items_count = 0
+          prices.auto_paging_each do |price|
+            # Skip non-recurring prices
+            next unless price.type == 'recurring'
 
-          products.auto_paging_each do |product|
-            # Skip products without required metadata
-            unless product.metadata['app'] == 'onetimesecret'
-              OT.ld "[Plan.refresh_from_stripe] Skipping product (not onetimesecret app)", {
-                product_id: product.id,
-                product_name: product.name,
-                app: product.metadata['app']
-              }
-              next
+            interval = price.recurring.interval # 'month' or 'year'
+            tier     = product.metadata['tier']
+            region   = product.metadata['region']
+
+            # Use explicit plan_id from metadata, or compute from tier_interval_region
+            plan_id = product.metadata['plan_id'] || "#{tier}_#{interval}ly_#{region}"
+
+            # Extract capabilities from product metadata
+            # Expected format: "create_secrets,create_team,custom_domains"
+            capabilities_str = product.metadata['capabilities'] || ''
+            capabilities     = capabilities_str.split(',').map(&:strip).reject(&:empty?)
+
+            # Extract limits from product metadata
+            # -1 or "infinity" means Float::INFINITY
+            limits = {}
+            product.metadata.each do |key, value|
+              next unless key.start_with?('limit_')
+
+              resource         = key.sub('limit_', '').to_sym
+              limits[resource] = if value.to_s == '-1' || value.to_s.downcase == 'infinity'
+                                   Float::INFINITY
+                                 else
+                                   value.to_i
+                                 end
             end
 
-            unless product.metadata['tier']
-              OT.lw "[Plan.refresh_from_stripe] Skipping product (missing tier)", {
-                product_id: product.id,
-                product_name: product.name
-              }
-              next
-            end
+            # Create or update plan cache
+            plan = new(
+              plan_id: plan_id,
+              stripe_price_id: price.id,
+              stripe_product_id: product.id,
+              name: product.name,
+              tier: tier,
+              interval: interval,
+              amount: price.unit_amount.to_s,
+              currency: price.currency,
+              region: region,
+              capabilities: capabilities.to_json,
+              features: (product.marketing_features&.map(&:name) || []).to_json,
+              limits: limits.to_json,
+            )
+            plan.save
 
-            unless product.metadata['region']
-              OT.lw "[Plan.refresh_from_stripe] Skipping product (missing region)", {
-                product_id: product.id,
-                product_name: product.name
-              }
-              next
-            end
+            OT.ld "[Plan] Cached plan: #{plan_id}", {
+              stripe_price_id: price.id,
+              amount: price.unit_amount,
+              currency: price.currency,
+            }
 
-            # Fetch all active prices for this product
-            prices = Stripe::Price.list({
-              product: product.id,
-              active: true,
-              limit: 100,
-            },
-                                       )
-
-            prices.auto_paging_each do |price|
-              # Skip non-recurring prices
-              next unless price.type == 'recurring'
-
-              interval = price.recurring.interval # 'month' or 'year'
-              tier     = product.metadata['tier']
-              region   = product.metadata['region']
-
-              # Use explicit plan_id from metadata, or compute from tier_interval_region
-              plan_id = product.metadata['plan_id'] || "#{tier}_#{interval}ly_#{region}"
-
-              # Extract capabilities from product metadata
-              # Expected format: "create_secrets,create_team,custom_domains"
-              capabilities_str = product.metadata['capabilities'] || ''
-              capabilities     = capabilities_str.split(',').map(&:strip).reject(&:empty?)
-
-              # Extract limits from product metadata
-              # -1 or "infinity" means Float::INFINITY
-              limits = {}
-              product.metadata.each do |key, value|
-                next unless key.start_with?('limit_')
-
-                resource         = key.sub('limit_', '').to_sym
-                limits[resource] = if value.to_s == '-1' || value.to_s.downcase == 'infinity'
-                                     Float::INFINITY
-                                   else
-                                     value.to_i
-                                   end
-              end
-
-              # Create or update plan cache
-              plan = new(
-                plan_id: plan_id,
-                stripe_price_id: price.id,
-                stripe_product_id: product.id,
-                name: product.name,
-                tier: tier,
-                interval: interval,
-                amount: price.unit_amount.to_s,
-                currency: price.currency,
-                region: region,
-                capabilities: capabilities.to_json,
-                features: (product.marketing_features&.map(&:name) || []).to_json,
-                limits: limits.to_json,
-              )
-              plan.save
-
-              OT.ld "[Plan] Cached plan: #{plan_id}", {
-                stripe_price_id: price.id,
-                amount: price.unit_amount,
-                currency: price.currency,
-              }
-
-              items_count += 1
-            end
-          end
-
-          OT.li "[Plan.refresh_from_stripe] Cached #{items_count} plans"
-          items_count
-        rescue Stripe::StripeError => ex
-          OT.le '[Plan.refresh_from_stripe] Stripe error', {
-            exception: ex,
-            message: ex.message,
-          }
-          raise
-        end
-
-        # Get plan by tier, interval, and region
-        #
-        # Searches cached plans by tier/interval/region fields instead of
-        # constructing a computed plan_id. Supports metadata-based plan IDs.
-        #
-        # @param tier [String] plan tier (e.g., 'single_team')
-        # @param interval [String] Billing interval ('monthly' or 'yearly')
-        # @param region [String] Region code (e.g., 'EU')
-        # @return [Plan, nil] Cached plan or nil if not found
-        def get_plan(tier, interval, region = nil)
-          # Normalize interval to singular form (monthly -> month)
-          interval = interval.to_s.sub(/ly$/, '')
-
-          # Search through all cached plans for matching tier/interval/region
-          list_plans.find do |plan|
-            plan.tier == tier &&
-              plan.interval == interval &&
-              plan.region == region
+            items_count += 1
           end
         end
 
-        # List all cached plans
-        #
-        # @return [Array<Plan>] All cached plans
-        def list_plans
-          load_multi(instances.to_a)
-        end
+        OT.li "[Plan.refresh_from_stripe] Cached #{items_count} plans"
+        items_count
+      rescue Stripe::StripeError => ex
+        OT.le '[Plan.refresh_from_stripe] Stripe error', {
+          exception: ex,
+          message: ex.message,
+        }
+        raise
+      end
 
-        # Clear all cached plans (for testing or forced refresh)
-        def clear_cache
-          values.to_a.each do |plan_id|
-            plan = load(plan_id)
-            plan&.destroy!
-          end
-          values.clear
+      # Get plan by tier, interval, and region
+      #
+      # Searches cached plans by tier/interval/region fields instead of
+      # constructing a computed plan_id. Supports metadata-based plan IDs.
+      #
+      # @param tier [String] plan tier (e.g., 'single_team')
+      # @param interval [String] Billing interval ('monthly' or 'yearly')
+      # @param region [String] Region code (e.g., 'EU')
+      # @return [Plan, nil] Cached plan or nil if not found
+      def get_plan(tier, interval, region = nil)
+        # Normalize interval to singular form (monthly -> month)
+        interval = interval.to_s.sub(/ly$/, '')
+
+        # Search through all cached plans for matching tier/interval/region
+        list_plans.find do |plan|
+          plan.tier == tier &&
+            plan.interval == interval &&
+            plan.region == region
         end
+      end
+
+      # List all cached plans
+      #
+      # @return [Array<Plan>] All cached plans
+      def list_plans
+        load_multi(instances.to_a)
+      end
+
+      # Clear all cached plans (for testing or forced refresh)
+      def clear_cache
+        values.to_a.each do |plan_id|
+          plan = load(plan_id)
+          plan&.destroy!
+        end
+        values.clear
       end
     end
   end

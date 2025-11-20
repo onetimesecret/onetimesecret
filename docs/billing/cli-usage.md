@@ -329,7 +329,7 @@ To view cached plans:
 1. Fetches all active products from Stripe
 2. For each product, fetches associated prices
 3. Combines product metadata + price data
-4. Caches in Redis via `Billing::Models::Plan`
+4. Caches in Redis via `Billing::Plan`
 
 ---
 

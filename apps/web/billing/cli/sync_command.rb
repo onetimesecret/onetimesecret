@@ -20,7 +20,7 @@ module Onetime
         puts 'Syncing from Stripe to Redis cache...'
         puts
 
-        count = Billing::Models::Plan.refresh_from_stripe
+        count = Billing::Plan.refresh_from_stripe
 
         puts "Successfully synced #{count} plan(s) to cache"
         puts "\nTo view cached plans:"

@@ -13,11 +13,11 @@ require_relative '../support/test_helpers'
 require 'apps/web/billing/models/plan'
 
 ## Clear any existing plan cache
-Billing::Models::Plan.clear_cache.class
+Billing::Plan.clear_cache.class
 #=> Integer
 
 ## Create a mock plan manually (metadata-based plan_id with interval)
-@plan = Billing::Models::Plan.new(
+@plan = Billing::Plan.new(
   plan_id: 'identity_v1_monthly',
   stripe_price_id: 'price_test123',
   stripe_product_id: 'prod_test123',
@@ -34,11 +34,11 @@ Billing::Models::Plan.clear_cache.class
 #=> true
 
 ## Verify plan was saved
-Billing::Models::Plan.values.size
+Billing::Plan.values.size
 #=> 1
 
 ## Retrieve plan by ID (metadata-based with interval)
-@retrieved = Billing::Models::Plan.load('identity_v1_monthly')
+@retrieved = Billing::Plan.load('identity_v1_monthly')
 @retrieved.tier
 #=> 'single_team'
 
@@ -51,12 +51,12 @@ Billing::Models::Plan.values.size
 #=> {"teams"=>1, "members_per_team"=>10}
 
 ## Get plan using tier, interval, region
-@monthly_plan = Billing::Models::Plan.get_plan('single_team', 'monthly', 'us-east')
+@monthly_plan = Billing::Plan.get_plan('single_team', 'monthly', 'us-east')
 @monthly_plan.plan_id
 #=> 'identity_v1_monthly'
 
 ## Get plan with yearly interval (different plan_id for yearly)
-@yearly_plan = Billing::Models::Plan.new(
+@yearly_plan = Billing::Plan.new(
   plan_id: 'identity_v1_yearly',
   stripe_price_id: 'price_yearly123',
   stripe_product_id: 'prod_test123',
@@ -70,15 +70,15 @@ Billing::Models::Plan.values.size
   limits: '{"teams": 1, "members_per_team": 10}'
 )
 @yearly_plan.save
-@yearly_retrieved = Billing::Models::Plan.get_plan('single_team', 'yearly', 'us-east')
+@yearly_retrieved = Billing::Plan.get_plan('single_team', 'yearly', 'us-east')
 @yearly_retrieved.plan_id
 #=> 'identity_v1_yearly'
 
 ## List all plans
-Billing::Models::Plan.list_plans.size
+Billing::Plan.list_plans.size
 #=> 2
 
 ## Clear cache
-Billing::Models::Plan.clear_cache
-Billing::Models::Plan.values.size
+Billing::Plan.clear_cache
+Billing::Plan.values.size
 #=> 0
