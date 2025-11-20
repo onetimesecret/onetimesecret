@@ -99,7 +99,7 @@
         "inactive": "Koretake",
         "past_due": "Tua i te Wā",
         "canceled": "Kua Whakakōretia",
-        "plan_name": "Mahere",
+        "catalog_name": "Mahere",
         "team_usage": "Whakamahinga Rōpū",
         "teams_used": "{used} o {limit} ngā rōpū kua whakamahia"
       },

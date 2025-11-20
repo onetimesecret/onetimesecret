@@ -1,31 +1,31 @@
 {
   "web": {
     "homepage": {
-      "tagline1": "הדביקו סיסמה, סוד או קישור פרטי מטה.",
-      "tagline2": "שלחו קישור סודי הזמין לשימוש פעם אחת בלבד.",
-      "secret_hint": "* קישור סודי פועל פעם אחת ואז מושמד לעד",
-      "secret_form_more_text1": "רישום ל",
+      "tagline1": "הדביקו סיסמה, הודעה סודית או קישור פרטי למטה.",
+      "tagline2": "שמרו מידע רגיש מחוץ לדואר האלקטרוני ולוגי הצ'אט שלכם.",
+      "secret_hint": "* קישור סודי עובד רק פעם אחת ואז נעלם לעד.",
+      "secret_form_more_text1": "הירשמו ל",
       "secret_form_more_text2": "חשבון חינם",
-      "secret_form_more_text3": "ותוכלו לשלוח את הסוד במייל.",
-      "cta_title": "השתמש בדומיין מותאם אישית",
-      "cta_subtitle": "העצם את המותג שלך ושתף בביטחון",
-      "cta_feature1": "הדומיין המותאם אישית שלך",
+      "secret_form_more_text3": "ותוכלו לשלוח את הסוד בדואר אלקטרוני.",
+      "cta_title": "הגדילו אמון ושתפו בביטחון",
+      "cta_subtitle": "העלו את המותג שלכם ושתפו בביטחון",
+      "cta_feature1": "דומיינים מותאמים אישית בלתי מוגבלים",
       "cta_feature2": "שיתוף סודות בלתי מוגבל",
-      "cta_feature3": "בקרות פרטיות מתקדמות",
-      "explore_premium_plans": "גלה תוכניות פרימיום",
-      "need_free_account": "רק מתחיל?",
-      "sign_up_free": "צור חשבון חינם",
-      "visit-onetime-secret-home": "",
-      "password_generation_title": "",
-      "password_generation_description": "",
-      "protip1": "",
+      "cta_feature3": "הגדלת אמון ומעורבות לקוחות",
+      "explore_premium_plans": "עם דומיינים מותאמים אישית",
+      "need_free_account": "רק מתחילים? שלחו הודעות דואר אלקטרוני עם חשבון חינם.",
+      "sign_up_free": "הרשמה חינם",
+      "visit-onetime-secret-home": "ביקור בדף הבית של Onetime Secret",
+      "password_generation_title": "מחולל סיסמאות",
+      "password_generation_description": " לחצו על \"יצירת סיסמה\" כדי ליצור סיסמה אקראית מאובטחת שניתן לשתף.",
+      "protip1": "ההודעה שלכם תהרס אוטומטית לאחר הצפייה. ניתן לגשת לקישור רק פעם אחת.",
       "authonly": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "שירות ההודעות המאובטח הוא לשימוש פנימי בלבד.",
+        "tagline1": "אם יש לכם חשבון, אנא התחברו כדי להמשיך."
       },
       "disabled": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "שירות זה מוגדר לשימוש פנימי בלבד.",
+        "tagline1": "ממשק משתמש ויכולות התחברות אינם זמינים."
       }
     }
   }

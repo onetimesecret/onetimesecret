@@ -129,16 +129,15 @@ module Onetime
         def reregister_loaded_applications
           ObjectSpace.each_object(Class)
             .select { |cls| cls < Onetime::Application::Base && cls.respond_to?(:uri_prefix) }
-            .reject { |cls| cls.name == 'Auth::Application' && Onetime.auth_config.mode != 'advanced' }
-            .reject { |cls| cls.name == 'Billing::Application' && !Onetime.billing_config.enabled? }
             .reject { |cls| cls.instance_variable_get(:@abstract) == true } # Skip abstract base classes
+            .reject { |cls| cls.should_skip_loading? }
             .each { |cls| register_application_class(cls) }
         end
 
         private
 
         def find_application_files
-          apps_root = File.join(ENV['ONETIME_HOME'] || File.expand_path('../../..', __dir__), 'apps')
+          apps_root = File.join(Onetime::HOME, 'apps')
           filepaths = Dir.glob(File.join(apps_root, '**/application.rb'))
 
           # Skip auth app in basic mode - auth endpoints handled by Core Web App

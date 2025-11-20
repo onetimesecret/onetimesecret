@@ -99,7 +99,7 @@
         "inactive": "Nieaktywna",
         "past_due": "Zaległa",
         "canceled": "Anulowana",
-        "plan_name": "Plan",
+        "catalog_name": "Plan",
         "team_usage": "Wykorzystanie zespołów",
         "teams_used": "Wykorzystano {used} z {limit} zespołów"
       },

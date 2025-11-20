@@ -1,61 +1,61 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Varnost",
+      "learn-about-our-security-measures": "Več o naših varnostnih ukrepih",
+      "view-our-terms-and-conditions": "Oglejte si naše pogoje poslovanja",
+      "terms": "Pogoji",
+      "privacy": "Zasebnost",
+      "contact": "Kontakt",
+      "support": "Podpora",
+      "legals": "Pravno",
+      "read-our-privacy-policy": "Preberite našo politiko zasebnosti",
+      "check-our-service-status": "Preverite status naše storitve",
+      "explore-our-api-documentation": "Raziščite našo dokumentacijo API",
+      "docs": "Dokumentacija",
+      "access-our-documentation": "Dostopajte do naše dokumentacije",
+      "view-our-source-code-on-github": "Oglejte si našo izvorno kodo na GitHub",
+      "resources": "Viri",
+      "blog": "Blog",
+      "read-our-latest-blog-posts": "Preberite naše najnovejše objave na blogu",
+      "view-our-subscription-pricing": "Oglejte si naše cene naročnin",
+      "learn-about-our-company": "Izvedite več o našem podjetju",
+      "company": "Podjetje"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Plačila",
+      "billingOverview": "Pregled",
+      "organizations": "Organizacije"
     },
     "site": {
-      "website-version": ""
+      "website-version": "Različica spletne strani"
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "",
-      "translations-are-new-spotted-an-error": "",
-      "we-recently-added-translations": "",
-      "privacy-and-security-should-be-accessible": ""
+      "were-making-onetime-secret-available-in-multiple": "Onetime Secret je na voljo v več jezikih. Ker je to nova funkcija, lahko naletite na napake v prevodu ali nerodno izražanje. Vaše povratne informacije nam pomagajo izboljšati - če opazite težave, {send-feedback}",
+      "translations-are-new-spotted-an-error": "Prevodi so novi. Opazili ste napako? {send-feedback}",
+      "we-recently-added-translations": "Nedavno smo dodali prevode. Opazili ste napako? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Zasebnost in varnost bi morali biti dostopni vsem, ne glede na jezik. Dodajamo prevode, da našim uporabnikom in njihovim prejemnikom sporočil pomagamo bolje razumeti, kako varno uporabljati in dostopati do varnih sporočil in povezav. Ker je to nova funkcija, lahko naletite na napake v prevodu ali nejasna navodila. Za pomoč pri izboljšanju jasnosti in točnosti naših prevodov, zlasti za kritično varnostno vsebino, {send-feedback}, če opazite težave"
     },
     "help": {
-      "learn_more": "",
+      "learn_more": "Več informacij",
       "secret_view_faq": {
         "what_am_i_looking_at": {
-          "title": "",
-          "description": ""
+          "title": "Kaj gledam?",
+          "description": "Ogledujete si varno sporočilo, ki je bilo z vami deljeno preko Onetime Secret. Ta vsebina je prikazana samo enkrat in nato trajno izbrisana z naših strežnikov."
         },
         "can_i_view_again": {
-          "title": "",
-          "description": ""
+          "title": "Ali lahko to skrivnost znova pogledam kasneje?",
+          "description": "Ne. Iz varnostnih razlogov je ta skrivnost vidna samo enkrat. Po zaprtju te strani bo vsebina trajno izbrisana in je nihče, vključno z nami, ne bo mogel obnoviti."
         },
         "how_to_copy": {
-          "title": "",
-          "description": ""
+          "title": "Kako shranim te informacije?",
+          "description": "Uporabite gumb 'Kopiraj v odložišče' za kopiranje celotne skrivnosti. Za daljše skrivnosti se prepričajte, da ste kopirali celotno vsebino, preden zapustite to stran."
         },
         "is_my_viewing_tracked": {
-          "title": "",
-          "description": ""
+          "title": "Ali se moj ogled te skrivnosti sledi?",
+          "description": "Pošiljatelj bo obveščen, da je bila njegova skrivnost ogledana, vendar ne sledimo, kdo jo je ogledal ali od kod. Vaša zasebnost je zaščitena."
         },
-        "one_time_warning": ""
+        "one_time_warning": "Ko zapustite ali osvežite to stran, bo ta skrivnost trajno izbrisana in je nihče ne bo mogel obnoviti."
       }
     }
   }

@@ -99,7 +99,7 @@
         "inactive": "비활성",
         "past_due": "연체",
         "canceled": "취소됨",
-        "plan_name": "플랜",
+        "catalog_name": "플랜",
         "team_usage": "팀 사용량",
         "teams_used": "{limit}개 팀 중 {used}개 사용"
       },

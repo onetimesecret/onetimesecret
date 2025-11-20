@@ -1,31 +1,31 @@
 {
   "web": {
     "homepage": {
-      "tagline1": "Prilepite geslo, sporočilo ali povezavo.",
-      "tagline2": "Ohranite občutljive informacije izven el. pošte in klepetalnice.",
-      "secret_hint": "* Povezava je enkratna po uporabi izgine za vedno.",
-      "secret_form_more_text1": "Prijavite se z ",
-      "secret_form_more_text2": "zastonj uporabniškim računom",
-      "secret_form_more_text3": "in pošiljajte skrivnosti po e-pošti.",
-      "cta_title": "Uporabite prilagojeno domeno",
+      "tagline1": "Spodaj prilepite geslo, skrivno sporočilo ali zasebno povezavo.",
+      "tagline2": "Ohranite občutljive informacije izven svoje e-pošte in dnevnikov klepeta.",
+      "secret_hint": "* Skrivna povezava deluje samo enkrat in nato izgine za vedno.",
+      "secret_form_more_text1": "Prijavite se za",
+      "secret_form_more_text2": "brezplačen račun",
+      "secret_form_more_text3": "in lahko pošljete skrivnost po e-pošti.",
+      "cta_title": "Povečajte zaupanje in delite z zaupanjem",
       "cta_subtitle": "Dvignite svojo blagovno znamko in delite z zaupanjem",
-      "cta_feature1": "Vaša lastna prilagojena domena",
+      "cta_feature1": "Neomejeno domen po meri",
       "cta_feature2": "Neomejeno deljenje skrivnosti",
-      "cta_feature3": "Napredne kontrole zasebnosti",
-      "explore_premium_plans": "Raziščite Premium načrte",
-      "need_free_account": "Šele začenjate?",
-      "sign_up_free": "Ustvarite brezplačen račun",
-      "visit-onetime-secret-home": "",
-      "password_generation_title": "",
-      "password_generation_description": "",
-      "protip1": "",
+      "cta_feature3": "Povečajte zaupanje in sodelovanje strank",
+      "explore_premium_plans": "Z domenami po meri",
+      "need_free_account": "Šele začenjate? Pošiljajte e-pošto z brezplačnim računom.",
+      "sign_up_free": "Brezplačna registracija",
+      "visit-onetime-secret-home": "Obiščite domačo stran Onetime Secret",
+      "password_generation_title": "Generator gesel",
+      "password_generation_description": " Kliknite \"Generiraj geslo\" za ustvarjanje varnega naključnega gesla, ki ga lahko delite.",
+      "protip1": "Vaše sporočilo se bo samouničilo po ogledu. Povezavo je mogoče dostopati samo enkrat.",
       "authonly": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Storitev za varno sporočanje je namenjena samo za notranjo uporabo.",
+        "tagline1": "Če imate račun, se prijavite za nadaljevanje."
       },
       "disabled": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Ta storitev je nastavljena samo za notranjo uporabo.",
+        "tagline1": "Uporabniški vmesnik in možnosti prijave niso na voljo."
       }
     }
   }

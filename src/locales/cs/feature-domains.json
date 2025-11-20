@@ -1,11 +1,11 @@
 {
   "web": {
     "domains": {
-      "learn-more-dns": "",
-      "view-domain-verification-status": "",
-      "domain-already-in-organization": "",
-      "domain-in-other-organization": "",
-      "domain-claimed-successfully": ""
+      "learn-more-dns": "Zjistit více o konfiguraci DNS",
+      "view-domain-verification-status": "Zobrazit stav ověření domény",
+      "domain-already-in-organization": "Tato doména je již registrována v tvé organizaci",
+      "domain-in-other-organization": "Tato doména je již registrována jiné organizaci. Kontaktuj prosím podporu, pokud se domníváš, že jde o chybu.",
+      "domain-claimed-successfully": "Doména úspěšně nárokována a přidána do tvé organizace"
     }
   }
 }

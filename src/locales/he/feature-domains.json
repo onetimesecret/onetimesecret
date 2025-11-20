@@ -1,11 +1,11 @@
 {
   "web": {
     "domains": {
-      "learn-more-dns": "",
-      "view-domain-verification-status": "",
-      "domain-already-in-organization": "",
-      "domain-in-other-organization": "",
-      "domain-claimed-successfully": ""
+      "learn-more-dns": "מידע נוסף על תצורת DNS",
+      "view-domain-verification-status": "צפייה במצב אימות הדומיין",
+      "domain-already-in-organization": "דומיין זה כבר רשום בארגון שלכם",
+      "domain-in-other-organization": "דומיין זה כבר רשום לארגון אחר. צרו קשר עם התמיכה אם אתם מאמינים שזו שגיאה.",
+      "domain-claimed-successfully": "הדומיין נתבע בהצלחה והוסף לארגון שלכם"
     }
   }
 }

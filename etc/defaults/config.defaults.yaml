@@ -239,9 +239,9 @@ emailer:
   # Start: mailpit
   # Web UI: http://localhost:8025
   #
-  #  :mode: smtp                      # Use SMTP mode for local testing
+  #  :mode: smtp                     # Use SMTP mode for local testing
   #  :from: secure@onetimesecret.com # Sender address
-  #  :fromname: OTS Support          # Sender name
+  #  :from_name: OTS Support         # Sender name
   #  :host: 127.0.0.1                # Mailpit host
   #  :port: 1025                     # Mailpit default SMTP port
   #  :user: ~                        # No auth needed for Mailpit
@@ -254,7 +254,8 @@ emailer:
   mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
   region: <%= ENV['EMAILER_REGION'] || 'smtp' %>
   from: <%= ENV['FROM_EMAIL'] || ENV['FROM'] || 'CHANGEME@example.com' %>
-  fromname: <%= ENV['FROMNAME'] || 'Support' %>
+  from_name: <%= ENV['FROM_NAME'] || 'Support' %>
+  reply_to: <%= ENV['REPLYTO_EMAIL'] || ENV['FROM_EMAIL'] || nil %>
   host: <%= ENV['SMTP_HOST'] || 'smtp.provider.com' %>
   port: <%= ENV['SMTP_PORT'] || 587 %>
   user: <%= ENV['SMTP_USERNAME'] %>

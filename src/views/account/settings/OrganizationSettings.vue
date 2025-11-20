@@ -492,7 +492,7 @@ watch(activeTab, async (newTab) => {
                   <div class="flex items-start justify-between">
                     <div>
                       <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                        {{ t('web.billing.subscription.plan_name') }}
+                        {{ t('web.billing.subscription.catalog_name') }}
                       </p>
                       <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
                         {{ getPlanLabel(subscription.plan_type) }}

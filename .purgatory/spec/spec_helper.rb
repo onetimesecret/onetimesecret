@@ -64,7 +64,7 @@ rescue => e
     'emailer' => {
       'mode' => 'smtp',
       'from' => 'test@example.com',
-      'fromname' => 'Test Suite'
+      'from_name' => 'Test Suite'
     },
     'experimental' => {},
     'redis' => {

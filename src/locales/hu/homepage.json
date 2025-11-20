@@ -1,31 +1,31 @@
 {
   "web": {
     "homepage": {
-      "tagline1": "Illessz be egy jelszót, titkos üzenetet vagy privát linket az alábbiakban.",
-      "tagline2": "Tartsd távol az érzékeny információkat az e-mail és a csevegési naplókból.",
-      "secret_hint": "* A titkos link csak egyszer működik, majd örökre eltűnik.",
-      "secret_form_more_text1": "Regisztrálj",
+      "tagline1": "Illesszen be alább egy jelszót, titkos üzenetet vagy privát hivatkozást.",
+      "tagline2": "Tartsa távol az érzékeny információkat e-mailjeiből és csevegési naplóiból.",
+      "secret_hint": "* A titkos hivatkozás csak egyszer működik, majd örökre eltűnik.",
+      "secret_form_more_text1": "Regisztráljon",
       "secret_form_more_text2": "ingyenes fiókot",
-      "secret_form_more_text3": "és képes leszel elküldeni a titkot e-mailben.",
-      "cta_title": "Használjon egyedi domaint",
-      "cta_subtitle": "Emelje márkáját és osszon meg magabiztosan",
-      "cta_feature1": "Saját egyedi domain",
-      "cta_feature2": "Korlátlan titokkészítés",
-      "cta_feature3": "Fejlett adatvédelmi beállítások",
-      "explore_premium_plans": "Fedezze fel a Prémium csomagokat",
-      "need_free_account": "Csak most kezdi?",
-      "sign_up_free": "Ingyenes fiók létrehozása",
-      "visit-onetime-secret-home": "",
-      "password_generation_title": "",
-      "password_generation_description": "",
-      "protip1": "",
+      "secret_form_more_text3": "és képes lesz elküldeni a titkot e-mailben.",
+      "cta_title": "Növelje a bizalmat és osszon meg magabiztosan",
+      "cta_subtitle": "Emelje fel márkáját és osszon meg magabiztosan",
+      "cta_feature1": "Korlátlan egyéni domének",
+      "cta_feature2": "Korlátlan titokmegosztás",
+      "cta_feature3": "Növelje az ügyfelek bizalmát és elkötelezettségét",
+      "explore_premium_plans": "Egyéni doménekkel",
+      "need_free_account": "Most kezdi? Küldjön e-maileket ingyenes fiókkal.",
+      "sign_up_free": "Ingyenes regisztráció",
+      "visit-onetime-secret-home": "Onetime Secret kezdőlap meglátogatása",
+      "password_generation_title": "Jelszógenerátor",
+      "password_generation_description": " Kattintson a \"Jelszó generálása\" gombra egy biztonságos véletlenszerű jelszó létrehozásához, amelyet megoszthat.",
+      "protip1": "Üzenete önmegsemmisül megtekintés után. A hivatkozás csak egyszer érhető el.",
       "authonly": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "A biztonságos üzenetküldő szolgáltatás csak belső használatra szolgál.",
+        "tagline1": "Ha van fiókja, kérjük, jelentkezzen be a folytatáshoz."
       },
       "disabled": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Ez a szolgáltatás csak belső használatra van beállítva.",
+        "tagline1": "A felhasználói felület és bejelentkezési lehetőségek nem érhetők el."
       }
     }
   }

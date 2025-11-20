@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "ריבונות נתונים ובידוד אזורי",
+      "data-sovereignty-description": "הנתונים שלכם נמצאים באופן בלעדי באזור שבחרתם ולעולם אינם מועברים בין אזורים",
+      "separate-environments-explanation": "כל אזור פועל כסביבה עצמאית לחלוטין עם תשתית, מפתחות הצפנה ואחסון נתונים משלו",
+      "no-data-transfer-policy": "אנו מקיימים מדיניות קפדנית: נתוני לקוחות לעולם אינם מועברים בין אזורים בשום נסיבות",
+      "switching-creates-new-account": "חשוב: מעבר לאזור אחר יוצר חשבון חדש. הנתונים שלכם נשארים באזור המקורי.",
+      "your-region": "האזור שלכם",
+      "your-current-region": "האזור הנוכחי שלכם",
+      "active": "פעיל",
+      "explore-other-regions": "חקרו אזורים זמינים נוספים",
+      "why-it-matters": "למה ריבונות נתונים חשובה",
+      "trust-title": "שקיפות ושליטה",
+      "trust-description": "דעו בדיוק היכן נמצאים הנתונים שלכם ואילו חוקים מגנים עליהם.",
+      "privacy-title": "זכויות פרטיות",
+      "privacy-description": "וודאו שהמידע האישי שלכם מטופל בהתאם לחוקי הפרטיות של המדינה שלכם, ומנעו גישה או שימוש לרעה בלתי מורשים.",
+      "compliance-title": "עמידה ברגולציה",
+      "compliance-description": "עמדו בדרישות GDPR, HIPAA, CCPA ודרישות הגנת מידע אזוריות אחרות",
+      "performance-title": "גישה מהירה יותר",
+      "performance-description": "נתונים המאוחסנים קרוב אליכם משמעותם זמן תגובה נמוך יותר וביצועים טובים יותר."
     }
   }
 }

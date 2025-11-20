@@ -43,17 +43,20 @@ module Onetime
 
           @mode = conf.fetch('mode', 'smtp').to_s.to_sym
 
+          # fromname (without an underscore) is deprecated, since v0.23)
+          from_name = conf.fetch('from_name', nil) || conf.fetch('fromname', nil)
+
           # Create a new instance of the configured mailer class for this request
           @emailer = OT.emailer.new(
             conf.fetch('from', nil),
-            conf.fetch('fromname', nil),
+            from_name,
             cust&.email, # use for the reply-to field
           )
 
           password_is_present = conf.fetch('pass', nil).to_s.length.positive?
           logsafe_config      = {
             'from' => conf.fetch('from', nil),
-            'fromname' => conf.fetch('fromname', nil),
+            'from_name' => from_name,
             'host' => conf.fetch('host', nil),
             'port' => conf.fetch('port', nil),
             'user' => conf.fetch('user', nil),

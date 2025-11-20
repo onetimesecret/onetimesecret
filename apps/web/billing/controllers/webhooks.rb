@@ -56,6 +56,16 @@ module Billing
           return json_error('Invalid signature', status: 400)
         end
 
+        # Check for duplicate webhook event
+        if Billing::Models::ProcessedWebhookEvent.processed?(event.id)
+          billing_logger.info 'Webhook event already processed (duplicate)', {
+            event_type: event.type,
+            event_id: event.id,
+          }
+          res.status = 200
+          return json_success('Event already processed')
+        end
+
         billing_logger.info 'Webhook event received', {
           event_type: event.type,
           event_id: event.id,
@@ -76,6 +86,9 @@ module Billing
             event_type: event.type,
           }
         end
+
+        # Mark event as processed to prevent duplicates
+        Billing::Models::ProcessedWebhookEvent.mark_processed!(event.id, event.type)
 
         res.status = 200
         json_success('Event processed')

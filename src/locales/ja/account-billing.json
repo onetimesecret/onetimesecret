@@ -99,7 +99,7 @@
         "inactive": "非アクティブ",
         "past_due": "支払い期限超過",
         "canceled": "キャンセル済み",
-        "plan_name": "プラン",
+        "catalog_name": "プラン",
         "team_usage": "チーム使用状況",
         "teams_used": "{limit}チーム中{used}チーム使用中"
       },

@@ -1,11 +1,11 @@
 {
   "web": {
     "domains": {
-      "learn-more-dns": "",
-      "view-domain-verification-status": "",
-      "domain-already-in-organization": "",
-      "domain-in-other-organization": "",
-      "domain-claimed-successfully": ""
+      "learn-more-dns": "تعلم المزيد عن تكوين DNS",
+      "view-domain-verification-status": "عرض حالة التحقق من النطاق",
+      "domain-already-in-organization": "هذا النطاق مسجل بالفعل في منظمتك",
+      "domain-in-other-organization": "هذا النطاق مسجل بالفعل في منظمة أخرى. يرجى التواصل مع الدعم إذا كنت تعتقد أن هذا خطأ.",
+      "domain-claimed-successfully": "تم المطالبة بالنطاق بنجاح وإضافته إلى منظمتك"
     }
   }
 }

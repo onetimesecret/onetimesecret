@@ -1,11 +1,11 @@
 {
   "web": {
     "domains": {
-      "learn-more-dns": "",
-      "view-domain-verification-status": "",
-      "domain-already-in-organization": "",
-      "domain-in-other-organization": "",
-      "domain-claimed-successfully": ""
+      "learn-more-dns": "További információ a DNS konfigurációról",
+      "view-domain-verification-status": "Domén ellenőrzési állapot megtekintése",
+      "domain-already-in-organization": "Ez a domén már regisztrálva van a szervezetében",
+      "domain-in-other-organization": "Ez a domén már regisztrálva van egy másik szervezethez. Kérjük, lépjen kapcsolatba a támogatással, ha úgy gondolja, hogy ez hiba.",
+      "domain-claimed-successfully": "Domén sikeresen igényelve és hozzáadva a szervezethez"
     }
   }
 }
