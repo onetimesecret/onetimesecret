@@ -1,4 +1,4 @@
-# try/billing/01_plan_cache_try.rb
+# try/billing/01_catalog_cache_try.rb
 #
 # frozen_string_literal: true
 

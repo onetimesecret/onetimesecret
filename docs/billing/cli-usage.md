@@ -487,7 +487,7 @@ Stripe (products + prices)
 
 - Stripe Products API: https://docs.stripe.com/api/products
 - Stripe Prices API: https://docs.stripe.com/api/prices
-- `apps/web/billing/models/plan_cache.rb` - Cache implementation
+- `apps/web/billing/models/catalog_cache.rb` - Cache implementation
 - `lib/onetime/billing_config.rb` - Billing configuration loader
 
 ---

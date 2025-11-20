@@ -17,7 +17,7 @@ require_relative '../support/test_helpers'
 ## Setup: Load models and billing modules
 require 'lib/onetime/models/organization'
 require 'lib/onetime/billing/plan_definitions'
-require 'apps/web/billing/models/plan_cache'
+require 'apps/web/billing/models/catalog_cache'
 
 ## Setup: Populate PlanCache with test data (replaces hardcoded PLAN_DEFINITIONS)
 Billing::Models::CatalogCache.clear_cache
