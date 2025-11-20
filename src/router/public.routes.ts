@@ -7,10 +7,10 @@ import { WindowService } from '@/services/window.service';
 import HomepageContainer from '@/views/HomepageContainer.vue';
 import { RouteRecordRaw } from 'vue-router';
 
-// Extend RouteRecordRaw meta to include our custom componentState
+// Extend RouteRecordRaw meta to include our custom componentMode
 declare module 'vue-router' {
   interface RouteMeta {
-    componentState?: string;
+    componentMode?: string;
   }
 }
 
@@ -43,24 +43,30 @@ const routes: Array<RouteRecordRaw> = [
       const domainStrategy = WindowService.get('domain_strategy') as string;
 
       // Determine component state based on UI and authentication settings
-      let componentState = 'normal';
+      let componentMode = 'normal';
 
       // Check if UI is completely disabled
       const ui = WindowService.get('ui');
       if (!ui?.enabled) {
-        componentState = 'disabled-ui';
+        componentMode = 'disabled-ui';
       } else {
         // Check if authentication is required but user is not authenticated
         const authentication = WindowService.get('authentication');
         // For route-level checks, we need to check session existence rather than store state
         const hasSession = document.cookie.includes('ots-session');
-        if (authentication?.required && !hasSession) {
-          componentState = 'disabled-homepage';
+
+        // Check homepage mode
+        const homepageMode = WindowService.get('homepage_mode');
+
+        // Only show disabled-homepage if auth is required AND user has no session
+        // AND homepage is not in protected mode
+        if (!hasSession && (authentication?.required || homepageMode === 'protected')) {
+          componentMode = 'disabled-homepage';
         }
       }
 
       // Store component state in meta for the container component
-      to.meta.componentState = componentState;
+      to.meta.componentMode = componentMode;
 
       // Set layout props based on component state and domain strategy
       let layoutProps = {
@@ -74,7 +80,7 @@ const routes: Array<RouteRecordRaw> = [
       };
 
       // Apply component state specific overrides
-      switch (componentState) {
+      switch (componentMode) {
         case 'disabled-ui':
           // DisabledUI layout: minimal header/nav
           layoutProps = {

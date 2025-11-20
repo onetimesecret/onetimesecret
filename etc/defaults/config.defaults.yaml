@@ -15,6 +15,29 @@ site:
       # Controls whether the web interface is enabled
       # When false, only a basic explanation page is shown
       enabled: <%= ENV['UI_ENABLED'] != 'false' %>
+      homepage:
+        # Homepage protection via request header
+        #
+        # Controls homepage visibility based on HTTP request headers.
+        # When mode=protected, the homepage is shown only when the
+        # specified request header contains 'protected'.
+        #
+        # SECURITY:
+        #   - The header can only RESTRICT, never EXPAND access
+        #   - Has no effect on authentication based access settings
+        #   - Only controls visibility of the homepage content; does not affect
+        #     API routes in any way. Access to /api/v3/secret/conceal and
+        #     /api/v3/secret/generate would need to be managed separately.
+        #
+        # Example:
+        #   mode: protected
+        #   request_header: O-Homepage-Mode
+        #
+        # Then requests with header "O-Homepage-Mode: protected" will
+        # show the Internal Use Only homepage content.
+        #
+        mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
+        request_header: <%= ENV['UI_HOMEPAGE_REQUEST_HEADER'] || nil %>
       # Header configuration
       # Controls branding and navigation in the site header
       header:

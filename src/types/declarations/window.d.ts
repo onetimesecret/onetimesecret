@@ -146,6 +146,13 @@ export interface OnetimeWindow {
    */
   enjoyTheVue: boolean;
 
+  /**
+   * Homepage mode indicating accessibility state.
+   * - 'protected': Homepage is accessible (bypass header present)
+   * - null/undefined: No special mode, follow authentication.required
+   */
+  homepage_mode?: 'protected' | null;
+
   /** Optional HTML banner displayed at page top */
   global_banner?: string;
 
