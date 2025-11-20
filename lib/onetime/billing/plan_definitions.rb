@@ -51,7 +51,7 @@ module Onetime
     #   # => "identity_v1_monthly"
     def self.upgrade_path_for(capability, _current_plan = nil)
       # Query all cached plans for those with the capability
-      plans_with_capability = ::Billing::Models::PlanCache.list_plans.select do |plan|
+      plans_with_capability = ::Billing::Models::CatalogCache.list_plans.select do |plan|
         plan.parsed_capabilities.include?(capability.to_s)
       end
 
@@ -82,7 +82,7 @@ module Onetime
       return plan_id if plan_id.to_s.empty?
 
       # Try to get name from cached plan first
-      plan = ::Billing::Models::PlanCache.load(plan_id)
+      plan = ::Billing::Models::CatalogCache.load(plan_id)
       return plan.name if plan&.name
 
       # Fall back to pattern matching on plan_id
@@ -121,7 +121,7 @@ module Onetime
     #
     # @return [Array<String>] List of current plan IDs
     def self.available_plans
-      ::Billing::Models::PlanCache.list_plans
+      ::Billing::Models::CatalogCache.list_plans
         .reject { |plan| legacy_plan?(plan.plan_id) }
         .map(&:plan_id)
     end

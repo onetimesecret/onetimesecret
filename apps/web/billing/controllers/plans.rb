@@ -36,7 +36,7 @@ module Billing
         }
 
         # Get plan from cache
-        plan = Billing::Models::PlanCache.get_plan(tier, billing_cycle, region)
+        plan = Billing::Models::CatalogCache.get_plan(tier, billing_cycle, region)
 
         unless plan
           billing_logger.warn 'Plan not found in cache', {

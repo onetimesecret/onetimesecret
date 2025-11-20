@@ -213,7 +213,7 @@ module Billing
         }
 
         begin
-          Billing::Models::PlanCache.refresh_from_stripe
+          Billing::Models::CatalogCache.refresh_from_stripe
           billing_logger.info 'Plan cache refreshed successfully'
         rescue StandardError => ex
           billing_logger.error 'Failed to refresh plan cache', {

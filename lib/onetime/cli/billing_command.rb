@@ -196,9 +196,9 @@ module Onetime
         puts <<~HELP
           Billing Management Commands:
 
-          Plans & Products:
-            bin/ots billing plans              List cached plans from Redis
-            bin/ots billing plans --refresh    Refresh cache from Stripe
+          Catalog & Products:
+            bin/ots billing catalog            List product catalog from Redis
+            bin/ots billing catalog --refresh  Refresh cache from Stripe
             bin/ots billing products           List all Stripe products
             bin/ots billing products create    Create new product
             bin/ots billing products update    Update product metadata
@@ -240,11 +240,11 @@ module Onetime
       end
     end
 
-    # List cached plans
-    class BillingPlansCommand < Command
+    # List catalog cache
+    class BillingCatalogCommand < Command
       include BillingHelpers
 
-      desc 'List cached plans from Redis'
+      desc 'List product catalog cache from Redis'
 
       option :refresh, type: :boolean, default: false,
         desc: 'Refresh cache from Stripe before listing'
@@ -255,27 +255,28 @@ module Onetime
         return unless stripe_configured?
 
         if refresh
-          puts 'Refreshing plan cache from Stripe...'
-          count = Billing::Models::PlanCache.refresh_from_stripe
-          puts "Refreshed #{count} plan(s)"
+          puts 'Refreshing catalog from Stripe...'
+          count = Billing::Models::CatalogCache.refresh_from_stripe
+          puts "Refreshed #{count} catalog entries"
           puts
         end
 
-        plans = Billing::Models::PlanCache.list_plans
-        if plans.empty?
-          puts 'No plans found in cache. Run with --refresh to sync from Stripe.'
+        catalog = Billing::Models::CatalogCache.list_catalog
+        if catalog.empty?
+          puts 'No catalog entries found. Run with --refresh to sync from Stripe.'
           return
         end
 
         puts format('%-20s %-18s %-10s %-10s %-12s %s',
-          'PLAN ID', 'TIER', 'INTERVAL', 'AMOUNT', 'REGION', 'CAPS')
+          'CATALOG ID', 'TIER', 'INTERVAL', 'AMOUNT', 'REGION', 'CAPS')
         puts '-' * 90
 
-        plans.each do |plan|
-          puts format_plan_row(plan)
+        catalog.each do |entry|
+          puts format_plan_row(entry)
         end
 
-        puts "\nTotal: #{plans.size} plan(s)"
+        puts "
+Total: #{catalog.size} catalog entries"
       end
     end
 
@@ -561,7 +562,7 @@ module Onetime
         puts 'Syncing from Stripe to Redis cache...'
         puts
 
-        count = Billing::Models::PlanCache.refresh_from_stripe
+        count = Billing::Models::CatalogCache.refresh_from_stripe
 
         puts "Successfully synced #{count} plan(s) to cache"
         puts "\nTo view cached plans:"
@@ -782,7 +783,7 @@ end
 
 # Register commands
 Onetime::CLI.register 'billing', Onetime::CLI::BillingCommand
-Onetime::CLI.register 'billing plans', Onetime::CLI::BillingPlansCommand
+Onetime::CLI.register 'billing catalog', Onetime::CLI::BillingCatalogCommand
 Onetime::CLI.register 'billing products', Onetime::CLI::BillingProductsCommand
 Onetime::CLI.register 'billing products create', Onetime::CLI::BillingProductsCreateCommand
 Onetime::CLI.register 'billing products update', Onetime::CLI::BillingProductsUpdateCommand
