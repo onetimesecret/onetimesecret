@@ -931,6 +931,193 @@ Subscriptions:
 
 ---
 
+### `bin/ots billing customers delete`
+
+Delete a Stripe customer with safety checks to prevent accidental data loss.
+
+**Arguments:**
+- `customer_id` - Customer ID (cus_xxx)
+
+**Options:**
+- `--force` - Skip confirmation and override active subscription check (default: false)
+
+**Examples:**
+```bash
+# Safe delete (blocks if active subscriptions exist)
+bin/ots billing customers delete cus_ABC123xyz
+
+Customer: cus_ABC123xyz
+Email: user@example.com
+
+⚠️  Delete customer permanently? (y/n): y
+
+Customer deleted successfully
+
+# Force delete (even with active subscriptions)
+bin/ots billing customers delete cus_ABC123xyz --force
+
+⚠️  Customer has active subscriptions!
+Cancel subscriptions first or use --force
+
+Customer deleted successfully
+```
+
+**Safety Features:**
+- Checks for active subscriptions before deletion
+- Requires explicit confirmation unless --force flag used
+- Cannot be undone - customer data permanently removed
+- Blocks deletion if active subscriptions found (unless --force)
+
+**Important Notes:**
+- Deletion is permanent and cannot be reversed
+- Customer data is removed from Stripe
+- Subscription history is lost
+- Use caution with production customers
+- Consider canceling subscriptions first instead of forcing deletion
+
+**Use Cases:**
+- Remove test customers after development
+- Clean up duplicate customer records
+- Handle GDPR deletion requests
+- Remove customers after full account closure
+
+---
+
+### `bin/ots billing subscriptions update`
+
+Update an existing subscription's price or quantity with optional proration.
+
+**Arguments:**
+- `subscription_id` - Subscription ID (sub_xxx)
+
+**Options:**
+- `--price STRING` - New price ID to switch to (price_xxx)
+- `--quantity INTEGER` - New quantity for subscription items
+- `--prorate` / `--no-prorate` - Enable/disable prorated charges (default: enabled)
+
+**Examples:**
+```bash
+# Update quantity with proration
+bin/ots billing subscriptions update sub_ABC123xyz --quantity 3
+
+Current subscription:
+  Subscription: sub_ABC123xyz
+  Current price: price_DEF456
+  Current quantity: 1
+  Amount: USD 9.00
+
+New configuration:
+  New price: price_DEF456
+  New quantity: 3
+  Prorate: true
+
+Proceed? (y/n): y
+
+Subscription updated successfully
+Status: active
+
+# Change to different price tier
+bin/ots billing subscriptions update sub_ABC123xyz --price price_GHI789
+
+Current subscription:
+  Subscription: sub_ABC123xyz
+  Current price: price_DEF456
+  Current quantity: 1
+  Amount: USD 9.00
+
+New configuration:
+  New price: price_GHI789
+  New quantity: 1
+  Prorate: true
+
+Proceed? (y/n): y
+
+Subscription updated successfully
+Status: active
+
+# Update without proration
+bin/ots billing subscriptions update sub_ABC123xyz --quantity 5 --no-prorate
+
+New configuration:
+  New price: price_DEF456
+  New quantity: 5
+  Prorate: false
+
+Proceed? (y/n): y
+
+Subscription updated successfully
+```
+
+**Behavior:**
+- **Proration (default)**: Customer charged/credited proportionally for usage changes
+- **No proration**: Changes take effect at next billing cycle without adjustments
+- Must specify either `--price` or `--quantity` (or both)
+- Shows current vs new configuration before proceeding
+- Requires confirmation before making changes
+
+**Common Use Cases:**
+- Upgrade/downgrade customer to different plan tier
+- Adjust quantity for seat-based pricing
+- Add/remove licenses mid-billing cycle
+- Change billing interval (via price change)
+
+**Proration Explained:**
+- Enabled: Customer billed immediately for upgrade, credited for downgrade
+- Disabled: Changes apply at next renewal without immediate charges
+- Use proration for immediate plan changes
+- Disable for changes effective at renewal
+
+---
+
+### `bin/ots billing payment-methods set-default`
+
+Set the default payment method for a customer's recurring invoices.
+
+**Arguments:**
+- `payment_method_id` - Payment method ID (pm_xxx)
+
+**Options:**
+- `--customer STRING` - Customer ID (cus_xxx) - **required**
+
+**Examples:**
+```bash
+# Set default payment method
+bin/ots billing payment-methods set-default pm_ABC123xyz --customer cus_DEF456
+
+Payment method: pm_ABC123xyz
+Customer: cus_DEF456
+
+Set as default? (y/n): y
+
+Default payment method updated successfully
+Default: pm_ABC123xyz
+```
+
+**Behavior:**
+- Validates that payment method belongs to customer
+- Updates customer's invoice settings with new default
+- All future invoices will use this payment method
+- Requires confirmation before making changes
+
+**Validation:**
+- Ensures payment method is attached to customer
+- Returns error if payment method belongs to different customer
+- Payment method must be active and valid
+
+**Use Cases:**
+- Customer adds new card and wants to use it by default
+- Switch between multiple saved payment methods
+- Update default after card expiration
+- Customer support: change payment method for failed payments
+
+**Important Notes:**
+- Only affects future invoices, not past charges
+- Previous payment methods remain attached to customer
+- Customer can still have multiple payment methods on file
+- Default is used automatically for subscription renewals
+
+---
+
 ## Advanced Workflows
 
 ### Monitor Payment Issues
@@ -1003,11 +1190,14 @@ bin/ots billing events --type payment_intent.payment_failed
 | `billing customers` | List customers | `--email`, `--limit` |
 | `billing customers create` | Create new customer | `--email`, `--name`, `--interactive` |
 | `billing customers show` | Show customer details | - |
+| `billing customers delete` | Delete customer | `--force` |
 | `billing subscriptions` | List subscriptions | `--status`, `--customer`, `--limit` |
 | `billing subscriptions cancel` | Cancel subscription | `--immediately`, `--force` |
 | `billing subscriptions pause` | Pause subscription billing | `--force` |
 | `billing subscriptions resume` | Resume paused subscription | `--force` |
+| `billing subscriptions update` | Update subscription price/quantity | `--price`, `--quantity`, `--prorate` |
 | `billing invoices` | List invoices | `--status`, `--customer`, `--subscription` |
+| `billing payment-methods set-default` | Set default payment method | `--customer` |
 | `billing events` | View recent events | `--type`, `--limit` |
 | `billing test create-customer` | Create test customer with card | `--with-card` |
 | `billing sync` | Sync Stripe to cache | - |
