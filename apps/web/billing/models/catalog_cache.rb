@@ -6,10 +6,11 @@ require 'stripe'
 
 module Billing
   module Models
-    # PlanCache - Stripe-as-Source-of-Truth Plan Data
+    # CatalogCache - Stripe Product + Price Catalog Cache
     #
-    # Caches Stripe plan/price information in Redis for fast lookups.
-    # Refreshes from Stripe API periodically or on demand.
+    # Caches Stripe product/price information in Redis for fast lookups.
+    # Combines Product metadata with Price data for application convenience.
+    # Refreshes from Stripe API via webhooks or on demand.
     #
     # ## Stripe Product Metadata Requirements
     #
@@ -25,36 +26,38 @@ module Billing
     #     "limit_members_per_team": "-1"
     #   }
     #
-    # ## Plan ID Format
+    # ## Catalog ID Format
     #
-    # Plan IDs combine tier, interval, and region:
+    # Catalog IDs combine tier, interval, and region:
     #   - single_team_monthly_us_east
     #   - multi_team_yearly_eu_west
     #
-    class PlanCache < Familia::Horreum
+    class CatalogCache < Familia::Horreum
       using Familia::Refinements::TimeLiterals
 
-      prefix :billing_plan
+      prefix :billing_catalog
 
       feature :safe_dump
       feature :expiration
 
-      default_expiration 1.hour # 1 hour cache
+      default_expiration 1.hour # Auto-expire after 1 hour
 
       identifier_field :plan_id   # Computed: tier_interval_region
 
-      # Plan fields
-      field :plan_id              # Computed: tier_interval_region (also the identifier)
+      # Catalog entry fields
+      field :plan_id              # Computed: tier_interval_region (identifier)
       field :stripe_price_id      # Stripe Price ID (price_xxx)
       field :stripe_product_id    # Stripe Product ID (prod_xxx)
+      field :stripe_updated_at    # Stripe's updated timestamp (for idempotency)
       field :name                 # Product name
       field :tier                 # e.g., 'single_team', 'multi_team'
       field :interval             # 'month' or 'year'
       field :amount               # Price in cents
       field :currency             # 'usd', 'eur', etc.
       field :region               # 'us-east', 'eu-west', etc.
+      field :deleted              # Boolean: soft-deleted in Stripe
 
-      # Plan metadata stored as JSON string
+      # Metadata stored as JSON strings
       field :capabilities         # JSON: Capability strings array
       field :features             # JSON: Feature list (marketing)
       field :limits               # JSON: Usage limits (teams, members_per_team, etc.)
@@ -63,6 +66,8 @@ module Billing
         @capabilities ||= '[]'
         @features     ||= '[]'
         @limits       ||= '{}'
+        @stripe_updated_at ||= '0'
+        @deleted ||= 'false'
         nil
       end
 
@@ -105,14 +110,14 @@ module Billing
           # Skip Stripe sync in CI/test environments without API key
           stripe_key = Onetime.billing_config.stripe_key
           if stripe_key.to_s.strip.empty?
-            OT.lw '[PlanCache.refresh_from_stripe] Skipping Stripe sync: No API key configured'
+            OT.lw '[CatalogCache.refresh_from_stripe] Skipping Stripe sync: No API key configured'
             return 0
           end
 
           # Configure Stripe SDK with API key
           Stripe.api_key = stripe_key
 
-          OT.li '[PlanCache.refresh_from_stripe] Starting Stripe sync'
+          OT.li '[CatalogCache.refresh_from_stripe] Starting Stripe sync'
 
           # Fetch all active products with onetimesecret metadata
           products = Stripe::Product.list({
@@ -184,7 +189,7 @@ module Billing
               )
               plan.save
 
-              OT.ld "[PlanCache] Cached plan: #{plan_id}", {
+              OT.ld "[CatalogCache] Cached plan: #{plan_id}", {
                 stripe_price_id: price.id,
                 amount: price.unit_amount,
                 currency: price.currency,
@@ -194,10 +199,10 @@ module Billing
             end
           end
 
-          OT.li "[PlanCache.refresh_from_stripe] Cached #{plan_count} plans"
+          OT.li "[CatalogCache.refresh_from_stripe] Cached #{plan_count} plans"
           plan_count
         rescue Stripe::StripeError => ex
-          OT.le '[PlanCache.refresh_from_stripe] Stripe error', {
+          OT.le '[CatalogCache.refresh_from_stripe] Stripe error', {
             exception: ex,
             message: ex.message,
           }
@@ -212,13 +217,13 @@ module Billing
         # @param tier [String] Plan tier (e.g., 'single_team')
         # @param interval [String] Billing interval ('monthly' or 'yearly')
         # @param region [String] Region code (e.g., 'us-east')
-        # @return [PlanCache, nil] Cached plan or nil if not found
+        # @return [CatalogCache, nil] Cached plan or nil if not found
         def get_plan(tier, interval, region = 'us-east')
           # Normalize interval to singular form (monthly -> month)
           interval = interval.to_s.sub(/ly$/, '')
 
           # Search through all cached plans for matching tier/interval/region
-          list_plans.find do |plan|
+          list_catalog.find do |plan|
             plan.tier == tier &&
               plan.interval == interval &&
               plan.region == region
@@ -227,8 +232,8 @@ module Billing
 
         # List all cached plans
         #
-        # @return [Array<PlanCache>] All cached plans
-        def list_plans
+        # @return [Array<CatalogCache>] All cached plans
+        def list_catalog
           load_multi(instances.to_a)
         end
 
