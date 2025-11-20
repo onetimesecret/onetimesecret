@@ -807,6 +807,130 @@ bin/ots billing test create-customer --no-with-card
 
 ---
 
+### `bin/ots billing subscriptions pause`
+
+Pause a subscription to stop billing while maintaining customer access.
+
+**Arguments:**
+- `subscription_id` - Subscription ID (sub_xxx)
+
+**Options:**
+- `--force` - Skip confirmation prompt (default: false)
+
+**Examples:**
+```bash
+# Pause subscription with confirmation
+bin/ots billing subscriptions pause sub_ABC123xyz
+
+Subscription: sub_ABC123xyz
+Customer: cus_DEF456abc
+Status: active
+
+Pause subscription? (y/n): y
+
+Subscription paused successfully
+Status: active
+Paused: Billing paused, access continues
+
+# Pause without confirmation
+bin/ots billing subscriptions pause sub_ABC123xyz --force
+```
+
+**Behavior:**
+- Customer retains access to service
+- Billing is paused - no invoices generated
+- Subscription remains in "active" status
+- Use for temporary holds, payment issues, or seasonal pauses
+- Resume with `billing subscriptions resume`
+
+---
+
+### `bin/ots billing subscriptions resume`
+
+Resume a paused subscription to restart billing.
+
+**Arguments:**
+- `subscription_id` - Subscription ID (sub_xxx)
+
+**Options:**
+- `--force` - Skip confirmation prompt (default: false)
+
+**Examples:**
+```bash
+# Resume subscription with confirmation
+bin/ots billing subscriptions resume sub_ABC123xyz
+
+Subscription: sub_ABC123xyz
+Customer: cus_DEF456abc
+Status: active
+Currently paused: Yes
+
+Resume subscription? (y/n): y
+
+Subscription resumed successfully
+Status: active
+Billing will resume on next period
+
+# Resume without confirmation
+bin/ots billing subscriptions resume sub_ABC123xyz --force
+```
+
+**Behavior:**
+- Clears pause status from subscription
+- Billing resumes at next billing cycle
+- No prorated charges for paused period
+- Customer access continues uninterrupted
+
+---
+
+### `bin/ots billing customers show`
+
+Show comprehensive customer details including payment methods and subscriptions.
+
+**Arguments:**
+- `customer_id` - Customer ID (cus_xxx)
+
+**Examples:**
+```bash
+bin/ots billing customers show cus_ABC123xyz
+
+Customer Details:
+  ID: cus_ABC123xyz
+  Email: user@example.com
+  Name: John Doe
+  Created: 2024-11-19 14:00:00 UTC
+  Currency: usd
+  Balance: USD 0.00
+
+Payment Methods:
+  pm_1ABC123xyz - card (default)
+    Card: Visa ****4242 (12/2027)
+  pm_2DEF456abc - card
+    Card: Mastercard ****5555 (6/2026)
+
+Subscriptions:
+  sub_GHI789def - active
+    Period: 2024-11-19 00:00:00 UTC to 2024-12-19 00:00:00 UTC
+  sub_JKL012ghi - active (paused)
+    Period: 2024-11-15 00:00:00 UTC to 2024-12-15 00:00:00 UTC
+```
+
+**Information Displayed:**
+- Customer metadata (ID, email, name, creation date)
+- Account balance and currency
+- All payment methods with default indicator
+- Card/bank details (brand, last 4 digits, expiry)
+- Active subscriptions with pause status
+- Subscription billing periods
+
+**Use Cases:**
+- Customer support inquiries
+- Verify payment method before subscription changes
+- Troubleshoot billing issues
+- Audit customer account status
+
+---
+
 ## Advanced Workflows
 
 ### Monitor Payment Issues
@@ -878,8 +1002,11 @@ bin/ots billing events --type payment_intent.payment_failed
 | `billing prices create` | Create price | `--amount`, `--interval`, `--currency` |
 | `billing customers` | List customers | `--email`, `--limit` |
 | `billing customers create` | Create new customer | `--email`, `--name`, `--interactive` |
+| `billing customers show` | Show customer details | - |
 | `billing subscriptions` | List subscriptions | `--status`, `--customer`, `--limit` |
 | `billing subscriptions cancel` | Cancel subscription | `--immediately`, `--force` |
+| `billing subscriptions pause` | Pause subscription billing | `--force` |
+| `billing subscriptions resume` | Resume paused subscription | `--force` |
 | `billing invoices` | List invoices | `--status`, `--customer`, `--subscription` |
 | `billing events` | View recent events | `--type`, `--limit` |
 | `billing test create-customer` | Create test customer with card | `--with-card` |
