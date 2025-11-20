@@ -104,10 +104,13 @@ access_control:
   # - '203.0.113.5/32'           # Single IP address
   # - 'fc00::/7'                 # IPv6 ULA
   #
+  # Set via ALLOWED_CIDRS environment variable (comma-separated)
+  # Example: ALLOWED_CIDRS="10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+  #
   allowed_cidrs:
-    - <%= ENV['ALLOWED_CIDR_1'] || '10.0.0.0/8' %>
-    - <%= ENV['ALLOWED_CIDR_2'] || '172.16.0.0/12' %>
-    - <%= ENV['ALLOWED_CIDR_3'] || '192.168.0.0/16' %>
+<% (ENV['ALLOWED_CIDRS'] || '10.0.0.0/8,172.16.0.0/12,192.168.0.0/16').split(',').map(&:strip).each do |cidr| %>
+    - <%= cidr %>
+<% end %>
 
   # Mode Signal Configuration
   #
@@ -146,16 +149,19 @@ access_control:
 # # Enable access control
 # export ACCESS_CONTROL_ENABLED=true
 #
-# # Trigger configuration
-# export ACCESS_CONTROL_TRIGGER_HEADER="X-Access-Control-Trigger"
+# # Trigger configuration (REQUIRED when enabled)
+# export ACCESS_CONTROL_TRIGGER_HEADER="O-Access-Control-Trigger"
 # export ACCESS_CONTROL_TRIGGER_SECRET="$(openssl rand -base64 32)"
 #
-# # IP allowlist (up to 10 CIDRs supported via indexed env vars)
-# export ALLOWED_CIDR_1="10.0.0.0/8"
-# export ALLOWED_CIDR_2="172.16.0.0/12"
-# export ALLOWED_CIDR_3="192.168.1.0/24"
+# # IP allowlist (comma-separated CIDRs, no limit)
+# # Single CIDR:
+# export ALLOWED_CIDRS="10.0.0.0/8"
+# # Multiple CIDRs:
+# export ALLOWED_CIDRS="10.0.0.0/8,172.16.0.0/12,192.168.1.0/24"
+# # With IPv6 and specific IPs:
+# export ALLOWED_CIDRS="10.0.0.0/8,172.16.0.0/12,203.0.113.5/32,fc00::/7"
 #
 # # Mode signal customization (optional)
-# export ACCESS_CONTROL_MODE_HEADER="X-Access-Mode"
+# export ACCESS_CONTROL_MODE_HEADER="O-Access-Mode"
 # export ACCESS_MODE_ALLOW="normal"
 # export ACCESS_MODE_DENY="restricted"

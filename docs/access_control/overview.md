@@ -70,11 +70,15 @@ export ACCESS_CONTROL_ENABLED=true
 # Trigger configuration
 export ACCESS_CONTROL_TRIGGER_SECRET="$(openssl rand -base64 32)"
 
-# IP allowlist (supports up to 10 CIDRs via indexed env vars)
-export ALLOWED_CIDR_1="10.0.0.0/8"
-export ALLOWED_CIDR_2="172.16.0.0/12"
-export ALLOWED_CIDR_3="192.168.1.0/24"
-export ALLOWED_CIDR_4="203.0.113.5/32"  # Single IP
+# IP allowlist (comma-separated CIDRs, no limit)
+# Single CIDR:
+export ALLOWED_CIDRS="10.0.0.0/8"
+
+# Multiple CIDRs:
+export ALLOWED_CIDRS="10.0.0.0/8,172.16.0.0/12,192.168.1.0/24"
+
+# With IPv6 and specific IPs:
+export ALLOWED_CIDRS="10.0.0.0/8,172.16.0.0/12,203.0.113.5/32,fc00::/7"
 
 # Custom mode values (optional)
 export ACCESS_MODE_ALLOW="normal"
@@ -386,10 +390,9 @@ example.com {
 ```
 
 2. Configure allowlist:
-```yaml
-allowed_cidrs:
-  - '192.168.0.0/16'  # Office network
-  - '10.0.0.0/8'      # VPN network
+```bash
+# Via environment variable
+export ALLOWED_CIDRS="192.168.0.0/16,10.0.0.0/8"
 ```
 
 3. Implement handler:
@@ -454,10 +457,16 @@ Note: Use different trigger secrets for different access policies, or implement 
 
 To add/remove IP ranges:
 
-1. Edit `etc/access_control.yaml`
+1. Update `ALLOWED_CIDRS` environment variable with comma-separated CIDRs
 2. Restart application (or reload config if hot-reload supported)
 3. Test with IPs in new CIDR range
 4. Monitor access logs for expected behavior
+
+Example:
+```bash
+# Add new office subnet
+export ALLOWED_CIDRS="10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,198.51.100.0/24"
+```
 
 ## Related Documentation
 
