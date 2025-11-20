@@ -22,12 +22,12 @@ module Onetime
 
         if refresh
           puts 'Refreshing catalog from Stripe...'
-          count = Billing::Models::CatalogCache.refresh_from_stripe
+          count = Billing::Models::Plan.refresh_from_stripe
           puts "Refreshed #{count} catalog entries"
           puts
         end
 
-        catalog = Billing::Models::CatalogCache.list_catalogs
+        catalog = Billing::Models::Plan.list_plans
         if catalog.empty?
           puts 'No catalog entries found. Run with --refresh to sync from Stripe.'
           return

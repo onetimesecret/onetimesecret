@@ -53,7 +53,7 @@ module Onetime
           def capabilities
             return [] if planid.to_s.empty?
 
-            plan = ::Billing::Models::CatalogCache.load(planid)
+            plan = ::Billing::Models::Plan.load(planid)
             return [] unless plan  # Fail safely
 
             plan.parsed_capabilities
@@ -77,7 +77,7 @@ module Onetime
           def limit_for(resource)
             return 0 if planid.to_s.empty?
 
-            plan = ::Billing::Models::CatalogCache.load(planid)
+            plan = ::Billing::Models::Plan.load(planid)
             return 0 unless plan
 
             limits = plan.parsed_limits
