@@ -1,13 +1,13 @@
-# lib/onetime/billing/plan_definitions.rb
+# lib/onetime/billing/catalog_definitions.rb
 #
 # frozen_string_literal: true
 #
-# Plan Utility Methods
+# Billing Catalog Utility Methods
 #
-# NOTE: Plan definitions are now stored in Stripe and cached via PlanCache.
-# See docs/billing/plan-definitions.md for reference documentation.
+# NOTE: Catalog definitions are now stored in Stripe and cached via CatalogCache.
+# See docs/billing/catalog-definitions.md for reference documentation.
 #
-# These utility methods provide helpers for plan names and upgrade paths
+# These utility methods provide helpers for catalog names and upgrade paths
 # based on plan_id naming conventions.
 
 module Onetime
@@ -51,7 +51,7 @@ module Onetime
     #   # => "identity_v1_monthly"
     def self.upgrade_path_for(capability, _current_plan = nil)
       # Query all cached plans for those with the capability
-      plans_with_capability = ::Billing::Models::CatalogCache.list_plans.select do |plan|
+      plans_with_capability = ::Billing::Models::CatalogCache.list_catalog.select do |plan|
         plan.parsed_capabilities.include?(capability.to_s)
       end
 
@@ -70,7 +70,7 @@ module Onetime
     # Get human-readable plan name
     #
     # Converts plan_id to display name based on naming conventions.
-    # Falls back to PlanCache name if available.
+    # Falls back to CatalogCache name if available.
     #
     # @param plan_id [String] Plan identifier
     # @return [String] Formatted plan name
@@ -121,7 +121,7 @@ module Onetime
     #
     # @return [Array<String>] List of current plan IDs
     def self.available_plans
-      ::Billing::Models::CatalogCache.list_plans
+      ::Billing::Models::CatalogCache.list_catalog
         .reject { |plan| legacy_plan?(plan.plan_id) }
         .map(&:plan_id)
     end
