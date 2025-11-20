@@ -86,7 +86,7 @@ access_control:
 
   # IP Allowlist
   #
-  # CIDR blocks that should receive unrestricted access. Requests from
+  # CIDR blocks that should receive unprotected access. Requests from
   # these IPs will have mode header set to 'allow' value.
   #
   # Common private IP ranges (RFC 1918):
@@ -124,7 +124,7 @@ access_control:
     # Application code example:
     # ```ruby
     # if req.env['HTTP_X_ACCESS_MODE'] == 'protected'
-    #   # Show restricted content
+    #   # Show protected content
     # else
     #   # Show normal content
     # end
@@ -164,4 +164,4 @@ access_control:
 # # Mode signal customization (optional)
 # export ACCESS_CONTROL_MODE_HEADER="O-Access-Mode"
 # export ACCESS_MODE_ALLOW="normal"
-# export ACCESS_MODE_DENY="restricted"
+# export ACCESS_MODE_DENY="protected"

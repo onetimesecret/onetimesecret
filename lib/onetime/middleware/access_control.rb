@@ -35,7 +35,7 @@ module Onetime
     #   mode:
     #     header: 'O-Access-Mode'
     #     allow: 'normal'
-    #     deny: 'restricted'
+    #     deny: 'protected'
     # ```
     #
     # ## Usage
@@ -50,7 +50,7 @@ module Onetime
     #
     # ```ruby
     # def index(req, res)
-    #   if req.env['HTTP_O_ACCESS_MODE'] == 'restricted'
+    #   if req.env['HTTP_O_ACCESS_MODE'] == 'protected'
     #     # Show "Internal Use Only" page
     #   else
     #     # Show normal homepage
@@ -150,7 +150,7 @@ module Onetime
           mode: {
             header: config.dig(:mode, :header) || 'O-Access-Mode',
             allow: config.dig(:mode, :allow) || 'normal',
-            deny: config.dig(:mode, :deny) || 'restricted',
+            deny: config.dig(:mode, :deny) || 'protected',
           },
         }
       end
