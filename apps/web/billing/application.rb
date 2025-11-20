@@ -35,6 +35,11 @@ module Billing
 
     @uri_prefix = '/billing'.freeze
 
+    # Billing app should only load when enabled in configuration
+    def self.should_skip_loading?
+      !Onetime.billing_config.enabled?
+    end
+
     # CSRF Response Header
     # Note: CSRF validation is handled by common Security middleware with
     # allow_if to skip webhook endpoints. This just adds the response header.

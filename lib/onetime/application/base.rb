@@ -191,6 +191,13 @@ module Onetime
 
         attr_reader :uri_prefix, :middleware
 
+        # Determine if this application should skip loading
+        # Override in subclasses to implement conditional loading logic
+        # @return [Boolean] true if application should not be loaded
+        def should_skip_loading?
+          false
+        end
+
         # Tracks subclasses for deferred registration
         # @param subclass [Class] The class inheriting from Onetime::Application::Base
         # @return [void]
