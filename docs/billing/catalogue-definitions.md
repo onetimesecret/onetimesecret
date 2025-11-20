@@ -2,7 +2,7 @@
 
 This document describes the plan structure and capabilities for Onetime Secret billing.
 
-**Note:** Catalogue definitions are now stored in Stripe product metadata and cached in Redis via `Billing::Models::CatalogueCache`. This document serves as reference for understanding plan structure and configuring Stripe products.
+**Note:** Catalogue definitions are now stored in Stripe product metadata and cached in Redis via `Billing::Plan`. This document serves as reference for understanding plan structure and configuring Stripe products.
 
 ## Catalogue Structure
 

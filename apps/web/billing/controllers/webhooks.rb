@@ -57,7 +57,7 @@ module Billing
         end
 
         # Check for duplicate webhook event
-        if Billing::Models::ProcessedWebhookEvent.processed?(event.id)
+        if Billing::ProcessedWebhookEvent.processed?(event.id)
           billing_logger.info 'Webhook event already processed (duplicate)', {
             event_type: event.type,
             event_id: event.id,
@@ -88,7 +88,7 @@ module Billing
         end
 
         # Mark event as processed to prevent duplicates
-        Billing::Models::ProcessedWebhookEvent.mark_processed!(event.id, event.type)
+        Billing::ProcessedWebhookEvent.mark_processed!(event.id, event.type)
 
         res.status = 200
         json_success('Event processed')
@@ -226,7 +226,7 @@ module Billing
         }
 
         begin
-          Billing::Models::CatalogCache.refresh_from_stripe
+          Billing::Plan.refresh_from_stripe
           billing_logger.info 'Plan cache refreshed successfully'
         rescue StandardError => ex
           billing_logger.error 'Failed to refresh plan cache', {

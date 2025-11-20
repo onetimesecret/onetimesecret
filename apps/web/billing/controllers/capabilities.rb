@@ -153,7 +153,7 @@ module Billing
       # @param org [Onetime::Organization] Organization instance
       # @return [Hash] Limits with nil for infinity
       def build_limits_hash(org)
-        plan = ::Billing::Models::CatalogCache.load(org.planid)
+        plan = ::Billing::Plan.load(org.planid)
         return {} unless plan
 
         limits = plan.parsed_limits
@@ -180,10 +180,10 @@ module Billing
       def build_plans_summary
         summary = {}
 
-        ::Billing::Models::CatalogCache.list_catalogs.each do |plan|
+        ::Billing::Plan.list_plans.each do |plan|
           next unless plan
 
-          summary[plan.catalog_id] = {
+          summary[plan.plan_id] = {
             name: plan.name,
             capabilities: plan.parsed_capabilities,
             limits: plan.parsed_limits.transform_values { |v| v == Float::INFINITY ? nil : v },

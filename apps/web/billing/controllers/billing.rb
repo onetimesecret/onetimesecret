@@ -66,10 +66,10 @@ module Billing
         # Detect region
         region = detect_region
 
-        # Get catalog from cache
-        catalog = ::Billing::Models::CatalogCache.get_catalog(tier, billing_cycle, region)
+        # Get plan from cache
+        plan = ::Billing::Plan.get_plan(tier, billing_cycle, region)
 
-        unless catalog
+        unless plan
           billing_logger.warn 'Plan not found', {
             tier: tier,
             billing_cycle: billing_cycle,
@@ -100,7 +100,7 @@ module Billing
           subscription_data: {
             metadata: {
               orgid: org.objid,
-              catalog_id: plan.catalog_id,
+              plan_id: plan.plan_id,
               tier: tier,
               region: region,
               custid: cust.custid,
@@ -198,12 +198,12 @@ module Billing
       #
       # @return [Hash] List of plans
       def list_plans
-        plans = ::Billing::Models::CatalogCache.list_catalogs
+        plans = ::Billing::Plan.list_plans
 
         # Filter out nil plans (stale cache entries)
         plan_data = plans.compact.map do |plan|
           {
-            id: plan.catalog_id,
+            id: plan.plan_id,
             name: plan.name,
             tier: plan.tier,
             interval: plan.interval,
@@ -250,7 +250,7 @@ module Billing
       def build_plan_data(org)
         return nil unless org.planid
 
-        plan = ::Billing::Models::CatalogCache.load(org.planid)
+        plan = ::Billing::Plan.load(org.planid)
         return nil unless plan
 
         {

@@ -43,9 +43,9 @@ Create products in [Stripe Dashboard → Products](https://dashboard.stripe.com/
 }
 ```
 
-**Available plan_id values:** See `lib/onetime/billing/catalog_definitions.rb`
+**Available plan_id values:** See `lib/onetime/billing/plan_definitions.rb`
 
-**Capabilities list:** See `CAPABILITIES` constant in same file
+**Capabilities list:** See `CAPABILITY_CATEGORIES` constant in same file
 
 **Limits:** Use `-1` for unlimited, `0` for none, positive integers for specific limits
 
@@ -97,4 +97,4 @@ For multi-region deployments, create separate products per region with `region` 
 }
 ```
 
-PlanCache will automatically organize by tier/interval/region.
+The Plan model will automatically organize by tier/interval/region.

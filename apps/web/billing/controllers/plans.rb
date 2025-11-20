@@ -35,10 +35,10 @@ module Billing
           region: region,
         }
 
-        # Get catalog from cache
-        catalog = Billing::Models::CatalogCache.get_catalog(tier, billing_cycle, region)
+        # Get plan from cache
+        plan = Billing::Plan.get_plan(tier, billing_cycle, region)
 
-        unless catalog
+        unless plan
           billing_logger.warn 'Plan not found in cache', {
             tier: tier,
             billing_cycle: billing_cycle,
@@ -76,7 +76,7 @@ module Billing
         # Add metadata for webhook processing
         session_params[:subscription_data] = {
           metadata: {
-            catalog_id: plan.catalog_id,
+            plan_id: plan.plan_id,
             tier: tier,
             region: region,
             custid: cust.custid,

@@ -20,7 +20,7 @@ The `bin/ots billing` command suite provides tools for managing Stripe products,
 
 ```bash
 bin/ots billing                 # Show help
-bin/ots billing catalog           # List cached plans
+bin/ots billing plans           # List cached plans
 bin/ots billing products        # List Stripe products
 bin/ots billing prices          # List Stripe prices
 bin/ots billing sync            # Sync from Stripe to cache
@@ -29,7 +29,7 @@ bin/ots billing validate        # Validate product metadata
 
 ## Command Reference
 
-### `bin/ots billing catalog`
+### `bin/ots billing plans`
 
 List plans cached in Redis from previous Stripe sync.
 
@@ -39,10 +39,10 @@ List plans cached in Redis from previous Stripe sync.
 **Examples:**
 ```bash
 # List cached plans
-bin/ots billing catalog
+bin/ots billing plans
 
 # Refresh and list
-bin/ots billing catalog --refresh
+bin/ots billing plans --refresh
 ```
 
 **Output:**
@@ -322,14 +322,14 @@ Syncing from Stripe to Redis cache...
 Successfully synced 5 plan(s) to cache
 
 To view cached plans:
-  bin/ots billing catalog
+  bin/ots billing plans
 ```
 
 **What it does:**
 1. Fetches all active products from Stripe
 2. For each product, fetches associated prices
 3. Combines product metadata + price data
-4. Caches in Redis via `Billing::Models::PlanCache`
+4. Caches in Redis via `Billing::Plan`
 
 ---
 
@@ -392,7 +392,7 @@ bin/ots billing sync
 
 # 5. Verify
 bin/ots billing validate
-bin/ots billing catalog
+bin/ots billing plans
 ```
 
 ### Updating Existing Product
@@ -419,7 +419,7 @@ bin/ots billing products
 bin/ots billing prices
 
 # Check what's cached
-bin/ots billing catalog
+bin/ots billing plans
 
 # Validate metadata
 bin/ots billing validate
@@ -510,7 +510,7 @@ The billing CLI manages Stripe data that the application consumes:
 ```
 Stripe (products + prices)
   → bin/ots billing sync
-  → Redis (PlanCache)
+  → Redis (Plan model)
   → Application reads from cache
 ```
 
@@ -526,7 +526,7 @@ Stripe (products + prices)
 
 - Stripe Products API: https://docs.stripe.com/api/products
 - Stripe Prices API: https://docs.stripe.com/api/prices
-- `apps/web/billing/models/catalog_cache.rb` - Cache implementation
+- `apps/web/billing/models/plan.rb` - Plan cache implementation
 - `lib/onetime/billing_config.rb` - Billing configuration loader
 
 ---
@@ -1687,7 +1687,7 @@ bin/ots billing payment-links create \
 
 | Command | Description | Key Options |
 |---------|-------------|-------------|
-| `billing catalog` | List cached plans | `--refresh` |
+| `billing plans` | List cached plans | `--refresh` |
 | `billing products` | List Stripe products | `--active-only` |
 | `billing products create` | Create product | `--interactive`, `--plan-id`, `--tier` |
 | `billing products show` | Show product details | - |
