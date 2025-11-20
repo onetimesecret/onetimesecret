@@ -489,3 +489,276 @@ Stripe (products + prices)
 - Stripe Prices API: https://docs.stripe.com/api/prices
 - `apps/web/billing/models/plan_cache.rb` - Cache implementation
 - `lib/onetime/billing_config.rb` - Billing configuration loader
+
+---
+
+## New Commands (Customers, Subscriptions, Invoices, Events)
+
+### `bin/ots billing customers`
+
+List all Stripe customers with optional filtering.
+
+**Options:**
+- `--email STRING` - Filter by exact email address
+- `--limit INTEGER` - Maximum results to return (default: 100)
+
+**Examples:**
+```bash
+# List all customers
+bin/ots billing customers
+
+# Find customer by email
+bin/ots billing customers --email user@example.com
+
+# List first 10 customers
+bin/ots billing customers --limit 10
+```
+
+**Output:**
+```
+ID                     EMAIL                          NAME                      CREATED
+------------------------------------------------------------------------------------------
+cus_ABC123xyz          user@example.com               John Doe                  2024-08-26
+cus_DEF456abc          jane@example.com               Jane Smith                2024-08-25
+
+Total: 2 customer(s)
+```
+
+---
+
+### `bin/ots billing subscriptions`
+
+List Stripe subscriptions with comprehensive filtering.
+
+**Options:**
+- `--status STRING` - Filter by status (active, past_due, canceled, incomplete, trialing, unpaid)
+- `--customer STRING` - Filter by customer ID
+- `--limit INTEGER` - Maximum results to return (default: 100)
+
+**Examples:**
+```bash
+# List all subscriptions
+bin/ots billing subscriptions
+
+# List only active subscriptions
+bin/ots billing subscriptions --status active
+
+# List subscriptions for a specific customer
+bin/ots billing subscriptions --customer cus_ABC123xyz
+
+# Find past due subscriptions
+bin/ots billing subscriptions --status past_due
+```
+
+**Output:**
+```
+ID                     CUSTOMER               STATUS       PERIOD END
+----------------------------------------------------------------------
+sub_ABC123xyz          cus_DEF456abc          active       2025-12-19
+sub_GHI789def          cus_JKL012ghi          past_due     2025-11-15
+
+Total: 2 subscription(s)
+
+Statuses: active, past_due, canceled, incomplete, trialing, unpaid
+```
+
+**Status Meanings:**
+- `active` - Subscription is current and active
+- `past_due` - Payment failed, awaiting retry
+- `canceled` - Subscription has been canceled
+- `incomplete` - Initial payment not yet succeeded
+- `trialing` - In trial period
+- `unpaid` - Payment failed after retry attempts
+
+---
+
+### `bin/ots billing invoices`
+
+List Stripe invoices with multiple filter options.
+
+**Options:**
+- `--status STRING` - Filter by status (draft, open, paid, uncollectible, void)
+- `--customer STRING` - Filter by customer ID
+- `--subscription STRING` - Filter by subscription ID
+- `--limit INTEGER` - Maximum results to return (default: 100)
+
+**Examples:**
+```bash
+# List all invoices
+bin/ots billing invoices
+
+# List unpaid invoices
+bin/ots billing invoices --status open
+
+# List invoices for a customer
+bin/ots billing invoices --customer cus_ABC123xyz
+
+# List invoices for a subscription
+bin/ots billing invoices --subscription sub_ABC123xyz
+
+# List paid invoices
+bin/ots billing invoices --status paid
+```
+
+**Output:**
+```
+ID                     CUSTOMER               AMOUNT       STATUS     CREATED
+--------------------------------------------------------------------------------
+in_ABC123xyz           cus_DEF456abc          USD 9.00     paid       2024-11-19
+in_GHI789def           cus_JKL012ghi          USD 29.00    open       2024-11-18
+
+Total: 2 invoice(s)
+
+Statuses: draft, open, paid, uncollectible, void
+```
+
+**Status Meanings:**
+- `draft` - Invoice created but not finalized
+- `open` - Invoice sent to customer, awaiting payment
+- `paid` - Invoice has been paid
+- `uncollectible` - Invoice marked as uncollectible after failed collection
+- `void` - Invoice voided/canceled
+
+---
+
+### `bin/ots billing events`
+
+View recent Stripe events for debugging and monitoring.
+
+**Options:**
+- `--type STRING` - Filter by event type (e.g., customer.created, invoice.paid)
+- `--limit INTEGER` - Maximum results to return (default: 20)
+
+**Examples:**
+```bash
+# List recent events
+bin/ots billing events
+
+# Show last 50 events
+bin/ots billing events --limit 50
+
+# Filter by event type
+bin/ots billing events --type customer.created
+
+# Track invoice payments
+bin/ots billing events --type invoice.paid
+
+# Monitor subscription changes
+bin/ots billing events --type subscription.updated
+```
+
+**Output:**
+```
+ID                     TYPE                                CREATED
+----------------------------------------------------------------------
+evt_ABC123xyz          customer.created                    2024-11-19 14:22:31
+evt_DEF456abc          invoice.paid                        2024-11-19 14:20:15
+evt_GHI789def          subscription.created                2024-11-19 14:19:45
+
+Total: 3 event(s)
+
+Common types: customer.created, customer.updated, invoice.paid,
+              subscription.created, subscription.updated, payment_intent.succeeded
+```
+
+**Common Event Types:**
+- `customer.created` - New customer created
+- `customer.updated` - Customer details changed
+- `customer.deleted` - Customer deleted
+- `invoice.created` - New invoice generated
+- `invoice.paid` - Invoice payment succeeded
+- `invoice.payment_failed` - Invoice payment failed
+- `subscription.created` - New subscription started
+- `subscription.updated` - Subscription details changed
+- `subscription.deleted` - Subscription canceled/ended
+- `payment_intent.succeeded` - Payment processed successfully
+- `payment_intent.payment_failed` - Payment processing failed
+
+---
+
+## Advanced Workflows
+
+### Monitor Payment Issues
+
+```bash
+# Find past due subscriptions
+bin/ots billing subscriptions --status past_due
+
+# Check unpaid invoices
+bin/ots billing invoices --status open
+
+# Review recent payment failures
+bin/ots billing events --type invoice.payment_failed --limit 10
+```
+
+### Customer Support
+
+```bash
+# Look up customer
+bin/ots billing customers --email user@example.com
+
+# Check their subscription status
+bin/ots billing subscriptions --customer cus_ABC123xyz
+
+# Review their invoices
+bin/ots billing invoices --customer cus_ABC123xyz
+
+# Check recent activity
+bin/ots billing events --limit 20 | grep cus_ABC123xyz
+```
+
+### Reconciliation
+
+```bash
+# List all paid invoices
+bin/ots billing invoices --status paid --limit 500
+
+# Check active subscriptions count
+bin/ots billing subscriptions --status active
+
+# Review recent billing events
+bin/ots billing events --limit 100
+```
+
+### Debugging
+
+```bash
+# Monitor webhook events
+bin/ots billing events --limit 50
+
+# Check subscription lifecycle events
+bin/ots billing events --type subscription.updated --limit 20
+
+# Track failed payments
+bin/ots billing events --type payment_intent.payment_failed
+```
+
+---
+
+## Quick Reference
+
+| Command | Description | Key Options |
+|---------|-------------|-------------|
+| `billing plans` | List cached plans | `--refresh` |
+| `billing products` | List Stripe products | `--active-only` |
+| `billing products create` | Create product | `--interactive`, `--plan-id`, `--tier` |
+| `billing products update` | Update product metadata | `--interactive`, metadata fields |
+| `billing prices` | List Stripe prices | `--product`, `--active-only` |
+| `billing prices create` | Create price | `--amount`, `--interval`, `--currency` |
+| `billing customers` | List customers | `--email`, `--limit` |
+| `billing subscriptions` | List subscriptions | `--status`, `--customer`, `--limit` |
+| `billing invoices` | List invoices | `--status`, `--customer`, `--subscription` |
+| `billing events` | View recent events | `--type`, `--limit` |
+| `billing sync` | Sync Stripe to cache | - |
+| `billing validate` | Validate metadata | - |
+
+---
+
+## API Rate Limits
+
+Stripe has API rate limits. The CLI uses reasonable defaults:
+- Most list commands: 100 results (can adjust with `--limit`)
+- Events: 20 results by default (less noisy)
+- All commands paginate properly
+
+If you hit rate limits, add delays between commands or reduce `--limit`.
