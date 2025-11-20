@@ -1,0 +1,161 @@
+# etc/access_control.yaml
+#
+# IP-Based Access Control Configuration
+#
+# This middleware signals access mode based on client IP matching against
+# an allowlist. It NEVER blocks requests - instead, it sets a downstream
+# header that application logic can consume to enforce policy.
+#
+# ## How It Works
+#
+# 1. Reverse proxy/load balancer sets trigger header with shared secret
+# 2. Middleware activates only when trigger header + secret match
+# 3. Client IP extracted from X-Forwarded-For (or REMOTE_ADDR)
+# 4. IP matched against allowed_cidrs
+# 5. Mode header set: 'normal' (allowed) or 'protected' (denied)
+# 6. Application code checks mode header to enforce policy
+#
+# ## Example Infrastructure Setup
+#
+# Caddy reverse proxy configuration:
+#
+# ```
+# example.com {
+#     @homepage path /
+#     handle @homepage {
+#         header_up X-Access-Control-Trigger "your-shared-secret"
+#         reverse_proxy localhost:3000
+#     }
+#     reverse_proxy localhost:3000
+# }
+# ```
+#
+# Nginx configuration:
+#
+# ```
+# location / {
+#     proxy_set_header X-Access-Control-Trigger "your-shared-secret";
+#     proxy_pass http://localhost:3000;
+# }
+# ```
+#
+# ## Security Notes
+#
+# - Trigger secret MUST be shared only with trusted infrastructure
+# - Do NOT set trigger header in application code
+# - Do NOT expose trigger secret in logs or error messages
+# - Client cannot bypass by setting trigger header (secret required)
+# - Consider rotating trigger secret periodically
+#
+---
+access_control:
+  # Master toggle for IP-based access control
+  #
+  # When false, middleware is completely inactive (no header evaluation,
+  # no mode header set, requests pass through untouched)
+  #
+  enabled: <%= ENV['ACCESS_CONTROL_ENABLED'] == 'true' %>
+
+  # Trigger Configuration
+  #
+  # Upstream infrastructure (reverse proxy, load balancer) signals when
+  # to activate IP checking by sending a specific header with a shared secret.
+  #
+  # This prevents:
+  # - Client spoofing (they don't know the secret)
+  # - Unnecessary IP checks on routes that don't need access control
+  # - Performance overhead when access control isn't needed
+  #
+  trigger:
+    # Header name that reverse proxy will set
+    # Standard practice: Use 'X-' prefix for custom headers
+    #
+    header: <%= ENV['ACCESS_CONTROL_TRIGGER_HEADER'] || 'X-Access-Control-Trigger' %>
+
+    # Shared secret between infrastructure and application
+    #
+    # SECURITY CRITICAL:
+    # - Must be strong, random value (32+ characters recommended)
+    # - Must match exactly between proxy config and this setting
+    # - Should be rotated periodically
+    # - Keep out of version control (use environment variable)
+    #
+    # Generate with: openssl rand -base64 32
+    #
+    secret: <%= ENV['ACCESS_CONTROL_TRIGGER_SECRET'] %>
+
+  # IP Allowlist
+  #
+  # CIDR blocks that should receive unrestricted access. Requests from
+  # these IPs will have mode header set to 'allow' value.
+  #
+  # Common private IP ranges (RFC 1918):
+  # - 10.0.0.0/8        (10.0.0.0 - 10.255.255.255)
+  # - 172.16.0.0/12     (172.16.0.0 - 172.31.255.255)
+  # - 192.168.0.0/16    (192.168.0.0 - 192.168.255.255)
+  #
+  # IPv6 private ranges:
+  # - fc00::/7          (Unique Local Addresses)
+  # - fe80::/10         (Link-Local Addresses)
+  #
+  # Examples:
+  # - '10.0.0.0/8'               # Entire 10.x network
+  # - '192.168.1.0/24'           # Single subnet
+  # - '203.0.113.5/32'           # Single IP address
+  # - 'fc00::/7'                 # IPv6 ULA
+  #
+  allowed_cidrs:
+    - <%= ENV['ALLOWED_CIDR_1'] || '10.0.0.0/8' %>
+    - <%= ENV['ALLOWED_CIDR_2'] || '172.16.0.0/12' %>
+    - <%= ENV['ALLOWED_CIDR_3'] || '192.168.0.0/16' %>
+
+  # Mode Signal Configuration
+  #
+  # Header and values that middleware sets for downstream application
+  # consumption. Application code reads this header to determine what
+  # access policy to enforce.
+  #
+  mode:
+    # Header name set by middleware for application to read
+    #
+    # Application code example:
+    # ```ruby
+    # if req.env['HTTP_X_ACCESS_MODE'] == 'protected'
+    #   # Show restricted content
+    # else
+    #   # Show normal content
+    # end
+    # ```
+    #
+    header: <%= ENV['ACCESS_CONTROL_MODE_HEADER'] || 'X-Access-Mode' %>
+
+    # Value set when client IP is in allowed_cidrs
+    # Indicates IP-based access control is satisfied
+    #
+    allow: <%= ENV['ACCESS_MODE_ALLOW'] || 'normal' %>
+
+    # Value set when client IP is NOT in allowed_cidrs
+    # Indicates IP-based access control failed
+    #
+    deny: <%= ENV['ACCESS_MODE_DENY'] || 'protected' %>
+
+# Environment Variable Reference
+#
+# Set these in your environment or .env file:
+#
+# # Enable access control
+# export ACCESS_CONTROL_ENABLED=true
+#
+# # Trigger configuration
+# export ACCESS_CONTROL_TRIGGER_HEADER="X-Access-Control-Trigger"
+# export ACCESS_CONTROL_TRIGGER_SECRET="$(openssl rand -base64 32)"
+#
+# # IP allowlist (up to 10 CIDRs supported via indexed env vars)
+# export ALLOWED_CIDR_1="10.0.0.0/8"
+# export ALLOWED_CIDR_2="172.16.0.0/12"
+# export ALLOWED_CIDR_3="192.168.1.0/24"
+#
+# # Mode signal customization (optional)
+# export ACCESS_CONTROL_MODE_HEADER="X-Access-Mode"
+# export ACCESS_MODE_ALLOW="normal"
+# export ACCESS_MODE_DENY="restricted"
