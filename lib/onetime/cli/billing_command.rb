@@ -9,7 +9,7 @@ module Onetime
   module CLI
     # Base module for billing command helpers
     module BillingHelpers
-      REQUIRED_METADATA_FIELDS = %w[app plan_id tier region capabilities].freeze
+      REQUIRED_METADATA_FIELDS = %w[app tier region capabilities tenancy created].freeze
 
       def stripe_configured?
         unless OT.billing_config.enabled?
@@ -32,17 +32,17 @@ module Onetime
       end
 
       def format_product_row(product)
-        plan_id = product.metadata['plan_id'] || 'N/A'
         tier = product.metadata['tier'] || 'N/A'
+        tenancy = product.metadata['tenancy'] || 'N/A'
         region = product.metadata['region'] || 'N/A'
         active = product.active ? 'yes' : 'no'
 
-        format('%-22s %-40s %-18s %-12s %-8s %s',
+        format('%-22s %-40s %-12s %-12s %-10s %s',
           product.id[0..21],
           product.name[0..39],
-          plan_id[0..17],
           tier[0..11],
-          region[0..7],
+          tenancy[0..11],
+          region[0..9],
           active,
         )
       end
@@ -101,7 +101,10 @@ module Onetime
       def prompt_for_metadata
         metadata = {}
 
-        print 'Plan ID (e.g., identity_v1): '
+        # Always include all metadata fields
+        metadata['app'] = 'onetimesecret'
+
+        print 'Plan ID (optional, e.g., identity_v1): '
         metadata['plan_id'] = $stdin.gets.chomp
 
         print 'Tier (e.g., single_team, multi_team): '
@@ -110,18 +113,20 @@ module Onetime
         print 'Region (e.g., us-east, global): '
         metadata['region'] = $stdin.gets.chomp
 
+        print 'Tenancy (e.g., single, multi): '
+        metadata['tenancy'] = $stdin.gets.chomp
+
         print 'Capabilities (comma-separated, e.g., create_secrets,create_team): '
         metadata['capabilities'] = $stdin.gets.chomp
 
         print 'Limit teams (-1 for unlimited): '
-        limit_teams = $stdin.gets.chomp
-        metadata['limit_teams'] = limit_teams unless limit_teams.empty?
+        metadata['limit_teams'] = $stdin.gets.chomp
 
         print 'Limit members per team (-1 for unlimited): '
-        limit_members = $stdin.gets.chomp
-        metadata['limit_members_per_team'] = limit_members unless limit_members.empty?
+        metadata['limit_members_per_team'] = $stdin.gets.chomp
 
-        metadata['app'] = 'onetimesecret'
+        metadata['created'] = Time.now.utc.iso8601
+
         metadata
       end
 
@@ -203,6 +208,7 @@ module Onetime
             bin/ots billing products create    Create new product
             bin/ots billing products show      Show product details
             bin/ots billing products update    Update product metadata
+            bin/ots billing products events    Show product-related events
             bin/ots billing prices             List all Stripe prices
             bin/ots billing prices create      Create price for product
 
@@ -354,8 +360,8 @@ Total: #{catalog.size} catalog entries"
           return
         end
 
-        puts format('%-22s %-40s %-18s %-12s %-8s %s',
-          'ID', 'NAME', 'PLAN_ID', 'TIER', 'REGION', 'ACTIVE')
+        puts format('%-22s %-40s %-12s %-12s %-10s %s',
+          'ID', 'NAME', 'TIER', 'TENANCY', 'REGION', 'ACTIVE')
         puts '-' * 110
 
         products.data.each do |product|
@@ -377,10 +383,12 @@ Total: #{catalog.size} catalog entries"
       option :interactive, type: :boolean, default: false,
         desc: 'Interactive mode - prompt for all fields'
 
-      option :plan_id, type: :string, desc: 'Plan ID (e.g., identity_v1)'
+      option :plan_id, type: :string, desc: 'Plan ID (optional, e.g., identity_v1)'
       option :tier, type: :string, desc: 'Tier (e.g., single_team)'
       option :region, type: :string, desc: 'Region (e.g., us-east)'
+      option :tenancy, type: :string, desc: 'Tenancy (e.g., single, multi)'
       option :capabilities, type: :string, desc: 'Capabilities (comma-separated)'
+      option :marketing_features, type: :string, desc: 'Marketing features (comma-separated)'
 
       def call(name: nil, interactive: false, **options)
         boot_application!
@@ -400,13 +408,18 @@ Total: #{catalog.size} catalog entries"
         metadata = if interactive
           prompt_for_metadata
         else
+          # Build metadata with all fields, using empty strings for missing values
           {
             'app' => 'onetimesecret',
-            'plan_id' => options[:plan_id],
-            'tier' => options[:tier],
+            'plan_id' => options[:plan_id] || '',
+            'tier' => options[:tier] || '',
             'region' => options[:region] || 'global',
-            'capabilities' => options[:capabilities],
-          }.compact
+            'tenancy' => options[:tenancy] || '',
+            'capabilities' => options[:capabilities] || '',
+            'created' => Time.now.utc.iso8601,
+            'limit_teams' => '',
+            'limit_members_per_team' => '',
+          }
         end
 
         puts "\nCreating product '#{name}' with metadata:"
@@ -415,14 +428,31 @@ Total: #{catalog.size} catalog entries"
         print '\nProceed? (y/n): '
         return unless $stdin.gets.chomp.downcase == 'y'
 
-        product = Stripe::Product.create({
+        # Build product creation params
+        product_params = {
           name: name,
           metadata: metadata,
-        })
+        }
+
+        # Add marketing features if provided
+        if options[:marketing_features]
+          features = options[:marketing_features].split(',').map(&:strip)
+          product_params[:marketing_features] = features.map { |f| { name: f } }
+          puts "\nMarketing features:"
+          features.each { |f| puts "  - #{f}" }
+        end
+
+        product = Stripe::Product.create(product_params)
 
         puts "\nProduct created successfully:"
         puts "  ID: #{product.id}"
         puts "  Name: #{product.name}"
+
+        if product.marketing_features && product.marketing_features.any?
+          puts "\nMarketing features:"
+          product.marketing_features.each { |f| puts "  - #{f.name}" }
+        end
+
         puts "\nNext steps:"
         puts "  bin/ots billing prices create --product #{product.id}"
       rescue Stripe::StripeError => e
@@ -456,6 +486,15 @@ Total: #{catalog.size} catalog entries"
           puts "Metadata:"
           product.metadata.each do |key, value|
             puts "  #{key}: #{value}"
+          end
+          puts
+        end
+
+        # Display marketing features
+        if product.marketing_features && product.marketing_features.any?
+          puts "Marketing Features:"
+          product.marketing_features.each do |feature|
+            puts "  - #{feature.name} (#{feature.id})"
           end
           puts
         end
@@ -496,7 +535,10 @@ Total: #{catalog.size} catalog entries"
       option :plan_id, type: :string, desc: 'Plan ID'
       option :tier, type: :string, desc: 'Tier'
       option :region, type: :string, desc: 'Region'
+      option :tenancy, type: :string, desc: 'Tenancy'
       option :capabilities, type: :string, desc: 'Capabilities'
+      option :add_marketing_feature, type: :string, desc: 'Add marketing feature'
+      option :remove_marketing_feature, type: :string, desc: 'Remove marketing feature (by ID)'
 
       def call(product_id:, interactive: false, **options)
         boot_application!
@@ -509,15 +551,26 @@ Total: #{catalog.size} catalog entries"
         product.metadata.each { |k, v| puts "  #{k}: #{v}" }
         puts
 
+        # Extract marketing feature operations from options
+        add_feature = options.delete(:add_marketing_feature)
+        remove_feature = options.delete(:remove_marketing_feature)
+
         metadata = if interactive
           prompt_for_metadata
         else
-          options.compact.transform_keys(&:to_s)
-        end
-
-        if metadata.empty?
-          puts 'No metadata fields to update'
-          return
+          # Build complete metadata hash with all fields
+          current_meta = product.metadata.to_h
+          {
+            'app' => 'onetimesecret',
+            'plan_id' => options[:plan_id] || current_meta['plan_id'] || '',
+            'tier' => options[:tier] || current_meta['tier'] || '',
+            'region' => options[:region] || current_meta['region'] || '',
+            'tenancy' => options[:tenancy] || current_meta['tenancy'] || '',
+            'capabilities' => options[:capabilities] || current_meta['capabilities'] || '',
+            'created' => current_meta['created'] || Time.now.utc.iso8601,
+            'limit_teams' => current_meta['limit_teams'] || '',
+            'limit_members_per_team' => current_meta['limit_members_per_team'] || '',
+          }
         end
 
         puts "Updating metadata:"
@@ -526,15 +579,115 @@ Total: #{catalog.size} catalog entries"
         print '\nProceed? (y/n): '
         return unless $stdin.gets.chomp.downcase == 'y'
 
-        updated = Stripe::Product.update(product_id, {
-          metadata: product.metadata.to_h.merge(metadata),
-        })
+        # Build update params
+        update_params = { metadata: metadata }
+
+        # Handle marketing features
+        if add_feature || remove_feature
+          current_features = product.marketing_features || []
+
+          if add_feature
+            # Add new feature
+            current_features << { name: add_feature }
+            puts "  Adding marketing feature: #{add_feature}"
+          end
+
+          if remove_feature
+            # Remove feature by ID
+            current_features.reject! { |f| f.id == remove_feature }
+            puts "  Removing marketing feature: #{remove_feature}"
+          end
+
+          update_params[:marketing_features] = current_features
+        end
+
+        updated = Stripe::Product.update(product_id, update_params)
 
         puts "\nProduct updated successfully"
         puts "Updated metadata:"
         updated.metadata.each { |k, v| puts "  #{k}: #{v}" }
+
+        if updated.marketing_features && updated.marketing_features.any?
+          puts "\nMarketing features:"
+          updated.marketing_features.each { |f| puts "  - #{f.name} (#{f.id})" }
+        end
       rescue Stripe::StripeError => e
         puts "Error updating product: #{e.message}"
+      end
+    end
+
+    # Show product-related events
+    class BillingProductsEventsCommand < Command
+      include BillingHelpers
+
+      desc 'Show product-related Stripe events'
+
+      argument :product_id, required: true, desc: 'Product ID (e.g., prod_xxx)'
+
+      option :limit, type: :integer, default: 20, desc: 'Maximum results to return'
+      option :type, type: :string,
+        desc: 'Filter by specific event type (e.g., product.updated)'
+
+      def call(product_id:, limit: 20, type: nil, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        # Verify product exists
+        product = Stripe::Product.retrieve(product_id)
+        puts "Product Events for: #{product.name} (#{product_id})"
+        puts
+
+        # Fetch events related to this product
+        params = { limit: 100 }  # Fetch more to filter
+        params[:type] = type if type
+
+        events = Stripe::Event.list(params)
+
+        # Filter events related to this product
+        product_events = events.data.select do |event|
+          event_data = event.data.object
+
+          # Check if event is about this product
+          case event.type
+          when /^product\./
+            event_data.id == product_id
+          when /^price\./
+            # Price events - check if price belongs to this product
+            event_data.respond_to?(:product) &&
+              (event_data.product == product_id || event_data.product&.id == product_id)
+          else
+            false
+          end
+        end.first(limit)
+
+        if product_events.empty?
+          puts 'No events found for this product'
+          puts "\nTip: Events are only stored for 30 days by Stripe"
+          return
+        end
+
+        puts format('%-22s %-35s %-12s %s',
+          'ID', 'TYPE', 'LIVEMODE', 'CREATED')
+        puts '-' * 85
+
+        product_events.each do |event|
+          livemode = event.livemode ? 'live' : 'test'
+          created = format_timestamp(event.created)
+
+          puts format('%-22s %-35s %-12s %s',
+            event.id[0..21],
+            event.type[0..34],
+            livemode,
+            created)
+        end
+
+        puts "\nTotal: #{product_events.size} event(s)"
+        puts "\nFor details: bin/ots billing events --type product.updated"
+        puts "Common types: product.created, product.updated, price.created, price.updated"
+
+      rescue Stripe::StripeError => e
+        puts "Error retrieving product events: #{e.message}"
       end
     end
 
@@ -1976,6 +2129,7 @@ Onetime::CLI.register 'billing products', Onetime::CLI::BillingProductsCommand
 Onetime::CLI.register 'billing products create', Onetime::CLI::BillingProductsCreateCommand
 Onetime::CLI.register 'billing products show', Onetime::CLI::BillingProductsShowCommand
 Onetime::CLI.register 'billing products update', Onetime::CLI::BillingProductsUpdateCommand
+Onetime::CLI.register 'billing products events', Onetime::CLI::BillingProductsEventsCommand
 Onetime::CLI.register 'billing prices', Onetime::CLI::BillingPricesCommand
 Onetime::CLI.register 'billing prices create', Onetime::CLI::BillingPricesCreateCommand
 Onetime::CLI.register 'billing subscriptions', Onetime::CLI::BillingSubscriptionsCommand
