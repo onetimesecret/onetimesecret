@@ -243,6 +243,75 @@ end
 ## Teardown: Clean up test resources
 Stripe::Product.delete(@product.id) if defined?(@product) && @product
 
+## Sprint 4 Tests: Refunds and Webhook Testing
+
+## Setup: Create new customer for refund tests
+@refund_customer = Stripe::Customer.create({
+  email: "refund-test-#{SecureRandom.hex(4)}@example.com",
+  name: "Refund Test Customer"
+})
+
+## Setup: Attach payment method
+@refund_pm = Stripe::PaymentMethod.create({
+  type: 'card',
+  card: {
+    number: '4242424242424242',
+    exp_month: 12,
+    exp_year: Time.now.year + 2,
+    cvc: '123'
+  }
+})
+Stripe::PaymentMethod.attach(@refund_pm.id, { customer: @refund_customer.id })
+Stripe::Customer.update(@refund_customer.id, {
+  invoice_settings: { default_payment_method: @refund_pm.id }
+})
+
+## Setup: Create a charge for refund testing
+@payment_intent = Stripe::PaymentIntent.create({
+  amount: 1000,
+  currency: 'usd',
+  customer: @refund_customer.id,
+  payment_method: @refund_pm.id,
+  confirm: true,
+  automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
+})
+
+## Test: Payment intent has a charge
+@charge_id = @payment_intent.charges.data.first&.id
+@charge_id.to_s.start_with?('ch_')
+#=> true
+
+## Test: Create refund via CLI
+`bin/ots billing refunds create --charge #{@charge_id} --reason requested_by_customer --force` =~ /Refund created successfully/
+#=> 0
+
+## Test: Verify refund exists in Stripe
+@refund_list = Stripe::Refund.list({ charge: @charge_id, limit: 1 })
+@refund_list.data.size
+#=> 1
+
+## Test: Refund has correct amount (full refund)
+@refund = @refund_list.data.first
+@refund.amount
+#=> 1000
+
+## Test: Refund has correct reason
+@refund.reason
+#=> 'requested_by_customer'
+
+## Test: List refunds via CLI includes our refund
+`bin/ots billing refunds --charge #{@charge_id}` =~ /#{@refund.id}/
+#=> 0
+
+## Test: Trigger webhook command shows appropriate message
+@webhook_output = `bin/ots billing test trigger-webhook customer.created 2>&1`
+# Will either trigger successfully or show "Stripe CLI not found"
+@webhook_output.include?('Triggering test webhook') || @webhook_output.include?('Stripe CLI not found')
+#=> true
+
+## Teardown: Clean up refund test resources
+Stripe::Customer.delete(@refund_customer.id)
+
 ## Test: Cleanup successful
 true
 #=> true
