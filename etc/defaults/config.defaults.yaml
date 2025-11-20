@@ -16,27 +16,41 @@ site:
       # When false, only a basic explanation page is shown
       enabled: <%= ENV['UI_ENABLED'] != 'false' %>
       homepage:
-        # Homepage protection via request header
+        # Homepage Mode
         #
-        # Controls homepage visibility based on HTTP request headers.
-        # When mode=protected, the homepage is shown only when the
-        # specified request header contains 'protected'.
+        # Determines which homepage experience to show based on the request
+        # headers. It can change the content presented to a visitor when they
+        # navigate to the homepage but it does not expand or restrict access.
         #
-        # SECURITY:
-        #   - The header can only RESTRICT, never EXPAND access
-        #   - Has no effect on authentication based access settings
-        #   - Only controls visibility of the homepage content; does not affect
-        #     API routes in any way. Access to /api/v3/secret/conceal and
-        #     /api/v3/secret/generate would need to be managed separately.
+        # ✓ Can do: Hide the Create Secret form for external users
+        # ✗ Cannot do: Grant access to endpoints for creating secret links
+        #
+        # This does not protect API endpoints and has no affect on existing
+        # authentication or authorization logic.
+        #
+        # Detection Methods (evaluated in order):
+        #   1. matching_cidrs - Client IP must match one of these subnets
+        #   2. request_header - Fallback if no CIDR match (requires header value = mode)
         #
         # Example:
-        #   mode: protected
+        #   mode: internal
+        #   matching_cidrs:
+        #     - 203.0.113.0/24      # Office network
+        #     - 198.51.100.0/24     # Partner network
+        #     - 192.0.2.0/24        # Additional location
+        #
+        # Example:
+        #   mode: external
         #   request_header: O-Homepage-Mode
         #
-        # Then requests with header "O-Homepage-Mode: protected" will
-        # show the Internal Use Only homepage content.
+        # Privacy Preservation
+        #
+        # CIDR Subnet Limitations:
+        #   - Minimum prefix length: /24 (supports /8, /16, /24)
+        #   - Prefix lengths greater than /24 are not supported (e.g., /25, /26, /32)
         #
         mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
+        matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
         request_header: <%= ENV['UI_HOMEPAGE_REQUEST_HEADER'] || nil %>
       # Header configuration
       # Controls branding and navigation in the site header
