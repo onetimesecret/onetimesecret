@@ -216,10 +216,13 @@ module Onetime
             bin/ots billing subscriptions resume  Resume paused subscription
             bin/ots billing subscriptions update  Update subscription price/quantity
             bin/ots billing invoices           List Stripe invoices
+            bin/ots billing refunds            List Stripe refunds
+            bin/ots billing refunds create     Create refund for charge
             bin/ots billing payment-methods set-default  Set default payment method
 
           Testing:
             bin/ots billing test create-customer  Create test customer with card
+            bin/ots billing test trigger-webhook  Trigger test webhook event
 
           Sync & Validation:
             bin/ots billing sync               Full sync from Stripe to Redis
@@ -255,6 +258,15 @@ module Onetime
 
             # Create test customer with payment method
             bin/ots billing test create-customer
+
+            # List refunds
+            bin/ots billing refunds
+
+            # Create refund for charge
+            bin/ots billing refunds create --charge ch_xxx --reason requested_by_customer
+
+            # Trigger test webhook
+            bin/ots billing test trigger-webhook customer.subscription.updated --subscription sub_xxx
 
             # Create a new product
             bin/ots billing products create --name "Identity Plan" --interactive
@@ -1305,6 +1317,156 @@ Total: #{catalog.size} catalog entries"
         puts "Error setting default payment method: #{e.message}"
       end
     end
+
+    # List refunds
+    class BillingRefundsCommand < Command
+      include BillingHelpers
+
+      desc 'List Stripe refunds'
+
+      option :charge, type: :string, desc: 'Filter by charge ID'
+      option :limit, type: :integer, default: 100, desc: 'Maximum results to return'
+
+      def call(charge: nil, limit: 100, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        puts 'Fetching refunds from Stripe...'
+        params = { limit: limit }
+        params[:charge] = charge if charge
+
+        refunds = Stripe::Refund.list(params)
+
+        if refunds.data.empty?
+          puts 'No refunds found'
+          return
+        end
+
+        puts format('%-22s %-22s %-12s %-10s %s',
+          'ID', 'CHARGE', 'AMOUNT', 'STATUS', 'CREATED')
+        puts '-' * 90
+
+        refunds.data.each do |refund|
+          amount = format_amount(refund.amount, refund.currency)
+          created = format_timestamp(refund.created)
+
+          puts format('%-22s %-22s %-12s %-10s %s',
+            refund.id[0..21],
+            refund.charge[0..21],
+            amount[0..11],
+            refund.status[0..9],
+            created)
+        end
+
+        puts "\nTotal: #{refunds.data.size} refund(s)"
+
+      rescue Stripe::StripeError => e
+        puts "Error fetching refunds: #{e.message}"
+      end
+    end
+
+    # Create refund
+    class BillingRefundsCreateCommand < Command
+      include BillingHelpers
+
+      desc 'Create a refund for a charge'
+
+      option :charge, type: :string, required: true,
+        desc: 'Charge ID (ch_xxx)'
+      option :amount, type: :integer,
+        desc: 'Amount in cents (leave empty for full refund)'
+      option :reason, type: :string,
+        desc: 'Reason: duplicate, fraudulent, requested_by_customer'
+      option :force, type: :boolean, default: false,
+        desc: 'Skip confirmation prompt'
+
+      def call(charge:, amount: nil, reason: nil, force: false, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        charge_obj = Stripe::Charge.retrieve(charge)
+
+        puts "Charge: #{charge_obj.id}"
+        puts "Amount: #{format_amount(charge_obj.amount, charge_obj.currency)}"
+        puts "Customer: #{charge_obj.customer}"
+        puts
+
+        refund_amount = amount || charge_obj.amount
+        puts "Refund amount: #{format_amount(refund_amount, charge_obj.currency)}"
+        puts "Reason: #{reason}" if reason
+
+        unless force
+          print '\nCreate refund? (y/n): '
+          return unless $stdin.gets.chomp.downcase == 'y'
+        end
+
+        refund_params = { charge: charge }
+        refund_params[:amount] = amount if amount
+        refund_params[:reason] = reason if reason
+
+        refund = Stripe::Refund.create(refund_params)
+
+        puts "\nRefund created successfully:"
+        puts "  ID: #{refund.id}"
+        puts "  Amount: #{format_amount(refund.amount, refund.currency)}"
+        puts "  Status: #{refund.status}"
+
+      rescue Stripe::StripeError => e
+        puts "Error creating refund: #{e.message}"
+      end
+    end
+
+    # Trigger test webhook
+    class BillingTestTriggerWebhookCommand < Command
+      include BillingHelpers
+
+      desc 'Trigger a test webhook event (requires Stripe CLI)'
+
+      argument :event_type, required: true,
+        desc: 'Event type (e.g., customer.subscription.updated)'
+
+      option :subscription, type: :string,
+        desc: 'Subscription ID for subscription events'
+      option :customer, type: :string,
+        desc: 'Customer ID for customer events'
+
+      def call(event_type:, subscription: nil, customer: nil, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        unless Stripe.api_key.start_with?('sk_test_')
+          puts 'Error: Can only trigger test events with test API keys'
+          return
+        end
+
+        puts "Triggering test webhook: #{event_type}"
+
+        # Build stripe CLI command
+        cmd = "stripe trigger #{event_type}"
+        cmd += " --subscription #{subscription}" if subscription
+        cmd += " --customer #{customer}" if customer
+
+        puts "Command: #{cmd}"
+        puts
+
+        # Check if stripe CLI is available
+        unless system('which stripe > /dev/null 2>&1')
+          puts 'Error: Stripe CLI not found'
+          puts 'Install from: https://stripe.com/docs/stripe-cli'
+          return
+        end
+
+        # Execute command
+        system(cmd)
+
+      rescue StandardError => e
+        puts "Error: #{e.message}"
+        puts "\nNote: Requires Stripe CLI installed (stripe.com/docs/stripe-cli)"
+      end
+    end
   end
 end
 
@@ -1327,7 +1489,10 @@ Onetime::CLI.register 'billing customers show', Onetime::CLI::BillingCustomersSh
 Onetime::CLI.register 'billing customers delete', Onetime::CLI::BillingCustomersDeleteCommand
 Onetime::CLI.register 'billing payment-methods set-default', Onetime::CLI::BillingPaymentMethodsSetDefaultCommand
 Onetime::CLI.register 'billing invoices', Onetime::CLI::BillingInvoicesCommand
+Onetime::CLI.register 'billing refunds', Onetime::CLI::BillingRefundsCommand
+Onetime::CLI.register 'billing refunds create', Onetime::CLI::BillingRefundsCreateCommand
 Onetime::CLI.register 'billing events', Onetime::CLI::BillingEventsCommand
 Onetime::CLI.register 'billing test create-customer', Onetime::CLI::BillingTestCreateCustomerCommand
+Onetime::CLI.register 'billing test trigger-webhook', Onetime::CLI::BillingTestTriggerWebhookCommand
 Onetime::CLI.register 'billing sync', Onetime::CLI::BillingSyncCommand
 Onetime::CLI.register 'billing validate', Onetime::CLI::BillingValidateCommand
