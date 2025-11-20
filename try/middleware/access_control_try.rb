@@ -39,7 +39,7 @@ env = {
 }
 
 status, captured_env = call_middleware(config, env)
-[status, captured_env.key?('HTTP_X_ACCESS_MODE')]
+[status, captured_env.key?('HTTP_O_ACCESS_MODE')]
 #=> [200, false]
 
 ## No trigger header - should passthrough without setting header
@@ -48,13 +48,13 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'secret123' },
   allowed_cidrs: ['10.0.0.0/8'],
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 env = { 'REMOTE_ADDR' => '10.0.0.1' }
 
 status, captured_env = call_middleware(config, env)
-[status, captured_env.key?('HTTP_X_ACCESS_MODE')]
+[status, captured_env.key?('HTTP_O_ACCESS_MODE')]
 #=> [200, false]
 
 ## Trigger header present but secret mismatch - should passthrough
@@ -63,7 +63,7 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'correct-secret' },
   allowed_cidrs: ['10.0.0.0/8'],
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 env = {
@@ -72,7 +72,7 @@ env = {
 }
 
 status, captured_env = call_middleware(config, env)
-[status, captured_env.key?('HTTP_X_ACCESS_MODE')]
+[status, captured_env.key?('HTTP_O_ACCESS_MODE')]
 #=> [200, false]
 
 ## Trigger activated, IP in allowlist - should set allow mode
@@ -81,7 +81,7 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'secret123' },
   allowed_cidrs: ['10.0.0.0/8', '172.16.0.0/12'],
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 env = {
@@ -90,7 +90,7 @@ env = {
 }
 
 status, captured_env = call_middleware(config, env)
-[status, captured_env['HTTP_X_ACCESS_MODE']]
+[status, captured_env['HTTP_O_ACCESS_MODE']]
 #=> [200, 'normal']
 
 ## Trigger activated, IP NOT in allowlist - should set deny mode
@@ -99,7 +99,7 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'secret123' },
   allowed_cidrs: ['10.0.0.0/8'],
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 env = {
@@ -108,7 +108,7 @@ env = {
 }
 
 status, captured_env = call_middleware(config, env)
-[status, captured_env['HTTP_X_ACCESS_MODE']]
+[status, captured_env['HTTP_O_ACCESS_MODE']]
 #=> [200, 'protected']
 
 ## X-Forwarded-For takes precedence over REMOTE_ADDR
@@ -117,7 +117,7 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'secret123' },
   allowed_cidrs: ['10.0.0.0/8'],
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 env = {
@@ -127,7 +127,7 @@ env = {
 }
 
 status, captured_env = call_middleware(config, env)
-[status, captured_env['HTTP_X_ACCESS_MODE']]
+[status, captured_env['HTTP_O_ACCESS_MODE']]
 #=> [200, 'normal']
 
 ## Multiple CIDR blocks - match against any
@@ -136,7 +136,7 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'secret123' },
   allowed_cidrs: ['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'],
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 env = {
@@ -145,7 +145,7 @@ env = {
 }
 
 status, captured_env = call_middleware(config, env)
-[status, captured_env['HTTP_X_ACCESS_MODE']]
+[status, captured_env['HTTP_O_ACCESS_MODE']]
 #=> [200, 'normal']
 
 ## IPv6 address in allowlist
@@ -154,7 +154,7 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'secret123' },
   allowed_cidrs: ['fc00::/7'], # IPv6 Unique Local Address
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 env = {
@@ -163,7 +163,7 @@ env = {
 }
 
 status, captured_env = call_middleware(config, env)
-[status, captured_env['HTTP_X_ACCESS_MODE']]
+[status, captured_env['HTTP_O_ACCESS_MODE']]
 #=> [200, 'normal']
 
 ## IPv6 address NOT in allowlist
@@ -172,7 +172,7 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'secret123' },
   allowed_cidrs: ['fc00::/7'],
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 env = {
@@ -181,7 +181,7 @@ env = {
 }
 
 status, captured_env = call_middleware(config, env)
-[status, captured_env['HTTP_X_ACCESS_MODE']]
+[status, captured_env['HTTP_O_ACCESS_MODE']]
 #=> [200, 'protected']
 
 ## Custom header names
@@ -208,7 +208,7 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'secret123' },
   allowed_cidrs: ['203.0.113.5/32'], # Single IP
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 env = {
@@ -217,7 +217,7 @@ env = {
 }
 
 status, captured_env = call_middleware(config, env)
-[status, captured_env['HTTP_X_ACCESS_MODE']]
+[status, captured_env['HTTP_O_ACCESS_MODE']]
 #=> [200, 'normal']
 
 ## Single IP mismatch
@@ -226,7 +226,7 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'secret123' },
   allowed_cidrs: ['203.0.113.5/32'],
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 env = {
@@ -235,7 +235,7 @@ env = {
 }
 
 status, captured_env = call_middleware(config, env)
-[status, captured_env['HTTP_X_ACCESS_MODE']]
+[status, captured_env['HTTP_O_ACCESS_MODE']]
 #=> [200, 'protected']
 
 ## No client IP available - defaults to deny
@@ -244,7 +244,7 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'secret123' },
   allowed_cidrs: ['10.0.0.0/8'],
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 env = {
@@ -253,7 +253,7 @@ env = {
 }
 
 status, captured_env = call_middleware(config, env)
-[status, captured_env['HTTP_X_ACCESS_MODE']]
+[status, captured_env['HTTP_O_ACCESS_MODE']]
 #=> [200, 'protected']
 
 ## Empty allowed_cidrs - all IPs denied
@@ -262,7 +262,7 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'secret123' },
   allowed_cidrs: [],
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 env = {
@@ -271,7 +271,7 @@ env = {
 }
 
 status, captured_env = call_middleware(config, env)
-[status, captured_env['HTTP_X_ACCESS_MODE']]
+[status, captured_env['HTTP_O_ACCESS_MODE']]
 #=> [200, 'protected']
 
 ## Trigger secret with special characters
@@ -280,7 +280,7 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'secret!@#$%^&*()' },
   allowed_cidrs: ['10.0.0.0/8'],
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 env = {
@@ -289,7 +289,7 @@ env = {
 }
 
 status, captured_env = call_middleware(config, env)
-[status, captured_env['HTTP_X_ACCESS_MODE']]
+[status, captured_env['HTTP_O_ACCESS_MODE']]
 #=> [200, 'normal']
 
 ## Timing-safe secret comparison prevents timing attacks
@@ -298,7 +298,7 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'a' * 32 },
   allowed_cidrs: ['10.0.0.0/8'],
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 # Wrong secret with same length
@@ -316,7 +316,7 @@ env2 = {
 status1, captured_env1 = call_middleware(config, env1)
 status2, captured_env2 = call_middleware(config, env2)
 
-[captured_env1.key?('HTTP_X_ACCESS_MODE'), captured_env2['HTTP_X_ACCESS_MODE']]
+[captured_env1.key?('HTTP_O_ACCESS_MODE'), captured_env2['HTTP_O_ACCESS_MODE']]
 #=> [false, 'normal']
 
 ## Always returns 200 - never blocks
@@ -325,7 +325,7 @@ config = {
   enabled: true,
   trigger: { header: 'X-Access-Control-Trigger', secret: 'secret123' },
   allowed_cidrs: ['10.0.0.0/8'],
-  mode: { header: 'X-Access-Mode', allow: 'normal', deny: 'protected' },
+  mode: { header: 'O-Access-Mode', allow: 'normal', deny: 'protected' },
 }
 
 # External IP that would be denied

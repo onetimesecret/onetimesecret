@@ -123,14 +123,14 @@ access_control:
     #
     # Application code example:
     # ```ruby
-    # if req.env['HTTP_X_ACCESS_MODE'] == 'protected'
+    # if req.env['HTTP_O_ACCESS_MODE'] == 'protected'
     #   # Show protected content
     # else
     #   # Show normal content
     # end
     # ```
     #
-    header: <%= ENV['ACCESS_CONTROL_MODE_HEADER'] || 'X-Access-Mode' %>
+    header: <%= ENV['ACCESS_CONTROL_MODE_HEADER'] || 'O-Access-Mode' %>
 
     # Value set when client IP is in allowed_cidrs
     # Indicates IP-based access control is satisfied

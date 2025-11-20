@@ -56,7 +56,7 @@ access_control:
     - '192.168.0.0/16'  # Private network
 
   mode:
-    header: 'X-Access-Mode'
+    header: 'O-Access-Mode'
     allow: 'normal'      # Set when IP matches allowlist
     deny: 'protected'   # Set when IP doesn't match
 ```
@@ -170,7 +170,7 @@ end
 ```ruby
 class WebCore::Controllers::HomeController
   def index(req, res)
-    access_mode = req.env['HTTP_X_ACCESS_MODE']
+    access_mode = req.env['HTTP_O_ACCESS_MODE']
 
     if access_mode == 'protected'
       # Show "Internal Use Only" page
@@ -189,7 +189,7 @@ end
 # In routes configuration
 router.define_routes do
   get '/', to: lambda { |req, res|
-    if req.env['HTTP_X_ACCESS_MODE'] == 'protected'
+    if req.env['HTTP_O_ACCESS_MODE'] == 'protected'
       res.status = 403
       res.body = render_template('internal_only.html.erb')
     else
@@ -207,11 +207,11 @@ Add convenience method to `Otto::RequestHelpers`:
 module Otto
   module RequestHelpers
     def access_protected?
-      env['HTTP_X_ACCESS_MODE'] == 'protected'
+      env['HTTP_O_ACCESS_MODE'] == 'protected'
     end
 
     def access_mode
-      env['HTTP_X_ACCESS_MODE'] || 'normal'
+      env['HTTP_O_ACCESS_MODE'] || 'normal'
     end
   end
 end
@@ -300,7 +300,7 @@ bundle exec try --agent try/middleware/access_control_try.rb
 # In application code
 logger.info(
   'Homepage access',
-  access_mode: req.env['HTTP_X_ACCESS_MODE'],
+  access_mode: req.env['HTTP_O_ACCESS_MODE'],
   client_ip: req.env['HTTP_X_FORWARDED_FOR'],
   user_agent: req.env['HTTP_USER_AGENT']
 )
@@ -317,7 +317,7 @@ Set up alerts for:
 
 ### Mode header not being set
 
-**Symptoms**: `env['HTTP_X_ACCESS_MODE']` is `nil`
+**Symptoms**: `env['HTTP_O_ACCESS_MODE']` is `nil`
 
 **Causes**:
 1. Middleware not enabled: Check `access_control.enabled` in config
@@ -398,7 +398,7 @@ export ALLOWED_CIDRS="192.168.0.0/16,10.0.0.0/8"
 3. Implement handler:
 ```ruby
 def homepage(req, res)
-  if req.env['HTTP_X_ACCESS_MODE'] == 'protected'
+  if req.env['HTTP_O_ACCESS_MODE'] == 'protected'
     res.view = 'protected_homepage'
     res.locals[:message] = 'Internal Use Only'
   else
