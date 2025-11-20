@@ -137,7 +137,7 @@ module Onetime
         private
 
         def find_application_files
-          apps_root = File.join(ENV['ONETIME_HOME'] || File.expand_path('../../..', __dir__), 'apps')
+          apps_root = File.join(Onetime::HOME, 'apps')
           filepaths = Dir.glob(File.join(apps_root, '**/application.rb'))
 
           # Skip auth app in basic mode - auth endpoints handled by Core Web App
