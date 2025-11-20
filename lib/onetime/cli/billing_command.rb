@@ -831,10 +831,10 @@ Total: #{catalog.size} catalog entries"
 
       option :immediately, type: :boolean, default: false,
         desc: 'Cancel immediately instead of at period end'
-      option :force, type: :boolean, default: false,
-        desc: 'Skip confirmation prompt'
+      option :yes, type: :boolean, default: false,
+        desc: 'Assume yes to prompts'
 
-      def call(subscription_id:, immediately: false, force: false, **)
+      def call(subscription_id:, immediately: false, yes: false, **)
         boot_application!
 
         return unless stripe_configured?
@@ -855,7 +855,7 @@ Total: #{catalog.size} catalog entries"
           puts "Will cancel at period end: #{format_timestamp(subscription.current_period_end)}"
         end
 
-        unless force
+        unless yes
           print '\nProceed? (y/n): '
           return unless $stdin.gets.chomp.downcase == 'y'
         end
@@ -1010,10 +1010,10 @@ Total: #{catalog.size} catalog entries"
 
       argument :subscription_id, required: true, desc: 'Subscription ID (sub_xxx)'
 
-      option :force, type: :boolean, default: false,
-        desc: 'Skip confirmation prompt'
+      option :yes, type: :boolean, default: false,
+        desc: 'Assume yes to prompts'
 
-      def call(subscription_id:, force: false, **)
+      def call(subscription_id:, yes: false, **)
         boot_application!
 
         return unless stripe_configured?
@@ -1030,7 +1030,7 @@ Total: #{catalog.size} catalog entries"
         puts "Status: #{subscription.status}"
         puts
 
-        unless force
+        unless yes
           print 'Pause subscription? (y/n): '
           return unless $stdin.gets.chomp.downcase == 'y'
         end
@@ -1056,10 +1056,10 @@ Total: #{catalog.size} catalog entries"
 
       argument :subscription_id, required: true, desc: 'Subscription ID (sub_xxx)'
 
-      option :force, type: :boolean, default: false,
-        desc: 'Skip confirmation prompt'
+      option :yes, type: :boolean, default: false,
+        desc: 'Assume yes to prompts'
 
-      def call(subscription_id:, force: false, **)
+      def call(subscription_id:, yes: false, **)
         boot_application!
 
         return unless stripe_configured?
@@ -1077,7 +1077,7 @@ Total: #{catalog.size} catalog entries"
         puts "Currently paused: Yes"
         puts
 
-        unless force
+        unless yes
           print 'Resume subscription? (y/n): '
           return unless $stdin.gets.chomp.downcase == 'y'
         end
@@ -1233,10 +1233,10 @@ Total: #{catalog.size} catalog entries"
 
       argument :customer_id, required: true, desc: 'Customer ID (cus_xxx)'
 
-      option :force, type: :boolean, default: false,
-        desc: 'Skip confirmation'
+      option :yes, type: :boolean, default: false,
+        desc: 'Assume yes to prompts'
 
-      def call(customer_id:, force: false, **)
+      def call(customer_id:, yes: false, **)
         boot_application!
         return unless stripe_configured?
 
@@ -1251,14 +1251,14 @@ Total: #{catalog.size} catalog entries"
 
         if subscriptions.data.any?
           puts "⚠️  Customer has active subscriptions!"
-          puts "Cancel subscriptions first or use --force"
-          return unless force
+          puts "Cancel subscriptions first or use --yes"
+          return unless yes
         end
 
         puts "Customer: #{customer.id}"
         puts "Email: #{customer.email}"
 
-        unless force
+        unless yes
           print "\n⚠️  Delete customer permanently? (y/n): "
           return unless $stdin.gets.chomp.downcase == 'y'
         end
@@ -1378,10 +1378,10 @@ Total: #{catalog.size} catalog entries"
         desc: 'Amount in cents (leave empty for full refund)'
       option :reason, type: :string,
         desc: 'Reason: duplicate, fraudulent, requested_by_customer'
-      option :force, type: :boolean, default: false,
-        desc: 'Skip confirmation prompt'
+      option :yes, type: :boolean, default: false,
+        desc: 'Assume yes to prompts'
 
-      def call(charge:, amount: nil, reason: nil, force: false, **)
+      def call(charge:, amount: nil, reason: nil, yes: false, **)
         boot_application!
 
         return unless stripe_configured?
@@ -1397,7 +1397,7 @@ Total: #{catalog.size} catalog entries"
         puts "Refund amount: #{format_amount(refund_amount, charge_obj.currency)}"
         puts "Reason: #{reason}" if reason
 
-        unless force
+        unless yes
           print '\nCreate refund? (y/n): '
           return unless $stdin.gets.chomp.downcase == 'y'
         end

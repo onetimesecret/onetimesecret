@@ -718,7 +718,7 @@ Cancel a subscription either at period end or immediately.
 
 **Options:**
 - `--immediately` - Cancel immediately instead of at period end (default: false)
-- `--force` - Skip confirmation prompt (default: false)
+- `--yes` - Skip confirmation prompt (default: false)
 
 **Examples:**
 ```bash
@@ -750,7 +750,7 @@ Status: canceled
 Canceled at: 2025-11-19 14:30:00 UTC
 
 # Cancel without confirmation (for automation)
-bin/ots billing subscriptions cancel sub_ABC123xyz --immediately --force
+bin/ots billing subscriptions cancel sub_ABC123xyz --immediately --yes
 ```
 
 **Behavior:**
@@ -815,7 +815,7 @@ Pause a subscription to stop billing while maintaining customer access.
 - `subscription_id` - Subscription ID (sub_xxx)
 
 **Options:**
-- `--force` - Skip confirmation prompt (default: false)
+- `--yes` - Skip confirmation prompt (default: false)
 
 **Examples:**
 ```bash
@@ -833,7 +833,7 @@ Status: active
 Paused: Billing paused, access continues
 
 # Pause without confirmation
-bin/ots billing subscriptions pause sub_ABC123xyz --force
+bin/ots billing subscriptions pause sub_ABC123xyz --yes
 ```
 
 **Behavior:**
@@ -853,7 +853,7 @@ Resume a paused subscription to restart billing.
 - `subscription_id` - Subscription ID (sub_xxx)
 
 **Options:**
-- `--force` - Skip confirmation prompt (default: false)
+- `--yes` - Skip confirmation prompt (default: false)
 
 **Examples:**
 ```bash
@@ -872,7 +872,7 @@ Status: active
 Billing will resume on next period
 
 # Resume without confirmation
-bin/ots billing subscriptions resume sub_ABC123xyz --force
+bin/ots billing subscriptions resume sub_ABC123xyz --yes
 ```
 
 **Behavior:**
@@ -939,7 +939,7 @@ Delete a Stripe customer with safety checks to prevent accidental data loss.
 - `customer_id` - Customer ID (cus_xxx)
 
 **Options:**
-- `--force` - Skip confirmation and override active subscription check (default: false)
+- `--yes` - Skip confirmation and override active subscription check (default: false)
 
 **Examples:**
 ```bash
@@ -954,19 +954,19 @@ Email: user@example.com
 Customer deleted successfully
 
 # Force delete (even with active subscriptions)
-bin/ots billing customers delete cus_ABC123xyz --force
+bin/ots billing customers delete cus_ABC123xyz --yes
 
 ⚠️  Customer has active subscriptions!
-Cancel subscriptions first or use --force
+Cancel subscriptions first or use --yes
 
 Customer deleted successfully
 ```
 
 **Safety Features:**
 - Checks for active subscriptions before deletion
-- Requires explicit confirmation unless --force flag used
+- Requires explicit confirmation unless --yes flag used
 - Cannot be undone - customer data permanently removed
-- Blocks deletion if active subscriptions found (unless --force)
+- Blocks deletion if active subscriptions found (unless --yes)
 
 **Important Notes:**
 - Deletion is permanent and cannot be reversed
@@ -1163,7 +1163,7 @@ Create a refund for a charge (full or partial).
 - `--charge STRING` - Charge ID (ch_xxx) **required**
 - `--amount INTEGER` - Amount in cents (leave empty for full refund)
 - `--reason STRING` - Refund reason: duplicate, fraudulent, requested_by_customer
-- `--force` - Skip confirmation prompt
+- `--yes` - Skip confirmation prompt
 
 **Examples:**
 ```bash
@@ -1188,7 +1188,7 @@ Refund created successfully:
 bin/ots billing refunds create --charge ch_ABC123xyz --amount 1450 --reason duplicate
 
 # Full refund without confirmation
-bin/ots billing refunds create --charge ch_ABC123xyz --reason fraudulent --force
+bin/ots billing refunds create --charge ch_ABC123xyz --reason fraudulent --yes
 ```
 
 **Refund Reasons:**
@@ -1328,15 +1328,15 @@ bin/ots billing events --type payment_intent.payment_failed
 | `billing customers` | List customers | `--email`, `--limit` |
 | `billing customers create` | Create new customer | `--email`, `--name`, `--interactive` |
 | `billing customers show` | Show customer details | - |
-| `billing customers delete` | Delete customer | `--force` |
+| `billing customers delete` | Delete customer | `--yes` |
 | `billing subscriptions` | List subscriptions | `--status`, `--customer`, `--limit` |
-| `billing subscriptions cancel` | Cancel subscription | `--immediately`, `--force` |
-| `billing subscriptions pause` | Pause subscription billing | `--force` |
-| `billing subscriptions resume` | Resume paused subscription | `--force` |
+| `billing subscriptions cancel` | Cancel subscription | `--immediately`, `--yes` |
+| `billing subscriptions pause` | Pause subscription billing | `--yes` |
+| `billing subscriptions resume` | Resume paused subscription | `--yes` |
 | `billing subscriptions update` | Update subscription price/quantity | `--price`, `--quantity`, `--prorate` |
 | `billing invoices` | List invoices | `--status`, `--customer`, `--subscription` |
 | `billing refunds` | List refunds | `--charge`, `--limit` |
-| `billing refunds create` | Create refund | `--charge`, `--amount`, `--reason`, `--force` |
+| `billing refunds create` | Create refund | `--charge`, `--amount`, `--reason`, `--yes` |
 | `billing payment-methods set-default` | Set default payment method | `--customer` |
 | `billing events` | View recent events | `--type`, `--limit` |
 | `billing test create-customer` | Create test customer with card | `--with-card` |
