@@ -208,8 +208,11 @@ module Onetime
           Customers & Subscriptions:
             bin/ots billing customers          List Stripe customers
             bin/ots billing customers create   Create new customer
+            bin/ots billing customers show     Show customer details
             bin/ots billing subscriptions      List Stripe subscriptions
             bin/ots billing subscriptions cancel  Cancel subscription
+            bin/ots billing subscriptions pause   Pause subscription
+            bin/ots billing subscriptions resume  Resume paused subscription
             bin/ots billing invoices           List Stripe invoices
 
           Testing:
@@ -234,8 +237,15 @@ module Onetime
             # Cancel subscription immediately
             bin/ots billing subscriptions cancel sub_xxx --immediately
 
+            # Pause and resume subscriptions
+            bin/ots billing subscriptions pause sub_xxx
+            bin/ots billing subscriptions resume sub_xxx
+
             # Find customer by email
             bin/ots billing customers --email user@example.com
+
+            # Show customer details with payment methods
+            bin/ots billing customers show cus_xxx
 
             # Create a new customer
             bin/ots billing customers create --email user@example.com --name "John Doe"
@@ -976,6 +986,171 @@ Total: #{catalog.size} catalog entries"
         puts "Error creating test customer: #{e.message}"
       end
     end
+
+    # Pause subscription
+    class BillingSubscriptionsPauseCommand < Command
+      include BillingHelpers
+
+      desc 'Pause a subscription'
+
+      argument :subscription_id, required: true, desc: 'Subscription ID (sub_xxx)'
+
+      option :force, type: :boolean, default: false,
+        desc: 'Skip confirmation prompt'
+
+      def call(subscription_id:, force: false, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        subscription = Stripe::Subscription.retrieve(subscription_id)
+
+        if subscription.pause_collection
+          puts "Subscription is already paused"
+          return
+        end
+
+        puts "Subscription: #{subscription.id}"
+        puts "Customer: #{subscription.customer}"
+        puts "Status: #{subscription.status}"
+        puts
+
+        unless force
+          print 'Pause subscription? (y/n): '
+          return unless $stdin.gets.chomp.downcase == 'y'
+        end
+
+        updated = Stripe::Subscription.update(subscription_id, {
+          pause_collection: { behavior: 'void' }
+        })
+
+        puts "\nSubscription paused successfully"
+        puts "Status: #{updated.status}"
+        puts "Paused: Billing paused, access continues"
+
+      rescue Stripe::StripeError => e
+        puts "Error pausing subscription: #{e.message}"
+      end
+    end
+
+    # Resume subscription
+    class BillingSubscriptionsResumeCommand < Command
+      include BillingHelpers
+
+      desc 'Resume a paused subscription'
+
+      argument :subscription_id, required: true, desc: 'Subscription ID (sub_xxx)'
+
+      option :force, type: :boolean, default: false,
+        desc: 'Skip confirmation prompt'
+
+      def call(subscription_id:, force: false, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        subscription = Stripe::Subscription.retrieve(subscription_id)
+
+        unless subscription.pause_collection
+          puts "Subscription is not paused"
+          return
+        end
+
+        puts "Subscription: #{subscription.id}"
+        puts "Customer: #{subscription.customer}"
+        puts "Status: #{subscription.status}"
+        puts "Currently paused: Yes"
+        puts
+
+        unless force
+          print 'Resume subscription? (y/n): '
+          return unless $stdin.gets.chomp.downcase == 'y'
+        end
+
+        updated = Stripe::Subscription.update(subscription_id, {
+          pause_collection: nil
+        })
+
+        puts "\nSubscription resumed successfully"
+        puts "Status: #{updated.status}"
+        puts "Billing will resume on next period"
+
+      rescue Stripe::StripeError => e
+        puts "Error resuming subscription: #{e.message}"
+      end
+    end
+
+    # Show customer details with payment methods
+    class BillingCustomersShowCommand < Command
+      include BillingHelpers
+
+      desc 'Show detailed customer information'
+
+      argument :customer_id, required: true, desc: 'Customer ID (cus_xxx)'
+
+      def call(customer_id:, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        customer = Stripe::Customer.retrieve(customer_id)
+
+        puts "Customer Details:"
+        puts "  ID: #{customer.id}"
+        puts "  Email: #{customer.email}"
+        puts "  Name: #{customer.name}" if customer.name
+        puts "  Created: #{format_timestamp(customer.created)}"
+        puts "  Currency: #{customer.currency}" if customer.currency
+        puts "  Balance: #{format_amount(customer.balance, customer.currency || 'usd')}"
+        puts
+
+        # Payment methods
+        payment_methods = Stripe::PaymentMethod.list({
+          customer: customer_id,
+          limit: 10
+        })
+
+        puts "Payment Methods:"
+        if payment_methods.data.empty?
+          puts "  None"
+        else
+          default_pm = customer.invoice_settings&.default_payment_method
+
+          payment_methods.data.each do |pm|
+            default_marker = pm.id == default_pm ? ' (default)' : ''
+            puts "  #{pm.id} - #{pm.type}#{default_marker}"
+
+            case pm.type
+            when 'card'
+              puts "    Card: #{pm.card.brand} ****#{pm.card.last4} (#{pm.card.exp_month}/#{pm.card.exp_year})"
+            when 'bank_account'
+              puts "    Bank: ****#{pm.bank_account.last4}"
+            end
+          end
+        end
+        puts
+
+        # Subscriptions
+        subscriptions = Stripe::Subscription.list({
+          customer: customer_id,
+          limit: 10
+        })
+
+        puts "Subscriptions:"
+        if subscriptions.data.empty?
+          puts "  None"
+        else
+          subscriptions.data.each do |sub|
+            status_marker = sub.pause_collection ? ' (paused)' : ''
+            puts "  #{sub.id} - #{sub.status}#{status_marker}"
+            puts "    Period: #{format_timestamp(sub.current_period_start)} to #{format_timestamp(sub.current_period_end)}"
+          end
+        end
+
+      rescue Stripe::StripeError => e
+        puts "Error retrieving customer: #{e.message}"
+      end
+    end
   end
 end
 
@@ -989,8 +1164,11 @@ Onetime::CLI.register 'billing prices', Onetime::CLI::BillingPricesCommand
 Onetime::CLI.register 'billing prices create', Onetime::CLI::BillingPricesCreateCommand
 Onetime::CLI.register 'billing subscriptions', Onetime::CLI::BillingSubscriptionsCommand
 Onetime::CLI.register 'billing subscriptions cancel', Onetime::CLI::BillingSubscriptionsCancelCommand
+Onetime::CLI.register 'billing subscriptions pause', Onetime::CLI::BillingSubscriptionsPauseCommand
+Onetime::CLI.register 'billing subscriptions resume', Onetime::CLI::BillingSubscriptionsResumeCommand
 Onetime::CLI.register 'billing customers', Onetime::CLI::BillingCustomersCommand
 Onetime::CLI.register 'billing customers create', Onetime::CLI::BillingCustomersCreateCommand
+Onetime::CLI.register 'billing customers show', Onetime::CLI::BillingCustomersShowCommand
 Onetime::CLI.register 'billing invoices', Onetime::CLI::BillingInvoicesCommand
 Onetime::CLI.register 'billing events', Onetime::CLI::BillingEventsCommand
 Onetime::CLI.register 'billing test create-customer', Onetime::CLI::BillingTestCreateCustomerCommand
