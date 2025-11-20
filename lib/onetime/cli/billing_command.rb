@@ -124,6 +124,66 @@ module Onetime
         metadata['app'] = 'onetimesecret'
         metadata
       end
+
+      def format_subscription_row(subscription)
+        customer_id = subscription.customer[0..21]
+        status = subscription.status[0..11]
+        current_period_end = Time.at(subscription.current_period_end).strftime('%Y-%m-%d')
+
+        format('%-22s %-22s %-12s %-12s',
+          subscription.id[0..21],
+          customer_id,
+          status,
+          current_period_end,
+        )
+      end
+
+      def format_customer_row(customer)
+        email = customer.email || 'N/A'
+        name = customer.name || 'N/A'
+        created = Time.at(customer.created).strftime('%Y-%m-%d')
+
+        format('%-22s %-30s %-25s %s',
+          customer.id[0..21],
+          email[0..29],
+          name[0..24],
+          created,
+        )
+      end
+
+      def format_invoice_row(invoice)
+        customer_id = invoice.customer[0..21]
+        amount = format_amount(invoice.amount_due, invoice.currency)
+        status = invoice.status || 'N/A'
+        created = Time.at(invoice.created).strftime('%Y-%m-%d')
+
+        format('%-22s %-22s %-12s %-10s %s',
+          invoice.id[0..21],
+          customer_id,
+          amount[0..11],
+          status[0..9],
+          created,
+        )
+      end
+
+      def format_event_row(event)
+        event_type = event.type[0..34]
+        created = Time.at(event.created).strftime('%Y-%m-%d %H:%M:%S')
+
+        format('%-22s %-35s %s',
+          event.id[0..21],
+          event_type,
+          created,
+        )
+      end
+
+      def format_timestamp(timestamp)
+        return 'N/A' unless timestamp
+
+        Time.at(timestamp.to_i).strftime('%Y-%m-%d %H:%M:%S UTC')
+      rescue StandardError
+        'invalid'
+      end
     end
 
     # Main billing command (show help)
@@ -136,20 +196,35 @@ module Onetime
         puts <<~HELP
           Billing Management Commands:
 
-          bin/ots billing plans              List cached plans from Redis
-          bin/ots billing plans --refresh    Refresh cache from Stripe
-          bin/ots billing products           List all Stripe products
-          bin/ots billing products create    Create new product
-          bin/ots billing products update    Update product metadata
-          bin/ots billing prices             List all Stripe prices
-          bin/ots billing prices create      Create price for product
-          bin/ots billing sync               Full sync from Stripe to Redis
-          bin/ots billing validate           Validate product metadata
+          Plans & Products:
+            bin/ots billing plans              List cached plans from Redis
+            bin/ots billing plans --refresh    Refresh cache from Stripe
+            bin/ots billing products           List all Stripe products
+            bin/ots billing products create    Create new product
+            bin/ots billing products update    Update product metadata
+            bin/ots billing prices             List all Stripe prices
+            bin/ots billing prices create      Create price for product
+
+          Customers & Subscriptions:
+            bin/ots billing customers          List Stripe customers
+            bin/ots billing subscriptions      List Stripe subscriptions
+            bin/ots billing invoices           List Stripe invoices
+
+          Sync & Validation:
+            bin/ots billing sync               Full sync from Stripe to Redis
+            bin/ots billing validate           Validate product metadata
+            bin/ots billing events             View recent Stripe events
 
           Examples:
 
             # List all products
             bin/ots billing products
+
+            # List active subscriptions
+            bin/ots billing subscriptions --status active
+
+            # Find customer by email
+            bin/ots billing customers --email user@example.com
 
             # Create a new product
             bin/ots billing products create --name "Identity Plan" --interactive
@@ -535,6 +610,173 @@ module Onetime
         end
       end
     end
+
+    # List Stripe subscriptions
+    class BillingSubscriptionsCommand < Command
+      include BillingHelpers
+
+      desc 'List Stripe subscriptions'
+
+      option :status, type: :string,
+        desc: 'Filter by status (active, past_due, canceled, incomplete, trialing, unpaid)'
+      option :customer, type: :string, desc: 'Filter by customer ID'
+      option :limit, type: :integer, default: 100, desc: 'Maximum results to return'
+
+      def call(status: nil, customer: nil, limit: 100, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        puts 'Fetching subscriptions from Stripe...'
+        params = { limit: limit }
+        params[:status] = status if status
+        params[:customer] = customer if customer
+
+        subscriptions = Stripe::Subscription.list(params)
+
+        if subscriptions.data.empty?
+          puts 'No subscriptions found'
+          return
+        end
+
+        puts format('%-22s %-22s %-12s %s',
+          'ID', 'CUSTOMER', 'STATUS', 'PERIOD END')
+        puts '-' * 70
+
+        subscriptions.data.each do |subscription|
+          puts format_subscription_row(subscription)
+        end
+
+        puts "\nTotal: #{subscriptions.data.size} subscription(s)"
+        puts "\nStatuses: active, past_due, canceled, incomplete, trialing, unpaid"
+      rescue Stripe::StripeError => e
+        puts "Error fetching subscriptions: #{e.message}"
+      end
+    end
+
+    # List Stripe customers
+    class BillingCustomersCommand < Command
+      include BillingHelpers
+
+      desc 'List Stripe customers'
+
+      option :email, type: :string, desc: 'Filter by email address'
+      option :limit, type: :integer, default: 100, desc: 'Maximum results to return'
+
+      def call(email: nil, limit: 100, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        puts 'Fetching customers from Stripe...'
+        params = { limit: limit }
+        params[:email] = email if email
+
+        customers = Stripe::Customer.list(params)
+
+        if customers.data.empty?
+          puts 'No customers found'
+          return
+        end
+
+        puts format('%-22s %-30s %-25s %s',
+          'ID', 'EMAIL', 'NAME', 'CREATED')
+        puts '-' * 90
+
+        customers.data.each do |customer|
+          puts format_customer_row(customer)
+        end
+
+        puts "\nTotal: #{customers.data.size} customer(s)"
+      rescue Stripe::StripeError => e
+        puts "Error fetching customers: #{e.message}"
+      end
+    end
+
+    # List Stripe invoices
+    class BillingInvoicesCommand < Command
+      include BillingHelpers
+
+      desc 'List Stripe invoices'
+
+      option :status, type: :string, desc: 'Filter by status (draft, open, paid, uncollectible, void)'
+      option :customer, type: :string, desc: 'Filter by customer ID'
+      option :subscription, type: :string, desc: 'Filter by subscription ID'
+      option :limit, type: :integer, default: 100, desc: 'Maximum results to return'
+
+      def call(status: nil, customer: nil, subscription: nil, limit: 100, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        puts 'Fetching invoices from Stripe...'
+        params = { limit: limit }
+        params[:status] = status if status
+        params[:customer] = customer if customer
+        params[:subscription] = subscription if subscription
+
+        invoices = Stripe::Invoice.list(params)
+
+        if invoices.data.empty?
+          puts 'No invoices found'
+          return
+        end
+
+        puts format('%-22s %-22s %-12s %-10s %s',
+          'ID', 'CUSTOMER', 'AMOUNT', 'STATUS', 'CREATED')
+        puts '-' * 80
+
+        invoices.data.each do |invoice|
+          puts format_invoice_row(invoice)
+        end
+
+        puts "\nTotal: #{invoices.data.size} invoice(s)"
+        puts "\nStatuses: draft, open, paid, uncollectible, void"
+      rescue Stripe::StripeError => e
+        puts "Error fetching invoices: #{e.message}"
+      end
+    end
+
+    # View recent Stripe events
+    class BillingEventsCommand < Command
+      include BillingHelpers
+
+      desc 'View recent Stripe events'
+
+      option :type, type: :string, desc: 'Filter by event type (e.g., customer.created, invoice.paid)'
+      option :limit, type: :integer, default: 20, desc: 'Maximum results to return'
+
+      def call(type: nil, limit: 20, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        puts 'Fetching recent events from Stripe...'
+        params = { limit: limit }
+        params[:type] = type if type
+
+        events = Stripe::Event.list(params)
+
+        if events.data.empty?
+          puts 'No events found'
+          return
+        end
+
+        puts format('%-22s %-35s %s',
+          'ID', 'TYPE', 'CREATED')
+        puts '-' * 70
+
+        events.data.each do |event|
+          puts format_event_row(event)
+        end
+
+        puts "\nTotal: #{events.data.size} event(s)"
+        puts "\nCommon types: customer.created, customer.updated, invoice.paid,"
+        puts "              subscription.created, subscription.updated, payment_intent.succeeded"
+      rescue Stripe::StripeError => e
+        puts "Error fetching events: #{e.message}"
+      end
+    end
   end
 end
 
@@ -546,5 +788,9 @@ Onetime::CLI.register 'billing products create', Onetime::CLI::BillingProductsCr
 Onetime::CLI.register 'billing products update', Onetime::CLI::BillingProductsUpdateCommand
 Onetime::CLI.register 'billing prices', Onetime::CLI::BillingPricesCommand
 Onetime::CLI.register 'billing prices create', Onetime::CLI::BillingPricesCreateCommand
+Onetime::CLI.register 'billing subscriptions', Onetime::CLI::BillingSubscriptionsCommand
+Onetime::CLI.register 'billing customers', Onetime::CLI::BillingCustomersCommand
+Onetime::CLI.register 'billing invoices', Onetime::CLI::BillingInvoicesCommand
+Onetime::CLI.register 'billing events', Onetime::CLI::BillingEventsCommand
 Onetime::CLI.register 'billing sync', Onetime::CLI::BillingSyncCommand
 Onetime::CLI.register 'billing validate', Onetime::CLI::BillingValidateCommand
