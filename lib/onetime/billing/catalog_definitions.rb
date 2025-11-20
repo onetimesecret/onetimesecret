@@ -39,8 +39,8 @@ module Onetime
 
     # Get upgrade path when capability is missing
     #
-    # Finds the most affordable plan that includes the requested capability
-    # by querying cached plans.
+    # Finds the most affordable catalog item that includes the requested capability
+    # by querying the cached catalog.
     #
     # @param capability [String] Required capability
     # @param current_plan [String, nil] Current plan ID (unused, for compatibility)
@@ -50,21 +50,21 @@ module Onetime
     #   Billing.upgrade_path_for('custom_domains', 'free')
     #   # => "identity_v1_monthly"
     def self.upgrade_path_for(capability, _current_plan = nil)
-      # Query all cached plans for those with the capability
-      plans_with_capability = ::Billing::Models::CatalogCache.list_catalog.select do |plan|
-        plan.parsed_capabilities.include?(capability.to_s)
+      # Query cached catalog for items with the capability
+      catalog_with_capability = ::Billing::Models::CatalogCache.list_catalog.select do |item|
+        item.parsed_capabilities.include?(capability.to_s)
       end
 
-      return nil if plans_with_capability.empty?
+      return nil if catalog_with_capability.empty?
 
       # Sort by tier preference: free < single_team < multi_team
-      # Return first (cheapest) matching plan
-      tier_order   = %w[free single_team multi_team]
-      sorted_plans = plans_with_capability.sort_by do |plan|
-        tier_order.index(plan.tier) || 999
+      # Return first (cheapest) matching item
+      tier_order = %w[free single_team multi_team]
+      sorted_catalog = catalog_with_capability.sort_by do |item|
+        tier_order.index(item.tier) || 999
       end
 
-      sorted_plans.first&.plan_id
+      sorted_catalog.first&.plan_id
     end
 
     # Get human-readable plan name
@@ -117,12 +117,12 @@ module Onetime
 
     # Get all available (non-legacy) plan IDs
     #
-    # Returns list of current plans from cache, excluding legacy v0 plans.
+    # Returns list of current catalog items, excluding legacy v0 plans.
     #
     # @return [Array<String>] List of current plan IDs
     def self.available_plans
       ::Billing::Models::CatalogCache.list_catalog
-        .reject { |plan| legacy_plan?(plan.plan_id) }
+        .reject { |item| legacy_plan?(item.plan_id) }
         .map(&:plan_id)
     end
   end
