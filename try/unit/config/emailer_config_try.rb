@@ -14,8 +14,8 @@ OT.conf['emailer']['mode']
 OT.conf['emailer']['from']
 #=> "tests@example.com"
 
-## Default emailer fromname is "Jan"
-OT.conf['emailer']['fromname']
+## Default emailer from_name is "Jan"
+OT.conf['emailer']['from_name']
 #=> "Jan"
 
 ## Default SMTP host is "localhost"
@@ -65,7 +65,7 @@ OT.boot! :test, false
 [
   OT.conf['emailer']['mode'],
   OT.conf['emailer']['from'],
-  OT.conf['emailer']['fromname'],
+  OT.conf['emailer']['from_name'],
   OT.conf['emailer']['host'],
   OT.conf['emailer']['port'],
   OT.conf['emailer']['user'],
@@ -92,7 +92,7 @@ OT.boot! :test, false
 [
   OT.conf['emailer']['mode'],
   OT.conf['emailer']['from'],
-  OT.conf['emailer']['fromname'],
+  OT.conf['emailer']['from_name'],
   OT.conf['emailer']['host'],
   OT.conf['emailer']['port'],
   OT.conf['emailer']['user'],

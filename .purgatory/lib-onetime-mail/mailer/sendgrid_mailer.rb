@@ -13,7 +13,7 @@ module Onetime::Mail
       def send_email(to_address, subject, html_content, text_content, test_mode = false)
         mailer_response  = nil
         obscured_address = OT::Utils.obscure_email(to_address)
-        sender_email     = SendGrid::Email.new(email: from, name: fromname)
+        sender_email     = SendGrid::Email.new(email: from, name: from_name)
         to_email         = SendGrid::Email.new(email: to_address)
         reply_to         = SendGrid::Email.new(email: self.reply_to)
 

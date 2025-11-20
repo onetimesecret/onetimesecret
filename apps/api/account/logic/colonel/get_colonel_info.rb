@@ -18,9 +18,8 @@ module AccountAPI
           :has_split_tests, :redis_info
 
         def process_params
-          billing          = OT.conf.fetch('billing', {})
           OT.conf.fetch('site', {})
-          @billing_enabled = billing.fetch('enabled', false)
+          @billing_enabled = OT.billing_config.enabled?
         end
 
         def raise_concerns; end

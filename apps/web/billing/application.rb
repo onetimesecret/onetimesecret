@@ -26,7 +26,7 @@ module Billing
   #
   # ## Conditional Loading
   #
-  # This application is only loaded when `conf.dig('billing', 'enabled')` is true.
+  # This application is only loaded when billing.yaml exists and enabled is true.
   # See lib/onetime/application/registry.rb for loading logic.
   #
   class Application < Onetime::Application::Base
@@ -35,14 +35,19 @@ module Billing
 
     @uri_prefix = '/billing'.freeze
 
+    # Billing app should only load when enabled in configuration
+    def self.should_skip_loading?
+      !Onetime.billing_config.enabled?
+    end
+
     # CSRF Response Header
     # Note: CSRF validation is handled by common Security middleware with
     # allow_if to skip webhook endpoints. This just adds the response header.
     use Onetime::Middleware::CsrfResponseHeader
 
     warmup do
-      # Configure Stripe API key
-      stripe_key = Onetime.conf.dig('billing', 'stripe_key')
+      # Configure Stripe API key (already set by configure_billing initializer)
+      stripe_key = Onetime.billing_config.stripe_key
       if stripe_key && !stripe_key.to_s.strip.empty?
         Stripe.api_key = stripe_key
         Onetime.billing_logger.info 'Stripe API key configured'

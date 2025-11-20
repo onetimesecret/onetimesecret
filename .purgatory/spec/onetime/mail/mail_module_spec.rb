@@ -14,7 +14,7 @@ RSpec.describe Onetime::Mail do
     allow(OT).to receive(:conf).and_return({
       'emailer' => {
         'from' => 'test@example.com',
-        'fromname' => 'Test Sender',
+        'from_name' => 'Test Sender',
       },
     })
 
@@ -46,7 +46,7 @@ RSpec.describe Onetime::Mail do
           'emailer' => {
             'provider' => 'sendgrid',
             'from' => 'test@example.com',
-            'fromname' => 'Test Sender',
+            'from_name' => 'Test Sender',
           },
         })
       end
@@ -66,7 +66,7 @@ RSpec.describe Onetime::Mail do
           'emailer' => {
             'provider' => 'ses',
             'from' => 'test@example.com',
-            'fromname' => 'Test Sender',
+            'from_name' => 'Test Sender',
           },
         })
       end
@@ -86,7 +86,7 @@ RSpec.describe Onetime::Mail do
           'emailer' => {
             'provider' => 'ses',
             'from' => 'test@example.com',
-            'fromname' => 'Test Sender',
+            'from_name' => 'Test Sender',
           },
         })
       end
@@ -106,7 +106,7 @@ RSpec.describe Onetime::Mail do
           'emailer' => {
             'provider' => 'unknown_provider',
             'from' => 'test@example.com',
-            'fromname' => 'Test Sender',
+            'from_name' => 'Test Sender',
           },
         })
       end

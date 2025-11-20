@@ -106,8 +106,8 @@ OT.conf['emailer']['mode']
 OT.conf['emailer']['from']
 #=> "tests@example.com"
 
-## Default emailer fromname is "Jan"
-OT.conf['emailer']['fromname']
+## Default emailer from_name is "Jan"
+OT.conf['emailer']['from_name']
 #=> "Jan"
 
 ## Default SMTP host is "localhost"

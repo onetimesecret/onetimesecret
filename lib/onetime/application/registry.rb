@@ -39,8 +39,8 @@ module Onetime
           find_application_files
           create_mount_mappings
         rescue StandardError => ex
-          Onetime.app_logger.info "[#{name}] ERROR: #{ex.class}: #{ex.message}"
-          Onetime.app_logger.info ex.backtrace.join("\n") if Onetime.debug?
+          Onetime.app_logger.error "[#{name}] #{ex.class}: #{ex.message}"
+          Onetime.app_logger.error ex.backtrace.join("\n") if Onetime.debug?
 
           Onetime.not_ready
         end
@@ -127,20 +127,17 @@ module Onetime
 
         # Re-register application classes that are already in memory
         def reregister_loaded_applications
-          billing_enabled = Onetime.conf&.dig('billing', 'enabled').to_s == 'true'
-
           ObjectSpace.each_object(Class)
             .select { |cls| cls < Onetime::Application::Base && cls.respond_to?(:uri_prefix) }
-            .reject { |cls| cls.name == 'Auth::Application' && Onetime.auth_config.mode != 'advanced' }
-            .reject { |cls| cls.name == 'Billing::Application' && !billing_enabled }
             .reject { |cls| cls.instance_variable_get(:@abstract) == true } # Skip abstract base classes
+            .reject { |cls| cls.should_skip_loading? }
             .each { |cls| register_application_class(cls) }
         end
 
         private
 
         def find_application_files
-          apps_root = File.join(ENV['ONETIME_HOME'] || File.expand_path('../../..', __dir__), 'apps')
+          apps_root = File.join(Onetime::HOME, 'apps')
           filepaths = Dir.glob(File.join(apps_root, '**/application.rb'))
 
           # Skip auth app in basic mode - auth endpoints handled by Core Web App
@@ -149,8 +146,7 @@ module Onetime
           end
 
           # Skip billing app if not enabled in config
-          billing_enabled = Onetime.conf&.dig('billing', 'enabled').to_s == 'true'
-          unless billing_enabled
+          unless Onetime.billing_config.enabled?
             filepaths.reject! { |f| f.include?('web/billing/') }
           end
 

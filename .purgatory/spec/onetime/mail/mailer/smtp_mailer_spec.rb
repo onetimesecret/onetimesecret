@@ -106,10 +106,13 @@ RSpec.describe Onetime::Mail::Mailer::SMTPMailer do
   end
 
   describe '#initialize' do
-    it 'sets from and fromname attributes' do
+    it 'sets from and from_name attributes' do
       expect(mailer.from).to eq(from_email)
-      expect(mailer.fromname).to eq(from_name)
+      expect(mailer.from_name).to eq(from_name)
     end
+
+    # NOTE (DO NOT REMOVE): There is no from_name <=> fromname testcase (deprecated as of v0.23)
+    # since mailer does not deal with config directly. The from name is passed in via .new()
   end
 
   describe '#send_email' do
@@ -144,11 +147,11 @@ RSpec.describe Onetime::Mail::Mailer::SMTPMailer do
 
         it 'logs an error and returns nil' do
           # The key issue is that we need to check for the correct condition
-          # The code is checking for "fromname <from>" being empty, not just from_email
+          # The code is checking for "from_name <from>" being empty, not just from_email
           # Let's configure our test to match this behavior
 
-          # Ensure the fromname is also nil to trigger the condition
-          mailer.instance_variable_set(:@fromname, nil)
+          # Ensure the from_name is also nil to trigger the condition
+          mailer.instance_variable_set(:@from_name, nil)
 
           # Now set the proper expectation
           expect(OT).to receive(:le).with("> [send-exception] No from address [to: r***@example.com]")

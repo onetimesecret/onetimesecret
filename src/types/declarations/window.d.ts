@@ -119,7 +119,7 @@ export interface OnetimeWindow {
 
   ot_version: string;
   ot_version_long: string;
-  billing_enabled: boolean;
+  billing_enabled?: boolean;
   regions_enabled: boolean;
   ruby_version: string;
 

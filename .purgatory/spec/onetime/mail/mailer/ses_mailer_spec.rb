@@ -64,9 +64,9 @@ RSpec.describe Onetime::Mail::Mailer::SESMailer do
   end
 
   describe '#initialize' do
-    it 'sets from and fromname attributes' do
+    it 'sets from and from_name attributes' do
       expect(mailer.from).to eq(from_email)
-      expect(mailer.fromname).to eq(from_name)
+      expect(mailer.from_name).to eq(from_name)
     end
   end
 

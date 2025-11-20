@@ -15,6 +15,11 @@ module Auth
   class Application < Onetime::Application::Base
     @uri_prefix = '/auth'
 
+    # Auth app should only load in advanced mode
+    def self.should_skip_loading?
+      Onetime.auth_config.mode != 'advanced'
+    end
+
     # Auth app specific middleware (common middleware is in MiddlewareStack)
     use Rack::JSONBodyParser  # Parse JSON request bodies for Rodauth
 

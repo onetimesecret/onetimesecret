@@ -25,7 +25,7 @@ RSpec.describe Onetime::Mail::SecretLink do
       expect(secret_link[:email_address]).to eq(recipient)
       expect(secret_link[:custid]).to eq(mail_customer.custid)
       expect(secret_link[:from]).to eq(mail_config['emailer']['from'])
-      expect(secret_link[:from_name]).to eq(mail_config['emailer']['fromname'])
+      expect(secret_link[:from_name]).to eq(mail_config['emailer']['from_name'])
       expect(secret_link[:signature_link]).to eq('https://onetimesecret.com/')
     end
 

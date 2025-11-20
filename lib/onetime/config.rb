@@ -69,9 +69,6 @@ module Onetime
           'enabled' => false,
           'default_locale' => 'en',
         },
-        'billing' => {
-          'enabled' => false,
-        },
         'mail' => {},
         'diagnostics' => {
           'enabled' => false,
@@ -215,16 +212,6 @@ module Onetime
 
       if default_ttl.is_a?(String)
         conf['site']['secret_options']['default_ttl'] = default_ttl.to_i
-      end
-
-      if conf.dig('billing', 'enabled').to_s == 'true'
-        stripe_key = conf.dig('billing', 'stripe_key')
-        unless stripe_key
-          raise OT::Problem, "No `billing.stripe_key` found in #{path}"
-        end
-
-        require 'stripe'
-        Stripe.api_key = stripe_key
       end
 
       # Process passphrase configuration
