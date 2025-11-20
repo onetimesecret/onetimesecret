@@ -19,7 +19,7 @@ module Billing
       # Response:
       #   {
       #     "planid": "identity_v1",
-      #     "plan_name": "Identity Plus",
+      #     "catalog_name": "Identity Plus",
       #     "capabilities": ["create_secrets", "create_team", "custom_domains"],
       #     "limits": {
       #       "teams": 1,
@@ -35,7 +35,7 @@ module Billing
 
         data = {
           planid: org.planid,
-          plan_name: Onetime::Billing.plan_name(org.planid),
+          catalog_name: Onetime::Billing.catalog_name(org.planid),
           capabilities: org.capabilities,
           limits: build_limits_hash(org),
           is_legacy: Onetime::Billing.legacy_plan?(org.planid),
@@ -74,7 +74,7 @@ module Billing
       #     "current_plan": "identity_v1",
       #     "upgrade_needed": true,
       #     "upgrade_to": "multi_team_v1",
-      #     "upgrade_plan_name": "Multi-Team",
+      #     "upgrade_catalog_name": "Multi-Team",
       #     "message": "This feature requires Multi-Team. Upgrade your plan to access API."
       #   }
       #
@@ -92,7 +92,7 @@ module Billing
 
         # Enhance with upgrade messaging if needed
         if result[:upgrade_needed] && result[:upgrade_to]
-          result[:upgrade_plan_name] = Onetime::Billing.plan_name(result[:upgrade_to])
+          result[:upgrade_catalog_name] = Onetime::Billing.catalog_name(result[:upgrade_to])
           result[:message]           = build_upgrade_message(capability, result[:upgrade_to])
         end
 
@@ -168,10 +168,10 @@ module Billing
       # @param upgrade_plan [String] Suggested plan ID
       # @return [String] User-friendly upgrade message
       def build_upgrade_message(capability, upgrade_plan)
-        plan_name       = Onetime::Billing.plan_name(upgrade_plan)
+        catalog_name       = Onetime::Billing.catalog_name(upgrade_plan)
         capability_name = capability.to_s.tr('_', ' ')
 
-        "This feature requires #{plan_name}. Upgrade your plan to access #{capability_name}."
+        "This feature requires #{catalog_name}. Upgrade your plan to access #{capability_name}."
       end
 
       # Build summary of all available plans
@@ -180,10 +180,10 @@ module Billing
       def build_plans_summary
         summary = {}
 
-        ::Billing::Models::CatalogCache.list_plans.each do |plan|
+        ::Billing::Models::CatalogCache.list_catalogs.each do |plan|
           next unless plan
 
-          summary[plan.plan_id] = {
+          summary[plan.catalog_id] = {
             name: plan.name,
             capabilities: plan.parsed_capabilities,
             limits: plan.parsed_limits.transform_values { |v| v == Float::INFINITY ? nil : v },

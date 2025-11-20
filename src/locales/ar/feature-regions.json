@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "السيادة على البيانات والعزل الإقليمي",
+      "data-sovereignty-description": "تتواجد بياناتك حصرياً في المنطقة التي اخترتها ولا يتم نقلها أبداً بين المناطق",
+      "separate-environments-explanation": "تعمل كل منطقة كبيئة مستقلة تماماً بها بنيتها التحتية الخاصة، ومفاتيح التشفير، وتخزين البيانات",
+      "no-data-transfer-policy": "نحافظ على سياسة صارمة: بيانات العملاء لا يتم نقلها أبداً بين المناطق تحت أي ظرف",
+      "switching-creates-new-account": "مهم: التبديل إلى منطقة مختلفة ينشئ حساباً جديداً. تبقى بياناتك في منطقتك الأصلية.",
+      "your-region": "منطقتك",
+      "your-current-region": "منطقتك الحالية",
+      "active": "نشط",
+      "explore-other-regions": "استكشف المناطق المتاحة الأخرى",
+      "why-it-matters": "لماذا تهم السيادة على البيانات",
+      "trust-title": "الشفافية والسيطرة",
+      "trust-description": "اعرف بالضبط أين تتواجد بياناتك وأي قوانين تحكم حمايتها.",
+      "privacy-title": "حقوق الخصوصية",
+      "privacy-description": "تأكد من معالجة معلوماتك الشخصية وفقاً لقوانين الخصوصية في بلدك، مما يمنع الوصول غير المصرح به أو سوء الاستخدام.",
+      "compliance-title": "الامتثال التنظيمي",
+      "compliance-description": "استوفِ متطلبات GDPR و HIPAA و CCPA وغيرها من متطلبات حماية البيانات الإقليمية",
+      "performance-title": "وصول أسرع",
+      "performance-description": "تخزين البيانات بالقرب منك يعني زمن انتقال أقل وأداء أفضل."
     }
   }
 }

@@ -1,61 +1,61 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Bảo mật",
+      "learn-about-our-security-measures": "Tìm hiểu về các biện pháp bảo mật của chúng tôi",
+      "view-our-terms-and-conditions": "Xem Điều khoản và Điều kiện của chúng tôi",
+      "terms": "Điều khoản",
+      "privacy": "Quyền riêng tư",
+      "contact": "Liên hệ",
+      "support": "Hỗ trợ",
+      "legals": "Pháp lý",
+      "read-our-privacy-policy": "Đọc Chính sách quyền riêng tư của chúng tôi",
+      "check-our-service-status": "Kiểm tra trạng thái dịch vụ của chúng tôi",
+      "explore-our-api-documentation": "Khám phá tài liệu API của chúng tôi",
+      "docs": "Tài liệu",
+      "access-our-documentation": "Truy cập tài liệu của chúng tôi",
+      "view-our-source-code-on-github": "Xem mã nguồn của chúng tôi trên GitHub",
+      "resources": "Tài nguyên",
+      "blog": "Blog",
+      "read-our-latest-blog-posts": "Đọc các bài blog mới nhất của chúng tôi",
+      "view-our-subscription-pricing": "Xem bảng giá đăng ký của chúng tôi",
+      "learn-about-our-company": "Tìm hiểu về công ty của chúng tôi",
+      "company": "Công ty"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Thanh toán",
+      "billingOverview": "Tổng quan",
+      "organizations": "Tổ chức"
     },
     "site": {
-      "website-version": ""
+      "website-version": "Phiên bản trang web"
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "",
-      "translations-are-new-spotted-an-error": "",
-      "we-recently-added-translations": "",
-      "privacy-and-security-should-be-accessible": ""
+      "were-making-onetime-secret-available-in-multiple": "Chúng tôi đang cung cấp {onetime-secret} bằng nhiều ngôn ngữ. Vì đây là tính năng mới, bạn có thể gặp lỗi dịch thuật hoặc cách diễn đạt không tự nhiên. Phản hồi của bạn giúp chúng tôi cải thiện - nếu bạn phát hiện bất kỳ vấn đề nào, vui lòng {send-feedback}",
+      "translations-are-new-spotted-an-error": "Bản dịch còn mới. Phát hiện lỗi? {send-feedback}",
+      "we-recently-added-translations": "Chúng tôi vừa thêm bản dịch. Phát hiện lỗi? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Quyền riêng tư và bảo mật nên được tiếp cận bởi mọi người, bất kể ngôn ngữ. Chúng tôi đang thêm bản dịch để giúp cả người dùng và người nhận tin nhắn của họ hiểu rõ hơn về cách sử dụng và truy cập tin nhắn và liên kết an toàn một cách an toàn. Vì đây là tính năng mới, bạn có thể gặp một số lỗi dịch thuật hoặc hướng dẫn không rõ ràng. Để giúp chúng tôi cải thiện độ rõ ràng và chính xác của bản dịch, đặc biệt là nội dung quan trọng liên quan đến bảo mật, vui lòng {send-feedback} nếu bạn phát hiện bất kỳ vấn đề nào"
     },
     "help": {
-      "learn_more": "",
+      "learn_more": "Tìm hiểu thêm",
       "secret_view_faq": {
         "what_am_i_looking_at": {
-          "title": "",
-          "description": ""
+          "title": "Tôi đang xem gì?",
+          "description": "Bạn đang xem một tin nhắn an toàn đã được chia sẻ với bạn qua Onetime Secret. Nội dung này chỉ hiển thị một lần và sau đó bị xóa vĩnh viễn khỏi máy chủ của chúng tôi."
         },
         "can_i_view_again": {
-          "title": "",
-          "description": ""
+          "title": "Tôi có thể xem lại bí mật này sau không?",
+          "description": "Không. Vì lý do bảo mật, bí mật này chỉ có thể xem một lần. Sau khi đóng trang này, nội dung sẽ bị xóa vĩnh viễn và không thể khôi phục bởi bất kỳ ai, kể cả chúng tôi."
         },
         "how_to_copy": {
-          "title": "",
-          "description": ""
+          "title": "Làm cách nào để lưu thông tin này?",
+          "description": "Sử dụng nút 'Sao chép vào Clipboard' để sao chép toàn bộ bí mật. Đối với bí mật dài hơn, hãy đảm bảo xác minh rằng bạn đã sao chép toàn bộ nội dung trước khi rời khỏi trang này."
         },
         "is_my_viewing_tracked": {
-          "title": "",
-          "description": ""
+          "title": "Việc tôi xem bí mật này có bị theo dõi không?",
+          "description": "Người gửi sẽ được thông báo rằng bí mật của họ đã được xem, nhưng chúng tôi không theo dõi ai đã xem hoặc từ vị trí nào. Quyền riêng tư của bạn được bảo vệ."
         },
-        "one_time_warning": ""
+        "one_time_warning": "Sau khi bạn rời khỏi hoặc làm mới trang này, bí mật này sẽ bị xóa vĩnh viễn và không thể khôi phục bởi bất kỳ ai."
       }
     }
   }

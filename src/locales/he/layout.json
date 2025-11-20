@@ -1,61 +1,61 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "אבטחה",
+      "learn-about-our-security-measures": "למדו על אמצעי האבטחה שלנו",
+      "view-our-terms-and-conditions": "צפו בתנאים וההגבלות שלנו",
+      "terms": "תנאים",
+      "privacy": "פרטיות",
+      "contact": "יצירת קשר",
+      "support": "תמיכה",
+      "legals": "מסמכים משפטיים",
+      "read-our-privacy-policy": "קראו את מדיניות הפרטיות שלנו",
+      "check-our-service-status": "בדקו את סטטוס השירות שלנו",
+      "explore-our-api-documentation": "חקרו את תיעוד ה-API שלנו",
+      "docs": "תיעוד",
+      "access-our-documentation": "גישה לתיעוד שלנו",
+      "view-our-source-code-on-github": "צפו בקוד המקור שלנו ב-GitHub",
+      "resources": "משאבים",
+      "blog": "בלוג",
+      "read-our-latest-blog-posts": "קראו את פוסטי הבלוג האחרונים שלנו",
+      "view-our-subscription-pricing": "צפו בתמחור המנויים שלנו",
+      "learn-about-our-company": "למדו על החברה שלנו",
+      "company": "חברה"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "חיוב",
+      "billingOverview": "סקירה כללית",
+      "organizations": "ארגונים"
     },
     "site": {
-      "website-version": ""
+      "website-version": "גרסת אתר"
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "",
-      "translations-are-new-spotted-an-error": "",
-      "we-recently-added-translations": "",
-      "privacy-and-security-should-be-accessible": ""
+      "were-making-onetime-secret-available-in-multiple": "אנחנו הופכים את {onetime-secret} לזמין במספר שפות. מכיוון שמדובר בתכונה חדשה, ייתכן שתיתקלו בשגיאות תרגום או ניסוחים מסורבלים. המשוב שלכם עוזר לנו להשתפר - אם אתם מזהים בעיות, אנא {send-feedback}",
+      "translations-are-new-spotted-an-error": "התרגומים חדשים. זיהיתם שגיאה? {send-feedback}",
+      "we-recently-added-translations": "הוספנו לאחרונה תרגומים. זיהיתם שגיאה? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "פרטיות ואבטחה צריכות להיות נגישות לכולם, ללא קשר לשפה. אנחנו מוסיפים תרגומים כדי לעזור גם למשתמשים שלנו וגם לנמעני ההודעות שלהם להבין טוב יותר כיצד להשתמש ולגשת בצורה בטוחה להודעות וקישורים מאובטחים. מכיוון שמדובר בתכונה חדשה, ייתכן שתיתקלו בשגיאות תרגום או הוראות לא ברורות. כדי לעזור לנו לשפר את הבהירות והדיוק של התרגומים שלנו, במיוחד עבור תוכן קריטי הקשור לאבטחה, אנא {send-feedback} אם אתם מזהים בעיות"
     },
     "help": {
-      "learn_more": "",
+      "learn_more": "למדו עוד",
       "secret_view_faq": {
         "what_am_i_looking_at": {
-          "title": "",
-          "description": ""
+          "title": "במה אני מסתכל?",
+          "description": "אתם צופים בהודעה מאובטחת ששותפה איתכם דרך Onetime Secret. תוכן זה מוצג פעם אחת בלבד ולאחר מכן נמחק לצמיתות מהשרתים שלנו."
         },
         "can_i_view_again": {
-          "title": "",
-          "description": ""
+          "title": "האם אוכל לצפות בסוד הזה שוב מאוחר יותר?",
+          "description": "לא. מסיבות אבטחה, סוד זה ניתן לצפייה פעם אחת בלבד. לאחר סגירת עמוד זה, התוכן יימחק לצמיתות ולא ניתן יהיה לשחזר אותו על ידי אף אחד, כולל אנחנו."
         },
         "how_to_copy": {
-          "title": "",
-          "description": ""
+          "title": "איך אני שומר את המידע הזה?",
+          "description": "השתמשו בכפתור 'העתקה ללוח' כדי להעתיק את הסוד המלא. עבור סודות ארוכים יותר, וודאו שאימתתם שהעתקתם את התוכן המלא לפני שאתם עוזבים עמוד זה."
         },
         "is_my_viewing_tracked": {
-          "title": "",
-          "description": ""
+          "title": "האם הצפייה שלי בסוד זה מעוקבת?",
+          "description": "השולח יקבל הודעה שהסוד שלו נצפה, אך אנחנו לא עוקבים מי צפה בו או ממיקום. הפרטיות שלכם מוגנת."
         },
-        "one_time_warning": ""
+        "one_time_warning": "ברגע שתעזבו או תרעננו עמוד זה, הסוד הזה יימחק לצמיתות ולא ניתן יהיה לשחזר אותו על ידי אף אחד."
       }
     }
   }

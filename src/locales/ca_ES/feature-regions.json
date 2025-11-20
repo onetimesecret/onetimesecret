@@ -1,24 +1,24 @@
 {
   "web": {
     "regions": {
-      "data-sovereignty-title": "",
-      "data-sovereignty-description": "",
-      "separate-environments-explanation": "",
-      "no-data-transfer-policy": "",
-      "switching-creates-new-account": "",
-      "your-region": "",
-      "your-current-region": "",
-      "active": "",
-      "explore-other-regions": "",
-      "why-it-matters": "",
-      "trust-title": "",
-      "trust-description": "",
-      "privacy-title": "",
-      "privacy-description": "",
-      "compliance-title": "",
-      "compliance-description": "",
-      "performance-title": "",
-      "performance-description": ""
+      "data-sovereignty-title": "Sobirania de dades i aïllament regional",
+      "data-sovereignty-description": "Les teves dades resideixen exclusivament a la regió que has triat i mai es transfereixen entre regions",
+      "separate-environments-explanation": "Cada regió funciona com un entorn completament independent amb la seva pròpia infraestructura, claus de xifratge i emmagatzematge de dades",
+      "no-data-transfer-policy": "Mantenim una política estricta: les dades dels clients mai es transfereixen entre regions sota cap circumstància",
+      "switching-creates-new-account": "Important: canviar a una regió diferent crea un compte nou. Les teves dades es queden a la teva regió original.",
+      "your-region": "La teva regió",
+      "your-current-region": "La teva regió actual",
+      "active": "Activa",
+      "explore-other-regions": "Explora altres regions disponibles",
+      "why-it-matters": "Per què importa la sobirania de dades",
+      "trust-title": "Transparència i control",
+      "trust-description": "Sap exactament on resideixen les teves dades i quines lleis en regulen la protecció.",
+      "privacy-title": "Drets de privadesa",
+      "privacy-description": "Assegura't que la teva informació personal es tracta d'acord amb les lleis de privadesa del teu país i les regulacions, evitant l'accés o l'ús no autoritzats.",
+      "compliance-title": "Compliment normatiu",
+      "compliance-description": "Compleix amb el GDPR, HIPAA, CCPA i altres requisits de protecció de dades regionals",
+      "performance-title": "Accés més ràpid",
+      "performance-description": "Les dades emmagatzemades més a prop teu signifiquen menor latència i millor rendiment."
     }
   }
 }

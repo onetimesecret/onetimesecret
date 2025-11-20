@@ -99,7 +99,7 @@
         "inactive": "Inativa",
         "past_due": "Atrasada",
         "canceled": "Cancelada",
-        "plan_name": "Plano",
+        "catalog_name": "Plano",
         "team_usage": "Uso de Equipa",
         "teams_used": "{used} de {limit} equipas usadas"
       },

@@ -1,61 +1,61 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "Безопасность",
+      "learn-about-our-security-measures": "Узнайте о наших мерах безопасности",
+      "view-our-terms-and-conditions": "Просмотрите наши Условия использования",
+      "terms": "Условия",
+      "privacy": "Конфиденциальность",
+      "contact": "Контакты",
+      "support": "Поддержка",
+      "legals": "Юридическая информация",
+      "read-our-privacy-policy": "Прочитайте нашу Политику конфиденциальности",
+      "check-our-service-status": "Проверьте статус нашего сервиса",
+      "explore-our-api-documentation": "Изучите нашу документацию API",
+      "docs": "Документация",
+      "access-our-documentation": "Получите доступ к нашей документации",
+      "view-our-source-code-on-github": "Просмотрите наш исходный код на GitHub",
+      "resources": "Ресурсы",
+      "blog": "Блог",
+      "read-our-latest-blog-posts": "Прочитайте наши последние публикации в блоге",
+      "view-our-subscription-pricing": "Просмотрите тарифы на подписку",
+      "learn-about-our-company": "Узнайте о нашей компании",
+      "company": "Компания"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Счета",
+      "billingOverview": "Обзор",
+      "organizations": "Организации"
     },
     "site": {
-      "website-version": "Website Version"
+      "website-version": "Версия сайта"
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "We're making {onetime-secret} available in multiple languages. Since this is a new feature, you may encounter translation errors or awkward phrasing. Your feedback helps us improve - if you spot any issues, please {send-feedback}",
-      "translations-are-new-spotted-an-error": "Translations are new. Spotted an error? {send-feedback}",
-      "we-recently-added-translations": "We recently added translations. Spotted an error? {send-feedback}",
-      "privacy-and-security-should-be-accessible": "Privacy and security should be accessible to everyone, regardless of language. We're adding translations to help both our users and their message recipients better understand how to safely use and access secure messages and links. Since this is a new feature, you might encounter some translation errors or unclear instructions. To help us improve the clarity and accuracy of our translations, especially for critical security-related content, please {send-feedback} if you spot any issues"
+      "were-making-onetime-secret-available-in-multiple": "Мы делаем {onetime-secret} доступным на нескольких языках. Поскольку это новая функция, вы можете столкнуться с ошибками перевода или неловкими формулировками. Ваш отзыв помогает нам улучшаться - если вы заметили какие-либо проблемы, пожалуйста, {send-feedback}",
+      "translations-are-new-spotted-an-error": "Переводы новые. Заметили ошибку? {send-feedback}",
+      "we-recently-added-translations": "Мы недавно добавили переводы. Заметили ошибку? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Конфиденциальность и безопасность должны быть доступны каждому, независимо от языка. Мы добавляем переводы, чтобы помочь как нашим пользователям, так и получателям их сообщений лучше понять, как безопасно использовать и получать доступ к защищённым сообщениям и ссылкам. Поскольку это новая функция, вы можете столкнуться с некоторыми ошибками перевода или неясными инструкциями. Чтобы помочь нам улучшить ясность и точность наших переводов, особенно для критически важного контента, связанного с безопасностью, пожалуйста, {send-feedback}, если вы заметите какие-либо проблемы"
     },
     "help": {
-      "learn_more": "Learn more",
+      "learn_more": "Узнать больше",
       "secret_view_faq": {
         "what_am_i_looking_at": {
-          "title": "What am I looking at?",
-          "description": "You're viewing a secure message that was shared with you through Onetime Secret. This content is displayed only once and then permanently deleted from our servers."
+          "title": "Что я вижу?",
+          "description": "Вы просматриваете безопасное сообщение, которым поделились с вами через Onetime Secret. Это содержимое отображается только один раз, а затем навсегда удаляется с наших серверов."
         },
         "can_i_view_again": {
-          "title": "Can I view this secret again later?",
-          "description": "No. For security reasons, this secret is only viewable once. After closing this page, the content will be permanently deleted and cannot be recovered by anyone, including us."
+          "title": "Могу ли я посмотреть этот секрет снова позже?",
+          "description": "Нет. По соображениям безопасности этот секрет можно просмотреть только один раз. После закрытия этой страницы содержимое будет навсегда удалено и не может быть восстановлено кем-либо, включая нас."
         },
         "how_to_copy": {
-          "title": "How do I save this information?",
-          "description": "Use the 'Copy to Clipboard' button to copy the entire secret. For longer secrets, make sure to verify you've copied the complete content before leaving this page."
+          "title": "Как мне сохранить эту информацию?",
+          "description": "Используйте кнопку «Копировать в буфер обмена», чтобы скопировать весь секрет. Для длинных секретов убедитесь, что вы скопировали полное содержимое, прежде чем покинуть эту страницу."
         },
         "is_my_viewing_tracked": {
-          "title": "Is my viewing of this secret tracked?",
-          "description": "The sender will be notified that their secret was viewed, but we don't track who viewed it or from what location. Your privacy is protected."
+          "title": "Отслеживается ли мой просмотр этого секрета?",
+          "description": "Отправителю будет сообщено, что его секрет был просмотрен, но мы не отслеживаем, кто его просмотрел или из какого места. Ваша конфиденциальность защищена."
         },
-        "one_time_warning": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone."
+        "one_time_warning": "После того, как вы покинете или обновите эту страницу, этот секрет будет навсегда удалён и не может быть восстановлен кем-либо."
       }
     }
   }

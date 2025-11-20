@@ -1,11 +1,11 @@
 {
   "web": {
     "domains": {
-      "learn-more-dns": "Learn more about DNS configuration",
-      "view-domain-verification-status": "View domain verification status",
-      "domain-already-in-organization": "",
-      "domain-in-other-organization": "",
-      "domain-claimed-successfully": ""
+      "learn-more-dns": "Узнайте больше о конфигурации DNS",
+      "view-domain-verification-status": "Просмотреть статус подтверждения домена",
+      "domain-already-in-organization": "Этот домен уже зарегистрирован в вашей организации",
+      "domain-in-other-organization": "Этот домен уже зарегистрирован в другой организации. Пожалуйста, свяжитесь с поддержкой, если вы считаете, что это ошибка.",
+      "domain-claimed-successfully": "Домен успешно заявлен и добавлен в вашу организацию"
     }
   }
 }

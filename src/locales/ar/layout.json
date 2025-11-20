@@ -1,61 +1,61 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn-about-our-security-measures": "",
-      "view-our-terms-and-conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read-our-privacy-policy": "",
-      "check-our-service-status": "",
-      "explore-our-api-documentation": "",
-      "docs": "",
-      "access-our-documentation": "",
-      "view-our-source-code-on-github": "",
-      "resources": "",
-      "blog": "",
-      "read-our-latest-blog-posts": "",
-      "view-our-subscription-pricing": "",
-      "learn-about-our-company": "",
-      "company": ""
+      "security": "الأمان",
+      "learn-about-our-security-measures": "تعرف على تدابيرنا الأمنية",
+      "view-our-terms-and-conditions": "عرض الشروط والأحكام",
+      "terms": "الشروط",
+      "privacy": "الخصوصية",
+      "contact": "التواصل",
+      "support": "الدعم",
+      "legals": "القانونية",
+      "read-our-privacy-policy": "اقرأ سياسة الخصوصية",
+      "check-our-service-status": "تحقق من حالة الخدمة",
+      "explore-our-api-documentation": "استكشف توثيق API",
+      "docs": "التوثيق",
+      "access-our-documentation": "الوصول إلى توثيقنا",
+      "view-our-source-code-on-github": "عرض الكود المصدري على GitHub",
+      "resources": "الموارد",
+      "blog": "المدونة",
+      "read-our-latest-blog-posts": "اقرأ أحدث منشورات مدونتنا",
+      "view-our-subscription-pricing": "عرض أسعار الاشتراك",
+      "learn-about-our-company": "تعرف على شركتنا",
+      "company": "الشركة"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "الفوترة",
+      "billingOverview": "نظرة عامة",
+      "organizations": "المنظمات"
     },
     "site": {
-      "website-version": ""
+      "website-version": "إصدار الموقع"
     },
     "meta": {
-      "were-making-onetime-secret-available-in-multiple": "",
-      "translations-are-new-spotted-an-error": "",
-      "we-recently-added-translations": "",
-      "privacy-and-security-should-be-accessible": ""
+      "were-making-onetime-secret-available-in-multiple": "نجعل {onetime-secret} متاحاً بلغات متعددة. نظراً لأن هذه ميزة جديدة، قد تواجه أخطاء في الترجمة أو صياغة محرجة. ملاحظاتك تساعدنا على التحسين - إذا لاحظت أي مشاكل، يرجى {send-feedback}",
+      "translations-are-new-spotted-an-error": "الترجمات جديدة. لاحظت خطأ؟ {send-feedback}",
+      "we-recently-added-translations": "أضفنا الترجمات مؤخراً. لاحظت خطأ؟ {send-feedback}",
+      "privacy-and-security-should-be-accessible": "يجب أن تكون الخصوصية والأمان متاحين للجميع، بغض النظر عن اللغة. نضيف ترجمات لمساعدة مستخدمينا ومستلمي رسائلهم على فهم أفضل لكيفية استخدام والوصول بأمان إلى الرسائل والروابط الآمنة. نظراً لأن هذه ميزة جديدة، قد تواجه بعض أخطاء الترجمة أو تعليمات غير واضحة. لمساعدتنا في تحسين وضوح ودقة ترجماتنا، خاصة للمحتوى الحساس أمنياً، يرجى {send-feedback} إذا لاحظت أي مشاكل"
     },
     "help": {
-      "learn_more": "",
+      "learn_more": "تعلم المزيد",
       "secret_view_faq": {
         "what_am_i_looking_at": {
-          "title": "",
-          "description": ""
+          "title": "ماذا أشاهد؟",
+          "description": "تشاهد رسالة آمنة تمت مشاركتها معك عبر Onetime Secret. يُعرض هذا المحتوى مرة واحدة فقط ثم يُحذف نهائياً من خوادمنا."
         },
         "can_i_view_again": {
-          "title": "",
-          "description": ""
+          "title": "هل يمكنني عرض هذا السر مرة أخرى لاحقاً؟",
+          "description": "لا. لأسباب أمنية، هذا السر قابل للعرض مرة واحدة فقط. بعد إغلاق هذه الصفحة، سيتم حذف المحتوى نهائياً ولا يمكن استرداده من قبل أي شخص، بما في ذلك نحن."
         },
         "how_to_copy": {
-          "title": "",
-          "description": ""
+          "title": "كيف أحفظ هذه المعلومات؟",
+          "description": "استخدم زر 'نسخ إلى الحافظة' لنسخ السر بالكامل. للأسرار الطويلة، تأكد من التحقق من نسخ المحتوى الكامل قبل مغادرة هذه الصفحة."
         },
         "is_my_viewing_tracked": {
-          "title": "",
-          "description": ""
+          "title": "هل يتم تتبع عرضي لهذا السر؟",
+          "description": "سيتم إخطار المرسل بأن سره قد تم عرضه، ولكننا لا نتتبع من شاهده أو من أي موقع. خصوصيتك محمية."
         },
-        "one_time_warning": ""
+        "one_time_warning": "بمجرد مغادرة أو تحديث هذه الصفحة، سيتم حذف هذا السر نهائياً ولا يمكن استرداده من قبل أي شخص."
       }
     }
   }

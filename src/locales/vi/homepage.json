@@ -15,17 +15,17 @@
       "explore_premium_plans": "Khám phá các gói Premium",
       "need_free_account": "Mới bắt đầu?",
       "sign_up_free": "Tạo tài khoản miễn phí",
-      "visit-onetime-secret-home": "",
-      "password_generation_title": "",
-      "password_generation_description": "",
-      "protip1": "",
+      "visit-onetime-secret-home": "Truy cập trang chủ Onetime Secret",
+      "password_generation_title": "Trình tạo mật khẩu",
+      "password_generation_description": "Nhấp \"Tạo mật khẩu\" để tạo mật khẩu ngẫu nhiên an toàn mà bạn có thể chia sẻ.",
+      "protip1": "Tin nhắn của bạn sẽ tự hủy sau khi được xem. Liên kết chỉ có thể được truy cập một lần.",
       "authonly": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Tránh lưu lại những thông tin nhạy cảm ở email hoặc lịch sử trò chuyện.",
+        "tagline1": "Dán một mật khẩu, thông tin bí mật hoặc một đường dẫn riêng tư ở phía dưới."
       },
       "disabled": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Tránh lưu lại những thông tin nhạy cảm ở email hoặc lịch sử trò chuyện.",
+        "tagline1": "Dán một mật khẩu, thông tin bí mật hoặc một đường dẫn riêng tư ở phía dưới."
       }
     }
   }
