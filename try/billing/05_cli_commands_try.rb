@@ -67,7 +67,9 @@ if @prices.data.empty?
       plan_id: 'test_v1',
       tier: 'test',
       region: 'global',
-      capabilities: 'test'
+      capabilities: 'test',
+      tenancy: 'single',
+      created: Time.now.utc.iso8601
     }
   })
   @price = Stripe::Price.create({

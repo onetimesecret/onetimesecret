@@ -526,7 +526,7 @@ Stripe (products + prices)
 
 - Stripe Products API: https://docs.stripe.com/api/products
 - Stripe Prices API: https://docs.stripe.com/api/prices
-- `apps/web/billing/models/plan_cache.rb` - Cache implementation
+- `apps/web/billing/models/catalog_cache.rb` - Cache implementation
 - `lib/onetime/billing_config.rb` - Billing configuration loader
 
 ---
@@ -1691,6 +1691,7 @@ bin/ots billing payment-links create \
 | `billing products` | List Stripe products | `--active-only` |
 | `billing products create` | Create product | `--interactive`, `--plan-id`, `--tier` |
 | `billing products show` | Show product details | - |
+| `billing products events` | Show product-related events | `--limit`, `--type` |
 | `billing products update` | Update product metadata | `--interactive`, metadata fields |
 | `billing prices` | List Stripe prices | `--product`, `--active-only` |
 | `billing prices create` | Create price | `--amount`, `--interval`, `--currency` |

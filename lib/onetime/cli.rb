@@ -58,7 +58,7 @@ module Onetime
   end
 end
 
-# Load CLI commands
+# Load core CLI commands
 require_relative 'cli/simple_commands'
 require_relative 'cli/server_command'
 require_relative 'cli/boot_test_command'
@@ -72,3 +72,18 @@ require_relative 'cli/billing_command'
 require_relative 'cli/change_email_command'
 require_relative 'cli/session_command'
 require_relative 'cli/totp_command'
+
+# Auto-discover app CLI commands
+apps_root = File.join(ENV['ONETIME_HOME'] || Dir.pwd, 'apps')
+if Dir.exist?(apps_root)
+  cli_patterns = [
+    File.join(apps_root, '*', 'cli', '**', '*_command.rb'),
+    File.join(apps_root, '*', '*', 'cli', '**', '*_command.rb')
+  ]
+
+  cli_patterns.each do |pattern|
+    Dir.glob(pattern).sort.each do |file|
+      require file
+    end
+  end
+end
