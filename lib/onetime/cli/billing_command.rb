@@ -207,8 +207,13 @@ module Onetime
 
           Customers & Subscriptions:
             bin/ots billing customers          List Stripe customers
+            bin/ots billing customers create   Create new customer
             bin/ots billing subscriptions      List Stripe subscriptions
+            bin/ots billing subscriptions cancel  Cancel subscription
             bin/ots billing invoices           List Stripe invoices
+
+          Testing:
+            bin/ots billing test create-customer  Create test customer with card
 
           Sync & Validation:
             bin/ots billing sync               Full sync from Stripe to Redis
@@ -223,8 +228,20 @@ module Onetime
             # List active subscriptions
             bin/ots billing subscriptions --status active
 
+            # Cancel subscription at period end
+            bin/ots billing subscriptions cancel sub_xxx
+
+            # Cancel subscription immediately
+            bin/ots billing subscriptions cancel sub_xxx --immediately
+
             # Find customer by email
             bin/ots billing customers --email user@example.com
+
+            # Create a new customer
+            bin/ots billing customers create --email user@example.com --name "John Doe"
+
+            # Create test customer with payment method
+            bin/ots billing test create-customer
 
             # Create a new product
             bin/ots billing products create --name "Identity Plan" --interactive
@@ -778,6 +795,187 @@ Total: #{catalog.size} catalog entries"
         puts "Error fetching events: #{e.message}"
       end
     end
+
+    # Cancel subscription
+    class BillingSubscriptionsCancelCommand < Command
+      include BillingHelpers
+
+      desc 'Cancel a subscription'
+
+      argument :subscription_id, required: true, desc: 'Subscription ID (sub_xxx)'
+
+      option :immediately, type: :boolean, default: false,
+        desc: 'Cancel immediately instead of at period end'
+      option :force, type: :boolean, default: false,
+        desc: 'Skip confirmation prompt'
+
+      def call(subscription_id:, immediately: false, force: false, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        # Retrieve subscription
+        subscription = Stripe::Subscription.retrieve(subscription_id)
+
+        # Display current status
+        puts "Subscription: #{subscription.id}"
+        puts "Customer: #{subscription.customer}"
+        puts "Status: #{subscription.status}"
+        puts "Current period end: #{format_timestamp(subscription.current_period_end)}"
+        puts
+
+        if immediately
+          puts "⚠️  Will cancel IMMEDIATELY"
+        else
+          puts "Will cancel at period end: #{format_timestamp(subscription.current_period_end)}"
+        end
+
+        unless force
+          print '\nProceed? (y/n): '
+          return unless $stdin.gets.chomp.downcase == 'y'
+        end
+
+        # Cancel subscription
+        canceled = if immediately
+          Stripe::Subscription.cancel(subscription_id)
+        else
+          Stripe::Subscription.update(subscription_id, {
+            cancel_at_period_end: true
+          })
+        end
+
+        puts "\nSubscription canceled successfully"
+        puts "Status: #{canceled.status}"
+        puts "Canceled at: #{format_timestamp(canceled.canceled_at)}" if canceled.canceled_at
+        if canceled.cancel_at_period_end
+          puts "Will end at: #{format_timestamp(canceled.current_period_end)}"
+        end
+
+      rescue Stripe::StripeError => e
+        puts "Error canceling subscription: #{e.message}"
+      end
+    end
+
+    # Create customer
+    class BillingCustomersCreateCommand < Command
+      include BillingHelpers
+
+      desc 'Create a new Stripe customer'
+
+      option :email, type: :string, desc: 'Customer email'
+      option :name, type: :string, desc: 'Customer name'
+      option :interactive, type: :boolean, default: false,
+        desc: 'Interactive mode - prompt for fields'
+
+      def call(email: nil, name: nil, interactive: false, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        if interactive || email.nil?
+          print 'Email: '
+          email = $stdin.gets.chomp
+          print 'Name (optional): '
+          name = $stdin.gets.chomp
+        end
+
+        if email.to_s.strip.empty?
+          puts 'Error: Email is required'
+          return
+        end
+
+        puts "\nCreating customer:"
+        puts "  Email: #{email}"
+        puts "  Name: #{name}" if name && !name.empty?
+
+        print '\nProceed? (y/n): '
+        return unless $stdin.gets.chomp.downcase == 'y'
+
+        customer_params = { email: email }
+        customer_params[:name] = name if name && !name.empty?
+
+        customer = Stripe::Customer.create(customer_params)
+
+        puts "\nCustomer created successfully:"
+        puts "  ID: #{customer.id}"
+        puts "  Email: #{customer.email}"
+        puts "  Name: #{customer.name}" if customer.name
+
+      rescue Stripe::StripeError => e
+        puts "Error creating customer: #{e.message}"
+      end
+    end
+
+    # Create test customer with payment method
+    class BillingTestCreateCustomerCommand < Command
+      include BillingHelpers
+
+      desc 'Create test customer with payment method (test mode only)'
+
+      option :with_card, type: :boolean, default: true,
+        desc: 'Attach test card payment method'
+
+      def call(with_card: true, **)
+        boot_application!
+
+        return unless stripe_configured?
+
+        unless Stripe.api_key.start_with?('sk_test_')
+          puts 'Error: Can only create test customers with test API keys'
+          puts 'Current key appears to be for live mode'
+          return
+        end
+
+        require 'securerandom'
+        email = "test-#{SecureRandom.hex(4)}@example.com"
+
+        puts "Creating test customer:"
+        puts "  Email: #{email}"
+
+        customer = Stripe::Customer.create({
+          email: email,
+          name: "Test Customer",
+          description: "CLI test customer - #{Time.now}"
+        })
+
+        puts "\nCustomer created:"
+        puts "  ID: #{customer.id}"
+        puts "  Email: #{customer.email}"
+
+        if with_card
+          # Attach test card
+          pm = Stripe::PaymentMethod.create({
+            type: 'card',
+            card: {
+              number: '4242424242424242',
+              exp_month: 12,
+              exp_year: Time.now.year + 2,
+              cvc: '123'
+            }
+          })
+
+          Stripe::PaymentMethod.attach(pm.id, { customer: customer.id })
+
+          Stripe::Customer.update(customer.id, {
+            invoice_settings: {
+              default_payment_method: pm.id
+            }
+          })
+
+          puts "\nTest card attached:"
+          puts "  Payment method: #{pm.id}"
+          puts "  Card: Visa ****4242"
+          puts "  Expiry: 12/#{Time.now.year + 2}"
+        end
+
+        puts "\nTest customer ready for use!"
+        puts "\nNext steps:"
+        puts "  bin/ots billing subscriptions create --customer #{customer.id}"
+
+      rescue Stripe::StripeError => e
+        puts "Error creating test customer: #{e.message}"
+      end
+    end
   end
 end
 
@@ -790,8 +988,11 @@ Onetime::CLI.register 'billing products update', Onetime::CLI::BillingProductsUp
 Onetime::CLI.register 'billing prices', Onetime::CLI::BillingPricesCommand
 Onetime::CLI.register 'billing prices create', Onetime::CLI::BillingPricesCreateCommand
 Onetime::CLI.register 'billing subscriptions', Onetime::CLI::BillingSubscriptionsCommand
+Onetime::CLI.register 'billing subscriptions cancel', Onetime::CLI::BillingSubscriptionsCancelCommand
 Onetime::CLI.register 'billing customers', Onetime::CLI::BillingCustomersCommand
+Onetime::CLI.register 'billing customers create', Onetime::CLI::BillingCustomersCreateCommand
 Onetime::CLI.register 'billing invoices', Onetime::CLI::BillingInvoicesCommand
 Onetime::CLI.register 'billing events', Onetime::CLI::BillingEventsCommand
+Onetime::CLI.register 'billing test create-customer', Onetime::CLI::BillingTestCreateCustomerCommand
 Onetime::CLI.register 'billing sync', Onetime::CLI::BillingSyncCommand
 Onetime::CLI.register 'billing validate', Onetime::CLI::BillingValidateCommand
