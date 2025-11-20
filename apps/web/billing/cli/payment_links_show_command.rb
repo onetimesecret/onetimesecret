@@ -19,10 +19,6 @@ module Onetime
 
         return unless stripe_configured?
 
-        # Ensure link_id is a string
-        link_id = link_id.to_s.strip if link_id.respond_to?(:strip)
-        link_id = link_id.first.to_s.strip if link_id.is_a?(Array)
-
         # Retrieve the payment link
         link = Stripe::PaymentLink.retrieve(link_id)
 
@@ -69,10 +65,14 @@ module Onetime
             puts "Line Items:"
             puts "  (none configured)"
           end
+        rescue Stripe::StripeError => e
+          puts "Line Items:"
+          puts "  Error retrieving: #{e.message}"
+          OT.logger.warn { "Stripe error fetching line items for #{link_id}: #{e.message}" }
         rescue StandardError => e
           puts "Line Items:"
           puts "  Error retrieving: #{e.message}"
-          OT.logger.debug { "Line items error for #{link_id}: #{e.message}\n#{e.backtrace.first(5).join("\n")}" }
+          OT.logger.error { "Unexpected error fetching line items for #{link_id}: #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}" }
         end
 
       rescue Stripe::StripeError => e

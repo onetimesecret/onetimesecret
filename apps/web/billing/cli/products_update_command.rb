@@ -61,7 +61,7 @@ module Onetime
         puts "Updating metadata:"
         metadata.each { |k, v| puts "  #{k}: #{v}" }
 
-        print '\nProceed? (y/n): '
+        print "\nProceed? (y/n): "
         return unless $stdin.gets.chomp.downcase == 'y'
 
         # Build update params

@@ -38,7 +38,7 @@ module Onetime
         puts "  Email: #{email}"
         puts "  Name: #{name}" if name && !name.empty?
 
-        print '\nProceed? (y/n): '
+        print "\nProceed? (y/n): "
         return unless $stdin.gets.chomp.downcase == 'y'
 
         customer_params        = { email: email }

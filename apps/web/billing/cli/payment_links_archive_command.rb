@@ -34,7 +34,7 @@ module Onetime
           return unless $stdin.gets.chomp.downcase == 'y'
         end
 
-        updated = Stripe::PaymentLink.update(link_id, { active: false })
+        Stripe::PaymentLink.update(link_id, { active: false })
 
         puts "\nPayment link archived successfully"
         puts 'Status: inactive'

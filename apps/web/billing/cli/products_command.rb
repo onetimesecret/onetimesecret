@@ -30,7 +30,7 @@ module Onetime
 
         puts format('%-22s %-40s %-12s %-12s %-10s %s',
           'ID', 'NAME', 'TIER', 'TENANCY', 'REGION', 'ACTIVE')
-        puts '-' * 110
+        puts '-' * 101
 
         products.data.each do |product|
           puts format_product_row(product)

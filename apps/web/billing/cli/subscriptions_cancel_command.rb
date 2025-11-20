@@ -41,7 +41,7 @@ module Onetime
         end
 
         unless yes
-          print '\nProceed? (y/n): '
+          print "\nProceed? (y/n): "
           return unless $stdin.gets.chomp.downcase == 'y'
         end
 

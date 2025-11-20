@@ -60,7 +60,7 @@ module Onetime
         puts "  Amount: #{format_amount(amount, currency)}"
         puts "  Interval: #{interval_count} #{interval}(s)"
 
-        print '\nProceed? (y/n): '
+        print "\nProceed? (y/n): "
         return unless $stdin.gets.chomp.downcase == 'y'
 
         price = Stripe::Price.create({

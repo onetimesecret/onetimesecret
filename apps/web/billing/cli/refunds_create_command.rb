@@ -38,7 +38,7 @@ module Onetime
         puts "Reason: #{reason}" if reason
 
         unless yes
-          print '\nCreate refund? (y/n): '
+          print "\nCreate refund? (y/n): "
           return unless $stdin.gets.chomp.downcase == 'y'
         end
 

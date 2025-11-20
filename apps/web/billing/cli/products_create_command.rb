@@ -59,7 +59,7 @@ module Onetime
         puts "\nCreating product '#{name}' with metadata:"
         metadata.each { |k, v| puts "  #{k}: #{v}" }
 
-        print '\nProceed? (y/n): '
+        print "\nProceed? (y/n): "
         return unless $stdin.gets.chomp.downcase == 'y'
 
         # Build product creation params

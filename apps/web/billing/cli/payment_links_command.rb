@@ -61,9 +61,11 @@ module Onetime
               amount = format_amount(price.unit_amount, price.currency)
               interval = price.recurring&.interval || 'one-time'
             end
+          rescue Stripe::StripeError => e
+            # Continue with N/A values if we can't fetch details from Stripe
+            OT.logger.warn { "Stripe error fetching details for #{link.id}: #{e.message}" }
           rescue StandardError => e
-            # Continue with N/A values if we can't fetch details
-            OT.logger.debug { "Failed to fetch details for #{link.id}: #{e.message}" }
+            OT.logger.error { "Unexpected error fetching details for #{link.id}: #{e.class}: #{e.message}" }
           end
 
           puts format('%-30s %-30s %-12s %-10s %s',
