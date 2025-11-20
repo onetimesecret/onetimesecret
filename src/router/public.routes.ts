@@ -80,7 +80,6 @@ const routes: Array<RouteRecordRaw> = [
       };
 
       // Apply component state specific overrides
-      console.debug('Homepage mode: ' + componentMode);
       switch (componentMode) {
         case 'disabled-ui':
           // DisabledUI layout: minimal header/nav

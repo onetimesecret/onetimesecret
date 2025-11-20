@@ -47,14 +47,14 @@ module Core
       #
       # When site.interface.ui.homepage.mode=protected, this
       # checks if the configured HTTP header contains the value 'protected'.
-      # Returns true when the header matches, nil otherwise.
+      # Returns 'protected' when the header matches, nil otherwise.
       #
       # SECURITY:
       # - The request header can only RESTRICT access, never EXPAND it. It has
-      #   not effect on authentication settings or API routes.
+      #   no effect on authentication settings or API routes.
       # - The frontend Vue router checks homepage_mode determine homepage state
       #
-      # @return [Boolean, nil] true if header matches 'protected', nil otherwise
+      # @return [String, nil] 'protected' if header matches, nil otherwise
       def check_protected_by_request_header
         ui_config = OT.conf.dig('site', 'interface', 'ui') || {}
         homepage_mode = ui_config.dig('homepage', 'mode')

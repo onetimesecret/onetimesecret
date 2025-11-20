@@ -50,7 +50,7 @@ end
       'ui' => {
         'enabled' => true,
         'homepage' => {
-          'mode' => 'protected_by_request_header',
+          'mode' => 'protected',
           'request_header' => 'O-Homepage-Mode'
         }
       }
@@ -75,7 +75,7 @@ OT.conf['site']['authentication']['required']
 
 ## Verify homepage mode is configured
 OT.conf['site']['interface']['ui']['homepage']['mode']
-#=> 'protected_by_request_header'
+#=> 'protected'
 
 # -------------------------------------------------------------------
 # TEST: Homepage with bypass header shows homepage_bypass_header: true
@@ -94,8 +94,8 @@ OT.conf['site']['interface']['ui']['homepage']['mode']
 
 ## Parse the JSON
 @window_state = JSON.parse(@script_match[1])
-@window_state['homepage_bypass_header']
-#=> true
+@window_state['homepage_mode']
+#=> 'protected'
 
 ## Verify authentication.required is still true (not overridden at config level)
 @window_state['authentication']['required']

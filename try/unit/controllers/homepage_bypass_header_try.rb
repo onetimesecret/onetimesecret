@@ -57,7 +57,7 @@ end
     'interface' => {
       'ui' => {
         'homepage' => {
-          'mode' => 'protected_by_request_header',
+          'mode' => 'protected',
           'request_header' => 'O-Homepage-Mode'
         }
       }
@@ -76,7 +76,7 @@ end
 
 OT.conf = @test_config
 OT.conf.dig('site', 'interface', 'ui', 'homepage', 'mode')
-#=> 'protected_by_request_header'
+#=> 'protected'
 
 # -------------------------------------------------------------------
 # TEST: Method returns true when header matches
@@ -86,7 +86,7 @@ OT.conf.dig('site', 'interface', 'ui', 'homepage', 'mode')
 @req_with_header = create_mock_request('O-Homepage-Mode' => 'protected')
 @controller = TestController.new(@req_with_header, nil)
 @controller.check_protected_by_request_header
-#=> true
+#=> 'protected'
 
 # -------------------------------------------------------------------
 # TEST: Method returns nil when header is missing
@@ -144,7 +144,7 @@ OT.conf = @test_config
 @req_underscore = create_mock_request('X-Custom-Header' => 'protected')
 @controller7 = TestController.new(@req_underscore, nil)
 @controller7.check_protected_by_request_header
-#=> true
+#=> 'protected'
 
 ## Configure with header already in HTTP_ format
 @test_config['site']['interface']['ui']['homepage']['request_header'] = 'HTTP_X_BYPASS'
@@ -152,7 +152,7 @@ OT.conf = @test_config
 @req_http_prefix = create_mock_request('X-Bypass' => 'protected')
 @controller8 = TestController.new(@req_http_prefix, nil)
 @controller8.check_protected_by_request_header
-#=> true
+#=> 'protected'
 
 # -------------------------------------------------------------------
 # TEST: Method returns nil when mode is not configured
