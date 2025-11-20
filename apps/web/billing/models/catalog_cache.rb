@@ -1,4 +1,4 @@
-# apps/web/billing/models/plan_cache.rb
+# apps/web/billing/models/catalog_cache.rb
 #
 # frozen_string_literal: true
 
@@ -130,9 +130,30 @@ module Billing
 
           products.auto_paging_each do |product|
             # Skip products without required metadata
-            next unless product.metadata['app'] == 'onetimesecret'
-            next unless product.metadata['tier']
-            next unless product.metadata['region']
+            unless product.metadata['app'] == 'onetimesecret'
+              OT.ld "[CatalogCache.refresh_from_stripe] Skipping product (not onetimesecret app)", {
+                product_id: product.id,
+                product_name: product.name,
+                app: product.metadata['app']
+              }
+              next
+            end
+
+            unless product.metadata['tier']
+              OT.lw "[CatalogCache.refresh_from_stripe] Skipping product (missing tier)", {
+                product_id: product.id,
+                product_name: product.name
+              }
+              next
+            end
+
+            unless product.metadata['region']
+              OT.lw "[CatalogCache.refresh_from_stripe] Skipping product (missing region)", {
+                product_id: product.id,
+                product_name: product.name
+              }
+              next
+            end
 
             # Fetch all active prices for this product
             prices = Stripe::Price.list({

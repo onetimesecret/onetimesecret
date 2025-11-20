@@ -198,7 +198,7 @@ module Billing
       #
       # @return [Hash] List of plans
       def list_plans
-        plans = ::Billing::Models::CatalogCache.list_plans
+        plans = ::Billing::Models::CatalogCache.list_catalog
 
         # Filter out nil plans (stale cache entries)
         plan_data = plans.compact.map do |plan|

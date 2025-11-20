@@ -180,7 +180,7 @@ module Billing
       def build_plans_summary
         summary = {}
 
-        ::Billing::Models::CatalogCache.list_plans.each do |plan|
+        ::Billing::Models::CatalogCache.list_catalog.each do |plan|
           next unless plan
 
           summary[plan.plan_id] = {

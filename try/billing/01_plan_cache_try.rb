@@ -10,7 +10,7 @@ require_relative '../support/test_helpers'
 # Uses mock Stripe API responses to avoid external dependencies.
 
 ## Setup: Load billing models
-require 'apps/web/billing/models/plan_cache'
+require 'apps/web/billing/models/catalog_cache'
 
 ## Clear any existing plan cache
 Billing::Models::CatalogCache.clear_cache.class
@@ -75,7 +75,7 @@ Billing::Models::CatalogCache.values.size
 #=> 'identity_v1_yearly'
 
 ## List all plans
-Billing::Models::CatalogCache.list_plans.size
+Billing::Models::CatalogCache.list_catalog.size
 #=> 2
 
 ## Clear cache
