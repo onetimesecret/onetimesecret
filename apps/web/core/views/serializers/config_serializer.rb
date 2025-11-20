@@ -28,6 +28,7 @@ module Core
 
         output['ui']             = site.dig('interface', 'ui')
         output['authentication'] = site.fetch('authentication', nil)
+        output['homepage_mode']  = view_vars['homepage_mode']
         output['secret_options'] = site['secret_options']
         output['site_host']      = site['host']
         regions                  = features.fetch('regions', {})
@@ -76,6 +77,7 @@ module Core
             'features' => nil,
             'frontend_development' => nil,
             'frontend_host' => nil,
+            'homepage_mode' => nil,
             'billing_enabled' => nil,
             'regions' => nil,
             'regions_enabled' => nil,

@@ -108,6 +108,10 @@ module Core
         display_domain  = req.env.fetch('onetime.display_domain', nil)
         locale          = req.env.fetch('otto.locale', OT.default_locale)
 
+        # Controller-level flag whether to display the "internal use only"
+        # message. Possible values are nil, 'protected'.
+        homepage_mode = req.env.fetch('onetime.homepage_mode', nil)
+
         # HTML Tag vars. These are meant for the view templates themselves
         # and not the onetime state window data passed on to the Vue app (
         # although a serializer could still choose to include any of them).
@@ -142,6 +146,7 @@ module Core
           'features' => safe_features,
           'frontend_development' => frontend_development,
           'frontend_host' => frontend_host,
+          'homepage_mode' => homepage_mode,
           'keywords' => keywords,
           'locale' => locale,
           'messages' => nil,
