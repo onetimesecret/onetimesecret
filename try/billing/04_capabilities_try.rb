@@ -16,14 +16,14 @@ require_relative '../support/test_helpers'
 
 ## Setup: Load models and billing modules
 require 'lib/onetime/models/organization'
-require 'lib/onetime/billing/catalog_definitions'
-require 'apps/web/billing/models/catalog_cache'
+require 'lib/onetime/billing/plan_definitions'
+require 'apps/web/billing/models/plan'
 
-## Setup: Populate PlanCache with test data (replaces hardcoded PLAN_DEFINITIONS)
-Billing::Models::CatalogCache.clear_cache
+## Setup: Populate Plan cache with test data (replaces hardcoded PLAN_DEFINITIONS)
+Billing::Models::Plan.clear_cache
 
 ## Free plan
-Billing::Models::CatalogCache.new(
+Billing::Models::Plan.new(
   plan_id: 'free',
   tier: 'free',
   interval: 'month',
@@ -33,7 +33,7 @@ Billing::Models::CatalogCache.new(
 ).save
 
 ## Identity Plus v1
-Billing::Models::CatalogCache.new(
+Billing::Models::Plan.new(
   plan_id: 'identity_v1',
   tier: 'single_team',
   interval: 'month',
@@ -43,7 +43,7 @@ Billing::Models::CatalogCache.new(
 ).save
 
 ## Multi-Team v1
-Billing::Models::CatalogCache.new(
+Billing::Models::Plan.new(
   plan_id: 'multi_team_v1',
   tier: 'multi_team',
   interval: 'month',
@@ -53,7 +53,7 @@ Billing::Models::CatalogCache.new(
 ).save
 
 ## Legacy Identity v0 (for testing legacy plan support)
-Billing::Models::CatalogCache.new(
+Billing::Models::Plan.new(
   plan_id: 'identity_v0',
   tier: 'single_team',
   interval: 'month',
