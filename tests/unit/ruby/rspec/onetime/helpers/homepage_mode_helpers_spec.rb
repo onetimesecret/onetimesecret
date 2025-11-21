@@ -468,21 +468,21 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
     end
 
     it 'extracts single IP from X-Forwarded-For header' do
-      mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.1'
+      mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.0'
       result = test_instance.send(:extract_x_forwarded_for)
-      expect(result).to eq(['203.0.113.1'])
+      expect(result).to eq(['203.0.113.0'])
     end
 
     it 'extracts multiple IPs from X-Forwarded-For header' do
-      mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.1, 198.51.100.1, 192.0.2.1'
+      mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.0, 198.51.100.0, 192.0.2.0'
       result = test_instance.send(:extract_x_forwarded_for)
-      expect(result).to eq(['203.0.113.1', '198.51.100.1', '192.0.2.1'])
+      expect(result).to eq(['203.0.113.0', '198.51.100.0', '192.0.2.0'])
     end
 
     it 'strips whitespace from IPs' do
-      mock_req.env['HTTP_X_FORWARDED_FOR'] = '  203.0.113.1  ,  198.51.100.1  '
+      mock_req.env['HTTP_X_FORWARDED_FOR'] = '  203.0.113.0  ,  198.51.100.0  '
       result = test_instance.send(:extract_x_forwarded_for)
-      expect(result).to eq(['203.0.113.1', '198.51.100.1'])
+      expect(result).to eq(['203.0.113.0', '198.51.100.0'])
     end
 
     it 'returns nil when header is not present' do
@@ -505,21 +505,21 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
     end
 
     it 'extracts single IP from RFC 7239 Forwarded header' do
-      mock_req.env['HTTP_FORWARDED'] = 'for=203.0.113.1'
+      mock_req.env['HTTP_FORWARDED'] = 'for=203.0.113.0'
       result = test_instance.send(:extract_rfc7239_forwarded)
-      expect(result).to eq(['203.0.113.1'])
+      expect(result).to eq(['203.0.113.0'])
     end
 
     it 'extracts multiple IPs from Forwarded header' do
-      mock_req.env['HTTP_FORWARDED'] = 'for=203.0.113.1, for=198.51.100.1'
+      mock_req.env['HTTP_FORWARDED'] = 'for=203.0.113.0, for=198.51.100.0'
       result = test_instance.send(:extract_rfc7239_forwarded)
-      expect(result).to eq(['203.0.113.1', '198.51.100.1'])
+      expect(result).to eq(['203.0.113.0', '198.51.100.0'])
     end
 
     it 'extracts IPs with quoted values' do
-      mock_req.env['HTTP_FORWARDED'] = 'for="203.0.113.1"'
+      mock_req.env['HTTP_FORWARDED'] = 'for="203.0.113.0"'
       result = test_instance.send(:extract_rfc7239_forwarded)
-      expect(result).to eq(['203.0.113.1'])
+      expect(result).to eq(['203.0.113.0'])
     end
 
     it 'extracts IPv6 addresses with brackets' do
@@ -529,15 +529,15 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
     end
 
     it 'extracts IPs from complex Forwarded header with multiple parameters' do
-      mock_req.env['HTTP_FORWARDED'] = 'for=203.0.113.1;by=198.51.100.1, for=192.0.2.1'
+      mock_req.env['HTTP_FORWARDED'] = 'for=203.0.113.0;by=198.51.100.0, for=192.0.2.0'
       result = test_instance.send(:extract_rfc7239_forwarded)
-      expect(result).to eq(['203.0.113.1', '192.0.2.1'])
+      expect(result).to eq(['203.0.113.0', '192.0.2.0'])
     end
 
     it 'handles case-insensitive for parameter' do
-      mock_req.env['HTTP_FORWARDED'] = 'For=203.0.113.1, FOR=198.51.100.1'
+      mock_req.env['HTTP_FORWARDED'] = 'For=203.0.113.0, FOR=198.51.100.0'
       result = test_instance.send(:extract_rfc7239_forwarded)
-      expect(result).to eq(['203.0.113.1', '198.51.100.1'])
+      expect(result).to eq(['203.0.113.0', '198.51.100.0'])
     end
 
     it 'returns nil when header is not present' do
@@ -564,9 +564,9 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       it 'extracts client IP from X-Forwarded-For chain' do
         # Chain: client -> proxy1
         # X-Forwarded-For: client_ip, proxy1_ip
-        mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.1, 198.51.100.1'
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.0, 198.51.100.0'
         result = test_instance.send(:extract_ip_from_header, 'X-Forwarded-For', 1)
-        expect(result).to eq('203.0.113.1')
+        expect(result).to eq('203.0.113.0')
       end
     end
 
@@ -575,35 +575,35 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
         # Chain: client -> proxy1 -> proxy2
         # X-Forwarded-For: client_ip, proxy1_ip, proxy2_ip
         # Logic: Remove last 2 IPs (proxies), take rightmost of what's left
-        mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.1, 198.51.100.1, 192.0.2.1'
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.0, 198.51.100.0, 192.0.2.0'
         result = test_instance.send(:extract_ip_from_header, 'X-Forwarded-For', 2)
-        expect(result).to eq('203.0.113.1')
+        expect(result).to eq('203.0.113.0')
       end
 
       it 'extracts correct client IP from even longer chain' do
         # Chain: client -> intermediate -> proxy1 -> proxy2
         # X-Forwarded-For: client_ip, intermediate_ip, proxy1_ip, proxy2_ip
         # Logic: Remove last 2 IPs (proxies), take rightmost of what's left
-        mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.1, 198.51.100.1, 192.0.2.1, 198.18.0.1'
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.0, 198.51.100.0, 192.0.2.0, 198.18.0.0'
         result = test_instance.send(:extract_ip_from_header, 'X-Forwarded-For', 2)
-        expect(result).to eq('198.51.100.1')
+        expect(result).to eq('198.51.100.0')
       end
     end
 
     context 'with chain shorter than trusted_proxy_depth' do
       it 'returns first IP when chain is shorter than expected' do
         # Chain has only 2 IPs but we expect 3 proxies
-        mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.1, 198.51.100.1'
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.0, 198.51.100.0'
         result = test_instance.send(:extract_ip_from_header, 'X-Forwarded-For', 3)
-        expect(result).to eq('203.0.113.1')
+        expect(result).to eq('203.0.113.0')
       end
     end
 
     context 'with RFC 7239 Forwarded header' do
       it 'extracts IP from Forwarded header' do
-        mock_req.env['HTTP_FORWARDED'] = 'for=203.0.113.1, for=198.51.100.1'
+        mock_req.env['HTTP_FORWARDED'] = 'for=203.0.113.0, for=198.51.100.0'
         result = test_instance.send(:extract_ip_from_header, 'Forwarded', 1)
-        expect(result).to eq('203.0.113.1')
+        expect(result).to eq('203.0.113.0')
       end
     end
 
@@ -614,7 +614,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
   end
 
   describe '#extract_client_ip_for_homepage' do
-    let(:mock_req) { double('request', env: {'REMOTE_ADDR' => '203.0.113.1'}) }
+    let(:mock_req) { double('request', env: {'REMOTE_ADDR' => '203.0.113.0'}) }
 
     before do
       test_instance.req = mock_req
@@ -623,48 +623,48 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
     context 'with trusted_proxy_depth of 0' do
       it 'ignores headers and uses REMOTE_ADDR' do
-        mock_req.env['HTTP_X_FORWARDED_FOR'] = '198.51.100.1'
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '198.51.100.0'
         config = {trusted_proxy_depth: 0}
         result = test_instance.send(:extract_client_ip_for_homepage, config)
-        expect(result).to eq('203.0.113.1')
+        expect(result).to eq('203.0.113.0')
       end
     end
 
     context 'with trusted_proxy_depth > 0' do
       it 'extracts IP from X-Forwarded-For header' do
-        mock_req.env['HTTP_X_FORWARDED_FOR'] = '198.51.100.1, 203.0.113.1'
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '198.51.100.0, 203.0.113.0'
         config = {trusted_proxy_depth: 1, trusted_ip_header: 'X-Forwarded-For'}
         result = test_instance.send(:extract_client_ip_for_homepage, config)
-        expect(result).to eq('198.51.100.1')
+        expect(result).to eq('198.51.100.0')
       end
 
       it 'falls back to REMOTE_ADDR if extracted IP is private' do
-        mock_req.env['HTTP_X_FORWARDED_FOR'] = '10.0.0.1, 203.0.113.1'  # Private IP
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '10.0.0.1, 203.0.113.0'  # Private IP
         config = {trusted_proxy_depth: 1, trusted_ip_header: 'X-Forwarded-For'}
         result = test_instance.send(:extract_client_ip_for_homepage, config)
-        expect(result).to eq('203.0.113.1')  # Falls back to REMOTE_ADDR
+        expect(result).to eq('203.0.113.0')  # Falls back to REMOTE_ADDR
       end
 
       it 'falls back to REMOTE_ADDR if no header is present' do
         config = {trusted_proxy_depth: 1, trusted_ip_header: 'X-Forwarded-For'}
         result = test_instance.send(:extract_client_ip_for_homepage, config)
-        expect(result).to eq('203.0.113.1')
+        expect(result).to eq('203.0.113.0')
       end
     end
 
     context 'with default configuration' do
       it 'defaults to trusted_proxy_depth of 1' do
-        mock_req.env['HTTP_X_FORWARDED_FOR'] = '198.51.100.1, 203.0.113.1'
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '198.51.100.0, 203.0.113.0'
         config = {}
         result = test_instance.send(:extract_client_ip_for_homepage, config)
-        expect(result).to eq('198.51.100.1')
+        expect(result).to eq('198.51.100.0')
       end
 
       it 'defaults to X-Forwarded-For header' do
-        mock_req.env['HTTP_X_FORWARDED_FOR'] = '198.51.100.1'
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '198.51.100.0'
         config = {trusted_proxy_depth: 1}
         result = test_instance.send(:extract_client_ip_for_homepage, config)
-        expect(result).to eq('198.51.100.1')
+        expect(result).to eq('198.51.100.0')
       end
     end
   end
@@ -700,7 +700,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
     context 'with non-matching IPs' do
       it 'does not match IP outside all CIDR ranges' do
-        expect(test_instance.send(:ip_matches_homepage_cidrs?, '203.0.113.1')).to be false
+        expect(test_instance.send(:ip_matches_homepage_cidrs?, '203.0.113.0')).to be false
       end
 
       it 'does not match IP just outside CIDR range' do
@@ -894,7 +894,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
     context 'with header matching (priority 2 - fallback)' do
       let(:mock_req) do
         double('request', env: {
-          'REMOTE_ADDR' => '203.0.113.1',  # Public IP not in CIDR
+          'REMOTE_ADDR' => '203.0.113.0',  # Public IP not in CIDR
           'HTTP_O_HOMEPAGE_MODE' => 'internal'
         })
       end
@@ -979,8 +979,8 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
     context 'with proxy configuration' do
       let(:mock_req) do
         double('request', env: {
-          'REMOTE_ADDR' => '198.51.100.1',  # Proxy IP
-          'HTTP_X_FORWARDED_FOR' => '203.0.113.50, 198.51.100.1'  # Public Client IP, Proxy
+          'REMOTE_ADDR' => '198.51.100.0',  # Proxy IP
+          'HTTP_X_FORWARDED_FOR' => '203.0.113.0, 198.51.100.0'  # Public Client IP, Proxy
         })
       end
 
@@ -1010,7 +1010,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'rejects private IP from header and falls back to REMOTE_ADDR' do
         # Client sends private IP in header (spoofing attempt or misconfiguration)
-        mock_req.env['HTTP_X_FORWARDED_FOR'] = '10.0.0.1, 198.51.100.1'
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '10.0.0.1, 198.51.100.0'
 
         allow(OT).to receive(:conf).and_return({
           site: {
@@ -1128,7 +1128,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
     context 'with no matches' do
       let(:mock_req) do
         double('request', env: {
-          'REMOTE_ADDR' => '203.0.113.1'  # Public IP not in CIDR
+          'REMOTE_ADDR' => '203.0.113.0'  # Public IP not in CIDR
         })
       end
 
