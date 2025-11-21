@@ -1203,5 +1203,207 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
         expect(mode).to be_nil
       end
     end
+
+    context 'with default_mode configuration' do
+      let(:mock_req) do
+        double('request', env: {
+          'REMOTE_ADDR' => '203.0.113.50'  # Public IP that doesn't match any CIDR
+        })
+      end
+
+      before do
+        test_instance.req = mock_req
+      end
+
+      context 'when IP does not match CIDR and default_mode is external' do
+        it 'returns the default_mode value' do
+          allow(OT).to receive(:conf).and_return({
+            site: {
+              interface: {
+                ui: {
+                  homepage: {
+                    mode: 'internal',
+                    matching_cidrs: ['10.0.0.0/8', '192.168.0.0/16'],
+                    default_mode: 'external'
+                  }
+                }
+              }
+            }
+          })
+
+          mode = test_instance.determine_homepage_mode
+          expect(mode).to eq('external')
+        end
+      end
+
+      context 'when IP does not match CIDR and default_mode is internal' do
+        it 'returns the default_mode value' do
+          allow(OT).to receive(:conf).and_return({
+            site: {
+              interface: {
+                ui: {
+                  homepage: {
+                    mode: 'external',
+                    matching_cidrs: ['10.0.0.0/8'],
+                    default_mode: 'internal'
+                  }
+                }
+              }
+            }
+          })
+
+          mode = test_instance.determine_homepage_mode
+          expect(mode).to eq('internal')
+        end
+      end
+
+      context 'when IP matches CIDR, default_mode is ignored' do
+        let(:mock_req) do
+          double('request', env: {
+            'REMOTE_ADDR' => '10.0.0.100'  # Matches 10.0.0.0/8
+          })
+        end
+
+        it 'returns the configured mode, not the default_mode' do
+          allow(OT).to receive(:conf).and_return({
+            site: {
+              interface: {
+                ui: {
+                  homepage: {
+                    mode: 'internal',
+                    matching_cidrs: ['10.0.0.0/8'],
+                    default_mode: 'external'
+                  }
+                }
+              }
+            }
+          })
+
+          mode = test_instance.determine_homepage_mode
+          expect(mode).to eq('internal')
+        end
+      end
+
+      context 'when default_mode is not set' do
+        it 'returns nil (backward compatible)' do
+          allow(OT).to receive(:conf).and_return({
+            site: {
+              interface: {
+                ui: {
+                  homepage: {
+                    mode: 'internal',
+                    matching_cidrs: ['10.0.0.0/8']
+                    # default_mode not set
+                  }
+                }
+              }
+            }
+          })
+
+          mode = test_instance.determine_homepage_mode
+          expect(mode).to be_nil
+        end
+      end
+
+      context 'when default_mode has an invalid value' do
+        it 'returns nil and ignores invalid default_mode' do
+          allow(OT).to receive(:conf).and_return({
+            site: {
+              interface: {
+                ui: {
+                  homepage: {
+                    mode: 'internal',
+                    matching_cidrs: ['10.0.0.0/8'],
+                    default_mode: 'invalid_mode'
+                  }
+                }
+              }
+            }
+          })
+
+          mode = test_instance.determine_homepage_mode
+          expect(mode).to be_nil
+        end
+      end
+
+      context 'when header matches but IP does not, and default_mode is set' do
+        let(:mock_req) do
+          double('request', env: {
+            'REMOTE_ADDR' => '203.0.113.50',
+            'HTTP_O_HOMEPAGE_MODE' => 'internal'
+          })
+        end
+
+        it 'returns the configured mode from header, not default_mode' do
+          allow(OT).to receive(:conf).and_return({
+            site: {
+              interface: {
+                ui: {
+                  homepage: {
+                    mode: 'internal',
+                    matching_cidrs: ['10.0.0.0/8'],
+                    mode_header: 'O-Homepage-Mode',
+                    default_mode: 'external'
+                  }
+                }
+              }
+            }
+          })
+
+          mode = test_instance.determine_homepage_mode
+          expect(mode).to eq('internal')  # Header match takes priority over default_mode
+        end
+      end
+
+      context 'real-world scenario: office network with external default' do
+        it 'applies internal mode for office IPs' do
+          mock_req_office = double('request', env: {
+            'REMOTE_ADDR' => '203.0.113.10'  # Office IP
+          })
+          test_instance.req = mock_req_office
+
+          allow(OT).to receive(:conf).and_return({
+            site: {
+              interface: {
+                ui: {
+                  homepage: {
+                    mode: 'internal',
+                    matching_cidrs: ['203.0.113.0/24'],  # Office network
+                    default_mode: 'external'
+                  }
+                }
+              }
+            }
+          })
+
+          mode = test_instance.determine_homepage_mode
+          expect(mode).to eq('internal')
+        end
+
+        it 'applies external mode for public IPs' do
+          mock_req_public = double('request', env: {
+            'REMOTE_ADDR' => '198.51.100.50'  # Public IP outside office
+          })
+          test_instance.req = mock_req_public
+
+          allow(OT).to receive(:conf).and_return({
+            site: {
+              interface: {
+                ui: {
+                  homepage: {
+                    mode: 'internal',
+                    matching_cidrs: ['203.0.113.0/24'],  # Office network
+                    default_mode: 'external'
+                  }
+                }
+              }
+            }
+          })
+
+          mode = test_instance.determine_homepage_mode
+          expect(mode).to eq('external')
+        end
+      end
+    end
   end
 end
