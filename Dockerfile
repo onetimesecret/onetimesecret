@@ -202,7 +202,8 @@ RUN set -eux && \
     apt-get install -y --no-install-recommends \
         libsqlite3-0 \
         libpq5 \
-        curl && \
+        curl \
+        git && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
