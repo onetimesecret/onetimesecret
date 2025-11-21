@@ -10,8 +10,9 @@
 #
 #   UI_HOMEPAGE_MODE=internal
 #   UI_HOMEPAGE_MATCHING_CIDRS="10.0.0.0/8,192.168.0.0/16"
-#   UI_HOMEPAGE_REQUEST_HEADER="O-Homepage-Mode"
-#   UI_HOMEPAGE_TRUSTED_PROXY_DEPTH=1   # Note: 1 for most deployments, not 0!
+#   UI_HOMEPAGE_MODE_HEADER="O-Homepage-Mode"
+#   UI_HOMEPAGE_TRUSTED_PROXY_DEPTH=1
+#   UI_HOMEPAGE_TRUSTED_IP_HEADER="X-Forwarded-For"  # or "Forwarded" or "Both"
 
 # =============================================================================
 # Example 1: Internal Mode for Office Networks (Behind Reverse Proxy)
@@ -194,7 +195,45 @@ site:
 #
 # Security Requirements:
 #   - Only trust proxies you control
-#   - Ensure proxies strip/override client X-Forwarded-For headers
+#   - Ensure proxies strip/override client-provided forwarding headers
 #   - Block direct access to application (firewall rules)
-#   - Proxies must append their own IP to X-Forwarded-For
+#   - Proxies must append their own IP to forwarding headers
+#
+# =============================================================================
+# trusted_ip_header Explained
+# =============================================================================
+#
+# ⚠️  IMPORTANT: This determines which HTTP header to use for client IP extraction
+#
+# Header Options:
+#   X-Forwarded-For = De facto standard (most common)
+#       → Format: "X-Forwarded-For: client_ip, proxy1_ip, proxy2_ip"
+#       → Widely supported by all proxies (nginx, Caddy, Apache, etc.)
+#       → ✓ DEFAULT and recommended for most deployments
+#
+#   Forwarded = RFC 7239 standard
+#       → Format: "Forwarded: for=client_ip, for=proxy1_ip;by=proxy2_ip"
+#       → Official HTTP standard (newer, more structured)
+#       → Supports IPv6 with brackets: for="[2001:db8::1]"
+#       → Use when: Modern proxy infrastructure using RFC 7239
+#
+#   Both = Try Forwarded first, fallback to X-Forwarded-For
+#       → Checks HTTP_FORWARDED first
+#       → Falls back to HTTP_X_FORWARDED_FOR if not present
+#       → ✓ Best for mixed environments or migration scenarios
+#       → Slight overhead from checking both headers
+#
+# Common Scenarios:
+#   ✓  X-Forwarded-For: Standard nginx/Caddy/Apache setups
+#   ✓  Forwarded: Modern infrastructure using RFC 7239
+#   ✓  Both: Migration from X-Forwarded-For to Forwarded
+#   ❌ Never: Custom/unknown header names (security risk)
+#
+# Configuration Example:
+#   site:
+#     interface:
+#       ui:
+#         homepage:
+#           trusted_ip_header: X-Forwarded-For  # or Forwarded or Both
+#
 #
