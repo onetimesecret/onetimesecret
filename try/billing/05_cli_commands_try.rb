@@ -314,6 +314,69 @@ Stripe::Customer.update(@refund_customer.id, {
 ## Teardown: Clean up refund test resources
 Stripe::Customer.delete(@refund_customer.id)
 
+## Sprint 5 Tests: Products Update Command
+
+## Setup: Create test product for update testing
+@update_product = Stripe::Product.create({
+  name: 'Update Test Product',
+  metadata: {
+    app: 'onetimesecret',
+    plan_id: 'update_test_v1',
+    tier: 'single_team',
+    region: 'us-east',
+    tenancy: 'single',
+    capabilities: 'create_secrets,basic_sharing',
+    created: Time.now.utc.iso8601,
+    limit_teams: '1',
+    limit_members_per_team: '10'
+  }
+})
+
+## Test: Product created with correct metadata
+@update_product.metadata['plan_id']
+#=> 'update_test_v1'
+
+## Test: Update single field (tier) preserves other metadata
+`bin/ots billing products update #{@update_product.id} --tier multi_team <<< 'y'` =~ /Product updated successfully/
+#=> 0
+
+## Test: Verify tier was updated
+@updated_product = Stripe::Product.retrieve(@update_product.id)
+@updated_product.metadata['tier']
+#=> 'multi_team'
+
+## Test: Verify other fields were preserved (not set to empty)
+@updated_product.metadata['plan_id']
+#=> 'update_test_v1'
+
+## Test: Verify capabilities were preserved
+@updated_product.metadata['capabilities']
+#=> 'create_secrets,basic_sharing'
+
+## Test: Verify limits were preserved
+@updated_product.metadata['limit_teams']
+#=> '1'
+
+## Test: Update multiple fields at once
+`bin/ots billing products update #{@update_product.id} --tier enterprise --capabilities "create_secrets,basic_sharing,api_access,audit_logs" <<< 'y'` =~ /Product updated successfully/
+#=> 0
+
+## Test: Verify both fields updated
+@multi_updated = Stripe::Product.retrieve(@update_product.id)
+@multi_updated.metadata['tier']
+#=> 'enterprise'
+
+## Test: Verify capabilities updated
+@multi_updated.metadata['capabilities']
+#=> 'create_secrets,basic_sharing,api_access,audit_logs'
+
+## Test: Verify unrelated fields still preserved
+@multi_updated.metadata['region']
+#=> 'us-east'
+
+## Teardown: Clean up test product
+Stripe::Product.delete(@update_product.id)
+
 ## Test: Cleanup successful
 true
 #=> true
