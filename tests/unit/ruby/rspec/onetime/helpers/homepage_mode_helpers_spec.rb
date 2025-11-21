@@ -568,6 +568,15 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
         result = test_instance.send(:extract_ip_from_header, 'X-Forwarded-For', 1)
         expect(result).to eq('203.0.113.0')
       end
+
+      it 'handles single IP in chain (common case with 1 proxy)' do
+        # Chain: client -> proxy1
+        # X-Forwarded-For: client_ip (proxy doesn't add itself)
+        # This is the normal case: chain_length == trusted_proxy_depth
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.0'
+        result = test_instance.send(:extract_ip_from_header, 'X-Forwarded-For', 1)
+        expect(result).to eq('203.0.113.0')
+      end
     end
 
     context 'with trusted_proxy_depth of 2' do
