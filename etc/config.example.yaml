@@ -26,9 +26,10 @@
       # This does not protect API endpoints and has no effect on existing
       # authentication or authorization logic.
       #
-      # Detection Methods (evaluated in order):
+      # Detection Priority (evaluated in order):
       #   1. matching_cidrs - Client IP must match one of these subnets
       #   2. mode_header - Fallback if no CIDR match (requires header value = mode)
+      #   3. default_mode - Applied when no CIDR or header match (NEW)
       #
       # See etc/examples/homepage_modes.example.yaml for detailed examples
       :homepage:
@@ -42,6 +43,12 @@
         :matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
         # HTTP header to check as fallback (header value must match mode)
         :mode_header: <%= ENV['UI_HOMEPAGE_MODE_HEADER'] || 'O-Homepage-Mode' %>
+        # Default mode to apply when IP doesn't match CIDRs or header
+        # - 'internal': Apply internal mode for non-matches
+        # - 'external': Apply external mode for non-matches
+        # - nil: Return nil (default homepage behavior, backward compatible)
+        # Example use case: Office IPs → internal, everyone else → external
+        :default_mode: <%= ENV['UI_HOMEPAGE_DEFAULT_MODE'] || nil %>
         # Number of trusted proxies between client and application
         # - 0: Direct connection (use REMOTE_ADDR, ignore headers)
         # - 1: Single reverse proxy (standard nginx/Caddy setup)

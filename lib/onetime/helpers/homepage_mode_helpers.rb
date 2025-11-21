@@ -20,11 +20,18 @@ module Onetime
       # Detection Priority:
       # 1. CIDR matching (client IP against configured ranges)
       # 2. Request header fallback (O-Homepage-Mode)
+      # 3. Default mode (if configured and no match found)
       #
       # Modes:
       # - 'internal': Normal homepage with full functionality
       # - 'external': Restricted view without secret creation
       # - nil: Default homepage behavior
+      #
+      # Configuration:
+      # - mode: The mode to apply when IP matches CIDR ('internal' or 'external')
+      # - matching_cidrs: Array of CIDR ranges to match against
+      # - mode_header: Optional header name for fallback detection
+      # - default_mode: Optional mode to apply when no match found
       #
       # SECURITY:
       # - CIDR matching cannot be spoofed (primary method)
@@ -48,12 +55,14 @@ module Onetime
         # Extract client IP
         client_ip = extract_client_ip_for_homepage(homepage_config)
         mode_header_name = homepage_config[:mode_header]
+        default_mode = homepage_config[:default_mode]
 
         OT.ld '[homepage_mode] Detection started', {
           configured_mode: configured_mode,
           client_ip: client_ip,
           cidr_count: @cidr_matchers.length,
           header_configured: !mode_header_name.nil?,
+          default_mode: default_mode,
         }
 
         # Priority 1: Check CIDR match
@@ -85,11 +94,27 @@ module Onetime
           return configured_mode
         end
 
+        # Priority 3: Use default_mode if configured
+        if default_mode && %w[internal external].include?(default_mode)
+          OT.ld '[homepage_mode] Using default_mode', {
+            client_ip: client_ip,
+            cidr_count: @cidr_matchers.length,
+            header_configured: !mode_header_name.nil?,
+            default_mode: default_mode,
+          }
+          OT.info '[homepage_mode] Mode applied via default_mode', {
+            mode: default_mode,
+            method: 'default',
+          }
+          return default_mode
+        end
+
         # No match - use default homepage
         OT.ld '[homepage_mode] No match found', {
           client_ip: client_ip,
           cidr_count: @cidr_matchers.length,
           header_configured: !mode_header_name.nil?,
+          default_mode: default_mode,
         }
         OT.info '[homepage_mode] No mode applied (default homepage)', {
           mode: nil,

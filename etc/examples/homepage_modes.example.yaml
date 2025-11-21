@@ -11,15 +11,18 @@
 #   UI_HOMEPAGE_MODE=internal
 #   UI_HOMEPAGE_MATCHING_CIDRS="10.0.0.0/8,192.168.0.0/16"
 #   UI_HOMEPAGE_MODE_HEADER="O-Homepage-Mode"
+#   UI_HOMEPAGE_DEFAULT_MODE=external
 #   UI_HOMEPAGE_TRUSTED_PROXY_DEPTH=1
 #   UI_HOMEPAGE_TRUSTED_IP_HEADER="X-Forwarded-For"  # or "Forwarded" or "Both"
 
 # =============================================================================
-# Example 1: Internal Mode for Office Networks (Behind Reverse Proxy)
+# Example 1: Internal Mode for Office Networks with External Default
 # =============================================================================
 # Show full homepage with secret creation for users on trusted networks
+# and restricted homepage for all other visitors
 #
-# Use case: Employees and partners on known networks get full access
+# Use case: Employees on office network get full access, everyone else
+#           gets restricted homepage without secret creation
 # IMPORTANT: Set trusted_proxy_depth > 0 when behind reverse proxy
 #
 site:
@@ -32,6 +35,7 @@ site:
           - "192.168.0.0/16"     # Local network (Class C)
           - "203.0.113.0/24"     # Office public IP range (example)
           - "198.51.100.0/24"    # Partner network (example)
+        default_mode: external   # Apply to IPs that don't match CIDRs
         mode_header: "O-Homepage-Mode"
         trusted_proxy_depth: 1   # Trust single reverse proxy (nginx, Caddy, etc.)
 
@@ -142,6 +146,42 @@ site:
 #    - Header: O-Homepage-Mode
 #    - Value must match configured mode
 #    - Only checked if CIDR doesn't match
+#
+# 3. Default Mode (New Feature)
+#    - Applied when no CIDR or header matches
+#    - Configured via default_mode option
+#    - If not set, returns nil (default homepage)
+#
+#
+# =============================================================================
+# default_mode Configuration
+# =============================================================================
+#
+# The default_mode option allows you to specify what mode should apply
+# when an IP address doesn't match any configured CIDR ranges and no
+# matching header is found.
+#
+# Common Use Cases:
+#
+# 1. Office → Internal, Everyone Else → External
+#    mode: internal
+#    matching_cidrs: ["203.0.113.0/24"]  # Office network
+#    default_mode: external               # Public visitors
+#
+# 2. Restricted Network → External, Everyone Else → Internal
+#    mode: external
+#    matching_cidrs: ["198.51.100.0/24"] # Restricted IPs
+#    default_mode: internal               # All others
+#
+# 3. No Default (Backward Compatible)
+#    mode: internal
+#    matching_cidrs: ["10.0.0.0/8"]
+#    # default_mode not set → returns nil when no match
+#
+# Values:
+#   - 'internal': Apply internal mode for non-matches
+#   - 'external': Apply external mode for non-matches
+#   - Not set: Return nil (default homepage behavior)
 #
 #
 # =============================================================================
