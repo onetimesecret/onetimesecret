@@ -58,7 +58,7 @@ module Core
       #
       # @return [String, nil] 'internal', 'external', or nil
       def determine_homepage_mode
-        ui_config = OT.conf.dig('site', 'interface', 'ui') || {}
+        ui_config       = OT.conf.dig('site', 'interface', 'ui') || {}
         homepage_config = ui_config['homepage'] || {}
 
         configured_mode = homepage_config['mode']
@@ -268,10 +268,10 @@ module Core
           end
 
           cidr
-        rescue IPAddr::InvalidAddressError => e
+        rescue IPAddr::InvalidAddressError => ex
           http_logger.error '[homepage_mode] Invalid CIDR', {
             cidr: cidr_string,
-            error: e.message,
+            error: ex.message,
           }
           nil
         end.compact
@@ -289,11 +289,16 @@ module Core
       # Extract client IP address from request
       #
       # Priority:
-      # 1. X-Forwarded-For (with trusted proxy depth consideration)
+      # 1. Forwarded header (RFC 7239) or X-Forwarded-For (configurable)
       # 2. REMOTE_ADDR
       #
+      # Supports multiple header types:
+      # - X-Forwarded-For: client_ip, proxy1_ip, proxy2_ip (most common)
+      # - Forwarded: for=client_ip;by=proxy_ip (RFC 7239 standard)
+      # - Both: Try Forwarded first, fallback to X-Forwarded-For
+      #
       # How trusted_proxy_depth Works:
-      # - Removes the last N trusted proxy IPs from X-Forwarded-For
+      # - Removes the last N trusted proxy IPs from the chain
       # - Returns the rightmost remaining IP (the real client)
       #
       # Example with depth=2:
@@ -301,38 +306,42 @@ module Core
       #   Remove last 2: [client_ip]
       #   Return: client_ip
       #
-      # Security: When trusted_proxy_depth is 0, X-Forwarded-For is IGNORED
+      # Security: When trusted_proxy_depth is 0, headers are IGNORED
       # to prevent IP spoofing. Only use trusted_proxy_depth > 0 when:
       # - Application is behind a trusted reverse proxy
       # - Direct access to application is blocked by firewall
-      # - Proxy is configured to strip/override client-provided X-Forwarded-For
+      # - Proxy is configured to strip/override client-provided headers
       #
       # @param config [Hash] Homepage configuration
       # @return [String, nil] Client IP address or nil
       def extract_client_ip_for_homepage(config)
         trusted_proxy_depth = config['trusted_proxy_depth'] || 1
+        trusted_ip_header   = config['trusted_ip_header'] || 'X-Forwarded-For'
 
-        # Only trust X-Forwarded-For if explicitly configured
-        if trusted_proxy_depth > 0 && req.env['HTTP_X_FORWARDED_FOR']
-          forwarded_ips = req.env['HTTP_X_FORWARDED_FOR'].split(',').map(&:strip)
+        # Only trust forwarding headers if explicitly configured
+        if trusted_proxy_depth > 0
+          forwarded_ips = extract_forwarded_ips(trusted_ip_header)
 
-          # Remove the last N trusted proxy IPs, take the rightmost remaining IP
-          # This gets us the real client IP by stripping known proxy IPs
-          if forwarded_ips.length > trusted_proxy_depth
-            # Normal case: enough IPs to strip proxies
-            client_ips = forwarded_ips[0...-trusted_proxy_depth]
-            ip = client_ips.last
-          else
-            # Edge case: fewer IPs than expected proxies, use first (likely the client)
-            ip = forwarded_ips.first
+          if forwarded_ips && !forwarded_ips.empty?
+            # Remove the last N trusted proxy IPs, take the rightmost remaining IP
+            # This gets us the real client IP by stripping known proxy IPs
+            if forwarded_ips.length > trusted_proxy_depth
+              # Normal case: enough IPs to strip proxies
+              client_ips = forwarded_ips[0...-trusted_proxy_depth]
+              ip         = client_ips.last
+            else
+              # Edge case: fewer IPs than expected proxies, use first (likely the client)
+              ip = forwarded_ips.first
+            end
+
+            http_logger.debug '[homepage_mode] Using forwarded header', {
+              header_type: trusted_ip_header,
+              forwarded_chain: forwarded_ips.join(', '),
+              trusted_depth: trusted_proxy_depth,
+              extracted_ip: ip,
+            }
+            return ip
           end
-
-          http_logger.debug '[homepage_mode] Using X-Forwarded-For', {
-            forwarded_chain: forwarded_ips.join(', '),
-            trusted_depth: trusted_proxy_depth,
-            extracted_ip: ip,
-          }
-          return ip
         end
 
         # Default to REMOTE_ADDR (most secure, cannot be spoofed)
@@ -341,6 +350,69 @@ module Core
           ip: ip,
         }
         ip
+      end
+
+      # Extract forwarded IPs from configured header type
+      #
+      # Supports X-Forwarded-For, Forwarded (RFC 7239), or Both
+      #
+      # @param header_type [String] 'X-Forwarded-For', 'Forwarded', or 'Both'
+      # @return [Array<String>, nil] Array of IP addresses or nil
+      def extract_forwarded_ips(header_type)
+        case header_type
+        when 'X-Forwarded-For'
+          extract_x_forwarded_for
+        when 'Forwarded'
+          extract_rfc7239_forwarded
+        when 'Both'
+          # Try Forwarded first (RFC standard), fallback to X-Forwarded-For
+          extract_rfc7239_forwarded || extract_x_forwarded_for
+        else
+          # Unknown header type, log warning and default to X-Forwarded-For
+          http_logger.warn '[homepage_mode] Unknown trusted_ip_header type, using X-Forwarded-For', {
+            configured_type: header_type,
+          }
+          extract_x_forwarded_for
+        end
+      end
+
+      # Extract IPs from X-Forwarded-For header
+      #
+      # Format: X-Forwarded-For: client_ip, proxy1_ip, proxy2_ip
+      #
+      # @return [Array<String>, nil] Array of IP addresses or nil
+      def extract_x_forwarded_for
+        header_value = req.env['HTTP_X_FORWARDED_FOR']
+        return nil if header_value.nil? || header_value.empty?
+
+        header_value.split(',').map(&:strip)
+      end
+
+      # Extract IPs from RFC 7239 Forwarded header
+      #
+      # Format: Forwarded: for=client_ip, for=proxy1_ip;by=proxy2_ip
+      #
+      # @return [Array<String>, nil] Array of IP addresses or nil
+      def extract_rfc7239_forwarded
+        header_value = req.env['HTTP_FORWARDED']
+        return nil if header_value.nil? || header_value.empty?
+
+        # Parse RFC 7239 Forwarded header
+        # Format: for=192.0.2.43, for=198.51.100.17;by=203.0.113.43
+        # Extract all "for=" values
+        ips = []
+        header_value.split(',').each do |segment|
+          segment.split(';').each do |param|
+            next unless param.strip =~ /^for=(.+)$/i
+
+            ip = ::Regexp.last_match(1)
+            # Remove quotes and IPv6 brackets if present
+            ip = ip.gsub(/^["']|["']$/, '').gsub(/^\[|\]$/, '')
+            ips << ip
+          end
+        end
+
+        ips.empty? ? nil : ips
       end
 
       # Check if IP address matches any configured CIDR
@@ -354,10 +426,10 @@ module Core
         begin
           ip = IPAddr.new(ip_string)
           @cidr_matchers.any? { |cidr| cidr.include?(ip) }
-        rescue IPAddr::InvalidAddressError => e
+        rescue IPAddr::InvalidAddressError => ex
           http_logger.error '[homepage_mode] Invalid IP address', {
             ip: ip_string,
-            error: e.message,
+            error: ex.message,
           }
           false
         end
@@ -369,12 +441,13 @@ module Core
       # @param config [Hash] Homepage configuration
       # @return [Boolean] True if header matches configured mode
       def check_homepage_header(configured_mode, config)
-        request_header = config['request_header']
-        return false if request_header.nil? || request_header.empty?
+        # Support both old 'request_header' and new 'mode_header' config names
+        mode_header = config['mode_header'] || config['request_header']
+        return false if mode_header.nil? || mode_header.empty?
 
         # Normalize header name to HTTP_* format for env lookup
         # Convert dashes to underscores and prepend HTTP_ if not present
-        header_key = request_header.upcase.tr('-', '_')
+        header_key = mode_header.upcase.tr('-', '_')
         header_key = "HTTP_#{header_key}" unless header_key.start_with?('HTTP_')
 
         header_value = req.env[header_key]
