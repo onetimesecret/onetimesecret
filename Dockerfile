@@ -148,6 +148,7 @@ RUN set -eux && \
     bundle config set --local force_ruby_platform true && \
     bundle config set --local deployment true && \
     bundle install --retry=3 && \
+    bundle binstubs --all --force && \
     bundle clean --force
 
 # Install Node.js dependencies (separate layer for better caching)
