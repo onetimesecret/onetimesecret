@@ -50,10 +50,15 @@ site:
       #   - Prefix lengths greater than minimum are not supported for privacy
       #
       # Proxy Configuration:
-      #   - trusted_proxy_depth: How many proxies to trust in X-Forwarded-For
+      #   - trusted_proxy_depth: How many proxies to trust for client IP extraction
       #   - 0: Don't trust proxies, use REMOTE_ADDR (direct connections only)
       #   - 1: Trust 1 proxy - STANDARD for reverse proxy (nginx, Caddy)
       #   - 2+: Trust N proxies (e.g., CDN → reverse proxy → app)
+      #
+      #   - trusted_ip_header: Which header to use for client IP extraction
+      #   - X-Forwarded-For: Standard header (most common)
+      #   - Forwarded: RFC 7239 standard header
+      #   - Both: Try Forwarded first, fallback to X-Forwarded-For
       #
       # Default is 1 (standard reverse proxy) as most deployments use nginx/Caddy.
       # Set to 0 only for development or direct-to-internet deployments.
@@ -61,8 +66,9 @@ site:
       homepage:
         mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
         matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
-        request_header: <%= ENV['UI_HOMEPAGE_REQUEST_HEADER'] || 'O-Homepage-Mode' %>
+        mode_header: <%= ENV['UI_HOMEPAGE_MODE_HEADER'] || 'O-Homepage-Mode' %>
         trusted_proxy_depth: <%= ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
+        trusted_ip_header: <%= ENV['UI_HOMEPAGE_TRUSTED_IP_HEADER'] || 'X-Forwarded-For' %>
       # Header configuration
       # Controls branding and navigation in the site header
       # Rename to page_header, page_footer for clarity
