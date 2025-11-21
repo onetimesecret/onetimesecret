@@ -2,6 +2,7 @@
 
 require_relative 'helpers'
 require 'v2/controllers/class_settings'
+require 'onetime/helpers/homepage_mode_helpers'
 
 module Core
 
@@ -9,6 +10,7 @@ module Core
     module Base
       include Core::ControllerHelpers
       include V2::Controllers::ClassSettings
+      include Onetime::Helpers::HomepageModeHelpers
 
       attr_reader :req, :res
       attr_reader :sess, :cust, :locale

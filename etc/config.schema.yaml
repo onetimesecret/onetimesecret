@@ -32,6 +32,7 @@
   :interface:
     :ui:
       :enabled: any(bool(), str())
+      :homepage: include(':homepage', required=False)
       :header: include(':header', required=False)
       :footer_links: include(':footer_links', required=False)
     :api:
@@ -247,3 +248,10 @@
 
 :header_navigation:
   :enabled: any(bool(), str())
+
+:homepage:
+  :mode: str(required=False)
+  :matching_cidrs: any(list(str()), str(), required=False)
+  :mode_header: str(required=False)
+  :trusted_proxy_depth: any(int(), str(), required=False)
+  :trusted_ip_header: str(required=False)

@@ -84,6 +84,10 @@ module Core
         domain_strategy = req.env.fetch('onetime.domain_strategy', :default)
         display_domain = req.env.fetch('onetime.display_domain', nil)
 
+        # Controller-level flag whether to display the homepage mode.
+        # Possible values are nil, 'internal', 'external'.
+        homepage_mode = req.env.fetch('onetime.homepage_mode', nil)
+
         # HTML Tag vars. These are meant for the view templates themselves
         # and not the onetime state window data passed on to the Vue app (
         # although a serializer could still choose to include any of them).
@@ -108,6 +112,7 @@ module Core
           domain_strategy: domain_strategy,
           frontend_development: frontend_development,
           frontend_host: frontend_host,
+          homepage_mode: homepage_mode,
           incoming: incoming,
           keywords: keywords,
           locale: locale,
