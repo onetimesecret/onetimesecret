@@ -9,6 +9,7 @@
   import { usePrivacyOptions } from '@/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/composables/useSecretConcealer';
   import { WindowService } from '@/services/window.service';
+  import { useAuthStore } from '@/stores/authStore';
   import { useConcealedMetadataStore } from '@/stores/concealedMetadataStore';
   import {
     DEFAULT_BUTTON_TEXT_LIGHT,
@@ -52,6 +53,7 @@
   const router = useRouter();
   const productIdentity = useProductIdentity();
   const concealedMetadataStore = useConcealedMetadataStore();
+  const authStore = useAuthStore();
   const teamStore = useTeamStore();
   const showProTip = ref(props.withAsterisk);
   const selectedTeamId = ref<string | null>(null);
@@ -140,9 +142,9 @@
   onMounted(() => {
     operations.updateField('share_domain', selectedDomain.value);
     // Load teams if user is authenticated
-    if (teamStore.teams.length === 0) {
+    if (authStore.isAuthenticated && teamStore.teams.length === 0) {
       teamStore.fetchTeams().catch(() => {
-        // Silently fail - teams are optional
+        // Silently fail
       });
     }
   });

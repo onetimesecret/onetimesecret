@@ -14,6 +14,76 @@ declare module 'vue-router' {
   }
 }
 
+// Determine which homepage component mode to use
+function determineComponentMode(): string {
+  const ui = WindowService.get('ui');
+  if (!ui?.enabled) {
+    return 'disabled-ui';
+  }
+
+  const authentication = WindowService.get('authentication');
+  const hasSession = document.cookie.includes('ots-session');
+  const homepageMode = WindowService.get('homepage_mode');
+
+  // Only show disabled-homepage if user has no session and one of:
+  //  - auth is required
+  //  - if homepage is in external mode
+  if (!hasSession && (authentication?.required || homepageMode === 'external')) {
+    console.debug('Homepage Mode disabled-homepage ' + homepageMode);
+    return 'disabled-homepage';
+  }
+
+  return 'normal';
+}
+
+// Get layout props for the given component mode
+function getLayoutPropsForMode(componentMode: string, domainStrategy: string) {
+  const baseProps = {
+    displayMasthead: true,
+    displayNavigation: true,
+    displayFooterLinks: true,
+    displayFeedback: true,
+    displayPoweredBy: false,
+    displayVersion: true,
+    displayToggles: true,
+  };
+
+  let layoutProps = { ...baseProps };
+
+  // Apply component mode specific overrides
+  switch (componentMode) {
+    case 'disabled-ui':
+      layoutProps = {
+        ...layoutProps,
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFeedback: false,
+        displayVersion: false,
+      };
+      break;
+    case 'disabled-homepage':
+      layoutProps = {
+        ...layoutProps,
+        displayFeedback: false,
+        displayVersion: false,
+      };
+      break;
+  }
+
+  // Apply custom domain overrides if needed
+  if (domainStrategy === 'custom') {
+    layoutProps = {
+      ...layoutProps,
+      displayMasthead: true,
+      displayNavigation: false,
+      displayFooterLinks: false,
+      displayFeedback: false,
+    };
+  }
+
+  return layoutProps;
+}
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -38,96 +108,11 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
     beforeEnter: async (to) => {
-      // Use window service directly rather than the identity store
-      // since the routes start before the pinia stores.
       const domainStrategy = WindowService.get('domain_strategy') as string;
+      const componentMode = determineComponentMode();
+      const layoutProps = getLayoutPropsForMode(componentMode, domainStrategy);
 
-      // Determine component state based on UI and authentication settings
-      let componentMode = 'normal';
-
-      // Check if UI is completely disabled
-      const ui = WindowService.get('ui');
-      if (!ui?.enabled) {
-        componentMode = 'disabled-ui';
-      } else {
-        // Check if authentication is required but user is not authenticated
-        const authentication = WindowService.get('authentication');
-        // For route-level checks, we need to check session existence rather than store state
-        const hasSession = document.cookie.includes('ots-session');
-
-        // Check homepage mode
-        const homepageMode = WindowService.get('homepage_mode');
-
-        // Only show disabled-homepage if auth is required AND user has no session
-        // AND homepage is not in protected mode
-        if (!hasSession && (authentication?.required || homepageMode === 'protected')) {
-          componentMode = 'disabled-homepage';
-        }
-      }
-
-      // Store component state in meta for the container component
       to.meta.componentMode = componentMode;
-
-      // Set layout props based on component state and domain strategy
-      let layoutProps = {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        displayToggles: true,
-      };
-
-      // Apply component state specific overrides
-      switch (componentMode) {
-        case 'disabled-ui':
-          // DisabledUI layout: minimal header/nav
-          layoutProps = {
-            ...layoutProps,
-            displayMasthead: false,
-            displayNavigation: false,
-            displayFooterLinks: true,
-            displayFeedback: false,
-            displayPoweredBy: false,
-            displayVersion: false,
-            displayToggles: true,
-          };
-          break;
-        case 'disabled-homepage':
-          // DisabledHomepage layout: show header/nav but no feedback
-          layoutProps = {
-            ...layoutProps,
-            displayMasthead: true,
-            displayNavigation: true,
-            displayFooterLinks: true,
-            displayFeedback: false,
-            displayPoweredBy: false,
-            displayVersion: false,
-            displayToggles: true,
-          };
-          break;
-        case 'normal':
-        default:
-          // Normal homepage layout - keep defaults
-          break;
-      }
-
-      // Apply custom domain overrides if needed
-      if (domainStrategy === 'custom') {
-        layoutProps = {
-          ...layoutProps,
-          displayMasthead: true,
-          displayNavigation: false,
-          displayFooterLinks: false,
-          displayFeedback: false,
-          displayVersion: true,
-          displayPoweredBy: false,
-          displayToggles: true,
-        };
-      }
-
-      // Set the final layout props
       to.meta.layoutProps = {
         ...to.meta.layoutProps,
         ...layoutProps,

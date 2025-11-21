@@ -151,7 +151,7 @@ export interface OnetimeWindow {
    * - 'protected': Homepage is accessible (bypass header present)
    * - null/undefined: No special mode, follow authentication.required
    */
-  homepage_mode?: 'protected' | null;
+  homepage_mode?: 'external' | 'internal' | null;
 
   /** Optional HTML banner displayed at page top */
   global_banner?: string;
