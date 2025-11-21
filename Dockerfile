@@ -139,9 +139,8 @@ ENV NODE_PATH=${APP_DIR}/node_modules
 COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml ./
 
 # Install Ruby dependencies with platform detection
-# NOTE: We can't use the more aggresive `--local deployment true` to reduce
-# the image size further b/c it requires having all git dependencies installed.
-# Can revisit if/when we can use a released rspec version.
+# The `force_ruby_platform true` tells Bundler to compile native extensions
+# from source rather than looking for platform-specific precompiled gems.
 RUN set -eux && \
     bundle config set --local without 'development test' && \
     bundle config set --local jobs "$(nproc)" && \
