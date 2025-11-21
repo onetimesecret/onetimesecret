@@ -25,6 +25,10 @@ module Core
 
       def index
         publically do
+          # Determine homepage mode based on CIDR/header before rendering
+          # This sets a flag in the request env that the view layer can serialize
+          req.env['onetime.homepage_mode'] = determine_homepage_mode
+
           OT.ld "[index] authenticated? #{sess.authenticated?}"
           view = Core::Views::VuePoint.new req, sess, cust, locale
           sess.event_incr! :get_page

@@ -1,0 +1,239 @@
+# Homepage Mode Configuration Examples
+#
+# This file demonstrates different configuration patterns for the Homepage Mode feature.
+# The feature allows you to show different homepage experiences based on IP address
+# (CIDR ranges) or request headers.
+#
+# Copy and adapt these examples to your etc/config.yaml file.
+#
+# You can also configure via environment variables:
+#
+#   UI_HOMEPAGE_MODE=internal
+#   UI_HOMEPAGE_MATCHING_CIDRS="10.0.0.0/8,192.168.0.0/16"
+#   UI_HOMEPAGE_MODE_HEADER="O-Homepage-Mode"
+#   UI_HOMEPAGE_TRUSTED_PROXY_DEPTH=1
+#   UI_HOMEPAGE_TRUSTED_IP_HEADER="X-Forwarded-For"  # or "Forwarded" or "Both"
+
+# =============================================================================
+# Example 1: Internal Mode for Office Networks (Behind Reverse Proxy)
+# =============================================================================
+# Show full homepage with secret creation for users on trusted networks
+#
+# Use case: Employees and partners on known networks get full access
+# IMPORTANT: Set trusted_proxy_depth > 0 when behind reverse proxy
+#
+site:
+  interface:
+    ui:
+      homepage:
+        mode: internal
+        matching_cidrs:
+          - "10.0.0.0/8"         # Private network (Class A)
+          - "192.168.0.0/16"     # Local network (Class C)
+          - "203.0.113.0/24"     # Office public IP range (example)
+          - "198.51.100.0/24"    # Partner network (example)
+        mode_header: "O-Homepage-Mode"
+        trusted_proxy_depth: 1   # Trust single reverse proxy (nginx, Caddy, etc.)
+
+# =============================================================================
+# Example 2: External Mode for Public Access (Behind Reverse Proxy)
+# =============================================================================
+# Show restricted homepage without secret creation for external visitors
+#
+# Use case: Public internet users see information-only homepage
+#
+site:
+  interface:
+    ui:
+      homepage:
+        mode: external
+        matching_cidrs:
+          - "203.0.113.0/24"     # Specific external network to restrict
+        mode_header: "O-Homepage-Mode"
+        trusted_proxy_depth: 1   # Trust single reverse proxy
+
+# =============================================================================
+# Example 3: Direct Connection (No Reverse Proxy)
+# =============================================================================
+# Application receives connections directly, not through a proxy
+#
+# Use case: Development environment or direct internet exposure
+# WARNING: Only use trusted_proxy_depth: 0 when NOT behind a reverse proxy
+#
+site:
+  interface:
+    ui:
+      homepage:
+        mode: internal
+        matching_cidrs:
+          - "10.0.0.0/8"
+          - "192.168.0.0/16"
+        mode_header: "O-Homepage-Mode"
+        trusted_proxy_depth: 0   # NOT behind proxy - use direct connection IP
+
+# =============================================================================
+# Example 4: Behind Load Balancer AND Reverse Proxy
+# =============================================================================
+# Application behind multiple proxy layers
+#
+# Use case: Internet → CDN/Load Balancer → Reverse Proxy → Application
+#
+# X-Forwarded-For: client_ip, load_balancer_ip, reverse_proxy_ip
+#                   ↑         ↑                  ↑
+#                   Want this  depth=2           depth=1
+#
+site:
+  interface:
+    ui:
+      homepage:
+        mode: internal
+        matching_cidrs:
+          - "10.0.0.0/8"
+          - "192.168.0.0/16"
+        mode_header: "O-Homepage-Mode"
+        trusted_proxy_depth: 2   # Trust 2 proxy layers (CDN + reverse proxy)
+
+# =============================================================================
+# Example 5: IPv6 Networks (Behind Reverse Proxy)
+# =============================================================================
+# Support IPv6 CIDR ranges with /48 minimum prefix for privacy
+#
+site:
+  interface:
+    ui:
+      homepage:
+        mode: internal
+        matching_cidrs:
+          - "2001:db8::/48"      # IPv6 network (minimum /48)
+          - "10.0.0.0/8"         # IPv4 network (minimum /24)
+        mode_header: "O-Homepage-Mode"
+        trusted_proxy_depth: 1   # Trust single reverse proxy
+
+# =============================================================================
+# Mode Behavior Summary
+# =============================================================================
+#
+# internal mode:
+#   - Full homepage with secret creation form
+#   - All features enabled
+#   - Intended for trusted users/networks
+#
+# external mode:
+#   - Restricted homepage without secret creation
+#   - Information/marketing content only
+#   - Sign-in/sign-up options visible
+#   - Intended for public visitors
+#
+# no mode (nil):
+#   - Default homepage behavior
+#   - Based on authentication settings
+#
+#
+# =============================================================================
+# Detection Priority
+# =============================================================================
+#
+# 1. CIDR Matching (Primary)
+#    - Cannot be spoofed
+#    - Most secure method
+#    - Checked first
+#
+# 2. Request Header (Fallback)
+#    - Header: O-Homepage-Mode
+#    - Value must match configured mode
+#    - Only checked if CIDR doesn't match
+#
+#
+# =============================================================================
+# Privacy Enforcement
+# =============================================================================
+#
+# CIDR blocks are validated for privacy:
+#   - IPv4: Minimum /24 prefix (max 254 hosts)
+#   - IPv6: Minimum /48 prefix
+#   - Prevents targeting individual IPs
+#   - Invalid CIDRs are logged and rejected
+#
+# =============================================================================
+# trusted_proxy_depth Explained
+# =============================================================================
+#
+# ⚠️ CRITICAL: This setting determines which IP address is used for CIDR matching
+#
+# How X-Forwarded-For Works:
+#   Client → Proxy1 → Proxy2 → App
+#
+#   X-Forwarded-For header: "client_ip, proxy1_ip, proxy2_ip"
+#                            [0]       [1]        [2]
+#
+# How trusted_proxy_depth Works:
+#   - Removes the last N proxy IPs from the X-Forwarded-For chain
+#   - Returns the rightmost remaining IP (the real client)
+#
+# trusted_proxy_depth Values:
+#   0 = Don't trust X-Forwarded-For, use REMOTE_ADDR
+#       → Use when: App receives connections directly (no proxy)
+#       → Result: Uses the direct connection IP
+#       → WRONG for production deployments behind reverse proxy!
+#
+#   1 = Trust 1 proxy, remove last IP, return client
+#       → X-Forwarded-For: "client_ip, proxy_ip"
+#       → Remove last 1: ["client_ip"]
+#       → Result: client_ip
+#       → ✓ CORRECT for single reverse proxy (nginx, Caddy, Apache)
+#
+#   2 = Trust 2 proxies, remove last 2 IPs, return client
+#       → X-Forwarded-For: "client_ip, proxy1_ip, proxy2_ip"
+#       → Remove last 2: ["client_ip"]
+#       → Result: client_ip
+#       → ✓ CORRECT for CDN/load balancer + reverse proxy
+#
+# Common Mistake:
+#   ❌ Setting trusted_proxy_depth: 0 when behind a reverse proxy
+#   ✓  Set trusted_proxy_depth: 1 for standard nginx/Caddy deployments
+#   ✓  DEFAULT is now 1 (changed from 0 for security)
+#
+# Security Requirements:
+#   - Only trust proxies you control
+#   - Ensure proxies strip/override client-provided forwarding headers
+#   - Block direct access to application (firewall rules)
+#   - Proxies must append their own IP to forwarding headers
+#
+# =============================================================================
+# trusted_ip_header Explained
+# =============================================================================
+#
+# ⚠️  IMPORTANT: This determines which HTTP header to use for client IP extraction
+#
+# Header Options:
+#   X-Forwarded-For = De facto standard (most common)
+#       → Format: "X-Forwarded-For: client_ip, proxy1_ip, proxy2_ip"
+#       → Widely supported by all proxies (nginx, Caddy, Apache, etc.)
+#       → ✓ DEFAULT and recommended for most deployments
+#
+#   Forwarded = RFC 7239 standard
+#       → Format: "Forwarded: for=client_ip, for=proxy1_ip;by=proxy2_ip"
+#       → Official HTTP standard (newer, more structured)
+#       → Supports IPv6 with brackets: for="[2001:db8::1]"
+#       → Use when: Modern proxy infrastructure using RFC 7239
+#
+#   Both = Try Forwarded first, fallback to X-Forwarded-For
+#       → Checks HTTP_FORWARDED first
+#       → Falls back to HTTP_X_FORWARDED_FOR if not present
+#       → ✓ Best for mixed environments or migration scenarios
+#       → Slight overhead from checking both headers
+#
+# Common Scenarios:
+#   ✓  X-Forwarded-For: Standard nginx/Caddy/Apache setups
+#   ✓  Forwarded: Modern infrastructure using RFC 7239
+#   ✓  Both: Migration from X-Forwarded-For to Forwarded
+#   ❌ Never: Custom/unknown header names (security risk)
+#
+# Configuration Example:
+#   site:
+#     interface:
+#       ui:
+#         homepage:
+#           trusted_ip_header: X-Forwarded-For  # or Forwarded or Both
+#
+#

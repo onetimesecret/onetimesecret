@@ -137,6 +137,14 @@ export interface OnetimeWindow {
   /** Optional HTML banner displayed at page top */
   global_banner?: string;
 
+  /**
+   * Homepage mode indicating accessibility state.
+   * - 'internal': Full homepage with secret creation (for trusted networks)
+   * - 'external': Restricted homepage without secret creation (for public access)
+   * - null/undefined: Default homepage based on authentication.required
+   */
+  homepage_mode?: 'internal' | 'external' | null;
+
   canonical_domain: string;
   domain_strategy: 'canonical' | 'subdomain' | 'custom' | 'invalid';
   domain_id: string;

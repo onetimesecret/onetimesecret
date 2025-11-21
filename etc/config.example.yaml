@@ -14,6 +14,45 @@
       # Controls whether the web interface is enabled
       # When false, only a basic explanation page is shown
       :enabled: <%= ENV['UI_ENABLED'] != 'false' %>
+      # Homepage Mode
+      #
+      # Determines which homepage experience to show based on the request.
+      # It can change the content presented to a visitor when they navigate
+      # to the homepage but it does not expand or restrict access.
+      #
+      # ✓ Can do: Hide the Create Secret form for external users
+      # ✗ Cannot do: Grant access to endpoints for creating secret links
+      #
+      # This does not protect API endpoints and has no effect on existing
+      # authentication or authorization logic.
+      #
+      # Detection Methods (evaluated in order):
+      #   1. matching_cidrs - Client IP must match one of these subnets
+      #   2. mode_header - Fallback if no CIDR match (requires header value = mode)
+      #
+      # See etc/examples/homepage_modes.example.yaml for detailed examples
+      :homepage:
+        # Mode: 'internal' or 'external' or nil (default)
+        # - internal: Show full homepage with secret creation
+        # - external: Show restricted homepage without secret creation
+        # - nil: Default homepage based on authentication settings
+        :mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
+        # CIDR ranges that match the configured mode
+        # Example: ['10.0.0.0/8', '192.168.0.0/16', '203.0.113.0/24']
+        :matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
+        # HTTP header to check as fallback (header value must match mode)
+        :mode_header: <%= ENV['UI_HOMEPAGE_MODE_HEADER'] || 'O-Homepage-Mode' %>
+        # Number of trusted proxies between client and application
+        # - 0: Direct connection (use REMOTE_ADDR, ignore headers)
+        # - 1: Single reverse proxy (standard nginx/Caddy setup)
+        # - 2+: Multiple proxies (e.g., CDN + reverse proxy)
+        # Default is 1 for standard deployments behind reverse proxy
+        :trusted_proxy_depth: <%= ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
+        # Which header to use for IP extraction
+        # - X-Forwarded-For: Standard (most common)
+        # - Forwarded: RFC 7239 standard
+        # - Both: Try Forwarded first, fallback to X-Forwarded-For
+        :trusted_ip_header: <%= ENV['UI_HOMEPAGE_TRUSTED_IP_HEADER'] || 'X-Forwarded-For' %>
       # Header configuration
       # Controls branding and navigation in the site header
       :header:

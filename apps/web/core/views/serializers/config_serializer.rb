@@ -27,6 +27,7 @@ module Core
 
         output[:ui] = site.dig(:interface, :ui)
         output[:authentication] = site.fetch(:authentication, nil)
+        output[:homepage_mode] = view_vars[:homepage_mode]
         output[:support_host] = site.dig(:support, :host)
         output[:secret_options] = site[:secret_options]
         output[:site_host] = site[:host]
@@ -73,6 +74,7 @@ module Core
             domains_enabled: nil,
             frontend_development: nil,
             frontend_host: nil,
+            homepage_mode: nil,
             incoming_recipient: nil,
             plans_enabled: nil,
             regions: nil,

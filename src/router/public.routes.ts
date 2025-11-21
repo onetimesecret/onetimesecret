@@ -54,7 +54,13 @@ const routes: Array<RouteRecordRaw> = [
         const authentication = WindowService.get('authentication');
         // For route-level checks, we need to check session existence rather than store state
         const hasSession = document.cookie.includes('ots-session');
-        if (authentication?.required && !hasSession) {
+
+        // Check homepage mode
+        const homepageMode = WindowService.get('homepage_mode');
+
+        // Only show disabled-homepage if auth is required AND user has no session
+        // OR if homepage is in external mode
+        if (!hasSession && (authentication?.required || homepageMode === 'external')) {
           componentState = 'disabled-homepage';
         }
       }
