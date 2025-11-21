@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require_relative '../lib/webhook_validator'
 require 'stripe'
 
 module Billing
@@ -13,12 +14,14 @@ module Billing
       # Handle Stripe webhook events
       #
       # Processes subscription lifecycle events and product/price updates.
-      # Webhook signature is verified to ensure authenticity.
+      # Webhook signature and timestamp are verified to ensure authenticity
+      # and prevent replay attacks.
       #
       # POST /billing/webhook
       #
       # @return [HTTP 200] Success response
-      # @return [HTTP 400] Invalid payload or signature
+      # @return [HTTP 400] Invalid payload, signature, or timestamp
+      # @return [HTTP 500] Server configuration error
       #
       def handle_event
         payload    = req.body.read
@@ -30,18 +33,17 @@ module Billing
           return json_error('Missing signature header', status: 400)
         end
 
-        # Verify webhook signature
-        webhook_secret = OT.billing_config.webhook_signing_secret
-        unless webhook_secret
-          billing_logger.error 'Webhook signing secret not configured'
+        # Validate webhook event
+        begin
+          validator = Billing::WebhookValidator.new
+          event = validator.construct_event(payload, sig_header)
+        rescue ArgumentError => ex
+          billing_logger.error 'Webhook configuration error', {
+            exception: ex,
+            message: ex.message,
+          }
           res.status = 500
           return json_error('Webhook not configured', status: 500)
-        end
-
-        begin
-          event = Stripe::Webhook.construct_event(
-            payload, sig_header, webhook_secret
-          )
         rescue JSON::ParserError => ex
           billing_logger.error 'Invalid webhook payload', {
             exception: ex,
@@ -54,10 +56,17 @@ module Billing
           }
           res.status = 400
           return json_error('Invalid signature', status: 400)
+        rescue SecurityError => ex
+          billing_logger.warn 'Webhook event rejected for security', {
+            exception: ex,
+            message: ex.message,
+          }
+          res.status = 400
+          return json_error('Event rejected', status: 400)
         end
 
         # Check for duplicate webhook event
-        if Billing::ProcessedWebhookEvent.processed?(event.id)
+        if validator.already_processed?(event.id)
           billing_logger.info 'Webhook event already processed (duplicate)', {
             event_type: event.type,
             event_id: event.id,
@@ -72,23 +81,37 @@ module Billing
         }
 
         # Process event based on type
-        case event.type
-        when 'checkout.session.completed'
-          handle_checkout_completed(event.data.object)
-        when 'customer.subscription.updated'
-          handle_subscription_updated(event.data.object)
-        when 'customer.subscription.deleted'
-          handle_subscription_deleted(event.data.object)
-        when 'product.updated', 'price.updated'
-          handle_product_or_price_updated(event.data.object)
-        else
-          billing_logger.debug 'Unhandled webhook event type', {
+        begin
+          case event.type
+          when 'checkout.session.completed'
+            handle_checkout_completed(event.data.object)
+          when 'customer.subscription.updated'
+            handle_subscription_updated(event.data.object)
+          when 'customer.subscription.deleted'
+            handle_subscription_deleted(event.data.object)
+          when 'product.updated', 'price.updated'
+            handle_product_or_price_updated(event.data.object)
+          else
+            billing_logger.debug 'Unhandled webhook event type', {
+              event_type: event.type,
+            }
+          end
+        rescue StandardError => ex
+          billing_logger.error 'Error processing webhook event', {
+            exception: ex,
+            message: ex.message,
             event_type: event.type,
+            event_id: event.id,
+            backtrace: ex.backtrace&.first(5),
           }
+          # Return 200 to prevent Stripe from retrying
+          # Event is not marked as processed, so it can be manually reprocessed
+          res.status = 200
+          return json_success('Event received but processing failed')
         end
 
         # Mark event as processed to prevent duplicates
-        Billing::ProcessedWebhookEvent.mark_processed!(event.id, event.type)
+        validator.mark_processed!(event.id, event.type)
 
         res.status = 200
         json_success('Event processed')
