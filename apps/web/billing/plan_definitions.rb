@@ -57,9 +57,9 @@ module Billing
 
       return nil if plans_with_capability.empty?
 
-      # Sort by tier preference: free < single_team < multi_team
+      # Sort by tier preference: free < identity_plus < team_plus < org_plus < org_max
       # Return first (cheapest) matching item
-      tier_order = %w[free single_team multi_team]
+      tier_order = %w[free identity_plus team_plus org_plus org_max]
       sorted_plans = plans_with_capability.sort_by do |item|
         tier_order.index(item.tier) || 999
       end
