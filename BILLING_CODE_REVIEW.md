@@ -392,9 +392,8 @@ def update_from_stripe_subscription(subscription)
     raise ArgumentError, "Missing required subscription fields"
   end
 
-  # Validate status is known value
-  valid_statuses = %w[active past_due unpaid canceled incomplete incomplete_expired trialing]
-  unless valid_statuses.include?(subscription.status)
+  # Validate status is known value (using constant from Metadata module)
+  unless Billing::Metadata::VALID_SUBSCRIPTION_STATUSES.include?(subscription.status)
     OT.lw "Unknown subscription status: #{subscription.status}"
   end
 

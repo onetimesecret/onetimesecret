@@ -28,8 +28,12 @@ module Onetime
 
         return unless stripe_configured?
 
+        # Use StripeClient for all Stripe API calls (includes retry logic)
+        require_relative '../lib/stripe_client'
+        stripe_client = Billing::StripeClient.new
+
         # Retrieve subscription to show current state
-        subscription = Stripe::Subscription.retrieve(subscription_id)
+        subscription = stripe_client.retrieve(Stripe::Subscription, subscription_id)
 
         # Display operation summary
         display_operation_summary(
@@ -51,9 +55,7 @@ module Onetime
         confirmation_msg = immediately ? 'Cancel subscription IMMEDIATELY?' : 'Cancel subscription at period end?'
         return unless confirm_operation(confirmation_msg, auto_yes: yes)
 
-        # Cancel subscription using StripeClient for retry logic
-        require_relative '../lib/stripe_client'
-        stripe_client = Billing::StripeClient.new
+        # Cancel subscription
 
         canceled = if immediately
           stripe_client.delete(Stripe::Subscription, subscription_id)

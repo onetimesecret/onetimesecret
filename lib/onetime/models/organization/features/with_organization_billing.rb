@@ -99,8 +99,7 @@ module Onetime
             end
 
             # Validate subscription status is known value
-            valid_statuses = %w[active past_due unpaid canceled incomplete incomplete_expired trialing paused]
-            unless valid_statuses.include?(subscription.status)
+            unless Billing::Metadata::VALID_SUBSCRIPTION_STATUSES.include?(subscription.status)
               OT.lw "[Organization.update_from_stripe_subscription] Unknown subscription status", {
                 subscription_id: subscription.id,
                 status: subscription.status,

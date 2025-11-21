@@ -19,7 +19,9 @@ module Onetime
 
       # Execute Stripe API call with automatic retry on network/rate-limit errors
       #
-      # Implements exponential backoff for rate limits and network errors.
+      # Retries Stripe API calls with different backoff strategies:
+      # - Linear backoff for network errors (2s, 4s, 6s)
+      # - Exponential backoff for rate limits (4s, 8s, 16s)
       # Retries up to MAX_STRIPE_RETRIES times before raising the exception.
       #
       # @param max_retries [Integer] Maximum number of retry attempts (default: 3)

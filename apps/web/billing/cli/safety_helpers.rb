@@ -42,18 +42,17 @@ module Onetime
       # Prevents accidental operations on production Stripe account.
       # Checks that API key starts with 'sk_test_'.
       #
-      # @raise [RuntimeError] If not in test mode
+      # @raise [RuntimeError] If not in test mode or API key not configured
       # @return [Boolean] True if in test mode
       #
       # @example
-      #   validate_test_mode!  # Raises if production key
+      #   validate_test_mode!  # Raises if production key or not configured
       #
       def validate_test_mode!
         stripe_key = Stripe.api_key || OT.billing_config.stripe_key
 
         if stripe_key.nil? || stripe_key.to_s.strip.empty?
-          puts 'Error: Stripe API key not configured'
-          return false
+          raise 'Stripe API key not configured'
         end
 
         unless stripe_key.start_with?('sk_test_')

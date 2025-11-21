@@ -53,7 +53,7 @@ module Billing
       @webhook_secret = webhook_secret || Onetime.billing_config.webhook_signing_secret
 
       unless @webhook_secret
-        raise ConfigurationError, 'Webhook signing secret not configured'
+        raise ArgumentError, 'Webhook signing secret not configured'
       end
     end
 
