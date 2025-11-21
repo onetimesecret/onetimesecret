@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../lib/webhook_validator'
 require_relative '../support/billing_spec_helper'
 require_relative '../support/stripe_test_data'
 require_relative '../support/fixtures/stripe_objects'

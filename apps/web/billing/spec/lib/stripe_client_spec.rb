@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../lib/stripe_client'
 require_relative '../support/billing_spec_helper'
 require_relative '../support/stripe_test_data'
 require_relative '../support/shared_examples/stripe_error_handling'
@@ -293,7 +294,7 @@ RSpec.describe Billing::StripeClient, type: :billing do
       expect(client.billing_logger).to have_received(:debug).with(
         /Updating/,
         hash_excluding(:card, :source)
-      end
+      )
     end
   end
 
