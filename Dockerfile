@@ -143,16 +143,9 @@ COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml ./
 # the image size further b/c it requires having all git dependencies installed.
 # Can revisit if/when we can use a released rspec version.
 RUN set -eux && \
-    ARCH=$(uname -m) && \
-    case "$ARCH" in \
-        x86_64) PLATFORM="x86_64-linux" ;; \
-        aarch64) PLATFORM="aarch64-linux" ;; \
-        arm64) PLATFORM="arm64-darwin" ;; \
-        *) PLATFORM="ruby" ;; \
-    esac && \
-    bundle lock --add-platform $PLATFORM && \
     bundle config set --local without 'development test' && \
     bundle config set --local jobs "$(nproc)" && \
+    bundle config set --local force_ruby_platform true && \
     bundle install --retry=3 && \
     bundle clean --force
 
