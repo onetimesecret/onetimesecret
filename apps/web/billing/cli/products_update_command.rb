@@ -43,19 +43,34 @@ module Onetime
         metadata = if interactive
           prompt_for_metadata
         else
-          # Build complete metadata hash with all fields
+          # Build metadata hash - preserve existing values, ensure all fields exist
           current_meta = product.metadata.to_h
-          {
-            'app' => 'onetimesecret',
-            'plan_id' => options[:plan_id] || current_meta['plan_id'] || '',
-            'tier' => options[:tier] || current_meta['tier'] || '',
-            'region' => options[:region] || current_meta['region'] || '',
-            'tenancy' => options[:tenancy] || current_meta['tenancy'] || '',
-            'capabilities' => options[:capabilities] || current_meta['capabilities'] || '',
-            'created' => current_meta['created'] || Time.now.utc.iso8601,
-            'limit_teams' => current_meta['limit_teams'] || '',
-            'limit_members_per_team' => current_meta['limit_members_per_team'] || '',
-          }
+
+          # Start with current metadata
+          updated_meta = current_meta.dup
+
+          # Ensure all expected fields exist (with empty string if not set)
+          updated_meta['app'] = 'onetimesecret'
+          updated_meta['plan_id'] ||= ''
+          updated_meta['tier'] ||= ''
+          updated_meta['region'] ||= ''
+          updated_meta['tenancy'] ||= ''
+          updated_meta['capabilities'] ||= ''
+          updated_meta['created'] ||= Time.now.utc.iso8601
+          updated_meta['limit_teams'] ||= ''
+          updated_meta['limit_members_per_team'] ||= ''
+          updated_meta['limit_custom_domains'] ||= ''
+          updated_meta['limit_api_rate_limit'] ||= ''
+          updated_meta['limit_secret_lifetime'] ||= ''
+
+          # Override with any explicitly provided options
+          updated_meta['plan_id'] = options[:plan_id] if options[:plan_id]
+          updated_meta['tier'] = options[:tier] if options[:tier]
+          updated_meta['region'] = options[:region] if options[:region]
+          updated_meta['tenancy'] = options[:tenancy] if options[:tenancy]
+          updated_meta['capabilities'] = options[:capabilities] if options[:capabilities]
+
+          updated_meta
         end
 
         puts "Updating metadata:"
@@ -78,8 +93,8 @@ module Onetime
           end
 
           if remove_feature
-            # Remove feature by ID
-            current_features.reject! { |f| f.id == remove_feature }
+            # Remove feature by name (MarketingFeature is a hash-like object)
+            current_features.reject! { |f| f['name'] == remove_feature }
             puts "  Removing marketing feature: #{remove_feature}"
           end
 
@@ -94,7 +109,7 @@ module Onetime
 
         if updated.marketing_features && updated.marketing_features.any?
           puts "\nMarketing features:"
-          updated.marketing_features.each { |f| puts "  - #{f.name} (#{f.id})" }
+          updated.marketing_features.each { |f| puts "  - #{f['name']}" }
         end
       rescue Stripe::StripeError => e
         puts "Error updating product: #{e.message}"
