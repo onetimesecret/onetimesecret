@@ -121,9 +121,10 @@ module Billing
 
         # Idempotency key format: checkout-{orgid}-{plan}-{date}
         # This allows one checkout per org/plan/day, preventing duplicates
+        # SHA256 produces 64 hex chars, well within Stripe's 255 char limit
         idempotency_key = Digest::SHA256.hexdigest(
           "checkout:#{org.objid}:#{plan.plan_id}:#{Time.now.to_date.iso8601}"
-        )[0..31]
+        )
 
         checkout_session = stripe_client.create(
           Stripe::Checkout::Session,

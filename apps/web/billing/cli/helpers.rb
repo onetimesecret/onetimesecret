@@ -40,22 +40,22 @@ module Onetime
           retries += 1
           if retries <= max_retries
             delay = STRIPE_RETRY_BASE_DELAY * retries
-            OT.lw "Stripe API connection error, retrying in #{delay}s (attempt #{retries}/#{max_retries})"
+            OT.lw "Stripe API connection error: #{e.message}, retrying in #{delay}s (attempt #{retries}/#{max_retries})"
             sleep(delay)
             retry
           end
-          OT.le "Stripe API connection failed after #{max_retries} retries"
+          OT.le "Stripe API connection failed after #{max_retries} retries: #{e.message}"
           raise
         rescue Stripe::RateLimitError => e
           retries += 1
           if retries <= max_retries
             # Exponential backoff for rate limits
             delay = STRIPE_RETRY_BASE_DELAY * (2**retries)
-            OT.lw "Stripe rate limit hit, backing off #{delay}s (attempt #{retries}/#{max_retries})"
+            OT.lw "Stripe rate limit hit: #{e.message}, backing off #{delay}s (attempt #{retries}/#{max_retries})"
             sleep(delay)
             retry
           end
-          OT.le "Stripe rate limit exceeded after #{max_retries} retries"
+          OT.le "Stripe rate limit exceeded after #{max_retries} retries: #{e.message}"
           raise
         end
       end

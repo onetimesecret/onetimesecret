@@ -147,7 +147,7 @@ module Billing
 
         products.auto_paging_each do |product|
           products_processed += 1
-          progress&.call("Processing product #{products_processed}: #{product.name[0..40]}...") if products_processed % 5 == 1
+          progress&.call("Processing product #{products_processed}: #{product.name[0..40]}...") if products_processed == 1 || products_processed % 5 == 0
           # Skip products without required metadata
           unless product.metadata[Metadata::FIELD_APP] == Metadata::APP_NAME
             OT.ld "[Plan.refresh_from_stripe] Skipping product (not onetimesecret app)", {

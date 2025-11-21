@@ -154,8 +154,6 @@ module Onetime
             nil
           end
 
-          public
-
           # Clear billing fields (on subscription cancellation)
           #
           # @return [Boolean] True if saved successfully
