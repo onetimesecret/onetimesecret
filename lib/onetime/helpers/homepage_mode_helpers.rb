@@ -41,7 +41,7 @@ module Onetime
         configured_mode = homepage_config['mode']
         return nil unless %w[internal external].include?(configured_mode)
 
-        http_logger.debug '[homepage_mode] Detection initiated', {
+        OT.ld '[homepage_mode] Detection initiated', {
           mode: configured_mode,
         }
 
@@ -54,7 +54,7 @@ module Onetime
 
         # Priority 1: Check CIDR match
         if client_ip && ip_matches_homepage_cidrs?(client_ip)
-          http_logger.debug '[homepage_mode] CIDR match', {
+          OT.ld '[homepage_mode] CIDR match', {
             mode: configured_mode,
             method: 'cidr',
           }
@@ -63,7 +63,7 @@ module Onetime
 
         # Priority 2: Fallback to header check
         if mode_header_name && header_matches_mode?(mode_header_name, configured_mode)
-          http_logger.debug '[homepage_mode] Header match', {
+          OT.ld '[homepage_mode] Header match', {
             mode: configured_mode,
             method: 'header',
           }
@@ -71,7 +71,7 @@ module Onetime
         end
 
         # No match - use default homepage
-        http_logger.debug '[homepage_mode] No match - default homepage', {
+        OT.ld '[homepage_mode] No match - default homepage', {
           configured_mode: configured_mode,
         }
         nil
@@ -92,7 +92,7 @@ module Onetime
 
           # Validate privacy requirements
           unless validate_cidr_privacy(cidr)
-            http_logger.warn '[homepage_mode] CIDR rejected for privacy', {
+            OT.info '[homepage_mode] CIDR rejected for privacy', {
               cidr: cidr_string,
               prefix: cidr.prefix,
             }
@@ -101,7 +101,7 @@ module Onetime
 
           cidr
         rescue IPAddr::InvalidAddressError => e
-          http_logger.error '[homepage_mode] Invalid CIDR', {
+          OT.le '[homepage_mode] Invalid CIDR', {
             cidr: cidr_string,
             error: e.message,
           }
@@ -115,7 +115,7 @@ module Onetime
       # @return [Boolean] True if CIDR meets privacy requirements
       def validate_cidr_privacy(cidr)
         min_prefix = cidr.ipv4? ? 24 : 48
-        cidr.prefix <= min_prefix
+        cidr.prefix >= min_prefix
       end
 
       # Extract client IP address from request
@@ -150,7 +150,7 @@ module Onetime
               ip = forwarded_ips.first
             end
 
-            http_logger.debug '[homepage_mode] Using forwarded header', {
+            OT.ld '[homepage_mode] Using forwarded header', {
               header_type: trusted_ip_header,
               forwarded_chain: forwarded_ips.join(', '),
               trusted_depth: trusted_proxy_depth,
@@ -162,7 +162,7 @@ module Onetime
 
         # Default to REMOTE_ADDR (most secure, cannot be spoofed)
         ip = req.env['REMOTE_ADDR']
-        http_logger.debug '[homepage_mode] Using REMOTE_ADDR', {
+        OT.ld '[homepage_mode] Using REMOTE_ADDR', {
           ip: ip,
         }
         ip
@@ -184,7 +184,7 @@ module Onetime
           # Try Forwarded first (RFC standard), fallback to X-Forwarded-For
           extract_rfc7239_forwarded || extract_x_forwarded_for
         else
-          http_logger.warn '[homepage_mode] Unknown trusted_ip_header type, using X-Forwarded-For', {
+          OT.info '[homepage_mode] Unknown trusted_ip_header type, using X-Forwarded-For', {
             configured_type: header_type,
           }
           extract_x_forwarded_for
@@ -240,7 +240,7 @@ module Onetime
           ip = IPAddr.new(ip_string)
           @cidr_matchers.any? { |cidr| cidr.include?(ip) }
         rescue IPAddr::InvalidAddressError => e
-          http_logger.error '[homepage_mode] Invalid IP address', {
+          OT.le '[homepage_mode] Invalid IP address', {
             ip: ip_string,
             error: e.message,
           }

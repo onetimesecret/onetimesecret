@@ -58,9 +58,10 @@ const routes: Array<RouteRecordRaw> = [
         // Check homepage mode
         const homepageMode = WindowService.get('homepage_mode');
 
-        // Only show disabled-homepage if auth is required AND user has no session
-        // OR if homepage is in external mode
-        if (!hasSession && (authentication?.required || homepageMode === 'external')) {
+        // Show disabled-homepage if:
+        // 1. Auth is required AND user has no session
+        // 2. Homepage is in external mode (regardless of auth status)
+        if ((!hasSession && authentication?.required) || homepageMode === 'external') {
           componentState = 'disabled-homepage';
         }
       }
