@@ -376,40 +376,832 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
     end
   end
 
-  describe 'integration with determine_homepage_mode' do
-    let(:mock_req) do
-      double('request', env: {
-        'REMOTE_ADDR' => '10.105.64.100',
-        'HTTP_X_FORWARDED_FOR' => nil
-      })
+  describe '#private_ip?' do
+    context 'with IPv4 private addresses' do
+      it 'identifies RFC 1918 10.0.0.0/8 as private' do
+        expect(test_instance.send(:private_ip?, '10.0.0.1')).to be true
+        expect(test_instance.send(:private_ip?, '10.255.255.254')).to be true
+      end
+
+      it 'identifies RFC 1918 172.16.0.0/12 as private' do
+        expect(test_instance.send(:private_ip?, '172.16.0.1')).to be true
+        expect(test_instance.send(:private_ip?, '172.31.255.254')).to be true
+      end
+
+      it 'identifies RFC 1918 192.168.0.0/16 as private' do
+        expect(test_instance.send(:private_ip?, '192.168.0.1')).to be true
+        expect(test_instance.send(:private_ip?, '192.168.255.254')).to be true
+      end
+
+      it 'identifies loopback 127.0.0.0/8 as private' do
+        expect(test_instance.send(:private_ip?, '127.0.0.1')).to be true
+        expect(test_instance.send(:private_ip?, '127.255.255.254')).to be true
+      end
+
+      it 'identifies link-local 169.254.0.0/16 as private' do
+        expect(test_instance.send(:private_ip?, '169.254.0.1')).to be true
+        expect(test_instance.send(:private_ip?, '169.254.255.254')).to be true
+      end
     end
+
+    context 'with IPv4 public addresses' do
+      it 'identifies public IPs as not private' do
+        expect(test_instance.send(:private_ip?, '1.1.1.1')).to be false
+        expect(test_instance.send(:private_ip?, '8.8.8.8')).to be false
+        expect(test_instance.send(:private_ip?, '93.184.216.34')).to be false
+        expect(test_instance.send(:private_ip?, '151.101.1.140')).to be false
+      end
+
+      it 'identifies edge cases near private ranges as public' do
+        expect(test_instance.send(:private_ip?, '9.255.255.255')).to be false   # Just before 10.0.0.0/8
+        expect(test_instance.send(:private_ip?, '11.0.0.0')).to be false        # Just after 10.0.0.0/8
+        expect(test_instance.send(:private_ip?, '172.15.255.255')).to be false  # Just before 172.16.0.0/12
+        expect(test_instance.send(:private_ip?, '172.32.0.0')).to be false      # Just after 172.31.0.0/12
+        expect(test_instance.send(:private_ip?, '192.167.255.255')).to be false # Just before 192.168.0.0/16
+        expect(test_instance.send(:private_ip?, '192.169.0.0')).to be false     # Just after 192.168.0.0/16
+      end
+    end
+
+    context 'with IPv6 addresses' do
+      it 'identifies IPv6 loopback as private' do
+        expect(test_instance.send(:private_ip?, '::1')).to be true
+      end
+
+      it 'identifies IPv6 unique local addresses (fc00::/7) as private' do
+        expect(test_instance.send(:private_ip?, 'fc00::1')).to be true
+        expect(test_instance.send(:private_ip?, 'fd00::1')).to be true
+        expect(test_instance.send(:private_ip?, 'fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff')).to be true
+      end
+
+      it 'identifies IPv6 link-local addresses (fe80::/10) as private' do
+        expect(test_instance.send(:private_ip?, 'fe80::1')).to be true
+        expect(test_instance.send(:private_ip?, 'febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff')).to be true
+      end
+
+      it 'identifies public IPv6 addresses as not private' do
+        expect(test_instance.send(:private_ip?, '2001:4860:4860::8888')).to be false  # Google DNS
+        expect(test_instance.send(:private_ip?, '2606:4700:4700::1111')).to be false  # Cloudflare DNS
+      end
+    end
+
+    context 'with invalid or empty inputs' do
+      it 'treats nil as private (safe default)' do
+        expect(test_instance.send(:private_ip?, nil)).to be true
+      end
+
+      it 'treats empty string as private (safe default)' do
+        expect(test_instance.send(:private_ip?, '')).to be true
+      end
+
+      it 'treats invalid IP address as private (safe default)' do
+        expect(test_instance.send(:private_ip?, 'not-an-ip')).to be true
+        expect(test_instance.send(:private_ip?, '999.999.999.999')).to be true
+      end
+    end
+  end
+
+  describe '#extract_x_forwarded_for' do
+    let(:mock_req) { double('request', env: {}) }
 
     before do
       test_instance.req = mock_req
-      allow(OT).to receive(:conf).and_return({
-        site: {
-          interface: {
-            ui: {
-              homepage: {
-                mode: 'internal',
-                matching_cidrs: ['10.105.64.0/20'], # This is from the bug report
-              }
-            }
-          }
-        }
-      })
+    end
+
+    it 'extracts single IP from X-Forwarded-For header' do
+      mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.1'
+      result = test_instance.send(:extract_x_forwarded_for)
+      expect(result).to eq(['203.0.113.1'])
+    end
+
+    it 'extracts multiple IPs from X-Forwarded-For header' do
+      mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.1, 198.51.100.1, 192.0.2.1'
+      result = test_instance.send(:extract_x_forwarded_for)
+      expect(result).to eq(['203.0.113.1', '198.51.100.1', '192.0.2.1'])
+    end
+
+    it 'strips whitespace from IPs' do
+      mock_req.env['HTTP_X_FORWARDED_FOR'] = '  203.0.113.1  ,  198.51.100.1  '
+      result = test_instance.send(:extract_x_forwarded_for)
+      expect(result).to eq(['203.0.113.1', '198.51.100.1'])
+    end
+
+    it 'returns nil when header is not present' do
+      result = test_instance.send(:extract_x_forwarded_for)
+      expect(result).to be_nil
+    end
+
+    it 'returns nil when header is empty' do
+      mock_req.env['HTTP_X_FORWARDED_FOR'] = ''
+      result = test_instance.send(:extract_x_forwarded_for)
+      expect(result).to be_nil
+    end
+  end
+
+  describe '#extract_rfc7239_forwarded' do
+    let(:mock_req) { double('request', env: {}) }
+
+    before do
+      test_instance.req = mock_req
+    end
+
+    it 'extracts single IP from RFC 7239 Forwarded header' do
+      mock_req.env['HTTP_FORWARDED'] = 'for=203.0.113.1'
+      result = test_instance.send(:extract_rfc7239_forwarded)
+      expect(result).to eq(['203.0.113.1'])
+    end
+
+    it 'extracts multiple IPs from Forwarded header' do
+      mock_req.env['HTTP_FORWARDED'] = 'for=203.0.113.1, for=198.51.100.1'
+      result = test_instance.send(:extract_rfc7239_forwarded)
+      expect(result).to eq(['203.0.113.1', '198.51.100.1'])
+    end
+
+    it 'extracts IPs with quoted values' do
+      mock_req.env['HTTP_FORWARDED'] = 'for="203.0.113.1"'
+      result = test_instance.send(:extract_rfc7239_forwarded)
+      expect(result).to eq(['203.0.113.1'])
+    end
+
+    it 'extracts IPv6 addresses with brackets' do
+      mock_req.env['HTTP_FORWARDED'] = 'for="[2001:db8::1]"'
+      result = test_instance.send(:extract_rfc7239_forwarded)
+      expect(result).to eq(['2001:db8::1'])
+    end
+
+    it 'extracts IPs from complex Forwarded header with multiple parameters' do
+      mock_req.env['HTTP_FORWARDED'] = 'for=203.0.113.1;by=198.51.100.1, for=192.0.2.1'
+      result = test_instance.send(:extract_rfc7239_forwarded)
+      expect(result).to eq(['203.0.113.1', '192.0.2.1'])
+    end
+
+    it 'handles case-insensitive for parameter' do
+      mock_req.env['HTTP_FORWARDED'] = 'For=203.0.113.1, FOR=198.51.100.1'
+      result = test_instance.send(:extract_rfc7239_forwarded)
+      expect(result).to eq(['203.0.113.1', '198.51.100.1'])
+    end
+
+    it 'returns nil when header is not present' do
+      result = test_instance.send(:extract_rfc7239_forwarded)
+      expect(result).to be_nil
+    end
+
+    it 'returns nil when header is empty' do
+      mock_req.env['HTTP_FORWARDED'] = ''
+      result = test_instance.send(:extract_rfc7239_forwarded)
+      expect(result).to be_nil
+    end
+  end
+
+  describe '#extract_ip_from_header' do
+    let(:mock_req) { double('request', env: {}) }
+
+    before do
+      test_instance.req = mock_req
+      allow(OT).to receive(:ld)
+    end
+
+    context 'with trusted_proxy_depth of 1' do
+      it 'extracts client IP from X-Forwarded-For chain' do
+        # Chain: client -> proxy1
+        # X-Forwarded-For: client_ip, proxy1_ip
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.1, 198.51.100.1'
+        result = test_instance.send(:extract_ip_from_header, 'X-Forwarded-For', 1)
+        expect(result).to eq('203.0.113.1')
+      end
+    end
+
+    context 'with trusted_proxy_depth of 2' do
+      it 'extracts correct client IP from longer chain' do
+        # Chain: client -> proxy1 -> proxy2
+        # X-Forwarded-For: client_ip, proxy1_ip, proxy2_ip
+        # Logic: Remove last 2 IPs (proxies), take rightmost of what's left
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.1, 198.51.100.1, 192.0.2.1'
+        result = test_instance.send(:extract_ip_from_header, 'X-Forwarded-For', 2)
+        expect(result).to eq('203.0.113.1')
+      end
+
+      it 'extracts correct client IP from even longer chain' do
+        # Chain: client -> intermediate -> proxy1 -> proxy2
+        # X-Forwarded-For: client_ip, intermediate_ip, proxy1_ip, proxy2_ip
+        # Logic: Remove last 2 IPs (proxies), take rightmost of what's left
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.1, 198.51.100.1, 192.0.2.1, 198.18.0.1'
+        result = test_instance.send(:extract_ip_from_header, 'X-Forwarded-For', 2)
+        expect(result).to eq('198.51.100.1')
+      end
+    end
+
+    context 'with chain shorter than trusted_proxy_depth' do
+      it 'returns first IP when chain is shorter than expected' do
+        # Chain has only 2 IPs but we expect 3 proxies
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '203.0.113.1, 198.51.100.1'
+        result = test_instance.send(:extract_ip_from_header, 'X-Forwarded-For', 3)
+        expect(result).to eq('203.0.113.1')
+      end
+    end
+
+    context 'with RFC 7239 Forwarded header' do
+      it 'extracts IP from Forwarded header' do
+        mock_req.env['HTTP_FORWARDED'] = 'for=203.0.113.1, for=198.51.100.1'
+        result = test_instance.send(:extract_ip_from_header, 'Forwarded', 1)
+        expect(result).to eq('203.0.113.1')
+      end
+    end
+
+    it 'returns nil when no header is present' do
+      result = test_instance.send(:extract_ip_from_header, 'X-Forwarded-For', 1)
+      expect(result).to be_nil
+    end
+  end
+
+  describe '#extract_client_ip_for_homepage' do
+    let(:mock_req) { double('request', env: {'REMOTE_ADDR' => '203.0.113.1'}) }
+
+    before do
+      test_instance.req = mock_req
+      allow(OT).to receive(:ld)
+    end
+
+    context 'with trusted_proxy_depth of 0' do
+      it 'ignores headers and uses REMOTE_ADDR' do
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '198.51.100.1'
+        config = {trusted_proxy_depth: 0}
+        result = test_instance.send(:extract_client_ip_for_homepage, config)
+        expect(result).to eq('203.0.113.1')
+      end
+    end
+
+    context 'with trusted_proxy_depth > 0' do
+      it 'extracts IP from X-Forwarded-For header' do
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '198.51.100.1, 203.0.113.1'
+        config = {trusted_proxy_depth: 1, trusted_ip_header: 'X-Forwarded-For'}
+        result = test_instance.send(:extract_client_ip_for_homepage, config)
+        expect(result).to eq('198.51.100.1')
+      end
+
+      it 'falls back to REMOTE_ADDR if extracted IP is private' do
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '10.0.0.1, 203.0.113.1'  # Private IP
+        config = {trusted_proxy_depth: 1, trusted_ip_header: 'X-Forwarded-For'}
+        result = test_instance.send(:extract_client_ip_for_homepage, config)
+        expect(result).to eq('203.0.113.1')  # Falls back to REMOTE_ADDR
+      end
+
+      it 'falls back to REMOTE_ADDR if no header is present' do
+        config = {trusted_proxy_depth: 1, trusted_ip_header: 'X-Forwarded-For'}
+        result = test_instance.send(:extract_client_ip_for_homepage, config)
+        expect(result).to eq('203.0.113.1')
+      end
+    end
+
+    context 'with default configuration' do
+      it 'defaults to trusted_proxy_depth of 1' do
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '198.51.100.1, 203.0.113.1'
+        config = {}
+        result = test_instance.send(:extract_client_ip_for_homepage, config)
+        expect(result).to eq('198.51.100.1')
+      end
+
+      it 'defaults to X-Forwarded-For header' do
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '198.51.100.1'
+        config = {trusted_proxy_depth: 1}
+        result = test_instance.send(:extract_client_ip_for_homepage, config)
+        expect(result).to eq('198.51.100.1')
+      end
+    end
+  end
+
+  describe '#ip_matches_homepage_cidrs?' do
+    before do
+      test_instance.instance_variable_set(:@cidr_matchers, [
+        IPAddr.new('10.0.0.0/8'),
+        IPAddr.new('192.168.1.0/24'),
+        IPAddr.new('2001:db8::/32')
+      ])
+      allow(OT).to receive(:le)
+    end
+
+    context 'with matching IPs' do
+      it 'matches IP in first CIDR range' do
+        expect(test_instance.send(:ip_matches_homepage_cidrs?, '10.1.2.3')).to be true
+      end
+
+      it 'matches IP in second CIDR range' do
+        expect(test_instance.send(:ip_matches_homepage_cidrs?, '192.168.1.100')).to be true
+      end
+
+      it 'matches IPv6 address in CIDR range' do
+        expect(test_instance.send(:ip_matches_homepage_cidrs?, '2001:db8::1')).to be true
+      end
+
+      it 'matches IP at the edge of CIDR range' do
+        expect(test_instance.send(:ip_matches_homepage_cidrs?, '192.168.1.1')).to be true
+        expect(test_instance.send(:ip_matches_homepage_cidrs?, '192.168.1.254')).to be true
+      end
+    end
+
+    context 'with non-matching IPs' do
+      it 'does not match IP outside all CIDR ranges' do
+        expect(test_instance.send(:ip_matches_homepage_cidrs?, '203.0.113.1')).to be false
+      end
+
+      it 'does not match IP just outside CIDR range' do
+        expect(test_instance.send(:ip_matches_homepage_cidrs?, '192.168.2.1')).to be false
+      end
+
+      it 'does not match IPv6 address outside CIDR range' do
+        expect(test_instance.send(:ip_matches_homepage_cidrs?, '2001:db9::1')).to be false
+      end
+    end
+
+    context 'with invalid inputs' do
+      it 'returns false for empty string' do
+        expect(test_instance.send(:ip_matches_homepage_cidrs?, '')).to be false
+      end
+
+      it 'returns false for nil' do
+        expect(test_instance.send(:ip_matches_homepage_cidrs?, nil)).to be false
+      end
+
+      it 'returns false for invalid IP address' do
+        expect(test_instance.send(:ip_matches_homepage_cidrs?, 'not-an-ip')).to be false
+      end
+    end
+
+    context 'with empty CIDR matchers' do
+      before do
+        test_instance.instance_variable_set(:@cidr_matchers, [])
+      end
+
+      it 'returns false when no CIDRs are configured' do
+        expect(test_instance.send(:ip_matches_homepage_cidrs?, '10.1.2.3')).to be false
+      end
+    end
+  end
+
+  describe '#header_matches_mode?' do
+    let(:mock_req) { double('request', env: {}) }
+
+    before do
+      test_instance.req = mock_req
+    end
+
+    context 'with matching header' do
+      it 'matches when header value equals expected mode' do
+        mock_req.env['HTTP_O_HOMEPAGE_MODE'] = 'internal'
+        result = test_instance.send(:header_matches_mode?, 'O-Homepage-Mode', 'internal')
+        expect(result).to be true
+      end
+
+      it 'handles header with HTTP_ prefix already present' do
+        mock_req.env['HTTP_X_CUSTOM_MODE'] = 'external'
+        result = test_instance.send(:header_matches_mode?, 'HTTP_X_CUSTOM_MODE', 'external')
+        expect(result).to be true
+      end
+
+      it 'converts dashes to underscores in header name' do
+        mock_req.env['HTTP_X_CUSTOM_HOMEPAGE_MODE'] = 'internal'
+        result = test_instance.send(:header_matches_mode?, 'X-Custom-Homepage-Mode', 'internal')
+        expect(result).to be true
+      end
+    end
+
+    context 'with non-matching header' do
+      it 'returns false when header value differs from expected mode' do
+        mock_req.env['HTTP_O_HOMEPAGE_MODE'] = 'external'
+        result = test_instance.send(:header_matches_mode?, 'O-Homepage-Mode', 'internal')
+        expect(result).to be false
+      end
+
+      it 'returns false when header is not present' do
+        result = test_instance.send(:header_matches_mode?, 'O-Homepage-Mode', 'internal')
+        expect(result).to be false
+      end
+
+      it 'returns false when header is empty' do
+        mock_req.env['HTTP_O_HOMEPAGE_MODE'] = ''
+        result = test_instance.send(:header_matches_mode?, 'O-Homepage-Mode', 'internal')
+        expect(result).to be false
+      end
+    end
+
+    context 'with invalid inputs' do
+      it 'returns false when header_name is nil' do
+        result = test_instance.send(:header_matches_mode?, nil, 'internal')
+        expect(result).to be false
+      end
+
+      it 'returns false when header_name is empty' do
+        result = test_instance.send(:header_matches_mode?, '', 'internal')
+        expect(result).to be false
+      end
+    end
+  end
+
+  describe 'integration with determine_homepage_mode' do
+    before do
       allow(OT).to receive(:info)
       allow(OT).to receive(:ld)
     end
 
-    it 'matches client IP against broad CIDR after fixing the bug' do
-      # This test will fail with the current buggy code because /20 is rejected
-      # After fixing the bug, this should pass
+    context 'with CIDR matching (priority 1)' do
+      let(:mock_req) do
+        double('request', env: {
+          'REMOTE_ADDR' => '10.105.64.100',
+          'HTTP_X_FORWARDED_FOR' => nil
+        })
+      end
 
-      mode = test_instance.determine_homepage_mode
+      before do
+        test_instance.req = mock_req
+      end
 
-      # Once the bug is fixed, the /20 CIDR should be accepted and the IP should match
-      expect(mode).to eq('internal'), "Expected client IP 10.105.64.100 to match /20 CIDR"
+      it 'returns internal mode when client IP matches configured CIDR' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: 'internal',
+                  matching_cidrs: ['10.105.64.0/20'], # From the bug report - now fixed!
+                }
+              }
+            }
+          }
+        })
+
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to eq('internal')
+      end
+
+      it 'returns external mode when client IP matches configured CIDR' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: 'external',
+                  matching_cidrs: ['10.105.64.0/20'],
+                }
+              }
+            }
+          }
+        })
+
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to eq('external')
+      end
+
+      it 'returns nil when client IP does not match any CIDR' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: 'internal',
+                  matching_cidrs: ['192.168.1.0/24'], # Different range
+                }
+              }
+            }
+          }
+        })
+
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to be_nil
+      end
+
+      it 'matches against multiple configured CIDRs' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: 'internal',
+                  matching_cidrs: [
+                    '192.168.1.0/24',    # Does not match
+                    '10.105.64.0/20',    # Matches!
+                    '172.16.0.0/16'      # Does not match
+                  ],
+                }
+              }
+            }
+          }
+        })
+
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to eq('internal')
+      end
+    end
+
+    context 'with header matching (priority 2 - fallback)' do
+      let(:mock_req) do
+        double('request', env: {
+          'REMOTE_ADDR' => '203.0.113.1',  # Public IP not in CIDR
+          'HTTP_O_HOMEPAGE_MODE' => 'internal'
+        })
+      end
+
+      before do
+        test_instance.req = mock_req
+      end
+
+      it 'falls back to header when CIDR does not match' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: 'internal',
+                  matching_cidrs: ['10.0.0.0/8'],        # Does not match
+                  mode_header: 'O-Homepage-Mode'
+                }
+              }
+            }
+          }
+        })
+
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to eq('internal')
+      end
+
+      it 'returns nil when header does not match expected mode' do
+        mock_req.env['HTTP_O_HOMEPAGE_MODE'] = 'external'  # Header says external
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: 'internal',  # Config expects internal
+                  matching_cidrs: ['10.0.0.0/8'],
+                  mode_header: 'O-Homepage-Mode'
+                }
+              }
+            }
+          }
+        })
+
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to be_nil
+      end
+    end
+
+    context 'with CIDR priority over header' do
+      let(:mock_req) do
+        double('request', env: {
+          'REMOTE_ADDR' => '10.105.64.100',
+          'HTTP_O_HOMEPAGE_MODE' => 'external'  # Header says external
+        })
+      end
+
+      before do
+        test_instance.req = mock_req
+      end
+
+      it 'CIDR match takes priority over header' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: 'internal',
+                  matching_cidrs: ['10.105.64.0/20'],  # IP matches this
+                  mode_header: 'O-Homepage-Mode'
+                }
+              }
+            }
+          }
+        })
+
+        # Even though header says 'external', CIDR match should win
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to eq('internal')
+      end
+    end
+
+    context 'with proxy configuration' do
+      let(:mock_req) do
+        double('request', env: {
+          'REMOTE_ADDR' => '198.51.100.1',  # Proxy IP
+          'HTTP_X_FORWARDED_FOR' => '203.0.113.50, 198.51.100.1'  # Public Client IP, Proxy
+        })
+      end
+
+      before do
+        test_instance.req = mock_req
+      end
+
+      it 'extracts client IP from X-Forwarded-For and matches CIDR' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: 'internal',
+                  matching_cidrs: ['203.0.113.0/24'],  # Public IP range
+                  trusted_proxy_depth: 1,
+                  trusted_ip_header: 'X-Forwarded-For'
+                }
+              }
+            }
+          }
+        })
+
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to eq('internal')
+      end
+
+      it 'rejects private IP from header and falls back to REMOTE_ADDR' do
+        # Client sends private IP in header (spoofing attempt or misconfiguration)
+        mock_req.env['HTTP_X_FORWARDED_FOR'] = '10.0.0.1, 198.51.100.1'
+
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: 'internal',
+                  matching_cidrs: ['198.51.100.0/24'],  # Proxy IP range
+                  trusted_proxy_depth: 1,
+                  trusted_ip_header: 'X-Forwarded-For'
+                }
+              }
+            }
+          }
+        })
+
+        # Private IP is rejected, falls back to REMOTE_ADDR which matches
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to eq('internal')
+      end
+
+      it 'ignores headers when trusted_proxy_depth is 0' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: 'internal',
+                  matching_cidrs: ['198.51.100.0/24'],  # Proxy IP range
+                  trusted_proxy_depth: 0  # Don't trust headers
+                }
+              }
+            }
+          }
+        })
+
+        # Should match using REMOTE_ADDR (proxy IP)
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to eq('internal')
+      end
+    end
+
+    context 'with invalid configuration' do
+      let(:mock_req) do
+        double('request', env: {
+          'REMOTE_ADDR' => '10.105.64.100'
+        })
+      end
+
+      before do
+        test_instance.req = mock_req
+      end
+
+      it 'returns nil when mode is not internal or external' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: 'invalid-mode',
+                  matching_cidrs: ['10.105.64.0/20']
+                }
+              }
+            }
+          }
+        })
+
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to be_nil
+      end
+
+      it 'returns nil when homepage config is missing' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {}
+            }
+          }
+        })
+
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to be_nil
+      end
+
+      it 'returns nil when ui config is missing' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {}
+          }
+        })
+
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to be_nil
+      end
+
+      it 'returns nil when mode is nil' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: nil,
+                  matching_cidrs: ['10.105.64.0/20']
+                }
+              }
+            }
+          }
+        })
+
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to be_nil
+      end
+    end
+
+    context 'with no matches' do
+      let(:mock_req) do
+        double('request', env: {
+          'REMOTE_ADDR' => '203.0.113.1'  # Public IP not in CIDR
+        })
+      end
+
+      before do
+        test_instance.req = mock_req
+      end
+
+      it 'returns nil when neither CIDR nor header match' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: 'internal',
+                  matching_cidrs: ['10.0.0.0/8'],
+                  mode_header: 'O-Homepage-Mode'
+                }
+              }
+            }
+          }
+        })
+
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to be_nil
+      end
+    end
+
+    context 'with privacy-violating narrow CIDRs (after fix)' do
+      let(:mock_req) do
+        double('request', env: {
+          'REMOTE_ADDR' => '192.168.1.1'
+        })
+      end
+
+      before do
+        test_instance.req = mock_req
+      end
+
+      it 'rejects narrow /32 CIDR and returns nil' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: 'internal',
+                  matching_cidrs: ['192.168.1.1/32']  # Single host - privacy violation
+                }
+              }
+            }
+          }
+        })
+
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to be_nil  # CIDR rejected, no match
+      end
+
+      it 'rejects narrow /28 CIDR and returns nil' do
+        allow(OT).to receive(:conf).and_return({
+          site: {
+            interface: {
+              ui: {
+                homepage: {
+                  mode: 'internal',
+                  matching_cidrs: ['192.168.1.0/28']  # Only 14 IPs - privacy violation
+                }
+              }
+            }
+          }
+        })
+
+        mode = test_instance.determine_homepage_mode
+        expect(mode).to be_nil
+      end
     end
   end
 end
