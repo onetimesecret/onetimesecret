@@ -82,6 +82,8 @@ RUN set -eux && \
         libssl-dev \
         libffi-dev \
         libyaml-dev \
+        libsqlite3-dev \
+        libpq-dev \
         pkg-config \
         git \
         curl && \
@@ -192,6 +194,15 @@ LABEL org.opencontainers.image.version=${VERSION} \
       org.opencontainers.image.title="OneTime Secret" \
       org.opencontainers.image.description="Keep passwords out of your inboxes and chat logs with links that work only one time." \
       org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret"
+
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libsqlite3-0 \
+        libpq5 \
+        curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 WORKDIR ${APP_DIR}
 
