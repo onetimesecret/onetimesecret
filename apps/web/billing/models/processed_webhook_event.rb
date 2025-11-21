@@ -6,6 +6,9 @@ module Billing
   # Tracks processed webhook events to prevent duplicate processing.
   # Stripe may send duplicate events during retries or outages.
   #
+  # Uses atomic Redis operations to prevent race conditions between
+  # concurrent webhook deliveries.
+  #
   class ProcessedWebhookEvent < Familia::Horreum
     using Familia::Refinements::TimeLiterals
 
@@ -21,16 +24,47 @@ module Billing
     field :processed_at     # Timestamp when processed
 
     # Check if event was already processed
+    #
+    # @param stripe_event_id [String] Stripe event ID
+    # @return [Boolean] True if event was already processed
     def self.processed?(stripe_event_id)
-      load(stripe_event_id)&.exists?
+      event = new(stripe_event_id: stripe_event_id)
+      event.exists?
     end
 
-    # Mark event as processed
+    # Mark event as processed (non-atomic, use mark_processed_if_new! instead)
+    #
+    # @param stripe_event_id [String] Stripe event ID
+    # @param event_type [String] Event type
+    # @return [ProcessedWebhookEvent] Saved event record
     def self.mark_processed!(stripe_event_id, event_type)
       event = new(stripe_event_id: stripe_event_id)
       event.event_type = event_type
       event.processed_at = Time.now.to_i.to_s
       event.save
+    end
+
+    # Atomically mark event as processed if not already processed
+    #
+    # This method uses Redis SETNX operation to prevent race conditions
+    # when processing concurrent webhook deliveries.
+    #
+    # @param stripe_event_id [String] Stripe event ID
+    # @param event_type [String] Event type
+    # @return [Boolean] True if marked successfully (was new), false if already processed
+    def self.mark_processed_if_new!(stripe_event_id, event_type)
+      event = new(stripe_event_id: stripe_event_id)
+      event.event_type = event_type
+      event.processed_at = Time.now.to_i.to_s
+
+      # Try to save with NX flag (only if not exists)
+      # Returns true if key was set, false if key already existed
+      result = event.rediskey.setnx(event.to_json)
+
+      # Set expiration if we successfully created the key
+      event.update_expiration if result
+
+      result
     end
   end
 end

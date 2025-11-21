@@ -56,8 +56,9 @@ module Billing
           return json_error('Invalid signature', status: 400)
         end
 
-        # Check for duplicate webhook event
-        if Billing::ProcessedWebhookEvent.processed?(event.id)
+        # Atomically check and mark event as processing
+        # This prevents race conditions with concurrent webhook deliveries
+        unless Billing::ProcessedWebhookEvent.mark_processed_if_new!(event.id, event.type)
           billing_logger.info 'Webhook event already processed (duplicate)', {
             event_type: event.type,
             event_id: event.id,
@@ -71,7 +72,40 @@ module Billing
           event_id: event.id,
         }
 
-        # Process event based on type
+        # Process event with error handling and rollback
+        begin
+          process_webhook_event(event)
+        rescue StandardError => ex
+          # Remove processed marker on failure so Stripe can retry
+          processed_event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event.id)
+          processed_event.destroy! if processed_event.exists?
+
+          billing_logger.error 'Webhook processing failed - event unmarked for retry', {
+            event_type: event.type,
+            event_id: event.id,
+            error: ex.message,
+            backtrace: ex.backtrace&.first(5),
+          }
+
+          # Return 500 so Stripe retries the webhook
+          res.status = 500
+          return json_error('Webhook processing failed', status: 500)
+        end
+
+        res.status = 200
+        json_success('Event processed')
+      end
+
+      private
+
+      # Process webhook event by type
+      #
+      # Dispatches event to appropriate handler based on event type.
+      # Raises exceptions on failure so they can be caught and rolled back.
+      #
+      # @param event [Stripe::Event] Stripe webhook event
+      # @raise [StandardError] If event processing fails
+      def process_webhook_event(event)
         case event.type
         when 'checkout.session.completed'
           handle_checkout_completed(event.data.object)
@@ -86,15 +120,7 @@ module Billing
             event_type: event.type,
           }
         end
-
-        # Mark event as processed to prevent duplicates
-        Billing::ProcessedWebhookEvent.mark_processed!(event.id, event.type)
-
-        res.status = 200
-        json_success('Event processed')
       end
-
-      private
 
       # Handle checkout.session.completed event
       #

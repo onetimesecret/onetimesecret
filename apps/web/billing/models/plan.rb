@@ -8,7 +8,8 @@ module Billing
 
   unless defined?(RECORD_LIMIT)
     # Maximum number of active Stripe products to retrieve at one time.
-    RECORD_LIMIT = 25
+    # Stripe's API maximum is 100. Using maximum to minimize API calls.
+    RECORD_LIMIT = 100
   end
 
   # Plan - Stripe Product + Price Plan Cache
@@ -116,8 +117,10 @@ module Billing
       # Fetches all active products and prices from Stripe, filters by app metadata,
       # and caches them in Redis with computed plan IDs.
       #
+      # @param progress [Proc, nil] Optional progress callback (called with status messages)
       # @return [Integer] Number of plans cached
-      def refresh_from_stripe
+      # @raise [Stripe::StripeError] If Stripe API call fails
+      def refresh_from_stripe(progress: nil)
         # Skip Stripe sync in CI/test environments without API key
         stripe_key = Onetime.billing_config.stripe_key
         if stripe_key.to_s.strip.empty?
@@ -137,8 +140,13 @@ module Billing
         })
 
         items_count = 0
+        products_processed = 0
+
+        progress&.call('Fetching products from Stripe...')
 
         products.auto_paging_each do |product|
+          products_processed += 1
+          progress&.call("Processing product #{products_processed}: #{product.name[0..40]}...") if products_processed % 5 == 1
           # Skip products without required metadata
           unless product.metadata['app'] == 'onetimesecret'
             OT.ld "[Plan.refresh_from_stripe] Skipping product (not onetimesecret app)", {

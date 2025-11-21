@@ -81,23 +81,75 @@ module Onetime
 
           # Update billing fields from Stripe subscription
           #
+          # Validates subscription data before updating organization fields.
+          # Ensures data integrity and prevents corruption from invalid webhook data.
+          #
           # @param subscription [Stripe::Subscription] Stripe subscription object
           # @return [Boolean] True if saved successfully
+          # @raise [ArgumentError] If subscription is invalid or missing required fields
           def update_from_stripe_subscription(subscription)
+            # Validate subscription object type
+            unless subscription.is_a?(Stripe::Subscription)
+              raise ArgumentError, "Expected Stripe::Subscription, got #{subscription.class}"
+            end
+
+            # Validate required fields
+            unless subscription.id && subscription.customer && subscription.status
+              raise ArgumentError, 'Subscription missing required fields (id, customer, status)'
+            end
+
+            # Validate subscription status is known value
+            valid_statuses = %w[active past_due unpaid canceled incomplete incomplete_expired trialing paused]
+            unless valid_statuses.include?(subscription.status)
+              OT.lw "[Organization.update_from_stripe_subscription] Unknown subscription status", {
+                subscription_id: subscription.id,
+                status: subscription.status,
+                orgid: objid
+              }
+            end
+
+            # Update fields
             self.stripe_subscription_id  = subscription.id
             self.stripe_customer_id      = subscription.customer
             self.subscription_status     = subscription.status
             self.subscription_period_end = subscription.current_period_end.to_s
 
-            # Extract plan ID from subscription metadata or price metadata
-            if subscription.metadata && subscription.metadata['plan_id']
-              self.planid = subscription.metadata['plan_id']
-            elsif subscription.items.data.first&.price&.metadata&.[]('plan_id')
-              self.planid = subscription.items.data.first.price.metadata['plan_id']
-            end
+            # Extract plan ID with validation
+            plan_id = extract_plan_id_from_subscription(subscription)
+            self.planid = plan_id if plan_id
 
             save
           end
+
+          private
+
+          # Extract plan ID from subscription metadata with fallback
+          #
+          # Tries multiple locations for plan_id:
+          # 1. Subscription metadata['plan_id']
+          # 2. First subscription item's price metadata['plan_id']
+          #
+          # @param subscription [Stripe::Subscription] Stripe subscription
+          # @return [String, nil] Plan ID or nil if not found
+          def extract_plan_id_from_subscription(subscription)
+            # Try subscription-level metadata first
+            if subscription.metadata && subscription.metadata['plan_id']
+              return subscription.metadata['plan_id']
+            end
+
+            # Try price-level metadata
+            if subscription.items.data.first&.price&.metadata&.[]('plan_id')
+              return subscription.items.data.first.price.metadata['plan_id']
+            end
+
+            OT.lw "[Organization.extract_plan_id_from_subscription] No plan_id in metadata", {
+              subscription_id: subscription.id,
+              orgid: objid
+            }
+            nil
+          end
+
+          public
 
           # Clear billing fields (on subscription cancellation)
           #

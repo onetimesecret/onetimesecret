@@ -11,6 +11,77 @@ module Onetime
     module BillingHelpers
       REQUIRED_METADATA_FIELDS = %w[app tier region capabilities tenancy created].freeze
 
+      # Retry configuration for Stripe API calls
+      MAX_STRIPE_RETRIES = 3
+      STRIPE_RETRY_BASE_DELAY = 2 # seconds
+
+      # Execute Stripe API call with automatic retry on network/rate-limit errors
+      #
+      # Implements exponential backoff for rate limits and network errors.
+      # Retries up to MAX_STRIPE_RETRIES times before raising the exception.
+      #
+      # @param max_retries [Integer] Maximum number of retry attempts (default: 3)
+      # @yield Block containing Stripe API call to execute
+      # @return Result of the yielded block
+      # @raise [Stripe::StripeError] If all retries exhausted or non-retryable error
+      #
+      # @example
+      #   customer = with_stripe_retry do
+      #     Stripe::Customer.create(email: 'user@example.com')
+      #   end
+      #
+      def with_stripe_retry(max_retries: MAX_STRIPE_RETRIES)
+        retries = 0
+        begin
+          yield
+        rescue Stripe::APIConnectionError => e
+          retries += 1
+          if retries <= max_retries
+            delay = STRIPE_RETRY_BASE_DELAY * retries
+            OT.lw "Stripe API connection error, retrying in #{delay}s (attempt #{retries}/#{max_retries})"
+            sleep(delay)
+            retry
+          end
+          OT.le "Stripe API connection failed after #{max_retries} retries"
+          raise
+        rescue Stripe::RateLimitError => e
+          retries += 1
+          if retries <= max_retries
+            # Exponential backoff for rate limits
+            delay = STRIPE_RETRY_BASE_DELAY * (2**retries)
+            OT.lw "Stripe rate limit hit, backing off #{delay}s (attempt #{retries}/#{max_retries})"
+            sleep(delay)
+            retry
+          end
+          OT.le "Stripe rate limit exceeded after #{max_retries} retries"
+          raise
+        end
+      end
+
+      # Format Stripe error for user-friendly CLI output
+      #
+      # @param context [String] Context description (e.g., "Failed to create customer")
+      # @param error [Stripe::StripeError] The Stripe error to format
+      # @return [String] Formatted error message
+      def format_stripe_error(context, error)
+        case error
+        when Stripe::InvalidRequestError
+          "#{context}: Invalid parameters - #{error.message}"
+        when Stripe::AuthenticationError
+          "#{context}: Authentication failed - check STRIPE_KEY configuration"
+        when Stripe::CardError
+          "#{context}: Card error - #{error.message}"
+        when Stripe::APIConnectionError
+          "#{context}: Network error - please check connectivity and retry"
+        when Stripe::RateLimitError
+          "#{context}: Rate limited - please try again in a moment"
+        when Stripe::StripeError
+          "#{context}: #{error.message}"
+        else
+          "#{context}: Unexpected error - #{error.class}: #{error.message}"
+        end
+      end
+
       def stripe_configured?
         unless OT.billing_config.enabled?
           puts 'Error: Billing not enabled in etc/billing.yaml'
