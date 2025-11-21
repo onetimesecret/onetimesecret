@@ -62,12 +62,11 @@ gem 'truemail'
 # ORMs and database drivers
 gem 'familia', git: 'https://github.com/delano/familia', branch: 'main'
 gem 'sequel', '~> 5.0'
+gem 'sqlite3', '~> 1.7'
 
 case ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase
 when 'postgresql', 'pg', 'postgres'
   gem 'pg', '~> 1.4'
-else
-  gem 'sqlite3', '~> 1.6'
 end
 
 # Redis/Valkey
