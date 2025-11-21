@@ -20,7 +20,11 @@ RSpec.describe 'Billing sync CLI command', type: :cli do
   describe 'billing sync' do
     context 'when sync is successful' do
       before do
-        allow(Billing::Plan).to receive(:refresh_from_stripe).and_yield('Syncing products...').and_return(5)
+        # Mock to accept keyword argument instead of block
+        allow(Billing::Plan).to receive(:refresh_from_stripe) do |**opts|
+          opts[:progress]&.call('Syncing products...')
+          5
+        end
       end
 
       it 'syncs products and prices from Stripe to Redis' do
@@ -123,24 +127,20 @@ RSpec.describe 'Billing sync CLI command', type: :cli do
 
       context 'with authentication error' do
         before do
-          p [11, Time.now]
           allow(Billing::Plan).to receive(:refresh_from_stripe).and_raise(
             Stripe::AuthenticationError.new('Invalid API key')
           )
-          p [12, Time.now]
         end
 
         it 'displays authentication error' do
-          p [12, Time.now]
           output = run_cli_command_quietly('billing', 'sync')
 
           expect(output[:stdout]).to include('Sync failed')
-          expect(output[:stdout]).to include('Invalid API key')
+          expect(output[:stdout]).to include('Authentication failed - check STRIPE_KEY configuration')
         end
       end
 
       context 'with permission error' do
-        p [13, Time.now]
         before do
           allow(Billing::Plan).to receive(:refresh_from_stripe).and_raise(
             Stripe::PermissionError.new('Access denied')
@@ -163,19 +163,16 @@ RSpec.describe 'Billing sync CLI command', type: :cli do
 
       context 'with rate limit error' do
         before do
-          p [21, Time.now]
           allow(Billing::Plan).to receive(:refresh_from_stripe).and_raise(
             Stripe::RateLimitError.new('Rate limit exceeded')
           )
-          p [22, Time.now]
         end
 
         it 'displays rate limit error' do
-          p [23, Time.now]
           output = run_cli_command_quietly('billing', 'sync')
 
           expect(output[:stdout]).to include('Sync failed')
-          expect(output[:stdout]).to include('Rate limit exceeded')
+          expect(output[:stdout]).to include('Rate limited - please try again in a moment')
         end
       end
     end
@@ -205,7 +202,7 @@ RSpec.describe 'Billing sync CLI command', type: :cli do
       it 'exits early with error message' do
         output = run_cli_command_quietly('billing', 'sync')
 
-        expect(output[:stdout]).to include('Billing is not configured')
+        expect(output[:stdout]).to include('Billing not enabled in etc/billing.yaml')
       end
 
       it 'does not attempt to sync' do
@@ -225,7 +222,7 @@ RSpec.describe 'Billing sync CLI command', type: :cli do
       it 'exits early with error message' do
         output = run_cli_command_quietly('billing', 'sync')
 
-        expect(output[:stdout]).to include('Stripe API key not configured')
+        expect(output[:stdout]).to include('STRIPE_KEY environment variable not set or billing.yaml has no valid key')
       end
     end
   end

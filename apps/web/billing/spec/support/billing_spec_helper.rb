@@ -6,6 +6,10 @@
 
 require 'spec_helper'
 
+# Load billing lib classes
+require_relative '../../lib/stripe_client'
+require_relative '../../lib/webhook_validator'
+
 module BillingSpecHelper
   using Familia::Refinements::TimeLiterals
 

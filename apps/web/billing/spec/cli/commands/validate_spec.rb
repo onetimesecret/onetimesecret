@@ -190,7 +190,7 @@ RSpec.describe 'Billing validate CLI command', type: :cli do
       it 'exits early with error message' do
         output = run_cli_command_quietly('billing', 'validate')
 
-        expect(output[:stdout]).to include('Billing is not configured')
+        expect(output[:stdout]).to include('Billing not enabled in etc/billing.yaml')
       end
 
       it 'does not attempt to validate' do
@@ -210,7 +210,7 @@ RSpec.describe 'Billing validate CLI command', type: :cli do
       it 'exits early with error message' do
         output = run_cli_command_quietly('billing', 'validate')
 
-        expect(output[:stdout]).to include('Stripe API key not configured')
+        expect(output[:stdout]).to include('STRIPE_KEY environment variable not set or billing.yaml has no valid key')
       end
     end
 
