@@ -5,6 +5,13 @@ require 'cli/cli_spec_helper'
 require_relative '../../support/billing_spec_helper'
 require_relative '../../support/shared_examples/cli_safety'
 
+# NOTE: This spec currently uses mock_stripe_* helpers that return RSpec doubles
+# with Hash attributes for nested objects. This causes failures when production
+# code uses method chaining like price.recurring.interval (NoMethodError).
+#
+# See billing_spec_helper.rb for the StripeObject vs Hash gotcha and proper
+# fix using Stripe::Price.construct_from() or stripe-ruby-mock gem.
+#
 RSpec.describe 'Billing payment links CLI commands', type: :cli do
   let(:price_id) { 'price_test123' }
   let(:product_id) { 'prod_test123' }

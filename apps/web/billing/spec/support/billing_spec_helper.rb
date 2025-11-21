@@ -10,6 +10,29 @@ require 'spec_helper'
 require_relative '../../lib/stripe_client'
 require_relative '../../lib/webhook_validator'
 
+# IMPORTANT: Stripe Testing Gotcha
+#
+# Stripe API objects are StripeObjects, NOT Hashes. When creating test fixtures:
+#
+# ❌ WRONG - Returns Hash, breaks method chaining:
+#   double('Stripe::Price', recurring: { interval: 'month' })
+#   price.recurring.interval  # NoMethodError - can't call .interval on Hash
+#
+# ✅ CORRECT - Returns StripeObject, supports method access:
+#   Stripe::Price.construct_from({
+#     recurring: { interval: 'month' }
+#   })
+#   price.recurring.interval  # => "month" ✅
+#
+# Stripe docs say "use [] for custom hashes like metadata" but this means
+# YOUR data (metadata) is a Hash, while STRIPE's data (recurring, items, etc.)
+# are StripeObjects that support method-style access.
+#
+# For proper Stripe testing, use:
+#   - Stripe::StripeObject.construct_from() for nested objects
+#   - Stripe::<Resource>.construct_from() for top-level resources
+#   - Or use stripe-ruby-mock gem for full API mocking
+#
 module BillingSpecHelper
   using Familia::Refinements::TimeLiterals
 
@@ -59,13 +82,19 @@ module BillingSpecHelper
   end
 
   # Create a mock Stripe::Price object
+  #
+  # WARNING: This helper uses RSpec doubles and returns Hash for nested objects
+  # like 'recurring'. This breaks code that uses method chaining (e.g.,
+  # price.recurring.interval). See module-level comment for correct approach.
+  #
+  # TODO: Replace with Stripe::Price.construct_from() to return real StripeObjects
   def mock_stripe_price(id: 'price_test123', **attrs)
     defaults = {
       id: id,
       product: 'prod_test123',
       unit_amount: 1000,
       currency: 'usd',
-      recurring: { interval: 'month', interval_count: 1 },
+      recurring: { interval: 'month', interval_count: 1 },  # ⚠️ Hash, not StripeObject
       metadata: {},
       active: true
     }
