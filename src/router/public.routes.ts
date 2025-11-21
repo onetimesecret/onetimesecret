@@ -61,7 +61,7 @@ const routes: Array<RouteRecordRaw> = [
         // Show disabled-homepage if:
         // 1. Auth is required AND user has no session
         // 2. Homepage is in external mode (regardless of auth status)
-        if ((!hasSession && authentication?.required) || homepageMode === 'external') {
+        if ((authentication?.required && !hasSession) || homepageMode === 'external') {
           componentState = 'disabled-homepage';
         }
       }

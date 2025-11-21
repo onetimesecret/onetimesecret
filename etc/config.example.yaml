@@ -47,7 +47,7 @@
         # - 1: Single reverse proxy (standard nginx/Caddy setup)
         # - 2+: Multiple proxies (e.g., CDN + reverse proxy)
         # Default is 1 for standard deployments behind reverse proxy
-        :trusted_proxy_depth: <%= ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
+        :trusted_proxy_depth: <%= ENV.fetch('UI_HOMEPAGE_TRUSTED_PROXY_DEPTH', '1').to_i %>
         # Which header to use for IP extraction
         # - X-Forwarded-For: Standard (most common)
         # - Forwarded: RFC 7239 standard

@@ -32,7 +32,8 @@ module Onetime
       # - This affects UI only, not authentication or API routes
       # - Privacy enforced: minimum /24 for IPv4, /48 for IPv6
       #
-      # @param req [Rack::Request] The request object
+      # @note This method expects `req` to be available in the including context
+      #       (e.g., controller instance variable from Core::Controllers::Base)
       # @return [String, nil] 'internal', 'external', or nil
       def determine_homepage_mode
         ui_config = OT.conf.dig('site', 'interface', 'ui') || {}

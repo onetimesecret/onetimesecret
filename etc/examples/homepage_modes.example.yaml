@@ -149,10 +149,12 @@ site:
 # =============================================================================
 #
 # CIDR blocks are validated for privacy:
-#   - IPv4: Minimum /24 prefix (max 254 hosts)
-#   - IPv6: Minimum /48 prefix
-#   - Prevents targeting individual IPs
+#   - IPv4: Minimum /24 prefix length required (allows /8-/24, rejects /25-/32)
+#     Example: /24 accepted (254 hosts), /32 rejected (1 host)
+#   - IPv6: Minimum /48 prefix length required (allows /:0-/48, rejects /49-/128)
+#   - Prevents targeting individual IPs or small groups
 #   - Invalid CIDRs are logged and rejected
+#   - Validation uses >= comparison: prefix must be 24 or larger (broader network)
 #
 # =============================================================================
 # trusted_proxy_depth Explained
@@ -169,6 +171,9 @@ site:
 # How trusted_proxy_depth Works:
 #   - Removes the last N proxy IPs from the X-Forwarded-For chain
 #   - Returns the rightmost remaining IP (the real client)
+#   - IMPORTANT: Extracted IPs are validated to reject private/reserved ranges
+#   - If extracted IP is private (10.x, 172.16.x, 192.168.x, etc.), falls back to REMOTE_ADDR
+#   - This prevents spoofed private IPs in headers from bypassing security
 #
 # trusted_proxy_depth Values:
 #   0 = Don't trust X-Forwarded-For, use REMOTE_ADDR
