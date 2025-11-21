@@ -36,10 +36,10 @@ module Onetime
       #       (e.g., controller instance variable from Core::Controllers::Base)
       # @return [String, nil] 'internal', 'external', or nil
       def determine_homepage_mode
-        ui_config = OT.conf.dig('site', 'interface', 'ui') || {}
-        homepage_config = ui_config['homepage'] || {}
+        ui_config = OT.conf.dig(:site, :interface, :ui) || {}
+        homepage_config = ui_config[:homepage] || {}
 
-        configured_mode = homepage_config['mode']
+        configured_mode = homepage_config[:mode]
         return nil unless %w[internal external].include?(configured_mode)
 
         # Initialize CIDR matchers (cached at instance level for efficiency)
@@ -47,7 +47,7 @@ module Onetime
 
         # Extract client IP
         client_ip = extract_client_ip_for_homepage(homepage_config)
-        mode_header_name = homepage_config['mode_header']
+        mode_header_name = homepage_config[:mode_header]
 
         OT.ld '[homepage_mode] Detection started', {
           configured_mode: configured_mode,
@@ -106,7 +106,7 @@ module Onetime
       # @param config [Hash] Homepage configuration
       # @return [Array<IPAddr>] Compiled CIDR blocks
       def compile_homepage_cidrs(config)
-        cidrs = config['matching_cidrs'] || []
+        cidrs = config[:matching_cidrs] || []
         return [] if cidrs.empty?
 
         cidrs.map do |cidr_string|
@@ -156,8 +156,8 @@ module Onetime
       # @param config [Hash] Homepage configuration
       # @return [String, nil] Client IP address or nil
       def extract_client_ip_for_homepage(config)
-        trusted_proxy_depth = config['trusted_proxy_depth'] || 1
-        trusted_ip_header   = config['trusted_ip_header'] || 'X-Forwarded-For'
+        trusted_proxy_depth = config[:trusted_proxy_depth] || 1
+        trusted_ip_header   = config[:trusted_ip_header] || 'X-Forwarded-For'
         remote_addr = req.env['REMOTE_ADDR']
         ip = nil
 
