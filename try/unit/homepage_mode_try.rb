@@ -28,7 +28,8 @@ class TestHomepageController
   # Make the private methods accessible for testing
   public :compile_homepage_cidrs, :validate_cidr_privacy,
          :extract_client_ip_for_homepage, :ip_matches_homepage_cidrs?, :header_matches_mode?,
-         :extract_forwarded_ips, :extract_x_forwarded_for, :extract_rfc7239_forwarded
+         :extract_forwarded_ips, :extract_x_forwarded_for, :extract_rfc7239_forwarded,
+         :extract_ip_from_header, :private_ip?
 end
 
 # Create a controller instance for testing
@@ -345,3 +346,137 @@ controller = TestHomepageController.new(env)
 ip = controller.extract_client_ip_for_homepage({ 'trusted_proxy_depth' => 1, 'trusted_ip_header' => 'Both' })
 ip
 #=> '192.0.2.43'
+
+## Private IP Detection - IPv4 Private (10.0.0.0/8)
+controller = TestHomepageController.new({})
+controller.private_ip?('10.0.1.100')
+#=> true
+
+## Private IP Detection - IPv4 Private (172.16.0.0/12)
+controller = TestHomepageController.new({})
+controller.private_ip?('172.16.5.1')
+#=> true
+
+## Private IP Detection - IPv4 Private (192.168.0.0/16)
+controller = TestHomepageController.new({})
+controller.private_ip?('192.168.1.1')
+#=> true
+
+## Private IP Detection - IPv4 Loopback
+controller = TestHomepageController.new({})
+controller.private_ip?('127.0.0.1')
+#=> true
+
+## Private IP Detection - IPv4 Link-Local
+controller = TestHomepageController.new({})
+controller.private_ip?('169.254.1.1')
+#=> true
+
+## Private IP Detection - IPv4 Public
+controller = TestHomepageController.new({})
+controller.private_ip?('203.0.113.1')
+#=> false
+
+## Private IP Detection - IPv6 Loopback
+controller = TestHomepageController.new({})
+controller.private_ip?('::1')
+#=> true
+
+## Private IP Detection - IPv6 Unique Local
+controller = TestHomepageController.new({})
+controller.private_ip?('fc00::1')
+#=> true
+
+## Private IP Detection - IPv6 Link-Local
+controller = TestHomepageController.new({})
+controller.private_ip?('fe80::1')
+#=> true
+
+## Private IP Detection - IPv6 Public
+controller = TestHomepageController.new({})
+controller.private_ip?('2001:db8::1')
+#=> false
+
+## Private IP Detection - Empty String
+controller = TestHomepageController.new({})
+controller.private_ip?('')
+#=> true
+
+## Private IP Detection - Nil
+controller = TestHomepageController.new({})
+controller.private_ip?(nil)
+#=> true
+
+## Private IP Detection - Invalid IP
+controller = TestHomepageController.new({})
+controller.private_ip?('not_an_ip')
+#=> true
+
+## Extract IP From Header - X-Forwarded-For with Depth 1
+env = {
+  'REMOTE_ADDR' => '10.0.1.100',
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.1, 10.0.1.100'
+}
+controller = TestHomepageController.new(env)
+ip = controller.extract_ip_from_header('X-Forwarded-For', 1)
+ip
+#=> '198.51.100.1'
+
+## Extract IP From Header - X-Forwarded-For with Depth 2
+env = {
+  'REMOTE_ADDR' => '10.0.1.100',
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.1, 203.0.113.5, 10.0.1.100'
+}
+controller = TestHomepageController.new(env)
+ip = controller.extract_ip_from_header('X-Forwarded-For', 2)
+ip
+#=> '198.51.100.1'
+
+## Extract IP From Header - Forwarded Header
+env = {
+  'REMOTE_ADDR' => '127.0.0.1',
+  'HTTP_FORWARDED' => 'for=192.0.2.43, for=127.0.0.1'
+}
+controller = TestHomepageController.new(env)
+ip = controller.extract_ip_from_header('Forwarded', 1)
+ip
+#=> '192.0.2.43'
+
+## Extract IP From Header - No Header Present
+env = {
+  'REMOTE_ADDR' => '10.0.1.100'
+}
+controller = TestHomepageController.new(env)
+ip = controller.extract_ip_from_header('X-Forwarded-For', 1)
+ip
+#=> nil
+
+## Client IP Extraction - Public IP from Header
+env = {
+  'REMOTE_ADDR' => '10.0.1.100',
+  'HTTP_X_FORWARDED_FOR' => '203.0.113.1, 10.0.1.100'
+}
+controller = TestHomepageController.new(env)
+ip = controller.extract_client_ip_for_homepage({ 'trusted_proxy_depth' => 1 })
+ip
+#=> '203.0.113.1'
+
+## Client IP Extraction - Private IP from Header Falls Back to REMOTE_ADDR
+env = {
+  'REMOTE_ADDR' => '198.51.100.50',
+  'HTTP_X_FORWARDED_FOR' => '10.0.1.100, 10.0.1.200'
+}
+controller = TestHomepageController.new(env)
+ip = controller.extract_client_ip_for_homepage({ 'trusted_proxy_depth' => 1 })
+ip
+#=> '198.51.100.50'
+
+## Client IP Extraction - Depth 0 Ignores Headers
+env = {
+  'REMOTE_ADDR' => '203.0.113.1',
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.1, 10.0.1.100'
+}
+controller = TestHomepageController.new(env)
+ip = controller.extract_client_ip_for_homepage({ 'trusted_proxy_depth' => 0 })
+ip
+#=> '203.0.113.1'
