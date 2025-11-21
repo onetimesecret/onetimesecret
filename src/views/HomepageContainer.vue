@@ -16,12 +16,12 @@
   const { isCustom, displayDomain, siteHost } = useProductIdentity();
   const route = useRoute();
 
-  // Get component state from route meta (set by beforeEnter hook)
-  const componentState = computed(() => route.meta.componentMode || 'normal');
+  // Get component mode from route meta (set by beforeEnter hook)
+  const componentMode = computed(() => route.meta.componentMode || 'normal');
 
-  // Determine which component to show based on state
+  // Determine which component to show based on mode
   const currentComponent = computed(() => {
-    switch (componentState.value) {
+    switch (componentMode.value) {
       case 'disabled-ui':
         return DisabledUI;
       case 'disabled-homepage':
@@ -40,7 +40,7 @@
   <div class="homepage-container">
     <Transition name="homepage-fade" mode="out-in">
       <Component
-        :key="componentState + (isCustom ? '-branded' : '-standard')"
+        :key="componentMode + (isCustom ? '-branded' : '-standard')"
         :is="currentComponent"
         :display-domain="displayDomain"
         :site-host="siteHost" />
