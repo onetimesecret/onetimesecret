@@ -120,9 +120,10 @@ module Onetime
 
       # Extract client IP address from request
       #
-      # Priority:
-      # 1. Forwarded header (RFC 7239) or X-Forwarded-For (configurable)
-      # 2. REMOTE_ADDR
+      # Logical Flow:
+      # 1. Try to extract from trusted headers (if behind proxy)
+      # 2. Validate extracted IP is not a private proxy IP
+      # 3. Fall back to REMOTE_ADDR (most secure, cannot be spoofed)
       #
       # Security: When trusted_proxy_depth is 0, headers are IGNORED
       # to prevent IP spoofing. Only use trusted_proxy_depth > 0 when:
@@ -135,37 +136,71 @@ module Onetime
       def extract_client_ip_for_homepage(config)
         trusted_proxy_depth = config['trusted_proxy_depth'] || 1
         trusted_ip_header   = config['trusted_ip_header'] || 'X-Forwarded-For'
+        ip = nil
 
-        # Only trust forwarding headers if explicitly configured
+        # Step 1: Try to extract from trusted headers (if behind proxy)
         if trusted_proxy_depth > 0
-          forwarded_ips = extract_forwarded_ips(trusted_ip_header)
-
-          if forwarded_ips && !forwarded_ips.empty?
-            # Remove the last N trusted proxy IPs, take the rightmost remaining IP
-            if forwarded_ips.length > trusted_proxy_depth
-              client_ips = forwarded_ips[0...-trusted_proxy_depth]
-              ip = client_ips.last
-            else
-              # Edge case: fewer IPs than expected proxies, use first
-              ip = forwarded_ips.first
-            end
-
-            OT.ld '[homepage_mode] Using forwarded header', {
-              header_type: trusted_ip_header,
-              forwarded_chain: forwarded_ips.join(', '),
-              trusted_depth: trusted_proxy_depth,
-              extracted_ip: ip,
-            }
-            return ip
-          end
+          ip = extract_ip_from_header(trusted_ip_header, trusted_proxy_depth)
         end
 
-        # Default to REMOTE_ADDR (most secure, cannot be spoofed)
-        ip = req.env['REMOTE_ADDR']
-        OT.ld '[homepage_mode] Using REMOTE_ADDR', {
-          ip: ip,
-        }
-        ip
+        # Step 2: Validate extracted IP is not a private proxy IP
+        # This prevents spoofed private IPs in headers from being used
+        return ip if ip && !private_ip?(ip)
+
+        # Step 3: Fall back to REMOTE_ADDR (most secure, cannot be spoofed)
+        req.env['REMOTE_ADDR']
+      end
+
+      # Extract IP from forwarded header with proxy depth handling
+      #
+      # @param header_type [String] Header type to extract from
+      # @param trusted_proxy_depth [Integer] Number of trusted proxies to skip
+      # @return [String, nil] Extracted IP address or nil
+      def extract_ip_from_header(header_type, trusted_proxy_depth)
+        forwarded_ips = extract_forwarded_ips(header_type)
+        return nil if forwarded_ips.nil? || forwarded_ips.empty?
+
+        # Remove the last N trusted proxy IPs, take the rightmost remaining IP
+        if forwarded_ips.length > trusted_proxy_depth
+          client_ips = forwarded_ips[0...-trusted_proxy_depth]
+          client_ips.last
+        else
+          # Edge case: fewer IPs than expected proxies, use first
+          forwarded_ips.first
+        end
+      end
+
+      # Check if IP address is in private/reserved ranges
+      #
+      # Prevents spoofed private IPs in X-Forwarded-For headers from
+      # being used for homepage mode detection. Private IPs should only
+      # come from REMOTE_ADDR (the actual connection), not from headers
+      # which can be manipulated.
+      #
+      # @param ip_string [String] IP address to check
+      # @return [Boolean] True if IP is private/reserved
+      def private_ip?(ip_string)
+        return true if ip_string.nil? || ip_string.empty?
+
+        begin
+          ip = IPAddr.new(ip_string)
+
+          # RFC 1918 private IPv4 ranges + special use ranges
+          private_ranges = [
+            IPAddr.new('10.0.0.0/8'),       # RFC 1918 private
+            IPAddr.new('172.16.0.0/12'),    # RFC 1918 private
+            IPAddr.new('192.168.0.0/16'),   # RFC 1918 private
+            IPAddr.new('127.0.0.0/8'),      # Loopback
+            IPAddr.new('169.254.0.0/16'),   # Link-local
+            IPAddr.new('::1/128'),          # IPv6 loopback
+            IPAddr.new('fc00::/7'),         # IPv6 unique local
+            IPAddr.new('fe80::/10'),        # IPv6 link-local
+          ]
+
+          private_ranges.any? { |range| range.include?(ip) }
+        rescue IPAddr::InvalidAddressError
+          true # Treat invalid IPs as private (safe default)
+        end
       end
 
       # Extract forwarded IPs from configured header type
