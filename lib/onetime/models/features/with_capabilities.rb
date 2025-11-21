@@ -118,7 +118,7 @@ module Onetime
             }
 
             unless allowed
-              result[:upgrade_to] = Onetime::Billing.upgrade_path_for(capability, planid)
+              result[:upgrade_to] = Billing::PlanDefinitions.upgrade_path_for(capability, planid)
             end
 
             result
