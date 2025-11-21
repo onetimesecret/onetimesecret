@@ -138,11 +138,19 @@ ENV NODE_PATH=${APP_DIR}/node_modules
 # Copy dependency manifests
 COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml ./
 
-# Install Ruby dependencies
+# Install Ruby dependencies with platform detection
 # NOTE: We can't use the more aggresive `--local deployment true` to reduce
 # the image size further b/c it requires having all git dependencies installed.
 # Can revisit if/when we can use a released rspec version.
 RUN set -eux && \
+    ARCH=$(uname -m) && \
+    case "$ARCH" in \
+        x86_64) PLATFORM="x86_64-linux" ;; \
+        aarch64) PLATFORM="aarch64-linux" ;; \
+        arm64) PLATFORM="arm64-darwin" ;; \
+        *) PLATFORM="ruby" ;; \
+    esac && \
+    bundle lock --add-platform $PLATFORM && \
     bundle config set --local without 'development test' && \
     bundle config set --local jobs "$(nproc)" && \
     bundle install --retry=3 && \
