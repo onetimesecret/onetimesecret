@@ -80,8 +80,6 @@ module Onetime
         setup_diagnostics
       end
 
-      configure_billing
-
       set_secrets
       configure_domains
       configure_truemail
