@@ -133,11 +133,20 @@ module Onetime
 
       # Validate CIDR meets privacy requirements
       #
+      # Privacy Logic: Smaller prefix numbers = broader ranges = MORE private
+      # - IPv4 /8 covers 16M IPs (very broad, very private)
+      # - IPv4 /24 covers 254 IPs (minimum acceptable breadth)
+      # - IPv4 /32 is a single host (no privacy, rejected)
+      #
+      # We enforce a MAXIMUM prefix to ensure sufficient breadth:
+      # - Accept /1 through /24 for IPv4 (broad ranges)
+      # - Reject /25 through /32 for IPv4 (too narrow to preserve privacy)
+      #
       # @param cidr [IPAddr] CIDR block to validate
       # @return [Boolean] True if CIDR meets privacy requirements
       def validate_cidr_privacy(cidr)
-        min_prefix = cidr.ipv4? ? 24 : 48
-        cidr.prefix >= min_prefix
+        max_prefix = cidr.ipv4? ? 24 : 48
+        cidr.prefix <= max_prefix
       end
 
       # Extract client IP address from request

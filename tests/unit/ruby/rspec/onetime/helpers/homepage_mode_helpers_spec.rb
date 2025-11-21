@@ -162,13 +162,13 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       it 'accepts IPv4 /0 (entire internet) - maximally broad' do
         cidr = IPAddr.new('0.0.0.0/0')
         result = test_instance.send(:validate_cidr_privacy, cidr)
-        expect(result).to be true, "Expected /0 to be accepted (maximally broad)"
+        expect(result).to eq(true), "Expected /0 to be accepted (maximally broad)"
       end
 
       it 'accepts IPv6 /0 (entire internet) - maximally broad' do
         cidr = IPAddr.new('::/0')
         result = test_instance.send(:validate_cidr_privacy, cidr)
-        expect(result).to be true, "Expected IPv6 /0 to be accepted (maximally broad)"
+        expect(result).to eq(true), "Expected IPv6 /0 to be accepted (maximally broad)"
       end
     end
   end
