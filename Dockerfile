@@ -163,7 +163,7 @@ WORKDIR ${APP_DIR}
 COPY public ./public
 COPY src ./src
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts \
-     postcss.config.mjs tailwind.config.ts eslint.config.ts ./
+     tailwind.config.ts eslint.config.ts ./
 
 # Build application and generate schema
 RUN set -eux && \
