@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'stripe'
+require_relative '../metadata'
 
 module Billing
 
@@ -148,16 +149,16 @@ module Billing
           products_processed += 1
           progress&.call("Processing product #{products_processed}: #{product.name[0..40]}...") if products_processed % 5 == 1
           # Skip products without required metadata
-          unless product.metadata['app'] == 'onetimesecret'
+          unless product.metadata[Metadata::FIELD_APP] == Metadata::APP_NAME
             OT.ld "[Plan.refresh_from_stripe] Skipping product (not onetimesecret app)", {
               product_id: product.id,
               product_name: product.name,
-              app: product.metadata['app']
+              app: product.metadata[Metadata::FIELD_APP]
             }
             next
           end
 
-          unless product.metadata['tier']
+          unless product.metadata[Metadata::FIELD_TIER]
             OT.lw "[Plan.refresh_from_stripe] Skipping product (missing tier)", {
               product_id: product.id,
               product_name: product.name
@@ -165,7 +166,7 @@ module Billing
             next
           end
 
-          unless product.metadata['region']
+          unless product.metadata[Metadata::FIELD_REGION]
             OT.lw "[Plan.refresh_from_stripe] Skipping product (missing region)", {
               product_id: product.id,
               product_name: product.name
@@ -186,29 +187,24 @@ module Billing
             next unless price.type == 'recurring'
 
             interval = price.recurring.interval # 'month' or 'year'
-            tier     = product.metadata['tier']
-            region   = product.metadata['region']
+            tier     = product.metadata[Metadata::FIELD_TIER]
+            region   = product.metadata[Metadata::FIELD_REGION]
 
             # Use explicit plan_id from metadata, or compute from tier_interval_region
-            plan_id = product.metadata['plan_id'] || "#{tier}_#{interval}ly_#{region}"
+            plan_id = product.metadata[Metadata::FIELD_PLAN_ID] || "#{tier}_#{interval}ly_#{region}"
 
             # Extract capabilities from product metadata
             # Expected format: "create_secrets,create_team,custom_domains"
-            capabilities_str = product.metadata['capabilities'] || ''
+            capabilities_str = product.metadata[Metadata::FIELD_CAPABILITIES] || ''
             capabilities     = capabilities_str.split(',').map(&:strip).reject(&:empty?)
 
-            # Extract limits from product metadata
-            # -1 or "infinity" means Float::INFINITY
+            # Extract limits from product metadata using Metadata helper
             limits = {}
             product.metadata.each do |key, value|
               next unless key.start_with?('limit_')
 
               resource         = key.sub('limit_', '').to_sym
-              limits[resource] = if value.to_s == '-1' || value.to_s.downcase == 'infinity'
-                                   Float::INFINITY
-                                 else
-                                   value.to_i
-                                 end
+              limits[resource] = Metadata.normalize_limit(value)
             end
 
             # Create or update plan cache

@@ -129,17 +129,22 @@ module Onetime
           # 1. Subscription metadata['plan_id']
           # 2. First subscription item's price metadata['plan_id']
           #
+          # Uses Billing::Metadata constants to avoid magic strings.
+          #
           # @param subscription [Stripe::Subscription] Stripe subscription
           # @return [String, nil] Plan ID or nil if not found
           def extract_plan_id_from_subscription(subscription)
+            # Load Billing::Metadata for constants
+            require_relative '../../../../apps/web/billing/metadata'
+
             # Try subscription-level metadata first
-            if subscription.metadata && subscription.metadata['plan_id']
-              return subscription.metadata['plan_id']
+            if subscription.metadata && subscription.metadata[Billing::Metadata::FIELD_PLAN_ID]
+              return subscription.metadata[Billing::Metadata::FIELD_PLAN_ID]
             end
 
             # Try price-level metadata
-            if subscription.items.data.first&.price&.metadata&.[]('plan_id')
-              return subscription.items.data.first.price.metadata['plan_id']
+            if subscription.items.data.first&.price&.metadata&.[](Billing::Metadata::FIELD_PLAN_ID)
+              return subscription.items.data.first.price.metadata[Billing::Metadata::FIELD_PLAN_ID]
             end
 
             OT.lw "[Organization.extract_plan_id_from_subscription] No plan_id in metadata", {

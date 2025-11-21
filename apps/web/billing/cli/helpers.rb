@@ -4,12 +4,14 @@
 
 # Load billing models
 require_relative '../models'
+require_relative '../metadata'
 
 module Onetime
   module CLI
     # Base module for billing command helpers
     module BillingHelpers
-      REQUIRED_METADATA_FIELDS = %w[app tier region capabilities tenancy created].freeze
+      # Use constants from Billing::Metadata module to avoid magic strings
+      REQUIRED_METADATA_FIELDS = Billing::Metadata::REQUIRED_FIELDS
 
       # Retry configuration for Stripe API calls
       MAX_STRIPE_RETRIES = 3
@@ -103,9 +105,9 @@ module Onetime
       end
 
       def format_product_row(product)
-        tier = product.metadata['tier'] || 'N/A'
-        tenancy = product.metadata['tenancy'] || 'N/A'
-        region = product.metadata['region'] || 'N/A'
+        tier = product.metadata[Billing::Metadata::FIELD_TIER] || 'N/A'
+        tenancy = product.metadata[Billing::Metadata::FIELD_TENANCY] || 'N/A'
+        region = product.metadata[Billing::Metadata::FIELD_REGION] || 'N/A'
         active = product.active ? 'yes' : 'no'
 
         format('%-22s %-40s %-12s %-12s %-10s %s',
@@ -162,8 +164,8 @@ module Onetime
           end
         end
 
-        unless product.metadata['app'] == 'onetimesecret'
-          errors << "Invalid app metadata (should be 'onetimesecret')"
+        unless product.metadata[Billing::Metadata::FIELD_APP] == Billing::Metadata::APP_NAME
+          errors << "Invalid app metadata (should be '#{Billing::Metadata::APP_NAME}')"
         end
 
         errors
@@ -172,31 +174,31 @@ module Onetime
       def prompt_for_metadata
         metadata = {}
 
-        # Always include all metadata fields
-        metadata['app'] = 'onetimesecret'
+        # Always include all metadata fields (using constants)
+        metadata[Billing::Metadata::FIELD_APP] = Billing::Metadata::APP_NAME
 
         print 'Plan ID (optional, e.g., identity_v1): '
-        metadata['plan_id'] = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_PLAN_ID] = $stdin.gets.chomp
 
         print 'Tier (e.g., single_team, multi_team): '
-        metadata['tier'] = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_TIER] = $stdin.gets.chomp
 
         print 'Region (e.g., us-east, global): '
-        metadata['region'] = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_REGION] = $stdin.gets.chomp
 
         print 'Tenancy (e.g., single, multi): '
-        metadata['tenancy'] = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_TENANCY] = $stdin.gets.chomp
 
         print 'Capabilities (comma-separated, e.g., create_secrets,create_team): '
-        metadata['capabilities'] = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_CAPABILITIES] = $stdin.gets.chomp
 
         print 'Limit teams (-1 for unlimited): '
-        metadata['limit_teams'] = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_LIMIT_TEAMS] = $stdin.gets.chomp
 
         print 'Limit members per team (-1 for unlimited): '
-        metadata['limit_members_per_team'] = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_LIMIT_MEMBERS_PER_TEAM] = $stdin.gets.chomp
 
-        metadata['created'] = Time.now.utc.iso8601
+        metadata[Billing::Metadata::FIELD_CREATED] = Time.now.utc.iso8601
 
         metadata
       end
