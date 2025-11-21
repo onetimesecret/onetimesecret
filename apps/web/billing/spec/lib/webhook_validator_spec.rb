@@ -140,7 +140,7 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
         invalid_signature = 't=123,v1=invalid_signature_hash'
 
         allow(Stripe::Webhook).to receive(:construct_event).and_raise(
-          Stripe::SignatureVerificationError.new('Invalid signature', nil, nil)
+          Stripe::SignatureVerificationError.new('Invalid signature', invalid_signature)
         )
 
         expect {
@@ -151,10 +151,12 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
       it 'logs signature verification failure' do
         invalid_signature = 't=123,v1=invalid'
 
+        logger_double = double('Logger', error: nil, debug: nil, info: nil)
+        allow(validator).to receive(:billing_logger).and_return(logger_double)
+
         allow(Stripe::Webhook).to receive(:construct_event).and_raise(
-          Stripe::SignatureVerificationError.new('Invalid signature', nil, nil)
+          Stripe::SignatureVerificationError.new('Invalid signature', invalid_signature)
         )
-        allow(validator).to receive(:billing_logger).and_return(double(error: nil, debug: nil))
 
         begin
           validator.construct_event(payload, invalid_signature)
@@ -162,7 +164,7 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
           # Expected
         end
 
-        expect(validator.billing_logger).to have_received(:error).with(
+        expect(logger_double).to have_received(:error).with(
           /invalid signature/i,
           hash_including(:error)
         )
@@ -171,7 +173,7 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
 
     context 'with old event timestamp' do
       it 'raises SecurityError for events older than MAX_EVENT_AGE' do
-        old_timestamp = (Time.now - 6.minutes).to_i
+        old_timestamp = (Time.now - 360).to_i  # 6 minutes in seconds
         signature = generate_stripe_signature(
           payload: payload,
           secret: webhook_secret,
@@ -187,7 +189,7 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
       end
 
       it 'logs replay attack warning' do
-        old_timestamp = (Time.now - 6.minutes).to_i
+        old_timestamp = (Time.now - 360).to_i  # 6 minutes in seconds
         signature = generate_stripe_signature(payload: payload, secret: webhook_secret, timestamp: old_timestamp)
 
         event_double = double('Event', id: 'evt_old', type: 'test', created: old_timestamp)
@@ -209,7 +211,7 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
 
     context 'with future event timestamp' do
       it 'raises SecurityError for events too far in future' do
-        future_timestamp = (Time.now + 2.minutes).to_i
+        future_timestamp = (Time.now + 120).to_i  # 2 minutes in seconds
         signature = generate_stripe_signature(
           payload: payload,
           secret: webhook_secret,
@@ -226,7 +228,7 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
 
       it 'accepts events within future tolerance window' do
         # 30 seconds in future - within MAX_FUTURE_TOLERANCE (60s)
-        slightly_future_timestamp = (Time.now + 30.seconds).to_i
+        slightly_future_timestamp = (Time.now + 30).to_i
         signature = generate_stripe_signature(
           payload: payload,
           secret: webhook_secret,
@@ -244,7 +246,7 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
 
     context 'with recent valid timestamp' do
       it 'accepts events within MAX_EVENT_AGE' do
-        recent_timestamp = (Time.now - 2.minutes).to_i
+        recent_timestamp = (Time.now - 120).to_i  # 2 minutes in seconds
         signature = generate_stripe_signature(
           payload: payload,
           secret: webhook_secret,

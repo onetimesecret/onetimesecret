@@ -135,6 +135,7 @@ group :test do
   gem 'rack-test', require: false
   gem 'rspec', git: 'https://github.com/rspec/rspec'
   gem 'simplecov', require: false
+  gem 'timecop', '~> 0.9'
   gem 'tryouts', '~> 3.7.1', require: false
 
   # RSpec components

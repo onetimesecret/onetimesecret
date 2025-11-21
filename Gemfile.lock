@@ -361,6 +361,7 @@ GEM
       logger
       rack (>= 1, < 4)
     tilt (2.6.1)
+    timecop (0.9.10)
     timeout (0.4.4)
     tpm-key_attestation (0.14.1)
       bindata (~> 2.4)
@@ -464,6 +465,7 @@ DEPENDENCIES
   syntax_tree
   thin
   tilt
+  timecop (~> 0.9)
   truemail
   tryouts (~> 3.7.1)
   uri-valkey (~> 1.4.0)

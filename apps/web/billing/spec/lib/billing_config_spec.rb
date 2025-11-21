@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'onetime'
 
-RSpec.describe Onetime::BillingConfig do
+RSpec.describe Onetime::BillingConfig, type: :lib do
   describe 'when config file does not exist' do
     let(:config) { described_class.instance }
 

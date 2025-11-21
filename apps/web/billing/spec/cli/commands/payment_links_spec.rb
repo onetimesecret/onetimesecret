@@ -481,6 +481,7 @@ RSpec.describe 'Billing payment links CLI commands', type: :cli do
 
     before do
       allow(Stripe::PaymentLink).to receive(:retrieve).and_return(payment_link)
+      allow($stdin).to receive(:gets).and_return("y\n")
     end
 
     context 'with valid parameters' do

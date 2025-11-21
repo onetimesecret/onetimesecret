@@ -123,12 +123,15 @@ RSpec.describe 'Billing sync CLI command', type: :cli do
 
       context 'with authentication error' do
         before do
+          p [11, Time.now]
           allow(Billing::Plan).to receive(:refresh_from_stripe).and_raise(
             Stripe::AuthenticationError.new('Invalid API key')
           )
+          p [12, Time.now]
         end
 
         it 'displays authentication error' do
+          p [12, Time.now]
           output = run_cli_command_quietly('billing', 'sync')
 
           expect(output[:stdout]).to include('Sync failed')
@@ -137,6 +140,7 @@ RSpec.describe 'Billing sync CLI command', type: :cli do
       end
 
       context 'with permission error' do
+        p [13, Time.now]
         before do
           allow(Billing::Plan).to receive(:refresh_from_stripe).and_raise(
             Stripe::PermissionError.new('Access denied')
@@ -159,12 +163,15 @@ RSpec.describe 'Billing sync CLI command', type: :cli do
 
       context 'with rate limit error' do
         before do
+          p [21, Time.now]
           allow(Billing::Plan).to receive(:refresh_from_stripe).and_raise(
             Stripe::RateLimitError.new('Rate limit exceeded')
           )
+          p [22, Time.now]
         end
 
         it 'displays rate limit error' do
+          p [23, Time.now]
           output = run_cli_command_quietly('billing', 'sync')
 
           expect(output[:stdout]).to include('Sync failed')

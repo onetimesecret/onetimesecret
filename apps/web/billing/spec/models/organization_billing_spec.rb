@@ -4,7 +4,7 @@ require 'spec_helper'
 require 'onetime/models/organization/features/with_organization_billing'
 require 'onetime/models/organization'
 
-RSpec.describe 'Organization billing features' do
+RSpec.describe 'Organization billing features', type: :model do
   let(:customer) do
     Onetime::Customer.create!(
       email: "billing-test-#{SecureRandom.hex(4)}@example.com"

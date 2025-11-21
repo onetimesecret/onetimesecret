@@ -286,7 +286,8 @@ RSpec.describe 'Billing CLI integration workflows', type: :cli do
 
   describe 'Data consistency checks' do
     it 'verifies customer data after creation' do
-      allow(Stripe::Customer).to receive(:create).and_return(customer)
+      verify_customer = mock_stripe_customer(id: customer_id, email: 'verify@example.com')
+      allow(Stripe::Customer).to receive(:create).and_return(verify_customer)
 
       # Create customer
       output1 = run_cli_command_quietly('billing', 'customers', 'create',
@@ -295,7 +296,7 @@ RSpec.describe 'Billing CLI integration workflows', type: :cli do
       expect(output1[:stdout]).to include(customer_id)
 
       # Verify by listing
-      customers = double('ListObject', data: [customer])
+      customers = double('ListObject', data: [verify_customer])
       allow(Stripe::Customer).to receive(:list).and_return(customers)
 
       output2 = run_cli_command_quietly('billing', 'customers')

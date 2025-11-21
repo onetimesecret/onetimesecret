@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'billing/models/plan'
 
-RSpec.describe Billing::Plan do
+RSpec.describe Billing::Plan, type: :model do
   before do
     Billing::Plan.clear_cache
   end

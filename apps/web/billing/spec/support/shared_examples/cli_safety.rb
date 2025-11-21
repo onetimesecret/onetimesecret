@@ -96,8 +96,7 @@ RSpec.shared_examples 'requires confirmation for dangerous operations' do |comma
       allow($stdin).to receive(:gets).and_return("n\n")
       output = run_cli_command_quietly(*command_args)
 
-      expect(output[:stdout]).to match(/abort|cancel|skipp/i) ||
-        expect(output[:stdout]).not_to match(/success|created|deleted|completed/i)
+      expect(output[:stdout]).to match(/abort|cancel|skipp/i).or not_match(/success|created|deleted|completed/i)
     end
 
     it 'proceeds when user confirms' do

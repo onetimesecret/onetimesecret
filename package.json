@@ -70,6 +70,7 @@
     "test:coverage": "pnpm test:base run --coverage",
     "test:playwright": "pnpm playwright test --config=tests/e2e/playwright.config.ts",
     "test:rspec": "RUBY_DEBUG_IRB_CONSOLE=true bundle exec rspec --format documentation",
+    "test:rspec:all": "RUBY_DEBUG_IRB_CONSOLE=true bundle exec rspec spec/ apps/**/spec/ --format documentation",
     "test:rspec:failures": "RUBY_DEBUG_IRB_CONSOLE=true bundle exec rspec --format failures",
     "test:tryouts": "VALKEY_URL='valkey://127.0.0.1:2121/0' bundle exec try -f",
     "test:tryouts:agent": "pnpm test:tryouts --agent try",

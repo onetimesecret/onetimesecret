@@ -1,3 +1,2 @@
 --require spec_helper
---pattern 'spec/**/*_spec.rb,apps/**/spec/**/*_spec.rb'
 --format documentation
