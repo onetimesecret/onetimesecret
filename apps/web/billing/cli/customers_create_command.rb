@@ -44,14 +44,17 @@ module Onetime
         customer_params        = { email: email }
         customer_params[:name] = name if name && !name.empty?
 
-        customer = Stripe::Customer.create(customer_params)
+        # Use StripeClient for automatic retry and idempotency
+        require_relative '../lib/stripe_client'
+        stripe_client = Billing::StripeClient.new
+        customer = stripe_client.create(Stripe::Customer, customer_params)
 
         puts "\nCustomer created successfully:"
         puts "  ID: #{customer.id}"
         puts "  Email: #{customer.email}"
         puts "  Name: #{customer.name}" if customer.name
       rescue Stripe::StripeError => ex
-        puts "Error creating customer: #{ex.message}"
+        puts format_stripe_error('Failed to create customer', ex)
       end
     end
   end

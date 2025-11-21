@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require_relative '../lib/webhook_validator'
 require 'stripe'
 
 module Billing
@@ -13,12 +14,16 @@ module Billing
       # Handle Stripe webhook events
       #
       # Processes subscription lifecycle events and product/price updates.
-      # Webhook signature is verified to ensure authenticity.
+      # Uses WebhookValidator for comprehensive security validation:
+      # - Signature verification
+      # - Timestamp validation (replay attack prevention)
+      # - Atomic duplicate detection
       #
       # POST /billing/webhook
       #
       # @return [HTTP 200] Success response
-      # @return [HTTP 400] Invalid payload or signature
+      # @return [HTTP 400] Invalid payload, signature, or timestamp
+      # @return [HTTP 500] Processing failure (Stripe will retry)
       #
       def handle_event
         payload    = req.body.read
@@ -30,18 +35,21 @@ module Billing
           return json_error('Missing signature header', status: 400)
         end
 
-        # Verify webhook signature
-        webhook_secret = OT.billing_config.webhook_signing_secret
-        unless webhook_secret
-          billing_logger.error 'Webhook signing secret not configured'
+        # Initialize webhook validator with security features
+        begin
+          validator = Billing::WebhookValidator.new
+        rescue StandardError => ex
+          billing_logger.error 'Webhook validator initialization failed', {
+            exception: ex,
+            message: ex.message
+          }
           res.status = 500
-          return json_error('Webhook not configured', status: 500)
+          return json_error('Webhook configuration error', status: 500)
         end
 
+        # Construct and validate event (signature + timestamp + replay protection)
         begin
-          event = Stripe::Webhook.construct_event(
-            payload, sig_header, webhook_secret
-          )
+          event = validator.construct_event(payload, sig_header)
         rescue JSON::ParserError => ex
           billing_logger.error 'Invalid webhook payload', {
             exception: ex,
@@ -54,11 +62,19 @@ module Billing
           }
           res.status = 400
           return json_error('Invalid signature', status: 400)
+        rescue SecurityError => ex
+          # Timestamp validation failed (replay attack or clock skew)
+          billing_logger.error 'Webhook timestamp validation failed', {
+            exception: ex,
+            message: ex.message
+          }
+          res.status = 400
+          return json_error('Invalid event timestamp', status: 400)
         end
 
         # Atomically check and mark event as processing
-        # This prevents race conditions with concurrent webhook deliveries
-        unless Billing::ProcessedWebhookEvent.mark_processed_if_new!(event.id, event.type)
+        # Uses Redis SETNX to prevent race conditions with concurrent webhook deliveries
+        unless validator.mark_processed!(event.id, event.type)
           billing_logger.info 'Webhook event already processed (duplicate)', {
             event_type: event.type,
             event_id: event.id,
@@ -67,7 +83,7 @@ module Billing
           return json_success('Event already processed')
         end
 
-        billing_logger.info 'Webhook event received', {
+        billing_logger.info 'Webhook event received and validated', {
           event_type: event.type,
           event_id: event.id,
         }
@@ -77,8 +93,8 @@ module Billing
           process_webhook_event(event)
         rescue StandardError => ex
           # Remove processed marker on failure so Stripe can retry
-          processed_event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event.id)
-          processed_event.destroy! if processed_event.exists?
+          # This enables automatic recovery from transient failures
+          validator.unmark_processed!(event.id)
 
           billing_logger.error 'Webhook processing failed - event unmarked for retry', {
             event_type: event.type,

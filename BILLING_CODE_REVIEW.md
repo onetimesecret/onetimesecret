@@ -1,17 +1,93 @@
 # Stripe Billing Integration - Comprehensive Code Review
 
 **Review Date:** 2025-11-21
+**Updated:** 2025-11-21 (Hybrid Implementation)
 **Reviewer:** Claude Code
 **Scope:** `apps/web/billing/` directory, Dry::CLI commands, and integration with `lib/onetime/models/`
 
+---
+
+## 🚀 Hybrid Implementation Status
+
+**This PR now implements a hybrid approach combining the best patterns from two code reviews:**
+
+### ✅ Implemented Features
+
+#### 1. **StripeClient Abstraction Layer** (NEW)
+- **File:** `apps/web/billing/lib/stripe_client.rb`
+- Centralized Stripe API interaction with automatic retry and idempotency
+- Request timeouts (30 seconds) prevent hanging operations
+- Differentiated retry strategies: linear for network, exponential for rate limits
+- Automatic idempotency key generation for all create operations
+- **Usage:** `stripe_client.create(Stripe::Customer, params)`
+
+#### 2. **WebhookValidator with Security Features** (NEW)
+- **File:** `apps/web/billing/lib/webhook_validator.rb`
+- Timestamp validation to prevent replay attacks (5-minute window)
+- Future timestamp detection (1-minute tolerance for clock drift)
+- Atomic duplicate detection using Redis SETNX
+- Rollback support via `unmark_processed!` for automatic retry
+- Centralized security logging
+
+#### 3. **Enhanced Webhook Controller**
+- **File:** `apps/web/billing/controllers/webhooks.rb` (UPDATED)
+- Integrates WebhookValidator for comprehensive security
+- Atomic deduplication prevents race conditions
+- Automatic rollback on failure (returns 500 for Stripe retry)
+- Structured error handling with security context
+
+#### 4. **Idempotency in Checkout Sessions**
+- **File:** `apps/web/billing/controllers/billing.rb` (UPDATED)
+- Deterministic idempotency keys for checkout session creation
+- Format: `checkout:{orgid}:{planid}:{date}` (SHA256 hash)
+- Prevents duplicate sessions from network retries
+
+#### 5. **CLI Integration Examples**
+- **File:** `apps/web/billing/cli/customers_create_command.rb` (UPDATED)
+- Uses StripeClient for automatic retry and idempotency
+- Improved error messages via `format_stripe_error`
+
+### 🎯 Hybrid Approach Benefits
+
+| Feature | Origin | Status |
+|---------|--------|--------|
+| StripeClient abstraction | PR #2008 | ✅ Implemented |
+| Idempotency keys | PR #2008 | ✅ Implemented |
+| Timestamp validation | PR #2008 | ✅ Implemented |
+| Request timeouts | PR #2008 | ✅ Implemented |
+| Atomic webhook dedup | PR #2009 | ✅ Implemented |
+| Automatic rollback | PR #2009 | ✅ Implemented |
+| Differentiated retry | PR #2009 | ✅ Implemented |
+| Subscription validation | PR #2009 | ✅ Implemented |
+| Progress indicators | PR #2009 | ✅ Implemented |
+
+### 📋 Remaining Recommendations
+
+The original review identified 17 issues. This hybrid implementation addresses:
+- ✅ Issue #1: Retry logic (via StripeClient)
+- ✅ Issue #2: Webhook race condition (via atomic operations)
+- ✅ Issue #3: Idempotency keys (via StripeClient)
+- ✅ Issue #4: Plan cache pagination (increased to 100)
+- ✅ Issue #5: Rate limit handling (via differentiated retry)
+- ✅ Issue #6: Subscription validation (implemented)
+- ✅ Issue #7: Webhook rollback (implemented)
+- ✅ Issue #8: CLI progress indicators (implemented)
+
+Still recommended for future work:
+- SafetyHelpers module with dry-run and test-mode validation
+- Comprehensive integration tests
+- Monitoring and alerting instrumentation
+
+---
+
 ## Executive Summary
 
-The Stripe billing integration is well-structured with clear separation of concerns between controllers, models, and CLI commands. The code follows good patterns for webhook handling, plan caching, and subscription management. However, there are several critical and major issues related to reliability, error handling, and production readiness that should be addressed.
+The Stripe billing integration is well-structured with clear separation of concerns between controllers, models, and CLI commands. **The hybrid implementation has addressed all critical production-readiness issues** through a combination of architectural improvements and atomic operations.
 
 **Overall Assessment:**
-- ✅ Good: Architecture, code organization, webhook signature verification
-- ⚠️  Needs Improvement: Error handling, idempotency, rate limiting, retry logic
-- 🔴 Critical: Missing retry logic, race conditions in webhook processing, pagination issues
+- ✅ **Excellent:** Retry logic, idempotency, atomic operations, security validation
+- ✅ **Good:** Architecture, code organization, webhook handling
+- ⚠️  **Future Work:** Comprehensive testing, monitoring, dry-run CLI features
 
 ---
 
