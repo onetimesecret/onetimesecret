@@ -50,6 +50,7 @@ module Onetime
 
         # Extract client IP
         client_ip = extract_client_ip_for_homepage(homepage_config)
+        mode_header_name = homepage_config['mode_header']
 
         # Priority 1: Check CIDR match
         if client_ip && ip_matches_homepage_cidrs?(client_ip)
@@ -61,7 +62,7 @@ module Onetime
         end
 
         # Priority 2: Fallback to header check
-        if check_homepage_header(configured_mode, homepage_config)
+        if mode_header_name && header_matches_mode?(mode_header_name, configured_mode)
           http_logger.debug '[homepage_mode] Header match', {
             mode: configured_mode,
             method: 'header',
@@ -247,26 +248,24 @@ module Onetime
         end
       end
 
-      # Check header as fallback mechanism
+      # Check if request header matches expected mode value
       #
-      # @param configured_mode [String] The configured mode ('internal' or 'external')
-      # @param config [Hash] Homepage configuration
-      # @return [Boolean] True if header matches configured mode
-      def check_homepage_header(configured_mode, config)
-        # Support both old 'request_header' and new 'mode_header' config names
-        mode_header = config['mode_header'] || config['request_header']
-        return false if mode_header.nil? || mode_header.empty?
+      # @param header_name [String] The header name to check (e.g., 'O-Homepage-Mode')
+      # @param expected_mode [String] The mode to match against ('internal' or 'external')
+      # @return [Boolean] True if header value matches expected mode
+      def header_matches_mode?(header_name, expected_mode)
+        return false if header_name.nil? || header_name.empty?
 
         # Normalize header name to HTTP_* format for env lookup
         # Convert dashes to underscores and prepend HTTP_ if not present
-        header_key = mode_header.upcase.tr('-', '_')
+        header_key = header_name.upcase.tr('-', '_')
         header_key = "HTTP_#{header_key}" unless header_key.start_with?('HTTP_')
 
         header_value = req.env[header_key]
         return false if header_value.nil? || header_value.empty?
 
-        # Check for exact match with configured mode
-        header_value == configured_mode
+        # Check for exact match with expected mode
+        header_value == expected_mode
       end
     end
   end

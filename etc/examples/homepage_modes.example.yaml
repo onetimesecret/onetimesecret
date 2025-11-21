@@ -32,7 +32,7 @@ site:
           - "192.168.0.0/16"     # Local network (Class C)
           - "203.0.113.0/24"     # Office public IP range (example)
           - "198.51.100.0/24"    # Partner network (example)
-        request_header: "O-Homepage-Mode"
+        mode_header: "O-Homepage-Mode"
         trusted_proxy_depth: 1   # Trust single reverse proxy (nginx, Caddy, etc.)
 
 # =============================================================================
@@ -49,7 +49,7 @@ site:
         mode: external
         matching_cidrs:
           - "203.0.113.0/24"     # Specific external network to restrict
-        request_header: "O-Homepage-Mode"
+        mode_header: "O-Homepage-Mode"
         trusted_proxy_depth: 1   # Trust single reverse proxy
 
 # =============================================================================
@@ -68,7 +68,7 @@ site:
         matching_cidrs:
           - "10.0.0.0/8"
           - "192.168.0.0/16"
-        request_header: "O-Homepage-Mode"
+        mode_header: "O-Homepage-Mode"
         trusted_proxy_depth: 0   # NOT behind proxy - use direct connection IP
 
 # =============================================================================
@@ -90,7 +90,7 @@ site:
         matching_cidrs:
           - "10.0.0.0/8"
           - "192.168.0.0/16"
-        request_header: "O-Homepage-Mode"
+        mode_header: "O-Homepage-Mode"
         trusted_proxy_depth: 2   # Trust 2 proxy layers (CDN + reverse proxy)
 
 # =============================================================================
@@ -106,7 +106,7 @@ site:
         matching_cidrs:
           - "2001:db8::/48"      # IPv6 network (minimum /48)
           - "10.0.0.0/8"         # IPv4 network (minimum /24)
-        request_header: "O-Homepage-Mode"
+        mode_header: "O-Homepage-Mode"
         trusted_proxy_depth: 1   # Trust single reverse proxy
 
 # =============================================================================

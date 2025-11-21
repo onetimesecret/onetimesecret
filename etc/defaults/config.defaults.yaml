@@ -29,7 +29,7 @@ site:
       #
       # Detection Methods (evaluated in order):
       #   1. matching_cidrs - Client IP must match one of these subnets
-      #   2. request_header - Fallback if no CIDR match (requires header value = mode)
+      #   2. mode_header - Fallback if no CIDR match (requires header value = mode)
       #
       # Example:
       #   mode: internal
@@ -40,7 +40,7 @@ site:
       #
       # Example:
       #   mode: external
-      #   request_header: O-Homepage-Mode
+      #   mode_header: O-Homepage-Mode
       #
       # Privacy Preservation
       #

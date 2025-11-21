@@ -27,7 +27,7 @@ class TestHomepageController
 
   # Make the private methods accessible for testing
   public :compile_homepage_cidrs, :validate_cidr_privacy,
-         :extract_client_ip_for_homepage, :ip_matches_homepage_cidrs?, :check_homepage_header,
+         :extract_client_ip_for_homepage, :ip_matches_homepage_cidrs?, :header_matches_mode?,
          :extract_forwarded_ips, :extract_x_forwarded_for, :extract_rfc7239_forwarded
 end
 
@@ -181,7 +181,7 @@ env = {
   'HTTP_O_HOMEPAGE_MODE' => 'internal'
 }
 controller = TestHomepageController.new(env)
-result = controller.check_homepage_header('internal', { 'request_header' => 'O-Homepage-Mode' })
+result = controller.header_matches_mode?('O-Homepage-Mode', 'internal')
 result
 #=> true
 
@@ -191,7 +191,7 @@ env = {
   'HTTP_O_HOMEPAGE_MODE' => 'external'
 }
 controller = TestHomepageController.new(env)
-result = controller.check_homepage_header('external', { 'request_header' => 'O-Homepage-Mode' })
+result = controller.header_matches_mode?('O-Homepage-Mode', 'external')
 result
 #=> true
 
@@ -201,7 +201,7 @@ env = {
   'HTTP_O_HOMEPAGE_MODE' => 'wrong_value'
 }
 controller = TestHomepageController.new(env)
-result = controller.check_homepage_header('internal', { 'request_header' => 'O-Homepage-Mode' })
+result = controller.header_matches_mode?('O-Homepage-Mode', 'internal')
 result
 #=> false
 
@@ -210,7 +210,7 @@ env = {
   'REMOTE_ADDR' => '10.0.1.100'
 }
 controller = TestHomepageController.new(env)
-result = controller.check_homepage_header('internal', { 'request_header' => 'O-Homepage-Mode' })
+result = controller.header_matches_mode?('O-Homepage-Mode', 'internal')
 result
 #=> false
 
@@ -220,17 +220,17 @@ env = {
   'HTTP_O_HOMEPAGE_MODE' => ''
 }
 controller = TestHomepageController.new(env)
-result = controller.check_homepage_header('internal', { 'request_header' => 'O-Homepage-Mode' })
+result = controller.header_matches_mode?('O-Homepage-Mode', 'internal')
 result
 #=> false
 
-## Header Check - No Request Header Configured
+## Header Check - No Request Header Configured (nil header name)
 env = {
   'REMOTE_ADDR' => '10.0.1.100',
   'HTTP_O_HOMEPAGE_MODE' => 'internal'
 }
 controller = TestHomepageController.new(env)
-result = controller.check_homepage_header('internal', { 'request_header' => nil })
+result = controller.header_matches_mode?(nil, 'internal')
 result
 #=> false
 
@@ -240,19 +240,19 @@ env = {
   'HTTP_X_CUSTOM_HEADER' => 'internal'
 }
 controller = TestHomepageController.new(env)
-result = controller.check_homepage_header('internal', { 'request_header' => 'X-Custom-Header' })
+result = controller.header_matches_mode?('X-Custom-Header', 'internal')
 result
 #=> true
 
-## Header Check - New mode_header config name
+## Header Check - Empty header name
 env = {
   'REMOTE_ADDR' => '10.0.1.100',
   'HTTP_O_HOMEPAGE_MODE' => 'internal'
 }
 controller = TestHomepageController.new(env)
-result = controller.check_homepage_header('internal', { 'mode_header' => 'O-Homepage-Mode' })
+result = controller.header_matches_mode?('', 'internal')
 result
-#=> true
+#=> false
 
 ## RFC 7239 Forwarded Header Extraction
 env = {
