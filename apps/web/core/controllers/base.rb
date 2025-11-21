@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'ipaddr'
 require_relative '../views'
 require 'onetime/helpers/session_helpers'
 require 'onetime/helpers/shrimp_helpers'

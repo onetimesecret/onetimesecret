@@ -24,7 +24,7 @@ site:
       # ✓ Can do: Hide the Create Secret form for external users
       # ✗ Cannot do: Grant access to endpoints for creating secret links
       #
-      # This does not protect API endpoints and has no affect on existing
+      # This does not protect API endpoints and has no effect on existing
       # authentication or authorization logic.
       #
       # Detection Methods (evaluated in order):
@@ -45,8 +45,8 @@ site:
       # Privacy Preservation
       #
       # CIDR Subnet Limitations:
-      #   - Minimum prefix length: /24 for IPv4 (supports /8, /16, /24)
-      #   - Minimum prefix length: /48 for IPv6
+      #   - Minimum prefix length: /24 for IPv4 (supports any prefix up to /24, e.g., /8, /12, /16, /24)
+      #   - Minimum prefix length: /48 for IPv6 (supports any prefix up to /48)
       #   - Prefix lengths greater than minimum are not supported for privacy
       #
       # Proxy Configuration:
@@ -71,7 +71,6 @@ site:
         trusted_ip_header: <%= ENV['UI_HOMEPAGE_TRUSTED_IP_HEADER'] || 'X-Forwarded-For' %>
       # Header configuration
       # Controls branding and navigation in the site header
-      # Rename to page_header, page_footer for clarity
       header:
         # Control switch to enable/disable header customization
         enabled: <%= ENV['HEADER_ENABLED'] != 'false' %>
