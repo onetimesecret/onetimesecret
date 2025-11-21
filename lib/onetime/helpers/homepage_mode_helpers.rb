@@ -42,10 +42,6 @@ module Onetime
         configured_mode = homepage_config['mode']
         return nil unless %w[internal external].include?(configured_mode)
 
-        OT.ld '[homepage_mode] Detection initiated', {
-          mode: configured_mode,
-        }
-
         # Initialize CIDR matchers (cached at instance level for efficiency)
         @cidr_matchers ||= compile_homepage_cidrs(homepage_config)
 
@@ -53,26 +49,51 @@ module Onetime
         client_ip = extract_client_ip_for_homepage(homepage_config)
         mode_header_name = homepage_config['mode_header']
 
+        OT.ld '[homepage_mode] Detection started', {
+          configured_mode: configured_mode,
+          client_ip: client_ip,
+          cidr_count: @cidr_matchers.length,
+          header_configured: !mode_header_name.nil?,
+        }
+
         # Priority 1: Check CIDR match
         if client_ip && ip_matches_homepage_cidrs?(client_ip)
-          OT.ld '[homepage_mode] CIDR match', {
+          OT.ld '[homepage_mode] CIDR matched', {
+            client_ip: client_ip,
+            cidr_count: @cidr_matchers.length,
+          }
+          OT.info '[homepage_mode] Mode applied via CIDR', {
             mode: configured_mode,
             method: 'cidr',
+            client_ip: client_ip,
           }
           return configured_mode
         end
 
         # Priority 2: Fallback to header check
         if mode_header_name && header_matches_mode?(mode_header_name, configured_mode)
-          OT.ld '[homepage_mode] Header match', {
+          header_value = req.env["HTTP_#{mode_header_name.upcase.tr('-', '_')}"]
+          OT.ld '[homepage_mode] Header matched', {
+            header: mode_header_name,
+            value: header_value,
+          }
+          OT.info '[homepage_mode] Mode applied via header', {
             mode: configured_mode,
             method: 'header',
+            header: mode_header_name,
           }
           return configured_mode
         end
 
         # No match - use default homepage
-        OT.ld '[homepage_mode] No match - default homepage', {
+        OT.ld '[homepage_mode] No match found', {
+          client_ip: client_ip,
+          cidr_count: @cidr_matchers.length,
+          header_configured: !mode_header_name.nil?,
+        }
+        OT.info '[homepage_mode] No mode applied (default homepage)', {
+          mode: nil,
+          method: 'none',
           configured_mode: configured_mode,
         }
         nil
@@ -137,19 +158,43 @@ module Onetime
       def extract_client_ip_for_homepage(config)
         trusted_proxy_depth = config['trusted_proxy_depth'] || 1
         trusted_ip_header   = config['trusted_ip_header'] || 'X-Forwarded-For'
+        remote_addr = req.env['REMOTE_ADDR']
         ip = nil
+
+        OT.ld '[homepage_mode] IP extraction config', {
+          trusted_proxy_depth: trusted_proxy_depth,
+          trusted_ip_header: trusted_ip_header,
+          remote_addr: remote_addr,
+        }
 
         # Step 1: Try to extract from trusted headers (if behind proxy)
         if trusted_proxy_depth > 0
           ip = extract_ip_from_header(trusted_ip_header, trusted_proxy_depth)
+          OT.ld '[homepage_mode] Extracted from header', {
+            header_type: trusted_ip_header,
+            extracted_ip: ip,
+          } if ip
+        else
+          OT.ld '[homepage_mode] Skipping header extraction (trusted_proxy_depth=0)'
         end
 
         # Step 2: Validate extracted IP is not a private proxy IP
         # This prevents spoofed private IPs in headers from being used
-        return ip if ip && !private_ip?(ip)
+        if ip && private_ip?(ip)
+          OT.ld '[homepage_mode] Rejected private IP from header', {
+            extracted_ip: ip,
+            reason: 'private_ip_validation_failed',
+          }
+          ip = nil
+        end
 
-        # Step 3: Fall back to REMOTE_ADDR (most secure, cannot be spoofed)
-        req.env['REMOTE_ADDR']
+        # Step 3: Use extracted IP or fall back to REMOTE_ADDR
+        final_ip = ip || remote_addr
+        OT.ld '[homepage_mode] Final IP selected', {
+          ip: final_ip,
+          source: ip ? 'header' : 'remote_addr',
+        }
+        final_ip
       end
 
       # Extract IP from forwarded header with proxy depth handling
@@ -161,13 +206,30 @@ module Onetime
         forwarded_ips = extract_forwarded_ips(header_type)
         return nil if forwarded_ips.nil? || forwarded_ips.empty?
 
+        OT.ld '[homepage_mode] Processing forwarded IPs', {
+          header_type: header_type,
+          forwarded_chain: forwarded_ips.join(', '),
+          chain_length: forwarded_ips.length,
+          trusted_proxy_depth: trusted_proxy_depth,
+        }
+
         # Remove the last N trusted proxy IPs, take the rightmost remaining IP
         if forwarded_ips.length > trusted_proxy_depth
           client_ips = forwarded_ips[0...-trusted_proxy_depth]
-          client_ips.last
+          extracted_ip = client_ips.last
+          OT.ld '[homepage_mode] Extracted client IP from chain', {
+            client_ips: client_ips.join(', '),
+            selected_ip: extracted_ip,
+          }
+          extracted_ip
         else
           # Edge case: fewer IPs than expected proxies, use first
-          forwarded_ips.first
+          extracted_ip = forwarded_ips.first
+          OT.ld '[homepage_mode] Chain shorter than proxy depth, using first IP', {
+            forwarded_ips: forwarded_ips.join(', '),
+            selected_ip: extracted_ip,
+          }
+          extracted_ip
         end
       end
 
