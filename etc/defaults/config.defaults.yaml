@@ -15,45 +15,57 @@ site:
       # Controls whether the web interface is enabled
       # When false, only a basic explanation page is shown
       enabled: <%= ENV['UI_ENABLED'] != 'false' %>
+      # Homepage Mode
+      #
+      # Determines which homepage experience to show based on the request
+      # headers. It can change the content presented to a visitor when they
+      # navigate to the homepage but it does not expand or restrict access.
+      #
+      # ✓ Can do: Hide the Create Secret form for external users
+      # ✗ Cannot do: Grant access to endpoints for creating secret links
+      #
+      # This does not protect API endpoints and has no affect on existing
+      # authentication or authorization logic.
+      #
+      # Detection Methods (evaluated in order):
+      #   1. matching_cidrs - Client IP must match one of these subnets
+      #   2. request_header - Fallback if no CIDR match (requires header value = mode)
+      #
+      # Example:
+      #   mode: internal
+      #   matching_cidrs:
+      #     - 203.0.113.0/24      # Office network
+      #     - 198.51.100.0/24     # Partner network
+      #     - 192.0.2.0/24        # Additional location
+      #
+      # Example:
+      #   mode: external
+      #   request_header: O-Homepage-Mode
+      #
+      # Privacy Preservation
+      #
+      # CIDR Subnet Limitations:
+      #   - Minimum prefix length: /24 for IPv4 (supports /8, /16, /24)
+      #   - Minimum prefix length: /48 for IPv6
+      #   - Prefix lengths greater than minimum are not supported for privacy
+      #
+      # Proxy Configuration:
+      #   - trusted_proxy_depth: How many proxies to trust in X-Forwarded-For
+      #   - 0: Don't trust proxies, use REMOTE_ADDR (direct connections only)
+      #   - 1: Trust 1 proxy - STANDARD for reverse proxy (nginx, Caddy)
+      #   - 2+: Trust N proxies (e.g., CDN → reverse proxy → app)
+      #
+      # ⚠️  IMPORTANT: Set to 1 for standard reverse proxy deployments!
+      #     Only use 0 when app receives connections directly (no proxy)
+      #
       homepage:
-        # Homepage Mode
-        #
-        # Determines which homepage experience to show based on the request
-        # headers. It can change the content presented to a visitor when they
-        # navigate to the homepage but it does not expand or restrict access.
-        #
-        # ✓ Can do: Hide the Create Secret form for external users
-        # ✗ Cannot do: Grant access to endpoints for creating secret links
-        #
-        # This does not protect API endpoints and has no affect on existing
-        # authentication or authorization logic.
-        #
-        # Detection Methods (evaluated in order):
-        #   1. matching_cidrs - Client IP must match one of these subnets
-        #   2. request_header - Fallback if no CIDR match (requires header value = mode)
-        #
-        # Example:
-        #   mode: internal
-        #   matching_cidrs:
-        #     - 203.0.113.0/24      # Office network
-        #     - 198.51.100.0/24     # Partner network
-        #     - 192.0.2.0/24        # Additional location
-        #
-        # Example:
-        #   mode: external
-        #   request_header: O-Homepage-Mode
-        #
-        # Privacy Preservation
-        #
-        # CIDR Subnet Limitations:
-        #   - Minimum prefix length: /24 (supports /8, /16, /24)
-        #   - Prefix lengths greater than /24 are not supported (e.g., /25, /26, /32)
-        #
         mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
         matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
-        request_header: <%= ENV['UI_HOMEPAGE_REQUEST_HEADER'] || nil %>
+        request_header: <%= ENV['UI_HOMEPAGE_REQUEST_HEADER'] || 'O-Homepage-Mode' %>
+        trusted_proxy_depth: <%= ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH']&.to_i || 0 %>
       # Header configuration
       # Controls branding and navigation in the site header
+      # Rename to page_header, page_footer for clarity
       header:
         # Control switch to enable/disable header customization
         enabled: <%= ENV['HEADER_ENABLED'] != 'false' %>

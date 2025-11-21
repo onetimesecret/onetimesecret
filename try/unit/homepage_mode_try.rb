@@ -1,0 +1,239 @@
+# try/unit/homepage_mode_try.rb
+#
+# Unit tests for Homepage Mode functionality with CIDR matching and header fallback
+#
+
+ENV['RACK_ENV'] = 'test'
+ENV['VALKEY_URL'] = 'valkey://127.0.0.1:2121/0'
+ENV['SECRET'] = 'testsecret123456789012345678901234'
+require_relative '../../lib/onetime'
+require 'rack/mock'
+
+OT.boot! :test
+
+# Load the controller
+require_relative '../../apps/web/core/controllers/base'
+
+# Create a test controller class that includes the base controller methods
+class TestHomepageController
+  include Core::Controllers::Base
+
+  attr_accessor :req, :res
+
+  def initialize(env = {})
+    @req = Rack::Request.new(env)
+    @res = Rack::Response.new
+  end
+
+  # Make the private methods accessible for testing
+  public :compile_homepage_cidrs, :validate_cidr_privacy,
+         :extract_client_ip_for_homepage, :ip_matches_homepage_cidrs?, :check_homepage_header
+end
+
+# Create a controller instance for testing
+@controller = TestHomepageController.new({})
+
+## IPv4 CIDR Compilation - Valid /24
+cidrs = @controller.compile_homepage_cidrs({
+  'matching_cidrs' => ['192.168.1.0/24']
+})
+cidrs.length
+#=> 1
+
+## IPv4 CIDR Compilation - Valid /8
+cidrs = @controller.compile_homepage_cidrs({
+  'matching_cidrs' => ['10.0.0.0/8']
+})
+cidrs.length
+#=> 1
+
+## IPv4 CIDR Privacy Validation - /25 is Rejected
+cidrs = @controller.compile_homepage_cidrs({
+  'matching_cidrs' => ['192.168.1.0/25']
+})
+cidrs.length
+#=> 0
+
+## IPv4 CIDR Privacy Validation - /32 is Rejected
+cidrs = @controller.compile_homepage_cidrs({
+  'matching_cidrs' => ['192.168.1.1/32']
+})
+cidrs.length
+#=> 0
+
+## IPv6 CIDR Privacy Validation - /48 is Valid
+cidrs = @controller.compile_homepage_cidrs({
+  'matching_cidrs' => ['2001:db8::/48']
+})
+cidrs.length
+#=> 1
+
+## IPv6 CIDR Privacy Validation - /64 is Rejected
+cidrs = @controller.compile_homepage_cidrs({
+  'matching_cidrs' => ['2001:db8::/64']
+})
+cidrs.length
+#=> 0
+
+## Invalid CIDR String Handling
+cidrs = @controller.compile_homepage_cidrs({
+  'matching_cidrs' => ['invalid_cidr', '10.0.0.0/8']
+})
+cidrs.length
+#=> 1
+
+## Empty CIDR List
+cidrs = @controller.compile_homepage_cidrs({
+  'matching_cidrs' => []
+})
+cidrs.length
+#=> 0
+
+## IP Matching - IPv4 Match
+@controller.instance_variable_set(:@cidr_matchers, @controller.compile_homepage_cidrs({
+  'matching_cidrs' => ['10.0.0.0/8']
+}))
+@controller.ip_matches_homepage_cidrs?('10.0.1.100')
+#=> true
+
+## IP Matching - IPv4 No Match
+@controller.instance_variable_set(:@cidr_matchers, @controller.compile_homepage_cidrs({
+  'matching_cidrs' => ['10.0.0.0/8']
+}))
+@controller.ip_matches_homepage_cidrs?('192.168.1.1')
+#=> false
+
+## IP Matching - Multiple CIDRs
+@controller.instance_variable_set(:@cidr_matchers, @controller.compile_homepage_cidrs({
+  'matching_cidrs' => ['10.0.0.0/8', '192.168.0.0/16', '172.16.0.0/12']
+}))
+@controller.ip_matches_homepage_cidrs?('192.168.1.100')
+#=> true
+
+## IP Matching - Empty IP
+@controller.instance_variable_set(:@cidr_matchers, @controller.compile_homepage_cidrs({
+  'matching_cidrs' => ['10.0.0.0/8']
+}))
+@controller.ip_matches_homepage_cidrs?('')
+#=> false
+
+## IP Matching - Empty Matchers
+@controller.instance_variable_set(:@cidr_matchers, [])
+@controller.ip_matches_homepage_cidrs?('10.0.1.100')
+#=> false
+
+## Extract Client IP - Uses REMOTE_ADDR by Default
+env = { 'REMOTE_ADDR' => '10.0.1.100' }
+controller = TestHomepageController.new(env)
+ip = controller.extract_client_ip_for_homepage({ 'trusted_proxy_depth' => 0 })
+ip
+#=> '10.0.1.100'
+
+## Extract Client IP - Ignores X-Forwarded-For when depth is 0
+env = {
+  'REMOTE_ADDR' => '10.0.1.100',
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.1, 10.0.1.100'
+}
+controller = TestHomepageController.new(env)
+ip = controller.extract_client_ip_for_homepage({ 'trusted_proxy_depth' => 0 })
+ip
+#=> '10.0.1.100'
+
+## Extract Client IP - Uses X-Forwarded-For with Depth 1
+env = {
+  'REMOTE_ADDR' => '10.0.1.100',
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.1, 10.0.1.100'
+}
+controller = TestHomepageController.new(env)
+ip = controller.extract_client_ip_for_homepage({ 'trusted_proxy_depth' => 1 })
+ip
+#=> '10.0.1.100'
+
+## Extract Client IP - Uses X-Forwarded-For with Depth 2
+env = {
+  'REMOTE_ADDR' => '10.0.1.100',
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.1, 203.0.113.5, 10.0.1.100'
+}
+controller = TestHomepageController.new(env)
+ip = controller.extract_client_ip_for_homepage({ 'trusted_proxy_depth' => 2 })
+ip
+#=> '203.0.113.5'
+
+## Extract Client IP - Single IP in X-Forwarded-For
+env = {
+  'REMOTE_ADDR' => '10.0.1.100',
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.1'
+}
+controller = TestHomepageController.new(env)
+ip = controller.extract_client_ip_for_homepage({ 'trusted_proxy_depth' => 1 })
+ip
+#=> '198.51.100.1'
+
+## Header Check - Matches Internal Mode
+env = {
+  'REMOTE_ADDR' => '10.0.1.100',
+  'HTTP_O_HOMEPAGE_MODE' => 'internal'
+}
+controller = TestHomepageController.new(env)
+result = controller.check_homepage_header('internal', { 'request_header' => 'O-Homepage-Mode' })
+result
+#=> true
+
+## Header Check - Matches External Mode
+env = {
+  'REMOTE_ADDR' => '10.0.1.100',
+  'HTTP_O_HOMEPAGE_MODE' => 'external'
+}
+controller = TestHomepageController.new(env)
+result = controller.check_homepage_header('external', { 'request_header' => 'O-Homepage-Mode' })
+result
+#=> true
+
+## Header Check - Does Not Match Wrong Value
+env = {
+  'REMOTE_ADDR' => '10.0.1.100',
+  'HTTP_O_HOMEPAGE_MODE' => 'wrong_value'
+}
+controller = TestHomepageController.new(env)
+result = controller.check_homepage_header('internal', { 'request_header' => 'O-Homepage-Mode' })
+result
+#=> false
+
+## Header Check - Missing Header
+env = {
+  'REMOTE_ADDR' => '10.0.1.100'
+}
+controller = TestHomepageController.new(env)
+result = controller.check_homepage_header('internal', { 'request_header' => 'O-Homepage-Mode' })
+result
+#=> false
+
+## Header Check - Empty Header Value
+env = {
+  'REMOTE_ADDR' => '10.0.1.100',
+  'HTTP_O_HOMEPAGE_MODE' => ''
+}
+controller = TestHomepageController.new(env)
+result = controller.check_homepage_header('internal', { 'request_header' => 'O-Homepage-Mode' })
+result
+#=> false
+
+## Header Check - No Request Header Configured
+env = {
+  'REMOTE_ADDR' => '10.0.1.100',
+  'HTTP_O_HOMEPAGE_MODE' => 'internal'
+}
+controller = TestHomepageController.new(env)
+result = controller.check_homepage_header('internal', { 'request_header' => nil })
+result
+#=> false
+
+## Header Check - Custom Header Name (with dashes)
+env = {
+  'REMOTE_ADDR' => '10.0.1.100',
+  'HTTP_X_CUSTOM_HEADER' => 'internal'
+}
+controller = TestHomepageController.new(env)
+result = controller.check_homepage_header('internal', { 'request_header' => 'X-Custom-Header' })
+result
+#=> true

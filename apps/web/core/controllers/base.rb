@@ -24,9 +24,9 @@ module Core
       end
 
       def index
-        # Check for header-based homepage protection before rendering
+        # Determine homepage mode based on CIDR/header before rendering
         # This sets a flag in the request env that the view layer can serialize
-        req.env['onetime.homepage_mode'] = check_protected_by_request_header
+        req.env['onetime.homepage_mode'] = determine_homepage_mode
 
         # Simplified: BaseView now extracts everything from req
         view     = Core::Views::VuePoint.new(req)
@@ -43,53 +43,60 @@ module Core
         req.env['rack.session']
       end
 
-      # Check if the request contains the homepage protection header
+      # Determines the homepage mode based on CIDR matching and header fallback
       #
-      # When site.interface.ui.homepage.mode=protected, this
-      # checks if the configured HTTP header contains the value 'protected'.
-      # Returns 'protected' when the header matches, nil otherwise.
+      # Detection Priority:
+      # 1. CIDR matching (client IP against configured ranges)
+      # 2. Request header fallback (O-Homepage-Mode)
       #
-      # SECURITY:
-      # - The request header can only RESTRICT access, never EXPAND it. It has
-      #   no effect on authentication settings or API routes.
-      # - The frontend Vue router checks homepage_mode determine homepage state
+      # Modes:
+      # - 'internal': Normal homepage with full functionality
+      # - 'external': Restricted view without secret creation
+      # - nil: Default homepage behavior (usually internal)
       #
-      # @return [String, nil] 'protected' if header matches, nil otherwise
-      def check_protected_by_request_header
+      # See etc/defaults/config.defaults.yaml for more details.
+      #
+      # @return [String, nil] 'internal', 'external', or nil
+      def determine_homepage_mode
         ui_config = OT.conf.dig('site', 'interface', 'ui') || {}
-        homepage_mode = ui_config.dig('homepage', 'mode')
-        homepage_request_header = ui_config.dig('homepage', 'request_header')
+        homepage_config = ui_config['homepage'] || {}
 
-        http_logger.debug '[check_protected_by_request_header] check initiated with settings', {
-          mode: homepage_mode,
-          header_name: homepage_request_header,
+        configured_mode = homepage_config['mode']
+        return nil unless %w[internal external].include?(configured_mode)
+
+        http_logger.debug '[homepage_mode] Detection initiated', {
+          mode: configured_mode,
         }
 
-        return nil unless homepage_mode == 'protected'
+        # Initialize CIDR matchers (cached at instance level for efficiency)
+        @cidr_matchers ||= compile_homepage_cidrs(homepage_config)
 
-        # Require request_header to be configured
-        return nil if homepage_request_header.nil? || homepage_request_header.empty?
+        # Extract client IP
+        client_ip = extract_client_ip_for_homepage(homepage_config)
 
-        # Normalize header name to HTTP_* format for env lookup
-        # Convert dashes to underscores and prepend HTTP_ if not present
-        header_key = homepage_request_header.upcase.tr('-', '_')
-        header_key = "HTTP_#{header_key}" unless header_key.start_with?('HTTP_')
+        # Priority 1: Check CIDR match
+        if client_ip && ip_matches_homepage_cidrs?(client_ip)
+          http_logger.debug '[homepage_mode] CIDR match', {
+            mode: configured_mode,
+            method: 'cidr',
+          }
+          return configured_mode
+        end
 
-        # Get the actual header value from the request
-        header_value = req.env[header_key]
+        # Priority 2: Fallback to header check
+        if check_homepage_header(configured_mode, homepage_config)
+          http_logger.debug '[homepage_mode] Header match', {
+            mode: configured_mode,
+            method: 'header',
+          }
+          return configured_mode
+        end
 
-        http_logger.debug '[check_protected_by_request_header] protection header value', {
-          header_key: header_key,
-          header_present: !header_value.nil?,
-          header_empty: header_value&.empty?,
+        # No match - use default homepage
+        http_logger.debug '[homepage_mode] No match - default homepage', {
+          configured_mode: configured_mode,
         }
-
-        # Return nil if header is missing or empty
-        return nil if header_value.nil? || header_value.empty?
-
-        # Check for exact match with 'protected' (case-sensitive and set to
-        # a literal value for safety, security, and peace of mind).
-        header_value == 'protected' ? 'protected' : nil
+        nil
       end
 
       # Validates a given URL and ensures it can be safely redirected to.
@@ -236,6 +243,128 @@ module Core
           exception: ex,
         }
         Onetime::Customer.anonymous
+      end
+
+      # Homepage Mode Helper Methods
+
+      # Compile CIDR ranges with privacy validation
+      #
+      # @param config [Hash] Homepage configuration
+      # @return [Array<IPAddr>] Compiled CIDR blocks
+      def compile_homepage_cidrs(config)
+        cidrs = config['matching_cidrs'] || []
+        return [] if cidrs.empty?
+
+        cidrs.map do |cidr_string|
+          cidr = IPAddr.new(cidr_string)
+
+          # Validate privacy requirements
+          unless validate_cidr_privacy(cidr)
+            http_logger.warn '[homepage_mode] CIDR rejected for privacy', {
+              cidr: cidr_string,
+              prefix: cidr.prefix,
+            }
+            next nil
+          end
+
+          cidr
+        rescue IPAddr::InvalidAddressError => e
+          http_logger.error '[homepage_mode] Invalid CIDR', {
+            cidr: cidr_string,
+            error: e.message,
+          }
+          nil
+        end.compact
+      end
+
+      # Validate CIDR meets privacy requirements
+      #
+      # @param cidr [IPAddr] CIDR block to validate
+      # @return [Boolean] True if CIDR meets privacy requirements
+      def validate_cidr_privacy(cidr)
+        min_prefix = cidr.ipv4? ? 24 : 48
+        cidr.prefix <= min_prefix
+      end
+
+      # Extract client IP address from request
+      #
+      # Priority:
+      # 1. X-Forwarded-For (with trusted proxy depth consideration)
+      # 2. REMOTE_ADDR
+      #
+      # Security: When trusted_proxy_depth is 0 (default), X-Forwarded-For is
+      # IGNORED to prevent IP spoofing. Only use trusted_proxy_depth > 0 when:
+      # - Application is behind a trusted reverse proxy
+      # - Direct access to application is blocked by firewall
+      # - Proxy is configured to strip/override client-provided X-Forwarded-For
+      #
+      # @param config [Hash] Homepage configuration
+      # @return [String, nil] Client IP address or nil
+      def extract_client_ip_for_homepage(config)
+        trusted_proxy_depth = config['trusted_proxy_depth'] || 0
+
+        # Only trust X-Forwarded-For if explicitly configured
+        if trusted_proxy_depth > 0 && req.env['HTTP_X_FORWARDED_FOR']
+          forwarded_ips = req.env['HTTP_X_FORWARDED_FOR'].split(',').map(&:strip)
+          # Calculate index: depth 1 = -1 (last), depth 2 = -2 (second-to-last), etc.
+          index = -trusted_proxy_depth
+          ip = forwarded_ips[index] || forwarded_ips.first
+
+          http_logger.debug '[homepage_mode] Using X-Forwarded-For', {
+            index: index,
+            ip: ip,
+            depth: trusted_proxy_depth,
+          }
+          return ip
+        end
+
+        # Default to REMOTE_ADDR (most secure, cannot be spoofed)
+        ip = req.env['REMOTE_ADDR']
+        http_logger.debug '[homepage_mode] Using REMOTE_ADDR', {
+          ip: ip,
+        }
+        ip
+      end
+
+      # Check if IP address matches any configured CIDR
+      #
+      # @param ip_string [String] IP address to check
+      # @return [Boolean] True if IP is in configured ranges
+      def ip_matches_homepage_cidrs?(ip_string)
+        return false if ip_string.to_s.empty?
+        return false if @cidr_matchers.empty?
+
+        begin
+          ip = IPAddr.new(ip_string)
+          @cidr_matchers.any? { |cidr| cidr.include?(ip) }
+        rescue IPAddr::InvalidAddressError => e
+          http_logger.error '[homepage_mode] Invalid IP address', {
+            ip: ip_string,
+            error: e.message,
+          }
+          false
+        end
+      end
+
+      # Check header as fallback mechanism
+      #
+      # @param configured_mode [String] The configured mode ('internal' or 'external')
+      # @param config [Hash] Homepage configuration
+      # @return [Boolean] True if header matches configured mode
+      def check_homepage_header(configured_mode, config)
+        request_header = config['request_header']
+        return false if request_header.nil? || request_header.empty?
+
+        # Normalize header name to HTTP_* format for env lookup
+        # Convert dashes to underscores and prepend HTTP_ if not present
+        header_key = request_header.upcase.tr('-', '_')
+        header_key = "HTTP_#{header_key}" unless header_key.start_with?('HTTP_')
+
+        header_value = req.env[header_key]
+        return false if header_value.nil? || header_value.empty?
+
+        # Check for exact match with configured mode
+        header_value == configured_mode
       end
 
       # Checks if authentication is enabled for the site.
