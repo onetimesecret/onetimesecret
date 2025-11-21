@@ -55,14 +55,14 @@ site:
       #   - 1: Trust 1 proxy - STANDARD for reverse proxy (nginx, Caddy)
       #   - 2+: Trust N proxies (e.g., CDN → reverse proxy → app)
       #
-      # ⚠️  IMPORTANT: Set to 1 for standard reverse proxy deployments!
-      #     Only use 0 when app receives connections directly (no proxy)
+      # Default is 1 (standard reverse proxy) as most deployments use nginx/Caddy.
+      # Set to 0 only for development or direct-to-internet deployments.
       #
       homepage:
         mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
         matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
         request_header: <%= ENV['UI_HOMEPAGE_REQUEST_HEADER'] || 'O-Homepage-Mode' %>
-        trusted_proxy_depth: <%= ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH']&.to_i || 0 %>
+        trusted_proxy_depth: <%= ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
       # Header configuration
       # Controls branding and navigation in the site header
       # Rename to page_header, page_footer for clarity

@@ -140,6 +140,8 @@ ip
 #=> '10.0.1.100'
 
 ## Extract Client IP - Uses X-Forwarded-For with Depth 1
+# X-Forwarded-For: client_ip, proxy_ip
+# Remove last 1 (proxy_ip), return client_ip
 env = {
   'REMOTE_ADDR' => '10.0.1.100',
   'HTTP_X_FORWARDED_FOR' => '198.51.100.1, 10.0.1.100'
@@ -147,9 +149,11 @@ env = {
 controller = TestHomepageController.new(env)
 ip = controller.extract_client_ip_for_homepage({ 'trusted_proxy_depth' => 1 })
 ip
-#=> '10.0.1.100'
+#=> '198.51.100.1'
 
 ## Extract Client IP - Uses X-Forwarded-For with Depth 2
+# X-Forwarded-For: client_ip, proxy1_ip, proxy2_ip
+# Remove last 2 (proxy1, proxy2), return client_ip
 env = {
   'REMOTE_ADDR' => '10.0.1.100',
   'HTTP_X_FORWARDED_FOR' => '198.51.100.1, 203.0.113.5, 10.0.1.100'
@@ -157,9 +161,10 @@ env = {
 controller = TestHomepageController.new(env)
 ip = controller.extract_client_ip_for_homepage({ 'trusted_proxy_depth' => 2 })
 ip
-#=> '203.0.113.5'
+#=> '198.51.100.1'
 
-## Extract Client IP - Single IP in X-Forwarded-For
+## Extract Client IP - Single IP in X-Forwarded-For (Edge Case)
+# Only 1 IP but depth=1, should return that IP (client sent directly to proxy)
 env = {
   'REMOTE_ADDR' => '10.0.1.100',
   'HTTP_X_FORWARDED_FOR' => '198.51.100.1'

@@ -5,6 +5,13 @@
 # (CIDR ranges) or request headers.
 #
 # Copy and adapt these examples to your etc/config.yaml file.
+#
+# You can also configure via environment variables:
+#
+#   UI_HOMEPAGE_MODE=internal
+#   UI_HOMEPAGE_MATCHING_CIDRS="10.0.0.0/8,192.168.0.0/16"
+#   UI_HOMEPAGE_REQUEST_HEADER="O-Homepage-Mode"
+#   UI_HOMEPAGE_TRUSTED_PROXY_DEPTH=1   # Note: 1 for most deployments, not 0!
 
 # =============================================================================
 # Example 1: Internal Mode for Office Networks (Behind Reverse Proxy)
@@ -120,6 +127,7 @@ site:
 #   - Default homepage behavior
 #   - Based on authentication settings
 #
+#
 # =============================================================================
 # Detection Priority
 # =============================================================================
@@ -134,9 +142,6 @@ site:
 #    - Value must match configured mode
 #    - Only checked if CIDR doesn't match
 #
-# 3. No Match
-#    - Shows default homepage
-#    - No mode restrictions applied
 #
 # =============================================================================
 # Privacy Enforcement
@@ -152,34 +157,40 @@ site:
 # trusted_proxy_depth Explained
 # =============================================================================
 #
-# ⚠️  CRITICAL: This setting determines which IP address is used for CIDR matching
+# ⚠️ CRITICAL: This setting determines which IP address is used for CIDR matching
 #
 # How X-Forwarded-For Works:
 #   Client → Proxy1 → Proxy2 → App
 #
 #   X-Forwarded-For header: "client_ip, proxy1_ip, proxy2_ip"
 #                            [0]       [1]        [2]
-#                            [-3]      [-2]       [-1]
+#
+# How trusted_proxy_depth Works:
+#   - Removes the last N proxy IPs from the X-Forwarded-For chain
+#   - Returns the rightmost remaining IP (the real client)
 #
 # trusted_proxy_depth Values:
 #   0 = Don't trust X-Forwarded-For, use REMOTE_ADDR
 #       → Use when: App receives connections directly (no proxy)
-#       → Result: Uses the direct connection IP (usually your proxy's IP)
-#       → ⚠️  WRONG for most production deployments behind reverse proxy!
+#       → Result: Uses the direct connection IP
+#       → WRONG for production deployments behind reverse proxy!
 #
-#   1 = Trust 1 proxy, use rightmost IP from X-Forwarded-For (index -1)
-#       → Use when: Single reverse proxy (nginx, Caddy, Apache)
-#       → Result: Uses the last IP in the chain (closest to app)
-#       → ✓ CORRECT for standard reverse proxy setups
+#   1 = Trust 1 proxy, remove last IP, return client
+#       → X-Forwarded-For: "client_ip, proxy_ip"
+#       → Remove last 1: ["client_ip"]
+#       → Result: client_ip
+#       → ✓ CORRECT for single reverse proxy (nginx, Caddy, Apache)
 #
-#   2 = Trust 2 proxies, use 2nd from right (index -2)
-#       → Use when: Load balancer → Reverse proxy → App
-#       → Result: Uses second-to-last IP (bypasses both trusted proxies)
-#       → ✓ CORRECT for CDN/load balancer + reverse proxy setups
+#   2 = Trust 2 proxies, remove last 2 IPs, return client
+#       → X-Forwarded-For: "client_ip, proxy1_ip, proxy2_ip"
+#       → Remove last 2: ["client_ip"]
+#       → Result: client_ip
+#       → ✓ CORRECT for CDN/load balancer + reverse proxy
 #
 # Common Mistake:
 #   ❌ Setting trusted_proxy_depth: 0 when behind a reverse proxy
 #   ✓  Set trusted_proxy_depth: 1 for standard nginx/Caddy deployments
+#   ✓  DEFAULT is now 1 (changed from 0 for security)
 #
 # Security Requirements:
 #   - Only trust proxies you control
@@ -187,13 +198,3 @@ site:
 #   - Block direct access to application (firewall rules)
 #   - Proxies must append their own IP to X-Forwarded-For
 #
-# =============================================================================
-# Environment Variables
-# =============================================================================
-#
-# You can also configure via environment variables:
-#
-#   UI_HOMEPAGE_MODE=internal
-#   UI_HOMEPAGE_MATCHING_CIDRS="10.0.0.0/8,192.168.0.0/16"
-#   UI_HOMEPAGE_REQUEST_HEADER="O-Homepage-Mode"
-#   UI_HOMEPAGE_TRUSTED_PROXY_DEPTH=1   # Note: 1 for most deployments, not 0!

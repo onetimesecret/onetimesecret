@@ -292,8 +292,17 @@ module Core
       # 1. X-Forwarded-For (with trusted proxy depth consideration)
       # 2. REMOTE_ADDR
       #
-      # Security: When trusted_proxy_depth is 0 (default), X-Forwarded-For is
-      # IGNORED to prevent IP spoofing. Only use trusted_proxy_depth > 0 when:
+      # How trusted_proxy_depth Works:
+      # - Removes the last N trusted proxy IPs from X-Forwarded-For
+      # - Returns the rightmost remaining IP (the real client)
+      #
+      # Example with depth=2:
+      #   X-Forwarded-For: client_ip, proxy1_ip, proxy2_ip
+      #   Remove last 2: [client_ip]
+      #   Return: client_ip
+      #
+      # Security: When trusted_proxy_depth is 0, X-Forwarded-For is IGNORED
+      # to prevent IP spoofing. Only use trusted_proxy_depth > 0 when:
       # - Application is behind a trusted reverse proxy
       # - Direct access to application is blocked by firewall
       # - Proxy is configured to strip/override client-provided X-Forwarded-For
@@ -301,19 +310,27 @@ module Core
       # @param config [Hash] Homepage configuration
       # @return [String, nil] Client IP address or nil
       def extract_client_ip_for_homepage(config)
-        trusted_proxy_depth = config['trusted_proxy_depth'] || 0
+        trusted_proxy_depth = config['trusted_proxy_depth'] || 1
 
         # Only trust X-Forwarded-For if explicitly configured
         if trusted_proxy_depth > 0 && req.env['HTTP_X_FORWARDED_FOR']
           forwarded_ips = req.env['HTTP_X_FORWARDED_FOR'].split(',').map(&:strip)
-          # Calculate index: depth 1 = -1 (last), depth 2 = -2 (second-to-last), etc.
-          index = -trusted_proxy_depth
-          ip = forwarded_ips[index] || forwarded_ips.first
+
+          # Remove the last N trusted proxy IPs, take the rightmost remaining IP
+          # This gets us the real client IP by stripping known proxy IPs
+          if forwarded_ips.length > trusted_proxy_depth
+            # Normal case: enough IPs to strip proxies
+            client_ips = forwarded_ips[0...-trusted_proxy_depth]
+            ip = client_ips.last
+          else
+            # Edge case: fewer IPs than expected proxies, use first (likely the client)
+            ip = forwarded_ips.first
+          end
 
           http_logger.debug '[homepage_mode] Using X-Forwarded-For', {
-            index: index,
-            ip: ip,
-            depth: trusted_proxy_depth,
+            forwarded_chain: forwarded_ips.join(', '),
+            trusted_depth: trusted_proxy_depth,
+            extracted_ip: ip,
           }
           return ip
         end
