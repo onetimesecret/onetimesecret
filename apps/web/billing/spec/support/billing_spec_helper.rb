@@ -95,6 +95,23 @@ module BillingSpecHelper
     double('Stripe::Invoice', defaults.merge(attrs))
   end
 
+  # Create a mock Stripe::Charge object
+  def mock_stripe_charge(id: 'ch_test123', **attrs)
+    defaults = {
+      id: id,
+      customer: 'cus_test123',
+      amount: 1000,
+      currency: 'usd',
+      status: 'succeeded',
+      paid: true,
+      refunded: false,
+      amount_refunded: 0,
+      metadata: {},
+      created: Time.now.to_i
+    }
+    double('Stripe::Charge', defaults.merge(attrs))
+  end
+
   # Create a mock Stripe::Refund object
   def mock_stripe_refund(id: 'ref_test123', **attrs)
     defaults = {
@@ -217,4 +234,5 @@ RSpec.configure do |config|
   config.include BillingSpecHelper, type: :billing
   config.include BillingSpecHelper, type: :controller
   config.include BillingSpecHelper, type: :integration
+  config.include BillingSpecHelper, type: :cli
 end
