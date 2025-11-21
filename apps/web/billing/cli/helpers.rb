@@ -4,12 +4,87 @@
 
 # Load billing models
 require_relative '../models'
+require_relative '../metadata'
 
 module Onetime
   module CLI
     # Base module for billing command helpers
     module BillingHelpers
-      REQUIRED_METADATA_FIELDS = %w[app tier region capabilities tenancy created].freeze
+      # Use constants from Billing::Metadata module to avoid magic strings
+      REQUIRED_METADATA_FIELDS = Billing::Metadata::REQUIRED_FIELDS
+
+      # Retry configuration for Stripe API calls
+      MAX_STRIPE_RETRIES = 3
+      STRIPE_RETRY_BASE_DELAY = 2 # seconds
+
+      # Execute Stripe API call with automatic retry on network/rate-limit errors
+      #
+      # Retries Stripe API calls with different backoff strategies:
+      # - Linear backoff for network errors (2s, 4s, 6s)
+      # - Exponential backoff for rate limits (4s, 8s, 16s)
+      # Retries up to MAX_STRIPE_RETRIES times before raising the exception.
+      #
+      # @param max_retries [Integer] Maximum number of retry attempts (default: 3)
+      # @yield Block containing Stripe API call to execute
+      # @return Result of the yielded block
+      # @raise [Stripe::StripeError] If all retries exhausted or non-retryable error
+      #
+      # @example
+      #   customer = with_stripe_retry do
+      #     Stripe::Customer.create(email: 'user@example.com')
+      #   end
+      #
+      def with_stripe_retry(max_retries: MAX_STRIPE_RETRIES)
+        retries = 0
+        begin
+          yield
+        rescue Stripe::APIConnectionError => e
+          retries += 1
+          if retries <= max_retries
+            delay = STRIPE_RETRY_BASE_DELAY * retries
+            OT.lw "Stripe API connection error: #{e.message}, retrying in #{delay}s (attempt #{retries}/#{max_retries})"
+            sleep(delay)
+            retry
+          end
+          OT.le "Stripe API connection failed after #{max_retries} retries: #{e.message}"
+          raise
+        rescue Stripe::RateLimitError => e
+          retries += 1
+          if retries <= max_retries
+            # Exponential backoff for rate limits
+            delay = STRIPE_RETRY_BASE_DELAY * (2**retries)
+            OT.lw "Stripe rate limit hit: #{e.message}, backing off #{delay}s (attempt #{retries}/#{max_retries})"
+            sleep(delay)
+            retry
+          end
+          OT.le "Stripe rate limit exceeded after #{max_retries} retries: #{e.message}"
+          raise
+        end
+      end
+
+      # Format Stripe error for user-friendly CLI output
+      #
+      # @param context [String] Context description (e.g., "Failed to create customer")
+      # @param error [Stripe::StripeError] The Stripe error to format
+      # @return [String] Formatted error message
+      def format_stripe_error(context, error)
+        case error
+        when Stripe::InvalidRequestError
+          "#{context}: Invalid parameters - #{error.message}"
+        when Stripe::AuthenticationError
+          "#{context}: Authentication failed - check STRIPE_KEY configuration"
+        when Stripe::CardError
+          "#{context}: Card error - #{error.message}"
+        when Stripe::APIConnectionError
+          "#{context}: Network error - please check connectivity and retry"
+        when Stripe::RateLimitError
+          "#{context}: Rate limited - please try again in a moment"
+        when Stripe::StripeError
+          "#{context}: #{error.message}"
+        else
+          "#{context}: Unexpected error - #{error.class}: #{error.message}"
+        end
+      end
 
       def stripe_configured?
         unless OT.billing_config.enabled?
@@ -32,9 +107,9 @@ module Onetime
       end
 
       def format_product_row(product)
-        tier = product.metadata['tier'] || 'N/A'
-        tenancy = product.metadata['tenancy'] || 'N/A'
-        region = product.metadata['region'] || 'N/A'
+        tier = product.metadata[Billing::Metadata::FIELD_TIER] || 'N/A'
+        tenancy = product.metadata[Billing::Metadata::FIELD_TENANCY] || 'N/A'
+        region = product.metadata[Billing::Metadata::FIELD_REGION] || 'N/A'
         active = product.active ? 'yes' : 'no'
 
         format('%-22s %-40s %-12s %-12s %-10s %s',
@@ -91,8 +166,8 @@ module Onetime
           end
         end
 
-        unless product.metadata['app'] == 'onetimesecret'
-          errors << "Invalid app metadata (should be 'onetimesecret')"
+        unless product.metadata[Billing::Metadata::FIELD_APP] == Billing::Metadata::APP_NAME
+          errors << "Invalid app metadata (should be '#{Billing::Metadata::APP_NAME}')"
         end
 
         errors
@@ -101,31 +176,31 @@ module Onetime
       def prompt_for_metadata
         metadata = {}
 
-        # Always include all metadata fields
-        metadata['app'] = 'onetimesecret'
+        # Always include all metadata fields (using constants)
+        metadata[Billing::Metadata::FIELD_APP] = Billing::Metadata::APP_NAME
 
         print 'Plan ID (optional, e.g., identity_v1): '
-        metadata['plan_id'] = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_PLAN_ID] = $stdin.gets.chomp
 
         print 'Tier (e.g., single_team, multi_team): '
-        metadata['tier'] = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_TIER] = $stdin.gets.chomp
 
         print 'Region (e.g., us-east, global): '
-        metadata['region'] = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_REGION] = $stdin.gets.chomp
 
         print 'Tenancy (e.g., single, multi): '
-        metadata['tenancy'] = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_TENANCY] = $stdin.gets.chomp
 
         print 'Capabilities (comma-separated, e.g., create_secrets,create_team): '
-        metadata['capabilities'] = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_CAPABILITIES] = $stdin.gets.chomp
 
         print 'Limit teams (-1 for unlimited): '
-        metadata['limit_teams'] = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_LIMIT_TEAMS] = $stdin.gets.chomp
 
         print 'Limit members per team (-1 for unlimited): '
-        metadata['limit_members_per_team'] = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_LIMIT_MEMBERS_PER_TEAM] = $stdin.gets.chomp
 
-        metadata['created'] = Time.now.utc.iso8601
+        metadata[Billing::Metadata::FIELD_CREATED] = Time.now.utc.iso8601
 
         metadata
       end

@@ -3,12 +3,14 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require_relative 'safety_helpers'
 
 module Onetime
   module CLI
     # Cancel subscription
     class BillingSubscriptionsCancelCommand < Command
       include BillingHelpers
+      include SafetyHelpers
 
       desc 'Cancel a subscription'
 
@@ -18,51 +20,70 @@ module Onetime
         desc: 'Cancel immediately instead of at period end'
       option :yes, type: :boolean, default: false,
         desc: 'Assume yes to prompts'
+      option :dry_run, type: :boolean, default: false,
+        desc: 'Preview operation without making changes'
 
-      def call(subscription_id:, immediately: false, yes: false, **)
+      def call(subscription_id:, immediately: false, yes: false, dry_run: false, **)
         boot_application!
 
         return unless stripe_configured?
 
-        # Retrieve subscription
-        subscription = Stripe::Subscription.retrieve(subscription_id)
+        # Use StripeClient for all Stripe API calls (includes retry logic)
+        require_relative '../lib/stripe_client'
+        stripe_client = Billing::StripeClient.new
 
-        # Display current status
-        puts "Subscription: #{subscription.id}"
-        puts "Customer: #{subscription.customer}"
-        puts "Status: #{subscription.status}"
-        puts "Current period end: #{format_timestamp(subscription.current_period_end)}"
-        puts
+        # Retrieve subscription to show current state
+        subscription = stripe_client.retrieve(Stripe::Subscription, subscription_id)
 
-        if immediately
-          puts "⚠️  Will cancel IMMEDIATELY"
-        else
-          puts "Will cancel at period end: #{format_timestamp(subscription.current_period_end)}"
-        end
+        # Display operation summary
+        display_operation_summary(
+          'Cancel subscription',
+          {
+            subscription_id: subscription.id,
+            customer_id: subscription.customer,
+            current_status: subscription.status,
+            period_end: format_timestamp(subscription.current_period_end),
+            cancel_mode: immediately ? 'IMMEDIATE' : 'At period end'
+          },
+          dry_run: dry_run
+        )
 
-        unless yes
-          print "\nProceed? (y/n): "
-          return unless $stdin.gets.chomp.downcase == 'y'
-        end
+        # Return early if dry run
+        return if dry_run
+
+        # Confirm destructive operation
+        confirmation_msg = immediately ? 'Cancel subscription IMMEDIATELY?' : 'Cancel subscription at period end?'
+        return unless confirm_operation(confirmation_msg, auto_yes: yes)
 
         # Cancel subscription
+
         canceled = if immediately
-          Stripe::Subscription.cancel(subscription_id)
+          stripe_client.delete(Stripe::Subscription, subscription_id)
         else
-          Stripe::Subscription.update(subscription_id, {
+          stripe_client.update(Stripe::Subscription, subscription_id, {
             cancel_at_period_end: true
           })
         end
 
-        puts "\nSubscription canceled successfully"
-        puts "Status: #{canceled.status}"
-        puts "Canceled at: #{format_timestamp(canceled.canceled_at)}" if canceled.canceled_at
-        if canceled.cancel_at_period_end
-          puts "Will end at: #{format_timestamp(canceled.current_period_end)}"
-        end
+        # Display success with details
+        details = {
+          subscription_id: canceled.id,
+          status: canceled.status
+        }
+        details[:canceled_at] = format_timestamp(canceled.canceled_at) if canceled.canceled_at
+        details[:will_end_at] = format_timestamp(canceled.current_period_end) if canceled.cancel_at_period_end
+
+        display_success('Subscription canceled successfully', details)
 
       rescue Stripe::StripeError => e
-        puts "Error canceling subscription: #{e.message}"
+        display_error(
+          format_stripe_error('Subscription cancellation failed', e),
+          [
+            'Verify subscription ID is correct',
+            'Check subscription is not already canceled',
+            'Review Stripe dashboard for details'
+          ]
+        )
       end
     end
   end

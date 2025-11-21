@@ -114,14 +114,30 @@ module Billing
           session_params.delete(:customer_email)
         end
 
-        # Create Stripe Checkout Session
-        checkout_session = Stripe::Checkout::Session.create(session_params)
+        # Create Stripe Checkout Session with idempotency
+        # Generate deterministic idempotency key to prevent duplicate sessions
+        require_relative '../lib/stripe_client'
+        stripe_client = Billing::StripeClient.new
+
+        # Idempotency key format: checkout-{orgid}-{plan}-{date}
+        # This allows one checkout per org/plan/day, preventing duplicates
+        # SHA256 produces 64 hex chars, well within Stripe's 255 char limit
+        idempotency_key = Digest::SHA256.hexdigest(
+          "checkout:#{org.objid}:#{plan.plan_id}:#{Time.now.to_date.iso8601}"
+        )
+
+        checkout_session = stripe_client.create(
+          Stripe::Checkout::Session,
+          session_params,
+          idempotency_key: idempotency_key
+        )
 
         billing_logger.info 'Checkout session created for organization', {
           extid: org.extid,  # Use extid for logging, not objid
           session_id: checkout_session.id,
           tier: tier,
           billing_cycle: billing_cycle,
+          idempotency_key: idempotency_key[0..7] # Log prefix for debugging
         }
 
         json_response({
