@@ -251,7 +251,7 @@
 
 :homepage:
   :mode: str(required=False)
-  :matching_cidrs: list(str(), required=False)
+  :matching_cidrs: any(list(str()), str(), required=False)
   :mode_header: str(required=False)
   :trusted_proxy_depth: any(int(), str(), required=False)
   :trusted_ip_header: str(required=False)
