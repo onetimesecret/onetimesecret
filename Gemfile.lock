@@ -405,15 +405,9 @@ GEM
 
 PLATFORMS
   aarch64-linux
-  aarch64-linux-gnu
-  aarch64-linux-musl
-  arm-linux
-  arm-linux-gnu
-  arm-linux-musl
   arm64-darwin
   x86_64-darwin
-  x86_64-linux-gnu
-  x86_64-linux-musl
+  x86_64-linux
 
 DEPENDENCIES
   aws-sdk-sesv2 (~> 1.74)
