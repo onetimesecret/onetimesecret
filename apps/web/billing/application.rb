@@ -46,7 +46,7 @@ module Billing
     use Onetime::Middleware::CsrfResponseHeader
 
     warmup do
-      # Configure Stripe API key (already set by configure_billing initializer)
+      # We do this here to take care of our own initialization needs.
       stripe_key = Onetime.billing_config.stripe_key
       if stripe_key && !stripe_key.to_s.strip.empty?
         Stripe.api_key = stripe_key
