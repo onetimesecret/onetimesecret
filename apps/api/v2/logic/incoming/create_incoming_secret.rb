@@ -93,23 +93,12 @@ module V2::Logic
       private
 
       def create_and_encrypt_secret
-        # Create new secret and metadata objects
-        @secret = V2::Secret.new custid: cust.custid
-        @metadata = V2::Metadata.new custid: cust.custid
-
-        # Link them together
-        metadata.secret_key = secret.key
-        secret.metadata_key = metadata.key
+        # Use V2::Secret.spawn_pair to create linked secret and metadata
+        @metadata, @secret = V2::Secret.spawn_pair cust.custid, nil
 
         # Store incoming-specific fields
         metadata.memo = memo
         metadata.recipients = recipient_email
-
-        # Set TTLs
-        metadata.secret_ttl = ttl
-        metadata.lifespan = ttl * 2
-        secret.ttl = ttl
-        secret.lifespan = ttl
 
         # Apply passphrase if configured
         unless passphrase.to_s.empty?
@@ -119,6 +108,13 @@ module V2::Logic
 
         # Encrypt the secret value
         secret.encrypt_value secret_value, size: plan.options[:size]
+
+        # Set TTLs
+        metadata.ttl = ttl * 2
+        secret.ttl = ttl
+        metadata.lifespan = metadata.ttl.to_i
+        metadata.secret_ttl = secret.ttl.to_i
+        secret.lifespan = secret.ttl.to_i
 
         # Store shortkey in metadata
         metadata.secret_shortkey = secret.shortkey
