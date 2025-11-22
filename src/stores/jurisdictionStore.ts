@@ -76,18 +76,24 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
       enabled.value = false;
       jurisdictions.value = [];
       currentJurisdiction.value = null;
+      _initialized.value = true;
       return;
     }
 
     enabled.value = config.enabled;
-    jurisdictions.value = config.jurisdictions;
+    jurisdictions.value = config.jurisdictions || [];
 
-    const jurisdiction = findJurisdiction(config.current_jurisdiction);
-    currentJurisdiction.value = jurisdiction;
+    // Only find jurisdiction if we have jurisdictions configured
+    if (jurisdictions.value.length > 0 && config.current_jurisdiction) {
+      const jurisdiction = findJurisdiction(config.current_jurisdiction);
+      currentJurisdiction.value = jurisdiction;
 
-    // If regions are disabled, ensure we only have the current jurisdiction
-    if (!config.enabled) {
-      jurisdictions.value = [jurisdiction];
+      // If regions are disabled, ensure we only have the current jurisdiction
+      if (!config.enabled) {
+        jurisdictions.value = [jurisdiction];
+      }
+    } else {
+      currentJurisdiction.value = null;
     }
 
     _initialized.value = true;

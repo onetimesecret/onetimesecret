@@ -66,13 +66,13 @@
 </script>
 
 <template>
-  <div class="container mx-auto mt-24 max-w-3xl px-4">
+  <div class="container mx-auto mt-16 max-w-3xl px-4 pb-20 sm:mt-20 sm:pb-24">
     <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+    <div class="mb-10">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
         {{ $t('web.incoming.page_title') }}
       </h1>
-      <p class="mt-2 text-gray-600 dark:text-gray-400">
+      <p class="mt-3 text-base text-gray-600 dark:text-gray-400 sm:text-lg">
         {{ $t('web.incoming.page_description') }}
       </p>
     </div>
@@ -105,10 +105,10 @@
     <!-- Form -->
     <div
       v-else
-      class="rounded-lg bg-white p-6 shadow-sm dark:bg-slate-800 sm:p-8">
+      class="overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-slate-800">
       <form
         @submit.prevent="handleSubmit"
-        class="space-y-6">
+        class="space-y-8 p-8 sm:p-10">
           <!-- Title Input -->
           <IncomingMemoInput
             v-model="form.memo"
@@ -153,11 +153,11 @@
           </div>
 
           <!-- Action Buttons -->
-          <div class="flex items-center justify-between gap-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+          <div class="flex flex-col gap-4 border-t border-gray-200 pt-8 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               :disabled="isSubmitting"
-              class="rounded-lg border border-gray-300 px-6 py-3 text-base font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-slate-700"
+              class="order-2 rounded-xl border-2 border-gray-300 bg-white px-6 py-3.5 text-base font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-slate-800 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:bg-slate-700 sm:order-1"
               @click="handleReset">
               {{ $t('web.incoming.reset_form') }}
             </button>
@@ -165,7 +165,7 @@
             <button
               type="submit"
               :disabled="isSubmitting"
-              class="rounded-lg bg-blue-600 px-6 py-3 text-base font-medium text-white transition-colors duration-200 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600">
+              class="order-1 rounded-xl bg-brand-500 px-8 py-3.5 text-base font-semibold text-white shadow-md transition-all duration-200 hover:bg-brand-600 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 sm:order-2">
               {{ isSubmitting ? $t('web.incoming.submitting') : $t('web.incoming.submit_secret') }}
             </button>
           </div>

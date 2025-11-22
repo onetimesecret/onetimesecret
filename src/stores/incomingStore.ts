@@ -89,7 +89,11 @@ export const useIncomingStore = defineStore('incoming', () => {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load configuration';
       configError.value = errorMessage;
-      loggingService.error('Failed to load incoming config:', error);
+      if (error instanceof Error) {
+        loggingService.error(error);
+      } else {
+        loggingService.error(new Error('Failed to load incoming config'));
+      }
       throw error;
     } finally {
       isConfigLoading.value = false;

@@ -37,13 +37,46 @@ export const incomingSecretPayloadSchema = z.object({
 export type IncomingSecretPayload = z.infer<typeof incomingSecretPayloadSchema>;
 
 /**
+ * Schema for metadata object in the response
+ */
+const metadataRecordSchema = z.object({
+  identifier: z.string(),
+  key: z.string(),
+  custid: z.string(),
+  state: z.string(),
+  secret_shortkey: z.string(),
+  shortkey: z.string(),
+  memo: z.string().optional(),
+  recipients: z.string().optional(),
+});
+
+/**
+ * Schema for secret object in the response
+ */
+const secretRecordSchema = z.object({
+  identifier: z.string(),
+  key: z.string(),
+  state: z.string(),
+  shortkey: z.string(),
+});
+
+/**
  * Schema for incoming secret creation response
+ * Matches the actual V2 API response format
  */
 export const incomingSecretResponseSchema = z.object({
   success: z.boolean(),
   message: z.string().optional(),
-  metadata_key: z.string().optional(),
-  secret_key: z.string().optional(),
+  shrimp: z.string().optional(),
+  custid: z.string().optional(),
+  record: z.object({
+    metadata: metadataRecordSchema,
+    secret: secretRecordSchema,
+  }),
+  details: z.object({
+    memo: z.string(),
+    recipient: z.string(),
+  }).optional(),
 });
 
 export type IncomingSecretResponse = z.infer<typeof incomingSecretResponseSchema>;
