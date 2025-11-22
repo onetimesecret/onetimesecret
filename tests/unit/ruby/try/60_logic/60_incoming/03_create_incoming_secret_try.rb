@@ -172,8 +172,8 @@ logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
 metadata = V2::Metadata.load logic.metadata.key
 [
-  metadata.field_get(:incoming_memo),
-  metadata.field_get(:incoming_recipient)
+  metadata.memo,
+  metadata.recipients
 ]
 #=> ['Test Title', 'support@example.com']
 
@@ -279,7 +279,7 @@ params = {
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
 metadata = V2::Metadata.load logic.metadata.key
-metadata.field_get(:incoming_memo)
+metadata.memo
 #=> 'Bug: <script>alert("XSS")</script>'
 
 ## CreateIncomingSecret secret can be retrieved

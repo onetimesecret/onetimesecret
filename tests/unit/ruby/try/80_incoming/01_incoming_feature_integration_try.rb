@@ -74,8 +74,8 @@ loaded_metadata = V2::Metadata.load metadata_key
 loaded_secret = V2::Secret.load secret_key
 
 [
-  loaded_metadata.field_get(:incoming_title),
-  loaded_metadata.field_get(:incoming_recipient),
+  loaded_metadata.memo,
+  loaded_metadata.recipients,
   loaded_secret.can_decrypt?
 ]
 #=> ['Loadable Secret', 'security@example.com', true]
@@ -112,8 +112,8 @@ created_keys.length
 last_key = created_keys.last
 metadata = V2::Metadata.load last_key
 [
-  metadata.field_get(:incoming_title),
-  metadata.field_get(:incoming_recipient)
+  metadata.memo,
+  metadata.recipients
 ]
 #=> ["Sequential Secret 3", 'support@example.com']
 
@@ -185,7 +185,7 @@ params = {
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
 metadata = V2::Metadata.load logic.metadata.key
-metadata.field_get(:incoming_title).length
+metadata.memo.length
 #=> max_length
 
 # Test without passphrase
@@ -250,7 +250,7 @@ params = {
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
 metadata = V2::Metadata.load logic.metadata.key
-metadata.field_get(:incoming_title)
+metadata.memo
 #=> 'Bug Report: 日本語 🐛 Émojis'
 
 ## Edge case: Large secret content
