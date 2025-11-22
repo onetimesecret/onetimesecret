@@ -16,6 +16,8 @@ POST  /welcome/stripe/webhook                    Core::Controllers::Account#welc
 GET   /private/*                                 Core::Controllers::Page#index
 GET   /receipt/*                                 Core::Controllers::Page#index
 GET   /secret/*                                  Core::Controllers::Page#index
+GET   /incoming                                  Core::Controllers::Page#index
+GET   /incoming/*                                Core::Controllers::Page#index
 
 POST  /signin                                    Core::Controllers::Account#authenticate
 POST  /signup                                    Core::Controllers::Account#create_account
