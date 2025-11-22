@@ -52,17 +52,8 @@ module V2::Logic
       end
 
       def process
-        # Create secret pair using standard V2::Secret pattern
-        create_secret_pair
-
-        # Store incoming-specific metadata
-        store_incoming_metadata
-
-        # Apply passphrase if configured
-        handle_passphrase
-
-        # Encrypt and save
-        save_secret
+        # Create and encrypt secret using V2 pattern
+        create_and_encrypt_secret
 
         # Update stats
         update_customer_stats
@@ -97,41 +88,38 @@ module V2::Logic
 
       private
 
-      def create_secret_pair
-        # Use the standard spawn_pair method to create metadata and secret
-        @metadata, @secret = V2::Secret.spawn_pair cust.custid, nil
-      end
+      def create_and_encrypt_secret
+        # Create new secret and metadata objects
+        @secret = V2::Secret.new custid: cust.custid
+        @metadata = V2::Metadata.new custid: cust.custid
 
-      def store_incoming_metadata
-        # Store the memo and recipient in metadata fields
+        # Link them together
+        metadata.secret_key = secret.key
+        secret.metadata_key = metadata.key
+
+        # Store incoming-specific fields
         metadata.memo = memo
         metadata.recipients = recipient_email
-      end
 
-      def handle_passphrase
-        return if passphrase.to_s.empty?
+        # Set TTLs
+        metadata.secret_ttl = ttl
+        metadata.lifespan = ttl * 2
+        secret.ttl = ttl
+        secret.lifespan = ttl
 
-        secret.update_passphrase passphrase
-        metadata.passphrase = secret.passphrase
-      end
+        # Apply passphrase if configured
+        unless passphrase.to_s.empty?
+          secret.update_passphrase passphrase
+          metadata.passphrase = secret.passphrase
+        end
 
-      def save_secret
         # Encrypt the secret value
         secret.encrypt_value secret_value, size: plan.options[:size]
 
-        # Set TTL for both metadata and secret
-        metadata.ttl = ttl * 2
-        secret.ttl = ttl
-
-        # Set lifespans
-        metadata.lifespan = metadata.ttl.to_i
-        metadata.secret_ttl = secret.ttl.to_i
-        secret.lifespan = secret.ttl.to_i
-
-        # Store secret shortkey in metadata
+        # Store shortkey in metadata
         metadata.secret_shortkey = secret.shortkey
 
-        # Save both records
+        # Save both
         secret.save
         metadata.save
       end
