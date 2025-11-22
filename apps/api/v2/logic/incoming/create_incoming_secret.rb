@@ -39,8 +39,7 @@ module V2::Logic
           raise_form_error "Incoming secrets feature is not enabled"
         end
 
-        # Validate required fields
-        raise_form_error "Memo is required" if memo.empty?
+        # Validate required fields (memo is optional)
         raise_form_error "Secret content is required" if secret_value.empty?
         raise_form_error "Recipient is required" if recipient_email.empty?
 

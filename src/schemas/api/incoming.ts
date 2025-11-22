@@ -27,9 +27,10 @@ export type IncomingConfig = z.infer<typeof incomingConfigSchema>;
 /**
  * Schema for incoming secret creation payload
  * Simple payload - passphrase and ttl come from backend config
+ * Memo is optional - only secret and recipient are required
  */
 export const incomingSecretPayloadSchema = z.object({
-  memo: z.string().min(1).max(50),
+  memo: z.string().max(50).optional().default(''),
   secret: z.string().min(1),
   recipient: z.string().email(),
 });

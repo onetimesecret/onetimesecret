@@ -14,7 +14,7 @@
     {
       maxLength: 50,
       disabled: false,
-      placeholder: 'Enter a brief subject for this secret',
+      placeholder: 'Add an optional note or reference (e.g., "Database credentials")',
     }
   );
 

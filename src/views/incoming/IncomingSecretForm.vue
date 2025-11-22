@@ -109,15 +109,7 @@
       <form
         @submit.prevent="handleSubmit"
         class="space-y-8 p-8 sm:p-10">
-          <!-- Title Input -->
-          <IncomingMemoInput
-            v-model="form.memo"
-            :max-length="memoMaxLength"
-            :error="errors.memo"
-            :disabled="isSubmitting"
-            @blur="handleTitleBlur" />
-
-          <!-- Recipient Dropdown -->
+          <!-- Recipient Dropdown (First - like e-transfer) -->
           <IncomingRecipientDropdown
             v-model="form.recipientId"
             :recipients="recipients"
@@ -125,7 +117,7 @@
             :disabled="isSubmitting"
             @blur="handleRecipientBlur" />
 
-          <!-- Secret Content -->
+          <!-- Secret Content (Second) -->
           <div>
             <label
               for="secret-content"
@@ -151,6 +143,14 @@
               {{ errors.secret }}
             </span>
           </div>
+
+          <!-- Memo Input (Last - optional, like e-transfer) -->
+          <IncomingMemoInput
+            v-model="form.memo"
+            :max-length="memoMaxLength"
+            :error="errors.memo"
+            :disabled="isSubmitting"
+            @blur="handleTitleBlur" />
 
           <!-- Action Buttons -->
           <div class="flex flex-col gap-4 border-t border-gray-200 pt-8 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">

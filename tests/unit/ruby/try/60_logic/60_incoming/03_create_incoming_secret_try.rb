@@ -80,7 +80,7 @@ logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.memo.length
 #=> 50
 
-## CreateIncomingSecret raises error for empty memo
+## CreateIncomingSecret accepts empty memo (memo is optional)
 params = {
   secret: {
     memo: '   ',
@@ -88,14 +88,10 @@ params = {
     recipient: 'support@example.com'
   }
 }
-begin
-  logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
-  logic.raise_concerns
-  false
-rescue OT::FormError => e
-  e.message
-end
-#=> "Memo is required"
+logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
+logic.raise_concerns
+logic.memo.empty?
+#=> true
 
 ## CreateIncomingSecret raises error for empty secret
 params = {
