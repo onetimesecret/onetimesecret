@@ -57,7 +57,7 @@
   };
 
   const handleReset = () => {
-    form.value.title = '';
+    form.value.memo = '';
     form.value.secret = '';
     form.value.recipientId = '';
     errors.value = {};
