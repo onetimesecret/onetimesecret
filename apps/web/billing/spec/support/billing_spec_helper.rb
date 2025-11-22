@@ -22,6 +22,10 @@ ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 # CLI commands use stripe_configured? which checks STRIPE_KEY env var
 ENV['STRIPE_KEY'] ||= 'sk_test_mock'
 
+# Initialize Onetime configuration for billing tests
+# This ensures OT.conf is available for auth strategy initialization
+OT.boot! unless OT.conf
+
 # Force Familia to reconnect with the test URL
 Familia.reset! if Familia.respond_to?(:reset!)
 

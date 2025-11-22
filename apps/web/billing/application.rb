@@ -8,6 +8,7 @@ require 'onetime/middleware'
 require 'onetime/models'
 require 'onetime/logger_methods'
 
+require_relative '../core/auth_strategies'
 require_relative 'controllers'
 require_relative 'models'
 

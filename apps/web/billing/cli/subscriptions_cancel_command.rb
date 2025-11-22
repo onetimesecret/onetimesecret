@@ -4,6 +4,7 @@
 
 require_relative 'helpers'
 require_relative 'safety_helpers'
+require_relative '../lib/stripe_client'
 
 module Onetime
   module CLI
@@ -29,7 +30,6 @@ module Onetime
         return unless stripe_configured?
 
         # Use StripeClient for all Stripe API calls (includes retry logic)
-        require_relative '../lib/stripe_client'
         stripe_client = Billing::StripeClient.new
 
         # Retrieve subscription to show current state

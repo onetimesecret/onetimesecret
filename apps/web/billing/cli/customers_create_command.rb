@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require_relative '../lib/stripe_client'
 
 module Onetime
   module CLI
@@ -45,7 +46,6 @@ module Onetime
         customer_params[:name] = name if name && !name.empty?
 
         # Use StripeClient for automatic retry and idempotency
-        require_relative '../lib/stripe_client'
         stripe_client = Billing::StripeClient.new
         customer      = stripe_client.create(Stripe::Customer, customer_params)
 

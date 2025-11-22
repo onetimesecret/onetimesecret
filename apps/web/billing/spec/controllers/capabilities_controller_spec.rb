@@ -40,7 +40,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :vcr, :stripe
     # Mock authentication
     env 'rack.session', {
       'authenticated' => true,
-      'custid' => customer.custid,
+      'external_id' => customer.extid,
     }
   end
 
@@ -167,7 +167,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :vcr, :stripe
 
       env 'rack.session', {
         'authenticated' => true,
-        'custid' => other_customer.custid,
+        'external_id' => other_customer.extid,
       }
 
       get "/billing/api/capabilities/#{organization.extid}"
@@ -280,7 +280,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :vcr, :stripe
 
       env 'rack.session', {
         'authenticated' => true,
-        'custid' => other_customer.custid,
+        'external_id' => other_customer.extid,
       }
 
       get "/billing/api/capabilities/#{organization.extid}/create_secrets"

@@ -39,7 +39,7 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
     # Mock authentication by setting up session
     env 'rack.session', {
       'authenticated' => true,
-      'custid' => customer.custid,
+      'external_id' => customer.extid,
     }
   end
 
@@ -159,7 +159,7 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
       # Switch session to other customer
       env 'rack.session', {
         'authenticated' => true,
-        'custid' => other_customer.custid,
+        'external_id' => other_customer.extid,
       }
 
       get "/billing/api/org/#{organization.extid}"
@@ -269,7 +269,7 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
       expect(session.subscription_data['metadata']).to include(
         'orgid' => organization.objid,
         'tier' => tier,
-        'custid' => customer.custid,
+        'external_id' => customer.extid,
       )
     end
 
@@ -300,7 +300,7 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
       # Switch session to member customer
       env 'rack.session', {
         'authenticated' => true,
-        'custid' => member_customer.custid,
+        'external_id' => member_customer.extid,
       }
 
       post "/billing/api/org/#{organization.extid}/checkout", {
@@ -387,7 +387,7 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
 
       env 'rack.session', {
         'authenticated' => true,
-        'custid' => other_customer.custid,
+        'external_id' => other_customer.extid,
       }
 
       get "/billing/api/org/#{organization.extid}/invoices"

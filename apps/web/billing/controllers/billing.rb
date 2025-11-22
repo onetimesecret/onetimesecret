@@ -2,8 +2,10 @@
 #
 # frozen_string_literal: true
 
-require_relative 'base'
 require 'stripe'
+
+require_relative 'base'
+require_relative '../lib/stripe_client'
 
 module Billing
   module Controllers
@@ -116,7 +118,6 @@ module Billing
 
         # Create Stripe Checkout Session with idempotency
         # Generate deterministic idempotency key to prevent duplicate sessions
-        require_relative '../lib/stripe_client'
         stripe_client = Billing::StripeClient.new
 
         # Idempotency key format: checkout-{orgid}-{plan}-{date}
