@@ -10,6 +10,13 @@
 require 'spec_helper'
 require 'openssl'
 
+# Configure Familia to use test Redis on port 2121
+ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
+ENV['REDIS_URL'] ||= 'redis://127.0.0.1:2121/0'
+
+# Force Familia to reconnect with the test URL
+Familia.reset! if Familia.respond_to?(:reset!)
+
 module BillingSpecHelper
   # Freeze time for time-sensitive tests using Timecop
   def freeze_time(time = Time.now)
@@ -77,9 +84,19 @@ RSpec.configure do |config|
   config.include BillingSpecHelper, type: :integration
   config.include BillingSpecHelper, type: :cli
 
-  # Track sleep calls for retry testing
+  # Billing tests use REAL Redis on port 2121 (not FakeRedis)
+  # This ensures proper state isolation and matches production behavior
   config.before(:each, type: :billing) do
     @sleep_delays = []
+
+    # Flush test Redis to ensure clean slate
+    # Uses Familia.dbclient which connects to redis://127.0.0.1:2121/0
+    Familia.dbclient.flushdb
+  end
+
+  config.after(:each, type: :billing) do
+    # Clean up test data after each test
+    Familia.dbclient.flushdb
   end
 
   config.before(:each, type: :cli) do

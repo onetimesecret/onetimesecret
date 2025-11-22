@@ -10,16 +10,8 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
   let(:webhook_secret) { 'whsec_test_secret_123' }
   let(:redis) { Familia.dbclient }
 
-  before do
-    # Ensure clean Redis state
-    # Flush all redis databases
-    Familia.dbclient.flushdb
-  end
-
-  after do
-    # Clean up after each test
-    Familia.dbclient.flushdb
-  end
+  # Note: Redis cleanup (flushdb) is handled globally in billing_spec_helper.rb
+  # for all type: :billing tests
 
   describe '#initialize' do
     it 'accepts webhook secret parameter' do

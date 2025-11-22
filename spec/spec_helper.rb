@@ -130,8 +130,12 @@ RSpec.configure do |config|
   end
 
   # Configure FakeRedis for all tests (except where explicitly disabled)
-  config.before(:each) do
-    # Ensure FakeRedis is used for all Redis connections
+  # Skip FakeRedis for billing tests - they need real Redis on port 2121
+  config.before(:each) do |example|
+    # Skip FakeRedis stub for billing tests - they use real Redis
+    next if example.metadata[:type] == :billing
+
+    # Ensure FakeRedis is used for all other Redis connections
     # Using memoized instance for better performance
     allow(Familia).to receive(:dbclient).and_return(SpecHelpers.fake_redis)
   end
