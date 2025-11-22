@@ -21,7 +21,7 @@
 require 'vcr'
 require 'webmock'
 
-spec_root = File.expand_path(__dir__)
+spec_root = File.expand_path('..', __dir__)
 
 module VCRHelper
   # Determine VCR record mode based on environment
