@@ -73,29 +73,86 @@ VCR_MODE=all STRIPE_API_KEY=sk_test_xxx bundle exec rspec spec/billing
 
 ### Test Tags
 
-**`:stripe` - Uses stripe-mock server:**
+#### Test Type Tags
+
+**`:unit` - Unit tests (fast, no external dependencies)**
+- Tests CLI parameter parsing, error handling, output formatting
+- Uses mocks/doubles for Stripe SDK
+- No network calls
+
+**`:integration` - Integration tests (requires Stripe API)**
+- Tests actual Stripe API behavior (state persistence, filtering, validation)
+- Requires Stripe sandbox account or test API key
+- NOT compatible with stripe-mock (it returns static fixtures)
+
+#### Infrastructure Tags
+
+**`:stripe_mock` - Uses stripe-mock server (unit tests only)**
 
 ```ruby
-RSpec.describe "Price formatting", :stripe do
+RSpec.describe "Price formatting", :unit, :stripe_mock do
   it "formats monthly intervals correctly" do
-    price =
-      Stripe::Price.create(currency: "usd", unit_amount: 1000, recurring: { interval: "month" })
-
+    # stripe-mock returns hardcoded fixture - that's fine for formatting tests
+    price = Stripe::Price.create(currency: "usd", unit_amount: 1000, recurring: { interval: "month" })
     expect(price.recurring.interval).to eq("month")
   end
 end
 ```
 
-**`:vcr` - Records/replays real API calls:**
+**`:stripe_sandbox_api` - Requires Stripe sandbox/test API (integration tests)**
 
 ```ruby
-RSpec.describe "Customer creation", :stripe, :vcr do
-  it "creates a customer successfully" do
-    customer = Stripe::Customer.create(email: "test@example.com", metadata: { source: "test" })
+RSpec.describe "Refund state persistence", :integration, :stripe_sandbox_api do
+  it "prevents double refunds on same charge" do
+    # This REQUIRES real Stripe API - stripe-mock doesn't maintain state
+    charge = Stripe::Charge.create(amount: 1000, currency: 'usd', source: 'tok_visa')
+    Stripe::Refund.create(charge: charge.id)
 
-    expect(customer.email).to eq("test@example.com")
+    # Second refund should fail
+    expect {
+      Stripe::Refund.create(charge: charge.id)
+    }.to raise_error(Stripe::InvalidRequestError, /already been refunded/)
   end
 end
+```
+
+**`:vcr` - Records/replays real API calls (legacy/deprecated)**
+
+Use `:stripe_sandbox_api` instead for new tests. VCR cassettes can drift from current API.
+
+#### Code Quality Tags
+
+**`:code_smell` - Test needs refactoring**
+
+Indicates tests that:
+- Try to do integration testing with stripe-mock (wrong tool)
+- Have excessive mocking that hides the actual behavior being tested
+- Should be rewritten as proper unit or integration tests
+
+### Running Tests by Tag
+
+**Run only unit tests (fast, no API required):**
+
+```bash
+bundle exec rspec --tag unit
+```
+
+**Run only integration tests (requires Stripe sandbox):**
+
+```bash
+STRIPE_API_KEY=sk_test_xxx bundle exec rspec --tag integration
+```
+
+**Skip tests that need refactoring:**
+
+```bash
+bundle exec rspec --tag ~code_smell
+```
+
+**Run all tests except integration (no API key needed):**
+
+```bash
+bundle exec rspec --tag ~integration
 ```
 
 ## How It Works
