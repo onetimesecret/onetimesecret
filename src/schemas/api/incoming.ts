@@ -4,9 +4,10 @@ import { z } from 'zod';
 
 /**
  * Schema for incoming recipient configuration
+ * Note: Uses hash instead of email to prevent exposing recipient addresses
  */
 export const incomingRecipientSchema = z.object({
-  email: z.string().email(),
+  hash: z.string().min(1),
   name: z.string(),
 });
 
@@ -28,11 +29,12 @@ export type IncomingConfig = z.infer<typeof incomingConfigSchema>;
  * Schema for incoming secret creation payload
  * Simple payload - passphrase and ttl come from backend config
  * Memo is optional - only secret and recipient are required
+ * Recipient is now a hash string instead of email for security
  */
 export const incomingSecretPayloadSchema = z.object({
   memo: z.string().max(50).optional().default(''),
   secret: z.string().min(1),
-  recipient: z.string().email(),
+  recipient: z.string().min(1), // Now expects hash instead of email
 });
 
 export type IncomingSecretPayload = z.infer<typeof incomingSecretPayloadSchema>;
