@@ -85,18 +85,24 @@
         :message="$t('web.incoming.loading_config')" />
 
       <!-- Error State -->
-      <EmptyState
-        v-else-if="loadError"
-        :title="$t('web.incoming.config_error_title')"
-        :description="loadError"
-        icon="error" />
+      <EmptyState v-else-if="loadError">
+        <template #title>
+          {{ $t('web.incoming.config_error_title') }}
+        </template>
+        <template #description>
+          {{ loadError }}
+        </template>
+      </EmptyState>
 
       <!-- Feature Disabled -->
-      <EmptyState
-        v-else-if="!isFeatureEnabled"
-        :title="$t('web.incoming.feature_disabled_title')"
-        :description="$t('web.incoming.feature_disabled_description')"
-        icon="info" />
+      <EmptyState v-else-if="!isFeatureEnabled">
+        <template #title>
+          {{ $t('web.incoming.feature_disabled_title') }}
+        </template>
+        <template #description>
+          {{ $t('web.incoming.feature_disabled_description') }}
+        </template>
+      </EmptyState>
 
       <!-- Form -->
       <div
