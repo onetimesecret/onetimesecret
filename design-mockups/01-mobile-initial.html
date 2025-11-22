@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OneTimeSecret - Mobile Initial State</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: #f9fafb;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .mockup-container {
+      max-width: 375px;
+      margin: 0 auto;
+      background: white;
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div class="mockup-container">
+    <!-- Header -->
+    <header class="border-b border-gray-200 bg-white px-4 py-3">
+      <div class="flex items-center justify-between">
+        <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <h1 class="text-lg font-semibold text-gray-900">OneTimeSecret</h1>
+        <button class="text-sm text-gray-600">Sign in</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="px-4 py-6">
+      <!-- Tagline with trust badges -->
+      <div class="mb-6 text-center">
+        <h2 class="text-xl font-bold text-gray-900 mb-2">Share a secret</h2>
+        <p class="text-sm text-gray-600 mb-4">
+          It'll disappear after one view or seven days
+        </p>
+
+        <!-- Trust badges -->
+        <div class="flex items-center justify-center gap-3 text-xs text-gray-500">
+          <div class="flex items-center gap-1">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span>Encrypted</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span>One view</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Auto-delete</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <form class="space-y-4">
+        <!-- Content Area -->
+        <div>
+          <label for="secret-content" class="block text-sm font-medium text-gray-900 mb-2">
+            Secret Content
+            <span class="text-red-500" aria-label="required">*</span>
+          </label>
+          <div class="relative">
+            <textarea
+              id="secret-content"
+              rows="8"
+              class="block w-full rounded-lg border-2 border-gray-300 px-4 py-3 text-base text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Paste your secret here"
+              style="resize: none;"
+            ></textarea>
+          </div>
+          <p class="mt-2 text-xs text-gray-500">
+            🔒 This content will be encrypted and viewable only once
+          </p>
+        </div>
+
+        <!-- Security Options Accordion (Collapsed) -->
+        <button
+          type="button"
+          class="flex w-full items-center justify-between rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-3 text-left text-sm font-medium text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+        >
+          <span class="flex items-center gap-2">
+            <svg class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Security Options
+          </span>
+          <svg class="h-5 w-5 text-gray-500 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        <!-- Submit Button (Sticky on mobile) -->
+        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white p-4 shadow-lg">
+          <button
+            type="submit"
+            disabled
+            class="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-300 px-6 py-4 text-base font-semibold text-gray-500 cursor-not-allowed"
+          >
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Create Secret Link
+          </button>
+          <p class="mt-2 text-center text-xs text-gray-500">
+            Enter content above to continue
+          </p>
+        </div>
+
+        <!-- Spacer for sticky button -->
+        <div class="h-24"></div>
+      </form>
+
+      <!-- How it Works (Collapsible) -->
+      <div class="mt-6 mb-24">
+        <details class="rounded-lg border border-gray-200 bg-white">
+          <summary class="cursor-pointer px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            🔍 How it works
+          </summary>
+          <div class="border-t border-gray-200 px-4 py-3 text-sm text-gray-600 space-y-2">
+            <p><strong>1. Create:</strong> Paste your secret and get a unique link</p>
+            <p><strong>2. Share:</strong> Send the link via email, chat, or text</p>
+            <p><strong>3. View:</strong> Recipient opens link one time only</p>
+            <p><strong>4. Auto-delete:</strong> Secret is permanently destroyed</p>
+            <p class="pt-2 text-xs text-gray-500">🔐 We use zero-knowledge encryption. We can't see your secret.</p>
+          </div>
+        </details>
+      </div>
+    </main>
+
+    <!-- Mockup Label -->
+    <div class="fixed top-2 right-2 bg-yellow-100 border border-yellow-400 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium shadow-lg">
+      📱 MOCKUP: Mobile Initial
+    </div>
+  </div>
+</body>
+</html>
