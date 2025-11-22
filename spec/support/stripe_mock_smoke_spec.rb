@@ -1,7 +1,7 @@
-# frozen_string_literal: true
-
 # spec/support/stripe_mock_smoke_spec.rb
 #
+# frozen_string_literal: true
+
 # Smoke test to verify stripe-mock and VCR setup is working correctly.
 #
 # Run with: bundle exec rspec spec/support/stripe_mock_smoke_spec.rb

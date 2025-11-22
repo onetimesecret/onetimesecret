@@ -1,7 +1,7 @@
-# frozen_string_literal: true
-
 # spec/support/stripe_mock_server.rb
 #
+# frozen_string_literal: true
+
 # Manages the stripe-mock Go server for testing.
 # Uses official Stripe mock server: https://github.com/stripe/stripe-mock
 #

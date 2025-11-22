@@ -45,14 +45,14 @@ require 'timecop'
 require 'rack/test'
 
 # Path setup - do one thing well
-base_path = File.expand_path('..', __dir__)
+spec_root = File.expand_path(__dir__)
+base_path = File.expand_path('..', spec_root)
 apps_root = File.join(base_path, 'apps').freeze
 
 $LOAD_PATH.unshift(File.join(apps_root, 'api'))
 $LOAD_PATH.unshift(File.join(apps_root, 'web'))
 $LOAD_PATH.unshift(File.join(base_path, 'lib'))
-$LOAD_PATH.unshift(File.expand_path(__dir__))
-
+$LOAD_PATH.unshift(spec_root)
 
 # Load application - fail fast, fail clearly
 begin
@@ -72,16 +72,17 @@ rescue LoadError => e
 end
 
 # Load test utilities
-Dir[File.join(__dir__, 'support', '*.rb')].each { |f| require f }
+Dir[File.join(spec_root, 'support', '*.rb')].each { |f| require f }
 
 # Test mode
 OT.mode = :test
-OT::Config.path = File.join(Onetime::HOME, 'spec', 'config.test.yaml')
+OT::Config.path = File.join(spec_root, 'config.test.yaml')
 
 # Shared helper for creating a memoized FakeRedis instance
 module SpecHelpers
   # Create a memoized FakeRedis instance for use across tests
-  # This prevents creating a new instance for every test
+  # Note: Redis.new returns a FakeRedis instance because the fakeredis
+  # gem monkey-patches the Redis class when required (see line 39).
   def self.fake_redis
     @fake_redis ||= Redis.new
   end
@@ -101,7 +102,8 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
-  # Configure stripe-mock server for the entire test suite
+  # Start stripe-mock Go server once for entire test suite
+  # StripeMockServer is a Ruby wrapper that spawns the stripe-mock go binary
   config.before(:suite) do
     StripeMockServer.start
     StripeMockServer.configure_stripe_client!
@@ -149,7 +151,8 @@ RSpec.configure do |config|
   config.include Rack::Test::Methods, type: :request
 
   config.filter_run_when_matching :focus
-  config.warnings = :none
+  config.warnings = true
   config.order = :random
+
   Kernel.srand config.seed
 end
