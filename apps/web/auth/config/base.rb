@@ -9,7 +9,7 @@ module Auth::Config::Base
     auth.db Auth::Database.connection
 
     auth.table_guard_mode :error
-    auth.table_guard_sequel_mode :skip
+    auth.table_guard_sequel_mode :create
     auth.table_guard_logger Onetime.get_logger('Auth')
 
     # Configure which columns to load from accounts table

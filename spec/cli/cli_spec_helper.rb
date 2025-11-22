@@ -41,7 +41,7 @@ module CLISpecHelper
     end
   end
 
-  # Run a CLI command without re-raising SystemExit
+  # Run a CLI command without re-raising SystemExit or ArgumentError
   # Use this when you want to check output and exit code separately
   def run_cli_command_quietly(*args)
     @last_exit_code = nil
@@ -51,6 +51,10 @@ module CLISpecHelper
         @last_exit_code = 0
       rescue SystemExit => e
         @last_exit_code = e.status
+      rescue ArgumentError => e
+        # Dry::CLI raises ArgumentError for missing required parameters
+        @last_exit_code = 1
+        $stderr.puts "Error: #{e.message}"
       end
     end
   end

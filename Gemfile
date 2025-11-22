@@ -29,14 +29,16 @@ gem 'puma', '>= 6.0', '< 8.0'
 gem 'rack', '>= 3.2', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
 gem 'rack-protection', '~> 4.1'
+gem 'rack-proxy', '~> 0.7'
 gem 'rack-session', '~> 2.1.1'
-gem 'rackup'
 gem 'rack-utf8_sanitizer'
-gem 'semantic_logger', '~> 4.17'
 
 # ====================================
 # Data Processing & Utilities
 # ====================================
+
+# HTTP client
+gem 'httparty'
 
 # JSON and data validation
 gem 'json_schemer'
@@ -47,10 +49,8 @@ gem 'fastimage', '~> 2.4'
 gem 'mail'
 gem 'mustache'
 gem 'public_suffix'
+gem 'semantic_logger', '~> 4.17'
 gem 'tilt'
-
-# HTTP client
-gem 'httparty'
 
 # Email validation
 gem 'truemail'
@@ -62,12 +62,11 @@ gem 'truemail'
 # ORMs and database drivers
 gem 'familia', git: 'https://github.com/delano/familia', branch: 'main'
 gem 'sequel', '~> 5.0'
+gem 'sqlite3', '~> 1.7'
 
 case ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase
 when 'postgresql', 'pg', 'postgres'
   gem 'pg', '~> 1.4'
-else
-  gem 'sqlite3', '~> 1.6'
 end
 
 # Redis/Valkey
@@ -102,6 +101,7 @@ gem 'stringio', '~> 3.1.6'
 gem 'aws-sdk-sesv2', '~> 1.74', require: false
 gem 'sendgrid-ruby', require: false
 gem 'sentry-ruby', require: false
+gem 'stackprof', require: false
 gem 'stripe', require: false
 
 # ====================================
@@ -117,14 +117,11 @@ end
 group :development do
   # Debugging tools
   gem 'debug', require: false
+  gem 'rackup'
   gem 'rerun', '~> 0.14'
 
-  # Development utilities
-  gem 'rack-proxy', require: false
-  gem 'stackprof', require: false
-
   # Code quality and language server
-  gem 'rubocop', '~> 1.81.1', require: false
+  gem 'rubocop', '~> 1.81.7', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-sequel', require: false
@@ -138,6 +135,7 @@ group :test do
   gem 'rack-test', require: false
   gem 'rspec', git: 'https://github.com/rspec/rspec'
   gem 'simplecov', require: false
+  gem 'timecop', '~> 0.9'
   gem 'tryouts', '~> 3.7.1', require: false
 
   # RSpec components

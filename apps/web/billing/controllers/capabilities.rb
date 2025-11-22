@@ -35,10 +35,10 @@ module Billing
 
         data = {
           planid: org.planid,
-          catalog_name: Onetime::Billing.catalog_name(org.planid),
+          catalog_name: Billing::PlanDefinitions.catalog_name(org.planid),
           capabilities: org.capabilities,
           limits: build_limits_hash(org),
-          is_legacy: Onetime::Billing.legacy_plan?(org.planid),
+          is_legacy: Billing::PlanDefinitions.legacy_plan?(org.planid),
         }
 
         json_response(data)
@@ -92,7 +92,7 @@ module Billing
 
         # Enhance with upgrade messaging if needed
         if result[:upgrade_needed] && result[:upgrade_to]
-          result[:upgrade_catalog_name] = Onetime::Billing.catalog_name(result[:upgrade_to])
+          result[:upgrade_catalog_name] = Billing::PlanDefinitions.catalog_name(result[:upgrade_to])
           result[:message]           = build_upgrade_message(capability, result[:upgrade_to])
         end
 
@@ -134,7 +134,7 @@ module Billing
       # @return [Hash] Capability reference data
       def list
         data = {
-          capabilities: Onetime::Billing::CAPABILITY_CATEGORIES,
+          capabilities: Billing::PlanDefinitions::CAPABILITY_CATEGORIES,
           plans: build_plans_summary,
         }
 
@@ -168,7 +168,7 @@ module Billing
       # @param upgrade_plan [String] Suggested plan ID
       # @return [String] User-friendly upgrade message
       def build_upgrade_message(capability, upgrade_plan)
-        catalog_name       = Onetime::Billing.catalog_name(upgrade_plan)
+        catalog_name       = Billing::PlanDefinitions.catalog_name(upgrade_plan)
         capability_name = capability.to_s.tr('_', ' ')
 
         "This feature requires #{catalog_name}. Upgrade your plan to access #{capability_name}."

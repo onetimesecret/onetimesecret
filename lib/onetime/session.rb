@@ -71,7 +71,8 @@ module Onetime
 
     def initialize(app, options = {})
       # Require a secret for security
-      raise ArgumentError, 'Secret required for secure sessions' unless options[:secret]
+      secret_value_type = options[:secret].is_a?(String) && !options[:secret].empty?
+      raise ArgumentError, "SESSION_SECRET not set #{secret_value_type}" unless options[:secret]
 
       # Merge options with defaults
       # Note: :key sets the cookie name (defaults to 'onetime.session' instead of

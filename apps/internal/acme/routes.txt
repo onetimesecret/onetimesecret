@@ -1,0 +1,6 @@
+# apps/internal/acme/routes.txt
+
+# Internal ACME Routes
+# Caddy on-demand TLS domain validation endpoint
+
+GET /ask Internal::ACME::AskHandler.call

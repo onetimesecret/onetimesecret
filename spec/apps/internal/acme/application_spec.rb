@@ -6,15 +6,13 @@ require 'spec_helper'
 require 'rack/test'
 require_relative '../../../../apps/internal/acme/application'
 
-RSpec.describe Internal::ACME::Application do
+RSpec.describe Internal::ACME::Application, type: :request do
   # These tests now work with Otto's plain-text routes API
 
   # Uncomment when ready to enable tests
   # before(:all) do
   #   skip 'Requires Otto API compatibility investigation'
   # end
-
-  include Rack::Test::Methods
 
   let(:app) { described_class.new }
 

@@ -38,6 +38,12 @@ require 'fileutils'
 # Configure FakeRedis for testing
 require 'fakeredis'
 
+# Configure Timecop for time manipulation in tests
+require 'timecop'
+
+# Configure Rack::Test for request specs
+require 'rack/test'
+
 # Path setup - do one thing well
 base_path = File.expand_path('..', __dir__)
 apps_root = File.join(base_path, 'apps').freeze
@@ -101,6 +107,14 @@ RSpec.configure do |config|
     # Using memoized instance for better performance
     allow(Familia).to receive(:dbclient).and_return(SpecHelpers.fake_redis)
   end
+
+  # Configure Timecop - automatically return to real time after each test
+  config.after(:each) do
+    Timecop.return
+  end
+
+  # Include Rack::Test::Methods for request specs
+  config.include Rack::Test::Methods, type: :request
 
   config.filter_run_when_matching :focus
   config.warnings = :none

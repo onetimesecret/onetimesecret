@@ -11,7 +11,7 @@ module Onetime
     # Base module for billing command helpers
     module BillingHelpers
       # Use constants from Billing::Metadata module to avoid magic strings
-      REQUIRED_METADATA_FIELDS = Billing::Metadata::REQUIRED_FIELDS
+      REQUIRED_METADATA_FIELDS = ::Billing::Metadata::REQUIRED_FIELDS
 
       # Retry configuration for Stripe API calls
       MAX_STRIPE_RETRIES = 3

@@ -82,6 +82,8 @@ RUN set -eux && \
         libssl-dev \
         libffi-dev \
         libyaml-dev \
+        libsqlite3-dev \
+        libpq-dev \
         pkg-config \
         git \
         curl && \
@@ -136,14 +138,17 @@ ENV NODE_PATH=${APP_DIR}/node_modules
 # Copy dependency manifests
 COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml ./
 
-# Install Ruby dependencies
-# NOTE: We can't use the more aggresive `--local deployment true` to reduce
-# the image size further b/c it requires having all git dependencies installed.
-# Can revisit if/when we can use a released rspec version.
+# Install Ruby dependencies with platform detection
+# The `force_ruby_platform true` tells Bundler to compile native extensions
+# from source rather than looking for platform-specific precompiled gems.
+# The `deployment true` prevents runtime git operations for git-sourced gems.
 RUN set -eux && \
     bundle config set --local without 'development test' && \
     bundle config set --local jobs "$(nproc)" && \
+    bundle config set --local force_ruby_platform true && \
+    bundle config set --local deployment true && \
     bundle install --retry=3 && \
+    bundle binstubs --all --force && \
     bundle clean --force
 
 # Install Node.js dependencies (separate layer for better caching)
@@ -163,7 +168,7 @@ WORKDIR ${APP_DIR}
 COPY public ./public
 COPY src ./src
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts \
-     postcss.config.mjs tailwind.config.ts eslint.config.ts ./
+     tailwind.config.ts eslint.config.ts ./
 
 # Build application and generate schema
 RUN set -eux && \
@@ -192,6 +197,16 @@ LABEL org.opencontainers.image.version=${VERSION} \
       org.opencontainers.image.title="OneTime Secret" \
       org.opencontainers.image.description="Keep passwords out of your inboxes and chat logs with links that work only one time." \
       org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret"
+
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libsqlite3-0 \
+        libpq5 \
+        curl \
+        git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 WORKDIR ${APP_DIR}
 

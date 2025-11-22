@@ -29,6 +29,14 @@ module Billing
   class StripeClient
     include Onetime::LoggerMethods
 
+    module StripeTestCards
+      SUCCESS = '4242424242424242'
+      DECLINED = '4000000000000002'
+      INSUFFICIENT_FUNDS = '4000000000009995'
+      EXPIRED = '4000000000000069'
+      PROCESSING_ERROR = '4000000000000119'
+    end
+
     # Maximum number of retry attempts for failed requests
     MAX_RETRIES = 3
 

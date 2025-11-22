@@ -1,4 +1,4 @@
-# lib/onetime/billing/plan_definitions.rb
+# apps/web/billing/plan_definitions.rb
 #
 # frozen_string_literal: true
 #
@@ -10,8 +10,8 @@
 # These utility methods provide helpers for plan names and upgrade paths
 # based on plan_id naming conventions.
 
-module Onetime
-  module Billing
+module Billing
+  module PlanDefinitions
     # Capability categories for documentation and UI grouping
     CAPABILITY_CATEGORIES = {
       core: %w[
@@ -47,7 +47,7 @@ module Onetime
     # @return [String, nil] Suggested plan ID or nil
     #
     # @example
-    #   Billing.upgrade_path_for('custom_domains', 'free')
+    #   Billing::PlanDefinitions.upgrade_path_for('custom_domains', 'free')
     #   # => "identity_v1_monthly"
     def self.upgrade_path_for(capability, _current_plan = nil)
       # Query cached plans for items with the capability
@@ -57,9 +57,9 @@ module Onetime
 
       return nil if plans_with_capability.empty?
 
-      # Sort by tier preference: free < single_team < multi_team
+      # Sort by tier preference: free < identity_plus < team_plus < org_plus < org_max
       # Return first (cheapest) matching item
-      tier_order = %w[free single_team multi_team]
+      tier_order = %w[free identity_plus team_plus org_plus org_max]
       sorted_plans = plans_with_capability.sort_by do |item|
         tier_order.index(item.tier) || 999
       end
@@ -76,8 +76,8 @@ module Onetime
     # @return [String] Formatted plan name
     #
     # @example
-    #   Billing.plan_name('identity_v1_monthly')  # => "Identity Plus"
-    #   Billing.plan_name('multi_team_v1')        # => "Multi-Team"
+    #   Billing::PlanDefinitions.plan_name('identity_v1_monthly')  # => "Identity Plus"
+    #   Billing::PlanDefinitions.plan_name('multi_team_v1')        # => "Multi-Team"
     def self.plan_name(plan_id)
       return plan_id if plan_id.to_s.empty?
 
@@ -101,9 +101,8 @@ module Onetime
       end
     end
 
-    # Alias for backward compatibility
-    def self.catalog_name(plan_id)
-      plan_name(plan_id)
+    class << self
+      alias_method :catalog_name, :plan_name
     end
 
     # Check if plan is legacy
@@ -131,9 +130,8 @@ module Onetime
         .map(&:plan_id)
     end
 
-    # Alias for backward compatibility
-    def self.available_catalogs
-      available_plans
+    class << self
+      alias_method :available_catalogs, :available_plans
     end
   end
 end

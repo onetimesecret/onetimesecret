@@ -274,11 +274,11 @@ module Billing
 
       # Clear all cached plans (for testing or forced refresh)
       def clear_cache
-        values.to_a.each do |plan_id|
+        instances.to_a.each do |plan_id|
           plan = load(plan_id)
           plan&.destroy!
         end
-        values.clear
+        instances.clear
       end
     end
   end
