@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-BE CONCISE. Focus on what's important NOW.
+WRITE SHORT RESPONSES. BE CONCISE. Focus on what's important NOW.
 
 Unless otherwise specified, pull requests target `develop` branch.
 

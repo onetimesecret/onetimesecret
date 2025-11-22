@@ -2,7 +2,8 @@
 
 # apps/web/billing/spec/support/shared_examples/webhook_security.rb
 #
-# Shared examples for testing webhook security validations
+# Shared examples for testing webhook security validations.
+# Uses FakeRedis (configured globally in spec_helper.rb) - no mocking needed.
 
 RSpec.shared_examples 'validates webhook signatures' do
   let(:valid_payload) { '{"type":"customer.created","data":{}}' }
@@ -125,43 +126,50 @@ RSpec.shared_examples 'prevents duplicate webhook processing' do
   let(:event_id) { 'evt_test_123' }
   let(:valid_payload) { "{\"id\":\"#{event_id}\",\"type\":\"customer.created\"}" }
   let(:webhook_secret) { 'whsec_test_secret' }
-  let(:redis) { mock_billing_redis }
+  let(:redis) { Familia.dbclient }  # FakeRedis configured globally
 
   before do
-    allow(Familia).to receive(:dbclient).and_return(redis)
+    # Clean Redis state before each test
+    redis.flushdb
   end
 
   context 'when processing a new event' do
     it 'marks the event as processed' do
-      allow(redis).to receive(:setnx).with(/processed:webhook:#{event_id}/, anything).and_return(true)
-      allow(redis).to receive(:expire).with(/processed:webhook:#{event_id}/, anything).and_return(true)
-
       timestamp = Time.now.to_i
       signature = generate_stripe_signature(
         payload: valid_payload,
         secret: webhook_secret,
         timestamp: timestamp
       )
+
+      # Verify event is not yet marked as processed
+      expect(redis.exists("processed:webhook:#{event_id}")).to eq(0)
 
       expect {
         subject.validate!(payload: valid_payload, signature: signature, secret: webhook_secret)
       }.not_to raise_error
 
-      expect(redis).to have_received(:setnx).with(/processed:webhook:#{event_id}/, anything)
-      expect(redis).to have_received(:expire).with(/processed:webhook:#{event_id}/, anything)
+      # Verify event is now marked as processed in Redis
+      expect(redis.exists("processed:webhook:#{event_id}")).to eq(1)
+
+      # Verify TTL was set (should be > 0 and reasonable, e.g., 24 hours)
+      ttl = redis.ttl("processed:webhook:#{event_id}")
+      expect(ttl).to be > 0
+      expect(ttl).to be <= 86400  # 24 hours max
     end
   end
 
   context 'when processing a duplicate event' do
     it 'rejects the event' do
-      allow(redis).to receive(:setnx).with(/processed:webhook:#{event_id}/, anything).and_return(false)
-
       timestamp = Time.now.to_i
       signature = generate_stripe_signature(
         payload: valid_payload,
         secret: webhook_secret,
         timestamp: timestamp
       )
+
+      # Mark event as already processed
+      redis.setex("processed:webhook:#{event_id}", 3600, '1')
 
       expect {
         subject.validate!(payload: valid_payload, signature: signature, secret: webhook_secret)
@@ -170,8 +178,9 @@ RSpec.shared_examples 'prevents duplicate webhook processing' do
   end
 
   context 'when Redis operation fails' do
-    it 'fails safely by rejecting the webhook' do
-      allow(redis).to receive(:setnx).and_raise(Redis::BaseError, 'Connection lost')
+    it 'fails safely by raising the Redis error' do
+      # Close the Redis connection to simulate failure
+      redis.client.disconnect
 
       timestamp = Time.now.to_i
       signature = generate_stripe_signature(
@@ -191,36 +200,34 @@ RSpec.shared_examples 'atomic webhook validation' do
   let(:event_id) { 'evt_test_456' }
   let(:valid_payload) { "{\"id\":\"#{event_id}\",\"type\":\"customer.created\"}" }
   let(:webhook_secret) { 'whsec_test_secret' }
-  let(:redis) { mock_billing_redis }
+  let(:redis) { Familia.dbclient }  # FakeRedis configured globally
 
   before do
-    allow(Familia).to receive(:dbclient).and_return(redis)
+    # Clean Redis state before each test
+    redis.flushdb
   end
 
   context 'when signature validation fails after duplicate check' do
     it 'rolls back the duplicate marker' do
-      # setnx succeeds (not a duplicate)
-      allow(redis).to receive(:setnx).and_return(true)
-      allow(redis).to receive(:expire).and_return(true)
-      allow(redis).to receive(:del).and_return(1)
+      # Verify event is not yet marked as processed
+      expect(redis.exists("processed:webhook:#{event_id}")).to eq(0)
 
-      # But signature is invalid
+      # Invalid signature
       invalid_signature = 't=123,v1=invalid'
 
       expect {
         subject.validate!(payload: valid_payload, signature: invalid_signature, secret: webhook_secret)
       }.to raise_error(Stripe::SignatureVerificationError)
 
-      # Should delete the duplicate marker
-      expect(redis).to have_received(:del).with(/processed:webhook:#{event_id}/)
+      # Verify the duplicate marker was NOT persisted (rolled back)
+      expect(redis.exists("processed:webhook:#{event_id}")).to eq(0)
     end
   end
 
   context 'when timestamp validation fails' do
     it 'rolls back the duplicate marker' do
-      allow(redis).to receive(:setnx).and_return(true)
-      allow(redis).to receive(:expire).and_return(true)
-      allow(redis).to receive(:del).and_return(1)
+      # Verify event is not yet marked as processed
+      expect(redis.exists("processed:webhook:#{event_id}")).to eq(0)
 
       old_timestamp = (Time.now - 10.minutes).to_i
       signature = generate_stripe_signature(
@@ -233,7 +240,29 @@ RSpec.shared_examples 'atomic webhook validation' do
         subject.validate!(payload: valid_payload, signature: signature, secret: webhook_secret)
       }.to raise_error(Stripe::SignatureVerificationError)
 
-      expect(redis).to have_received(:del).with(/processed:webhook:#{event_id}/)
+      # Verify the duplicate marker was NOT persisted (rolled back)
+      expect(redis.exists("processed:webhook:#{event_id}")).to eq(0)
+    end
+  end
+
+  context 'when validation succeeds' do
+    it 'persists the duplicate marker' do
+      # Verify event is not yet marked as processed
+      expect(redis.exists("processed:webhook:#{event_id}")).to eq(0)
+
+      timestamp = Time.now.to_i
+      signature = generate_stripe_signature(
+        payload: valid_payload,
+        secret: webhook_secret,
+        timestamp: timestamp
+      )
+
+      expect {
+        subject.validate!(payload: valid_payload, signature: signature, secret: webhook_secret)
+      }.not_to raise_error
+
+      # Verify the duplicate marker was persisted
+      expect(redis.exists("processed:webhook:#{event_id}")).to eq(1)
     end
   end
 end
