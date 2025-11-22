@@ -8,7 +8,7 @@ const incomingRoutes: RouteRecordRaw[] = [
     name: 'IncomingSecretForm',
     component: () => import('@/views/incoming/IncomingSecretForm.vue'),
     meta: {
-      requiresAuth: true,
+      requiresAuth: false,
       title: 'Create Incoming Secret',
     },
   },
@@ -17,7 +17,7 @@ const incomingRoutes: RouteRecordRaw[] = [
     name: 'IncomingSuccess',
     component: () => import('@/views/incoming/IncomingSuccessView.vue'),
     meta: {
-      requiresAuth: true,
+      requiresAuth: false,
       title: 'Secret Created Successfully',
     },
   },
