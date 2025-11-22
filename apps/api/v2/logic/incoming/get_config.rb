@@ -24,18 +24,15 @@ module V2::Logic
       def process
         incoming_config = OT.conf.dig(:features, :incoming) || {}
 
-        # Filter out sensitive fields like default_passphrase
+        # Use hashed recipients to prevent email exposure
         @config_data = {
           enabled: incoming_config[:enabled] || false,
           memo_max_length: incoming_config[:memo_max_length] || 50,
           default_ttl: incoming_config[:default_ttl] || 604800,
-          recipients: (incoming_config[:recipients] || []).map do |r|
-            {
-              email: r[:email],
-              name: r[:name] || r[:email]
-            }
-          end
+          recipients: OT.incoming_public_recipients  # Returns hashed version
         }
+
+        OT.debug "[IncomingConfig] Returning #{@config_data[:recipients].size} recipients (hashed)"
 
         @greenlighted = true
       end

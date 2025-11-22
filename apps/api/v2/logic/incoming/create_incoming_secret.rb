@@ -5,7 +5,7 @@ require_relative '../base'
 module V2::Logic
   module Incoming
     class CreateIncomingSecret < V2::Logic::Base
-      attr_reader :memo, :secret_value, :recipient_email, :ttl, :passphrase
+      attr_reader :memo, :secret_value, :recipient_email, :recipient_hash, :ttl, :passphrase
       attr_reader :metadata, :secret, :greenlighted
 
       def process_params
@@ -22,8 +22,13 @@ module V2::Logic
         # Extract secret value
         @secret_value = @payload[:secret].to_s
 
-        # Extract recipient
-        @recipient_email = @payload[:recipient].to_s.strip
+        # Extract recipient hash instead of email
+        @recipient_hash = @payload[:recipient].to_s.strip
+
+        # Look up actual email from hash
+        @recipient_email = OT.lookup_incoming_recipient(@recipient_hash)
+
+        OT.debug "[IncomingSecret] Recipient hash: #{@recipient_hash} -> #{@recipient_email ? OT::Utils.obscure_email(@recipient_email) : 'not found'}"
 
         # Set TTL from config or use default
         @ttl = incoming_config[:default_ttl] || 604800 # 7 days
@@ -41,12 +46,17 @@ module V2::Logic
 
         # Validate required fields (memo is optional)
         raise_form_error "Secret content is required" if secret_value.empty?
-        raise_form_error "Recipient is required" if recipient_email.empty?
+        raise_form_error "Recipient is required" if @recipient_hash.to_s.empty?
 
-        # Validate recipient is in allowed list
-        allowed_recipients = (incoming_config[:recipients] || []).map { |r| r[:email] }
-        unless allowed_recipients.include?(recipient_email)
-          raise_form_error "Invalid recipient: #{recipient_email}"
+        # Validate recipient hash exists and maps to valid email
+        if @recipient_email.nil?
+          OT.warn "[IncomingSecret] Invalid recipient hash attempted: #{@recipient_hash}"
+          raise_form_error "Invalid recipient"
+        end
+
+        unless recipient_email.to_s.match?(/\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i)
+          OT.error "[IncomingSecret] Lookup returned invalid email for hash: #{@recipient_hash}"
+          raise_form_error "Invalid recipient configuration"
         end
 
         # Apply rate limits
@@ -76,7 +86,7 @@ module V2::Logic
           },
           details: {
             memo: memo,
-            recipient: recipient_email,
+            recipient: recipient_hash,  # Return hash, not email
           },
         }
       end
@@ -85,7 +95,7 @@ module V2::Logic
         {
           memo: memo,
           secret: secret_value,
-          recipient: recipient_email,
+          recipient: recipient_hash,  # Return hash, not email
         }
       end
 
@@ -136,12 +146,23 @@ module V2::Logic
       end
 
       def send_recipient_notification
-        # TODO: Implement async email notification
-        # For now, log that we would send an email
-        OT.info "[CreateIncomingSecret] Would send email to #{recipient_email} for secret #{secret.key}"
+        return if recipient_email.nil? || recipient_email.empty?
 
-        # In the future, this would enqueue a background job:
-        # IncomingSecretMailer.notify(metadata.key, recipient_email)
+        # Use a specialized template for incoming secrets
+        klass = OT::Mail::IncomingSecretNotification
+
+        # Create an anonymous customer object for the sender
+        # This is needed for the deliver_by_email method signature
+        anon_cust = V2::Customer.new(custid: 'anon')
+
+        # Send the email using the existing delivery mechanism
+        # Pass memo as additional parameter
+        metadata.deliver_by_email(anon_cust, locale, secret, recipient_email, klass)
+
+        OT.info "[IncomingSecret] Email notification sent to #{OT::Utils.obscure_email(recipient_email)} for secret #{secret.key}"
+      rescue => e
+        OT.error "[IncomingSecret] Failed to send email notification: #{e.message}"
+        # Don't raise - email failure shouldn't prevent secret creation
       end
     end
   end
