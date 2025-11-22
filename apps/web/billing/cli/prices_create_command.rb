@@ -28,7 +28,8 @@ module Onetime
 
         if product_id.nil?
           print 'Product ID: '
-          product_id = $stdin.gets.chomp
+          input = $stdin.gets
+          product_id = input&.chomp
         end
 
         if product_id.to_s.strip.empty?
@@ -42,7 +43,8 @@ module Onetime
 
         if amount.nil?
           print 'Amount in cents (e.g., 900 for $9.00): '
-          amount = $stdin.gets.chomp.to_i
+          input = $stdin.gets
+          amount = input&.chomp&.to_i || 0
         else
           amount = amount.to_i
         end
@@ -63,7 +65,8 @@ module Onetime
         puts "  Interval: #{interval_count} #{interval}(s)"
 
         print "\nProceed? (y/n): "
-        return unless $stdin.gets.chomp.downcase == 'y'
+        response = $stdin.gets
+        return unless response&.chomp&.downcase == 'y'
 
         price = Stripe::Price.create({
           product: product_id,

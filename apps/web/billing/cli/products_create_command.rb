@@ -31,7 +31,8 @@ module Onetime
 
         if interactive || name.nil?
           print 'Product name: '
-          name = $stdin.gets.chomp
+          input = $stdin.gets
+          name = input&.chomp
         end
 
         if name.to_s.strip.empty?
@@ -60,7 +61,8 @@ module Onetime
         metadata.each { |k, v| puts "  #{k}: #{v}" }
 
         print "\nProceed? (y/n): "
-        return unless $stdin.gets.chomp.downcase == 'y'
+        response = $stdin.gets
+        return unless response&.chomp&.downcase == 'y'
 
         # Build product creation params
         product_params = {
