@@ -21,6 +21,8 @@
 require 'vcr'
 require 'webmock'
 
+spec_root = File.expand_path(__dir__)
+
 module VCRHelper
   # Determine VCR record mode based on environment
   def self.record_mode
@@ -28,15 +30,15 @@ module VCRHelper
 
     return mode.to_sym if mode
 
-    # If STRIPE_API_KEY is set, we're recording against real API
-    # Otherwise, use existing cassettes
-    ENV['STRIPE_API_KEY'] ? :once : :none
+    # Default to :new_episodes for integration tests
+    # This allows recording new requests while replaying existing ones
+    :new_episodes
   end
 end
 
 VCR.configure do |config|
   # Store cassettes in spec/fixtures/vcr_cassettes/
-  config.cassette_library_dir = 'spec/fixtures/vcr_cassettes'
+  config.cassette_library_dir = File.join(spec_root, 'fixtures', 'vcr_cassettes')
 
   # Use webmock for HTTP stubbing
   config.hook_into :webmock
@@ -61,9 +63,10 @@ VCR.configure do |config|
       !http_message.body.valid_encoding?
   end
 
-  # Allow connections to stripe-mock server
+  # Allow connections to stripe-mock server AND real Stripe API
   config.ignore_localhost = false
-  config.ignore_hosts 'localhost', '127.0.0.1'
+  # Don't ignore localhost - we want to record stripe-mock requests too
+  # config.ignore_hosts 'localhost', '127.0.0.1'
 
   # Configure for different Stripe endpoints
   config.before_record do |interaction|
