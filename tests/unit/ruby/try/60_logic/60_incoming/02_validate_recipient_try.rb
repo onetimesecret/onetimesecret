@@ -33,36 +33,42 @@ end
 
 # Enable feature for subsequent tests
 ENV['INCOMING_ENABLED'] = 'true'
+ENV['INCOMING_RECIPIENT_1'] = 'support@example.com,Support Team'
+ENV['INCOMING_RECIPIENT_2'] = 'security@example.com,Security Team'
 OT.boot! :test, false
 
-## ValidateRecipient succeeds for valid recipient
-logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: 'support@example.com' }
+# Get valid recipient hashes for testing
+@support_hash = OT.incoming_public_recipients.find { |r| r[:name] == 'Support Team' }[:hash]
+@security_hash = OT.incoming_public_recipients.find { |r| r[:name] == 'Security Team' }[:hash]
+
+## ValidateRecipient succeeds for valid recipient hash
+logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: @support_hash }
 logic.raise_concerns
 logic.process
 [logic.greenlighted, logic.is_valid]
 #=> [true, true]
 
-## ValidateRecipient returns correct success data for valid recipient
-logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: 'security@example.com' }
+## ValidateRecipient returns correct success data for valid recipient hash
+logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: @security_hash }
 logic.process
 data = logic.success_data
 [data[:recipient], data[:valid]]
-#=> ['security@example.com', true]
+#=> [@security_hash, true]
 
-## ValidateRecipient rejects invalid recipient
-logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: 'unknown@example.com' }
+## ValidateRecipient rejects invalid hash
+logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: 'invalidhash123456' }
 logic.process
 [logic.greenlighted, logic.is_valid]
 #=> [true, false]
 
-## ValidateRecipient returns correct success data for invalid recipient
-logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: 'badactor@example.com' }
+## ValidateRecipient returns correct success data for invalid hash
+logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: 'badactorhash1234' }
 logic.process
 data = logic.success_data
 [data[:recipient], data[:valid]]
-#=> ['badactor@example.com', false]
+#=> ['badactorhash1234', false]
 
-## ValidateRecipient raises error for empty recipient
+## ValidateRecipient raises error for empty recipient hash
 begin
   logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: '' }
   logic.raise_concerns
@@ -70,9 +76,9 @@ begin
 rescue OT::FormError => e
   e.message
 end
-#=> "Recipient email is required"
+#=> "Recipient hash is required"
 
-## ValidateRecipient raises error for missing recipient
+## ValidateRecipient raises error for missing recipient hash
 begin
   logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, {}
   logic.raise_concerns
@@ -80,25 +86,25 @@ begin
 rescue OT::FormError => e
   e.message
 end
-#=> "Recipient email is required"
+#=> "Recipient hash is required"
 
-## ValidateRecipient handles whitespace in recipient
-logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: '  support@example.com  ' }
+## ValidateRecipient handles whitespace in hash
+logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: "  #{@support_hash}  " }
 logic.process
 data = logic.success_data
 [data[:recipient], data[:valid]]
-#=> ['support@example.com', true]
+#=> [@support_hash, true]
 
-## ValidateRecipient is case-sensitive
-logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: 'SUPPORT@EXAMPLE.COM' }
+## ValidateRecipient is case-sensitive for hashes
+logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: @support_hash.upcase }
 logic.process
 logic.is_valid
 #=> false
 
-## ValidateRecipient validates all configured recipients
-configured_recipients = OT.conf.dig(:features, :incoming, :recipients) || []
-results = configured_recipients.map do |r|
-  logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: r[:email] }
+## ValidateRecipient validates all configured recipient hashes
+public_recipients = OT.incoming_public_recipients
+results = public_recipients.map do |r|
+  logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: r[:hash] }
   logic.process
   logic.is_valid
 end
@@ -106,10 +112,13 @@ results.all?
 #=> true
 
 ## ValidateRecipient processes params correctly
-logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: 'helpdesk@example.com' }
-logic.recipient_email
-#=> 'helpdesk@example.com'
+test_hash = 'testhash123456'
+logic = V2::Logic::Incoming::ValidateRecipient.new @sess, @cust, { recipient: test_hash }
+logic.recipient_hash
+#=> test_hash
 
 # Teardown: Clean up test data
 @cust.destroy!
 ENV.delete('INCOMING_ENABLED')
+ENV.delete('INCOMING_RECIPIENT_1')
+ENV.delete('INCOMING_RECIPIENT_2')

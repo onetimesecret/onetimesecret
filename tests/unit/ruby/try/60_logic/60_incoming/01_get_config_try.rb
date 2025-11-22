@@ -43,6 +43,8 @@ ENV['INCOMING_ENABLED'] = 'true'
 ENV['INCOMING_MEMO_MAX_LENGTH'] = '50'
 ENV['INCOMING_DEFAULT_TTL'] = '604800'
 ENV['INCOMING_DEFAULT_PASSPHRASE'] = 'secret-passphrase'
+ENV['INCOMING_RECIPIENT_1'] = 'support@example.com,Support Team'
+ENV['INCOMING_RECIPIENT_2'] = 'security@example.com,Security Team'
 OT.boot! :test, false
 
 ## Feature enabled after reload
@@ -75,19 +77,19 @@ data = logic.success_data
 data[:config].key?(:default_passphrase)
 #=> false
 
-## GetConfig includes recipient list with proper formatting
+## GetConfig includes recipient list with hashed format (no emails exposed)
 logic = V2::Logic::Incoming::GetConfig.new @sess, @cust, {}
 logic.process
 data = logic.success_data
 recipients = data[:config][:recipients]
 [
   recipients.length >= 2,
-  recipients[0][:email],
+  recipients[0].key?(:hash),
+  recipients[0].key?(:email),
   recipients[0][:name],
-  recipients[1][:email],
   recipients[1][:name]
 ]
-#=> [true, 'support@example.com', 'Support Team', 'security@example.com', 'Security Team']
+#=> [true, true, false, 'Support Team', 'Security Team']
 
 ## GetConfig uses email as name when name is missing
 logic = V2::Logic::Incoming::GetConfig.new @sess, @cust, {}
@@ -103,3 +105,5 @@ ENV.delete('INCOMING_ENABLED')
 ENV.delete('INCOMING_TITLE_MAX_LENGTH')
 ENV.delete('INCOMING_DEFAULT_TTL')
 ENV.delete('INCOMING_DEFAULT_PASSPHRASE')
+ENV.delete('INCOMING_RECIPIENT_1')
+ENV.delete('INCOMING_RECIPIENT_2')
