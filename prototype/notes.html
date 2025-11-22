@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Notes - OneTimeSecret Redesign</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .note-section {
+      scroll-margin-top: 2rem;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-6 px-4 sticky top-0 z-10">
+    <div class="container mx-auto max-w-4xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold mb-1">
+            <i class="fas fa-pencil-ruler mr-2"></i>
+            Design Notes & Documentation
+          </h1>
+          <p class="text-purple-100">Progressive Enhancement Approach</p>
+        </div>
+        <a href="index.html" class="px-4 py-2 bg-white/20 rounded-lg hover:bg-white/30 transition">
+          <i class="fas fa-arrow-left mr-2"></i> Back to Prototype
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mx-auto max-w-4xl px-4 py-8">
+
+    <!-- Table of Contents -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8 sticky top-24">
+      <h2 class="text-lg font-bold text-gray-900 mb-4">
+        <i class="fas fa-list"></i> Table of Contents
+      </h2>
+      <nav class="grid md:grid-cols-2 gap-3 text-sm">
+        <a href="#design-decisions" class="text-blue-600 hover:text-blue-700 hover:underline">
+          1. Key Design Decisions
+        </a>
+        <a href="#accessibility" class="text-blue-600 hover:text-blue-700 hover:underline">
+          2. Accessibility Features
+        </a>
+        <a href="#interactions" class="text-blue-600 hover:text-blue-700 hover:underline">
+          3. Interactive Behaviors
+        </a>
+        <a href="#responsive" class="text-blue-600 hover:text-blue-700 hover:underline">
+          4. Responsive Design
+        </a>
+        <a href="#implementation" class="text-blue-600 hover:text-blue-700 hover:underline">
+          5. Implementation Notes
+        </a>
+        <a href="#testing" class="text-blue-600 hover:text-blue-700 hover:underline">
+          6. Testing Checklist
+        </a>
+      </nav>
+    </div>
+
+    <!-- Design Decisions -->
+    <section id="design-decisions" class="note-section bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+        <i class="fas fa-lightbulb text-yellow-500"></i>
+        Key Design Decisions
+      </h2>
+
+      <div class="space-y-6">
+        <!-- Decision 1 -->
+        <div class="border-l-4 border-blue-500 pl-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            1. Auto-Passphrase Generation (Default)
+          </h3>
+          <div class="space-y-2 text-sm text-gray-700">
+            <p><strong>Problem:</strong> Low passphrase adoption (~20% estimated) due to friction in creating secure passphrases.</p>
+            <p><strong>Solution:</strong> Make auto-generation the default with visible preview.</p>
+            <p><strong>Rationale:</strong></p>
+            <ul class="list-disc ml-5 space-y-1">
+              <li>Reduces cognitive load (don't think, just use generated)</li>
+              <li>Ensures strong passphrases by default</li>
+              <li>Maintains user agency (can switch to manual or none)</li>
+              <li>Inline help explains purpose (send separately)</li>
+            </ul>
+            <p class="bg-green-50 border border-green-200 rounded p-3 mt-3">
+              <strong>Expected Impact:</strong> Increase passphrase adoption to >40%
+            </p>
+          </div>
+        </div>
+
+        <!-- Decision 2 -->
+        <div class="border-l-4 border-green-500 pl-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            2. Visual TTL Selector (Button Group)
+          </h3>
+          <div class="space-y-2 text-sm text-gray-700">
+            <p><strong>Problem:</strong> Dropdown with numeric seconds (1800, 43200) requires mental math.</p>
+            <p><strong>Solution:</strong> Replace with visual button group showing human-readable labels.</p>
+            <p><strong>Rationale:</strong></p>
+            <ul class="list-disc ml-5 space-y-1">
+              <li>No cognitive translation needed ("1 day" vs "86400")</li>
+              <li>Clear recommendation via badge</li>
+              <li>Large touch targets for mobile (80px height)</li>
+              <li>All options visible at a glance</li>
+            </ul>
+            <p class="bg-green-50 border border-green-200 rounded p-3 mt-3">
+              <strong>Expected Impact:</strong> Faster decision making, reduced errors
+            </p>
+          </div>
+        </div>
+
+        <!-- Decision 3 -->
+        <div class="border-l-4 border-purple-500 pl-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            3. Progressive Disclosure (Collapsed Advanced)
+          </h3>
+          <div class="space-y-2 text-sm text-gray-700">
+            <p><strong>Problem:</strong> 5+ form fields visible overwhelms casual users (80% use case).</p>
+            <p><strong>Solution:</strong> Collapse advanced options (recipient email, custom domain) by default.</p>
+            <p><strong>Rationale:</strong></p>
+            <ul class="list-disc ml-5 space-y-1">
+              <li>Reduces cognitive load for majority use case</li>
+              <li>Features still discoverable (clear "Advanced Options" label)</li>
+              <li>Power users can expand and configure</li>
+              <li>Visual hierarchy guides eye to essentials first</li>
+            </ul>
+            <p class="bg-green-50 border border-green-200 rounded p-3 mt-3">
+              <strong>Expected Impact:</strong> 40% reduction in perceived complexity
+            </p>
+          </div>
+        </div>
+
+        <!-- Decision 4 -->
+        <div class="border-l-4 border-amber-500 pl-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            4. Security Summary Card
+          </h3>
+          <div class="space-y-2 text-sm text-gray-700">
+            <p><strong>Problem:</strong> Users uncertain about security measures being applied.</p>
+            <p><strong>Solution:</strong> Real-time summary card showing active protections.</p>
+            <p><strong>Rationale:</strong></p>
+            <ul class="list-disc ml-5 space-y-1">
+              <li>Builds trust through transparency</li>
+              <li>Confirms choices made (expires in 1 day, etc.)</li>
+              <li>Uses plain language (not technical jargon)</li>
+              <li>Updates dynamically as user changes options</li>
+            </ul>
+            <p class="bg-green-50 border border-green-200 rounded p-3 mt-3">
+              <strong>Expected Impact:</strong> Increased user confidence in security
+            </p>
+          </div>
+        </div>
+
+        <!-- Decision 5 -->
+        <div class="border-l-4 border-red-500 pl-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            5. Contextual Hints (Dynamic)
+          </h3>
+          <div class="space-y-2 text-sm text-gray-700">
+            <p><strong>Problem:</strong> Static help text ignored or unhelpful.</p>
+            <p><strong>Solution:</strong> Contextual hints that change based on content length.</p>
+            <p><strong>Examples:</strong></p>
+            <ul class="list-disc ml-5 space-y-1">
+              <li>0-50 chars: "Looks like a password or key"</li>
+              <li>50-500 chars: "Good length for a message"</li>
+              <li>5000+ chars: "75% of limit" (warning at 90%)</li>
+            </ul>
+            <p class="bg-green-50 border border-green-200 rounded p-3 mt-3">
+              <strong>Expected Impact:</strong> Proactive guidance, fewer errors
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Accessibility -->
+    <section id="accessibility" class="note-section bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+        <i class="fas fa-universal-access text-blue-500"></i>
+        Accessibility Features (WCAG 2.1 AA)
+      </h2>
+
+      <div class="space-y-6">
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Keyboard Navigation -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <i class="fas fa-keyboard text-gray-600"></i>
+              Keyboard Navigation
+            </h3>
+            <ul class="space-y-2 text-sm text-gray-700">
+              <li class="flex items-start gap-2">
+                <code class="bg-gray-100 px-2 py-0.5 rounded text-xs">Tab</code>
+                <span>Navigate through form fields</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <code class="bg-gray-100 px-2 py-0.5 rounded text-xs">Enter</code>
+                <span>Submit form</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <code class="bg-gray-100 px-2 py-0.5 rounded text-xs">Space</code>
+                <span>Toggle checkboxes/radios</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <code class="bg-gray-100 px-2 py-0.5 rounded text-xs">Esc</code>
+                <span>Close modals/tooltips</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Screen Reader -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <i class="fas fa-assistive-listening-systems text-gray-600"></i>
+              Screen Reader Support
+            </h3>
+            <ul class="space-y-2 text-sm text-gray-700">
+              <li class="flex items-start gap-2">
+                <i class="fas fa-check text-green-600 mt-0.5"></i>
+                <span>Semantic HTML (labels, headings)</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fas fa-check text-green-600 mt-0.5"></i>
+                <span>ARIA labels on all inputs</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fas fa-check text-green-600 mt-0.5"></i>
+                <span>Live regions for dynamic content</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fas fa-check text-green-600 mt-0.5"></i>
+                <span>Error announcements (role="alert")</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Visual -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <i class="fas fa-eye text-gray-600"></i>
+              Visual Accessibility
+            </h3>
+            <ul class="space-y-2 text-sm text-gray-700">
+              <li class="flex items-start gap-2">
+                <i class="fas fa-check text-green-600 mt-0.5"></i>
+                <span>4.5:1 color contrast (text)</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fas fa-check text-green-600 mt-0.5"></i>
+                <span>3:1 contrast (UI components)</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fas fa-check text-green-600 mt-0.5"></i>
+                <span>Focus indicators visible (2px ring)</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fas fa-check text-green-600 mt-0.5"></i>
+                <span>No color-only information</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Motor -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <i class="fas fa-hand-pointer text-gray-600"></i>
+              Motor Accessibility
+            </h3>
+            <ul class="space-y-2 text-sm text-gray-700">
+              <li class="flex items-start gap-2">
+                <i class="fas fa-check text-green-600 mt-0.5"></i>
+                <span>44x44px minimum touch targets</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fas fa-check text-green-600 mt-0.5"></i>
+                <span>Large click areas for buttons</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fas fa-check text-green-600 mt-0.5"></i>
+                <span>No hover-only functionality</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fas fa-check text-green-600 mt-0.5"></i>
+                <span>Generous spacing between elements</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactions -->
+    <section id="interactions" class="note-section bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+        <i class="fas fa-mouse-pointer text-purple-500"></i>
+        Interactive Behaviors
+      </h2>
+
+      <div class="space-y-6">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th class="px-4 py-3 text-left font-semibold text-gray-900">Element</th>
+                <th class="px-4 py-3 text-left font-semibold text-gray-900">Interaction</th>
+                <th class="px-4 py-3 text-left font-semibold text-gray-900">Behavior</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr>
+                <td class="px-4 py-3 font-medium">First-time Banner</td>
+                <td class="px-4 py-3">Click dismiss (×)</td>
+                <td class="px-4 py-3">Hide banner, set localStorage flag</td>
+              </tr>
+              <tr class="bg-gray-50">
+                <td class="px-4 py-3 font-medium">Secret Textarea</td>
+                <td class="px-4 py-3">Type content</td>
+                <td class="px-4 py-3">Auto-grow height, update char count, show contextual hint</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium">Passphrase Help (?)</td>
+                <td class="px-4 py-3">Click icon</td>
+                <td class="px-4 py-3">Toggle help tooltip with slide-down animation</td>
+              </tr>
+              <tr class="bg-gray-50">
+                <td class="px-4 py-3 font-medium">Auto-passphrase</td>
+                <td class="px-4 py-3">Click "Regenerate"</td>
+                <td class="px-4 py-3">Generate new random passphrase, update preview</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium">Passphrase Mode</td>
+                <td class="px-4 py-3">Select radio</td>
+                <td class="px-4 py-3">Show/hide manual input, update security summary</td>
+              </tr>
+              <tr class="bg-gray-50">
+                <td class="px-4 py-3 font-medium">Manual Passphrase</td>
+                <td class="px-4 py-3">Type text</td>
+                <td class="px-4 py-3">Show strength meter, validate on blur, inline error if invalid</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium">Eye Icon</td>
+                <td class="px-4 py-3">Click to toggle</td>
+                <td class="px-4 py-3">Switch input type (password ↔ text), change icon</td>
+              </tr>
+              <tr class="bg-gray-50">
+                <td class="px-4 py-3 font-medium">TTL Button</td>
+                <td class="px-4 py-3">Click option</td>
+                <td class="px-4 py-3">Deselect others, highlight selected, update summary text</td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium">Advanced Options</td>
+                <td class="px-4 py-3">Click to expand</td>
+                <td class="px-4 py-3">Slide down content, rotate chevron icon 90°</td>
+              </tr>
+              <tr class="bg-gray-50">
+                <td class="px-4 py-3 font-medium">Create Button</td>
+                <td class="px-4 py-3">Click / Enter</td>
+                <td class="px-4 py-3">Validate form, submit if valid, show loading state</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Responsive Design -->
+    <section id="responsive" class="note-section bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+        <i class="fas fa-mobile-alt text-green-500"></i>
+        Responsive Design Breakpoints
+      </h2>
+
+      <div class="space-y-6">
+        <!-- Mobile -->
+        <div class="border-l-4 border-blue-500 pl-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            Mobile (&lt;640px)
+          </h3>
+          <ul class="space-y-2 text-sm text-gray-700">
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check text-green-600 mt-0.5"></i>
+              <span><strong>Layout:</strong> Single column, stacked fields</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check text-green-600 mt-0.5"></i>
+              <span><strong>Textarea:</strong> Auto-growing (no fixed height)</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check text-green-600 mt-0.5"></i>
+              <span><strong>TTL Selector:</strong> 2x2 grid (not 4 columns)</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check text-green-600 mt-0.5"></i>
+              <span><strong>Touch Targets:</strong> Minimum 44x44px</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check text-green-600 mt-0.5"></i>
+              <span><strong>Advanced:</strong> Consider bottom sheet instead of inline</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Tablet -->
+        <div class="border-l-4 border-green-500 pl-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            Tablet (640px - 768px)
+          </h3>
+          <ul class="space-y-2 text-sm text-gray-700">
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check text-green-600 mt-0.5"></i>
+              <span><strong>Layout:</strong> 2-column grid for passphrase + TTL</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check text-green-600 mt-0.5"></i>
+              <span><strong>TTL Selector:</strong> 2x2 grid (optimal for iPad)</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check text-green-600 mt-0.5"></i>
+              <span><strong>Touch Targets:</strong> Still 44x44px minimum</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Desktop -->
+        <div class="border-l-4 border-purple-500 pl-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            Desktop (&gt;768px)
+          </h3>
+          <ul class="space-y-2 text-sm text-gray-700">
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check text-green-600 mt-0.5"></i>
+              <span><strong>Layout:</strong> 2-column grid maintained</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check text-green-600 mt-0.5"></i>
+              <span><strong>Container:</strong> Max-width 672px (max-w-2xl)</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check text-green-600 mt-0.5"></i>
+              <span><strong>Hover States:</strong> Activated for buttons</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-check text-green-600 mt-0.5"></i>
+              <span><strong>Focus:</strong> Visible ring on keyboard navigation</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Implementation -->
+    <section id="implementation" class="note-section bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+        <i class="fas fa-code text-amber-500"></i>
+        Implementation Notes
+      </h2>
+
+      <div class="space-y-6">
+        <!-- Component Structure -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Component Structure</h3>
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 font-mono text-xs overflow-x-auto">
+            <pre>SecretFormEnhanced.vue
+├─ SecretContentInput.vue
+├─ SecurityOptions.vue
+│  ├─ PassphraseField.vue (NEW)
+│  └─ ExpirationSelector.vue (NEW)
+├─ AdvancedOptions.vue (NEW)
+├─ ContextualHelp.vue (NEW)
+├─ FormActions.vue
+└─ BasicFormAlerts.vue (enhanced)</pre>
+          </div>
+        </div>
+
+        <!-- New Dependencies -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Dependencies (Optional)</h3>
+          <ul class="space-y-2 text-sm text-gray-700">
+            <li class="flex items-start gap-2">
+              <code class="bg-gray-100 px-2 py-0.5 rounded">zxcvbn</code>
+              <span>Password strength estimation (if adding strength meter)</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <code class="bg-gray-100 px-2 py-0.5 rounded">@headlessui/vue</code>
+              <span>Already installed - use for modals, transitions</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Utilities Needed -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">New Utilities</h3>
+          <ul class="space-y-2 text-sm text-gray-700">
+            <li><code class="bg-gray-100 px-2 py-0.5 rounded">utils/passphrase.ts</code> - Generate random passphrases</li>
+            <li><code class="bg-gray-100 px-2 py-0.5 rounded">utils/duration.ts</code> - Format TTL values (86400 → "1 day")</li>
+            <li><code class="bg-gray-100 px-2 py-0.5 rounded">utils/validation.ts</code> - Enhanced validation with helpful messages</li>
+          </ul>
+        </div>
+
+        <!-- State Management -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">State Management</h3>
+          <p class="text-sm text-gray-700 mb-2">Continue using existing Pinia stores with additions:</p>
+          <ul class="space-y-2 text-sm text-gray-700">
+            <li class="flex items-start gap-2">
+              <i class="fas fa-plus text-green-600 mt-0.5"></i>
+              <span><code>passphraseMode</code> state (auto | manual | none)</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-plus text-green-600 mt-0.5"></i>
+              <span><code>generatedPassphrase</code> state (current auto-generated value)</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-plus text-green-600 mt-0.5"></i>
+              <span><code>userPreferences</code> localStorage (remember last TTL choice)</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testing -->
+    <section id="testing" class="note-section bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+        <i class="fas fa-check-double text-green-500"></i>
+        Testing Checklist
+      </h2>
+
+      <div class="space-y-6">
+        <!-- Functional Tests -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">
+            <input type="checkbox" class="mr-2">
+            Functional Testing
+          </h3>
+          <ul class="space-y-2 text-sm ml-6">
+            <li><input type="checkbox" class="mr-2"> Auto-passphrase generates unique values</li>
+            <li><input type="checkbox" class="mr-2"> Regenerate button works correctly</li>
+            <li><input type="checkbox" class="mr-2"> Manual passphrase validation enforces rules</li>
+            <li><input type="checkbox" class="mr-2"> TTL selector updates security summary</li>
+            <li><input type="checkbox" class="mr-2"> Advanced options expand/collapse</li>
+            <li><input type="checkbox" class="mr-2"> Form submits with correct payload</li>
+            <li><input type="checkbox" class="mr-2"> Contextual hints update on input</li>
+            <li><input type="checkbox" class="mr-2"> First-time banner dismisses and persists</li>
+          </ul>
+        </div>
+
+        <!-- Accessibility Tests -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">
+            <input type="checkbox" class="mr-2">
+            Accessibility Testing
+          </h3>
+          <ul class="space-y-2 text-sm ml-6">
+            <li><input type="checkbox" class="mr-2"> Keyboard navigation (Tab, Enter, Space, Esc)</li>
+            <li><input type="checkbox" class="mr-2"> Screen reader announces form changes</li>
+            <li><input type="checkbox" class="mr-2"> Focus indicators visible (2px ring)</li>
+            <li><input type="checkbox" class="mr-2"> Color contrast 4.5:1 (text) and 3:1 (UI)</li>
+            <li><input type="checkbox" class="mr-2"> No color-only information</li>
+            <li><input type="checkbox" class="mr-2"> ARIA labels on all inputs</li>
+            <li><input type="checkbox" class="mr-2"> Error messages have role="alert"</li>
+            <li><input type="checkbox" class="mr-2"> Touch targets ≥44x44px</li>
+          </ul>
+        </div>
+
+        <!-- Browser Tests -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">
+            <input type="checkbox" class="mr-2">
+            Cross-Browser Testing
+          </h3>
+          <ul class="space-y-2 text-sm ml-6">
+            <li><input type="checkbox" class="mr-2"> Chrome (latest)</li>
+            <li><input type="checkbox" class="mr-2"> Firefox (latest)</li>
+            <li><input type="checkbox" class="mr-2"> Safari (latest)</li>
+            <li><input type="checkbox" class="mr-2"> Edge (latest)</li>
+            <li><input type="checkbox" class="mr-2"> Safari iOS</li>
+            <li><input type="checkbox" class="mr-2"> Chrome Android</li>
+          </ul>
+        </div>
+
+        <!-- Device Tests -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">
+            <input type="checkbox" class="mr-2">
+            Device Testing
+          </h3>
+          <ul class="space-y-2 text-sm ml-6">
+            <li><input type="checkbox" class="mr-2"> iPhone SE (320px width)</li>
+            <li><input type="checkbox" class="mr-2"> iPhone 12/13/14</li>
+            <li><input type="checkbox" class="mr-2"> iPad (768px)</li>
+            <li><input type="checkbox" class="mr-2"> Android phone (various)</li>
+            <li><input type="checkbox" class="mr-2"> Desktop (1920px)</li>
+            <li><input type="checkbox" class="mr-2"> Large desktop (2560px)</li>
+          </ul>
+        </div>
+
+        <!-- Performance Tests -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">
+            <input type="checkbox" class="mr-2">
+            Performance Testing
+          </h3>
+          <ul class="space-y-2 text-sm ml-6">
+            <li><input type="checkbox" class="mr-2"> Lighthouse score ≥90</li>
+            <li><input type="checkbox" class="mr-2"> First Contentful Paint &lt;1.5s</li>
+            <li><input type="checkbox" class="mr-2"> Time to Interactive &lt;3s</li>
+            <li><input type="checkbox" class="mr-2"> No layout shifts (CLS &lt;0.1)</li>
+            <li><input type="checkbox" class="mr-2"> Bundle size optimized</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Back to Top -->
+    <div class="text-center">
+      <a href="#" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium">
+        <i class="fas fa-arrow-up"></i>
+        Back to Top
+      </a>
+    </div>
+
+  </div>
+
+</body>
+</html>
