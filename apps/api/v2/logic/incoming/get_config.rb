@@ -27,7 +27,7 @@ module V2::Logic
         # Filter out sensitive fields like default_passphrase
         @config_data = {
           enabled: incoming_config[:enabled] || false,
-          title_max_length: incoming_config[:title_max_length] || 50,
+          memo_max_length: incoming_config[:memo_max_length] || 50,
           default_ttl: incoming_config[:default_ttl] || 604800,
           recipients: (incoming_config[:recipients] || []).map do |r|
             {
