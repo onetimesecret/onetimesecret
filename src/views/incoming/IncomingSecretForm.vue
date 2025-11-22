@@ -81,11 +81,11 @@
 
       <!-- Loading State -->
       <LoadingOverlay
-        v-if="isLoading"
+        :show="isLoading"
         :message="$t('web.incoming.loading_config')" />
 
       <!-- Error State -->
-      <EmptyState v-else-if="loadError">
+      <EmptyState v-if="loadError">
         <template #title>
           {{ $t('web.incoming.config_error_title') }}
         </template>
