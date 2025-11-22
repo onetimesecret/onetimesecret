@@ -10,9 +10,12 @@
 require 'spec_helper'
 require 'openssl'
 
+# Load Stripe testing infrastructure
+require_relative 'stripe_mock_server'
+require_relative 'vcr_setup'
+
 # Configure Familia to use test Redis on port 2121
 ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
-ENV['REDIS_URL']  ||= 'redis://127.0.0.1:2121/0'
 
 # Configure Stripe API key for CLI tests
 # CLI commands use stripe_configured? which checks STRIPE_KEY env var
@@ -87,6 +90,35 @@ RSpec.configure do |config|
   config.include BillingSpecHelper, type: :controller
   config.include BillingSpecHelper, type: :integration
   config.include BillingSpecHelper, type: :cli
+
+  # Start stripe-mock Go server once for billing test suite
+  # StripeMockServer is a Ruby wrapper that spawns the stripe-mock binary
+  config.before(:suite) do
+    StripeMockServer.start
+    StripeMockServer.configure_stripe_client!
+  end
+
+  config.after(:suite) do
+    StripeMockServer.stop
+  end
+
+  # Reset stripe-mock state between tests for isolation
+  config.before(:each, :stripe) do
+    StripeMockServer.reset!
+  end
+
+  # VCR: Automatically wrap tests tagged with :vcr in cassettes
+  config.around(:each, :vcr) do |example|
+    # Generate cassette name from test description
+    cassette_name = example.metadata[:full_description]
+                           .downcase
+                           .gsub(/[^\w\s]/, '')
+                           .gsub(/\s+/, '_')
+
+    VCR.use_cassette(cassette_name) do
+      example.run
+    end
+  end
 
   # Billing tests use REAL Redis on port 2121 (not FakeRedis)
   # This ensures proper state isolation and matches production behavior

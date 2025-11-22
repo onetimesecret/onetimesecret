@@ -102,34 +102,7 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
-  # Start stripe-mock Go server once for entire test suite
-  # StripeMockServer is a Ruby wrapper that spawns the stripe-mock go binary
-  config.before(:suite) do
-    StripeMockServer.start
-    StripeMockServer.configure_stripe_client!
-  end
 
-  config.after(:suite) do
-    StripeMockServer.stop
-  end
-
-  # Reset stripe-mock state between tests for isolation
-  config.before(:each, :stripe) do
-    StripeMockServer.reset!
-  end
-
-  # VCR: Automatically wrap tests tagged with :vcr in cassettes
-  config.around(:each, :vcr) do |example|
-    # Generate cassette name from test description
-    cassette_name = example.metadata[:full_description]
-                           .downcase
-                           .gsub(/[^\w\s]/, '')
-                           .gsub(/\s+/, '_')
-
-    VCR.use_cassette(cassette_name) do
-      example.run
-    end
-  end
 
   # Configure FakeRedis for all tests (except where explicitly disabled)
   # Skip FakeRedis for billing tests - they need real Redis on port 2121
@@ -151,8 +124,10 @@ RSpec.configure do |config|
   config.include Rack::Test::Methods, type: :request
 
   config.filter_run_when_matching :focus
-  config.warnings = true
   config.order = :random
+
+  # One of :none, :all, :deprecations_only
+  config.warnings = :deprecations_only
 
   Kernel.srand config.seed
 end
