@@ -1,0 +1,110 @@
+<!-- src/components/incoming/IncomingTitleInput.vue -->
+
+<script setup lang="ts">
+  import { computed } from 'vue';
+
+  const props = withDefaults(
+    defineProps<{
+      modelValue: string;
+      maxLength?: number;
+      error?: string;
+      disabled?: boolean;
+      placeholder?: string;
+    }>(),
+    {
+      maxLength: 50,
+      disabled: false,
+      placeholder: 'Enter a descriptive title for this secret',
+    }
+  );
+
+  const emit = defineEmits<{
+    'update:modelValue': [value: string];
+    blur: [];
+  }>();
+
+  const charCount = computed(() => props.modelValue.length);
+  const isNearLimit = computed(() => charCount.value > props.maxLength * 0.8);
+  const isAtLimit = computed(() => charCount.value >= props.maxLength);
+
+  const statusColor = computed(() => {
+    if (props.error) return 'border-red-500 focus:border-red-500 focus:ring-red-500';
+    if (isAtLimit.value) return 'border-amber-500 focus:border-amber-500 focus:ring-amber-500';
+    return 'border-gray-200 focus:border-blue-500 focus:ring-blue-500';
+  });
+
+  const counterColor = computed(() => {
+    if (isAtLimit.value) return 'text-amber-600 dark:text-amber-400';
+    if (isNearLimit.value) return 'text-gray-600 dark:text-gray-400';
+    return 'text-gray-500 dark:text-gray-500';
+  });
+
+  const handleInput = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    emit('update:modelValue', target.value);
+  };
+
+  const handleBlur = () => {
+    emit('blur');
+  };
+</script>
+
+<template>
+  <div class="w-full">
+    <label
+      for="incoming-title"
+      class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+      {{ $t('web.incoming.title_label') }}
+      <span
+        v-if="error"
+        class="text-red-500">
+        *
+      </span>
+    </label>
+
+    <div class="relative">
+      <input
+        id="incoming-title"
+        type="text"
+        :value="modelValue"
+        :maxlength="maxLength"
+        :disabled="disabled"
+        :placeholder="placeholder"
+        :class="[
+          statusColor,
+          'block w-full rounded-lg border px-4 py-3 text-base text-gray-900',
+          'transition-all duration-200',
+          'placeholder:text-gray-400',
+          'disabled:bg-gray-50 disabled:text-gray-500',
+          'dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500',
+          'dark:focus:ring-blue-400',
+        ]"
+        :aria-label="$t('web.incoming.title_aria_label')"
+        :aria-invalid="!!error"
+        :aria-describedby="error ? 'title-error' : 'title-counter'"
+        @input="handleInput"
+        @blur="handleBlur" />
+
+      <div
+        v-if="isNearLimit || error"
+        class="mt-1 flex items-center justify-between">
+        <span
+          v-if="error"
+          id="title-error"
+          class="text-sm text-red-600 dark:text-red-400">
+          {{ error }}
+        </span>
+        <span
+          v-if="isNearLimit"
+          id="title-counter"
+          :class="[counterColor, 'ml-auto text-sm']">
+          {{ charCount }} / {{ maxLength }}
+        </span>
+      </div>
+    </div>
+
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      {{ $t('web.incoming.title_hint') }}
+    </p>
+  </div>
+</template>
