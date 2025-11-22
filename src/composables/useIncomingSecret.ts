@@ -15,9 +15,6 @@ interface IncomingSecretForm {
   memo: string;
   secret: string;
   recipientId: string;
-  passphrase?: string;
-  ttl?: number;
-  shareDomain?: string;
 }
 
 interface IncomingSecretOptions {
@@ -56,9 +53,6 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
     memo: '',
     secret: '',
     recipientId: '',
-    passphrase: undefined,
-    ttl: undefined,
-    shareDomain: undefined,
   });
 
   const errors = ref<ValidationErrors>({});
@@ -72,12 +66,12 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
   // Validation
   const validateMemo = (): boolean => {
     if (!form.value.memo.trim()) {
-      errors.value.memo = 'Title is required';
+      errors.value.memo = 'Subject is required';
       return false;
     }
 
     if (form.value.memo.length > memoMaxLength.value) {
-      errors.value.memo = `Title must be ${memoMaxLength.value} characters or less`;
+      errors.value.memo = `Subject must be ${memoMaxLength.value} characters or less`;
       return false;
     }
 
@@ -128,13 +122,9 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
    * Creates API payload from form data
    */
   const createPayload = (): IncomingSecretPayload => ({
-      kind: 'incoming',
-      secret: form.value.secret,
       memo: form.value.memo.trim(),
+      secret: form.value.secret,
       recipient: form.value.recipientId,
-      passphrase: form.value.passphrase || undefined,
-      ttl: form.value.ttl || incomingStore.defaultTtl,
-      share_domain: form.value.shareDomain || '',
     });
 
   /**

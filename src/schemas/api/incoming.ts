@@ -1,7 +1,6 @@
 // src/schemas/api/incoming.ts
 
 import { z } from 'zod';
-import { baseSecretPayloadSchema } from './payloads/base';
 
 /**
  * Schema for incoming recipient configuration
@@ -27,12 +26,11 @@ export type IncomingConfig = z.infer<typeof incomingConfigSchema>;
 
 /**
  * Schema for incoming secret creation payload
- * Extends base secret payload with memo field
+ * Simple payload - passphrase and ttl come from backend config
  */
-export const incomingSecretPayloadSchema = baseSecretPayloadSchema.extend({
-  kind: z.literal('incoming'),
+export const incomingSecretPayloadSchema = z.object({
+  memo: z.string().min(1).max(50),
   secret: z.string().min(1),
-  memo: z.string().min(1).max(50), // Max will be validated against config
   recipient: z.string().email(),
 });
 

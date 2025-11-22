@@ -32,11 +32,11 @@
   });
 
   const selectedRecipient = computed(() => {
-    return props.recipients.find((r) => r.id === props.modelValue);
+    return props.recipients.find((r) => r.email === props.modelValue);
   });
 
   const displayText = computed(() => {
-    return selectedRecipient.value?.label || props.placeholder;
+    return selectedRecipient.value?.name || props.placeholder;
   });
 
   const statusColor = computed(() => {
@@ -127,20 +127,20 @@
           role="listbox">
           <li
             v-for="recipient in recipients"
-            :key="recipient.id"
+            :key="recipient.email"
             role="option"
-            :aria-selected="modelValue === recipient.id"
+            :aria-selected="modelValue === recipient.email"
             :class="[
               'cursor-pointer px-4 py-2 transition-colors duration-150',
-              modelValue === recipient.id
+              modelValue === recipient.email
                 ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                 : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-slate-700',
             ]"
-            @click="selectRecipient(recipient.id)">
+            @click="selectRecipient(recipient.email)">
             <div class="flex items-center justify-between">
-              <span class="font-medium">{{ recipient.label }}</span>
+              <span class="font-medium">{{ recipient.name }}</span>
               <svg
-                v-if="modelValue === recipient.id"
+                v-if="modelValue === recipient.email"
                 class="size-5 text-blue-600 dark:text-blue-400"
                 fill="currentColor"
                 viewBox="0 0 20 20">
@@ -150,9 +150,7 @@
                   clip-rule="evenodd" />
               </svg>
             </div>
-            <span
-              v-if="recipient.email"
-              class="mt-1 block text-sm text-gray-500 dark:text-gray-400">
+            <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">
               {{ recipient.email }}
             </span>
           </li>
