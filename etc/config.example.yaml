@@ -245,14 +245,39 @@
     :default_passphrase: <%= ENV['INCOMING_DEFAULT_PASSPHRASE'] || nil %>
     # Default TTL in seconds (604800 = 7 days)
     :default_ttl: <%= ENV['INCOMING_DEFAULT_TTL'] || 604800 %>
-    # Recipients who can receive incoming secrets (add multiple entries as needed)
+    # Recipients who can receive incoming secrets
+    # Format: INCOMING_RECIPIENT_N=email,name (name is optional)
     # Email addresses are hashed at startup and never exposed in API responses
+    # Examples:
+    #   INCOMING_RECIPIENT_1=support@example.com,Support Team
+    #   INCOMING_RECIPIENT_2=security@example.com,Security Team
+    #   INCOMING_RECIPIENT_3=admin@example.com  (name defaults to 'admin')
+    <%
+      # Parse incoming recipients from environment variables
+      incoming_recipients = []
+      i = 1
+      loop do
+        recipient_str = ENV["INCOMING_RECIPIENT_#{i}"]
+        break unless recipient_str
+
+        parts = recipient_str.split(',', 2)
+        email = parts[0]&.strip
+        name = parts[1]&.strip || email&.split('@')&.first
+
+        incoming_recipients << { email: email, name: name } if email && !email.empty?
+        i += 1
+      end
+
+      # Default recipient if none configured
+      if incoming_recipients.empty?
+        incoming_recipients = [{ email: 'CHANGEME@example.com', name: 'Support Team' }]
+      end
+    %>
     :recipients:
-      - :email: <%= ENV['INCOMING_RECIPIENT_1_EMAIL'] || 'CHANGEME@example.com' %>
-        :name: <%= ENV['INCOMING_RECIPIENT_1_NAME'] || 'Support Team' %>
-      # Add more recipients by copying the block above and incrementing the number:
-      # - :email: <%= ENV['INCOMING_RECIPIENT_2_EMAIL'] || 'security@example.com' %>
-      #   :name: <%= ENV['INCOMING_RECIPIENT_2_NAME'] || 'Security Team' %>
+    <% incoming_recipients.each do |r| %>
+      - :email: <%= r[:email] %>
+        :name: <%= r[:name] %>
+    <% end %>
 # Redis Configuration
 :redis:
   # Main Redis connection URI - Specify full connection string including auth
