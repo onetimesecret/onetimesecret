@@ -30,15 +30,6 @@ describe('Public Routes', () => {
       vi.clearAllMocks();
     });
   });
-  describe('Incoming Secrets Route', () => {
-    it('should define incoming secrets route correctly', () => {
-      const route = publicRoutes.find((route: RouteRecordRaw) => route.path === '/incoming');
-      expect(route).toBeDefined();
-      expect(route?.name).toBe('Inbound Secrets');
-      expect(route?.meta?.requiresAuth).toBe(false);
-      expect(route?.meta?.layout).toBeDefined();
-    });
-  });
 
   describe('Info Routes', () => {
     const infoRoutes = [

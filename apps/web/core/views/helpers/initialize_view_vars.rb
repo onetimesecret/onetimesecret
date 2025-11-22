@@ -44,7 +44,6 @@ module Core
         # - Internal infrastructure details
         #
         site_config = OT.conf.fetch(:site, {})
-        incoming = OT.conf.fetch(:incoming, {})
         development = OT.conf.fetch(:development, {})
         diagnostics = OT.conf.fetch(:diagnostics, {})
 
@@ -113,7 +112,6 @@ module Core
           frontend_development: frontend_development,
           frontend_host: frontend_host,
           homepage_mode: homepage_mode,
-          incoming: incoming,
           keywords: keywords,
           locale: locale,
           messages: messages,

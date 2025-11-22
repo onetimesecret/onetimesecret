@@ -79,21 +79,6 @@ module Onetime
       end
     end
 
-    class IncomingSupport < Mail::Views::Base
-      attr_accessor :ticketno
-      def init secret, recipient
-        self[:secret] = secret
-        self[:custid] = cust.custid
-        self[:email_address] = recipient
-      end
-      def subject
-        i18n[:email][:subject] % [self[:ticketno]]
-      end
-      def verify_uri
-        secret_uri self[:secret]
-      end
-    end
-
     class TestEmail < Mail::Views::Base
       def init
         self[:email_address] = cust.email
