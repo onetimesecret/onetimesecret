@@ -235,14 +235,24 @@
       :cluster_name: <%= ENV['APPROXIMATED_PROXY_CLUSTER_NAME'] || '<CLUSTER_NAME>' %>
       :vhost_target: <%= ENV['APPROXIMATED_PROXY_VHOST_TARGET'] || '<VHOST_TARGET>' %>
 :features:
+  # Incoming Secrets - Allows anonymous users to send secrets to pre-configured recipients
+  # IMPORTANT: Requires email configuration (:emailer section) to send notifications
   :incoming:
     :enabled: <%= ENV['INCOMING_ENABLED'] == 'true' %>
+    # Maximum length for the optional memo field (subject line in email)
     :memo_max_length: <%= ENV['INCOMING_MEMO_MAX_LENGTH'] || 50 %>
+    # Optional passphrase applied to all incoming secrets (nil = no passphrase)
     :default_passphrase: <%= ENV['INCOMING_DEFAULT_PASSPHRASE'] || nil %>
+    # Default TTL in seconds (604800 = 7 days)
     :default_ttl: <%= ENV['INCOMING_DEFAULT_TTL'] || 604800 %>
+    # Recipients who can receive incoming secrets (add multiple entries as needed)
+    # Email addresses are hashed at startup and never exposed in API responses
     :recipients:
       - :email: <%= ENV['INCOMING_RECIPIENT_1_EMAIL'] || 'CHANGEME@example.com' %>
         :name: <%= ENV['INCOMING_RECIPIENT_1_NAME'] || 'Support Team' %>
+      # Add more recipients by copying the block above and incrementing the number:
+      # - :email: <%= ENV['INCOMING_RECIPIENT_2_EMAIL'] || 'security@example.com' %>
+      #   :name: <%= ENV['INCOMING_RECIPIENT_2_NAME'] || 'Security Team' %>
 # Redis Configuration
 :redis:
   # Main Redis connection URI - Specify full connection string including auth
