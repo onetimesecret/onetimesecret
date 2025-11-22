@@ -61,7 +61,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit, :stripe_mock d
         # Interval should be displayed
         expect(output).to include('month')
         # Amount should be formatted
-        expect(output).to match(/\$29\.00/)
+        expect(output).to match(/USD 29\.00/)
       end
 
       it 'displays plan count' do
@@ -183,13 +183,13 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit, :stripe_mock d
 
         it 'formats USD amounts correctly' do
           output = capture_stdout { command.call }
-          expect(output).to match(/\$29\.00/)
+          expect(output).to match(/USD 29\.00/)
         end
 
         it 'formats EUR amounts correctly' do
           allow(Billing::Plan).to receive(:list_plans).and_return([sample_plan_eu])
           output = capture_stdout { command.call }
-          expect(output).to match(/€999\.00/)
+          expect(output).to match(/EUR 999\.00/)
         end
 
         it 'handles zero-capability plans' do
@@ -205,7 +205,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit, :stripe_mock d
           allow(Billing::Plan).to receive(:list_plans).and_return([zero_cap_plan])
 
           output = capture_stdout { command.call }
-          expect(output).to match(/\s+0\s*$/)
+          expect(output).to match(/\s+0.00\s*$/)
         end
       end
     end
