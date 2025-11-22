@@ -13,7 +13,7 @@
     form,
     errors,
     isSubmitting,
-    titleMaxLength,
+    memoMaxLength,
     isFeatureEnabled,
     recipients,
     validateTitle,
@@ -113,9 +113,9 @@
           class="space-y-6">
           <!-- Title Input -->
           <IncomingMemoInput
-            v-model="form.title"
-            :max-length="titleMaxLength"
-            :error="errors.title"
+            v-model="form.memo"
+            :max-length="memoMaxLength"
+            :error="errors.memo"
             :disabled="isSubmitting"
             @blur="handleTitleBlur" />
 
