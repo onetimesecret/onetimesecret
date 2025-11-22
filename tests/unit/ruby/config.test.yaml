@@ -102,8 +102,8 @@
     :system_settings: 15
 :features:
   :incoming:
-    :enabled: <%= ENV['INCOMING_ENABLED'] == 'true' || false %>
-    :title_max_length: <%= ENV['INCOMING_TITLE_MAX_LENGTH'] || 50 %>
+    :enabled: <%= ENV['INCOMING_ENABLED'] == 'true' %>
+    :memo_max_length: <%= ENV['INCOMING_MEMO_MAX_LENGTH'] || 50 %>
     :default_ttl: <%= ENV['INCOMING_DEFAULT_TTL'] || 604800 %>
     :default_passphrase: <%= ENV['INCOMING_DEFAULT_PASSPHRASE'] || nil %>
     :recipients:

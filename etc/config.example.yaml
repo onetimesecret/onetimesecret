@@ -236,7 +236,7 @@
       :vhost_target: <%= ENV['APPROXIMATED_PROXY_VHOST_TARGET'] || '<VHOST_TARGET>' %>
 :features:
   :incoming:
-    :enabled: <%= ENV['INCOMING_ENABLED'] == 'true' || false %>
+    :enabled: <%= ENV['INCOMING_ENABLED'] == 'true' %>
     :memo_max_length: <%= ENV['INCOMING_MEMO_MAX_LENGTH'] || 50 %>
     :default_passphrase: <%= ENV['INCOMING_DEFAULT_PASSPHRASE'] || nil %>
     :default_ttl: <%= ENV['INCOMING_DEFAULT_TTL'] || 604800 %>

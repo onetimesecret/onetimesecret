@@ -31,9 +31,11 @@ logic.success_data[:valid]
 
 ## Create and load incoming secret
 create_params = {
-  memo: 'Loadable Secret',
-  secret: 'Secret content',
-  recipient: 'security@example.com'
+  secret: {
+    memo: 'Loadable Secret',
+    secret: 'Secret content',
+    recipient: 'security@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, create_params
 logic.process
@@ -50,9 +52,11 @@ loaded_secret = V2::Secret.load secret_key
 
 ## Created secret decrypts correctly without passphrase_temp
 create_params = {
-  memo: 'Clear Secret',
-  secret: 'Decryptable content',
-  recipient: 'helpdesk@example.com'
+  secret: {
+    memo: 'Clear Secret',
+    secret: 'Decryptable content',
+    recipient: 'helpdesk@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, create_params
 logic.process

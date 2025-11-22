@@ -22,10 +22,9 @@ interface IncomingSecretOptions {
 }
 
 interface ValidationErrors {
-  title?: string;
+  memo?: string;
   secret?: string;
   recipientId?: string;
-  passphrase?: string;
 }
 
 /**
@@ -164,9 +163,6 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
       memo: '',
       secret: '',
       recipientId: '',
-      passphrase: undefined,
-      ttl: undefined,
-      shareDomain: undefined,
     };
     clearValidation();
   };

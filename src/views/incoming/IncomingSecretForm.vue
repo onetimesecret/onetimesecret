@@ -16,7 +16,7 @@
     memoMaxLength,
     isFeatureEnabled,
     recipients,
-    validateTitle,
+    validateMemo,
     validateSecret,
     validateRecipient,
     submit,
@@ -38,7 +38,7 @@
   });
 
   const handleTitleBlur = () => {
-    validateTitle();
+    validateMemo();
   };
 
   const handleRecipientBlur = () => {

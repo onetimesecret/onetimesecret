@@ -28,9 +28,11 @@ OT.boot! :test, false
 ## CreateIncomingSecret raises error when feature is disabled
 begin
   params = {
-    memo: 'Test Secret',
-    secret: 'secret value',
-    recipient: 'test@example.com'
+    secret: {
+      memo: 'Test Secret',
+      secret: 'secret value',
+      recipient: 'test@example.com'
+    }
   }
   logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
   logic.raise_concerns
@@ -42,16 +44,18 @@ end
 
 # Enable feature for subsequent tests
 ENV['INCOMING_ENABLED'] = 'true'
-ENV['INCOMING_TITLE_MAX_LENGTH'] = '50'
+ENV['INCOMING_MEMO_MAX_LENGTH'] = '50'
 ENV['INCOMING_DEFAULT_TTL'] = '3600'
 ENV['INCOMING_DEFAULT_PASSPHRASE'] = 'test-passphrase-123'
 OT.boot! :test, false
 
 ## CreateIncomingSecret processes params correctly
 params = {
-  memo: 'Important Issue',
-  secret: 'This is a secret message',
-  recipient: 'support@example.com'
+  secret: {
+    memo: 'Important Issue',
+    secret: 'This is a secret message',
+    recipient: 'support@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 [
@@ -66,9 +70,11 @@ logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 ## CreateIncomingSecret truncates memo to max length
 long_memo = 'A' * 100
 params = {
-  memo: long_memo,
-  secret: 'test',
-  recipient: 'support@example.com'
+  secret: {
+    memo: long_memo,
+    secret: 'test',
+    recipient: 'support@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.memo.length
@@ -76,9 +82,11 @@ logic.memo.length
 
 ## CreateIncomingSecret raises error for empty memo
 params = {
-  memo: '   ',
-  secret: 'test',
-  recipient: 'support@example.com'
+  secret: {
+    memo: '   ',
+    secret: 'test',
+    recipient: 'support@example.com'
+  }
 }
 begin
   logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
@@ -87,13 +95,15 @@ begin
 rescue OT::FormError => e
   e.message
 end
-#=> "Title is required"
+#=> "Memo is required"
 
 ## CreateIncomingSecret raises error for empty secret
 params = {
-  memo: 'Test',
-  secret: '',
-  recipient: 'support@example.com'
+  secret: {
+    memo: 'Test',
+    secret: '',
+    recipient: 'support@example.com'
+  }
 }
 begin
   logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
@@ -106,9 +116,11 @@ end
 
 ## CreateIncomingSecret raises error for empty recipient
 params = {
-  memo: 'Test',
-  secret: 'test value',
-  recipient: ''
+  secret: {
+    memo: 'Test',
+    secret: 'test value',
+    recipient: ''
+  }
 }
 begin
   logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
@@ -121,9 +133,11 @@ end
 
 ## CreateIncomingSecret raises error for invalid recipient
 params = {
-  memo: 'Test',
-  secret: 'test value',
-  recipient: 'unknown@example.com'
+  secret: {
+    memo: 'Test',
+    secret: 'test value',
+    recipient: 'unknown@example.com'
+  }
 }
 begin
   logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
@@ -136,9 +150,11 @@ end
 
 ## CreateIncomingSecret creates secret successfully
 params = {
-  memo: 'Bug Report #123',
-  secret: 'Stack trace: Error on line 42',
-  recipient: 'security@example.com'
+  secret: {
+    memo: 'Bug Report #123',
+    secret: 'Stack trace: Error on line 42',
+    recipient: 'security@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.raise_concerns
@@ -148,9 +164,11 @@ logic.greenlighted
 
 ## CreateIncomingSecret creates metadata and secret objects
 params = {
-  memo: 'Feature Request',
-  secret: 'Please add dark mode',
-  recipient: 'support@example.com'
+  secret: {
+    memo: 'Feature Request',
+    secret: 'Please add dark mode',
+    recipient: 'support@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
@@ -164,9 +182,11 @@ logic.process
 
 ## CreateIncomingSecret stores incoming metadata fields
 params = {
-  memo: 'Test Title',
-  secret: 'Test Secret',
-  recipient: 'support@example.com'
+  secret: {
+    memo: 'Test Title',
+    secret: 'Test Secret',
+    recipient: 'support@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
@@ -179,9 +199,11 @@ metadata = V2::Metadata.load logic.metadata.key
 
 ## CreateIncomingSecret applies passphrase from config
 params = {
-  memo: 'Passphrase Test',
-  secret: 'Secret content',
-  recipient: 'support@example.com'
+  secret: {
+    memo: 'Passphrase Test',
+    secret: 'Secret content',
+    recipient: 'support@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
@@ -198,9 +220,11 @@ OT.boot! :test, false
 
 ## CreateIncomingSecret works without passphrase config
 params = {
-  memo: 'No Passphrase',
-  secret: 'Open secret',
-  recipient: 'support@example.com'
+  secret: {
+    memo: 'No Passphrase',
+    secret: 'Open secret',
+    recipient: 'support@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
@@ -215,9 +239,11 @@ OT.boot! :test, false
 
 ## CreateIncomingSecret sets correct TTL
 params = {
-  memo: 'TTL Test',
-  secret: 'Testing TTL',
-  recipient: 'support@example.com'
+  secret: {
+    memo: 'TTL Test',
+    secret: 'Testing TTL',
+    recipient: 'support@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
@@ -231,9 +257,11 @@ secret = V2::Secret.load logic.secret.key
 
 ## CreateIncomingSecret returns success data with correct structure
 params = {
-  memo: 'Success Test',
-  secret: 'Test content',
-  recipient: 'security@example.com'
+  secret: {
+    memo: 'Success Test',
+    secret: 'Test content',
+    recipient: 'security@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
@@ -250,9 +278,11 @@ data = logic.success_data
 ## CreateIncomingSecret updates customer stats for authenticated user
 initial_count = @cust.secrets_created || 0
 params = {
-  memo: 'Stats Test',
-  secret: 'Testing stats',
-  recipient: 'support@example.com'
+  secret: {
+    memo: 'Stats Test',
+    secret: 'Testing stats',
+    recipient: 'support@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
@@ -262,9 +292,11 @@ logic.process
 
 ## CreateIncomingSecret handles whitespace in memo
 params = {
-  memo: '  Whitespace Test  ',
-  secret: 'Testing whitespace',
-  recipient: 'support@example.com'
+  secret: {
+    memo: '  Whitespace Test  ',
+    secret: 'Testing whitespace',
+    recipient: 'support@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.memo
@@ -272,9 +304,11 @@ logic.memo
 
 ## CreateIncomingSecret handles special characters in memo
 params = {
-  memo: 'Bug: <script>alert("XSS")</script>',
-  secret: 'Test content',
-  recipient: 'support@example.com'
+  secret: {
+    memo: 'Bug: <script>alert("XSS")</script>',
+    secret: 'Test content',
+    recipient: 'support@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
@@ -284,9 +318,11 @@ metadata.memo
 
 ## CreateIncomingSecret secret can be retrieved
 params = {
-  memo: 'Retrieval Test',
-  secret: 'This is the secret content',
-  recipient: 'support@example.com'
+  secret: {
+    memo: 'Retrieval Test',
+    secret: 'This is the secret content',
+    recipient: 'support@example.com'
+  }
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
@@ -298,6 +334,6 @@ decrypted
 # Teardown: Clean up test data
 @cust.destroy!
 ENV.delete('INCOMING_ENABLED')
-ENV.delete('INCOMING_TITLE_MAX_LENGTH')
+ENV.delete('INCOMING_MEMO_MAX_LENGTH')
 ENV.delete('INCOMING_DEFAULT_TTL')
 ENV.delete('INCOMING_DEFAULT_PASSPHRASE')

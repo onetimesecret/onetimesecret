@@ -11,13 +11,12 @@ import { setupWindowState } from '../setupWindow';
 
 const mockIncomingConfig: IncomingConfig = {
   enabled: true,
-  title_max_length: 50,
+  memo_max_length: 50,
   recipients: [
-    { id: 'recipient-1', label: 'John Doe', email: 'john@example.com' },
-    { id: 'recipient-2', label: 'Jane Smith', email: 'jane@example.com' },
+    { email: 'john@example.com', name: 'John Doe' },
+    { email: 'jane@example.com', name: 'Jane Smith' },
   ],
   default_ttl: 604800,
-  allow_custom_recipient: false,
 };
 
 const mockIncomingSecretResponse = {
@@ -124,8 +123,8 @@ describe('incomingStore', () => {
       expect(store.isFeatureEnabled).toBe(true);
     });
 
-    it('returns correct titleMaxLength', () => {
-      expect(store.titleMaxLength).toBe(50);
+    it('returns correct memoMaxLength', () => {
+      expect(store.memoMaxLength).toBe(50);
     });
 
     it('returns correct recipients', () => {
@@ -139,20 +138,16 @@ describe('incomingStore', () => {
     it('returns default values when config is null', () => {
       store.clear();
       expect(store.isFeatureEnabled).toBe(false);
-      expect(store.titleMaxLength).toBe(50);
+      expect(store.memoMaxLength).toBe(50);
       expect(store.recipients).toEqual([]);
     });
   });
 
   describe('createIncomingSecret', () => {
     const mockPayload: IncomingSecretPayload = {
-      kind: 'incoming',
+      memo: 'Test Secret',
       secret: 'my secret content',
-      title: 'Test Secret',
-      recipient_id: 'recipient-1',
-      passphrase: undefined,
-      ttl: 604800,
-      share_domain: 'example.com',
+      recipient: 'john@example.com',
     };
 
     beforeEach(async () => {

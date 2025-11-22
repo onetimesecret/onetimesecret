@@ -40,7 +40,7 @@ end
 
 # Reload with feature enabled
 ENV['INCOMING_ENABLED'] = 'true'
-ENV['INCOMING_TITLE_MAX_LENGTH'] = '50'
+ENV['INCOMING_MEMO_MAX_LENGTH'] = '50'
 ENV['INCOMING_DEFAULT_TTL'] = '604800'
 ENV['INCOMING_DEFAULT_PASSPHRASE'] = 'secret-passphrase'
 OT.boot! :test, false
