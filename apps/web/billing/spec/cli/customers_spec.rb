@@ -183,7 +183,7 @@ RSpec.describe 'Billing Customers CLI Commands', :billing_cli, :unit, :stripe_mo
         end
 
         expect(output).to include('Subscriptions:')
-        # Verify subscription format if present: sub_xxx - status
+        # Verify subscription format if present: sub_xyz - status
         # May include (paused) marker
       end
 

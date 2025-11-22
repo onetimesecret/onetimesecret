@@ -753,7 +753,7 @@ Customer created successfully:
 Cancel a subscription either at period end or immediately.
 
 **Arguments:**
-- `subscription_id` - Subscription ID (sub_xxx)
+- `subscription_id` - Subscription ID (sub_xyz)
 
 **Options:**
 - `--immediately` - Cancel immediately instead of at period end (default: false)
@@ -851,7 +851,7 @@ bin/ots billing test create-customer --no-with-card
 Pause a subscription to stop billing while maintaining customer access.
 
 **Arguments:**
-- `subscription_id` - Subscription ID (sub_xxx)
+- `subscription_id` - Subscription ID (sub_xyz)
 
 **Options:**
 - `--yes` - Skip confirmation prompt (default: false)
@@ -889,7 +889,7 @@ bin/ots billing subscriptions pause sub_ABC123xyz --yes
 Resume a paused subscription to restart billing.
 
 **Arguments:**
-- `subscription_id` - Subscription ID (sub_xxx)
+- `subscription_id` - Subscription ID (sub_xyz)
 
 **Options:**
 - `--yes` - Skip confirmation prompt (default: false)
@@ -1027,7 +1027,7 @@ Customer deleted successfully
 Update an existing subscription's price or quantity with optional proration.
 
 **Arguments:**
-- `subscription_id` - Subscription ID (sub_xxx)
+- `subscription_id` - Subscription ID (sub_xyz)
 
 **Options:**
 - `--price STRING` - New price ID to switch to (price_xxx)

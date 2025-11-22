@@ -28,7 +28,7 @@ module Onetime
             bin/ots billing test create-customer
 
             # Trigger webhook event
-            bin/ots billing test trigger-webhook customer.subscription.updated --subscription sub_xxx
+            bin/ots billing test trigger-webhook customer.subscription.updated --subscription sub_xyz
 
         HELP
       end

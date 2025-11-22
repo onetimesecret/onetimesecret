@@ -15,7 +15,7 @@ module Onetime
 
       desc 'Cancel a subscription'
 
-      argument :subscription_id, required: true, desc: 'Subscription ID (sub_xxx)'
+      argument :subscription_id, required: true, desc: 'Subscription ID (sub_xyz)'
 
       option :immediately, type: :boolean, default: false,
         desc: 'Cancel immediately instead of at period end'
