@@ -60,6 +60,15 @@ module Onetime
           # of sampled transactions.
           config.profiles_sample_rate = 0.1
 
+          # Configure HTTP transport with relaxed CRL checking
+          # OpenSSL 3.x has strict CRL checking that can fail even with valid certs
+          # if the CRL distribution point is unreachable. This disables CRL checks
+          # while maintaining certificate verification (VERIFY_PEER).
+          config.transport.ssl_configuration = lambda do |ssl_context|
+            ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
+            ssl_context.verify_flags = 0  # Disable CRL checking
+          end
+
           # Add a before_send to filter out problematic events that might cause errors
           config.before_send = lambda do |event, _hint|
             # Return nil if the event would cause errors in processing
