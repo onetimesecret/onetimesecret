@@ -115,6 +115,7 @@
         :name: Help Desk
 :emailer:
   :mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
+  :region: 'ca-central-1'
   :from: <%= ENV['FROM_EMAIL'] || ENV['FROM_EMAIL'] || 'tests@example.com' %>
   :fromname: <%= ENV['FROMNAME'] || 'Jan' %>
   :host: <%= ENV['SMTP_HOST'] || 'localhost' %>
