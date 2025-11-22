@@ -41,6 +41,7 @@ module Onetime
           puts "\n#{invalid_count} product(s) have metadata errors"
           puts "\nRequired metadata fields:"
           REQUIRED_METADATA_FIELDS.each { |field| puts "  - #{field}" }
+          exit invalid_count
         end
       end
     end
