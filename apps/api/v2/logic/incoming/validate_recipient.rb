@@ -5,10 +5,10 @@ require_relative '../base'
 module V2::Logic
   module Incoming
     class ValidateRecipient < V2::Logic::Base
-      attr_reader :greenlighted, :recipient_email, :is_valid
+      attr_reader :greenlighted, :recipient_hash, :is_valid
 
       def process_params
-        @recipient_email = params[:recipient].to_s.strip
+        @recipient_hash = params[:recipient].to_s.strip
       end
 
       def raise_concerns
@@ -18,22 +18,20 @@ module V2::Logic
           raise_form_error "Incoming secrets feature is not enabled"
         end
 
-        raise_form_error "Recipient email is required" if recipient_email.empty?
+        raise_form_error "Recipient hash is required" if recipient_hash.empty?
 
         limit_action :get_page
       end
 
       def process
-        incoming_config = OT.conf.dig(:features, :incoming) || {}
-        allowed_recipients = (incoming_config[:recipients] || []).map { |r| r[:email] }
-
-        @is_valid = allowed_recipients.include?(recipient_email)
+        # Validate that the hash exists in our lookup table
+        @is_valid = !OT.lookup_incoming_recipient(recipient_hash).nil?
         @greenlighted = true
       end
 
       def success_data
         {
-          recipient: recipient_email,
+          recipient: recipient_hash,
           valid: is_valid
         }
       end
