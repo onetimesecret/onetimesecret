@@ -60,7 +60,6 @@
     form.value.title = '';
     form.value.secret = '';
     form.value.recipientId = '';
-    form.value.passphrase = undefined;
     errors.value = {};
     secretContentRef.value?.clearTextarea();
   };
@@ -152,30 +151,6 @@
               class="mt-1 block text-sm text-red-600 dark:text-red-400">
               {{ errors.secret }}
             </span>
-          </div>
-
-          <!-- Optional Passphrase -->
-          <div>
-            <label
-              for="secret-passphrase"
-              class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              {{ $t('web.incoming.passphrase_label') }}
-              <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
-                ({{ $t('web.incoming.optional') }})
-              </span>
-            </label>
-
-            <input
-              id="secret-passphrase"
-              v-model="form.passphrase"
-              type="password"
-              :disabled="isSubmitting"
-              :placeholder="$t('web.incoming.passphrase_placeholder')"
-              class="block w-full rounded-lg border border-gray-200 px-4 py-3 text-base text-gray-900 transition-all duration-200 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-400 dark:focus:ring-blue-400" />
-
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{ $t('web.incoming.passphrase_hint') }}
-            </p>
           </div>
 
           <!-- Action Buttons -->
