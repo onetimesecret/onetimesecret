@@ -1,18 +1,18 @@
 // src/composables/useIncomingSecret.ts
 
-import { ref, computed } from 'vue';
-import { useIncomingStore } from '@/stores/incomingStore';
-import { useNotificationsStore } from '@/stores/notificationsStore';
 import {
   AsyncHandlerOptions,
   createError,
   useAsyncHandler,
 } from '@/composables/useAsyncHandler';
 import { IncomingSecretPayload, IncomingSecretResponse } from '@/schemas/api/incoming';
+import { useIncomingStore } from '@/stores/incomingStore';
+import { useNotificationsStore } from '@/stores/notificationsStore';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 
 interface IncomingSecretForm {
-  title: string;
+  memo: string;
   secret: string;
   recipientId: string;
   passphrase?: string;
@@ -53,7 +53,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
 
   // Form state
   const form = ref<IncomingSecretForm>({
-    title: '',
+    memo: '',
     secret: '',
     recipientId: '',
     passphrase: undefined,
@@ -65,23 +65,23 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
   const isSubmitting = ref(false);
 
   // Computed
-  const titleMaxLength = computed(() => incomingStore.titleMaxLength);
+  const memoMaxLength = computed(() => incomingStore.memoMaxLength);
   const isFeatureEnabled = computed(() => incomingStore.isFeatureEnabled);
   const recipients = computed(() => incomingStore.recipients);
 
   // Validation
-  const validateTitle = (): boolean => {
-    if (!form.value.title.trim()) {
-      errors.value.title = 'Title is required';
+  const validateMemo = (): boolean => {
+    if (!form.value.memo.trim()) {
+      errors.value.memo = 'Title is required';
       return false;
     }
 
-    if (form.value.title.length > titleMaxLength.value) {
-      errors.value.title = `Title must be ${titleMaxLength.value} characters or less`;
+    if (form.value.memo.length > memoMaxLength.value) {
+      errors.value.memo = `Title must be ${memoMaxLength.value} characters or less`;
       return false;
     }
 
-    errors.value.title = undefined;
+    errors.value.memo = undefined;
     return true;
   };
 
@@ -106,11 +106,11 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
   };
 
   const validateForm = (): boolean => {
-    const titleValid = validateTitle();
+    const memoValid = validateMemo();
     const secretValid = validateSecret();
     const recipientValid = validateRecipient();
 
-    return titleValid && secretValid && recipientValid;
+    return memoValid && secretValid && recipientValid;
   };
 
   const clearValidation = () => {
@@ -127,17 +127,15 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
   /**
    * Creates API payload from form data
    */
-  const createPayload = (): IncomingSecretPayload => {
-    return {
+  const createPayload = (): IncomingSecretPayload => ({
       kind: 'incoming',
       secret: form.value.secret,
-      title: form.value.title.trim(),
-      recipient_id: form.value.recipientId,
+      memo: form.value.memo.trim(),
+      recipient: form.value.recipientId,
       passphrase: form.value.passphrase || undefined,
       ttl: form.value.ttl || incomingStore.defaultTtl,
       share_domain: form.value.shareDomain || '',
-    };
-  };
+    });
 
   /**
    * Handles form submission
@@ -173,7 +171,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
    */
   const resetForm = () => {
     form.value = {
-      title: '',
+      memo: '',
       secret: '',
       recipientId: '',
       passphrase: undefined,
@@ -202,12 +200,12 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
     isSubmitting,
 
     // Computed
-    titleMaxLength,
+    memoMaxLength,
     isFeatureEnabled,
     recipients,
 
     // Validation
-    validateTitle,
+    validateMemo,
     validateSecret,
     validateRecipient,
     validateForm,

@@ -28,7 +28,7 @@ export type IncomingStore = {
   // Getters
   isInitialized: boolean;
   isFeatureEnabled: boolean;
-  titleMaxLength: number;
+  memoMaxLength: number;
   recipients: IncomingConfig['recipients'];
   defaultTtl: number | undefined;
 
@@ -56,7 +56,7 @@ export const useIncomingStore = defineStore('incoming', () => {
   // Getters
   const isInitialized = computed(() => _initialized.value);
   const isFeatureEnabled = computed(() => config.value?.enabled ?? false);
-  const titleMaxLength = computed(() => config.value?.title_max_length ?? 50);
+  const memoMaxLength = computed(() => config.value?.memo_max_length ?? 50);
   const recipients = computed(() => config.value?.recipients ?? []);
   const defaultTtl = computed(() => config.value?.default_ttl);
 
@@ -143,7 +143,7 @@ export const useIncomingStore = defineStore('incoming', () => {
     // Getters
     isInitialized,
     isFeatureEnabled,
-    titleMaxLength,
+    memoMaxLength,
     recipients,
     defaultTtl,
 
