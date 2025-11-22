@@ -12,11 +12,11 @@
 # 6. Metadata persistence across lifecycle
 # 7. Secret retrieval and decryption
 
-require_relative '../try/test_logic'
+require_relative '../test_logic'
 
 # Load the app with feature enabled
 ENV['INCOMING_ENABLED'] = 'true'
-ENV['INCOMING_TITLE_MAX_LENGTH'] = '80'
+ENV['INCOMING_MEMO_MAX_LENGTH'] = '80'
 ENV['INCOMING_DEFAULT_TTL'] = '86400'
 ENV['INCOMING_DEFAULT_PASSPHRASE'] = 'integration-test-pass'
 OT.boot! :test, false
@@ -45,7 +45,7 @@ validate_logic.process
 is_valid = validate_logic.success_data[:valid]
 
 create_params = {
-  title: 'Integration Test Secret',
+  memo: 'Integration Test Secret',
   secret: 'This is a complete integration test',
   recipient: 'helpdesk@example.com'
 }
@@ -61,7 +61,7 @@ create_logic.process
 
 ## Created secret can be loaded and has correct metadata
 create_params = {
-  title: 'Loadable Secret',
+  memo: 'Loadable Secret',
   secret: 'Secret content for loading',
   recipient: 'security@example.com'
 }
@@ -82,7 +82,7 @@ loaded_secret = V2::Secret.load secret_key
 
 ## Created secret can be decrypted with passphrase
 create_params = {
-  title: 'Encrypted Secret',
+  memo: 'Encrypted Secret',
   secret: 'Super secret message',
   recipient: 'helpdesk@example.com'
 }
@@ -97,7 +97,7 @@ secret.decrypted_value
 recipients = ['helpdesk@example.com', 'security@example.com', 'support@example.com']
 created_keys = recipients.map.with_index do |recipient, i|
   params = {
-    title: "Sequential Secret #{i + 1}",
+    memo: "Sequential Secret #{i + 1}",
     secret: "Content #{i + 1}",
     recipient: recipient
   }
@@ -120,7 +120,7 @@ metadata = V2::Metadata.load last_key
 ## Anonymous users can create incoming secrets
 anon_sess = Session.new '192.168.1.50', 'anon'
 create_params = {
-  title: 'Anonymous Secret',
+  memo: 'Anonymous Secret',
   secret: 'Secret from anonymous user',
   recipient: 'helpdesk@example.com'
 }
@@ -156,7 +156,7 @@ end
 ## Feature disabled blocks secret creation
 begin
   params = {
-    title: 'Should Fail',
+    memo: 'Should Fail',
     secret: 'This should not work',
     recipient: 'helpdesk@example.com'
   }
@@ -170,15 +170,15 @@ end
 
 # Re-enable for edge cases
 ENV['INCOMING_ENABLED'] = 'true'
-ENV['INCOMING_TITLE_MAX_LENGTH'] = '80'
+ENV['INCOMING_MEMO_MAX_LENGTH'] = '80'
 ENV['INCOMING_DEFAULT_TTL'] = '86400'
 OT.boot! :test, false
 
 ## Edge case: Maximum title length enforcement
-max_length = OT.conf.dig(:features, :incoming, :title_max_length)
-long_title = 'X' * (max_length + 50)
+max_length = OT.conf.dig(:features, :incoming, :memo_max_length)
+long_memo = 'X' * (max_length + 50)
 params = {
-  title: long_title,
+  memo: long_memo,
   secret: 'Content',
   recipient: 'helpdesk@example.com'
 }
@@ -194,7 +194,7 @@ OT.boot! :test, false
 
 ## Edge case: No passphrase config
 params = {
-  title: 'No Passphrase Secret',
+  memo: 'No Passphrase Secret',
   secret: 'Unprotected content',
   recipient: 'helpdesk@example.com'
 }
@@ -211,7 +211,7 @@ OT.boot! :test, false
 
 ## Edge case: Very short TTL
 params = {
-  title: 'Short TTL Secret',
+  memo: 'Short TTL Secret',
   secret: 'Expires quickly',
   recipient: 'helpdesk@example.com'
 }
@@ -227,7 +227,7 @@ OT.boot! :test, false
 
 ## Edge case: Very long TTL
 params = {
-  title: 'Long TTL Secret',
+  memo: 'Long TTL Secret',
   secret: 'Lasts a month',
   recipient: 'helpdesk@example.com'
 }
@@ -243,7 +243,7 @@ OT.boot! :test, false
 
 ## Edge case: Unicode characters in title
 params = {
-  title: 'Bug Report: 日本語 🐛 Émojis',
+  memo: 'Bug Report: 日本語 🐛 Émojis',
   secret: 'Unicode test content',
   recipient: 'support@example.com'
 }
@@ -256,7 +256,7 @@ metadata.field_get(:incoming_title)
 ## Edge case: Large secret content
 large_content = 'A' * 10000
 params = {
-  title: 'Large Content Secret',
+  memo: 'Large Content Secret',
   secret: large_content,
   recipient: 'support@example.com'
 }
@@ -269,7 +269,7 @@ secret.decrypted_value.length
 ## Form fields are populated on error
 begin
   params = {
-    title: 'Valid Title',
+    memo: 'Valid Title',
     secret: 'Valid Secret',
     recipient: 'invalid@example.com'
   }
@@ -278,7 +278,7 @@ begin
 rescue OT::FormError => e
   fields = e.form_fields
   [
-    fields[:title],
+    fields[:memo],
     fields[:secret],
     fields[:recipient]
   ]
@@ -287,7 +287,7 @@ end
 
 ## Success data includes all expected fields
 params = {
-  title: 'Final Test',
+  memo: 'Final Test',
   secret: 'Final secret content',
   recipient: 'support@example.com'
 }
@@ -300,7 +300,7 @@ data = logic.success_data
   data.key?(:details),
   data[:record].key?(:metadata),
   data[:record].key?(:secret),
-  data[:details].key?(:title),
+  data[:details].key?(:memo),
   data[:details].key?(:recipient)
 ]
 #=> [true, true, true, true, true, true, true]
@@ -308,6 +308,6 @@ data = logic.success_data
 # Teardown: Clean up all test data
 @cust.destroy!
 ENV.delete('INCOMING_ENABLED')
-ENV.delete('INCOMING_TITLE_MAX_LENGTH')
+ENV.delete('INCOMING_MEMO_MAX_LENGTH')
 ENV.delete('INCOMING_DEFAULT_TTL')
 ENV.delete('INCOMING_DEFAULT_PASSPHRASE')
