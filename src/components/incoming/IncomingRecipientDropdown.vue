@@ -32,7 +32,7 @@
   });
 
   const selectedRecipient = computed(() => {
-    return props.recipients.find((r) => r.email === props.modelValue);
+    return props.recipients.find((r) => r.hash === props.modelValue);
   });
 
   const displayText = computed(() => {
@@ -127,20 +127,20 @@
           role="listbox">
           <li
             v-for="recipient in recipients"
-            :key="recipient.email"
+            :key="recipient.hash"
             role="option"
-            :aria-selected="modelValue === recipient.email"
+            :aria-selected="modelValue === recipient.hash"
             :class="[
               'cursor-pointer px-4 py-2 transition-colors duration-150',
-              modelValue === recipient.email
+              modelValue === recipient.hash
                 ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                 : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-slate-700',
             ]"
-            @click="selectRecipient(recipient.email)">
+            @click="selectRecipient(recipient.hash)">
             <div class="flex items-center justify-between">
               <span class="font-medium">{{ recipient.name }}</span>
               <svg
-                v-if="modelValue === recipient.email"
+                v-if="modelValue === recipient.hash"
                 class="size-5 text-blue-600 dark:text-blue-400"
                 fill="currentColor"
                 viewBox="0 0 20 20">
@@ -150,9 +150,6 @@
                   clip-rule="evenodd" />
               </svg>
             </div>
-            <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">
-              {{ recipient.email }}
-            </span>
           </li>
         </ul>
       </div>
