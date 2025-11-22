@@ -13,8 +13,8 @@ const mockIncomingConfig: IncomingConfig = {
   enabled: true,
   memo_max_length: 50,
   recipients: [
-    { email: 'john@example.com', name: 'John Doe' },
-    { email: 'jane@example.com', name: 'Jane Smith' },
+    { hash: 'hash123abc', name: 'John Doe' },
+    { hash: 'hash456def', name: 'Jane Smith' },
   ],
   default_ttl: 604800,
 };
@@ -147,7 +147,7 @@ describe('incomingStore', () => {
     const mockPayload: IncomingSecretPayload = {
       memo: 'Test Secret',
       secret: 'my secret content',
-      recipient: 'john@example.com',
+      recipient: 'hash123abc',
     };
 
     beforeEach(async () => {
