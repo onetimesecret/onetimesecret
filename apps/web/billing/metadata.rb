@@ -13,16 +13,16 @@ module Billing
     APP_NAME = 'onetimesecret'
 
     # Required metadata fields
-    FIELD_APP = 'app'
-    FIELD_TIER = 'tier'
-    FIELD_REGION = 'region'
-    FIELD_TENANCY = 'tenancy'
+    FIELD_APP          = 'app'
+    FIELD_TIER         = 'tier'
+    FIELD_REGION       = 'region'
+    FIELD_TENANCY      = 'tenancy'
     FIELD_CAPABILITIES = 'capabilities'
-    FIELD_PLAN_ID = 'plan_id'
-    FIELD_CREATED = 'created'
+    FIELD_PLAN_ID      = 'plan_id'
+    FIELD_CREATED      = 'created'
 
     # Limit fields (prefixed with 'limit_')
-    FIELD_LIMIT_TEAMS = 'limit_teams'
+    FIELD_LIMIT_TEAMS            = 'limit_teams'
     FIELD_LIMIT_MEMBERS_PER_TEAM = 'limit_members_per_team'
 
     # All required metadata fields

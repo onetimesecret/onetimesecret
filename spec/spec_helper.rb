@@ -23,7 +23,6 @@
 # To see detailed output:
 #   bundle exec rspec --format documentation
 
-
 # spec/spec_helper.rb
 # Test harness for Onetime.
 
@@ -66,8 +65,8 @@ begin
 
   require 'onetime/logic'
   require 'onetime/views'
-rescue LoadError => e
-  warn "Load failed: #{e.message} (pwd: #{Dir.pwd})"
+rescue LoadError => ex
+  warn "Load failed: #{ex.message} (pwd: #{Dir.pwd})"
   exit 1
 end
 
@@ -75,7 +74,7 @@ end
 Dir[File.join(spec_root, 'support', '*.rb')].each { |f| require f }
 
 # Test mode
-OT.mode = :test
+OT.mode         = :test
 OT::Config.path = File.join(spec_root, 'config.test.yaml')
 
 # Shared helper for creating a memoized FakeRedis instance
@@ -101,8 +100,6 @@ RSpec.configure do |config|
   config.mock_with :rspec do |mocks|
     mocks.verify_partial_doubles = true
   end
-
-
 
   # Configure FakeRedis for all tests (except where explicitly disabled)
   # Skip FakeRedis for billing tests - they need real Redis on port 2121

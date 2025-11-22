@@ -39,7 +39,7 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
     # Mock authentication by setting up session
     env 'rack.session', {
       'authenticated' => true,
-      'custid' => customer.custid
+      'custid' => customer.custid,
     }
   end
 
@@ -124,9 +124,9 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
     it 'returns subscription data when organization has active subscription', :vcr do
       # Create real Stripe subscription
       stripe_customer = Stripe::Customer.create(email: customer.email)
-      subscription = Stripe::Subscription.create(
+      subscription    = Stripe::Subscription.create(
         customer: stripe_customer.id,
-        items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }]
+        items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }],
       )
 
       organization.update_from_stripe_subscription(subscription)
@@ -159,7 +159,7 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
       # Switch session to other customer
       env 'rack.session', {
         'authenticated' => true,
-        'custid' => other_customer.custid
+        'custid' => other_customer.custid,
       }
 
       get "/billing/api/org/#{organization.extid}"
@@ -196,7 +196,7 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
     it 'creates Stripe checkout session', :vcr do
       post "/billing/api/org/#{organization.extid}/checkout", {
         tier: tier,
-        billing_cycle: billing_cycle
+        billing_cycle: billing_cycle,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(200)
@@ -205,12 +205,12 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
       data = JSON.parse(last_response.body)
       expect(data).to have_key('checkout_url')
       expect(data).to have_key('session_id')
-      expect(data['checkout_url']).to match(/^https:\/\/checkout\.stripe\.com/)
+      expect(data['checkout_url']).to match(%r{^https://checkout\.stripe\.com})
     end
 
     it 'returns 400 when tier is missing', :vcr do
       post "/billing/api/org/#{organization.extid}/checkout", {
-        billing_cycle: billing_cycle
+        billing_cycle: billing_cycle,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(400)
@@ -219,7 +219,7 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
 
     it 'returns 400 when billing_cycle is missing', :vcr do
       post "/billing/api/org/#{organization.extid}/checkout", {
-        tier: tier
+        tier: tier,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(400)
@@ -229,7 +229,7 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
     it 'returns 404 when plan is not found', :vcr do
       post "/billing/api/org/#{organization.extid}/checkout", {
         tier: 'nonexistent_tier',
-        billing_cycle: 'monthly'
+        billing_cycle: 'monthly',
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(404)
@@ -238,19 +238,19 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
 
     it 'uses existing Stripe customer if organization has one', :vcr do
       # Create Stripe customer and associate with organization
-      stripe_customer = Stripe::Customer.create(email: organization.billing_email)
+      stripe_customer                 = Stripe::Customer.create(email: organization.billing_email)
       organization.stripe_customer_id = stripe_customer.id
       organization.save
 
       post "/billing/api/org/#{organization.extid}/checkout", {
         tier: tier,
-        billing_cycle: billing_cycle
+        billing_cycle: billing_cycle,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(200)
 
       # Verify the checkout session used the existing customer
-      data = JSON.parse(last_response.body)
+      data    = JSON.parse(last_response.body)
       session = Stripe::Checkout::Session.retrieve(data['session_id'])
       expect(session.customer).to eq(stripe_customer.id)
     end
@@ -258,18 +258,18 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
     it 'includes metadata in subscription', :vcr do
       post "/billing/api/org/#{organization.extid}/checkout", {
         tier: tier,
-        billing_cycle: billing_cycle
+        billing_cycle: billing_cycle,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(200)
 
-      data = JSON.parse(last_response.body)
+      data    = JSON.parse(last_response.body)
       session = Stripe::Checkout::Session.retrieve(data['session_id'])
 
       expect(session.subscription_data['metadata']).to include(
         'orgid' => organization.objid,
         'tier' => tier,
-        'custid' => customer.custid
+        'custid' => customer.custid,
       )
     end
 
@@ -278,7 +278,7 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
       2.times do
         post "/billing/api/org/#{organization.extid}/checkout", {
           tier: tier,
-          billing_cycle: billing_cycle
+          billing_cycle: billing_cycle,
         }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
         expect(last_response.status).to eq(200)
@@ -300,12 +300,12 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
       # Switch session to member customer
       env 'rack.session', {
         'authenticated' => true,
-        'custid' => member_customer.custid
+        'custid' => member_customer.custid,
       }
 
       post "/billing/api/org/#{organization.extid}/checkout", {
         tier: tier,
-        billing_cycle: billing_cycle
+        billing_cycle: billing_cycle,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(403)
@@ -317,7 +317,7 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
 
       post "/billing/api/org/#{organization.extid}/checkout", {
         tier: tier,
-        billing_cycle: billing_cycle
+        billing_cycle: billing_cycle,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(401)
@@ -337,15 +337,15 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
 
     it 'returns list of invoices for organization', :vcr do
       # Create Stripe customer and invoice
-      stripe_customer = Stripe::Customer.create(email: organization.billing_email)
+      stripe_customer                 = Stripe::Customer.create(email: organization.billing_email)
       organization.stripe_customer_id = stripe_customer.id
       organization.save
 
       # Create an invoice
-      invoice = Stripe::Invoice.create(
+      Stripe::Invoice.create(
         customer: stripe_customer.id,
         collection_method: 'send_invoice',
-        days_until_due: 30
+        days_until_due: 30,
       )
 
       get "/billing/api/org/#{organization.extid}/invoices"
@@ -387,7 +387,7 @@ RSpec.describe 'Billing::Controllers::Billing', :integration, :vcr, :stripe_sand
 
       env 'rack.session', {
         'authenticated' => true,
-        'custid' => other_customer.custid
+        'custid' => other_customer.custid,
       }
 
       get "/billing/api/org/#{organization.extid}/invoices"

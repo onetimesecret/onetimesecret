@@ -24,7 +24,7 @@ RSpec.describe 'Stripe Mock + VCR Setup', :stripe do
   describe 'basic Stripe object creation' do
     it 'creates a product' do
       product = Stripe::Product.create(
-        name: 'Test Product'
+        name: 'Test Product',
       )
 
       expect(product).to be_a(Stripe::Product)
@@ -38,7 +38,7 @@ RSpec.describe 'Stripe Mock + VCR Setup', :stripe do
         product: product.id,
         currency: 'usd',
         unit_amount: 1000,
-        recurring: { interval: 'month' }
+        recurring: { interval: 'month' },
       )
 
       expect(price).to be_a(Stripe::Price)
@@ -49,7 +49,7 @@ RSpec.describe 'Stripe Mock + VCR Setup', :stripe do
 
     it 'creates a customer' do
       customer = Stripe::Customer.create(
-        email: 'test@example.com'
+        email: 'test@example.com',
       )
 
       expect(customer).to be_a(Stripe::Customer)
@@ -62,7 +62,7 @@ RSpec.describe 'Stripe Mock + VCR Setup', :stripe do
       price = Stripe::Price.create(
         currency: 'usd',
         unit_amount: 1000,
-        recurring: { interval: 'month', interval_count: 1 }
+        recurring: { interval: 'month', interval_count: 1 },
       )
 
       # This is the critical test - .recurring should return StripeObject
@@ -76,11 +76,11 @@ RSpec.describe 'Stripe Mock + VCR Setup', :stripe do
     end
 
     it 'supports safe navigation operator' do
-      # Note: stripe-mock always creates prices with default recurring settings
+      # NOTE: stripe-mock always creates prices with default recurring settings
       # This test demonstrates the safe navigation operator works regardless
       one_time_price = Stripe::Price.create(
         currency: 'usd',
-        unit_amount: 1000
+        unit_amount: 1000,
       )
 
       # Safe navigation works on StripeObject
@@ -94,7 +94,7 @@ RSpec.describe 'Stripe Mock + VCR Setup', :stripe do
     # Subsequent runs will replay from the cassette
     it 'records and replays Stripe API calls' do
       product = Stripe::Product.create(
-        name: 'VCR Test Product'
+        name: 'VCR Test Product',
       )
 
       expect(product.name).to eq('VCR Test Product')

@@ -41,7 +41,8 @@ module StripeMockServer
       # Note: We don't use -strict-version-check to allow minor version drift
       # between Stripe SDK and stripe-mock's OpenAPI spec
       @pid = spawn(stripe_mock_bin, '-port', @port.to_s,
-                   out: '/dev/null', err: '/dev/null')
+        out: '/dev/null', err: '/dev/null'
+      )
 
       # Detach so it doesn't block
       Process.detach(@pid)
@@ -50,9 +51,9 @@ module StripeMockServer
       wait_until_ready!
 
       puts "stripe-mock server started on port #{@port} (PID: #{@pid})"
-    rescue StandardError => e
+    rescue StandardError => ex
       stop if @pid
-      raise Error, "Failed to start stripe-mock: #{e.message}"
+      raise Error, "Failed to start stripe-mock: #{ex.message}"
     end
 
     # Stop the stripe-mock server
@@ -80,8 +81,8 @@ module StripeMockServer
       Net::HTTP.start(uri.host, uri.port) do |http|
         http.request(req)
       end
-    rescue StandardError => e
-      warn "Failed to reset stripe-mock: #{e.message}"
+    rescue StandardError => ex
+      warn "Failed to reset stripe-mock: #{ex.message}"
     end
 
     # Check if stripe-mock server is running
@@ -99,7 +100,7 @@ module StripeMockServer
     def configure_stripe_client!
       require 'stripe'
       Stripe.api_base = "http://localhost:#{@port}"
-      Stripe.api_key = 'sk_test_mock' # Mock key
+      Stripe.api_key  = 'sk_test_mock' # Mock key
     end
 
     private
@@ -119,6 +120,7 @@ module StripeMockServer
       Timeout.timeout(5) do
         loop do
           break if running?
+
           sleep 0.1
         end
       end

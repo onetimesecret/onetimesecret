@@ -1,6 +1,7 @@
 # apps/web/billing/spec/support/billing_spec_helper.rb
 #
 # frozen_string_literal: true
+
 #
 # Minimal test helpers for billing specs.
 # Timecop time manipulation and retry delay tracking only.
@@ -111,9 +112,9 @@ RSpec.configure do |config|
   config.around(:each, :vcr) do |example|
     # Generate cassette name from test description
     cassette_name = example.metadata[:full_description]
-                           .downcase
-                           .gsub(/[^\w\s]/, '')
-                           .gsub(/\s+/, '_')
+      .downcase
+      .gsub(/[^\w\s]/, '')
+      .gsub(/\s+/, '_')
 
     VCR.use_cassette(cassette_name) do
       example.run

@@ -40,7 +40,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :vcr, :stripe
     # Mock authentication
     env 'rack.session', {
       'authenticated' => true,
-      'custid' => customer.custid
+      'custid' => customer.custid,
     }
   end
 
@@ -77,7 +77,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :vcr, :stripe
     it 'returns capabilities organized by category', :vcr do
       get '/billing/api/capabilities'
 
-      data = JSON.parse(last_response.body)
+      data         = JSON.parse(last_response.body)
       capabilities = data['capabilities']
 
       # Verify each category contains capabilities
@@ -91,7 +91,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :vcr, :stripe
     it 'converts infinity limits to nil in plan summaries', :vcr do
       get '/billing/api/capabilities'
 
-      data = JSON.parse(last_response.body)
+      data  = JSON.parse(last_response.body)
       plans = data['plans']
 
       # Find a plan with unlimited limits
@@ -151,7 +151,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :vcr, :stripe
 
       get "/billing/api/capabilities/#{organization.extid}"
 
-      data = JSON.parse(last_response.body)
+      data   = JSON.parse(last_response.body)
       limits = data['limits']
 
       # Verify no limit values are Float::INFINITY
@@ -167,7 +167,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :vcr, :stripe
 
       env 'rack.session', {
         'authenticated' => true,
-        'custid' => other_customer.custid
+        'custid' => other_customer.custid,
       }
 
       get "/billing/api/capabilities/#{organization.extid}"
@@ -280,7 +280,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :vcr, :stripe
 
       env 'rack.session', {
         'authenticated' => true,
-        'custid' => other_customer.custid
+        'custid' => other_customer.custid,
       }
 
       get "/billing/api/capabilities/#{organization.extid}/create_secrets"

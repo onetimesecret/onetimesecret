@@ -70,7 +70,7 @@ module Onetime
 
         # Add marketing features if provided
         if options[:marketing_features]
-          features = options[:marketing_features].split(',').map(&:strip)
+          features                            = options[:marketing_features].split(',').map(&:strip)
           product_params[:marketing_features] = features.map { |f| { name: f } }
           puts "\nMarketing features:"
           features.each { |f| puts "  - #{f}" }
@@ -89,8 +89,8 @@ module Onetime
 
         puts "\nNext steps:"
         puts "  bin/ots billing prices create --product #{product.id}"
-      rescue Stripe::StripeError => e
-        puts "Error creating product: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error creating product: #{ex.message}"
       end
     end
   end

@@ -47,7 +47,7 @@ module Onetime
         # Use StripeClient for automatic retry and idempotency
         require_relative '../lib/stripe_client'
         stripe_client = Billing::StripeClient.new
-        customer = stripe_client.create(Stripe::Customer, customer_params)
+        customer      = stripe_client.create(Stripe::Customer, customer_params)
 
         puts "\nCustomer created successfully:"
         puts "  ID: #{customer.id}"

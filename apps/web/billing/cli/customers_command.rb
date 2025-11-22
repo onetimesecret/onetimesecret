@@ -21,7 +21,7 @@ module Onetime
         return unless stripe_configured?
 
         puts 'Fetching customers from Stripe...'
-        params = { limit: limit }
+        params         = { limit: limit }
         params[:email] = email if email
 
         customers = Stripe::Customer.list(params)
@@ -32,7 +32,8 @@ module Onetime
         end
 
         puts format('%-22s %-30s %-25s %s',
-          'ID', 'EMAIL', 'NAME', 'CREATED')
+          'ID', 'EMAIL', 'NAME', 'CREATED'
+        )
         puts '-' * 90
 
         customers.data.each do |customer|
@@ -40,8 +41,8 @@ module Onetime
         end
 
         puts "\nTotal: #{customers.data.size} customer(s)"
-      rescue Stripe::StripeError => e
-        puts "Error fetching customers: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error fetching customers: #{ex.message}"
       end
     end
   end

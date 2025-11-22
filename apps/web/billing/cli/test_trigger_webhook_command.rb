@@ -33,7 +33,7 @@ module Onetime
         puts "Triggering test webhook: #{event_type}"
 
         # Build stripe CLI command
-        cmd = "stripe trigger #{event_type}"
+        cmd  = "stripe trigger #{event_type}"
         cmd += " --subscription #{subscription}" if subscription
         cmd += " --customer #{customer}" if customer
 
@@ -49,9 +49,8 @@ module Onetime
 
         # Execute command
         system(cmd)
-
-      rescue StandardError => e
-        puts "Error: #{e.message}"
+      rescue StandardError => ex
+        puts "Error: #{ex.message}"
         puts "\nNote: Requires Stripe CLI installed (stripe.com/docs/stripe-cli)"
       end
     end

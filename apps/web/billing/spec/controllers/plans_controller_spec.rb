@@ -32,7 +32,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :vcr, :stripe_sandbo
     # Mock authentication for authenticated endpoints
     env 'rack.session', {
       'authenticated' => true,
-      'custid' => customer.custid
+      'custid' => customer.custid,
     }
   end
 
@@ -50,7 +50,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :vcr, :stripe_sandbo
       get "/billing/plans/#{tier}/#{billing_cycle}"
 
       expect(last_response.status).to eq(302)
-      expect(last_response.location).to match(/^https:\/\/checkout\.stripe\.com/)
+      expect(last_response.location).to match(%r{^https://checkout\.stripe\.com})
     end
 
     it 'creates checkout session with correct plan', :vcr do
@@ -59,8 +59,8 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :vcr, :stripe_sandbo
       expect(last_response.status).to eq(302)
 
       # Extract session ID from redirect URL
-      session_id = last_response.location.match(/\/pay\/([^?]+)/)[1]
-      session = Stripe::Checkout::Session.retrieve(session_id)
+      session_id = last_response.location.match(%r{/pay/([^?]+)})[1]
+      session    = Stripe::Checkout::Session.retrieve(session_id)
 
       # Verify plan metadata
       expect(session.subscription_data['metadata']['tier']).to eq(tier)
@@ -71,8 +71,8 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :vcr, :stripe_sandbo
 
       expect(last_response.status).to eq(302)
 
-      session_id = last_response.location.match(/\/pay\/([^?]+)/)[1]
-      session = Stripe::Checkout::Session.retrieve(session_id)
+      session_id = last_response.location.match(%r{/pay/([^?]+)})[1]
+      session    = Stripe::Checkout::Session.retrieve(session_id)
 
       expect(session.customer_email).to eq(customer.email)
     end
@@ -82,8 +82,8 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :vcr, :stripe_sandbo
 
       expect(last_response.status).to eq(302)
 
-      session_id = last_response.location.match(/\/pay\/([^?]+)/)[1]
-      session = Stripe::Checkout::Session.retrieve(session_id)
+      session_id = last_response.location.match(%r{/pay/([^?]+)})[1]
+      session    = Stripe::Checkout::Session.retrieve(session_id)
 
       expect(session.subscription_data['metadata']['custid']).to eq(customer.custid)
     end
@@ -110,8 +110,8 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :vcr, :stripe_sandbo
 
       expect(last_response.status).to eq(302)
 
-      session_id = last_response.location.match(/\/pay\/([^?]+)/)[1]
-      session = Stripe::Checkout::Session.retrieve(session_id)
+      session_id = last_response.location.match(%r{/pay/([^?]+)})[1]
+      session    = Stripe::Checkout::Session.retrieve(session_id)
 
       # Verify yearly plan was used (would need to check price ID matches yearly)
       expect(session.subscription_data['metadata']).to include('tier' => tier)
@@ -134,8 +134,8 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :vcr, :stripe_sandbo
 
       expect(last_response.status).to eq(302)
 
-      session_id = last_response.location.match(/\/pay\/([^?]+)/)[1]
-      session = Stripe::Checkout::Session.retrieve(session_id)
+      session_id = last_response.location.match(%r{/pay/([^?]+)})[1]
+      session    = Stripe::Checkout::Session.retrieve(session_id)
 
       expect(session.subscription_data['metadata']).to have_key('region')
     end
@@ -152,14 +152,14 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :vcr, :stripe_sandbo
     it 'processes checkout session and activates organization', :vcr do
       # Create a real checkout session
       stripe_customer = Stripe::Customer.create(email: customer.email)
-      subscription = Stripe::Subscription.create(
+      Stripe::Subscription.create(
         customer: stripe_customer.id,
         items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }],
         metadata: {
           custid: customer.custid,
           plan_id: 'identity_v1',
-          tier: 'single_team'
-        }
+          tier: 'single_team',
+        },
       )
 
       checkout_session = Stripe::Checkout::Session.create(
@@ -167,7 +167,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :vcr, :stripe_sandbo
         customer: stripe_customer.id,
         line_items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test'), quantity: 1 }],
         success_url: 'http://example.com/success',
-        cancel_url: 'http://example.com/cancel'
+        cancel_url: 'http://example.com/cancel',
       )
 
       get "/billing/welcome?session_id=#{checkout_session.id}"
@@ -198,18 +198,18 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :vcr, :stripe_sandbo
       # Switch session
       env 'rack.session', {
         'authenticated' => true,
-        'custid' => new_customer.custid
+        'custid' => new_customer.custid,
       }
 
       # Create checkout session for new customer
       stripe_customer = Stripe::Customer.create(email: new_customer.email)
-      subscription = Stripe::Subscription.create(
+      subscription    = Stripe::Subscription.create(
         customer: stripe_customer.id,
         items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }],
         metadata: {
           custid: new_customer.custid,
-          plan_id: 'identity_v1'
-        }
+          plan_id: 'identity_v1',
+        },
       )
 
       checkout_session = Stripe::Checkout::Session.create(
@@ -218,7 +218,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :vcr, :stripe_sandbo
         subscription: subscription.id,
         line_items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test'), quantity: 1 }],
         success_url: 'http://example.com/success',
-        cancel_url: 'http://example.com/cancel'
+        cancel_url: 'http://example.com/cancel',
       )
 
       get "/billing/welcome?session_id=#{checkout_session.id}"
@@ -256,18 +256,18 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :vcr, :stripe_sandbo
 
     it 'redirects to Stripe Customer Portal', :vcr do
       # Create Stripe customer
-      stripe_customer = Stripe::Customer.create(email: organization.billing_email)
+      stripe_customer                 = Stripe::Customer.create(email: organization.billing_email)
       organization.stripe_customer_id = stripe_customer.id
       organization.save
 
       get '/billing/portal'
 
       expect(last_response.status).to eq(302)
-      expect(last_response.location).to match(/^https:\/\/billing\.stripe\.com/)
+      expect(last_response.location).to match(%r{^https://billing\.stripe\.com})
     end
 
     it 'includes return URL to /account', :vcr do
-      stripe_customer = Stripe::Customer.create(email: organization.billing_email)
+      stripe_customer                 = Stripe::Customer.create(email: organization.billing_email)
       organization.stripe_customer_id = stripe_customer.id
       organization.save
 
@@ -304,7 +304,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :vcr, :stripe_sandbo
 
       env 'rack.session', {
         'authenticated' => true,
-        'custid' => new_customer.custid
+        'custid' => new_customer.custid,
       }
 
       # Customer has no organizations initially
@@ -322,7 +322,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :vcr, :stripe_sandbo
     end
 
     it 'sets no-cache headers', :vcr do
-      stripe_customer = Stripe::Customer.create(email: organization.billing_email)
+      stripe_customer                 = Stripe::Customer.create(email: organization.billing_email)
       organization.stripe_customer_id = stripe_customer.id
       organization.save
 

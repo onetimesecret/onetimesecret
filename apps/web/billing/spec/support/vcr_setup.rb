@@ -45,7 +45,7 @@ VCR.configure do |config|
   config.default_cassette_options = {
     record: VCRHelper.record_mode,
     match_requests_on: [:method, :uri, :body],
-    allow_playback_repeats: true
+    allow_playback_repeats: true,
   }
 
   # Filter sensitive data from cassettes
@@ -68,7 +68,7 @@ VCR.configure do |config|
   # Configure for different Stripe endpoints
   config.before_record do |interaction|
     # Normalize Stripe API version headers
-    interaction.request.headers['Stripe-Version'] = ['<STRIPE_VERSION>']
+    interaction.request.headers['Stripe-Version']  = ['<STRIPE_VERSION>']
     interaction.response.headers['Stripe-Version'] = ['<STRIPE_VERSION>']
 
     # Remove request ID headers (unique per request)
@@ -82,6 +82,6 @@ WebMock.disable_net_connect!(
   allow_localhost: true,
   allow: [
     'localhost:12111', # stripe-mock server
-    '127.0.0.1:12111'
-  ]
+    '127.0.0.1:12111',
+  ],
 )

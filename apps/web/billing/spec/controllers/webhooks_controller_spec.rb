@@ -41,18 +41,18 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
         payload = {
           id: 'evt_test_invalid',
           type: 'customer.subscription.updated',
-          data: { object: {} }
+          data: { object: {} },
         }.to_json
 
         # Generate signature with wrong secret
         invalid_signature = generate_stripe_signature(
           payload: payload,
-          secret: 'wrong_secret'
+          secret: 'wrong_secret',
         )
 
         post '/billing/webhook', payload, {
           'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => invalid_signature
+          'HTTP_STRIPE_SIGNATURE' => invalid_signature,
         }
 
         expect(last_response.status).to eq(400)
@@ -63,20 +63,20 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
         payload = {
           id: 'evt_test_expired',
           type: 'customer.subscription.updated',
-          data: { object: {} }
+          data: { object: {} },
         }.to_json
 
         # Generate signature with timestamp older than tolerance (5 minutes)
-        old_timestamp = (Time.now - 600).to_i
+        old_timestamp     = (Time.now - 600).to_i
         expired_signature = generate_stripe_signature(
           payload: payload,
           secret: webhook_secret,
-          timestamp: old_timestamp
+          timestamp: old_timestamp,
         )
 
         post '/billing/webhook', payload, {
           'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => expired_signature
+          'HTTP_STRIPE_SIGNATURE' => expired_signature,
         }
 
         expect(last_response.status).to eq(400)
@@ -87,18 +87,18 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
         payload = {
           id: 'evt_test_replay',
           type: 'customer.subscription.updated',
-          data: { object: { id: 'sub_test' } }
+          data: { object: { id: 'sub_test' } },
         }.to_json
 
         signature = generate_stripe_signature(
           payload: payload,
-          secret: webhook_secret
+          secret: webhook_secret,
         )
 
         # First request should succeed
         post '/billing/webhook', payload, {
           'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => signature
+          'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
         expect(last_response.status).to eq(200)
@@ -106,7 +106,7 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
         # Second request with same event_id should be rejected as duplicate
         post '/billing/webhook', payload, {
           'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => signature
+          'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
         expect(last_response.status).to eq(200)
@@ -118,12 +118,12 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
 
         signature = generate_stripe_signature(
           payload: invalid_payload,
-          secret: webhook_secret
+          secret: webhook_secret,
         )
 
         post '/billing/webhook', invalid_payload, {
           'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => signature
+          'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
         expect(last_response.status).to eq(400)
@@ -152,8 +152,8 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
           metadata: {
             custid: customer.custid,
             plan_id: 'identity_v1',
-            tier: 'single_team'
-          }
+            tier: 'single_team',
+          },
         )
 
         event_payload = {
@@ -163,19 +163,19 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
             object: {
               id: "cs_test_#{SecureRandom.hex(8)}",
               customer: stripe_customer.id,
-              subscription: subscription.id
-            }
-          }
+              subscription: subscription.id,
+            },
+          },
         }.to_json
 
         signature = generate_stripe_signature(
           payload: event_payload,
-          secret: webhook_secret
+          secret: webhook_secret,
         )
 
         post '/billing/webhook', event_payload, {
           'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => signature
+          'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
         expect(last_response.status).to eq(200)
@@ -199,19 +199,19 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
             object: {
               id: "cs_test_#{SecureRandom.hex(8)}",
               customer: 'cus_nonexistent',
-              subscription: 'sub_test'
-            }
-          }
+              subscription: 'sub_test',
+            },
+          },
         }.to_json
 
         signature = generate_stripe_signature(
           payload: event_payload,
-          secret: webhook_secret
+          secret: webhook_secret,
         )
 
         post '/billing/webhook', event_payload, {
           'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => signature
+          'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
         # Should still return 200 (logged but not critical error)
@@ -240,9 +240,9 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
       it 'updates organization subscription status', :vcr do
         # Create real Stripe subscription
         stripe_customer = Stripe::Customer.create(email: customer.email)
-        subscription = Stripe::Subscription.create(
+        subscription    = Stripe::Subscription.create(
           customer: stripe_customer.id,
-          items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }]
+          items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }],
         )
 
         # Associate subscription with organization
@@ -252,25 +252,25 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
         # Update subscription status
         updated_subscription = Stripe::Subscription.update(
           subscription.id,
-          metadata: { status: 'active' }
+          metadata: { status: 'active' },
         )
 
         event_payload = {
           id: "evt_sub_updated_#{SecureRandom.hex(8)}",
           type: 'customer.subscription.updated',
           data: {
-            object: updated_subscription.to_hash
-          }
+            object: updated_subscription.to_hash,
+          },
         }.to_json
 
         signature = generate_stripe_signature(
           payload: event_payload,
-          secret: webhook_secret
+          secret: webhook_secret,
         )
 
         post '/billing/webhook', event_payload, {
           'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => signature
+          'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
         expect(last_response.status).to eq(200)
@@ -307,19 +307,19 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
           data: {
             object: {
               id: organization.stripe_subscription_id,
-              status: 'canceled'
-            }
-          }
+              status: 'canceled',
+            },
+          },
         }.to_json
 
         signature = generate_stripe_signature(
           payload: event_payload,
-          secret: webhook_secret
+          secret: webhook_secret,
         )
 
         post '/billing/webhook', event_payload, {
           'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => signature
+          'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
         expect(last_response.status).to eq(200)
@@ -339,21 +339,21 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
             object: {
               id: 'prod_test',
               object: 'product',
-              name: 'Updated Product'
-            }
-          }
+              name: 'Updated Product',
+            },
+          },
         }.to_json
 
         signature = generate_stripe_signature(
           payload: event_payload,
-          secret: webhook_secret
+          secret: webhook_secret,
         )
 
         expect(Billing::Plan).to receive(:refresh_from_stripe).and_call_original
 
         post '/billing/webhook', event_payload, {
           'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => signature
+          'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
         expect(last_response.status).to eq(200)
@@ -367,19 +367,19 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
             object: {
               id: 'price_test',
               object: 'price',
-              unit_amount: 2999
-            }
-          }
+              unit_amount: 2999,
+            },
+          },
         }.to_json
 
         signature = generate_stripe_signature(
           payload: event_payload,
-          secret: webhook_secret
+          secret: webhook_secret,
         )
 
         post '/billing/webhook', event_payload, {
           'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => signature
+          'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
         expect(last_response.status).to eq(200)
@@ -394,19 +394,19 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
           data: {
             object: {
               id: 'cus_test',
-              email: 'test@example.com'
-            }
-          }
+              email: 'test@example.com',
+            },
+          },
         }.to_json
 
         signature = generate_stripe_signature(
           payload: event_payload,
-          secret: webhook_secret
+          secret: webhook_secret,
         )
 
         post '/billing/webhook', event_payload, {
           'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => signature
+          'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
         expect(last_response.status).to eq(200)
@@ -423,14 +423,14 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
             object: {
               id: 'cs_test_failure',
               customer: 'cus_test',
-              subscription: 'sub_test'
-            }
-          }
+              subscription: 'sub_test',
+            },
+          },
         }.to_json
 
         signature = generate_stripe_signature(
           payload: event_payload,
-          secret: webhook_secret
+          secret: webhook_secret,
         )
 
         # Simulate processing failure
@@ -440,7 +440,7 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
 
         post '/billing/webhook', event_payload, {
           'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => signature
+          'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
         expect(last_response.status).to eq(500)
@@ -454,7 +454,7 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
 
         post '/billing/webhook', event_payload, {
           'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => signature
+          'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
         expect(last_response.status).to eq(200)
