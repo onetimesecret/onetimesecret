@@ -69,7 +69,7 @@ module Onetime
       # Log final effective configuration
       log_effective_configuration
 
-      warn " exiting configure_loggers (level: #{SemanticLogger.default_level})"
+      warn " exiting configure_loggers (level: #{SemanticLogger.default_level})" if Onetime.debug?
     end
 
     private
@@ -168,6 +168,8 @@ module Onetime
         level = logger.level
         overrides << "#{name}=#{level}" if level != default
       end
+
+      return unless Onetime.debug?
 
       if overrides.any?
         warn " default=#{default}, overrides: #{overrides.join(', ')}"
