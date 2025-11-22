@@ -21,7 +21,6 @@ module Core
         output = self.output_template
 
         site = view_vars[:site] || {}
-        incoming = view_vars[:incoming] # TODO: Update to features.incoming
         development = view_vars[:development]
         diagnostics = view_vars[:diagnostics]
 
@@ -40,8 +39,6 @@ module Core
 
         output[:domains_enabled] = domains.fetch(:enabled, false)
         output[:domains] = domains if output[:domains_enabled]
-
-        output[:incoming_recipient] = incoming.fetch(:email, nil)
 
         # Link to the pricing page can be seen regardless of authentication status
         output[:plans_enabled] = site.dig(:plans, :enabled) || false
@@ -75,7 +72,6 @@ module Core
             frontend_development: nil,
             frontend_host: nil,
             homepage_mode: nil,
-            incoming_recipient: nil,
             plans_enabled: nil,
             regions: nil,
             regions_enabled: nil,

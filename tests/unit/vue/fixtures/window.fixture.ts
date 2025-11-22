@@ -84,7 +84,6 @@ export const stateFixture: OnetimeWindow = {
       },
     ],
   },
-  incoming_recipient: 'incoming@solutious.com',
   available_jurisdictions: ['EU', 'US'],
   enjoyTheVue: true,
   canonical_domain: 'dev.onetimesecret.com',
