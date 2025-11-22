@@ -468,36 +468,6 @@
     "domains": {
       "learn-more-dns": "Learn more about DNS configuration",
       "view-domain-verification-status": "View domain verification status"
-    },
-    "incoming": {
-      "page_title": "Share an Incoming Secret",
-      "page_description": "Create a secure, one-time secret for a specific recipient",
-      "loading_config": "Loading configuration...",
-      "config_error_title": "Configuration Error",
-      "feature_disabled_title": "Feature Not Available",
-      "feature_disabled_description": "The incoming secrets feature is currently disabled. Please contact your administrator for more information.",
-      "title_label": "Secret Title",
-      "title_aria_label": "Enter a title for this secret",
-      "title_hint": "This helps you and the recipient identify the secret",
-      "recipient_label": "Recipient",
-      "recipient_aria_label": "Select a recipient for this secret",
-      "recipient_hint": "Choose who will receive this secret",
-      "no_recipients_available": "No recipients are available",
-      "secret_content_label": "Secret Content",
-      "passphrase_label": "Passphrase",
-      "passphrase_placeholder": "Optional passphrase for extra security",
-      "passphrase_hint": "Add an extra layer of security with a passphrase",
-      "optional": "optional",
-      "reset_form": "Reset Form",
-      "submitting": "Submitting...",
-      "submit_secret": "Create Secret",
-      "success_title": "Secret Created Successfully",
-      "success_description": "Your secret has been securely stored and the recipient has been notified.",
-      "reference_id": "Reference ID",
-      "success_info_title": "What happens next?",
-      "success_info_description": "The recipient will receive a secure link to view the secret. The secret will be automatically deleted after it is viewed or when it expires.",
-      "create_another": "Create Another Secret",
-      "view_recent_secrets": "View Recent Secrets"
     }
   },
   "email": {
