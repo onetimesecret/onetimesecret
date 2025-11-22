@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneTimeSecret - Mobile States</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#dc4a22',
+                            600: '#c43d1b',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <div class="max-w-6xl mx-auto">
+
+        <!-- Title -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Mobile Experience</h1>
+            <p class="text-gray-600">Responsive design for touch-first interactions</p>
+        </div>
+
+        <!-- Mobile Mockup Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <!-- Mobile State 1: Landing -->
+            <div class="bg-gray-800 rounded-3xl p-3 shadow-2xl">
+                <!-- Phone Chrome -->
+                <div class="bg-white rounded-2xl overflow-hidden" style="height: 650px;">
+                    <!-- Status Bar -->
+                    <div class="bg-gray-100 px-4 py-2 flex items-center justify-between text-xs">
+                        <span>9:41</span>
+                        <div class="flex items-center space-x-1">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                        </div>
+                    </div>
+
+                    <!-- Safari Address Bar -->
+                    <div class="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                        <div class="bg-white rounded-lg px-3 py-1 text-xs text-gray-600 border border-gray-300">
+                            🔒 onetimesecret.com
+                        </div>
+                    </div>
+
+                    <!-- Page Content -->
+                    <div class="p-4 bg-gray-50 overflow-auto" style="height: 530px;">
+
+                        <!-- Header -->
+                        <div class="text-center mb-6">
+                            <div class="flex justify-center mb-3">
+                                <svg class="w-10 h-10 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                            </div>
+                            <h1 class="text-2xl font-bold text-gray-900 mb-1">
+                                Share a Secret
+                            </h1>
+                            <p class="text-sm text-gray-600">
+                                Keep it private
+                            </p>
+                        </div>
+
+                        <!-- Card -->
+                        <div class="bg-white rounded-xl shadow-md p-4">
+                            <textarea
+                                placeholder="Paste password, key, or message..."
+                                rows="3"
+                                class="w-full px-3 py-3 text-sm border-2 border-gray-200 rounded-lg resize-none placeholder-gray-400"
+                            ></textarea>
+
+                            <div class="mt-4 text-center">
+                                <a href="#" class="text-xs text-brand-600 font-medium">
+                                    Generate password →
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Trust Badges -->
+                        <div class="mt-6 text-center space-y-2">
+                            <div class="flex items-center justify-center text-xs text-gray-500">
+                                <svg class="w-4 h-4 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                                <span>Encrypted</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Label -->
+                    <div class="absolute bottom-16 left-1/2 -translate-x-1/2 px-2 py-1 bg-blue-600 text-white text-xs rounded">
+                        Landing
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile State 2: After Typing -->
+            <div class="bg-gray-800 rounded-3xl p-3 shadow-2xl">
+                <div class="bg-white rounded-2xl overflow-hidden" style="height: 650px;">
+                    <!-- Status Bar -->
+                    <div class="bg-gray-100 px-4 py-2 flex items-center justify-between text-xs">
+                        <span>9:41</span>
+                        <div class="flex items-center space-x-1">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                        </div>
+                    </div>
+
+                    <!-- Safari Address Bar -->
+                    <div class="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                        <div class="bg-white rounded-lg px-3 py-1 text-xs text-gray-600 border border-gray-300">
+                            🔒 onetimesecret.com
+                        </div>
+                    </div>
+
+                    <!-- Page Content -->
+                    <div class="p-4 bg-gray-50 overflow-auto" style="height: 530px;">
+
+                        <div class="text-center mb-4">
+                            <h1 class="text-xl font-bold text-gray-900">Share a Secret</h1>
+                        </div>
+
+                        <!-- Card -->
+                        <div class="bg-white rounded-xl shadow-md p-4">
+                            <textarea
+                                rows="3"
+                                class="w-full px-3 py-2 text-xs border-2 border-brand-500 rounded-lg resize-none font-mono"
+                            >sk_test_EXAMPLE...</textarea>
+
+                            <div class="flex items-center justify-between mt-2 text-xs">
+                                <span class="text-green-600">✓ Ready</span>
+                                <span class="text-gray-400">15 / 10,000</span>
+                            </div>
+
+                            <!-- Smart Suggestion (Condensed) -->
+                            <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div class="flex items-start">
+                                    <svg class="w-4 h-4 text-blue-600 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                                    <div class="flex-1">
+                                        <p class="text-xs font-semibold text-blue-900 mb-1">API key</p>
+                                        <p class="text-xs text-blue-700 mb-2">Recommend shorter expiry + passphrase</p>
+                                        <div class="flex space-x-2">
+                                            <button class="px-3 py-1 bg-blue-600 text-white text-xs rounded">Apply</button>
+                                            <button class="px-3 py-1 bg-white border border-blue-300 text-blue-600 text-xs rounded">Skip</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Options Toggle -->
+                            <div class="mt-4">
+                                <button class="w-full px-3 py-2 bg-gray-50 rounded-lg text-left text-xs flex items-center justify-between">
+                                    <span class="text-gray-700">Options ▾</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Sticky Button at Bottom -->
+                        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+                            <button class="w-full py-3 bg-brand-500 text-white font-semibold rounded-lg shadow-lg" style="min-height: 56px;">
+                                Create Link
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- Label -->
+                    <div class="absolute bottom-16 left-1/2 -translate-x-1/2 px-2 py-1 bg-blue-600 text-white text-xs rounded">
+                        Typing
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile State 3: Options Expanded -->
+            <div class="bg-gray-800 rounded-3xl p-3 shadow-2xl">
+                <div class="bg-white rounded-2xl overflow-hidden" style="height: 650px;">
+                    <!-- Status Bar -->
+                    <div class="bg-gray-100 px-4 py-2 flex items-center justify-between text-xs">
+                        <span>9:41</span>
+                        <div class="flex items-center space-x-1">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                        </div>
+                    </div>
+
+                    <!-- Safari Address Bar -->
+                    <div class="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                        <div class="bg-white rounded-lg px-3 py-1 text-xs text-gray-600 border border-gray-300">
+                            🔒 onetimesecret.com
+                        </div>
+                    </div>
+
+                    <!-- Page Content -->
+                    <div class="p-4 bg-gray-50 overflow-auto pb-20" style="height: 530px;">
+
+                        <div class="text-center mb-4">
+                            <h1 class="text-xl font-bold text-gray-900">Share a Secret</h1>
+                        </div>
+
+                        <!-- Card -->
+                        <div class="bg-white rounded-xl shadow-md p-4">
+                            <textarea
+                                rows="2"
+                                class="w-full px-3 py-2 text-xs border-2 border-brand-500 rounded-lg resize-none font-mono"
+                            >sk_test_EXAMPLE...</textarea>
+                            <div class="text-right text-xs text-gray-400 mt-1">15 / 10,000</div>
+
+                            <!-- Options Expanded -->
+                            <div class="mt-4">
+                                <button class="w-full px-3 py-2 bg-gray-100 rounded-lg text-left text-xs flex items-center justify-between mb-3">
+                                    <span class="font-semibold text-gray-900">Options ▴</span>
+                                </button>
+
+                                <div class="space-y-4 px-2">
+                                    <!-- Passphrase -->
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700 mb-1 block">Passphrase (opt.)</label>
+                                        <input
+                                            type="password"
+                                            placeholder="Extra security..."
+                                            class="w-full px-3 py-2 text-xs border-2 border-gray-300 rounded-lg"
+                                            style="min-height: 44px;"
+                                        />
+                                    </div>
+
+                                    <!-- TTL Buttons -->
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700 mb-2 block">Expires in</label>
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <button class="px-2 py-2 bg-white border-2 border-gray-300 rounded text-xs" style="min-height: 44px;">1hr</button>
+                                            <button class="px-2 py-2 bg-white border-2 border-gray-300 rounded text-xs" style="min-height: 44px;">1d</button>
+                                            <button class="px-2 py-2 bg-brand-500 border-2 border-brand-500 text-white rounded text-xs font-medium" style="min-height: 44px;">7d</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sticky Button -->
+                        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+                            <button class="w-full py-3 bg-brand-500 text-white font-semibold rounded-lg shadow-lg" style="min-height: 56px;">
+                                Create Link
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- Label -->
+                    <div class="absolute bottom-16 left-1/2 -translate-x-1/2 px-2 py-1 bg-blue-600 text-white text-xs rounded">
+                        Options
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Design Notes -->
+        <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Mobile Design Principles</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Touch Targets</h3>
+                    <ul class="text-gray-600 space-y-1">
+                        <li>• Minimum 44×44px (iOS guidelines)</li>
+                        <li>• Large primary button (56px height)</li>
+                        <li>• Adequate spacing between buttons</li>
+                        <li>• Thumb-zone positioning</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Sticky Actions</h3>
+                    <ul class="text-gray-600 space-y-1">
+                        <li>• Button always visible (fixed bottom)</li>
+                        <li>• No keyboard occlusion</li>
+                        <li>• White border-top for separation</li>
+                        <li>• Shadow for depth perception</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Progressive Disclosure</h3>
+                    <ul class="text-gray-600 space-y-1">
+                        <li>• Smart suggestions condensed</li>
+                        <li>• Options collapsed by default</li>
+                        <li>• Single-column stacking</li>
+                        <li>• Minimal scrolling required</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Input Optimization</h3>
+                    <ul class="text-gray-600 space-y-1">
+                        <li>• autocorrect="off" for secret input</li>
+                        <li>• Appropriate inputmode attributes</li>
+                        <li>• Auto-resize textarea</li>
+                        <li>• Clear visual feedback</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
