@@ -50,6 +50,42 @@ module Onetime
       end
     end
 
+    class IncomingSecretNotification < Mail::Views::Base
+      def init secret, recipient
+        raise ArgumentError, "Secret required" unless secret
+        raise ArgumentError, "Recipient required" unless recipient
+
+        self[:secret] = secret
+        self[:email_address] = recipient
+        self[:from_name] = OT.conf[:emailer][:fromname]
+        self[:from] = OT.conf[:emailer][:from]
+        self[:signature_link] = 'https://onetimesecret.com/'
+
+        # Get memo from metadata if available
+        # Load metadata to access memo field
+        metadata = V2::Metadata.load(secret.metadata_key) if secret.metadata_key
+        self[:memo] = metadata&.memo
+      end
+
+      def subject
+        memo = self[:memo]
+        if memo && !memo.empty?
+          "Incoming secret: #{memo}"
+        else
+          "You've received a secret message"
+        end
+      end
+
+      def display_domain
+        secret_display_domain self[:secret]
+      end
+
+      def uri_path
+        raise ArgumentError, "Invalid secret key" unless self[:secret]&.key
+        secret_uri self[:secret]
+      end
+    end
+
     class SupportMessage < Mail::Views::Base
       attr_reader :subject
       def init from_name, subject
