@@ -8,6 +8,7 @@
 # All Stripe mocking will be done via stripe-mock server + VCR.
 
 require 'spec_helper'
+require 'openssl'
 
 module BillingSpecHelper
   # Freeze time for time-sensitive tests using Timecop
@@ -46,6 +47,27 @@ module BillingSpecHelper
   def expect_linear_backoff(base: 2, count: 3)
     expected = (1..count).map { |i| base * i }
     expect(sleep_delays).to eq(expected)
+  end
+
+  # Generate valid Stripe webhook signature
+  #
+  # Uses Stripe's official signature generation algorithm.
+  # This creates a real signature that will pass Stripe.Webhook.construct_event validation.
+  #
+  # @param payload [String] Raw webhook payload
+  # @param secret [String] Webhook signing secret
+  # @param timestamp [Integer] Unix timestamp (defaults to current time)
+  # @return [String] Stripe-Signature header value
+  #
+  def generate_stripe_signature(payload:, secret:, timestamp: nil)
+    timestamp ||= Time.now.to_i
+
+    # Stripe signature format: t={timestamp},v1={signature}
+    # Signature is HMAC-SHA256 of "{timestamp}.{payload}"
+    signed_payload = "#{timestamp}.#{payload}"
+    signature = OpenSSL::HMAC.hexdigest('SHA256', secret, signed_payload)
+
+    "t=#{timestamp},v1=#{signature}"
   end
 end
 

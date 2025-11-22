@@ -29,7 +29,10 @@ module Billing
     # @return [Boolean] True if event was already processed
     def self.processed?(stripe_event_id)
       event = new(stripe_event_id: stripe_event_id)
-      event.exists?
+      # Use dbclient.exists to check key existence
+      # FakeRedis returns boolean, real Redis returns integer
+      result = event.dbclient.exists?(event.dbkey)
+      result == 1 || result == true
     end
 
     # Mark event as processed (non-atomic, use mark_processed_if_new! instead)
@@ -41,7 +44,26 @@ module Billing
       event = new(stripe_event_id: stripe_event_id)
       event.event_type = event_type
       event.processed_at = Time.now.to_i.to_s
-      event.save
+
+      # Store as JSON string, same as atomic version
+      event.dbclient.set(event.dbkey, event.to_json)
+
+      # Set expiration
+      ttl_seconds = 7 * 24 * 60 * 60  # 7 days
+      event.dbclient.expire(event.dbkey, ttl_seconds)
+
+      event
+    end
+
+    # Check if this event instance exists in Redis
+    def exists?
+      result = dbclient.exists?(dbkey)
+      result == 1 || result == true
+    end
+
+    # Delete this event from Redis
+    def destroy!
+      dbclient.del(dbkey)
     end
 
     # Atomically mark event as processed if not already processed
@@ -59,10 +81,14 @@ module Billing
 
       # Try to save with NX flag (only if not exists)
       # Returns true if key was set, false if key already existed
-      result = event.rediskey.setnx(event.to_json)
+      # Familia v2: use dbclient for redis connection, dbkey for the key
+      result = event.dbclient.setnx(event.dbkey, event.to_json)
 
       # Set expiration if we successfully created the key
-      event.update_expiration if result
+      if result
+        ttl_seconds = 7 * 24 * 60 * 60  # 7 days
+        event.dbclient.expire(event.dbkey, ttl_seconds)
+      end
 
       result
     end
