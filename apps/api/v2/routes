@@ -53,3 +53,7 @@ GET    /colonel/config                            V2::Controllers::Colonel#get_c
 POST   /colonel/config                            V2::Controllers::Colonel#update_config
 GET    /colonel/info                              V2::Controllers::Colonel#get_info
 GET    /colonel/stats                             V2::Controllers::Colonel#get_stats
+
+GET    /incoming/config                           V2::Controllers::Incoming#get_config
+POST   /incoming/secret                           V2::Controllers::Incoming#create_secret
+POST   /incoming/validate                         V2::Controllers::Incoming#validate_recipient
