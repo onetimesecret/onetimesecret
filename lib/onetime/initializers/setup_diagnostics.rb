@@ -42,6 +42,16 @@ module Onetime
         Kernel.require 'sentry-ruby'
         Kernel.require 'stackprof'
 
+        # Fix for OpenSSL 3.6+ CRL verification failures on macOS
+        # OpenSSL 3.6 enables strict CRL checking by default, but macOS's
+        # OpenSSL build lacks a CRL bundle, causing valid certificates to fail.
+        # This disables CRL checking while maintaining certificate verification.
+        # See: https://github.com/rails/rails/issues/55886
+        Kernel.require 'openssl'
+        OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_mode] = OpenSSL::SSL::VERIFY_PEER
+        OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_flags] &=
+          ~(OpenSSL::X509::V_FLAG_CRL_CHECK_ALL | OpenSSL::X509::V_FLAG_CRL_CHECK)
+
         Sentry.init do |config|
           config.dsn = dsn
           config.environment = "#{site_host} (#{OT.env})"

@@ -30,6 +30,7 @@ module V2
     # that based on the `secret_ttl` and the `created` timestamp. See
     # the secret_expired? and expiration methods.
     field :recipients
+    field :memo
     field :truncate # boolean
 
     # NOTE: this field is a nullop. It's only populated if a value was entered
@@ -55,6 +56,7 @@ module V2
       :burned,
       :viewed,
       :recipients,
+      :memo,
 
       { :shortkey => ->(m) { m.key.slice(0, 8) } },
       { :show_recipients => ->(m) { !m.recipients.to_s.empty? } },

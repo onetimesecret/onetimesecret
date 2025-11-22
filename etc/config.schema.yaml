@@ -88,6 +88,7 @@
 
 :features:
   :stathat: map(required=False)
+  :incoming: include(':incoming', required=False)
 
 :redis:
   :uri: str()
@@ -251,3 +252,14 @@
   :default_mode: str(required=False)
   :trusted_proxy_depth: any(int(), str(), required=False)
   :trusted_ip_header: str(required=False)
+
+:incoming:
+  :enabled: any(bool(), str())
+  :memo_max_length: any(int(), str())
+  :default_passphrase: any(str(), required=False)
+  :default_ttl: any(int(), str())
+  :recipients: list(include(':incoming_recipient'))
+
+:incoming_recipient:
+  :email: str()
+  :name: str()

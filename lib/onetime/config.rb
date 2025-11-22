@@ -80,6 +80,15 @@ module Onetime
           allow_nil_global_secret: false, # defaults to a secure setting
           rotated_secrets: [],
         },
+        features: {
+          incoming: {
+            enabled: false,
+            memo_max_length: 50,
+            default_ttl: 604800,
+            default_passphrase: nil,
+            recipients: [],
+          },
+        },
       }
 
     end
