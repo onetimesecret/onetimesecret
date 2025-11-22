@@ -43,6 +43,8 @@ module Onetime
         if amount.nil?
           print 'Amount in cents (e.g., 900 for $9.00): '
           amount = $stdin.gets.chomp.to_i
+        else
+          amount = amount.to_i
         end
 
         if amount <= 0

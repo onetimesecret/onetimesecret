@@ -96,20 +96,16 @@ RSpec.configure do |config|
   config.include BillingSpecHelper, type: :integration
   config.include BillingSpecHelper, type: :cli
 
-  # Start stripe-mock Go server once for billing test suite
-  # StripeMockServer is a Ruby wrapper that spawns the stripe-mock binary
-  config.before(:suite) do
-    StripeMockServer.start
+  # stripe-mock is NOT used for integration tests
+  # Integration tests use VCR to record/replay real Stripe API calls
+  # Only start stripe-mock for tests explicitly tagged with :stripe_mock
+  config.before(:each, :stripe_mock) do
+    StripeMockServer.start unless StripeMockServer.running?
     StripeMockServer.configure_stripe_client!
   end
 
   config.after(:suite) do
-    StripeMockServer.stop
-  end
-
-  # Reset stripe-mock state between tests for isolation
-  config.before(:each, :stripe) do
-    StripeMockServer.reset!
+    StripeMockServer.stop if StripeMockServer.instance_variable_get(:@pid)
   end
 
   # VCR: Automatically wrap tests tagged with :vcr in cassettes
