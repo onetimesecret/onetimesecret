@@ -1,3 +1,5 @@
+# apps/web/billing/spec/cli/refunds_spec.rb
+#
 # frozen_string_literal: true
 
 require_relative '../support/billing_spec_helper'
@@ -28,7 +30,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
 
     describe '#call (list refunds)' do
       context 'with successful Stripe API response' do
-        it 'lists all refunds without filters', :vcr do
+        it 'lists all refunds without filters' do
           # Create test charge first
           customer = stripe_client.create(Stripe::Customer, {
             email: 'refund-test@example.com',
@@ -55,7 +57,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
           stripe_client.delete(Stripe::Customer, customer.id)
         end
 
-        it 'filters refunds by charge ID', :vcr do
+        it 'filters refunds by charge ID' do
           # NOTE: stripe-mock returns static refund data regardless of filter parameters
           # This test verifies the CLI accepts the charge filter parameter
           output = capture_stdout do
@@ -67,14 +69,14 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
           expect(output).to match(/Total: \d+ refund\(s\)/)
         end
 
-        it 'respects limit parameter', :vcr do
+        it 'respects limit parameter' do
           # List with limit
           expect {
             command.call(limit: 5)
           }.to output(/Fetching refunds from Stripe/).to_stdout
         end
 
-        it 'displays correct refund information', :vcr do
+        it 'displays correct refund information' do
           # NOTE: stripe-mock returns static refund data
           # This test verifies CLI output formatting is correct
           output = capture_stdout do
@@ -148,7 +150,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
 
     describe '#call (create refund)' do
       context 'with valid charge ID' do
-        it 'creates full refund with confirmation', :vcr, :code_smell do
+        it 'creates full refund with confirmation', :code_smell do
           # NOTE: stripe-mock returns hardcoded amounts ($1.00), not test input ($50.00)
           # This test validates CLI accepts parameters, not Stripe API behavior
           # Create test charge
@@ -179,7 +181,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
           stripe_client.delete(Stripe::Customer, customer.id)
         end
 
-        it 'creates partial refund', :vcr do
+        it 'creates partial refund' do
           customer = stripe_client.create(Stripe::Customer, {
             email: 'partial-refund-test@example.com'
           })
@@ -204,7 +206,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
           stripe_client.delete(Stripe::Customer, customer.id)
         end
 
-        it 'includes reason when provided', :vcr do
+        it 'includes reason when provided' do
           customer = stripe_client.create(Stripe::Customer, {
             email: 'refund-reason-test@example.com'
           })
@@ -229,7 +231,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
           stripe_client.delete(Stripe::Customer, customer.id)
         end
 
-        it 'bypasses confirmation with --yes flag', :vcr do
+        it 'bypasses confirmation with --yes flag' do
           customer = stripe_client.create(Stripe::Customer, {
             email: 'refund-yes-test@example.com'
           })

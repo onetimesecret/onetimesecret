@@ -1,3 +1,5 @@
+# apps/web/billing/spec/cli/subscriptions_spec.rb
+#
 # frozen_string_literal: true
 
 require_relative '../support/billing_spec_helper'
@@ -52,7 +54,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
 
     describe '#call (list subscriptions)' do
       context 'with successful Stripe API response' do
-        it 'lists all subscriptions without filters', :vcr do
+        it 'lists all subscriptions without filters' do
           # stripe-mock returns static subscription data
           expect {
             command.call(limit: 10)
@@ -82,7 +84,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
           expect(output).to match(/Fetching subscriptions from Stripe/)
         end
 
-        it 'respects limit parameter', :vcr do
+        it 'respects limit parameter' do
           expect {
             command.call(limit: 3)
           }.to output(/Fetching subscriptions from Stripe/).to_stdout
@@ -367,7 +369,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
 
     describe '#call (resume subscription)' do
       context 'with valid paused subscription' do
-        it 'resumes paused subscription', :vcr do
+        it 'resumes paused subscription' do
           test_data = create_test_subscription
 
           # Pause first
@@ -389,7 +391,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
         end
 
-        it 'bypasses confirmation with --yes flag', :vcr do
+        it 'bypasses confirmation with --yes flag' do
           test_data = create_test_subscription
 
           # Pause first
@@ -409,7 +411,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
         end
 
-        it 'detects not paused subscription', :vcr do
+        it 'detects not paused subscription' do
           test_data = create_test_subscription
 
           output = capture_stdout do
@@ -422,7 +424,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
         end
 
-        it 'aborts when user declines confirmation', :vcr do
+        it 'aborts when user declines confirmation' do
           test_data = create_test_subscription
 
           # Pause first
@@ -473,7 +475,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
 
     describe '#call (update subscription)' do
       context 'with valid subscription ID' do
-        it 'updates subscription quantity', :vcr do
+        it 'updates subscription quantity' do
           test_data = create_test_subscription
 
           allow($stdin).to receive(:gets).and_return("y\n")
@@ -490,7 +492,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
         end
 
-        it 'updates subscription price', :vcr do
+        it 'updates subscription price' do
           test_data = create_test_subscription
 
           # Create new price
@@ -514,7 +516,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
         end
 
-        it 'disables proration when specified', :vcr do
+        it 'disables proration when specified' do
           test_data = create_test_subscription
 
           allow($stdin).to receive(:gets).and_return("y\n")
@@ -547,7 +549,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
         end
 
-        it 'aborts when user declines confirmation', :vcr do
+        it 'aborts when user declines confirmation' do
           test_data = create_test_subscription
 
           allow($stdin).to receive(:gets).and_return("n\n")

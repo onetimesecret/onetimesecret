@@ -16,7 +16,8 @@ RSpec.describe 'Stripe Mock + VCR Setup', :stripe do
 
     it 'has configured Stripe client correctly' do
       expect(Stripe.api_base).to eq("http://localhost:#{StripeMockServer.port}")
-      expect(Stripe.api_key).to eq('sk_test_mock')
+      # Billing app warmup sets this from config, so just verify it's a test key
+      expect(Stripe.api_key).to start_with('sk_test_')
     end
   end
 

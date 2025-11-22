@@ -41,7 +41,7 @@ module Onetime
             all_subscriptions.auto_paging_each do |subscription|
               begin
                 Stripe::Subscription.update(subscription.id, { cancel_at_period_end: false })
-                Stripe::Subscription.delete(subscription.id)
+                Stripe::Subscription.cancel(subscription.id)
                 puts "  Cancelled subscription #{subscription.id}"
               rescue Stripe::StripeError => e
                 puts "  Failed to cancel subscription #{subscription.id}: #{e.message}"

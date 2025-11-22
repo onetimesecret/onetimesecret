@@ -1,3 +1,5 @@
+# apps/web/billing/spec/cli/invoices_spec.rb
+#
 # frozen_string_literal: true
 
 require_relative '../support/billing_spec_helper'
@@ -17,7 +19,7 @@ require_relative '../../cli/invoices_command'
 # Most tests here are :code_smell - they try to validate Stripe API behavior
 # Should be rewritten as true unit tests or moved to :integration with :stripe_sandbox_api
 
-RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :unit, :stripe_mock, :code_smell do
+RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :integration, :stripe_sandbox_api, :code_smell do
   let(:stripe_client) { Billing::StripeClient.new }
 
   # Helper to create test invoice
@@ -92,7 +94,7 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :unit, :stripe_moc
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
         end
 
-        it 'filters invoices by subscription ID', :vcr do
+        it 'filters invoices by subscription ID', :integration, :stripe_sandbox_api, :vcr do
           # Create subscription to generate invoice
           customer = stripe_client.create(Stripe::Customer, {
             email: 'invoice-sub-filter@example.com'
