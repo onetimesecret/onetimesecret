@@ -42,6 +42,16 @@ module Onetime
         Kernel.require 'sentry-ruby'
         Kernel.require 'stackprof'
 
+        # Fix for OpenSSL 3.6+ CRL verification failures on macOS
+        # OpenSSL 3.6 enables strict CRL checking by default, but macOS's
+        # OpenSSL build lacks a CRL bundle, causing valid certificates to fail.
+        # This disables CRL checking while maintaining certificate verification.
+        # See: https://github.com/rails/rails/issues/55886
+        Kernel.require 'openssl'
+        OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_mode] = OpenSSL::SSL::VERIFY_PEER
+        OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_flags] &=
+          ~(OpenSSL::X509::V_FLAG_CRL_CHECK_ALL | OpenSSL::X509::V_FLAG_CRL_CHECK)
+
         Sentry.init do |config|
           config.dsn = dsn
           config.environment = "#{site_host} (#{OT.env})"
@@ -59,15 +69,6 @@ module Onetime
           # Set profiles_sample_rate to profile 10%
           # of sampled transactions.
           config.profiles_sample_rate = 0.1
-
-          # Configure HTTP transport with relaxed CRL checking
-          # OpenSSL 3.x has strict CRL checking that can fail even with valid certs
-          # if the CRL distribution point is unreachable. This disables CRL checks
-          # while maintaining certificate verification (VERIFY_PEER).
-          config.transport.ssl_configuration = lambda do |ssl_context|
-            ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
-            ssl_context.verify_flags = 0  # Disable CRL checking
-          end
 
           # Add a before_send to filter out problematic events that might cause errors
           config.before_send = lambda do |event, _hint|
