@@ -1,7 +1,7 @@
-# frozen_string_literal: true
-
 # apps/web/billing/spec/support/shared_examples/webhook_security.rb
 #
+# frozen_string_literal: true
+
 # Shared examples for testing webhook security validations.
 # Uses FakeRedis (configured globally in spec_helper.rb) - no mocking needed.
 
@@ -15,12 +15,12 @@ RSpec.shared_examples 'validates webhook signatures' do
       signature = generate_stripe_signature(
         payload: valid_payload,
         secret: webhook_secret,
-        timestamp: timestamp
+        timestamp: timestamp,
       )
 
-      expect {
+      expect do
         subject.validate!(payload: valid_payload, signature: signature, secret: webhook_secret)
-      }.not_to raise_error
+      end.not_to raise_error
     end
   end
 
@@ -28,32 +28,32 @@ RSpec.shared_examples 'validates webhook signatures' do
     it 'rejects the webhook' do
       invalid_signature = 't=123456789,v1=invalid_signature'
 
-      expect {
+      expect do
         subject.validate!(payload: valid_payload, signature: invalid_signature, secret: webhook_secret)
-      }.to raise_error(Stripe::SignatureVerificationError)
+      end.to raise_error(Stripe::SignatureVerificationError)
     end
   end
 
   context 'with missing signature' do
     it 'rejects the webhook' do
-      expect {
+      expect do
         subject.validate!(payload: valid_payload, signature: nil, secret: webhook_secret)
-      }.to raise_error(Stripe::SignatureVerificationError)
+      end.to raise_error(Stripe::SignatureVerificationError)
     end
   end
 
   context 'with tampered payload' do
     it 'rejects the webhook' do
-      signature = generate_stripe_signature(
+      signature        = generate_stripe_signature(
         payload: valid_payload,
         secret: webhook_secret,
-        timestamp: timestamp
+        timestamp: timestamp,
       )
       tampered_payload = '{"type":"customer.deleted","data":{}}'
 
-      expect {
+      expect do
         subject.validate!(payload: tampered_payload, signature: signature, secret: webhook_secret)
-      }.to raise_error(Stripe::SignatureVerificationError)
+      end.to raise_error(Stripe::SignatureVerificationError)
     end
   end
 
@@ -62,12 +62,12 @@ RSpec.shared_examples 'validates webhook signatures' do
       signature = generate_stripe_signature(
         payload: valid_payload,
         secret: 'wrong_secret',
-        timestamp: timestamp
+        timestamp: timestamp,
       )
 
-      expect {
+      expect do
         subject.validate!(payload: valid_payload, signature: signature, secret: webhook_secret)
-      }.to raise_error(Stripe::SignatureVerificationError)
+      end.to raise_error(Stripe::SignatureVerificationError)
     end
   end
 end
@@ -82,42 +82,42 @@ RSpec.shared_examples 'validates webhook timestamps' do
       signature = generate_stripe_signature(
         payload: valid_payload,
         secret: webhook_secret,
-        timestamp: timestamp
+        timestamp: timestamp,
       )
 
-      expect {
+      expect do
         subject.validate!(payload: valid_payload, signature: signature, secret: webhook_secret)
-      }.not_to raise_error
+      end.not_to raise_error
     end
   end
 
   context 'with old timestamp (> 5 minutes)' do
     it 'rejects the webhook' do
       old_timestamp = (Time.now - 6.minutes).to_i
-      signature = generate_stripe_signature(
+      signature     = generate_stripe_signature(
         payload: valid_payload,
         secret: webhook_secret,
-        timestamp: old_timestamp
+        timestamp: old_timestamp,
       )
 
-      expect {
+      expect do
         subject.validate!(payload: valid_payload, signature: signature, secret: webhook_secret)
-      }.to raise_error(Stripe::SignatureVerificationError, /timestamp/)
+      end.to raise_error(Stripe::SignatureVerificationError, /timestamp/)
     end
   end
 
   context 'with future timestamp' do
     it 'rejects the webhook' do
       future_timestamp = (Time.now + 1.hour).to_i
-      signature = generate_stripe_signature(
+      signature        = generate_stripe_signature(
         payload: valid_payload,
         secret: webhook_secret,
-        timestamp: future_timestamp
+        timestamp: future_timestamp,
       )
 
-      expect {
+      expect do
         subject.validate!(payload: valid_payload, signature: signature, secret: webhook_secret)
-      }.to raise_error(Stripe::SignatureVerificationError, /timestamp/)
+      end.to raise_error(Stripe::SignatureVerificationError, /timestamp/)
     end
   end
 end
@@ -139,15 +139,15 @@ RSpec.shared_examples 'prevents duplicate webhook processing' do
       signature = generate_stripe_signature(
         payload: valid_payload,
         secret: webhook_secret,
-        timestamp: timestamp
+        timestamp: timestamp,
       )
 
       # Verify event is not yet marked as processed
       expect(redis.exists("processed:webhook:#{event_id}")).to eq(0)
 
-      expect {
+      expect do
         subject.validate!(payload: valid_payload, signature: signature, secret: webhook_secret)
-      }.not_to raise_error
+      end.not_to raise_error
 
       # Verify event is now marked as processed in Redis
       expect(redis.exists("processed:webhook:#{event_id}")).to eq(1)
@@ -155,7 +155,7 @@ RSpec.shared_examples 'prevents duplicate webhook processing' do
       # Verify TTL was set (should be > 0 and reasonable, e.g., 24 hours)
       ttl = redis.ttl("processed:webhook:#{event_id}")
       expect(ttl).to be > 0
-      expect(ttl).to be <= 86400  # 24 hours max
+      expect(ttl).to be <= 86_400  # 24 hours max
     end
   end
 
@@ -165,15 +165,15 @@ RSpec.shared_examples 'prevents duplicate webhook processing' do
       signature = generate_stripe_signature(
         payload: valid_payload,
         secret: webhook_secret,
-        timestamp: timestamp
+        timestamp: timestamp,
       )
 
       # Mark event as already processed
       redis.setex("processed:webhook:#{event_id}", 3600, '1')
 
-      expect {
+      expect do
         subject.validate!(payload: valid_payload, signature: signature, secret: webhook_secret)
-      }.to raise_error(/duplicate.*event/i)
+      end.to raise_error(/duplicate.*event/i)
     end
   end
 
@@ -186,12 +186,12 @@ RSpec.shared_examples 'prevents duplicate webhook processing' do
       signature = generate_stripe_signature(
         payload: valid_payload,
         secret: webhook_secret,
-        timestamp: timestamp
+        timestamp: timestamp,
       )
 
-      expect {
+      expect do
         subject.validate!(payload: valid_payload, signature: signature, secret: webhook_secret)
-      }.to raise_error(Redis::BaseError)
+      end.to raise_error(Redis::BaseError)
     end
   end
 end
@@ -215,9 +215,9 @@ RSpec.shared_examples 'atomic webhook validation' do
       # Invalid signature
       invalid_signature = 't=123,v1=invalid'
 
-      expect {
+      expect do
         subject.validate!(payload: valid_payload, signature: invalid_signature, secret: webhook_secret)
-      }.to raise_error(Stripe::SignatureVerificationError)
+      end.to raise_error(Stripe::SignatureVerificationError)
 
       # Verify the duplicate marker was NOT persisted (rolled back)
       expect(redis.exists("processed:webhook:#{event_id}")).to eq(0)
@@ -230,15 +230,15 @@ RSpec.shared_examples 'atomic webhook validation' do
       expect(redis.exists("processed:webhook:#{event_id}")).to eq(0)
 
       old_timestamp = (Time.now - 10.minutes).to_i
-      signature = generate_stripe_signature(
+      signature     = generate_stripe_signature(
         payload: valid_payload,
         secret: webhook_secret,
-        timestamp: old_timestamp
+        timestamp: old_timestamp,
       )
 
-      expect {
+      expect do
         subject.validate!(payload: valid_payload, signature: signature, secret: webhook_secret)
-      }.to raise_error(Stripe::SignatureVerificationError)
+      end.to raise_error(Stripe::SignatureVerificationError)
 
       # Verify the duplicate marker was NOT persisted (rolled back)
       expect(redis.exists("processed:webhook:#{event_id}")).to eq(0)
@@ -254,12 +254,12 @@ RSpec.shared_examples 'atomic webhook validation' do
       signature = generate_stripe_signature(
         payload: valid_payload,
         secret: webhook_secret,
-        timestamp: timestamp
+        timestamp: timestamp,
       )
 
-      expect {
+      expect do
         subject.validate!(payload: valid_payload, signature: signature, secret: webhook_secret)
-      }.not_to raise_error
+      end.not_to raise_error
 
       # Verify the duplicate marker was persisted
       expect(redis.exists("processed:webhook:#{event_id}")).to eq(1)

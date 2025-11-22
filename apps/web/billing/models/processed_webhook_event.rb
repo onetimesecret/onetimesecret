@@ -1,3 +1,5 @@
+# apps/web/billing/models/processed_webhook_event.rb
+#
 # frozen_string_literal: true
 
 module Billing
@@ -28,11 +30,11 @@ module Billing
     # @param stripe_event_id [String] Stripe event ID
     # @return [Boolean] True if event was already processed
     def self.processed?(stripe_event_id)
-      event = new(stripe_event_id: stripe_event_id)
+      event  = new(stripe_event_id: stripe_event_id)
       # Use dbclient.exists to check key existence
       # FakeRedis returns boolean, real Redis returns integer
       result = event.dbclient.exists?(event.dbkey)
-      result == 1 || result == true
+      [1, true].include?(result)
     end
 
     # Mark event as processed (non-atomic, use mark_processed_if_new! instead)
@@ -41,8 +43,8 @@ module Billing
     # @param event_type [String] Event type
     # @return [ProcessedWebhookEvent] Saved event record
     def self.mark_processed!(stripe_event_id, event_type)
-      event = new(stripe_event_id: stripe_event_id)
-      event.event_type = event_type
+      event              = new(stripe_event_id: stripe_event_id)
+      event.event_type   = event_type
       event.processed_at = Time.now.to_i.to_s
 
       # Store as JSON string, same as atomic version
@@ -58,7 +60,7 @@ module Billing
     # Check if this event instance exists in Redis
     def exists?
       result = dbclient.exists?(dbkey)
-      result == 1 || result == true
+      [1, true].include?(result)
     end
 
     # Delete this event from Redis
@@ -75,8 +77,8 @@ module Billing
     # @param event_type [String] Event type
     # @return [Boolean] True if marked successfully (was new), false if already processed
     def self.mark_processed_if_new!(stripe_event_id, event_type)
-      event = new(stripe_event_id: stripe_event_id)
-      event.event_type = event_type
+      event              = new(stripe_event_id: stripe_event_id)
+      event.event_type   = event_type
       event.processed_at = Time.now.to_i.to_s
 
       # Try to save with NX flag (only if not exists)

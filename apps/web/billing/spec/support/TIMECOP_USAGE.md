@@ -17,20 +17,22 @@ For all billing tests (`:billing`, `:cli` types), the following is automatically
 ## Basic Time Manipulation
 
 ### Freeze Time
+
 ```ruby
-it 'generates timestamp-based keys' do
-  freeze_time(Time.parse('2024-01-15 10:00:00 UTC'))
+it "generates timestamp-based keys" do
+  freeze_time(Time.parse("2024-01-15 10:00:00 UTC"))
 
   key = client.send(:generate_idempotency_key)
 
-  expect(key).to start_with('1705312800-')  # Frozen timestamp
+  expect(key).to start_with("1705312800-") # Frozen timestamp
 end
 ```
 
 ### Travel to Specific Time
+
 ```ruby
-it 'validates event timestamps' do
-  event_time = Time.parse('2024-01-15 10:00:00 UTC')
+it "validates event timestamps" do
+  event_time = Time.parse("2024-01-15 10:00:00 UTC")
   travel_to(event_time)
 
   # Event is exactly 4 minutes old
@@ -41,30 +43,32 @@ end
 ```
 
 ### Travel Forward/Backward
+
 ```ruby
-it 'expires after 5 minutes' do
+it "expires after 5 minutes" do
   freeze_time
 
-  create_event(id: 'evt_123')
+  create_event(id: "evt_123")
 
   # Jump forward 6 minutes
   travel(6.minutes)
 
-  expect(event_expired?('evt_123')).to be true
+  expect(event_expired?("evt_123")).to be true
 end
 ```
 
 ## Retry Testing with Sleep Mocking
 
 ### Track Sleep Delays
+
 ```ruby
-it 'retries with linear backoff' do
+it "retries with linear backoff" do
   allow(Stripe::Customer).to receive(:create) do
-    raise Stripe::APIConnectionError.new('Network error')
+    raise Stripe::APIConnectionError.new("Network error")
   end.exactly(3).times
 
   begin
-    client.create(Stripe::Customer, email: 'test@example.com')
+    client.create(Stripe::Customer, email: "test@example.com")
   rescue Stripe::APIConnectionError
     # Expected after retries
   end
@@ -75,22 +79,23 @@ end
 ```
 
 ### Use Helper Assertions
+
 ```ruby
-it 'retries with exponential backoff' do
+it "retries with exponential backoff" do
   # ... trigger retries ...
 
   # Verify exponential pattern: 4s, 8s, 16s (base=2, exponent)
   expect_exponential_backoff(base: 2, count: 3)
 end
 
-it 'retries with linear backoff' do
+it "retries with linear backoff" do
   # ... trigger retries ...
 
   # Verify linear pattern: 2s, 4s, 6s (base=2, multiplier)
   expect_linear_backoff(base: 2, count: 3)
 end
 
-it 'uses custom retry delays' do
+it "uses custom retry delays" do
   # ... trigger retries ...
 
   # Verify exact delays
@@ -103,7 +108,7 @@ end
 Test retry logic WITHOUT actual delays:
 
 ```ruby
-it 'retries 3 times with delays' do
+it "retries 3 times with delays" do
   call_count = 0
   start_time = Time.now
 
@@ -115,11 +120,11 @@ it 'retries 3 times with delays' do
     # Simulate time passing during retry
     travel(sleep_delays.last || 2) if call_count > 1
 
-    raise Stripe::RateLimitError.new('Rate limit') if call_count < 3
+    raise Stripe::RateLimitError.new("Rate limit") if call_count < 3
     mock_stripe_customer
   end
 
-  result = client.create(Stripe::Customer, email: 'test@example.com')
+  result = client.create(Stripe::Customer, email: "test@example.com")
 
   # Verify retries happened
   expect(call_count).to eq(3)
@@ -135,54 +140,49 @@ end
 ## Testing Webhook Timestamp Validation
 
 ```ruby
-describe 'timestamp validation' do
+describe "timestamp validation" do
   let(:payload) { '{"type":"customer.created"}' }
-  let(:webhook_secret) { 'whsec_test' }
+  let(:webhook_secret) { "whsec_test" }
 
-  it 'accepts recent events' do
+  it "accepts recent events" do
     freeze_time
 
-    signature = generate_stripe_signature(
-      payload: payload,
-      secret: webhook_secret,
-      timestamp: Time.now.to_i
-    )
+    signature =
+      generate_stripe_signature(payload: payload, secret: webhook_secret, timestamp: Time.now.to_i)
 
-    expect {
-      validator.construct_event(payload, signature)
-    }.not_to raise_error
+    expect { validator.construct_event(payload, signature) }.not_to raise_error
   end
 
-  it 'rejects old events (replay attack)' do
+  it "rejects old events (replay attack)" do
     freeze_time
 
     # Create signature for event 6 minutes ago
     old_timestamp = (Time.now - 6.minutes).to_i
-    signature = generate_stripe_signature(
-      payload: payload,
-      secret: webhook_secret,
-      timestamp: old_timestamp
-    )
+    signature =
+      generate_stripe_signature(payload: payload, secret: webhook_secret, timestamp: old_timestamp)
 
-    expect {
-      validator.construct_event(payload, signature)
-    }.to raise_error(SecurityError, /too old/)
+    expect { validator.construct_event(payload, signature) }.to raise_error(
+      SecurityError,
+      /too old/,
+    )
   end
 
-  it 'rejects future events' do
+  it "rejects future events" do
     freeze_time
 
     # Create signature for event 2 minutes in future
     future_timestamp = (Time.now + 2.minutes).to_i
-    signature = generate_stripe_signature(
-      payload: payload,
-      secret: webhook_secret,
-      timestamp: future_timestamp
-    )
+    signature =
+      generate_stripe_signature(
+        payload: payload,
+        secret: webhook_secret,
+        timestamp: future_timestamp,
+      )
 
-    expect {
-      validator.construct_event(payload, signature)
-    }.to raise_error(SecurityError, /timestamp in future/)
+    expect { validator.construct_event(payload, signature) }.to raise_error(
+      SecurityError,
+      /timestamp in future/,
+    )
   end
 end
 ```
@@ -190,11 +190,13 @@ end
 ## Available Helpers
 
 ### Time Manipulation
+
 - `freeze_time(time = Time.now)` - Freeze time at specific moment
 - `travel_to(time)` - Jump to specific time
 - `travel(duration)` - Move forward/backward by duration
 
 ### Sleep Tracking
+
 - `sleep_delays` - Array of tracked sleep durations
 - `expect_retry_delays(*delays)` - Assert exact delay pattern
 - `expect_exponential_backoff(base:, count:)` - Assert exponential pattern
@@ -211,10 +213,12 @@ end
 ## Performance Impact
 
 **Before Timecop integration:**
+
 - Rate limit tests took 30+ seconds (actual 4s, 8s, 16s delays)
 - Network retry tests took 12+ seconds (2s, 4s, 6s delays)
 
 **After Timecop integration:**
+
 - All retry tests run instantly (sleep is mocked)
 - Time-based tests are deterministic and fast
 - Full billing test suite runs in seconds, not minutes
@@ -222,6 +226,7 @@ end
 ## Examples in Test Suite
 
 See these files for real-world usage:
+
 - `spec/lib/stripe_client_spec.rb` - Retry testing with sleep mocking
 - `spec/lib/webhook_validator_spec.rb` - Timestamp validation with time travel
 - `spec/cli/integration_spec.rb` - Complex workflows with time manipulation

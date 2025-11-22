@@ -1,7 +1,7 @@
-# frozen_string_literal: true
-
 # apps/web/billing/spec/support/shared_examples/idempotency_behavior.rb
 #
+# frozen_string_literal: true
+
 # Shared examples for testing idempotency in Stripe operations.
 # Uses real Stripe API calls - stripe-mock + VCR.
 
@@ -16,17 +16,17 @@ RSpec.shared_examples 'idempotent Stripe operation', :stripe do |resource_type, 
       when :customer
         Stripe::Customer.create(
           create_params,
-          { idempotency_key: idempotency_key }
+          { idempotency_key: idempotency_key },
         )
       when :payment_intent
         Stripe::PaymentIntent.create(
           create_params,
-          { idempotency_key: idempotency_key }
+          { idempotency_key: idempotency_key },
         )
       when :subscription
         Stripe::Subscription.create(
           create_params,
-          { idempotency_key: idempotency_key }
+          { idempotency_key: idempotency_key },
         )
       end
 
@@ -35,17 +35,17 @@ RSpec.shared_examples 'idempotent Stripe operation', :stripe do |resource_type, 
       when :customer
         Stripe::Customer.create(
           create_params,
-          { idempotency_key: idempotency_key }
+          { idempotency_key: idempotency_key },
         )
       when :payment_intent
         Stripe::PaymentIntent.create(
           create_params,
-          { idempotency_key: idempotency_key }
+          { idempotency_key: idempotency_key },
         )
       when :subscription
         Stripe::Subscription.create(
           create_params,
-          { idempotency_key: idempotency_key }
+          { idempotency_key: idempotency_key },
         )
       end
 
@@ -63,17 +63,17 @@ RSpec.shared_examples 'idempotent Stripe operation', :stripe do |resource_type, 
       when :customer
         Stripe::Customer.create(
           create_params,
-          { idempotency_key: key1 }
+          { idempotency_key: key1 },
         )
       when :payment_intent
         Stripe::PaymentIntent.create(
           create_params,
-          { idempotency_key: key1 }
+          { idempotency_key: key1 },
         )
       when :subscription
         Stripe::Subscription.create(
           create_params,
-          { idempotency_key: key2 }
+          { idempotency_key: key2 },
         )
       end
 
@@ -81,17 +81,17 @@ RSpec.shared_examples 'idempotent Stripe operation', :stripe do |resource_type, 
       when :customer
         Stripe::Customer.create(
           create_params,
-          { idempotency_key: key2 }
+          { idempotency_key: key2 },
         )
       when :payment_intent
         Stripe::PaymentIntent.create(
           create_params,
-          { idempotency_key: key2 }
+          { idempotency_key: key2 },
         )
       when :subscription
         Stripe::Subscription.create(
           create_params,
-          { idempotency_key: key2 }
+          { idempotency_key: key2 },
         )
       end
 
@@ -164,17 +164,17 @@ RSpec.shared_examples 'respects custom idempotency keys', :stripe do |resource_t
     when :customer
       Stripe::Customer.create(
         create_params,
-        { idempotency_key: custom_key }
+        { idempotency_key: custom_key },
       )
     when :payment_intent
       Stripe::PaymentIntent.create(
         create_params,
-        { idempotency_key: custom_key }
+        { idempotency_key: custom_key },
       )
     when :subscription
       Stripe::Subscription.create(
         create_params,
-        { idempotency_key: custom_key }
+        { idempotency_key: custom_key },
       )
     end
 
@@ -183,17 +183,17 @@ RSpec.shared_examples 'respects custom idempotency keys', :stripe do |resource_t
     when :customer
       Stripe::Customer.create(
         create_params,
-        { idempotency_key: custom_key }
+        { idempotency_key: custom_key },
       )
     when :payment_intent
       Stripe::PaymentIntent.create(
         create_params,
-        { idempotency_key: custom_key }
+        { idempotency_key: custom_key },
       )
     when :subscription
       Stripe::Subscription.create(
         create_params,
-        { idempotency_key: custom_key }
+        { idempotency_key: custom_key },
       )
     end
 
@@ -211,31 +211,31 @@ RSpec.shared_examples 'detects idempotency conflicts', :stripe do |resource_type
     when :customer
       Stripe::Customer.create(
         { email: 'first@example.com' },
-        { idempotency_key: idempotency_key }
+        { idempotency_key: idempotency_key },
       )
     when :payment_intent
       Stripe::PaymentIntent.create(
         { amount: 1000, currency: 'usd' },
-        { idempotency_key: idempotency_key }
+        { idempotency_key: idempotency_key },
       )
     end
 
     # Second request with DIFFERENT parameters but SAME key
     # Stripe should detect this conflict
-    expect {
+    expect do
       case resource_type
       when :customer
         Stripe::Customer.create(
           { email: 'different@example.com' },
-          { idempotency_key: idempotency_key }
+          { idempotency_key: idempotency_key },
         )
       when :payment_intent
         Stripe::PaymentIntent.create(
           { amount: 2000, currency: 'usd' },  # Different amount
-          { idempotency_key: idempotency_key }
+          { idempotency_key: idempotency_key },
         )
       end
-    }.to raise_error(Stripe::IdempotencyError)
+    end.to raise_error(Stripe::IdempotencyError)
   end
 end
 
@@ -256,14 +256,14 @@ RSpec.shared_examples 'passes idempotency key to Stripe', :stripe do |method_nam
     result = subject.public_send(
       method_name,
       **test_params,
-      idempotency_key: custom_key
+      idempotency_key: custom_key,
     )
 
     # Duplicate call with same key should return same resource
     duplicate = subject.public_send(
       method_name,
       **test_params,
-      idempotency_key: custom_key
+      idempotency_key: custom_key,
     )
 
     expect(result.id).to eq(duplicate.id)

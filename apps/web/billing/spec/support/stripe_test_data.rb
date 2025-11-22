@@ -1,7 +1,7 @@
-# frozen_string_literal: true
-
 # apps/web/billing/spec/support/stripe_test_data.rb
 #
+# frozen_string_literal: true
+
 # Constants for Stripe integration tests.
 # Official test data from Stripe documentation.
 #
@@ -24,7 +24,7 @@ module StripeTestData
     amex_success: '378282246310005',
     discover_success: '6011111111111117',
     diners_success: '3056930009020004',
-    jcb_success: '3566002020360505'
+    jcb_success: '3566002020360505',
   }.freeze
 
   # Test error codes from Stripe
@@ -36,7 +36,7 @@ module StripeTestData
     incorrect_number: 'incorrect_number',
     invalid_expiry_month: 'invalid_expiry_month',
     invalid_expiry_year: 'invalid_expiry_year',
-    insufficient_funds: 'insufficient_funds'
+    insufficient_funds: 'insufficient_funds',
   }.freeze
 
   # Webhook event types handled by the system
@@ -52,6 +52,6 @@ module StripeTestData
     product_updated: 'product.updated',
     price_updated: 'price.updated',
     customer_updated: 'customer.updated',
-    customer_deleted: 'customer.deleted'
+    customer_deleted: 'customer.deleted',
   }.freeze
 end

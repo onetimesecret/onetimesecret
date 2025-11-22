@@ -1,6 +1,6 @@
-# frozen_string_literal: true
-
 # apps/web/billing/spec/support/billing_spec_helper.rb
+#
+# frozen_string_literal: true
 #
 # Minimal test helpers for billing specs.
 # Timecop time manipulation and retry delay tracking only.
@@ -12,7 +12,11 @@ require 'openssl'
 
 # Configure Familia to use test Redis on port 2121
 ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
-ENV['REDIS_URL'] ||= 'redis://127.0.0.1:2121/0'
+ENV['REDIS_URL']  ||= 'redis://127.0.0.1:2121/0'
+
+# Configure Stripe API key for CLI tests
+# CLI commands use stripe_configured? which checks STRIPE_KEY env var
+ENV['STRIPE_KEY'] ||= 'sk_test_mock'
 
 # Force Familia to reconnect with the test URL
 Familia.reset! if Familia.respond_to?(:reset!)
@@ -72,7 +76,7 @@ module BillingSpecHelper
     # Stripe signature format: t={timestamp},v1={signature}
     # Signature is HMAC-SHA256 of "{timestamp}.{payload}"
     signed_payload = "#{timestamp}.#{payload}"
-    signature = OpenSSL::HMAC.hexdigest('SHA256', secret, signed_payload)
+    signature      = OpenSSL::HMAC.hexdigest('SHA256', secret, signed_payload)
 
     "t=#{timestamp},v1=#{signature}"
   end

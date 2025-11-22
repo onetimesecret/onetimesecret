@@ -1,6 +1,7 @@
+# apps/web/billing/spec/support/shared_examples/cli_safety.rb
+#
 # frozen_string_literal: true
 
-# apps/web/billing/spec/support/shared_examples/cli_safety.rb
 #
 # Shared examples for testing CLI safety mechanisms.
 # Keeps CLI mocking (stdin, config), removes Stripe mocking.
@@ -42,7 +43,7 @@ RSpec.shared_examples 'supports dry-run mode' do |command_args|
   context 'with --dry-run flag' do
     it 'simulates the operation without executing' do
       dry_run_args = command_args + ['--dry-run']
-      output = run_cli_command_quietly(*dry_run_args)
+      output       = run_cli_command_quietly(*dry_run_args)
 
       expect(output[:stdout]).to match(/dry.?run|would|simulation/i)
       expect(output[:stdout]).not_to match(/completed|success|created/i)
@@ -50,7 +51,7 @@ RSpec.shared_examples 'supports dry-run mode' do |command_args|
 
     it 'displays what would happen' do
       dry_run_args = command_args + ['--dry-run']
-      output = run_cli_command_quietly(*dry_run_args)
+      output       = run_cli_command_quietly(*dry_run_args)
 
       expect(output[:stdout]).to match(/would|dry.?run/i)
       expect(last_exit_code).to eq(0)
@@ -78,7 +79,7 @@ RSpec.shared_examples 'requires confirmation for dangerous operations' do |comma
     it 'prompts for confirmation' do
       output = run_cli_command_quietly(*command_args)
 
-      expect(output[:stdout]).to match(/confirm|are you sure|proceed|\(y\/n\)/i)
+      expect(output[:stdout]).to match(%r{confirm|are you sure|proceed|\(y/n\)}i)
     end
 
     it 'aborts when user declines' do
@@ -99,7 +100,7 @@ RSpec.shared_examples 'requires confirmation for dangerous operations' do |comma
   context "with #{skip_flag} flag" do
     it 'skips confirmation prompt' do
       skip_args = command_args + [skip_flag]
-      output = run_cli_command_quietly(*skip_args)
+      output    = run_cli_command_quietly(*skip_args)
 
       expect(output[:stdout]).not_to match(/confirm|are you sure/i)
     end
@@ -132,7 +133,7 @@ RSpec.shared_examples 'provides progress feedback' do |command_args, expected_st
     it 'shows item count' do
       output = run_cli_command_quietly(*command_args)
 
-      expect(output[:stdout]).to match(/\d+\s+(of|\/)\s+\d+|\d+\s+items?/i)
+      expect(output[:stdout]).to match(%r{\d+\s+(of|/)\s+\d+|\d+\s+items?}i)
     end
   end
 
@@ -180,7 +181,7 @@ RSpec.shared_examples 'handles errors gracefully', :stripe do |command_args|
     it 'displays validation errors' do
       # Replace any valid-looking email with an invalid one
       invalid_args = command_args.map { |arg| arg.match?(/@/) ? 'invalid' : arg }
-      output = run_cli_command_quietly(*invalid_args)
+      output       = run_cli_command_quietly(*invalid_args)
 
       combined_output = output[:stdout].to_s + output[:stderr].to_s
       expect(combined_output).to match(/invalid|error/i)
@@ -192,7 +193,7 @@ RSpec.shared_examples 'supports verbose output' do |command_args|
   context 'with --verbose flag' do
     it 'displays detailed information' do
       verbose_args = command_args + ['--verbose']
-      output = run_cli_command_quietly(*verbose_args)
+      output       = run_cli_command_quietly(*verbose_args)
 
       # Verbose output should be more detailed
       expect(output[:stdout].length).to be > 0
@@ -200,7 +201,7 @@ RSpec.shared_examples 'supports verbose output' do |command_args|
 
     it 'shows API request details' do
       verbose_args = command_args + ['--verbose']
-      output = run_cli_command_quietly(*verbose_args)
+      output       = run_cli_command_quietly(*verbose_args)
 
       expect(output[:stdout]).to match(/request|api|stripe/i)
     end

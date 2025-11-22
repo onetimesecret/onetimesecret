@@ -1,3 +1,5 @@
+# apps/web/billing/spec/lib/webhook_validator_spec.rb
+#
 # frozen_string_literal: true
 
 require_relative '../support/billing_spec_helper'
@@ -10,7 +12,7 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
   let(:webhook_secret) { 'whsec_test_secret_123' }
   let(:redis) { Familia.dbclient }
 
-  # Note: Redis cleanup (flushdb) is handled globally in billing_spec_helper.rb
+  # NOTE: Redis cleanup (flushdb) is handled globally in billing_spec_helper.rb
   # for all type: :billing tests
 
   describe '#initialize' do
@@ -20,17 +22,17 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
 
     it 'raises ArgumentError when webhook secret is missing' do
       allow(Onetime).to receive(:billing_config).and_return(
-        double(webhook_signing_secret: nil)
+        double(webhook_signing_secret: nil),
       )
 
-      expect {
+      expect do
         described_class.new
-      }.to raise_error(ArgumentError, /webhook signing secret/i)
+      end.to raise_error(ArgumentError, /webhook signing secret/i)
     end
 
     it 'uses configured webhook secret by default' do
       allow(Onetime).to receive(:billing_config).and_return(
-        double(webhook_signing_secret: 'configured_secret')
+        double(webhook_signing_secret: 'configured_secret'),
       )
 
       expect { described_class.new }.not_to raise_error
@@ -46,7 +48,7 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
         generate_stripe_signature(
           payload: payload,
           secret: webhook_secret,
-          timestamp: timestamp
+          timestamp: timestamp,
         )
       end
 
@@ -60,9 +62,9 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
 
       it 'validates event timestamp' do
         # Should not raise for recent event
-        expect {
+        expect do
           validator.construct_event(payload, signature)
-        }.not_to raise_error
+        end.not_to raise_error
       end
     end
 
@@ -70,17 +72,17 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
       let(:invalid_signature) { 't=123456789,v1=invalid_signature_hash' }
 
       it 'raises SignatureVerificationError' do
-        expect {
+        expect do
           validator.construct_event(payload, invalid_signature)
-        }.to raise_error(Stripe::SignatureVerificationError)
+        end.to raise_error(Stripe::SignatureVerificationError)
       end
     end
 
     context 'with missing signature' do
       it 'raises SignatureVerificationError' do
-        expect {
+        expect do
           validator.construct_event(payload, nil)
-        }.to raise_error(Stripe::SignatureVerificationError)
+        end.to raise_error(Stripe::SignatureVerificationError)
       end
     end
 
@@ -91,14 +93,14 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
         generate_stripe_signature(
           payload: original_payload,
           secret: webhook_secret,
-          timestamp: timestamp
+          timestamp: timestamp,
         )
       end
 
       it 'raises SignatureVerificationError' do
-        expect {
+        expect do
           validator.construct_event(tampered_payload, signature)
-        }.to raise_error(Stripe::SignatureVerificationError)
+        end.to raise_error(Stripe::SignatureVerificationError)
       end
     end
 
@@ -107,14 +109,14 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
         generate_stripe_signature(
           payload: payload,
           secret: 'wrong_secret',
-          timestamp: timestamp
+          timestamp: timestamp,
         )
       end
 
       it 'raises SignatureVerificationError' do
-        expect {
+        expect do
           validator.construct_event(payload, signature)
-        }.to raise_error(Stripe::SignatureVerificationError)
+        end.to raise_error(Stripe::SignatureVerificationError)
       end
     end
 
@@ -124,14 +126,14 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
         generate_stripe_signature(
           payload: invalid_payload,
           secret: webhook_secret,
-          timestamp: timestamp
+          timestamp: timestamp,
         )
       end
 
       it 'raises JSON::ParserError' do
-        expect {
+        expect do
           validator.construct_event(invalid_payload, signature)
-        }.to raise_error(JSON::ParserError)
+        end.to raise_error(JSON::ParserError)
       end
     end
 
@@ -142,15 +144,15 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
         generate_stripe_signature(
           payload: old_payload,
           secret: webhook_secret,
-          timestamp: old_timestamp
+          timestamp: old_timestamp,
         )
       end
 
       it 'raises SecurityError for replay attack protection' do
         # Stripe's signature verification may reject old timestamps first
-        expect {
+        expect do
           validator.construct_event(old_payload, signature)
-        }.to raise_error do |error|
+        end.to raise_error do |error|
           expect(error).to be_a(SecurityError).or be_a(Stripe::SignatureVerificationError)
           expect(error.message).to match(/too old|tolerance zone/i)
         end
@@ -164,14 +166,14 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
         generate_stripe_signature(
           payload: future_payload,
           secret: webhook_secret,
-          timestamp: future_timestamp
+          timestamp: future_timestamp,
         )
       end
 
       it 'raises SecurityError for suspicious timestamp' do
-        expect {
+        expect do
           validator.construct_event(future_payload, signature)
-        }.to raise_error(SecurityError, /future/i)
+        end.to raise_error(SecurityError, /future/i)
       end
     end
 
@@ -182,14 +184,14 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
         generate_stripe_signature(
           payload: recent_payload,
           secret: webhook_secret,
-          timestamp: recent_timestamp
+          timestamp: recent_timestamp,
         )
       end
 
       it 'accepts the event' do
-        expect {
+        expect do
           validator.construct_event(recent_payload, signature)
-        }.not_to raise_error
+        end.not_to raise_error
       end
     end
   end
@@ -274,7 +276,7 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
 
       it 'does not change existing record' do
         original_event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id)
-        original_time = original_event.processed_at
+        original_time  = original_event.processed_at
 
         validator.mark_processed!(event_id, event_type)
 
@@ -333,9 +335,9 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
 
     context 'when event was not processed' do
       it 'handles gracefully without error' do
-        expect {
+        expect do
           validator.unmark_processed!(event_id)
-        }.not_to raise_error
+        end.not_to raise_error
       end
     end
   end
@@ -346,7 +348,7 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
       generate_stripe_signature(
         payload: payload,
         secret: webhook_secret,
-        timestamp: Time.now.to_i
+        timestamp: Time.now.to_i,
       )
     end
 

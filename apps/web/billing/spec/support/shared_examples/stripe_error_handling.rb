@@ -1,56 +1,56 @@
-# frozen_string_literal: true
-
 # apps/web/billing/spec/support/shared_examples/stripe_error_handling.rb
 #
+# frozen_string_literal: true
+
 # Shared examples for testing Stripe error handling using real API calls with error tokens.
 # Uses stripe-mock server or real Stripe test API - no RSpec mocking.
 
 RSpec.shared_examples 'handles Stripe card errors', :stripe do
   it 'raises CardError on declined card' do
-    expect {
+    expect do
       Stripe::PaymentIntent.create(
         amount: 1000,
         currency: 'usd',
         payment_method_data: {
           type: 'card',
-          card: { token: StripeTestData::CARDS[:visa_decline] }
+          card: { token: StripeTestData::CARDS[:visa_decline] },
         },
-        confirm: true
+        confirm: true,
       )
-    }.to raise_error(Stripe::CardError) do |error|
+    end.to raise_error(Stripe::CardError) do |error|
       expect(error.code).to eq('card_declined')
       expect(error.http_status).to eq(402)
     end
   end
 
   it 'raises CardError on insufficient funds' do
-    expect {
+    expect do
       Stripe::PaymentIntent.create(
         amount: 1000,
         currency: 'usd',
         payment_method_data: {
           type: 'card',
-          card: { token: StripeTestData::CARDS[:visa_insufficient_funds] }
+          card: { token: StripeTestData::CARDS[:visa_insufficient_funds] },
         },
-        confirm: true
+        confirm: true,
       )
-    }.to raise_error(Stripe::CardError) do |error|
+    end.to raise_error(Stripe::CardError) do |error|
       expect(error.code).to eq('insufficient_funds')
     end
   end
 
   it 'raises CardError on expired card' do
-    expect {
+    expect do
       Stripe::PaymentIntent.create(
         amount: 1000,
         currency: 'usd',
         payment_method_data: {
           type: 'card',
-          card: { token: StripeTestData::CARDS[:visa_expired] }
+          card: { token: StripeTestData::CARDS[:visa_expired] },
         },
-        confirm: true
+        confirm: true,
       )
-    }.to raise_error(Stripe::CardError) do |error|
+    end.to raise_error(Stripe::CardError) do |error|
       expect(error.code).to eq('expired_card')
     end
   end
@@ -58,27 +58,27 @@ end
 
 RSpec.shared_examples 'handles Stripe invalid request errors', :stripe do
   it 'raises InvalidRequestError on missing required parameter' do
-    expect {
+    expect do
       Stripe::Customer.create(
-        email: nil  # Invalid: email cannot be nil in certain contexts
+        email: nil,  # Invalid: email cannot be nil in certain contexts
       )
-    }.to raise_error(Stripe::InvalidRequestError)
+    end.to raise_error(Stripe::InvalidRequestError)
   end
 
   it 'raises InvalidRequestError on invalid parameter value' do
-    expect {
+    expect do
       Stripe::Price.create(
         currency: 'invalid',
         unit_amount: 1000,
-        product: 'prod_invalid'
+        product: 'prod_invalid',
       )
-    }.to raise_error(Stripe::InvalidRequestError)
+    end.to raise_error(Stripe::InvalidRequestError)
   end
 
   it 'raises InvalidRequestError on non-existent resource' do
-    expect {
+    expect do
       Stripe::Customer.retrieve('cus_nonexistent')
-    }.to raise_error(Stripe::InvalidRequestError) do |error|
+    end.to raise_error(Stripe::InvalidRequestError) do |error|
       expect(error.http_status).to eq(404)
     end
   end
@@ -90,9 +90,9 @@ RSpec.shared_examples 'handles Stripe authentication errors', :stripe do
     begin
       Stripe.api_key = 'sk_test_invalid_key_123'
 
-      expect {
+      expect do
         Stripe::Customer.list
-      }.to raise_error(Stripe::AuthenticationError) do |error|
+      end.to raise_error(Stripe::AuthenticationError) do |error|
         expect(error.http_status).to eq(401)
       end
     ensure
@@ -102,18 +102,18 @@ RSpec.shared_examples 'handles Stripe authentication errors', :stripe do
 end
 
 RSpec.shared_examples 'handles Stripe rate limit errors', :stripe do
-  # Note: stripe-mock doesn't simulate rate limits well
+  # NOTE: stripe-mock doesn't simulate rate limits well
   # Use VCR cassette for realistic rate limit testing
   it 'raises RateLimitError when rate limited', :vcr do
     # This requires a pre-recorded cassette or multiple rapid requests
     # to trigger actual rate limiting from Stripe test API
 
-    expect {
+    expect do
       # Simulate many rapid requests
       100.times do
         Stripe::Customer.list(limit: 1)
       end
-    }.to raise_error(Stripe::RateLimitError) do |error|
+    end.to raise_error(Stripe::RateLimitError) do |error|
       expect(error.http_status).to eq(429)
     end
   end
@@ -126,9 +126,9 @@ RSpec.shared_examples 'handles Stripe connection errors', :stripe do
     begin
       Stripe.api_base = 'https://invalid.stripe.com.invalid'
 
-      expect {
+      expect do
         Stripe::Customer.list
-      }.to raise_error(Stripe::APIConnectionError)
+      end.to raise_error(Stripe::APIConnectionError)
     ensure
       Stripe.api_base = original_base
     end
@@ -138,16 +138,18 @@ end
 # Validates that a method properly handles and propagates Stripe errors
 RSpec.shared_examples 'propagates Stripe errors' do |method_name, error_trigger:|
   it "propagates #{error_trigger[:type]} from Stripe API" do
-    expect {
+    expect do
       case error_trigger[:type]
       when :card_error
         subject.public_send(method_name,
-          card_token: StripeTestData::CARDS[:visa_decline])
+          card_token: StripeTestData::CARDS[:visa_decline],
+        )
       when :invalid_request
         subject.public_send(method_name,
-          **error_trigger[:params])
+          **error_trigger[:params],
+        )
       when :authentication
-        original_key = Stripe.api_key
+        original_key   = Stripe.api_key
         Stripe.api_key = 'sk_test_invalid'
         begin
           subject.public_send(method_name)
@@ -155,7 +157,7 @@ RSpec.shared_examples 'propagates Stripe errors' do |method_name, error_trigger:
           Stripe.api_key = original_key
         end
       end
-    }.to raise_error(error_trigger[:expected_error])
+    end.to raise_error(error_trigger[:expected_error])
   end
 end
 
@@ -170,11 +172,9 @@ RSpec.shared_examples 'retries on transient Stripe errors' do |method_name, max_
       # Temporarily override the method to simulate transient failure
       allow(Stripe::Customer).to receive(:create) do
         call_count += 1
-        if call_count < max_retries
-          raise Stripe::APIConnectionError.new('Network error')
-        else
-          Stripe::Customer.construct_from(id: 'cus_success', email: 'test@example.com')
-        end
+        raise Stripe::APIConnectionError.new('Network error') if call_count < max_retries
+
+        Stripe::Customer.construct_from(id: 'cus_success', email: 'test@example.com')
       end
 
       result = subject.public_send(method_name, email: 'test@example.com')
@@ -185,12 +185,12 @@ RSpec.shared_examples 'retries on transient Stripe errors' do |method_name, max_
     it 'gives up after max retries exceeded' do
       # Force all attempts to fail
       allow(Stripe::Customer).to receive(:create).and_raise(
-        Stripe::APIConnectionError.new('Network error')
+        Stripe::APIConnectionError.new('Network error'),
       )
 
-      expect {
+      expect do
         subject.public_send(method_name, email: 'test@example.com')
-      }.to raise_error(Stripe::APIConnectionError)
+      end.to raise_error(Stripe::APIConnectionError)
     end
   end
 end

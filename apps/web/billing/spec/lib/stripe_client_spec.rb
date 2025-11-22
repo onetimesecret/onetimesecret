@@ -1,3 +1,5 @@
+# apps/web/billing/spec/lib/stripe_client_spec.rb
+#
 # frozen_string_literal: true
 
 require_relative '../support/billing_spec_helper'
@@ -16,7 +18,7 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
 
   describe '#initialize' do
     it 'configures Stripe with provided API key' do
-      custom_client = described_class.new(api_key: 'sk_test_custom')
+      described_class.new(api_key: 'sk_test_custom')
       expect(Stripe.api_key).to eq('sk_test_custom')
     end
 
@@ -53,22 +55,23 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
       custom_key = "test_#{SecureRandom.hex(16)}"
 
       # Verify custom key is accepted (stripe-mock doesn't enforce idempotency)
-      expect {
+      expect do
         client.create(
           Stripe::Customer,
           { email: 'custom@example.com' },
-          idempotency_key: custom_key
+          idempotency_key: custom_key,
         )
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'excludes sensitive data from logs' do
       # Create with card data - verify no crash when logging
-      expect {
+      expect do
         client.create(Stripe::Customer, {
-          email: 'card@example.com'
-        })
-      }.not_to raise_error
+          email: 'card@example.com',
+        }
+        )
+      end.not_to raise_error
     end
   end
 
@@ -132,9 +135,9 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
 
     it 'accepts limit parameter' do
       # stripe-mock may not respect limit properly
-      expect {
+      expect do
         client.list(Stripe::Customer, { limit: 2 })
-      }.not_to raise_error
+      end.not_to raise_error
     end
   end
 
@@ -149,17 +152,19 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
     end
 
     it 'calls cancel for subscriptions' do
-      customer = Stripe::Customer.create({ email: 'sub@example.com' })
-      product = Stripe::Product.create({ name: 'Sub Test' })
-      price = Stripe::Price.create({
+      customer     = Stripe::Customer.create({ email: 'sub@example.com' })
+      product      = Stripe::Product.create({ name: 'Sub Test' })
+      price        = Stripe::Price.create({
         product: product.id,
         currency: 'usd',
-        unit_amount: 1000
-      })
+        unit_amount: 1000,
+      },
+                                         )
       subscription = Stripe::Subscription.create({
         customer: customer.id,
-        items: [{ price: price.id }]
-      })
+        items: [{ price: price.id }],
+      },
+                                                )
 
       result = client.delete(Stripe::Subscription, subscription.id)
 
@@ -174,11 +179,9 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
 
       allow(Stripe::Customer).to receive(:create) do
         call_count += 1
-        if call_count < 3
-          raise Stripe::APIConnectionError.new('Network error')
-        else
-          Stripe::Customer.construct_from(id: 'cus_success', email: 'retry@example.com')
-        end
+        raise Stripe::APIConnectionError.new('Network error') if call_count < 3
+
+        Stripe::Customer.construct_from(id: 'cus_success', email: 'retry@example.com')
       end
 
       result = client.create(Stripe::Customer, { email: 'retry@example.com' })
@@ -193,11 +196,9 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
 
       allow(Stripe::Customer).to receive(:create) do
         call_count += 1
-        if call_count < 3
-          raise Stripe::RateLimitError.new('Rate limit', http_status: 429)
-        else
-          Stripe::Customer.construct_from(id: 'cus_success', email: 'rate@example.com')
-        end
+        raise Stripe::RateLimitError.new('Rate limit', http_status: 429) if call_count < 3
+
+        Stripe::Customer.construct_from(id: 'cus_success', email: 'rate@example.com')
       end
 
       result = client.create(Stripe::Customer, { email: 'rate@example.com' })
@@ -209,23 +210,23 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
 
     it 'gives up after max retries on network errors' do
       allow(Stripe::Customer).to receive(:create).and_raise(
-        Stripe::APIConnectionError.new('Network error')
+        Stripe::APIConnectionError.new('Network error'),
       )
 
-      expect {
+      expect do
         client.create(Stripe::Customer, { email: 'fail@example.com' })
-      }.to raise_error(Stripe::APIConnectionError)
+      end.to raise_error(Stripe::APIConnectionError)
     end
 
     it 'does not retry non-retryable errors' do
       allow(Stripe::Customer).to receive(:create).and_raise(
-        Stripe::InvalidRequestError.new('Invalid request', 'param', http_status: 400)
+        Stripe::InvalidRequestError.new('Invalid request', 'param', http_status: 400),
       )
 
       # Should fail immediately without retry
-      expect {
+      expect do
         client.create(Stripe::Customer, { email: 'invalid@example.com' })
-      }.to raise_error(Stripe::InvalidRequestError)
+      end.to raise_error(Stripe::InvalidRequestError)
 
       # Verify no sleep calls were made
       expect(sleep_delays).to be_empty
@@ -268,7 +269,7 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
 
     it 'includes current timestamp in key' do
       Timecop.freeze do
-        key = client.send(:generate_idempotency_key)
+        key       = client.send(:generate_idempotency_key)
         timestamp = key.split('-').first.to_i
 
         expect(timestamp).to eq(Time.now.to_i)
@@ -283,7 +284,8 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
       product: product.id,
       currency: 'usd',
       unit_amount: 1000,
-      recurring: { interval: 'month' }
-    })
+      recurring: { interval: 'month' },
+    },
+                        )
   end
 end
