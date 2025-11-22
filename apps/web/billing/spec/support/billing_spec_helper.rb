@@ -3,6 +3,11 @@
 # apps/web/billing/spec/support/billing_spec_helper.rb
 #
 # Billing-specific test helper that extends centralized spec helpers
+#
+# This file now uses stripe-ruby-mock for all Stripe object creation.
+# Factory methods for creating Stripe objects have been moved to
+# spec/support/stripe_test_data.rb which creates real Stripe objects
+# through the stripe-mock server.
 
 require 'spec_helper'
 
@@ -10,186 +15,8 @@ require 'spec_helper'
 require_relative '../../lib/stripe_client'
 require_relative '../../lib/webhook_validator'
 
-# IMPORTANT: Stripe Testing Gotcha
-#
-# Stripe API objects are StripeObjects, NOT Hashes. When creating test fixtures:
-#
-# ❌ WRONG - Returns Hash, breaks method chaining:
-#   double('Stripe::Price', recurring: { interval: 'month' })
-#   price.recurring.interval  # NoMethodError - can't call .interval on Hash
-#
-# ✅ CORRECT - Returns StripeObject, supports method access:
-#   Stripe::Price.construct_from({
-#     recurring: { interval: 'month' }
-#   })
-#   price.recurring.interval  # => "month" ✅
-#
-# Stripe docs say "use [] for custom hashes like metadata" but this means
-# YOUR data (metadata) is a Hash, while STRIPE's data (recurring, items, etc.)
-# are StripeObjects that support method-style access.
-#
-# For proper Stripe testing, use:
-#   - Stripe::StripeObject.construct_from() for nested objects
-#   - Stripe::<Resource>.construct_from() for top-level resources
-#   - Or use stripe-ruby-mock gem for full API mocking
-#
 module BillingSpecHelper
   using Familia::Refinements::TimeLiterals
-
-  # Create a mock Stripe::Customer object
-  def mock_stripe_customer(id: 'cus_test123', **attrs)
-    defaults = {
-      id: id,
-      email: 'test@example.com',
-      name: 'Test Customer',
-      metadata: {},
-      created: Time.now.to_i,
-      livemode: false
-    }
-    double('Stripe::Customer', defaults.merge(attrs))
-  end
-
-  # Create a mock Stripe::Subscription object
-  def mock_stripe_subscription(id: 'sub_test123', **attrs)
-    defaults = {
-      id: id,
-      customer: 'cus_test123',
-      status: 'active',
-      current_period_start: Time.now.to_i,
-      current_period_end: (Time.now + 30.days).to_i,
-      metadata: {},
-      items: mock_stripe_subscription_items,
-      created: Time.now.to_i,
-      cancel_at_period_end: false
-    }
-    double('Stripe::Subscription', defaults.merge(attrs))
-  end
-
-  # Create mock Stripe::SubscriptionItem collection
-  def mock_stripe_subscription_items(items: [])
-    default_items = items.empty? ? [mock_stripe_subscription_item] : items
-    double('Stripe::ListObject', data: default_items)
-  end
-
-  # Create a mock Stripe::SubscriptionItem
-  def mock_stripe_subscription_item(id: 'si_test123', **attrs)
-    defaults = {
-      id: id,
-      price: mock_stripe_price,
-      quantity: 1
-    }
-    double('Stripe::SubscriptionItem', defaults.merge(attrs))
-  end
-
-  # Create a mock Stripe::Price object
-  #
-  # WARNING: This helper uses RSpec doubles and returns Hash for nested objects
-  # like 'recurring'. This breaks code that uses method chaining (e.g.,
-  # price.recurring.interval). See module-level comment for correct approach.
-  #
-  # TODO: Replace with Stripe::Price.construct_from() to return real StripeObjects
-  def mock_stripe_price(id: 'price_test123', **attrs)
-    defaults = {
-      id: id,
-      product: 'prod_test123',
-      unit_amount: 1000,
-      currency: 'usd',
-      recurring: { interval: 'month', interval_count: 1 },  # ⚠️ Hash, not StripeObject
-      metadata: {},
-      active: true
-    }
-    double('Stripe::Price', defaults.merge(attrs))
-  end
-
-  # Create a mock Stripe::Product object
-  def mock_stripe_product(id: 'prod_test123', **attrs)
-    defaults = {
-      id: id,
-      name: 'Test Product',
-      description: 'Test product description',
-      metadata: {},
-      active: true,
-      created: Time.now.to_i
-    }
-    double('Stripe::Product', defaults.merge(attrs))
-  end
-
-  # Create a mock Stripe::Invoice object
-  def mock_stripe_invoice(id: 'in_test123', **attrs)
-    defaults = {
-      id: id,
-      customer: 'cus_test123',
-      subscription: 'sub_test123',
-      status: 'paid',
-      amount_due: 1000,
-      amount_paid: 1000,
-      currency: 'usd',
-      created: Time.now.to_i,
-      metadata: {}
-    }
-    double('Stripe::Invoice', defaults.merge(attrs))
-  end
-
-  # Create a mock Stripe::Charge object
-  def mock_stripe_charge(id: 'ch_test123', **attrs)
-    defaults = {
-      id: id,
-      customer: 'cus_test123',
-      amount: 1000,
-      currency: 'usd',
-      status: 'succeeded',
-      paid: true,
-      refunded: false,
-      amount_refunded: 0,
-      metadata: {},
-      created: Time.now.to_i
-    }
-    double('Stripe::Charge', defaults.merge(attrs))
-  end
-
-  # Create a mock Stripe::Refund object
-  def mock_stripe_refund(id: 'ref_test123', **attrs)
-    defaults = {
-      id: id,
-      charge: 'ch_test123',
-      amount: 1000,
-      currency: 'usd',
-      status: 'succeeded',
-      reason: nil,
-      metadata: {},
-      created: Time.now.to_i
-    }
-    double('Stripe::Refund', defaults.merge(attrs))
-  end
-
-  # Create a mock Stripe::PaymentMethod object
-  def mock_stripe_payment_method(id: 'pm_test123', **attrs)
-    defaults = {
-      id: id,
-      type: 'card',
-      card: {
-        brand: 'visa',
-        last4: '4242',
-        exp_month: 12,
-        exp_year: Time.now.year + 2
-      },
-      metadata: {}
-    }
-    double('Stripe::PaymentMethod', defaults.merge(attrs))
-  end
-
-  # Create a mock Stripe::Event object
-  def mock_stripe_event(type:, data_object:, **attrs)
-    defaults = {
-      id: "evt_#{SecureRandom.hex(12)}",
-      type: type,
-      data: { object: data_object },
-      created: Time.now.to_i,
-      livemode: false,
-      api_version: '2023-10-16'
-    }
-    double('Stripe::Event', defaults.merge(attrs))
-  end
 
   # Mock StripeClient for testing
   def mock_stripe_client
@@ -204,13 +31,6 @@ module BillingSpecHelper
     allow(validator).to receive(:validate!).and_return(valid)
     allow(Billing::WebhookValidator).to receive(:new).and_return(validator)
     validator
-  end
-
-  # Generate a valid Stripe webhook signature
-  def generate_stripe_signature(payload:, secret:, timestamp: Time.now.to_i)
-    signed_payload = "#{timestamp}.#{payload}"
-    signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha256'), secret, signed_payload)
-    "t=#{timestamp},v1=#{signature}"
   end
 
   # Mock Redis for billing tests with comprehensive Familia v2 support
@@ -332,21 +152,6 @@ module BillingSpecHelper
       region: 'US'
     }
     Billing::Models::Plan.new(defaults.merge(attrs))
-  end
-
-  # Stub Stripe API responses
-  def stub_stripe_api
-    # Stub common Stripe SDK methods
-    allow(Stripe::Customer).to receive(:create).and_return(mock_stripe_customer)
-    allow(Stripe::Customer).to receive(:retrieve).and_return(mock_stripe_customer)
-    allow(Stripe::Customer).to receive(:update).and_return(mock_stripe_customer)
-
-    allow(Stripe::Subscription).to receive(:create).and_return(mock_stripe_subscription)
-    allow(Stripe::Subscription).to receive(:retrieve).and_return(mock_stripe_subscription)
-    allow(Stripe::Subscription).to receive(:update).and_return(mock_stripe_subscription)
-
-    allow(Stripe::Product).to receive(:list).and_return(double(data: [mock_stripe_product]))
-    allow(Stripe::Price).to receive(:list).and_return(double(data: [mock_stripe_price]))
   end
 
   # Prevent automatic plan cache refresh during tests

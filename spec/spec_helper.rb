@@ -72,7 +72,7 @@ rescue LoadError => e
 end
 
 # Load test utilities
-# Dir[File.join(__dir__, 'support', '*.rb')].each { |f| require f }
+Dir[File.join(__dir__, 'support', '*.rb')].each { |f| require f }
 
 # Test mode
 OT.mode = :test
@@ -99,6 +99,20 @@ RSpec.configure do |config|
 
   config.mock_with :rspec do |mocks|
     mocks.verify_partial_doubles = true
+  end
+
+  # Configure stripe-mock server for the entire test suite
+  config.before(:suite) do
+    StripeMockServer.start
+  end
+
+  config.after(:suite) do
+    StripeMockServer.stop
+  end
+
+  # Reset stripe-mock state between tests for isolation
+  config.before(:each, :stripe) do
+    StripeMockServer.reset!
   end
 
   # Configure FakeRedis for all tests (except where explicitly disabled)
