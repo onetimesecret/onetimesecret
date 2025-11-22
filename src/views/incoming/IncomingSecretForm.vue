@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import { onMounted, ref } from 'vue';
   import { useIncomingSecret } from '@/composables/useIncomingSecret';
-  import IncomingTitleInput from '@/components/incoming/IncomingTitleInput.vue';
+  import IncomingMemoInput from '@/components/incoming/IncomingMemoInput.vue';
   import IncomingRecipientDropdown from '@/components/incoming/IncomingRecipientDropdown.vue';
   import SecretContentInputArea from '@/components/secrets/form/SecretContentInputArea.vue';
   import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
@@ -112,7 +112,7 @@
           @submit.prevent="handleSubmit"
           class="space-y-6">
           <!-- Title Input -->
-          <IncomingTitleInput
+          <IncomingMemoInput
             v-model="form.title"
             :max-length="titleMaxLength"
             :error="errors.title"

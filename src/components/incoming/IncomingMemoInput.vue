@@ -1,4 +1,4 @@
-<!-- src/components/incoming/IncomingTitleInput.vue -->
+<!-- src/components/incoming/IncomingMemoInput.vue -->
 
 <script setup lang="ts">
   import { computed } from 'vue';
@@ -14,7 +14,7 @@
     {
       maxLength: 50,
       disabled: false,
-      placeholder: 'Enter a descriptive title for this secret',
+      placeholder: 'Enter a brief subject for this secret',
     }
   );
 
@@ -52,9 +52,9 @@
 <template>
   <div class="w-full">
     <label
-      for="incoming-title"
+      for="incoming-memo"
       class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-      {{ $t('web.incoming.title_label') }}
+      {{ $t('web.incoming.memo_label') }}
       <span
         v-if="error"
         class="text-red-500">
@@ -64,7 +64,7 @@
 
     <div class="relative">
       <input
-        id="incoming-title"
+        id="incoming-memo"
         type="text"
         :value="modelValue"
         :maxlength="maxLength"
@@ -79,9 +79,9 @@
           'dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500',
           'dark:focus:ring-blue-400',
         ]"
-        :aria-label="$t('web.incoming.title_aria_label')"
+        :aria-label="$t('web.incoming.memo_placeholder')"
         :aria-invalid="!!error"
-        :aria-describedby="error ? 'title-error' : 'title-counter'"
+        :aria-describedby="error ? 'memo-error' : 'memo-counter'"
         @input="handleInput"
         @blur="handleBlur" />
 
@@ -90,13 +90,13 @@
         class="mt-1 flex items-center justify-between">
         <span
           v-if="error"
-          id="title-error"
+          id="memo-error"
           class="text-sm text-red-600 dark:text-red-400">
           {{ error }}
         </span>
         <span
           v-if="isNearLimit"
-          id="title-counter"
+          id="memo-counter"
           :class="[counterColor, 'ml-auto text-sm']">
           {{ charCount }} / {{ maxLength }}
         </span>
@@ -104,7 +104,7 @@
     </div>
 
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-      {{ $t('web.incoming.title_hint') }}
+      {{ $t('web.incoming.memo_hint') }}
     </p>
   </div>
 </template>
