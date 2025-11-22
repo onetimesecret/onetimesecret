@@ -83,7 +83,7 @@ export const useIncomingStore = defineStore('incoming', () => {
 
     try {
       const response = await $api.get('/api/v2/incoming/config');
-      const validated = incomingConfigSchema.parse(response.data);
+      const validated = incomingConfigSchema.parse(response.data.config);
       config.value = validated;
       return validated;
     } catch (error) {
