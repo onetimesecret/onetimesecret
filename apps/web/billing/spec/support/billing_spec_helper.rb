@@ -89,6 +89,12 @@ RSpec.configure do |config|
   config.before(:each, type: :billing) do
     @sleep_delays = []
 
+    # Mock global sleep to prevent actual delays in retry logic tests
+    # Tracks all sleep calls for verification in retry behavior tests
+    allow_any_instance_of(Object).to receive(:sleep) do |_, delay|
+      @sleep_delays << delay if delay.is_a?(Numeric)
+    end
+
     # Flush test Redis to ensure clean slate
     # Uses Familia.dbclient which connects to redis://127.0.0.1:2121/0
     Familia.dbclient.flushdb

@@ -181,14 +181,10 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
         end
       end
 
-      # Track sleep calls to verify backoff
-      sleep_calls = []
-      allow(client).to receive(:sleep) { |duration| sleep_calls << duration }
-
       result = client.create(Stripe::Customer, { email: 'retry@example.com' })
 
       expect(call_count).to eq(3)
-      expect(sleep_calls).to eq([2, 4])  # Linear backoff: 2s, 4s
+      expect(sleep_delays).to eq([2, 4])  # Linear backoff: 2s, 4s
       expect(result.id).to eq('cus_success')
     end
 
@@ -204,13 +200,10 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
         end
       end
 
-      sleep_calls = []
-      allow(client).to receive(:sleep) { |duration| sleep_calls << duration }
-
       result = client.create(Stripe::Customer, { email: 'rate@example.com' })
 
       expect(call_count).to eq(3)
-      expect(sleep_calls).to eq([4, 8])  # Exponential backoff: 2*(2^1), 2*(2^2)
+      expect(sleep_delays).to eq([4, 8])  # Exponential backoff: 2*(2^1), 2*(2^2)
       expect(result.id).to eq('cus_success')
     end
 
@@ -230,11 +223,12 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
       )
 
       # Should fail immediately without retry
-      expect(client).not_to receive(:sleep)
-
       expect {
         client.create(Stripe::Customer, { email: 'invalid@example.com' })
       }.to raise_error(Stripe::InvalidRequestError)
+
+      # Verify no sleep calls were made
+      expect(sleep_delays).to be_empty
     end
 
     it 'caps retry delay at maximum' do
@@ -246,9 +240,6 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
         raise Stripe::RateLimitError.new('Rate limit', http_status: 429)
       end
 
-      sleep_calls = []
-      allow(client).to receive(:sleep) { |duration| sleep_calls << duration }
-
       begin
         client.create(Stripe::Customer, { email: 'cap@example.com' })
       rescue Stripe::RateLimitError
@@ -256,7 +247,7 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
       end
 
       # Verify no delay exceeds MAX_RETRY_DELAY (30s)
-      expect(sleep_calls.all? { |delay| delay <= 30 }).to be true
+      expect(sleep_delays.all? { |delay| delay <= 30 }).to be true
     end
   end
 
