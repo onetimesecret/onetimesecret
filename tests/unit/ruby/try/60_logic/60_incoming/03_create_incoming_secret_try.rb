@@ -1,13 +1,13 @@
 # tests/unit/ruby/try/60_logic/60_incoming/03_create_incoming_secret_try.rb
 
 # These tests cover the Incoming::CreateIncomingSecret logic class which handles
-# creation of incoming secrets with title and recipient metadata.
+# creation of incoming secrets with memo and recipient metadata.
 #
 # We test:
 # 1. Basic secret creation with all fields
 # 2. Title truncation to max length
 # 3. Passphrase application from config
-# 4. Metadata storage (title, recipient)
+# 4. Metadata storage (memo, recipient)
 # 5. Invalid recipient rejection
 # 6. Missing required fields
 # 7. Feature disabled state
@@ -28,7 +28,7 @@ OT.boot! :test, false
 ## CreateIncomingSecret raises error when feature is disabled
 begin
   params = {
-    title: 'Test Secret',
+    memo: 'Test Secret',
     secret: 'secret value',
     recipient: 'test@example.com'
   }
@@ -49,13 +49,13 @@ OT.boot! :test, false
 
 ## CreateIncomingSecret processes params correctly
 params = {
-  title: 'Important Issue',
+  memo: 'Important Issue',
   secret: 'This is a secret message',
   recipient: 'support@example.com'
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 [
-  logic.title,
+  logic.memo,
   logic.secret_value,
   logic.recipient_email,
   logic.ttl,
@@ -63,20 +63,20 @@ logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 ]
 #=> ['Important Issue', 'This is a secret message', 'support@example.com', 3600, 'test-passphrase-123']
 
-## CreateIncomingSecret truncates title to max length
-long_title = 'A' * 100
+## CreateIncomingSecret truncates memo to max length
+long_memo = 'A' * 100
 params = {
-  title: long_title,
+  memo: long_memo,
   secret: 'test',
   recipient: 'support@example.com'
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
-logic.title.length
+logic.memo.length
 #=> 50
 
-## CreateIncomingSecret raises error for empty title
+## CreateIncomingSecret raises error for empty memo
 params = {
-  title: '   ',
+  memo: '   ',
   secret: 'test',
   recipient: 'support@example.com'
 }
@@ -91,7 +91,7 @@ end
 
 ## CreateIncomingSecret raises error for empty secret
 params = {
-  title: 'Test',
+  memo: 'Test',
   secret: '',
   recipient: 'support@example.com'
 }
@@ -106,7 +106,7 @@ end
 
 ## CreateIncomingSecret raises error for empty recipient
 params = {
-  title: 'Test',
+  memo: 'Test',
   secret: 'test value',
   recipient: ''
 }
@@ -121,7 +121,7 @@ end
 
 ## CreateIncomingSecret raises error for invalid recipient
 params = {
-  title: 'Test',
+  memo: 'Test',
   secret: 'test value',
   recipient: 'unknown@example.com'
 }
@@ -136,7 +136,7 @@ end
 
 ## CreateIncomingSecret creates secret successfully
 params = {
-  title: 'Bug Report #123',
+  memo: 'Bug Report #123',
   secret: 'Stack trace: Error on line 42',
   recipient: 'security@example.com'
 }
@@ -148,7 +148,7 @@ logic.greenlighted
 
 ## CreateIncomingSecret creates metadata and secret objects
 params = {
-  title: 'Feature Request',
+  memo: 'Feature Request',
   secret: 'Please add dark mode',
   recipient: 'support@example.com'
 }
@@ -164,7 +164,7 @@ logic.process
 
 ## CreateIncomingSecret stores incoming metadata fields
 params = {
-  title: 'Test Title',
+  memo: 'Test Title',
   secret: 'Test Secret',
   recipient: 'support@example.com'
 }
@@ -172,14 +172,14 @@ logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
 metadata = V2::Metadata.load logic.metadata.key
 [
-  metadata.field_get(:incoming_title),
+  metadata.field_get(:incoming_memo),
   metadata.field_get(:incoming_recipient)
 ]
 #=> ['Test Title', 'support@example.com']
 
 ## CreateIncomingSecret applies passphrase from config
 params = {
-  title: 'Passphrase Test',
+  memo: 'Passphrase Test',
   secret: 'Secret content',
   recipient: 'support@example.com'
 }
@@ -198,7 +198,7 @@ OT.boot! :test, false
 
 ## CreateIncomingSecret works without passphrase config
 params = {
-  title: 'No Passphrase',
+  memo: 'No Passphrase',
   secret: 'Open secret',
   recipient: 'support@example.com'
 }
@@ -215,7 +215,7 @@ OT.boot! :test, false
 
 ## CreateIncomingSecret sets correct TTL
 params = {
-  title: 'TTL Test',
+  memo: 'TTL Test',
   secret: 'Testing TTL',
   recipient: 'support@example.com'
 }
@@ -231,7 +231,7 @@ secret = V2::Secret.load logic.secret.key
 
 ## CreateIncomingSecret returns success data with correct structure
 params = {
-  title: 'Success Test',
+  memo: 'Success Test',
   secret: 'Test content',
   recipient: 'security@example.com'
 }
@@ -242,7 +242,7 @@ data = logic.success_data
   data[:success],
   data[:record].key?(:metadata),
   data[:record].key?(:secret),
-  data[:details][:title],
+  data[:details][:memo],
   data[:details][:recipient]
 ]
 #=> [true, true, true, 'Success Test', 'security@example.com']
@@ -250,7 +250,7 @@ data = logic.success_data
 ## CreateIncomingSecret updates customer stats for authenticated user
 initial_count = @cust.secrets_created || 0
 params = {
-  title: 'Stats Test',
+  memo: 'Stats Test',
   secret: 'Testing stats',
   recipient: 'support@example.com'
 }
@@ -260,31 +260,31 @@ logic.process
 @cust.secrets_created
 #=> initial_count + 1
 
-## CreateIncomingSecret handles whitespace in title
+## CreateIncomingSecret handles whitespace in memo
 params = {
-  title: '  Whitespace Test  ',
+  memo: '  Whitespace Test  ',
   secret: 'Testing whitespace',
   recipient: 'support@example.com'
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
-logic.title
+logic.memo
 #=> 'Whitespace Test'
 
-## CreateIncomingSecret handles special characters in title
+## CreateIncomingSecret handles special characters in memo
 params = {
-  title: 'Bug: <script>alert("XSS")</script>',
+  memo: 'Bug: <script>alert("XSS")</script>',
   secret: 'Test content',
   recipient: 'support@example.com'
 }
 logic = V2::Logic::Incoming::CreateIncomingSecret.new @sess, @cust, params
 logic.process
 metadata = V2::Metadata.load logic.metadata.key
-metadata.field_get(:incoming_title)
+metadata.field_get(:incoming_memo)
 #=> 'Bug: <script>alert("XSS")</script>'
 
 ## CreateIncomingSecret secret can be retrieved
 params = {
-  title: 'Retrieval Test',
+  memo: 'Retrieval Test',
   secret: 'This is the secret content',
   recipient: 'support@example.com'
 }

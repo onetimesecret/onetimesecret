@@ -63,7 +63,7 @@ logic.process
 data = logic.success_data
 [
   data[:config][:enabled],
-  data[:config][:title_max_length],
+  data[:config][:memo_max_length],
   data[:config][:default_ttl]
 ]
 #=> [true, 50, 604800]
