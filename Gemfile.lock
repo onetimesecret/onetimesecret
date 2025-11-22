@@ -94,6 +94,8 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
+    addressable (2.8.7)
+      public_suffix (>= 2.0.2, < 7.0)
     android_key_attestation (0.3.0)
     ast (2.4.3)
     aws-eventstream (1.4.0)
@@ -123,6 +125,9 @@ GEM
     cose (1.3.1)
       cbor (~> 0.5.9)
       openssl-signature_algorithm (~> 1.0)
+    crack (1.0.1)
+      bigdecimal
+      rexml
     crass (1.0.6)
     csv (3.3.5)
     daemons (1.4.1)
@@ -152,6 +157,7 @@ GEM
     ffi (1.17.2-x86_64-darwin)
     ffi (1.17.2-x86_64-linux-gnu)
     hana (1.3.7)
+    hashdiff (1.2.1)
     httparty (0.23.2)
       csv
       mini_mime (>= 1.0.0)
@@ -386,6 +392,8 @@ GEM
       unicode-emoji (~> 4.1)
     unicode-emoji (4.1.0)
     uri-valkey (1.4.0)
+    vcr (6.3.1)
+      base64
     webauthn (3.4.3)
       android_key_attestation (~> 0.3.0)
       bindata (~> 2.4)
@@ -394,6 +402,10 @@ GEM
       openssl (>= 2.2)
       safety_net_attestation (~> 0.5.0)
       tpm-key_attestation (~> 0.14.0)
+    webmock (3.26.1)
+      addressable (>= 2.8.0)
+      crack (>= 0.3.2)
+      hashdiff (>= 0.4.0, < 2.0.0)
 
 PLATFORMS
   aarch64-linux
@@ -469,7 +481,9 @@ DEPENDENCIES
   truemail
   tryouts (~> 3.7.1)
   uri-valkey (~> 1.4.0)
+  vcr (~> 6.0)
   webauthn (~> 3.0)
+  webmock (~> 3.0)
 
 RUBY VERSION
    ruby 3.3.6p108

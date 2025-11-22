@@ -137,6 +137,8 @@ group :test do
   gem 'simplecov', require: false
   gem 'timecop', '~> 0.9'
   gem 'tryouts', '~> 3.7.1', require: false
+  gem 'vcr', '~> 6.0'
+  gem 'webmock', '~> 3.0'
 
   # RSpec components
   %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|

@@ -104,6 +104,7 @@ RSpec.configure do |config|
   # Configure stripe-mock server for the entire test suite
   config.before(:suite) do
     StripeMockServer.start
+    StripeMockServer.configure_stripe_client!
   end
 
   config.after(:suite) do
@@ -113,6 +114,19 @@ RSpec.configure do |config|
   # Reset stripe-mock state between tests for isolation
   config.before(:each, :stripe) do
     StripeMockServer.reset!
+  end
+
+  # VCR: Automatically wrap tests tagged with :vcr in cassettes
+  config.around(:each, :vcr) do |example|
+    # Generate cassette name from test description
+    cassette_name = example.metadata[:full_description]
+                           .downcase
+                           .gsub(/[^\w\s]/, '')
+                           .gsub(/\s+/, '_')
+
+    VCR.use_cassette(cassette_name) do
+      example.run
+    end
   end
 
   # Configure FakeRedis for all tests (except where explicitly disabled)
