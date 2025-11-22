@@ -19,9 +19,8 @@
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 py-8 dark:bg-slate-900">
-    <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
-      <div class="rounded-lg bg-white p-8 shadow-sm dark:bg-slate-800">
+  <div class="container mx-auto mt-24 max-w-2xl px-4">
+    <div class="rounded-lg bg-white p-8 shadow-sm dark:bg-slate-800">
         <!-- Success Icon -->
         <div class="mb-6 flex justify-center">
           <div class="flex size-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
@@ -99,7 +98,6 @@
               {{ $t('web.incoming.view_recent_secrets') }}
             </button>
           </div>
-        </div>
       </div>
     </div>
   </div>

@@ -66,50 +66,49 @@
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 py-8 dark:bg-slate-900">
-    <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-      <!-- Header -->
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-          {{ $t('web.incoming.page_title') }}
-        </h1>
-        <p class="mt-2 text-gray-600 dark:text-gray-400">
-          {{ $t('web.incoming.page_description') }}
-        </p>
-      </div>
+  <div class="container mx-auto mt-24 max-w-3xl px-4">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+        {{ $t('web.incoming.page_title') }}
+      </h1>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">
+        {{ $t('web.incoming.page_description') }}
+      </p>
+    </div>
 
-      <!-- Loading State -->
-      <LoadingOverlay
-        :show="isLoading"
-        :message="$t('web.incoming.loading_config')" />
+    <!-- Loading State -->
+    <LoadingOverlay
+      :show="isLoading"
+      :message="$t('web.incoming.loading_config')" />
 
-      <!-- Error State -->
-      <EmptyState v-if="loadError">
-        <template #title>
-          {{ $t('web.incoming.config_error_title') }}
-        </template>
-        <template #description>
-          {{ loadError }}
-        </template>
-      </EmptyState>
+    <!-- Error State -->
+    <EmptyState v-if="loadError">
+      <template #title>
+        {{ $t('web.incoming.config_error_title') }}
+      </template>
+      <template #description>
+        {{ loadError }}
+      </template>
+    </EmptyState>
 
-      <!-- Feature Disabled -->
-      <EmptyState v-else-if="!isFeatureEnabled">
-        <template #title>
-          {{ $t('web.incoming.feature_disabled_title') }}
-        </template>
-        <template #description>
-          {{ $t('web.incoming.feature_disabled_description') }}
-        </template>
-      </EmptyState>
+    <!-- Feature Disabled -->
+    <EmptyState v-else-if="!isFeatureEnabled">
+      <template #title>
+        {{ $t('web.incoming.feature_disabled_title') }}
+      </template>
+      <template #description>
+        {{ $t('web.incoming.feature_disabled_description') }}
+      </template>
+    </EmptyState>
 
-      <!-- Form -->
-      <div
-        v-else
-        class="rounded-lg bg-white p-6 shadow-sm dark:bg-slate-800 sm:p-8">
-        <form
-          @submit.prevent="handleSubmit"
-          class="space-y-6">
+    <!-- Form -->
+    <div
+      v-else
+      class="rounded-lg bg-white p-6 shadow-sm dark:bg-slate-800 sm:p-8">
+      <form
+        @submit.prevent="handleSubmit"
+        class="space-y-6">
           <!-- Title Input -->
           <IncomingMemoInput
             v-model="form.memo"
@@ -170,8 +169,7 @@
               {{ isSubmitting ? $t('web.incoming.submitting') : $t('web.incoming.submit_secret') }}
             </button>
           </div>
-        </form>
-      </div>
+      </form>
     </div>
   </div>
 </template>
