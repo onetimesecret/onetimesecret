@@ -156,7 +156,7 @@ module Billing
         plan = ::Billing::Plan.load(org.planid)
         return {} unless plan
 
-        limits = plan.parsed_limits
+        limits = plan.limits_hash
         limits.transform_values do |value|
           value == Float::INFINITY ? nil : value
         end
@@ -185,8 +185,8 @@ module Billing
 
           summary[plan.plan_id] = {
             name: plan.name,
-            capabilities: plan.parsed_capabilities,
-            limits: plan.parsed_limits.transform_values { |v| v == Float::INFINITY ? nil : v },
+            capabilities: plan.capabilities.to_a,
+            limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? nil : v },
           }
         end
 
