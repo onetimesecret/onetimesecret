@@ -77,37 +77,23 @@ module Billing
       @is_soft_deleted   ||= false
     end
 
-    # Parse JSON fields
+    # Parse fields - Convert Familia data structures to native Ruby types
+    # capabilities and features are Familia::UnsortedSet objects
+    # limits is a Familia::HashKey object
     def parsed_capabilities
-      JSON.parse(capabilities)
-    rescue JSON::ParserError
-      Onetime.billing_logger.error 'Failed to parse capabilities JSON', {
-        plan_id: plan_id,
-        capabilities: capabilities,
-      }
-      []
+      capabilities.respond_to?(:members) ? capabilities.members : []
     end
 
     def parsed_features
-      JSON.parse(features)
-    rescue JSON::ParserError
-      Onetime.billing_logger.error 'Failed to parse features JSON', {
-        plan_id: plan_id,
-        features: features,
-      }
-      []
+      features.respond_to?(:members) ? features.members : []
     end
 
     def parsed_limits
-      parsed = JSON.parse(limits)
+      return {} unless limits.respond_to?(:all)
+
+      parsed = limits.all
       # Convert -1 to Float::INFINITY for unlimited resources
-      parsed.transform_values { |v| v == -1 ? Float::INFINITY : v }
-    rescue JSON::ParserError
-      Onetime.billing_logger.error 'Failed to parse limits JSON', {
-        plan_id: plan_id,
-        limits: limits,
-      }
-      {}
+      parsed.transform_values { |v| v.to_i == -1 ? Float::INFINITY : v.to_i }
     end
 
     class << self
@@ -218,10 +204,13 @@ module Billing
               amount: price.unit_amount.to_s,
               currency: price.currency,
               region: region,
-              capabilities: capabilities.to_json,
-              features: (product.marketing_features&.map(&:name) || []).to_json,
-              limits: limits.to_json,
             )
+
+            # Populate Familia collections after creating instance
+            capabilities.each { |cap| plan.capabilities.add(cap) }
+            (product.marketing_features&.map(&:name) || []).each { |feat| plan.features.add(feat) }
+            limits.each { |resource, limit| plan.limits[resource] = limit }
+
             plan.save
 
             OT.ld "[Plan] Cached plan: #{plan_id}", {
