@@ -59,6 +59,7 @@ module Onetime
         end
 
         # Report results
+        print_plan_summary(catalog, errors)
         print_validation_results(errors, warnings, strict)
       end
 
@@ -95,34 +96,18 @@ module Onetime
       end
 
       def validate_plan_data(plan_id, data, errors, warnings)
-        # Required fields (tier is optional for draft plans)
-        %w[name capabilities limits].each do |field|
+        # Required fields for all plans
+        %w[name tier tenancy region capabilities limits].each do |field|
           unless data[field]
             errors << "Plan #{plan_id}: missing required field '#{field}'"
           end
         end
 
-        # Warn about missing tier (incomplete/draft plan)
-        unless data['tier']
-          warnings << "Plan #{plan_id}: missing tier field (incomplete definition, will be skipped in Stripe sync)"
-          return # Skip further validation if tier is missing
-        end
-
-        # Validate tier values
-        valid_tiers = %w[free single_team multi_team]
-        unless valid_tiers.include?(data['tier'])
-          errors << "Plan #{plan_id}: invalid tier '#{data['tier']}' (expected: #{valid_tiers.join(', ')})"
-        end
-
-        # Warn if free tier (no Stripe product will be created)
-        if data['tier'] == 'free'
-          warnings << "Plan #{plan_id}: free tier (no Stripe product will be created)"
-        end
-
-        # Required fields for non-free, complete plans
-        %w[tenancy region].each do |field|
-          unless data[field]
-            errors << "Plan #{plan_id}: missing required field '#{field}'"
+        # Validate tier values if present
+        if data['tier']
+          valid_tiers = %w[free single_team multi_team]
+          unless valid_tiers.include?(data['tier'])
+            errors << "Plan #{plan_id}: invalid tier '#{data['tier']}' (expected: #{valid_tiers.join(', ')})"
           end
         end
 
@@ -196,15 +181,26 @@ module Onetime
       end
 
       def validate_stripe_consistency(catalog, errors, warnings)
-        puts 'Comparing with Stripe products...'
-        puts
+        # Show API key and version info for trust/debugging
+        api_key = Stripe.api_key || Onetime.billing_config.stripe_key
+        key_prefix = api_key ? api_key[0..13] : 'none'
+        api_version = catalog['stripe_api_version'] || 'unknown'
+
+        printf "Fetching products from Stripe API [#{key_prefix}/#{api_version}]..."
+        $stdout.flush
+        start_time = Time.now
 
         plans = catalog['plans'] || {}
 
         # Fetch all Stripe products
-        stripe_products = Stripe::Product.list(active: true, limit: 100).data.select do |product|
+        all_stripe_products = Stripe::Product.list(active: true, limit: 100).data
+        stripe_products = all_stripe_products.select do |product|
           product.metadata['app'] == 'onetimesecret'
         end
+
+        elapsed_ms = ((Time.now - start_time) * 1000).to_i
+        puts " found #{stripe_products.size} onetimesecret product(s) (#{all_stripe_products.size} total) in #{elapsed_ms}ms"
+        puts
 
         # Check each plan in catalog
         plans.each do |plan_id, plan_data|
@@ -287,6 +283,48 @@ module Onetime
         elsif errors.any? || (warnings.any? && strict)
           puts '❌ Validation failed'
           puts
+        end
+      end
+
+      def print_plan_summary(catalog, errors)
+        plans = catalog['plans'] || {}
+
+        # Categorize by validation status
+        valid = []
+        invalid = []
+        has_free_tier = false
+
+        plans.each do |plan_id, data|
+          has_errors = errors.any? { |e| e.start_with?("Plan #{plan_id}:") }
+
+          if has_errors
+            invalid << [plan_id, data]
+          else
+            valid << [plan_id, data]
+            has_free_tier = true if data['tier'] == 'free'
+          end
+        end
+
+        puts
+        if valid.any?
+          puts "  Valid (#{valid.size}):"
+          valid.sort_by { |_id, data| -(data['display_order'] || 0) }.each do |plan_id, data|
+            marker = data['tier'] == 'free' ? '*' : ' '
+            puts "    #{marker} #{data['name']} (#{plan_id})"
+          end
+          puts if invalid.any?
+        end
+
+        if invalid.any?
+          puts "  Invalid (#{invalid.size}):"
+          invalid.sort_by { |_id, data| -(data['display_order'] || 0) }.each do |plan_id, data|
+            puts "    - #{data['name'] || plan_id} (#{plan_id})"
+          end
+        end
+
+        if has_free_tier
+          puts
+          puts "  * free tier valid in catalog, does not have a Stripe product"
         end
       end
     end
