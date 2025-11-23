@@ -1,3 +1,5 @@
+// src/schemas/config/index.ts
+
 /**
  * Configuration Schemas
  *
@@ -10,7 +12,7 @@
  * - Integration between backend YAML configs and frontend
  */
 
-export * from './billing-catalog';
+export * from './billing-plans';
 
 export type {
   BillingInterval,
@@ -29,17 +31,20 @@ export type {
   StripeMetadataSchemaDefinition,
   TenancyType,
   ValidationRules,
-} from './billing-catalog';
+} from './billing-plans';
 
 export {
   CATALOG_SCHEMA_VERSION,
   formatLimitValue,
+  getIncompletePlans,
   getPlanById,
   getPlanPrice,
   getPlansByTier,
   getPlansSortedByDisplayOrder,
+  getStripePlans,
   isPlanCatalog,
   limitValueToNumber,
   PlanCatalogSchema,
   planHasCapability,
-} from './billing-catalog';
+  shouldCreateStripeProduct,
+} from './billing-plans';

@@ -1,3 +1,5 @@
+// src/schemas/index.ts
+
 /**
  * Schema System Architecture
  *

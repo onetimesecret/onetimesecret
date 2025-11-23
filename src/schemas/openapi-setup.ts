@@ -1,3 +1,5 @@
+// src/schemas/openapi-setup.ts
+
 /**
  * OpenAPI Setup for Zod Schemas
  *
@@ -45,7 +47,7 @@ export type {
   ZodUnion,
   ZodLiteral,
   ZodNullable,
-  ZodOptional
+  ZodOptional,
 } from 'zod';
 
 /**

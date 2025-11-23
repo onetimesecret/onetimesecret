@@ -1,3 +1,5 @@
+// src/schemas/config/billing-plans.ts
+
 /**
  * Billing Plan Catalog Schema
  *
@@ -56,11 +58,7 @@ export type CapabilityDefinition = z.infer<typeof CapabilityDefinitionSchema>;
  * Billing Tier
  * Hierarchical plan tiers
  */
-export const BillingTierSchema = z.enum([
-  'free',
-  'single_team',
-  'multi_team',
-]);
+export const BillingTierSchema = z.enum(['free', 'single_account', 'single_team', 'multi_team']);
 
 export type BillingTier = z.infer<typeof BillingTierSchema>;
 
@@ -69,8 +67,8 @@ export type BillingTier = z.infer<typeof BillingTierSchema>;
  * Infrastructure isolation level
  */
 export const TenancyTypeSchema = z.enum([
-  'multi',      // Multi-tenant shared infrastructure
-  'dedicated',  // Single-tenant dedicated infrastructure
+  'multi', // Multi-tenant shared infrastructure
+  'dedicated', // Single-tenant dedicated infrastructure
 ]);
 
 export type TenancyType = z.infer<typeof TenancyTypeSchema>;
@@ -79,10 +77,7 @@ export type TenancyType = z.infer<typeof TenancyTypeSchema>;
  * Billing Interval
  * Subscription billing frequency
  */
-export const BillingIntervalSchema = z.enum([
-  'month',
-  'year',
-]);
+export const BillingIntervalSchema = z.enum(['month', 'year']);
 
 export type BillingInterval = z.infer<typeof BillingIntervalSchema>;
 
@@ -90,11 +85,7 @@ export type BillingInterval = z.infer<typeof BillingIntervalSchema>;
  * Currency Code
  * ISO 4217 currency codes
  */
-export const CurrencyCodeSchema = z.enum([
-  'usd',
-  'eur',
-  'cad',
-]);
+export const CurrencyCodeSchema = z.enum(['usd', 'eur', 'cad']);
 
 export type CurrencyCode = z.infer<typeof CurrencyCodeSchema>;
 
@@ -139,13 +130,22 @@ export type PlanPrice = z.infer<typeof PlanPriceSchema>;
 /**
  * Plan Definition
  * Complete billing plan configuration
+ *
+ * Note: tier is optional to allow incomplete/draft plans in catalog.
+ * - Free tier plans (tier: 'free') are not created in Stripe
+ * - Nil/missing tier plans are skipped with warnings (incomplete definitions)
+ * - All other tiers require Stripe product creation
  */
 export const PlanDefinitionSchema = z.object({
   name: z.string().min(1).describe('Display name for the plan'),
-  tier: BillingTierSchema,
-  tenancy: TenancyTypeSchema,
-  region: z.string().min(1).describe('Geographic region (EU, CA, global)'),
-  display_order: z.number().int().nonnegative().describe('Sort order on plans page (higher = earlier)'),
+  tier: BillingTierSchema.optional().describe('Billing tier (optional for draft plans)'),
+  tenancy: TenancyTypeSchema.optional().describe('Tenancy type (optional for draft plans)'),
+  region: z.string().min(1).optional().describe('Geographic region (EU, CA, global)'),
+  display_order: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe('Sort order on plans page (higher = earlier)'),
   show_on_plans_page: z.boolean().describe('Visibility on public plans page'),
   description: z.string().min(1).optional().describe('Plan description for documentation'),
 
@@ -161,7 +161,10 @@ export type PlanDefinition = z.infer<typeof PlanDefinitionSchema>;
  * Grandfathered plans no longer offered to new customers
  */
 export const LegacyPlanDefinitionSchema = PlanDefinitionSchema.extend({
-  grandfathered_until: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
+  grandfathered_until: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
     .describe('ISO date until which plan is grandfathered (YYYY-MM-DD)'),
 });
 
@@ -173,7 +176,7 @@ export type LegacyPlanDefinition = z.infer<typeof LegacyPlanDefinitionSchema>;
  */
 export const MetadataFieldSchema = z.record(
   z.string(),
-  z.string().describe('Field description or example value'),
+  z.string().describe('Field description or example value')
 );
 
 /**
@@ -209,26 +212,27 @@ export type ValidationRules = z.infer<typeof ValidationRulesSchema>;
 export const PlanCatalogSchema = z.object({
   schema_version: z.literal(CATALOG_SCHEMA_VERSION).describe('Catalog schema version'),
 
-  capabilities: z.record(
-    z.string(),
-    CapabilityDefinitionSchema,
-  ).describe('Capability definitions by ID'),
+  capabilities: z
+    .record(z.string(), CapabilityDefinitionSchema)
+    .describe('Capability definitions by ID'),
 
-  plans: z.record(
-    z.string().regex(/^[a-z_]+_v\d+$/, 'Plan ID must match format: name_v1'),
-    PlanDefinitionSchema,
-  ).describe('Active plan definitions by plan_id'),
+  plans: z
+    .record(
+      z.string().regex(/^[a-z_]+_v\d+$/, 'Plan ID must match format: name_v1'),
+      PlanDefinitionSchema
+    )
+    .describe('Active plan definitions by plan_id'),
 
-  legacy_plans: z.record(
-    z.string(),
-    LegacyPlanDefinitionSchema,
-  ).optional().describe('Grandfathered plan definitions'),
+  legacy_plans: z
+    .record(z.string(), LegacyPlanDefinitionSchema)
+    .optional()
+    .describe('Grandfathered plan definitions'),
 
-  stripe_metadata_schema: StripeMetadataSchemaDefinition.optional()
-    .describe('Stripe product metadata schema definition'),
+  stripe_metadata_schema: StripeMetadataSchemaDefinition.optional().describe(
+    'Stripe product metadata schema definition'
+  ),
 
-  validation: ValidationRulesSchema.optional()
-    .describe('Validation rules for catalog structure'),
+  validation: ValidationRulesSchema.optional().describe('Validation rules for catalog structure'),
 });
 
 export type PlanCatalog = z.infer<typeof PlanCatalogSchema>;
@@ -252,10 +256,7 @@ export type CapabilityId = keyof PlanCatalog['capabilities'];
  * @param planId - Plan identifier
  * @returns Plan definition or undefined
  */
-export function getPlanById(
-  catalog: PlanCatalog,
-  planId: string,
-): PlanDefinition | undefined {
+export function getPlanById(catalog: PlanCatalog, planId: string): PlanDefinition | undefined {
   return catalog.plans[planId];
 }
 
@@ -268,11 +269,11 @@ export function getPlanById(
  */
 export function getPlansSortedByDisplayOrder(
   catalog: PlanCatalog,
-  includeHidden = false,
+  includeHidden = false
 ): Array<[string, PlanDefinition]> {
   return Object.entries(catalog.plans)
-    .filter(([_id, plan]) => includeHidden || plan.show_on_plans_page)
-    .sort(([_aId, a], [_bId, b]) => b.display_order - a.display_order);
+    .filter(([, plan]) => includeHidden || plan.show_on_plans_page)
+    .sort(([, a], [, b]) => b.display_order - a.display_order);
 }
 
 /**
@@ -284,10 +285,9 @@ export function getPlansSortedByDisplayOrder(
  */
 export function getPlansByTier(
   catalog: PlanCatalog,
-  tier: BillingTier,
+  tier: BillingTier
 ): Array<[string, PlanDefinition]> {
-  return Object.entries(catalog.plans)
-    .filter(([_id, plan]) => plan.tier === tier);
+  return Object.entries(catalog.plans).filter(([, plan]) => plan.tier === tier);
 }
 
 /**
@@ -297,10 +297,7 @@ export function getPlansByTier(
  * @param capability - Capability ID to check
  * @returns True if plan includes capability
  */
-export function planHasCapability(
-  plan: PlanDefinition,
-  capability: string,
-): boolean {
+export function planHasCapability(plan: PlanDefinition, capability: string): boolean {
   return plan.capabilities.includes(capability);
 }
 
@@ -313,7 +310,7 @@ export function planHasCapability(
  */
 export function getPlanPrice(
   plan: PlanDefinition,
-  interval: BillingInterval,
+  interval: BillingInterval
 ): PlanPrice | undefined {
   return plan.prices.find((p) => p.interval === interval);
 }
@@ -339,6 +336,48 @@ export function formatLimitValue(value: LimitValue): string {
 export function limitValueToNumber(value: LimitValue): number {
   if (value === null) return Infinity; // TBD treated as unlimited for now
   return value;
+}
+
+/**
+ * Helper: Check if plan should be created in Stripe
+ *
+ * Plans are skipped if:
+ * - tier is 'free' (no Stripe product needed)
+ * - tier is undefined/null (incomplete definition)
+ *
+ * @param plan - Plan definition
+ * @returns True if plan should be created in Stripe
+ */
+export function shouldCreateStripeProduct(plan: PlanDefinition): boolean {
+  // Skip if no tier defined (incomplete/draft plan)
+  if (!plan.tier) return false;
+
+  // Skip free tier (no Stripe product)
+  if (plan.tier === 'free') return false;
+
+  return true;
+}
+
+/**
+ * Helper: Get plans that should be created in Stripe
+ *
+ * Filters out free tier and incomplete plans
+ *
+ * @param catalog - Validated plan catalog
+ * @returns Array of [planId, plan] tuples for Stripe creation
+ */
+export function getStripePlans(catalog: PlanCatalog): Array<[string, PlanDefinition]> {
+  return Object.entries(catalog.plans).filter(([, plan]) => shouldCreateStripeProduct(plan));
+}
+
+/**
+ * Helper: Get incomplete plans (missing tier)
+ *
+ * @param catalog - Validated plan catalog
+ * @returns Array of [planId, plan] tuples for incomplete plans
+ */
+export function getIncompletePlans(catalog: PlanCatalog): Array<[string, PlanDefinition]> {
+  return Object.entries(catalog.plans).filter(([, plan]) => !plan.tier);
 }
 
 /**
