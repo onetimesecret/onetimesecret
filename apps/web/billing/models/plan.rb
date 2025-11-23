@@ -38,6 +38,21 @@ module Billing
   #   - single_team_monthly_us_east
   #   - multi_team_yearly_eu_west
   #
+  # ## Data Storage
+  #
+  # Uses Familia v2 native data types for performance:
+  # - `set :capabilities` - O(1) membership checks (create_secrets, custom_domains, etc.)
+  # - `set :features` - Marketing features (unique, unordered)
+  # - `hashkey :limits` - Resource quotas with flattened keys
+  # - `stringkey :stripe_data_snapshot` - Cached Stripe Product+Price JSON (12hr TTL)
+  #
+  # Limits use flattened keys to support future expansion:
+  #   - "teams.max" => "1" (allows adding "teams.min", "teams.default" later)
+  #   - "members_per_team.max" => "unlimited" (converted to Float::INFINITY)
+  #
+  # The stripe_data_snapshot enables recovery without re-syncing from Stripe API
+  # if parsing logic changes or bugs are fixed.
+  #
   class Plan < Familia::Horreum
     using Familia::Refinements::TimeLiterals
 
@@ -64,51 +79,56 @@ module Billing
     field :tenancy                  # One of: multitenant, dedicated
     field :is_soft_deleted          # Boolean: soft-deleted in Stripe
 
-    # Metadata stored as JSON
-    field :capabilities             # JSON: Capability array of strings
-    field :features                 # JSON: Feature list (marketing)
-    field :limits                   # JSON: Usage limits (teams, members_per_team, etc.)
+    set :capabilities
+    set :features
+    hashkey :limits
+    stringkey :stripe_data_snapshot, default_expiration: 12.hour  # Cached Stripe Product+Price JSON for recovery
 
     def init
       super
-      @capabilities      ||= []
-      @features          ||= []
-      @limits            ||= {}
       @stripe_updated_at ||= 0
       @is_soft_deleted   ||= false
+      @limits_hash       = nil  # Memoization cache
     end
 
-    # Parse JSON fields
-    def parsed_capabilities
-      JSON.parse(capabilities)
-    rescue JSON::ParserError
-      Onetime.billing_logger.error 'Failed to parse capabilities JSON', {
-        plan_id: plan_id,
-        capabilities: capabilities,
-      }
-      []
+    # Get limits as hash with infinity conversion
+    #
+    # Flattened keys format: "teams.max" => "5", "members_per_team.max" => "unlimited"
+    # This format supports future expansion (e.g., "teams.min", "teams.default")
+    #
+    # @return [Hash] Limits with integers and Float::INFINITY for unlimited resources
+    # @example
+    #   plan.limits_hash  # => {"teams.max" => 1, "members_per_team.max" => Float::INFINITY}
+    def limits_hash
+      @limits_hash ||= begin
+        # HashKey.hgetall returns Hash
+        hash = limits.hgetall || {}
+        hash.transform_values do |v|
+          v == 'unlimited' ? Float::INFINITY : v.to_i
+        end
+      end
     end
 
-    def parsed_features
-      JSON.parse(features)
-    rescue JSON::ParserError
-      Onetime.billing_logger.error 'Failed to parse features JSON', {
-        plan_id: plan_id,
-        features: features,
-      }
-      []
+    # Clear memoization cache when plan is reloaded
+    def reload
+      @limits_hash = nil
+      super
     end
 
-    def parsed_limits
-      parsed = JSON.parse(limits)
-      # Convert -1 to Float::INFINITY for unlimited resources
-      parsed.transform_values { |v| v == -1 ? Float::INFINITY : v }
-    rescue JSON::ParserError
-      Onetime.billing_logger.error 'Failed to parse limits JSON', {
+    # Parse cached Stripe data snapshot
+    #
+    # @return [Hash, nil] Parsed snapshot or nil if not available
+    def parsed_stripe_snapshot
+      snapshot = stripe_data_snapshot.value
+      return nil if snapshot.nil? || snapshot.empty?
+
+      JSON.parse(snapshot)
+    rescue JSON::ParserError => e
+      Onetime.billing_logger.error 'Failed to parse stripe_data_snapshot', {
         plan_id: plan_id,
-        limits: limits,
+        error: e.message
       }
-      {}
+      nil
     end
 
     class << self
@@ -201,9 +221,10 @@ module Billing
             # Extract limits from product metadata using Metadata helper
             limits = {}
             product.metadata.each do |key, value|
-              next unless key.start_with?('limit_')
+              key_str = key.to_s  # Ensure key is a string
+              next unless key_str.start_with?('limit_')
 
-              resource         = key.sub('limit_', '').to_sym
+              resource         = key_str.sub('limit_', '').to_sym
               limits[resource] = Metadata.normalize_limit(value)
             end
 
@@ -218,10 +239,48 @@ module Billing
               amount: price.unit_amount.to_s,
               currency: price.currency,
               region: region,
-              capabilities: capabilities.to_json,
-              features: (product.marketing_features&.map(&:name) || []).to_json,
-              limits: limits.to_json,
             )
+
+            # Add capabilities to set (unique values)
+            plan.capabilities.clear
+            capabilities.each { |cap| plan.capabilities.add(cap) }
+
+            # Add features to set
+            plan.features.clear
+            marketing_features = product.marketing_features&.map(&:name) || []
+            marketing_features.each { |feat| plan.features.add(feat) }
+
+            # Add limits to hashkey with flattened keys
+            plan.limits.clear
+            limits.each do |resource, value|
+              # Flatten: "teams" => "teams.max", value -1 => "unlimited"
+              key = "#{resource}.max"
+              val = value == -1 ? 'unlimited' : value.to_s
+              plan.limits[key] = val
+            end
+
+            # Store original Stripe data for recovery/debugging
+            # Allows re-parsing without full Stripe API sync if logic changes
+            stripe_snapshot = {
+              product: {
+                id: product.id,
+                name: product.name,
+                metadata: product.metadata.to_h,
+                marketing_features: product.marketing_features&.map(&:name) || []
+              },
+              price: {
+                id: price.id,
+                type: price.type,
+                currency: price.currency,
+                unit_amount: price.unit_amount,
+                recurring: {
+                  interval: price.recurring.interval
+                }
+              },
+              cached_at: Time.now.to_i
+            }
+            plan.stripe_data_snapshot.value = stripe_snapshot.to_json
+
             plan.save
 
             OT.ld "[Plan] Cached plan: #{plan_id}", {

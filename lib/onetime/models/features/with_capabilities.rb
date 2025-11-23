@@ -56,7 +56,7 @@ module Onetime
             plan = ::Billing::Plan.load(planid)
             return [] unless plan  # Fail safely
 
-            plan.parsed_capabilities
+            plan.capabilities.to_a
           end
 
           # Get limit for a specific resource
@@ -80,11 +80,15 @@ module Onetime
             plan = ::Billing::Plan.load(planid)
             return 0 unless plan
 
-            limits = plan.parsed_limits
-            # Default to 0 for unknown resources (fail-closed for security)
-            # This prevents typos from granting unlimited access
-            # Note: parsed_limits keys are strings from JSON
-            limits.fetch(resource.to_s, 0)
+            # Flattened key: "teams" => "teams.max"
+            key = resource.to_s.include?('.') ? resource.to_s : "#{resource}.max"
+            val = plan.limits[key]
+
+            # Convert "unlimited" to Float::INFINITY, strings to integers
+            return 0 if val.nil? || val.empty?
+            return Float::INFINITY if val == 'unlimited'
+
+            val.to_i
           end
 
           # Check capability with detailed response for upgrade messaging

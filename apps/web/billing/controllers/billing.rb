@@ -227,9 +227,9 @@ module Billing
             amount: plan.amount,
             currency: plan.currency,
             region: plan.region,
-            features: plan.parsed_features,
-            limits: plan.parsed_limits,
-            capabilities: plan.parsed_capabilities,
+            features: plan.features.to_a,
+            limits: plan.limits_hash,
+            capabilities: plan.capabilities.to_a,
           }
         end
 
@@ -277,8 +277,8 @@ module Billing
           interval: plan.interval,
           amount: plan.amount,
           currency: plan.currency,
-          features: plan.parsed_features,
-          limits: plan.parsed_limits,
+          features: plan.features.to_a,
+          limits: plan.limits_hash,
         }
       end
 

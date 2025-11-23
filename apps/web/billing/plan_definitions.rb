@@ -53,7 +53,7 @@ module Billing
     def self.upgrade_path_for(capability, _current_plan = nil)
       # Query cached plans for items with the capability
       plans_with_capability = ::Billing::Plan.list_plans.select do |item|
-        item.parsed_capabilities.include?(capability.to_s)
+        item.capabilities.member?(capability.to_s)
       end
 
       return nil if plans_with_capability.empty?
