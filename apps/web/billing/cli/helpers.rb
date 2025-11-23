@@ -125,14 +125,37 @@ module Onetime
       def format_price_row(price)
         amount = format_amount(price.unit_amount, price.currency)
         interval = price.recurring&.interval || 'one-time'
-        active = price.active ? 'yes' : 'no'
+        price_active = price.active ? 'yes' : 'no'
 
-        format('%-22s %-22s %-12s %-10s %s',
+        # Fetch product details if price.product is an ID (string)
+        # Otherwise use expanded product object
+        if price.product.is_a?(String)
+          begin
+            product = Stripe::Product.retrieve(price.product)
+            product_name = product.name[0..24]
+            product_status = product.active ? 'active' : 'inactive'
+            plan_id = product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'N/A'
+          rescue Stripe::StripeError
+            product_name = price.product[0..24]
+            product_status = '?'
+            plan_id = 'N/A'
+          end
+        else
+          product_name = price.product.name[0..24]
+          product_status = price.product.active ? 'active' : 'inactive'
+          plan_id = price.product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'N/A'
+        end
+
+        # Format product name with status
+        product_with_status = "#{product_name} (#{product_status})"
+
+        format('%-22s %-35s %-15s %-12s %-10s %s',
           price.id[0..21],
-          price.product[0..21],
+          product_with_status[0..34],
+          plan_id[0..14],
           amount[0..11],
           interval[0..9],
-          active,
+          price_active,
         )
       end
 
