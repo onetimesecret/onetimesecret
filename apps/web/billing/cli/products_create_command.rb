@@ -28,8 +28,10 @@ module Onetime
       option :limit_custom_domains, type: :string, desc: 'Limit custom domains (-1 for unlimited)'
       option :limit_secret_lifetime, type: :string, desc: 'Limit secret lifetime (seconds)'
       option :limit_secrets_per_day, type: :string, desc: 'Limit secrets per day (-1 for unlimited)'
+      option :force, type: :boolean, default: false,
+        desc: 'Create duplicate product without checking for existing'
 
-      def call(name: nil, interactive: false, **options)
+      def call(name: nil, interactive: false, force: false, **options)
         boot_application!
 
         return unless stripe_configured?
@@ -69,25 +71,119 @@ module Onetime
           base_metadata
         end
 
+        # Check for existing product with same plan_id (unless --force)
+        unless force
+          existing = find_existing_product(metadata['plan_id'])
+
+          if existing
+            handle_existing_product(existing, name, metadata, options)
+            return
+          end
+        end
+
         puts "\nCreating product '#{name}' with metadata:"
         metadata.each { |k, v| puts "  #{k}: #{v}" }
+
+        if options[:marketing_features]
+          features = options[:marketing_features].split(',').map(&:strip)
+          puts "\nMarketing features:"
+          features.each { |f| puts "  - #{f}" }
+        end
 
         print "\nProceed? (y/n): "
         response = $stdin.gets
         return unless response&.chomp&.downcase == 'y'
 
-        # Build product creation params
-        product_params = {
+        create_product_with_metadata(name, metadata, options)
+      end
+
+      private
+
+      # Find existing product by plan_id metadata
+      def find_existing_product(plan_id)
+        return nil if plan_id.to_s.strip.empty?
+
+        Stripe::Product.list(active: true, limit: 100).data.find do |product|
+          product.metadata['app'] == 'onetimesecret' &&
+            product.metadata['plan_id'] == plan_id
+        end
+      rescue Stripe::StripeError => ex
+        puts "Warning: Could not search for existing products: #{ex.message}"
+        nil
+      end
+
+      # Handle case where product already exists
+      def handle_existing_product(existing, name, metadata, options)
+        puts "\n⚠️  Product already exists with plan_id: #{metadata['plan_id']}"
+        puts "  Product ID: #{existing.id}"
+        puts "  Name: #{existing.name}"
+        puts "  Tier: #{existing.metadata['tier']}"
+        puts "  Region: #{existing.metadata['region']}"
+
+        if existing.metadata['capabilities']
+          caps = existing.metadata['capabilities'].split(',').map(&:strip)
+          puts "  Capabilities: #{caps.join(', ')}"
+        end
+
+        puts "\nWhat would you like to do?"
+        puts "  1) Update existing product with new values"
+        puts "  2) Create duplicate anyway (not recommended)"
+        puts "  3) Cancel"
+
+        print "\nChoice (1-3): "
+        choice = $stdin.gets&.chomp
+
+        case choice
+        when '1'
+          update_existing_product(existing.id, name, metadata, options)
+        when '2'
+          puts "\nCreating duplicate product (--force mode)..."
+          create_product_with_metadata(name, metadata, options)
+        when '3'
+          puts "\nCancelled."
+        else
+          puts "\nInvalid choice. Cancelled."
+        end
+      end
+
+      # Update existing product
+      def update_existing_product(product_id, name, metadata, options)
+        puts "\nUpdating product #{product_id}..."
+
+        update_params = {
           name: name,
           metadata: metadata,
         }
 
         # Add marketing features if provided
         if options[:marketing_features]
-          features                            = options[:marketing_features].split(',').map(&:strip)
+          features = options[:marketing_features].split(',').map(&:strip)
+          update_params[:marketing_features] = features.map { |f| { name: f } }
+        end
+
+        product = Stripe::Product.update(product_id, update_params)
+
+        puts "\n✓ Product updated successfully:"
+        puts "  ID: #{product.id}"
+        puts "  Name: #{product.name}"
+
+        puts "\nNext steps:"
+        puts "  bin/ots billing sync  # Update Redis cache"
+        puts "  bin/ots billing products show #{product.id}  # View details"
+      rescue Stripe::StripeError => ex
+        puts "Error updating product: #{ex.message}"
+      end
+
+      # Create product with given metadata (extracted for reuse)
+      def create_product_with_metadata(name, metadata, options)
+        product_params = {
+          name: name,
+          metadata: metadata,
+        }
+
+        if options[:marketing_features]
+          features = options[:marketing_features].split(',').map(&:strip)
           product_params[:marketing_features] = features.map { |f| { name: f } }
-          puts "\nMarketing features:"
-          features.each { |f| puts "  - #{f}" }
         end
 
         product = Stripe::Product.create(product_params)
@@ -103,8 +199,11 @@ module Onetime
 
         puts "\nNext steps:"
         puts "  bin/ots billing prices create #{product.id} --amount=2900 --currency=usd --interval=month"
+
+        product
       rescue Stripe::StripeError => ex
         puts "Error creating product: #{ex.message}"
+        nil
       end
     end
   end
