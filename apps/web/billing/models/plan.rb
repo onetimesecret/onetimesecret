@@ -64,16 +64,15 @@ module Billing
     field :tenancy                  # One of: multitenant, dedicated
     field :is_soft_deleted          # Boolean: soft-deleted in Stripe
 
-    # Metadata stored as JSON
-    field :capabilities             # JSON: Capability array of strings
-    field :features                 # JSON: Feature list (marketing)
-    field :limits                   # JSON: Usage limits (teams, members_per_team, etc.)
+    set :capabilities
+    set :features
+    hashkey :limits
 
     def init
       super
-      @capabilities      ||= []
-      @features          ||= []
-      @limits            ||= {}
+      # @capabilities      ||= []
+      # @features          ||= []
+      # @limits            ||= {}
       @stripe_updated_at ||= 0
       @is_soft_deleted   ||= false
     end
