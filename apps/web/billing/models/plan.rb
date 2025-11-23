@@ -81,6 +81,17 @@ module Billing
     field :show_on_plans_page       # Boolean: whether to show on plans page
     field :is_soft_deleted          # Boolean: soft-deleted in Stripe
 
+    # Additional Stripe Price fields
+    field :active                   # Boolean: whether price is available for new subscriptions
+    field :billing_scheme           # 'per_unit' or 'tiered'
+    field :usage_type               # 'licensed' or 'metered'
+    field :trial_period_days        # Trial period in days (null if none)
+    field :nickname                 # Internal nickname for the price
+    field :aggregate_usage          # For metered billing: 'sum', 'last_during_period', etc.
+
+    # Cache management
+    field :last_synced_at           # Timestamp of last Stripe sync
+
     set :capabilities
     set :features
     hashkey :limits
@@ -90,6 +101,7 @@ module Billing
       super
       @stripe_updated_at ||= 0
       @is_soft_deleted   ||= false
+      @active            ||= true
       @limits_hash       = nil  # Memoization cache
     end
 
@@ -253,6 +265,15 @@ module Billing
               display_order: display_order,
               show_on_plans_page: show_on_plans_page.to_s,
             )
+
+            # Populate additional Stripe Price fields
+            plan.active = price.active.to_s
+            plan.billing_scheme = price.billing_scheme
+            plan.usage_type = price.recurring&.usage_type || 'licensed'
+            plan.trial_period_days = price.recurring&.trial_period_days&.to_s
+            plan.nickname = price.nickname
+            plan.aggregate_usage = price.recurring&.aggregate_usage
+            plan.last_synced_at = Time.now.to_i.to_s
 
             # Add capabilities to set (unique values)
             plan.capabilities.clear
