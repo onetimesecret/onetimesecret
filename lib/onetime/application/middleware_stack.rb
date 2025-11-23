@@ -9,6 +9,7 @@ require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
 require_relative '../session'
+require_relative '../middleware/ip_ban'
 require 'otto'
 
 module Onetime
