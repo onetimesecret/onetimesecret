@@ -31,7 +31,7 @@ module V2::Logic
         OT.ld "[IncomingSecret] Recipient hash: #{@recipient_hash} -> #{@recipient_email ? OT::Utils.obscure_email(@recipient_email) : 'not found'}"
 
         # Set TTL from config or use default
-        @ttl = incoming_config[:default_ttl] || 604800 # 7 days
+        @ttl = incoming_config[:default_ttl] || 604_800 # 7 days
 
         # Set passphrase from config (can be nil)
         @passphrase = incoming_config[:default_passphrase]

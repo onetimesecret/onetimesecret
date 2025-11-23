@@ -34,7 +34,7 @@ module Onetime
         self[:email_address] = recipient
         self[:from_name] = OT.conf[:emailer][:fromname]
         self[:from] = OT.conf[:emailer][:from]
-        self[:signature_link] = 'https://onetimesecret.com/'
+        self[:signature_link] = baseuri
       end
       def subject
         i18n[:email][:subject] % [self[:sender_email]] # e.g. "ABC" sent you a secret
@@ -59,7 +59,7 @@ module Onetime
         self[:email_address] = recipient
         self[:from_name] = OT.conf[:emailer][:fromname]
         self[:from] = OT.conf[:emailer][:from]
-        self[:signature_link] = 'https://onetimesecret.com/'
+        self[:signature_link] = baseuri
 
         # Get memo from metadata if available
         # Load metadata to access memo field
@@ -68,12 +68,9 @@ module Onetime
       end
 
       def subject
-        memo = self[:memo]
-        if memo && !memo.empty?
-          "Incoming secret: #{memo}"
-        else
-          "You've received a secret message"
-        end
+        # Security: Don't include memo in subject line as it's visible in email list views
+        # The memo is still shown in the email body for context
+        "You've received a secret message"
       end
 
       def display_domain
