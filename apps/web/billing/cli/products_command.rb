@@ -7,10 +7,17 @@ require_relative 'helpers'
 module Onetime
   module CLI
     # List Stripe products
+    #
+    # NOTE: Product deletion is intentionally not implemented.
+    # To delete products, use the Stripe CLI directly:
+    #   stripe products delete PRODUCT_ID
+    #
+    # We support creating and updating products, but not deleting them
+    # to prevent accidental data loss.
     class BillingProductsCommand < Command
       include BillingHelpers
 
-      desc 'List all Stripe products'
+      desc 'List all Stripe products (delete via: stripe products delete PRODUCT_ID)'
 
       option :active_only, type: :boolean, default: true,
         desc: 'Show only active products'
@@ -38,6 +45,7 @@ module Onetime
         end
 
         puts "\nTotal: #{products.data.size} product(s)"
+        puts "\nNote: To delete products, use: stripe products delete PRODUCT_ID"
       end
     end
   end

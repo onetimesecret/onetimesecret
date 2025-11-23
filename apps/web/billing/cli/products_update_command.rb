@@ -7,10 +7,14 @@ require_relative 'helpers'
 module Onetime
   module CLI
     # Update Stripe product metadata
+    #
+    # NOTE: This command updates existing products only.
+    # Product deletion is intentionally not implemented to prevent accidental data loss.
+    # To delete products, use the Stripe CLI: stripe products delete PRODUCT_ID
     class BillingProductsUpdateCommand < Command
       include BillingHelpers
 
-      desc 'Update Stripe product metadata'
+      desc 'Update Stripe product metadata (delete via: stripe products delete PRODUCT_ID)'
 
       argument :product_id, required: true, desc: 'Product ID (e.g., prod_xxx)'
 
