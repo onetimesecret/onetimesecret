@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OTS Redesign - Desktop Secure Mode</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 672px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-family: 'Georgia', serif;
+      font-size: 2rem;
+      color: white;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .mode-selector {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1.5rem;
+    }
+
+    .mode-button {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 0.625rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #1f2937;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-container {
+      background: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+    }
+
+    .security-indicator {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-bottom: 1px solid #fbbf24;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .security-indicator-icon {
+      font-size: 1.5rem;
+    }
+
+    .security-indicator-content {
+      flex: 1;
+    }
+
+    .security-level {
+      font-weight: 600;
+      color: #92400e;
+      font-size: 0.875rem;
+      margin-bottom: 0.125rem;
+    }
+
+    .security-advice {
+      font-size: 0.75rem;
+      color: #b45309;
+    }
+
+    .form-content {
+      padding: 2rem;
+    }
+
+    .textarea-wrapper {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 1rem;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 1rem;
+      line-height: 1.6;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      resize: vertical;
+      transition: all 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .char-counter {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 0.375rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.875rem;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #10b981;
+    }
+
+    .accordion {
+      margin-bottom: 1.5rem;
+    }
+
+    .accordion-trigger {
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 0.75rem 0;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #1f2937;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .accordion-icon {
+      transform: rotate(90deg);
+    }
+
+    .accordion-content {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+
+    .required {
+      color: #ef4444;
+      margin-left: 0.25rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 0.75rem 3rem 0.75rem 1rem;
+      border: 2px solid #d1d5db;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .input-actions {
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .icon-button {
+      background: transparent;
+      border: none;
+      padding: 0.5rem;
+      cursor: pointer;
+      border-radius: 0.25rem;
+      color: #6b7280;
+      transition: all 0.2s;
+      min-width: 36px;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-button:hover {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .icon-button:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
+
+    .strength-meter {
+      margin-top: 0.75rem;
+    }
+
+    .strength-label {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-bottom: 0.375rem;
+    }
+
+    .meter-bar {
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .meter-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+      width: 90%;
+      transition: width 0.3s;
+    }
+
+    .strength-text {
+      margin-top: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #059669;
+    }
+
+    .requirements-list {
+      margin-top: 0.75rem;
+      list-style: none;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    .requirements-list li {
+      padding-left: 1.25rem;
+      position: relative;
+      margin-bottom: 0.25rem;
+    }
+
+    .requirements-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #10b981;
+      font-weight: bold;
+    }
+
+    select {
+      width: 100%;
+      padding: 0.75rem 2.5rem 0.75rem 1rem;
+      border: 2px solid #d1d5db;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+      background-size: 1.5em;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-footer {
+      background: #f9fafb;
+      border-top: 1px solid #e5e7eb;
+      padding: 1.5rem 2rem;
+    }
+
+    .submit-button {
+      width: 100%;
+      background: #dc4a22;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .submit-button:hover {
+      background: #c43d1b;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .keyboard-hint {
+      text-align: center;
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    .mockup-label {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      z-index: 1000;
+    }
+
+    .help-text {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 0.5rem;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="mockup-label">Mockup: Desktop - Secure Mode</div>
+
+  <div class="container">
+    <div class="header">
+      <h1>Create a Secret</h1>
+    </div>
+
+    <div class="mode-selector">
+      <button class="mode-button">
+        <span>🔒</span>
+        <span>Secure</span>
+        <span style="margin-left: 0.25rem">▼</span>
+      </button>
+    </div>
+
+    <div class="form-container">
+      <div class="security-indicator">
+        <div class="security-indicator-icon">🔒🔒</div>
+        <div class="security-indicator-content">
+          <div class="security-level">Medium Security</div>
+          <div class="security-advice">Good protection for passwords and sensitive data</div>
+        </div>
+      </div>
+
+      <div class="form-content">
+        <div class="textarea-wrapper">
+          <textarea
+            placeholder="Paste or type your secret here..."
+            aria-label="Secret content"
+          >MySecretPassword123</textarea>
+          <div class="char-counter">
+            <span class="status-dot"></span>
+            <span>21 / 10,000</span>
+          </div>
+        </div>
+
+        <div class="accordion">
+          <button class="accordion-trigger" aria-expanded="true">
+            <span class="accordion-icon">▶</span>
+            <span>🔒</span>
+            <span>Security Options</span>
+            <span style="margin-left: auto; font-size: 0.75rem; color: #6b7280;">(Required)</span>
+          </button>
+
+          <div class="accordion-content">
+            <div class="form-group">
+              <label class="form-label">
+                Protection Password
+                <span class="required">*</span>
+              </label>
+              <div class="input-wrapper">
+                <input
+                  type="password"
+                  value="correct-horse-battery-staple"
+                  placeholder="Enter password..."
+                  aria-label="Protection password"
+                />
+                <div class="input-actions">
+                  <button class="icon-button" aria-label="Show password" title="Show password">
+                    👁
+                  </button>
+                  <button class="icon-button" aria-label="Generate password" title="Generate password">
+                    🔄
+                  </button>
+                </div>
+              </div>
+
+              <div class="strength-meter">
+                <div class="strength-label">Password strength:</div>
+                <div class="meter-bar">
+                  <div class="meter-fill"></div>
+                </div>
+                <div class="strength-text">Very Strong</div>
+              </div>
+
+              <ul class="requirements-list">
+                <li>At least 12 characters</li>
+                <li>Contains uppercase and lowercase</li>
+                <li>Contains numbers or symbols</li>
+              </ul>
+
+              <div class="help-text">
+                💡 The recipient will need this password to view the secret. Share it separately (not in the link).
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion">
+          <button class="accordion-trigger" aria-expanded="true">
+            <span class="accordion-icon">▶</span>
+            <span>⏱️</span>
+            <span>Expiration Time</span>
+          </button>
+
+          <div class="accordion-content">
+            <div class="form-group">
+              <label class="form-label" for="ttl-select">
+                Secret expires in:
+              </label>
+              <select id="ttl-select">
+                <option value="1800">30 minutes</option>
+                <option value="3600">1 hour</option>
+                <option value="14400" selected>4 hours</option>
+                <option value="86400">1 day</option>
+                <option value="604800">7 days</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <button class="submit-button">
+          Create Secure Secret Link
+        </button>
+        <div class="keyboard-hint">
+          Press <strong>Cmd+Enter</strong> to submit
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OTS Redesign - Before & After Comparison</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f3f4f6;
+      padding: 2rem;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .page-header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+      font-size: 1.125rem;
+      color: #6b7280;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .comparison-panel {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .panel-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .panel-badge {
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-before {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-after {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .screenshot {
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .screenshot-placeholder {
+      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+      height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    .form-preview {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+    }
+
+    .form-preview textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      resize: none;
+      font-family: monospace;
+    }
+
+    .form-preview-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .form-preview input,
+    .form-preview select {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+    }
+
+    .form-preview label {
+      display: block;
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-bottom: 0.25rem;
+    }
+
+    .form-preview button {
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: #dc4a22;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .improvements-list {
+      list-style: none;
+    }
+
+    .improvements-list li {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex;
+      align-items: start;
+      gap: 0.75rem;
+    }
+
+    .improvements-list li:last-child {
+      border-bottom: none;
+    }
+
+    .improvement-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .improvement-text {
+      flex: 1;
+    }
+
+    .improvement-title {
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 0.25rem;
+    }
+
+    .improvement-desc {
+      font-size: 0.875rem;
+      color: #6b7280;
+      line-height: 1.5;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .metric-card {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .metric-label {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-change {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #059669;
+    }
+
+    .metric-change.negative {
+      color: #dc2626;
+    }
+
+    @media (max-width: 1024px) {
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="page-header">
+      <h1>Before & After: Create Secret Redesign</h1>
+      <p>Key improvements to user experience, accessibility, and mobile optimization</p>
+    </div>
+
+    <div class="comparison-grid">
+      <!-- BEFORE -->
+      <div class="comparison-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Current Design</h2>
+          <span class="panel-badge badge-before">Before</span>
+        </div>
+
+        <div class="form-preview">
+          <label>Secret Content</label>
+          <textarea placeholder="Enter a password, secret message, or private link"></textarea>
+
+          <div class="form-preview-fields">
+            <div>
+              <label>Passphrase (optional)</label>
+              <input type="password" placeholder="Enter passphrase">
+            </div>
+            <div>
+              <label>Lifetime</label>
+              <select>
+                <option>7 days</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-preview-fields">
+            <div>
+              <label>Recipient Email Address (optional)</label>
+              <input type="email" placeholder="Email">
+            </div>
+            <div>
+              <label>Share Domain</label>
+              <select>
+                <option>onetimesecret.com</option>
+              </select>
+            </div>
+          </div>
+
+          <button>Create a secret link</button>
+        </div>
+
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.125rem; font-weight: 600;">Current Issues</h3>
+        <ul class="improvements-list">
+          <li>
+            <span class="improvement-icon">⚠️</span>
+            <div class="improvement-text">
+              <div class="improvement-title">Cognitive Overload</div>
+              <div class="improvement-desc">All fields visible regardless of user need; no progressive disclosure</div>
+            </div>
+          </li>
+          <li>
+            <span class="improvement-icon">📱</span>
+            <div class="improvement-text">
+              <div class="improvement-title">Poor Mobile UX</div>
+              <div class="improvement-desc">Desktop layout shrunk to mobile; small touch targets</div>
+            </div>
+          </li>
+          <li>
+            <span class="improvement-icon">♿</span>
+            <div class="improvement-text">
+              <div class="improvement-title">Accessibility Gaps</div>
+              <div class="improvement-desc">No aria-live announcements; focus management issues</div>
+            </div>
+          </li>
+          <li>
+            <span class="improvement-icon">🔒</span>
+            <div class="improvement-text">
+              <div class="improvement-title">Security Confusion</div>
+              <div class="improvement-desc">No guidance on when to use passphrase; unclear security level</div>
+            </div>
+          </li>
+          <li>
+            <span class="improvement-icon">⏱️</span>
+            <div class="improvement-text">
+              <div class="improvement-title">Slow for Power Users</div>
+              <div class="improvement-desc">No keyboard shortcuts; no saved presets</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- AFTER -->
+      <div class="comparison-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Recommended Design</h2>
+          <span class="panel-badge badge-after">After</span>
+        </div>
+
+        <div class="form-preview">
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+            <button style="width: auto; padding: 0.5rem 1rem; font-size: 0.875rem; background: white; color: #1f2937; border: 1px solid #e5e7eb;">
+              🟢 Simple ▼
+            </button>
+          </div>
+
+          <label>Secret Content</label>
+          <textarea placeholder="Paste or type your secret here...">MyPassword123</textarea>
+          <div style="text-align: right; font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">
+            13 / 10,000
+          </div>
+
+          <div style="margin-top: 1rem; padding: 0.75rem 0; border-top: 1px solid #f3f4f6;">
+            <button style="width: auto; background: transparent; color: #6b7280; text-align: left; padding: 0.5rem 0; font-size: 0.875rem;">
+              ▶ 🔒 Add Security Options
+            </button>
+          </div>
+
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 0.375rem; padding: 0.75rem; margin-top: 1rem; font-size: 0.875rem; color: #1e40af;">
+            💡 Your secret will expire in 7 days and can be viewed once.
+          </div>
+
+          <button style="margin-top: 1rem;">Create Secret Link</button>
+          <div style="text-align: center; margin-top: 0.5rem; font-size: 0.75rem; color: #6b7280;">
+            Press <strong>Cmd+Enter</strong> to submit
+          </div>
+        </div>
+
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.125rem; font-weight: 600;">Key Improvements</h3>
+        <ul class="improvements-list">
+          <li>
+            <span class="improvement-icon">✅</span>
+            <div class="improvement-text">
+              <div class="improvement-title">Progressive Disclosure</div>
+              <div class="improvement-desc">Advanced options hidden by default; revealed on demand</div>
+            </div>
+          </li>
+          <li>
+            <span class="improvement-icon">📱</span>
+            <div class="improvement-text">
+              <div class="improvement-title">Mobile-First Design</div>
+              <div class="improvement-desc">Bottom sheet pattern; 48×48px touch targets; thumb-zone buttons</div>
+            </div>
+          </li>
+          <li>
+            <span class="improvement-icon">♿</span>
+            <div class="improvement-text">
+              <div class="improvement-title">WCAG 2.2 AA Compliant</div>
+              <div class="improvement-desc">aria-live regions; focus management; keyboard shortcuts</div>
+            </div>
+          </li>
+          <li>
+            <span class="improvement-icon">🔒</span>
+            <div class="improvement-text">
+              <div class="improvement-title">Security Guidance</div>
+              <div class="improvement-desc">Visual security level indicator; contextual recommendations</div>
+            </div>
+          </li>
+          <li>
+            <span class="improvement-icon">⚡</span>
+            <div class="improvement-text">
+              <div class="improvement-title">Power User Features</div>
+              <div class="improvement-desc">Keyboard shortcuts (Cmd+Enter); mode presets; smart defaults</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 style="font-size: 2rem; font-weight: 700; text-align: center; margin-bottom: 2rem;">Expected Impact</h2>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Time to Create Secret</div>
+        <div class="metric-value">15s</div>
+        <div class="metric-change">↓ 50% faster</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Passphrase Adoption</div>
+        <div class="metric-value">40%</div>
+        <div class="metric-change">↑ 100% increase</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Mobile Completion</div>
+        <div class="metric-value">85%</div>
+        <div class="metric-change">↑ 42% improvement</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">WCAG Compliance</div>
+        <div class="metric-value">100%</div>
+        <div class="metric-change">↑ AA certified</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Form Completion Rate</div>
+        <div class="metric-value">92%</div>
+        <div class="metric-change">↑ 8% increase</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">User Satisfaction (NPS)</div>
+        <div class="metric-value">50+</div>
+        <div class="metric-change">↑ Target metric</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OTS Redesign - Desktop Simple Mode</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 672px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-family: 'Georgia', serif;
+      font-size: 2rem;
+      color: white;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1.125rem;
+    }
+
+    .mode-selector {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1.5rem;
+    }
+
+    .mode-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .mode-button {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 0.625rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #1f2937;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .mode-button:hover {
+      background: #f9fafb;
+      border-color: #d1d5db;
+    }
+
+    .mode-button:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
+
+    .mode-icon {
+      font-size: 1rem;
+    }
+
+    .form-container {
+      background: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+    }
+
+    .form-content {
+      padding: 2rem;
+    }
+
+    .textarea-wrapper {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 300px;
+      padding: 1rem;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 1rem;
+      line-height: 1.6;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      resize: vertical;
+      transition: all 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    textarea::placeholder {
+      color: #9ca3af;
+    }
+
+    .char-counter {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 0.375rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.875rem;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(4px);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #10b981;
+    }
+
+    .accordion {
+      margin-bottom: 1.5rem;
+    }
+
+    .accordion-trigger {
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 0.75rem 0;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: color 0.2s;
+    }
+
+    .accordion-trigger:hover {
+      color: #374151;
+    }
+
+    .accordion-trigger:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+      border-radius: 0.25rem;
+    }
+
+    .accordion-icon {
+      transition: transform 0.2s;
+    }
+
+    .info-banner {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 0.5rem;
+      padding: 0.875rem 1rem;
+      display: flex;
+      align-items: start;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-banner-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .info-banner-text {
+      font-size: 0.875rem;
+      color: #1e40af;
+      line-height: 1.5;
+    }
+
+    .form-footer {
+      background: #f9fafb;
+      border-top: 1px solid #e5e7eb;
+      padding: 1.5rem 2rem;
+    }
+
+    .submit-button {
+      width: 100%;
+      background: #dc4a22;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .submit-button:hover {
+      background: #c43d1b;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .submit-button:focus {
+      outline: 2px solid #dc4a22;
+      outline-offset: 2px;
+    }
+
+    .submit-button:active {
+      transform: scale(0.98);
+    }
+
+    .keyboard-hint {
+      text-align: center;
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+
+    .mockup-label {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <div class="mockup-label">Mockup: Desktop - Simple Mode</div>
+
+  <div class="container">
+    <div class="header">
+      <h1>Create a Secret</h1>
+      <p>Share sensitive information securely</p>
+    </div>
+
+    <div class="mode-selector">
+      <div class="mode-dropdown">
+        <button class="mode-button" aria-label="Mode selector: Simple mode">
+          <span class="mode-icon">🟢</span>
+          <span>Simple</span>
+          <span style="margin-left: 0.25rem">▼</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="form-container">
+      <div class="form-content">
+        <div class="textarea-wrapper">
+          <textarea
+            placeholder="Paste or type your secret here..."
+            aria-label="Secret content"
+            autofocus
+          >MySecretPassword123</textarea>
+          <div class="char-counter">
+            <span class="status-dot"></span>
+            <span>21 / 10,000</span>
+          </div>
+        </div>
+
+        <div class="accordion">
+          <button class="accordion-trigger" aria-expanded="false">
+            <span class="accordion-icon">▶</span>
+            <span>🔒</span>
+            <span>Add Security Options</span>
+          </button>
+        </div>
+
+        <div class="info-banner">
+          <div class="info-banner-icon">💡</div>
+          <div class="info-banner-text">
+            Your secret will expire in 7 days and can be viewed once.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <button class="submit-button">
+          Create Secret Link
+        </button>
+        <div class="keyboard-hint">
+          Press <strong>Cmd+Enter</strong> to submit
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

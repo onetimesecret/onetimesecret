@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OTS Redesign - Mobile Simple Mode</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #1f2937;
+    }
+
+    .mobile-frame {
+      max-width: 375px;
+      margin: 2rem auto;
+      background: white;
+      border-radius: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      min-height: 667px;
+    }
+
+    .mobile-header {
+      background: white;
+      padding: 1rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .menu-button {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      color: #6b7280;
+      cursor: pointer;
+      padding: 0.5rem;
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    .mobile-content {
+      padding: 1rem;
+      min-height: 500px;
+      position: relative;
+    }
+
+    .textarea-wrapper {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 300px;
+      padding: 1rem;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 16px; /* Prevents zoom on iOS */
+      line-height: 1.5;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.75rem;
+      resize: none;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .char-counter {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 0.375rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+    }
+
+    .options-trigger {
+      width: 100%;
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: #374151;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      min-height: 48px;
+    }
+
+    .options-trigger:active {
+      background: #f9fafb;
+    }
+
+    .info-text {
+      font-size: 0.875rem;
+      color: #6b7280;
+      text-align: center;
+      padding: 0.75rem;
+      background: #f9fafb;
+      border-radius: 0.5rem;
+      margin-bottom: 5rem;
+    }
+
+    .mobile-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 375px;
+      margin: 0 auto;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      padding: 1rem;
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+
+    .submit-button {
+      width: 100%;
+      background: #dc4a22;
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 48px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .submit-button:active {
+      transform: scale(0.98);
+      background: #c43d1b;
+    }
+
+    .mockup-label {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      z-index: 1000;
+    }
+
+    @media (max-width: 400px) {
+      .mobile-frame {
+        margin: 0;
+        border-radius: 0;
+        max-width: 100%;
+      }
+
+      .mobile-footer {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="mockup-label">Mockup: Mobile - Simple Mode</div>
+
+  <div class="mobile-frame">
+    <div class="mobile-header">
+      <button class="menu-button" aria-label="Menu">☰</button>
+      <div class="header-title">Create Secret</div>
+      <div style="width: 44px;"></div>
+    </div>
+
+    <div class="mobile-content">
+      <div class="textarea-wrapper">
+        <textarea
+          placeholder="Paste your secret here..."
+          aria-label="Secret content"
+        >MySecretPassword123</textarea>
+        <div class="char-counter">
+          <span class="status-dot"></span>
+          <span>21 / 10K</span>
+        </div>
+      </div>
+
+      <button class="options-trigger">
+        <span>Options</span>
+        <span style="font-size: 1.25rem;">▲</span>
+      </button>
+
+      <div class="info-text">
+        💡 Your secret will expire in 7 days and can be viewed once
+      </div>
+    </div>
+
+    <div class="mobile-footer">
+      <button class="submit-button">
+        Create Secret Link
+      </button>
+    </div>
+  </div>
+</body>
+</html>

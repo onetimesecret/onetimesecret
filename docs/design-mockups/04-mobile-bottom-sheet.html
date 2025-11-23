@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OTS Redesign - Mobile Bottom Sheet</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #1f2937;
+    }
+
+    .mobile-frame {
+      max-width: 375px;
+      margin: 2rem auto;
+      background: white;
+      border-radius: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      min-height: 667px;
+      position: relative;
+    }
+
+    .mobile-header {
+      background: white;
+      padding: 1rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .menu-button {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      color: #6b7280;
+      padding: 0.5rem;
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    .mobile-content {
+      padding: 1rem;
+      filter: brightness(0.7);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 1rem;
+      font-size: 16px;
+      line-height: 1.5;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.75rem;
+      resize: none;
+    }
+
+    .bottom-sheet-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 40;
+    }
+
+    .bottom-sheet {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-radius: 1.5rem 1.5rem 0 0;
+      padding: 1.5rem;
+      padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+      max-height: 80%;
+      overflow-y: auto;
+      z-index: 50;
+      box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .drag-handle {
+      width: 40px;
+      height: 4px;
+      background: #d1d5db;
+      border-radius: 2px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .sheet-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: #1f2937;
+    }
+
+    .form-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 1rem;
+    }
+
+    .section-icon {
+      font-size: 1.125rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 0.875rem 3rem 0.875rem 1rem;
+      border: 2px solid #d1d5db;
+      border-radius: 0.75rem;
+      font-size: 16px;
+      min-height: 48px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .input-actions {
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .icon-button {
+      background: transparent;
+      border: none;
+      padding: 0.625rem;
+      cursor: pointer;
+      border-radius: 0.375rem;
+      color: #6b7280;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.125rem;
+    }
+
+    .icon-button:active {
+      background: #f3f4f6;
+    }
+
+    .help-text {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 0.5rem;
+      line-height: 1.4;
+    }
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.875rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      min-height: 48px;
+    }
+
+    .radio-option.selected {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+
+    .radio-circle {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #d1d5db;
+      border-radius: 50%;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .radio-option.selected .radio-circle {
+      border-color: #3b82f6;
+    }
+
+    .radio-option.selected .radio-circle::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      background: #3b82f6;
+      border-radius: 50%;
+    }
+
+    .radio-label {
+      font-size: 0.9375rem;
+      color: #1f2937;
+      font-weight: 500;
+    }
+
+    .apply-button {
+      width: 100%;
+      background: #dc4a22;
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 1.5rem;
+      min-height: 48px;
+    }
+
+    .apply-button:active {
+      transform: scale(0.98);
+      background: #c43d1b;
+    }
+
+    .mockup-label {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <div class="mockup-label">Mockup: Mobile - Bottom Sheet Open</div>
+
+  <div class="mobile-frame">
+    <div class="mobile-header">
+      <button class="menu-button">☰</button>
+      <div class="header-title">Create Secret</div>
+      <div style="width: 44px;"></div>
+    </div>
+
+    <div class="mobile-content">
+      <textarea disabled>MySecretPassword123</textarea>
+    </div>
+
+    <div class="bottom-sheet-overlay"></div>
+
+    <div class="bottom-sheet">
+      <div class="drag-handle"></div>
+
+      <h2 class="sheet-title">Options</h2>
+
+      <div class="form-section">
+        <div class="section-header">
+          <span class="section-icon">🔒</span>
+          <span>Security</span>
+        </div>
+
+        <div class="form-label">Protection Password (Optional)</div>
+        <div class="input-wrapper">
+          <input
+            type="password"
+            placeholder="Enter password..."
+            value=""
+          />
+          <div class="input-actions">
+            <button class="icon-button" aria-label="Generate password">
+              🔄
+            </button>
+          </div>
+        </div>
+        <div class="help-text">
+          Recipient will need this password to view the secret
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-header">
+          <span class="section-icon">⏱️</span>
+          <span>Expires in</span>
+        </div>
+
+        <div class="radio-group">
+          <label class="radio-option">
+            <div class="radio-circle"></div>
+            <div class="radio-label">1 hour</div>
+          </label>
+
+          <label class="radio-option selected">
+            <div class="radio-circle"></div>
+            <div class="radio-label">7 days</div>
+          </label>
+
+          <label class="radio-option">
+            <div class="radio-circle"></div>
+            <div class="radio-label">30 days</div>
+          </label>
+        </div>
+      </div>
+
+      <button class="apply-button">
+        Apply
+      </button>
+    </div>
+  </div>
+</body>
+</html>
