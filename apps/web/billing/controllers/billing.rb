@@ -217,7 +217,7 @@ module Billing
       def list_plans
         plans = ::Billing::Plan.list_plans
 
-        # Filter out nil plans, filter by show_on_plans_page, and sort by display_order (ascending)
+        # Filter out nil plans, filter by show_on_plans_page, and sort by display_order (descending - higher = earlier)
         plan_data = plans.compact
           .select { |plan| plan.show_on_plans_page.to_s == 'true' }
           .map do |plan|
@@ -234,7 +234,7 @@ module Billing
             capabilities: plan.capabilities.to_a,
             display_order: plan.display_order.to_i,
           }
-        end.sort_by { |p| p[:display_order] }
+        end.sort_by { |p| -p[:display_order] } # Descending: higher values first
 
         json_response({ plans: plan_data })
       rescue StandardError => ex

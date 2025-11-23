@@ -217,13 +217,13 @@ module Onetime
         print 'Capabilities (comma-separated, e.g., create_secrets,create_team): '
         metadata[Billing::Metadata::FIELD_CAPABILITIES] = $stdin.gets.chomp
 
-        print 'Display order (lower = earlier, default: 100): '
+        print 'Display order (higher = earlier, default: 0): '
         display_order = $stdin.gets.chomp
-        metadata[Billing::Metadata::FIELD_DISPLAY_ORDER] = display_order.empty? ? '100' : display_order
+        metadata[Billing::Metadata::FIELD_DISPLAY_ORDER] = display_order.empty? ? '0' : display_order
 
-        print 'Show on plans page? (yes/no, default: no): '
+        print 'Show on plans page? (yes/no, default: yes): '
         show_on_plans = $stdin.gets.chomp
-        metadata[Billing::Metadata::FIELD_SHOW_ON_PLANS_PAGE] = Onetime::Utils.yes?(show_on_plans, default: false).to_s
+        metadata[Billing::Metadata::FIELD_SHOW_ON_PLANS_PAGE] = Onetime::Utils.yes?(show_on_plans, default: true).to_s
 
         print 'Limit teams (-1 for unlimited): '
         metadata[Billing::Metadata::FIELD_LIMIT_TEAMS] = $stdin.gets.chomp

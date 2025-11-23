@@ -23,9 +23,9 @@ module Onetime
       option :tenancy, type: :string, desc: 'Tenancy (e.g., single, multi)'
       option :capabilities, type: :string, desc: 'Capabilities (comma-separated)'
       option :marketing_features, type: :string, desc: 'Marketing features (comma-separated)'
-      option :display_order, type: :string, desc: 'Display order (lower = earlier, default: 100)'
-      option :show_on_plans_page, type: :boolean, default: false,
-        desc: 'Show on plans page (default: false)'
+      option :display_order, type: :string, desc: 'Display order (higher = earlier, default: 0)'
+      option :show_on_plans_page, type: :boolean, default: true,
+        desc: 'Show on plans page (default: true)'
       option :limit_teams, type: :string, desc: 'Limit teams (-1 for unlimited)'
       option :limit_members_per_team, type: :string, desc: 'Limit members per team (-1 for unlimited)'
       option :limit_custom_domains, type: :string, desc: 'Limit custom domains (-1 for unlimited)'
@@ -62,7 +62,7 @@ module Onetime
             'tenancy' => options[:tenancy] || '',
             'capabilities' => options[:capabilities] || '',
             'created' => Time.now.utc.iso8601,
-            'display_order' => options[:display_order] || '100',
+            'display_order' => options[:display_order] || '0',
             'show_on_plans_page' => options[:show_on_plans_page].to_s,
           }
 

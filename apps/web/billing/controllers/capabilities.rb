@@ -18,7 +18,7 @@ module Billing
       #
       # Response:
       #   {
-      #     "planid": "identity_v1",
+      #     "planid": "identity_plus_v1",
       #     "catalog_name": "Identity Plus",
       #     "capabilities": ["create_secrets", "create_team", "custom_domains"],
       #     "limits": {
@@ -63,7 +63,7 @@ module Billing
       #   {
       #     "allowed": true,
       #     "capability": "custom_domains",
-      #     "current_plan": "identity_v1",
+      #     "current_plan": "identity_plus_v1",
       #     "upgrade_needed": false
       #   }
       #
@@ -71,7 +71,7 @@ module Billing
       #   {
       #     "allowed": false,
       #     "capability": "api_access",
-      #     "current_plan": "identity_v1",
+      #     "current_plan": "identity_plus_v1",
       #     "upgrade_needed": true,
       #     "upgrade_to": "multi_team_v1",
       #     "upgrade_catalog_name": "Multi-Team",
@@ -126,7 +126,7 @@ module Billing
       #     },
       #     "plans": {
       #       "free": { ... },
-      #       "identity_v1": { ... },
+      #       "identity_plus_v1": { ... },
       #       "multi_team_v1": { ... }
       #     }
       #   }

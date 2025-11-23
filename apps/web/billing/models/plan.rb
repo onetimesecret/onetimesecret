@@ -77,7 +77,7 @@ module Billing
     field :currency                 # 'usd', 'eur', etc.
     field :region                   # EU, CA, US, NZ, etc
     field :tenancy                  # One of: multitenant, dedicated
-    field :display_order            # Display ordering (lower = earlier)
+    field :display_order            # Display ordering (higher = earlier)
     field :show_on_plans_page       # Boolean: whether to show on plans page
     field :is_soft_deleted          # Boolean: soft-deleted in Stripe
 
@@ -230,12 +230,13 @@ module Billing
               limits[resource] = Metadata.normalize_limit(value)
             end
 
-            # Extract display_order from product metadata (default to 100)
-            display_order = product.metadata[Metadata::FIELD_DISPLAY_ORDER] || '100'
+            # Extract display_order from product metadata (default to 0)
+            # Higher values appear first (100 = leftmost, 0 = rightmost)
+            display_order = product.metadata[Metadata::FIELD_DISPLAY_ORDER] || '0'
 
-            # Extract show_on_plans_page from product metadata (default to 'false')
+            # Extract show_on_plans_page from product metadata (default to 'true')
             # Accepts: 'true', 'false', '1', '0', 'yes', 'no'
-            show_on_plans_page_value = product.metadata[Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'false'
+            show_on_plans_page_value = product.metadata[Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'true'
             show_on_plans_page = %w[true 1 yes].include?(show_on_plans_page_value.to_s.downcase)
 
             # Create or update plan cache
