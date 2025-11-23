@@ -202,7 +202,7 @@ module Onetime
         # Always include all metadata fields (using constants)
         metadata[Billing::Metadata::FIELD_APP] = Billing::Metadata::APP_NAME
 
-        print 'Plan ID (optional, e.g., identity_v1): '
+        print 'Plan ID (optional, e.g., identity_plus_v1): '
         metadata[Billing::Metadata::FIELD_PLAN_ID] = $stdin.gets.chomp
 
         print 'Tier (e.g., single_team, multi_team): '
@@ -216,6 +216,14 @@ module Onetime
 
         print 'Capabilities (comma-separated, e.g., create_secrets,create_team): '
         metadata[Billing::Metadata::FIELD_CAPABILITIES] = $stdin.gets.chomp
+
+        print 'Display order (lower = earlier, default: 100): '
+        display_order = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_DISPLAY_ORDER] = display_order.empty? ? '100' : display_order
+
+        print 'Show on plans page? (yes/no, default: no): '
+        show_on_plans = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_SHOW_ON_PLANS_PAGE] = Onetime::Utils.yes?(show_on_plans, default: false).to_s
 
         print 'Limit teams (-1 for unlimited): '
         metadata[Billing::Metadata::FIELD_LIMIT_TEAMS] = $stdin.gets.chomp

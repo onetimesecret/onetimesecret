@@ -49,7 +49,7 @@ module Billing
     #
     # @example
     #   Billing::PlanDefinitions.upgrade_path_for('custom_domains', 'free')
-    #   # => "identity_v1_monthly"
+    #   # => "identity_plus_v1_monthly"
     def self.upgrade_path_for(capability, _current_plan = nil)
       # Query cached plans for items with the capability
       plans_with_capability = ::Billing::Plan.list_plans.select do |item|
@@ -77,8 +77,8 @@ module Billing
     # @return [String] Formatted plan name
     #
     # @example
-    #   Billing::PlanDefinitions.plan_name('identity_v1_monthly')  # => "Identity Plus"
-    #   Billing::PlanDefinitions.plan_name('multi_team_v1')        # => "Multi-Team"
+    #   Billing::PlanDefinitions.plan_name('identity_plus_v1_monthly')  # => "Identity Plus"
+    #   Billing::PlanDefinitions.plan_name('team_plus_v1')        # => "Team Plus"
     def self.plan_name(plan_id)
       return plan_id if plan_id.to_s.empty?
 

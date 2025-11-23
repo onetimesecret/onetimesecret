@@ -36,58 +36,66 @@ echo ""
 # Identity Plus (Single Team tier)
 echo "Creating Identity Plus..."
 bin/ots billing products create "Identity Plus" \
-  --plan-id=identity_v1 \
-  --tier=single_team \
-  --region=EU \
-  --tenancy=multi \
-  --capabilities="create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage" \
-  --limit-teams=0 \
-  --limit-secret-lifetime=2592000
+  --plan-id identity_plus_v1 \
+  --tier single_team \
+  --region EU \
+  --tenancy multi \
+  --capabilities create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage \
+  --display-order 10 \
+  --show-on-plans-page false \
+  --limit-teams 0 \
+  --limit-secret-lifetime 2592000
 
 echo ""
 
 # Team Plus (Multi Team tier - 1 team)
 echo "Creating Team Plus..."
 bin/ots billing products create "Team Plus" \
-  --plan-id=team_plus_v1 \
-  --tier=multi_team \
-  --region=EU \
-  --tenancy=multi \
-  --capabilities="create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members" \
-  --limit-teams=1 \
-  --limit-members-per-team=10 \
-  --limit-custom-domains=-1 \
-  --limit-secret-lifetime=2592000
+  --plan-id team_plus_v1 \
+  --tier multi_team \
+  --region EU \
+  --tenancy multi \
+  --capabilities create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members \
+  --display-order 20 \
+  --show-on-plans-page false \
+  --limit-teams 1 \
+  --limit-members-per-team 10 \
+  --limit-custom-domains -1 \
+  --limit-secret-lifetime 2592000
 
 echo ""
 
 # Organization Plus (Multi Team tier - unlimited teams)
 echo "Creating Organization Plus..."
 bin/ots billing products create "Organization Plus" \
-  --plan-id=org_plus_v1 \
-  --tier=multi_team \
-  --region=EU \
-  --tenancy=multi \
-  --capabilities="create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso" \
-  --limit-teams=-1 \
-  --limit-members-per-team=25 \
-  --limit-custom-domains=-1 \
-  --limit-secret-lifetime=2592000
+  --plan-id org_plus_v1 \
+  --tier multi_team \
+  --region EU \
+  --tenancy multi \
+  --capabilities create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso \
+  --display-order 30 \
+  --show-on-plans-page false \
+  --limit-teams -1 \
+  --limit-members-per-team 25 \
+  --limit-custom-domains -1 \
+  --limit-secret-lifetime 2592000
 
 echo ""
 
 # Organization Max (Dedicated tier - unlimited everything)
 echo "Creating Organization Max..."
 bin/ots billing products create "Organization Max" \
-  --plan-id=org_max_v1 \
-  --tier=multi_team \
-  --region=EU \
-  --tenancy=dedicated \
-  --capabilities="create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso,priority_support,sla" \
-  --limit-teams=-1 \
-  --limit-members-per-team=-1 \
-  --limit-custom-domains=-1 \
-  --limit-secret-lifetime=-1
+  --plan-id org_max_v1 \
+  --tier multi_team \
+  --region EU \
+  --tenancy dedicated \
+  --capabilities create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso,priority_support,sla \
+  --display-order 40 \
+  --show-on-plans-page false \
+  --limit-teams -1 \
+  --limit-members-per-team -1 \
+  --limit-custom-domains -1 \
+  --limit-secret-lifetime -1
 
 echo ""
 echo "✅ Products created successfully!"

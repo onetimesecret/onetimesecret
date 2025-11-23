@@ -29,7 +29,7 @@ Default without subscription, when billing enabled. When billing disabled, capab
 - `secrets_per_day`:
 - `secret_lifetime`: 604800 (7 days in seconds)
 
-### Identity Plus (identity_plus_v2) - individuals tier
+### Identity Plus (identity_plus_v1) - individuals tier
 
 Individuals
 
@@ -151,7 +151,9 @@ Each Stripe product must include the following metadata fields to be recognized 
 
 ```json
 {
-  "plan_id": "identity_v1",
+  "plan_id": "identity_plus_v1",
+  "display_order": "10",
+  "show_on_plans_page": "true",
   "limit_teams": "1",
   "limit_members_per_team": "10",
   "limit_custom_domains": "-1",
@@ -167,6 +169,8 @@ Each Stripe product must include the following metadata fields to be recognized 
 - `capabilities` is comma-separated list (no spaces)
 - `created` is ISO date when product was created
 - `plan_id` is optional; if not provided, auto-generated as `{tier}_{interval}_{region}`
+- `display_order` controls sort order on plans page (lower = earlier, default: 100)
+- `show_on_plans_page` controls visibility on public plans page (true/false/yes/no/1/0, default: false)
 - `limit_*` fields: use `-1` for unlimited, positive integers otherwise
 - Prices must have `type: "recurring"` to be included in plan sync
 
@@ -181,6 +185,8 @@ Each Stripe product must include the following metadata fields to be recognized 
   "tenancy": "multi",
   "capabilities": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,manage_teams,manage_members",
   "created": "2025-11-23",
+  "display_order": "20",
+  "show_on_plans_page": "true",
   "limit_teams": "1",
   "limit_members_per_team": "10",
   "limit_custom_domains": "-1",

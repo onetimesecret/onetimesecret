@@ -24,7 +24,7 @@ module Billing
   #
   #   {
   #     "app": "onetimesecret",
-  #     "plan_id": "identity_v1",
+  #     "plan_id": "identity_plus_v1",
   #     "tier": "single_team",
   #     "region": "EU",
   #     "capabilities": "create_secrets,create_team,custom_domains",
@@ -77,6 +77,8 @@ module Billing
     field :currency                 # 'usd', 'eur', etc.
     field :region                   # EU, CA, US, NZ, etc
     field :tenancy                  # One of: multitenant, dedicated
+    field :display_order            # Display ordering (lower = earlier)
+    field :show_on_plans_page       # Boolean: whether to show on plans page
     field :is_soft_deleted          # Boolean: soft-deleted in Stripe
 
     set :capabilities
@@ -228,6 +230,14 @@ module Billing
               limits[resource] = Metadata.normalize_limit(value)
             end
 
+            # Extract display_order from product metadata (default to 100)
+            display_order = product.metadata[Metadata::FIELD_DISPLAY_ORDER] || '100'
+
+            # Extract show_on_plans_page from product metadata (default to 'false')
+            # Accepts: 'true', 'false', '1', '0', 'yes', 'no'
+            show_on_plans_page_value = product.metadata[Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'false'
+            show_on_plans_page = %w[true 1 yes].include?(show_on_plans_page_value.to_s.downcase)
+
             # Create or update plan cache
             plan = new(
               plan_id: plan_id,
@@ -239,6 +249,8 @@ module Billing
               amount: price.unit_amount.to_s,
               currency: price.currency,
               region: region,
+              display_order: display_order,
+              show_on_plans_page: show_on_plans_page.to_s,
             )
 
             # Add capabilities to set (unique values)
