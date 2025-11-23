@@ -30,45 +30,8 @@
 schema_version: "1.0"
 stripe_api_version: "2025-11-20.clover"
 
-# Capability Definitions
-# Categories: core, collaboration, infrastructure, branding, advanced, support
-capabilities:
-  create_secrets:
-    category: core
-    description: Can create basic secrets
-
-  view_metadata:
-    category: core
-    description: Can view secret metadata
-
-  api_access:
-    category: infrastructure
-    description: Can use REST API endpoints
-
-  custom_domains:
-    category: infrastructure
-    description: Can configure custom domains
-
-  extended_default_expiration:
-    category: core
-    description: Extended secret expiration
-
-  custom_branding:
-    category: branding
-    description: Custom branding and styling
-
-  manage_teams:
-    category: collaboration
-    description: Can create and manage teams
-
-  manage_members:
-    category: collaboration
-    description: Can add and manage team members
-
-  audit_logs:
-    category: advanced
-    description: Access to audit log features
-
+# NOTE: Capability definitions have moved to etc/billing/billing.yaml
+# Plans reference capabilities by ID string. See billing.yaml for capability details.
 
 # Active Plan Definitions
 plans:
