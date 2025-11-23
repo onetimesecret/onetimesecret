@@ -161,14 +161,16 @@ module Onetime
         end
       end
 
-      def validate_capabilities_structure(catalog, errors, _warnings)
-        capabilities = catalog['capabilities'] || {}
+      def validate_capabilities_structure(catalog, errors, warnings)
+        # Load capabilities from billing.yaml (new location) or billing-plans.yaml (fallback)
+        capabilities = Billing::Config.load_capabilities
 
         if capabilities.empty?
-          errors << 'No capabilities defined in catalog'
+          errors << 'No capabilities defined (check billing.yaml or billing-plans.yaml)'
           return
         end
 
+        # Validate capability structure
         capabilities.each do |cap_id, cap_data|
           unless cap_data['category']
             errors << "Capability #{cap_id}: missing required field 'category'"
@@ -176,6 +178,17 @@ module Onetime
 
           unless cap_data['description']
             errors << "Capability #{cap_id}: missing required field 'description'"
+          end
+        end
+
+        # Validate plan capability references
+        plans = catalog['plans'] || {}
+        plans.each do |plan_id, plan_data|
+          plan_capabilities = plan_data['capabilities'] || []
+          plan_capabilities.each do |cap_id|
+            unless capabilities.key?(cap_id)
+              warnings << "Plan #{plan_id}: references unknown capability '#{cap_id}'"
+            end
           end
         end
       end

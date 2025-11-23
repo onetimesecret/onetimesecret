@@ -31,7 +31,12 @@ module Onetime
         puts "Loading catalog: #{catalog_path}"
 
         catalog = YAML.load_file(catalog_path)
-        markdown = generate_markdown(catalog)
+
+        # Load capabilities from billing.yaml (or fallback to billing-plans.yaml)
+        capabilities = Billing::Config.load_capabilities
+        puts "Loaded #{capabilities.size} capabilities from billing config"
+
+        markdown = generate_markdown(catalog, capabilities)
 
         File.write(output_path, markdown)
 
@@ -46,17 +51,44 @@ module Onetime
 
       private
 
-      def generate_markdown(catalog)
+      def generate_markdown(catalog, capabilities)
         parts = []
 
         parts << generate_header(catalog)
+        parts << generate_capabilities_section(capabilities) if capabilities&.any?
         parts << generate_plans_overview_table(catalog)
-        parts << generate_plan_details(catalog)
-        parts << generate_legacy_plans(catalog) if catalog['legacy_plans']&.any?
+        parts << generate_plan_details(catalog, capabilities)
+        parts << generate_legacy_plans(catalog, capabilities) if catalog['legacy_plans']&.any?
         parts << generate_stripe_metadata_section(catalog)
         parts << generate_validation_section
 
         parts.join("\n\n")
+      end
+
+      def generate_capabilities_section(capabilities)
+        parts = ['## Capability Definitions', '']
+        parts << 'Capabilities define features/permissions available in the billing system.'
+        parts << 'Loaded from `etc/billing/billing.yaml`.'
+        parts << ''
+
+        # Group by category
+        categories = capabilities.values.map { |cap| cap['category'] }.uniq.sort
+
+        categories.each do |category|
+          caps_in_category = capabilities.select { |_id, cap| cap['category'] == category }
+          next if caps_in_category.empty?
+
+          parts << "### #{category.capitalize}"
+          parts << ''
+
+          caps_in_category.each do |cap_id, cap_data|
+            parts << "- **`#{cap_id}`**: #{cap_data['description']}"
+          end
+
+          parts << ''
+        end
+
+        parts.join("\n")
       end
 
       def generate_header(catalog)
@@ -102,13 +134,13 @@ module Onetime
         rows.join("\n")
       end
 
-      def generate_plan_details(catalog)
+      def generate_plan_details(catalog, capabilities)
         plans = catalog['plans'] || {}
 
         sections = ['## Plan Details', '']
 
         plans.each do |plan_id, plan_data|
-          sections << generate_plan_section(plan_id, plan_data)
+          sections << generate_plan_section(plan_id, plan_data, capabilities)
           sections << ''
           sections << '---'
           sections << ''
@@ -117,7 +149,7 @@ module Onetime
         sections.join("\n")
       end
 
-      def generate_plan_section(plan_id, plan_data)
+      def generate_plan_section(plan_id, plan_data, capabilities)
         parts = []
 
         # Header
@@ -197,7 +229,7 @@ module Onetime
         end
       end
 
-      def generate_legacy_plans(catalog)
+      def generate_legacy_plans(catalog, capabilities)
         legacy = catalog['legacy_plans'] || {}
         return '' if legacy.empty?
 
@@ -220,7 +252,7 @@ module Onetime
 
         # Detail sections for legacy plans
         legacy.each do |plan_id, plan_data|
-          parts << generate_plan_section(plan_id, plan_data)
+          parts << generate_plan_section(plan_id, plan_data, capabilities)
           parts << ''
         end
 
