@@ -120,6 +120,15 @@ module Onetime
             save
           end
 
+          # Clear billing fields (on subscription cancellation)
+          #
+          # @return [Boolean] True if saved successfully
+          def clear_billing_fields
+            self.stripe_subscription_id = nil
+            self.subscription_status    = 'canceled'
+            save
+          end
+
           private
 
           # Extract plan ID from subscription metadata with fallback
@@ -151,15 +160,6 @@ module Onetime
               orgid: objid
             }
             nil
-          end
-
-          # Clear billing fields (on subscription cancellation)
-          #
-          # @return [Boolean] True if saved successfully
-          def clear_billing_fields
-            self.stripe_subscription_id = nil
-            self.subscription_status    = 'canceled'
-            save
           end
 
           # Robust Stripe customer retrieval with fallbacks
