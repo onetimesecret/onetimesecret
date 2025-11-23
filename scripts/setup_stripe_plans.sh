@@ -47,10 +47,18 @@ if ! command -v yq &> /dev/null; then
   exit 1
 fi
 
-# Check for catalog file
-CATALOG_FILE="etc/billing/billing-plans.yaml"
+# Check for required files
+BILLING_CONFIG="etc/billing.yaml"
+CATALOG_FILE="etc/billing-plans.yaml"
+
 if [ ! -f "$CATALOG_FILE" ]; then
   echo "❌ Error: $CATALOG_FILE not found"
+  exit 1
+fi
+
+# Capabilities can be in either billing.yaml (new) or billing-plans.yaml (fallback)
+if [ ! -f "$BILLING_CONFIG" ] && [ ! -f "$CATALOG_FILE" ]; then
+  echo "❌ Error: Neither $BILLING_CONFIG nor $CATALOG_FILE found"
   exit 1
 fi
 
