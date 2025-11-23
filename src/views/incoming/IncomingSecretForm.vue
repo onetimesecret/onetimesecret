@@ -8,6 +8,9 @@
   import SecretContentInputArea from '@/components/secrets/form/SecretContentInputArea.vue';
   import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
   import EmptyState from '@/components/EmptyState.vue';
+  import { useI18n } from 'vue-i18n';
+
+  const { t } = useI18n();
 
   const {
     form,
@@ -16,6 +19,7 @@
     memoMaxLength,
     isFeatureEnabled,
     recipients,
+    isFormValid,
     validateMemo,
     validateSecret,
     validateRecipient,
@@ -70,22 +74,22 @@
     <!-- Header -->
     <div class="mb-10">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
-        {{ $t('incoming.page_title') }}
+        {{ t('incoming.page_title') }}
       </h1>
       <p class="mt-3 text-base text-gray-600 dark:text-gray-400 sm:text-lg">
-        {{ $t('incoming.page_description') }}
+        {{ t('incoming.page_description') }}
       </p>
     </div>
 
     <!-- Loading State -->
     <LoadingOverlay
       :show="isLoading"
-      :message="$t('incoming.loading_config')" />
+      :message="t('incoming.loading_config')" />
 
     <!-- Error State -->
     <EmptyState v-if="loadError">
       <template #title>
-        {{ $t('incoming.config_error_title') }}
+        {{ t('incoming.config_error_title') }}
       </template>
       <template #description>
         {{ loadError }}
@@ -98,10 +102,10 @@
     <!-- Feature Disabled -->
     <EmptyState v-else-if="!isFeatureEnabled">
       <template #title>
-        {{ $t('incoming.feature_disabled_title') }}
+        {{ t('incoming.feature_disabled_title') }}
       </template>
       <template #description>
-        {{ $t('incoming.feature_disabled_description') }}
+        {{ t('incoming.feature_disabled_description') }}
       </template>
       <template #actionLabel>
         <!-- No action button for disabled state -->
@@ -128,7 +132,7 @@
             <label
               for="secret-content"
               class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              {{ $t('incoming.secret_content_label') }}
+              {{ t('incoming.secret_content_label') }}
               <span
                 v-if="errors.secret"
                 class="text-red-500">
@@ -165,14 +169,29 @@
               :disabled="isSubmitting"
               class="order-2 rounded-xl border-2 border-gray-300 bg-white px-6 py-3.5 text-base font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-slate-800 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:bg-slate-700 sm:order-1"
               @click="handleReset">
-              {{ $t('incoming.reset_form') }}
+              {{ t('incoming.reset_form') }}
             </button>
 
             <button
               type="submit"
-              :disabled="isSubmitting"
-              class="order-1 rounded-xl bg-brand-500 px-8 py-3.5 text-base font-semibold text-white shadow-md transition-all duration-200 hover:bg-brand-600 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 sm:order-2">
-              {{ isSubmitting ? $t('incoming.submitting') : $t('incoming.submit_secret') }}
+              :disabled="isSubmitting || !isFormValid"
+              class="order-1 flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-base font-semibold text-white shadow-md transition-all duration-300 sm:order-2"
+              :class="isFormValid && !isSubmitting
+                ? 'bg-brand-500 hover:bg-brand-600 hover:shadow-xl text-white hover:scale-105 active:scale-100'
+                : 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-60'">
+              <svg
+                class="size-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                aria-hidden="true">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              {{ isSubmitting ? t('incoming.submitting') : t('incoming.submit_secret') }}
             </button>
           </div>
       </form>

@@ -89,14 +89,14 @@ module V2::Logic
       # @return [Boolean] true if domain is allowed or no restrictions configured
       def allowed_signup_domain?(email)
         allowed_domains = OT.conf.dig(:site, :authentication, :allowed_signup_domains)
-        
+
         # If no restrictions are configured, allow all domains
         return true if allowed_domains.nil? || allowed_domains.empty?
-        
+
         # Extract domain from email address
         email_domain = email.to_s.downcase.split('@').last
         return false if email_domain.nil? || email_domain.empty?
-        
+
         # Check if the email domain is in the allowed list
         # Convert all domains to lowercase for case-insensitive comparison
         allowed_domains.map(&:downcase).include?(email_domain)

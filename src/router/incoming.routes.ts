@@ -26,7 +26,7 @@ const incomingRoutes: RouteRecordRaw[] = [
     },
   },
   {
-    path: '/incoming/success/:metadataKey',
+    path: '/incoming/:metadataKey',
     name: 'IncomingSuccess',
     components: {
       default: () => import('@/views/incoming/IncomingSuccessView.vue'),

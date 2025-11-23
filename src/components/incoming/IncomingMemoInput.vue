@@ -2,7 +2,9 @@
 
 <script setup lang="ts">
   import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
+  const { t } = useI18n();
   const props = withDefaults(
     defineProps<{
       modelValue: string;
@@ -14,7 +16,6 @@
     {
       maxLength: 50,
       disabled: false,
-      placeholder: 'Add an optional note or reference (e.g., "Database credentials")',
     }
   );
 
@@ -23,6 +24,7 @@
     blur: [];
   }>();
 
+  const placeholderText = computed(() => props.placeholder || t('incoming.memo_placeholder'));
   const charCount = computed(() => props.modelValue.length);
   const isNearLimit = computed(() => charCount.value > props.maxLength * 0.8);
   const isAtLimit = computed(() => charCount.value >= props.maxLength);
@@ -54,7 +56,7 @@
     <label
       for="incoming-memo"
       class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-      {{ $t('incoming.memo_label') }}
+      {{ t('incoming.memo_label') }}
       <span
         v-if="error"
         class="text-red-500">
@@ -69,7 +71,7 @@
         :value="modelValue"
         :maxlength="maxLength"
         :disabled="disabled"
-        :placeholder="placeholder"
+        :placeholder="placeholderText"
         :class="[
           statusColor,
           'block w-full rounded-lg border px-4 py-3 text-base text-gray-900',
@@ -79,7 +81,7 @@
           'dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500',
           'dark:focus:ring-blue-400',
         ]"
-        :aria-label="$t('incoming.memo_placeholder')"
+        :aria-label="t('incoming.memo_placeholder')"
         :aria-invalid="!!error"
         :aria-describedby="error ? 'memo-error' : 'memo-counter'"
         @input="handleInput"
@@ -104,7 +106,7 @@
     </div>
 
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-      {{ $t('incoming.memo_hint') }}
+      <!-- {{ t('incoming.memo_hint') }} -->
     </p>
   </div>
 </template>

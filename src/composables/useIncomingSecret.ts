@@ -1,10 +1,6 @@
 // src/composables/useIncomingSecret.ts
 
-import {
-  AsyncHandlerOptions,
-  createError,
-  useAsyncHandler,
-} from '@/composables/useAsyncHandler';
+import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { IncomingSecretPayload, IncomingSecretResponse } from '@/schemas/api/incoming';
 import { useIncomingStore } from '@/stores/incomingStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
@@ -61,6 +57,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
   const memoMaxLength = computed(() => incomingStore.memoMaxLength);
   const isFeatureEnabled = computed(() => incomingStore.isFeatureEnabled);
   const recipients = computed(() => incomingStore.recipients);
+  const isFormValid = computed(() => !!(form.value.secret.trim() && form.value.recipientId));
 
   // Validation
   const validateMemo = (): boolean => {
@@ -117,10 +114,10 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
    * Creates API payload from form data
    */
   const createPayload = (): IncomingSecretPayload => ({
-      memo: form.value.memo.trim() || '', // Empty string if no memo provided
-      secret: form.value.secret,
-      recipient: form.value.recipientId,
-    });
+    memo: form.value.memo.trim() || '', // Empty string if no memo provided
+    secret: form.value.secret,
+    recipient: form.value.recipientId,
+  });
 
   /**
    * Handles form submission
@@ -185,6 +182,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
     memoMaxLength,
     isFeatureEnabled,
     recipients,
+    isFormValid,
 
     // Validation
     validateMemo,

@@ -4,16 +4,25 @@
   import { computed, ref } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useNotificationsStore } from '@/stores/notificationsStore';
+  import { useI18n } from 'vue-i18n';
 
+  const { t } = useI18n();
   const route = useRoute();
   const router = useRouter();
   const notifications = useNotificationsStore();
 
   const metadataKey = computed(() => route.params.metadataKey as string);
+  const receiptUrl = computed(() => `/receipt/${metadataKey.value}`);
   const copied = ref(false);
 
   const handleCreateAnother = () => {
     router.push({ name: 'IncomingSecretForm' });
+  };
+
+  const openReceipt = () => {
+    if (metadataKey.value) {
+      window.open(receiptUrl.value, '_blank');
+    }
   };
 
   const copyToClipboard = async () => {
@@ -60,10 +69,10 @@
 
           <!-- Success Message -->
           <h1 class="mb-3 text-center text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
-            {{ $t('incoming.success_title') }}
+            {{ t('incoming.success_title') }}
           </h1>
           <p class="max-w-md text-center text-base text-gray-600 dark:text-gray-400 sm:text-lg">
-            {{ $t('incoming.success_description') }}
+            {{ t('incoming.success_description') }}
           </p>
         </div>
       </div>
@@ -75,44 +84,63 @@
           v-if="metadataKey"
           class="mb-8">
           <label class="mb-3 block text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            {{ $t('incoming.reference_id') }}
+            {{ t('incoming.reference_id') }}
           </label>
           <div class="group relative overflow-hidden rounded-xl border-2 border-gray-200 bg-gray-50 transition-all duration-200 hover:border-gray-300 dark:border-gray-700 dark:bg-slate-900/50 dark:hover:border-gray-600">
-            <div class="flex items-center justify-between p-4">
+            <div class="flex items-center justify-between gap-2 p-4">
               <code class="flex-1 select-all break-all font-mono text-sm font-medium text-gray-900 dark:text-white sm:text-base">
                 {{ metadataKey }}
               </code>
-              <button
-                type="button"
-                class="ml-4 flex-shrink-0 rounded-lg bg-gray-200 p-2.5 text-gray-600 transition-all duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-                :class="{ 'bg-green-500 hover:bg-green-500 text-white dark:bg-green-600 dark:hover:bg-green-600': copied }"
-                @click="copyToClipboard"
-                :title="copied ? 'Copied!' : 'Copy to clipboard'">
-                <svg
-                  v-if="!copied"
-                  class="size-5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                <svg
-                  v-else
-                  class="size-5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M5 13l4 4L19 7" />
-                </svg>
-              </button>
+              <div class="flex flex-shrink-0 gap-2">
+                <button
+                  type="button"
+                  class="rounded-lg bg-gray-200 p-2.5 text-gray-600 transition-all duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                  :class="{ 'bg-green-500 hover:bg-green-500 text-white dark:bg-green-600 dark:hover:bg-green-600': copied }"
+                  @click="copyToClipboard"
+                  :title="copied ? 'Copied!' : 'Copy to clipboard'">
+                  <svg
+                    v-if="!copied"
+                    class="size-5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <svg
+                    v-else
+                    class="size-5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M5 13l4 4L19 7" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="rounded-lg bg-gray-200 p-2.5 text-gray-600 transition-all duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                  @click="openReceipt"
+                  title="Open receipt in new window">
+                  <svg
+                    class="size-5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -135,10 +163,10 @@
             </div>
             <div class="flex-1">
               <h3 class="mb-2 font-semibold text-purple-900 dark:text-purple-200">
-                {{ $t('incoming.success_info_title') }}
+                {{ t('incoming.success_info_title') }}
               </h3>
               <p class="text-sm leading-relaxed text-purple-800 dark:text-purple-300">
-                {{ $t('incoming.success_info_description') }}
+                {{ t('incoming.success_info_description') }}
               </p>
             </div>
           </div>
@@ -162,18 +190,18 @@
                   stroke-linejoin="round"
                   d="M12 4v16m8-8H4" />
               </svg>
-              {{ $t('incoming.create_another') }}
+              {{ t('incoming.create_another') }}
             </span>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Helpful Tips (Optional) -->
+    <!-- Helpful Tips -->
     <div class="mt-8 text-center">
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        Save the reference ID above for your records
-      </p>
+      <p
+        class="text-sm text-gray-500 dark:text-gray-400 [&_a]:text-brand-600 [&_a]:underline [&_a]:transition-colors [&_a]:duration-200 hover:[&_a]:text-brand-700 dark:[&_a]:text-brand-400 dark:hover:[&_a]:text-brand-300"
+        v-html="t('incoming.end_of_experience_suggestion', { receiptUrl })"></p>
     </div>
   </div>
 </template>
