@@ -9,7 +9,7 @@ module Billing
     #
     # @return [String] Absolute path to billing-plans.yaml
     def self.catalog_path
-      File.join(OT.conf.path, '..', 'billing', 'billing-plans.yaml')
+      File.join(Onetime::HOME, 'etc', 'billing-plans.yaml')
     end
 
     # Check if catalog file exists
