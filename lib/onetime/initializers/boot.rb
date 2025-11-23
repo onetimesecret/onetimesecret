@@ -72,6 +72,7 @@ module Onetime
       prepare_emailers
       load_fortunes
       load_plans
+      setup_incoming_recipients
       if connect_to_db
         connect_databases
         check_global_banner

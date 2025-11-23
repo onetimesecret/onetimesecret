@@ -49,8 +49,12 @@ module Onetime::Mail
               },
             },
             from_email_address: sender_email,
-            reply_to_addresses: [reply_to],
           }
+
+          # Only include reply_to_addresses if reply_to is present
+          if reply_to && !reply_to.to_s.empty?
+            email_params[:reply_to_addresses] = [reply_to]
+          end
 
           # Send the email
           mailer_response = self.class.ses_client.send_email(email_params)
@@ -74,13 +78,24 @@ module Onetime::Mail
       end
 
       def self.setup
-        # Configure AWS SES client
+        # Configure AWS SES client with OpenSSL 3.6+ CRL fix
+        # OpenSSL 3.6 enables strict CRL checking by default, but macOS's
+        # OpenSSL build lacks a CRL bundle, causing valid certificates to fail.
+        # We create a custom X509::Store with CRL checking disabled.
+        # See: https://github.com/rails/rails/issues/55886
+
+        # Create custom certificate store with system certs but no CRL checking
+        cert_store = OpenSSL::X509::Store.new
+        cert_store.set_default_paths
+
         @ses_client = Aws::SESV2::Client.new(
           region: OT.conf[:emailer][:region] || raise("Region not configured"),
           credentials: Aws::Credentials.new(
             OT.conf[:emailer][:user],
             OT.conf[:emailer][:pass],
           ),
+          ssl_verify_peer: true,
+          ssl_ca_store: cert_store,
         )
       end
 
