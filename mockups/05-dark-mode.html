@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup: Dark Mode - OneTimeSecret Redesign</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-gray-800 border-b border-gray-700">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-8 h-8 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+          </svg>
+          <h1 class="text-xl font-semibold text-gray-100">OneTimeSecret</h1>
+        </div>
+        <nav class="flex items-center gap-4">
+          <a href="#" class="text-gray-300 hover:text-gray-100">Sign In</a>
+          <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Sign Up</button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container mx-auto px-4 py-12">
+    <div class="max-w-2xl mx-auto">
+
+      <!-- Tagline -->
+      <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold text-gray-100 mb-3">
+          Share Sensitive Information Safely
+        </h2>
+        <p class="text-lg text-gray-400">
+          Create a secret link that can only be viewed once
+        </p>
+      </div>
+
+      <!-- Form Card -->
+      <div class="bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 overflow-hidden">
+
+        <!-- Content Input -->
+        <div class="p-8">
+          <label for="secret-content" class="block text-sm font-medium text-gray-300 mb-3">
+            What would you like to share?
+          </label>
+          <textarea
+            id="secret-content"
+            rows="6"
+            class="w-full px-4 py-3 bg-gray-900 border-2 border-blue-500 rounded-lg resize-none focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-500/30 transition-all font-mono text-base text-gray-100 placeholder-gray-500"
+          >sk_test_51NqR8zLp3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9</textarea>
+          <p class="mt-2 text-sm text-gray-400">
+            Your content is encrypted and can only be viewed once
+          </p>
+        </div>
+
+        <!-- Customize Panel (Expanded) -->
+        <div class="px-8 py-6 bg-gray-900/50 border-t border-gray-700">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-gray-200">Customize Options</h3>
+            <button class="text-gray-400 hover:text-gray-200">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="space-y-5">
+            <!-- Expiration -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">
+                Link expires in
+              </label>
+              <div class="grid grid-cols-4 gap-2">
+                <button class="px-4 py-2 border-2 border-gray-700 rounded-lg hover:border-blue-500 hover:bg-gray-700 transition-all text-gray-300">
+                  1 hour
+                </button>
+                <button class="px-4 py-2 border-2 border-gray-700 rounded-lg hover:border-blue-500 hover:bg-gray-700 transition-all text-gray-300">
+                  1 day
+                </button>
+                <button class="px-4 py-2 border-2 border-blue-500 bg-blue-900/30 rounded-lg font-medium text-blue-400">
+                  7 days
+                </button>
+                <button class="px-4 py-2 border-2 border-gray-700 rounded-lg hover:border-blue-500 hover:bg-gray-700 transition-all text-gray-300">
+                  Custom
+                </button>
+              </div>
+            </div>
+
+            <!-- Passphrase -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">
+                Add passphrase (optional)
+              </label>
+              <div class="flex gap-2">
+                <input
+                  type="password"
+                  placeholder="Enter a passphrase for extra security"
+                  class="flex-1 px-4 py-2 bg-gray-900 border-2 border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 text-gray-100 placeholder-gray-500"
+                />
+                <button class="px-4 py-2 border-2 border-gray-700 rounded-lg hover:border-blue-500 hover:bg-gray-700 text-gray-300">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                  </svg>
+                </button>
+              </div>
+              <p class="mt-2 text-xs text-gray-400">
+                Recipient will need this passphrase to view the secret
+              </p>
+            </div>
+
+            <!-- Recipient -->
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">
+                Recipient email (optional)
+              </label>
+              <input
+                type="email"
+                placeholder="colleague@company.com"
+                class="w-full px-4 py-2 bg-gray-900 border-2 border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 text-gray-100 placeholder-gray-500"
+              />
+              <p class="mt-2 text-xs text-gray-400">
+                Get notified when the secret is viewed
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="px-8 py-6 bg-gray-800 border-t border-gray-700 flex items-center justify-between">
+          <button class="text-blue-400 hover:text-blue-300 font-medium flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+            </svg>
+            Hide options
+          </button>
+
+          <button class="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all">
+            Create Secret Link
+          </button>
+        </div>
+      </div>
+
+      <!-- Info Cards -->
+      <div class="mt-8 grid grid-cols-3 gap-4">
+        <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 text-center">
+          <div class="text-2xl mb-2">🔒</div>
+          <h3 class="font-semibold text-gray-100 mb-1">Encrypted</h3>
+          <p class="text-sm text-gray-400">End-to-end encryption</p>
+        </div>
+        <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 text-center">
+          <div class="text-2xl mb-2">👁️</div>
+          <h3 class="font-semibold text-gray-100 mb-1">View Once</h3>
+          <p class="text-sm text-gray-400">Self-destructs after reading</p>
+        </div>
+        <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 text-center">
+          <div class="text-2xl mb-2">⏱️</div>
+          <h3 class="font-semibold text-gray-100 mb-1">Expires</h3>
+          <p class="text-sm text-gray-400">Auto-deletes after 7 days</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Mockup Label -->
+  <div class="fixed bottom-4 right-4 bg-purple-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-semibold">
+    MOCKUP: Dark Mode
+  </div>
+
+</body>
+</html>
