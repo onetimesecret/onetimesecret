@@ -163,7 +163,7 @@ module Billing
           handle_subscription_updated(event.data.object)
         when 'customer.subscription.deleted'
           handle_subscription_deleted(event.data.object)
-        when 'product.updated', 'price.updated'
+        when 'product.created', 'product.updated', 'price.created', 'price.updated', 'plan.created', 'plan.updated'
           handle_product_or_price_updated(event.data.object)
         else
           billing_logger.debug 'Unhandled webhook event type', {
