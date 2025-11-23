@@ -1,3 +1,5 @@
+# apps/web/billing/controllers/base.rb
+#
 # frozen_string_literal: true
 
 require 'onetime/helpers/session_helpers'

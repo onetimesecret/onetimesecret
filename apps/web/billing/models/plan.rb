@@ -6,7 +6,6 @@ require 'stripe'
 require_relative '../metadata'
 
 module Billing
-
   unless defined?(RECORD_LIMIT)
     # Maximum number of active Stripe products to retrieve at one time.
     # Stripe's API maximum is 100. Using maximum to minimize API calls.
@@ -72,30 +71,30 @@ module Billing
 
     def init
       super
-      @capabilities ||= []
-      @features     ||= []
-      @limits       ||= {}
+      @capabilities      ||= []
+      @features          ||= []
+      @limits            ||= {}
       @stripe_updated_at ||= 0
-      @is_soft_deleted ||= false
+      @is_soft_deleted   ||= false
     end
 
     # Parse JSON fields
     def parsed_capabilities
       JSON.parse(capabilities)
-    rescue JSON::ParserError => ex
-      Onetime.billing_logger.error "Failed to parse capabilities JSON", {
+    rescue JSON::ParserError
+      Onetime.billing_logger.error 'Failed to parse capabilities JSON', {
         plan_id: plan_id,
-        capabilities: capabilities
+        capabilities: capabilities,
       }
       []
     end
 
     def parsed_features
       JSON.parse(features)
-    rescue JSON::ParserError => ex
-      Onetime.billing_logger.error "Failed to parse features JSON", {
+    rescue JSON::ParserError
+      Onetime.billing_logger.error 'Failed to parse features JSON', {
         plan_id: plan_id,
-        features: features
+        features: features,
       }
       []
     end
@@ -104,10 +103,10 @@ module Billing
       parsed = JSON.parse(limits)
       # Convert -1 to Float::INFINITY for unlimited resources
       parsed.transform_values { |v| v == -1 ? Float::INFINITY : v }
-    rescue JSON::ParserError => ex
-      Onetime.billing_logger.error "Failed to parse limits JSON", {
+    rescue JSON::ParserError
+      Onetime.billing_logger.error 'Failed to parse limits JSON', {
         plan_id: plan_id,
-        limits: limits
+        limits: limits,
       }
       {}
     end
@@ -138,9 +137,10 @@ module Billing
         products = Stripe::Product.list({
           active: true,
           limit: RECORD_LIMIT,
-        })
+        },
+                                       )
 
-        items_count = 0
+        items_count        = 0
         products_processed = 0
 
         progress&.call('Fetching products from Stripe...')
@@ -150,26 +150,26 @@ module Billing
           progress&.call("Processing product #{products_processed}: #{product.name[0..40]}...") if products_processed == 1 || products_processed % 5 == 0
           # Skip products without required metadata
           unless product.metadata[Metadata::FIELD_APP] == Metadata::APP_NAME
-            OT.ld "[Plan.refresh_from_stripe] Skipping product (not onetimesecret app)", {
+            OT.ld '[Plan.refresh_from_stripe] Skipping product (not onetimesecret app)', {
               product_id: product.id,
               product_name: product.name,
-              app: product.metadata[Metadata::FIELD_APP]
+              app: product.metadata[Metadata::FIELD_APP],
             }
             next
           end
 
           unless product.metadata[Metadata::FIELD_TIER]
-            OT.lw "[Plan.refresh_from_stripe] Skipping product (missing tier)", {
+            OT.lw '[Plan.refresh_from_stripe] Skipping product (missing tier)', {
               product_id: product.id,
-              product_name: product.name
+              product_name: product.name,
             }
             next
           end
 
           unless product.metadata[Metadata::FIELD_REGION]
-            OT.lw "[Plan.refresh_from_stripe] Skipping product (missing region)", {
+            OT.lw '[Plan.refresh_from_stripe] Skipping product (missing region)', {
               product_id: product.id,
-              product_name: product.name
+              product_name: product.name,
             }
             next
           end

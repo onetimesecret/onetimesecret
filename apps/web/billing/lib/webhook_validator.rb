@@ -1,3 +1,5 @@
+# apps/web/billing/lib/webhook_validator.rb
+#
 # frozen_string_literal: true
 
 require 'stripe'
@@ -84,14 +86,14 @@ module Billing
       # Verify signature and construct event
       begin
         event = Stripe::Webhook.construct_event(payload, signature, @webhook_secret)
-      rescue JSON::ParserError => e
+      rescue JSON::ParserError => ex
         billing_logger.error '[WebhookValidator] Invalid JSON payload', {
-          error: e.message
+          error: ex.message,
         }
         raise
-      rescue Stripe::SignatureVerificationError => e
+      rescue Stripe::SignatureVerificationError => ex
         billing_logger.error '[WebhookValidator] Invalid signature', {
-          error: e.message
+          error: ex.message,
         }
         raise
       end
@@ -102,7 +104,7 @@ module Billing
       billing_logger.info '[WebhookValidator] Event validated successfully', {
         event_id: event.id,
         event_type: event.type,
-        created_at: Time.at(event.created).iso8601
+        created_at: Time.at(event.created).iso8601,
       }
 
       event
@@ -135,12 +137,12 @@ module Billing
       if result
         billing_logger.debug '[WebhookValidator] Event marked as processed', {
           event_id: event_id,
-          event_type: event_type
+          event_type: event_type,
         }
       else
         billing_logger.info '[WebhookValidator] Event already processed', {
           event_id: event_id,
-          event_type: event_type
+          event_type: event_type,
         }
       end
 
@@ -157,12 +159,12 @@ module Billing
     #
     def unmark_processed!(event_id)
       event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id)
-      if event.exists?
-        event.destroy!
-        billing_logger.info '[WebhookValidator] Event unmarked for retry', {
-          event_id: event_id
-        }
-      end
+      return unless event.exists?
+
+      event.destroy!
+      billing_logger.info '[WebhookValidator] Event unmarked for retry', {
+        event_id: event_id,
+      }
     end
 
     private
@@ -177,9 +179,9 @@ module Billing
     # @raise [SecurityError] If timestamp is invalid
     #
     def verify_timestamp!(event)
-      event_time = Time.at(event.created)
+      event_time   = Time.at(event.created)
       current_time = Time.now
-      age = current_time - event_time
+      age          = current_time - event_time
 
       # Check if event is too old (replay attack)
       if age > MAX_EVENT_AGE
@@ -188,7 +190,7 @@ module Billing
           event_type: event.type,
           event_time: event_time.iso8601,
           current_time: current_time.iso8601,
-          age_seconds: age.to_i
+          age_seconds: age.to_i,
         }
 
         raise SecurityError, "Event too old: #{age.to_i}s (max: #{MAX_EVENT_AGE}s)"
@@ -201,7 +203,7 @@ module Billing
           event_type: event.type,
           event_time: event_time.iso8601,
           current_time: current_time.iso8601,
-          future_seconds: age.abs.to_i
+          future_seconds: age.abs.to_i,
         }
 
         raise SecurityError, "Event timestamp in future: #{age.abs.to_i}s"
@@ -209,7 +211,7 @@ module Billing
 
       billing_logger.debug '[WebhookValidator] Timestamp valid', {
         event_id: event.id,
-        age_seconds: age.to_i
+        age_seconds: age.to_i,
       }
     end
   end

@@ -70,7 +70,9 @@ module Onetime
           subscriptions.data.each do |sub|
             status_marker = sub.pause_collection ? ' (paused)' : ''
             puts "  #{sub.id} - #{sub.status}#{status_marker}"
-            puts "    Period: #{format_timestamp(sub.current_period_start)} to #{format_timestamp(sub.current_period_end)}"
+            if sub.respond_to?(:current_period_start) && sub.respond_to?(:current_period_end)
+              puts "    Period: #{format_timestamp(sub.current_period_start)} to #{format_timestamp(sub.current_period_end)}"
+            end
           end
         end
       rescue Stripe::StripeError => ex

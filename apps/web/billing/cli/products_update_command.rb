@@ -21,7 +21,11 @@ module Onetime
       option :tier, type: :string, desc: 'Tier'
       option :region, type: :string, desc: 'Region'
       option :tenancy, type: :string, desc: 'Tenancy'
-      option :capabilities, type: :string, desc: 'Capabilities'
+      option :capabilities, type: :string, desc: 'Capabilities (comma-separated)'
+      option :limit_teams, type: :string, desc: 'Limit teams (-1 for unlimited)'
+      option :limit_members_per_team, type: :string, desc: 'Limit members per team (-1 for unlimited)'
+      option :limit_custom_domains, type: :string, desc: 'Limit custom domains (-1 for unlimited)'
+      option :limit_secret_lifetime, type: :string, desc: 'Limit secret lifetime (seconds)'
       option :add_marketing_feature, type: :string, desc: 'Add marketing feature'
       option :remove_marketing_feature, type: :string, desc: 'Remove marketing feature (by ID)'
 
@@ -69,6 +73,10 @@ module Onetime
           updated_meta['region'] = options[:region] if options[:region]
           updated_meta['tenancy'] = options[:tenancy] if options[:tenancy]
           updated_meta['capabilities'] = options[:capabilities] if options[:capabilities]
+          updated_meta['limit_teams'] = options[:limit_teams] if options[:limit_teams]
+          updated_meta['limit_members_per_team'] = options[:limit_members_per_team] if options[:limit_members_per_team]
+          updated_meta['limit_custom_domains'] = options[:limit_custom_domains] if options[:limit_custom_domains]
+          updated_meta['limit_secret_lifetime'] = options[:limit_secret_lifetime] if options[:limit_secret_lifetime]
 
           updated_meta
         end

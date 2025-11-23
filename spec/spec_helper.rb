@@ -23,7 +23,6 @@
 # To see detailed output:
 #   bundle exec rspec --format documentation
 
-
 # spec/spec_helper.rb
 # Test harness for Onetime.
 
@@ -45,14 +44,14 @@ require 'timecop'
 require 'rack/test'
 
 # Path setup - do one thing well
-base_path = File.expand_path('..', __dir__)
+spec_root = File.expand_path(__dir__)
+base_path = File.expand_path('..', spec_root)
 apps_root = File.join(base_path, 'apps').freeze
 
 $LOAD_PATH.unshift(File.join(apps_root, 'api'))
 $LOAD_PATH.unshift(File.join(apps_root, 'web'))
 $LOAD_PATH.unshift(File.join(base_path, 'lib'))
-$LOAD_PATH.unshift(File.expand_path(__dir__))
-
+$LOAD_PATH.unshift(spec_root)
 
 # Load application - fail fast, fail clearly
 begin
@@ -66,22 +65,23 @@ begin
 
   require 'onetime/logic'
   require 'onetime/views'
-rescue LoadError => e
-  warn "Load failed: #{e.message} (pwd: #{Dir.pwd})"
+rescue LoadError => ex
+  warn "Load failed: #{ex.message} (pwd: #{Dir.pwd})"
   exit 1
 end
 
 # Load test utilities
-# Dir[File.join(__dir__, 'support', '*.rb')].each { |f| require f }
+Dir[File.join(spec_root, 'support', '*.rb')].each { |f| require f }
 
 # Test mode
-OT.mode = :test
-OT::Config.path = File.join(Onetime::HOME, 'spec', 'config.test.yaml')
+OT.mode         = :test
+OT::Config.path = File.join(spec_root, 'config.test.yaml')
 
 # Shared helper for creating a memoized FakeRedis instance
 module SpecHelpers
   # Create a memoized FakeRedis instance for use across tests
-  # This prevents creating a new instance for every test
+  # Note: Redis.new returns a FakeRedis instance because the fakeredis
+  # gem monkey-patches the Redis class when required (see line 39).
   def self.fake_redis
     @fake_redis ||= Redis.new
   end
@@ -102,8 +102,12 @@ RSpec.configure do |config|
   end
 
   # Configure FakeRedis for all tests (except where explicitly disabled)
-  config.before(:each) do
-    # Ensure FakeRedis is used for all Redis connections
+  # Skip FakeRedis for billing tests - they need real Redis on port 2121
+  config.before(:each) do |example|
+    # Skip FakeRedis stub for billing tests - they use real Redis
+    next if example.metadata[:type] == :billing
+
+    # Ensure FakeRedis is used for all other Redis connections
     # Using memoized instance for better performance
     allow(Familia).to receive(:dbclient).and_return(SpecHelpers.fake_redis)
   end
@@ -117,7 +121,10 @@ RSpec.configure do |config|
   config.include Rack::Test::Methods, type: :request
 
   config.filter_run_when_matching :focus
-  config.warnings = :none
   config.order = :random
+
+  # One of :none, :all, :deprecations_only
+  config.warnings = :deprecations_only
+
   Kernel.srand config.seed
 end

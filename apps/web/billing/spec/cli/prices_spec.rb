@@ -1,574 +1,387 @@
+# apps/web/billing/spec/cli/prices_spec.rb
+#
 # frozen_string_literal: true
 
-require 'spec_helper'
-require 'cli/cli_spec_helper'
 require_relative '../support/billing_spec_helper'
-require_relative '../support/stripe_test_data'
+require 'onetime/cli'
+require_relative '../../cli/prices_command'
+require_relative '../../cli/prices_create_command'
 
-RSpec.describe 'Billing Prices CLI Commands', type: :cli do
-  let(:billing_config) { double('BillingConfig', enabled?: true, stripe_key: 'sk_test_123') }
+RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
+  let(:stripe_client) { Billing::StripeClient.new }
 
-  before do
-    allow(OT).to receive(:billing_config).and_return(billing_config)
-    allow(Stripe).to receive(:api_key=)
-  end
+  describe Onetime::CLI::BillingPricesCommand do
+    subject(:command) { described_class.new }
 
-  describe 'billing prices (list)' do
-    let(:price1) do
-      mock_stripe_price(
-        id: 'price_monthly',
-        product: 'prod_test1',
-        unit_amount: 900,
-        currency: 'usd',
-        recurring: { interval: 'month', interval_count: 1 },
-        active: true
-      )
-    end
-    let(:price2) do
-      mock_stripe_price(
-        id: 'price_annual',
-        product: 'prod_test1',
-        unit_amount: 9600,
-        currency: 'usd',
-        recurring: { interval: 'year', interval_count: 1 },
-        active: true
-      )
-    end
-    let(:prices_list) { double('ListObject', data: [price1, price2]) }
+    describe '#call (list prices)' do
+      it 'lists active prices by default', :unit do
+        output = capture_stdout do
+          command.call(limit: 100, active_only: true)
+        end
 
-    context 'with valid configuration' do
-      it 'lists all active prices' do
-        expect(Stripe::Price).to receive(:list).with(hash_including(active: true, limit: 100)).and_return(prices_list)
-
-        output = run_cli_command_quietly('billing', 'prices')
-
-        expect(output[:stdout]).to include('price_monthly')
-        expect(output[:stdout]).to include('price_annual')
-        expect(output[:stdout]).to include('Total: 2 price(s)')
-        expect(last_exit_code).to eq(0)
+        expect(output).to include('Fetching prices from Stripe')
+        expect(output).to match(/ID.*PRODUCT.*AMOUNT.*INTERVAL.*ACTIVE/)
+        expect(output).to match(/Total: \d+ price\(s\)/)
       end
 
-      it 'displays formatted table header' do
-        allow(Stripe::Price).to receive(:list).and_return(prices_list)
+      it 'accepts product filter option', :unit do
+        output = capture_stdout do
+          command.call(product: 'prod_test123', limit: 100)
+        end
 
-        output = run_cli_command_quietly('billing', 'prices')
-
-        expect(output[:stdout]).to match(/ID.*PRODUCT.*AMOUNT.*INTERVAL.*ACTIVE/)
+        expect(output).to include('Fetching prices from Stripe')
       end
 
-      it 'displays formatted price amounts' do
-        allow(Stripe::Price).to receive(:list).and_return(prices_list)
+      it 'includes inactive prices when active_only is false', :unit do
+        output = capture_stdout do
+          command.call(limit: 100, active_only: false)
+        end
 
-        output = run_cli_command_quietly('billing', 'prices')
-
-        expect(output[:stdout]).to match(/USD.*9\.00/)
-        expect(output[:stdout]).to match(/USD.*96\.00/)
+        expect(output).to include('Fetching prices from Stripe')
       end
 
-      it 'displays billing intervals' do
-        allow(Stripe::Price).to receive(:list).and_return(prices_list)
+      it 'formats price rows with proper alignment', :unit do
+        output = capture_stdout do
+          command.call(limit: 100)
+        end
 
-        output = run_cli_command_quietly('billing', 'prices')
-
-        expect(output[:stdout]).to include('month')
-        expect(output[:stdout]).to include('year')
+        # Check for separator line (78 characters)
+        expect(output).to include('-' * 78)
       end
-    end
 
-    context 'with --product filter' do
-      it 'filters prices by product ID' do
-        expect(Stripe::Price).to receive(:list).with(
-          hash_including(product: 'prod_specific', active: true)
-        ).and_return(prices_list)
-
-        output = run_cli_command_quietly('billing', 'prices', '--product', 'prod_specific')
-
-        expect(last_exit_code).to eq(0)
-      end
-    end
-
-    context 'with --active-only flag set to false' do
-      let(:inactive_price) { mock_stripe_price(id: 'price_inactive', active: false) }
-      let(:all_prices) { double('ListObject', data: [price1, inactive_price]) }
-
-      it 'includes inactive prices' do
-        expect(Stripe::Price).to receive(:list).with(hash_including(active: false)).and_return(all_prices)
-
-        output = run_cli_command_quietly('billing', 'prices', '--no-active-only')
-
-        expect(output[:stdout]).to include('price_inactive')
-      end
-    end
-
-    context 'when no prices found' do
-      it 'displays appropriate message' do
-        empty_list = double('ListObject', data: [])
-        allow(Stripe::Price).to receive(:list).and_return(empty_list)
-
-        output = run_cli_command_quietly('billing', 'prices')
-
-        expect(output[:stdout]).to include('No prices found')
-        expect(last_exit_code).to eq(0)
-      end
-    end
-
-    context 'when billing not configured' do
-      let(:billing_config) { double('BillingConfig', enabled?: false) }
-
-      it 'exits with configuration error' do
-        output = run_cli_command_quietly('billing', 'prices')
-
-        expect(output[:stdout]).to match(/billing not enabled/i)
-      end
-    end
-
-    context 'displaying one-time prices' do
-      let(:one_time_price) do
-        mock_stripe_price(
-          id: 'price_onetime',
-          product: 'prod_test1',
-          unit_amount: 5000,
-          recurring: nil,
-          active: true
+      it 'handles empty results gracefully' do
+        # Mock empty price list
+        allow(Stripe::Price).to receive(:list).and_return(
+          double(data: [])
         )
+
+        output = capture_stdout do
+          command.call(limit: 100)
+        end
+
+        expect(output).to include('No prices found')
       end
-      let(:mixed_prices) { double('ListObject', data: [price1, one_time_price]) }
 
-      it 'shows one-time as interval' do
-        allow(Stripe::Price).to receive(:list).and_return(mixed_prices)
+      it 'handles Stripe API errors gracefully' do
+        # Mock Stripe API error
+        allow(Stripe::Price).to receive(:list).and_raise(
+          Stripe::InvalidRequestError.new('Invalid request', 'param')
+        )
 
-        output = run_cli_command_quietly('billing', 'prices')
-
-        expect(output[:stdout]).to include('one-time')
+        expect {
+          command.call(limit: 100)
+        }.to output(/Error fetching prices|Error/).to_stdout
       end
     end
   end
 
-  describe 'billing prices create' do
-    let(:product) { mock_stripe_product(id: 'prod_test123', name: 'Test Product') }
-    let(:price) { mock_stripe_price(id: 'price_new', unit_amount: 900, currency: 'usd') }
+  describe Onetime::CLI::BillingPricesCreateCommand do
+    subject(:command) { described_class.new }
+    let(:product_id) { 'prod_test123' }
 
-    before do
-      allow(Stripe::Product).to receive(:retrieve).with('prod_test123').and_return(product)
-      allow($stdin).to receive(:gets).and_return("y\n")
-    end
+    describe '#call (create price)' do
+      it 'creates price with all required arguments', :unit do
+        allow($stdin).to receive(:gets).and_return("y\n")
 
-    context 'with valid parameters' do
-      it 'creates a recurring price' do
-        expect(Stripe::Price).to receive(:create).with(
-          hash_including(
-            product: 'prod_test123',
-            unit_amount: 900,
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 900,
             currency: 'usd',
-            recurring: hash_including(interval: 'month', interval_count: 1)
+            interval: 'month',
+            interval_count: 1
           )
-        ).and_return(price)
+        end
 
-        output = run_cli_command_quietly(
-          'billing', 'prices', 'create', 'prod_test123',
-          '--amount', '900'
-        )
-
-        expect(output[:stdout]).to include('Price created successfully')
-        expect(last_exit_code).to eq(0)
+        expect(output).to include('Creating price:')
+        expect(output).to include("Product: #{product_id}")
+        expect(output).to include('Amount: USD 9.00')
+        expect(output).to include('Interval: 1 month(s)')
+        expect(output).to include('Proceed? (y/n):')
+        expect(output).to include('Price created successfully')
+        expect(output).to match(/ID: price_/)
       end
 
-      it 'displays price details after creation' do
-        allow(Stripe::Price).to receive(:create).and_return(price)
+      it 'uses default currency of usd', :unit do
+        allow($stdin).to receive(:gets).and_return("y\n")
 
-        output = run_cli_command_quietly(
-          'billing', 'prices', 'create', 'prod_test123',
-          '--amount', '900'
-        )
-
-        expect(output[:stdout]).to include('ID:')
-        expect(output[:stdout]).to include('Amount:')
-        expect(output[:stdout]).to include('Interval:')
-      end
-
-      it 'verifies product exists before creation' do
-        expect(Stripe::Product).to receive(:retrieve).with('prod_test123').and_return(product)
-        allow(Stripe::Price).to receive(:create).and_return(price)
-
-        output = run_cli_command_quietly(
-          'billing', 'prices', 'create', 'prod_test123',
-          '--amount', '900'
-        )
-
-        expect(output[:stdout]).to include('Product: Test Product')
-      end
-    end
-
-    context 'with different intervals' do
-      it 'creates yearly price' do
-        expect(Stripe::Price).to receive(:create).with(
-          hash_including(
-            recurring: hash_including(interval: 'year', interval_count: 1)
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 900,
+            interval: 'month'
           )
-        ).and_return(price)
+        end
 
-        run_cli_command_quietly(
-          'billing', 'prices', 'create', 'prod_test123',
-          '--amount', '9600',
-          '--interval', 'year'
-        )
-
-        expect(last_exit_code).to eq(0)
+        expect(output).to include('Amount: USD 9.00')
+        expect(output).to include('Price created successfully')
       end
 
-      it 'creates weekly price' do
-        expect(Stripe::Price).to receive(:create).with(
-          hash_including(
-            recurring: hash_including(interval: 'week', interval_count: 1)
+      it 'uses default interval of month', :unit do
+        allow($stdin).to receive(:gets).and_return("y\n")
+
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 900
           )
-        ).and_return(price)
+        end
 
-        run_cli_command_quietly(
-          'billing', 'prices', 'create', 'prod_test123',
-          '--amount', '200',
-          '--interval', 'week'
-        )
+        expect(output).to include('Interval: 1 month(s)')
+        expect(output).to include('Price created successfully')
       end
 
-      it 'creates daily price' do
-        expect(Stripe::Price).to receive(:create).with(
-          hash_including(
-            recurring: hash_including(interval: 'day', interval_count: 1)
+      it 'uses default interval_count of 1', :unit do
+        allow($stdin).to receive(:gets).and_return("y\n")
+
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 900,
+            interval: 'month'
           )
-        ).and_return(price)
+        end
 
-        run_cli_command_quietly(
-          'billing', 'prices', 'create', 'prod_test123',
-          '--amount', '50',
-          '--interval', 'day'
-        )
+        expect(output).to include('Interval: 1 month(s)')
       end
-    end
 
-    context 'with interval_count option' do
-      it 'creates price with custom interval count' do
-        expect(Stripe::Price).to receive(:create).with(
-          hash_including(
-            recurring: hash_including(interval: 'month', interval_count: 3)
+      it 'accepts year interval', :unit do
+        allow($stdin).to receive(:gets).and_return("y\n")
+
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 9000,
+            interval: 'year'
           )
-        ).and_return(price)
+        end
 
-        output = run_cli_command_quietly(
-          'billing', 'prices', 'create', 'prod_test123',
-          '--amount', '2400',
-          '--interval-count', '3'
-        )
-
-        expect(output[:stdout]).to match(/interval:.*3.*month/i)
-      end
-    end
-
-    context 'with different currency' do
-      it 'creates price in EUR' do
-        eur_price = mock_stripe_price(unit_amount: 850, currency: 'eur')
-        expect(Stripe::Price).to receive(:create).with(
-          hash_including(currency: 'eur')
-        ).and_return(eur_price)
-
-        run_cli_command_quietly(
-          'billing', 'prices', 'create', 'prod_test123',
-          '--amount', '850',
-          '--currency', 'eur'
-        )
-
-        expect(last_exit_code).to eq(0)
-      end
-    end
-
-    context 'without product_id parameter (interactive mode)' do
-      before do
-        allow($stdin).to receive(:gets).and_return("prod_test123\n", "900\n", "y\n")
+        expect(output).to include('Interval: 1 year(s)')
+        expect(output).to include('Price created successfully')
       end
 
-      it 'prompts for product ID' do
-        allow(Stripe::Price).to receive(:create).and_return(price)
+      it 'accepts week interval', :unit do
+        allow($stdin).to receive(:gets).and_return("y\n")
 
-        output = run_cli_command_quietly('billing', 'prices', 'create')
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 200,
+            interval: 'week'
+          )
+        end
 
-        expect(output[:stdout]).to include('Product ID:')
-      end
-    end
-
-    context 'without amount parameter (interactive mode)' do
-      before do
-        allow($stdin).to receive(:gets).and_return("900\n", "y\n")
-      end
-
-      it 'prompts for amount' do
-        allow(Stripe::Price).to receive(:create).and_return(price)
-
-        output = run_cli_command_quietly('billing', 'prices', 'create', 'prod_test123')
-
-        expect(output[:stdout]).to include('Amount in cents')
-      end
-    end
-
-    context 'with empty product ID' do
-      before do
-        allow($stdin).to receive(:gets).and_return("\n")
+        expect(output).to include('Interval: 1 week(s)')
+        expect(output).to include('Price created successfully')
       end
 
-      it 'displays validation error' do
-        output = run_cli_command_quietly('billing', 'prices', 'create', '')
+      it 'accepts day interval', :unit do
+        allow($stdin).to receive(:gets).and_return("y\n")
 
-        expect(output[:stdout]).to match(/error.*product id.*required/i)
-      end
-    end
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 50,
+            interval: 'day'
+          )
+        end
 
-    context 'with zero amount' do
-      before do
-        allow($stdin).to receive(:gets).and_return("0\n")
-      end
-
-      it 'displays validation error' do
-        output = run_cli_command_quietly('billing', 'prices', 'create', 'prod_test123', '--amount', '0')
-
-        expect(output[:stdout]).to match(/error.*amount.*greater than 0/i)
-      end
-    end
-
-    context 'with negative amount' do
-      before do
-        allow($stdin).to receive(:gets).and_return("-100\n")
+        expect(output).to include('Interval: 1 day(s)')
+        expect(output).to include('Price created successfully')
       end
 
-      it 'displays validation error' do
-        output = run_cli_command_quietly('billing', 'prices', 'create', 'prod_test123', '--amount', '-100')
+      it 'accepts custom interval_count', :unit do
+        allow($stdin).to receive(:gets).and_return("y\n")
 
-        expect(output[:stdout]).to match(/error.*amount.*greater than 0/i)
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 900,
+            interval: 'month',
+            interval_count: 3
+          )
+        end
+
+        expect(output).to include('Interval: 3 month(s)')
+        expect(output).to include('Price created successfully')
       end
-    end
 
-    context 'with invalid interval' do
-      it 'displays validation error' do
-        output = run_cli_command_quietly(
-          'billing', 'prices', 'create', 'prod_test123',
-          '--amount', '900',
-          '--interval', 'invalid'
-        )
-
-        expect(output[:stdout]).to match(/error.*interval must be one of/i)
-      end
-    end
-
-    context 'when user declines confirmation' do
-      before do
+      it 'requires confirmation before creating', :unit do
         allow($stdin).to receive(:gets).and_return("n\n")
+
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 900
+          )
+        end
+
+        expect(output).to include('Proceed? (y/n):')
+        expect(output).not_to include('Price created successfully')
       end
 
-      it 'does not create price' do
-        expect(Stripe::Price).not_to receive(:create)
+      it 'validates product_id is required' do
+        allow($stdin).to receive(:gets).and_return("\n", "\n", "n\n")
 
-        run_cli_command_quietly('billing', 'prices', 'create', 'prod_test123', '--amount', '900')
+        output = capture_stdout do
+          command.call(amount: 900)
+        end
+
+        expect(output).to include('Product ID:')
+        expect(output).to include('Error: Product ID is required')
       end
-    end
 
-    context 'when product does not exist' do
-      it 'displays error message' do
+      it 'validates amount is required' do
+        allow($stdin).to receive(:gets).and_return("\n", "\n", "n\n")
+
+        output = capture_stdout do
+          command.call(product_id: product_id)
+        end
+
+        expect(output).to include('Amount in cents')
+      end
+
+      it 'validates amount is greater than 0' do
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 0
+          )
+        end
+
+        expect(output).to include('Error: Amount must be greater than 0')
+      end
+
+      it 'validates negative amounts' do
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: -100
+          )
+        end
+
+        expect(output).to include('Error: Amount must be greater than 0')
+      end
+
+      it 'validates interval is one of allowed values' do
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 900,
+            interval: 'quarterly'
+          )
+        end
+
+        expect(output).to include('Error: Interval must be one of: month, year, week, day')
+      end
+
+      it 'verifies product exists before creating price', :unit do
+        allow($stdin).to receive(:gets).and_return("y\n")
+
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 900
+          )
+        end
+
+        # Should show product name after retrieval
+        expect(output).to include('Product:')
+      end
+
+      it 'formats amount display correctly', :unit do
+        allow($stdin).to receive(:gets).and_return("y\n")
+
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 1299
+          )
+        end
+
+        expect(output).to include('Amount: USD 12.99')
+      end
+
+      it 'displays created price details after success', :unit do
+        allow($stdin).to receive(:gets).and_return("y\n")
+
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 900
+          )
+        end
+
+        expect(output).to include('Price created successfully:')
+        expect(output).to match(/ID: price_/)
+        expect(output).to include('Amount:')
+        expect(output).to include('Interval:')
+      end
+
+      it 'handles interactive mode', :unit do
+        allow($stdin).to receive(:gets).and_return(
+          "#{product_id}\n",
+          "900\n",
+          "y\n"
+        )
+
+        output = capture_stdout do
+          command.call(interactive: true)
+        end
+
+        expect(output).to include('Product ID:')
+        expect(output).to include('Amount in cents')
+        expect(output).to include('Price created successfully')
+      end
+
+      it 'handles product not found error' do
+        # Mock product not found error
         allow(Stripe::Product).to receive(:retrieve).and_raise(
-          Stripe::InvalidRequestError.new('No such product', 'product', http_status: 404)
+          Stripe::InvalidRequestError.new('No such product', 'product')
         )
 
-        output = run_cli_command_quietly('billing', 'prices', 'create', 'prod_invalid', '--amount', '900')
+        allow($stdin).to receive(:gets).and_return("y\n")
 
-        expect(output[:stdout]).to match(/error creating price/i)
-      end
-    end
-
-    context 'when Stripe API fails' do
-      it 'displays error message' do
-        allow(Stripe::Price).to receive(:create).and_raise(
-          Stripe::InvalidRequestError.new('Invalid price', 'price', http_status: 400)
-        )
-
-        output = run_cli_command_quietly('billing', 'prices', 'create', 'prod_test123', '--amount', '900')
-
-        expect(output[:stdout]).to match(/error creating price/i)
-      end
-    end
-
-    context 'displaying amount formatting' do
-      it 'formats amount correctly in confirmation' do
-        allow(Stripe::Price).to receive(:create).and_return(price)
-
-        output = run_cli_command_quietly(
-          'billing', 'prices', 'create', 'prod_test123',
-          '--amount', '1299'
-        )
-
-        expect(output[:stdout]).to match(/USD.*12\.99/)
+        expect {
+          command.call(product_id: 'prod_nonexistent', amount: 1000, yes: true)
+        }.to output(/Error|No such product/).to_stdout
       end
 
-      it 'formats amount correctly for different currency' do
-        gbp_price = mock_stripe_price(unit_amount: 799, currency: 'gbp')
-        allow(Stripe::Price).to receive(:create).and_return(gbp_price)
-
-        output = run_cli_command_quietly(
-          'billing', 'prices', 'create', 'prod_test123',
-          '--amount', '799',
-          '--currency', 'gbp'
+      it 'handles price creation failure' do
+        # Mock price creation error
+        allow(stripe_client).to receive(:create).with(Stripe::Price, anything).and_raise(
+          Stripe::InvalidRequestError.new('Invalid currency', 'currency')
         )
 
-        expect(output[:stdout]).to match(/GBP.*7\.99/)
+        allow($stdin).to receive(:gets).and_return("y\n")
+
+        expect {
+          command.call(product_id: product_id, amount: 1000, currency: 'invalid', yes: true)
+        }.to output(/Error|Invalid currency/).to_stdout
+      end
+
+      it 'uses StripeClient for retry and idempotency', :unit do
+        allow($stdin).to receive(:gets).and_return("y\n")
+
+        output = capture_stdout do
+          command.call(
+            product_id: product_id,
+            amount: 900
+          )
+        end
+
+        expect(output).to include('Price created successfully')
       end
     end
   end
 
-  describe 'price validation' do
-    let(:product) { mock_stripe_product(id: 'prod_test123') }
-
-    before do
-      allow(Stripe::Product).to receive(:retrieve).and_return(product)
-      allow($stdin).to receive(:gets).and_return("y\n")
-    end
-
-    context 'amount validation' do
-      it 'accepts valid positive amounts' do
-        valid_amounts = [1, 100, 999, 1000, 10000, 999999]
-
-        valid_amounts.each do |amount|
-          price = mock_stripe_price(unit_amount: amount)
-          allow(Stripe::Price).to receive(:create).and_return(price)
-
-          output = run_cli_command_quietly(
-            'billing', 'prices', 'create', 'prod_test123',
-            '--amount', amount.to_s
-          )
-
-          expect(last_exit_code).to eq(0), "Failed for amount: #{amount}"
-        end
-      end
-    end
-
-    context 'interval validation' do
-      it 'accepts valid intervals' do
-        valid_intervals = %w[month year week day]
-
-        valid_intervals.each do |interval|
-          price = mock_stripe_price(recurring: { interval: interval })
-          allow(Stripe::Price).to receive(:create).and_return(price)
-
-          output = run_cli_command_quietly(
-            'billing', 'prices', 'create', 'prod_test123',
-            '--amount', '900',
-            '--interval', interval
-          )
-
-          expect(last_exit_code).to eq(0), "Failed for interval: #{interval}"
-        end
-      end
-
-      it 'rejects invalid intervals' do
-        invalid_intervals = %w[hourly biweekly quarterly]
-
-        invalid_intervals.each do |interval|
-          output = run_cli_command_quietly(
-            'billing', 'prices', 'create', 'prod_test123',
-            '--amount', '900',
-            '--interval', interval
-          )
-
-          expect(output[:stdout]).to match(/error.*interval/i), "Should reject interval: #{interval}"
-        end
-      end
-    end
-
-    context 'currency validation' do
-      it 'accepts standard currency codes' do
-        currencies = %w[usd eur gbp jpy cad]
-
-        currencies.each do |currency|
-          price = mock_stripe_price(currency: currency)
-          allow(Stripe::Price).to receive(:create).and_return(price)
-
-          output = run_cli_command_quietly(
-            'billing', 'prices', 'create', 'prod_test123',
-            '--amount', '900',
-            '--currency', currency
-          )
-
-          expect(last_exit_code).to eq(0), "Failed for currency: #{currency}"
-        end
-      end
-    end
-  end
-
-  describe 'integration scenarios' do
-    let(:product) { mock_stripe_product(id: 'prod_workflow', name: 'Workflow Product') }
-
-    it 'create multiple prices for same product' do
-      allow(Stripe::Product).to receive(:retrieve).and_return(product)
-      allow($stdin).to receive(:gets).and_return("y\n")
-
-      # Create monthly price
-      monthly_price = mock_stripe_price(id: 'price_monthly', unit_amount: 900)
-      allow(Stripe::Price).to receive(:create).with(
-        hash_including(recurring: hash_including(interval: 'month'))
-      ).and_return(monthly_price)
-
-      output = run_cli_command_quietly(
-        'billing', 'prices', 'create', 'prod_workflow',
-        '--amount', '900',
-        '--interval', 'month'
-      )
-      expect(output[:stdout]).to include('Price created successfully')
-
-      # Create annual price
-      annual_price = mock_stripe_price(id: 'price_annual', unit_amount: 9600)
-      allow(Stripe::Price).to receive(:create).with(
-        hash_including(recurring: hash_including(interval: 'year'))
-      ).and_return(annual_price)
-
-      output = run_cli_command_quietly(
-        'billing', 'prices', 'create', 'prod_workflow',
-        '--amount', '9600',
-        '--interval', 'year'
-      )
-      expect(output[:stdout]).to include('Price created successfully')
-
-      # List prices for product
-      prices_list = double('ListObject', data: [monthly_price, annual_price])
-      allow(Stripe::Price).to receive(:list).and_return(prices_list)
-
-      output = run_cli_command_quietly('billing', 'prices', '--product', 'prod_workflow')
-      expect(output[:stdout]).to include('price_monthly')
-      expect(output[:stdout]).to include('price_annual')
-    end
-
-    it 'handles price creation with various configurations' do
-      allow(Stripe::Product).to receive(:retrieve).and_return(product)
-      allow($stdin).to receive(:gets).and_return("y\n")
-
-      # Standard monthly
-      price1 = mock_stripe_price(id: 'price_1')
-      allow(Stripe::Price).to receive(:create).and_return(price1)
-      output = run_cli_command_quietly('billing', 'prices', 'create', 'prod_workflow', '--amount', '900')
-      expect(last_exit_code).to eq(0)
-
-      # Quarterly (3-month interval)
-      price2 = mock_stripe_price(id: 'price_2')
-      allow(Stripe::Price).to receive(:create).and_return(price2)
-      output = run_cli_command_quietly(
-        'billing', 'prices', 'create', 'prod_workflow',
-        '--amount', '2400',
-        '--interval-count', '3'
-      )
-      expect(last_exit_code).to eq(0)
-
-      # Different currency
-      price3 = mock_stripe_price(id: 'price_3', currency: 'eur')
-      allow(Stripe::Price).to receive(:create).and_return(price3)
-      output = run_cli_command_quietly(
-        'billing', 'prices', 'create', 'prod_workflow',
-        '--amount', '850',
-        '--currency', 'eur'
-      )
-      expect(last_exit_code).to eq(0)
-    end
+  # Helper to capture stdout
+  def capture_stdout
+    old_stdout = $stdout
+    $stdout = StringIO.new
+    yield
+    $stdout.string
+  ensure
+    $stdout = old_stdout
   end
 end

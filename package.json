@@ -64,6 +64,7 @@
     "rubocop:autocorrect": "pnpm run rubocop --autocorrect",
     "rubocop:regenerate": "pnpm run rubocop --regenerate-todo",
     "rubocop:pretty": "pnpm --silent run rubocop | jq",
+    "stripe:version": "echo 'Stripe Ruby gem:' && bundle exec ruby -e \"require 'stripe'; puts Stripe::VERSION\" && echo 'Stripe API version:' && bundle exec ruby -e \"require 'stripe'; puts Stripe::ApiVersion::CURRENT\" && echo 'Stripe npm package:' && pnpm list stripe --depth=0 2>/dev/null | grep stripe && echo 'stripe-mock:' && stripe-mock -version 2>&1 | head -1",
     "test": "pnpm test:base run --printConsoleTrace",
     "test:base": "vitest",
     "test:chrome:inspect": "pnpm test:base --inspect-brk --no-file-parallelism",

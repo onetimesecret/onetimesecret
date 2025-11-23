@@ -30,6 +30,10 @@ module Onetime
 
       def initialize
         @logger       = Logger.new($stderr)
+        @logger.level = Logger::INFO  # Show checkpoints, hide debug noise
+        @logger.formatter = proc do |severity, _datetime, _progname, msg|
+          "#{msg}\n"  # Minimal format - just the message
+        end
         @current_step = 0
         @total        = STEPS.size
         @start_time   = Onetime.now_in_μs
@@ -49,7 +53,7 @@ module Onetime
         suffix         = suffix ? "(#{suffix})" : ''
         step_start     = Onetime.now_in_μs
 
-        _logger.info("#{prefix} #{step_name} #{suffix}")
+        _logger.debug("#{prefix} #{step_name} #{suffix}")
 
         result = yield if block_given?
 

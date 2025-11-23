@@ -12,7 +12,7 @@ module Onetime
 
       desc 'Update subscription price or quantity'
 
-      argument :subscription_id, required: true, desc: 'Subscription ID (sub_xxx)'
+      argument :subscription_id, required: true, desc: 'Subscription ID (sub_xyz)'
 
       option :price, type: :string, desc: 'New price ID (price_xxx)'
       option :quantity, type: :integer, desc: 'New quantity'

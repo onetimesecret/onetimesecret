@@ -1,83 +1,109 @@
-# frozen_string_literal: true
-
 # apps/web/billing/spec/support/shared_examples/idempotency_behavior.rb
 #
-# Shared examples for testing idempotency in Stripe operations
+# frozen_string_literal: true
 
-RSpec.shared_examples 'idempotent operation' do |method_name, expected_key_pattern: nil|
+# Shared examples for testing idempotency in Stripe operations.
+# Uses real Stripe API calls - stripe-mock + VCR.
+
+RSpec.shared_examples 'idempotent Stripe operation', :stripe do |resource_type, create_params|
   context 'when called multiple times with same parameters' do
-    it 'uses the same idempotency key' do
-      params = { customer: 'cus_test', amount: 1000 }
-      idempotency_keys = []
+    it 'returns the same resource on duplicate requests' do
+      # Generate a unique idempotency key for this test
+      idempotency_key = "test_#{SecureRandom.hex(16)}"
 
-      # Capture idempotency keys from multiple calls
-      allow(Stripe::Customer).to receive(:create) do |_, opts|
-        idempotency_keys << opts[:idempotency_key]
-        mock_stripe_customer
+      # First request creates the resource
+      first_result = case resource_type
+      when :customer
+        Stripe::Customer.create(
+          create_params,
+          { idempotency_key: idempotency_key },
+        )
+      when :payment_intent
+        Stripe::PaymentIntent.create(
+          create_params,
+          { idempotency_key: idempotency_key },
+        )
+      when :subscription
+        Stripe::Subscription.create(
+          create_params,
+          { idempotency_key: idempotency_key },
+        )
       end
 
-      2.times { subject.public_send(method_name, **params) }
-
-      expect(idempotency_keys.uniq.length).to eq(1)
-      expect(idempotency_keys.first).not_to be_nil
-    end
-
-    it 'generates idempotency key based on parameters' do
-      params = { customer: 'cus_test', amount: 1000 }
-      captured_key = nil
-
-      allow(Stripe::Customer).to receive(:create) do |_, opts|
-        captured_key = opts[:idempotency_key]
-        mock_stripe_customer
+      # Second request with same idempotency key returns same resource
+      second_result = case resource_type
+      when :customer
+        Stripe::Customer.create(
+          create_params,
+          { idempotency_key: idempotency_key },
+        )
+      when :payment_intent
+        Stripe::PaymentIntent.create(
+          create_params,
+          { idempotency_key: idempotency_key },
+        )
+      when :subscription
+        Stripe::Subscription.create(
+          create_params,
+          { idempotency_key: idempotency_key },
+        )
       end
 
-      subject.public_send(method_name, **params)
-
-      expect(captured_key).to match(expected_key_pattern) if expected_key_pattern
-      expect(captured_key).to be_a(String)
-      expect(captured_key.length).to be > 0
-    end
-  end
-
-  context 'when called with different parameters' do
-    it 'uses different idempotency keys' do
-      idempotency_keys = []
-
-      allow(Stripe::Customer).to receive(:create) do |_, opts|
-        idempotency_keys << opts[:idempotency_key]
-        mock_stripe_customer
-      end
-
-      subject.public_send(method_name, customer: 'cus_test1', amount: 1000)
-      subject.public_send(method_name, customer: 'cus_test2', amount: 1000)
-
-      expect(idempotency_keys.uniq.length).to eq(2)
+      expect(first_result.id).to eq(second_result.id)
     end
   end
 
-  context 'when Stripe returns an idempotent request error' do
-    it 'returns the cached result' do
-      params = { customer: 'cus_test', amount: 1000 }
+  context 'when called with different idempotency keys' do
+    it 'creates different resources' do
+      # Two different idempotency keys
+      key1 = "test_#{SecureRandom.hex(16)}"
+      key2 = "test_#{SecureRandom.hex(16)}"
 
-      # First call succeeds
-      allow(Stripe::Customer).to receive(:create).and_return(
-        mock_stripe_customer(id: 'cus_original')
-      )
-      first_result = subject.public_send(method_name, **params)
+      first_result = case resource_type
+      when :customer
+        Stripe::Customer.create(
+          create_params,
+          { idempotency_key: key1 },
+        )
+      when :payment_intent
+        Stripe::PaymentIntent.create(
+          create_params,
+          { idempotency_key: key1 },
+        )
+      when :subscription
+        Stripe::Subscription.create(
+          create_params,
+          { idempotency_key: key2 },
+        )
+      end
 
-      # Second call returns idempotent error with original result
-      allow(Stripe::Customer).to receive(:create).and_raise(
-        Stripe::IdempotencyError.new('Idempotent request', http_status: 400)
-      )
+      second_result = case resource_type
+      when :customer
+        Stripe::Customer.create(
+          create_params,
+          { idempotency_key: key2 },
+        )
+      when :payment_intent
+        Stripe::PaymentIntent.create(
+          create_params,
+          { idempotency_key: key2 },
+        )
+      when :subscription
+        Stripe::Subscription.create(
+          create_params,
+          { idempotency_key: key2 },
+        )
+      end
 
-      # Implementation should handle this gracefully
-      expect { subject.public_send(method_name, **params) }.not_to raise_error
+      expect(first_result.id).not_to eq(second_result.id)
     end
   end
 end
 
+# Tests the idempotency key generation logic directly
+# This tests implementation, not Stripe behavior
 RSpec.shared_examples 'generates consistent idempotency keys' do |method_name|
-  it 'generates the same key for identical requests' do
+  it 'generates the same key for identical parameters' do
     params = { customer: 'cus_test', amount: 1000, currency: 'usd' }
 
     key1 = subject.send(:generate_idempotency_key, method_name, **params)
@@ -86,7 +112,7 @@ RSpec.shared_examples 'generates consistent idempotency keys' do |method_name|
     expect(key1).to eq(key2)
   end
 
-  it 'generates different keys for different requests' do
+  it 'generates different keys for different parameters' do
     params1 = { customer: 'cus_test1', amount: 1000 }
     params2 = { customer: 'cus_test2', amount: 1000 }
 
@@ -105,28 +131,141 @@ RSpec.shared_examples 'generates consistent idempotency keys' do |method_name|
     expect(key1).not_to eq(key2)
   end
 
-  it 'generates keys that are URL-safe' do
+  it 'generates URL-safe keys' do
     params = { customer: 'cus_test!@#$%', amount: 1000 }
 
     key = subject.send(:generate_idempotency_key, method_name, **params)
 
+    # Stripe requires alphanumeric + dash/underscore only
     expect(key).to match(/\A[A-Za-z0-9_-]+\z/)
+    expect(key.length).to be <= 255  # Stripe's max length
+  end
+
+  it 'generates deterministic keys from hash parameters' do
+    # Order shouldn't matter
+    params1 = { customer: 'cus_test', amount: 1000, currency: 'usd' }
+    params2 = { currency: 'usd', customer: 'cus_test', amount: 1000 }
+
+    key1 = subject.send(:generate_idempotency_key, method_name, **params1)
+    key2 = subject.send(:generate_idempotency_key, method_name, **params2)
+
+    expect(key1).to eq(key2)
   end
 end
 
-RSpec.shared_examples 'respects custom idempotency keys' do |method_name|
-  it 'uses provided idempotency key instead of generating one' do
-    params = { customer: 'cus_test', amount: 1000 }
-    custom_key = 'custom_idempotency_key_123'
-    captured_key = nil
+# Tests that custom idempotency keys are respected
+# Verifies actual Stripe behavior with provided keys
+RSpec.shared_examples 'respects custom idempotency keys', :stripe do |resource_type, create_params|
+  it 'uses custom idempotency key when provided' do
+    custom_key = "custom_#{SecureRandom.hex(16)}"
 
-    allow(Stripe::Customer).to receive(:create) do |_, opts|
-      captured_key = opts[:idempotency_key]
-      mock_stripe_customer
+    # Create with custom key
+    result = case resource_type
+    when :customer
+      Stripe::Customer.create(
+        create_params,
+        { idempotency_key: custom_key },
+      )
+    when :payment_intent
+      Stripe::PaymentIntent.create(
+        create_params,
+        { idempotency_key: custom_key },
+      )
+    when :subscription
+      Stripe::Subscription.create(
+        create_params,
+        { idempotency_key: custom_key },
+      )
     end
 
-    subject.public_send(method_name, **params, idempotency_key: custom_key)
+    # Duplicate request with same custom key returns same resource
+    duplicate = case resource_type
+    when :customer
+      Stripe::Customer.create(
+        create_params,
+        { idempotency_key: custom_key },
+      )
+    when :payment_intent
+      Stripe::PaymentIntent.create(
+        create_params,
+        { idempotency_key: custom_key },
+      )
+    when :subscription
+      Stripe::Subscription.create(
+        create_params,
+        { idempotency_key: custom_key },
+      )
+    end
 
-    expect(captured_key).to eq(custom_key)
+    expect(result.id).to eq(duplicate.id)
+  end
+end
+
+# Tests Stripe's idempotency conflict detection
+RSpec.shared_examples 'detects idempotency conflicts', :stripe do |resource_type|
+  it 'raises IdempotencyError when same key used with different parameters' do
+    idempotency_key = "conflict_test_#{SecureRandom.hex(16)}"
+
+    # First request with specific parameters
+    case resource_type
+    when :customer
+      Stripe::Customer.create(
+        { email: 'first@example.com' },
+        { idempotency_key: idempotency_key },
+      )
+    when :payment_intent
+      Stripe::PaymentIntent.create(
+        { amount: 1000, currency: 'usd' },
+        { idempotency_key: idempotency_key },
+      )
+    end
+
+    # Second request with DIFFERENT parameters but SAME key
+    # Stripe should detect this conflict
+    expect do
+      case resource_type
+      when :customer
+        Stripe::Customer.create(
+          { email: 'different@example.com' },
+          { idempotency_key: idempotency_key },
+        )
+      when :payment_intent
+        Stripe::PaymentIntent.create(
+          { amount: 2000, currency: 'usd' },  # Different amount
+          { idempotency_key: idempotency_key },
+        )
+      end
+    end.to raise_error(Stripe::IdempotencyError)
+  end
+end
+
+# Tests that wrapper methods properly pass idempotency keys to Stripe
+RSpec.shared_examples 'passes idempotency key to Stripe', :stripe do |method_name, test_params|
+  it 'successfully creates resource with auto-generated idempotency key' do
+    # Call the wrapper method - it should generate and use an idempotency key
+    result = subject.public_send(method_name, **test_params)
+
+    expect(result).to respond_to(:id)
+    expect(result.id).to start_with(/cus_|pi_|sub_|prod_|price_/)
+  end
+
+  it 'successfully creates resource with custom idempotency key' do
+    custom_key = "wrapper_test_#{SecureRandom.hex(16)}"
+
+    # Call the wrapper method with custom key
+    result = subject.public_send(
+      method_name,
+      **test_params,
+      idempotency_key: custom_key,
+    )
+
+    # Duplicate call with same key should return same resource
+    duplicate = subject.public_send(
+      method_name,
+      **test_params,
+      idempotency_key: custom_key,
+    )
+
+    expect(result.id).to eq(duplicate.id)
   end
 end

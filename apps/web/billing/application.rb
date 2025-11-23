@@ -8,6 +8,7 @@ require 'onetime/middleware'
 require 'onetime/models'
 require 'onetime/logger_methods'
 
+require_relative '../core/auth_strategies'
 require_relative 'controllers'
 require_relative 'models'
 
@@ -33,7 +34,7 @@ module Billing
     include Onetime::LoggerMethods
     include Onetime::Application::OttoHooks  # Provides configure_otto_request_hook
 
-    @uri_prefix = '/billing'.freeze
+    @uri_prefix = '/billing'
 
     # Billing app should only load when enabled in configuration
     def self.should_skip_loading?

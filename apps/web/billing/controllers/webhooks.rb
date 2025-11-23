@@ -41,7 +41,7 @@ module Billing
         rescue StandardError => ex
           billing_logger.error 'Webhook validator initialization failed', {
             exception: ex,
-            message: ex.message
+            message: ex.message,
           }
           res.status = 500
           return json_error('Webhook configuration error', status: 500)
@@ -66,7 +66,7 @@ module Billing
           # Timestamp validation failed (replay attack or clock skew)
           billing_logger.error 'Webhook timestamp validation failed', {
             exception: ex,
-            message: ex.message
+            message: ex.message,
           }
           res.status = 400
           return json_error('Invalid event timestamp', status: 400)

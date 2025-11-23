@@ -29,14 +29,15 @@ module Onetime
         require 'securerandom'
         email = "test-#{SecureRandom.hex(4)}@example.com"
 
-        puts "Creating test customer:"
+        puts 'Creating test customer:'
         puts "  Email: #{email}"
 
         customer = Stripe::Customer.create({
           email: email,
-          name: "Test Customer",
-          description: "CLI test customer - #{Time.now}"
-        })
+          name: 'Test Customer',
+          description: "CLI test customer - #{Time.now}",
+        },
+                                          )
 
         puts "\nCustomer created:"
         puts "  ID: #{customer.id}"
@@ -50,30 +51,31 @@ module Onetime
               number: '4242424242424242',
               exp_month: 12,
               exp_year: Time.now.year + 2,
-              cvc: '123'
-            }
-          })
+              cvc: '123',
+            },
+          },
+                                           )
 
           Stripe::PaymentMethod.attach(pm.id, { customer: customer.id })
 
           Stripe::Customer.update(customer.id, {
             invoice_settings: {
-              default_payment_method: pm.id
-            }
-          })
+              default_payment_method: pm.id,
+            },
+          }
+          )
 
           puts "\nTest card attached:"
           puts "  Payment method: #{pm.id}"
-          puts "  Card: Visa ****4242"
+          puts '  Card: Visa ****4242'
           puts "  Expiry: 12/#{Time.now.year + 2}"
         end
 
         puts "\nTest customer ready for use!"
         puts "\nNext steps:"
         puts "  bin/ots billing subscriptions create --customer #{customer.id}"
-
-      rescue Stripe::StripeError => e
-        puts "Error creating test customer: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error creating test customer: #{ex.message}"
       end
     end
   end

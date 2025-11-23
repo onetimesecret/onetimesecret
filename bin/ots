@@ -13,7 +13,7 @@ require 'onetime/cli'
 require 'rubygems'
 
 # Separate our content from the bootstrapping banner (only in interactive terminals)
-puts '' if $stdout.tty?
+puts if Onetime.debug? && $stdout.tty?
 
 # Handle global options
 verbose = false

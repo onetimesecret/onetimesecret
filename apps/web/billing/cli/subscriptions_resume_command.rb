@@ -12,7 +12,7 @@ module Onetime
 
       desc 'Resume a paused subscription'
 
-      argument :subscription_id, required: true, desc: 'Subscription ID (sub_xxx)'
+      argument :subscription_id, required: true, desc: 'Subscription ID (sub_xyz)'
 
       option :yes, type: :boolean, default: false,
         desc: 'Assume yes to prompts'

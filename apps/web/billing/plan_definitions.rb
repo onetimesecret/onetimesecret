@@ -1,6 +1,7 @@
 # apps/web/billing/plan_definitions.rb
 #
 # frozen_string_literal: true
+
 #
 # Billing Plan Utility Methods
 #
@@ -59,7 +60,7 @@ module Billing
 
       # Sort by tier preference: free < identity_plus < team_plus < org_plus < org_max
       # Return first (cheapest) matching item
-      tier_order = %w[free identity_plus team_plus org_plus org_max]
+      tier_order   = %w[free identity_plus team_plus org_plus org_max]
       sorted_plans = plans_with_capability.sort_by do |item|
         tier_order.index(item.tier) || 999
       end
@@ -102,7 +103,7 @@ module Billing
     end
 
     class << self
-      alias_method :catalog_name, :plan_name
+      alias catalog_name plan_name
     end
 
     # Check if plan is legacy
@@ -131,7 +132,7 @@ module Billing
     end
 
     class << self
-      alias_method :available_catalogs, :available_plans
+      alias available_catalogs available_plans
     end
   end
 end

@@ -59,6 +59,7 @@ module Onetime
             bin/ots billing sync               Full sync from Stripe to Redis
             bin/ots billing validate           Validate product metadata
             bin/ots billing events             View recent Stripe events
+            bin/ots billing connection         Show Stripe connection info (masked)
 
           Examples:
 
@@ -69,14 +70,14 @@ module Onetime
             bin/ots billing subscriptions --status active
 
             # Cancel subscription at period end
-            bin/ots billing subscriptions cancel sub_xxx
+            bin/ots billing subscriptions cancel sub_xyz
 
             # Cancel subscription immediately
-            bin/ots billing subscriptions cancel sub_xxx --immediately
+            bin/ots billing subscriptions cancel sub_xyz --immediately
 
             # Pause and resume subscriptions
-            bin/ots billing subscriptions pause sub_xxx
-            bin/ots billing subscriptions resume sub_xxx
+            bin/ots billing subscriptions pause sub_xyz
+            bin/ots billing subscriptions resume sub_xyz
 
             # Find customer by email
             bin/ots billing customers --email user@example.com
@@ -97,7 +98,7 @@ module Onetime
             bin/ots billing refunds create --charge ch_xxx --reason requested_by_customer
 
             # Trigger test webhook
-            bin/ots billing test trigger-webhook customer.subscription.updated --subscription sub_xxx
+            bin/ots billing test trigger-webhook customer.subscription.updated --subscription sub_xyz
 
             # Create a new product
             bin/ots billing products create --name "Identity Plan" --interactive
