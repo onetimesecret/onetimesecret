@@ -383,4 +383,100 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
       expect(retry_result).to be true
     end
   end
+
+  describe '#initialize_event_record' do
+    let(:timestamp) { Time.now.to_i }
+    let(:payload) do
+      {
+        id: 'evt_metadata_test',
+        object: 'event',
+        type: 'customer.subscription.updated',
+        api_version: '2023-10-16',
+        created: timestamp,
+        livemode: false,
+        pending_webhooks: 1,
+        request: { id: 'req_test123' },
+        data: {
+          object: { id: 'sub_test123', object: 'subscription' }
+        }
+      }.to_json
+    end
+    let(:stripe_event) { Stripe::Event.construct_from(JSON.parse(payload)) }
+
+    it 'initializes event with full Stripe metadata' do
+      event = validator.initialize_event_record(stripe_event, payload)
+
+      expect(event.stripe_event_id).to eq('evt_metadata_test')
+      expect(event.event_type).to eq('customer.subscription.updated')
+      expect(event.api_version).to eq('2023-10-16')
+      expect(event.livemode).to eq('false')
+      expect(event.created).to eq(timestamp.to_s)
+      expect(event.request_id).to eq('req_test123')
+      expect(event.data_object_id).to eq('sub_test123')
+      expect(event.pending_webhooks).to eq('1')
+      expect(event.event_payload).to eq(payload)
+      expect(event.first_seen_at).not_to be_nil
+      expect(event.retry_count).to eq('0')
+    end
+
+    it 'stores event payload for replay' do
+      event = validator.initialize_event_record(stripe_event, payload)
+
+      expect(event.event_payload).to eq(payload)
+      expect(event.deserialize_payload).to be_a(Hash)
+      expect(event.deserialize_payload['id']).to eq('evt_metadata_test')
+    end
+
+    it 'only initializes once for the same event' do
+      # First call
+      event1 = validator.initialize_event_record(stripe_event, payload)
+      first_seen = event1.first_seen_at
+
+      # Second call - should return existing data
+      event2 = validator.initialize_event_record(stripe_event, payload)
+      expect(event2.first_seen_at).to eq(first_seen)
+    end
+
+    it 'persists metadata to Redis' do
+      validator.initialize_event_record(stripe_event, payload)
+
+      # Load fresh from Redis
+      reloaded = Billing::ProcessedWebhookEvent.new(stripe_event_id: 'evt_metadata_test').load!
+      expect(reloaded.api_version).to eq('2023-10-16')
+      expect(reloaded.data_object_id).to eq('sub_test123')
+      expect(reloaded.event_payload).to eq(payload)
+    end
+  end
+
+  describe '#successfully_processed?' do
+    let(:event_id) { 'evt_success_check_test' }
+
+    it 'returns true when event was successfully processed' do
+      event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id)
+      event.processing_status = 'success'
+      event.dbclient.set(event.dbkey, event.to_json)
+
+      expect(validator.successfully_processed?(event_id)).to be true
+    end
+
+    it 'returns false when event is pending' do
+      event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id)
+      event.processing_status = 'pending'
+      event.dbclient.set(event.dbkey, event.to_json)
+
+      expect(validator.successfully_processed?(event_id)).to be false
+    end
+
+    it 'returns false when event failed' do
+      event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id)
+      event.processing_status = 'failed'
+      event.dbclient.set(event.dbkey, event.to_json)
+
+      expect(validator.successfully_processed?(event_id)).to be false
+    end
+
+    it 'returns false when event does not exist' do
+      expect(validator.successfully_processed?('evt_nonexistent')).to be false
+    end
+  end
 end

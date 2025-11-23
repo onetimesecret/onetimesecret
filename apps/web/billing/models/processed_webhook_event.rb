@@ -3,13 +3,58 @@
 # frozen_string_literal: true
 
 module Billing
-  # ProcessedWebhookEvent - Deduplication for Stripe webhook events
+  # ProcessedWebhookEvent - Production-grade webhook event tracking
   #
-  # Tracks processed webhook events to prevent duplicate processing.
-  # Stripe may send duplicate events during retries or outages.
+  # Provides comprehensive tracking for Stripe webhook events including:
+  # - Idempotency (prevent duplicate processing)
+  # - Processing state machine (pending → success/failed/retrying)
+  # - Error tracking and retry logic
+  # - Full event metadata storage for debugging
+  # - Event payload storage for replay capability
   #
-  # Uses atomic Redis operations to prevent race conditions between
-  # concurrent webhook deliveries.
+  # ## State Machine
+  #
+  # Events transition through these states:
+  #   pending → success                    # Happy path
+  #   pending → retrying → success         # Transient failure recovery
+  #   pending → retrying → failed          # Permanent failure (3 retries)
+  #
+  # ## Usage Example
+  #
+  #   # Initialize event with metadata (first time)
+  #   event = ProcessedWebhookEvent.new(stripe_event_id: stripe_event.id)
+  #   event.event_type = stripe_event.type
+  #   event.api_version = stripe_event.api_version
+  #   event.event_payload = raw_json_payload
+  #   event.first_seen_at = Time.now.to_i.to_s
+  #   event.dbclient.set(event.dbkey, event.to_json)
+  #
+  #   # Start processing
+  #   event.mark_processing!
+  #
+  #   # On success
+  #   event.mark_success!
+  #
+  #   # On failure
+  #   begin
+  #     process_webhook(event)
+  #     event.mark_success!
+  #   rescue => error
+  #     event.mark_failed!(error)
+  #     # Will set status to 'retrying' if retries remain, 'failed' if exhausted
+  #   end
+  #
+  #   # Check status
+  #   event.load!
+  #   event.success?       # => true if processing succeeded
+  #   event.retryable?     # => true if can retry (retry_count < 3)
+  #
+  # ## Backward Compatibility
+  #
+  # Legacy methods still work:
+  #   ProcessedWebhookEvent.mark_processed!(event_id, event_type)
+  #   ProcessedWebhookEvent.processed?(event_id)
+  #
   #
   class ProcessedWebhookEvent < Familia::Horreum
     using Familia::Refinements::TimeLiterals

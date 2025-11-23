@@ -149,6 +149,56 @@ module Billing
       result
     end
 
+    # Initialize event record with full Stripe metadata
+    #
+    # Stores all event details for debugging, replay, and compliance.
+    # Only initializes if this is the first time we've seen this event.
+    #
+    # @param stripe_event [Stripe::Event] Stripe event object
+    # @param payload [String] Raw JSON payload from webhook
+    # @return [Billing::ProcessedWebhookEvent] Event record
+    #
+    def initialize_event_record(stripe_event, payload)
+      event = Billing::ProcessedWebhookEvent.new(stripe_event_id: stripe_event.id).load!
+
+      # Only initialize if this is a new event
+      return event if event.first_seen_at
+
+      event.stripe_event_id = stripe_event.id
+      event.event_type = stripe_event.type
+      event.api_version = stripe_event.api_version
+      event.livemode = stripe_event.livemode.to_s
+      event.created = stripe_event.created.to_s
+      event.request_id = stripe_event.request&.id
+      event.data_object_id = stripe_event.data.object.id
+      event.pending_webhooks = stripe_event.pending_webhooks.to_s
+      event.event_payload = payload
+      event.first_seen_at = Time.now.to_i.to_s
+      event.retry_count = '0'
+
+      event.dbclient.set(event.dbkey, event.to_json)
+      event.dbclient.expire(event.dbkey, 30 * 24 * 60 * 60)
+
+      billing_logger.debug '[WebhookValidator] Event metadata initialized', {
+        event_id: stripe_event.id,
+        event_type: stripe_event.type,
+        api_version: stripe_event.api_version,
+        livemode: stripe_event.livemode,
+      }
+
+      event
+    end
+
+    # Check if event was successfully processed
+    #
+    # @param event_id [String] Stripe event ID
+    # @return [Boolean] True if event processed successfully
+    #
+    def successfully_processed?(event_id)
+      event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id).load!
+      event.success?
+    end
+
     # Remove processed marker (for rollback on failure)
     #
     # Used when event processing fails and we want Stripe to retry.
