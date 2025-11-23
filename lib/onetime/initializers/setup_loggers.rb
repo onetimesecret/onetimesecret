@@ -19,7 +19,7 @@ module Onetime
     # the level settings are lost.
     #
     def setup_loggers
-      warn ' entering configure_loggers' if Onetime.debug?
+      warn ' entering configure_loggers' if Onetime.debug? && OT::Utils.yes?(ENV['DEBUG_BOOT'])
       config = load_logging_config
 
       # Store config for access throughout the application
@@ -54,7 +54,7 @@ module Onetime
       # to the configured loggers in @cached_loggers.
       @cached_loggers = {}
       config['loggers']&.each do |name, level|
-        warn " initialize #{name}=#{level}" if Onetime.debug?
+        warn " initialize #{name}=#{level}" if Onetime.debug? && OT::Utils.yes?(ENV['DEBUG_BOOT'])
         logger                = SemanticLogger[name]
         logger.level          = level.to_sym
         @cached_loggers[name] = logger
