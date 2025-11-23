@@ -19,7 +19,7 @@ module Billing
       # Response:
       #   {
       #     "planid": "identity_plus_v1",
-      #     "catalog_name": "Identity Plus",
+      #     "plan_name": "Identity Plus",
       #     "capabilities": ["create_secrets", "create_team", "custom_domains"],
       #     "limits": {
       #       "teams": 1,
@@ -35,10 +35,10 @@ module Billing
 
         data = {
           planid: org.planid,
-          catalog_name: Billing::PlanDefinitions.catalog_name(org.planid),
+          plan_name: Billing::PlanHelpers.plan_name(org.planid),
           capabilities: org.capabilities,
           limits: build_limits_hash(org),
-          is_legacy: Billing::PlanDefinitions.legacy_plan?(org.planid),
+          is_legacy: Billing::PlanHelpers.legacy_plan?(org.planid),
         }
 
         json_response(data)
@@ -74,7 +74,7 @@ module Billing
       #     "current_plan": "identity_plus_v1",
       #     "upgrade_needed": true,
       #     "upgrade_to": "multi_team_v1",
-      #     "upgrade_catalog_name": "Multi-Team",
+      #     "upgrade_plan_name": "Multi-Team",
       #     "message": "This feature requires Multi-Team. Upgrade your plan to access API."
       #   }
       #
@@ -92,7 +92,7 @@ module Billing
 
         # Enhance with upgrade messaging if needed
         if result[:upgrade_needed] && result[:upgrade_to]
-          result[:upgrade_catalog_name] = Billing::PlanDefinitions.catalog_name(result[:upgrade_to])
+          result[:upgrade_plan_name] = Billing::PlanHelpers.plan_name(result[:upgrade_to])
           result[:message]              = build_upgrade_message(capability, result[:upgrade_to])
         end
 
@@ -134,7 +134,7 @@ module Billing
       # @return [Hash] Capability reference data
       def list
         data = {
-          capabilities: Billing::PlanDefinitions::CAPABILITY_CATEGORIES,
+          capabilities: Billing::PlanHelpers::CAPABILITY_CATEGORIES,
           plans: build_plans_summary,
         }
 
@@ -168,10 +168,10 @@ module Billing
       # @param upgrade_plan [String] Suggested plan ID
       # @return [String] User-friendly upgrade message
       def build_upgrade_message(capability, upgrade_plan)
-        catalog_name    = Billing::PlanDefinitions.catalog_name(upgrade_plan)
+        plan_name    = Billing::PlanHelpers.plan_name(upgrade_plan)
         capability_name = capability.to_s.tr('_', ' ')
 
-        "This feature requires #{catalog_name}. Upgrade your plan to access #{capability_name}."
+        "This feature requires #{plan_name}. Upgrade your plan to access #{capability_name}."
       end
 
       # Build summary of all available plans

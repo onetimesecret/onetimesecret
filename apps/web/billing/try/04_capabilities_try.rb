@@ -273,51 +273,51 @@ Billing::Plan.clear_cache
 #=> false
 
 ## Test: Upgrade path from free to custom_domains is identity
-Billing::PlanDefinitions.upgrade_path_for('custom_domains', 'free')
+Billing::PlanHelpers.upgrade_path_for('custom_domains', 'free')
 #=> "identity_v1"
 
 ## Test: Upgrade path from Identity to audit_logs is multi_team
-Billing::PlanDefinitions.upgrade_path_for('audit_logs', 'identity_v1')
+Billing::PlanHelpers.upgrade_path_for('audit_logs', 'identity_v1')
 #=> "multi_team_v1"
 
 ## Test: Upgrade path for nonexistent capability returns nil
-Billing::PlanDefinitions.upgrade_path_for('nonexistent_capability', 'free')
+Billing::PlanHelpers.upgrade_path_for('nonexistent_capability', 'free')
 #=> nil
 
 ## Test: Plan name for free
-Billing::PlanDefinitions.catalog_name('free')
+Billing::PlanHelpers.plan_name('free')
 #=> "Free"
 
 ## Test: Plan name for identity_v1
-Billing::PlanDefinitions.catalog_name('identity_v1')
+Billing::PlanHelpers.plan_name('identity_v1')
 #=> "Identity Plus"
 
 ## Test: Plan name for multi_team_v1
-Billing::PlanDefinitions.catalog_name('multi_team_v1')
+Billing::PlanHelpers.plan_name('multi_team_v1')
 #=> "Multi-Team"
 
 ## Test: Legacy plan detection for v0
-Billing::PlanDefinitions.legacy_plan?('identity_v0')
+Billing::PlanHelpers.legacy_plan?('identity_v0')
 #=> true
 
 ## Test: Legacy plan detection for v1
-Billing::PlanDefinitions.legacy_plan?('identity_v1')
+Billing::PlanHelpers.legacy_plan?('identity_v1')
 #=> false
 
 ## Test: Available plans includes identity_v1
-Billing::PlanDefinitions.available_catalogs.include?('identity_v1')
+Billing::PlanHelpers.available_plans.include?('identity_v1')
 #=> true
 
 ## Test: Available plans excludes legacy identity_v0
-Billing::PlanDefinitions.available_catalogs.include?('identity_v0')
+Billing::PlanHelpers.available_plans.include?('identity_v0')
 #=> false
 
 ## Test: Capability categories are defined
-Billing::PlanDefinitions::CAPABILITY_CATEGORIES[:core].class
+Billing::PlanHelpers::CAPABILITY_CATEGORIES[:core].class
 #=> Array
 
 ## Test: Core capabilities include create_secrets
-Billing::PlanDefinitions::CAPABILITY_CATEGORIES[:core].include?('create_secrets')
+Billing::PlanHelpers::CAPABILITY_CATEGORIES[:core].include?('create_secrets')
 #=> true
 
 ## Test: Fail-safe for nil planid returns empty capabilities

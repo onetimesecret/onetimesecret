@@ -4,6 +4,7 @@
 
 require 'yaml'
 require_relative 'helpers'
+require_relative '../config'
 
 module Onetime
   module CLI
@@ -19,7 +20,7 @@ module Onetime
       def call(output: nil, **)
         boot_application!
 
-        catalog_path = File.join(OT.conf.path, '..', 'billing', 'billing-plans.yaml')
+        catalog_path = Billing::Config.catalog_path
         output_path = output || File.join('docs', 'billing', 'plan-definitions.md')
 
         unless File.exist?(catalog_path)

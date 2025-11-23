@@ -4,6 +4,7 @@
 
 require 'yaml'
 require_relative 'helpers'
+require_relative '../config'
 
 module Onetime
   module CLI
@@ -22,7 +23,7 @@ module Onetime
       def call(catalog_only: false, strict: false, **)
         boot_application!
 
-        catalog_path = File.join(OT.conf.path, '..', 'billing', 'billing-plans.yaml')
+        catalog_path = Billing::Config.catalog_path
 
         unless File.exist?(catalog_path)
           puts "❌ Error: Catalog file not found: #{catalog_path}"

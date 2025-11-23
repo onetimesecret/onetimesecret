@@ -112,7 +112,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :vcr, :stripe
 
     it 'handles errors gracefully', :vcr do
       # Simulate error in capability definitions
-      allow(Billing::PlanDefinitions).to receive(:CAPABILITY_CATEGORIES).and_raise(StandardError)
+      allow(Billing::PlanHelpers).to receive(:CAPABILITY_CATEGORIES).and_raise(StandardError)
 
       get '/billing/api/capabilities'
 
@@ -134,7 +134,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :vcr, :stripe
 
       data = JSON.parse(last_response.body)
       expect(data).to have_key('planid')
-      expect(data).to have_key('catalog_name')
+      expect(data).to have_key('plan_name')
       expect(data).to have_key('capabilities')
       expect(data).to have_key('limits')
       expect(data).to have_key('is_legacy')
@@ -245,7 +245,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :vcr, :stripe
 
       if data['upgrade_needed']
         expect(data).to have_key('upgrade_to')
-        expect(data).to have_key('upgrade_catalog_name')
+        expect(data).to have_key('upgrade_plan_name')
         expect(data).to have_key('message')
         expect(data['message']).to include('upgrade')
       end
@@ -303,7 +303,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :vcr, :stripe
 
       if data['upgrade_needed'] && data['message']
         expect(data['message']).to match(/upgrade/i)
-        expect(data['message']).to include(data['upgrade_catalog_name']) if data['upgrade_catalog_name']
+        expect(data['message']).to include(data['upgrade_plan_name']) if data['upgrade_plan_name']
       end
     end
 
