@@ -30,6 +30,18 @@ module V2
           auth_type: :colonels,
         )
       end
+
+      def get_zombie_analysis
+        retrieve_records(V2::Logic::Colonel::GetZombieAnalysis, auth_type: :colonels)
+      end
+
+      def get_customer_health
+        retrieve_records(V2::Logic::Colonel::GetCustomerHealth, auth_type: :colonels)
+      end
+
+      def get_zombies_by_risk
+        retrieve_records(V2::Logic::Colonel::GetZombiesByRisk, auth_type: :colonels)
+      end
     end
   end
 end
