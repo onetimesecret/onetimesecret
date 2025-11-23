@@ -221,9 +221,10 @@ module Billing
             # Extract limits from product metadata using Metadata helper
             limits = {}
             product.metadata.each do |key, value|
-              next unless key.start_with?('limit_')
+              key_str = key.to_s  # Ensure key is a string
+              next unless key_str.start_with?('limit_')
 
-              resource         = key.sub('limit_', '').to_sym
+              resource         = key_str.sub('limit_', '').to_sym
               limits[resource] = Metadata.normalize_limit(value)
             end
 

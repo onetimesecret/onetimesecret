@@ -16,7 +16,7 @@ Each plan consists of:
 
 ## Current Catalogue Tiers
 
-### Free Tier
+### Free (free_v1) - free tier
 Default without subscription, when billing enabled. When billing disabled, capabilities are not enforced.
 
 **Capabilities:**
@@ -29,7 +29,7 @@ Default without subscription, when billing enabled. When billing disabled, capab
 - `secrets_per_day`:
 - `secret_lifetime`: 604800 (7 days in seconds)
 
-### Identity Plus (identity_plus_v1)
+### Identity Plus (identity_plus_v2) - individuals tier
 
 Individuals
 
@@ -44,7 +44,7 @@ Individuals
 - `teams`: 0
 - `secret_lifetime`: 2592000 (30 days)
 
-### Team Plus (team_plus_v1)
+### Team Plus (team_plus_v1) - single_team tier
 Multiple accounts one one team.
 
 **Capabilities:**
@@ -60,7 +60,7 @@ Multiple accounts one one team.
 - `secret_lifetime`: 30 days
 
 
-### Organization Plus (org_plus_v1)
+### Organization Plus (org_plus_v1) - multi_team tier
 Unlimited teams for organizations.
 
 **Capabilities:**
@@ -76,7 +76,7 @@ Unlimited teams for organizations.
 - `secret_lifetime`: 30 days
 
 
-### Organization Plus (org_max_v1)
+### Organization Max (org_max_v1) - dedicated tier
 Unlimited teams for organizations.
 
 **Capabilities:**
@@ -95,7 +95,7 @@ Unlimited teams for organizations.
 
 This plan is grandfathered in for all identity customers <= 2025-12-31.
 
-### Identity Plus (identity)
+### Identity Plus (identity) - single_team tier
 
 **Capabilities:**
 - `create_secrets`
