@@ -4,10 +4,10 @@
 
 require_relative '../base'
 
-module AccountAPI
+module ColonelAPI
   module Logic
     module Colonel
-      class BanIP < AccountAPI::Logic::Base
+      class BanIP < ColonelAPI::Logic::Base
         attr_reader :ip_address, :reason, :expiration, :banned_ip
 
         def process_params

@@ -4,10 +4,10 @@
 
 require_relative '../base'
 
-module AccountAPI
+module ColonelAPI
   module Logic
     module Colonel
-      class UpdateUserPlan < AccountAPI::Logic::Base
+      class UpdateUserPlan < ColonelAPI::Logic::Base
         attr_reader :user_id, :user, :new_planid, :old_planid
 
         def process_params

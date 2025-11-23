@@ -4,10 +4,10 @@
 
 require_relative '../base'
 
-module AccountAPI
+module ColonelAPI
   module Logic
     module Colonel
-      class GetRedisMetrics < AccountAPI::Logic::Base
+      class GetRedisMetrics < ColonelAPI::Logic::Base
         attr_reader :redis_full_info
 
         def raise_concerns

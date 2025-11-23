@@ -4,10 +4,10 @@
 
 require_relative '../base'
 
-module AccountAPI
+module ColonelAPI
   module Logic
     module Colonel
-      class GetUserDetails < AccountAPI::Logic::Base
+      class GetUserDetails < ColonelAPI::Logic::Base
         attr_reader :user_id, :user, :user_secrets, :user_metadata, :organizations
 
         def process_params

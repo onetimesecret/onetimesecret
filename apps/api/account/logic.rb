@@ -5,4 +5,3 @@
 require_relative 'logic/base'
 require_relative 'logic/account'
 require_relative 'logic/authentication'
-require_relative 'logic/colonel'

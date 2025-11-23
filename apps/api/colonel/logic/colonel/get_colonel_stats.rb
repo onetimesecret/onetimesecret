@@ -4,10 +4,10 @@
 
 require_relative '../base'
 
-module AccountAPI
+module ColonelAPI
   module Logic
     module Colonel
-      class GetColonelStats < AccountAPI::Logic::Base
+      class GetColonelStats < ColonelAPI::Logic::Base
         attr_reader :session_count, :customer_count, :metadata_count,
           :secret_count, :secrets_created, :secrets_shared, :emails_sent
 

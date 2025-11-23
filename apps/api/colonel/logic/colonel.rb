@@ -1,17 +1,17 @@
-# apps/api/account/logic/colonel.rb
+# apps/api/colonel/logic/colonel.rb
 #
 # frozen_string_literal: true
 
 require_relative 'base'
 
-module AccountAPI
+module ColonelAPI
   module Logic
     module Colonel
     end
   end
 end
 
-# Existing colonel endpoints
+# System info and stats
 require_relative 'colonel/get_colonel_info'
 require_relative 'colonel/get_colonel_stats'
 

@@ -4,10 +4,10 @@
 
 require_relative '../base'
 
-module AccountAPI
+module ColonelAPI
   module Logic
     module Colonel
-      class ListSecrets < AccountAPI::Logic::Base
+      class ListSecrets < ColonelAPI::Logic::Base
         attr_reader :secrets, :total_count, :page, :per_page, :total_pages
 
         def process_params

@@ -4,10 +4,10 @@
 
 require_relative '../base'
 
-module AccountAPI
+module ColonelAPI
   module Logic
     module Colonel
-      class ListBannedIPs < AccountAPI::Logic::Base
+      class ListBannedIPs < ColonelAPI::Logic::Base
         attr_reader :banned_ips, :total_count
 
         def raise_concerns

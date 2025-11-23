@@ -14,29 +14,3 @@ POST   /account/change-password                   AccountAPI::Logic::Account::Up
 POST   /account/update-locale                     AccountAPI::Logic::Account::UpdateLocale response=json auth=noauth
 POST   /account/apitoken                          AccountAPI::Logic::Account::GenerateAPIToken response=json auth=sessionauth,basicauth csrf=exempt
 GET    /account                                   AccountAPI::Logic::Account::GetAccount response=json auth=sessionauth,basicauth
-
-# Colonel/Admin endpoints
-GET    /colonel/info                              AccountAPI::Logic::Colonel::GetColonelInfo response=json auth=sessionauth role=colonel
-GET    /colonel/stats                             AccountAPI::Logic::Colonel::GetColonelStats response=json auth=sessionauth role=colonel
-
-# Secret Management
-GET    /colonel/secrets                           AccountAPI::Logic::Colonel::ListSecrets response=json auth=sessionauth role=colonel
-GET    /colonel/secrets/:secret_id                AccountAPI::Logic::Colonel::GetSecretMetadata response=json auth=sessionauth role=colonel
-DELETE /colonel/secrets/:secret_id                AccountAPI::Logic::Colonel::DeleteSecret response=json auth=sessionauth role=colonel
-
-# User Management
-GET    /colonel/users                             AccountAPI::Logic::Colonel::ListUsers response=json auth=sessionauth role=colonel
-GET    /colonel/users/:user_id                    AccountAPI::Logic::Colonel::GetUserDetails response=json auth=sessionauth role=colonel
-POST   /colonel/users/:user_id/plan               AccountAPI::Logic::Colonel::UpdateUserPlan response=json auth=sessionauth role=colonel
-
-# System Monitoring
-GET    /colonel/system/database                   AccountAPI::Logic::Colonel::GetDatabaseMetrics response=json auth=sessionauth role=colonel
-GET    /colonel/system/redis                      AccountAPI::Logic::Colonel::GetRedisMetrics response=json auth=sessionauth role=colonel
-
-# IP Banning
-GET    /colonel/banned-ips                        AccountAPI::Logic::Colonel::ListBannedIPs response=json auth=sessionauth role=colonel
-POST   /colonel/banned-ips                        AccountAPI::Logic::Colonel::BanIP response=json auth=sessionauth role=colonel
-DELETE /colonel/banned-ips/:ip                    AccountAPI::Logic::Colonel::UnbanIP response=json auth=sessionauth role=colonel
-
-# Usage Export
-GET    /colonel/usage/export                      AccountAPI::Logic::Colonel::ExportUsage response=json auth=sessionauth role=colonel
