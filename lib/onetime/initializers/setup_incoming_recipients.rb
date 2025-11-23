@@ -39,7 +39,7 @@ module Onetime
           name: name
         }
 
-        OT.info "[IncomingSecrets] Registered recipient: #{name} (#{OT::Utils.obscure_email(email)}) -> #{hash_key}"
+        OT.info "[IncomingSecrets] Registered recipient: #{name} (#{OT::Utils.obscure_email(email)})"
       end
 
       # Store in class instance variables for quick access

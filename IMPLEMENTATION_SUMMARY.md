@@ -36,7 +36,7 @@ This document summarizes the complete frontend implementation for the Incoming S
 
 **Key Getters**:
 - `isFeatureEnabled` - Check if feature is enabled
-- `titleMaxLength` - Get max title length from config
+- `memoMaxLength` - Get max memo length from config
 - `recipients` - Get available recipients
 - `defaultTtl` - Get default TTL value
 
@@ -45,7 +45,7 @@ This document summarizes the complete frontend implementation for the Incoming S
 **File**: `/src/composables/useIncomingSecret.ts`
 - Business logic orchestration
 - Form state management
-- Client-side validation (title, secret, recipient)
+- Client-side validation (memo, secret, recipient)
 - Payload creation
 - Integration with store and notifications
 - Navigation after successful submission
@@ -74,8 +74,8 @@ This document summarizes the complete frontend implementation for the Incoming S
 - Navigation options (create another, view recent)
 - Information about next steps
 
-#### Title Input Component
-**File**: `/src/components/incoming/IncomingTitleInput.vue`
+#### Memo Input Component
+**File**: `/src/components/incoming/IncomingMemoInput.vue`
 - Text input with character counter
 - Dynamic max length (from config)
 - Error state handling
@@ -127,7 +127,7 @@ This document summarizes the complete frontend implementation for the Incoming S
 
 #### Component Tests
 
-**File**: `/tests/unit/vue/components/incoming/IncomingTitleInput.spec.ts`
+**File**: `/tests/unit/vue/components/incoming/IncomingMemoInput.spec.ts`
 - 11 test cases covering:
   - Rendering
   - Value updates
@@ -218,7 +218,7 @@ Before testing the frontend implementation, ensure the backend provides:
    ```json
    {
      "enabled": true,
-     "title_max_length": 50,
+     "memo_max_length": 50,
      "recipients": [
        {
          "id": "recipient-1",
@@ -308,7 +308,7 @@ npm run playwright tests/integration/web/incoming-secret-flow.spec.ts
    - [ ] Navigate to `/incoming`
    - [ ] Verify config loads without errors
    - [ ] Check recipients appear in dropdown
-   - [ ] Verify title max length is applied
+   - [ ] Verify memo max length is applied
 
 2. **Form Validation**
    - [ ] Try submitting empty form
@@ -392,7 +392,7 @@ src/
 ├── stores/incomingStore.ts
 ├── composables/useIncomingSecret.ts
 ├── components/incoming/
-│   ├── IncomingTitleInput.vue
+│   ├── IncomingMemoInput.vue
 │   └── IncomingRecipientDropdown.vue
 ├── views/incoming/
 │   ├── IncomingSecretForm.vue
@@ -409,7 +409,7 @@ tests/
 ├── unit/vue/
 │   ├── stores/incomingStore.spec.ts
 │   └── components/incoming/
-│       ├── IncomingTitleInput.spec.ts
+│       ├── IncomingMemoInput.spec.ts
 │       └── IncomingRecipientDropdown.spec.ts
 └── integration/web/
     └── incoming-secret-flow.spec.ts
@@ -422,7 +422,7 @@ tests/
 - [x] TypeScript types and Zod schemas
 - [x] Pinia store with config loading
 - [x] Composable for business logic
-- [x] IncomingTitleInput component
+- [x] IncomingMemoInput component
 - [x] IncomingRecipientDropdown component
 - [x] IncomingSecretForm main view
 - [x] IncomingSuccessView component

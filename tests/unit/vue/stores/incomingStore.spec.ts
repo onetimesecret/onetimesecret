@@ -29,7 +29,6 @@ const mockIncomingSecretResponse = {
 describe('incomingStore', () => {
   let axiosMock: AxiosMockAdapter | null;
   let api: AxiosInstance;
-  let app: App<Element>;
   let appInstance: ComponentPublicInstance | null;
   let store: ReturnType<typeof useIncomingStore>;
 

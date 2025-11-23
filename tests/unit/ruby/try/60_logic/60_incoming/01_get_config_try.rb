@@ -102,7 +102,7 @@ recipients.all? { |r| r[:name].is_a?(String) && !r[:name].empty? }
 # Teardown: Clean up test data
 @cust.destroy!
 ENV.delete('INCOMING_ENABLED')
-ENV.delete('INCOMING_TITLE_MAX_LENGTH')
+ENV.delete('INCOMING_MEMO_MAX_LENGTH')
 ENV.delete('INCOMING_DEFAULT_TTL')
 ENV.delete('INCOMING_DEFAULT_PASSPHRASE')
 ENV.delete('INCOMING_RECIPIENT_1')

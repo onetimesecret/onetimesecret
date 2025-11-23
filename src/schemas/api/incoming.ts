@@ -30,9 +30,10 @@ export type IncomingConfig = z.infer<typeof incomingConfigSchema>;
  * Simple payload - passphrase and ttl come from backend config
  * Memo is optional - only secret and recipient are required
  * Recipient is now a hash string instead of email for security
+ * Note: Memo max length validation is enforced by backend config and UI component
  */
 export const incomingSecretPayloadSchema = z.object({
-  memo: z.string().max(50).optional().default(''),
+  memo: z.string().optional().default(''),
   secret: z.string().min(1),
   recipient: z.string().min(1), // Now expects hash instead of email
 });

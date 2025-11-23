@@ -31,12 +31,12 @@ test.describe('Incoming Secrets Flow', () => {
 
   test('Complete incoming secret creation flow', async ({ page }) => {
     // Step 1: Verify form is loaded
-    await expect(page.getByLabel('Secret Title')).toBeVisible();
+    await expect(page.getByLabel('Subject')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Select a recipient' })).toBeVisible();
 
-    // Step 2: Fill in the title
-    const secretTitle = `Test Secret ${Date.now()}`;
-    await page.getByLabel('Secret Title').fill(secretTitle);
+    // Step 2: Fill in the subject
+    const secretSubject = `Test Secret ${Date.now()}`;
+    await page.getByLabel('Subject').fill(secretSubject);
 
     // Step 3: Select a recipient
     await page.getByRole('button', { name: /Select a recipient/i }).click();
@@ -82,10 +82,10 @@ test.describe('Incoming Secrets Flow', () => {
     await expect(page.locator('h1')).toContainText('Share an Incoming Secret');
   });
 
-  test('Display character counter when approaching title limit', async ({ page }) => {
-    // Fill title with text near the limit (assuming 50 char limit)
-    const longTitle = 'A'.repeat(45); // 45 characters, near the 50 limit
-    await page.getByLabel('Secret Title').fill(longTitle);
+  test('Display character counter when approaching memo limit', async ({ page }) => {
+    // Fill subject with text near the limit (assuming 50 char limit)
+    const longSubject = 'A'.repeat(45); // 45 characters, near the 50 limit
+    await page.getByLabel('Subject').fill(longSubject);
 
     // Character counter should be visible
     await expect(page.getByText(/45.*50/)).toBeVisible();
@@ -93,7 +93,7 @@ test.describe('Incoming Secrets Flow', () => {
 
   test('Reset form clears all fields', async ({ page }) => {
     // Fill in all fields
-    await page.getByLabel('Secret Title').fill('Test Title');
+    await page.getByLabel('Subject').fill('Test Subject');
     await page.getByPlaceholder('Secret content goes here...').fill('Test Content');
     await page.getByLabel('Passphrase').fill('test-pass');
 
@@ -101,14 +101,14 @@ test.describe('Incoming Secrets Flow', () => {
     await page.getByRole('button', { name: 'Reset Form' }).click();
 
     // Verify fields are cleared
-    await expect(page.getByLabel('Secret Title')).toHaveValue('');
+    await expect(page.getByLabel('Subject')).toHaveValue('');
     await expect(page.getByPlaceholder('Secret content goes here...')).toHaveValue('');
     await expect(page.getByLabel('Passphrase')).toHaveValue('');
   });
 
   test('Navigate from success page to create another', async ({ page }) => {
     // Create a secret first
-    await page.getByLabel('Secret Title').fill('First Secret');
+    await page.getByLabel('Subject').fill('First Secret');
 
     await page.getByRole('button', { name: /Select a recipient/i }).click();
     await page.waitForSelector('[role="listbox"]');
@@ -178,7 +178,7 @@ test.describe('Incoming Secrets - Error Handling', () => {
     await page.goto('/incoming');
 
     // Fill form
-    await page.getByLabel('Secret Title').fill('Test Secret');
+    await page.getByLabel('Subject').fill('Test Subject');
 
     await page.getByRole('button', { name: /Select a recipient/i }).click();
     await page.waitForSelector('[role="listbox"]');
