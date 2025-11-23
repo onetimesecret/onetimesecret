@@ -1,5 +1,7 @@
 # lib/onetime/initializers/setup_diagnostics.rb
 
+require 'openssl'
+
 module Onetime
   module Initializers
     # d9s: diagnostics is a boolean flag. If true, it will enable Sentry
@@ -42,15 +44,23 @@ module Onetime
         Kernel.require 'sentry-ruby'
         Kernel.require 'stackprof'
 
+        # re: "certificate verify failed (unable to get certificate CRL)"
+        #
         # Fix for OpenSSL 3.6+ CRL verification failures on macOS
         # OpenSSL 3.6 enables strict CRL checking by default, but macOS's
         # OpenSSL build lacks a CRL bundle, causing valid certificates to fail.
         # This disables CRL checking while maintaining certificate verification.
+        #
         # See: https://github.com/rails/rails/issues/55886
-        Kernel.require 'openssl'
+        #
         OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_mode] = OpenSSL::SSL::VERIFY_PEER
-        OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_flags] &=
-          ~(OpenSSL::X509::V_FLAG_CRL_CHECK_ALL | OpenSSL::X509::V_FLAG_CRL_CHECK)
+        #
+        # Now disabling :verify_flags even though it worked briefly and got rid of
+        # CRL error. There's some version voodoo going on since it now results in a
+        # separate error ("undefined method 'verify_flags=' in OpenSSL::SSL::SSLContext").
+        # ¯\_(ツ)_/¯
+        # OpenSSL::SSL::SSLContext::DEFAULT_PARAMS[:verify_flags] &=
+        #   ~(OpenSSL::X509::V_FLAG_CRL_CHECK_ALL | OpenSSL::X509::V_FLAG_CRL_CHECK)
 
         Sentry.init do |config|
           config.dsn = dsn
