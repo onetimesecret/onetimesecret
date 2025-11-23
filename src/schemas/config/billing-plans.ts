@@ -3,7 +3,7 @@
 /**
  * Billing Plan Catalog Schema
  *
- * Zod v4 schema for etc/billing/plan-catalog.yaml
+ * Zod v4 schema for etc/billing/billing-plans.yaml
  *
  * Purpose:
  * - Type-safe validation of billing plan catalog structure
@@ -13,7 +13,7 @@
  *
  * Usage:
  * ```typescript
- * import { PlanCatalogSchema, type PlanCatalog } from '@/schemas/config/billing-catalog';
+ * import { PlanCatalogSchema, type PlanCatalog } from '@/schemas/config/billing-plans';
  *
  * const catalog = PlanCatalogSchema.parse(yamlData);
  * const plan = catalog.plans.identity_plus_v1;
