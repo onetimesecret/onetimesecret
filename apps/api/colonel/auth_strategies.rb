@@ -8,9 +8,9 @@ module ColonelAPI
 
     def self.register_essential(router)
       # Register the colonel-specific authentication strategies
-      router.register_auth_strategy('noauth', Onetime::Application::NoAuthStrategy.new)
-      router.register_auth_strategy('sessionauth', Onetime::Application::SessionAuthStrategy.new)
-      router.register_auth_strategy('basicauth', Onetime::Application::BasicAuthStrategy.new)
+      router.add_auth_strategy('noauth', Onetime::Application::AuthStrategies::NoAuthStrategy.new)
+      router.add_auth_strategy('sessionauth', Onetime::Application::AuthStrategies::SessionAuthStrategy.new)
+      router.add_auth_strategy('basicauth', Onetime::Application::AuthStrategies::BasicAuthStrategy.new)
     end
   end
 end
