@@ -17,13 +17,58 @@ module Billing
     prefix :billing_webhook_event
 
     feature :expiration
-    default_expiration 7.days # Keep for 7 days then auto-expire
+    default_expiration 30.days # Extended for compliance/audit
 
     identifier_field :stripe_event_id
 
+    # ========================================
+    # Core Identification
+    # ========================================
     field :stripe_event_id  # Stripe event ID (evt_xxx)
-    field :event_type       # Event type (e.g., product.updated)
-    field :processed_at     # Timestamp when processed
+    field :event_type       # Event type (e.g., customer.subscription.updated)
+    field :api_version      # Stripe API version (e.g., "2023-10-16")
+    field :livemode         # Boolean: true for live, false for test
+
+    # ========================================
+    # Processing State Machine
+    # ========================================
+    # States: pending → success | failed | retrying → success | failed
+    field :processing_status # pending|success|failed|retrying
+    field :processed_at      # Timestamp when successfully processed
+    field :first_seen_at     # Timestamp when first received
+    field :last_attempt_at   # Timestamp of most recent processing attempt
+    field :retry_count       # Number of processing attempts (default: 0)
+    field :error_message     # Error details if processing failed
+
+    # ========================================
+    # Stripe Event Metadata
+    # ========================================
+    field :created           # Stripe's event creation timestamp (Unix)
+    field :request_id        # Stripe request ID (req_xxx) - nullable
+    field :data_object_id    # ID of affected resource (cus_xxx, sub_xxx, etc.)
+    field :pending_webhooks  # Number of pending webhooks for this event
+
+    # ========================================
+    # Debugging and Replay
+    # ========================================
+    field :event_payload     # Full JSON payload from Stripe
+
+    # Load event data from Redis and populate fields
+    #
+    # Since we store the entire object as JSON, we need to deserialize it
+    # @return [self] Returns self for chaining
+    def load!
+      json_data = dbclient.get(dbkey)
+      return self unless json_data
+
+      data = JSON.parse(json_data)
+      data.each do |key, value|
+        instance_variable_set("@#{key}", value) if respond_to?("#{key}=")
+      end
+      self
+    rescue JSON::ParserError
+      self
+    end
 
     # Check if event was already processed
     #
@@ -39,19 +84,25 @@ module Billing
 
     # Mark event as processed (non-atomic, use mark_processed_if_new! instead)
     #
+    # Legacy method - still works for backward compatibility
+    # Assumes processing was successful
+    #
     # @param stripe_event_id [String] Stripe event ID
     # @param event_type [String] Event type
     # @return [ProcessedWebhookEvent] Saved event record
     def self.mark_processed!(stripe_event_id, event_type)
-      event              = new(stripe_event_id: stripe_event_id)
-      event.event_type   = event_type
-      event.processed_at = Time.now.to_i.to_s
+      event                     = new(stripe_event_id: stripe_event_id)
+      event.event_type          = event_type
+      event.processed_at        = Time.now.to_i.to_s
+      event.processing_status   = 'success' # Assume success for legacy usage
+      event.first_seen_at     ||= Time.now.to_i.to_s
+      event.last_attempt_at     = Time.now.to_i.to_s
 
       # Store as JSON string, same as atomic version
       event.dbclient.set(event.dbkey, event.to_json)
 
-      # Set expiration
-      ttl_seconds = 7 * 24 * 60 * 60  # 7 days
+      # Set expiration (now 30 days)
+      ttl_seconds = 30 * 24 * 60 * 60  # 30 days
       event.dbclient.expire(event.dbkey, ttl_seconds)
 
       event
@@ -73,13 +124,18 @@ module Billing
     # This method uses Redis SETNX operation to prevent race conditions
     # when processing concurrent webhook deliveries.
     #
+    # Legacy method - assumes successful processing
+    #
     # @param stripe_event_id [String] Stripe event ID
     # @param event_type [String] Event type
     # @return [Boolean] True if marked successfully (was new), false if already processed
     def self.mark_processed_if_new!(stripe_event_id, event_type)
-      event              = new(stripe_event_id: stripe_event_id)
-      event.event_type   = event_type
-      event.processed_at = Time.now.to_i.to_s
+      event                     = new(stripe_event_id: stripe_event_id)
+      event.event_type          = event_type
+      event.processed_at        = Time.now.to_i.to_s
+      event.processing_status   = 'success' # Assume success for legacy usage
+      event.first_seen_at     ||= Time.now.to_i.to_s
+      event.last_attempt_at     = Time.now.to_i.to_s
 
       # Try to save with NX flag (only if not exists)
       # Returns true if key was set, false if key already existed
@@ -88,11 +144,118 @@ module Billing
 
       # Set expiration if we successfully created the key
       if result
-        ttl_seconds = 7 * 24 * 60 * 60  # 7 days
+        ttl_seconds = 30 * 24 * 60 * 60  # 30 days
         event.dbclient.expire(event.dbkey, ttl_seconds)
       end
 
       result
+    end
+
+    # ========================================
+    # State Checking Methods
+    # ========================================
+
+    # Check if event processing succeeded
+    # @return [Boolean] True if status is 'success'
+    def success?
+      processing_status == 'success'
+    end
+
+    # Check if event processing failed permanently
+    # @return [Boolean] True if status is 'failed'
+    def failed?
+      processing_status == 'failed'
+    end
+
+    # Check if event is pending processing
+    # @return [Boolean] True if status is 'pending'
+    def pending?
+      processing_status == 'pending'
+    end
+
+    # Check if event is in retry state
+    # @return [Boolean] True if status is 'retrying'
+    def retrying?
+      processing_status == 'retrying'
+    end
+
+    # ========================================
+    # Retry Logic Methods
+    # ========================================
+
+    # Check if event can be retried
+    # @return [Boolean] True if retry_count < 3 and not already successful
+    def retryable?
+      retry_count.to_i < 3 && !success?
+    end
+
+    # Check if max retries have been reached
+    # @return [Boolean] True if retry_count >= 3
+    def max_retries_reached?
+      retry_count.to_i >= 3
+    end
+
+    # ========================================
+    # State Transition Methods
+    # ========================================
+
+    # Mark event as currently being processed
+    # Increments retry count and updates timestamp
+    # @return [Boolean] True if save succeeded
+    def mark_processing!
+      self.processing_status = 'pending'
+      self.last_attempt_at   = Time.now.to_i.to_s
+      self.retry_count       = (retry_count.to_i + 1).to_s
+      dbclient.set(dbkey, to_json)
+      dbclient.expire(dbkey, 30 * 24 * 60 * 60)
+      true
+    end
+
+    # Mark event as successfully processed
+    # Clears any previous errors
+    # @return [Boolean] True if save succeeded
+    def mark_success!
+      self.processing_status = 'success'
+      self.processed_at      = Time.now.to_i.to_s
+      self.error_message     = nil # Clear any previous errors
+      dbclient.set(dbkey, to_json)
+      dbclient.expire(dbkey, 30 * 24 * 60 * 60)
+      true
+    end
+
+    # Mark event as failed
+    # Sets status to 'retrying' if retries remain, 'failed' if exhausted
+    # @param error [Exception] The error that caused the failure
+    # @return [Boolean] True if save succeeded
+    def mark_failed!(error)
+      self.processing_status = max_retries_reached? ? 'failed' : 'retrying'
+      self.error_message     = error.message
+      self.last_attempt_at   = Time.now.to_i.to_s
+      dbclient.set(dbkey, to_json)
+      dbclient.expire(dbkey, 30 * 24 * 60 * 60)
+      true
+    end
+
+    # ========================================
+    # Debugging Methods
+    # ========================================
+
+    # Deserialize the stored event payload
+    # @return [Hash, nil] Parsed JSON or nil if payload missing/invalid
+    def deserialize_payload
+      return nil unless event_payload
+
+      JSON.parse(event_payload)
+    rescue JSON::ParserError
+      nil
+    end
+
+    # Reconstruct Stripe event from stored payload
+    # @return [Stripe::Event, nil] Stripe event object or nil if payload missing/invalid
+    def stripe_event
+      return nil unless event_payload
+
+      Stripe::Event.construct_from(deserialize_payload)
     end
   end
 end
