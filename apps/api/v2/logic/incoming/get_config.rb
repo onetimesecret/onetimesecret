@@ -32,7 +32,7 @@ module V2::Logic
           recipients: OT.incoming_public_recipients  # Returns hashed version
         }
 
-        OT.debug "[IncomingConfig] Returning #{@config_data[:recipients].size} recipients (hashed)"
+        OT.ld "[IncomingConfig] Returning #{@config_data[:recipients].size} recipients (hashed)"
 
         @greenlighted = true
       end

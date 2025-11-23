@@ -354,7 +354,7 @@
       "config_error_title": "Failed to load configuration",
       "feature_disabled_title": "Feature Not Available",
       "feature_disabled_description": "This feature is currently disabled. Please contact support for assistance.",
-      "memo_label": "Subject",
+      "memo_label": "Memo",
       "memo_placeholder": "Brief description (e.g., Password reset request)",
       "memo_hint": "Help us route your message to the right person",
       "recipient_label": "Send to",

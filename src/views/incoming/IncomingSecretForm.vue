@@ -90,6 +90,9 @@
       <template #description>
         {{ loadError }}
       </template>
+      <template #actionLabel>
+        <!-- No action button for error state -->
+      </template>
     </EmptyState>
 
     <!-- Feature Disabled -->
@@ -99,6 +102,9 @@
       </template>
       <template #description>
         {{ $t('web.incoming.feature_disabled_description') }}
+      </template>
+      <template #actionLabel>
+        <!-- No action button for disabled state -->
       </template>
     </EmptyState>
 

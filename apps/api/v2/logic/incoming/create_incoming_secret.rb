@@ -28,7 +28,7 @@ module V2::Logic
         # Look up actual email from hash
         @recipient_email = OT.lookup_incoming_recipient(@recipient_hash)
 
-        OT.debug "[IncomingSecret] Recipient hash: #{@recipient_hash} -> #{@recipient_email ? OT::Utils.obscure_email(@recipient_email) : 'not found'}"
+        OT.ld "[IncomingSecret] Recipient hash: #{@recipient_hash} -> #{@recipient_email ? OT::Utils.obscure_email(@recipient_email) : 'not found'}"
 
         # Set TTL from config or use default
         @ttl = incoming_config[:default_ttl] || 604800 # 7 days
@@ -55,7 +55,7 @@ module V2::Logic
         end
 
         unless recipient_email.to_s.match?(/\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i)
-          OT.error "[IncomingSecret] Lookup returned invalid email for hash: #{@recipient_hash}"
+          OT.le "[IncomingSecret] Lookup returned invalid email for hash: #{@recipient_hash}"
           raise_form_error "Invalid recipient configuration"
         end
 
@@ -161,7 +161,7 @@ module V2::Logic
 
         OT.info "[IncomingSecret] Email notification sent to #{OT::Utils.obscure_email(recipient_email)} for secret #{secret.key}"
       rescue => e
-        OT.error "[IncomingSecret] Failed to send email notification: #{e.message}"
+        OT.le "[IncomingSecret] Failed to send email notification: #{e.message}"
         # Don't raise - email failure shouldn't prevent secret creation
       end
     end
