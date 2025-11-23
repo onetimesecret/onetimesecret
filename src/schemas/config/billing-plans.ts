@@ -212,6 +212,11 @@ export type ValidationRules = z.infer<typeof ValidationRulesSchema>;
 export const PlanCatalogSchema = z.object({
   schema_version: z.literal(CATALOG_SCHEMA_VERSION).describe('Catalog schema version'),
 
+  stripe_api_version: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}\.\w+$/, 'Must match format: YYYY-MM-DD.version')
+    .describe('Stripe API version (e.g., 2025-11-20.clover)'),
+
   capabilities: z
     .record(z.string(), CapabilityDefinitionSchema)
     .describe('Capability definitions by ID'),

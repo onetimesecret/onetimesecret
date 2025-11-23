@@ -28,6 +28,7 @@
 # ```
 
 schema_version: "1.0"
+stripe_api_version: "2025-11-20.clover"
 
 # Capability Definitions
 # Categories: core, collaboration, infrastructure, branding, advanced, support
