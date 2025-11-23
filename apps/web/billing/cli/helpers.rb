@@ -138,7 +138,7 @@ module Onetime
 
       def format_plan_row(plan)
         amount = format_amount(plan.amount, plan.currency)
-        capabilities_count = (plan.capabilities || '').split(',').size
+        capabilities_count = plan.capabilities.size
 
         format('%-20s %-18s %-10s %-10s %-12s %d',
           plan.plan_id[0..19],
