@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../support/test_helpers'
+require_relative '../../../../try/support/test_helpers'
 
 # Organization Billing Feature tests
 #
@@ -41,8 +41,10 @@ require 'onetime/models/organization'
 #=> true
 
 ## Set billing fields
-@org.stripe_customer_id = 'cus_test123'
-@org.stripe_subscription_id = 'sub_test123'
+@test_stripe_customer_id = "cus_test_#{SecureRandom.hex(4)}"
+@test_stripe_subscription_id = "sub_test_#{SecureRandom.hex(4)}"
+@org.stripe_customer_id = @test_stripe_customer_id
+@org.stripe_subscription_id = @test_stripe_subscription_id
 @org.subscription_status = 'active'
 @org.subscription_period_end = (Time.now + 30 * 24 * 60 * 60).to_i.to_s
 @org.planid = 'single_team_monthly_us_east'
@@ -53,7 +55,7 @@ require 'onetime/models/organization'
 ## Reload and verify
 @reloaded = Onetime::Organization.load(@org.objid)
 @reloaded.stripe_customer_id
-#=> 'cus_test123'
+#=> @test_stripe_customer_id
 
 ## Check active subscription
 @reloaded.subscription_status = 'active'

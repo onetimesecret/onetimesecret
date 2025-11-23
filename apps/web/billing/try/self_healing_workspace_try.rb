@@ -11,7 +11,7 @@ ENV['RACK_ENV'] = 'test'
 ENV['AUTHENTICATION_MODE'] = 'basic'
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..')).freeze
 
-require_relative '../support/test_helpers'
+require_relative '../../../../try/support/test_helpers'
 
 require 'onetime'
 

@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../support/test_helpers'
+require_relative '../../../../try/support/test_helpers'
 
 # Billing Plan tests
 #
