@@ -189,16 +189,11 @@ export type ValidationRules = z.infer<typeof ValidationRulesSchema>;
  * Plan Catalog Root Schema
  * Complete billing plan catalog structure
  *
- * NOTE: Capability definitions have moved to billing.yaml
+ * NOTE: Configuration (capabilities, stripe_api_version) moved to billing.yaml
  * Plans reference capabilities by ID string.
  */
 export const PlanCatalogSchema = z.object({
   schema_version: z.literal(CATALOG_SCHEMA_VERSION).describe('Catalog schema version'),
-
-  stripe_api_version: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}\.\w+$/, 'Must match format: YYYY-MM-DD.version')
-    .describe('Stripe API version (e.g., 2025-11-20.clover)'),
 
   plans: z
     .record(

@@ -28,10 +28,9 @@
 # ```
 
 schema_version: "1.0"
-stripe_api_version: "2025-11-20.clover"
 
-# NOTE: Capability definitions have moved to etc/billing/billing.yaml
-# Plans reference capabilities by ID string. See billing.yaml for capability details.
+# NOTE: Configuration (capabilities, stripe_api_version) moved to etc/billing.yaml
+# Plans reference capabilities by ID string. See billing.yaml for full config.
 
 # Active Plan Definitions
 plans:

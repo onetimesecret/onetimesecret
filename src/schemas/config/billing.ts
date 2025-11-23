@@ -55,6 +55,10 @@ export const BillingConfigSchema = z.object({
     enabled: z.boolean().describe('Whether billing is enabled'),
     stripe_key: z.string().min(1).describe('Stripe API key'),
     webhook_signing_secret: z.string().min(1).describe('Stripe webhook signing secret'),
+    stripe_api_version: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}\.\w+$/, 'Must match format: YYYY-MM-DD.version')
+      .describe('Stripe API version (e.g., 2025-11-20.clover)'),
 
     capabilities: z.record(
       z.string(),
