@@ -73,7 +73,7 @@ module Billing
         end
 
         # Check if event was already successfully processed (idempotency)
-        if validator.successfully_processed?(event.id)
+        if Billing::StripeWebhookEvent.processed?(event.id)
           billing_logger.info 'Webhook event already processed successfully (duplicate)', {
             event_type: event.type,
             event_id: event.id,
