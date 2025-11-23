@@ -12,14 +12,30 @@
  * - Integration between backend YAML configs and frontend
  */
 
+export * from './billing';
 export * from './billing-plans';
 
+// Billing configuration types
 export type {
-  BillingInterval,
-  BillingTier,
+  BillingConfig,
   CapabilityCategory,
   CapabilityDefinition,
   CapabilityId,
+} from './billing';
+
+export {
+  BillingConfigSchema,
+  getAllCapabilityIds,
+  getCapabilitiesByCategory,
+  getCapabilityById,
+  hasCapability,
+  isBillingConfig,
+} from './billing';
+
+// Plan catalog types
+export type {
+  BillingInterval,
+  BillingTier,
   CurrencyCode,
   LegacyPlanDefinition,
   LimitValue,

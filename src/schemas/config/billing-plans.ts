@@ -29,30 +29,10 @@ import { z } from 'zod';
 export const CATALOG_SCHEMA_VERSION = '1.0';
 
 /**
- * Capability Categories
- * Groups capabilities by functional area
+ * NOTE: Capability definitions have moved to billing.ts (billing.yaml)
+ * Plans reference capabilities by ID string.
+ * Import capability schemas from './billing' if needed.
  */
-export const CapabilityCategorySchema = z.enum([
-  'core',
-  'collaboration',
-  'infrastructure',
-  'branding',
-  'advanced',
-  'support',
-]);
-
-export type CapabilityCategory = z.infer<typeof CapabilityCategorySchema>;
-
-/**
- * Capability Definition
- * Describes a single billing capability/feature
- */
-export const CapabilityDefinitionSchema = z.object({
-  category: CapabilityCategorySchema,
-  description: z.string().min(1),
-});
-
-export type CapabilityDefinition = z.infer<typeof CapabilityDefinitionSchema>;
 
 /**
  * Billing Tier
@@ -208,6 +188,9 @@ export type ValidationRules = z.infer<typeof ValidationRulesSchema>;
 /**
  * Plan Catalog Root Schema
  * Complete billing plan catalog structure
+ *
+ * NOTE: Capability definitions have moved to billing.yaml
+ * Plans reference capabilities by ID string.
  */
 export const PlanCatalogSchema = z.object({
   schema_version: z.literal(CATALOG_SCHEMA_VERSION).describe('Catalog schema version'),
@@ -216,10 +199,6 @@ export const PlanCatalogSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}\.\w+$/, 'Must match format: YYYY-MM-DD.version')
     .describe('Stripe API version (e.g., 2025-11-20.clover)'),
-
-  capabilities: z
-    .record(z.string(), CapabilityDefinitionSchema)
-    .describe('Capability definitions by ID'),
 
   plans: z
     .record(
@@ -250,9 +229,8 @@ export type PlanId = keyof PlanCatalog['plans'];
 
 /**
  * Capability ID Type
- * Type-safe capability identifiers from catalog
+ * NOTE: Moved to billing.ts - import from './billing' if needed
  */
-export type CapabilityId = keyof PlanCatalog['capabilities'];
 
 /**
  * Helper: Extract plan by ID with type safety
