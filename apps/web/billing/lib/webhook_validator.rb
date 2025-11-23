@@ -31,13 +31,13 @@ module Billing
   #   # In webhook controller
   #   event = validator.construct_event(payload, signature)
   #
-  #   if validator.already_processed?(event.id)
-  #     return 200  # Already handled
-  #   end
+  #   # Check if already successfully processed
+  #   return 200 if StripeWebhookEvent.processed?(event.id)
   #
-  #   # Process event...
+  #   # Initialize event tracking
+  #   validator.initialize_event_record(event, payload)
   #
-  #   validator.mark_processed!(event.id, event.type)
+  #   # Process event with state machine...
   #
   class WebhookValidator
     include Onetime::LoggerMethods
@@ -110,62 +110,45 @@ module Billing
       event
     end
 
-    # Check if event was already processed
+    # Initialize event record with full Stripe metadata
     #
-    # Uses atomic Redis operation to check for duplicate events.
-    # This is non-blocking and safe for concurrent webhook deliveries.
+    # Stores all event details for debugging, replay, and compliance.
+    # Only initializes if this is the first time we've seen this event.
     #
-    # @param event_id [String] Stripe event ID
-    # @return [Boolean] True if event was already processed
+    # @param stripe_event [Stripe::Event] Stripe event object
+    # @param payload [String] Raw JSON payload from webhook
+    # @return [Billing::StripeWebhookEvent] Event record
     #
-    def already_processed?(event_id)
-      Billing::ProcessedWebhookEvent.processed?(event_id)
-    end
+    def initialize_event_record(stripe_event, payload)
+      event = Billing::StripeWebhookEvent.find_by_identifier(stripe_event.id)
+      event ||= Billing::StripeWebhookEvent.new(stripe_event_id: stripe_event.id)
 
-    # Mark event as processed (atomic operation)
-    #
-    # Uses Redis SETNX for atomic check-and-set to prevent race conditions.
-    # Returns true if successfully marked (was new), false if already processed.
-    #
-    # @param event_id [String] Stripe event ID
-    # @param event_type [String] Event type (e.g., 'customer.subscription.updated')
-    # @return [Boolean] True if marked successfully, false if already existed
-    #
-    def mark_processed!(event_id, event_type)
-      result = Billing::ProcessedWebhookEvent.mark_processed_if_new!(event_id, event_type)
+      # Only initialize if this is a new event
+      return event if event.first_seen_at
 
-      if result
-        billing_logger.debug '[WebhookValidator] Event marked as processed', {
-          event_id: event_id,
-          event_type: event_type,
-        }
-      else
-        billing_logger.info '[WebhookValidator] Event already processed', {
-          event_id: event_id,
-          event_type: event_type,
-        }
-      end
+      event.stripe_event_id = stripe_event.id
+      event.event_type = stripe_event.type
+      event.api_version = stripe_event.api_version
+      event.livemode = stripe_event.livemode.to_s
+      event.created = stripe_event.created.to_s
+      event.request_id = stripe_event.request&.id
+      event.data_object_id = stripe_event.data.object.id
+      event.pending_webhooks = stripe_event.pending_webhooks.to_s
+      event.event_payload = payload
+      event.first_seen_at = Time.now.to_i.to_s
+      event.retry_count = '0'
+      event.save
 
-      result
-    end
-
-    # Remove processed marker (for rollback on failure)
-    #
-    # Used when event processing fails and we want Stripe to retry.
-    # This ensures eventual consistency.
-    #
-    # @param event_id [String] Stripe event ID
-    # @return [void]
-    #
-    def unmark_processed!(event_id)
-      event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id)
-      return unless event.exists?
-
-      event.destroy!
-      billing_logger.info '[WebhookValidator] Event unmarked for retry', {
-        event_id: event_id,
+      billing_logger.debug '[WebhookValidator] Event metadata initialized', {
+        event_id: stripe_event.id,
+        event_type: stripe_event.type,
+        api_version: stripe_event.api_version,
+        livemode: stripe_event.livemode,
       }
+
+      event
     end
+
 
     private
 

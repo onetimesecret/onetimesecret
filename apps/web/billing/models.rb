@@ -3,4 +3,4 @@
 # frozen_string_literal: true
 
 require_relative 'models/plan'
-require_relative 'models/processed_webhook_event'
+require_relative 'models/stripe_webhook_event'
