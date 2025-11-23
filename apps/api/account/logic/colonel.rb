@@ -11,5 +11,28 @@ module AccountAPI
   end
 end
 
+# Existing colonel endpoints
 require_relative 'colonel/get_colonel_info'
 require_relative 'colonel/get_colonel_stats'
+
+# Secret management
+require_relative 'colonel/list_secrets'
+require_relative 'colonel/get_secret_metadata'
+require_relative 'colonel/delete_secret'
+
+# User management
+require_relative 'colonel/list_users'
+require_relative 'colonel/get_user_details'
+require_relative 'colonel/update_user_plan'
+
+# System monitoring
+require_relative 'colonel/get_database_metrics'
+require_relative 'colonel/get_redis_metrics'
+
+# IP banning
+require_relative 'colonel/list_banned_ips'
+require_relative 'colonel/ban_ip'
+require_relative 'colonel/unban_ip'
+
+# Usage export
+require_relative 'colonel/export_usage'
