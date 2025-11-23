@@ -19,7 +19,7 @@ module Onetime
 
       option :plan_id, type: :string, desc: 'Plan ID (optional, e.g., identity_v1)'
       option :tier, type: :string, desc: 'Tier (e.g., single_team)'
-      option :region, type: :string, desc: 'Region (e.g., us-east)'
+      option :region, type: :string, desc: 'Region (e.g., EU)'
       option :tenancy, type: :string, desc: 'Tenancy (e.g., single, multi)'
       option :capabilities, type: :string, desc: 'Capabilities (comma-separated)'
       option :marketing_features, type: :string, desc: 'Marketing features (comma-separated)'

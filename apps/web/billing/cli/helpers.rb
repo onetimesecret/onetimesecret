@@ -185,7 +185,7 @@ module Onetime
         print 'Tier (e.g., single_team, multi_team): '
         metadata[Billing::Metadata::FIELD_TIER] = $stdin.gets.chomp
 
-        print 'Region (e.g., us-east, global): '
+        print 'Region (e.g., EU, global): '
         metadata[Billing::Metadata::FIELD_REGION] = $stdin.gets.chomp
 
         print 'Tenancy (e.g., single, multi): '

@@ -130,10 +130,10 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit, :stripe_moc
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
-          command.call(name: 'Test Product', region: 'us-east')
+          command.call(name: 'Test Product', region: 'EU')
         end
 
-        expect(output).to include('region: us-east')
+        expect(output).to include('region: EU')
       end
 
       it 'defaults region to global if not specified', :unit do

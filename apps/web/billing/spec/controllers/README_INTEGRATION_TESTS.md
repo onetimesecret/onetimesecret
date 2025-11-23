@@ -28,7 +28,7 @@ For each product, create monthly and yearly prices:
 Add metadata to prices:
 ```
 tier: single_team|multi_team|identity
-region: us-east
+region: EU
 billing_cycle: monthly|yearly
 ```
 
