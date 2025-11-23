@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
-require_relative '../models/processed_webhook_event'
+require_relative '../models/stripe_webhook_event'
 
 module Onetime
   module CLI
@@ -57,8 +57,9 @@ module Onetime
 
         keys = []
         cursor = '0'
+        prefix_match = format('%s:*:object', Billing::StripeWebhookEvent.prefix)
         loop do
-          cursor, batch = Familia.dbclient.scan(cursor, match: 'billing_webhook_event:*', count: 100)
+          cursor, batch = Familia.dbclient.scan(cursor, match: prefix_match, count: 100)
           keys.concat(batch)
           break if cursor == '0'
         end
@@ -67,8 +68,9 @@ module Onetime
         skipped = 0
 
         keys.each do |key|
-          event_id = key.split(':').last
-          event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id).load!
+          event_id = key.split(':')[-2]  # Extract event ID from prefix:event_id:object
+          event = Billing::StripeWebhookEvent.find_by_identifier(event_id)
+          next unless event
 
           # Skip if already has processing_status
           if event.processing_status
@@ -81,9 +83,7 @@ module Onetime
           event.first_seen_at ||= event.processed_at || Time.now.to_i.to_s
           event.last_attempt_at ||= event.processed_at || Time.now.to_i.to_s
           event.retry_count ||= '0'
-
-          event.dbclient.set(event.dbkey, event.to_json)
-          event.dbclient.expire(event.dbkey, 30 * 24 * 60 * 60)
+          event.save
 
           migrated += 1
         end
@@ -96,9 +96,9 @@ module Onetime
       end
 
       def inspect_event(event_id)
-        event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id).load!
+        event = Billing::StripeWebhookEvent.find_by_identifier(event_id)
 
-        unless event.first_seen_at
+        unless event&.first_seen_at
           puts "Event not found: #{event_id}"
           puts ''
           puts 'Note: Only events processed by this system are tracked.'
@@ -159,19 +159,22 @@ module Onetime
         # This is a basic implementation - in production you'd want a secondary index
         puts "Scanning for #{target_status} events..."
 
-        # Scan for billing_webhook_event keys
+        # Scan for stripe_webhook_event keys
         keys = []
         cursor = '0'
+        prefix_match = format('%s:*:object', Billing::StripeWebhookEvent.prefix)
         loop do
-          cursor, batch = Familia.dbclient.scan(cursor, match: 'billing_webhook_event:*', count: 100)
+          cursor, batch = Familia.dbclient.scan(cursor, match: prefix_match, count: 100)
           keys.concat(batch)
           break if cursor == '0'
         end
 
         matching_events = []
         keys.each do |key|
-          event_id = key.split(':').last
-          event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id).load!
+          event_id = key.split(':')[-2]  # Extract event ID from prefix:event_id:object
+          event = Billing::StripeWebhookEvent.find_by_identifier(event_id)
+          next unless event
+
           matching_events << event if event.processing_status == target_status
         end
 
@@ -209,8 +212,9 @@ module Onetime
 
         keys = []
         cursor = '0'
+        prefix_match = format('%s:*:object', Billing::StripeWebhookEvent.prefix)
         loop do
-          cursor, batch = Familia.dbclient.scan(cursor, match: 'billing_webhook_event:*', count: 100)
+          cursor, batch = Familia.dbclient.scan(cursor, match: prefix_match, count: 100)
           keys.concat(batch)
           break if cursor == '0'
         end
@@ -219,8 +223,9 @@ module Onetime
         events_by_type = Hash.new(0)
 
         keys.each do |key|
-          event_id = key.split(':').last
-          event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id).load!
+          event_id = key.split(':')[-2]  # Extract event ID from prefix:event_id:object
+          event = Billing::StripeWebhookEvent.find_by_identifier(event_id)
+          next unless event
 
           status = event.processing_status || 'unknown'
           stats[status] += 1

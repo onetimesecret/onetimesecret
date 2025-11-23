@@ -1,9 +1,9 @@
-# apps/web/billing/models/processed_webhook_event.rb
+# apps/web/billing/models/stripe_webhook_event.rb
 #
 # frozen_string_literal: true
 
 module Billing
-  # ProcessedWebhookEvent - Production-grade webhook event tracking
+  # StripeWebhookEvent - Production-grade webhook event tracking
   #
   # Provides comprehensive tracking for Stripe webhook events including:
   # - Idempotency (prevent duplicate processing)
@@ -22,12 +22,12 @@ module Billing
   # ## Usage Example
   #
   #   # Initialize event with metadata (first time)
-  #   event = ProcessedWebhookEvent.new(stripe_event_id: stripe_event.id)
+  #   event = StripeWebhookEvent.new(stripe_event_id: stripe_event.id)
   #   event.event_type = stripe_event.type
   #   event.api_version = stripe_event.api_version
   #   event.event_payload = raw_json_payload
   #   event.first_seen_at = Time.now.to_i.to_s
-  #   event.dbclient.set(event.dbkey, event.to_json)
+  #   event.save
   #
   #   # Start processing
   #   event.mark_processing!
@@ -45,21 +45,14 @@ module Billing
   #   end
   #
   #   # Check status
-  #   event.load!
+  #   event = StripeWebhookEvent.find_by_identifier(stripe_event.id)
   #   event.success?       # => true if processing succeeded
   #   event.retryable?     # => true if can retry (retry_count < 3)
   #
-  # ## Backward Compatibility
-  #
-  # Legacy methods still work:
-  #   ProcessedWebhookEvent.mark_processed!(event_id, event_type)
-  #   ProcessedWebhookEvent.processed?(event_id)
-  #
-  #
-  class ProcessedWebhookEvent < Familia::Horreum
+  class StripeWebhookEvent < Familia::Horreum
     using Familia::Refinements::TimeLiterals
 
-    prefix :billing_webhook_event
+    prefix :stripe_webhook_event
 
     feature :expiration
     default_expiration 30.days # Extended for compliance/audit
@@ -109,66 +102,6 @@ module Billing
       event.success?
     end
 
-    # Mark event as processed (non-atomic, use mark_processed_if_new! instead)
-    #
-    # Legacy method - still works for backward compatibility
-    # Assumes processing was successful
-    #
-    # @param stripe_event_id [String] Stripe event ID
-    # @param event_type [String] Event type
-    # @return [ProcessedWebhookEvent] Saved event record
-    def self.mark_processed!(stripe_event_id, event_type)
-      event                     = new(stripe_event_id: stripe_event_id)
-      event.event_type          = event_type
-      event.processed_at        = Time.now.to_i.to_s
-      event.processing_status   = 'success' # Assume success for legacy usage
-      event.first_seen_at     ||= Time.now.to_i.to_s
-      event.last_attempt_at     = Time.now.to_i.to_s
-
-      # Use Familia's save method to persist all fields as a hash
-      event.save
-
-      event
-    end
-
-    # Check if this event instance exists in Redis
-    def exists?
-      result = dbclient.exists?(dbkey)
-      [1, true].include?(result)
-    end
-
-    # Delete this event from Redis
-    def destroy!
-      dbclient.del(dbkey)
-    end
-
-    # Atomically mark event as processed if not already processed
-    #
-    # This method checks for existence and saves atomically using
-    # Familia's exists? check and save!
-    #
-    # Legacy method - assumes successful processing
-    #
-    # @param stripe_event_id [String] Stripe event ID
-    # @param event_type [String] Event type
-    # @return [Boolean] True if marked successfully (was new), false if already processed
-    def self.mark_processed_if_new!(stripe_event_id, event_type)
-      event                     = new(stripe_event_id: stripe_event_id)
-
-      # Check if already exists
-      return false if event.exists?
-
-      event.event_type          = event_type
-      event.processed_at        = Time.now.to_i.to_s
-      event.processing_status   = 'success' # Assume success for legacy usage
-      event.first_seen_at     ||= Time.now.to_i.to_s
-      event.last_attempt_at     = Time.now.to_i.to_s
-
-      # Use Familia's save method to persist all fields as a hash
-      event.save
-
-      true
-    end
 
     # ========================================
     # State Checking Methods
