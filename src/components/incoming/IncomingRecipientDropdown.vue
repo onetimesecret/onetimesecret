@@ -73,7 +73,7 @@
     <label
       for="incoming-recipient"
       class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-      {{ $t('web.incoming.recipient_label') }}
+      {{ $t('incoming.recipient_label') }}
       <span
         v-if="error"
         class="text-red-500">
@@ -94,7 +94,7 @@
           'dark:bg-slate-800 dark:text-white',
           selectedRecipient ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500',
         ]"
-        :aria-label="$t('web.incoming.recipient_aria_label')"
+        :aria-label="$t('incoming.recipient_aria_label')"
         :aria-expanded="isOpen"
         :aria-invalid="!!error"
         :aria-describedby="error ? 'recipient-error' : undefined"
@@ -159,7 +159,7 @@
         v-else-if="isOpen && recipients.length === 0"
         class="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white p-4 text-center shadow-lg dark:border-gray-700 dark:bg-slate-800">
         <p class="text-sm text-gray-500 dark:text-gray-400">
-          {{ $t('web.incoming.no_recipients_available') }}
+          {{ $t('incoming.no_recipients_available') }}
         </p>
       </div>
 
@@ -173,7 +173,7 @@
     </div>
 
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-      {{ $t('web.incoming.recipient_hint') }}
+      {{ $t('incoming.recipient_hint') }}
     </p>
   </div>
 </template>

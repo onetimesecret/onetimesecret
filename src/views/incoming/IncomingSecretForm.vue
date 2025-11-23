@@ -70,22 +70,22 @@
     <!-- Header -->
     <div class="mb-10">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
-        {{ $t('web.incoming.page_title') }}
+        {{ $t('incoming.page_title') }}
       </h1>
       <p class="mt-3 text-base text-gray-600 dark:text-gray-400 sm:text-lg">
-        {{ $t('web.incoming.page_description') }}
+        {{ $t('incoming.page_description') }}
       </p>
     </div>
 
     <!-- Loading State -->
     <LoadingOverlay
       :show="isLoading"
-      :message="$t('web.incoming.loading_config')" />
+      :message="$t('incoming.loading_config')" />
 
     <!-- Error State -->
     <EmptyState v-if="loadError">
       <template #title>
-        {{ $t('web.incoming.config_error_title') }}
+        {{ $t('incoming.config_error_title') }}
       </template>
       <template #description>
         {{ loadError }}
@@ -98,10 +98,10 @@
     <!-- Feature Disabled -->
     <EmptyState v-else-if="!isFeatureEnabled">
       <template #title>
-        {{ $t('web.incoming.feature_disabled_title') }}
+        {{ $t('incoming.feature_disabled_title') }}
       </template>
       <template #description>
-        {{ $t('web.incoming.feature_disabled_description') }}
+        {{ $t('incoming.feature_disabled_description') }}
       </template>
       <template #actionLabel>
         <!-- No action button for disabled state -->
@@ -128,7 +128,7 @@
             <label
               for="secret-content"
               class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              {{ $t('web.incoming.secret_content_label') }}
+              {{ $t('incoming.secret_content_label') }}
               <span
                 v-if="errors.secret"
                 class="text-red-500">
@@ -165,14 +165,14 @@
               :disabled="isSubmitting"
               class="order-2 rounded-xl border-2 border-gray-300 bg-white px-6 py-3.5 text-base font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-slate-800 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:bg-slate-700 sm:order-1"
               @click="handleReset">
-              {{ $t('web.incoming.reset_form') }}
+              {{ $t('incoming.reset_form') }}
             </button>
 
             <button
               type="submit"
               :disabled="isSubmitting"
               class="order-1 rounded-xl bg-brand-500 px-8 py-3.5 text-base font-semibold text-white shadow-md transition-all duration-200 hover:bg-brand-600 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 sm:order-2">
-              {{ isSubmitting ? $t('web.incoming.submitting') : $t('web.incoming.submit_secret') }}
+              {{ isSubmitting ? $t('incoming.submitting') : $t('incoming.submit_secret') }}
             </button>
           </div>
       </form>

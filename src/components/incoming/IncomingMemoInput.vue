@@ -54,7 +54,7 @@
     <label
       for="incoming-memo"
       class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-      {{ $t('web.incoming.memo_label') }}
+      {{ $t('incoming.memo_label') }}
       <span
         v-if="error"
         class="text-red-500">
@@ -79,7 +79,7 @@
           'dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500',
           'dark:focus:ring-blue-400',
         ]"
-        :aria-label="$t('web.incoming.memo_placeholder')"
+        :aria-label="$t('incoming.memo_placeholder')"
         :aria-invalid="!!error"
         :aria-describedby="error ? 'memo-error' : 'memo-counter'"
         @input="handleInput"
@@ -104,7 +104,7 @@
     </div>
 
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-      {{ $t('web.incoming.memo_hint') }}
+      {{ $t('incoming.memo_hint') }}
     </p>
   </div>
 </template>

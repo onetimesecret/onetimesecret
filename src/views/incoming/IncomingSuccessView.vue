@@ -40,9 +40,9 @@
       <!-- Success Icon & Header -->
       <div class="bg-gradient-to-br from-green-50 to-emerald-50 px-8 py-12 dark:from-green-950/30 dark:to-emerald-950/30 sm:px-12">
         <div class="flex flex-col items-center">
-          <!-- Animated Success Icon -->
+          <!-- Success Icon -->
           <div class="relative mb-6">
-            <div class="absolute inset-0 animate-ping rounded-full bg-green-400 opacity-25"></div>
+            <div class="absolute inset-0 rounded-full bg-green-400 opacity-25"></div>
             <div class="relative flex size-20 items-center justify-center rounded-full bg-green-500 shadow-lg dark:bg-green-600">
               <svg
                 class="size-10 text-white"
@@ -60,10 +60,10 @@
 
           <!-- Success Message -->
           <h1 class="mb-3 text-center text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
-            {{ $t('web.incoming.success_title') }}
+            {{ $t('incoming.success_title') }}
           </h1>
           <p class="max-w-md text-center text-base text-gray-600 dark:text-gray-400 sm:text-lg">
-            {{ $t('web.incoming.success_description') }}
+            {{ $t('incoming.success_description') }}
           </p>
         </div>
       </div>
@@ -75,7 +75,7 @@
           v-if="metadataKey"
           class="mb-8">
           <label class="mb-3 block text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            {{ $t('web.incoming.reference_id') }}
+            {{ $t('incoming.reference_id') }}
           </label>
           <div class="group relative overflow-hidden rounded-xl border-2 border-gray-200 bg-gray-50 transition-all duration-200 hover:border-gray-300 dark:border-gray-700 dark:bg-slate-900/50 dark:hover:border-gray-600">
             <div class="flex items-center justify-between p-4">
@@ -135,10 +135,10 @@
             </div>
             <div class="flex-1">
               <h3 class="mb-2 font-semibold text-purple-900 dark:text-purple-200">
-                {{ $t('web.incoming.success_info_title') }}
+                {{ $t('incoming.success_info_title') }}
               </h3>
               <p class="text-sm leading-relaxed text-purple-800 dark:text-purple-300">
-                {{ $t('web.incoming.success_info_description') }}
+                {{ $t('incoming.success_info_description') }}
               </p>
             </div>
           </div>
@@ -162,7 +162,7 @@
                   stroke-linejoin="round"
                   d="M12 4v16m8-8H4" />
               </svg>
-              {{ $t('web.incoming.create_another') }}
+              {{ $t('incoming.create_another') }}
             </span>
           </button>
         </div>
