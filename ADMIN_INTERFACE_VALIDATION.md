@@ -88,7 +88,7 @@ it 'TEST 1: Create secret as user, view in admin panel' do
     owner_id: regular_user.objid
   )
 
-  get "/api/account/colonel/secrets/#{secret_pair[:secret].objid}"
+  get "/api/colonel/secrets/#{secret_pair[:secret].objid}"
   expect(last_response.status).to eq(200)
 
   body = JSON.parse(last_response.body)
@@ -114,7 +114,7 @@ it 'TEST 2: Delete secret, verify gone from database' do
   secret_id = secret_pair[:secret].objid
   metadata_id = secret_pair[:metadata].objid
 
-  delete "/api/account/colonel/secrets/#{secret_id}"
+  delete "/api/colonel/secrets/#{secret_id}"
   expect(last_response.status).to eq(200)
 
   # Verify actually gone from database
@@ -142,7 +142,7 @@ it 'TEST 3: Change user plan, verify in database' do
     verified: 'true'
   )
 
-  post "/api/account/colonel/users/#{test_user.objid}/plan", planid: 'premium'
+  post "/api/colonel/users/#{test_user.objid}/plan", planid: 'premium'
   expect(last_response.status).to eq(200)
 
   reloaded = Onetime::Customer.load(test_user.objid)
@@ -171,7 +171,7 @@ it 'TEST 4: Export usage, verify counts match' do
   start_date = (Time.now - 1.day).to_i
   end_date = Time.now.to_i
 
-  get "/api/account/colonel/usage/export?start_date=#{start_date}&end_date=#{end_date}"
+  get "/api/colonel/usage/export?start_date=#{start_date}&end_date=#{end_date}"
   expect(last_response.status).to eq(200)
 
   body = JSON.parse(last_response.body)
@@ -191,7 +191,7 @@ end
 ```ruby
 # In spec/integration/admin_interface_spec.rb:512-522
 it 'TEST 5: Ban IP, verify blocking works' do
-  post '/api/account/colonel/banned-ips', {
+  post '/api/colonel/banned-ips', {
     ip_address: '1.2.3.4',
     reason: 'Test ban'
   }
@@ -260,7 +260,7 @@ status, headers, body = middleware.call(env)
 
 ## API Endpoints
 
-All routes prefixed with `/api/account/colonel/`:
+All routes prefixed with `/api/colonel/`:
 
 ```
 Secret Management:
@@ -292,16 +292,16 @@ GET    /usage/export          - Export usage data (date range)
 
 ```bash
 # 1. List secrets
-curl -X GET http://localhost:3000/api/account/colonel/secrets \
+curl -X GET http://localhost:3000/api/colonel/secrets \
   -H "Cookie: rack.session=..." \
   -H "Content-Type: application/json"
 
 # 2. View specific secret
-curl -X GET http://localhost:3000/api/account/colonel/secrets/SECRET_ID \
+curl -X GET http://localhost:3000/api/colonel/secrets/SECRET_ID \
   -H "Cookie: rack.session=..."
 
 # 3. Delete secret
-curl -X DELETE http://localhost:3000/api/account/colonel/secrets/SECRET_ID \
+curl -X DELETE http://localhost:3000/api/colonel/secrets/SECRET_ID \
   -H "Cookie: rack.session=..."
 ```
 
@@ -309,15 +309,15 @@ curl -X DELETE http://localhost:3000/api/account/colonel/secrets/SECRET_ID \
 
 ```bash
 # 1. List users
-curl -X GET http://localhost:3000/api/account/colonel/users \
+curl -X GET http://localhost:3000/api/colonel/users \
   -H "Cookie: rack.session=..."
 
 # 2. View user details
-curl -X GET http://localhost:3000/api/account/colonel/users/USER_ID \
+curl -X GET http://localhost:3000/api/colonel/users/USER_ID \
   -H "Cookie: rack.session=..."
 
 # 3. Update user plan
-curl -X POST http://localhost:3000/api/account/colonel/users/USER_ID/plan \
+curl -X POST http://localhost:3000/api/colonel/users/USER_ID/plan \
   -H "Cookie: rack.session=..." \
   -H "Content-Type: application/json" \
   -d '{"planid": "premium"}'
@@ -327,7 +327,7 @@ curl -X POST http://localhost:3000/api/account/colonel/users/USER_ID/plan \
 
 ```bash
 # 1. Ban an IP
-curl -X POST http://localhost:3000/api/account/colonel/banned-ips \
+curl -X POST http://localhost:3000/api/colonel/banned-ips \
   -H "Cookie: rack.session=..." \
   -H "Content-Type: application/json" \
   -d '{"ip_address": "1.2.3.4", "reason": "Abuse"}'
@@ -337,7 +337,7 @@ curl -X GET http://localhost:3000/api/v3/secrets \
   -H "X-Forwarded-For: 1.2.3.4"
 
 # 3. Unban the IP
-curl -X DELETE http://localhost:3000/api/account/colonel/banned-ips/1.2.3.4 \
+curl -X DELETE http://localhost:3000/api/colonel/banned-ips/1.2.3.4 \
   -H "Cookie: rack.session=..."
 ```
 

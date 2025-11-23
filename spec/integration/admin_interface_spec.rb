@@ -66,12 +66,12 @@ RSpec.describe 'Admin Interface', type: :integration do
   describe 'Authentication & Authorization' do
     context 'when not authenticated' do
       it 'returns 401 for colonel endpoints' do
-        get '/api/account/colonel/info'
+        get '/api/colonel/info'
         expect(last_response.status).to eq(401)
       end
 
       it 'returns 401 for secret management' do
-        get '/api/account/colonel/secrets'
+        get '/api/colonel/secrets'
         expect(last_response.status).to eq(401)
       end
     end
@@ -80,7 +80,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       before { create_session_for(regular_user) }
 
       it 'returns 403 forbidden for colonel endpoints' do
-        get '/api/account/colonel/info'
+        get '/api/colonel/info'
         expect(last_response.status).to eq(403)
       end
     end
@@ -89,12 +89,12 @@ RSpec.describe 'Admin Interface', type: :integration do
       before { create_session_for(colonel_user) }
 
       it 'allows access to colonel endpoints' do
-        get '/api/account/colonel/info'
+        get '/api/colonel/info'
         expect(last_response.status).to eq(200)
       end
 
       it 'allows access to secret management' do
-        get '/api/account/colonel/secrets'
+        get '/api/colonel/secrets'
         expect(last_response.status).to eq(200)
       end
     end
@@ -103,10 +103,10 @@ RSpec.describe 'Admin Interface', type: :integration do
   describe 'Secret Management' do
     before { create_session_for(colonel_user) }
 
-    describe 'GET /api/account/colonel/secrets' do
+    describe 'GET /api/colonel/secrets' do
       context 'with no secrets' do
         it 'returns empty list' do
-          get '/api/account/colonel/secrets'
+          get '/api/colonel/secrets'
           expect(last_response.status).to eq(200)
 
           body = JSON.parse(last_response.body)
@@ -121,7 +121,7 @@ RSpec.describe 'Admin Interface', type: :integration do
         end
 
         it 'lists all secrets' do
-          get '/api/account/colonel/secrets'
+          get '/api/colonel/secrets'
           expect(last_response.status).to eq(200)
 
           body = JSON.parse(last_response.body)
@@ -129,7 +129,7 @@ RSpec.describe 'Admin Interface', type: :integration do
         end
 
         it 'includes pagination info' do
-          get '/api/account/colonel/secrets'
+          get '/api/colonel/secrets'
           body = JSON.parse(last_response.body)
 
           pagination = body['details']['pagination']
@@ -138,7 +138,7 @@ RSpec.describe 'Admin Interface', type: :integration do
         end
 
         it 'supports pagination' do
-          get '/api/account/colonel/secrets?page=1&per_page=5'
+          get '/api/colonel/secrets?page=1&per_page=5'
           body = JSON.parse(last_response.body)
 
           expect(body['details']['secrets'].size).to eq(5)
@@ -148,11 +148,11 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
     end
 
-    describe 'GET /api/account/colonel/secrets/:secret_id' do
+    describe 'GET /api/colonel/secrets/:secret_id' do
       let!(:secret_pair) { create_secret_via_api }
 
       it 'returns secret metadata' do
-        get "/api/account/colonel/secrets/#{secret_pair[:secret].objid}"
+        get "/api/colonel/secrets/#{secret_pair[:secret].objid}"
         expect(last_response.status).to eq(200)
 
         body = JSON.parse(last_response.body)
@@ -161,7 +161,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'includes associated metadata' do
-        get "/api/account/colonel/secrets/#{secret_pair[:secret].objid}"
+        get "/api/colonel/secrets/#{secret_pair[:secret].objid}"
         body = JSON.parse(last_response.body)
 
         expect(body['details']['metadata']).not_to be_nil
@@ -169,7 +169,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'includes owner information' do
-        get "/api/account/colonel/secrets/#{secret_pair[:secret].objid}"
+        get "/api/colonel/secrets/#{secret_pair[:secret].objid}"
         body = JSON.parse(last_response.body)
 
         expect(body['details']['owner']).not_to be_nil
@@ -177,16 +177,16 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'returns 404 for non-existent secret' do
-        get '/api/account/colonel/secrets/nonexistent'
+        get '/api/colonel/secrets/nonexistent'
         expect(last_response.status).to eq(404)
       end
     end
 
-    describe 'DELETE /api/account/colonel/secrets/:secret_id' do
+    describe 'DELETE /api/colonel/secrets/:secret_id' do
       let!(:secret_pair) { create_secret_via_api }
 
       it 'deletes the secret' do
-        delete "/api/account/colonel/secrets/#{secret_pair[:secret].objid}"
+        delete "/api/colonel/secrets/#{secret_pair[:secret].objid}"
         expect(last_response.status).to eq(200)
 
         body = JSON.parse(last_response.body)
@@ -196,7 +196,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       it 'actually removes secret from database' do
         secret_id = secret_pair[:secret].objid
 
-        delete "/api/account/colonel/secrets/#{secret_id}"
+        delete "/api/colonel/secrets/#{secret_id}"
 
         # Verify secret is gone
         reloaded = Onetime::Secret.load(secret_id)
@@ -207,7 +207,7 @@ RSpec.describe 'Admin Interface', type: :integration do
         secret_id = secret_pair[:secret].objid
         metadata_id = secret_pair[:metadata].objid
 
-        delete "/api/account/colonel/secrets/#{secret_id}"
+        delete "/api/colonel/secrets/#{secret_id}"
 
         # Verify metadata is also gone
         reloaded_metadata = Onetime::Metadata.load(metadata_id)
@@ -215,7 +215,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'returns 404 for non-existent secret' do
-        delete '/api/account/colonel/secrets/nonexistent'
+        delete '/api/colonel/secrets/nonexistent'
         expect(last_response.status).to eq(404)
       end
     end
@@ -224,7 +224,7 @@ RSpec.describe 'Admin Interface', type: :integration do
   describe 'User Management' do
     before { create_session_for(colonel_user) }
 
-    describe 'GET /api/account/colonel/users' do
+    describe 'GET /api/colonel/users' do
       let!(:users) do
         5.times.map do |i|
           Onetime::Customer.create!(
@@ -236,7 +236,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'lists all users' do
-        get '/api/account/colonel/users'
+        get '/api/colonel/users'
         expect(last_response.status).to eq(200)
 
         body = JSON.parse(last_response.body)
@@ -245,7 +245,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'includes user stats' do
-        get '/api/account/colonel/users'
+        get '/api/colonel/users'
         body = JSON.parse(last_response.body)
 
         user = body['details']['users'].first
@@ -262,21 +262,21 @@ RSpec.describe 'Admin Interface', type: :integration do
           verified: 'true'
         )
 
-        get '/api/account/colonel/users?role=admin'
+        get '/api/colonel/users?role=admin'
         body = JSON.parse(last_response.body)
 
         expect(body['details']['users'].all? { |u| u['role'] == 'admin' }).to be true
       end
     end
 
-    describe 'GET /api/account/colonel/users/:user_id' do
+    describe 'GET /api/colonel/users/:user_id' do
       let!(:test_user) { regular_user }
       let!(:user_secrets) do
         3.times.map { create_secret_via_api(owner_id: test_user.objid) }
       end
 
       it 'returns user details' do
-        get "/api/account/colonel/users/#{test_user.objid}"
+        get "/api/colonel/users/#{test_user.objid}"
         expect(last_response.status).to eq(200)
 
         body = JSON.parse(last_response.body)
@@ -284,7 +284,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'includes user secrets' do
-        get "/api/account/colonel/users/#{test_user.objid}"
+        get "/api/colonel/users/#{test_user.objid}"
         body = JSON.parse(last_response.body)
 
         expect(body['details']['secrets']['count']).to eq(3)
@@ -292,7 +292,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'includes user stats' do
-        get "/api/account/colonel/users/#{test_user.objid}"
+        get "/api/colonel/users/#{test_user.objid}"
         body = JSON.parse(last_response.body)
 
         expect(body['details']['stats']).to have_key('secrets_created')
@@ -300,11 +300,11 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
     end
 
-    describe 'POST /api/account/colonel/users/:user_id/plan' do
+    describe 'POST /api/colonel/users/:user_id/plan' do
       let!(:test_user) { regular_user }
 
       it 'updates user plan' do
-        post "/api/account/colonel/users/#{test_user.objid}/plan", planid: 'premium'
+        post "/api/colonel/users/#{test_user.objid}/plan", planid: 'premium'
         expect(last_response.status).to eq(200)
 
         body = JSON.parse(last_response.body)
@@ -312,14 +312,14 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'actually modifies the user record' do
-        post "/api/account/colonel/users/#{test_user.objid}/plan", planid: 'enterprise'
+        post "/api/colonel/users/#{test_user.objid}/plan", planid: 'enterprise'
 
         reloaded_user = Onetime::Customer.load(test_user.objid)
         expect(reloaded_user.planid).to eq('enterprise')
       end
 
       it 'returns 404 for non-existent user' do
-        post '/api/account/colonel/users/nonexistent/plan', planid: 'premium'
+        post '/api/colonel/users/nonexistent/plan', planid: 'premium'
         expect(last_response.status).to eq(404)
       end
     end
@@ -328,9 +328,9 @@ RSpec.describe 'Admin Interface', type: :integration do
   describe 'System Monitoring' do
     before { create_session_for(colonel_user) }
 
-    describe 'GET /api/account/colonel/system/database' do
+    describe 'GET /api/colonel/system/database' do
       it 'returns database metrics' do
-        get '/api/account/colonel/system/database'
+        get '/api/colonel/system/database'
         expect(last_response.status).to eq(200)
 
         body = JSON.parse(last_response.body)
@@ -339,7 +339,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'includes model counts' do
-        get '/api/account/colonel/system/database'
+        get '/api/colonel/system/database'
         body = JSON.parse(last_response.body)
 
         expect(body['details']['model_counts']).to have_key('customers')
@@ -347,9 +347,9 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
     end
 
-    describe 'GET /api/account/colonel/system/redis' do
+    describe 'GET /api/colonel/system/redis' do
       it 'returns Redis metrics' do
-        get '/api/account/colonel/system/redis'
+        get '/api/colonel/system/redis'
         expect(last_response.status).to eq(200)
 
         body = JSON.parse(last_response.body)
@@ -361,9 +361,9 @@ RSpec.describe 'Admin Interface', type: :integration do
   describe 'IP Banning' do
     before { create_session_for(colonel_user) }
 
-    describe 'GET /api/account/colonel/banned-ips' do
+    describe 'GET /api/colonel/banned-ips' do
       it 'returns empty list when no IPs banned' do
-        get '/api/account/colonel/banned-ips'
+        get '/api/colonel/banned-ips'
         expect(last_response.status).to eq(200)
 
         body = JSON.parse(last_response.body)
@@ -371,9 +371,9 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
     end
 
-    describe 'POST /api/account/colonel/banned-ips' do
+    describe 'POST /api/colonel/banned-ips' do
       it 'bans an IP address' do
-        post '/api/account/colonel/banned-ips', {
+        post '/api/colonel/banned-ips', {
           ip_address: '192.168.1.100',
           reason: 'Spam'
         }
@@ -384,7 +384,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'actually bans the IP in database' do
-        post '/api/account/colonel/banned-ips', {
+        post '/api/colonel/banned-ips', {
           ip_address: '10.0.0.50',
           reason: 'Abuse'
         }
@@ -393,7 +393,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
 
       it 'rejects invalid IP addresses' do
-        post '/api/account/colonel/banned-ips', {
+        post '/api/colonel/banned-ips', {
           ip_address: 'not-an-ip',
           reason: 'Test'
         }
@@ -402,24 +402,24 @@ RSpec.describe 'Admin Interface', type: :integration do
       end
     end
 
-    describe 'DELETE /api/account/colonel/banned-ips/:ip' do
+    describe 'DELETE /api/colonel/banned-ips/:ip' do
       before do
         Onetime::BannedIP.ban!('192.168.1.200', reason: 'Test')
       end
 
       it 'unbans an IP address' do
-        delete '/api/account/colonel/banned-ips/192.168.1.200'
+        delete '/api/colonel/banned-ips/192.168.1.200'
         expect(last_response.status).to eq(200)
       end
 
       it 'actually removes the ban from database' do
-        delete '/api/account/colonel/banned-ips/192.168.1.200'
+        delete '/api/colonel/banned-ips/192.168.1.200'
 
         expect(Onetime::BannedIP.banned?('192.168.1.200')).to be false
       end
 
       it 'returns 404 for non-banned IP' do
-        delete '/api/account/colonel/banned-ips/1.2.3.4'
+        delete '/api/colonel/banned-ips/1.2.3.4'
         expect(last_response.status).to eq(404)
       end
     end
@@ -428,7 +428,7 @@ RSpec.describe 'Admin Interface', type: :integration do
   describe 'Usage Export' do
     before { create_session_for(colonel_user) }
 
-    describe 'GET /api/account/colonel/usage/export' do
+    describe 'GET /api/colonel/usage/export' do
       let!(:secrets) do
         # Create secrets over a date range
         Timecop.freeze(Time.now - 10.days) do
@@ -448,7 +448,7 @@ RSpec.describe 'Admin Interface', type: :integration do
         start_date = (Time.now - 30.days).to_i
         end_date = Time.now.to_i
 
-        get "/api/account/colonel/usage/export?start_date=#{start_date}&end_date=#{end_date}"
+        get "/api/colonel/usage/export?start_date=#{start_date}&end_date=#{end_date}"
         expect(last_response.status).to eq(200)
 
         body = JSON.parse(last_response.body)
@@ -459,7 +459,7 @@ RSpec.describe 'Admin Interface', type: :integration do
         start_date = (Time.now - 30.days).to_i
         end_date = Time.now.to_i
 
-        get "/api/account/colonel/usage/export?start_date=#{start_date}&end_date=#{end_date}"
+        get "/api/colonel/usage/export?start_date=#{start_date}&end_date=#{end_date}"
         body = JSON.parse(last_response.body)
 
         expect(body['details']).to have_key('secrets_by_day')
@@ -469,7 +469,7 @@ RSpec.describe 'Admin Interface', type: :integration do
         start_date = (Time.now - 30.days).to_i
         end_date = Time.now.to_i
 
-        get "/api/account/colonel/usage/export?start_date=#{start_date}&end_date=#{end_date}"
+        get "/api/colonel/usage/export?start_date=#{start_date}&end_date=#{end_date}"
         body = JSON.parse(last_response.body)
 
         # Should match the number of secrets we created
@@ -490,7 +490,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       )
 
       # View in admin panel
-      get "/api/account/colonel/secrets/#{secret_pair[:secret].objid}"
+      get "/api/colonel/secrets/#{secret_pair[:secret].objid}"
       expect(last_response.status).to eq(200)
 
       body = JSON.parse(last_response.body)
@@ -506,7 +506,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       metadata_id = secret_pair[:metadata].objid
 
       # Delete through admin panel
-      delete "/api/account/colonel/secrets/#{secret_id}"
+      delete "/api/colonel/secrets/#{secret_id}"
       expect(last_response.status).to eq(200)
 
       # Verify actually gone from database
@@ -522,7 +522,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       )
 
       # Change plan through admin panel
-      post "/api/account/colonel/users/#{test_user.objid}/plan", planid: 'premium'
+      post "/api/colonel/users/#{test_user.objid}/plan", planid: 'premium'
       expect(last_response.status).to eq(200)
 
       # Verify actually changed in database
@@ -538,7 +538,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       end_date = Time.now.to_i
 
       # Export usage
-      get "/api/account/colonel/usage/export?start_date=#{start_date}&end_date=#{end_date}"
+      get "/api/colonel/usage/export?start_date=#{start_date}&end_date=#{end_date}"
       expect(last_response.status).to eq(200)
 
       body = JSON.parse(last_response.body)
@@ -549,7 +549,7 @@ RSpec.describe 'Admin Interface', type: :integration do
 
     it 'TEST 5: Ban IP, verify blocking works' do
       # Ban an IP
-      post '/api/account/colonel/banned-ips', {
+      post '/api/colonel/banned-ips', {
         ip_address: '1.2.3.4',
         reason: 'Test ban'
       }
