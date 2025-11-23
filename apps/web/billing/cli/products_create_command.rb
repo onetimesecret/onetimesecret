@@ -34,7 +34,13 @@ module Onetime
       option :force, type: :boolean, default: false,
         desc: 'Create duplicate product without checking for existing'
 
-      def call(name: nil, interactive: false, force: false, **options)
+      option :yes, type: :boolean, default: false,
+        desc: 'Skip confirmation prompts (for automation)'
+
+      option :update, type: :boolean, default: false,
+        desc: 'Update existing product if found (requires --yes for non-interactive)'
+
+      def call(name: nil, interactive: false, force: false, yes: false, update: false, **options)
         boot_application!
 
         return unless stripe_configured?
@@ -95,9 +101,12 @@ module Onetime
           features.each { |f| puts "  - #{f}" }
         end
 
-        print "\nProceed? (y/n): "
-        response = $stdin.gets
-        return unless response&.chomp&.downcase == 'y'
+        # Skip confirmation if --yes flag is provided
+        unless yes
+          print "\nProceed? (y/n): "
+          response = $stdin.gets
+          return unless response&.chomp&.downcase == 'y'
+        end
 
         create_product_with_metadata(name, metadata, options)
       end
@@ -130,6 +139,20 @@ module Onetime
           puts "  Capabilities: #{caps.join(', ')}"
         end
 
+        # Auto-update if --update flag provided (requires --yes for non-interactive)
+        if options[:update]
+          if options[:yes]
+            puts "\n→ Auto-updating existing product (--update --yes)"
+            update_existing_product(existing.id, name, metadata, options)
+            return
+          else
+            puts "\n⚠️  Warning: --update requires --yes for non-interactive mode"
+            puts "Run with --yes --update to auto-update, or continue interactively below."
+            puts
+          end
+        end
+
+        # Interactive mode - prompt user
         puts "\nWhat would you like to do?"
         puts "  1) Update existing product with new values"
         puts "  2) Create duplicate anyway (not recommended)"
