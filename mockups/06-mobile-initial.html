@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Initial - Express Lane Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Force mobile viewport for demo */
+        body {
+            max-width: 375px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Back to Index (Above Mobile Frame) -->
+    <div class="bg-white p-4 border-b">
+        <a href="index.html" class="text-blue-600 hover:text-blue-800 text-sm">← Back to Mockups Index</a>
+    </div>
+
+    <!-- State Label -->
+    <div class="bg-blue-100 border-b-2 border-blue-300 p-3">
+        <h2 class="text-blue-900 font-semibold text-sm">State: Mobile Initial (375px)</h2>
+        <p class="text-blue-700 text-xs">Touch-optimized, stacked layout, sticky button</p>
+    </div>
+
+    <!-- Mobile Content -->
+    <div class="bg-white min-h-screen">
+        <!-- Mobile Header (Compact) -->
+        <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center z-10">
+            <div class="text-lg font-bold text-gray-900">OneTimeSecret</div>
+            <button class="text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Form Container -->
+        <div class="p-4">
+            <!-- Hero Message (Compact) -->
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-900 mb-1">Share a secret,<br>the secure way</h1>
+                <p class="text-sm text-gray-600 flex items-center justify-center gap-1">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                    </svg>
+                    Encrypted • One-time links
+                </p>
+            </div>
+
+            <!-- Secret Textarea (Mobile-optimized) -->
+            <div class="mb-4">
+                <label for="secret" class="sr-only">Secret content</label>
+                <textarea
+                    id="secret"
+                    rows="6"
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none text-base"
+                    placeholder="Paste your secret here..."
+                    autofocus
+                ></textarea>
+                <div class="text-right text-xs text-gray-500 mt-1">0 / 10,000</div>
+            </div>
+
+            <!-- Secondary Action -->
+            <div class="text-center mb-4">
+                <a href="05-generate-password.html" class="text-sm text-gray-600 hover:text-blue-600 active:text-blue-700">
+                    or generate a password →
+                </a>
+            </div>
+        </div>
+
+        <!-- Sticky Button Container (Mobile) -->
+        <div class="fixed bottom-0 left-0 right-0 max-w-[375px] mx-auto bg-white border-t border-gray-200 p-4 shadow-lg">
+            <button
+                disabled
+                class="w-full py-4 px-6 rounded-lg font-medium text-white bg-gray-300 cursor-not-allowed transition-all text-base"
+            >
+                Create Secret Link
+            </button>
+        </div>
+
+        <!-- Spacer for sticky button -->
+        <div class="h-24"></div>
+
+        <!-- Trust Indicators (Mobile - Simpler) -->
+        <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 text-xs text-gray-600 text-center space-y-1">
+            <div>🔒 AES-256 encrypted</div>
+            <div>🔥 Self-destructs • ⏱️ Auto-expires</div>
+        </div>
+    </div>
+
+    <!-- Design Notes (Outside Mobile Frame) -->
+    <div class="bg-yellow-50 border-t-2 border-yellow-200 p-4 text-sm">
+        <h3 class="font-semibold text-yellow-900 mb-2">Mobile Design Notes:</h3>
+        <ul class="space-y-1 text-yellow-800">
+            <li>✅ <strong>Viewport: 375px</strong> (iPhone SE, smallest common screen)</li>
+            <li>✅ <strong>Sticky header</strong> - Collapses on scroll to maximize textarea space</li>
+            <li>✅ <strong>Sticky button</strong> - Always visible at bottom (above keyboard)</li>
+            <li>✅ Hero message more compact (2 lines, smaller text)</li>
+            <li>✅ Textarea: 6 rows (vs 8 on desktop) but taller rows (text-base vs text-sm)</li>
+            <li>✅ Trust indicators: Simplified, centered, stacked</li>
+            <li>✅ All tap targets: Minimum 48px height (iOS/Android guidelines)</li>
+        </ul>
+    </div>
+
+    <!-- Mobile Optimization Notes -->
+    <div class="bg-green-50 border-t-2 border-green-200 p-4 text-sm">
+        <h3 class="font-semibold text-green-900 mb-2">Touch Optimizations:</h3>
+        <ul class="space-y-1 text-green-800">
+            <li>✅ Button: 48px+ height (thumb-friendly)</li>
+            <li>✅ Font size: text-base (16px) - prevents iOS zoom on focus</li>
+            <li>✅ No hover states (tap-only interactions)</li>
+            <li>✅ Sticky button stays above keyboard when input focused</li>
+            <li>✅ Minimal scrolling required (form fits mostly on one screen)</li>
+        </ul>
+    </div>
+
+    <!-- Next States -->
+    <div class="bg-blue-50 border-t-2 border-blue-200 p-4 text-sm">
+        <h3 class="font-semibold text-blue-900 mb-2">Next States:</h3>
+        <ul class="space-y-1">
+            <li>
+                <a href="07-mobile-options.html" class="text-blue-700 hover:text-blue-900 underline">
+                    → Mobile with options expanded
+                </a>
+            </li>
+            <li>
+                <a href="08-mobile-confirmation.html" class="text-blue-700 hover:text-blue-900 underline">
+                    → Mobile confirmation screen
+                </a>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>

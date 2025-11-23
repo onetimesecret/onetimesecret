@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Options Expanded - Express Lane Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl">
+        <!-- Back to Index -->
+        <div class="mb-4">
+            <a href="index.html" class="text-blue-600 hover:text-blue-800 text-sm">← Back to Mockups Index</a>
+        </div>
+
+        <!-- State Label -->
+        <div class="mb-4 bg-purple-100 border-2 border-purple-300 rounded-lg p-3">
+            <h2 class="text-purple-900 font-semibold">State: Options Expanded</h2>
+            <p class="text-purple-700 text-sm">Passphrase field + expiration chips visible (progressive disclosure)</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Header -->
+            <div class="border-b border-gray-200 p-4 flex justify-between items-center">
+                <div class="text-lg font-bold text-gray-900">OneTimeSecret</div>
+                <div class="flex gap-4 text-sm">
+                    <button class="text-gray-600 hover:text-gray-900">How it works</button>
+                    <button class="text-gray-600 hover:text-gray-900">Sign In</button>
+                </div>
+            </div>
+
+            <!-- Form Container -->
+            <div class="p-8">
+                <!-- Hero Message -->
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Share a secret, the secure way</h1>
+                    <p class="text-gray-600 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                        </svg>
+                        End-to-end encrypted • One-time links
+                    </p>
+                </div>
+
+                <!-- Secret Textarea -->
+                <div class="mb-4">
+                    <label for="secret" class="sr-only">Secret content</label>
+                    <textarea
+                        id="secret"
+                        rows="6"
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none"
+                        placeholder="Paste your secret here (text only, no files)..."
+                    >postgres://admin:xK9$mP2#vL5@prod-db.example.com:5432/production</textarea>
+                    <div class="text-right text-sm text-gray-700 mt-1 font-medium">67 / 10,000 chars</div>
+                </div>
+
+                <!-- Options Panel (EXPANDED) -->
+                <div class="mb-6 p-6 bg-gray-50 border-2 border-gray-200 rounded-lg space-y-6">
+                    <!-- Passphrase Field -->
+                    <div>
+                        <label for="passphrase" class="flex items-center gap-2 mb-2 font-medium text-gray-700">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                            </svg>
+                            Passphrase (optional)
+                        </label>
+                        <div class="relative">
+                            <input
+                                type="password"
+                                id="passphrase"
+                                class="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                                placeholder="Enter a passphrase..."
+                            />
+                            <button
+                                type="button"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                                aria-label="Toggle passphrase visibility"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="mt-2 text-sm text-gray-600 flex items-start gap-2">
+                            <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                            Share the passphrase separately (via SMS, phone call, or secure messaging)
+                        </p>
+                    </div>
+
+                    <!-- Expiration Selection -->
+                    <div>
+                        <label class="flex items-center gap-2 mb-3 font-medium text-gray-700">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Expires in
+                        </label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button
+                                type="button"
+                                class="px-4 py-3 text-sm font-medium border-2 border-gray-300 rounded-lg hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                            >
+                                1 hour
+                            </button>
+                            <button
+                                type="button"
+                                class="px-4 py-3 text-sm font-medium border-2 border-gray-300 rounded-lg hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                            >
+                                4 hours
+                            </button>
+                            <button
+                                type="button"
+                                class="px-4 py-3 text-sm font-medium border-2 border-gray-300 rounded-lg hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                            >
+                                1 day
+                            </button>
+                            <button
+                                type="button"
+                                class="px-4 py-3 text-sm font-medium bg-blue-600 text-white border-2 border-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition flex items-center justify-center gap-2"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                7 days
+                            </button>
+                            <button
+                                type="button"
+                                class="px-4 py-3 text-sm font-medium border-2 border-gray-300 rounded-lg hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                            >
+                                14 days
+                            </button>
+                            <button
+                                type="button"
+                                class="px-4 py-3 text-sm font-medium border-2 border-gray-300 rounded-lg hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                            >
+                                30 days
+                            </button>
+                        </div>
+                        <button class="mt-2 text-sm text-blue-600 hover:text-blue-800">Custom time...</button>
+                    </div>
+                </div>
+
+                <!-- Primary Action Button -->
+                <button
+                    class="w-full py-4 px-6 rounded-lg font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md hover:shadow-lg transition-all"
+                >
+                    Create Secret Link
+                </button>
+
+                <!-- Options Link (changes to "Hide options") -->
+                <div class="text-center mt-4">
+                    <a href="02-with-content.html" class="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                        </svg>
+                        Hide options
+                    </a>
+                </div>
+
+                <!-- Secondary Action -->
+                <div class="text-center mt-4">
+                    <a href="05-generate-password.html" class="text-sm text-gray-600 hover:text-blue-600 transition">
+                        or generate a random password →
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer Trust Indicators -->
+            <div class="bg-gray-50 px-8 py-4 border-t border-gray-200 text-xs text-gray-600 flex justify-between">
+                <span>🔒 AES-256 encryption</span>
+                <span>🔥 Self-destructs after viewing</span>
+                <span>⏱️ Automatic expiration</span>
+            </div>
+        </div>
+
+        <!-- Design Notes -->
+        <div class="mt-6 bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 text-sm">
+            <h3 class="font-semibold text-yellow-900 mb-2">Design Notes:</h3>
+            <ul class="space-y-1 text-yellow-800">
+                <li>✅ Options panel <strong>expanded</strong> with smooth animation (400ms slideDown)</li>
+                <li>✅ Passphrase field with visibility toggle (eye icon)</li>
+                <li>✅ Inline help text: "Share passphrase separately"</li>
+                <li>✅ Expiration as <strong>button chips</strong> (not dropdown) - touch-friendly</li>
+                <li>✅ Current selection (7 days) highlighted with blue background + checkmark</li>
+                <li>✅ Options link changes to "Hide options" (collapse functionality)</li>
+                <li>✅ Textarea reduced to 6 rows (from 8) to fit options panel on screen</li>
+            </ul>
+        </div>
+
+        <!-- Accessibility Notes -->
+        <div class="mt-4 bg-green-50 border-2 border-green-200 rounded-lg p-4 text-sm">
+            <h3 class="font-semibold text-green-900 mb-2">Accessibility Features:</h3>
+            <ul class="space-y-1 text-green-800">
+                <li>✅ Focus auto-moves to passphrase field when panel expands</li>
+                <li>✅ Button chips keyboard navigable (arrow keys within group)</li>
+                <li>✅ Visibility toggle has aria-label "Toggle passphrase visibility"</li>
+                <li>✅ 48px minimum touch targets on all buttons (mobile-friendly)</li>
+                <li>✅ Clear visual focus indicators (blue ring) on all interactive elements</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

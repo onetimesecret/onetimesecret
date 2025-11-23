@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express Lane Mockups - OneTimeSecret Redesign</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">Express Lane Mockups</h1>
+            <p class="text-gray-600">OneTimeSecret Homepage Redesign - Static Prototypes</p>
+            <p class="text-sm text-gray-500 mt-2">Branch: <code class="bg-gray-200 px-2 py-1 rounded">claude/redesign-create-secret-01NMwwtwStNJzgN7t7vReXY7</code></p>
+        </header>
+
+        <div class="grid gap-6 md:grid-cols-2">
+            <!-- Desktop Mockups -->
+            <section class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Desktop Views</h2>
+                <ul class="space-y-3">
+                    <li>
+                        <a href="01-initial-state.html" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition">
+                            <h3 class="font-semibold text-gray-900">1. Initial State</h3>
+                            <p class="text-sm text-gray-600">Empty textarea, auto-focused, button disabled</p>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="02-with-content.html" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition">
+                            <h3 class="font-semibold text-gray-900">2. With Content</h3>
+                            <p class="text-sm text-gray-600">Secret entered, button enabled, options link visible</p>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="03-options-expanded.html" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition">
+                            <h3 class="font-semibold text-gray-900">3. Options Expanded</h3>
+                            <p class="text-sm text-gray-600">Passphrase field + expiration chips visible</p>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="04-confirmation.html" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition">
+                            <h3 class="font-semibold text-gray-900">4. Confirmation Screen</h3>
+                            <p class="text-sm text-gray-600">Success state with link display and copy button</p>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="05-generate-password.html" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition">
+                            <h3 class="font-semibold text-gray-900">5. Generate Password</h3>
+                            <p class="text-sm text-gray-600">Alternate flow for password generation</p>
+                        </a>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Mobile Mockups -->
+            <section class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Mobile Views</h2>
+                <ul class="space-y-3">
+                    <li>
+                        <a href="06-mobile-initial.html" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition">
+                            <h3 class="font-semibold text-gray-900">6. Mobile - Initial</h3>
+                            <p class="text-sm text-gray-600">Mobile-optimized initial state</p>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="07-mobile-options.html" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition">
+                            <h3 class="font-semibold text-gray-900">7. Mobile - Options</h3>
+                            <p class="text-sm text-gray-600">Mobile options panel with button chips</p>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="08-mobile-confirmation.html" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition">
+                            <h3 class="font-semibold text-gray-900">8. Mobile - Confirmation</h3>
+                            <p class="text-sm text-gray-600">Mobile confirmation screen</p>
+                        </a>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Interactive Demo -->
+            <section class="bg-white rounded-lg shadow-md p-6 md:col-span-2">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Interactive Demo</h2>
+                <ul class="space-y-3">
+                    <li>
+                        <a href="interactive-demo.html" class="block p-4 border-2 border-blue-500 bg-blue-50 rounded-lg hover:bg-blue-100 transition">
+                            <h3 class="font-semibold text-blue-900">🎯 Full Interactive Demo</h3>
+                            <p class="text-sm text-blue-700">Complete flow with state transitions (no API calls)</p>
+                        </a>
+                    </li>
+                </ul>
+            </section>
+        </div>
+
+        <!-- Design Notes -->
+        <section class="mt-12 bg-blue-50 rounded-lg p-6 border-2 border-blue-200">
+            <h2 class="text-xl font-bold text-blue-900 mb-3">📝 Design Notes</h2>
+            <ul class="space-y-2 text-sm text-blue-800">
+                <li>✅ <strong>Tailwind CSS:</strong> Using CDN for mockups (real implementation uses Tailwind 4.1)</li>
+                <li>✅ <strong>Static mockups:</strong> No backend, demonstrates UI states only</li>
+                <li>✅ <strong>Interactive demo:</strong> Full flow with JavaScript state management</li>
+                <li>✅ <strong>Accessibility:</strong> Semantic HTML, ARIA labels, keyboard navigation</li>
+                <li>✅ <strong>Responsive:</strong> Mobile views optimized for touch (375px width)</li>
+            </ul>
+        </section>
+
+        <!-- Metrics -->
+        <section class="mt-8 bg-green-50 rounded-lg p-6 border-2 border-green-200">
+            <h2 class="text-xl font-bold text-green-900 mb-3">📊 Expected Improvements</h2>
+            <div class="grid md:grid-cols-3 gap-4 text-sm">
+                <div>
+                    <div class="font-semibold text-green-900">Time to First Link</div>
+                    <div class="text-green-700">~30s → &lt;10s <span class="font-bold">(70% ↓)</span></div>
+                </div>
+                <div>
+                    <div class="font-semibold text-green-900">Required Clicks</div>
+                    <div class="text-green-700">6+ → 2-3 <span class="font-bold">(50% ↓)</span></div>
+                </div>
+                <div>
+                    <div class="font-semibold text-green-900">First-Time Success</div>
+                    <div class="text-green-700">~70% → &gt;90% <span class="font-bold">(20% ↑)</span></div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="mt-12 text-center text-gray-500 text-sm">
+            <p>OneTimeSecret Express Lane Redesign</p>
+            <p class="mt-1">Phase 1-5 Complete • Ready for Implementation</p>
+        </footer>
+    </div>
+</body>
+</html>

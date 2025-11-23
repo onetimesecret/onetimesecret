@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Demo - Express Lane</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Smooth transitions */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-down {
+            animation: slideDown 0.4s ease-out;
+        }
+        @keyframes slideDown {
+            from { max-height: 0; opacity: 0; }
+            to { max-height: 500px; opacity: 1; }
+        }
+
+        .bounce-in {
+            animation: bounceIn 0.6s ease-out;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Back to Index -->
+    <div class="bg-white p-4 border-b">
+        <a href="index.html" class="text-blue-600 hover:text-blue-800 text-sm">← Back to Mockups Index</a>
+    </div>
+
+    <!-- Demo Controls -->
+    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-4">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-2xl font-bold mb-2">🎯 Interactive Demo - Full Flow</h1>
+            <p class="text-blue-100 text-sm mb-3">Experience the Express Lane design end-to-end (no real API calls)</p>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="resetDemo()" class="px-4 py-2 bg-white text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition">
+                    🔄 Reset Demo
+                </button>
+                <button onclick="fillSampleSecret()" class="px-4 py-2 bg-blue-400 text-white rounded-lg text-sm font-medium hover:bg-blue-300 transition">
+                    📝 Fill Sample Secret
+                </button>
+                <button onclick="toggleState('optionsExpanded')" class="px-4 py-2 bg-indigo-400 text-white rounded-lg text-sm font-medium hover:bg-indigo-300 transition">
+                    ⚙️ Toggle Options
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex items-center justify-center p-4 mt-4">
+        <div class="w-full max-w-2xl">
+            <!-- Form View -->
+            <div id="form-view" class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <!-- Header -->
+                <div class="border-b border-gray-200 p-4 flex justify-between items-center">
+                    <div class="text-lg font-bold text-gray-900">OneTimeSecret</div>
+                    <div class="flex gap-4 text-sm">
+                        <button class="text-gray-600 hover:text-gray-900">How it works</button>
+                        <button class="text-gray-600 hover:text-gray-900">Sign In</button>
+                    </div>
+                </div>
+
+                <!-- Form Container -->
+                <div class="p-8">
+                    <!-- Hero Message -->
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Share a secret, the secure way</h1>
+                        <p class="text-gray-600 flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                            </svg>
+                            End-to-end encrypted • One-time links
+                        </p>
+                    </div>
+
+                    <!-- Secret Textarea -->
+                    <div class="mb-4">
+                        <label for="secret" class="sr-only">Secret content</label>
+                        <textarea
+                            id="secret"
+                            rows="8"
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none"
+                            placeholder="Paste your secret here (text only, no files)..."
+                            oninput="handleSecretInput()"
+                        ></textarea>
+                        <div id="char-counter" class="text-right text-sm text-gray-500 mt-1">0 / 10,000 chars</div>
+                    </div>
+
+                    <!-- Options Panel -->
+                    <div id="options-panel" class="hidden mb-6 p-6 bg-gray-50 border-2 border-gray-200 rounded-lg space-y-6 slide-down">
+                        <!-- Passphrase Field -->
+                        <div>
+                            <label for="passphrase" class="flex items-center gap-2 mb-2 font-medium text-gray-700">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                                </svg>
+                                Passphrase (optional)
+                            </label>
+                            <div class="relative">
+                                <input
+                                    type="password"
+                                    id="passphrase"
+                                    class="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                                    placeholder="Enter a passphrase..."
+                                />
+                                <button
+                                    type="button"
+                                    onclick="togglePassphraseVisibility()"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                                >
+                                    <svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <p class="mt-2 text-sm text-gray-600 flex items-start gap-2">
+                                <svg class="w-4 h-4 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                </svg>
+                                Share the passphrase separately (via SMS, phone call, or secure messaging)
+                            </p>
+                        </div>
+
+                        <!-- Expiration Selection -->
+                        <div>
+                            <label class="flex items-center gap-2 mb-3 font-medium text-gray-700">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Expires in
+                            </label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button type="button" onclick="selectTTL('1h', this)" class="ttl-btn px-4 py-3 text-sm font-medium border-2 border-gray-300 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition">1 hour</button>
+                                <button type="button" onclick="selectTTL('4h', this)" class="ttl-btn px-4 py-3 text-sm font-medium border-2 border-gray-300 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition">4 hours</button>
+                                <button type="button" onclick="selectTTL('1d', this)" class="ttl-btn px-4 py-3 text-sm font-medium border-2 border-gray-300 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition">1 day</button>
+                                <button type="button" onclick="selectTTL('7d', this)" class="ttl-btn px-4 py-3 text-sm font-medium bg-blue-600 text-white border-2 border-blue-600 rounded-lg transition selected">✓ 7 days</button>
+                                <button type="button" onclick="selectTTL('14d', this)" class="ttl-btn px-4 py-3 text-sm font-medium border-2 border-gray-300 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition">14 days</button>
+                                <button type="button" onclick="selectTTL('30d', this)" class="ttl-btn px-4 py-3 text-sm font-medium border-2 border-gray-300 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition">30 days</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Primary Action Button -->
+                    <button
+                        id="create-btn"
+                        onclick="createSecret()"
+                        disabled
+                        class="w-full py-4 px-6 rounded-lg font-medium text-white bg-gray-300 cursor-not-allowed transition-all"
+                    >
+                        Create Secret Link
+                    </button>
+
+                    <!-- Options Link -->
+                    <div id="options-link" class="hidden text-center mt-4">
+                        <button onclick="toggleState('optionsExpanded')" class="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition">
+                            <svg id="options-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span id="options-text">Add passphrase or change expiration (7 days)</span>
+                        </button>
+                    </div>
+
+                    <!-- Secondary Action -->
+                    <div class="text-center mt-4">
+                        <a href="05-generate-password.html" class="text-sm text-gray-600 hover:text-blue-600 transition">
+                            or generate a random password →
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Footer Trust Indicators -->
+                <div class="bg-gray-50 px-8 py-4 border-t border-gray-200 text-xs text-gray-600 flex justify-between">
+                    <span>🔒 AES-256 encryption</span>
+                    <span>🔥 Self-destructs after viewing</span>
+                    <span>⏱️ Automatic expiration</span>
+                </div>
+            </div>
+
+            <!-- Confirmation View (Hidden Initially) -->
+            <div id="confirmation-view" class="hidden bg-white rounded-lg shadow-lg overflow-hidden fade-in">
+                <!-- Header -->
+                <div class="border-b border-gray-200 p-4 flex justify-between items-center">
+                    <div class="text-lg font-bold text-gray-900">OneTimeSecret</div>
+                    <div class="flex gap-4 text-sm">
+                        <button class="text-gray-600 hover:text-gray-900">How it works</button>
+                        <button class="text-gray-600 hover:text-gray-900">Sign In</button>
+                    </div>
+                </div>
+
+                <!-- Confirmation Container -->
+                <div class="p-8">
+                    <!-- Success Icon & Message -->
+                    <div class="text-center mb-8">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4 bounce-in">
+                            <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Your secret link is ready!</h1>
+                        <p class="text-gray-600">This link expires in <strong id="expiry-display">7 days</strong> or after <strong>1 view</strong></p>
+                    </div>
+
+                    <!-- Link Display -->
+                    <div class="mb-6">
+                        <label for="secret-link" class="sr-only">Secret link</label>
+                        <div class="relative">
+                            <input
+                                type="text"
+                                id="secret-link"
+                                readonly
+                                value="https://onetimesecret.com/secret/a3k9x2mfp7wq8rb4"
+                                class="w-full px-4 py-3 pr-12 bg-gray-50 border-2 border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 select-all"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <button
+                            onclick="copyLink()"
+                            id="copy-btn"
+                            class="flex items-center justify-center gap-2 py-3 px-6 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 shadow-md transition-all"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            Copy Link
+                        </button>
+                        <button
+                            onclick="resetDemo()"
+                            class="flex items-center justify-center gap-2 py-3 px-6 bg-white text-gray-700 font-medium border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Create Another
+                        </button>
+                    </div>
+
+                    <!-- Settings Summary -->
+                    <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                            <h3 class="font-semibold text-blue-900">Secret Details</h3>
+                        </div>
+                        <div class="space-y-1 text-sm text-blue-800">
+                            <div id="passphrase-status">🔓 Passphrase: None</div>
+                            <div id="ttl-status">⏱️ Expires: In 7 days or after 1 view</div>
+                        </div>
+                    </div>
+
+                    <!-- Reminder -->
+                    <div id="passphrase-reminder" class="hidden bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded mb-6">
+                        <p class="text-sm text-yellow-700">
+                            <strong>Remember:</strong> Share the passphrase separately via phone or SMS!
+                        </p>
+                    </div>
+
+                    <div id="no-passphrase-reminder" class="bg-gray-50 border-l-4 border-gray-400 p-4 rounded">
+                        <p class="text-sm text-gray-700">
+                            <strong>Remember:</strong> Share this link once—it self-destructs after viewing.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Footer Trust Indicators -->
+                <div class="bg-gray-50 px-8 py-4 border-t border-gray-200 text-xs text-gray-600 flex justify-between">
+                    <span>🔒 AES-256 encryption</span>
+                    <span>🔥 Self-destructs after viewing</span>
+                    <span>⏱️ Automatic expiration</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript State Management -->
+    <script>
+        let state = {
+            secret: '',
+            passphrase: '',
+            ttl: '7d',
+            optionsExpanded: false,
+            confirmed: false
+        };
+
+        const ttlMap = {
+            '1h': '1 hour',
+            '4h': '4 hours',
+            '1d': '1 day',
+            '7d': '7 days',
+            '14d': '14 days',
+            '30d': '30 days'
+        };
+
+        function handleSecretInput() {
+            const textarea = document.getElementById('secret');
+            const counter = document.getElementById('char-counter');
+            const createBtn = document.getElementById('create-btn');
+            const optionsLink = document.getElementById('options-link');
+
+            state.secret = textarea.value;
+            const charCount = state.secret.length;
+
+            // Update counter
+            counter.textContent = `${charCount} / 10,000 chars`;
+            counter.classList.toggle('text-gray-700', charCount > 0);
+            counter.classList.toggle('font-medium', charCount > 0);
+
+            // Enable button if content exists
+            if (charCount > 0) {
+                createBtn.disabled = false;
+                createBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+                createBtn.classList.add('bg-blue-600', 'hover:bg-blue-700', 'cursor-pointer', 'shadow-md');
+                optionsLink.classList.remove('hidden');
+                textarea.classList.add('border-blue-500');
+            } else {
+                createBtn.disabled = true;
+                createBtn.classList.add('bg-gray-300', 'cursor-not-allowed');
+                createBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700', 'cursor-pointer', 'shadow-md');
+                optionsLink.classList.add('hidden');
+                textarea.classList.remove('border-blue-500');
+            }
+        }
+
+        function toggleState(key) {
+            state[key] = !state[key];
+            updateUI();
+        }
+
+        function togglePassphraseVisibility() {
+            const input = document.getElementById('passphrase');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function selectTTL(ttl, btn) {
+            state.ttl = ttl;
+
+            // Update button states
+            document.querySelectorAll('.ttl-btn').forEach(b => {
+                b.classList.remove('bg-blue-600', 'text-white', 'border-blue-600', 'selected');
+                b.classList.add('border-gray-300', 'hover:border-blue-300', 'hover:bg-blue-50');
+                b.innerHTML = b.innerHTML.replace('✓ ', '');
+            });
+
+            btn.classList.add('bg-blue-600', 'text-white', 'border-blue-600', 'selected');
+            btn.classList.remove('border-gray-300', 'hover:border-blue-300', 'hover:bg-blue-50');
+            btn.innerHTML = '✓ ' + btn.innerHTML.replace('✓ ', '');
+        }
+
+        function updateUI() {
+            const panel = document.getElementById('options-panel');
+            const optionsText = document.getElementById('options-text');
+            const optionsIcon = document.getElementById('options-icon');
+
+            if (state.optionsExpanded) {
+                panel.classList.remove('hidden');
+                optionsText.textContent = 'Hide options';
+                optionsIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />';
+            } else {
+                panel.classList.add('hidden');
+                optionsText.textContent = `Add passphrase or change expiration (${ttlMap[state.ttl]})`;
+                optionsIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />';
+            }
+        }
+
+        function createSecret() {
+            state.passphrase = document.getElementById('passphrase').value;
+            state.confirmed = true;
+
+            // Update confirmation screen
+            document.getElementById('expiry-display').textContent = ttlMap[state.ttl];
+
+            if (state.passphrase) {
+                document.getElementById('passphrase-status').innerHTML = '🔒 Passphrase: Set';
+                document.getElementById('passphrase-reminder').classList.remove('hidden');
+                document.getElementById('no-passphrase-reminder').classList.add('hidden');
+            } else {
+                document.getElementById('passphrase-status').innerHTML = '🔓 Passphrase: None';
+                document.getElementById('passphrase-reminder').classList.add('hidden');
+                document.getElementById('no-passphrase-reminder').classList.remove('hidden');
+            }
+
+            document.getElementById('ttl-status').innerHTML = `⏱️ Expires: In ${ttlMap[state.ttl]} or after 1 view`;
+
+            // Show confirmation, hide form
+            document.getElementById('form-view').classList.add('hidden');
+            document.getElementById('confirmation-view').classList.remove('hidden');
+
+            // Auto-focus copy button
+            setTimeout(() => {
+                document.getElementById('copy-btn').focus();
+            }, 100);
+        }
+
+        function copyLink() {
+            const linkField = document.getElementById('secret-link');
+            const copyBtn = document.getElementById('copy-btn');
+
+            navigator.clipboard.writeText(linkField.value).then(() => {
+                const originalHTML = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Copied!';
+                copyBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                copyBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalHTML;
+                    copyBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    copyBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                }, 2000);
+            });
+        }
+
+        function resetDemo() {
+            state = {
+                secret: '',
+                passphrase: '',
+                ttl: '7d',
+                optionsExpanded: false,
+                confirmed: false
+            };
+
+            document.getElementById('secret').value = '';
+            document.getElementById('passphrase').value = '';
+            document.getElementById('form-view').classList.remove('hidden');
+            document.getElementById('confirmation-view').classList.add('hidden');
+
+            handleSecretInput();
+            updateUI();
+
+            // Reset TTL selection
+            document.querySelectorAll('.ttl-btn').forEach((btn, i) => {
+                if (i === 3) { // 7 days is default (4th button)
+                    selectTTL('7d', btn);
+                }
+            });
+        }
+
+        function fillSampleSecret() {
+            document.getElementById('secret').value = 'postgres://admin:xK9$mP2#vL5@prod-db.example.com:5432/production';
+            handleSecretInput();
+        }
+    </script>
+</body>
+</html>

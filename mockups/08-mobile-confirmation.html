@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Confirmation - Express Lane Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Force mobile viewport for demo */
+        body {
+            max-width: 375px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Back to Index (Above Mobile Frame) -->
+    <div class="bg-white p-4 border-b">
+        <a href="index.html" class="text-blue-600 hover:text-blue-800 text-sm">← Back to Mockups Index</a>
+    </div>
+
+    <!-- State Label -->
+    <div class="bg-green-100 border-b-2 border-green-300 p-3">
+        <h2 class="text-green-900 font-semibold text-sm">State: Mobile Confirmation (375px)</h2>
+        <p class="text-green-700 text-xs">Success screen, one-tap copy, stacked buttons</p>
+    </div>
+
+    <!-- Mobile Content -->
+    <div class="bg-white min-h-screen">
+        <!-- Mobile Header (Compact) -->
+        <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center z-10">
+            <div class="text-lg font-bold text-gray-900">OneTimeSecret</div>
+            <button class="text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Confirmation Container -->
+        <div class="p-4">
+            <!-- Success Icon & Message -->
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-3">
+                    <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Your secret link<br>is ready!</h1>
+                <p class="text-sm text-gray-600">Expires in <strong>7 days</strong><br>or after <strong>1 view</strong></p>
+            </div>
+
+            <!-- Link Display (Mobile) -->
+            <div class="mb-4">
+                <label for="secret-link" class="sr-only">Secret link</label>
+                <div class="relative">
+                    <input
+                        type="text"
+                        id="secret-link"
+                        readonly
+                        value="https://onetimesecret.com/secret/a3k9x2m..."
+                        class="w-full px-3 py-3 pr-10 bg-gray-50 border-2 border-gray-300 rounded-lg text-xs font-mono focus:outline-none focus:border-blue-500 select-all"
+                    />
+                    <div class="absolute right-2 top-1/2 -translate-y-1/2">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons (Stacked on Mobile) -->
+            <div class="space-y-3 mb-6">
+                <button
+                    id="copy-button"
+                    onclick="copyLink()"
+                    class="w-full flex items-center justify-center gap-2 py-4 px-6 bg-blue-600 text-white font-medium rounded-lg active:bg-blue-800 shadow-md transition-all"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copy Link
+                </button>
+                <a
+                    href="06-mobile-initial.html"
+                    class="w-full flex items-center justify-center gap-2 py-4 px-6 bg-white text-gray-700 font-medium border-2 border-gray-300 rounded-lg active:bg-gray-50 transition-all"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Create Another
+                </a>
+            </div>
+
+            <!-- Settings Summary (Compact) -->
+            <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-3 mb-6">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                    <h3 class="text-sm font-semibold text-blue-900">Secret Details</h3>
+                </div>
+                <div class="space-y-1 text-xs text-blue-800">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                        </svg>
+                        <strong>Passphrase:</strong> None
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <strong>Expires:</strong> 7 days or 1 view
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reminder (Compact) -->
+            <div class="bg-gray-50 border-l-4 border-gray-400 p-3 rounded text-xs text-gray-700">
+                <strong>Remember:</strong> Share this link once—it self-destructs after viewing.
+            </div>
+        </div>
+
+        <!-- Trust Indicators (Mobile) -->
+        <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 text-xs text-gray-600 text-center space-y-1 mt-6">
+            <div>🔒 AES-256 encrypted</div>
+            <div>🔥 Self-destructs • ⏱️ Auto-expires</div>
+        </div>
+    </div>
+
+    <!-- Design Notes (Outside Mobile Frame) -->
+    <div class="bg-yellow-50 border-t-2 border-yellow-200 p-4 text-sm">
+        <h3 class="font-semibold text-yellow-900 mb-2">Mobile Confirmation Design:</h3>
+        <ul class="space-y-1 text-yellow-800">
+            <li>✅ <strong>Stacked buttons</strong> (not side-by-side - full-width tap areas)</li>
+            <li>✅ Success heading: 2 lines to fit smaller screen</li>
+            <li>✅ Link field: Smaller font-mono (text-xs) to prevent overflow</li>
+            <li>✅ Link truncated with "..." (full URL: onetimesecret.com/secret/a3k9x2mfp7wq8rb4)</li>
+            <li>✅ All buttons: 48px height (thumb-friendly)</li>
+            <li>✅ Settings summary: Compact (text-xs, smaller icons)</li>
+            <li>✅ Copy button changes to "Copied!" for 2s (see JavaScript)</li>
+        </ul>
+    </div>
+
+    <!-- One-Tap Copy -->
+    <div class="bg-green-50 border-t-2 border-green-200 p-4 text-sm">
+        <h3 class="font-semibold text-green-900 mb-2">Mobile-Specific Behavior:</h3>
+        <ul class="space-y-1 text-green-800">
+            <li>✅ <strong>One-tap copy:</strong> "Copy Link" button copies to clipboard (no manual selection needed)</li>
+            <li>✅ <strong>Toast notification:</strong> Button changes to green "Copied!" for 2 seconds</li>
+            <li>✅ <strong>Auto-select fallback:</strong> Tapping link field selects all text (for manual copy)</li>
+            <li>✅ <strong>No redirect:</strong> Confirmation stays on same page (fast, contextual)</li>
+            <li>✅ <strong>Share integration:</strong> Could add iOS/Android share sheet (future enhancement)</li>
+        </ul>
+    </div>
+
+    <!-- Performance Comparison -->
+    <div class="bg-blue-50 border-t-2 border-blue-200 p-4 text-sm">
+        <h3 class="font-semibold text-blue-900 mb-2">Mobile Performance vs Current:</h3>
+        <div class="space-y-2 text-blue-800">
+            <div>
+                <strong>Current Mobile:</strong>
+                <ul class="list-disc list-inside text-xs mt-1">
+                    <li>Dropdown hard to tap (11 options, small arrows)</li>
+                    <li>Receipt page: Scrolling required to find link</li>
+                    <li>Est. time: ~40-50 seconds, ~7-8 clicks</li>
+                </ul>
+            </div>
+            <div>
+                <strong>Express Lane Mobile:</strong>
+                <ul class="list-disc list-inside text-xs mt-1">
+                    <li>Button chips (2-column grid, 48px tap targets)</li>
+                    <li>Inline confirmation (no scrolling, link visible immediately)</li>
+                    <li>Est. time: ~10-15 seconds, ~3-4 taps</li>
+                    <li><strong>70% faster</strong>, 50% fewer taps</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Copy Functionality -->
+    <script>
+        function copyLink() {
+            const linkField = document.getElementById('secret-link');
+            const copyButton = document.getElementById('copy-button');
+
+            // Copy to clipboard
+            navigator.clipboard.writeText('https://onetimesecret.com/secret/a3k9x2mfp7wq8rb4').then(() => {
+                // Update button
+                const originalHTML = copyButton.innerHTML;
+                copyButton.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Copied!
+                `;
+                copyButton.classList.remove('bg-blue-600');
+                copyButton.classList.add('bg-green-600');
+
+                // Revert after 2 seconds
+                setTimeout(() => {
+                    copyButton.innerHTML = originalHTML;
+                    copyButton.classList.remove('bg-green-600');
+                    copyButton.classList.add('bg-blue-600');
+                }, 2000);
+            });
+        }
+
+        // Auto-focus copy button on load
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('copy-button').focus();
+        });
+    </script>
+</body>
+</html>

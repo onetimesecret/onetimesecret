@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation - Express Lane Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl">
+        <!-- Back to Index -->
+        <div class="mb-4">
+            <a href="index.html" class="text-blue-600 hover:text-blue-800 text-sm">← Back to Mockups Index</a>
+        </div>
+
+        <!-- State Label -->
+        <div class="mb-4 bg-green-100 border-2 border-green-300 rounded-lg p-3">
+            <h2 class="text-green-900 font-semibold">State: Success / Confirmation</h2>
+            <p class="text-green-700 text-sm">Secret created, link ready to copy, inline confirmation (no redirect)</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Header -->
+            <div class="border-b border-gray-200 p-4 flex justify-between items-center">
+                <div class="text-lg font-bold text-gray-900">OneTimeSecret</div>
+                <div class="flex gap-4 text-sm">
+                    <button class="text-gray-600 hover:text-gray-900">How it works</button>
+                    <button class="text-gray-600 hover:text-gray-900">Sign In</button>
+                </div>
+            </div>
+
+            <!-- Confirmation Container -->
+            <div class="p-8">
+                <!-- Success Icon & Message -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                        <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Your secret link is ready!</h1>
+                    <p class="text-gray-600">This link expires in <strong>7 days</strong> or after <strong>1 view</strong></p>
+                </div>
+
+                <!-- Link Display -->
+                <div class="mb-6">
+                    <label for="secret-link" class="sr-only">Secret link</label>
+                    <div class="relative">
+                        <input
+                            type="text"
+                            id="secret-link"
+                            readonly
+                            value="https://onetimesecret.com/secret/a3k9x2mfp7wq8rb4"
+                            class="w-full px-4 py-3 pr-12 bg-gray-50 border-2 border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 select-all"
+                        />
+                        <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <button
+                        id="copy-button"
+                        onclick="copyLink()"
+                        class="flex items-center justify-center gap-2 py-3 px-6 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 shadow-md hover:shadow-lg transition-all"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copy Link
+                    </button>
+                    <a
+                        href="01-initial-state.html"
+                        class="flex items-center justify-center gap-2 py-3 px-6 bg-white text-gray-700 font-medium border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Create Another
+                    </a>
+                </div>
+
+                <!-- Settings Summary -->
+                <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                        </svg>
+                        <h3 class="font-semibold text-blue-900">Secret Details</h3>
+                    </div>
+                    <div class="space-y-1 text-sm text-blue-800">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                            </svg>
+                            <strong>Passphrase:</strong> None
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <strong>Expires:</strong> In 7 days (or after 1 view)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reminder -->
+                <div class="bg-gray-50 border-l-4 border-gray-400 p-4 rounded">
+                    <p class="text-sm text-gray-700">
+                        <strong>Remember:</strong> Share this link once—it self-destructs after viewing. The recipient won't need a passphrase.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer Trust Indicators -->
+            <div class="bg-gray-50 px-8 py-4 border-t border-gray-200 text-xs text-gray-600 flex justify-between">
+                <span>🔒 AES-256 encryption</span>
+                <span>🔥 Self-destructs after viewing</span>
+                <span>⏱️ Automatic expiration</span>
+            </div>
+        </div>
+
+        <!-- Design Notes -->
+        <div class="mt-6 bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 text-sm">
+            <h3 class="font-semibold text-yellow-900 mb-2">Design Notes:</h3>
+            <ul class="space-y-1 text-yellow-800">
+                <li>✅ <strong>Inline confirmation</strong> (no page redirect - stays on same page)</li>
+                <li>✅ Large green checkmark icon (success visual)</li>
+                <li>✅ Clear heading: "Your secret link is ready!"</li>
+                <li>✅ Link in read-only text field (auto-selected on focus)</li>
+                <li>✅ Two buttons: "Copy Link" (primary) + "Create Another" (secondary)</li>
+                <li>✅ Settings summary shows passphrase status and expiration</li>
+                <li>✅ Reminder text explains one-time nature</li>
+                <li>✅ "Copy Link" button has onclick handler (see JavaScript below)</li>
+            </ul>
+        </div>
+
+        <!-- Interaction Notes -->
+        <div class="mt-4 bg-green-50 border-2 border-green-200 rounded-lg p-4 text-sm">
+            <h3 class="font-semibold text-green-900 mb-2">Interactive Behavior:</h3>
+            <ul class="space-y-1 text-green-800">
+                <li>✅ Click "Copy Link" → Text copied to clipboard + button text changes to "Copied!" for 2s</li>
+                <li>✅ Click link field → Text auto-selected (Cmd/Ctrl+C works immediately)</li>
+                <li>✅ Focus auto-moves to "Copy Link" button on page load</li>
+                <li>✅ Screen reader announces: "Secret link created. Link copied to clipboard."</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- JavaScript for Copy Functionality -->
+    <script>
+        function copyLink() {
+            const linkField = document.getElementById('secret-link');
+            const copyButton = document.getElementById('copy-button');
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(linkField.value).then(() => {
+                // Update button text
+                const originalHTML = copyButton.innerHTML;
+                copyButton.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Copied!
+                `;
+                copyButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                copyButton.classList.add('bg-green-600', 'hover:bg-green-700');
+
+                // Revert after 2 seconds
+                setTimeout(() => {
+                    copyButton.innerHTML = originalHTML;
+                    copyButton.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    copyButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                }, 2000);
+            });
+        }
+
+        // Auto-focus copy button on load
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('copy-button').focus();
+        });
+    </script>
+</body>
+</html>

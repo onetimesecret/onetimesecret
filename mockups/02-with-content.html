@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>With Content - Express Lane Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl">
+        <!-- Back to Index -->
+        <div class="mb-4">
+            <a href="index.html" class="text-blue-600 hover:text-blue-800 text-sm">← Back to Mockups Index</a>
+        </div>
+
+        <!-- State Label -->
+        <div class="mb-4 bg-green-100 border-2 border-green-300 rounded-lg p-3">
+            <h2 class="text-green-900 font-semibold">State: Content Entered</h2>
+            <p class="text-green-700 text-sm">Button enabled, options link visible, ready to submit</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Header -->
+            <div class="border-b border-gray-200 p-4 flex justify-between items-center">
+                <div class="text-lg font-bold text-gray-900">OneTimeSecret</div>
+                <div class="flex gap-4 text-sm">
+                    <button class="text-gray-600 hover:text-gray-900">How it works</button>
+                    <button class="text-gray-600 hover:text-gray-900">Sign In</button>
+                </div>
+            </div>
+
+            <!-- Form Container -->
+            <div class="p-8">
+                <!-- Hero Message -->
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Share a secret, the secure way</h1>
+                    <p class="text-gray-600 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                        </svg>
+                        End-to-end encrypted • One-time links
+                    </p>
+                </div>
+
+                <!-- Secret Textarea (with content) -->
+                <div class="mb-4">
+                    <label for="secret" class="sr-only">Secret content</label>
+                    <textarea
+                        id="secret"
+                        rows="8"
+                        class="w-full px-4 py-3 border-2 border-blue-500 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none"
+                        placeholder="Paste your secret here (text only, no files)..."
+                    >postgres://admin:xK9$mP2#vL5@prod-db.example.com:5432/production</textarea>
+                    <div class="text-right text-sm text-gray-700 mt-1 font-medium">67 / 10,000 chars</div>
+                </div>
+
+                <!-- Primary Action Button (Enabled) -->
+                <button
+                    class="w-full py-4 px-6 rounded-lg font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md hover:shadow-lg transition-all"
+                >
+                    Create Secret Link
+                </button>
+
+                <!-- Options Link (NEW - appears after content entered) -->
+                <div class="text-center mt-4">
+                    <a href="03-options-expanded.html" class="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Add passphrase or change expiration (7 days)
+                    </a>
+                </div>
+
+                <!-- Secondary Action -->
+                <div class="text-center mt-4">
+                    <a href="05-generate-password.html" class="text-sm text-gray-600 hover:text-blue-600 transition">
+                        or generate a random password →
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer Trust Indicators -->
+            <div class="bg-gray-50 px-8 py-4 border-t border-gray-200 text-xs text-gray-600 flex justify-between">
+                <span>🔒 AES-256 encryption</span>
+                <span>🔥 Self-destructs after viewing</span>
+                <span>⏱️ Automatic expiration</span>
+            </div>
+        </div>
+
+        <!-- Design Notes -->
+        <div class="mt-6 bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 text-sm">
+            <h3 class="font-semibold text-yellow-900 mb-2">Design Notes:</h3>
+            <ul class="space-y-1 text-yellow-800">
+                <li>✅ Button <strong>enabled</strong> (blue background, hover effects, pointer cursor)</li>
+                <li>✅ Textarea has content (67 characters), border turns blue when focused</li>
+                <li>✅ Character counter updated: "67 / 10,000 chars" (darker text, bold)</li>
+                <li>✅ <strong>NEW:</strong> Options link appears below button</li>
+                <li>✅ Options link shows current default: "(7 days)"</li>
+                <li>✅ User can click "Create Secret Link" now (2-click flow) or expand options first</li>
+            </ul>
+        </div>
+
+        <!-- User Flow -->
+        <div class="mt-4 bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-sm">
+            <h3 class="font-semibold text-blue-900 mb-2">Fast Path (80% of users):</h3>
+            <ol class="space-y-1 text-blue-800 list-decimal list-inside">
+                <li>Paste secret (done ✅)</li>
+                <li>Click "Create Secret Link" → <a href="04-confirmation.html" class="underline">See confirmation screen</a></li>
+            </ol>
+            <h3 class="font-semibold text-blue-900 mt-3 mb-2">Configured Path (20% of users):</h3>
+            <ol class="space-y-1 text-blue-800 list-decimal list-inside">
+                <li>Paste secret (done ✅)</li>
+                <li>Click "Add passphrase or change expiration" → <a href="03-options-expanded.html" class="underline">See options panel</a></li>
+                <li>Configure passphrase/TTL</li>
+                <li>Click "Create Secret Link"</li>
+            </ol>
+        </div>
+    </div>
+</body>
+</html>

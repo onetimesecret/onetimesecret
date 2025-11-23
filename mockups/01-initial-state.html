@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initial State - Express Lane Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl">
+        <!-- Back to Index -->
+        <div class="mb-4">
+            <a href="index.html" class="text-blue-600 hover:text-blue-800 text-sm">← Back to Mockups Index</a>
+        </div>
+
+        <!-- State Label -->
+        <div class="mb-4 bg-blue-100 border-2 border-blue-300 rounded-lg p-3">
+            <h2 class="text-blue-900 font-semibold">State: Initial (Empty)</h2>
+            <p class="text-blue-700 text-sm">Textarea auto-focused, button disabled, no options visible</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Header -->
+            <div class="border-b border-gray-200 p-4 flex justify-between items-center">
+                <div class="text-lg font-bold text-gray-900">OneTimeSecret</div>
+                <div class="flex gap-4 text-sm">
+                    <button class="text-gray-600 hover:text-gray-900">How it works</button>
+                    <button class="text-gray-600 hover:text-gray-900">Sign In</button>
+                </div>
+            </div>
+
+            <!-- Form Container -->
+            <div class="p-8">
+                <!-- Hero Message -->
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Share a secret, the secure way</h1>
+                    <p class="text-gray-600 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                        </svg>
+                        End-to-end encrypted • One-time links
+                    </p>
+                </div>
+
+                <!-- Secret Textarea -->
+                <div class="mb-4">
+                    <label for="secret" class="sr-only">Secret content</label>
+                    <textarea
+                        id="secret"
+                        rows="8"
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none"
+                        placeholder="Paste your secret here (text only, no files)..."
+                        autofocus
+                    ></textarea>
+                    <div class="text-right text-sm text-gray-500 mt-1">0 / 10,000 chars</div>
+                </div>
+
+                <!-- Primary Action Button (Disabled) -->
+                <button
+                    disabled
+                    class="w-full py-4 px-6 rounded-lg font-medium text-white bg-gray-300 cursor-not-allowed transition-all"
+                >
+                    Create Secret Link
+                </button>
+
+                <!-- Secondary Action -->
+                <div class="text-center mt-4">
+                    <a href="05-generate-password.html" class="text-sm text-gray-600 hover:text-blue-600 transition">
+                        or generate a random password →
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer Trust Indicators -->
+            <div class="bg-gray-50 px-8 py-4 border-t border-gray-200 text-xs text-gray-600 flex justify-between">
+                <span>🔒 AES-256 encryption</span>
+                <span>🔥 Self-destructs after viewing</span>
+                <span>⏱️ Automatic expiration</span>
+            </div>
+        </div>
+
+        <!-- Design Notes -->
+        <div class="mt-6 bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 text-sm">
+            <h3 class="font-semibold text-yellow-900 mb-2">Design Notes:</h3>
+            <ul class="space-y-1 text-yellow-800">
+                <li>✅ Textarea is <strong>auto-focused</strong> on page load (users can paste immediately)</li>
+                <li>✅ Button is <strong>disabled</strong> (gray, no pointer) until textarea has content</li>
+                <li>✅ No options visible yet (progressive disclosure - shown only when needed)</li>
+                <li>✅ Character counter shows 0 / 10,000 (subtle, bottom-right)</li>
+                <li>✅ Trust indicators in footer (encryption, self-destruct, expiration)</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
