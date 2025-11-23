@@ -184,6 +184,15 @@ module Billing
           customer_id: session.customer,
         }
 
+        # Check if session has a subscription (skip one-time payments)
+        unless session.subscription
+          billing_logger.info 'Checkout session has no subscription (one-time payment)', {
+            session_id: session.id,
+            mode: session.mode,
+          }
+          return
+        end
+
         # Expand subscription to get full details
         subscription = Stripe::Subscription.retrieve(session.subscription)
         metadata     = subscription.metadata
