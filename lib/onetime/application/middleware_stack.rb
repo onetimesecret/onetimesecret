@@ -113,6 +113,10 @@ module Onetime
           }
           builder.use Otto::Security::Middleware::IPPrivacyMiddleware
 
+          # IP Ban middleware - blocks banned IPs (after IP privacy)
+          logger.debug 'Setting up IP Ban middleware'
+          builder.use Onetime::Middleware::IPBan
+
           builder.use Rack::ContentLength
           builder.use Onetime::Middleware::StartupReadiness
 
