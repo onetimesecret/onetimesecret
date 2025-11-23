@@ -2,7 +2,7 @@
 #
 # scripts/setup_stripe_plans.sh
 #
-# Creates Stripe products from etc/billing/plan-catalog.yaml
+# Creates Stripe products from etc/billing/billing-plans.yaml
 #
 # Usage:
 #   ./scripts/setup_stripe_plans.sh          # Create products (fail if exist)
@@ -12,7 +12,7 @@
 # Prerequisites:
 #   - .env file with STRIPE_KEY configured
 #   - bin/ots CLI available
-#   - etc/billing/plan-catalog.yaml exists
+#   - etc/billing/billing-plans.yaml exists
 #   - yq command installed (brew install yq)
 #
 
@@ -48,7 +48,7 @@ if ! command -v yq &> /dev/null; then
 fi
 
 # Check for catalog file
-CATALOG_FILE="etc/billing/plan-catalog.yaml"
+CATALOG_FILE="etc/billing/billing-plans.yaml"
 if [ ! -f "$CATALOG_FILE" ]; then
   echo "❌ Error: $CATALOG_FILE not found"
   exit 1
@@ -82,14 +82,29 @@ else
 fi
 echo ""
 
-# Extract plan IDs from catalog (excluding free_v1 which has no Stripe product)
-PLAN_IDS=$(yq eval '.plans | keys | .[] | select(. != "free_v1")' "$CATALOG_FILE")
+# Extract all plan IDs from catalog
+ALL_PLAN_IDS=$(yq eval '.plans | keys | .[]' "$CATALOG_FILE")
 
 # Process each plan
-for plan_id in $PLAN_IDS; do
+for plan_id in $ALL_PLAN_IDS; do
   # Extract plan data from YAML
   name=$(yq eval ".plans.$plan_id.name" "$CATALOG_FILE")
   tier=$(yq eval ".plans.$plan_id.tier" "$CATALOG_FILE")
+
+  # Skip plans with free tier (no Stripe product needed)
+  if [ "$tier" = "free" ]; then
+    echo "⏭️  Skipping $name ($plan_id) - free tier has no Stripe product"
+    echo ""
+    continue
+  fi
+
+  # Skip plans with nil/missing tier (warn about incomplete definition)
+  if [ "$tier" = "null" ] || [ -z "$tier" ]; then
+    echo "⚠️  Skipping $name ($plan_id) - missing tier field (incomplete definition)"
+    echo ""
+    continue
+  fi
+
   region=$(yq eval ".plans.$plan_id.region" "$CATALOG_FILE")
   tenancy=$(yq eval ".plans.$plan_id.tenancy" "$CATALOG_FILE")
   display_order=$(yq eval ".plans.$plan_id.display_order" "$CATALOG_FILE")

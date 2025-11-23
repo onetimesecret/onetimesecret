@@ -22,7 +22,7 @@ module Onetime
       def call(catalog_only: false, strict: false, **)
         boot_application!
 
-        catalog_path = File.join(OT.conf.path, '..', 'billing', 'plan-catalog.yaml')
+        catalog_path = File.join(OT.conf.path, '..', 'billing', 'billing-plans.yaml')
 
         unless File.exist?(catalog_path)
           puts "❌ Error: Catalog file not found: #{catalog_path}"
@@ -94,17 +94,35 @@ module Onetime
       end
 
       def validate_plan_data(plan_id, data, errors, warnings)
-        # Required fields
-        %w[name tier tenancy region capabilities limits].each do |field|
+        # Required fields (tier is optional for draft plans)
+        %w[name capabilities limits].each do |field|
           unless data[field]
             errors << "Plan #{plan_id}: missing required field '#{field}'"
           end
+        end
+
+        # Warn about missing tier (incomplete/draft plan)
+        unless data['tier']
+          warnings << "Plan #{plan_id}: missing tier field (incomplete definition, will be skipped in Stripe sync)"
+          return # Skip further validation if tier is missing
         end
 
         # Validate tier values
         valid_tiers = %w[free single_team multi_team]
         unless valid_tiers.include?(data['tier'])
           errors << "Plan #{plan_id}: invalid tier '#{data['tier']}' (expected: #{valid_tiers.join(', ')})"
+        end
+
+        # Warn if free tier (no Stripe product will be created)
+        if data['tier'] == 'free'
+          warnings << "Plan #{plan_id}: free tier (no Stripe product will be created)"
+        end
+
+        # Required fields for non-free, complete plans
+        %w[tenancy region].each do |field|
+          unless data[field]
+            errors << "Plan #{plan_id}: missing required field '#{field}'"
+          end
         end
 
         # Validate tenancy values

@@ -190,22 +190,3 @@ plans:
       - interval: month
         amount: 15000
         currency: eur
-
-validation:
-  plan_id_format: "^[a-z_]+_v\\d+$"
-  tier_values:
-    - free
-    - single_account
-    - single_team
-    - multi_team
-  tenancy_values:
-    - multi
-    - dedicated
-  limit_values: "Integer >= -1 (-1 means unlimited)"
-  price_intervals:
-    - month
-    - year
-  price_currencies:
-    - cad
-    - eur
-    - usd
