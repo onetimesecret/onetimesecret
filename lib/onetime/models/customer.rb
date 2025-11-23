@@ -153,6 +153,21 @@ module Onetime
       role.to_s.eql?(guess.to_s)
     end
 
+    # Hash-like accessor for Otto's RouteAuthWrapper#extract_user_roles
+    #
+    # Otto expects user objects to support hash-like access via [] method.
+    # This allows Otto to extract roles from the user object when metadata
+    # is not available or as a fallback mechanism.
+    #
+    # @param key [Symbol, String] Field name to access
+    # @return [Object, nil] Field value or nil if field doesn't exist
+    def [](key)
+      key = key.to_sym if key.is_a?(String)
+      send(key) if respond_to?(key)
+    rescue NoMethodError
+      nil
+    end
+
     # Saves the customer object to the database.
     #
     # @raise [Onetime::Problem] If attempting to save an anonymous customer.
