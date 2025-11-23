@@ -6,7 +6,9 @@
 # Products created: Identity Plus, Team Plus, Organization Plus, Organization Max
 #
 # Usage:
-#   ./scripts/setup_stripe_plans.sh
+#   ./scripts/setup_stripe_plans.sh          # Interactive mode (prompts if products exist)
+#   ./scripts/setup_stripe_plans.sh --update # Auto-update existing products
+#   ./scripts/setup_stripe_plans.sh --force  # Create duplicates (not recommended)
 #
 # Prerequisites:
 #   - .env file with STRIPE_KEY configured
@@ -14,6 +16,28 @@
 #
 
 set -e
+
+# Parse command line arguments
+UPDATE_MODE=false
+FORCE_MODE=false
+
+for arg in "$@"; do
+  case $arg in
+    --update)
+      UPDATE_MODE=true
+      shift
+      ;;
+    --force)
+      FORCE_MODE=true
+      shift
+      ;;
+    *)
+      echo "Unknown option: $arg"
+      echo "Usage: $0 [--update|--force]"
+      exit 1
+      ;;
+  esac
+done
 
 # Load environment variables
 if [ -f .env ]; then
@@ -42,9 +66,12 @@ bin/ots billing products create "Identity Plus" \
   --tenancy multi \
   --capabilities create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage \
   --display-order 10 \
-  --show-on-plans-page false \
+  --show-on-plans-page true \
   --limit-teams 0 \
-  --limit-secret-lifetime 2592000
+  --limit-members-per-team 1 \
+  --limit-custom-domains -1 \
+  --limit-secret-lifetime 2592000 \
+  --limit-secrets-per-day -1
 
 echo ""
 
@@ -57,7 +84,7 @@ bin/ots billing products create "Team Plus" \
   --tenancy multi \
   --capabilities create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members \
   --display-order 20 \
-  --show-on-plans-page false \
+  --show-on-plans-page true \
   --limit-teams 1 \
   --limit-members-per-team 10 \
   --limit-custom-domains -1 \

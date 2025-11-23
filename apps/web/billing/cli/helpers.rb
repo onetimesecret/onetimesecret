@@ -110,14 +110,19 @@ module Onetime
         tier = product.metadata[Billing::Metadata::FIELD_TIER] || 'N/A'
         tenancy = product.metadata[Billing::Metadata::FIELD_TENANCY] || 'N/A'
         region = product.metadata[Billing::Metadata::FIELD_REGION] || 'N/A'
+        display_order = product.metadata[Billing::Metadata::FIELD_DISPLAY_ORDER] || '100'
+        show_on_plans = product.metadata[Billing::Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'true'
+        show_on_plans_display = %w[true 1 yes].include?(show_on_plans.downcase) ? 'yes' : 'no'
         active = product.active ? 'yes' : 'no'
 
-        format('%-22s %-40s %-12s %-12s %-10s %s',
+        format('%-22s %-30s %-12s %-12s %-10s %-8s %-10s %s',
           product.id[0..21],
-          product.name[0..39],
+          product.name[0..29],
           tier[0..11],
           tenancy[0..11],
           region[0..9],
+          display_order[0..7],
+          show_on_plans_display,
           active,
         )
       end

@@ -35,10 +35,10 @@ module Onetime
           return
         end
 
-        puts format('%-22s %-40s %-12s %-12s %-10s %s',
-          'ID', 'NAME', 'TIER', 'TENANCY', 'REGION', 'ACTIVE'
+        puts format('%-22s %-30s %-12s %-12s %-10s %-8s %-10s %s',
+          'ID', 'NAME', 'TIER', 'TENANCY', 'REGION', 'ORDER', 'SHOW', 'ACTIVE'
         )
-        puts '-' * 101
+        puts '-' * 125
 
         products.data.each do |product|
           puts format_product_row(product)

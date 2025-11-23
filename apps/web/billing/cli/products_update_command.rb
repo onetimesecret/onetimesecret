@@ -26,6 +26,8 @@ module Onetime
       option :region, type: :string, desc: 'Region'
       option :tenancy, type: :string, desc: 'Tenancy'
       option :capabilities, type: :string, desc: 'Capabilities (comma-separated)'
+      option :display_order, type: :string, desc: 'Display order (lower = earlier)'
+      option :show_on_plans_page, type: :boolean, desc: 'Show on plans page'
       option :limit_teams, type: :string, desc: 'Limit teams (-1 for unlimited)'
       option :limit_members_per_team, type: :string, desc: 'Limit members per team (-1 for unlimited)'
       option :limit_custom_domains, type: :string, desc: 'Limit custom domains (-1 for unlimited)'
@@ -57,26 +59,20 @@ module Onetime
           # Start with current metadata
           updated_meta = current_meta.dup
 
-          # Ensure all expected fields exist (with empty string if not set)
+          # Ensure required fields exist, preserving current values
           updated_meta['app'] = 'onetimesecret'
-          updated_meta['plan_id'] ||= ''
-          updated_meta['tier'] ||= ''
-          updated_meta['region'] ||= ''
-          updated_meta['tenancy'] ||= ''
-          updated_meta['capabilities'] ||= ''
           updated_meta['created'] ||= Time.now.utc.iso8601
-          updated_meta['limit_teams'] ||= ''
-          updated_meta['limit_members_per_team'] ||= ''
-          updated_meta['limit_custom_domains'] ||= ''
-          updated_meta['limit_api_rate_limit'] ||= ''
-          updated_meta['limit_secret_lifetime'] ||= ''
+          updated_meta['display_order'] ||= '100'
+          updated_meta['show_on_plans_page'] ||= 'true'
 
-          # Override with any explicitly provided options
+          # Override ONLY with explicitly provided options (don't blank out existing values)
           updated_meta['plan_id'] = options[:plan_id] if options[:plan_id]
           updated_meta['tier'] = options[:tier] if options[:tier]
           updated_meta['region'] = options[:region] if options[:region]
           updated_meta['tenancy'] = options[:tenancy] if options[:tenancy]
           updated_meta['capabilities'] = options[:capabilities] if options[:capabilities]
+          updated_meta['display_order'] = options[:display_order] if options[:display_order]
+          updated_meta['show_on_plans_page'] = options[:show_on_plans_page].to_s if options.key?(:show_on_plans_page)
           updated_meta['limit_teams'] = options[:limit_teams] if options[:limit_teams]
           updated_meta['limit_members_per_team'] = options[:limit_members_per_team] if options[:limit_members_per_team]
           updated_meta['limit_custom_domains'] = options[:limit_custom_domains] if options[:limit_custom_domains]

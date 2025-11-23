@@ -155,9 +155,18 @@ module Onetime
       def update_existing_product(product_id, name, metadata, options)
         puts "\nUpdating product #{product_id}..."
 
+        # Fetch current product to preserve existing metadata
+        current_product = Stripe::Product.retrieve(product_id)
+
+        # Merge new metadata with existing, preserving non-empty existing values
+        merged_metadata = current_product.metadata.to_h.merge(metadata) do |key, old_val, new_val|
+          # Keep new value unless it's empty and old value exists
+          (new_val.nil? || new_val.to_s.strip.empty?) && !old_val.to_s.strip.empty? ? old_val : new_val
+        end
+
         update_params = {
           name: name,
-          metadata: metadata,
+          metadata: merged_metadata,
         }
 
         # Add marketing features if provided
