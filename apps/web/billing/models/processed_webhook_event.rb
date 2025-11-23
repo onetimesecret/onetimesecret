@@ -98,33 +98,15 @@ module Billing
     # ========================================
     field :event_payload     # Full JSON payload from Stripe
 
-    # Load event data from Redis and populate fields
-    #
-    # Since we store the entire object as JSON, we need to deserialize it
-    # @return [self] Returns self for chaining
-    def load!
-      json_data = dbclient.get(dbkey)
-      return self unless json_data
-
-      data = JSON.parse(json_data)
-      data.each do |key, value|
-        instance_variable_set("@#{key}", value) if respond_to?("#{key}=")
-      end
-      self
-    rescue JSON::ParserError
-      self
-    end
-
-    # Check if event was already processed
+    # Check if event was already processed successfully
     #
     # @param stripe_event_id [String] Stripe event ID
-    # @return [Boolean] True if event was already processed
+    # @return [Boolean] True if event was processed successfully
     def self.processed?(stripe_event_id)
-      event  = new(stripe_event_id: stripe_event_id)
-      # Use dbclient.exists to check key existence
-      # FakeRedis returns boolean, real Redis returns integer
-      result = event.dbclient.exists?(event.dbkey)
-      [1, true].include?(result)
+      event = find_by_identifier(stripe_event_id)
+      return false unless event
+
+      event.success?
     end
 
     # Mark event as processed (non-atomic, use mark_processed_if_new! instead)
@@ -143,12 +125,8 @@ module Billing
       event.first_seen_at     ||= Time.now.to_i.to_s
       event.last_attempt_at     = Time.now.to_i.to_s
 
-      # Store as JSON string, same as atomic version
-      event.dbclient.set(event.dbkey, event.to_json)
-
-      # Set expiration (now 30 days)
-      ttl_seconds = 30 * 24 * 60 * 60  # 30 days
-      event.dbclient.expire(event.dbkey, ttl_seconds)
+      # Use Familia's save method to persist all fields as a hash
+      event.save
 
       event
     end
@@ -166,8 +144,8 @@ module Billing
 
     # Atomically mark event as processed if not already processed
     #
-    # This method uses Redis SETNX operation to prevent race conditions
-    # when processing concurrent webhook deliveries.
+    # This method checks for existence and saves atomically using
+    # Familia's exists? check and save!
     #
     # Legacy method - assumes successful processing
     #
@@ -176,24 +154,20 @@ module Billing
     # @return [Boolean] True if marked successfully (was new), false if already processed
     def self.mark_processed_if_new!(stripe_event_id, event_type)
       event                     = new(stripe_event_id: stripe_event_id)
+
+      # Check if already exists
+      return false if event.exists?
+
       event.event_type          = event_type
       event.processed_at        = Time.now.to_i.to_s
       event.processing_status   = 'success' # Assume success for legacy usage
       event.first_seen_at     ||= Time.now.to_i.to_s
       event.last_attempt_at     = Time.now.to_i.to_s
 
-      # Try to save with NX flag (only if not exists)
-      # Returns true if key was set, false if key already existed
-      # Familia v2: use dbclient for redis connection, dbkey for the key
-      result = event.dbclient.setnx(event.dbkey, event.to_json)
+      # Use Familia's save method to persist all fields as a hash
+      event.save
 
-      # Set expiration if we successfully created the key
-      if result
-        ttl_seconds = 30 * 24 * 60 * 60  # 30 days
-        event.dbclient.expire(event.dbkey, ttl_seconds)
-      end
-
-      result
+      true
     end
 
     # ========================================
@@ -251,9 +225,7 @@ module Billing
       self.processing_status = 'pending'
       self.last_attempt_at   = Time.now.to_i.to_s
       self.retry_count       = (retry_count.to_i + 1).to_s
-      dbclient.set(dbkey, to_json)
-      dbclient.expire(dbkey, 30 * 24 * 60 * 60)
-      true
+      save
     end
 
     # Mark event as successfully processed
@@ -263,9 +235,7 @@ module Billing
       self.processing_status = 'success'
       self.processed_at      = Time.now.to_i.to_s
       self.error_message     = nil # Clear any previous errors
-      dbclient.set(dbkey, to_json)
-      dbclient.expire(dbkey, 30 * 24 * 60 * 60)
-      true
+      save
     end
 
     # Mark event as failed
@@ -276,9 +246,7 @@ module Billing
       self.processing_status = max_retries_reached? ? 'failed' : 'retrying'
       self.error_message     = error.message
       self.last_attempt_at   = Time.now.to_i.to_s
-      dbclient.set(dbkey, to_json)
-      dbclient.expire(dbkey, 30 * 24 * 60 * 60)
-      true
+      save
     end
 
     # ========================================

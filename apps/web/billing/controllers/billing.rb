@@ -9,7 +9,7 @@ require_relative '../lib/stripe_client'
 
 module Billing
   module Controllers
-    class Billing
+    class BillingController
       include Controllers::Base
 
       # Get billing overview for organization

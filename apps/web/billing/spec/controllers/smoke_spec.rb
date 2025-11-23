@@ -23,7 +23,7 @@ RSpec.describe 'Billing Controllers', :integration do
 
     it 'mounts controllers correctly' do
       expect(Billing::Controllers::Webhooks).not_to be_nil
-      expect(Billing::Controllers::Billing).not_to be_nil
+      expect(Billing::Controllers::BillingController).not_to be_nil
       expect(Billing::Controllers::Plans).not_to be_nil
       expect(Billing::Controllers::Capabilities).not_to be_nil
     end

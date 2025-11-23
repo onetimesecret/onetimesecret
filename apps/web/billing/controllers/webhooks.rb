@@ -72,10 +72,9 @@ module Billing
           return json_error('Invalid event timestamp', status: 400)
         end
 
-        # Atomically check and mark event as processing
-        # Uses Redis SETNX to prevent race conditions with concurrent webhook deliveries
-        unless validator.mark_processed!(event.id, event.type)
-          billing_logger.info 'Webhook event already processed (duplicate)', {
+        # Check if event was already successfully processed (idempotency)
+        if validator.successfully_processed?(event.id)
+          billing_logger.info 'Webhook event already processed successfully (duplicate)', {
             event_type: event.type,
             event_id: event.id,
           }
@@ -83,33 +82,68 @@ module Billing
           return json_success('Event already processed')
         end
 
+        # Initialize event record with full Stripe metadata
+        event_record = validator.initialize_event_record(event, payload)
+
+        # Check if max retries reached (permanent failure)
+        if event_record.max_retries_reached?
+          billing_logger.error 'Webhook event max retries reached - giving up', {
+            event_type: event.type,
+            event_id: event.id,
+            retry_count: event_record.retry_count,
+            last_error: event_record.error_message,
+          }
+          res.status = 200  # Return 200 to stop Stripe retries
+          return json_success('Event max retries reached')
+        end
+
         billing_logger.info 'Webhook event received and validated', {
           event_type: event.type,
           event_id: event.id,
+          retry_count: event_record.retry_count,
         }
 
-        # Process event with error handling and rollback
+        # Mark event as currently processing
+        event_record.mark_processing!
+
+        # Process event with error handling and state tracking
         begin
           process_webhook_event(event)
-        rescue StandardError => ex
-          # Remove processed marker on failure so Stripe can retry
-          # This enables automatic recovery from transient failures
-          validator.unmark_processed!(event.id)
 
-          billing_logger.error 'Webhook processing failed - event unmarked for retry', {
+          # Mark as successfully processed
+          event_record.mark_success!
+
+          billing_logger.info 'Webhook event processed successfully', {
             event_type: event.type,
             event_id: event.id,
+            retry_count: event_record.retry_count,
+          }
+
+          res.status = 200
+          json_success('Event processed')
+        rescue StandardError => ex
+          # Mark as failed (will set to 'retrying' if retries remain, 'failed' if exhausted)
+          event_record.mark_failed!(ex)
+
+          billing_logger.error 'Webhook processing failed', {
+            event_type: event.type,
+            event_id: event.id,
+            retry_count: event_record.retry_count,
+            processing_status: event_record.processing_status,
             error: ex.message,
             backtrace: ex.backtrace&.first(5),
           }
 
-          # Return 500 so Stripe retries the webhook
-          res.status = 500
-          return json_error('Webhook processing failed', status: 500)
+          # Return 500 so Stripe retries (if retries remain)
+          # Return 200 if max retries reached (to stop Stripe retries)
+          if event_record.max_retries_reached?
+            res.status = 200
+            json_error('Event max retries reached', status: 200)
+          else
+            res.status = 500
+            json_error('Webhook processing failed', status: 500)
+          end
         end
-
-        res.status = 200
-        json_success('Event processed')
       end
 
       private
