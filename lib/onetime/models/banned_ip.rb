@@ -4,6 +4,8 @@
 
 module Onetime
   class BannedIP < Familia::Horreum
+    include Familia::Features::Autoloader
+
     using Familia::Refinements::TimeLiterals
 
     prefix :banned_ip
@@ -19,17 +21,18 @@ module Onetime
     field :banned_at
 
     # Create unique index on IP address
-    unique_index :ip_address, :ip_index
+    class_hashkey :ip_index
 
     def init
       self.banned_at ||= Familia.now.to_i
+      self.class.ip_index[ip_address] = objid if ip_address
     end
 
     class << self
       def ban!(ip_address, reason: nil, banned_by: nil, expiration: nil)
         # Check if already banned
-        existing = find_by_ip_address(ip_address)
-        return existing if existing
+        existing_id = ip_index[ip_address]
+        return load(existing_id) if existing_id
 
         # Create new ban
         banned_ip = new(
@@ -41,13 +44,24 @@ module Onetime
 
         banned_ip.default_expiration = expiration if expiration
         banned_ip.save
+
+        # Add to index
+        ip_index[ip_address] = banned_ip.objid
+
         banned_ip
       end
 
       def unban!(ip_address)
-        banned_ip = find_by_ip_address(ip_address)
+        existing_id = ip_index[ip_address]
+        return false unless existing_id
+
+        banned_ip = load(existing_id)
         return false unless banned_ip
 
+        # Remove from index first
+        ip_index.delete(ip_address)
+
+        # Then destroy the record
         banned_ip.destroy!
         true
       end
