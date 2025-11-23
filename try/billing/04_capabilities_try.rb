@@ -23,44 +23,79 @@ require 'apps/web/billing/models/plan'
 Billing::Plan.clear_cache
 
 ## Free plan
-Billing::Plan.new(
+@free_plan = Billing::Plan.new(
   plan_id: 'free',
   tier: 'free',
   interval: 'month',
   region: 'us-east',
-  capabilities: '["create_secrets", "basic_sharing", "view_metadata"]',
-  limits: '{"secrets_per_day": 10, "secret_lifetime": 604800}'
-).save
+)
+@free_plan.capabilities.add('create_secrets')
+@free_plan.capabilities.add('basic_sharing')
+@free_plan.capabilities.add('view_metadata')
+@free_plan.limits['secrets_per_day.max'] = '10'
+@free_plan.limits['secret_lifetime.max'] = '604800'
+@free_plan.save
 
 ## Identity Plus v1
-Billing::Plan.new(
+@identity_plan = Billing::Plan.new(
   plan_id: 'identity_v1',
   tier: 'single_team',
   interval: 'month',
   region: 'us-east',
-  capabilities: '["create_secrets", "basic_sharing", "view_metadata", "create_team", "custom_domains", "priority_support", "extended_lifetime"]',
-  limits: '{"teams": 1, "members_per_team": -1, "custom_domains": -1, "secret_lifetime": 2592000}'
-).save
+)
+@identity_plan.capabilities.add('create_secrets')
+@identity_plan.capabilities.add('basic_sharing')
+@identity_plan.capabilities.add('view_metadata')
+@identity_plan.capabilities.add('create_team')
+@identity_plan.capabilities.add('custom_domains')
+@identity_plan.capabilities.add('priority_support')
+@identity_plan.capabilities.add('extended_lifetime')
+@identity_plan.limits['teams.max'] = '1'
+@identity_plan.limits['members_per_team.max'] = 'unlimited'
+@identity_plan.limits['custom_domains.max'] = 'unlimited'
+@identity_plan.limits['secret_lifetime.max'] = '2592000'
+@identity_plan.save
 
 ## Multi-Team v1
-Billing::Plan.new(
+@multi_plan = Billing::Plan.new(
   plan_id: 'multi_team_v1',
   tier: 'multi_team',
   interval: 'month',
   region: 'us-east',
-  capabilities: '["create_secrets", "basic_sharing", "view_metadata", "create_teams", "custom_domains", "api_access", "priority_support", "extended_lifetime", "audit_logs", "advanced_analytics"]',
-  limits: '{"teams": -1, "members_per_team": -1, "custom_domains": -1, "api_rate_limit": 10000, "secret_lifetime": 7776000}'
-).save
+)
+@multi_plan.capabilities.add('create_secrets')
+@multi_plan.capabilities.add('basic_sharing')
+@multi_plan.capabilities.add('view_metadata')
+@multi_plan.capabilities.add('create_teams')
+@multi_plan.capabilities.add('custom_domains')
+@multi_plan.capabilities.add('api_access')
+@multi_plan.capabilities.add('priority_support')
+@multi_plan.capabilities.add('extended_lifetime')
+@multi_plan.capabilities.add('audit_logs')
+@multi_plan.capabilities.add('advanced_analytics')
+@multi_plan.limits['teams.max'] = 'unlimited'
+@multi_plan.limits['members_per_team.max'] = 'unlimited'
+@multi_plan.limits['custom_domains.max'] = 'unlimited'
+@multi_plan.limits['api_rate_limit.max'] = '10000'
+@multi_plan.limits['secret_lifetime.max'] = '7776000'
+@multi_plan.save
 
 ## Legacy Identity v0 (for testing legacy plan support)
-Billing::Plan.new(
+@legacy_plan = Billing::Plan.new(
   plan_id: 'identity_v0',
   tier: 'single_team',
   interval: 'month',
   region: 'us-east',
-  capabilities: '["create_secrets", "basic_sharing", "view_metadata", "create_team", "priority_support"]',
-  limits: '{"teams": 1, "members_per_team": 10, "secret_lifetime": 1209600}'
-).save
+)
+@legacy_plan.capabilities.add('create_secrets')
+@legacy_plan.capabilities.add('basic_sharing')
+@legacy_plan.capabilities.add('view_metadata')
+@legacy_plan.capabilities.add('create_team')
+@legacy_plan.capabilities.add('priority_support')
+@legacy_plan.limits['teams.max'] = '1'
+@legacy_plan.limits['members_per_team.max'] = '10'
+@legacy_plan.limits['secret_lifetime.max'] = '1209600'
+@legacy_plan.save
 
 ## Create unique test ID suffix to avoid collisions
 @test_suffix = Time.now.to_i.to_s[-6..-1]
