@@ -55,7 +55,7 @@ module Billing
     prefix :stripe_webhook_event
 
     feature :expiration
-    default_expiration 30.days # Extended for compliance/audit
+    default_expiration 5.days # Covers Stripe retry window + debugging
 
     identifier_field :stripe_event_id
 
