@@ -3,12 +3,14 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require_relative 'validation_helpers'
 
 module Onetime
   module CLI
     # Validate Stripe prices for sanity and consistency
     class BillingPricesValidateCommand < Command
       include BillingHelpers
+      include ValidationHelpers
 
       desc 'Validate Stripe prices (Stripe API only)'
 
@@ -292,38 +294,14 @@ module Onetime
         # Silently skip if we can't fetch related prices
       end
 
-      def stripe_dashboard_url(type, id)
-        base = if Stripe.api_key.start_with?('sk_live_')
-                 'https://dashboard.stripe.com'
-               else
-                 'https://dashboard.stripe.com/test'
-               end
-
-        case type
-        when :price
-          "#{base}/prices/#{id}"
-        when :product
-          "#{base}/products/#{id}"
-        else
-          base
-        end
-      end
+      # stripe_dashboard_url now provided by ValidationHelpers module
 
       def print_price_summary(prices, products_map, errors, warnings)
-        # Count errors and warnings by price_id
-        valid_count = 0
-        error_price_ids = errors.map { |e| e.is_a?(Hash) ? e[:price_id] : nil }.compact.uniq
-        warning_price_ids = warnings.map { |w| w.is_a?(Hash) ? w[:price_id] : nil }.compact.uniq
-
-        prices.each do |price|
-          next if error_price_ids.include?(price.id) || warning_price_ids.include?(price.id)
-          valid_count += 1
-        end
+        # Count valid prices using shared helper
+        valid_count = count_valid_items(prices, errors, warnings, :id)
 
         # Print summary section
-        puts '━' * 80
-        puts 'SUMMARY'
-        puts '━' * 80
+        print_section_header('SUMMARY')
         puts "  Total prices:         #{prices.size}"
         puts "  Valid prices:         #{valid_count}"
         puts "  Prices with errors:   #{error_price_ids.size}"
@@ -331,9 +309,7 @@ module Onetime
         puts
 
         # Print table section
-        puts '━' * 120
-        puts 'PRICES'
-        puts '━' * 120
+        print_section_header('PRICES', 120)
         puts format('%-31s %-25s %-12s %-9s %s',
                     'PRICE ID', 'PRODUCT', 'AMOUNT', 'INTERVAL', 'STATUS')
         puts '━' * 120
@@ -360,19 +336,8 @@ module Onetime
 
           interval_str = price.type == 'recurring' ? price.recurring.interval : price.type
 
-          # Determine status
-          price_errors = errors.select { |e| e.is_a?(Hash) && e[:price_id] == price.id }
-          price_warnings = warnings.select { |w| w.is_a?(Hash) && w[:price_id] == price.id }
-
-          status = if price_errors.any? { |e| e[:type] == :archived_product }
-                    '✗ Unusable'
-                  elsif price_errors.any?
-                    '✗ Invalid'
-                  elsif price_warnings.any?
-                    '⚠ Warning'
-                  else
-                    '✓ Valid'
-                  end
+          # Determine status using shared helper
+          status = status_for_price(price, errors, warnings)
 
           puts format('%-31s %-25s %-12s %-9s %s',
                       price.id, product_name, amount_str, interval_str, status)
@@ -382,90 +347,12 @@ module Onetime
       end
 
       def print_validation_results(errors, warnings, strict)
-        # Separate structured errors from legacy string errors
-        structured_errors = errors.select { |e| e.is_a?(Hash) }
-        string_errors = errors.select { |e| e.is_a?(String) }
+        # Use shared helpers for consistent output
+        print_errors_section(errors) if errors.any?
+        print_warnings_section(warnings) if warnings.any?
+        print_final_status(errors, warnings, strict)
 
-        structured_warnings = warnings.select { |w| w.is_a?(Hash) }
-        string_warnings = warnings.select { |w| w.is_a?(String) }
-
-        # Print errors section
-        if structured_errors.any? || string_errors.any?
-          puts '━' * 80
-          puts "ERRORS (#{errors.size})"
-          puts '━' * 80
-          puts
-
-          structured_errors.each do |error|
-            puts "  ✗ #{error[:price_id]}: #{error[:message]}"
-            puts
-            puts "    #{error[:details]}" if error[:details]
-            puts
-            if error[:resolution]
-              puts "    Resolution:"
-              error[:resolution].each { |step| puts "    - #{step}" }
-              puts
-            end
-          end
-
-          string_errors.each { |error| puts "  ✗ #{error}" }
-          puts if string_errors.any?
-        end
-
-        # Print warnings section
-        if structured_warnings.any? || string_warnings.any?
-          puts '━' * 80
-          puts "WARNINGS (#{warnings.size})"
-          puts '━' * 80
-          puts
-
-          structured_warnings.each do |warning|
-            puts "  ⚠ #{warning[:price_id]}: #{warning[:message]}"
-            puts
-            puts "    #{warning[:details]}" if warning[:details]
-            puts
-            if warning[:resolution]
-              puts "    Resolution:"
-              warning[:resolution].each { |step| puts "    - #{step}" }
-              puts
-            end
-          end
-
-          string_warnings.each { |warning| puts "  • #{warning}" }
-          puts if string_warnings.any?
-        end
-
-        # Print final status at the end
-        puts '━' * 80
-        if errors.any?
-          puts '❌  VALIDATION FAILED'
-          puts '━' * 80
-          puts
-          puts "#{errors.size} price(s) have errors that prevent them from being used."
-          puts 'Fix errors above or use --help for guidance.'
-          puts
-        elsif warnings.any? && strict
-          puts '❌  VALIDATION FAILED'
-          puts '━' * 80
-          puts
-          puts "#{warnings.size} warning(s) treated as errors in strict mode."
-          puts
-        elsif warnings.any?
-          puts '✅  VALIDATION PASSED'
-          puts '━' * 80
-          puts
-          puts "All prices are valid (#{warnings.size} warning(s) found)."
-          puts
-          puts 'Run with --strict to treat warnings as errors.'
-          puts
-        else
-          puts '✅  VALIDATION PASSED'
-          puts '━' * 80
-          puts
-          puts 'All prices are valid and ready for use.'
-          puts
-        end
-
+        # Exit with appropriate code
         if errors.empty? && warnings.empty?
           exit 0
         elsif errors.empty? && !strict
