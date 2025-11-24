@@ -180,14 +180,18 @@ module Onetime
 
         # Get health status across all initializers
         #
+        # Healthy means no required initializers failed. Skipped and pending
+        # initializers (from conditional execution) don't affect health.
+        #
         # @return [Hash] Health check results
         def health_check
           {
-            healthy: @initializers.all?(&:completed?),
+            healthy: @initializers.reject(&:optional).none?(&:failed?),
             total: @initializers.size,
             completed: @initializers.count(&:completed?),
             failed: @initializers.count(&:failed?),
             skipped: @initializers.count(&:skipped?),
+            pending: @initializers.count { |i| i.status == Initializer::STATUS_PENDING },
             total_elapsed_ms: @total_elapsed_ms,
           }
         end
