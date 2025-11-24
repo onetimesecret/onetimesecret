@@ -3,12 +3,14 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require_relative 'validation_helpers'
 
 module Onetime
   module CLI
     # Validate product-price relationships for production readiness
     class BillingPlansValidateCommand < Command
       include BillingHelpers
+      include ValidationHelpers
 
       desc 'Validate plan production readiness (products + prices)'
 
@@ -73,7 +75,18 @@ module Onetime
 
         # Critical: Product must have at least one recurring price
         if recurring_prices.empty?
-          errors << "Product #{product_id} (#{plan_id}): NO RECURRING PRICES - Cannot be used"
+          errors << {
+            product_id: product_id,
+            plan_id: plan_id,
+            type: :no_recurring_prices,
+            message: 'No recurring prices',
+            details: "Product has 0 recurring prices and cannot be used for subscriptions.",
+            resolution: [
+              'Create monthly and yearly prices',
+              'Or archive product if no longer offered',
+              "See: #{stripe_dashboard_url(:product, product_id)}"
+            ]
+          }
           return
         end
 
@@ -81,13 +94,27 @@ module Onetime
         intervals = recurring_prices.map { |p| p.recurring.interval }.uniq
         if intervals.size == 1
           missing = (%w[month year] - intervals).first
-          warnings << "Product #{product_id} (#{plan_id}): Missing #{missing}ly price (recommend both)"
+          warnings << {
+            product_id: product_id,
+            plan_id: plan_id,
+            type: :missing_interval,
+            message: "Missing #{missing}ly price",
+            details: "Product only has #{intervals.first}ly pricing. Annual pricing is recommended for better LTV.",
+            resolution: ["Add #{missing}ly price option"]
+          }
         end
 
         # Check for duplicate intervals with same currency
         recurring_prices.group_by { |p| [p.recurring.interval, p.currency] }.each do |(interval, currency), group|
           if group.size > 1
-            warnings << "Product #{product_id} (#{plan_id}): #{group.size} duplicate #{interval}ly #{currency.upcase} prices"
+            warnings << {
+              product_id: product_id,
+              plan_id: plan_id,
+              type: :duplicate_prices,
+              message: "Duplicate interval pricing",
+              details: "#{group.size} duplicate #{interval}ly #{currency.upcase} prices found.",
+              resolution: ['Consider archiving extras to avoid confusion']
+            }
           end
         end
 
@@ -100,16 +127,32 @@ module Onetime
 
       def validate_product_metadata(product, errors)
         required_fields = %w[app plan_id tier region]
+        missing_fields = required_fields.reject { |field| product.metadata[field] }
 
-        required_fields.each do |field|
-          unless product.metadata[field]
-            errors << "Product #{product.id}: Missing required metadata '#{field}'"
-          end
+        if missing_fields.any?
+          errors << {
+            product_id: product.id,
+            plan_id: product.metadata['plan_id'] || 'unknown',
+            type: :missing_metadata,
+            message: 'Missing required metadata',
+            details: "Required metadata fields missing: #{missing_fields.join(', ')}",
+            resolution: [
+              "Update product metadata: bin/ots billing products update #{product.id}",
+              "See: #{stripe_dashboard_url(:product, product.id)}"
+            ]
+          }
         end
 
         # Validate app field value
         if product.metadata['app'] && product.metadata['app'] != 'onetimesecret'
-          errors << "Product #{product.id}: Invalid app metadata (expected: 'onetimesecret', got: '#{product.metadata['app']}')"
+          errors << {
+            product_id: product.id,
+            plan_id: product.metadata['plan_id'] || 'unknown',
+            type: :invalid_app_metadata,
+            message: 'Invalid app metadata',
+            details: "Expected 'onetimesecret', got '#{product.metadata['app']}'",
+            resolution: ['Update app metadata to onetimesecret']
+          }
         end
       end
 
@@ -118,7 +161,14 @@ module Onetime
         # Individual validation just ensures plan_id exists
         return if product.metadata['plan_id']
 
-        errors << "Product #{product.id}: Missing plan_id metadata"
+        errors << {
+          product_id: product.id,
+          plan_id: 'none',
+          type: :missing_plan_id,
+          message: 'Missing plan_id metadata',
+          details: 'Product is missing required plan_id metadata field',
+          resolution: ["Add plan_id metadata: bin/ots billing products update #{product.id} --plan_id YOUR_PLAN_ID"]
+        }
       end
 
       def check_plan_id_duplicates(products, errors)
@@ -129,7 +179,17 @@ module Onetime
         duplicates.each do |plan_id|
           matching_products = products.select { |p| p.metadata['plan_id'] == plan_id }
           product_ids = matching_products.map(&:id).join(', ')
-          errors << "Duplicate plan_id '#{plan_id}' found in products: #{product_ids}"
+          errors << {
+            product_id: product_ids,
+            plan_id: plan_id,
+            type: :duplicate_plan_id,
+            message: "Duplicate plan_id '#{plan_id}'",
+            details: "Multiple products share the same plan_id: #{product_ids}",
+            resolution: [
+              'Each product must have a unique plan_id',
+              'Update or archive duplicate products'
+            ]
+          }
         end
       end
 
@@ -137,10 +197,30 @@ module Onetime
         # Check for plan_id duplicates across all products
         check_plan_id_duplicates(products, errors)
 
+        # Count ready/not ready products
+        ready_count = products.count do |p|
+          prices = prices_by_product[p.id] || []
+          prices.any? { |price| price.type == 'recurring' }
+        end
+
+        # Count items using shared helper
+        valid_count = count_valid_items(products, errors, warnings, :id)
+        error_count = errors.select { |e| e.is_a?(Hash) }.map { |e| e[:product_id] }.compact.uniq.size
+        warning_count = warnings.select { |w| w.is_a?(Hash) }.map { |w| w[:product_id] }.compact.uniq.size
+
+        # Print summary section
+        print_section_header('SUMMARY')
+        puts "  Total products:      #{products.size}"
+        puts "  Production ready:    #{ready_count}"
+        puts "  Not ready:           #{products.size - ready_count}"
+        puts "  Issues found:        #{error_count} errors, #{warning_count} warnings"
         puts
-        puts format('%-18s %-20s %-15s %-8s %s',
+
+        # Print table section
+        print_section_header('PLANS')
+        puts format('%-22s %-20s %-7s %-16s %s',
                     'PRODUCT ID', 'PLAN ID', 'REGION', 'PRICES', 'STATUS')
-        puts '-' * 90
+        print_separator()
 
         products.sort_by { |p| -(p.metadata['display_order']&.to_i || 0) }.each do |product|
           plan_id = product.metadata['plan_id'] || '(none)'
@@ -156,68 +236,35 @@ module Onetime
                             "#{recurring_prices.size} (#{intervals.join(', ')})"
                           end
 
-          # Determine status
-          product_errors = errors.select { |e| e.include?(product.id) || e.include?(plan_id) }
-          product_warnings = warnings.select { |w| w.include?(product.id) || w.include?(plan_id) }
+          # Determine status using structured errors/warnings
+          product_errors = errors.select { |e| e.is_a?(Hash) && (e[:product_id] == product.id || e[:plan_id] == plan_id) }
+          product_warnings = warnings.select { |w| w.is_a?(Hash) && (w[:product_id] == product.id || w[:plan_id] == plan_id) }
 
           status = if recurring_prices.empty?
-                    '✗ NOT READY - No prices'
+                    STATUS_NOT_READY
                   elsif product_errors.any?
-                    '✗ INVALID'
+                    STATUS_ERROR
                   elsif product_warnings.any?
-                    '⚠️  WARNING'
+                    STATUS_INCOMPLETE
                   else
-                    '✓ Ready'
+                    STATUS_READY
                   end
 
-          puts format('%-18s %-20s %-15s %-8s %s',
-                      product.id[0..16], plan_id[0..18], region[0..13], price_summary, status)
+          # Full product ID (no truncation)
+          puts format('%-22s %-20s %-7s %-16s %s',
+                      product.id, plan_id[0..18], region[0..5], price_summary, status)
         end
 
         puts
-        ready_count = products.count do |p|
-          prices = prices_by_product[p.id] || []
-          prices.any? { |price| price.type == 'recurring' }
-        end
-
-        puts "Plans ready for production: #{ready_count}/#{products.size}"
       end
 
       def print_validation_results(errors, warnings, strict)
-        puts
+        # Use shared helpers for consistent output
+        print_errors_section(errors) if errors.any?
+        print_warnings_section(warnings) if warnings.any?
+        print_final_status(errors, warnings, strict)
 
-        if errors.any?
-          puts '  ' + '━' * 62
-          puts "   ❌  VALIDATION FAILED: #{errors.size} error(s) found"
-          puts '  ' + '━' * 62
-          puts
-          errors.each { |error| puts "  ✗ #{error}" }
-          puts
-          puts 'Plans with errors are NOT production-ready'
-          puts
-        elsif warnings.any? && strict
-          puts '  ' + '━' * 62
-          puts "   ❌  VALIDATION FAILED: #{warnings.size} warning(s) in strict mode"
-          puts '  ' + '━' * 62
-          puts
-          warnings.each { |warning| puts "  • #{warning}" }
-          puts
-        elsif warnings.any?
-          puts '  ' + '━' * 62
-          puts '   ✅  VALIDATION PASSED (warnings only)'
-          puts '  ' + '━' * 62
-          puts
-          puts "  ⚠️  #{warnings.size} warning(s):"
-          puts
-          warnings.each { |warning| puts "  • #{warning}" }
-          puts
-        else
-          puts '  ' + '━' * 62
-          puts '   ✅  ALL PLANS PRODUCTION-READY'
-          puts '  ' + '━' * 62
-          puts
-        end
-
+        # Exit with appropriate code
         if errors.empty? && warnings.empty?
           exit 0
         elsif errors.empty? && !strict

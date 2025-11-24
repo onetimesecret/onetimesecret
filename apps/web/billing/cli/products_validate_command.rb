@@ -3,12 +3,14 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require_relative 'validation_helpers'
 
 module Onetime
   module CLI
     # Validate Stripe product metadata
     class BillingProductsValidateCommand < Command
       include BillingHelpers
+      include ValidationHelpers
 
       desc 'Validate Stripe product metadata completeness'
 
@@ -37,124 +39,104 @@ module Onetime
           return 0
         end
 
-        # Detect duplicates
-        duplicates = detect_duplicate_products(products.data)
+        errors = []
+        warnings = []
 
-        # Categorize products
-        valid_products = []
-        invalid_products = []
-
+        # Validate each product and collect structured errors
         products.data.each do |product|
-          errors = validate_product_metadata(product)
-          if errors.empty?
-            valid_products << product
-          else
-            invalid_products << product
-          end
+          validate_product(product, errors, warnings)
         end
 
-        # Determine overall validation status
-        has_duplicates = duplicates.any?
-        has_invalid = invalid_products.any?
-        validation_passed = !has_duplicates && !has_invalid
+        # Fetch price counts for display
+        price_counts = fetch_price_counts(products.data)
 
         # Display results
-        if validation_passed
-          display_success(valid_products)
-          return 0
-        else
-          display_failure(duplicates, invalid_products, valid_products)
-          exit 1
-        end
+        print_products_summary(products.data, price_counts, errors, warnings)
+        print_errors_section(errors) if errors.any?
+        print_warnings_section(warnings) if warnings.any?
+        print_final_status(errors, warnings, false)
+
+        errors.any? ? exit(1) : exit(0)
       end
 
       private
 
-      def display_success(valid_products)
-        puts '  ' + '━' * 62
-        puts "   ✅  VALIDATION PASSED: #{valid_products.size} products valid"
-        puts '  ' + '━' * 62
-        puts
-        print_valid_products_section(valid_products)
-      end
+      def validate_product(product, errors, warnings)
+        required_fields = %w[app plan_id tier region]
+        missing_fields = required_fields.reject { |field| product.metadata[field] }
 
-      def display_failure(duplicates, invalid_products, valid_products)
-        total = duplicates.values.flatten.size + invalid_products.size + valid_products.size
-        invalid_count = invalid_products.size
-
-        puts '  ' + '━' * 62
-        puts "   🔴  VALIDATION FAILED: #{invalid_count} of #{total} products incomplete"
-        puts '  ' + '━' * 62
-        puts
-
-        # Show duplicates first (issues)
-        if duplicates.any?
-          print_duplicates_section(duplicates)
-          puts
+        if missing_fields.any?
+          errors << {
+            product_id: product.id,
+            type: :missing_metadata,
+            message: 'Missing required metadata',
+            details: "Required fields missing: #{missing_fields.join(', ')}",
+            resolution: [
+              "Update metadata: bin/ots billing products update #{product.id}",
+              'Or archive if not needed',
+              "See: #{stripe_dashboard_url(:product, product.id)}"
+            ]
+          }
         end
 
-        # Show valid products
-        if valid_products.any?
-          print_valid_products_section(valid_products)
-          puts
-        end
-
-        # Show invalid products
-        if invalid_products.any?
-          print_invalid_products_section(invalid_products)
+        # Check for duplicate plan_ids (will be detected across all products)
+        # Individual validation just ensures plan_id exists
+        unless product.metadata['plan_id']
+          warnings << {
+            product_id: product.id,
+            type: :missing_plan_id,
+            message: 'Missing plan_id',
+            details: 'Product metadata missing plan_id field'
+          }
         end
       end
 
-      def print_duplicates_section(duplicates)
-        print_validation_section_header("ISSUES")
-        puts "  ⚠️  #{duplicates.size} conflict(s)"
+      def print_products_summary(products, price_counts, errors, warnings)
+        valid_count = count_valid_items(products, errors, warnings, :id)
+        error_count = errors.size
+        duplicate_count = detect_duplicate_plan_ids(products)
+
+        # Print summary section
+        print_section_header('SUMMARY')
+        puts "  Total products:      #{products.size}"
+        puts "  Valid metadata:      #{valid_count}"
+        puts "  Incomplete:          #{error_count}"
+        puts "  Duplicate plan_ids:  #{duplicate_count}"
         puts
 
-        duplicates.each do |key, products|
-          name, _region = key.split('|')
-          print_duplicate_group_compact(name, products)
-        end
+        # Print table section
+        print_section_header('PRODUCTS')
+        puts format('%-22s %-20s %-20s %-7s %-7s %s',
+                    'PRODUCT ID', 'NAME', 'PLAN ID', 'REGION', 'PRICES', 'STATUS')
+        print_separator()
 
-        print_validation_section_footer
-      end
+        products.each do |product|
+          product_errors = errors.select { |e| e.is_a?(Hash) && e[:product_id] == product.id }
+          product_warnings = warnings.select { |w| w.is_a?(Hash) && w[:product_id] == product.id }
 
-      def print_invalid_products_section(invalid_products)
-        print_validation_section_header("INVALID (#{invalid_products.size})")
-
-        invalid_products.each do |product|
-          plan_id = product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'n/a'
-          region = product.metadata[Billing::Metadata::FIELD_REGION] || 'n/a'
-          active = product.active ? 'YES' : 'NO'
-
-          # Format: ✗ prod_id  name  plan_id  active
-          puts "  ✗ #{product.id.ljust(20)}  #{product.name.ljust(20)} #{plan_id.ljust(12)} #{active.ljust(7)}"
-        end
-
-        puts
-        puts '      See details:'
-        puts '        bin/ots billing products --invalid'
-
-        print_validation_section_footer
-      end
-
-      def print_valid_products_section(valid_products)
-        print_validation_section_header("VALID (#{valid_products.size})")
-
-        # Fetch price counts for all products
-        price_counts = fetch_price_counts(valid_products)
-
-        valid_products.each do |product|
-          plan_id = product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'n/a'
-          region = product.metadata[Billing::Metadata::FIELD_REGION] || 'n/a'
-          name = product.name
+          name = product.name[0..18]
+          plan_id = product.metadata['plan_id'] || 'n/a'
+          region = product.metadata['region'] || 'n/a'
           price_count = price_counts[product.id] || 0
 
-          # Format: ✓ prod_id  name  plan_id  region  [N prices]
-          price_indicator = price_count.zero? ? "[0 prices]" : "[#{price_count} prices]"
-          puts "  ✓ #{product.id.ljust(20)}  #{name.ljust(20)} #{plan_id.ljust(17)} #{region.ljust(6)} #{price_indicator}"
+          status = if product_errors.any?
+                    STATUS_INCOMPLETE
+                  elsif product_warnings.any?
+                    STATUS_WARNING
+                  else
+                    STATUS_VALID
+                  end
+
+          puts format('%-22s %-20s %-20s %-7s %-7s %s',
+                      product.id, name, plan_id[0..18], region[0..5], price_count, status)
         end
 
-        print_validation_section_footer
+        puts
+      end
+
+      def detect_duplicate_plan_ids(products)
+        plan_ids = products.map { |p| p.metadata['plan_id'] }.compact
+        plan_ids.size - plan_ids.uniq.size
       end
 
       def fetch_price_counts(products)

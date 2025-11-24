@@ -28,6 +28,11 @@ module Auth::Config::Features
       # In JSON mode, this becomes the "error" field in the response
       # Field-specific errors are still returned in "field-error" array
       auth.create_account_error_flash 'Unable to create account'
+
+      # SECURITY: Override verify_account's specific error messages with generic one
+      # Prevents information disclosure about account existence/status
+      auth.attempt_to_create_unverified_account_error_flash 'Unable to create account'
+      auth.attempt_to_login_to_unverified_account_error_flash 'Unable to create account'
     end
   end
 end

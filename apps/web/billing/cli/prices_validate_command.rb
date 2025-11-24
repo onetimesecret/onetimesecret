@@ -3,12 +3,14 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require_relative 'validation_helpers'
 
 module Onetime
   module CLI
     # Validate Stripe prices for sanity and consistency
     class BillingPricesValidateCommand < Command
       include BillingHelpers
+      include ValidationHelpers
 
       desc 'Validate Stripe prices (Stripe API only)'
 
@@ -63,24 +65,62 @@ module Onetime
       end
 
       def fetch_products_map
-        products = Stripe::Product.list({ active: true, limit: 100 }).auto_paging_each.to_a
-        products.to_h { |p| [p.id, p] }
+        # Fetch both active and archived products to distinguish states
+        active = Stripe::Product.list({ active: true, limit: 100 }).auto_paging_each.to_a
+        archived = Stripe::Product.list({ active: false, limit: 100 }).auto_paging_each.to_a
+
+        {
+          active: active.to_h { |p| [p.id, p] },
+          archived: archived.to_h { |p| [p.id, p] }
+        }
       rescue Stripe::StripeError => e
         puts "❌ Warning: Could not fetch products: #{e.message}"
-        {}
+        { active: {}, archived: {} }
       end
 
       def validate_price(price, products_map, errors, warnings)
-        # Check if product exists
-        product = products_map[price.product]
+        # Check if product exists in active products
+        product = products_map[:active][price.product]
+
         unless product
-          errors << "Price #{price.id}: Product #{price.product} not found or inactive"
+          # Check if product is archived
+          archived_product = products_map[:archived][price.product]
+
+          if archived_product
+            errors << {
+              price_id: price.id,
+              type: :archived_product,
+              message: 'Attached to archived product',
+              details: "Product #{price.product} is archived and cannot be used for new subscriptions.",
+              resolution: [
+                'Create new active product if needed',
+                'Archive this price if no longer needed',
+                "See: #{stripe_dashboard_url(:price, price.id)}"
+              ]
+            }
+          else
+            errors << {
+              price_id: price.id,
+              type: :missing_product,
+              message: 'Product not found',
+              details: "Product #{price.product} does not exist in Stripe.",
+              resolution: [
+                'Verify product ID in Stripe Dashboard',
+                'This price may need to be archived'
+              ]
+            }
+          end
           return
         end
 
         # Validate price type (should be recurring for subscriptions)
         unless price.type == 'recurring'
-          warnings << "Price #{price.id}: Type is '#{price.type}' (expected: recurring for subscriptions)"
+          warnings << {
+            price_id: price.id,
+            type: :wrong_price_type,
+            message: "Type is '#{price.type}' (expected: recurring)",
+            details: 'Subscription plans should use recurring prices.'
+          }
         end
 
         # Validate recurring configuration
@@ -103,17 +143,32 @@ module Onetime
 
         # Check interval
         unless %w[month year].include?(recurring.interval)
-          warnings << "Price #{price.id}: Unusual interval '#{recurring.interval}' (expected: month or year)"
+          warnings << {
+            price_id: price.id,
+            type: :unusual_interval,
+            message: "Unusual interval '#{recurring.interval}'",
+            details: 'Standard subscriptions use monthly or yearly intervals.'
+          }
         end
 
         # Check interval_count (should be 1 for standard subscriptions)
         if recurring.interval_count && recurring.interval_count != 1
-          warnings << "Price #{price.id}: Interval count is #{recurring.interval_count} (standard subscriptions use 1)"
+          warnings << {
+            price_id: price.id,
+            type: :unusual_interval_count,
+            message: "Interval count is #{recurring.interval_count}",
+            details: 'Standard subscriptions use interval_count of 1.'
+          }
         end
 
         # Check usage type
         unless %w[licensed metered].include?(recurring.usage_type)
-          warnings << "Price #{price.id}: Unusual usage_type '#{recurring.usage_type}'"
+          warnings << {
+            price_id: price.id,
+            type: :unusual_usage_type,
+            message: "Unusual usage_type '#{recurring.usage_type}'",
+            details: 'Expected usage_type: licensed or metered.'
+          }
         end
       end
 
@@ -122,22 +177,57 @@ module Onetime
 
         # Check for zero or null amount
         if amount.nil?
-          warnings << "Price #{price.id}: Amount is null (metered billing)"
+          warnings << {
+            price_id: price.id,
+            type: :null_amount,
+            message: 'Amount is null (metered billing)',
+            details: 'Metered billing prices have usage-based amounts.'
+          }
         elsif amount.zero?
-          errors << "Price #{price.id}: Amount is zero (use free tier instead)"
+          errors << {
+            price_id: price.id,
+            type: :zero_amount,
+            message: 'Amount is $0.00',
+            details: 'Use free tier product instead of zero-price.',
+            resolution: [
+              'Archive this price',
+              'Use proper free tier product for $0 plans'
+            ]
+          }
         elsif amount < 0
-          errors << "Price #{price.id}: Negative amount #{amount}"
+          errors << {
+            price_id: price.id,
+            type: :negative_amount,
+            message: "Negative amount #{amount}",
+            details: 'Price amounts must be positive.',
+            resolution: ['Fix amount in Stripe Dashboard']
+          }
         end
 
         # Warn about suspicious amounts (too low/high for typical SaaS)
         if amount && price.type == 'recurring'
           interval = price.recurring.interval
           if interval == 'month' && amount < 100
-            warnings << "Price #{price.id}: Very low monthly price ($#{amount / 100.0})"
+            warnings << {
+              price_id: price.id,
+              type: :low_monthly_price,
+              message: "Very low monthly price ($#{amount / 100.0})",
+              details: 'Monthly prices below $1.00 are unusual for SaaS.'
+            }
           elsif interval == 'year' && amount < 1000
-            warnings << "Price #{price.id}: Very low yearly price ($#{amount / 100.0})"
+            warnings << {
+              price_id: price.id,
+              type: :low_yearly_price,
+              message: "Very low yearly price ($#{amount / 100.0})",
+              details: 'Yearly prices below $10.00 are unusual for SaaS.'
+            }
           elsif amount > 1_000_000
-            warnings << "Price #{price.id}: Very high price ($#{amount / 100.0})"
+            warnings << {
+              price_id: price.id,
+              type: :high_price,
+              message: "Very high price ($#{amount / 100.0})",
+              details: 'Prices above $10,000 are unusual for standard plans.'
+            }
           end
         end
       end
@@ -156,7 +246,13 @@ module Onetime
 
         expected = expected_currencies[region]
         if expected && !expected.include?(currency)
-          warnings << "Price #{price.id}: Currency '#{currency}' unusual for region '#{region}' (expected: #{expected.join(' or ')})"
+          warnings << {
+            price_id: price.id,
+            type: :currency_region_mismatch,
+            message: "Currency '#{currency}' unusual for region '#{region}'",
+            details: "Expected: #{expected.join(' or ')}",
+            resolution: ["Verify currency matches target market"]
+          }
         end
       end
 
@@ -165,7 +261,7 @@ module Onetime
         return unless product
 
         # Find other prices for the same product
-        other_prices = products_map.values
+        other_prices = products_map[:active].values
           .flat_map { |p| Stripe::Price.list({ product: p.id, active: true }).data }
           .select { |p| p.product == price.product && p.id != price.id }
 
@@ -185,85 +281,82 @@ module Onetime
         if current_interval == 'month'
           expected_yearly = price.unit_amount * 10..price.unit_amount * 12
           unless expected_yearly.include?(opposite_price.unit_amount)
-            warnings << "Price #{price.id}: Yearly price #{opposite_price.id} ($#{opposite_price.unit_amount / 100.0}) " \
-                        "seems inconsistent with monthly ($#{price.unit_amount / 100.0})"
+            warnings << {
+              price_id: price.id,
+              type: :pricing_inconsistency,
+              message: 'Pricing consistency issue',
+              details: "Yearly price $#{opposite_price.unit_amount / 100.0} is not 10-12x monthly price $#{price.unit_amount / 100.0}.",
+              resolution: ['Consider adjusting for typical SaaS discount pattern']
+            }
           end
         end
       rescue Stripe::StripeError
         # Silently skip if we can't fetch related prices
       end
 
+      # stripe_dashboard_url now provided by ValidationHelpers module
+
       def print_price_summary(prices, products_map, errors, warnings)
-        puts format('%-15s %-18s %-15s %-8s %-10s %s',
-                    'PRICE ID', 'PRODUCT', 'AMOUNT', 'INTERVAL', 'ACTIVE', 'STATUS')
-        puts '-' * 100
+        # Count valid prices using shared helper
+        valid_count = count_valid_items(prices, errors, warnings, :id)
+
+        # Count error and warning prices
+        error_price_ids = errors.select { |e| e.is_a?(Hash) }.map { |e| e[:price_id] }.compact.uniq
+        warning_price_ids = warnings.select { |w| w.is_a?(Hash) }.map { |w| w[:price_id] }.compact.uniq
+
+        # Print summary section
+        print_section_header('SUMMARY')
+        puts "  Total prices:         #{prices.size}"
+        puts "  Valid prices:         #{valid_count}"
+        puts "  Prices with errors:   #{error_price_ids.size}"
+        puts "  Prices with warnings: #{warning_price_ids.size}"
+        puts
+
+        # Print table section
+        print_section_header('PRICES', 120)
+        puts format('%-31s %-25s %-12s %-9s %s',
+                    'PRICE ID', 'PRODUCT', 'AMOUNT', 'INTERVAL', 'STATUS')
+        puts '━' * 120
 
         prices.each do |price|
-          product = products_map[price.product]
-          product_name = product ? product.name[0..15] : '(unknown)'
+          product = products_map[:active][price.product]
+
+          # Check if product is archived
+          if product.nil?
+            archived_product = products_map[:archived][price.product]
+            product_name = archived_product ? '(Archived Product)' : '(Unknown Product)'
+          else
+            product_name = product.name
+          end
+
+          # Truncate product name if too long
+          product_name = product_name[0..22] + '...' if product_name.length > 25
 
           amount_str = if price.unit_amount
-                        "#{price.currency.upcase} #{price.unit_amount / 100.0}"
+                        "#{price.currency.upcase} #{format('%.2f', price.unit_amount / 100.0)}"
                       else
                         'metered'
                       end
 
           interval_str = price.type == 'recurring' ? price.recurring.interval : price.type
-          active_str = price.active ? 'yes' : 'no'
 
-          # Determine status
-          price_errors = errors.select { |e| e.include?(price.id) }
-          price_warnings = warnings.select { |w| w.include?(price.id) }
+          # Determine status using shared helper
+          status = status_for_price(price, errors, warnings)
 
-          status = if price_errors.any?
-                    '✗ INVALID'
-                  elsif price_warnings.any?
-                    '⚠️  WARNING'
-                  else
-                    '✓'
-                  end
-
-          puts format('%-15s %-18s %-15s %-8s %-10s %s',
-                      price.id[0..13], product_name, amount_str, interval_str, active_str, status)
+          puts format('%-31s %-25s %-12s %-9s %s',
+                      price.id, product_name, amount_str, interval_str, status)
         end
 
         puts
-        puts "Total: #{prices.size} price(s)"
       end
 
       def print_validation_results(errors, warnings, strict)
-        puts
+        # Use shared helpers for consistent output
+        print_errors_section(errors) if errors.any?
+        print_warnings_section(warnings) if warnings.any?
+        print_final_status(errors, warnings, strict)
 
-        if errors.any?
-          puts '  ' + '━' * 62
-          puts "   ❌  VALIDATION FAILED: #{errors.size} error(s) found"
-          puts '  ' + '━' * 62
-          puts
-          errors.each { |error| puts "  ✗ #{error}" }
-          puts
-        elsif warnings.any? && strict
-          puts '  ' + '━' * 62
-          puts "   ❌  VALIDATION FAILED: #{warnings.size} warning(s) in strict mode"
-          puts '  ' + '━' * 62
-          puts
-          warnings.each { |warning| puts "  • #{warning}" }
-          puts
-        elsif warnings.any?
-          puts '  ' + '━' * 62
-          puts '   ✅  VALIDATION PASSED (warnings only)'
-          puts '  ' + '━' * 62
-          puts
-          puts "  ⚠️  #{warnings.size} warning(s):"
-          puts
-          warnings.each { |warning| puts "  • #{warning}" }
-          puts
-        else
-          puts '  ' + '━' * 62
-          puts '   ✅  VALIDATION PASSED'
-          puts '  ' + '━' * 62
-          puts
-        end
-
+        # Exit with appropriate code
         if errors.empty? && warnings.empty?
           exit 0
         elsif errors.empty? && !strict
