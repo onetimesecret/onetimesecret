@@ -87,7 +87,6 @@ module Billing
     field :usage_type               # 'licensed' or 'metered'
     field :trial_period_days        # Trial period in days (null if none)
     field :nickname                 # Internal nickname for the price
-    field :aggregate_usage          # For metered billing: 'sum', 'last_during_period', etc.
 
     # Cache management
     field :last_synced_at           # Timestamp of last Stripe sync
@@ -161,9 +160,6 @@ module Billing
           OT.lw '[Plan.refresh_from_stripe] Skipping Stripe sync: No API key configured'
           return 0
         end
-
-        # Configure Stripe SDK with API key
-        Stripe.api_key = stripe_key
 
         OT.li '[Plan.refresh_from_stripe] Starting Stripe sync'
 
@@ -272,7 +268,6 @@ module Billing
             plan.usage_type = price.recurring&.usage_type || 'licensed'
             plan.trial_period_days = price.recurring&.trial_period_days&.to_s
             plan.nickname = price.nickname
-            plan.aggregate_usage = price.recurring&.aggregate_usage
             plan.last_synced_at = Time.now.to_i.to_s
 
             # Add capabilities to set (unique values)
