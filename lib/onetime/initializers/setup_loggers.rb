@@ -24,6 +24,8 @@ module Onetime
     # - Onetime::Runtime.infrastructure.cached_loggers
     #
     class SetupLoggers < Onetime::Boot::Initializer
+      @provides = [:logging]
+
       def execute(_context)
         warn ' entering configure_loggers' if Onetime.debug? && OT::Utils.yes?(ENV['DEBUG_BOOT'])
         config = load_logging_config

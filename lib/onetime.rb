@@ -72,49 +72,10 @@ module Onetime
   # Extend Rack::Request with Otto and Onetime-specific methods
   require_relative 'onetime/initializers/extend_rack_request'
 
-  # Backwards compatibility accessors
-  # These delegate to Runtime domains for existing code that expects
-  # direct module accessors like OT.global_secret
-  #
-  def self.global_secret
-    Runtime.security.global_secret
-  end
-
-  def self.rotated_secrets
-    Runtime.security.rotated_secrets
-  end
-
-  def self.i18n_enabled
-    Runtime.internationalization.enabled
-  end
-
-  def self.supported_locales
-    Runtime.internationalization.supported_locales
-  end
-
-  def self.default_locale
-    Runtime.internationalization.default_locale
-  end
-
-  def self.fallback_locale
-    Runtime.internationalization.fallback_locale
-  end
-
-  def self.locales
-    Runtime.internationalization.locales
-  end
-
-  def self.database_pool
-    Runtime.infrastructure.database_pool
-  end
-
-  def self.d9s_enabled
-    Runtime.infrastructure.d9s_enabled
-  end
-
-  def self.global_banner
-    Runtime.features.global_banner
-  end
+  # Load backwards compatibility accessors
+  # TODO: Remove this require and delete lib/onetime/deprecated_methods.rb
+  # after migrating all code to use Runtime state objects directly
+  require_relative 'onetime/deprecated_methods'
 end
 
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from

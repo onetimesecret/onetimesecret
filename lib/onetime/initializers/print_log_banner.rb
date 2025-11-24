@@ -13,6 +13,8 @@ module Onetime
     # runtime state that needs to be tracked.
     #
     class PrintLogBanner < Onetime::Boot::Initializer
+      @depends_on = [:logging]
+
       using Familia::Refinements::TimeLiterals
 
       def execute(_context)
@@ -107,7 +109,8 @@ module Onetime
 
       # Add locales if i18n is enabled
       if OT.i18n_enabled
-        system_rows << ['Locales', @locales.keys.join(', ')]
+        locales = Onetime::Runtime.internationalization.locales
+        system_rows << ['Locales', locales.keys.join(', ')] if locales
       end
 
       system_rows
@@ -163,7 +166,6 @@ module Onetime
           [%w[Status disabled]]
         else
           [
-            ['Mailer', @emailer],
             ['Mode', _email_config['mode']],
             ['From', "'#{_email_config['from_name']} <#{_email_config['from']}>'"],
             ['Host', "#{_email_config['host']}:#{_email_config['port']}"],

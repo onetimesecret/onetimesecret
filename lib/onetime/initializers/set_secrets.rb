@@ -14,6 +14,8 @@ module Onetime
     # - Onetime::Runtime.security.rotated_secrets
     #
     class SetSecrets < Onetime::Boot::Initializer
+      @provides = [:secrets]
+
       def execute(_context)
         global_secret = extract_global_secret
         rotated_secrets = extract_rotated_secrets

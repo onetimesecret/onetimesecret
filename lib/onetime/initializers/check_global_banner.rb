@@ -13,6 +13,10 @@ module Onetime
     # - Onetime::Runtime.features.global_banner
     #
     class CheckGlobalBanner < Onetime::Boot::Initializer
+      @depends_on = [:database]
+      @provides = [:banner]
+      @optional = true
+
       def execute(_context)
         banner_text = Familia.dbclient(0).get('global_banner')
 

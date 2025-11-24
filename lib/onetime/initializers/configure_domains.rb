@@ -13,8 +13,10 @@ module Onetime
     # - Onetime::Runtime.features.domains_enabled
     #
     class ConfigureDomains < Onetime::Boot::Initializer
+      @provides = [:domains]
+
       def execute(_context)
-        is_enabled = conf.dig('features', 'domains', 'enabled').to_s == 'true'
+        is_enabled = OT.conf.dig('features', 'domains', 'enabled').to_s == 'true'
 
         unless is_enabled
           OT.ld '[init] Domains feature disabled'
@@ -22,7 +24,7 @@ module Onetime
           return
         end
 
-        cluster = conf.dig('features', 'domains', 'cluster')
+        cluster = OT.conf.dig('features', 'domains', 'cluster')
         OT.ld "[init] Setting OT::Cluster::Features #{cluster}"
 
         # Configure OT::Cluster::Features class variables

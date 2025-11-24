@@ -13,8 +13,10 @@ module Onetime
     # - Onetime::Runtime.email.truemail_configured
     #
     class ConfigureTruemail < Onetime::Boot::Initializer
+      @provides = [:email_validation]
+
       def execute(_context)
-        truemail_config = Onetime.conf['mail']['truemail']
+        truemail_config = OT.conf['mail']['truemail']
 
         # Only configure if config exists
         if truemail_config.nil? || truemail_config.empty?

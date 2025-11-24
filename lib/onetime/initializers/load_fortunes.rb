@@ -13,6 +13,8 @@ module Onetime
     # - Onetime::Runtime.features.fortunes
     #
     class LoadFortunes < Onetime::Boot::Initializer
+      @provides = [:fortunes]
+
       def execute(_context)
         filepath = File.join(Onetime::HOME, 'etc', 'fortunes')
 

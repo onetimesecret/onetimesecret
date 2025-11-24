@@ -27,6 +27,8 @@ module Onetime
     # runtime state that needs to be tracked.
     #
     class ConfigureRhales < Onetime::Boot::Initializer
+      @provides = [:rhales]
+
       def execute(_context)
         # Set Rhales logger if supported (Rhales 0.5+)
         # Uses respond_to? check for backward compatibility with earlier versions

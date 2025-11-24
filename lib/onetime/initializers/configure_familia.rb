@@ -18,6 +18,9 @@ module Onetime
     # state that needs to be tracked.
     #
     class ConfigureFamilia < Onetime::Boot::Initializer
+      @depends_on = [:logging]
+      @provides = [:familia_config]
+
       def execute(_context)
         uri = OT.conf.dig('redis', 'uri') || ''
 

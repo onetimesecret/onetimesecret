@@ -14,17 +14,20 @@ module Onetime
     # - Onetime::Runtime.infrastructure.d9s_enabled
     #
     class SetupDiagnostics < Onetime::Boot::Initializer
+      @depends_on = [:logging]
+      @provides = [:diagnostics]
+      @optional = true
+
       def execute(_context)
-        d9s_enabled = conf['diagnostics']['enabled'] || false
+        d9s_enabled = OT.conf['diagnostics']['enabled'] || false
 
         unless d9s_enabled
           Onetime::Runtime.update_infrastructure(d9s_enabled: false)
           return
         end
-
-        backend   = conf['diagnostics']['sentry']['backend']
+        backend   = OT.conf['diagnostics']['sentry']['backend']
         dsn       = backend.fetch('dsn', nil)
-        site_host = conf.dig('site', 'host')
+        site_host = OT.conf.dig('site', 'host')
 
         OT.ld "[init] Setting up Sentry #{backend}..."
 

@@ -14,6 +14,9 @@ module Onetime
     # runtime state that needs to be tracked.
     #
     class SetupDatabaseLogging < Onetime::Boot::Initializer
+      @depends_on = [:logging]
+      @provides = [:database_logging]
+
       def execute(_context)
         if OT.env?(:production)
           Familia.enable_database_logging = false

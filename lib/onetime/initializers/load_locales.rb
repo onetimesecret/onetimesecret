@@ -21,6 +21,8 @@ module Onetime
     # - Onetime::Runtime.internationalization.locales
     #
     class LoadLocales < Onetime::Boot::Initializer
+      @provides = [:i18n]
+
       def execute(_context)
         i18n = OT.conf.fetch('internationalization', {})
         i18n_enabled = i18n['enabled'] || false

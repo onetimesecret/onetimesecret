@@ -140,9 +140,6 @@ module Onetime
               next
             end
 
-            # Log start
-            log_initializer(prefix, initializer, before: true)
-
             # Execute
             begin
               initializer.run(@context)
@@ -239,18 +236,30 @@ module Onetime
           end
         end
 
+        # Get logger for boot progress
+        #
+        # Always uses stdlib Logger to $stderr for the entire boot process.
+        # Never switches to SemanticLogger to avoid auto-configuration issues.
+        #
+        # @return [Logger]
+        def boot_logger
+          @boot_logger ||= begin
+            logger = Logger.new($stderr)
+            logger.level = Logger::INFO
+            logger.formatter = proc do |_severity, _datetime, _progname, msg|
+              "#{msg}\n"
+            end
+            logger
+          end
+        end
+
         # Log initializer execution
         #
         # @param prefix [String] Step number prefix
         # @param initializer [Initializer]
-        # @param before [Boolean] Whether this is before execution
-        def log_initializer(prefix, initializer, before: false)
-          if before
-            Onetime.app_logger.debug "#{prefix} #{initializer.description}"
-          else
-            status = initializer.formatted_status
-            Onetime.app_logger.debug "#{prefix} #{initializer.description} #{status}"
-          end
+        def log_initializer(prefix, initializer)
+          status = initializer.formatted_status
+          boot_logger.info "#{prefix} #{initializer.description} #{status}"
         end
 
         # Log initialization error
@@ -259,11 +268,11 @@ module Onetime
         # @param initializer [Initializer]
         # @param error [Exception]
         def log_error(prefix, initializer, error)
-          Onetime.app_logger.error "#{prefix} #{initializer.description} FAILED"
-          Onetime.app_logger.error "  #{error.class}: #{error.message}"
+          boot_logger.error "#{prefix} #{initializer.description} FAILED"
+          boot_logger.error "  #{error.class}: #{error.message}"
           if Onetime.debug?
             error.backtrace.first(5).each do |line|
-              Onetime.app_logger.error "    #{line}"
+              boot_logger.error "    #{line}"
             end
           end
         end

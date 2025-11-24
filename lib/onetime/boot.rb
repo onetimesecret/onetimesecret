@@ -2,10 +2,7 @@
 #
 # frozen_string_literal: true
 
-# lib/onetime/boot.rb
-
 require_relative 'initializers'
-require_relative 'boot/core_initializers'
 
 module Onetime
   module Initializers
@@ -65,8 +62,8 @@ module Onetime
       # of the initializers (via OT.conf).
       @conf = OT::Config.after_load(raw_conf)
 
-      # Phase 1: Discovery - Load initializer classes (triggers inherited hooks)
-      require_relative 'boot/core_initializers'
+      # Phase 1: Discovery - Initializer classes already loaded via require at top of file
+      # (Each class auto-registers via inherited hook)
 
       # Phase 2: Loading - Instantiate and build dependency graph
       Boot::InitializerRegistry.load_all

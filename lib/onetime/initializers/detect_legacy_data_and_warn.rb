@@ -11,6 +11,9 @@ module Onetime
     # (logging, warnings) and doesn't set runtime state that needs to be tracked.
     #
     class DetectLegacyDataAndWarn < Onetime::Boot::Initializer
+      @depends_on = [:familia_config]
+      @provides = [:legacy_check]
+
       def execute(_context)
         detect_legacy_data_and_warn
       end
