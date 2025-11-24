@@ -335,38 +335,135 @@ To view cached plans:
 
 ### `bin/ots billing validate`
 
-Validate that all Stripe products have required metadata.
+Suite of validation commands for Stripe configuration. Each command validates a different aspect and provides structured error messages with resolution steps.
 
-**Examples:**
+**Commands:**
 ```bash
-bin/ots billing validate
+bin/ots billing prices validate     # Validate price configuration
+bin/ots billing plans validate      # Validate plan production readiness
+bin/ots billing products validate   # Validate product metadata
 ```
 
-**Output (all valid):**
+**Options (all commands):**
+- `--strict` - Treat warnings as errors (prices and plans only)
+- `--product ID` - Filter by product ID (prices only)
+
+---
+
+#### `bin/ots billing prices validate`
+
+Validates Stripe prices for consistency and proper configuration.
+
+**What it checks:**
+- Price IDs correlate with product IDs
+- Products exist and are not archived
+- Price types are appropriate (recurring for subscriptions)
+- Price amounts are valid (not zero or negative)
+- Currency matches region
+- Pricing consistency (yearly ~10-12x monthly)
+
+**Example output (with issues):**
+```bash
+Validating Stripe prices...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Total prices:         12
+  Valid prices:         10
+  Prices with errors:   2
+  Prices with warnings: 1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRICES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRICE ID                       PRODUCT              AMOUNT       INTERVAL  STATUS
+price_1SWaFKH54PcLeqtYrxz3Qn   Identity Plus (US)   USD 9.00     month     ✓ Valid
+price_1SWaFL954PcLeqtYabcdXY   (Archived Product)   USD 90.00    year      ✗ Unusable
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ERRORS (2)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✗ price_1SWaFL954PcLeqtYabcdXY: Attached to archived product
+
+    Product prod_ABC123 is archived and cannot be used for new subscriptions.
+
+    Resolution:
+    - Create new active product if needed
+    - Archive this price if no longer needed
+    - See: https://dashboard.stripe.com/prices/price_1SWaFL954PcLeqtYabcdXY
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌  VALIDATION FAILED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+2 price(s) have errors that prevent them from being used.
 ```
-Fetching products from Stripe...
-✓ All 3 product(s) have valid metadata
+
+---
+
+#### `bin/ots billing plans validate`
+
+Validates plan production readiness by checking product-price relationships.
+
+**What it checks:**
+- Each product has recurring prices
+- Both monthly and yearly prices exist (recommended)
+- No duplicate prices for same interval/currency
+- Required metadata fields present
+- Unique plan_ids across products
+
+**Example output:**
+```bash
+Validating plan production readiness...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Total products:      6
+  Production ready:    5
+  Not ready:           1
+  Issues found:        2 errors, 1 warning
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PLANS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRODUCT ID             PLAN ID              REGION  PRICES           STATUS
+prod_ABC123456789012   identity_plus_v1_us  US      2 (month, year)  ✓ Ready
+prod_DEF345678901234   team_plus_v1_us      US      2 (month, year)  ✓ Ready
+prod_MNO901234567890   legacy_pro_v1_us     US      0                ✗ Not Ready
 ```
 
-**Output (with errors):**
-```
-Fetching products from Stripe...
+---
 
-Identity Plan (prod_ABC123xyz):
-  ✗ Missing required metadata field: capabilities
-  ✗ Missing required metadata field: region
+#### `bin/ots billing products validate`
 
-Enterprise Plan (prod_DEF456abc):
-  ✗ Invalid app metadata (should be 'onetimesecret')
+Validates product metadata completeness.
 
-2 product(s) have metadata errors
+**What it checks:**
+- Required metadata fields (app, plan_id, tier, region)
+- Unique plan_ids
+- Price counts per product
 
-Required metadata fields:
-  - app
-  - plan_id
-  - tier
-  - region
-  - capabilities
+**Example output:**
+```bash
+Fetching products from Stripe API... found 8 product(s)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Total products:      8
+  Valid metadata:      6
+  Incomplete:          2
+  Duplicate plan_ids:  0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRODUCTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRODUCT ID             NAME                 PLAN ID              REGION  PRICES  STATUS
+prod_ABC123456789012   Identity Plus (US)   identity_plus_v1_us  US      2       ✓ Valid
+prod_JKL789012345678   Test Product         n/a                  n/a     1       ⚠ Incomplete
 ```
 
 ---
