@@ -161,6 +161,44 @@ export const recentCustomerSchema = z.object({
 });
 
 /**
+ * Full user record from /api/colonel/users endpoint
+ */
+export const colonelUserSchema = z.object({
+  user_id: z.string(),
+  extid: z.string(),
+  email: z.string(),
+  role: z.string(),
+  verified: z.boolean(),
+  created: transforms.fromString.number,
+  created_human: z.string(),
+  last_login: transforms.fromString.number.nullable(),
+  last_login_human: z.string(),
+  planid: z.string().nullable(),
+  secrets_count: z.number(),
+  secrets_created: transforms.fromString.number,
+  secrets_shared: transforms.fromString.number,
+});
+
+/**
+ * Pagination metadata for list endpoints
+ */
+export const paginationSchema = z.object({
+  page: z.number(),
+  per_page: z.number(),
+  total_count: z.number(),
+  total_pages: z.number(),
+  role_filter: z.string().nullable().optional(),
+});
+
+/**
+ * Users list response details
+ */
+export const colonelUsersDetailsSchema = z.object({
+  users: z.array(colonelUserSchema),
+  pagination: paginationSchema,
+});
+
+/**
  // Raw API data structures before transformation
  // These represent the API shape that will be transformed by input schemas
  */
@@ -207,3 +245,6 @@ export type ColonelStatsDetails = z.infer<typeof colonelStatsDetailsSchema>;
 export type ColonelInfoDetails = z.infer<typeof colonelInfoDetailsSchema>;
 export type SystemSettingsDetails = z.infer<typeof systemSettingsDetailsSchema>;
 export type RecentCustomer = z.infer<typeof recentCustomerSchema>;
+export type ColonelUser = z.infer<typeof colonelUserSchema>;
+export type ColonelUsersDetails = z.infer<typeof colonelUsersDetailsSchema>;
+export type Pagination = z.infer<typeof paginationSchema>;
