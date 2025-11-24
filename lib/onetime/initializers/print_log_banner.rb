@@ -6,29 +6,42 @@
 
 module Onetime
   module Initializers
-    using Familia::Refinements::TimeLiterals
-
+    # PrintLogBanner initializer
+    #
     # Prints a formatted banner with system and configuration information at startup.
-    # The banner is organized into logical sections, each rendered as a table.
+    # This initializer performs side-effect operations (logging) and doesn't set
+    # runtime state that needs to be tracked.
     #
-    # Structure:
-    # - All output is collected in an array and printed with a single OT.li call
-    # - Each section is rendered as a TTY::Table with consistent formatting
-    # - Sections are separated by newlines
-    #
-    # To add a new section to the banner:
-    # 1. Add a section comment: ====== New Section Name ======
-    # 2. Create an array to collect rows: `new_section_rows = []`
-    # 3. Add key/value pairs to the array: `new_section_rows << ['Key', 'Value']`
-    # 4. Check if the section has content: `unless new_section_rows.empty?`
-    # 5. Add rendered section to output: `output << render_section('Header1', 'Header2', new_section_rows)`
-    #
-    # Helper methods available:
-    # - render_section(header1, header2, rows): Creates a formatted table
-    # - is_feature_disabled?(config): Checks if a feature is disabled
-    # - format_config_value(config): Formats complex config values for display
-    # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
-    def print_log_banner
+    class PrintLogBanner < Onetime::Boot::Initializer
+      using Familia::Refinements::TimeLiterals
+
+      def execute(_context)
+        print_log_banner
+      end
+
+      private
+
+      # Prints a formatted banner with system and configuration information at startup.
+      # The banner is organized into logical sections, each rendered as a table.
+      #
+      # Structure:
+      # - All output is collected in an array and printed with a single OT.li call
+      # - Each section is rendered as a TTY::Table with consistent formatting
+      # - Sections are separated by newlines
+      #
+      # To add a new section to the banner:
+      # 1. Add a section comment: ====== New Section Name ======
+      # 2. Create an array to collect rows: `new_section_rows = []`
+      # 3. Add key/value pairs to the array: `new_section_rows << ['Key', 'Value']`
+      # 4. Check if the section has content: `unless new_section_rows.empty?`
+      # 5. Add rendered section to output: `output << render_section('Header1', 'Header2', new_section_rows)`
+      #
+      # Helper methods available:
+      # - render_section(header1, header2, rows): Creates a formatted table
+      # - is_feature_disabled?(config): Checks if a feature is disabled
+      # - format_config_value(config): Formats complex config values for display
+      # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
+      def print_log_banner
       site_config  = OT.conf.fetch('site') # if site is missing we got real problems
       email_config = OT.conf.fetch('emailer', {})
       redis_info   = Familia.dbclient.info
@@ -379,6 +392,7 @@ module Onetime
       end
 
       lines.empty? ? [''] : lines
+    end
     end
   end
 end
