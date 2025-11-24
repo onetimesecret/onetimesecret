@@ -220,8 +220,12 @@ module Billing
             tier     = product.metadata[Metadata::FIELD_TIER]
             region   = product.metadata[Metadata::FIELD_REGION]
 
-            # Use explicit plan_id from metadata, or compute from tier_interval_region
-            plan_id = product.metadata[Metadata::FIELD_PLAN_ID] || "#{tier}_#{interval}ly_#{region}"
+            # Use explicit plan_id from metadata with interval appended, or compute from tier_interval_region
+            # TODO: Investigate why yearly plans don't appear in API response
+            # Current behavior: plan_id from metadata (e.g., "identity_plus_v1") is same for monthly/yearly
+            # This may cause yearly to overwrite monthly in cache if plan_id is used as Redis key
+            base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID] || "#{tier}_#{region}"
+            plan_id = "#{base_plan_id}_#{interval}ly"
 
             # Extract capabilities from product metadata
             # Expected format: "create_secrets,create_team,custom_domains"
