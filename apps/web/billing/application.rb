@@ -49,9 +49,14 @@ module Billing
     warmup do
       # We do this here to take care of our own initialization needs.
       stripe_key = Onetime.billing_config.stripe_key
+      stripe_api_version = Onetime.billing_config.stripe_api_version
+
       if stripe_key && !stripe_key.to_s.strip.empty?
         Stripe.api_key = stripe_key
-        Onetime.billing_logger.info 'Stripe API key configured'
+        Stripe.api_version = stripe_api_version if stripe_api_version
+        Onetime.billing_logger.info 'Stripe API configured', {
+          api_version: stripe_api_version || 'default'
+        }
       else
         Onetime.billing_logger.warn 'Stripe API key not configured - billing features disabled'
       end

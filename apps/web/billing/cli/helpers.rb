@@ -100,6 +100,7 @@ module Onetime
 
         require 'stripe'
         Stripe.api_key = stripe_key
+        Stripe.api_version = OT.billing_config.stripe_api_version if OT.billing_config.stripe_api_version
         true
       rescue LoadError
         puts 'Error: stripe gem not installed'
