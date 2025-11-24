@@ -74,8 +74,8 @@ module Internal
       @uri_prefix = '/api/internal/acme'
 
       warmup do
-        # Preload CustomDomain model
-        require 'onetime/models'
+        # Warmup is for preloading and preparing the router
+        # Actual initialization logic is in initializers/
       end
 
       protected
@@ -136,3 +136,6 @@ module Internal
     end
   end
 end
+
+# Load initializers after application class is defined
+require_relative 'initializers/preload_models'
