@@ -34,7 +34,7 @@ module ColonelAPI
   # - Authorization: Role-based (requires role='colonel')
   #
   class Application < BaseJSONAPI
-    @uri_prefix = '/api/colonel'
+    @uri_prefix = '/colonel'
 
     warmup do
       # Empty warmup - just triggers the logging
