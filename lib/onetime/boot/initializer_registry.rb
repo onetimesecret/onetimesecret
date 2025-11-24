@@ -132,10 +132,13 @@ module Onetime
             step_number = idx + 1
             prefix      = "[#{step_number}/#{total}]"
 
+            init_logger.debug "#{prefix} Starting #{initializer.name} (depends_on: #{initializer.dependencies.inspect}, provides: #{initializer.provides.inspect})"
+
             # Check if dependencies were satisfied
             if dependencies_failed?(initializer)
               initializer.skip!
               results[:skipped] << initializer
+              init_logger.debug "#{prefix} Skipped #{initializer.name} - dependencies failed"
               log_initializer(prefix, initializer)
               next
             end
@@ -149,6 +152,7 @@ module Onetime
                 log_error(prefix, initializer, initializer.error)
               else
                 results[:successful] << initializer
+                init_logger.debug "#{prefix} Completed #{initializer.name} in #{initializer.elapsed_ms}ms"
               end
             rescue StandardError => e
               results[:failed] << initializer
@@ -242,10 +246,11 @@ module Onetime
         # Never switches to SemanticLogger to avoid auto-configuration issues.
         #
         # @return [Logger]
-        def boot_logger
-          @boot_logger ||= begin
+        def init_logger
+          @init_logger ||= begin
             logger = Logger.new($stderr)
-            logger.level = Logger::INFO
+            # Check DEBUG_BOOT directly since logger config hasn't run yet
+            logger.level = ENV['DEBUG_BOOT'] ? Logger::DEBUG : Logger::INFO
             logger.formatter = proc do |_severity, _datetime, _progname, msg|
               "#{msg}\n"
             end
@@ -259,7 +264,7 @@ module Onetime
         # @param initializer [Initializer]
         def log_initializer(prefix, initializer)
           status = initializer.formatted_status
-          boot_logger.info "#{prefix} #{initializer.description} #{status}"
+          init_logger.info "#{prefix} #{initializer.description} #{status}"
         end
 
         # Log initialization error
@@ -268,11 +273,11 @@ module Onetime
         # @param initializer [Initializer]
         # @param error [Exception]
         def log_error(prefix, initializer, error)
-          boot_logger.error "#{prefix} #{initializer.description} FAILED"
-          boot_logger.error "  #{error.class}: #{error.message}"
+          init_logger.error "#{prefix} #{initializer.description} FAILED"
+          init_logger.error "  #{error.class}: #{error.message}"
           if Onetime.debug?
             error.backtrace.first(5).each do |line|
-              boot_logger.error "    #{line}"
+              init_logger.error "    #{line}"
             end
           end
         end
