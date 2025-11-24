@@ -17,12 +17,20 @@ module Onetime
     class BillingProductsCommand < Command
       include BillingHelpers
 
-      desc 'List all Stripe products (delete via: stripe products delete PRODUCT_ID)'
+      desc 'List all Stripe products and manage product operations'
 
       option :active_only, type: :boolean, default: true,
         desc: 'Show only active products'
 
-      def call(active_only: true, **)
+      option :help, type: :boolean, default: false,
+        desc: 'Show available subcommands'
+
+      def call(active_only: true, help: false, **)
+        if help
+          show_help
+          return 0
+        end
+
         boot_application!
 
         return unless stripe_configured?
@@ -46,6 +54,30 @@ module Onetime
 
         puts "\nTotal: #{products.data.size} product(s)"
         puts "\nNote: To delete products, use: stripe products delete PRODUCT_ID"
+      end
+
+      private
+
+      def show_help
+        puts <<~HELP
+          Manage Stripe products including creation, updates, listing, and validation.
+
+          Available subcommands:
+            (none)     - List all Stripe products
+            create     - Create a new Stripe product with metadata
+            show       - Show details for a specific product
+            update     - Update product metadata
+            validate   - Validate product metadata completeness
+            events     - Show product-related events
+
+          Examples:
+            bin/ots billing products                      # List all products
+            bin/ots billing products validate            # Validate metadata
+            bin/ots billing products show prod_xxx       # Show product details
+            bin/ots billing products create --interactive  # Create new product
+
+          Use 'bin/ots billing products SUBCOMMAND --help' for more information.
+        HELP
       end
     end
   end

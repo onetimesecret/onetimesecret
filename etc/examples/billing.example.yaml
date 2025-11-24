@@ -9,7 +9,7 @@ billing:
   enabled: true
   stripe_key: <%= ENV['STRIPE_KEY'] || 'nostripekey' %>
   webhook_signing_secret: <%= ENV['STRIPE_WEBHOOK_SIGNING_SECRET'] || 'nosigningsecret' %>
-  stripe_api_version: "2025-11-20.clover"
+  stripe_api_version: "2025-11-17.clover"
 
   # Capability Definitions
   # Defines what features/permissions exist in the billing system.

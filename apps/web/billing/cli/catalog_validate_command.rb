@@ -276,13 +276,15 @@ module Onetime
         puts '=' * 60
 
         if errors.any?
-          puts "❌ #{errors.size} error(s) found:"
-          errors.each { |error| puts "  • #{error}" }
+          puts "❌ Validation failed: #{errors.size} error(s) found"
+          puts
+          errors.each { |error| puts "  ✗ #{error}" }
           puts
         end
 
         if warnings.any?
           puts "⚠️  #{warnings.size} warning(s):"
+          puts
           warnings.each { |warning| puts "  • #{warning}" }
           puts
         end
@@ -290,12 +292,13 @@ module Onetime
         if errors.empty? && warnings.empty?
           puts '✅ Validation passed - no issues found'
           puts
+          exit 0
         elsif errors.empty? && !strict
           puts '✅ Validation passed (warnings only)'
           puts
+          exit 0
         elsif errors.any? || (warnings.any? && strict)
-          puts '❌ Validation failed'
-          puts
+          exit 1
         end
       end
 
@@ -320,24 +323,24 @@ module Onetime
 
         puts
         if valid.any?
-          puts "  Valid (#{valid.size}):"
+          puts "Valid plans (#{valid.size}):"
           valid.sort_by { |_id, data| -(data['display_order'] || 0) }.each do |plan_id, data|
             marker = data['tier'] == 'free' ? '*' : ' '
-            puts "    #{marker} #{data['name']} (#{plan_id})"
+            puts "  #{marker} ✓ #{data['name']} (#{plan_id})"
           end
           puts if invalid.any?
         end
 
         if invalid.any?
-          puts "  Invalid (#{invalid.size}):"
+          puts "Invalid plans (#{invalid.size}):"
           invalid.sort_by { |_id, data| -(data['display_order'] || 0) }.each do |plan_id, data|
-            puts "    - #{data['name'] || plan_id} (#{plan_id})"
+            puts "    ✗ #{data['name'] || plan_id} (#{plan_id})"
           end
         end
 
         if has_free_tier
           puts
-          puts "  * free tier valid in catalog, does not have a Stripe product"
+          puts "  * Free tier valid in catalog, does not have a Stripe product"
         end
       end
     end
