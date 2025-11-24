@@ -3,60 +3,56 @@
 # frozen_string_literal: true
 
 require 'yaml'
+require 'json_schemer'
 require_relative 'helpers'
 require_relative '../config'
 
 module Onetime
   module CLI
-    # Validate plan catalog YAML structure and Stripe consistency
+    # Validate plan catalog YAML structure using JSON Schema
     class BillingCatalogValidateCommand < Command
       include BillingHelpers
 
-      desc 'Validate plan catalog YAML and compare with Stripe'
-
-      option :catalog_only, type: :boolean, default: false,
-        desc: 'Only validate YAML structure (skip Stripe comparison)'
+      desc 'Validate plan catalog YAML structure (schema validation only)'
 
       option :strict, type: :boolean, default: false,
         desc: 'Fail on warnings (default: only fail on errors)'
 
-      def call(catalog_only: false, strict: false, **)
+      def call(strict: false, **)
         boot_application!
 
         catalog_path = Billing::Config.catalog_path
+        schema_path = File.join(File.dirname(catalog_path), 'billing-catalog.schema.json')
 
         unless File.exist?(catalog_path)
           puts "❌ Error: Catalog file not found: #{catalog_path}"
           return
         end
 
-        puts "Validating catalog: #{catalog_path}"
+        unless File.exist?(schema_path)
+          puts "❌ Error: Schema file not found: #{schema_path}"
+          return
+        end
+
+        puts "Validating catalog structure: #{catalog_path}"
         puts
 
-        # Load and validate YAML structure
+        # Load catalog and schema
         catalog = load_catalog(catalog_path)
         return unless catalog
+
+        schema = load_schema(schema_path)
+        return unless schema
 
         errors = []
         warnings = []
 
-        # Validate schema version
-        if catalog['schema_version'] != '1.0'
-          errors << "Invalid schema_version: #{catalog['schema_version']} (expected: 1.0)"
-        end
+        # Validate against JSON Schema
+        validate_with_schema(catalog, schema, errors)
 
-        # Validate plans structure
-        validate_plans_structure(catalog, errors, warnings)
-
-        # Validate capabilities structure
-        validate_capabilities_structure(catalog, errors, warnings)
-
-        # Compare with Stripe if not catalog-only mode
-        unless catalog_only
-          return unless stripe_configured?
-
-          validate_stripe_consistency(catalog, errors, warnings)
-        end
+        # Additional semantic validations
+        validate_capabilities_references(catalog, errors, warnings)
+        validate_price_consistency(catalog, warnings)
 
         # Report results
         print_plan_summary(catalog, errors)
@@ -75,111 +71,33 @@ module Onetime
         nil
       end
 
-      def validate_plans_structure(catalog, errors, warnings)
-        plans = catalog['plans'] || {}
+      def load_schema(path)
+        JSON.parse(File.read(path))
+      rescue JSON::ParserError => e
+        puts "❌ JSON schema syntax error: #{e.message}"
+        nil
+      rescue StandardError => e
+        puts "❌ Error loading schema: #{e.message}"
+        nil
+      end
 
-        if plans.empty?
-          errors << 'No plans defined in catalog'
-          return
-        end
+      def validate_with_schema(catalog, schema, errors)
+        schemer = JSONSchemer.schema(schema)
+        validation_errors = schemer.validate(catalog).to_a
 
-        plans.each do |plan_id, plan_data|
-          validate_plan_id(plan_id, errors)
-          validate_plan_data(plan_id, plan_data, errors, warnings)
+        validation_errors.each do |error|
+          # Build human-readable error message
+          location = error['data_pointer'].empty? ? 'root' : error['data_pointer']
+          message = error['error'] || error['type']
+          errors << "Schema validation: #{location}: #{message}"
         end
       end
 
-      def validate_plan_id(plan_id, errors)
-        unless plan_id.match?(/^[a-z_]+_v\d+$/)
-          errors << "Invalid plan_id format: #{plan_id} (expected: name_v1 format)"
-        end
-      end
-
-      def validate_plan_data(plan_id, data, errors, warnings)
-        # Required fields for all plans
-        %w[name tier tenancy region capabilities limits].each do |field|
-          unless data[field]
-            errors << "Plan #{plan_id}: missing required field '#{field}'"
-          end
-        end
-
-        # Validate tier values if present
-        if data['tier']
-          valid_tiers = %w[free single_team multi_team]
-          unless valid_tiers.include?(data['tier'])
-            errors << "Plan #{plan_id}: invalid tier '#{data['tier']}' (expected: #{valid_tiers.join(', ')})"
-          end
-        end
-
-        # Validate tenancy values
-        valid_tenancy = %w[multi dedicated]
-        unless valid_tenancy.include?(data['tenancy'])
-          errors << "Plan #{plan_id}: invalid tenancy '#{data['tenancy']}' (expected: #{valid_tenancy.join(', ')})"
-        end
-
-        # Validate limits
-        if data['limits']
-          data['limits'].each do |resource, value|
-            next if value.nil? # null values are acceptable (TBD)
-
-            unless value.is_a?(Integer) && value >= -1
-              errors << "Plan #{plan_id}: invalid limit #{resource} = #{value} (expected: integer >= -1 or null)"
-            end
-          end
-        end
-
-        # Validate capabilities array
-        if data['capabilities'] && !data['capabilities'].is_a?(Array)
-          errors << "Plan #{plan_id}: capabilities must be an array"
-        end
-
-        # Validate prices structure (if present)
-        if data['prices'] && !data['prices'].is_a?(Array)
-          errors << "Plan #{plan_id}: prices must be an array"
-        elsif data['prices']
-          data['prices'].each_with_index do |price, idx|
-            validate_price_structure(plan_id, price, idx, errors, warnings)
-          end
-        end
-      end
-
-      def validate_price_structure(plan_id, price, idx, errors, _warnings)
-        %w[interval amount currency].each do |field|
-          unless price[field]
-            errors << "Plan #{plan_id}, price #{idx}: missing required field '#{field}'"
-          end
-        end
-
-        valid_intervals = %w[month year]
-        unless valid_intervals.include?(price['interval'])
-          errors << "Plan #{plan_id}, price #{idx}: invalid interval '#{price['interval']}' (expected: #{valid_intervals.join(', ')})"
-        end
-
-        valid_currencies = %w[usd eur cad]
-        unless valid_currencies.include?(price['currency'])
-          errors << "Plan #{plan_id}, price #{idx}: invalid currency '#{price['currency']}' (expected: #{valid_currencies.join(', ')})"
-        end
-      end
-
-      def validate_capabilities_structure(catalog, errors, warnings)
-        # Load capabilities from billing.yaml (new location) or billing-plans.yaml (fallback)
+      def validate_capabilities_references(catalog, _errors, warnings)
+        # Load capabilities from billing.yaml
         capabilities = Billing::Config.load_capabilities
 
-        if capabilities.empty?
-          errors << 'No capabilities defined (check billing.yaml or billing-plans.yaml)'
-          return
-        end
-
-        # Validate capability structure
-        capabilities.each do |cap_id, cap_data|
-          unless cap_data['category']
-            errors << "Capability #{cap_id}: missing required field 'category'"
-          end
-
-          unless cap_data['description']
-            errors << "Capability #{cap_id}: missing required field 'description'"
-          end
-        end
+        return if capabilities.empty?
 
         # Validate plan capability references
         plans = catalog['plans'] || {}
@@ -191,83 +109,47 @@ module Onetime
             end
           end
         end
+
+        # Validate legacy plan capability references
+        legacy_plans = catalog['legacy_plans'] || {}
+        legacy_plans.each do |plan_id, plan_data|
+          plan_capabilities = plan_data['capabilities'] || []
+          plan_capabilities.each do |cap_id|
+            unless capabilities.key?(cap_id)
+              warnings << "Legacy plan #{plan_id}: references unknown capability '#{cap_id}'"
+            end
+          end
+        end
       end
 
-      def validate_stripe_consistency(catalog, errors, warnings)
-        # Show API key and version info for trust/debugging
-        api_key = Stripe.api_key || Onetime.billing_config.stripe_key
-        key_prefix = api_key ? api_key[0..13] : 'none'
-        api_version = catalog['stripe_api_version'] || 'unknown'
-
-        printf "Fetching products from Stripe API [#{key_prefix}/#{api_version}]..."
-        $stdout.flush
-        start_time = Time.now
-
+      def validate_price_consistency(catalog, warnings)
         plans = catalog['plans'] || {}
 
-        # Fetch all Stripe products
-        all_stripe_products = Stripe::Product.list(active: true, limit: 100).data
-        stripe_products = all_stripe_products.select do |product|
-          product.metadata['app'] == 'onetimesecret'
-        end
-
-        elapsed_ms = ((Time.now - start_time) * 1000).to_i
-        puts " found #{stripe_products.size} onetimesecret product(s) (#{all_stripe_products.size} total) in #{elapsed_ms}ms"
-        puts
-
-        # Check each plan in catalog
         plans.each do |plan_id, plan_data|
-          # Skip free tier (no Stripe product)
-          next if plan_id == 'free_v1'
+          prices = plan_data['prices'] || []
 
-          stripe_product = stripe_products.find do |p|
-            p.metadata['plan_id'] == plan_id
+          # Skip free tier
+          next if plan_data['tier'] == 'free'
+
+          # Warn if no prices defined for paid tier
+          if prices.empty?
+            warnings << "Plan #{plan_id}: No prices defined (expected for paid tier)"
           end
 
-          if stripe_product
-            validate_stripe_metadata(plan_id, plan_data, stripe_product, warnings)
-          else
-            warnings << "Plan #{plan_id} defined in catalog but not found in Stripe"
+          # Check for both monthly and yearly pricing
+          intervals = prices.map { |p| p['interval'] }.uniq
+          if intervals.size == 1
+            missing = (%w[month year] - intervals).first
+            warnings << "Plan #{plan_id}: Missing #{missing}ly pricing (recommend both intervals)"
           end
-        end
 
-        # Check for Stripe products not in catalog
-        stripe_products.each do |product|
-          stripe_plan_id = product.metadata['plan_id']
-          next unless stripe_plan_id
-
-          unless plans[stripe_plan_id]
-            warnings << "Stripe product #{product.id} (#{stripe_plan_id}) not defined in catalog"
+          # Check for duplicate intervals
+          interval_counts = prices.group_by { |p| p['interval'] }.transform_values(&:count)
+          interval_counts.each do |interval, count|
+            if count > 1
+              warnings << "Plan #{plan_id}: Duplicate #{interval}ly prices (#{count} found)"
+            end
           end
-        end
-      rescue Stripe::StripeError => e
-        errors << "Stripe API error: #{e.message}"
-      end
-
-      def validate_stripe_metadata(plan_id, plan_data, stripe_product, warnings)
-        # Compare tier
-        if plan_data['tier'] != stripe_product.metadata['tier']
-          warnings << "Plan #{plan_id}: tier mismatch (catalog: #{plan_data['tier']}, Stripe: #{stripe_product.metadata['tier']})"
-        end
-
-        # Compare region
-        if plan_data['region'] != stripe_product.metadata['region']
-          warnings << "Plan #{plan_id}: region mismatch (catalog: #{plan_data['region']}, Stripe: #{stripe_product.metadata['region']})"
-        end
-
-        # Compare tenancy
-        if plan_data['tenancy'] != stripe_product.metadata['tenancy']
-          warnings << "Plan #{plan_id}: tenancy mismatch (catalog: #{plan_data['tenancy']}, Stripe: #{stripe_product.metadata['tenancy']})"
-        end
-
-        # Compare capabilities
-        catalog_caps = plan_data['capabilities']&.sort || []
-        stripe_caps = (stripe_product.metadata['capabilities'] || '').split(',').map(&:strip).sort
-
-        if catalog_caps != stripe_caps
-          warnings << "Plan #{plan_id}: capabilities mismatch"
-          warnings << "  Catalog: #{catalog_caps.join(', ')}"
-          warnings << "  Stripe:  #{stripe_caps.join(', ')}"
         end
       end
 

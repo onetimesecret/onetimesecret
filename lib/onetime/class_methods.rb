@@ -264,6 +264,7 @@ module Onetime
         logger.error(msg, **payload, exception: exception)
       else
         logger.error(msgs.join(' '), **payload)
+        logger.debug(caller(0..5).join("\n")) if Onetime.debug
       end
     end
 

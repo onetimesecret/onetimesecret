@@ -140,16 +140,37 @@ module Onetime
       def print_valid_products_section(valid_products)
         print_validation_section_header("VALID (#{valid_products.size})")
 
+        # Fetch price counts for all products
+        price_counts = fetch_price_counts(valid_products)
+
         valid_products.each do |product|
           plan_id = product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'n/a'
           region = product.metadata[Billing::Metadata::FIELD_REGION] || 'n/a'
           name = product.name
+          price_count = price_counts[product.id] || 0
 
-          # Format: ✓ prod_id  name  plan_id  region
-          puts "  ✓ #{product.id.ljust(20)}  #{name.ljust(20)} #{plan_id.ljust(17)} #{region}"
+          # Format: ✓ prod_id  name  plan_id  region  [N prices]
+          price_indicator = price_count.zero? ? "[0 prices]" : "[#{price_count} prices]"
+          puts "  ✓ #{product.id.ljust(20)}  #{name.ljust(20)} #{plan_id.ljust(17)} #{region.ljust(6)} #{price_indicator}"
         end
 
         print_validation_section_footer
+      end
+
+      def fetch_price_counts(products)
+        # Fetch all prices and count by product
+        prices = Stripe::Price.list({ active: true, limit: 100 }).auto_paging_each
+        price_counts = Hash.new(0)
+
+        prices.each do |price|
+          # Only count recurring prices (subscription prices)
+          price_counts[price.product] += 1 if price.type == 'recurring'
+        end
+
+        price_counts
+      rescue Stripe::StripeError
+        # If we can't fetch prices, return empty hash
+        {}
       end
     end
   end
