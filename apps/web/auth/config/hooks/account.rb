@@ -12,6 +12,40 @@ module Auth::Config::Hooks
       # several validation checks on the provided email address.
       #
       auth.before_create_account do
+        # Check if email already exists in either database
+        # SECURITY: Two-database consistency check prevents orphaned accounts
+        email = param('login')
+
+        # Check SQLite (auth database)
+        existing_account = db[:accounts].where(email: email).first
+
+        if existing_account
+          set_error_flash(create_account_error_flash)
+          request.env['rodauth.error_flash'] = create_account_error_flash
+          throw_rodauth_error
+        end
+
+        # Check Redis (customer database)
+        # Note: In shared Redis dev setups, a customer may exist without an auth account
+        if Onetime::Customer.email_exists?(email)
+          diagnostic_hint = <<~HINT.strip
+            Registration blocked: Customer record exists in Redis but no auth account
+            found. This typically occurs in worktree/multi-instance dev setups with
+            shared Redis. Consider: (1) using isolated Redis per instance, (2) clearing
+            Redis data, or (3) logging in with existing account if it exists elsewhere.
+          HINT
+
+          Auth::Logging.log_auth_event(
+            :registration_blocked_redis_conflict,
+            level: :error,
+            email: OT::Utils.obscure_email(email),
+            diagnostic_hint: diagnostic_hint,
+          )
+
+          set_error_flash(create_account_error_flash)
+          request.env['rodauth.error_flash'] = create_account_error_flash
+          throw_rodauth_error
+        end
       end
 
       auth.login_valid_email? do |email|
@@ -47,8 +81,8 @@ module Auth::Config::Hooks
 
         # Create default organization and team for the new customer
         # Note: These are hidden from individual plan users in the UI
-        if customer
-          Onetime::ErrorHandler.safe_execute('create_default_workspace', custid: customer.custid) do
+        if customer.is_a?(Onetime::Customer)
+          Onetime::ErrorHandler.safe_execute('create_default_workspace', extid: customer.extid) do
             Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
           end
         end
