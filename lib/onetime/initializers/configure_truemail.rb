@@ -4,12 +4,26 @@
 
 module Onetime
   module Initializers
-    # Configure email validation via Truemail
-    class ConfigureTruemail < Boot::Initializer
-      @provides = [:email_validation]
-
+    # ConfigureTruemail initializer
+    #
+    # Configures email validation via Truemail library. Reads configuration
+    # from OT.conf['mail']['truemail'] and applies it to Truemail.configure.
+    #
+    # Runtime state set:
+    # - Onetime::Runtime.email.truemail_configured
+    #
+    class ConfigureTruemail < Onetime::Boot::Initializer
       def execute(_context)
         truemail_config = Onetime.conf['mail']['truemail']
+
+        # Only configure if config exists
+        if truemail_config.nil? || truemail_config.empty?
+          OT.ld '[init] Truemail not configured (no config found)'
+          Onetime::Runtime.email = Onetime::Runtime::Email.new(
+            truemail_configured: false,
+          )
+          return
+        end
 
         # Iterate over the keys in the mail/truemail config
         # and set the corresponding key in the Truemail config.
@@ -18,6 +32,7 @@ module Onetime
             actual_key = OT::Config.mapped_key(key)
             unless config.respond_to?("#{actual_key}=")
               OT.le "config.#{actual_key} does not exist"
+              next
             end
 
             # Convert validation type strings to symbols
@@ -36,6 +51,13 @@ module Onetime
             config.send("#{actual_key}=", value)
           end
         end
+
+        # Set runtime state
+        Onetime::Runtime.email = Onetime::Runtime::Email.new(
+          truemail_configured: true,
+        )
+
+        OT.ld '[init] Truemail configured successfully'
       end
     end
   end
