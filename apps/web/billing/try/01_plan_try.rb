@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../support/test_helpers'
+require_relative '../../../../try/support/test_helpers'
 
 # Billing Plan tests
 #
@@ -27,14 +27,18 @@ Billing::Plan.clear_cache.class
   amount: '2900',
   currency: 'usd',
   region: 'us-east',
-  features: '["Feature 1", "Feature 2"]',
-  limits: '{"teams": 1, "members_per_team": 10}'
 )
+@plan.capabilities.add('create_secrets')
+@plan.capabilities.add('create_team')
+@plan.features.add('Feature 1')
+@plan.features.add('Feature 2')
+@plan.limits['teams.max'] = '1'
+@plan.limits['members_per_team.max'] = '10'
 @plan.save
 #=> true
 
 ## Verify plan was saved
-Billing::Plan.values.size
+Billing::Plan.instances.size
 #=> 1
 
 ## Retrieve plan by ID (metadata-based with interval)
@@ -42,13 +46,13 @@ Billing::Plan.values.size
 @retrieved.tier
 #=> 'single_team'
 
-## Parse JSON fields
-@retrieved.parsed_features
+## Get features as array
+@retrieved.features.to_a.sort
 #=> ["Feature 1", "Feature 2"]
 
-## Parse limits
-@retrieved.parsed_limits
-#=> {"teams"=>1, "members_per_team"=>10}
+## Get limits as hash (sorted for stable comparison)
+@retrieved.limits_hash.sort.to_h
+#=> {"members_per_team.max"=>10, "teams.max"=>1}
 
 ## Get plan using tier, interval, region
 @monthly_plan = Billing::Plan.get_plan('single_team', 'monthly', 'us-east')
@@ -66,9 +70,13 @@ Billing::Plan.values.size
   amount: '29000',
   currency: 'usd',
   region: 'us-east',
-  features: '["Feature 1", "Feature 2"]',
-  limits: '{"teams": 1, "members_per_team": 10}'
 )
+@yearly_plan.capabilities.add('create_secrets')
+@yearly_plan.capabilities.add('create_team')
+@yearly_plan.features.add('Feature 1')
+@yearly_plan.features.add('Feature 2')
+@yearly_plan.limits['teams.max'] = '1'
+@yearly_plan.limits['members_per_team.max'] = '10'
 @yearly_plan.save
 @yearly_retrieved = Billing::Plan.get_plan('single_team', 'yearly', 'us-east')
 @yearly_retrieved.plan_id
@@ -80,5 +88,5 @@ Billing::Plan.list_plans.size
 
 ## Clear cache
 Billing::Plan.clear_cache
-Billing::Plan.values.size
+Billing::Plan.instances.size
 #=> 0

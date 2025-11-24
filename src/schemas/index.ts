@@ -1,3 +1,5 @@
+// src/schemas/index.ts
+
 /**
  * Schema System Architecture
  *
@@ -60,6 +62,9 @@ export * from './models/customer';
 export * from './models/feedback';
 export * from './models/metadata';
 export * from './models/secret';
+
+// Configuration schemas
+export * from './config';
 
 // Domain-specific models and endpoints
 export * from './api/v3/endpoints';

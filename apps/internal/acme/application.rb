@@ -74,7 +74,8 @@ module Internal
       @uri_prefix = '/api/internal/acme'
 
       warmup do
-        # Preload CustomDomain model
+        # Preload CustomDomain model for ACME validation
+        # This prevents lazy loading during Caddy's on-demand TLS requests
         require 'onetime/models'
       end
 

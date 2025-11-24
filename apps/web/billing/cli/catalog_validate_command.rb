@@ -1,0 +1,247 @@
+# apps/web/billing/cli/catalog_validate_command.rb
+#
+# frozen_string_literal: true
+
+require 'yaml'
+require 'json_schemer'
+require_relative 'helpers'
+require_relative '../config'
+
+module Onetime
+  module CLI
+    # Validate plan catalog YAML structure using JSON Schema
+    class BillingCatalogValidateCommand < Command
+      include BillingHelpers
+
+      desc 'Validate plan catalog YAML structure (schema validation only)'
+
+      option :strict, type: :boolean, default: false,
+        desc: 'Fail on warnings (default: only fail on errors)'
+
+      def call(strict: false, **)
+        boot_application!
+
+        catalog_path = Billing::Config.catalog_path
+        schema_path = File.join(File.dirname(catalog_path), 'billing-catalog.schema.json')
+
+        unless File.exist?(catalog_path)
+          puts "❌ Error: Catalog file not found: #{catalog_path}"
+          return
+        end
+
+        unless File.exist?(schema_path)
+          puts "❌ Error: Schema file not found: #{schema_path}"
+          return
+        end
+
+        puts "Validating catalog structure: #{catalog_path}"
+        puts
+
+        # Load catalog and schema
+        catalog = load_catalog(catalog_path)
+        return unless catalog
+
+        schema = load_schema(schema_path)
+        return unless schema
+
+        errors = []
+        warnings = []
+
+        # Validate against JSON Schema
+        validate_with_schema(catalog, schema, errors)
+
+        # Additional semantic validations
+        validate_capabilities_references(catalog, errors, warnings)
+        validate_price_consistency(catalog, warnings)
+
+        # Report results
+        print_plan_summary(catalog, errors)
+        print_validation_results(errors, warnings, strict)
+      end
+
+      private
+
+      def load_catalog(path)
+        YAML.load_file(path)
+      rescue Psych::SyntaxError => e
+        puts "❌ YAML syntax error: #{e.message}"
+        nil
+      rescue StandardError => e
+        puts "❌ Error loading catalog: #{e.message}"
+        nil
+      end
+
+      def load_schema(path)
+        JSON.parse(File.read(path))
+      rescue JSON::ParserError => e
+        puts "❌ JSON schema syntax error: #{e.message}"
+        nil
+      rescue StandardError => e
+        puts "❌ Error loading schema: #{e.message}"
+        nil
+      end
+
+      def validate_with_schema(catalog, schema, errors)
+        schemer = JSONSchemer.schema(schema)
+        validation_errors = schemer.validate(catalog).to_a
+
+        validation_errors.each do |error|
+          # Build human-readable error message
+          location = error['data_pointer'].empty? ? 'root' : error['data_pointer']
+          message = error['error'] || error['type']
+          errors << "Schema validation: #{location}: #{message}"
+        end
+      end
+
+      def validate_capabilities_references(catalog, _errors, warnings)
+        # Load capabilities from billing.yaml
+        capabilities = Billing::Config.load_capabilities
+
+        return if capabilities.empty?
+
+        # Validate plan capability references
+        plans = catalog['plans'] || {}
+        plans.each do |plan_id, plan_data|
+          plan_capabilities = plan_data['capabilities'] || []
+          plan_capabilities.each do |cap_id|
+            unless capabilities.key?(cap_id)
+              warnings << "Plan #{plan_id}: references unknown capability '#{cap_id}'"
+            end
+          end
+        end
+
+        # Validate legacy plan capability references
+        legacy_plans = catalog['legacy_plans'] || {}
+        legacy_plans.each do |plan_id, plan_data|
+          plan_capabilities = plan_data['capabilities'] || []
+          plan_capabilities.each do |cap_id|
+            unless capabilities.key?(cap_id)
+              warnings << "Legacy plan #{plan_id}: references unknown capability '#{cap_id}'"
+            end
+          end
+        end
+      end
+
+      def validate_price_consistency(catalog, warnings)
+        plans = catalog['plans'] || {}
+
+        plans.each do |plan_id, plan_data|
+          prices = plan_data['prices'] || []
+
+          # Skip free tier
+          next if plan_data['tier'] == 'free'
+
+          # Warn if no prices defined for paid tier
+          if prices.empty?
+            warnings << "Plan #{plan_id}: No prices defined (expected for paid tier)"
+          end
+
+          # Check for both monthly and yearly pricing
+          intervals = prices.map { |p| p['interval'] }.uniq
+          if intervals.size == 1
+            missing = (%w[month year] - intervals).first
+            warnings << "Plan #{plan_id}: Missing #{missing}ly pricing (recommend both intervals)"
+          end
+
+          # Check for duplicate intervals
+          interval_counts = prices.group_by { |p| p['interval'] }.transform_values(&:count)
+          interval_counts.each do |interval, count|
+            if count > 1
+              warnings << "Plan #{plan_id}: Duplicate #{interval}ly prices (#{count} found)"
+            end
+          end
+        end
+      end
+
+      def print_validation_results(errors, warnings, strict)
+        puts
+
+        if errors.any?
+          puts '  ' + '━' * 62
+          puts "   ❌  VALIDATION FAILED: #{errors.size} error(s) found"
+          puts '  ' + '━' * 62
+          puts
+          errors.each { |error| puts "  ✗ #{error}" }
+          puts
+        elsif warnings.any? && strict
+          puts '  ' + '━' * 62
+          puts "   ❌  VALIDATION FAILED: #{warnings.size} warning(s) in strict mode"
+          puts '  ' + '━' * 62
+          puts
+          warnings.each { |warning| puts "  • #{warning}" }
+          puts
+        elsif warnings.any?
+          puts '  ' + '━' * 62
+          puts '   ✅  VALIDATION PASSED (warnings only)'
+          puts '  ' + '━' * 62
+          puts
+          puts "  ⚠️  #{warnings.size} warning(s):"
+          puts
+          warnings.each { |warning| puts "  • #{warning}" }
+          puts
+        else
+          puts '  ' + '━' * 62
+          puts '   ✅  VALIDATION PASSED'
+          puts '  ' + '━' * 62
+          puts
+        end
+
+        if errors.empty? && warnings.empty?
+          exit 0
+        elsif errors.empty? && !strict
+          exit 0
+        elsif errors.any? || (warnings.any? && strict)
+          exit 1
+        end
+      end
+
+      def print_plan_summary(catalog, errors)
+        plans = catalog['plans'] || {}
+
+        # Categorize by validation status
+        valid = []
+        invalid = []
+        has_free_tier = false
+
+        plans.each do |plan_id, data|
+          has_errors = errors.any? { |e| e.start_with?("Plan #{plan_id}:") }
+
+          if has_errors
+            invalid << [plan_id, data]
+          else
+            valid << [plan_id, data]
+            has_free_tier = true if data['tier'] == 'free'
+          end
+        end
+
+        puts
+        if valid.any?
+          puts "┌─ VALID (#{valid.size}) " + '─' * (67 - "VALID (#{valid.size}) ".length - 4)
+          valid.sort_by { |_id, data| -(data['display_order'] || 0) }.each do |plan_id, data|
+            marker = data['tier'] == 'free' ? '*' : ' '
+            puts "  #{marker} ✓ #{data['name'].ljust(20)} (#{plan_id})"
+          end
+          puts ' ' * 67
+          puts '└' + '─' * 67
+          puts if invalid.any?
+        end
+
+        if invalid.any?
+          puts "┌─ INVALID (#{invalid.size}) " + '─' * (67 - "INVALID (#{invalid.size}) ".length - 4)
+          invalid.sort_by { |_id, data| -(data['display_order'] || 0) }.each do |plan_id, data|
+            puts "    ✗ #{data['name'] || plan_id} (#{plan_id})"
+          end
+          puts ' ' * 67
+          puts '└' + '─' * 67
+        end
+
+        if has_free_tier
+          puts
+          puts "  * Free tier valid in catalog, does not have a Stripe product"
+        end
+      end
+    end
+  end
+end
+
+Onetime::CLI.register 'billing catalog validate', Onetime::CLI::BillingCatalogValidateCommand

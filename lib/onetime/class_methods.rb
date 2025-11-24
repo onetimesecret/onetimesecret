@@ -21,8 +21,9 @@ module Onetime
     @debug  = nil
     @logger = nil
     @logging_conf = nil
+    @d9s_enabled = false
 
-    attr_accessor :mode, :env, :logging_conf
+    attr_accessor :mode, :env, :logging_conf, :d9s_enabled
     attr_writer :debug
 
     # Returns the current wall clock time as microseconds since Unix epoch
@@ -264,6 +265,7 @@ module Onetime
         logger.error(msg, **payload, exception: exception)
       else
         logger.error(msgs.join(' '), **payload)
+        logger.debug(caller(0..5).join("\n")) if Onetime.debug
       end
     end
 

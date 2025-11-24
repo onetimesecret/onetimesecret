@@ -100,6 +100,7 @@ module Onetime
 
         require 'stripe'
         Stripe.api_key = stripe_key
+        Stripe.api_version = OT.billing_config.stripe_api_version if OT.billing_config.stripe_api_version
         true
       rescue LoadError
         puts 'Error: stripe gem not installed'
@@ -110,14 +111,19 @@ module Onetime
         tier = product.metadata[Billing::Metadata::FIELD_TIER] || 'N/A'
         tenancy = product.metadata[Billing::Metadata::FIELD_TENANCY] || 'N/A'
         region = product.metadata[Billing::Metadata::FIELD_REGION] || 'N/A'
+        display_order = product.metadata[Billing::Metadata::FIELD_DISPLAY_ORDER] || '100'
+        show_on_plans = product.metadata[Billing::Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'true'
+        show_on_plans_display = %w[true 1 yes].include?(show_on_plans.downcase) ? 'yes' : 'no'
         active = product.active ? 'yes' : 'no'
 
-        format('%-22s %-40s %-12s %-12s %-10s %s',
+        format('%-22s %-30s %-12s %-12s %-10s %-8s %-10s %s',
           product.id[0..21],
-          product.name[0..39],
+          product.name[0..29],
           tier[0..11],
           tenancy[0..11],
           region[0..9],
+          display_order[0..7],
+          show_on_plans_display,
           active,
         )
       end
@@ -125,20 +131,43 @@ module Onetime
       def format_price_row(price)
         amount = format_amount(price.unit_amount, price.currency)
         interval = price.recurring&.interval || 'one-time'
-        active = price.active ? 'yes' : 'no'
+        price_active = price.active ? 'yes' : 'no'
 
-        format('%-22s %-22s %-12s %-10s %s',
+        # Fetch product details if price.product is an ID (string)
+        # Otherwise use expanded product object
+        if price.product.is_a?(String)
+          begin
+            product = Stripe::Product.retrieve(price.product)
+            product_name = product.name[0..24]
+            product_status = product.active ? 'active' : 'inactive'
+            plan_id = product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'N/A'
+          rescue Stripe::StripeError
+            product_name = price.product[0..24]
+            product_status = '?'
+            plan_id = 'N/A'
+          end
+        else
+          product_name = price.product.name[0..24]
+          product_status = price.product.active ? 'active' : 'inactive'
+          plan_id = price.product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'N/A'
+        end
+
+        # Format product name with status
+        product_with_status = "#{product_name} (#{product_status})"
+
+        format('%-22s %-35s %-15s %-12s %-10s %s',
           price.id[0..21],
-          price.product[0..21],
+          product_with_status[0..34],
+          plan_id[0..14],
           amount[0..11],
           interval[0..9],
-          active,
+          price_active,
         )
       end
 
       def format_plan_row(plan)
         amount = format_amount(plan.amount, plan.currency)
-        capabilities_count = (plan.capabilities || '').split(',').size
+        capabilities_count = plan.capabilities.size
 
         format('%-20s %-18s %-10s %-10s %-12s %d',
           plan.plan_id[0..19],
@@ -179,13 +208,13 @@ module Onetime
         # Always include all metadata fields (using constants)
         metadata[Billing::Metadata::FIELD_APP] = Billing::Metadata::APP_NAME
 
-        print 'Plan ID (optional, e.g., identity_v1): '
+        print 'Plan ID (optional, e.g., identity_plus_v1): '
         metadata[Billing::Metadata::FIELD_PLAN_ID] = $stdin.gets.chomp
 
         print 'Tier (e.g., single_team, multi_team): '
         metadata[Billing::Metadata::FIELD_TIER] = $stdin.gets.chomp
 
-        print 'Region (e.g., us-east, global): '
+        print 'Region (e.g., EU, global): '
         metadata[Billing::Metadata::FIELD_REGION] = $stdin.gets.chomp
 
         print 'Tenancy (e.g., single, multi): '
@@ -193,6 +222,14 @@ module Onetime
 
         print 'Capabilities (comma-separated, e.g., create_secrets,create_team): '
         metadata[Billing::Metadata::FIELD_CAPABILITIES] = $stdin.gets.chomp
+
+        print 'Display order (higher = earlier, default: 0): '
+        display_order = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_DISPLAY_ORDER] = display_order.empty? ? '0' : display_order
+
+        print 'Show on plans page? (yes/no, default: yes): '
+        show_on_plans = $stdin.gets.chomp
+        metadata[Billing::Metadata::FIELD_SHOW_ON_PLANS_PAGE] = Onetime::Utils.yes?(show_on_plans, default: true).to_s
 
         print 'Limit teams (-1 for unlimited): '
         metadata[Billing::Metadata::FIELD_LIMIT_TEAMS] = $stdin.gets.chomp
@@ -263,6 +300,128 @@ module Onetime
         Time.at(timestamp.to_i).strftime('%Y-%m-%d %H:%M:%S UTC')
       rescue StandardError
         'invalid'
+      end
+
+      # Measure API call execution time
+      #
+      # @yield Block containing API call to measure
+      # @return [Array] Result of block and elapsed time in milliseconds
+      def measure_api_time
+        start_time = Time.now
+        result = yield
+        elapsed_ms = ((Time.now - start_time) * 1000).to_i
+        [result, elapsed_ms]
+      end
+
+      # Load plan IDs from billing catalog
+      #
+      # @return [Array<String>] Array of plan IDs from catalog
+      def load_catalog_plan_ids
+        require 'yaml'
+        catalog_path = Billing::Config.catalog_path
+        return [] unless File.exist?(catalog_path)
+
+        catalog = YAML.load_file(catalog_path)
+        plans = catalog['plans'] || {}
+        plans.keys
+      rescue StandardError => e
+        OT.le "Error loading catalog: #{e.message}"
+        []
+      end
+
+      # Detect duplicate products (same name + region)
+      #
+      # @param products [Array<Stripe::Product>] Products to check
+      # @return [Hash] Hash with duplicate groups keyed by "name|region"
+      def detect_duplicate_products(products)
+        product_groups = {}
+
+        products.each do |product|
+          region = product.metadata[Billing::Metadata::FIELD_REGION] || 'global'
+          key = "#{product.name}|#{region}"
+          product_groups[key] ||= []
+          product_groups[key] << product
+        end
+
+        # Return only groups with duplicates
+        product_groups.select { |_, prods| prods.size > 1 }
+      end
+
+      # Format validation table header with box-drawing characters
+      def print_validation_section_header(title)
+        puts "┌─ #{title} " + '─' * (67 - title.length - 4)
+        puts
+      end
+
+      # Format validation table footer
+      def print_validation_section_footer
+        puts ' ' * 67
+        puts '└' + '─' * 67
+      end
+
+      # Print a simple table row for validation output
+      #
+      # @param name [String] Product name
+      # @param id [String] Product ID
+      # @param plan_id [String] Plan ID
+      # @param status [String] Validation status marker (✓ or ✗)
+      def print_validation_row(name, id, plan_id, status)
+        name_display = name[0..19].ljust(20)
+        id_display = id[0..21].ljust(22)
+        plan_id_display = plan_id[0..13].ljust(14)
+
+        puts "│  #{status} #{name_display}  #{id_display}  #{plan_id_display}│"
+      end
+
+      # Print duplicate comparison (side-by-side)
+      #
+      # @param group_name [String] Name of the duplicate group
+      # @param products [Array<Stripe::Product>] Products in the group
+      def print_duplicate_group(group_name, products)
+        # Sort: valid products first
+        sorted = products.sort_by do |p|
+          has_plan_id = p.metadata[Billing::Metadata::FIELD_PLAN_ID]
+          has_plan_id ? 0 : 1
+        end
+
+        puts "│  #{group_name}" + ' ' * (59 - group_name.length) + '│'
+
+        sorted.each do |product|
+          plan_id = product.metadata[Billing::Metadata::FIELD_PLAN_ID]
+          status = plan_id ? '✓' : '✗'
+          plan_id_display = plan_id || '(no plan_id)'
+          validation = plan_id ? 'VALID' : 'INVALID'
+
+          line = "    #{status} #{product.id.ljust(22)}  #{plan_id_display.ljust(14)} #{validation}"
+          padding = 61 - line.length
+          puts "│#{line}" + ' ' * padding + '│'
+        end
+
+        puts '│' + ' ' * 61 + '│'
+      end
+
+      # Print compact duplicate comparison with region and active status
+      #
+      # @param name [String] Product name
+      # @param products [Array<Stripe::Product>] Products in the group
+      def print_duplicate_group_compact(name, products)
+        # Sort: active products first
+        sorted = products.sort_by { |p| p.active ? 0 : 1 }
+
+        # Header with name and Active? column
+        puts "  #{name.ljust(52)} Active?"
+
+        sorted.each do |product|
+          plan_id = product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'n/a'
+          region = product.metadata[Billing::Metadata::FIELD_REGION] || 'n/a'
+          active = product.active ? 'YES' : 'NO'
+          status = '✓'
+
+          # Format: ✓ prod_id  plan_id  region  active
+          puts "    #{status} #{product.id.ljust(20)}  #{plan_id.ljust(18)} #{region.ljust(10)} #{active.ljust(7)}"
+        end
+
+        puts
       end
     end
   end

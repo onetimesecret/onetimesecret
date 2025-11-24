@@ -3,7 +3,6 @@
 <script setup lang="ts">
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import OIcon from '@/components/icons/OIcon.vue';
-import BillingLayout from '@/components/layout/BillingLayout.vue';
 import { classifyError } from '@/schemas/errors';
 import { BillingService, type Plan as BillingPlan } from '@/services/billing.service';
 import { useOrganizationStore } from '@/stores/organizationStore';
@@ -53,6 +52,22 @@ const getFeatureLabel = (feature: string): string => {
     [CAPABILITIES.AUDIT_LOGS]: 'Audit logs',
   };
   return labels[feature] || feature;
+};
+
+// Get base plan for comparison (Identity Plus is always the base)
+const getBasePlan = (plan: BillingPlan): BillingPlan | undefined => {
+  if (plan.tier === 'single_team') return undefined; // Identity Plus has no base
+  // Find Identity Plus with same interval
+  return filteredPlans.value.find(p => p.tier === 'single_team' && p.interval === plan.interval);
+};
+
+// Get only NEW features for this plan (excluding base plan features)
+const getNewFeatures = (plan: BillingPlan): string[] => {
+  const basePlan = getBasePlan(plan);
+  if (!basePlan) return plan.capabilities; // Show all for Identity Plus
+
+  // Filter out features that exist in base plan
+  return plan.capabilities.filter(cap => !basePlan.capabilities.includes(cap));
 };
 
 const getPlanPricePerMonth = (plan: BillingPlan): number => {
@@ -163,7 +178,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <BillingLayout>
+  <div class="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
     <div class="space-y-8">
       <!-- Header -->
       <div class="text-center">
@@ -226,18 +241,32 @@ onMounted(async () => {
       <!-- Error Alert -->
       <BasicFormAlerts v-if="error" :error="error" />
 
+      <!-- No Plans Message -->
+      <div v-if="!isLoadingPlans && filteredPlans.length === 0" class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900/50">
+        <p class="text-gray-600 dark:text-gray-400">
+          No {{ billingInterval === 'year' ? 'yearly' : 'monthly' }} plans available at this time.
+        </p>
+        <button
+          v-if="billingInterval === 'year'"
+          @click="billingInterval = 'month'"
+          class="mt-4 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
+          View Monthly Plans
+        </button>
+      </div>
+
       <!-- Plan Cards -->
-      <div class="mx-auto grid max-w-7xl grid-cols-1 gap-8 md:grid-cols-3">
+      <div v-else class="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
         <div
           v-for="plan in filteredPlans"
           :key="plan.id"
           :class="[
-            'relative flex flex-col rounded-2xl border bg-white shadow-sm transition-shadow hover:shadow-lg dark:bg-gray-800',
+            'relative flex flex-col rounded-2xl border bg-white transition-all hover:shadow-lg dark:bg-gray-800',
             isPlanRecommended(plan)
-              ? 'border-brand-500 ring-2 ring-brand-500 dark:border-brand-400 dark:ring-brand-400'
-              : 'border-gray-200 dark:border-gray-700',
+              ? 'border-brand-500 ring-2 ring-brand-500 shadow-xl md:scale-105 dark:border-brand-400 dark:ring-brand-400'
+              : 'border-gray-200 shadow-sm dark:border-gray-700',
             suggestedPlanId === plan.id ? 'ring-2 ring-yellow-500' : '',
-          ]">
+          ]"
+          :style="{ zIndex: isPlanRecommended(plan) ? 10 : 1 }">
           <!-- Recommended Badge -->
           <div
             v-if="isPlanRecommended(plan)"
@@ -293,9 +322,15 @@ onMounted(async () => {
               <p class="text-sm font-semibold text-gray-900 dark:text-white">
                 {{ t('web.billing.plans.features') }}
               </p>
+
+              <!-- Show base plan reference for higher tiers -->
+              <p v-if="getBasePlan(plan)" class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                ✓ Everything in {{ getBasePlan(plan)?.name }}, plus:
+              </p>
+
               <ul class="space-y-2">
                 <li
-                  v-for="capability in plan.capabilities"
+                  v-for="capability in getNewFeatures(plan)"
                   :key="capability"
                   class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
                   <OIcon
@@ -348,5 +383,5 @@ onMounted(async () => {
         </button>
       </div>
     </div>
-  </BillingLayout>
+  </div>
 </template>

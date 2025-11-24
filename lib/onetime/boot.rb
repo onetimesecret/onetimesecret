@@ -2,10 +2,7 @@
 #
 # frozen_string_literal: true
 
-# lib/onetime/boot.rb
-
 require_relative 'initializers'
-require_relative 'boot/manifest'
 
 module Onetime
   module Initializers
@@ -41,11 +38,11 @@ module Onetime
         raise OT::Problem, 'Boot already completed'
       end
 
-      # Initialize boot manifest for structured progress tracking
-      manifest = Boot::Manifest.new
-
       # Sets a unique, 64-bit hexadecimal ID for this process instance.
       @instance ||= Familia.generate_trace_id.freeze
+
+      # Track boot start time
+      boot_start = Onetime.now_in_μs
 
       # Default to diagnostics disabled. FYI: in test mode, the test config
       # YAML has diagnostics enabled. But the DSN values are nil so it
@@ -63,44 +60,43 @@ module Onetime
 
       # Normalize the configuration and make it available to the rest
       # of the initializers (via OT.conf).
-      manifest.checkpoint(:config_load)
       @conf = OT::Config.after_load(raw_conf)
 
-      # NOTE: We could benefit from tsort to make sure these
-      # initializers are loaded in the correct order.
-      load_locales
+      # Phase 1: Discovery - Initializer classes already loaded via require at top of file
+      # (Each class auto-registers via inherited hook)
 
-      # The manifest knows how to log, even before the SemanticLogger is setup
-      # so there's no risk of inadvertently auto-creating a default appender
-      # with Raggedy Andy formatting.
-      manifest.checkpoint(:logging_setup)
-      setup_loggers
+      # Phase 2: Loading - Instantiate and build dependency graph
+      Boot::InitializerRegistry.load_all
 
-      manifest.checkpoint(:diagnostics_init) do
-        setup_diagnostics
-      end
-
-      set_secrets
-      configure_domains
-      configure_truemail
-      configure_rhales
-      load_fortunes
-      setup_database_logging # meant to run regardless of db connection
-
+      # Phase 3: Execution - Run initializers in dependency order (conditional on connect_to_db)
       if connect_to_db
-        manifest.checkpoint(:database_init) do
-          configure_familia             # must run before detect_legacy_data_and_warn
-          detect_legacy_data_and_warn   # must run before setup_connection_pool
-          setup_connection_pool
-          check_global_banner
+        # Run all initializers in dependency order
+        Boot::InitializerRegistry.run_all
+      else
+        # Run only non-database initializers
+        ordered = Boot::InitializerRegistry.execution_order
+        ordered.each do |init|
+          # Skip database-related initializers
+          next if [:configure_familia, :detect_legacy_data_and_warn,
+                   :setup_connection_pool, :check_global_banner].include?(init.name)
+
+          init.run(Boot::InitializerRegistry.context)
         end
       end
 
-      print_log_banner if $stdout.tty? && !mode?(:test) && !mode?(:cli)
+      # Verify registry health
+      health = Boot::InitializerRegistry.health_check
+      unless health[:healthy]
+        failed = Boot::InitializerRegistry.initializers.select(&:failed?)
+        failed_names = failed.map { |i| "#{i.name} (#{i.error.class}: #{i.error.message})" }
+        raise OT::Problem, "Initializer(s) failed: #{failed_names.join(', ')}"
+      end
 
       @ready = true if @ready.nil?
 
-      manifest.complete!
+      # Log completion with timing
+      boot_elapsed_ms = ((Onetime.now_in_μs - boot_start) / 1000.0).round
+      OT.app_logger.info "Initialization complete (in #{boot_elapsed_ms}ms)"
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it

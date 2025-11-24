@@ -72,6 +72,7 @@ export interface Plan {
   amount: number;
   currency: string;
   region: string;
+  display_order: number;
   features: string[];
   limits: Record<string, number>;
   capabilities: string[];

@@ -12,10 +12,21 @@ module Onetime
 
       desc 'Sync products and prices from Stripe to Redis cache'
 
-      def call(**)
+      option :clear, type: :boolean, default: false,
+        desc: 'Clear existing cache before syncing'
+
+      def call(clear: false, **)
         boot_application!
 
         return unless stripe_configured?
+
+        # Clear cache if requested
+        if clear
+          puts 'Clearing existing plan cache...'
+          Billing::Plan.clear_cache
+          puts '✓ Cache cleared'
+          puts
+        end
 
         puts 'Syncing from Stripe to Redis cache...'
         puts

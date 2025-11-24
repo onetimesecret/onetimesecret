@@ -6,18 +6,26 @@ require 'connection_pool'
 
 module Onetime
   module Initializers
-    # Sets up a ConnectionPool for Redis/Valkey database connections.
+    # SetupConnectionPool initializer
     #
-    # Configures Familia with thread-safe connection pooling for all
-    # database operations. Must run after configure_familia_uri sets
-    # Familia.uri.
+    # Sets up a ConnectionPool for Redis/Valkey database connections. Configures
+    # Familia with thread-safe connection pooling for all database operations.
+    # Must run after configure_familia_uri sets Familia.uri.
     #
-    # @example
-    #   setup_connection_pool
+    # Runtime state set:
+    # - Onetime::Runtime.infrastructure.database_pool
     #
-    # @return [void]
-    #
-    def setup_connection_pool
+    class SetupConnectionPool < Onetime::Boot::Initializer
+      @depends_on = [:legacy_check]
+      @provides = [:database]
+
+      def execute(_context)
+        setup_connection_pool
+      end
+
+      private
+
+      def setup_connection_pool
       # NOTE: Familia.uri is already configured by configure_familia_uri initializer
       # which runs before this method. We use it here for connection pooling.
       uri = Familia.uri
@@ -38,7 +46,7 @@ module Onetime
       # Belt-and-suspenders reconnection resilience:
       # 1. ConnectionPool retries checkout once on connection errors
       # 2. Redis driver retries once with minimal delay for stale connections
-      OT.database_pool = ConnectionPool.new(size: pool_size, timeout: pool_timeout, reconnect_attempts: 4) do
+      database_pool = ConnectionPool.new(size: pool_size, timeout: pool_timeout, reconnect_attempts: 4) do
         Redis.new(parsed_uri.conf.merge(
           reconnect_attempts: [
             0.05, # 50ms delay before first retry
@@ -57,7 +65,7 @@ module Onetime
         # Returns pooled connection, pool.with handles checkout/checkin automatically
         # Reconnection handled at pool + Redis level prevents "idle connection death"
         config.connection_provider = ->(_provided_uri) do
-          OT.database_pool.with { |conn| conn }
+          database_pool.with { |conn| conn }
         end
 
         config.transaction_mode = :warn
@@ -65,7 +73,7 @@ module Onetime
       end
 
       # Verify connectivity using pool (tests first connection + reconnection config)
-      ping_result = OT.database_pool.with { |conn| conn.ping }
+      ping_result = database_pool.with { |conn| conn.ping }
       OT.ld "[init] Connected #{Familia.members.size} models to DB 0 via connection pool " \
             "(size: #{pool_size}, timeout: #{pool_timeout}s) - #{ping_result}"
 
@@ -83,8 +91,12 @@ module Onetime
 
       # Optional: Single migration flag for entire DB 0
       dbkey      = Familia.join(%w[ots migration_needed db_0])
-      first_time = OT.database_pool.with { |conn| conn.setnx(dbkey, '1') } # Direct pool usage for setup
+      first_time = database_pool.with { |conn| conn.setnx(dbkey, '1') } # Direct pool usage for setup
       OT.ld "[init] Connect database: Setting #{dbkey} to '1' (already set? #{!first_time})"
+
+      # Set runtime state
+      Onetime::Runtime.update_infrastructure(database_pool: database_pool)
+    end
     end
   end
 end

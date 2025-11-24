@@ -11,6 +11,8 @@ require 'onetime/logger_methods'
 require_relative '../core/auth_strategies'
 require_relative 'controllers'
 require_relative 'models'
+require_relative 'initializers/stripe_setup'
+require_relative 'initializers/billing_catalog'
 
 module Billing
   # Billing Web Application
@@ -47,26 +49,8 @@ module Billing
     use Onetime::Middleware::CsrfResponseHeader
 
     warmup do
-      # We do this here to take care of our own initialization needs.
-      stripe_key = Onetime.billing_config.stripe_key
-      if stripe_key && !stripe_key.to_s.strip.empty?
-        Stripe.api_key = stripe_key
-        Onetime.billing_logger.info 'Stripe API key configured'
-      else
-        Onetime.billing_logger.warn 'Stripe API key not configured - billing features disabled'
-      end
-
-      # Refresh plan cache from Stripe on application boot
-      Onetime.billing_logger.info 'Refreshing plan cache from Stripe'
-      begin
-        Billing::Plan.refresh_from_stripe
-        Onetime.billing_logger.info 'Plan cache refreshed successfully'
-      rescue StandardError => ex
-        Onetime.billing_logger.error 'Failed to refresh plan cache', {
-          exception: ex,
-          message: ex.message,
-        }
-      end
+      # Warmup is for preloading and preparing the router
+      # Actual initialization logic is in initializers/
     end
 
     protected

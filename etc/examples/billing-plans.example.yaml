@@ -1,0 +1,155 @@
+# etc/examples/billing-plans.example.yaml
+#
+# Billing Plan Catalog
+#
+# Example billing plan catalog for reference and testing.
+# Copy and customize for your deployment and enjoyment.
+#
+# Schema Version: 1.0
+# Last Updated: 2025-11-23
+#
+#  Frontend Usage Example
+#
+# ```ts
+#     import { PlanCatalogSchema, getPlansSortedByDisplayOrder } from '@/schemas/config';
+#     import yaml from 'yaml';
+#
+#     // Load and validate catalog
+#     const catalogData = yaml.parse(await fetch('/api/billing/catalog').text());
+#     const catalog = PlanCatalogSchema.parse(catalogData);
+#
+#     // Get plans sorted for display
+#     const visiblePlans = getPlansSortedByDisplayOrder(catalog, false);
+#
+#     // Render plans
+#     visiblePlans.forEach(([planId, plan]) => {
+#       console.log(`${plan.name}: ${plan.capabilities.join(', ')}`);
+#     });
+# ```
+
+schema_version: "1.0"
+
+# NOTE: Configuration (capabilities, stripe_api_version) moved to etc/billing.yaml
+# Plans reference capabilities by ID string. See billing.yaml for full config.
+
+# Active Plan Definitions
+plans:
+
+  # Free Tier
+  free_v1:
+    name: "Free"
+    tier: free
+    tenancy: multi
+    region: global
+    display_order: 0
+    show_on_plans_page: true
+    description: "Basic plan for individual users"
+
+    capabilities:
+      - create_secrets
+      - view_metadata
+      - api_access
+
+    limits:
+      teams: 0
+      members_per_team: 1
+      custom_domains: 0
+      secret_lifetime: 604800
+      secrets_per_day: null
+
+    prices: []
+
+  # Individual Plan
+  individual_v1:
+    name: "Individual"
+    tier: single_account
+    tenancy: multi
+    region: global
+    display_order: 10
+    show_on_plans_page: true
+    description: "For individuals with extended features"
+
+    capabilities:
+      - create_secrets
+      - view_metadata
+      - api_access
+      - custom_domains
+      - extended_default_expiration
+      - custom_branding
+
+    limits:
+      teams: 0
+      members_per_team: 1
+      custom_domains: 5
+      secret_lifetime: 2592000
+      secrets_per_day: -1
+
+    prices:
+      - interval: month
+        amount: 1000
+        currency: eur
+
+  # Team Plan
+  team_v1:
+    name: "Team"
+    tier: single_team
+    tenancy: multi
+    region: global
+    display_order: 20
+    show_on_plans_page: true
+    description: "For small teams with collaboration features"
+
+    capabilities:
+      - create_secrets
+      - view_metadata
+      - api_access
+      - custom_domains
+      - extended_default_expiration
+      - custom_branding
+      - manage_teams
+      - manage_members
+
+    limits:
+      teams: 1
+      members_per_team: 10
+      custom_domains: 10
+      secret_lifetime: 2592000
+      secrets_per_day: -1
+
+    prices:
+      - interval: month
+        amount: 5000
+        currency: eur
+
+  # Organization Plan
+  organization_v1:
+    name: "Organization"
+    tier: multi_team
+    tenancy: multi
+    region: global
+    display_order: 30
+    show_on_plans_page: true
+    description: "For organizations with advanced features"
+
+    capabilities:
+      - create_secrets
+      - view_metadata
+      - api_access
+      - custom_domains
+      - extended_default_expiration
+      - custom_branding
+      - manage_teams
+      - manage_members
+      - audit_logs
+
+    limits:
+      teams: -1
+      members_per_team: 50
+      custom_domains: -1
+      secret_lifetime: 2592000
+      secrets_per_day: -1
+
+    prices:
+      - interval: month
+        amount: 15000
+        currency: eur

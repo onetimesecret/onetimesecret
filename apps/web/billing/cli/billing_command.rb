@@ -23,6 +23,7 @@ module Onetime
             bin/ots billing products create    Create new product
             bin/ots billing products show      Show product details
             bin/ots billing products update    Update product metadata
+            bin/ots billing products validate  Validate product metadata completeness
             bin/ots billing products events    Show product-related events
             bin/ots billing prices             List all Stripe prices
             bin/ots billing prices create      Create price for product
@@ -55,9 +56,11 @@ module Onetime
             bin/ots billing payment-links show      Show payment link details
             bin/ots billing payment-links archive   Archive payment link
 
-          Sync & Validation:
+          Catalog & Sync:
+            bin/ots billing catalog            Manage plan catalog
+            bin/ots billing catalog validate   Validate catalog YAML and Stripe consistency
+            bin/ots billing catalog generate-docs  Generate catalog documentation
             bin/ots billing sync               Full sync from Stripe to Redis
-            bin/ots billing validate           Validate product metadata
             bin/ots billing events             View recent Stripe events
             bin/ots billing connection         Show Stripe connection info (masked)
 
@@ -108,6 +111,12 @@ module Onetime
 
             # Sync everything to cache
             bin/ots billing sync
+
+            # Validate product metadata
+            bin/ots billing products validate
+
+            # Validate catalog and Stripe consistency
+            bin/ots billing catalog validate
 
           Use --help with any command for more details.
         HELP

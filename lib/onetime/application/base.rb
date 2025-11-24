@@ -218,6 +218,7 @@ module Onetime
           @warmup_block = block if block_given?
           @warmup_block
         end
+
       end
     end
   end
