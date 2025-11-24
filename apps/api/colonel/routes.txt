@@ -1,7 +1,6 @@
 # apps/api/colonel/routes.txt
 
-# Colonel/Admin endpoints
-GET    /                                  ColonelAPI::Logic::Colonel::GetColonelInfo response=json auth=sessionauth
+# Colonel API  endpoints
 GET    /info                              ColonelAPI::Logic::Colonel::GetColonelInfo response=json auth=sessionauth
 GET    /stats                             ColonelAPI::Logic::Colonel::GetColonelStats response=json auth=sessionauth
 

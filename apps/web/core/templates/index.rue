@@ -69,6 +69,7 @@ const schema = z.object({
   ruby_version: z.string(),
   shrimp: z.string().nullable(),
   nonce: z.string().nullable(),
+  homepage_mode: z.string().nullable(),
 
   // Additional fields from BaseView.render (for window.__ONETIME_STATE__)
   // Note: page_title, description, keywords, baseuri, no_cache, and vite_assets_html

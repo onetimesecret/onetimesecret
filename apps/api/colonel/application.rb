@@ -34,14 +34,14 @@ module ColonelAPI
   # - Authorization: Role-based (requires role='colonel')
   #
   class Application < BaseJSONAPI
-    @uri_prefix = '/colonel'
+    @uri_prefix = '/api/colonel'
 
     warmup do
       # Empty warmup - just triggers the logging
     end
 
     def self.auth_strategy_module
-      ColonelAPI::AuthStrategies
+      Core::AuthStrategies
     end
 
     def self.root_path

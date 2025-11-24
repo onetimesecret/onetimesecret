@@ -36,7 +36,7 @@ apps/api/colonel/
    - Follows existing patterns (domains, organizations, teams)
 
 2. **Cleaner URLs**
-   - Old: `/api/account/colonel/*`
+   - Old: `/api/colonel/*`
    - New: `/api/colonel/*`
    - More intuitive and RESTful
 
@@ -56,14 +56,14 @@ apps/api/colonel/
 
 | Old Path | New Path |
 |----------|----------|
-| `/api/account/colonel/info` | `/api/colonel/info` |
-| `/api/account/colonel/stats` | `/api/colonel/stats` |
-| `/api/account/colonel/secrets` | `/api/colonel/secrets` |
-| `/api/account/colonel/users` | `/api/colonel/users` |
-| `/api/account/colonel/system/database` | `/api/colonel/system/database` |
-| `/api/account/colonel/system/redis` | `/api/colonel/system/redis` |
-| `/api/account/colonel/banned-ips` | `/api/colonel/banned-ips` |
-| `/api/account/colonel/usage/export` | `/api/colonel/usage/export` |
+| `/api/colonel/info` | `/api/colonel/info` |
+| `/api/colonel/stats` | `/api/colonel/stats` |
+| `/api/colonel/secrets` | `/api/colonel/secrets` |
+| `/api/colonel/users` | `/api/colonel/users` |
+| `/api/colonel/system/database` | `/api/colonel/system/database` |
+| `/api/colonel/system/redis` | `/api/colonel/system/redis` |
+| `/api/colonel/banned-ips` | `/api/colonel/banned-ips` |
+| `/api/colonel/usage/export` | `/api/colonel/usage/export` |
 
 **Namespace Changed:**
 - All logic classes moved from `AccountAPI::Logic::Colonel` to `ColonelAPI::Logic::Colonel`
@@ -142,7 +142,7 @@ For any existing integrations or scripts using the old paths:
 1. **Update API URLs:**
    ```bash
    # Old
-   curl http://localhost:3000/api/account/colonel/info
+   curl http://localhost:3000/api/colonel/info
 
    # New
    curl http://localhost:3000/api/colonel/info
@@ -199,6 +199,6 @@ The colonel admin interface has been successfully refactored into a standalone A
 - **Cleaner architecture** - Follows established patterns
 - **Better organization** - Separate concerns properly
 - **Easier maintenance** - Independent development and testing
-- **Intuitive URLs** - `/api/colonel/*` instead of `/api/account/colonel/*`
+- **Intuitive URLs** - `/api/colonel/*` instead of `/api/colonel/*`
 
 All functionality remains intact with improved code structure and organization.

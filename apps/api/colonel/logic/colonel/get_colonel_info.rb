@@ -10,6 +10,9 @@ module ColonelAPI
   module Logic
     module Colonel
       class GetColonelInfo < ColonelAPI::Logic::Base
+
+        using Familia::Refinements::TimeLiterals
+
         attr_reader :billing_enabled, :title, :session_count,
           :today_feedback, :yesterday_feedback, :older_feedback, :feedback_count,
           :today_feedback_count, :yesterday_feedback_count, :older_feedback_count,
