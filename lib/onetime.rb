@@ -63,11 +63,19 @@ module Onetime
   require_relative 'onetime/class_methods'
   extend ClassMethods
 
+  # Load runtime state management
+  require_relative 'onetime/runtime'
+
   # Load application framework components
   require_relative 'onetime/application'
 
   # Extend Rack::Request with Otto and Onetime-specific methods
   require_relative 'onetime/initializers/extend_rack_request'
+
+  # Load backwards compatibility accessors
+  # TODO: Remove this require and delete lib/onetime/deprecated_methods.rb
+  # after migrating all code to use Runtime state objects directly
+  require_relative 'onetime/deprecated_methods'
 end
 
 # Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
