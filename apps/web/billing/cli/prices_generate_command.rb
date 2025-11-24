@@ -17,10 +17,15 @@ module Onetime
       option :plan, type: :string, desc: 'Generate for specific plan only (e.g., identity_plus_v1)'
       option :catalog, type: :string, default: 'etc/billing-plans.yaml',
         desc: 'Path to billing plans catalog'
-      option :lookup, type: :boolean, default: false,
-        desc: 'Lookup product IDs from Stripe using plan_id metadata'
+      option :lookup, type: :boolean, default: true,
+        desc: 'Lookup product IDs from Stripe using plan_id metadata (default: true)'
+      option :no_lookup, type: :boolean, default: false,
+        desc: 'Skip Stripe lookup and use PRODUCT_ID placeholders'
 
-      def call(product_id: nil, plan: nil, catalog: 'etc/billing-plans.yaml', lookup: false, **)
+      def call(product_id: nil, plan: nil, catalog: 'etc/billing-plans.yaml', lookup: true, no_lookup: false, **)
+        # Allow --no-lookup to override default
+        lookup = false if no_lookup
+
         # Boot application only if lookup is enabled
         if lookup
           boot_application!
