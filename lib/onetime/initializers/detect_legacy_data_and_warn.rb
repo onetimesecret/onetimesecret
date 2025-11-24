@@ -4,8 +4,21 @@
 
 module Onetime
   module Initializers
-    # Check for legacy data distribution before connecting to databases
-    def detect_legacy_data_and_warn
+    # DetectLegacyDataAndWarn initializer
+    #
+    # Checks for legacy data distribution across multiple Redis databases before
+    # connecting to databases. This initializer performs side-effect operations
+    # (logging, warnings) and doesn't set runtime state that needs to be tracked.
+    #
+    class DetectLegacyDataAndWarn < Onetime::Boot::Initializer
+      def execute(_context)
+        detect_legacy_data_and_warn
+      end
+
+      private
+
+      # Check for legacy data distribution before connecting to databases
+      def detect_legacy_data_and_warn
       # This check runs once and then sets a marker to prevent the expensive
       # scan on every startup.
       completion_key = 'onetime:system:legacy_check_complete'
@@ -378,6 +391,7 @@ module Onetime
     # non-zero databases will be flagged for migration.
     def migration_mode?
       ENV['MIGRATION_MODE'] == 'true'
+    end
     end
   end
 end
