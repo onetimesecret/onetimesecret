@@ -36,6 +36,11 @@ module Onetime
       config.dig('billing', 'webhook_signing_secret')
     end
 
+    # Stripe API version
+    def stripe_api_version
+      config.dig('billing', 'stripe_api_version')
+    end
+
     # Payment links configuration
     def payment_links
       config.dig('billing', 'payment_links') || {}

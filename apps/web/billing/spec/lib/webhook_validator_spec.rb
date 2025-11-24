@@ -4,7 +4,7 @@
 
 require_relative '../support/billing_spec_helper'
 require_relative '../../lib/webhook_validator'
-require_relative '../../models/processed_webhook_event'
+require_relative '../../models/stripe_webhook_event'
 
 RSpec.describe Billing::WebhookValidator, type: :billing do
   subject(:validator) { described_class.new(webhook_secret: webhook_secret) }
@@ -196,191 +196,69 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
     end
   end
 
-  describe '#already_processed?' do
-    let(:event_id) { 'evt_already_proc_test' }
+  describe '#initialize_event_record' do
+    let(:timestamp) { Time.now.to_i }
+    let(:payload) do
+      {
+        id: 'evt_metadata_test',
+        object: 'event',
+        type: 'customer.subscription.updated',
+        api_version: '2023-10-16',
+        created: timestamp,
+        livemode: false,
+        pending_webhooks: 1,
+        request: { id: 'req_test123' },
+        data: {
+          object: { id: 'sub_test123', object: 'subscription' }
+        }
+      }.to_json
+    end
+    let(:stripe_event) { Stripe::Event.construct_from(JSON.parse(payload)) }
 
-    context 'when event was not processed' do
-      it 'returns false' do
-        expect(validator.already_processed?(event_id)).to be false
-      end
+    it 'initializes event with full Stripe metadata' do
+      event = validator.initialize_event_record(stripe_event, payload)
+
+      expect(event.stripe_event_id).to eq('evt_metadata_test')
+      expect(event.event_type).to eq('customer.subscription.updated')
+      expect(event.api_version).to eq('2023-10-16')
+      expect(event.livemode).to eq('false')
+      expect(event.created).to eq(timestamp.to_s)
+      expect(event.request_id).to eq('req_test123')
+      expect(event.data_object_id).to eq('sub_test123')
+      expect(event.pending_webhooks).to eq('1')
+      expect(event.event_payload).to eq(payload)
+      expect(event.first_seen_at).not_to be_nil
+      expect(event.retry_count).to eq('0')
     end
 
-    context 'when event was already processed' do
-      before do
-        Billing::ProcessedWebhookEvent.mark_processed!(event_id, 'customer.created')
-      end
+    it 'stores event payload for replay' do
+      event = validator.initialize_event_record(stripe_event, payload)
 
-      it 'returns true' do
-        expect(validator.already_processed?(event_id)).to be true
-      end
-    end
-  end
-
-  describe '#mark_processed!' do
-    let(:event_id) { 'evt_test_456' }
-    let(:event_type) { 'customer.subscription.updated' }
-
-    before do
-      # Ensure this specific event doesn't exist before each test
-      event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id)
-      event.dbclient.del(event.dbkey)
+      expect(event.event_payload).to eq(payload)
+      expect(event.deserialize_payload).to be_a(Hash)
+      expect(event.deserialize_payload['id']).to eq('evt_metadata_test')
     end
 
-    context 'when event is new' do
-      it 'marks event as processed' do
-        result = validator.mark_processed!(event_id, event_type)
+    it 'only initializes once for the same event' do
+      # First call
+      event1 = validator.initialize_event_record(stripe_event, payload)
+      first_seen = event1.first_seen_at
 
-        expect(result).to be true
-        expect(validator.already_processed?(event_id)).to be true
-      end
-
-      it 'stores event metadata in Redis' do
-        validator.mark_processed!(event_id, event_type)
-
-        event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id)
-        # Verify key exists (FakeRedis returns boolean, real Redis returns integer)
-        expect(event.dbclient.exists?(event.dbkey)).to be_truthy
-
-        # Verify we can parse the stored JSON
-        stored_data = JSON.parse(event.dbclient.get(event.dbkey))
-        expect(stored_data['event_type']).to eq(event_type)
-        expect(stored_data['processed_at']).to be_a(String)
-      end
-
-      it 'sets expiration on the event record' do
-        result = validator.mark_processed!(event_id, event_type)
-
-        expect(result).to be true
-
-        event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id)
-        # Verify key exists
-        expect(event.dbclient.exists?(event.dbkey)).to be_truthy
-
-        # Verify TTL is set (FakeRedis may handle this differently)
-        ttl = redis.ttl(event.dbkey)
-        # TTL might be -1 (no expiry) or positive (has expiry) in FakeRedis
-        expect(ttl).to be >= -1
-      end
+      # Second call - should return existing data
+      event2 = validator.initialize_event_record(stripe_event, payload)
+      expect(event2.first_seen_at).to eq(first_seen)
     end
 
-    context 'when event was already processed' do
-      before do
-        Billing::ProcessedWebhookEvent.mark_processed!(event_id, event_type)
-      end
+    it 'persists metadata to Redis' do
+      validator.initialize_event_record(stripe_event, payload)
 
-      it 'returns false' do
-        result = validator.mark_processed!(event_id, event_type)
-
-        expect(result).to be false
-      end
-
-      it 'does not change existing record' do
-        original_event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id)
-        original_time  = original_event.processed_at
-
-        validator.mark_processed!(event_id, event_type)
-
-        updated_event = Billing::ProcessedWebhookEvent.new(stripe_event_id: event_id)
-        expect(updated_event.processed_at).to eq(original_time)
-      end
-    end
-
-    context 'atomic behavior with concurrent requests' do
-      let(:event_id) { 'evt_concurrent_test' }
-
-      it 'prevents duplicate processing with race condition' do
-        # Simulate concurrent webhook deliveries
-        results = []
-
-        # First request marks it
-        results << validator.mark_processed!(event_id, event_type)
-
-        # Concurrent request (slightly delayed) should fail
-        results << validator.mark_processed!(event_id, event_type)
-
-        # Only one should succeed
-        expect(results.count(true)).to eq(1)
-        expect(results.count(false)).to eq(1)
-      end
+      # Load fresh from Redis
+      reloaded = Billing::StripeWebhookEvent.find_by_identifier('evt_metadata_test')
+      expect(reloaded).not_to be_nil
+      expect(reloaded.api_version).to eq('2023-10-16')
+      expect(reloaded.data_object_id).to eq('sub_test123')
+      expect(reloaded.event_payload).to eq(payload)
     end
   end
 
-  describe '#unmark_processed!' do
-    let(:event_id) { 'evt_rollback_test' }
-    let(:event_type) { 'invoice.payment_failed' }
-
-    context 'when event was marked as processed' do
-      before do
-        Billing::ProcessedWebhookEvent.mark_processed!(event_id, event_type)
-      end
-
-      it 'removes the processed marker' do
-        validator.unmark_processed!(event_id)
-
-        expect(validator.already_processed?(event_id)).to be false
-      end
-
-      it 'allows event to be reprocessed after rollback' do
-        # Mark and verify
-        expect(validator.already_processed?(event_id)).to be true
-
-        # Rollback
-        validator.unmark_processed!(event_id)
-
-        # Can mark again
-        result = validator.mark_processed!(event_id, event_type)
-        expect(result).to be true
-      end
-    end
-
-    context 'when event was not processed' do
-      it 'handles gracefully without error' do
-        expect do
-          validator.unmark_processed!(event_id)
-        end.not_to raise_error
-      end
-    end
-  end
-
-  describe 'integration: full validation workflow' do
-    let(:payload) { '{"id":"evt_integration_123","type":"customer.created","created":' + Time.now.to_i.to_s + ',"data":{"object":{"id":"cus_123"}}}' }
-    let(:signature) do
-      generate_stripe_signature(
-        payload: payload,
-        secret: webhook_secret,
-        timestamp: Time.now.to_i,
-      )
-    end
-
-    it 'validates signature, timestamp, and handles duplicate detection' do
-      # First delivery: validate and process
-      event = validator.construct_event(payload, signature)
-      expect(event.id).to eq('evt_integration_123')
-      expect(validator.already_processed?(event.id)).to be false
-
-      marked = validator.mark_processed!(event.id, event.type)
-      expect(marked).to be true
-
-      # Second delivery (duplicate): detect and reject
-      event2 = validator.construct_event(payload, signature)
-      expect(validator.already_processed?(event2.id)).to be true
-
-      marked_again = validator.mark_processed!(event2.id, event2.type)
-      expect(marked_again).to be false
-    end
-
-    it 'supports rollback on processing failure' do
-      # Validate and mark
-      event = validator.construct_event(payload, signature)
-      validator.mark_processed!(event.id, event.type)
-
-      # Simulate processing failure - rollback
-      validator.unmark_processed!(event.id)
-
-      # Should allow retry
-      expect(validator.already_processed?(event.id)).to be false
-      retry_result = validator.mark_processed!(event.id, event.type)
-      expect(retry_result).to be true
-    end
-  end
 end

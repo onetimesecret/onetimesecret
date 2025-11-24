@@ -9,7 +9,7 @@ require_relative '../lib/stripe_client'
 
 module Billing
   module Controllers
-    class Billing
+    class BillingController
       include Controllers::Base
 
       # Get billing overview for organization
@@ -217,8 +217,10 @@ module Billing
       def list_plans
         plans = ::Billing::Plan.list_plans
 
-        # Filter out nil plans (stale cache entries)
-        plan_data = plans.compact.map do |plan|
+        # Filter out nil plans, filter by show_on_plans_page, and sort by display_order (descending - higher = earlier)
+        plan_data = plans.compact
+          .select { |plan| plan.show_on_plans_page.to_s == 'true' }
+          .map do |plan|
           {
             id: plan.plan_id,
             name: plan.name,
@@ -227,11 +229,12 @@ module Billing
             amount: plan.amount,
             currency: plan.currency,
             region: plan.region,
-            features: plan.parsed_features,
-            limits: plan.parsed_limits,
-            capabilities: plan.parsed_capabilities,
+            features: plan.features.to_a,
+            limits: plan.limits_hash,
+            capabilities: plan.capabilities.to_a,
+            display_order: plan.display_order.to_i,
           }
-        end
+        end.sort_by { |p| -p[:display_order] } # Descending: higher values first
 
         json_response({ plans: plan_data })
       rescue StandardError => ex
@@ -277,8 +280,8 @@ module Billing
           interval: plan.interval,
           amount: plan.amount,
           currency: plan.currency,
-          features: plan.parsed_features,
-          limits: plan.parsed_limits,
+          features: plan.features.to_a,
+          limits: plan.limits_hash,
         }
       end
 

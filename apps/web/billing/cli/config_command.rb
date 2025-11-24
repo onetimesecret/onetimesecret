@@ -1,4 +1,4 @@
-# apps/web/billing/cli/connection_command.rb
+# apps/web/billing/cli/config_command.rb
 #
 # frozen_string_literal: true
 
@@ -6,11 +6,11 @@ require_relative 'helpers'
 
 module Onetime
   module CLI
-    # Display Stripe connection information (API key and webhook secret)
-    class BillingConnectionCommand < Command
+    # Display Stripe configuration information (API key and webhook secret)
+    class BillingConfigCommand < Command
       include BillingHelpers
 
-      desc 'Display Stripe connection information (securely masked)'
+      desc 'Display Stripe configuration information (securely masked)'
 
       def call(**)
         boot_application!
@@ -30,6 +30,17 @@ module Onetime
 
         puts
 
+        # Fetch account name from Stripe API
+        stripe_key = OT.billing_config.stripe_key
+        account_info = fetch_account_info(stripe_key)
+
+        if account_info
+          mode = stripe_key.start_with?('sk_test_', 'rk_test_') ? 'Test' : 'Live'
+          puts "Account: #{account_info[:name]}"
+          puts "Mode: #{mode}"
+          puts
+        end
+
         # Environment Variables (first - most abstract)
         puts 'Environment Variables:'
         display_env_status('STRIPE_KEY', ENV['STRIPE_KEY'])
@@ -43,7 +54,6 @@ module Onetime
         puts
 
         # Actual Configuration Values (last - most concrete)
-        stripe_key = OT.billing_config.stripe_key
         display_credential('Stripe API Key', stripe_key, :stripe_key)
 
         puts
@@ -63,6 +73,25 @@ module Onetime
       end
 
       private
+
+      # Fetch account information from Stripe API
+      #
+      # @param api_key [String] Stripe API key
+      # @return [Hash, nil] Account info with :name, or nil if fetch fails
+      def fetch_account_info(api_key)
+        return nil if api_key.nil? || api_key.to_s.strip.empty?
+        return nil if api_key == 'nostripekey'
+
+        Stripe.api_key = api_key
+        account = Stripe::Account.retrieve
+        {
+          name: account.settings.dashboard.display_name || account.business_profile&.name || 'Unknown',
+          id: account.id
+        }
+      rescue Stripe::StripeError => e
+        # Silently fail - connection info will still show without account name
+        nil
+      end
 
       # Display a credential with secure masking
       #
@@ -155,4 +184,4 @@ module Onetime
   end
 end
 
-Onetime::CLI.register 'billing connection', Onetime::CLI::BillingConnectionCommand
+Onetime::CLI.register 'billing config', Onetime::CLI::BillingConfigCommand

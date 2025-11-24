@@ -9,3 +9,62 @@ billing:
   enabled: true
   stripe_key: <%= ENV['STRIPE_KEY'] || 'nostripekey' %>
   webhook_signing_secret: <%= ENV['STRIPE_WEBHOOK_SIGNING_SECRET'] || 'nosigningsecret' %>
+  stripe_api_version: "2025-11-17.clover"
+
+  # Capability Definitions
+  # Defines what features/permissions exist in the billing system.
+  # Plans reference these capabilities by ID.
+  #
+  # Categories: core, collaboration, infrastructure, branding, advanced, support
+  capabilities:
+    create_secrets:
+      category: core
+      description: Can create basic secrets
+
+    view_metadata:
+      category: core
+      description: Can view secret metadata
+
+    api_access:
+      category: infrastructure
+      description: Can use REST API endpoints
+
+    custom_domains:
+      category: infrastructure
+      description: Can configure custom domains
+
+    extended_default_expiration:
+      category: core
+      description: Extended secret expiration (30 days default)
+
+    custom_branding:
+      category: branding
+      description: Custom branding and styling
+
+    branded_homepage:
+      category: branding
+      description: Branded homepage for custom domains
+
+    manage_teams:
+      category: collaboration
+      description: Can create and manage teams
+
+    manage_members:
+      category: collaboration
+      description: Can add and manage team members
+
+    audit_logs:
+      category: advanced
+      description: Access to audit log features
+
+    sso:
+      category: advanced
+      description: Single sign-on integration
+
+    priority_support:
+      category: support
+      description: Priority customer support
+
+    sla:
+      category: support
+      description: Service level agreement

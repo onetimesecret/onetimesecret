@@ -180,13 +180,15 @@ module Billing
 
     private
 
-    # Configure Stripe SDK with API key and timeouts
+    # Configure Stripe SDK with API key, version, and timeouts
     #
     # Sets request timeouts to prevent hanging operations.
     # Disables Stripe's built-in retry logic to maintain our own control.
+    # Pins API version to ensure consistent behavior across deployments.
     #
     def configure_stripe
       Stripe.api_key      = @api_key
+      Stripe.api_version  = Onetime.billing_config.stripe_api_version
       Stripe.open_timeout = REQUEST_TIMEOUT
       Stripe.read_timeout = REQUEST_TIMEOUT
 

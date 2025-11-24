@@ -215,11 +215,11 @@ module Billing
       #
       # Future: Use GeoIP or CloudFlare headers for accurate region detection
       #
-      # @return [String] Region code (default: 'us-east')
+      # @return [String] Region code (default: 'EU')
       def detect_region
-        # For Phase 1, default to us-east
+        # For Phase 1, default to EU
         # Future: Use req.env['HTTP_CF_IPCOUNTRY'] or GeoIP database
-        'us-east'
+        'EU'
       end
 
       # Find or create default organization for customer

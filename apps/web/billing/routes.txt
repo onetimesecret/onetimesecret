@@ -24,12 +24,12 @@ GET    /portal                                   Billing::Controllers::Plans#cus
 # Uses extid (external ID) in URLs for security; objid (internal ID) is for internal use only
 
 # Plan listing (no authentication required for browsing)
-GET    /api/plans                                Billing::Controllers::Billing#list_plans response=json auth=noauth
+GET    /api/plans                                Billing::Controllers::BillingController#list_plans response=json auth=noauth
 
 # Organization billing endpoints (authenticated)
-GET    /api/org/:extid                           Billing::Controllers::Billing#overview response=json auth=sessionauth
-POST   /api/org/:extid/checkout                  Billing::Controllers::Billing#create_checkout_session response=json auth=sessionauth
-GET    /api/org/:extid/invoices                  Billing::Controllers::Billing#list_invoices response=json auth=sessionauth
+GET    /api/org/:extid                           Billing::Controllers::BillingController#overview response=json auth=sessionauth
+POST   /api/org/:extid/checkout                  Billing::Controllers::BillingController#create_checkout_session response=json auth=sessionauth
+GET    /api/org/:extid/invoices                  Billing::Controllers::BillingController#list_invoices response=json auth=sessionauth
 
 # Capability checking API endpoints (authenticated only)
 GET    /api/capabilities                         Billing::Controllers::Capabilities#list response=json auth=sessionauth

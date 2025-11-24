@@ -6,43 +6,120 @@ require_relative 'helpers'
 
 module Onetime
   module CLI
-    # Validate product metadata
+    # Run all billing validation commands
     class BillingValidateCommand < Command
       include BillingHelpers
 
-      desc 'Validate Stripe product metadata'
+      desc 'Run all billing validations (convenience command)'
 
-      def call(**)
+      option :strict, type: :boolean, default: false,
+        desc: 'Fail on warnings (default: only fail on errors)'
+
+      def call(strict: false, **)
         boot_application!
 
-        return unless stripe_configured?
+        puts '━' * 70
+        puts '  BILLING VALIDATION SUITE'
+        puts '━' * 70
+        puts
 
-        puts 'Fetching products from Stripe...'
-        products = Stripe::Product.list({ active: true, limit: 100 })
+        results = {
+          catalog: nil,
+          products: nil,
+          prices: nil,
+          plans: nil
+        }
 
-        if products.data.empty?
-          puts 'No products found'
-          return
+        # 1. Catalog validation (YAML structure)
+        results[:catalog] = run_validation('Catalog Structure', strict) do
+          system("bin/ots billing catalog validate#{strict ? ' --strict' : ''}")
         end
 
-        invalid_count = 0
-        products.data.each do |product|
-          errors = validate_product_metadata(product)
-          next if errors.empty?
+        puts
+        puts '─' * 70
+        puts
 
-          invalid_count += 1
-          puts "\n#{product.name} (#{product.id}):"
-          errors.each { |error| puts "  ✗ #{error}" }
-        end
+        # 2. Products validation (Stripe products metadata)
+        if stripe_configured?
+          results[:products] = run_validation('Products Metadata', strict) do
+            system('bin/ots billing products validate')
+          end
 
-        if invalid_count.zero?
-          puts "✓ All #{products.data.size} product(s) have valid metadata"
+          puts
+          puts '─' * 70
+          puts
+
+          # 3. Prices validation (Stripe prices sanity)
+          results[:prices] = run_validation('Prices Configuration', strict) do
+            system("bin/ots billing prices validate#{strict ? ' --strict' : ''}")
+          end
+
+          puts
+          puts '─' * 70
+          puts
+
+          # 4. Plans validation (production readiness)
+          results[:plans] = run_validation('Plans Production Readiness', strict) do
+            system("bin/ots billing plans validate#{strict ? ' --strict' : ''}")
+          end
         else
-          puts "\n#{invalid_count} product(s) have metadata errors"
-          puts "\nRequired metadata fields:"
-          REQUIRED_METADATA_FIELDS.each { |field| puts "  - #{field}" }
-          exit invalid_count
+          puts '⚠️  Skipping Stripe API validations (no API key configured)'
+          results[:products] = :skipped
+          results[:prices] = :skipped
+          results[:plans] = :skipped
         end
+
+        # Print summary
+        print_summary(results)
+
+        # Exit with failure if any validation failed
+        exit 1 if results.values.include?(false)
+      end
+
+      private
+
+      def run_validation(name, strict)
+        puts "Running: #{name}"
+        puts
+
+        success = yield
+
+        success
+      end
+
+      def print_summary(results)
+        puts
+        puts '━' * 70
+        puts '  VALIDATION SUMMARY'
+        puts '━' * 70
+        puts
+
+        results.each do |validation, result|
+          status = case result
+                  when true then '✅ PASSED'
+                  when false then '❌ FAILED'
+                  when :skipped then '⊘  SKIPPED'
+                  else '❓ UNKNOWN'
+                  end
+
+          name = validation.to_s.split('_').map(&:capitalize).join(' ')
+          puts "  #{name.ljust(25)} #{status}"
+        end
+
+        puts
+        passed_count = results.values.count(true)
+        failed_count = results.values.count(false)
+        skipped_count = results.values.count(:skipped)
+
+        if failed_count.zero?
+          puts '  ✅  ALL VALIDATIONS PASSED'
+        else
+          puts "  ❌  #{failed_count} VALIDATION(S) FAILED"
+        end
+
+        puts "  #{passed_count} passed, #{failed_count} failed, #{skipped_count} skipped"
+        puts
+        puts '━' * 70
       end
     end
   end
