@@ -17,9 +17,15 @@ module Onetime
       option :plan, type: :string, desc: 'Generate for specific plan only (e.g., identity_plus_v1)'
       option :catalog, type: :string, default: 'etc/billing-plans.yaml',
         desc: 'Path to billing plans catalog'
+      option :lookup, type: :boolean, default: false,
+        desc: 'Lookup product IDs from Stripe using plan_id metadata'
 
-      def call(product_id: nil, plan: nil, catalog: 'etc/billing-plans.yaml', **)
-        # No need to boot application or connect to Stripe - just read YAML
+      def call(product_id: nil, plan: nil, catalog: 'etc/billing-plans.yaml', lookup: false, **)
+        # Boot application only if lookup is enabled
+        if lookup
+          boot_application!
+          return unless stripe_configured?
+        end
         catalog_path = File.expand_path(catalog, Dir.pwd)
 
         unless File.exist?(catalog_path)
@@ -46,6 +52,22 @@ module Onetime
           return
         end
 
+        # Lookup products from Stripe if requested
+        products_map = {}
+        if lookup
+          puts 'Fetching products from Stripe...'
+          products = Stripe::Product.list({ active: true, limit: 100 }).auto_paging_each.to_a
+
+          # Map by plan_id from metadata
+          products.each do |product|
+            plan_id = product.metadata['plan_id']
+            products_map[plan_id] = product.id if plan_id
+          end
+
+          puts "Found #{products_map.size} products with plan_id metadata"
+          puts
+        end
+
         # Generate commands
         puts '# Generated Stripe price creation commands'
         puts "# Source: #{catalog}"
@@ -66,10 +88,28 @@ module Onetime
           puts "# #{plan_data['name']} (#{plan_id})"
           puts "# Tier: #{plan_data['tier']}, Region: #{plan_data['region']}"
 
-          if product_id
-            puts "# Product ID: #{product_id}"
+          # Determine which product ID to use
+          actual_product_id = if product_id
+                                # Explicit product_id option takes precedence
+                                product_id
+                              elsif lookup && products_map[plan_id]
+                                # Lookup from Stripe by plan_id metadata
+                                products_map[plan_id]
+                              else
+                                # Placeholder
+                                nil
+                              end
+
+          if actual_product_id
+            puts "# Product ID: #{actual_product_id}"
           else
-            puts '# NOTE: Replace PRODUCT_ID below with the actual Stripe product ID'
+            if lookup
+              puts "# ⚠️  WARNING: No product found with plan_id='#{plan_id}' in Stripe"
+              puts '# NOTE: Create product first or use --product-id option'
+            else
+              puts '# NOTE: Replace PRODUCT_ID below with the actual Stripe product ID'
+              puts "#       Or use --lookup to auto-fetch from Stripe by plan_id metadata"
+            end
           end
 
           puts
@@ -86,7 +126,7 @@ module Onetime
             # Build command
             cmd_parts = []
             cmd_parts << 'bin/ots billing prices create'
-            cmd_parts << (product_id || 'PRODUCT_ID')
+            cmd_parts << (actual_product_id || 'PRODUCT_ID')
             cmd_parts << "--amount=#{amount}"
             cmd_parts << "--currency=#{currency}"
             cmd_parts << "--interval=#{interval}"
