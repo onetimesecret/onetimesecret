@@ -149,13 +149,41 @@ module Auth::Config::Hooks
         email          = param_or_nil('login') || param_or_nil('email')
         correlation_id = session[:auth_correlation_id]
 
-        Auth::Logging.log_auth_event(
-          :login_failure,
-          level: :warn,
-          email: OT::Utils.obscure_email(email),
-          ip: request.ip,
-          correlation_id: correlation_id,
-        )
+        # Check if this might be an empty auth database scenario
+        # Rodauth's login_failure doesn't distinguish between "account not found"
+        # and "wrong password", so we check the accounts table
+        account_count = nil
+        begin
+          account_count = db[:accounts].count
+        rescue StandardError => e
+          OT.debug "[auth] Could not check account count: #{e.message}"
+        end
+
+        if account_count&.zero?
+          diagnostic_hint = <<~HINT.strip
+            Login failed and auth database has 0 accounts. This typically occurs in
+            worktree/multi-instance dev setups with empty SQLite. Consider: (1) seeding
+            accounts table from another instance, (2) creating a new account via signup,
+            or (3) using a shared database for auth data.
+          HINT
+
+          Auth::Logging.log_auth_event(
+            :login_failure_empty_database,
+            level: :error,
+            email: OT::Utils.obscure_email(email),
+            ip: request.ip,
+            correlation_id: correlation_id,
+            diagnostic_hint: diagnostic_hint,
+          )
+        else
+          Auth::Logging.log_auth_event(
+            :login_failure,
+            level: :warn,
+            email: OT::Utils.obscure_email(email),
+            ip: request.ip,
+            correlation_id: correlation_id,
+          )
+        end
       end
     end
   end
