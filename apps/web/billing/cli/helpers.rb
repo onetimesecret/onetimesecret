@@ -301,6 +301,128 @@ module Onetime
       rescue StandardError
         'invalid'
       end
+
+      # Measure API call execution time
+      #
+      # @yield Block containing API call to measure
+      # @return [Array] Result of block and elapsed time in milliseconds
+      def measure_api_time
+        start_time = Time.now
+        result = yield
+        elapsed_ms = ((Time.now - start_time) * 1000).to_i
+        [result, elapsed_ms]
+      end
+
+      # Load plan IDs from billing catalog
+      #
+      # @return [Array<String>] Array of plan IDs from catalog
+      def load_catalog_plan_ids
+        require 'yaml'
+        catalog_path = Billing::Config.catalog_path
+        return [] unless File.exist?(catalog_path)
+
+        catalog = YAML.load_file(catalog_path)
+        plans = catalog['plans'] || {}
+        plans.keys
+      rescue StandardError => e
+        OT.le "Error loading catalog: #{e.message}"
+        []
+      end
+
+      # Detect duplicate products (same name + region)
+      #
+      # @param products [Array<Stripe::Product>] Products to check
+      # @return [Hash] Hash with duplicate groups keyed by "name|region"
+      def detect_duplicate_products(products)
+        product_groups = {}
+
+        products.each do |product|
+          region = product.metadata[Billing::Metadata::FIELD_REGION] || 'global'
+          key = "#{product.name}|#{region}"
+          product_groups[key] ||= []
+          product_groups[key] << product
+        end
+
+        # Return only groups with duplicates
+        product_groups.select { |_, prods| prods.size > 1 }
+      end
+
+      # Format validation table header with box-drawing characters
+      def print_validation_section_header(title)
+        puts "┌─ #{title} " + '─' * (67 - title.length - 4)
+        puts
+      end
+
+      # Format validation table footer
+      def print_validation_section_footer
+        puts ' ' * 67
+        puts '└' + '─' * 67
+      end
+
+      # Print a simple table row for validation output
+      #
+      # @param name [String] Product name
+      # @param id [String] Product ID
+      # @param plan_id [String] Plan ID
+      # @param status [String] Validation status marker (✓ or ✗)
+      def print_validation_row(name, id, plan_id, status)
+        name_display = name[0..19].ljust(20)
+        id_display = id[0..21].ljust(22)
+        plan_id_display = plan_id[0..13].ljust(14)
+
+        puts "│  #{status} #{name_display}  #{id_display}  #{plan_id_display}│"
+      end
+
+      # Print duplicate comparison (side-by-side)
+      #
+      # @param group_name [String] Name of the duplicate group
+      # @param products [Array<Stripe::Product>] Products in the group
+      def print_duplicate_group(group_name, products)
+        # Sort: valid products first
+        sorted = products.sort_by do |p|
+          has_plan_id = p.metadata[Billing::Metadata::FIELD_PLAN_ID]
+          has_plan_id ? 0 : 1
+        end
+
+        puts "│  #{group_name}" + ' ' * (59 - group_name.length) + '│'
+
+        sorted.each do |product|
+          plan_id = product.metadata[Billing::Metadata::FIELD_PLAN_ID]
+          status = plan_id ? '✓' : '✗'
+          plan_id_display = plan_id || '(no plan_id)'
+          validation = plan_id ? 'VALID' : 'INVALID'
+
+          line = "    #{status} #{product.id.ljust(22)}  #{plan_id_display.ljust(14)} #{validation}"
+          padding = 61 - line.length
+          puts "│#{line}" + ' ' * padding + '│'
+        end
+
+        puts '│' + ' ' * 61 + '│'
+      end
+
+      # Print compact duplicate comparison with region and active status
+      #
+      # @param name [String] Product name
+      # @param products [Array<Stripe::Product>] Products in the group
+      def print_duplicate_group_compact(name, products)
+        # Sort: active products first
+        sorted = products.sort_by { |p| p.active ? 0 : 1 }
+
+        # Header with name and Active? column
+        puts "  #{name.ljust(52)} Active?"
+
+        sorted.each do |product|
+          plan_id = product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'n/a'
+          region = product.metadata[Billing::Metadata::FIELD_REGION] || 'n/a'
+          active = product.active ? 'YES' : 'NO'
+          status = '✓'
+
+          # Format: ✓ prod_id  plan_id  region  active
+          puts "    #{status} #{product.id.ljust(20)}  #{plan_id.ljust(18)} #{region.ljust(10)} #{active.ljust(7)}"
+        end
+
+        puts
+      end
     end
   end
 end

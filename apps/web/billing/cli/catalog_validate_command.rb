@@ -273,29 +273,40 @@ module Onetime
 
       def print_validation_results(errors, warnings, strict)
         puts
-        puts '=' * 60
 
         if errors.any?
-          puts "❌ Validation failed: #{errors.size} error(s) found"
+          puts '  ' + '━' * 62
+          puts "   ❌  VALIDATION FAILED: #{errors.size} error(s) found"
+          puts '  ' + '━' * 62
           puts
           errors.each { |error| puts "  ✗ #{error}" }
           puts
-        end
-
-        if warnings.any?
-          puts "⚠️  #{warnings.size} warning(s):"
+        elsif warnings.any? && strict
+          puts '  ' + '━' * 62
+          puts "   ❌  VALIDATION FAILED: #{warnings.size} warning(s) in strict mode"
+          puts '  ' + '━' * 62
           puts
           warnings.each { |warning| puts "  • #{warning}" }
+          puts
+        elsif warnings.any?
+          puts '  ' + '━' * 62
+          puts '   ✅  VALIDATION PASSED (warnings only)'
+          puts '  ' + '━' * 62
+          puts
+          puts "  ⚠️  #{warnings.size} warning(s):"
+          puts
+          warnings.each { |warning| puts "  • #{warning}" }
+          puts
+        else
+          puts '  ' + '━' * 62
+          puts '   ✅  VALIDATION PASSED'
+          puts '  ' + '━' * 62
           puts
         end
 
         if errors.empty? && warnings.empty?
-          puts '✅ Validation passed - no issues found'
-          puts
           exit 0
         elsif errors.empty? && !strict
-          puts '✅ Validation passed (warnings only)'
-          puts
           exit 0
         elsif errors.any? || (warnings.any? && strict)
           exit 1
@@ -323,19 +334,23 @@ module Onetime
 
         puts
         if valid.any?
-          puts "Valid plans (#{valid.size}):"
+          puts "┌─ VALID (#{valid.size}) " + '─' * (67 - "VALID (#{valid.size}) ".length - 4)
           valid.sort_by { |_id, data| -(data['display_order'] || 0) }.each do |plan_id, data|
             marker = data['tier'] == 'free' ? '*' : ' '
-            puts "  #{marker} ✓ #{data['name']} (#{plan_id})"
+            puts "  #{marker} ✓ #{data['name'].ljust(20)} (#{plan_id})"
           end
+          puts ' ' * 67
+          puts '└' + '─' * 67
           puts if invalid.any?
         end
 
         if invalid.any?
-          puts "Invalid plans (#{invalid.size}):"
+          puts "┌─ INVALID (#{invalid.size}) " + '─' * (67 - "INVALID (#{invalid.size}) ".length - 4)
           invalid.sort_by { |_id, data| -(data['display_order'] || 0) }.each do |plan_id, data|
             puts "    ✗ #{data['name'] || plan_id} (#{plan_id})"
           end
+          puts ' ' * 67
+          puts '└' + '─' * 67
         end
 
         if has_free_tier
