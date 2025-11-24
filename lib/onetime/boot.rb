@@ -65,10 +65,13 @@ module Onetime
       # of the initializers (via OT.conf).
       @conf = OT::Config.after_load(raw_conf)
 
-      # Register core initializers with dependency-based ordering
-      Boot::CoreInitializers.register_all
+      # Phase 1: Discovery - Load initializer classes (triggers inherited hooks)
+      require_relative 'boot/core_initializers'
 
-      # Run initializers via registry (conditional on connect_to_db)
+      # Phase 2: Loading - Instantiate and build dependency graph
+      Boot::InitializerRegistry.load_all
+
+      # Phase 3: Execution - Run initializers in dependency order (conditional on connect_to_db)
       if connect_to_db
         # Run all initializers in dependency order
         Boot::InitializerRegistry.run_all

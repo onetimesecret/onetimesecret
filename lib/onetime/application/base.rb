@@ -219,51 +219,6 @@ module Onetime
           @warmup_block
         end
 
-        # Register an initializer for this application
-        #
-        # Initializers are executed during boot in dependency order.
-        # Each application can register its own initialization steps.
-        #
-        # @param name [Symbol] Unique identifier for this initializer
-        # @param description [String] Human-readable description (optional)
-        # @param depends_on [Array<Symbol>] Capabilities this requires
-        # @param provides [Array<Symbol>] Capabilities this provides
-        # @param optional [Boolean] Whether failure should halt boot
-        # @yield [context] Block to execute during initialization
-        # @yieldparam context [Hash] Shared context across initializers
-        #
-        # @example Simple initializer
-        #   initializer :setup_routes do |ctx|
-        #     # initialization code
-        #   end
-        #
-        # @example With dependencies
-        #   initializer :load_data, depends_on: [:database] do |ctx|
-        #     # initialization code
-        #   end
-        #
-        # @example Providing capabilities
-        #   initializer :stripe_config,
-        #               depends_on: [:config],
-        #               provides: [:stripe] do |ctx|
-        #     # initialization code
-        #   end
-        def initializer(name, description: nil, depends_on: [], provides: [], optional: false, &block)
-          require_relative '../boot/initializer_registry'
-
-          # Use name as description if none provided
-          description ||= name.to_s.split('_').map(&:capitalize).join(' ')
-
-          Onetime::Boot::InitializerRegistry.register(
-            name: name,
-            description: description,
-            depends_on: depends_on,
-            provides: provides,
-            optional: optional,
-            application: self,
-            &block
-          )
-        end
       end
     end
   end

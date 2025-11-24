@@ -4,34 +4,57 @@
 
 module Onetime
   module Boot
-    # Initializer represents a single initialization step in the boot sequence
+    # Base class for boot initializers
     #
-    # Each initializer can declare dependencies on other initializers and
-    # capabilities it provides. The registry uses these declarations to
-    # compute the correct execution order via topological sort.
+    # Each initializer is a class that inherits from this base class.
+    # Auto-registers via inherited hook when class is defined.
     #
     # @example Simple initializer
-    #   Initializer.new(
-    #     name: :logging_setup,
-    #     description: 'Configure logging system',
-    #     depends_on: [:config]
-    #   ) do |context|
-    #     # Setup code here
+    #   class ConfigLoad < Boot::Initializer
+    #     @provides = [:config]
+    #
+    #     def execute(context)
+    #       # Load configuration
+    #     end
     #   end
     #
-    # @example With provides declaration
-    #   Initializer.new(
-    #     name: :database_init,
-    #     description: 'Initialize database connections',
-    #     depends_on: [:config, :logging],
-    #     provides: [:database]
-    #   ) do |context|
-    #     # Setup code here
+    # @example With dependencies
+    #   class DatabaseInit < Boot::Initializer
+    #     @depends_on = [:config, :logging]
+    #     @provides = [:database]
+    #     @optional = false
+    #
+    #     def execute(context)
+    #       # Initialize database
+    #     end
     #   end
     #
     class Initializer
-      attr_reader :name, :description, :dependencies, :provides, :optional
-      attr_accessor :status, :error, :elapsed_ms, :application_class
+      attr_reader :status, :error, :elapsed_ms
+      attr_accessor :application_class
+
+      # Class instance variables for configuration
+      class << self
+        attr_accessor :depends_on, :provides, :optional
+
+        # Auto-register when subclass is defined (Phase 1: Discovery)
+        def inherited(subclass)
+          super
+          InitializerRegistry.register_class(subclass)
+        end
+
+        # Generate name from class name
+        # Billing::Initializers::StripeSetup -> :billing.stripe_setup
+        def initializer_name
+          @initializer_name ||= begin
+            name.gsub('::', '.')
+              .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
+              .gsub(/([a-z\d])([A-Z])/, '\1_\2')
+              .downcase
+              .to_sym
+          end
+        end
+      end
 
       # Execution status values
       STATUS_PENDING   = :pending
@@ -40,40 +63,23 @@ module Onetime
       STATUS_FAILED    = :failed
       STATUS_SKIPPED   = :skipped
 
-      # Initialize a new boot step
-      #
-      # @param name [Symbol] Unique identifier for this initializer
-      # @param description [String] Human-readable description (optional, defaults to name)
-      # @param depends_on [Array<Symbol>] Capabilities this initializer requires
-      # @param provides [Array<Symbol>] Capabilities this initializer provides
-      # @param optional [Boolean] Whether failure should halt boot sequence
-      # @param application [Class] Application class that registered this initializer
-      # @yield [context] Block to execute for initialization
-      # @yieldparam context [Hash] Shared context across all initializers
-      def initialize(name:, description: nil, depends_on: [], provides: [], optional: false, application: nil, &block)
-        @name               = name
-        @description        = description || name.to_s.split('_').map(&:capitalize).join(' ')
-        @dependencies       = Array(depends_on).freeze
-        @provides           = Array(provides).freeze
-        @optional           = optional
-        @application_class  = application
-        @block              = block
-        @status             = STATUS_PENDING
-        @error              = nil
-        @elapsed_ms         = 0
-        @start_time         = nil
+      def initialize
+        @status      = STATUS_PENDING
+        @error       = nil
+        @elapsed_ms  = 0
+        @start_time  = nil
       end
 
       # Execute this initializer
       #
       # @param context [Hash] Shared context for initializers to read/write
-      # @return [Object] Result of the block execution
+      # @return [Object] Result of the execute method
       # @raise [StandardError] If initializer fails and is not optional
       def run(context)
         @start_time = Onetime.now_in_μs
         @status     = STATUS_RUNNING
 
-        result = @block.call(context)
+        result = execute(context)
 
         @elapsed_ms = ((Onetime.now_in_μs - @start_time) / 1000.0).round(2)
         @status     = STATUS_COMPLETED
@@ -84,7 +90,15 @@ module Onetime
         @error      = e
         @status     = STATUS_FAILED
 
-        raise unless @optional
+        raise unless self.class.optional
+      end
+
+      # Subclasses must implement this method
+      #
+      # @param context [Hash] Shared context across all initializers
+      # @return [Object] Result of initialization
+      def execute(context)
+        raise NotImplementedError, "#{self.class.name} must implement #execute"
       end
 
       # Skip this initializer without executing
@@ -130,7 +144,7 @@ module Onetime
         when STATUS_COMPLETED
           elapsed_ms > 100 ? "✓ (#{elapsed_ms}ms)" : '✓'
         when STATUS_FAILED
-          @optional ? '✗ (optional)' : '✗ FAILED'
+          self.class.optional ? '✗ (optional)' : '✗ FAILED'
         when STATUS_SKIPPED
           '⊘ skipped'
         when STATUS_RUNNING
@@ -140,12 +154,48 @@ module Onetime
         end
       end
 
+      # Get initializer name
+      #
+      # @return [Symbol] Name derived from class
+      def name
+        self.class.initializer_name
+      end
+
+      # Get human-readable description from name
+      #
+      # @return [String] Formatted name for logging
+      def description
+        name.to_s.split('.').last.split('_').map(&:capitalize).join(' ')
+      end
+
+      # Get dependencies from class
+      #
+      # @return [Array<Symbol>] Dependencies
+      def dependencies
+        Array(self.class.depends_on)
+      end
+
+      # Get provides from class
+      #
+      # @return [Array<Symbol>] Provided capabilities
+      def provides
+        Array(self.class.provides)
+      end
+
+      # Check if this is an optional initializer
+      #
+      # @return [Boolean]
+      def optional
+        self.class.optional || false
+      end
+
       # Get application name for logging
       #
       # @return [String] Application class name or 'core'
       def application_name
         @application_class ? @application_class.name : 'core'
       end
+
     end
   end
 end

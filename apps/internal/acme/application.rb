@@ -74,8 +74,9 @@ module Internal
       @uri_prefix = '/api/internal/acme'
 
       warmup do
-        # Warmup is for preloading and preparing the router
-        # Actual initialization logic is in initializers/
+        # Preload CustomDomain model for ACME validation
+        # This prevents lazy loading during Caddy's on-demand TLS requests
+        require 'onetime/models'
       end
 
       protected
@@ -136,6 +137,3 @@ module Internal
     end
   end
 end
-
-# Load initializers after application class is defined
-require_relative 'initializers/preload_models'

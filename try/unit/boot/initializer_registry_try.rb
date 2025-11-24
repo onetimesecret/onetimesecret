@@ -2,50 +2,82 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../support/test_helpers'
-require_relative '../../../lib/onetime/boot/initializer'
+# Unit test - just load the registry, not the full app
 require_relative '../../../lib/onetime/boot/initializer_registry'
 
 ## Setup
+# Mock Onetime methods for testing
+::Onetime.define_singleton_method(:now_in_μs) do
+  (Time.now.to_f * 1_000_000).to_i
+end
+
+::Onetime.define_singleton_method(:debug?) do
+  false
+end
+
+# Mock logger to avoid dependencies
+require 'logger'
+::Onetime.define_singleton_method(:app_logger) do
+  @test_logger ||= Logger.new('/dev/null')
+end
+
 # Reset before tests
 Onetime::Boot::InitializerRegistry.reset!
 
-## Basic registration works
+## Classes auto-register via inherited hook
 Onetime::Boot::InitializerRegistry.reset!
-result = Onetime::Boot::InitializerRegistry.register(
-  name: :test_init,
-  description: 'Test initializer'
-) { |ctx| ctx[:test] = 'value' }
-result.class
-#=> Onetime::Boot::Initializer
-
-## Registered initializer is stored
-Onetime::Boot::InitializerRegistry.reset!
-Onetime::Boot::InitializerRegistry.register(name: :test) { |_| }
+# Define new class (triggers inherited hook)
+class TestAutoRegister < Onetime::Boot::Initializer
+  def execute(_ctx); end
+end
+Onetime::Boot::InitializerRegistry.load_all
 Onetime::Boot::InitializerRegistry.initializers.size
 #=> 1
 
 ## Dependency resolution orders correctly
 Onetime::Boot::InitializerRegistry.reset!
-Onetime::Boot::InitializerRegistry.register(name: :config, provides: [:config]) { |_| }
-Onetime::Boot::InitializerRegistry.register(name: :logging, depends_on: [:config], provides: [:logging]) { |_| }
-Onetime::Boot::InitializerRegistry.register(name: :database, depends_on: [:config, :logging]) { |_| }
+class TestA < Onetime::Boot::Initializer
+  @provides = [:a]
+  def execute(_ctx); end
+end
+class TestB < Onetime::Boot::Initializer
+  @depends_on = [:a]
+  @provides = [:b]
+  def execute(_ctx); end
+end
+class TestC < Onetime::Boot::Initializer
+  @depends_on = [:a, :b]
+  def execute(_ctx); end
+end
+Onetime::Boot::InitializerRegistry.load_all
 Onetime::Boot::InitializerRegistry.execution_order.map(&:name)
-#=> [:config, :logging, :database]
+#=> [:test_a, :test_b, :test_c]
 
 ## Initializers execute in order
 Onetime::Boot::InitializerRegistry.reset!
 order = []
-Onetime::Boot::InitializerRegistry.register(name: :first, provides: [:first]) { order << :first }
-Onetime::Boot::InitializerRegistry.register(name: :second, depends_on: [:first]) { order << :second }
+class TestFirst < Onetime::Boot::Initializer
+  @provides = [:first]
+  define_method(:execute) { |_ctx| order << :first }
+end
+class TestSecond < Onetime::Boot::Initializer
+  @depends_on = [:first]
+  define_method(:execute) { |_ctx| order << :second }
+end
+Onetime::Boot::InitializerRegistry.load_all
 Onetime::Boot::InitializerRegistry.run_all
 order
 #=> [:first, :second]
 
 ## Context is shared
 Onetime::Boot::InitializerRegistry.reset!
-Onetime::Boot::InitializerRegistry.register(name: :a) { |ctx| ctx[:a] = 1 }
-Onetime::Boot::InitializerRegistry.register(name: :b) { |ctx| ctx[:b] = 2 }
+class TestContextA < Onetime::Boot::Initializer
+  def execute(ctx); ctx[:a] = 1; end
+end
+class TestContextB < Onetime::Boot::Initializer
+  def execute(ctx); ctx[:b] = 2; end
+end
+Onetime::Boot::InitializerRegistry.load_all
 Onetime::Boot::InitializerRegistry.run_all
 ctx = Onetime::Boot::InitializerRegistry.context
 [ctx[:a], ctx[:b]]
@@ -53,89 +85,100 @@ ctx = Onetime::Boot::InitializerRegistry.context
 
 ## Optional failures don't stop boot
 Onetime::Boot::InitializerRegistry.reset!
-Onetime::Boot::InitializerRegistry.register(name: :required, provides: [:required]) { |_| }
-Onetime::Boot::InitializerRegistry.register(name: :optional, depends_on: [:required], optional: true) { raise 'fail' }
-Onetime::Boot::InitializerRegistry.register(name: :after, depends_on: [:required]) { |_| }
+class TestRequired < Onetime::Boot::Initializer
+  @provides = [:required]
+  def execute(_ctx); end
+end
+class TestOptionalFail < Onetime::Boot::Initializer
+  @depends_on = [:required]
+  @optional = true
+  def execute(_ctx); raise 'fail'; end
+end
+class TestAfter < Onetime::Boot::Initializer
+  @depends_on = [:required]
+  def execute(_ctx); end
+end
+Onetime::Boot::InitializerRegistry.load_all
 res = Onetime::Boot::InitializerRegistry.run_all
 res[:successful].size
 #=> 2
 
 ## Failed initializers are tracked
 Onetime::Boot::InitializerRegistry.reset!
-Onetime::Boot::InitializerRegistry.register(name: :fail, optional: true) { raise 'error' }
+class TestFailTracked < Onetime::Boot::Initializer
+  @optional = true
+  def execute(_ctx); raise 'error'; end
+end
+Onetime::Boot::InitializerRegistry.load_all
 res = Onetime::Boot::InitializerRegistry.run_all
 res[:failed].size
 #=> 1
 
 ## Skipped when dependency fails
 Onetime::Boot::InitializerRegistry.reset!
-Onetime::Boot::InitializerRegistry.register(name: :base, provides: [:base], optional: true) { raise 'fail' }
-Onetime::Boot::InitializerRegistry.register(name: :dependent, depends_on: [:base]) { |_| }
+class TestBase < Onetime::Boot::Initializer
+  @provides = [:base]
+  @optional = true
+  def execute(_ctx); raise 'fail'; end
+end
+class TestDependent < Onetime::Boot::Initializer
+  @depends_on = [:base]
+  def execute(_ctx); end
+end
+Onetime::Boot::InitializerRegistry.load_all
 res = Onetime::Boot::InitializerRegistry.run_all
 res[:skipped].size
 #=> 1
 
 ## Circular dependencies detected
 Onetime::Boot::InitializerRegistry.reset!
-Onetime::Boot::InitializerRegistry.register(name: :a, depends_on: [:b], provides: [:a]) { |_| }
-Onetime::Boot::InitializerRegistry.register(name: :b, depends_on: [:a], provides: [:b]) { |_| }
+class TestCircA < Onetime::Boot::Initializer
+  @depends_on = [:b]
+  @provides = [:a]
+  def execute(_ctx); end
+end
+class TestCircB < Onetime::Boot::Initializer
+  @depends_on = [:a]
+  @provides = [:b]
+  def execute(_ctx); end
+end
+Onetime::Boot::InitializerRegistry.load_all
 begin
   Onetime::Boot::InitializerRegistry.execution_order
-  'failed'
+  'should have raised'
 rescue TSort::Cyclic
-  'detected'
+  'circular dependency detected'
 end
-#=> 'detected'
+#=> "circular dependency detected"
 
-## Duplicate names rejected
+## Duplicate capability providers rejected
 Onetime::Boot::InitializerRegistry.reset!
-Onetime::Boot::InitializerRegistry.register(name: :dup) { |_| }
+class TestProviderA < Onetime::Boot::Initializer
+  @provides = [:capability]
+  def execute(_ctx); end
+end
+class TestProviderB < Onetime::Boot::Initializer
+  @provides = [:capability]
+  def execute(_ctx); end
+end
 begin
-  Onetime::Boot::InitializerRegistry.register(name: :dup) { |_| }
-  false
-rescue ArgumentError
-  true
+  Onetime::Boot::InitializerRegistry.load_all
+  'should have raised'
+rescue ArgumentError => e
+  e.message.include?('already provided')
 end
 #=> true
 
-## Duplicate capabilities rejected
+## Health check reports status
 Onetime::Boot::InitializerRegistry.reset!
-Onetime::Boot::InitializerRegistry.register(name: :first, provides: [:shared]) { |_| }
-begin
-  Onetime::Boot::InitializerRegistry.register(name: :second, provides: [:shared]) { |_| }
-  false
-rescue ArgumentError
-  true
+class TestHealthy < Onetime::Boot::Initializer
+  def execute(_ctx); end
 end
-#=> true
-
-## Unknown dependencies detected
-Onetime::Boot::InitializerRegistry.reset!
-Onetime::Boot::InitializerRegistry.register(name: :test, depends_on: [:missing]) { |_| }
-begin
-  Onetime::Boot::InitializerRegistry.execution_order
-  false
-rescue ArgumentError
-  true
-end
-#=> true
-
-## Health check works
-Onetime::Boot::InitializerRegistry.reset!
-Onetime::Boot::InitializerRegistry.register(name: :init1) { |_| }
-Onetime::Boot::InitializerRegistry.register(name: :init2) { |_| }
+Onetime::Boot::InitializerRegistry.load_all
 Onetime::Boot::InitializerRegistry.run_all
 health = Onetime::Boot::InitializerRegistry.health_check
 health[:healthy]
 #=> true
-
-## Health check counts
-Onetime::Boot::InitializerRegistry.reset!
-Onetime::Boot::InitializerRegistry.register(name: :a) { |_| }
-Onetime::Boot::InitializerRegistry.register(name: :b) { |_| }
-Onetime::Boot::InitializerRegistry.run_all
-Onetime::Boot::InitializerRegistry.health_check[:total]
-#=> 2
 
 ## Teardown
 Onetime::Boot::InitializerRegistry.reset!

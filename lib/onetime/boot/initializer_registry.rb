@@ -44,7 +44,8 @@ module Onetime
 
       # Registry state (populated at boot time, then readonly)
       # rubocop:disable ThreadSafety/MutableClassInstanceVariable
-      @initializers        = []
+      @registered_classes  = []  # Phase 1: Class discovery
+      @initializers        = []  # Phase 2: Instantiated initializers
       @capability_map      = {}  # capability => initializer that provides it
       @execution_order     = nil # cached tsort result
       @context             = {}  # shared context across initializers
@@ -55,48 +56,45 @@ module Onetime
       class << self
         attr_reader :initializers, :capability_map, :context, :total_elapsed_ms
 
-        # Register a new initializer
+        # Phase 1: Register initializer class (called by inherited hook)
         #
-        # @param name [Symbol] Unique identifier
-        # @param description [String] Human-readable description (optional, defaults to name)
-        # @param depends_on [Array<Symbol>] Required capabilities
-        # @param provides [Array<Symbol>] Capabilities this provides
-        # @param optional [Boolean] Whether failure should halt boot
-        # @param application [Class] Application class registering this
-        # @yield [context] Block to execute for initialization
-        # @return [Initializer] The registered initializer
-        def register(name:, description: nil, depends_on: [], provides: [], optional: false, application: nil, &block)
-          # Check for duplicate names
-          if @initializers.any? { |i| i.name == name }
-            raise ArgumentError, "Initializer already registered: #{name}"
-          end
+        # @param klass [Class] Initializer subclass
+        # @return [void]
+        def register_class(klass)
+          @registered_classes << klass unless @registered_classes.include?(klass)
+        end
 
-          initializer = Initializer.new(
-            name: name,
-            description: description,
-            depends_on: depends_on,
-            provides: provides,
-            optional: optional,
-            application: application,
-            &block
-          )
+        # Phase 2: Load all registered initializers
+        #
+        # Instantiates initializer classes and builds dependency graph.
+        # Called once during boot after all classes are loaded.
+        #
+        # @return [void]
+        def load_all
+          @registered_classes.each do |klass|
+            # Instantiate the initializer
+            initializer = klass.new
 
-          @initializers << initializer
-
-          # Map capabilities to their providing initializers
-          provides.each do |capability|
-            if @capability_map.key?(capability)
-              existing = @capability_map[capability]
-              raise ArgumentError,
-                    "Capability '#{capability}' already provided by #{existing.name}"
+            # Check for duplicate names
+            if @initializers.any? { |i| i.name == klass.initializer_name }
+              raise ArgumentError, "Initializer already registered: #{klass.initializer_name}"
             end
-            @capability_map[capability] = initializer
+
+            @initializers << initializer
+
+            # Map capabilities to their providing initializers
+            Array(klass.provides).each do |capability|
+              if @capability_map.key?(capability)
+                existing = @capability_map[capability]
+                raise ArgumentError,
+                      "Capability '#{capability}' already provided by #{existing.name}"
+              end
+              @capability_map[capability] = initializer
+            end
           end
 
           # Clear cached execution order
           @execution_order = nil
-
-          initializer
         end
 
         # Get initializers in dependency order
@@ -200,12 +198,13 @@ module Onetime
         #
         # Clears all registrations and cached state
         def reset!
-          @initializers     = []
-          @capability_map   = {}
-          @execution_order  = nil
-          @context          = {}
-          @total_elapsed_ms = 0
-          @boot_start_time  = nil
+          @registered_classes = []
+          @initializers       = []
+          @capability_map     = {}
+          @execution_order    = nil
+          @context            = {}
+          @total_elapsed_ms   = 0
+          @boot_start_time    = nil
         end
 
         # TSort interface: iterate over all nodes
