@@ -205,6 +205,8 @@ RUN set -eux && \
 WORKDIR ${APP_DIR}
 
 # Create non-root user for security
+# Note: nologin shell blocks SSH/su, but docker exec still works for debugging:
+#   docker exec -it container /bin/sh
 RUN groupadd -g 1001 appuser && \
     useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
 
