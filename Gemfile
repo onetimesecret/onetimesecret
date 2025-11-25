@@ -4,13 +4,13 @@
 # typed: false
 
 #
-# Recommended: Ruby 3.3.6+
+# Recommended: Ruby 3.4.7+
 #   status: normal maintenance
-#   release date: 2024-12-25
+#   release date: 2025-04-14
 #   normal maintenance until: TBD
-#   end of life: 2028ish
+#   end of life: 2028-03 (est)
 #
-ruby '>= 3.3.6'
+ruby '>= 3.4.7'
 
 source 'https://rubygems.org/'
 
