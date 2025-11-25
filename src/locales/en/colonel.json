@@ -30,6 +30,7 @@
       "activity": "Activity",
       "accounts": "Accounts",
       "users": "Users",
+      "usersDescription": "Manage user accounts and permissions",
       "domains": "Domains",
       "settings": "Settings",
       "welcome": "Welcome to Colonel",

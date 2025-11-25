@@ -2,11 +2,14 @@
 
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
+  import { WindowService } from '@/services/window.service';
   import { useColonelInfoStore } from '@/stores/colonelInfoStore';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted } from 'vue';
 
   const { t } = useI18n();
+
+  const windowProps = WindowService.getMultiple(['domains_enabled', 'authentication']);
 
   const store = useColonelInfoStore();
   const { stats, isLoading } = storeToRefs(store);
@@ -73,65 +76,59 @@
   // Quick stats using real data from the store
   const statsData = computed(getStatsData);
 
-  // Quick actions
-  const quickActions = computed(() => [
-    {
-      name: t('web.colonel.users'),
-      description: t('web.colonel.usersDescription'),
-      href: '/colonel/users',
-      icon: { collection: 'heroicons', name: 'users' },
-      color: 'bg-blue-500',
-    },
-    {
-      name: 'Secrets',
-      description: 'View and manage all secrets',
-      href: '/colonel/secrets',
-      icon: { collection: 'heroicons', name: 'lock-closed' },
-      color: 'bg-purple-500',
-    },
-    {
-      name: 'Custom Domains',
-      description: 'Manage custom domains and branding',
-      href: '/colonel/domains',
-      icon: { collection: 'heroicons', name: 'globe-alt' },
-      color: 'bg-pink-500',
-    },
-    {
-      name: 'Main Database',
-      description: 'Redis monitoring and metrics',
-      href: '/colonel/database/maindb',
-      icon: { collection: 'heroicons', name: 'circle-stack' },
-      color: 'bg-green-500',
-    },
-    {
-      name: 'Auth Database',
-      description: 'SQLite/PostgreSQL authentication database',
-      href: '/colonel/database/authdb',
-      icon: { collection: 'heroicons', name: 'key' },
-      color: 'bg-indigo-500',
-    },
-    {
-      name: 'Banned IPs',
-      description: 'Manage IP ban list',
-      href: '/colonel/banned-ips',
-      icon: { collection: 'heroicons', name: 'shield-exclamation' },
-      color: 'bg-red-500',
-    },
-    {
-      name: 'Usage Export',
-      description: 'Export usage data and statistics',
-      href: '/colonel/usage',
-      icon: { collection: 'heroicons', name: 'document-chart-bar' },
-      color: 'bg-cyan-500',
-    },
-    {
-      name: t('web.colonel.actions.systemSettings'),
-      description: t('web.colonel.actions.systemSettingsDesc'),
-      href: '/colonel/settings',
-      icon: { collection: 'material-symbols', name: 'settings-outline' },
-      color: 'bg-orange-500',
-    },
-  ]);
+  // Quick actions with conditional visibility
+  const quickActions = computed(() => {
+    const actions = [
+      {
+        name: t('web.colonel.users'),
+        description: t('web.colonel.usersDescription'),
+        href: '/colonel/users',
+        icon: { collection: 'heroicons', name: 'users' },
+        color: 'bg-blue-500',
+      },
+      {
+        name: 'Secrets',
+        description: 'View and manage all secrets',
+        href: '/colonel/secrets',
+        icon: { collection: 'heroicons', name: 'lock-closed' },
+        color: 'bg-purple-500',
+      },
+      {
+        name: 'Banned IPs',
+        description: 'Manage IP ban list',
+        href: '/colonel/banned-ips',
+        icon: { collection: 'heroicons', name: 'shield-exclamation' },
+        color: 'bg-red-500',
+      },
+      {
+        name: 'Usage Export',
+        description: 'Export usage data and statistics',
+        href: '/colonel/usage',
+        icon: { collection: 'heroicons', name: 'document-chart-bar' },
+        color: 'bg-cyan-500',
+      },
+      {
+        name: 'System',
+        description: 'System settings, databases, and configuration',
+        href: '/colonel/system',
+        icon: { collection: 'material-symbols', name: 'settings-outline' },
+        color: 'bg-orange-500',
+      },
+    ];
+
+    // Conditionally add Custom Domains if domains feature is enabled
+    if (windowProps.domains_enabled) {
+      actions.splice(2, 0, {
+        name: 'Custom Domains',
+        description: 'Manage custom domains and branding',
+        href: '/colonel/domains',
+        icon: { collection: 'heroicons', name: 'globe-alt' },
+        color: 'bg-pink-500',
+      });
+    }
+
+    return actions;
+  });
 </script>
 
 <template>

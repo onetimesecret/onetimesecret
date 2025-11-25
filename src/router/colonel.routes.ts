@@ -36,6 +36,16 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
+    path: '/colonel/system',
+    name: 'ColonelSystem',
+    component: () => import('@/views/colonel/ColonelSystem.vue'),
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_system',
+    },
+    props: true,
+  },
+  {
     path: '/colonel/settings',
     name: 'SystemSettings',
     component: () => import('@/views/colonel/SystemSettings.vue'),

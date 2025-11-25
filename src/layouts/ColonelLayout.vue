@@ -1,7 +1,7 @@
 <!-- src/layouts/ColonelLayout.vue -->
 
 <script setup lang="ts">
-  import ColonelNavigation from '@/components/colonel/ColonelNavigation.vue';
+  import ColonelAdminLayout from '@/components/layout/ColonelAdminLayout.vue';
   import DefaultHeader from '@/components/layout/DefaultHeader.vue';
   import QuietFooter from '@/components/layout/QuietFooter.vue';
   import type { LayoutProps } from '@/types/ui/layouts';
@@ -23,15 +23,12 @@
   <BaseLayout v-bind="props">
     <template #header>
       <DefaultHeader v-bind="props" />
-      <ColonelNavigation />
     </template>
 
     <template #main>
-      <main
-        class="container mx-auto min-w-[320px] max-w-2xl px-4 py-8"
-        name="ColonelLayout">
+      <ColonelAdminLayout>
         <slot></slot>
-      </main>
+      </ColonelAdminLayout>
     </template>
 
     <template #footer>
