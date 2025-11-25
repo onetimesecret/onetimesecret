@@ -41,7 +41,7 @@ module ColonelAPI
     end
 
     def self.auth_strategy_module
-      Core::AuthStrategies
+      ColonelAPI::AuthStrategies
     end
 
     def self.root_path
