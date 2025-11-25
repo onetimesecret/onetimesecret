@@ -27,7 +27,7 @@ module Onetime
       include Onetime::Logic::OrganizationContext
 
       attr_reader :context, :sess, :cust, :params, :locale, :processed_params,
-                  :site, :features, :authentication, :domains_enabled, :req
+                  :site, :features, :authentication, :domains_enabled, :strategy_result
 
       attr_accessor :domain_strategy, :display_domain
 
@@ -39,9 +39,6 @@ module Onetime
         @sess   = strategy_result.session
         @cust   = strategy_result.user
         @locale = @params[:locale] || OT.default_locale
-
-        # Extract request from StrategyResult if available
-        @req = strategy_result.respond_to?(:req) ? strategy_result.req : nil
 
         # Extract organization and team context from StrategyResult metadata
         extract_organization_context(strategy_result)
