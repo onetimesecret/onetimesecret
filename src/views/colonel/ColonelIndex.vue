@@ -90,11 +90,18 @@
       color: 'bg-purple-500',
     },
     {
-      name: 'System Metrics',
-      description: 'Database and Redis monitoring',
-      href: '/colonel/system/database',
-      icon: { collection: 'heroicons', name: 'chart-bar' },
+      name: 'Main Database',
+      description: 'Redis monitoring and metrics',
+      href: '/colonel/database/maindb',
+      icon: { collection: 'heroicons', name: 'circle-stack' },
       color: 'bg-green-500',
+    },
+    {
+      name: 'Auth Database',
+      description: 'SQLite/PostgreSQL authentication database',
+      href: '/colonel/database/authdb',
+      icon: { collection: 'heroicons', name: 'key' },
+      color: 'bg-indigo-500',
     },
     {
       name: 'Banned IPs',
