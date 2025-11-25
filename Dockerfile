@@ -112,8 +112,8 @@ RUN set -eux \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy Node.js and npm from the official image
-COPY --from=docker.io/library/node:22@sha256:dcf06103a9d4087e3244a51697adbbb85331dcb7161dbe994ca1cd07dd32e2a5 /usr/local/bin/node /usr/local/bin/
-COPY --from=docker.io/library/node:22@sha256:dcf06103a9d4087e3244a51697adbbb85331dcb7161dbe994ca1cd07dd32e2a5 /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=docker.io/library/node:22@sha256:4ad2c2b350ab49fb637ab40a269ffe207c61818bb7eb3a4ea122001a0c605e1f /usr/local/bin/node /usr/local/bin/
+COPY --from=docker.io/library/node:22@sha256:4ad2c2b350ab49fb637ab40a269ffe207c61818bb7eb3a4ea122001a0c605e1f /usr/local/lib/node_modules /usr/local/lib/node_modules
 
 # Create necessary symlinks
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
