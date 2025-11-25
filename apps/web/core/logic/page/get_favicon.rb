@@ -16,16 +16,24 @@ module Core
       # This allows branded custom domains to show their own favicon
       # instead of the OTS default orange S icon.
       #
+      # Uses env vars set by DetectHost and DomainStrategy middlewares:
+      # - env['onetime.domain_strategy'] - Domain classification (:custom, :canonical, etc.)
+      # - env['onetime.display_domain'] - Normalized domain name
+      #
       class GetFavicon < Core::Logic::Base
         attr_reader :custom_domain, :icon_data, :content_type, :content_length, :use_default
 
         def process_params
-          # Get the request host to check if this is a custom domain
-          request_host = req.host
-          OT.ld "[GetFavicon] Request host: #{request_host}"
+          # Get domain strategy determined by DomainStrategy middleware
+          domain_strategy = req.env['onetime.domain_strategy']
+          display_domain  = req.env['onetime.display_domain']
 
-          # Try to load custom domain for this host
-          @custom_domain = Onetime::CustomDomain.from_display_domain(request_host)
+          OT.ld "[GetFavicon] strategy=#{domain_strategy} domain=#{display_domain}"
+
+          # Only try to load custom domain if strategy indicates it's a custom domain
+          if domain_strategy == :custom
+            @custom_domain = Onetime::CustomDomain.from_display_domain(display_domain)
+          end
 
           @use_default = true # Default to OTS favicon
         end
