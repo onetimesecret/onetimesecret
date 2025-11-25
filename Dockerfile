@@ -138,14 +138,14 @@ ENV NODE_PATH=${APP_DIR}/node_modules
 # Copy dependency manifests
 COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml ./
 
-# Install Ruby dependencies with platform detection
-# The `force_ruby_platform true` tells Bundler to compile native extensions
-# from source rather than looking for platform-specific precompiled gems.
+# Install Ruby dependencies
+# BUNDLE_WITHOUT excludes dev/test gems from production image
+# BUNDLE_FORCE_RUBY_PLATFORM compiles native extensions from source
+ENV BUNDLE_WITHOUT="development:test" \
+    BUNDLE_FORCE_RUBY_PLATFORM="true"
+
 RUN set -eux && \
-    bundle config set --local without 'development test' && \
-    bundle config set --local jobs "$(nproc)" && \
-    bundle config set --local force_ruby_platform true && \
-    bundle install --retry=3 && \
+    bundle install --jobs "$(nproc)" --retry=3 && \
     bundle binstubs puma --force && \
     bundle clean --force
 
@@ -244,6 +244,7 @@ ENV RACK_ENV=production \
     PUBLIC_DIR=${PUBLIC_DIR} \
     RUBY_YJIT_ENABLE=1 \
     SERVER_TYPE=puma \
+    BUNDLE_WITHOUT="development:test" \
     PATH=${APP_DIR}/bin:$PATH
 
 # Ensure config files exist (preserve existing if mounted)
