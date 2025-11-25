@@ -4,13 +4,13 @@
 # typed: false
 
 #
-# Recommended: Ruby 3.3.6+
+# Recommended: Ruby 3.4.7+
 #   status: normal maintenance
-#   release date: 2024-12-25
+#   release date: 2025-04-14
 #   normal maintenance until: TBD
-#   end of life: 2028ish
+#   end of life: 2028-03 (est)
 #
-ruby '>= 3.3.6'
+ruby '>= 3.4.7'
 
 source 'https://rubygems.org/'
 
@@ -18,11 +18,11 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
-gem 'otto', git: 'https://github.com/delano/otto'
-gem 'rhales', git: 'https://github.com/onetimesecret/rhales'
+gem 'otto', '~> 2.0.0.pre7'
+gem 'rhales', '~> 0.5.3'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
-gem 'rodauth-tools', git: 'https://github.com/delano/rodauth-tools'
+gem 'rodauth-tools', '~> 0.3.0'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'
@@ -60,9 +60,9 @@ gem 'truemail'
 # ====================================
 
 # ORMs and database drivers
-gem 'familia', git: 'https://github.com/delano/familia', branch: 'main'
+gem 'familia', '~> 2.0.0.pre21'
 gem 'sequel', '~> 5.0'
-gem 'sqlite3', '~> 1.7'
+gem 'sqlite3', '~> 2.0'
 
 case ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase
 when 'postgresql', 'pg', 'postgres'

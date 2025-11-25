@@ -57,7 +57,7 @@
 ARG APP_DIR=/app
 ARG PUBLIC_DIR=/var/www/public
 ARG VERSION
-ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:dd8c06af4886548264f4463ee2400fd6be641b0562c8f681e490d759632078f5
+ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:1ca19bf218752c371039ebe6c8a1aa719cd6e6424b32d08faffdb2a6938f3241
 ARG NODE_IMAGE_TAG=22@sha256:23c24e85395992be118734a39903e08c8f7d1abc73978c46b6bda90060091a49
 
 ##
@@ -118,7 +118,6 @@ RUN set -eux && \
     ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
     ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx && \
     node --version && npm --version && \
-    gem install bundler && \
     npm install -g pnpm && \
     pnpm --version
 
@@ -138,17 +137,13 @@ ENV NODE_PATH=${APP_DIR}/node_modules
 # Copy dependency manifests
 COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml ./
 
-# Install Ruby dependencies with platform detection
-# The `force_ruby_platform true` tells Bundler to compile native extensions
-# from source rather than looking for platform-specific precompiled gems.
-# The `deployment true` prevents runtime git operations for git-sourced gems.
+# Install Ruby dependencies
+# BUNDLE_WITHOUT excludes dev/test/optional gems from production image
+ENV BUNDLE_WITHOUT="development:test:optional"
+
 RUN set -eux && \
-    bundle config set --local without 'development test' && \
-    bundle config set --local jobs "$(nproc)" && \
-    bundle config set --local force_ruby_platform true && \
-    bundle config set --local deployment true && \
-    bundle install --retry=3 && \
-    bundle binstubs --all --force && \
+    bundle install --jobs "$(nproc)" --retry=3 && \
+    bundle binstubs puma --force && \
     bundle clean --force
 
 # Install Node.js dependencies (separate layer for better caching)
@@ -203,41 +198,36 @@ RUN set -eux && \
     apt-get install -y --no-install-recommends \
         libsqlite3-0 \
         libpq5 \
-        curl \
-        git && \
+        curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 WORKDIR ${APP_DIR}
 
-# # Create non-root user for security
-# RUN set -eux && \
-#     groupadd -g 1001 appuser && \
-#     useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /bin/bash appuser && \
-#     chown -R appuser:appuser ${APP_DIR}
-
-# Now we can switch to the non-root user for the rest of the commands
-# WARNING: Changing the user after COPY operations adds a large, new layer to the image.
-#
-# USER appuser
+# Create non-root user for security
+# Note: nologin shell blocks SSH/su, but docker exec still works for debugging:
+#   docker exec -it container /bin/sh
+RUN groupadd -g 1001 appuser && \
+    useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
 
 # Copy only runtime essentials from build stages
 COPY --from=dependencies /usr/local/bin/yq /usr/local/bin/yq
 COPY --from=dependencies /usr/local/bundle /usr/local/bundle
 
-# Copy application files
-COPY --from=build ${APP_DIR}/public ./public
-COPY --from=build ${APP_DIR}/src ./src
-COPY --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
+# Copy application files (using --chown to avoid extra layer)
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/public ./public
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/src ./src
+COPY --chown=appuser:appuser --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
 
 # Copy runtime files
-COPY bin ./bin
-COPY apps ./apps
-COPY etc/ ./etc/
-COPY lib ./lib
-COPY scripts/entrypoint.sh ./bin/
-COPY scripts/update-version.sh ./bin/
-COPY package.json config.ru Gemfile Gemfile.lock ./
+COPY --chown=appuser:appuser bin ./bin
+COPY --chown=appuser:appuser apps ./apps
+COPY --chown=appuser:appuser etc/ ./etc/
+COPY --chown=appuser:appuser lib ./lib
+COPY --chown=appuser:appuser scripts/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser scripts/update-version.sh ./bin/
+COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
+COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
 
 # Set production environment
 ENV RACK_ENV=production \
@@ -245,6 +235,7 @@ ENV RACK_ENV=production \
     PUBLIC_DIR=${PUBLIC_DIR} \
     RUBY_YJIT_ENABLE=1 \
     SERVER_TYPE=puma \
+    BUNDLE_WITHOUT="development:test:optional" \
     PATH=${APP_DIR}/bin:$PATH
 
 # Ensure config files exist (preserve existing if mounted)
@@ -267,6 +258,9 @@ EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://127.0.0.1:3000/api/v2/status || exit 1
+
+# Run as non-root user
+USER appuser
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:
