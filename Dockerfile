@@ -118,7 +118,6 @@ RUN set -eux && \
     ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
     ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx && \
     node --version && npm --version && \
-    gem install bundler && \
     npm install -g pnpm && \
     pnpm --version
 
@@ -140,9 +139,7 @@ COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml ./
 
 # Install Ruby dependencies
 # BUNDLE_WITHOUT excludes dev/test gems from production image
-# BUNDLE_FORCE_RUBY_PLATFORM compiles native extensions from source
-ENV BUNDLE_WITHOUT="development:test" \
-    BUNDLE_FORCE_RUBY_PLATFORM="true"
+ENV BUNDLE_WITHOUT="development:test"
 
 RUN set -eux && \
     bundle install --jobs "$(nproc)" --retry=3 && \
@@ -201,8 +198,7 @@ RUN set -eux && \
     apt-get install -y --no-install-recommends \
         libsqlite3-0 \
         libpq5 \
-        curl \
-        git && \
+        curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
