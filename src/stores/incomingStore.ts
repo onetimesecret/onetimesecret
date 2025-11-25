@@ -2,11 +2,10 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import {
-  type IncomingConfig,
-  type IncomingRecipient,
-  type IncomingSecretPayload,
-  type IncomingSecretResponse,
-  incomingConfigResponseSchema,
+  IncomingConfig,
+  IncomingSecretPayload,
+  IncomingSecretResponse,
+  incomingConfigSchema,
   incomingSecretResponseSchema,
 } from '@/schemas/api/incoming';
 import { loggingService } from '@/services/logging.service';
@@ -22,48 +21,44 @@ interface StoreOptions extends PiniaPluginOptions {}
 export type IncomingStore = {
   // State
   config: IncomingConfig | null;
-  recipients: IncomingRecipient[];
-  isLoading: boolean;
-  error: string | null;
-  lastResponse: IncomingSecretResponse | null;
+  isConfigLoading: boolean;
+  configError: string | null;
   _initialized: boolean;
 
   // Getters
   isInitialized: boolean;
-  isEnabled: boolean;
+  isFeatureEnabled: boolean;
   memoMaxLength: number;
+  recipients: IncomingConfig['recipients'];
+  defaultTtl: number | undefined;
 
   // Actions
   init: () => { isInitialized: boolean };
-  fetchConfig: () => Promise<IncomingConfig>;
-  createSecret: (payload: IncomingSecretPayload) => Promise<IncomingSecretResponse>;
-  validateRecipient: (recipientHash: string) => Promise<boolean>;
+  loadConfig: () => Promise<IncomingConfig>;
+  createIncomingSecret: (payload: IncomingSecretPayload) => Promise<IncomingSecretResponse>;
   clear: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
 
 /**
- * Store for managing incoming secrets feature
- *
- * The incoming secrets feature allows anonymous users to send encrypted
- * secrets to pre-configured recipients via a web form.
+ * Store for managing incoming secrets feature configuration and operations
  */
-// eslint-disable-next-line max-lines-per-function -- Pinia setup store pattern requires single function
+/* eslint-disable max-lines-per-function */
 export const useIncomingStore = defineStore('incoming', () => {
   const $api = inject('api') as AxiosInstance;
 
   // State
   const config = ref<IncomingConfig | null>(null);
-  const recipients = ref<IncomingRecipient[]>([]);
-  const isLoading = ref(false);
-  const error = ref<string | null>(null);
-  const lastResponse = ref<IncomingSecretResponse | null>(null);
+  const isConfigLoading = ref(false);
+  const configError = ref<string | null>(null);
   const _initialized = ref(false);
 
   // Getters
   const isInitialized = computed(() => _initialized.value);
-  const isEnabled = computed(() => config.value?.enabled ?? false);
+  const isFeatureEnabled = computed(() => config.value?.enabled ?? false);
   const memoMaxLength = computed(() => config.value?.memo_max_length ?? 50);
+  const recipients = computed(() => config.value?.recipients ?? []);
+  const defaultTtl = computed(() => config.value?.default_ttl);
 
   // Actions
 
@@ -78,79 +73,58 @@ export const useIncomingStore = defineStore('incoming', () => {
   }
 
   /**
-   * Fetches the incoming secrets configuration from the API
-   * @throws Will throw an error if the API call fails
-   * @returns The incoming configuration
+   * Loads incoming secrets configuration from API
+   * @throws Will throw an error if the API call fails or validation fails
+   * @returns Validated incoming config response
    */
-  async function fetchConfig(): Promise<IncomingConfig> {
-    isLoading.value = true;
-    error.value = null;
+  async function loadConfig(): Promise<IncomingConfig> {
+    isConfigLoading.value = true;
+    configError.value = null;
 
     try {
       const response = await $api.get('/api/v3/incoming/config');
-      const validated = incomingConfigResponseSchema.parse(response.data);
-
-      config.value = validated.config;
-      recipients.value = validated.config.recipients;
-
-      return validated.config;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load configuration';
-      error.value = message;
-      throw err;
+      const validated = incomingConfigSchema.parse(response.data.config);
+      config.value = validated;
+      return validated;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load configuration';
+      configError.value = errorMessage;
+      if (error instanceof Error) {
+        loggingService.error(error);
+      } else {
+        loggingService.error(new Error('Failed to load incoming config'));
+      }
+      throw error;
     } finally {
-      isLoading.value = false;
+      isConfigLoading.value = false;
     }
   }
 
   /**
    * Creates a new incoming secret
-   * @param payload - The secret creation payload
-   * @throws Will throw an error if the API call fails
-   * @returns The created secret response
+   * @param payload - Validated incoming secret creation payload
+   * @throws Will throw an error if the API call fails or validation fails
+   * @returns Validated incoming secret response
    */
-  async function createSecret(payload: IncomingSecretPayload): Promise<IncomingSecretResponse> {
-    isLoading.value = true;
-    error.value = null;
-
-    try {
-      const response = await $api.post('/api/v3/incoming/secret', {
-        secret: payload,
-      });
-
-      const validated = incomingSecretResponseSchema.parse(response.data);
-      lastResponse.value = validated;
-
-      return validated;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create secret';
-      error.value = message;
-      throw err;
-    } finally {
-      isLoading.value = false;
+  async function createIncomingSecret(
+    payload: IncomingSecretPayload
+  ): Promise<IncomingSecretResponse> {
+    if (!config.value?.enabled) {
+      throw new Error('Incoming secrets feature is not enabled');
     }
-  }
 
-  /**
-   * Validates that a recipient hash exists in the configured recipients
-   * @param recipientHash - The hash of the recipient to validate
-   * @returns true if the recipient is valid
-   */
-  async function validateRecipient(recipientHash: string): Promise<boolean> {
-    try {
-      const response = await $api.post('/api/v3/incoming/validate', {
-        recipient: recipientHash,
-      });
+    const response = await $api.post('/api/v3/incoming/secret', {
+      secret: payload,
+    });
 
-      return response.data?.valid === true;
-    } catch {
-      return false;
-    }
+    const validated = incomingSecretResponseSchema.parse(response.data);
+    return validated;
   }
 
   function clear() {
-    lastResponse.value = null;
-    error.value = null;
+    config.value = null;
+    configError.value = null;
+    isConfigLoading.value = false;
   }
 
   /**
@@ -158,32 +132,29 @@ export const useIncomingStore = defineStore('incoming', () => {
    */
   function $reset() {
     config.value = null;
-    recipients.value = [];
-    isLoading.value = false;
-    error.value = null;
-    lastResponse.value = null;
+    configError.value = null;
+    isConfigLoading.value = false;
     _initialized.value = false;
   }
 
   return {
     // State
     config,
-    recipients,
-    isLoading,
-    error,
-    lastResponse,
+    isConfigLoading,
+    configError,
     _initialized,
 
     // Getters
     isInitialized,
-    isEnabled,
+    isFeatureEnabled,
     memoMaxLength,
+    recipients,
+    defaultTtl,
 
     // Actions
     init,
-    fetchConfig,
-    createSecret,
-    validateRecipient,
+    loadConfig,
+    createIncomingSecret,
     clear,
     $reset,
   };

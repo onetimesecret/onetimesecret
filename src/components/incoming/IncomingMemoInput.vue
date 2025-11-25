@@ -1,98 +1,112 @@
+<!-- src/components/incoming/IncomingMemoInput.vue -->
+
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+  import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+  const { t } = useI18n();
+  const props = withDefaults(
+    defineProps<{
+      modelValue: string;
+      maxLength?: number;
+      error?: string;
+      disabled?: boolean;
+      placeholder?: string;
+    }>(),
+    {
+      maxLength: 50,
+      disabled: false,
+    }
+  );
 
-export interface Props {
-  modelValue: string;
-  maxLength?: number;
-  error?: string | null;
-  disabled?: boolean;
-}
+  const emit = defineEmits<{
+    'update:modelValue': [value: string];
+    blur: [];
+  }>();
 
-const props = withDefaults(defineProps<Props>(), {
-  maxLength: 50,
-  error: null,
-  disabled: false,
-});
+  const placeholderText = computed(() => props.placeholder || t('incoming.memo_placeholder'));
+  const charCount = computed(() => props.modelValue.length);
+  const isNearLimit = computed(() => charCount.value > props.maxLength * 0.8);
+  const isAtLimit = computed(() => charCount.value >= props.maxLength);
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void;
-}>();
+  const statusColor = computed(() => {
+    if (props.error) return 'border-red-500 focus:border-red-500 focus:ring-red-500';
+    if (isAtLimit.value) return 'border-amber-500 focus:border-amber-500 focus:ring-amber-500';
+    return 'border-gray-200 focus:border-blue-500 focus:ring-blue-500';
+  });
 
-const localValue = ref(props.modelValue);
+  const counterColor = computed(() => {
+    if (isAtLimit.value) return 'text-amber-600 dark:text-amber-400';
+    if (isNearLimit.value) return 'text-gray-600 dark:text-gray-400';
+    return 'text-gray-500 dark:text-gray-500';
+  });
 
-// Watch for external changes
-watch(
-  () => props.modelValue,
-  (newVal) => {
-    localValue.value = newVal;
-  }
-);
+  const handleInput = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    emit('update:modelValue', target.value);
+  };
 
-// Update parent on local changes
-watch(localValue, (newVal) => {
-  emit('update:modelValue', newVal);
-});
-
-const charCount = computed(() => localValue.value.length);
-const isNearLimit = computed(() => charCount.value >= props.maxLength * 0.8);
-const isOverLimit = computed(() => charCount.value > props.maxLength);
-
-const inputClasses = computed(() => [
-  'w-full rounded-md border px-4 py-2',
-  'focus:outline-none focus:ring-2',
-  props.error || isOverLimit.value
-    ? 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-600'
-    : 'border-gray-300 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600',
-  'dark:bg-gray-700 dark:text-gray-200',
-  props.disabled ? 'cursor-not-allowed opacity-50' : '',
-]);
+  const handleBlur = () => {
+    emit('blur');
+  };
 </script>
 
 <template>
-  <div class="space-y-1">
+  <div class="w-full">
     <label
       for="incoming-memo"
-      class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+      class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
       {{ t('incoming.memo_label') }}
+      <span
+        v-if="error"
+        class="text-red-500">
+        *
+      </span>
     </label>
 
-    <input
-      id="incoming-memo"
-      v-model="localValue"
-      type="text"
-      :maxlength="maxLength + 10"
-      :disabled="disabled"
-      :class="inputClasses"
-      :placeholder="t('incoming.memo_placeholder')"
-      :aria-describedby="error ? 'memo-error' : 'memo-hint'" />
-
-    <div class="flex items-center justify-between">
-      <p
-        v-if="error"
-        id="memo-error"
-        class="text-xs text-red-600 dark:text-red-400">
-        {{ error }}
-      </p>
-      <p
-        v-else
-        id="memo-hint"
-        class="text-xs text-gray-500 dark:text-gray-400">
-        {{ t('incoming.memo_hint') }}
-      </p>
-
-      <span
+    <div class="relative">
+      <input
+        id="incoming-memo"
+        type="text"
+        :value="modelValue"
+        :maxlength="maxLength"
+        :disabled="disabled"
+        :placeholder="placeholderText"
         :class="[
-          'text-xs',
-          isOverLimit
-            ? 'text-red-600 dark:text-red-400'
-            : isNearLimit
-              ? 'text-yellow-600 dark:text-yellow-400'
-              : 'text-gray-500 dark:text-gray-400',
-        ]">
-        {{ charCount }}/{{ maxLength }}
-      </span>
+          statusColor,
+          'block w-full rounded-lg border px-4 py-3 text-base text-gray-900',
+          'transition-all duration-200',
+          'placeholder:text-gray-400',
+          'disabled:bg-gray-50 disabled:text-gray-500',
+          'dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500',
+          'dark:focus:ring-blue-400',
+        ]"
+        :aria-label="t('incoming.memo_placeholder')"
+        :aria-invalid="!!error"
+        :aria-describedby="error ? 'memo-error' : 'memo-counter'"
+        @input="handleInput"
+        @blur="handleBlur" />
+
+      <div
+        v-if="isNearLimit || error"
+        class="mt-1 flex items-center justify-between">
+        <span
+          v-if="error"
+          id="memo-error"
+          class="text-sm text-red-600 dark:text-red-400">
+          {{ error }}
+        </span>
+        <span
+          v-if="isNearLimit"
+          id="memo-counter"
+          :class="[counterColor, 'ml-auto text-sm']">
+          {{ charCount }} / {{ maxLength }}
+        </span>
+      </div>
     </div>
+
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      <!-- {{ t('incoming.memo_hint') }} -->
+    </p>
   </div>
 </template>

@@ -1,73 +1,50 @@
 // src/router/incoming.routes.ts
 
-import DefaultFooter from '@/components/layout/DefaultFooter.vue';
-import DefaultHeader from '@/components/layout/DefaultHeader.vue';
-import DefaultLayout from '@/layouts/DefaultLayout.vue';
-import IncomingSecretForm from '@/views/incoming/IncomingSecretForm.vue';
-import IncomingSuccessView from '@/views/incoming/IncomingSuccessView.vue';
-import { RouteRecordRaw } from 'vue-router';
+import ImprovedFooter from '@/components/layout/ImprovedFooter.vue';
+import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
+import type { RouteRecordRaw } from 'vue-router';
 
-/**
- * Routes for the incoming secrets feature.
- *
- * Allows anonymous users to send encrypted secrets to pre-configured recipients.
- * - /incoming - Form to create and send a secret
- * - /incoming/success/:key - Success page after secret creation
- */
-const routes: Array<RouteRecordRaw> = [
+const incomingRoutes: RouteRecordRaw[] = [
   {
     path: '/incoming',
-    name: 'Incoming',
+    name: 'IncomingSecretForm',
     components: {
-      default: IncomingSecretForm,
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      default: () => import('@/views/incoming/IncomingSecretForm.vue'),
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
-      title: 'incoming.page_title',
       requiresAuth: false,
-      layout: DefaultLayout,
+      title: 'Send a Secret',
       layoutProps: {
         displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
+        displayNavigation: false,
         displayPoweredBy: false,
-        displayVersion: true,
+        displayVersion: false,
         displayToggles: true,
       },
     },
   },
   {
-    path: '/incoming/success/:key',
+    path: '/incoming/:metadataKey',
     name: 'IncomingSuccess',
     components: {
-      default: IncomingSuccessView,
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      default: () => import('@/views/incoming/IncomingSuccessView.vue'),
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
-      title: 'incoming.success_title',
       requiresAuth: false,
-      layout: DefaultLayout,
+      title: 'Secret Sent Successfully',
       layoutProps: {
         displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
+        displayNavigation: false,
         displayPoweredBy: false,
-        displayVersion: true,
+        displayVersion: false,
         displayToggles: true,
       },
-    },
-    props: {
-      default: (route) => ({
-        metadataKey: route.params.key,
-      }),
-      header: false,
-      footer: false,
     },
   },
 ];
 
-export default routes;
+export default incomingRoutes;

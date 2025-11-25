@@ -1,123 +1,177 @@
+<!-- src/components/incoming/IncomingRecipientDropdown.vue -->
+
 <script setup lang="ts">
-import type { IncomingRecipient } from '@/schemas/api/incoming';
-import { computed, ref, watch } from 'vue';
+  import { ref, computed } from 'vue';
+  import { IncomingRecipient } from '@/schemas/api/incoming';
+  import { useClickOutside } from '@/composables/useClickOutside';
+  import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+  const { t } = useI18n();
+  const props = withDefaults(
+    defineProps<{
+      modelValue: string;
+      recipients: IncomingRecipient[];
+      error?: string;
+      disabled?: boolean;
+      placeholder?: string;
+    }>(),
+    {
+      disabled: false,
+      placeholder: 'Select a recipient',
+    }
+  );
 
-export interface Props {
-  modelValue: string;
-  recipients: IncomingRecipient[];
-  error?: string | null;
-  disabled?: boolean;
-  loading?: boolean;
-}
+  const emit = defineEmits<{
+    'update:modelValue': [value: string];
+    blur: [];
+  }>();
 
-const props = withDefaults(defineProps<Props>(), {
-  recipients: () => [],
-  error: null,
-  disabled: false,
-  loading: false,
-});
+  const isOpen = ref(false);
+  const dropdownRef = ref<HTMLElement | null>(null);
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void;
-  (e: 'change', recipient: IncomingRecipient | null): void;
-}>();
+  useClickOutside(dropdownRef, () => {
+    isOpen.value = false;
+  });
 
-const localValue = ref(props.modelValue);
+  const selectedRecipient = computed(() => props.recipients.find((r) => r.hash === props.modelValue));
 
-// Watch for external changes
-watch(
-  () => props.modelValue,
-  (newVal) => {
-    localValue.value = newVal;
-  }
-);
+  const displayText = computed(() => selectedRecipient.value?.name || props.placeholder);
 
-// Update parent on local changes
-watch(localValue, (newVal) => {
-  emit('update:modelValue', newVal);
-  const selected = props.recipients.find((r) => r.hash === newVal) ?? null;
-  emit('change', selected);
-});
+  const statusColor = computed(() => {
+    if (props.error) return 'border-red-500 focus:border-red-500 focus:ring-red-500';
+    return 'border-gray-200 focus:border-blue-500 focus:ring-blue-500';
+  });
 
-const hasRecipients = computed(() => props.recipients.length > 0);
+  const toggleDropdown = () => {
+    if (!props.disabled) {
+      isOpen.value = !isOpen.value;
+    }
+  };
 
-const selectClasses = computed(() => [
-  'w-full rounded-md border px-4 py-2',
-  'focus:outline-none focus:ring-2',
-  'appearance-none bg-white',
-  props.error
-    ? 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-600'
-    : 'border-gray-300 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600',
-  'dark:bg-gray-700 dark:text-gray-200',
-  props.disabled || props.loading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
-]);
+  const selectRecipient = (recipientId: string) => {
+    emit('update:modelValue', recipientId);
+    isOpen.value = false;
+    emit('blur');
+  };
+
+  const handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      isOpen.value = false;
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      toggleDropdown();
+    }
+  };
 </script>
 
 <template>
-  <div class="space-y-1">
+  <div
+    ref="dropdownRef"
+    class="w-full">
     <label
       for="incoming-recipient"
-      class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+      class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
       {{ t('incoming.recipient_label') }}
+      <span
+        v-if="error"
+        class="text-red-500">
+        *
+      </span>
     </label>
 
     <div class="relative">
-      <select
+      <button
         id="incoming-recipient"
-        v-model="localValue"
-        :disabled="disabled || loading || !hasRecipients"
-        :class="selectClasses"
+        type="button"
+        :disabled="disabled"
+        :class="[
+          statusColor,
+          'flex w-full items-center justify-between rounded-lg border px-4 py-3',
+          'text-left text-base transition-all duration-200',
+          'disabled:bg-gray-50 disabled:text-gray-500',
+          'dark:bg-slate-800 dark:text-white',
+          selectedRecipient ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500',
+        ]"
         :aria-label="t('incoming.recipient_aria_label')"
-        :aria-describedby="error ? 'recipient-error' : 'recipient-hint'">
-        <option
-          value=""
-          disabled>
-          {{
-            loading
-              ? t('incoming.loading_config')
-              : hasRecipients
-                ? t('incoming.recipient_placeholder')
-                : t('incoming.no_recipients_available')
-          }}
-        </option>
-        <option
-          v-for="recipient in recipients"
-          :key="recipient.hash"
-          :value="recipient.hash">
-          {{ recipient.name }}
-        </option>
-      </select>
-
-      <!-- Dropdown arrow icon -->
-      <div
-        class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 dark:text-gray-400">
+        :aria-expanded="isOpen"
+        :aria-invalid="!!error"
+        :aria-describedby="error ? 'recipient-error' : undefined"
+        @click="toggleDropdown"
+        @keydown="handleKeydown">
+        <span>{{ displayText }}</span>
         <svg
-          class="size-5"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true">
+          :class="[
+            'size-5 transition-transform duration-200',
+            isOpen ? 'rotate-180' : '',
+            'text-gray-400 dark:text-gray-500',
+          ]"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24">
           <path
-            fill-rule="evenodd"
-            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-            clip-rule="evenodd" />
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7" />
         </svg>
+      </button>
+
+      <!-- Dropdown Menu -->
+      <div
+        v-if="isOpen && recipients.length > 0"
+        class="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-slate-800">
+        <ul
+          class="max-h-60 overflow-auto py-1"
+          role="listbox">
+          <li
+            v-for="recipient in recipients"
+            :key="recipient.hash"
+            role="option"
+            :aria-selected="modelValue === recipient.hash"
+            :class="[
+              'cursor-pointer px-4 py-2 transition-colors duration-150',
+              modelValue === recipient.hash
+                ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                : 'text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-slate-700',
+            ]"
+            @click="selectRecipient(recipient.hash)">
+            <div class="flex items-center justify-between">
+              <span class="font-medium">{{ recipient.name }}</span>
+              <svg
+                v-if="modelValue === recipient.hash"
+                class="size-5 text-blue-600 dark:text-blue-400"
+                fill="currentColor"
+                viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clip-rule="evenodd" />
+              </svg>
+            </div>
+          </li>
+        </ul>
       </div>
+
+      <!-- Empty State -->
+      <div
+        v-else-if="isOpen && recipients.length === 0"
+        class="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white p-4 text-center shadow-lg dark:border-gray-700 dark:bg-slate-800">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          {{ t('incoming.no_recipients_available') }}
+        </p>
+      </div>
+
+      <!-- Error Message -->
+      <span
+        v-if="error"
+        id="recipient-error"
+        class="mt-1 block text-sm text-red-600 dark:text-red-400">
+        {{ error }}
+      </span>
     </div>
 
-    <p
-      v-if="error"
-      id="recipient-error"
-      class="text-xs text-red-600 dark:text-red-400">
-      {{ error }}
-    </p>
-    <p
-      v-else
-      id="recipient-hint"
-      class="text-xs text-gray-500 dark:text-gray-400">
-      {{ t('incoming.recipient_hint') }}
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      <!-- {{ t('incoming.recipient_hint') }} -->
     </p>
   </div>
 </template>

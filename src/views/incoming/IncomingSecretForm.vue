@@ -1,202 +1,200 @@
+<!-- src/views/incoming/IncomingSecretForm.vue -->
+
 <script setup lang="ts">
-import { IncomingMemoInput, IncomingRecipientDropdown } from '@/components/incoming';
-import { useIncomingSecret } from '@/composables/useIncomingSecret';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { useRouter } from 'vue-router';
+  import { onMounted, ref } from 'vue';
+  import { useIncomingSecret } from '@/composables/useIncomingSecret';
+  import IncomingMemoInput from '@/components/incoming/IncomingMemoInput.vue';
+  import IncomingRecipientDropdown from '@/components/incoming/IncomingRecipientDropdown.vue';
+  import SecretContentInputArea from '@/components/secrets/form/SecretContentInputArea.vue';
+  import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
+  import EmptyState from '@/components/EmptyState.vue';
+  import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
-const router = useRouter();
-const csrfStore = useCsrfStore();
+  const { t } = useI18n();
 
-const {
-  form,
-  errors,
-  isLoading,
-  isSubmitting,
-  configError,
-  isEnabled,
-  recipients,
-  memoMaxLength,
-  submit,
-  reset,
-} = useIncomingSecret({
-  autoLoadConfig: true,
-  onSuccess: (response) => {
-    // Navigate to success view with the metadata key
-    const metadataKey = response.record?.metadata?.key;
-    if (metadataKey) {
-      router.push({
-        name: 'IncomingSuccess',
-        params: { key: metadataKey },
-      });
+  const {
+    form,
+    errors,
+    isSubmitting,
+    memoMaxLength,
+    isFeatureEnabled,
+    recipients,
+    isFormValid,
+    validateMemo,
+    validateSecret,
+    validateRecipient,
+    submit,
+    loadConfig,
+  } = useIncomingSecret();
+
+  const isLoading = ref(true);
+  const loadError = ref<string | null>(null);
+  const secretContentRef = ref<InstanceType<typeof SecretContentInputArea> | null>(null);
+
+  onMounted(async () => {
+    try {
+      await loadConfig();
+    } catch (error) {
+      loadError.value = error instanceof Error ? error.message : 'Failed to load configuration';
+    } finally {
+      isLoading.value = false;
     }
-  },
-});
+  });
 
-const handleSubmit = async (event?: Event) => {
-  event?.preventDefault();
-  await submit();
-};
+  const handleTitleBlur = () => {
+    validateMemo();
+  };
+
+  const handleRecipientBlur = () => {
+    validateRecipient();
+  };
+
+  const handleSecretUpdate = (content: string) => {
+    form.value.secret = content;
+    if (errors.value.secret && content.trim()) {
+      validateSecret();
+    }
+  };
+
+  const handleSubmit = async () => {
+    await submit();
+  };
+
+  const handleReset = () => {
+    form.value.memo = '';
+    form.value.secret = '';
+    form.value.recipientId = '';
+    errors.value = {};
+    secretContentRef.value?.clearTextarea();
+  };
 </script>
 
 <template>
-  <div class="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
+  <div class="container mx-auto mt-16 max-w-3xl px-4 pb-20 sm:mt-20 sm:pb-24">
+    <!-- Header -->
+    <div class="mb-10">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
+        {{ t('incoming.page_title') }}
+      </h1>
+      <p class="mt-3 text-base text-gray-600 dark:text-gray-400 sm:text-lg">
+        {{ t('incoming.page_description') }}
+      </p>
+    </div>
+
     <!-- Loading State -->
-    <div
-      v-if="isLoading"
-      class="flex min-h-[200px] items-center justify-center">
-      <div class="text-center">
-        <svg
-          class="mx-auto size-8 animate-spin text-brand-500"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24">
-          <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4"/>
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-        </svg>
-        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('incoming.loading_config') }}
-        </p>
-      </div>
-    </div>
+    <LoadingOverlay
+      :show="isLoading"
+      :message="t('incoming.loading_config')" />
 
-    <!-- Config Error State -->
-    <div
-      v-else-if="configError"
-      class="rounded-lg bg-red-50 p-6 text-center dark:bg-red-900/20">
-      <h2 class="text-lg font-medium text-red-800 dark:text-red-200">
+    <!-- Error State -->
+    <EmptyState v-if="loadError">
+      <template #title>
         {{ t('incoming.config_error_title') }}
-      </h2>
-      <p class="mt-2 text-sm text-red-600 dark:text-red-400">
-        {{ configError }}
-      </p>
-    </div>
+      </template>
+      <template #description>
+        {{ loadError }}
+      </template>
+      <template #actionLabel>
+        <!-- No action button for error state -->
+      </template>
+    </EmptyState>
 
-    <!-- Feature Disabled State -->
-    <div
-      v-else-if="!isEnabled"
-      class="rounded-lg bg-yellow-50 p-6 text-center dark:bg-yellow-900/20">
-      <h2 class="text-lg font-medium text-yellow-800 dark:text-yellow-200">
+    <!-- Feature Disabled -->
+    <EmptyState v-else-if="!isFeatureEnabled">
+      <template #title>
         {{ t('incoming.feature_disabled_title') }}
-      </h2>
-      <p class="mt-2 text-sm text-yellow-600 dark:text-yellow-400">
+      </template>
+      <template #description>
         {{ t('incoming.feature_disabled_description') }}
-      </p>
-    </div>
+      </template>
+      <template #actionLabel>
+        <!-- No action button for disabled state -->
+      </template>
+    </EmptyState>
 
     <!-- Form -->
     <div
       v-else
-      class="space-y-6">
-      <!-- Header -->
-      <div class="text-center">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          {{ t('incoming.page_title') }}
-        </h1>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {{ t('incoming.page_description') }}
-        </p>
-      </div>
-
-      <!-- Taglines -->
-      <div class="text-center text-sm text-gray-500 dark:text-gray-400">
-        <p>{{ t('incoming.tagline1') }}</p>
-        <p>{{ t('incoming.tagline2') }}</p>
-      </div>
-
-      <!-- Form Card -->
-      <div class="overflow-hidden rounded-lg bg-white shadow-md dark:bg-gray-800">
-        <form
-          class="space-y-6 p-6"
-          @submit.prevent="handleSubmit">
-          <!-- CSRF Token -->
-          <input
-            type="hidden"
-            name="shrimp"
-            :value="csrfStore.shrimp" />
-
-          <!-- Recipient Dropdown -->
+      class="overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-slate-800">
+      <form
+        @submit.prevent="handleSubmit"
+        class="space-y-8 p-8 sm:p-10">
+          <!-- Recipient Dropdown (First - like e-transfer) -->
           <IncomingRecipientDropdown
-            v-model="form.recipientHash"
+            v-model="form.recipientId"
             :recipients="recipients"
-            :error="errors.recipient"
-            :disabled="isSubmitting" />
+            :error="errors.recipientId"
+            :disabled="isSubmitting"
+            @blur="handleRecipientBlur" />
 
-          <!-- Memo Input -->
+          <!-- Secret Content (Second) -->
+          <div>
+            <label
+              for="secret-content"
+              class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              {{ t('incoming.secret_content_label') }}
+              <span
+                v-if="errors.secret"
+                class="text-red-500">
+                *
+              </span>
+            </label>
+
+            <SecretContentInputArea
+              ref="secretContentRef"
+              :initial-content="form.secret"
+              :disabled="isSubmitting"
+              :max-length="10000"
+              @update:content="handleSecretUpdate" />
+
+            <span
+              v-if="errors.secret"
+              class="mt-1 block text-sm text-red-600 dark:text-red-400">
+              {{ errors.secret }}
+            </span>
+          </div>
+
+          <!-- Memo Input (Last - optional, like e-transfer) -->
           <IncomingMemoInput
             v-model="form.memo"
             :max-length="memoMaxLength"
             :error="errors.memo"
-            :disabled="isSubmitting" />
+            :disabled="isSubmitting"
+            @blur="handleTitleBlur" />
 
-          <!-- Secret Content -->
-          <div class="space-y-1">
-            <label
-              for="incoming-secret"
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              {{ t('incoming.secret_content_label') }}
-            </label>
-            <textarea
-              id="incoming-secret"
-              v-model="form.secret"
-              rows="5"
-              :disabled="isSubmitting"
-              :class="[
-                'w-full resize-y rounded-md border px-4 py-2',
-                'focus:outline-none focus:ring-2',
-                errors.secret
-                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-600'
-                  : 'border-gray-300 focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600',
-                'dark:bg-gray-700 dark:text-gray-200',
-                isSubmitting ? 'cursor-not-allowed opacity-50' : '',
-              ]"
-              :placeholder="t('incoming.secret_content_placeholder')"
-              :aria-describedby="
-                errors.secret ? 'secret-error' : 'secret-hint'
-              "></textarea>
-            <p
-              v-if="errors.secret"
-              id="secret-error"
-              class="text-xs text-red-600 dark:text-red-400">
-              {{ errors.secret }}
-            </p>
-            <p
-              v-else
-              id="secret-hint"
-              class="text-xs text-gray-500 dark:text-gray-400">
-              {{ t('incoming.secret_content_hint') }}
-            </p>
-          </div>
-
-          <!-- Actions -->
-          <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <!-- Action Buttons -->
+          <div class="flex flex-col gap-4 border-t border-gray-200 pt-8 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               :disabled="isSubmitting"
-              class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-              @click="reset">
+              class="order-2 rounded-xl border-2 border-gray-300 bg-white px-6 py-3.5 text-base font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-slate-800 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:bg-slate-700 sm:order-1"
+              @click="handleReset">
               {{ t('incoming.reset_form') }}
             </button>
+
             <button
               type="submit"
-              :disabled="isSubmitting"
-              class="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-              {{
-                isSubmitting ? t('incoming.submitting') : t('incoming.submit_secret')
-              }}
+              :disabled="isSubmitting || !isFormValid"
+              class="order-1 flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-base font-semibold text-white shadow-md transition-all duration-300 sm:order-2"
+              :class="isFormValid && !isSubmitting
+                ? 'bg-brand-500 hover:bg-brand-600 hover:shadow-xl text-white hover:scale-105 active:scale-100'
+                : 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-60'">
+              <svg
+                class="size-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                aria-hidden="true">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              {{ isSubmitting ? t('incoming.submitting') : t('incoming.submit_secret') }}
             </button>
           </div>
-        </form>
-      </div>
+      </form>
     </div>
   </div>
 </template>
