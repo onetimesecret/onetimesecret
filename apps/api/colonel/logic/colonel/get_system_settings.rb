@@ -16,38 +16,65 @@ module ColonelAPI
 
         def process
           @config_sections = {}
+          site_config = Onetime.conf['site'] || {}
 
-          # Safe config (always included)
-          @config_sections[:interface] = Onetime.conf[:site] || {}
-          @config_sections[:secret_options] = {
-            default_ttl: Onetime.conf[:default][:ttl],
-            max_ttl: Onetime.conf[:default][:max_ttl],
-            default_size: Onetime.conf[:default][:size],
-          }
-          @config_sections[:limits] = Onetime.conf[:limits] || {}
-          @config_sections[:mail] = Onetime.conf[:emailer] || {}
-          @config_sections[:diagnostics] = {
-            redis_uri: Onetime.conf[:redis]&.[](:uri)&.gsub(/:[^:@]*@/, ':****@'), # Mask password
-            entropy_enabled: Onetime.conf[:entropy]&.[](:enabled),
-            colonel_enabled: Onetime.conf[:colonel]&.[](:enabled),
-          }
+          # Interface config (UI and API settings)
+          @config_sections[:interface] = site_config['interface'] || {}
 
-          # Auth config (if advanced auth is enabled)
-          if Onetime.conf.key?(:authentication)
-            @config_sections[:authentication] = Onetime.conf[:authentication] || {}
+          # Secret options (TTL, passphrase, password generation)
+          # These are under site.secret_options in the config
+          @config_sections[:secret_options] = site_config['secret_options'] || {}
+
+          # Authentication config (under site.authentication)
+          @config_sections[:authentication] = site_config['authentication'] || {}
+
+          # Mail/emailer config (top-level 'emailer' key)
+          @config_sections[:mail] = Onetime.conf['emailer'] || {}
+
+          # Diagnostics (top-level 'diagnostics' key)
+          # Include full diagnostics config, masking sensitive data
+          diagnostics_config = Onetime.conf['diagnostics'] || {}
+          @config_sections[:diagnostics] = deep_copy(diagnostics_config)
+          # Add redis URI with masked password for convenience
+          @config_sections[:diagnostics]['redis_uri'] = Onetime.conf['redis']&.[]('uri')&.gsub(/:[^:@]*@/, ':****@')
+
+          # Logging config (top-level 'logging' key)
+          @config_sections[:logging] = Onetime.conf['logging'] || {}
+
+          # Billing config (if enabled) - mask sensitive keys
+          if Onetime.conf.key?('billing') && Onetime.conf['billing']&.[]('enabled')
+            billing = deep_copy(Onetime.conf['billing'] || {})
+            billing['stripe_key'] = mask_key(billing['stripe_key'])
+            billing['webhook_signing_secret'] = '****' if billing['webhook_signing_secret']
+            @config_sections[:billing] = billing
           end
 
-          # Logging config
-          if Onetime.conf.key?(:logging)
-            @config_sections[:logging] = Onetime.conf[:logging] || {}
-          end
-
-          # Billing config (if enabled)
-          if Onetime.conf.key?(:billing) && Onetime.conf[:billing]&.[](:enabled)
-            @config_sections[:billing] = Onetime.conf[:billing] || {}
-          end
+          # Features config (top-level 'features' key)
+          @config_sections[:features] = Onetime.conf['features'] || {}
 
           success_data
+        end
+
+        private
+
+        # Deep copy a frozen hash structure
+        def deep_copy(obj)
+          case obj
+          when Hash
+            obj.each_with_object({}) { |(k, v), h| h[k] = deep_copy(v) }
+          when Array
+            obj.map { |v| deep_copy(v) }
+          else
+            obj
+          end
+        end
+
+        # Mask a key, keeping last 4 characters visible
+        def mask_key(key)
+          return nil if key.nil?
+          return '****' if key.length <= 4
+
+          '*' * (key.length - 4) + key[-4..]
         end
 
         def success_data

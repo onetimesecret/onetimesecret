@@ -46,12 +46,12 @@ const interfaceSchema = z.object({
                 links: z
                   .array(
                     z.object({
-                      text: z.string().optional(),
-                      i18n_key: z.string().optional(),
-                      url: z.string().optional(),
-                      external: z.boolean().optional(),
-                      icon: z.string().optional(),
-                      visible: z.boolean().optional(),
+                      text: z.string().nullable().optional(),
+                      i18n_key: z.string().nullable().optional(),
+                      url: z.string().nullable().optional(),
+                      external: z.boolean().nullable().optional(),
+                      icon: z.string().nullable().optional(),
+                      visible: z.boolean().nullable().optional(),
                     })
                   )
                   .optional(),
@@ -123,6 +123,63 @@ const diagnosticsSchema = z.object({
     .optional(),
 });
 
+// Authentication schema
+const authenticationSchema = z.object({
+  enabled: booleanOrString.optional(),
+  signup: booleanOrString.optional(),
+  signin: booleanOrString.optional(),
+  autoverify: booleanOrString.optional(),
+  required: booleanOrString.optional(),
+  colonels: z.array(z.string()).nullable().optional(),
+  allowed_signup_domains: z.array(z.string()).nullable().optional(),
+});
+
+// Logging schema
+const loggingSchema = z.object({
+  default_level: z.string().nullable().optional(),
+  formatter: z.string().nullable().optional(),
+  loggers: z.record(z.string()).nullable().optional(),
+  http: z
+    .object({
+      enabled: booleanOrString.optional(),
+      level: z.string().nullable().optional(),
+      capture: z.string().nullable().optional(),
+      slow_request_ms: numberOrString.optional(),
+      ignore_paths: z.array(z.string()).nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+});
+
+// Billing schema (when enabled)
+const billingSchema = z.object({
+  enabled: booleanOrString.optional(),
+  stripe_key: z.string().nullable().optional(), // Masked by backend
+  webhook_signing_secret: z.string().nullable().optional(), // Masked by backend
+  stripe_api_version: z.string().nullable().optional(),
+  capabilities: z.record(z.any()).nullable().optional(),
+});
+
+// Features schema
+const featuresSchema = z.object({
+  regions: z
+    .object({
+      enabled: booleanOrString.optional(),
+      current_jurisdiction: z.string().nullable().optional(),
+      jurisdictions: z.array(z.any()).nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+  domains: z
+    .object({
+      enabled: booleanOrString.optional(),
+      default: z.string().nullable().optional(),
+      strategy: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+});
+
 /**
  * SystemSettingsSchema defines the top-level structure of the settings.
  * Each section references deeper schemas defined elsewhere.
@@ -131,15 +188,12 @@ const diagnosticsSchema = z.object({
 export const systemSettingsSchema = z.object({
   interface: interfaceSchema.nullable().optional(),
   secret_options: secretOptionsSchema.nullable().optional(),
+  authentication: authenticationSchema.nullable().optional(),
   mail: mailSchema.nullable().optional(),
   diagnostics: diagnosticsSchema.nullable().optional(),
-  // development: developmentSchema.optional(),
-  // experimental: z.record(z.any()).optional(),
-  // features: z.record(z.any()).optional(),
-  // redis: z.record(z.any()).optional(),
-  // logging: z.record(z.any()).optional(),
-  // emailer: z.record(z.any()).optional(),
-  // internationalization: z.record(z.any()).optional(),
+  logging: loggingSchema.nullable().optional(),
+  billing: billingSchema.nullable().optional(),
+  features: featuresSchema.nullable().optional(),
 });
 
 export const systemSettingsDetailsSchema = systemSettingsSchema.extend({

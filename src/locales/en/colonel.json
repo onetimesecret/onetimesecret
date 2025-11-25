@@ -24,6 +24,7 @@
       "unsavedChanges": "Unsaved changes",
       "schemaValidationError": "Schema validation error: {message} ({path})",
       "unknownValidationError": "Unknown validation error: {error}",
+      "sectionEffectivelyEmpty": "{section} section has no configured values",
       "dashboard": "Dashboard",
       "admin": "Admin",
       "activity": "Activity",
