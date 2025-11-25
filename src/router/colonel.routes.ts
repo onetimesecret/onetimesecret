@@ -46,16 +46,6 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
-    path: '/colonel/info',
-    name: 'ColonelInfo',
-    component: () => import('@/views/colonel/ColonelInfo.vue'),
-    meta: {
-      ...defaultMeta,
-      title: 'web.TITLES.colonel_info',
-    },
-    props: true,
-  },
-  {
     path: '/colonel/secrets',
     name: 'ColonelSecrets',
     component: () => import('@/views/colonel/ColonelSecrets.vue'),

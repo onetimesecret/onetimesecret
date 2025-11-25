@@ -76,11 +76,32 @@
   // Quick actions
   const quickActions = computed(() => [
     {
-      name: t('web.colonel.recentActivity'),
-      description: t('web.colonel.actions.viewActivityDesc'),
-      href: '/colonel/info',
-      icon: { collection: 'ph', name: 'activity' },
+      name: t('web.colonel.users'),
+      description: t('web.colonel.usersDescription'),
+      href: '/colonel/users',
+      icon: { collection: 'heroicons', name: 'users' },
       color: 'bg-blue-500',
+    },
+    {
+      name: 'Secrets',
+      description: 'View and manage all secrets',
+      href: '/colonel/secrets',
+      icon: { collection: 'heroicons', name: 'lock-closed' },
+      color: 'bg-purple-500',
+    },
+    {
+      name: 'System Metrics',
+      description: 'Database and Redis monitoring',
+      href: '/colonel/system/database',
+      icon: { collection: 'heroicons', name: 'chart-bar' },
+      color: 'bg-green-500',
+    },
+    {
+      name: 'Banned IPs',
+      description: 'Manage IP ban list',
+      href: '/colonel/banned-ips',
+      icon: { collection: 'heroicons', name: 'shield-exclamation' },
+      color: 'bg-red-500',
     },
     {
       name: t('web.colonel.actions.systemSettings'),
