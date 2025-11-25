@@ -34,8 +34,35 @@ require 'yaml'
 require 'tempfile'
 require 'fileutils'
 
-# Configure FakeRedis for testing
-require 'fakeredis'
+# Redis/Valkey Testing Strategy
+#
+# FakeRedis was removed due to redis 5.x incompatibility. The project uses redis ~> 5.4.0,
+# but fakeredis only supports redis ~> 4.8. Bundler resolved to fakeredis 0.1.4 (from 2013)
+# which had no redis dependency constraint, but this ancient version lacked modern Redis features.
+#
+# Why fakeredis 0.1.4 was used:
+# - fakeredis 0.9.2 (May 2023) → requires redis ~> 4.8 ❌ conflicts
+# - fakeredis 0.5.0-0.8.0 → requires redis ~> 4.x ❌ conflicts
+# - fakeredis 0.1.4 (2013) → no redis dependency ✓ only option
+#
+# Current state per GitHub issue guilleiguaran/fakeredis#268:
+# - FakeRedis doesn't support redis-rb 5.x yet
+# - redis-client (used by redis-rb 5.x) maintainers won't add mocking support
+# - Ecosystem recommendation: use real Redis/Valkey for tests
+#
+# Testing approaches:
+# - Unit tests: Most don't actually need Redis - they test pure Ruby logic
+# - Integration tests: Use real Valkey on port 2121 (see integration_spec_helper.rb)
+#
+# Future alternative if needed:
+# - mock_redis gem supports redis ~> 5.0 and is actively maintained
+# - Add to Gemfile: gem 'mock_redis', require: false
+# - See: https://rubygems.org/gems/mock_redis
+#
+# For now, tests requiring Redis should use real Valkey via .env.test:
+#   source .env.test  # Sets VALKEY_URL=valkey://127.0.0.1:2121/0
+#   pnpm run test:database:start  # Start Valkey on port 2121
+#   bundle exec rspec
 
 # Configure Timecop for time manipulation in tests
 require 'timecop'
@@ -94,19 +121,9 @@ rescue StandardError => ex
   warn "Tests requiring OT.conf will fail"
 end
 
-# Shared helper for creating a memoized FakeRedis instance
+# Test helpers module
 module SpecHelpers
-  # Create a memoized FakeRedis instance for use across tests
-  # Note: Redis.new returns a FakeRedis instance because the fakeredis
-  # gem monkey-patches the Redis class when required (see line 39).
-  def self.fake_redis
-    @fake_redis ||= Redis.new
-  end
-
-  # Reset the memoized instance (useful for cleanup)
-  def self.reset_fake_redis!
-    @fake_redis = nil
-  end
+  # Add shared test helpers here
 end
 
 RSpec.configure do |config|
@@ -116,17 +133,6 @@ RSpec.configure do |config|
 
   config.mock_with :rspec do |mocks|
     mocks.verify_partial_doubles = true
-  end
-
-  # Configure FakeRedis for all tests (except where explicitly disabled)
-  # Skip FakeRedis for billing tests - they need real Redis on port 2121
-  config.before(:each) do |example|
-    # Skip FakeRedis stub for billing tests - they use real Redis
-    next if example.metadata[:type] == :billing
-
-    # Ensure FakeRedis is used for all other Redis connections
-    # Using memoized instance for better performance
-    allow(Familia).to receive(:dbclient).and_return(SpecHelpers.fake_redis)
   end
 
   # Configure Timecop - automatically return to real time after each test
