@@ -230,7 +230,7 @@ export const colonelSecretsDetailsSchema = z.object({
 export const databaseMetricsDetailsSchema = z.object({
   redis_info: z.object({
     redis_version: z.string(),
-    redis_mode: z.string(),
+    redis_mode: z.string().nullable(),
     os: z.string(),
     uptime_in_seconds: z.number(),
     uptime_in_days: z.number(),
@@ -238,13 +238,14 @@ export const databaseMetricsDetailsSchema = z.object({
     total_commands_processed: z.number(),
     instantaneous_ops_per_sec: z.number(),
   }),
-  database_sizes: z.record(
+  database_sizes: z.record(z.union([
     z.object({
       keys: z.number(),
       expires: z.number(),
       avg_ttl: z.number(),
-    })
-  ),
+    }),
+    z.string(), // Sometimes Redis INFO returns string format
+  ])),
   total_keys: z.number(),
   memory_stats: z.object({
     used_memory: z.number(),

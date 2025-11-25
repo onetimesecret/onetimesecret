@@ -113,7 +113,12 @@
             class="border border-gray-200 dark:border-gray-700 rounded p-4">
             <div class="font-semibold text-gray-900 dark:text-white">{{ dbName }}</div>
             <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              {{ dbInfo.keys.toLocaleString() }} keys, {{ dbInfo.expires.toLocaleString() }} with TTL
+              <template v-if="typeof dbInfo === 'object' && dbInfo.keys !== undefined">
+                {{ dbInfo.keys.toLocaleString() }} keys, {{ dbInfo.expires.toLocaleString() }} with TTL
+              </template>
+              <template v-else>
+                {{ dbInfo }}
+              </template>
             </div>
           </div>
         </div>

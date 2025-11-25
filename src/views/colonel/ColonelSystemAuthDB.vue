@@ -15,7 +15,7 @@
 
     <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
       <div class="text-center text-gray-600 dark:text-gray-400">
-        <p class="text-lg mb-2">{{ t('web.COMMON.coming_soon') }}</p>
+        <p class="text-lg mb-2">Coming Soon</p>
         <p class="text-sm">Authentication database metrics will be available here</p>
       </div>
     </div>
