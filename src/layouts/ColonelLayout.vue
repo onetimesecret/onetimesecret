@@ -2,8 +2,8 @@
 
 <script setup lang="ts">
   import ColonelAdminLayout from '@/components/layout/ColonelAdminLayout.vue';
-  import DefaultHeader from '@/components/layout/DefaultHeader.vue';
-  import QuietFooter from '@/components/layout/QuietFooter.vue';
+  import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
+  import ImprovedFooter from '@/components/layout/ImprovedFooter.vue';
   import type { LayoutProps } from '@/types/ui/layouts';
 
   import BaseLayout from './BaseLayout.vue';
@@ -22,7 +22,7 @@
 <template>
   <BaseLayout v-bind="props">
     <template #header>
-      <DefaultHeader v-bind="props" />
+      <ImprovedHeader v-bind="props" />
     </template>
 
     <template #main>
@@ -32,7 +32,7 @@
     </template>
 
     <template #footer>
-      <QuietFooter v-bind="props" />
+      <ImprovedFooter v-bind="props" />
     </template>
   </BaseLayout>
 </template>

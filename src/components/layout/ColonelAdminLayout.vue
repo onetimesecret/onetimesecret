@@ -7,7 +7,7 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
-const { t } = useI18n();
+// const { t } = useI18n();
 
 const windowProps = WindowService.getMultiple(['domains_enabled', 'authentication']);
 
@@ -106,7 +106,7 @@ const isParentActive = (item: NavigationItem): boolean => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
     <div class="mb-8">
       <nav class="mb-4 flex items-center text-sm text-gray-500 dark:text-gray-400">
         <router-link
