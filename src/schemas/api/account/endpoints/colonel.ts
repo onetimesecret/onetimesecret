@@ -391,7 +391,6 @@ export const bannedIPSchema = z.object({
   reason: z.string().nullable(),
   banned_by: z.string().nullable(),
   banned_at: transforms.fromString.number,
-  banned_at_human: z.string(),
 });
 
 /**

@@ -88,10 +88,15 @@ const visibleSections = computed(() =>
     }))
 );
 
-const isActiveRoute = (path: string): boolean => route.path === path || route.path.startsWith(path + '/');
+const isActiveRoute = (path: string, exact = false): boolean => {
+  if (exact) return route.path === path;
+  return route.path === path || route.path.startsWith(path + '/');
+};
 
 const isParentActive = (item: NavigationItem): boolean => {
-  if (isActiveRoute(item.to)) return true;
+  // Dashboard (/colonel) needs exact match to avoid highlighting on all pages
+  const needsExactMatch = item.to === '/colonel';
+  if (isActiveRoute(item.to, needsExactMatch)) return true;
   if (item.children) {
     return item.children.some(child => isActiveRoute(child.to));
   }

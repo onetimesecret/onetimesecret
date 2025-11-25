@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import { useColonelInfoStore } from '@/stores/colonelInfoStore';
+  import { formatDate } from '@/utils/format';
   import { storeToRefs } from 'pinia';
   import { onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -156,7 +157,7 @@
                   {{ ip.reason || '-' }}
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                  {{ ip.banned_at_human }}
+                  {{ formatDate(ip.banned_at) }}
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
                   {{ ip.banned_by || '-' }}
