@@ -22,7 +22,7 @@ gem 'otto', '~> 2.0.0.pre7'
 gem 'rhales', '~> 0.5.3'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
-gem 'rodauth-tools', git: 'https://github.com/delano/rodauth-tools'
+gem 'rodauth-tools', '~> 0.3.0'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'

@@ -1,16 +1,4 @@
 GIT
-  remote: https://github.com/delano/rodauth-tools
-  revision: 249d940a35e06ff6d51e49d22fcc90fe4ee65fca
-  specs:
-    rodauth-tools (0.3.0)
-      dry-inflector (~> 1.1)
-      rack (~> 3.2)
-      roda (~> 3.96)
-      rodauth (~> 2.41)
-      rodauth-model (~> 0.2)
-      sequel (~> 5.0)
-
-GIT
   remote: https://github.com/rspec/rspec
   revision: 0c37a88d4ff511debd563d68e10c1c7672318c3c
   specs:
@@ -275,8 +263,10 @@ GEM
     rodauth (2.41.0)
       roda (>= 2.6.0)
       sequel (>= 4)
-    rodauth-model (0.4.0)
-      rodauth (~> 2.28)
+    rodauth-tools (0.3.0)
+      dry-inflector (~> 1.1)
+      rodauth (~> 2.41)
+      sequel (~> 5.0)
     rotp (6.3.0)
     rqrcode (3.1.0)
       chunky_png (~> 1.0)
@@ -435,7 +425,7 @@ DEPENDENCIES
   rhales (~> 0.5.3)
   roda (~> 3.0)
   rodauth (~> 2.0)
-  rodauth-tools!
+  rodauth-tools (~> 0.3.0)
   rotp (~> 6.2)
   rqrcode (~> 3.1)
   rspec!

@@ -224,7 +224,6 @@ WORKDIR ${APP_DIR}
 # Copy only runtime essentials from build stages
 COPY --from=dependencies /usr/local/bin/yq /usr/local/bin/yq
 COPY --from=dependencies /usr/local/bundle /usr/local/bundle
-COPY --from=dependencies ${APP_DIR}/.bundle ./.bundle
 
 # Copy application files
 COPY --from=build ${APP_DIR}/public ./public
