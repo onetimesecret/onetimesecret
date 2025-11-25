@@ -21,6 +21,8 @@ module ColonelAPI
     class Base < V2::Logic::Base
       include Onetime::Application::AuthorizationPolicies
 
+      using Familia::Refinements::TimeLiterals
+
       # Colonel API-specific serialization helper
       #
       # Converts Familia model to JSON hash with native types.
