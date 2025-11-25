@@ -108,6 +108,17 @@ module Onetime
         @status = STATUS_SKIPPED
       end
 
+      # Predicate to determine if this initializer should be skipped
+      #
+      # Subclasses can override this to conditionally skip execution based on
+      # configuration or other runtime conditions. Called by the registry
+      # before executing the initializer.
+      #
+      # @return [Boolean] true if this initializer should be skipped
+      def should_skip?
+        false
+      end
+
       # Check if this initializer completed successfully
       #
       # @return [Boolean]

@@ -143,6 +143,15 @@ module Onetime
               next
             end
 
+            # Check if initializer wants to skip itself (e.g., feature disabled)
+            if initializer.should_skip?
+              initializer.skip!
+              results[:skipped] << initializer
+              init_logger.debug "#{prefix} Skipped #{initializer.name} - should_skip? returned true"
+              log_initializer(prefix, initializer)
+              next
+            end
+
             # Execute
             begin
               initializer.run(@context)

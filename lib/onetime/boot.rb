@@ -80,6 +80,12 @@ module Onetime
           next if [:configure_familia, :detect_legacy_data_and_warn,
                    :setup_connection_pool, :check_global_banner].include?(init.name)
 
+          # Check if initializer wants to skip itself (e.g., feature disabled)
+          if init.should_skip?
+            init.skip!
+            next
+          end
+
           init.run(Boot::InitializerRegistry.context)
         end
       end

@@ -30,3 +30,12 @@ require_relative 'initializers/detect_legacy_data_and_warn' # depends_on: [:fami
 require_relative 'initializers/setup_connection_pool'  # depends_on: [:legacy_check]
 require_relative 'initializers/check_global_banner'    # depends_on: [:database]
 require_relative 'initializers/print_log_banner'       # depends_on: [:logging]
+
+# Auto-discover app initializers from apps/*/*/initializers/*.rb
+#
+# App initializers follow the same pattern as core initializers but live
+# alongside their respective Rack applications (e.g., apps/web/billing/initializers/).
+# They auto-register via the inherited hook when required.
+Dir[File.expand_path('../../apps/*/*/initializers/*.rb', __dir__)].sort.each do |file|
+  require file
+end
