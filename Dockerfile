@@ -230,8 +230,9 @@ COPY --from=build ${APP_DIR}/public ./public
 COPY --from=build ${APP_DIR}/src ./src
 COPY --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
 
-# Copy runtime files
+# Copy runtime files (source bin first, then binstubs to preserve generated executables)
 COPY bin ./bin
+COPY --from=dependencies ${APP_DIR}/bin ./bin
 COPY apps ./apps
 COPY etc/ ./etc/
 COPY lib ./lib
