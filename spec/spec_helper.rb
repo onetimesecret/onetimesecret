@@ -65,6 +65,10 @@ begin
 
   require 'onetime/logic'
   require 'onetime/views'
+
+  # Load API modules for specs that test them
+  require 'account/application'
+  require 'core/application'
 rescue LoadError => ex
   warn "Load failed: #{ex.message} (pwd: #{Dir.pwd})"
   exit 1

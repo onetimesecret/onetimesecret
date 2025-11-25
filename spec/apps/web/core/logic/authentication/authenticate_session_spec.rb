@@ -1,10 +1,10 @@
-# .purgatory/spec/apps/api/v2/logic/authentication/authenticate_session_spec.rb
+# spec/apps/web/core/logic/authentication/authenticate_session_spec.rb
 #
 # frozen_string_literal: true
 
 require 'spec_helper'
 
-RSpec.xdescribe AccountAPI::Logic::Authentication::AuthenticateSession do
+RSpec.xdescribe Core::Logic::Authentication::AuthenticateSession do
   skip 'Temporarily skipped - added by #1677, extracted from an orphan branch, but never passing yet'
   let(:session) { double('Session', short_identifier: 'def456', set_info_message: nil, replace!: nil, save: nil, :"custid=" => nil, :"authenticated=" => nil, :"default_expiration=" => nil) }
   let(:customer) { double('Customer', custid: 'test@example.com', anonymous?: false, passphrase?: true, pending?: false, role: :customer, role?: true, obscure_email: 'te***@example.com', save: nil) }
