@@ -77,6 +77,19 @@ Dir[File.join(spec_root, 'support', '*.rb')].each { |f| require f }
 OT.mode         = :test
 OT::Config.path = File.join(spec_root, 'config.test.yaml')
 
+# Load the test configuration so OT.conf is available to tests.
+# This is a minimal config load that doesn't run the full boot process.
+# Integration tests that need full boot will call Onetime.boot! separately.
+begin
+  OT::Config.before_load
+  raw_conf = OT::Config.load
+  processed_conf = OT::Config.after_load(raw_conf)
+  OT.replace_config!(processed_conf)
+rescue StandardError => ex
+  warn "Failed to load test config: #{ex.message}"
+  warn "Tests requiring OT.conf will fail"
+end
+
 # Shared helper for creating a memoized FakeRedis instance
 module SpecHelpers
   # Create a memoized FakeRedis instance for use across tests

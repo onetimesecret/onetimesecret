@@ -5,6 +5,16 @@
 require_relative 'cli_spec_helper'
 
 RSpec.describe 'Domains Command', type: :cli do
+  let(:organization) do
+    double('Organization',
+      org_id: 'org123',
+      display_name: 'Test Org',
+      list_domains: ['example.com'],
+      add_domain: true,
+      remove_domain: true
+    )
+  end
+
   let(:domain) do
     double('Domain',
       domainid: 'example.com',
@@ -15,17 +25,8 @@ RSpec.describe 'Domains Command', type: :cli do
       verification_state: 'verified',
       updated: Time.now.to_i,
       created: Time.now.to_i,
-      save: true
-    )
-  end
-
-  let(:organization) do
-    double('Organization',
-      org_id: 'org123',
-      display_name: 'Test Org',
-      list_domains: ['example.com'],
-      add_domain: true,
-      remove_domain: true
+      save: true,
+      primary_organization: organization
     )
   end
 

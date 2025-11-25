@@ -134,8 +134,8 @@ RSpec.describe Onetime::Secret, allow_redis: false do
     let(:lifecycle_secret) { secret_pair[1] }
     let(:lifecycle_metadata) { secret_pair[0] }
 
-    # Fix: Create a proper time mock
-    let(:mock_time) { instance_double(Time, to_i: 1000) }
+    # Fix: Create a proper time mock that responds to both to_i and to_f
+    let(:mock_time) { instance_double(Time, to_i: 1000, to_f: 1000.0) }
 
     before do
       lifecycle_secret.encrypt_value(secret_value)
