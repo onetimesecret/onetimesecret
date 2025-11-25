@@ -65,6 +65,13 @@ module Onetime
         'features' => {
           'regions' => { 'enabled' => false },
           'domains' => { 'enabled' => false },
+          'incoming' => {
+            'enabled' => false,
+            'memo_max_length' => 50,
+            'default_ttl' => 604_800, # 7 days
+            'default_passphrase' => nil,
+            'recipients' => [],
+          },
         },
         'internationalization' => {
           'enabled' => false,

@@ -34,6 +34,7 @@ module Onetime::Metadata::Features
       base.safe_dump_field :burned
       base.safe_dump_field :viewed
       base.safe_dump_field :recipients
+      base.safe_dump_field :memo
       base.safe_dump_field :shortid, ->(m) { m.identifier.slice(0, 8) }
       base.safe_dump_field :show_recipients, ->(m) { !m.recipients.to_s.empty? }
       base.safe_dump_field :is_viewed, ->(m) { m.state?(:viewed) }

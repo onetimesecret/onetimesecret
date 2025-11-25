@@ -35,6 +35,7 @@ module Onetime
     # that based on the `secret_ttl` and the `created` timestamp. See
     # the secret_expired? and expiration methods.
     field :recipients
+    field :memo  # Optional memo/subject for incoming secrets
 
     def init
       self.state ||= 'new'
