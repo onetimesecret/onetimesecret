@@ -14,10 +14,13 @@
 # Colonel API uses same modern conventions as v3 API for consistency.
 
 require_relative '../../v2/logic/base'
+require_relative '../../../../lib/onetime/application/authorization_policies'
 
 module ColonelAPI
   module Logic
     class Base < V2::Logic::Base
+      include Onetime::Application::AuthorizationPolicies
+
       # Colonel API-specific serialization helper
       #
       # Converts Familia model to JSON hash with native types.

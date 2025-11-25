@@ -56,14 +56,14 @@ apps/api/colonel/
 
 | Old Path | New Path |
 |----------|----------|
-| `/api/colonel/info` | `/api/colonel/info` |
-| `/api/colonel/stats` | `/api/colonel/stats` |
-| `/api/colonel/secrets` | `/api/colonel/secrets` |
-| `/api/colonel/users` | `/api/colonel/users` |
-| `/api/colonel/system/database` | `/api/colonel/system/database` |
-| `/api/colonel/system/redis` | `/api/colonel/system/redis` |
-| `/api/colonel/banned-ips` | `/api/colonel/banned-ips` |
-| `/api/colonel/usage/export` | `/api/colonel/usage/export` |
+| `/api/account/colonel/info` | `/api/colonel/info` |
+| `/api/account/colonel/stats` | `/api/colonel/stats` |
+| `/api/account/colonel/secrets` | `/api/colonel/secrets` |
+| `/api/account/colonel/users` | `/api/colonel/users` |
+| `/api/account/colonel/system/database` | `/api/colonel/system/database` |
+| `/api/account/colonel/system/redis` | `/api/colonel/system/redis` |
+| `/api/account/colonel/banned-ips` | `/api/colonel/banned-ips` |
+| `/api/account/colonel/usage/export` | `/api/colonel/usage/export` |
 
 **Namespace Changed:**
 - All logic classes moved from `AccountAPI::Logic::Colonel` to `ColonelAPI::Logic::Colonel`
