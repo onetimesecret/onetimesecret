@@ -35,5 +35,8 @@ require_relative 'colonel/list_banned_ips'
 require_relative 'colonel/ban_ip'
 require_relative 'colonel/unban_ip'
 
+# Custom domains
+require_relative 'colonel/list_custom_domains'
+
 # Usage export
 require_relative 'colonel/export_usage'

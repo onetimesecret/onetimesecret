@@ -314,6 +314,44 @@ export const usageExportDetailsSchema = z.object({
 });
 
 /**
+ * Custom domain schema
+ */
+export const customDomainSchema = z.object({
+  domain_id: z.string(),
+  extid: z.string(),
+  display_domain: z.string(),
+  base_domain: z.string(),
+  subdomain: z.string(),
+  status: z.string().nullable(),
+  verified: z.boolean(),
+  resolving: z.boolean(),
+  verification_state: z.string(),
+  ready: z.boolean(),
+  created: z.number(),
+  created_human: z.string(),
+  updated: z.number().nullable(),
+  updated_human: z.string(),
+  org_id: z.string(),
+  org_name: z.string(),
+  brand: z.object({
+    name: z.string().nullable(),
+    tagline: z.string().nullable(),
+    homepage_url: z.string().nullable(),
+    allow_public_homepage: z.boolean(),
+    allow_public_api: z.boolean(),
+  }),
+  has_logo: z.boolean(),
+  has_icon: z.boolean(),
+  logo_url: z.string().nullable(),
+  icon_url: z.string().nullable(),
+});
+
+export const customDomainsDetailsSchema = z.object({
+  domains: z.array(customDomainSchema),
+  pagination: paginationSchema,
+});
+
+/**
  // Raw API data structures before transformation
  // These represent the API shape that will be transformed by input schemas
  */
@@ -370,3 +408,5 @@ export type RedisMetricsDetails = z.infer<typeof redisMetricsDetailsSchema>;
 export type BannedIP = z.infer<typeof bannedIPSchema>;
 export type BannedIPsDetails = z.infer<typeof bannedIPsDetailsSchema>;
 export type UsageExportDetails = z.infer<typeof usageExportDetailsSchema>;
+export type CustomDomain = z.infer<typeof customDomainSchema>;
+export type CustomDomainsDetails = z.infer<typeof customDomainsDetailsSchema>;

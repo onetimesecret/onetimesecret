@@ -14,6 +14,8 @@ import {
   type BannedIPsDetails,
   type BannedIP,
   type UsageExportDetails,
+  type CustomDomainsDetails,
+  type CustomDomain,
 } from '@/schemas/api/account/endpoints/colonel';
 import { responseSchemas } from '@/schemas/api/v3';
 import { AxiosInstance } from 'axios';
@@ -73,6 +75,8 @@ export const useColonelInfoStore = defineStore('colonel', () => {
   const databaseMetrics = ref<DatabaseMetricsDetails | null>(null);
   const redisMetrics = ref<RedisMetricsDetails | null>(null);
   const bannedIPs = ref<BannedIP[]>([]);
+  const customDomains = ref<CustomDomain[]>([]);
+  const customDomainsPagination = ref<Pagination | null>(null);
   const usageExport = ref<UsageExportDetails | null>(null);
   const _initialized = ref(false);
   const isLoading = ref(false);
@@ -275,6 +279,33 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     }
   }
 
+  // Fetch custom domains list with optional pagination
+  async function fetchCustomDomains(page = 1, perPage = 50) {
+    isLoading.value = true;
+    try {
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('per_page', perPage.toString());
+
+      const response = await $api.get(`/api/colonel/domains?${params.toString()}`);
+      const validated = responseSchemas.customDomains.parse(response.data);
+
+      if (validated.details) {
+        customDomains.value = validated.details.domains;
+        customDomainsPagination.value = validated.details.pagination;
+      }
+
+      return validated.details!;
+    } catch (error) {
+      console.error('Failed to fetch custom domains:', error);
+      customDomains.value = [];
+      customDomainsPagination.value = null;
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   // Fetch usage export data
   async function fetchUsageExport(startDate?: number, endDate?: number) {
     isLoading.value = true;
@@ -349,6 +380,8 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     databaseMetrics,
     redisMetrics,
     bannedIPs,
+    customDomains,
+    customDomainsPagination,
     usageExport,
     isLoading,
 
@@ -362,6 +395,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     fetchBannedIPs,
     banIP,
     unbanIP,
+    fetchCustomDomains,
     fetchUsageExport,
     dispose,
     $reset,

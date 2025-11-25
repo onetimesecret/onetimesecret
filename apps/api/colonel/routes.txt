@@ -24,5 +24,8 @@ GET    /banned-ips                        ColonelAPI::Logic::Colonel::ListBanned
 POST   /banned-ips                        ColonelAPI::Logic::Colonel::BanIP response=json auth=sessionauth
 DELETE /banned-ips/:ip                    ColonelAPI::Logic::Colonel::UnbanIP response=json auth=sessionauth
 
+# Custom Domains
+GET    /domains                           ColonelAPI::Logic::Colonel::ListCustomDomains response=json auth=sessionauth
+
 # Usage Export
 GET    /usage/export                      ColonelAPI::Logic::Colonel::ExportUsage response=json auth=sessionauth

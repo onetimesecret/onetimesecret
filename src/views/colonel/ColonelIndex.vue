@@ -90,6 +90,13 @@
       color: 'bg-purple-500',
     },
     {
+      name: 'Custom Domains',
+      description: 'Manage custom domains and branding',
+      href: '/colonel/domains',
+      icon: { collection: 'heroicons', name: 'globe-alt' },
+      color: 'bg-pink-500',
+    },
+    {
       name: 'Main Database',
       description: 'Redis monitoring and metrics',
       href: '/colonel/database/maindb',
