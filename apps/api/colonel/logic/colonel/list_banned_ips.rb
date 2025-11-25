@@ -15,9 +15,10 @@ module ColonelAPI
         end
 
         def process
-          # Get all banned IPs
+          # Get all banned IPs, filtering out incomplete/corrupted records
           all_banned_ips_ids = Onetime::BannedIP.instances.to_a
           all_banned_ips     = Onetime::BannedIP.load_multi(all_banned_ips_ids).compact
+          all_banned_ips.select!(&:ip_address) # Filter out records with missing data
 
           @total_count = all_banned_ips.size
 
@@ -31,7 +32,6 @@ module ColonelAPI
               reason: banned_ip.reason,
               banned_by: banned_ip.banned_by,
               banned_at: banned_ip.banned_at,
-              banned_at_human: natural_time(banned_ip.banned_at),
             }
           end
 
@@ -42,7 +42,7 @@ module ColonelAPI
           {
             record: {},
             details: {
-              current_ip: req.ip,
+              current_ip: req&.ip,
               banned_ips: banned_ips,
               total_count: total_count,
             },
