@@ -1,17 +1,36 @@
 {
-  "web": {
-    "incoming": {
-      "tagline1": "Collez un mot de passe, message secret ou lien privé ci-dessous",
-      "tagline2": "Ne stockez aucune information confidentielle dans vos emails ou fils de discussion.",
-      "secret_hint": "* Un lien secret ne fonctionne qu'une fois puis disparaît à jamais.",
-      "incoming_button_create": "Envoyer au support",
-      "incoming_secret_options": "Informations pour le support",
-      "incoming_secret_placeholder": "Entrez les informations dont nous aurions besoin pour le support (par exemple, mot de passe du système)",
-      "incoming_ticket_number": "Entrez le numéro de ticket",
-      "incoming_ticket_number_hint": "Vous pouvez le trouver dans votre courriel (par exemple, 123456)",
-      "incoming_recipient_address": "Destinataire du support",
-      "incoming_success_message": "Votre courriel a été envoyé",
-      "incoming_button_creating": "Création"
-    }
+  "incoming": {
+    "page_title": "Envoyer un secret",
+    "page_description": "Partagez des informations sensibles en toute sécurité avec notre équipe d'assistance",
+    "loading_config": "Chargement...",
+    "config_error_title": "Échec du chargement de la configuration",
+    "feature_disabled_title": "Fonctionnalité non disponible",
+    "feature_disabled_description": "Cette fonctionnalité est actuellement désactivée. Veuillez contacter le support pour obtenir de l'aide.",
+    "memo_label": "Mémo",
+    "memo_placeholder": "Brève description (ex. Demande de réinitialisation de mot de passe)",
+    "memo_hint": "Aidez-nous à acheminer votre message vers la bonne personne",
+    "recipient_label": "Envoyer à",
+    "recipient_placeholder": "Sélectionner un destinataire",
+    "recipient_aria_label": "Sélectionnez un destinataire pour ce secret",
+    "recipient_hint": "Choisissez qui recevra ce message sécurisé",
+    "no_recipients_available": "Aucun destinataire disponible",
+    "secret_content_label": "Informations confidentielles",
+    "secret_content_placeholder": "Collez les informations sensibles ici (mots de passe, clés, etc.)",
+    "secret_content_hint": "Ces informations seront chiffrées et ne pourront être consultées qu'une seule fois",
+    "submit_button": "Envoyer le secret",
+    "submit_secret": "Envoyer le secret",
+    "submitting_button": "Envoi en cours...",
+    "submitting": "Envoi en cours...",
+    "reset_button": "Effacer le formulaire",
+    "reset_form": "Effacer le formulaire",
+    "success_title": "Envoyé avec succès",
+    "success_description": "Votre message sécurisé a été délivré.",
+    "reference_id": "ID de référence",
+    "success_info_title": "Que se passe-t-il ensuite ?",
+    "success_info_description": "Le destinataire pourra consulter ce secret une seule fois. Après consultation, le secret sera définitivement supprimé.",
+    "create_another": "Envoyer un autre secret",
+    "tagline1": "Partagez des informations sensibles en toute sécurité",
+    "tagline2": "Gardez les mots de passe et données privées hors des courriels et journaux de discussion",
+    "end_of_experience_suggestion": "Conservez votre <a href='{receiptUrl}'>reçu</a> pour vos dossiers."
   }
 }

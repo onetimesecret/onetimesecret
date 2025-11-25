@@ -1,17 +1,36 @@
 {
-  "web": {
-    "incoming": {
-      "tagline1": "Pega una contraseña, mensaje secreto o enlace privado a continuación.",
-      "tagline2": "Mantén la información sensible fuera de tus correos electrónicos y registros de chat.",
-      "secret_hint": "* Un enlace secreto solo funciona una vez y luego desaparece para siempre.",
-      "incoming_button_create": "Enviar al Personal de Soporte",
-      "incoming_secret_options": "Información de Soporte",
-      "incoming_secret_placeholder": "Introduce cualquier información que tu representante de soporte necesite (ej. contraseña del sistema)",
-      "incoming_ticket_number": "Introduce el Nº de Ticket",
-      "incoming_ticket_number_hint": "Puedes encontrarlo en tu correo electrónico (ej. 123456)",
-      "incoming_recipient_address": "Destinatario de Soporte",
-      "incoming_success_message": "Tu correo electrónico ha sido enviado",
-      "incoming_button_creating": "Creando"
-    }
+  "incoming": {
+    "page_title": "Enviar un secreto",
+    "page_description": "Comparta información confidencial de forma segura con nuestro equipo de soporte",
+    "loading_config": "Cargando...",
+    "config_error_title": "Error al cargar la configuración",
+    "feature_disabled_title": "Función no disponible",
+    "feature_disabled_description": "Esta función está actualmente desactivada. Por favor, contacte con soporte para obtener asistencia.",
+    "memo_label": "Nota",
+    "memo_placeholder": "Breve descripción (ej. Solicitud de restablecimiento de contraseña)",
+    "memo_hint": "Ayúdenos a dirigir su mensaje a la persona adecuada",
+    "recipient_label": "Enviar a",
+    "recipient_placeholder": "Seleccionar un destinatario",
+    "recipient_aria_label": "Seleccione un destinatario para este secreto",
+    "recipient_hint": "Elija quién recibirá este mensaje seguro",
+    "no_recipients_available": "No hay destinatarios disponibles",
+    "secret_content_label": "Información confidencial",
+    "secret_content_placeholder": "Pegue aquí información confidencial (contraseñas, claves, etc.)",
+    "secret_content_hint": "Esta información será cifrada y solo se podrá ver una vez",
+    "submit_button": "Enviar secreto",
+    "submit_secret": "Enviar secreto",
+    "submitting_button": "Enviando...",
+    "submitting": "Enviando...",
+    "reset_button": "Limpiar formulario",
+    "reset_form": "Limpiar formulario",
+    "success_title": "Enviado correctamente",
+    "success_description": "Su mensaje seguro ha sido entregado.",
+    "reference_id": "ID de referencia",
+    "success_info_title": "¿Qué sucede ahora?",
+    "success_info_description": "El destinatario podrá ver este secreto solo una vez. Después de verlo, el secreto será eliminado permanentemente.",
+    "create_another": "Enviar otro secreto",
+    "tagline1": "Comparta información confidencial de forma segura",
+    "tagline2": "Mantenga contraseñas y datos privados fuera de correos electrónicos y registros de chat",
+    "end_of_experience_suggestion": "Guarde su <a href='{receiptUrl}'>recibo</a> para sus registros."
   }
 }

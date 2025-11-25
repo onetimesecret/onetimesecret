@@ -1,17 +1,36 @@
 {
-  "web": {
-    "incoming": {
-      "tagline1": "Enganxa una contrasenya, un missatge secret o un enllaç privat a sota.",
-      "tagline2": "Mantén fora la informació sensible del teu correu electrònic i sessions de xat.",
-      "secret_hint": "* Un enllaç secret que només funciona una vegada i després desapareix per sempre.",
-      "incoming_button_create": "Envia a l'equip de l'assistència tècnica",
-      "incoming_secret_options": "Informació de l'assistència tècnica",
-      "incoming_secret_placeholder": "Introdueix la informació que necessitarà el teu representant del servei d'assistència tècnica (per exemple, la teva contrasenya)",
-      "incoming_ticket_number": "Introdueix el número de tiquet",
-      "incoming_ticket_number_hint": "Pots trobar això al teu correu electrònic (p. ex., 123456)",
-      "incoming_recipient_address": "Destinatari del servei tècnic",
-      "incoming_success_message": "El teu correu electrònic s'ha enviat",
-      "incoming_button_creating": "Creant"
-    }
+  "incoming": {
+    "page_title": "Enviar un secret",
+    "page_description": "Compartiu informació confidencial de manera segura amb el nostre equip de suport",
+    "loading_config": "Carregant...",
+    "config_error_title": "Error en carregar la configuració",
+    "feature_disabled_title": "Funció no disponible",
+    "feature_disabled_description": "Aquesta funció està desactivada actualment. Contacteu amb el suport per obtenir assistència.",
+    "memo_label": "Nota",
+    "memo_placeholder": "Breu descripció (p. ex. Sol·licitud de restabliment de contrasenya)",
+    "memo_hint": "Ajudeu-nos a dirigir el vostre missatge a la persona adequada",
+    "recipient_label": "Enviar a",
+    "recipient_placeholder": "Seleccioneu un destinatari",
+    "recipient_aria_label": "Seleccioneu un destinatari per aquest secret",
+    "recipient_hint": "Trieu qui rebrà aquest missatge segur",
+    "no_recipients_available": "No hi ha destinataris disponibles",
+    "secret_content_label": "Informació confidencial",
+    "secret_content_placeholder": "Enganxeu informació confidencial aquí (contrasenyes, claus, etc.)",
+    "secret_content_hint": "Aquesta informació s'encriptarà i només es podrà veure una vegada",
+    "submit_button": "Enviar secret",
+    "submit_secret": "Enviar secret",
+    "submitting_button": "Enviant...",
+    "submitting": "Enviant...",
+    "reset_button": "Esborrar formulari",
+    "reset_form": "Esborrar formulari",
+    "success_title": "Enviat correctament",
+    "success_description": "El vostre missatge segur s'ha lliurat.",
+    "reference_id": "ID de referència",
+    "success_info_title": "Què passa ara?",
+    "success_info_description": "El destinatari podrà veure aquest secret només una vegada. Després de veure'l, el secret s'eliminarà permanentment.",
+    "create_another": "Enviar un altre secret",
+    "tagline1": "Compartiu informació confidencial de manera segura",
+    "tagline2": "Mantingueu contrasenyes i dades privades fora dels correus electrònics i registres de xat",
+    "end_of_experience_suggestion": "Deseu el vostre <a href='{receiptUrl}'>rebut</a> per als vostres registres."
   }
 }
