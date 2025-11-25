@@ -141,14 +141,12 @@ COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml ./
 # Install Ruby dependencies with platform detection
 # The `force_ruby_platform true` tells Bundler to compile native extensions
 # from source rather than looking for platform-specific precompiled gems.
-# The `deployment true` prevents runtime git operations for git-sourced gems.
 RUN set -eux && \
     bundle config set --local without 'development test' && \
     bundle config set --local jobs "$(nproc)" && \
     bundle config set --local force_ruby_platform true && \
-    bundle config set --local deployment true && \
     bundle install --retry=3 && \
-    bundle binstubs --all --force && \
+    bundle binstubs puma --force && \
     bundle clean --force
 
 # Install Node.js dependencies (separate layer for better caching)
