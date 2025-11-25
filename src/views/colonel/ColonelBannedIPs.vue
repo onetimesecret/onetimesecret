@@ -1,6 +1,7 @@
 <!-- src/views/colonel/ColonelBannedIPs.vue -->
 
 <script setup lang="ts">
+  import OIcon from '@/components/icons/OIcon.vue';
   import { useColonelInfoStore } from '@/stores/colonelInfoStore';
   import { storeToRefs } from 'pinia';
   import { onMounted, ref } from 'vue';
@@ -9,7 +10,7 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { bannedIPs, isLoading } = storeToRefs(store);
+  const { bannedIPs, currentIP, isLoading } = storeToRefs(store);
   const { fetchBannedIPs, banIP, unbanIP } = store;
 
   const newIP = ref('');
@@ -58,6 +59,33 @@
           class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
           {{ showBanForm ? 'Cancel' : 'Ban IP' }}
         </button>
+      </div>
+
+      <!-- Current IP Address Info -->
+      <div
+        v-if="currentIP"
+        class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-700 dark:bg-blue-900/20">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <OIcon
+              collection="heroicons"
+              name="information-circle"
+              class="mr-3 size-5 text-blue-500 dark:text-blue-400" />
+            <div>
+              <p class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                Your Current IP Address
+              </p>
+              <p class="mt-1 font-mono text-lg font-semibold text-blue-900 dark:text-blue-100">
+                {{ currentIP }}
+              </p>
+            </div>
+          </div>
+          <button
+            @click="newIP = currentIP; showBanForm = true"
+            class="rounded px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-800/50">
+            Quick Ban
+          </button>
+        </div>
       </div>
 
       <!-- Ban form -->

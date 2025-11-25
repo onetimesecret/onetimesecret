@@ -42,6 +42,7 @@ module ColonelAPI
           {
             record: {},
             details: {
+              current_ip: req.ip,
               banned_ips: banned_ips,
               total_count: total_count,
             },

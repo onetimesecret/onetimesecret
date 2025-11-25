@@ -398,6 +398,7 @@ export const bannedIPSchema = z.object({
  * Banned IPs list response details
  */
 export const bannedIPsDetailsSchema = z.object({
+  current_ip: z.string(),
   banned_ips: z.array(bannedIPSchema),
   total_count: z.number(),
 });

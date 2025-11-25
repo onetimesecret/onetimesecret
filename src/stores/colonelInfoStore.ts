@@ -75,6 +75,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
   const databaseMetrics = ref<DatabaseMetricsDetails | null>(null);
   const redisMetrics = ref<RedisMetricsDetails | null>(null);
   const bannedIPs = ref<BannedIP[]>([]);
+  const currentIP = ref<string | null>(null);
   const customDomains = ref<CustomDomain[]>([]);
   const customDomainsPagination = ref<Pagination | null>(null);
   const usageExport = ref<UsageExportDetails | null>(null);
@@ -231,6 +232,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       const validated = responseSchemas.bannedIPs.parse(response.data);
 
       if (validated.details) {
+        currentIP.value = validated.details.current_ip;
         bannedIPs.value = validated.details.banned_ips;
       }
 
@@ -238,6 +240,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     } catch (error) {
       console.error('Failed to fetch banned IPs:', error);
       bannedIPs.value = [];
+      currentIP.value = null;
       throw error;
     } finally {
       isLoading.value = false;
@@ -346,6 +349,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     databaseMetrics.value = null;
     redisMetrics.value = null;
     bannedIPs.value = [];
+    currentIP.value = null;
     usageExport.value = null;
   }
 
@@ -363,6 +367,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     databaseMetrics.value = null;
     redisMetrics.value = null;
     bannedIPs.value = [];
+    currentIP.value = null;
     usageExport.value = null;
     _initialized.value = false;
   }
@@ -380,6 +385,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     databaseMetrics,
     redisMetrics,
     bannedIPs,
+    currentIP,
     customDomains,
     customDomainsPagination,
     usageExport,
