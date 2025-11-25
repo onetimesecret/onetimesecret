@@ -138,8 +138,8 @@ ENV NODE_PATH=${APP_DIR}/node_modules
 COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml ./
 
 # Install Ruby dependencies
-# BUNDLE_WITHOUT excludes dev/test gems from production image
-ENV BUNDLE_WITHOUT="development:test"
+# BUNDLE_WITHOUT excludes dev/test/optional gems from production image
+ENV BUNDLE_WITHOUT="development:test:optional"
 
 RUN set -eux && \
     bundle install --jobs "$(nproc)" --retry=3 && \
@@ -235,7 +235,7 @@ ENV RACK_ENV=production \
     PUBLIC_DIR=${PUBLIC_DIR} \
     RUBY_YJIT_ENABLE=1 \
     SERVER_TYPE=puma \
-    BUNDLE_WITHOUT="development:test" \
+    BUNDLE_WITHOUT="development:test:optional" \
     PATH=${APP_DIR}/bin:$PATH
 
 # Ensure config files exist (preserve existing if mounted)
