@@ -8,10 +8,18 @@ module Billing
     #
     # Sets up the Stripe SDK with API key and version from billing configuration.
     class StripeSetup < Onetime::Boot::Initializer
-      @depends_on = [:config]
+      # No dependencies - OT.conf is available before initializers run
+      @depends_on = [:logging]
       @provides   = [:stripe]
 
+      def should_skip?
+        !Onetime.billing_config.enabled?
+      end
+
       def execute(_context)
+        # Don't bring Stripe into this unless billing is enabled
+        require 'stripe'
+
         stripe_key         = Onetime.billing_config.stripe_key
         stripe_api_version = Onetime.billing_config.stripe_api_version
 

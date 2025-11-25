@@ -24,12 +24,11 @@ module Onetime
       @provides = [:incoming_recipients]
       @optional = true
 
-      def execute(_context)
-        unless OT.conf.dig('features', 'incoming', 'enabled')
-          OT.ld '[init] Incoming secrets feature disabled'
-          return
-        end
+      def should_skip?
+        !OT.conf.dig('features', 'incoming', 'enabled')
+      end
 
+      def execute(_context)
         raw_recipients = OT.conf.dig('features', 'incoming', 'recipients') || []
 
         # Create lookup tables

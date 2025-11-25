@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../models/plan'
+
 module Billing
   module Initializers
     # Load billing plan catalog from Stripe
@@ -12,6 +14,10 @@ module Billing
       @depends_on = [:database, :stripe]
       @provides   = [:billing_catalog]
       @optional   = true
+
+      def should_skip?
+        !Onetime.billing_config.enabled?
+      end
 
       def execute(_context)
         Onetime.billing_logger.info 'Refreshing plan cache from Stripe'
