@@ -18,8 +18,8 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
-gem 'otto'
-gem 'rhales'
+gem 'otto', '~> 2.0.0.pre7'
+gem 'rhales', '~> 0.5.3'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
 gem 'rodauth-tools', git: 'https://github.com/delano/rodauth-tools'
@@ -60,7 +60,7 @@ gem 'truemail'
 # ====================================
 
 # ORMs and database drivers
-gem 'familia'
+gem 'familia', '~> 2.0.0.pre21'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'
 
