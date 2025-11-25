@@ -99,7 +99,8 @@ module Auth::Config::Hooks
       # ========================================================================
 
       auth.audit_log_message_for :login do
-        mfa_required = otp_exists?
+        mfa_enabled          = auth.respond_to?(:otp_exists?) && auth.otp_exists?
+        mfa_required = mfa_enabled
         if mfa_required
           'Login successful - MFA required'
         else
@@ -107,11 +108,12 @@ module Auth::Config::Hooks
         end
       end
       auth.audit_log_metadata_for :login do
+        mfa_enabled          = auth.respond_to?(:otp_exists?) && auth.otp_exists?
         metadata = {
           ip: request.ip,
           user_agent: request.user_agent,
           correlation_id: session[:auth_correlation_id] || 'none',
-          mfa_required: otp_exists?,
+          mfa_required: mfa_enabled,
         }
 
         # Add recovery codes info if feature is enabled
