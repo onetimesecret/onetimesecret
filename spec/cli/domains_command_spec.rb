@@ -6,12 +6,15 @@ require_relative 'cli_spec_helper'
 
 RSpec.describe 'Domains Command', type: :cli do
   let(:organization) do
+    owner = double('Owner', email: 'owner@example.com')
     double('Organization',
       org_id: 'org123',
       display_name: 'Test Org',
       list_domains: ['example.com'],
       add_domain: true,
-      remove_domain: true
+      remove_domain: true,
+      owner: owner,
+      member_count: 5
     )
   end
 
@@ -20,13 +23,32 @@ RSpec.describe 'Domains Command', type: :cli do
       domainid: 'example.com',
       domain_name: 'example.com',
       display_domain: 'example.com',
+      base_domain: 'example.com',
+      subdomain: nil,
+      tld: 'com',
+      sld: 'example',
+      trd: nil,
       org_id: 'org123',
       verified: 'true',
       verification_state: 'verified',
+      resolving: 'false',
+      status: 'active',
+      txt_validation_host: '_onetimesecret.example.com',
+      txt_validation_value: 'v=ots1',
+      validation_record: 'TXT',
+      vhost: 'example.com',
+      allow_public_homepage?: false,
+      allow_public_api?: false,
+      apex?: true,
+      objid: 'obj123',
+      extid: 'ext123',
+      dbkey: 'domain:example.com',
       updated: Time.now.to_i,
       created: Time.now.to_i,
       save: true,
-      primary_organization: organization
+      primary_organization: organization,
+      'updated=': nil,
+      'org_id=': nil
     )
   end
 
@@ -46,7 +68,7 @@ RSpec.describe 'Domains Command', type: :cli do
   describe 'info subcommand' do
     it 'requires a domain name' do
       output = run_cli_command_quietly('domains', 'info')
-      expect(output[:stdout]).to include('was called with no arguments')
+      expect(output[:stderr]).to include('was called with no arguments')
     end
 
     it 'displays domain information' do
@@ -68,12 +90,12 @@ RSpec.describe 'Domains Command', type: :cli do
   describe 'transfer subcommand' do
     it 'requires a domain name' do
       output = run_cli_command_quietly('domains', 'transfer')
-      expect(output[:stdout]).to include('was called with no arguments')
+      expect(output[:stderr]).to include('was called with no arguments')
     end
 
     it 'requires --to-org option' do
       output = run_cli_command_quietly('domains', 'transfer', 'example.com')
-      expect(output[:stdout]).to include('required')
+      expect(output[:stderr]).to include('missing keyword: :to_org')
     end
 
     it 'transfers domain between organizations' do
@@ -102,7 +124,7 @@ RSpec.describe 'Domains Command', type: :cli do
   describe 'repair subcommand' do
     it 'requires a domain name' do
       output = run_cli_command_quietly('domains', 'repair')
-      expect(output[:stdout]).to include('was called with no arguments')
+      expect(output[:stderr]).to include('was called with no arguments')
     end
 
     it 'detects and repairs domain issues' do
@@ -137,7 +159,7 @@ RSpec.describe 'Domains Command', type: :cli do
       allow(domain).to receive(:save)
 
       output = run_cli_command_quietly('domains', 'bulk-repair', '--force')
-      expect(output[:stdout]).to include('repaired')
+      expect(output[:stdout]).to include('Repaired:')
     end
   end
 

@@ -47,7 +47,7 @@ module Onetime
 
         begin
           # Load the migration script
-          require_relative migration_path
+          require migration_path
 
           # Run the migration with options
           success = Onetime::Migration.run(run: run)

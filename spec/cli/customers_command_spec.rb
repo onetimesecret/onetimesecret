@@ -110,9 +110,9 @@ RSpec.describe 'Customers Command', type: :cli do
   end
 
   describe 'without options' do
-    it 'displays usage information' do
+    it 'displays customer count' do
       output = run_cli_command_quietly('customers')
-      expect(output[:stdout]).to include('Customer Management')
+      expect(output[:stdout]).to include('2 customers')
     end
   end
 end

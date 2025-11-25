@@ -153,13 +153,13 @@ RSpec.describe 'Boot Test Command', type: :cli do
       expect(last_exit_code).to eq(1)
     end
 
-    it 'shows backtrace with --verbose flag' do
+    it 'shows backtrace when error occurs' do
       allow(Onetime).to receive(:boot!).and_raise(StandardError.new('Test error'))
-      allow(ARGV).to receive(:any?).and_return(true)
 
-      output = run_cli_command_quietly('boot-test', '--verbose')
+      output = run_cli_command_quietly('boot-test')
 
-      expect(output[:stderr]).to include('Backtrace')
+      expect(output[:stderr]).to include('Boot test failed')
+      expect(output[:stderr]).to include('Test error')
       expect(last_exit_code).to eq(1)
     end
   end

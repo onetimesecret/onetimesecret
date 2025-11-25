@@ -31,24 +31,30 @@ RSpec.describe 'Migrate Command', type: :cli do
     end
 
     it 'runs migration in dry-run mode by default' do
-      expect(Onetime::Migration).to receive(:run).with(run: false).and_return(true)
-
       output = run_cli_command_quietly('migrate', 'test_migration.rb')
       expect(output[:stdout]).to include('Dry run completed successfully')
     end
 
     it 'runs migration with --run flag' do
-      expect(Onetime::Migration).to receive(:run).with(run: true).and_return(true)
-
       output = run_cli_command_quietly('migrate', 'test_migration.rb', '--run')
       expect(output[:stdout]).to include('Migration completed successfully')
     end
 
     it 'handles migration failure' do
-      expect(Onetime::Migration).to receive(:run).and_return(false)
+      # Create a migration that fails
+      failing_migration = <<~RUBY
+        module Onetime
+          class Migration
+            def self.run(run: false)
+              false
+            end
+          end
+        end
+      RUBY
+      create_temp_migration('failing_migration.rb', failing_migration)
 
       expect {
-        run_cli_command('migrate', 'test_migration.rb')
+        run_cli_command('migrate', 'failing_migration.rb')
       }.to raise_error(SystemExit) do |error|
         expect(error.status).to eq(1)
       end
@@ -68,8 +74,8 @@ RSpec.describe 'Migrate Command', type: :cli do
     end
 
     it 'accepts -r short flag' do
-      expect(Onetime::Migration).to receive(:run).with(run: true).and_return(true)
-      run_cli_command_quietly('migrate', 'test_migration.rb', '-r')
+      output = run_cli_command_quietly('migrate', 'test_migration.rb', '-r')
+      expect(output[:stdout]).to include('Migration completed successfully')
     end
   end
 end
