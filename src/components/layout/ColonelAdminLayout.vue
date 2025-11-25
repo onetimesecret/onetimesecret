@@ -77,12 +77,6 @@ const sections: NavigationItem[] = [
     label: 'Banned IPs',
     description: 'IP ban management',
   },
-  {
-    to: '/colonel/usage',
-    icon: { collection: 'heroicons', name: 'document-chart-bar' },
-    label: 'Usage Export',
-    description: 'Export usage data',
-  },
 ];
 
 const visibleSections = computed(() =>

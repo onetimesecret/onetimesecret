@@ -26,25 +26,6 @@
     icon: { collection: 'heroicons', name: iconName },
   });
 
-  // Helper functions for individual stats
-  const getSecretsCreatedStat = () => createStatItem(
-    'web.colonel.stats.secretsCreated',
-    stats.value?.counts?.secrets_created?.toLocaleString() || '0',
-    'plus-circle'
-  );
-
-  const getSecretsSharedStat = () => createStatItem(
-    'web.colonel.stats.secretsShared',
-    stats.value?.counts?.secrets_shared?.toLocaleString() || '0',
-    'share'
-  );
-
-  const getActiveUsersStat = () => createStatItem(
-    'web.colonel.stats.activeUsers',
-    stats.value?.counts?.session_count?.toString() || '0',
-    'users'
-  );
-
   const getEmailsSentStat = () => createStatItem(
     'web.colonel.stats.emailsSent',
     stats.value?.counts?.emails_sent?.toLocaleString() || '0',
@@ -65,12 +46,9 @@
 
   // Helper function to get stats data
   const getStatsData = () => [
-    getSecretsCreatedStat(),
-    getSecretsSharedStat(),
-    getActiveUsersStat(),
-    getEmailsSentStat(),
-    getTotalSecretsStat(),
     getTotalCustomersStat(),
+    getTotalSecretsStat(),
+    getEmailsSentStat(),
   ];
 
   // Quick stats using real data from the store
