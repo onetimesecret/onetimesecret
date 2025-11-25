@@ -77,6 +77,7 @@ gem 'uri-valkey', '~> 1.4.0'
 # Security & Encryption
 # ====================================
 
+gem 'argon2', '~> 2.3'
 gem 'bcrypt', '~> 3.1'
 gem 'encryptor', '= 1.1.3'
 gem 'rotp', '~> 6.2'

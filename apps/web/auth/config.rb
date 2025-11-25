@@ -26,6 +26,10 @@ module Auth
       enable :hmac_secret_guard
       enable :audit_logging
 
+      # Configured in Features::Argon2
+      # Use argon2id for password hashing (more secure than bcrypt for new installs)
+      enable :argon2
+
       # Configured in Features::AccountManagement
       enable :verify_account unless ENV['RACK_ENV'] == 'test'
       enable :create_account
@@ -35,6 +39,7 @@ module Auth
 
       Base.configure(self)
       Email.configure(self)
+      Features::Argon2.configure(self)
       Features::AuditLogging.configure(self)
 
       Features::AccountManagement.configure(self)
