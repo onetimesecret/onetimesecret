@@ -16,7 +16,8 @@ module ColonelAPI
 
         def process
           # Get all banned IPs
-          all_banned_ips = Onetime::BannedIP.instances.to_a
+          all_banned_ips_ids = Onetime::BannedIP.instances.to_a
+          all_banned_ips     = Onetime::BannedIP.load_multi(all_banned_ips_ids).compact
 
           @total_count = all_banned_ips.size
 

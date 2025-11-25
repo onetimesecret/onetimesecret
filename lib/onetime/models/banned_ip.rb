@@ -24,7 +24,7 @@ module Onetime
     class_hashkey :ip_index
 
     def init
-      self.banned_at ||= Familia.now.to_i
+      self.banned_at                ||= Familia.now.to_i
       self.class.ip_index[ip_address] = objid if ip_address
     end
 
@@ -39,7 +39,7 @@ module Onetime
           ip_address: ip_address,
           reason: reason,
           banned_by: banned_by,
-          banned_at: Familia.now.to_i
+          banned_at: Familia.now.to_i,
         )
 
         banned_ip.default_expiration = expiration if expiration
@@ -59,7 +59,7 @@ module Onetime
         return false unless banned_ip
 
         # Remove from index first
-        ip_index.delete(ip_address)
+        ip_index.remove_field(ip_address)
 
         # Then destroy the record
         banned_ip.destroy!

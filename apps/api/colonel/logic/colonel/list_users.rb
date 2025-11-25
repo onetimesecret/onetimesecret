@@ -24,14 +24,15 @@ module ColonelAPI
 
         def process
           # Get all customers
-          all_customers = Onetime::Customer.instances.to_a
+          all_customers_objids = Onetime::Customer.instances.to_a
+          all_customers        = Onetime::Customer.load_multi(all_customers_objids).compact
 
           # Filter by role if specified
           if role_filter && !role_filter.empty?
             all_customers = all_customers.select { |cust| cust.role == role_filter }
           end
 
-          @total_count = all_customers.size
+          @total_count = all_customers.size # or Onetime::Customer.count to count via zset index
           @total_pages = (@total_count.to_f / @per_page).ceil
 
           # Sort by created timestamp (most recent first)
