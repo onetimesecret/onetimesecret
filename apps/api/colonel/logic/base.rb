@@ -13,12 +13,12 @@
 #
 # Colonel API uses same modern conventions as v3 API for consistency.
 
-require_relative '../../v2/logic/base'
-require_relative '../../../../lib/onetime/application/authorization_policies'
+require 'onetime/logic/base'
+require 'onetime/application/authorization_policies'
 
 module ColonelAPI
   module Logic
-    class Base < V2::Logic::Base
+    class Base < Onetime::Logic::Base
       include Onetime::Application::AuthorizationPolicies
 
       using Familia::Refinements::TimeLiterals
