@@ -4,10 +4,10 @@
 
 require_relative '../base'
 
-module AccountAPI
+module ColonelAPI
   module Logic
     module Colonel
-      class GetColonelStats < AccountAPI::Logic::Base
+      class GetColonelStats < ColonelAPI::Logic::Base
         attr_reader :session_count, :customer_count, :metadata_count,
           :secret_count, :secrets_created, :secrets_shared, :emails_sent
 
@@ -24,13 +24,9 @@ module AccountAPI
         end
 
         def process_statistics
-          @customer_count = Onetime::Customer.instances.size
-          @metadata_count = Onetime::Metadata.new.dbclient.keys('metadata*:object').count
-          @secret_count   = Onetime::Secret.new.dbclient.keys('secret*:object').count
-          # TODO:
-          # @secrets_created = Onetime::Customer.global.secrets_created.to_s
-          # @secrets_shared  = Onetime::Customer.global.secrets_shared.to_s
-          # @emails_sent     = Onetime::Customer.global.emails_sent.to_s
+          @customer_count = Onetime::Customer.count
+          @metadata_count = Onetime::Metadata.count
+          @secret_count   = Onetime::Secret.count
         end
         private :process_statistics
 

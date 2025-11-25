@@ -14,7 +14,3 @@ POST   /account/change-password                   AccountAPI::Logic::Account::Up
 POST   /account/update-locale                     AccountAPI::Logic::Account::UpdateLocale response=json auth=noauth
 POST   /account/apitoken                          AccountAPI::Logic::Account::GenerateAPIToken response=json auth=sessionauth,basicauth csrf=exempt
 GET    /account                                   AccountAPI::Logic::Account::GetAccount response=json auth=sessionauth,basicauth
-
-# Colonel/Admin endpoints
-GET    /colonel/info                              AccountAPI::Logic::Colonel::GetColonelInfo response=json auth=sessionauth role=colonel
-GET    /colonel/stats                             AccountAPI::Logic::Colonel::GetColonelStats response=json auth=sessionauth role=colonel

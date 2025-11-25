@@ -36,6 +36,16 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
+    path: '/colonel/system',
+    name: 'ColonelSystem',
+    component: () => import('@/views/colonel/ColonelSystem.vue'),
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_system',
+    },
+    props: true,
+  },
+  {
     path: '/colonel/settings',
     name: 'SystemSettings',
     component: () => import('@/views/colonel/SystemSettings.vue'),
@@ -46,12 +56,72 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
-    path: '/colonel/info',
-    name: 'ColonelInfo',
-    component: () => import('@/views/colonel/ColonelInfo.vue'),
+    path: '/colonel/secrets',
+    name: 'ColonelSecrets',
+    component: () => import('@/views/colonel/ColonelSecrets.vue'),
     meta: {
       ...defaultMeta,
-      title: 'web.TITLES.colonel_info',
+      title: 'web.TITLES.colonel_secrets',
+    },
+    props: true,
+  },
+  {
+    path: '/colonel/domains',
+    name: 'ColonelDomains',
+    component: () => import('@/views/colonel/ColonelDomains.vue'),
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_domains',
+    },
+    props: true,
+  },
+  {
+    path: '/colonel/database/maindb',
+    name: 'ColonelSystemMainDB',
+    component: () => import('@/views/colonel/ColonelSystemMainDB.vue'),
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_maindb',
+    },
+    props: true,
+  },
+  {
+    path: '/colonel/database/authdb',
+    name: 'ColonelSystemAuthDB',
+    component: () => import('@/views/colonel/ColonelSystemAuthDB.vue'),
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_authdb',
+    },
+    props: true,
+  },
+  {
+    path: '/colonel/system/redis',
+    name: 'ColonelSystemRedis',
+    component: () => import('@/views/colonel/ColonelSystemRedis.vue'),
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_redis',
+    },
+    props: true,
+  },
+  {
+    path: '/colonel/banned-ips',
+    name: 'ColonelBannedIPs',
+    component: () => import('@/views/colonel/ColonelBannedIPs.vue'),
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_banned_ips',
+    },
+    props: true,
+  },
+  {
+    path: '/colonel/usage',
+    name: 'ColonelUsageExport',
+    component: () => import('@/views/colonel/ColonelUsageExport.vue'),
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_usage',
     },
     props: true,
   },

@@ -25,16 +25,6 @@ export function useColonelNavigation() {
       icon: { collection: 'material-symbols', name: 'family-home-rounded' },
     },
     {
-      name: t('web.colonel.activity'),
-      href: '/colonel/info',
-      icon: { collection: 'ph', name: 'activity' },
-    },
-    // {
-    //   name: t('web.colonel.users'),
-    //   href: '/colonel/users',
-    //   icon: { collection: 'heroicons', name: 'user-solid' },
-    // },
-    {
       name: t('web.colonel.settings'),
       href: '/colonel/settings',
       icon: { collection: 'material-symbols', name: 'settings' },

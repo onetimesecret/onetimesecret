@@ -6,10 +6,12 @@ require 'onetime/refinements/stripe_refinements'
 
 require_relative '../base'
 
-module AccountAPI
+module ColonelAPI
   module Logic
     module Colonel
-      class GetColonelInfo < AccountAPI::Logic::Base
+      class GetColonelInfo < ColonelAPI::Logic::Base
+        using Familia::Refinements::TimeLiterals
+
         attr_reader :billing_enabled, :title, :session_count,
           :today_feedback, :yesterday_feedback, :older_feedback, :feedback_count,
           :today_feedback_count, :yesterday_feedback_count, :older_feedback_count,
@@ -52,7 +54,7 @@ module AccountAPI
 
         def process_feedback_for_period(period, end_time)
           Onetime::Feedback.recent(period, end_time).collect do |k, v|
-            { msg: k, stamp: natural_time(v) }
+            { msg: k, stamp: v }
           end.reverse
         end
         private :process_feedback_for_period

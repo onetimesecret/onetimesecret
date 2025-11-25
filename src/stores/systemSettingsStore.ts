@@ -1,6 +1,9 @@
 // src/stores/systemSettingsStore.ts
 
-import { systemSettingsSchema, type SystemSettingsDetails } from '@/schemas/api/account/endpoints/colonel';
+import {
+  systemSettingsSchema,
+  type SystemSettingsDetails,
+} from '@/schemas/api/account/endpoints/colonel';
 import { responseSchemas } from '@/schemas/api/v3';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -36,7 +39,7 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
    * @returns Validated configuration object
    */
   async function fetch() {
-    const response = await $api.get('/api/account/colonel/config');
+    const response = await $api.get('/api/colonel/config');
 
     try {
       const validated = responseSchemas.systemSettings.parse(response.data);
@@ -68,7 +71,7 @@ export const useSystemSettingsStore = defineStore('colonel', () => {
       throw validationError;
     }
 
-    const response = await $api.post('/api/account/colonel/config', { config: newConfig });
+    const response = await $api.post('/api/colonel/config', { config: newConfig });
 
     try {
       const validated = responseSchemas.systemSettings.parse(response.data);

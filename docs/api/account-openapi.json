@@ -94,15 +94,7 @@
             "description": "Custom metadata key-value pairs"
           }
         },
-        "required": [
-          "id",
-          "email",
-          "name",
-          "created",
-          "currency",
-          "balance",
-          "metadata"
-        ]
+        "required": ["id", "email", "name", "created", "currency", "balance", "metadata"]
       },
       "StripeSubscription": {
         "type": "object",
@@ -180,41 +172,23 @@
                           "properties": {
                             "interval": {
                               "type": "string",
-                              "enum": [
-                                "day",
-                                "week",
-                                "month",
-                                "year"
-                              ]
+                              "enum": ["day", "week", "month", "year"]
                             },
                             "interval_count": {
                               "type": "number"
                             }
                           },
-                          "required": [
-                            "interval",
-                            "interval_count"
-                          ]
+                          "required": ["interval", "interval_count"]
                         }
                       },
-                      "required": [
-                        "id",
-                        "currency",
-                        "unit_amount",
-                        "recurring"
-                      ]
+                      "required": ["id", "currency", "unit_amount", "recurring"]
                     }
                   },
-                  "required": [
-                    "id",
-                    "price"
-                  ]
+                  "required": ["id", "price"]
                 }
               }
             },
-            "required": [
-              "data"
-            ],
+            "required": ["data"],
             "description": "Subscription line items"
           },
           "metadata": {
@@ -263,12 +237,7 @@
               },
               "role": {
                 "type": "string",
-                "enum": [
-                  "customer",
-                  "colonel",
-                  "recipient",
-                  "user_deleted_self"
-                ]
+                "enum": ["customer", "colonel", "recipient", "user_deleted_self"]
               },
               "email": {
                 "type": "string",
@@ -374,11 +343,7 @@
             }
           }
         },
-        "required": [
-          "cust",
-          "stripe_customer",
-          "stripe_subscriptions"
-        ]
+        "required": ["cust", "stripe_customer", "stripe_subscriptions"]
       },
       "ApiToken": {
         "type": "object",
@@ -391,9 +356,7 @@
             "nullable": true
           }
         },
-        "required": [
-          "apitoken"
-        ]
+        "required": ["apitoken"]
       },
       "CheckAuthDetails": {
         "type": "object",
@@ -402,9 +365,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "authenticated"
-        ]
+        "required": ["authenticated"]
       },
       "ColonelInfo": {
         "type": "object",
@@ -439,12 +400,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "custid",
-                "colonel",
-                "verified",
-                "stamp"
-              ]
+              "required": ["custid", "colonel", "verified", "stamp"]
             },
             "default": []
           },
@@ -462,10 +418,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "msg",
-                "stamp"
-              ]
+              "required": ["msg", "stamp"]
             },
             "default": []
           },
@@ -483,10 +436,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "msg",
-                "stamp"
-              ]
+              "required": ["msg", "stamp"]
             },
             "default": []
           },
@@ -505,10 +455,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "msg",
-                "stamp"
-              ]
+              "required": ["msg", "stamp"]
             },
             "default": null
           },
@@ -574,9 +521,7 @@
             }
           }
         },
-        "required": [
-          "counts"
-        ]
+        "required": ["counts"]
       },
       "ColonelStats": {
         "type": "object",
@@ -615,9 +560,7 @@
             }
           }
         },
-        "required": [
-          "counts"
-        ]
+        "required": ["counts"]
       },
       "ErrorResponse": {
         "type": "object",
@@ -629,9 +572,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "message"
-        ]
+        "required": ["message"]
       },
       "ChangePasswordRequest": {
         "type": "object",
@@ -647,11 +588,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "current_password",
-          "new_password",
-          "confirm_password"
-        ]
+        "required": ["current_password", "new_password", "confirm_password"]
       },
       "UpdateLocaleRequest": {
         "type": "object",
@@ -662,9 +599,7 @@
             "description": "Language code (e.g., en, es, fr)"
           }
         },
-        "required": [
-          "locale"
-        ]
+        "required": ["locale"]
       }
     },
     "parameters": {}
@@ -674,9 +609,7 @@
       "post": {
         "summary": "Destroy account",
         "description": "Permanently delete the user account and all associated data. This action cannot be undone.",
-        "tags": [
-          "account"
-        ],
+        "tags": ["account"],
         "security": [
           {
             "SessionAuth": []
@@ -702,9 +635,7 @@
       "post": {
         "summary": "Change password",
         "description": "Update the account password. Requires current password verification.",
-        "tags": [
-          "account"
-        ],
+        "tags": ["account"],
         "security": [
           {
             "SessionAuth": []
@@ -739,12 +670,8 @@
       "post": {
         "summary": "Update locale preference",
         "description": "Change the user's language preference for the interface.",
-        "tags": [
-          "account"
-        ],
-        "security": [
-          {}
-        ],
+        "tags": ["account"],
+        "security": [{}],
         "requestBody": {
           "content": {
             "application/json": {
@@ -768,9 +695,7 @@
       "post": {
         "summary": "Generate API token",
         "description": "Generate a new API token for programmatic access. Previous token will be invalidated.",
-        "tags": [
-          "account"
-        ],
+        "tags": ["account"],
         "security": [
           {
             "SessionAuth": []
@@ -795,9 +720,7 @@
                       "nullable": true
                     }
                   },
-                  "required": [
-                    "apitoken"
-                  ]
+                  "required": ["apitoken"]
                 }
               }
             }
@@ -812,9 +735,7 @@
       "get": {
         "summary": "Get account details",
         "description": "Retrieve complete account information including Stripe subscription data if applicable.",
-        "tags": [
-          "account"
-        ],
+        "tags": ["account"],
         "security": [
           {
             "SessionAuth": []
@@ -840,14 +761,11 @@
         }
       }
     },
-    "/api/account/colonel/info": {
+    "/api/colonel/info": {
       "get": {
         "summary": "Get colonel dashboard info",
         "description": "Retrieve comprehensive dashboard information for administrators. Requires colonel role.",
-        "tags": [
-          "account",
-          "colonel"
-        ],
+        "tags": ["account", "colonel"],
         "security": [
           {
             "SessionAuth": []
@@ -891,12 +809,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "custid",
-                          "colonel",
-                          "verified",
-                          "stamp"
-                        ]
+                        "required": ["custid", "colonel", "verified", "stamp"]
                       },
                       "default": []
                     },
@@ -914,10 +827,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "msg",
-                          "stamp"
-                        ]
+                        "required": ["msg", "stamp"]
                       },
                       "default": []
                     },
@@ -935,10 +845,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "msg",
-                          "stamp"
-                        ]
+                        "required": ["msg", "stamp"]
                       },
                       "default": []
                     },
@@ -957,10 +864,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "msg",
-                          "stamp"
-                        ]
+                        "required": ["msg", "stamp"]
                       },
                       "default": null
                     },
@@ -1026,9 +930,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "counts"
-                  ]
+                  "required": ["counts"]
                 }
               }
             }
@@ -1042,14 +944,11 @@
         }
       }
     },
-    "/api/account/colonel/stats": {
+    "/api/colonel/stats": {
       "get": {
         "summary": "Get colonel statistics",
         "description": "Retrieve system-wide statistics for administrators. Requires colonel role.",
-        "tags": [
-          "account",
-          "colonel"
-        ],
+        "tags": ["account", "colonel"],
         "security": [
           {
             "SessionAuth": []
@@ -1097,9 +996,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "counts"
-                  ]
+                  "required": ["counts"]
                 }
               }
             }

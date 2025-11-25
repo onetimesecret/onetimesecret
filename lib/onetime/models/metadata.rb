@@ -120,6 +120,10 @@ module Onetime
         Familia.generate_id
       end
 
+      def count
+        instances.count # e.g. zcard dbkey
+      end
+
       def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil)
         secret   = Onetime::Secret.new(owner_id: owner_id)
         metadata = Onetime::Metadata.new(owner_id: owner_id)

@@ -4,6 +4,8 @@
 
 module Onetime::Customer::Features
   module DeprecatedFields
+    using Familia::Refinements::TimeLiterals
+
     Familia::Base.add_feature self, :deprecated_fields
 
     def self.included(base)
@@ -26,16 +28,16 @@ module Onetime::Customer::Features
     module ClassMethods
       # Use Familia 2's generated class methods
       # def add(cust)
-      #   values.add cust.identifier, OT.now.to_i
+      #   instances.add cust.identifier, OT.now.to_i
       # end
 
       def all
-        values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+        instances.revrangeraw(0, -1).collect { |identifier| load(identifier) }
       end
 
       def recent(duration = 30.days, epoint = OT.now.to_i)
         spoint = OT.now.to_i - duration
-        values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+        instances.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
       # Generate a unique session ID with 32 bytes of random data

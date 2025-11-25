@@ -92,6 +92,10 @@ module Core
 
     warmup do
       # Expensive initialization tasks go here
+      # We may want to preload all custom domains here so that they are in
+      # ruby memory from the get go? It'll need to be more nuanced and robust
+      # than I'm making it sounds since not everything can be like a nice, fresh
+      # loaf of bread (cut & dry).
     end
 
     protected

@@ -368,7 +368,7 @@
         id="heroicons-envelope">
         <path
           fill="none"
-          stroke="#888888"
+          stroke="currentColor"
           stroke-linecap="round"
           stroke-linejoin="round"
           stroke-width="1.5"

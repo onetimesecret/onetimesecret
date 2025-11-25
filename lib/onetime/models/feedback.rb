@@ -24,6 +24,10 @@ module Onetime
         ret    = instances.rangebyscoreraw(spoint, epoint, withscores: true)
         Hash[ret]
       end
+
+      def count
+        instances.count # e.g. zcard dbkey
+      end
     end
 
     extend ClassMethods

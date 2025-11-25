@@ -19,12 +19,17 @@
   const { isDarkMode } = useTheme();
 
   // Config section tabs with typed keys
+  // These match the sections returned by the backend GetSystemSettings endpoint
   const configSections = [
     { key: 'interface' as ConfigSectionKey, label: 'Interface' },
     { key: 'secret_options' as ConfigSectionKey, label: 'Secret Options' },
+    { key: 'authentication' as ConfigSectionKey, label: 'Authentication' },
+    { key: 'emailer' as ConfigSectionKey, label: 'SMTP' },
     { key: 'mail' as ConfigSectionKey, label: 'Email Validation' },
     { key: 'diagnostics' as ConfigSectionKey, label: 'Diagnostics' },
-    { key: 'limits' as ConfigSectionKey, label: 'Limits' },
+    { key: 'logging' as ConfigSectionKey, label: 'Logging' },
+    { key: 'billing' as ConfigSectionKey, label: 'Billing' },
+    { key: 'features' as ConfigSectionKey, label: 'Features' },
   ];
 
   const store = useSystemSettingsStore();

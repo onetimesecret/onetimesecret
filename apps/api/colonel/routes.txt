@@ -1,0 +1,31 @@
+# apps/api/colonel/routes.txt
+
+# Colonel API  endpoints
+GET    /info                              ColonelAPI::Logic::Colonel::GetColonelInfo response=json auth=sessionauth
+GET    /stats                             ColonelAPI::Logic::Colonel::GetColonelStats response=json auth=sessionauth
+GET    /config                            ColonelAPI::Logic::Colonel::GetSystemSettings response=json auth=sessionauth
+
+# Secret Management
+GET    /secrets                           ColonelAPI::Logic::Colonel::ListSecrets response=json auth=sessionauth
+GET    /secrets/:secret_id                ColonelAPI::Logic::Colonel::GetSecretMetadata response=json auth=sessionauth
+DELETE /secrets/:secret_id                ColonelAPI::Logic::Colonel::DeleteSecret response=json auth=sessionauth
+
+# User Management
+GET    /users                             ColonelAPI::Logic::Colonel::ListUsers response=json auth=sessionauth
+GET    /users/:user_id                    ColonelAPI::Logic::Colonel::GetUserDetails response=json auth=sessionauth
+POST   /users/:user_id/plan               ColonelAPI::Logic::Colonel::UpdateUserPlan response=json auth=sessionauth
+
+# System Monitoring
+GET    /system/database                   ColonelAPI::Logic::Colonel::GetDatabaseMetrics response=json auth=sessionauth
+GET    /system/redis                      ColonelAPI::Logic::Colonel::GetRedisMetrics response=json auth=sessionauth
+
+# IP Banning
+GET    /banned-ips                        ColonelAPI::Logic::Colonel::ListBannedIPs response=json auth=sessionauth
+POST   /banned-ips                        ColonelAPI::Logic::Colonel::BanIP response=json auth=sessionauth
+DELETE /banned-ips/:ip                    ColonelAPI::Logic::Colonel::UnbanIP response=json auth=sessionauth
+
+# Custom Domains
+GET    /domains                           ColonelAPI::Logic::Colonel::ListCustomDomains response=json auth=sessionauth
+
+# Usage Export
+GET    /usage/export                      ColonelAPI::Logic::Colonel::ExportUsage response=json auth=sessionauth

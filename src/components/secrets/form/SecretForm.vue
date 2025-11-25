@@ -4,7 +4,7 @@
   import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import SplitButton from '@/components/SplitButton.vue';
-  import TeamSelector from '@/components/teams/TeamSelector.vue';
+  // import TeamSelector from '@/components/teams/TeamSelector.vue';
   import { useDomainDropdown } from '@/composables/useDomainDropdown';
   import { usePrivacyOptions } from '@/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/composables/useSecretConcealer';
@@ -56,7 +56,7 @@
   const authStore = useAuthStore();
   const teamStore = useTeamStore();
   const showProTip = ref(props.withAsterisk);
-  const selectedTeamId = ref<string | null>(null);
+  const selectedTeamId = ref<string | undefined>(undefined);
 
   // Get passphrase configuration for UI hints
   const secretOptions = computed(() => WindowService.get('secret_options'));
@@ -391,23 +391,26 @@
                 <OIcon
                   collection="heroicons"
                   name="envelope"
-                  class="size-4 text-gray-400"
+                  size="5"
+                  class="text-gray-500 dark:text-gray-400"
                   aria-hidden="true" />
               </div>
               <!-- prettier-ignore-attribute class -->
               <input
-                :value="form.recipient"
                 :id="recipientId"
+                :value="form.recipient"
                 type="email"
                 name="recipient[]"
+                autocomplete="email"
                 :placeholder="t('web.COMMON.email_placeholder')"
                 :aria-invalid="!!getError('recipient')"
                 :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
                 :class="[cornerClass, getError('recipient') ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20' : '']"
-                class="w-full border border-gray-200/60
-                  bg-white/80 backdrop-blur-sm px-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-all duration-300
+                class="w-full border border-gray-200/60 bg-white/80 backdrop-blur-sm
+                  py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400
+                  transition-colors duration-200
                   hover:border-gray-300/80 hover:bg-white/90
-                  focus:border-blue-500/80 focus:bg-white focus:ring-4 focus:ring-blue-500/20
+                  focus:border-blue-500/80 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/20
                   dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-gray-500
                   dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
                   dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
@@ -416,14 +419,14 @@
           </div>
 
           <!-- Team Selector (optional - only shows if user has teams) -->
-          <div
+          <!-- <div
             v-if="teamStore.hasTeams"
             class="mt-6">
             <TeamSelector
               v-model="selectedTeamId"
               :teams="teamStore.teams"
               :disabled="isSubmitting" />
-          </div>
+          </div> -->
         </div>
 
         <!-- Pro tip Section -->

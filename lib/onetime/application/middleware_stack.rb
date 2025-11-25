@@ -9,6 +9,7 @@ require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
 require_relative '../session'
+require_relative '../middleware/ip_ban'
 require 'otto'
 
 module Onetime
@@ -112,6 +113,10 @@ module Onetime
             note: 'masks public IPs',
           }
           builder.use Otto::Security::Middleware::IPPrivacyMiddleware
+
+          # IP Ban middleware - blocks banned IPs (after IP privacy)
+          logger.debug 'Setting up IP Ban middleware'
+          builder.use Onetime::Middleware::IPBan
 
           builder.use Rack::ContentLength
           builder.use Onetime::Middleware::StartupReadiness

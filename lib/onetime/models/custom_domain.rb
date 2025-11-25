@@ -681,6 +681,10 @@ module Onetime
         instances.revrangeraw(0, -1).collect { |identifier| find_by_identifier(identifier) }
       end
 
+      def count
+        instances.count # e.g. zcard dbkey
+      end
+
       def recent(duration = 48.hours)
         spoint = OT.now.to_i - duration
         epoint = OT.now.to_i
