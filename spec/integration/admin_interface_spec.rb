@@ -16,6 +16,9 @@ RSpec.describe 'Admin Interface', type: :integration do
     # Reset registry to clear any apps loaded during spec_helper
     Onetime::Application::Registry.reset!
 
+    # Reload auth config to pick up AUTHENTICATION_MODE env var
+    Onetime.auth_config.reload!
+
     # Boot application
     Onetime.boot! :test
 
