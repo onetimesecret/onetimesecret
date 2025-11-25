@@ -191,6 +191,10 @@ module Onetime
         org
       end
 
+      def count
+        instances.count # e.g. zcard dbkey
+      end
+
       def contact_email_exists?(email)
         # Use unique_index auto-generated finder for O(1) lookup
         !find_by_contact_email(email).nil?

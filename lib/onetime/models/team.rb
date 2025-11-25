@@ -145,6 +145,11 @@ module Onetime
         OT.ld "[Team.create!] team_id: #{team.team_id}, owner: #{owner_customer.user_id}, org: #{org_id}"
         team
       end
+
+      def count
+        instances.count # e.g. zcard dbkey
+      end
+
     end
   end
 end

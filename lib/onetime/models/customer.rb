@@ -226,6 +226,10 @@ module Onetime
         Customer.email_index.key?(email)
       end
 
+      def count
+        instances.count # e.g. zcard dbkey
+      end
+
       def anonymous
         @anonymous ||= begin
           anon = new(role: 'customer', custid: 'anon', objid: 'anon', extid: 'anon')

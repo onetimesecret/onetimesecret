@@ -69,6 +69,11 @@ module Onetime
       def banned?(ip_address)
         ip_index.key?(ip_address)
       end
+
+      def count
+        instances.count # e.g. zcard dbkey
+      end
+
     end
   end
 end

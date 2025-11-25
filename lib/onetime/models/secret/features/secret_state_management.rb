@@ -17,6 +17,11 @@ module Onetime::Secret::Features
       def generate_id
         Familia.generate_id
       end
+
+      def count
+        instances.count # e.g. zcard dbkey
+      end
+
     end
 
     module InstanceMethods
