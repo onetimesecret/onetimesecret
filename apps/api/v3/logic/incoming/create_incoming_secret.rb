@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/logic/base'
+require_relative '../base'
 
 module V3
   module Logic
@@ -29,7 +29,7 @@ module V3
       #     details: { memo: "...", recipient: "abc123..." }
       #   }
       #
-      class CreateIncomingSecret < Onetime::Logic::Base
+      class CreateIncomingSecret < V3::Logic::Base
         include Onetime::LoggerMethods
 
         attr_reader :memo, :secret_value, :recipient_email, :recipient_hash, :ttl, :passphrase

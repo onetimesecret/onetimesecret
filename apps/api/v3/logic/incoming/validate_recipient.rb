@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/logic/base'
+require_relative '../base'
 
 module V3
   module Logic
@@ -19,7 +19,7 @@ module V3
       # @example Response
       #   { recipient: "abc123...", valid: true }
       #
-      class ValidateRecipient < Onetime::Logic::Base
+      class ValidateRecipient < V3::Logic::Base
         attr_reader :greenlighted, :recipient_hash, :is_valid
 
         def process_params

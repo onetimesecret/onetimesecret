@@ -16,11 +16,15 @@
 
 # require_relative '../../v2/logic/base'
 
+require 'onetime/logic/base'
 require 'onetime/logic/organization_context'
 
 module V3
   module Logic
-    module Base
+    class Base < Onetime::Logic::Base
+      include V2::Logic::I18nHelpers
+      include V2::Logic::UriHelpers
+
       # Include organization context for classes that use V3::Logic::Base
       # without inheriting from V2::Logic::Base
       def self.included(base)
