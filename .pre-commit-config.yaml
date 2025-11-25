@@ -97,7 +97,9 @@ repos:
         stages: [pre-commit]
         name: Quick ESLint (staged files)
         description: Lightweight TypeScript/Vue syntax validation via lint-staged
-        entry: pnpm exec lint-staged
+        # Use login shell to ensure PATH includes package managers (pnpm, npm)
+        # installed via homebrew, corepack, volta, etc.
+        entry: bash -lc 'pnpm exec lint-staged'
         language: system
         pass_filenames: false
         always_run: true
