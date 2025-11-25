@@ -21,15 +21,15 @@ module ColonelAPI
           # Database sizes (number of keys per database)
           @db_sizes = {}
           info.each do |key, value|
-            if key.start_with?('db')
-              # Parse db0:keys=123,expires=45,avg_ttl=3600
-              parts = value.split(',').map { |p| p.split('=') }.to_h
-              @db_sizes[key] = {
-                keys: parts['keys'].to_i,
-                expires: parts['expires'].to_i,
-                avg_ttl: parts['avg_ttl'].to_i,
-              }
-            end
+            next unless key.start_with?('db')
+
+            # Parse db0:keys=123,expires=45,avg_ttl=3600
+            parts          = value.split(',').map { |p| p.split('=') }.to_h
+            @db_sizes[key] = {
+              keys: parts['keys'].to_i,
+              expires: parts['expires'].to_i,
+              avg_ttl: parts['avg_ttl'].to_i,
+            }
           end
 
           # Total keys across all databases

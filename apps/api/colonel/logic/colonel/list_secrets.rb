@@ -11,10 +11,10 @@ module ColonelAPI
         attr_reader :secrets, :total_count, :page, :per_page, :total_pages
 
         def process_params
-          @page = (params['page'] || 1).to_i
+          @page     = (params['page'] || 1).to_i
           @per_page = (params['per_page'] || 50).to_i
           @per_page = 100 if @per_page > 100 # Max 100 per page
-          @page = 1 if @page < 1
+          @page     = 1 if @page < 1
         end
 
         def raise_concerns
@@ -23,19 +23,19 @@ module ColonelAPI
 
         def process
           # Get all secret keys from Redis
-          secret_keys = Onetime::Secret.new.dbclient.keys('secret*:object')
+          secret_keys  = Onetime::Secret.new.dbclient.keys('secret*:object')
           @total_count = secret_keys.size
           @total_pages = (@total_count.to_f / @per_page).ceil
 
           # Paginate
-          start_idx = (@page - 1) * @per_page
-          end_idx = start_idx + @per_page - 1
+          start_idx      = (@page - 1) * @per_page
+          end_idx        = start_idx + @per_page - 1
           paginated_keys = secret_keys[start_idx..end_idx] || []
 
           # Load secret data
           @secrets = paginated_keys.map do |key|
             # Extract objid from key (e.g., "secret:abc123:object" -> "abc123")
-            objid = key.split(':')[1]
+            objid  = key.split(':')[1]
             secret = Onetime::Secret.load(objid)
             next unless secret&.exists?
 

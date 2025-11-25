@@ -12,7 +12,7 @@ module ColonelAPI
 
         def process_params
           @ip_address = params['ip_address']
-          @reason = params['reason']
+          @reason     = params['reason']
           @expiration = params['expiration'].to_i if params['expiration']
 
           raise_form_error('IP address is required', field: :ip_address) if ip_address.to_s.empty?
@@ -38,7 +38,7 @@ module ColonelAPI
             ip_address,
             reason: reason,
             banned_by: cust.objid,
-            expiration: expiration
+            expiration: expiration,
           )
 
           success_data

@@ -10,7 +10,6 @@ module ColonelAPI
   module Logic
     module Colonel
       class GetColonelInfo < ColonelAPI::Logic::Base
-
         using Familia::Refinements::TimeLiterals
 
         attr_reader :billing_enabled, :title, :session_count,

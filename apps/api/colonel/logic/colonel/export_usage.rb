@@ -13,7 +13,7 @@ module ColonelAPI
         def process_params
           # Parse date parameters (Unix timestamps)
           @start_date = params['start_date'] ? params['start_date'].to_i : (Familia.now.to_i - 30.days)
-          @end_date = params['end_date'] ? params['end_date'].to_i : Familia.now.to_i
+          @end_date   = params['end_date'] ? params['end_date'].to_i : Familia.now.to_i
 
           # Validate date range
           if start_date > end_date
@@ -31,9 +31,9 @@ module ColonelAPI
 
         def process
           # Get all secrets and filter by date range
-          all_secret_keys = Onetime::Secret.new.dbclient.keys('secret*:object')
+          all_secret_keys  = Onetime::Secret.new.dbclient.keys('secret*:object')
           secrets_in_range = all_secret_keys.map do |key|
-            objid = key.split(':')[1]
+            objid  = key.split(':')[1]
             secret = Onetime::Secret.load(objid)
             next unless secret&.exists?
             next unless secret.created && secret.created >= start_date && secret.created <= end_date
@@ -42,7 +42,7 @@ module ColonelAPI
           end.compact
 
           # Get all customers and filter by date range
-          all_customers = Onetime::Customer.instances.to_a
+          all_customers      = Onetime::Customer.instances.to_a
           customers_in_range = all_customers.select do |cust|
             cust.created && cust.created >= start_date && cust.created <= end_date && !cust.anonymous?
           end
@@ -62,8 +62,8 @@ module ColonelAPI
             total_secrets: secrets_in_range.size,
             total_new_users: customers_in_range.size,
             secrets_by_state: secrets_in_range.group_by(&:state).transform_values(&:count),
-            avg_secrets_per_day: secrets_in_range.size.to_f / ((end_date - start_date) / 86400.0),
-            avg_users_per_day: customers_in_range.size.to_f / ((end_date - start_date) / 86400.0),
+            avg_secrets_per_day: secrets_in_range.size.to_f / ((end_date - start_date) / 86_400.0),
+            avg_users_per_day: customers_in_range.size.to_f / ((end_date - start_date) / 86_400.0),
           }
 
           success_data
@@ -78,7 +78,7 @@ module ColonelAPI
                 start_date_human: Time.at(start_date).utc.strftime('%Y-%m-%d'),
                 end_date: end_date,
                 end_date_human: Time.at(end_date).utc.strftime('%Y-%m-%d'),
-                days: ((end_date - start_date) / 86400.0).ceil,
+                days: ((end_date - start_date) / 86_400.0).ceil,
               },
               usage_data: usage_data,
               secrets_by_day: secrets_by_day,

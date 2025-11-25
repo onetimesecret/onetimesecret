@@ -11,10 +11,10 @@ module ColonelAPI
         attr_reader :users, :total_count, :page, :per_page, :total_pages, :role_filter
 
         def process_params
-          @page = (params['page'] || 1).to_i
-          @per_page = (params['per_page'] || 50).to_i
-          @per_page = 100 if @per_page > 100 # Max 100 per page
-          @page = 1 if @page < 1
+          @page        = (params['page'] || 1).to_i
+          @per_page    = (params['per_page'] || 50).to_i
+          @per_page    = 100 if @per_page > 100 # Max 100 per page
+          @page        = 1 if @page < 1
           @role_filter = params['role'] # Optional: filter by role
         end
 
@@ -38,8 +38,8 @@ module ColonelAPI
           all_customers.sort_by! { |cust| -(cust.created || 0) }
 
           # Paginate
-          start_idx = (@page - 1) * @per_page
-          end_idx = start_idx + @per_page - 1
+          start_idx           = (@page - 1) * @per_page
+          end_idx             = start_idx + @per_page - 1
           paginated_customers = all_customers[start_idx..end_idx] || []
 
           # Format user data
@@ -47,8 +47,8 @@ module ColonelAPI
             next if cust.anonymous?
 
             # Count secrets owned by this user
-            user_secrets_count = Onetime::Secret.new.dbclient.keys("secret*:object").select do |key|
-              objid = key.split(':')[1]
+            user_secrets_count = Onetime::Secret.new.dbclient.keys('secret*:object').select do |key|
+              objid  = key.split(':')[1]
               secret = Onetime::Secret.load(objid)
               secret&.owner_id == cust.objid
             end.count
