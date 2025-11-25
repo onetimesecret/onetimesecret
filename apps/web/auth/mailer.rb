@@ -1,10 +1,19 @@
 # apps/web/auth/mailer.rb
 #
 # frozen_string_literal: true
+#
+# DEPRECATED: This file is no longer used.
+# Email delivery has been moved to the unified Onetime::Mail system.
+# See: lib/onetime/mail/
+#
+# This file is kept temporarily for reference during migration.
+# It will be removed in a future release.
+#
 
 require 'net/smtp'
 
 module Auth
+  # @deprecated Use Onetime::Mail instead
   # Email delivery using standard Mail gem for SMTP, custom implementations for SendGrid/SES
   module Mailer
     # Email delivery strategies for different providers
