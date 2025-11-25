@@ -104,6 +104,13 @@
       color: 'bg-red-500',
     },
     {
+      name: 'Usage Export',
+      description: 'Export usage data and statistics',
+      href: '/colonel/usage',
+      icon: { collection: 'heroicons', name: 'document-chart-bar' },
+      color: 'bg-cyan-500',
+    },
+    {
       name: t('web.colonel.actions.systemSettings'),
       description: t('web.colonel.actions.systemSettingsDesc'),
       href: '/colonel/settings',
