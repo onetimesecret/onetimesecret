@@ -22,9 +22,12 @@
   const configSections = [
     { key: 'interface' as ConfigSectionKey, label: 'Interface' },
     { key: 'secret_options' as ConfigSectionKey, label: 'Secret Options' },
-    { key: 'mail' as ConfigSectionKey, label: 'Email Validation' },
-    { key: 'diagnostics' as ConfigSectionKey, label: 'Diagnostics' },
     { key: 'limits' as ConfigSectionKey, label: 'Limits' },
+    { key: 'mail' as ConfigSectionKey, label: 'Email' },
+    { key: 'diagnostics' as ConfigSectionKey, label: 'Diagnostics' },
+    { key: 'authentication' as ConfigSectionKey, label: 'Authentication' },
+    { key: 'logging' as ConfigSectionKey, label: 'Logging' },
+    { key: 'billing' as ConfigSectionKey, label: 'Billing' },
   ];
 
   const store = useSystemSettingsStore();

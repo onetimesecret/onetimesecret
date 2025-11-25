@@ -3,6 +3,7 @@
 # Colonel API  endpoints
 GET    /info                              ColonelAPI::Logic::Colonel::GetColonelInfo response=json auth=sessionauth
 GET    /stats                             ColonelAPI::Logic::Colonel::GetColonelStats response=json auth=sessionauth
+GET    /config                            ColonelAPI::Logic::Colonel::GetSystemSettings response=json auth=sessionauth
 
 # Secret Management
 GET    /secrets                           ColonelAPI::Logic::Colonel::ListSecrets response=json auth=sessionauth
