@@ -16,7 +16,7 @@ OT.boot! :test, false
 @email = "tryouts+incoming+#{Familia.now.to_i}@onetimesecret.com"
 @cust = Onetime::Customer.create!(email: @email)
 @sess = Onetime::Session.new ipaddress: '127.0.0.1'
-@sess.custid = @cust.custid
+@sess['external_id'] = @cust.extid
 @sess.save
 
 # Helper to create a mock request context

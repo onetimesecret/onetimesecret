@@ -40,6 +40,7 @@ module V3
           # Validate that the hash exists in our lookup table
           @is_valid = !OT.lookup_incoming_recipient(recipient_hash).nil?
           @greenlighted = true
+          success_data
         end
 
         def success_data

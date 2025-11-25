@@ -51,17 +51,37 @@ export type IncomingSecretPayload = z.infer<typeof incomingSecretPayloadSchema>;
 
 /**
  * Schema for metadata object in the response
+ * Note: Many fields can be null from the API, use .nullish() to accept both null and undefined
  */
 const metadataRecordSchema = z.object({
   identifier: z.string(),
   key: z.string(),
-  custid: z.string().optional(),
-  owner_id: z.string().optional(),
+  custid: z.string().nullish(),
+  owner_id: z.string().nullish(),
   state: z.string(),
-  secret_shortid: z.string().optional(),
-  shortid: z.string().optional(),
-  memo: z.string().optional(),
-  recipients: z.string().optional(),
+  secret_shortid: z.string().nullish(),
+  shortid: z.string().nullish(),
+  memo: z.string().nullish(),
+  recipients: z.string().nullish(),
+  // Additional fields from actual API response
+  secret_ttl: z.number().nullish(),
+  metadata_ttl: z.number().nullish(),
+  lifespan: z.number().nullish(),
+  share_domain: z.string().nullish(),
+  created: z.number().nullish(),
+  updated: z.number().nullish(),
+  shared: z.number().nullish(),
+  received: z.number().nullish(),
+  burned: z.number().nullish(),
+  viewed: z.number().nullish(),
+  show_recipients: z.boolean().nullish(),
+  is_viewed: z.boolean().nullish(),
+  is_received: z.boolean().nullish(),
+  is_burned: z.boolean().nullish(),
+  is_expired: z.boolean().nullish(),
+  is_orphaned: z.boolean().nullish(),
+  is_destroyed: z.boolean().nullish(),
+  has_passphrase: z.boolean().nullish(),
 });
 
 /**
@@ -71,7 +91,14 @@ const secretRecordSchema = z.object({
   identifier: z.string(),
   key: z.string(),
   state: z.string(),
-  shortid: z.string().optional(),
+  shortid: z.string().nullish(),
+  // Additional fields from actual API response
+  secret_ttl: z.number().nullish(),
+  lifespan: z.number().nullish(),
+  has_passphrase: z.boolean().nullish(),
+  verification: z.boolean().nullish(),
+  created: z.number().nullish(),
+  updated: z.number().nullish(),
 });
 
 /**
@@ -80,9 +107,9 @@ const secretRecordSchema = z.object({
  */
 export const incomingSecretResponseSchema = z.object({
   success: z.boolean(),
-  message: z.string().optional(),
-  shrimp: z.string().optional(),
-  custid: z.string().optional(),
+  message: z.string().nullish(),
+  shrimp: z.string().nullish(),
+  custid: z.string().nullish(),
   record: z.object({
     metadata: metadataRecordSchema,
     secret: secretRecordSchema,
@@ -92,7 +119,7 @@ export const incomingSecretResponseSchema = z.object({
       memo: z.string(),
       recipient: z.string(),
     })
-    .optional(),
+    .nullish(),
 });
 
 export type IncomingSecretResponse = z.infer<typeof incomingSecretResponseSchema>;

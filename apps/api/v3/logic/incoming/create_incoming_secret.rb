@@ -55,7 +55,7 @@ module V3
           # Look up actual email from hash
           @recipient_email = OT.lookup_incoming_recipient(@recipient_hash)
 
-          OT.ld "[IncomingSecret] Recipient hash: #{@recipient_hash} -> #{@recipient_email ? OT::Utils.obscure_email(@recipient_email) : 'not found'}"
+          Onetime.secret_logger.debug "[IncomingSecret] Recipient hash: #{@recipient_hash} -> #{@recipient_email ? OT::Utils.obscure_email(@recipient_email) : 'not found'}"
 
           # Set TTL from config or use default
           @ttl = incoming_config['default_ttl'] || 604_800 # 7 days
@@ -77,7 +77,7 @@ module V3
 
           # Validate recipient hash exists and maps to valid email
           if @recipient_email.nil?
-            OT.warn "[IncomingSecret] Invalid recipient hash attempted: #{@recipient_hash}"
+            OT.lw "[IncomingSecret] Invalid recipient hash attempted: #{@recipient_hash}"
             raise_form_error 'Invalid recipient'
           end
 
@@ -98,6 +98,8 @@ module V3
           send_recipient_notification
 
           @greenlighted = metadata.valid? && secret.valid?
+
+          success_data
         end
 
         def success_data
@@ -168,10 +170,10 @@ module V3
           #
           # For now, we log the event but don't send the email.
 
-          OT.info "[IncomingSecret] Secret created for #{OT::Utils.obscure_email(recipient_email)} (metadata: #{metadata.shortid})"
-          OT.warn "[IncomingSecret] Email notification not sent - IncomingSecretNotification mail class not implemented"
+          Onetime.secret_logger.info "[IncomingSecret] Secret created for #{OT::Utils.obscure_email(recipient_email)} (metadata: #{metadata.shortid})"
+          Onetime.secret_logger.warn "[IncomingSecret] Email notification not sent - IncomingSecretNotification mail class not implemented"
         rescue StandardError => e
-          OT.le "[IncomingSecret] Failed to send email notification: #{e.message}"
+          Onetime.secret_logger.error "[IncomingSecret] Failed to send email notification: #{e.message}"
           # Don't raise - email failure shouldn't prevent secret creation
         end
       end

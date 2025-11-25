@@ -53,9 +53,11 @@ module V3
             recipients: OT.incoming_public_recipients # Returns hashed version
           }
 
-          OT.ld "[IncomingConfig] Returning #{@config_data[:recipients].size} recipients (hashed)"
+          Onetime.secret_logger.debug "[IncomingConfig] Returning #{@config_data[:recipients].size} recipients (hashed)"
 
           @greenlighted = true
+
+          success_data
         end
 
         def success_data

@@ -15,8 +15,8 @@ require 'onetime/models'
 
 OT::Config.path = File.join(project_root, 'spec', 'config.test.yaml')
 
-# When DEBUG_DATABASE=1, the database commands are logged to stderr
-Onetime.setup_database_logging
+# NOTE: Database logging is now handled by the SetupDatabaseLogging initializer
+# which runs automatically during OT.boot!. Set DEBUG_DATABASE=1 to enable.
 
 def generate_random_email
   # Generate a random username
