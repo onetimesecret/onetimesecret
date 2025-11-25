@@ -54,7 +54,7 @@ module ColonelAPI
 
         def process_feedback_for_period(period, end_time)
           Onetime::Feedback.recent(period, end_time).collect do |k, v|
-            { msg: k, stamp: natural_time(v) }
+            { msg: k, stamp: v }
           end.reverse
         end
         private :process_feedback_for_period

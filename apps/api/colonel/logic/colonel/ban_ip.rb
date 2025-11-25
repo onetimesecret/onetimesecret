@@ -52,7 +52,6 @@ module ColonelAPI
               reason: banned_ip.reason,
               banned_by: banned_ip.banned_by,
               banned_at: banned_ip.banned_at,
-              banned_at_human: natural_time(banned_ip.banned_at),
             },
             details: {
               message: 'IP address banned successfully',
