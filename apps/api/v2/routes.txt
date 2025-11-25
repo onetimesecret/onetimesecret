@@ -17,9 +17,9 @@ GET    /private/:identifier                       V2::Logic::Secrets::ShowMetada
 GET    /secret/:identifier                        V2::Logic::Secrets::ShowSecret response=json auth=noauth
 GET    /secret/:identifier/status                 V2::Logic::Secrets::ShowSecretStatus response=json auth=noauth
 POST   /secret/status                             V2::Logic::Secrets::ListSecretStatus response=json auth=noauth
-POST   /secret/:identifier/reveal                 V2::Logic::Secrets::RevealSecret response=json auth=noauth csrf=exempt
-POST   /secret/generate                           V2::Logic::Secrets::GenerateSecret response=json auth=noauth csrf=exempt
-POST   /secret/conceal                            V2::Logic::Secrets::ConcealSecret response=json auth=noauth csrf=exempt
+POST   /secret/:identifier/reveal                 V2::Logic::Secrets::RevealSecret response=json auth=noauth
+POST   /secret/generate                           V2::Logic::Secrets::GenerateSecret response=json auth=noauth
+POST   /secret/conceal                            V2::Logic::Secrets::ConcealSecret response=json auth=noauth
 
 # OPTIONS preflight for CORS (public)
 OPTIONS /secret/generate                          V2::Logic::Secrets::GenerateSecret response=json
@@ -50,13 +50,6 @@ GET    /version                                   V2::Logic::Meta.system_version
 # GET  /login        App#redirect response=redirect
 # GET  /data         App#data response=auto
 #
-# CSRF PROTECTION
-# ---------------
-# csrf=exempt       - Skip CSRF protection (useful for APIs)
-#
-# Examples:
-# POST /api/webhook  App#webhook csrf=exempt
-# POST /settings     App#settings  # CSRF protected by default
 #
 # LOGIC CLASSES (NEW!)
 # --------------------
@@ -66,14 +59,14 @@ GET    /version                                   V2::Logic::Meta.system_version
 # Examples:
 # GET  /logic/simple      SimpleLogic
 # GET  /admin/panel       Admin::Panel
-# POST /data/processor    DataProcessor response=json csrf=exempt
+# POST /data/processor    DataProcessor response=json
 #
 # MULTIPLE PARAMETERS
 # -------------------
 # Combine any parameters with spaces:
 #
 # GET  /api/admin    App#admin auth=role:admin response=json
-# POST /api/secure   App#secure auth=noauth response=json csrf=exempt
+# POST /api/secure   App#secure auth=noauth response=json
 #
 # NAMESPACED CLASSES
 # ------------------
@@ -101,8 +94,8 @@ GET    /version                                   V2::Logic::Meta.system_version
 #
 # COMMON PATTERNS
 # ---------------
-# # JSON API with CSRF exemption
-# POST /api/data  App#data response=json csrf=exempt
+# # JSON API with CSRF exemption for HTTP basic authentication
+# POST /api/data  App#data response=json auth=basicauth csrf=exempt
 #
 # # Admin view with authentication
 # GET /admin  App#admin auth=role:admin response=view
@@ -111,7 +104,7 @@ GET    /version                                   V2::Logic::Meta.system_version
 # POST /processor  DataProcessor response=json
 #
 # # Complex route with all features
-# PUT /api/admin  App#update auth=role:admin response=json csrf=exempt
+# PUT /api/admin  App#update auth=role:admin response=json
 #
 # ROUTE TARGETS
 # -------------

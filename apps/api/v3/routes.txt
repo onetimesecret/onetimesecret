@@ -19,9 +19,9 @@ GET    /private/:identifier                       V3::Logic::Secrets::ShowMetada
 GET    /secret/:identifier                        V3::Logic::Secrets::ShowSecret response=json auth=noauth
 GET    /secret/:identifier/status                 V3::Logic::Secrets::ShowSecretStatus response=json auth=noauth
 POST   /secret/status                             V3::Logic::Secrets::ListSecretStatus response=json auth=noauth
-POST   /secret/:identifier/reveal                 V3::Logic::Secrets::RevealSecret response=json auth=noauth csrf=exempt
-POST   /secret/generate                           V3::Logic::Secrets::GenerateSecret response=json auth=noauth csrf=exempt
-POST   /secret/conceal                            V3::Logic::Secrets::ConcealSecret response=json auth=noauth csrf=exempt
+POST   /secret/:identifier/reveal                 V3::Logic::Secrets::RevealSecret response=json auth=noauth
+POST   /secret/generate                           V3::Logic::Secrets::GenerateSecret response=json auth=noauth
+POST   /secret/conceal                            V3::Logic::Secrets::ConcealSecret response=json auth=noauth
 
 # OPTIONS preflight for CORS (public)
 OPTIONS /secret/generate                          V3::Logic::Secrets::GenerateSecret response=json
@@ -35,8 +35,8 @@ POST   /feedback                                  V3::Logic::ReceiveFeedback res
 
 # Incoming secrets endpoints (anonymous secret submission to configured recipients)
 GET    /incoming/config                           V3::Logic::Incoming::GetConfig response=json auth=noauth
-POST   /incoming/secret                           V3::Logic::Incoming::CreateIncomingSecret response=json auth=noauth csrf=exempt
-POST   /incoming/validate                         V3::Logic::Incoming::ValidateRecipient response=json auth=noauth csrf=exempt
+POST   /incoming/secret                           V3::Logic::Incoming::CreateIncomingSecret response=json auth=noauth
+POST   /incoming/validate                         V3::Logic::Incoming::ValidateRecipient response=json auth=noauth
 
 # OTTO ADVANCED ROUTES SYNTAX - QUICK REFERENCE
 # ==============================================
@@ -58,13 +58,6 @@ POST   /incoming/validate                         V3::Logic::Incoming::ValidateR
 # GET  /login        App#redirect response=redirect
 # GET  /data         App#data response=auto
 #
-# CSRF PROTECTION
-# ---------------
-# csrf=exempt       - Skip CSRF protection (useful for APIs)
-#
-# Examples:
-# POST /api/webhook  App#webhook csrf=exempt
-# POST /settings     App#settings  # CSRF protected by default
 #
 # LOGIC CLASSES (NEW!)
 # --------------------
@@ -74,7 +67,7 @@ POST   /incoming/validate                         V3::Logic::Incoming::ValidateR
 # Examples:
 # GET  /logic/simple      SimpleLogic
 # GET  /admin/panel       Admin::Panel
-# POST /data/processor    DataProcessor response=json csrf=exempt
+# POST /data/processor    DataProcessor response=json
 #
 # MULTIPLE PARAMETERS
 # -------------------
