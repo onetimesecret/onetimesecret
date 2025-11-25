@@ -108,11 +108,11 @@ const emailerSchema = z.object({
   from_name: z.string().nullable().optional(),
   reply_to: z.string().nullable().optional(),
   host: z.string().nullable().optional(),
-  port: numberOrString.optional(),
+  port: numberOrString.nullable().optional(),
   user: z.string().nullable().optional(),
   pass: z.string().nullable().optional(), // Should be masked by backend
   auth: z.string().nullable().optional(),
-  tls: booleanOrString.optional(),
+  tls: z.union([z.boolean(), z.string()]).nullable().optional(),
 });
 
 // Mail schema (TrueMail validation)
@@ -139,27 +139,40 @@ const mailSchema = z.object({
 
 // Diagnostics schema
 const diagnosticsSchema = z.object({
-  enabled: booleanOrString.optional(),
+  enabled: booleanOrString.nullable().optional(),
+  redis_uri: z.string().nullable().optional(),
   sentry: z
     .object({
+      defaults: z
+        .object({
+          dsn: z.string().nullable().optional(),
+          sampleRate: z.union([z.string(), z.number()]).nullable().optional(),
+          maxBreadcrumbs: z.union([z.string(), z.number()]).nullable().optional(),
+          logErrors: booleanOrString.nullable().optional(),
+        })
+        .nullable()
+        .optional(),
       backend: z
         .object({
-          dsn: z.string().optional(),
-          sampleRate: z.union([z.string(), z.number()]).optional(),
-          maxBreadcrumbs: z.union([z.string(), z.number()]).optional(),
-          logErrors: booleanOrString.optional(),
+          dsn: z.string().nullable().optional(),
+          sampleRate: z.union([z.string(), z.number()]).nullable().optional(),
+          maxBreadcrumbs: z.union([z.string(), z.number()]).nullable().optional(),
+          logErrors: booleanOrString.nullable().optional(),
         })
+        .nullable()
         .optional(),
       frontend: z
         .object({
-          dsn: z.string().optional(),
-          sampleRate: z.union([z.string(), z.number()]).optional(),
-          maxBreadcrumbs: z.union([z.string(), z.number()]).optional(),
-          logErrors: booleanOrString.optional(),
-          trackComponents: booleanOrString.optional(),
+          dsn: z.string().nullable().optional(),
+          sampleRate: z.union([z.string(), z.number()]).nullable().optional(),
+          maxBreadcrumbs: z.union([z.string(), z.number()]).nullable().optional(),
+          logErrors: booleanOrString.nullable().optional(),
+          trackComponents: booleanOrString.nullable().optional(),
         })
+        .nullable()
         .optional(),
     })
+    .nullable()
     .optional(),
 });
 
