@@ -55,6 +55,56 @@ const routes: Array<RouteRecordRaw> = [
     },
     props: true,
   },
+  {
+    path: '/colonel/secrets',
+    name: 'ColonelSecrets',
+    component: () => import('@/views/colonel/ColonelSecrets.vue'),
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_secrets',
+    },
+    props: true,
+  },
+  {
+    path: '/colonel/system/database',
+    name: 'ColonelSystemDatabase',
+    component: () => import('@/views/colonel/ColonelSystemDatabase.vue'),
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_database',
+    },
+    props: true,
+  },
+  {
+    path: '/colonel/system/redis',
+    name: 'ColonelSystemRedis',
+    component: () => import('@/views/colonel/ColonelSystemRedis.vue'),
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_redis',
+    },
+    props: true,
+  },
+  {
+    path: '/colonel/banned-ips',
+    name: 'ColonelBannedIPs',
+    component: () => import('@/views/colonel/ColonelBannedIPs.vue'),
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_banned_ips',
+    },
+    props: true,
+  },
+  {
+    path: '/colonel/usage',
+    name: 'ColonelUsageExport',
+    component: () => import('@/views/colonel/ColonelUsageExport.vue'),
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_usage',
+    },
+    props: true,
+  },
 ];
 
 export default routes;

@@ -8,6 +8,11 @@ import {
   colonelInfoDetailsSchema,
   colonelStatsDetailsSchema,
   colonelUsersDetailsSchema,
+  colonelSecretsDetailsSchema,
+  databaseMetricsDetailsSchema,
+  redisMetricsDetailsSchema,
+  bannedIPsDetailsSchema,
+  usageExportDetailsSchema,
 } from '@/schemas/api/account/endpoints/colonel';
 import {
   metadataRecordsDetailsSchema,
@@ -54,6 +59,11 @@ export const responseSchemas = {
   colonelInfo: createApiResponseSchema(z.object({}), colonelInfoDetailsSchema),
   colonelStats: createApiResponseSchema(z.object({}), colonelStatsDetailsSchema),
   colonelUsers: createApiResponseSchema(z.object({}), colonelUsersDetailsSchema),
+  colonelSecrets: createApiResponseSchema(z.object({}), colonelSecretsDetailsSchema),
+  databaseMetrics: createApiResponseSchema(z.object({}), databaseMetricsDetailsSchema),
+  redisMetrics: createApiResponseSchema(z.object({}), redisMetricsDetailsSchema),
+  bannedIPs: createApiResponseSchema(z.object({}), bannedIPsDetailsSchema),
+  usageExport: createApiResponseSchema(z.object({}), usageExportDetailsSchema),
   systemSettings: createApiResponseSchema(z.object({}), systemSettingsDetailsSchema),
   concealData: createApiResponseSchema(concealDataSchema),
   customDomain: createApiResponseSchema(customDomainSchema, customDomainDetailsSchema),
@@ -96,6 +106,11 @@ export type CheckAuthResponse = ResponseTypes['checkAuth'];
 export type ColonelInfoResponse = ResponseTypes['colonelInfo'];
 export type ColonelStatsResponse = ResponseTypes['colonelStats'];
 export type ColonelUsersResponse = ResponseTypes['colonelUsers'];
+export type ColonelSecretsResponse = ResponseTypes['colonelSecrets'];
+export type DatabaseMetricsResponse = ResponseTypes['databaseMetrics'];
+export type RedisMetricsResponse = ResponseTypes['redisMetrics'];
+export type BannedIPsResponse = ResponseTypes['bannedIPs'];
+export type UsageExportResponse = ResponseTypes['usageExport'];
 export type SystemSettingsResponse = ResponseTypes['systemSettings'];
 export type ConcealDataResponse = ResponseTypes['concealData'];
 export type CsrfResponse = ResponseTypes['csrf'];

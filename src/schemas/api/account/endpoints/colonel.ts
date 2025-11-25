@@ -199,6 +199,121 @@ export const colonelUsersDetailsSchema = z.object({
 });
 
 /**
+ * Secret record from /api/colonel/secrets endpoint
+ */
+export const colonelSecretSchema = z.object({
+  secret_id: z.string(),
+  shortid: z.string(),
+  owner_id: z.string().nullable(),
+  state: z.string(),
+  created: transforms.fromString.number,
+  created_human: z.string(),
+  expiration: transforms.fromString.number.nullable(),
+  expiration_human: z.string().nullable(),
+  lifespan: transforms.fromString.number.nullable(),
+  metadata_id: z.string().nullable(),
+  age: z.number(),
+  has_ciphertext: z.boolean(),
+});
+
+/**
+ * Secrets list response details
+ */
+export const colonelSecretsDetailsSchema = z.object({
+  secrets: z.array(colonelSecretSchema),
+  pagination: paginationSchema,
+});
+
+/**
+ * Database metrics response details
+ */
+export const databaseMetricsDetailsSchema = z.object({
+  redis_info: z.object({
+    redis_version: z.string(),
+    redis_mode: z.string(),
+    os: z.string(),
+    uptime_in_seconds: z.number(),
+    uptime_in_days: z.number(),
+    connected_clients: z.number(),
+    total_commands_processed: z.number(),
+    instantaneous_ops_per_sec: z.number(),
+  }),
+  database_sizes: z.record(
+    z.object({
+      keys: z.number(),
+      expires: z.number(),
+      avg_ttl: z.number(),
+    })
+  ),
+  total_keys: z.number(),
+  memory_stats: z.object({
+    used_memory: z.number(),
+    used_memory_human: z.string(),
+    used_memory_rss: z.number(),
+    used_memory_rss_human: z.string(),
+    used_memory_peak: z.number(),
+    used_memory_peak_human: z.string(),
+    mem_fragmentation_ratio: z.number(),
+  }),
+  model_counts: z.object({
+    customers: z.number(),
+    secrets: z.number(),
+    metadata: z.number(),
+  }),
+});
+
+/**
+ * Redis metrics response details (full Redis INFO)
+ */
+export const redisMetricsDetailsSchema = z.object({
+  redis_info: z.record(z.string()),
+  timestamp: z.number(),
+  timestamp_human: z.string(),
+});
+
+/**
+ * Banned IP record
+ */
+export const bannedIPSchema = z.object({
+  id: z.string(),
+  ip_address: z.string(),
+  reason: z.string().nullable(),
+  banned_by: z.string().nullable(),
+  banned_at: transforms.fromString.number,
+  banned_at_human: z.string(),
+});
+
+/**
+ * Banned IPs list response details
+ */
+export const bannedIPsDetailsSchema = z.object({
+  banned_ips: z.array(bannedIPSchema),
+  total_count: z.number(),
+});
+
+/**
+ * Usage export response details
+ */
+export const usageExportDetailsSchema = z.object({
+  date_range: z.object({
+    start_date: z.number(),
+    start_date_human: z.string(),
+    end_date: z.number(),
+    end_date_human: z.string(),
+    days: z.number(),
+  }),
+  usage_data: z.object({
+    total_secrets: z.number(),
+    total_new_users: z.number(),
+    secrets_by_state: z.record(z.number()),
+    avg_secrets_per_day: z.number(),
+    avg_users_per_day: z.number(),
+  }),
+  secrets_by_day: z.record(z.number()),
+  users_by_day: z.record(z.number()),
+});
+
+/**
  // Raw API data structures before transformation
  // These represent the API shape that will be transformed by input schemas
  */
@@ -248,3 +363,10 @@ export type RecentCustomer = z.infer<typeof recentCustomerSchema>;
 export type ColonelUser = z.infer<typeof colonelUserSchema>;
 export type ColonelUsersDetails = z.infer<typeof colonelUsersDetailsSchema>;
 export type Pagination = z.infer<typeof paginationSchema>;
+export type ColonelSecret = z.infer<typeof colonelSecretSchema>;
+export type ColonelSecretsDetails = z.infer<typeof colonelSecretsDetailsSchema>;
+export type DatabaseMetricsDetails = z.infer<typeof databaseMetricsDetailsSchema>;
+export type RedisMetricsDetails = z.infer<typeof redisMetricsDetailsSchema>;
+export type BannedIP = z.infer<typeof bannedIPSchema>;
+export type BannedIPsDetails = z.infer<typeof bannedIPsDetailsSchema>;
+export type UsageExportDetails = z.infer<typeof usageExportDetailsSchema>;
