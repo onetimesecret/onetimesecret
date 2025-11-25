@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'ipaddr'
 require_relative '../base'
 
 module ColonelAPI
@@ -17,9 +18,11 @@ module ColonelAPI
 
           raise_form_error('IP address is required', field: :ip_address) if ip_address.to_s.empty?
 
-          # Validate IP address format
-          unless ip_address.match?(/\A(?:\d{1,3}\.){3}\d{1,3}\z/) || ip_address.match?(/:/)
-            raise_form_error('Invalid IP address format', field: :ip_address)
+          # Validate IP address or CIDR format
+          begin
+            IPAddr.new(ip_address)
+          rescue IPAddr::InvalidAddressError => e
+            raise_form_error('Invalid IP address or CIDR format', field: :ip_address)
           end
         end
 
