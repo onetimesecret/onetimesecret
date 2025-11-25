@@ -10,6 +10,7 @@ require 'onetime/models'
 require_relative '../base_json_api'
 require_relative 'logic'
 require_relative 'auth_strategies'
+require_relative 'initializers/setup_incoming_recipients'
 
 module V3
   # V3 API Application

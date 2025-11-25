@@ -33,6 +33,11 @@ GET    /status                                    V3::Logic::Meta.system_status 
 GET    /version                                   V3::Logic::Meta.system_version response=json
 POST   /feedback                                  V3::Logic::ReceiveFeedback response=json auth=noauth
 
+# Incoming secrets endpoints (anonymous secret submission to configured recipients)
+GET    /incoming/config                           V3::Logic::Incoming::GetConfig response=json auth=noauth
+POST   /incoming/secret                           V3::Logic::Incoming::CreateIncomingSecret response=json auth=noauth csrf=exempt
+POST   /incoming/validate                         V3::Logic::Incoming::ValidateRecipient response=json auth=noauth csrf=exempt
+
 # OTTO ADVANCED ROUTES SYNTAX - QUICK REFERENCE
 # ==============================================
 #
