@@ -350,12 +350,12 @@ GEM
     simplecov-html (0.13.2)
     simplecov_json_formatter (0.1.4)
     simpleidn (0.2.3)
-    sqlite3 (1.7.3)
+    sqlite3 (2.8.0)
       mini_portile2 (~> 2.8.0)
-    sqlite3 (1.7.3-aarch64-linux)
-    sqlite3 (1.7.3-arm64-darwin)
-    sqlite3 (1.7.3-x86_64-darwin)
-    sqlite3 (1.7.3-x86_64-linux)
+    sqlite3 (2.8.0-aarch64-linux-gnu)
+    sqlite3 (2.8.0-arm64-darwin)
+    sqlite3 (2.8.0-x86_64-darwin)
+    sqlite3 (2.8.0-x86_64-linux-gnu)
     stackprof (0.2.27)
     stringio (3.1.8)
     stripe (17.2.0)
@@ -470,7 +470,7 @@ DEPENDENCIES
   sentry-ruby
   sequel (~> 5.0)
   simplecov
-  sqlite3 (~> 1.7)
+  sqlite3 (~> 2.0)
   stackprof
   stringio (~> 3.1.6)
   stripe
@@ -486,7 +486,7 @@ DEPENDENCIES
   webmock (~> 3.0)
 
 RUBY VERSION
-   ruby 3.3.6p108
+   ruby 3.4.7p58
 
 BUNDLED WITH
    2.7.2
