@@ -17,22 +17,66 @@
   const newIP = ref('');
   const newReason = ref('');
   const showBanForm = ref(false);
+  const errorMessage = ref('');
+  const successMessage = ref('');
+
+  const clearMessages = () => {
+    errorMessage.value = '';
+    successMessage.value = '';
+  };
 
   const handleBan = async () => {
     if (!newIP.value) return;
+
+    clearMessages();
+
     try {
       await banIP(newIP.value, newReason.value);
+      successMessage.value = `IP address ${newIP.value} has been banned`;
       newIP.value = '';
       newReason.value = '';
       showBanForm.value = false;
-    } catch (error) {
+
+      // Auto-clear success message after 5 seconds
+      setTimeout(() => {
+        successMessage.value = '';
+      }, 5000);
+    } catch (error: any) {
+      // Extract error message from API response
+      if (error.response?.data?.message) {
+        errorMessage.value = error.response.data.message;
+      } else if (error.message) {
+        errorMessage.value = error.message;
+      } else {
+        errorMessage.value = 'Failed to ban IP address';
+      }
       console.error('Failed to ban IP:', error);
     }
   };
 
   const handleUnban = async (ipAddress: string) => {
-    if (confirm(`Unban ${ipAddress}?`)) {
+    if (!confirm(`Unban ${ipAddress}?`)) return;
+
+    clearMessages();
+
+    try {
       await unbanIP(ipAddress);
+      successMessage.value = `IP address ${ipAddress} has been unbanned`;
+
+      // Auto-clear success message after 5 seconds
+      setTimeout(() => {
+        successMessage.value = '';
+      }, 5000);
+    } catch (error: any) {
+      // Extract error message from API response
+      if (error.response?.data?.message) {
+        errorMessage.value = error.response.data.message;
+      } else if (error.message) {
+        errorMessage.value = error.message;
+      } else {
+        errorMessage.value = 'Failed to unban IP address';
+      }
+      console.error('Failed to unban IP:', error);
     }
   };
 
@@ -60,6 +104,62 @@
           class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
           {{ showBanForm ? 'Cancel' : 'Ban IP' }}
         </button>
+      </div>
+
+      <!-- Error Message -->
+      <div
+        v-if="errorMessage"
+        class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-700 dark:bg-red-900/20">
+        <div class="flex items-start justify-between">
+          <div class="flex items-start">
+            <OIcon
+              collection="heroicons"
+              name="exclamation-triangle"
+              class="mr-3 mt-0.5 size-5 text-red-500 dark:text-red-400" />
+            <div>
+              <p class="text-sm font-medium text-red-800 dark:text-red-200">Error</p>
+              <p class="mt-1 text-sm text-red-700 dark:text-red-300">
+                {{ errorMessage }}
+              </p>
+            </div>
+          </div>
+          <button
+            @click="errorMessage = ''"
+            class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200">
+            <OIcon
+              collection="heroicons"
+              name="x-mark"
+              class="size-5" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Success Message -->
+      <div
+        v-if="successMessage"
+        class="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-700 dark:bg-green-900/20">
+        <div class="flex items-start justify-between">
+          <div class="flex items-start">
+            <OIcon
+              collection="heroicons"
+              name="check-circle"
+              class="mr-3 mt-0.5 size-5 text-green-500 dark:text-green-400" />
+            <div>
+              <p class="text-sm font-medium text-green-800 dark:text-green-200">Success</p>
+              <p class="mt-1 text-sm text-green-700 dark:text-green-300">
+                {{ successMessage }}
+              </p>
+            </div>
+          </div>
+          <button
+            @click="successMessage = ''"
+            class="text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-200">
+            <OIcon
+              collection="heroicons"
+              name="x-mark"
+              class="size-5" />
+          </button>
+        </div>
       </div>
 
       <!-- Current IP Address Info -->
