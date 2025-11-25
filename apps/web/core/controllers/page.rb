@@ -52,6 +52,18 @@ module Core
         res.headers['content-type'] = 'text/plain'
         res.body                    = view.render
       end
+
+      def favicon
+        logic = Core::Logic::Page::GetFavicon.new(strategy_result, req.params, locale)
+        logic.raise_concerns
+        logic.process
+
+        res['content-type']   = logic.content_type
+        res['content-length'] = logic.content_length
+        res['cache-control']  = 'public, max-age=86400' # Cache for 1 day
+        res.write(logic.icon_data)
+        res.finish
+      end
     end
   end
 end
