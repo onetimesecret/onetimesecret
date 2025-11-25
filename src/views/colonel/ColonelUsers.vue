@@ -42,7 +42,9 @@
       </div>
 
       <!-- Users table -->
-      <div class="overflow-x-auto">
+      <div
+        v-if="users.length > 0"
+        class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
@@ -122,7 +124,7 @@
 
       <!-- Empty state -->
       <div
-        v-if="users.length === 0"
+        v-else
         class="text-center py-12 text-gray-500 dark:text-gray-400">
         No users found
       </div>

@@ -24,6 +24,7 @@
       case 'resolving':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       default:
+        console.warn(`Unknown domain state: ${state}`);
         return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }
   };

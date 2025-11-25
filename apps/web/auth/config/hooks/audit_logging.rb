@@ -99,8 +99,7 @@ module Auth::Config::Hooks
       # ========================================================================
 
       auth.audit_log_message_for :login do
-        mfa_enabled          = auth.respond_to?(:otp_exists?) && auth.otp_exists?
-        mfa_required = mfa_enabled
+        mfa_required = auth.respond_to?(:otp_exists?) && auth.otp_exists?
         if mfa_required
           'Login successful - MFA required'
         else

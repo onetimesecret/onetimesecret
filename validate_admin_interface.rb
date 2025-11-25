@@ -197,13 +197,13 @@ begin
     'REMOTE_ADDR' => '10.0.0.50'
   }
 
-  status, headers, body = middleware.call(env)
+  status, = middleware.call(env)
   raise "Should return 403" unless status == 403
   puts "✅ Middleware blocks banned IP (403)"
 
   # Test with allowed IP
   env['REMOTE_ADDR'] = '127.0.0.1'
-  status, headers, body = middleware.call(env)
+  status, = middleware.call(env)
   raise "Should return 200" unless status == 200
   puts "✅ Middleware allows non-banned IP (200)"
 
