@@ -204,35 +204,28 @@ RUN set -eux && \
 
 WORKDIR ${APP_DIR}
 
-# # Create non-root user for security
-# RUN set -eux && \
-#     groupadd -g 1001 appuser && \
-#     useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /bin/bash appuser && \
-#     chown -R appuser:appuser ${APP_DIR}
-
-# Now we can switch to the non-root user for the rest of the commands
-# WARNING: Changing the user after COPY operations adds a large, new layer to the image.
-#
-# USER appuser
+# Create non-root user for security
+RUN groupadd -g 1001 appuser && \
+    useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
 
 # Copy only runtime essentials from build stages
 COPY --from=dependencies /usr/local/bin/yq /usr/local/bin/yq
 COPY --from=dependencies /usr/local/bundle /usr/local/bundle
 
-# Copy application files
-COPY --from=build ${APP_DIR}/public ./public
-COPY --from=build ${APP_DIR}/src ./src
-COPY --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
+# Copy application files (using --chown to avoid extra layer)
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/public ./public
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/src ./src
+COPY --chown=appuser:appuser --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
 
-# Copy runtime files (source bin first, then binstubs to preserve generated executables)
-COPY bin ./bin
-COPY --from=dependencies ${APP_DIR}/bin ./bin
-COPY apps ./apps
-COPY etc/ ./etc/
-COPY lib ./lib
-COPY scripts/entrypoint.sh ./bin/
-COPY scripts/update-version.sh ./bin/
-COPY package.json config.ru Gemfile Gemfile.lock ./
+# Copy runtime files
+COPY --chown=appuser:appuser bin ./bin
+COPY --chown=appuser:appuser apps ./apps
+COPY --chown=appuser:appuser etc/ ./etc/
+COPY --chown=appuser:appuser lib ./lib
+COPY --chown=appuser:appuser scripts/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser scripts/update-version.sh ./bin/
+COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
+COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
 
 # Set production environment
 ENV RACK_ENV=production \
@@ -263,6 +256,9 @@ EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://127.0.0.1:3000/api/v2/status || exit 1
+
+# Run as non-root user
+USER appuser
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:
