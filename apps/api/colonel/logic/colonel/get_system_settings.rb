@@ -28,8 +28,11 @@ module ColonelAPI
           # Authentication config (under site.authentication)
           @config_sections[:authentication] = site_config['authentication'] || {}
 
-          # Mail/emailer config (top-level 'emailer' key)
-          @config_sections[:mail] = Onetime.conf['emailer'] || {}
+          # Emailer config (SMTP settings - top-level 'emailer' key)
+          @config_sections[:emailer] = Onetime.conf['emailer'] || {}
+
+          # Mail config (TrueMail validation - top-level 'mail' key)
+          @config_sections[:mail] = Onetime.conf['mail'] || {}
 
           # Diagnostics (top-level 'diagnostics' key)
           # Include full diagnostics config, masking sensitive data

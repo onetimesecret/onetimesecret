@@ -73,9 +73,49 @@ const interfaceSchema = z.object({
 const secretOptionsSchema = z.object({
   default_ttl: numberOrString.optional(),
   ttl_options: z.union([z.string(), z.array(z.number())]).optional(),
+  passphrase: z
+    .object({
+      required: booleanOrString.optional(),
+      minimum_length: numberOrString.optional(),
+      maximum_length: numberOrString.optional(),
+      enforce_complexity: booleanOrString.optional(),
+    })
+    .nullable()
+    .optional(),
+  password_generation: z
+    .object({
+      default_length: numberOrString.optional(),
+      character_sets: z
+        .object({
+          uppercase: booleanOrString.optional(),
+          lowercase: booleanOrString.optional(),
+          numbers: booleanOrString.optional(),
+          symbols: booleanOrString.optional(),
+          exclude_ambiguous: booleanOrString.optional(),
+        })
+        .nullable()
+        .optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
-// Mail schema
+// Emailer schema (SMTP settings)
+const emailerSchema = z.object({
+  mode: z.string().nullable().optional(),
+  region: z.string().nullable().optional(),
+  from: z.string().nullable().optional(),
+  from_name: z.string().nullable().optional(),
+  reply_to: z.string().nullable().optional(),
+  host: z.string().nullable().optional(),
+  port: numberOrString.optional(),
+  user: z.string().nullable().optional(),
+  pass: z.string().nullable().optional(), // Should be masked by backend
+  auth: z.string().nullable().optional(),
+  tls: booleanOrString.optional(),
+});
+
+// Mail schema (TrueMail validation)
 const mailSchema = z.object({
   truemail: z
     .object({
@@ -189,6 +229,7 @@ export const systemSettingsSchema = z.object({
   interface: interfaceSchema.nullable().optional(),
   secret_options: secretOptionsSchema.nullable().optional(),
   authentication: authenticationSchema.nullable().optional(),
+  emailer: emailerSchema.nullable().optional(),
   mail: mailSchema.nullable().optional(),
   diagnostics: diagnosticsSchema.nullable().optional(),
   logging: loggingSchema.nullable().optional(),
@@ -292,14 +333,16 @@ export const databaseMetricsDetailsSchema = z.object({
     total_commands_processed: z.number(),
     instantaneous_ops_per_sec: z.number(),
   }),
-  database_sizes: z.record(z.union([
-    z.object({
-      keys: z.number(),
-      expires: z.number(),
-      avg_ttl: z.number(),
-    }),
-    z.string(), // Sometimes Redis INFO returns string format
-  ])),
+  database_sizes: z.record(
+    z.union([
+      z.object({
+        keys: z.number(),
+        expires: z.number(),
+        avg_ttl: z.number(),
+      }),
+      z.string(), // Sometimes Redis INFO returns string format
+    ])
+  ),
   total_keys: z.number(),
   memory_stats: z.object({
     used_memory: z.number(),
