@@ -22,86 +22,37 @@ This document provides a complete implementation guide for porting the Incoming 
 
 ## Backend Changes
 
-### 1. API Controllers
 
-#### File: `apps/api/v2/controllers/incoming.rb` (NEW)
+### 1. API Logic Classes
 
-Create a new controller for incoming secrets endpoints:
-
-```ruby
-# apps/api/v2/controllers/incoming.rb
-
-require_relative 'base'
-require_relative '../logic/incoming'
-
-module V2
-  module Controllers
-    class Incoming
-      include V2::Controllers::Base
-
-      @check_utf8 = true
-      @check_uri_encoding = true
-
-      def get_config
-        retrieve_records(V2::Logic::Incoming::GetConfig, allow_anonymous: true)
-      end
-
-      def create_secret
-        process_action(
-          V2::Logic::Incoming::CreateIncomingSecret,
-          "Incoming secret created successfully.",
-          "Incoming secret could not be created.",
-          allow_anonymous: true,
-        )
-      end
-
-      def validate_recipient
-        retrieve_records(V2::Logic::Incoming::ValidateRecipient, allow_anonymous: true)
-      end
-    end
-  end
-end
-```
-
-#### File: `apps/api/v2/controllers.rb` (MODIFY)
-
-Add the incoming controller to the requires list:
-
-```ruby
-# Near the top with other controller requires
-require_relative 'controllers/incoming'
-```
-
-### 2. API Logic Classes
-
-#### File: `apps/api/v2/logic/incoming.rb` (NEW)
+#### File: `apps/api/v3/logic/incoming.rb` (NEW)
 
 Create the incoming logic namespace:
 
 ```ruby
-# apps/api/v2/logic/incoming.rb
+# apps/api/v3/logic/incoming.rb
 
 require_relative 'incoming/get_config'
 require_relative 'incoming/validate_recipient'
 require_relative 'incoming/create_incoming_secret'
 
-module V2::Logic
+module V3::Logic
   module Incoming
     # Incoming secrets logic classes
   end
 end
 ```
 
-#### File: `apps/api/v2/logic/incoming/get_config.rb` (NEW)
+#### File: `apps/api/v3/logic/incoming/get_config.rb` (NEW)
 
 ```ruby
-# apps/api/v2/logic/incoming/get_config.rb
+# apps/api/v3/logic/incoming/get_config.rb
 
 require_relative '../base'
 
-module V2::Logic
+module V3::Logic
   module Incoming
-    class GetConfig < V2::Logic::Base
+    class GetConfig < V3::Logic::Base
       attr_reader :greenlighted, :config_data
 
       def process_params
@@ -144,16 +95,16 @@ module V2::Logic
 end
 ```
 
-#### File: `apps/api/v2/logic/incoming/validate_recipient.rb` (NEW)
+#### File: `apps/api/v3/logic/incoming/validate_recipient.rb` (NEW)
 
 ```ruby
-# apps/api/v2/logic/incoming/validate_recipient.rb
+# apps/api/v3/logic/incoming/validate_recipient.rb
 
 require_relative '../base'
 
-module V2::Logic
+module V3::Logic
   module Incoming
-    class ValidateRecipient < V2::Logic::Base
+    class ValidateRecipient < V3::Logic::Base
       attr_reader :greenlighted, :recipient_hash, :is_valid
 
       def process_params
@@ -189,21 +140,21 @@ module V2::Logic
 end
 ```
 
-#### File: `apps/api/v2/logic/incoming/create_incoming_secret.rb` (NEW)
+#### File: `apps/api/v3/logic/incoming/create_incoming_secret.rb` (NEW)
 
 ```ruby
-# apps/api/v2/logic/incoming/create_incoming_secret.rb
+# apps/api/v3/logic/incoming/create_incoming_secret.rb
 
 require_relative '../base'
 
-module V2::Logic
+module V3::Logic
   module Incoming
-    class CreateIncomingSecret < V2::Logic::Base
+    class CreateIncomingSecret < V3::Logic::Base
       attr_reader :memo, :secret_value, :recipient_email, :recipient_hash, :ttl, :passphrase
       attr_reader :metadata, :secret, :greenlighted
 
       def process_params
-        # All parameters are passed in the :secret hash like other V2 endpoints
+        # All parameters are passed in the :secret hash like other V3 endpoints
         @payload = params[:secret] || {}
         raise_form_error "Incorrect payload format" if @payload.is_a?(String)
 
@@ -259,7 +210,7 @@ module V2::Logic
       end
 
       def process
-        # Create and encrypt secret using V2 pattern
+        # Create and encrypt secret using V3 pattern
         create_and_encrypt_secret
 
         # Update stats
@@ -296,8 +247,8 @@ module V2::Logic
       private
 
       def create_and_encrypt_secret
-        # Use V2::Secret.spawn_pair to create linked secret and metadata
-        @metadata, @secret = V2::Secret.spawn_pair cust.custid, nil
+        # Use V3::Secret.spawn_pair to create linked secret and metadata
+        @metadata, @secret = V3::Secret.spawn_pair cust.custid, nil
 
         # Store incoming-specific fields
         metadata.memo = memo
@@ -335,8 +286,8 @@ module V2::Logic
         end
 
         # Update global stats
-        V2::Customer.global.increment_field :secrets_created
-        V2::Logic.stathat_count("Secrets", 1)
+        V3::Customer.global.increment_field :secrets_created
+        V3::Logic.stathat_count("Secrets", 1)
       end
 
       def send_recipient_notification
@@ -347,7 +298,7 @@ module V2::Logic
 
         # Create an anonymous customer object for the sender
         # This is needed for the deliver_by_email method signature
-        anon_cust = V2::Customer.new(custid: 'anon')
+        anon_cust = V3::Customer.new(custid: 'anon')
 
         # Send the email using the existing delivery mechanism
         # Pass memo as additional parameter
@@ -363,24 +314,24 @@ module V2::Logic
 end
 ```
 
-**Note:** The incoming logic is NOT required in `apps/api/v2/logic.rb`. The controller handles its own requires (see above where it includes `require_relative '../logic/incoming'`).
+**Note:** The incoming logic is NOT required in `apps/api/v3/logic.rb`. The controller handles its own requires (see above where it includes `require_relative '../logic/incoming'`).
 
 ### 3. API Routes
 
-#### File: `apps/api/v2/routes` (MODIFY)
+#### File: `apps/api/v3/routes.txt` (MODIFY)
 
 Add incoming routes (note: routes should NOT include `/api/v2` prefix as it's handled by the routing system):
 
 ```ruby
 # Incoming secrets endpoints
-GET    /incoming/config                           V2::Controllers::Incoming#get_config
-POST   /incoming/secret                           V2::Controllers::Incoming#create_secret
-POST   /incoming/validate                         V2::Controllers::Incoming#validate_recipient
+GET    /incoming/config                           V3::Controllers::Incoming#get_config
+POST   /incoming/secret                           V3::Controllers::Incoming#create_secret
+POST   /incoming/validate                         V3::Controllers::Incoming#validate_recipient
 ```
 
 ### 4. Web Routes
 
-#### File: `apps/web/core/routes` (MODIFY)
+#### File: `apps/web/core/routes.txt` (MODIFY)
 
 Add incoming web routes (note: uses SPA pattern where all routes point to Page#index and Vue Router handles frontend routing):
 
@@ -553,7 +504,7 @@ class IncomingSecretNotification < Mail::Views::Base
 
     # Get memo from metadata if available
     # Load metadata to access memo field
-    metadata = V2::Metadata.load(secret.metadata_key) if secret.metadata_key
+    metadata = V3::Metadata.load(secret.metadata_key) if secret.metadata_key
     self[:memo] = metadata&.memo
   end
 
@@ -1011,7 +962,7 @@ const secretRecordSchema = z.object({
 
 /**
  * Schema for incoming secret creation response
- * Matches the actual V2 API response format
+ * Matches the actual V3 API response format
  */
 export const incomingSecretResponseSchema = z.object({
   success: z.boolean(),
@@ -1329,7 +1280,7 @@ def self.setup
   cert_store = OpenSSL::X509::Store.new
   cert_store.set_default_paths
 
-  @ses_client = Aws::SESV2::Client.new(
+  @ses_client = Aws::SESV3::Client.new(
     region: OT.conf[:emailer][:region] || raise("Region not configured"),
     credentials: Aws::Credentials.new(
       OT.conf[:emailer][:user],
@@ -1347,21 +1298,19 @@ end
 
 ### Backend
 
-- [ ] Create `apps/api/v2/controllers/incoming.rb`
-- [ ] Add incoming controller to `apps/api/v2/controllers.rb`
-- [ ] Create `apps/api/v2/logic/incoming.rb`
-- [ ] Create `apps/api/v2/logic/incoming/get_config.rb`
-- [ ] Create `apps/api/v2/logic/incoming/validate_recipient.rb`
-- [ ] Create `apps/api/v2/logic/incoming/create_incoming_secret.rb`
-- [ ] Add API routes to `apps/api/v2/routes`
-- [ ] Add web routes to `apps/web/core/routes`
-- [ ] Add `memo` field to `apps/api/v2/models/metadata.rb`
+- [ ] Create `apps/api/v3/controllers/incoming.rb`
+- [ ] Add incoming controller to `apps/api/v3/controllers.rb`
+- [ ] Create `apps/api/v3/logic/incoming.rb`
+- [ ] Create `apps/api/v3/logic/incoming/get_config.rb`
+- [ ] Create `apps/api/v3/logic/incoming/validate_recipient.rb`
+- [ ] Create `apps/api/v3/logic/incoming/create_incoming_secret.rb`
+- [ ] Add API routes to `apps/api/v3/routes.txt`
+- [ ] Add web routes to `apps/web/core/routes.txt`
+- [ ] Add `memo` field to `lib/onetime/models/metadata.rb`
 - [ ] Add incoming features defaults to `lib/onetime/config.rb`
-- [ ] Create `lib/onetime/initializers/setup_incoming_recipients.rb`
-- [ ] Add initializer to `lib/onetime/initializers.rb`
-- [ ] Call setup in `lib/onetime/initializers/boot.rb`
-- [ ] Add `IncomingSecretNotification` class to `lib/onetime/mail/views/common.rb`
-- [ ] Update `SecretLink` signature_link to use `baseuri` (if not already done)
+- [ ] Create `apps/api/v3/initializers/setup_incoming_recipients.rb` (see apps/web/billing/initializers/billing_catalog.rb for how to register)
+- [ ] Make a note somewhere relevant that we need to add the `IncomingSecretNotification` email view class/template.
+- [ ] Ditto for: update `SecretLink` signature_link to use `baseuri` (if not already done)
 
 ### Frontend
 
@@ -1394,12 +1343,14 @@ end
 
 ### Tests
 
-- [ ] Create `tests/unit/ruby/try/60_logic/60_incoming/01_get_config_try.rb`
-- [ ] Create `tests/unit/ruby/try/60_logic/60_incoming/02_validate_recipient_try.rb`
-- [ ] Create `tests/unit/ruby/try/60_logic/60_incoming/03_create_incoming_secret_try.rb`
-- [ ] Create `tests/unit/ruby/try/80_incoming/01_incoming_feature_integration_try.rb`
-- [ ] Create `tests/unit/vue/stores/incomingStore.spec.ts`
-- [ ] Create `tests/integration/web/incoming-secret-flow.spec.ts`
+Create tryouts in relevant application, co-located. e.g. apps/api/v3/try. See apps/api/billing/try as an example.
+
+- [ ] Create based on this path in `main`: `tests/unit/ruby/try/60_logic/60_incoming/01_get_config_try.rb`
+- [ ] Create based on this path in `main`: `tests/unit/ruby/try/60_logic/60_incoming/02_validate_recipient_try.rb`
+- [ ] Create based on this path in `main`: `tests/unit/ruby/try/60_logic/60_incoming/03_create_incoming_secret_try.rb`
+- [ ] Create based on this path in `main`: `tests/unit/ruby/try/80_incoming/01_incoming_feature_integration_try.rb`
+- [ ] Create based on this path in `main`: `tests/unit/vue/stores/incomingStore.spec.ts`
+- [ ] Create based on this path in `main`: `tests/integration/web/incoming-secret-flow.spec.ts`
 
 ### Verification
 
@@ -1428,7 +1379,7 @@ end
 
 ### Design Patterns
 
-1. **V2 API Pattern:** The implementation follows the existing V2 API pattern with Logic classes handling business logic.
+1. **V3 API Pattern:** The implementation follows the existing V3 API pattern with Logic classes handling business logic.
 
 2. **Vue Composition API:** All frontend components use the Vue 3 Composition API with `<script setup>`.
 

@@ -10,8 +10,8 @@ module Billing
     # Optional - failure won't halt boot (degraded functionality).
     class BillingCatalog < Onetime::Boot::Initializer
       @depends_on = [:database, :stripe]
-      @provides = [:billing_catalog]
-      @optional = true
+      @provides   = [:billing_catalog]
+      @optional   = true
 
       def execute(_context)
         Onetime.billing_logger.info 'Refreshing plan cache from Stripe'
