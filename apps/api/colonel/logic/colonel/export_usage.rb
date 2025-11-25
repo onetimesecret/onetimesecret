@@ -8,6 +8,8 @@ module ColonelAPI
   module Logic
     module Colonel
       class ExportUsage < ColonelAPI::Logic::Base
+        using Familia::Refinements::TimeLiterals
+
         attr_reader :start_date, :end_date, :usage_data, :secrets_by_day, :users_by_day
 
         def process_params
@@ -42,8 +44,9 @@ module ColonelAPI
           end.compact
 
           # Get all customers and filter by date range
-          all_customers      = Onetime::Customer.instances.to_a
-          customers_in_range = all_customers.select do |cust|
+          all_customers_objids = Onetime::Customer.instances.to_a
+          all_customers        = Onetime::Customer.load_multi(all_customers_objids).compact
+          customers_in_range   = all_customers.select do |cust|
             cust.created && cust.created >= start_date && cust.created <= end_date && !cust.anonymous?
           end
 

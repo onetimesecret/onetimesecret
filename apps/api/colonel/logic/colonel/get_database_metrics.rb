@@ -70,7 +70,7 @@ module ColonelAPI
               total_keys: total_keys,
               memory_stats: memory_stats,
               model_counts: {
-                customers: Onetime::Customer.instances.size,
+                customers: Onetime::Customer.count,
                 secrets: Onetime::Secret.new.dbclient.keys('secret*:object').count,
                 metadata: Onetime::Metadata.new.dbclient.keys('metadata*:object').count,
               },

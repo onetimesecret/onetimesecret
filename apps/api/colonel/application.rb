@@ -8,6 +8,7 @@ require 'onetime/middleware'
 require 'onetime/models'
 
 require_relative '../base_json_api'
+require_relative 'models'
 require_relative 'logic'
 require_relative 'auth_strategies'
 

@@ -25,6 +25,7 @@
       "schemaValidationError": "Schema validation error: {message} ({path})",
       "unknownValidationError": "Unknown validation error: {error}",
       "dashboard": "Dashboard",
+      "admin": "Admin",
       "activity": "Activity",
       "accounts": "Accounts",
       "users": "Users",

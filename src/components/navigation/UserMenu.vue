@@ -117,7 +117,7 @@ const menuItems = computed<MenuItem[]>(() => [
   {
     id: 'colonel',
     to: '/colonel',
-    label: t('web.colonel.dashboard'),
+    label: t('web.colonel.admin'),
     icon: { collection: 'mdi', name: 'star' },
     condition: () => !props.awaitingMfa && props.colonel,
   },
