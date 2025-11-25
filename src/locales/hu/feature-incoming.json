@@ -1,17 +1,36 @@
 {
-  "web": {
-    "incoming": {
-      "tagline1": "Illesszen be alább egy jelszót, titkos üzenetet vagy privát hivatkozást.",
-      "tagline2": "Tartsa távol az érzékeny információkat e-mailjeiből és csevegési naplóiból.",
-      "secret_hint": "* A titkos hivatkozás csak egyszer működik, majd örökre eltűnik.",
-      "incoming_button_create": "Küldés támogató személyzetnek",
-      "incoming_secret_options": "Támogatási információ",
-      "incoming_secret_placeholder": "Adjon meg minden információt, amire a támogató képviselőnek szüksége lesz (pl. rendszer jelszó)",
-      "incoming_ticket_number": "Adja meg a jegy számát",
-      "incoming_ticket_number_hint": "Ezt megtalálja e-mailjében (pl. 123456)",
-      "incoming_recipient_address": "Támogatási címzett",
-      "incoming_success_message": "E-mailje elküldésre került",
-      "incoming_button_creating": "Létrehozás"
-    }
+  "incoming": {
+    "page_title": "Titok küldése",
+    "page_description": "Osszon meg bizalmasan érzékeny információkat a támogatási csapatunkkal",
+    "loading_config": "Betöltés...",
+    "config_error_title": "A konfiguráció betöltése sikertelen",
+    "feature_disabled_title": "A funkció nem elérhető",
+    "feature_disabled_description": "Ez a funkció jelenleg le van tiltva. Kérjük, forduljon a támogatáshoz segítségért.",
+    "memo_label": "Megjegyzés",
+    "memo_placeholder": "Rövid leírás (pl. Jelszó-visszaállítási kérelem)",
+    "memo_hint": "Segítsen nekünk az üzenetet a megfelelő személyhez eljuttatni",
+    "recipient_label": "Címzett",
+    "recipient_placeholder": "Válasszon címzettet",
+    "recipient_aria_label": "Válasszon címzettet ehhez a titokhoz",
+    "recipient_hint": "Válassza ki, ki fogja megkapni ezt a biztonságos üzenetet",
+    "no_recipients_available": "Nincsenek elérhető címzettek",
+    "secret_content_label": "Bizalmas információ",
+    "secret_content_placeholder": "Illessze be ide az érzékeny információkat (jelszavak, kulcsok stb.)",
+    "secret_content_hint": "Ez az információ titkosítva lesz, és csak egyszer tekinthető meg",
+    "submit_button": "Titok küldése",
+    "submit_secret": "Titok küldése",
+    "submitting_button": "Küldés...",
+    "submitting": "Küldés...",
+    "reset_button": "Űrlap törlése",
+    "reset_form": "Űrlap törlése",
+    "success_title": "Sikeresen elküldve",
+    "success_description": "A biztonságos üzenete kézbesítve lett.",
+    "reference_id": "Hivatkozási azonosító",
+    "success_info_title": "Mi történik ezután?",
+    "success_info_description": "A címzett csak egyszer tekintheti meg ezt a titkot. A megtekintés után a titok véglegesen törlődik.",
+    "create_another": "Újabb titok küldése",
+    "tagline1": "Osszon meg érzékeny információkat biztonságosan",
+    "tagline2": "Tartsa a jelszavakat és privát adatokat távol az e-mailektől és chat naplóktól",
+    "end_of_experience_suggestion": "Mentse el a <a href='{receiptUrl}'>nyugtáját</a> a nyilvántartásához."
   }
 }

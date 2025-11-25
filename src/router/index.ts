@@ -10,6 +10,7 @@ import authRoutes from './auth.routes';
 import billingRoutes from './billing.routes';
 import colonelRoutes from './colonel.routes';
 import dashboardRoutes from './dashboard.routes';
+import incomingRoutes from './incoming.routes';
 import metadataRoutes from './metadata.routes';
 import publicRoutes from './public.routes';
 import secretRoutes from './secret.routes';
@@ -19,6 +20,7 @@ const routes: RouteRecordRaw[] = [
   ...publicRoutes,
   ...metadataRoutes,
   ...secretRoutes,
+  ...incomingRoutes,
   ...authRoutes,
   ...dashboardRoutes,
   ...accountRoutes,

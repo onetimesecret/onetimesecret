@@ -99,7 +99,8 @@ module Auth::Config::Hooks
       # ========================================================================
 
       auth.audit_log_message_for :login do
-        mfa_required = auth.respond_to?(:otp_exists?) && auth.otp_exists?
+        # Inside block, self is the Rodauth instance
+        mfa_required = respond_to?(:otp_exists?) && otp_exists?
         if mfa_required
           'Login successful - MFA required'
         else
@@ -107,7 +108,8 @@ module Auth::Config::Hooks
         end
       end
       auth.audit_log_metadata_for :login do
-        mfa_enabled          = auth.respond_to?(:otp_exists?) && auth.otp_exists?
+        # Inside block, self is the Rodauth instance
+        mfa_enabled = respond_to?(:otp_exists?) && otp_exists?
         metadata = {
           ip: request.ip,
           user_agent: request.user_agent,

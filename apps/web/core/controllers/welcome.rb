@@ -143,7 +143,8 @@ module Core
       # @see https://docs.stripe.com/payment-links/post-payment#change-confirmation-behavior
       #
       def welcome_webhook
-        # CSRF exemption handled by route parameter csrf=exempt
+        # CSRF exemption handled by route parameter csrf=exempt since these
+        # are coming via redirects from Stripe after payment completion.
         logic                  = V2::Logic::Welcome::StripeWebhook.new(strategy_result, req.params, locale)
         logic.stripe_signature = req.env['HTTP_STRIPE_SIGNATURE']
         logic.payload          = req.body.read

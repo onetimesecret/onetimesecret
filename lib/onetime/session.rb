@@ -70,9 +70,17 @@ module Onetime
     attr_reader :dbclient
 
     def initialize(app, options = {})
-      # Require a secret for security
-      secret_value_type = options[:secret].is_a?(String) && !options[:secret].empty?
-      raise ArgumentError, "SESSION_SECRET not set #{secret_value_type}" unless options[:secret]
+      # Require a secret for security - fall back to site secret if not set
+      is_valid_string = options[:secret].is_a?(String) && !options[:secret].empty?
+      unless is_valid_string
+        site_secret = OT.conf.dig('site', 'secret')
+        if site_secret.is_a?(String) && !site_secret.empty?
+          options[:secret] = site_secret
+          OT.info "[Session] SESSION_SECRET not set, using site secret for session signing"
+        else
+          raise ArgumentError, "SESSION_SECRET is not set and no site secret available"
+        end
+      end
 
       # Merge options with defaults
       # Note: :key sets the cookie name (defaults to 'onetime.session' instead of

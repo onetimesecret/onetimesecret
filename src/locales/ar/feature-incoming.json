@@ -1,17 +1,36 @@
 {
-  "web": {
-    "incoming": {
-      "tagline1": ".ضع كلمة مرور، رسالة سرية او رابطاً خاصاً أدناه",
-      "tagline2": ".لا تستخدم معلوماتك الحساسة في محادثاتك او رسائل البريد",
-      "secret_hint": ".الرابط السري سيعمل لمرة واحدة فقط ومن ثم يختفي للأبد *",
-      "incoming_button_create": "راسل فريق الدعم",
-      "incoming_secret_options": "معلومات المساعدة",
-      "incoming_secret_placeholder": "(ادخل اي بيانات قد يحتاجها ممثل الدعم (كلمة مرورك مثلاً",
-      "incoming_ticket_number": "ادخل رقم التذكرة #",
-      "incoming_ticket_number_hint": "(ستجد هذا في بريدك الالكتروني (12345 مثلاً",
-      "incoming_recipient_address": "بريد المرسل",
-      "incoming_success_message": "تم ارسال الرسالة",
-      "incoming_button_creating": "Creating"
-    }
+  "incoming": {
+    "page_title": "إرسال سر",
+    "page_description": "شارك المعلومات الحساسة بشكل آمن مع فريق الدعم لدينا",
+    "loading_config": "جاري التحميل...",
+    "config_error_title": "فشل تحميل التكوين",
+    "feature_disabled_title": "الميزة غير متاحة",
+    "feature_disabled_description": "هذه الميزة معطلة حاليًا. يرجى الاتصال بالدعم للحصول على المساعدة.",
+    "memo_label": "مذكرة",
+    "memo_placeholder": "وصف مختصر (مثل: طلب إعادة تعيين كلمة المرور)",
+    "memo_hint": "ساعدنا في توجيه رسالتك إلى الشخص المناسب",
+    "recipient_label": "إرسال إلى",
+    "recipient_placeholder": "اختر مستلمًا",
+    "recipient_aria_label": "اختر مستلمًا لهذا السر",
+    "recipient_hint": "اختر من سيستقبل هذه الرسالة الآمنة",
+    "no_recipients_available": "لا يوجد مستلمون متاحون",
+    "secret_content_label": "معلومات سرية",
+    "secret_content_placeholder": "الصق المعلومات الحساسة هنا (كلمات المرور، المفاتيح، إلخ)",
+    "secret_content_hint": "سيتم تشفير هذه المعلومات ويمكن عرضها مرة واحدة فقط",
+    "submit_button": "إرسال السر",
+    "submit_secret": "إرسال السر",
+    "submitting_button": "جاري الإرسال...",
+    "submitting": "جاري الإرسال...",
+    "reset_button": "مسح النموذج",
+    "reset_form": "مسح النموذج",
+    "success_title": "تم الإرسال بنجاح",
+    "success_description": "تم تسليم رسالتك الآمنة.",
+    "reference_id": "معرف المرجع",
+    "success_info_title": "ماذا يحدث بعد ذلك؟",
+    "success_info_description": "سيتمكن المستلم من عرض هذا السر مرة واحدة فقط. بعد العرض، سيتم حذف السر نهائيًا.",
+    "create_another": "إرسال سر آخر",
+    "tagline1": "شارك المعلومات الحساسة بشكل آمن",
+    "tagline2": "احتفظ بكلمات المرور والبيانات الخاصة بعيدًا عن البريد الإلكتروني وسجلات الدردشة",
+    "end_of_experience_suggestion": "احفظ <a href='{receiptUrl}'>إيصالك</a> لسجلاتك."
   }
 }

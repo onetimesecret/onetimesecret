@@ -1,17 +1,36 @@
 {
-  "web": {
-    "incoming": {
-      "tagline1": "在下方窗格输入您想要加密的内容。",
-      "tagline2": "使您的内容独立于您的电子邮件和聊天记录。",
-      "secret_hint": "* 内容被加密后将只能被查看一次，之后将永久消失",
-      "incoming_button_create": "发送给技术人员",
-      "incoming_secret_options": "支持信息",
-      "incoming_secret_placeholder": "输入必要的、有代表性的支持信息（例如：系统密码）",
-      "incoming_ticket_number": "输入工单编号 #",
-      "incoming_ticket_number_hint": "您将在您的电子邮件中找到它（例如：123456）",
-      "incoming_recipient_address": "接收地址",
-      "incoming_success_message": "邮件已发出",
-      "incoming_button_creating": "创建中"
-    }
+  "incoming": {
+    "page_title": "发送机密",
+    "page_description": "安全地与我们的支持团队共享敏感信息",
+    "loading_config": "加载中...",
+    "config_error_title": "加载配置失败",
+    "feature_disabled_title": "功能不可用",
+    "feature_disabled_description": "此功能当前已禁用。请联系支持团队寻求帮助。",
+    "memo_label": "备注",
+    "memo_placeholder": "简要描述(例如:密码重置请求)",
+    "memo_hint": "帮助我们将您的消息发送给正确的人",
+    "recipient_label": "发送至",
+    "recipient_placeholder": "选择收件人",
+    "recipient_aria_label": "为此机密选择收件人",
+    "recipient_hint": "选择谁将收到此安全消息",
+    "no_recipients_available": "没有可用的收件人",
+    "secret_content_label": "机密信息",
+    "secret_content_placeholder": "在此粘贴敏感信息(密码、密钥等)",
+    "secret_content_hint": "此信息将被加密,仅可查看一次",
+    "submit_button": "发送机密",
+    "submit_secret": "发送机密",
+    "submitting_button": "发送中...",
+    "submitting": "发送中...",
+    "reset_button": "清除表单",
+    "reset_form": "清除表单",
+    "success_title": "发送成功",
+    "success_description": "您的安全消息已送达。",
+    "reference_id": "参考编号",
+    "success_info_title": "接下来会发生什么?",
+    "success_info_description": "收件人只能查看此机密一次。查看后,机密将被永久删除。",
+    "create_another": "发送另一个机密",
+    "tagline1": "安全地共享敏感信息",
+    "tagline2": "将密码和私密数据远离电子邮件和聊天记录",
+    "end_of_experience_suggestion": "保存您的<a href='{receiptUrl}'>收据</a>以备记录。"
   }
 }

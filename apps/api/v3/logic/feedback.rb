@@ -6,8 +6,7 @@ require_relative 'base'
 
 module V3
   module Logic
-    class ReceiveFeedback < V2::Logic::Base
-      include V3::Logic::Base
+    class ReceiveFeedback < V3::Logic::Base
 
       attr_reader :msg, :greenlighted, :tz, :version
 

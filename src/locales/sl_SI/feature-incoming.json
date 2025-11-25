@@ -1,17 +1,36 @@
 {
-  "web": {
-    "incoming": {
-      "tagline1": "Spodaj prilepite geslo, skrivno sporočilo ali zasebno povezavo.",
-      "tagline2": "Ohranite občutljive informacije izven svoje e-pošte in dnevnikov klepeta.",
-      "secret_hint": "* Skrivna povezava deluje samo enkrat in nato izgine za vedno.",
-      "incoming_button_create": "Pošlji osebju za podporo",
-      "incoming_secret_options": "Informacije za podporo",
-      "incoming_secret_placeholder": "Vnesite vse informacije, ki jih bo potreboval vaš predstavnik za podporo (npr. sistemsko geslo)",
-      "incoming_ticket_number": "Vnesite št. zahtevka",
-      "incoming_ticket_number_hint": "To lahko najdete v svoji e-pošti (npr. 123456)",
-      "incoming_recipient_address": "Prejemnik podpore",
-      "incoming_success_message": "Vaša e-pošta je bila poslana",
-      "incoming_button_creating": "Ustvarjam"
-    }
+  "incoming": {
+    "page_title": "Pošlji skrivnost",
+    "page_description": "Varno delite občutljive informacije z našo ekipo za podporo",
+    "loading_config": "Nalaganje...",
+    "config_error_title": "Nalaganje konfiguracije ni uspelo",
+    "feature_disabled_title": "Funkcija ni na voljo",
+    "feature_disabled_description": "Ta funkcija je trenutno onemogočena. Za pomoč se obrnite na podporo.",
+    "memo_label": "Opomba",
+    "memo_placeholder": "Kratek opis (npr. Zahteva za ponastavitev gesla)",
+    "memo_hint": "Pomagajte nam usmeriti vaše sporočilo pravi osebi",
+    "recipient_label": "Pošlji na",
+    "recipient_placeholder": "Izberite prejemnika",
+    "recipient_aria_label": "Izberite prejemnika za to skrivnost",
+    "recipient_hint": "Izberite, kdo bo prejel to varno sporočilo",
+    "no_recipients_available": "Na voljo ni nobenih prejemnikov",
+    "secret_content_label": "Zaupne informacije",
+    "secret_content_placeholder": "Prilepite občutljive informacije sem (gesla, ključe itd.)",
+    "secret_content_hint": "Te informacije bodo šifrirane in vidne samo enkrat",
+    "submit_button": "Pošlji skrivnost",
+    "submit_secret": "Pošlji skrivnost",
+    "submitting_button": "Pošiljanje...",
+    "submitting": "Pošiljanje...",
+    "reset_button": "Počisti obrazec",
+    "reset_form": "Počisti obrazec",
+    "success_title": "Uspešno poslano",
+    "success_description": "Vaše varno sporočilo je bilo dostavljeno.",
+    "reference_id": "Referenčna številka",
+    "success_info_title": "Kaj se zgodi zdaj?",
+    "success_info_description": "Prejemnik bo lahko videl to skrivnost samo enkrat. Po ogledu bo skrivnost trajno izbrisana.",
+    "create_another": "Pošlji še eno skrivnost",
+    "tagline1": "Varno delite občutljive informacije",
+    "tagline2": "Hranite gesla in zasebne podatke stran od e-pošte in dnevnikov klepeta",
+    "end_of_experience_suggestion": "Shranite <a href='{receiptUrl}'>potrdilo</a> za vaše zapise."
   }
 }
