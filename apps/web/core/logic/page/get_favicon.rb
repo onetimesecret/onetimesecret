@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'chunky_png'
 require_relative '../base'
 
 module Core
@@ -13,8 +14,9 @@ module Core
       # 1. Custom favicon from the custom domain's icon field (if available)
       # 2. Default favicon from public/img/
       #
-      # This allows branded custom domains to show their own favicon
-      # instead of the OTS default orange S icon.
+      # For custom favicons, it checks for a cached resized version (32x32)
+      # stored in custom_domain.icon['encoded_favicon']. If not found, it
+      # generates and caches one from the original icon.
       #
       # Uses env vars set by DetectHost and DomainStrategy middlewares:
       # - env['onetime.domain_strategy'] - Domain classification (:custom, :canonical, etc.)
@@ -22,6 +24,8 @@ module Core
       #
       class GetFavicon < Core::Logic::Base
         attr_reader :custom_domain, :icon_data, :content_type, :content_length, :use_default
+
+        FAVICON_SIZE = 32 # 32x32 pixels
 
         def process_params
           # Get domain strategy determined by DomainStrategy middleware
@@ -56,7 +60,7 @@ module Core
             # Serve default favicon
             serve_default_favicon
           else
-            # Serve custom favicon from Redis
+            # Serve custom favicon from Redis (cached or generate)
             serve_custom_favicon
           end
         end
@@ -64,15 +68,62 @@ module Core
         private
 
         def serve_custom_favicon
-          # Get icon data from custom domain
-          encoded_content = custom_domain.icon['encoded']
-          @content_type   = custom_domain.icon['content_type'] || 'image/x-icon'
+          # Check if we have a cached favicon-sized version
+          cached_favicon = custom_domain.icon['encoded_favicon']
 
-          # Decode base64 content
-          @icon_data       = Base64.strict_decode64(encoded_content)
-          @content_length  = icon_data.bytesize.to_s
+          if cached_favicon.to_s.empty?
+            # No cached version - generate one
+            OT.ld "[GetFavicon] No cached favicon for #{custom_domain.display_domain}, generating..."
+            generate_and_cache_favicon
+          else
+            # Use cached version
+            OT.ld "[GetFavicon] Serving cached favicon for #{custom_domain.display_domain}"
+            @icon_data = Base64.strict_decode64(cached_favicon)
+          end
 
-          OT.info "[GetFavicon] Serving custom favicon for #{custom_domain.display_domain}"
+          @content_type   = 'image/png' # Resized favicons are always PNG
+          @content_length = icon_data.bytesize.to_s
+        end
+
+        def generate_and_cache_favicon
+          original_encoded = custom_domain.icon['encoded']
+          original_type    = custom_domain.icon['content_type']
+
+          # Decode original image
+          original_data = Base64.strict_decode64(original_encoded)
+
+          # Try to resize based on content type
+          resized_data = if original_type == 'image/png'
+                           resize_png(original_data)
+                         else
+                           # For non-PNG formats, use original for now
+                           # TODO: Add support for JPEG/WebP/etc with mini_magick or ruby-vips
+                           OT.ld "[GetFavicon] Non-PNG format #{original_type}, using original"
+                           original_data
+                         end
+
+          # Cache the resized favicon
+          encoded_favicon = Base64.strict_encode64(resized_data)
+          custom_domain.icon['encoded_favicon'] = encoded_favicon
+
+          @icon_data = resized_data
+
+          OT.info "[GetFavicon] Generated and cached favicon for #{custom_domain.display_domain}"
+        rescue StandardError => e
+          # If resizing fails, fall back to original
+          OT.le "[GetFavicon] Failed to resize favicon: #{e.message}"
+          @icon_data = Base64.strict_decode64(original_encoded)
+        end
+
+        def resize_png(png_data)
+          # Load PNG with ChunkyPNG
+          image = ChunkyPNG::Image.from_blob(png_data)
+
+          # Resize to FAVICON_SIZE x FAVICON_SIZE
+          resized = image.resample_nearest_neighbor(FAVICON_SIZE, FAVICON_SIZE)
+
+          # Return PNG data
+          resized.to_blob
         end
 
         def serve_default_favicon
