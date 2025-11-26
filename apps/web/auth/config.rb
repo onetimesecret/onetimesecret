@@ -9,7 +9,7 @@ module Auth
   class Config < Rodauth::Auth
     require_relative 'lib/logging'
     require_relative 'database'
-    require_relative 'mailer'
+    # NOTE: mailer.rb is deprecated - using Onetime::Mail instead (see config/email.rb)
     require_relative 'operations'
     require_relative 'config/base'
     require_relative 'config/email'

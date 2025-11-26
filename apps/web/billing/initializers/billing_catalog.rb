@@ -16,7 +16,10 @@ module Billing
       @optional   = true
 
       def should_skip?
-        !Onetime.billing_config.enabled?
+        return true unless Onetime.billing_config.enabled?
+        return true if ENV['RACK_ENV'] == 'test'
+
+        false
       end
 
       def execute(_context)

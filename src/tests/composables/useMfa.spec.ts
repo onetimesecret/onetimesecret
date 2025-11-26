@@ -98,7 +98,7 @@ describe('useMfa', () => {
       axiosMock.onPost('/auth/otp-setup').reply(422, hmacResponse);
 
       const { setupMfa, setupData } = useMfa();
-      const result = await setupMfa('password123');
+      const result = await setupMfa('Onetime Secret', 'test@example.com', 'password123');
 
       expect(result).toBeTruthy();
       expect(result?.otp_setup).toBe('hmac_secret_123');
@@ -116,7 +116,7 @@ describe('useMfa', () => {
       axiosMock.onPost('/auth/otp-setup').reply(422, hmacResponse);
 
       const { setupMfa } = useMfa();
-      const result = await setupMfa();
+      const result = await setupMfa('Onetime Secret', 'test@example.com');
 
       expect(result?.otp_raw_secret).toBe('JBSWY3DPEHPK3PXQ');
     });
@@ -125,7 +125,7 @@ describe('useMfa', () => {
       axiosMock.onPost('/auth/otp-setup').reply(403, { error: 'Incorrect password' });
 
       const { setupMfa, error } = useMfa();
-      const result = await setupMfa('wrong_password');
+      const result = await setupMfa('Onetime Secret', 'test@example.com', 'wrong_password');
 
       expect(result).toBeNull();
       expect(error.value).toBe('web.auth.security.authentication_failed');
@@ -135,7 +135,7 @@ describe('useMfa', () => {
       axiosMock.onPost('/auth/otp-setup').reply(422, { error: 'Validation failed' });
 
       const { setupMfa, error } = useMfa();
-      const result = await setupMfa();
+      const result = await setupMfa('Onetime Secret', 'test@example.com');
 
       expect(result).toBeNull();
       expect(error.value).toBe('web.auth.security.internal_error');
@@ -145,7 +145,7 @@ describe('useMfa', () => {
       axiosMock.onPost('/auth/otp-setup').reply(429, { error: 'Too many requests' });
 
       const { setupMfa, error } = useMfa();
-      const result = await setupMfa();
+      const result = await setupMfa('Onetime Secret', 'test@example.com');
 
       expect(result).toBeNull();
       expect(error.value).toBe('web.auth.security.rate_limited');
@@ -155,7 +155,7 @@ describe('useMfa', () => {
       axiosMock.onPost('/auth/otp-setup').reply(401, { error: 'Not authenticated' });
 
       const { setupMfa, error } = useMfa();
-      const result = await setupMfa();
+      const result = await setupMfa('Onetime Secret', 'test@example.com');
 
       expect(result).toBeNull();
       expect(error.value).toBe('web.auth.security.authentication_failed');
@@ -446,7 +446,7 @@ describe('useMfa', () => {
 
       expect(isLoading.value).toBe(false);
 
-      const promise = setupMfa();
+      const promise = setupMfa('Onetime Secret', 'test@example.com');
       // Note: isLoading is synchronous, so we can't check during promise execution easily
       await promise;
 
@@ -460,7 +460,7 @@ describe('useMfa', () => {
 
       const { setupMfa, error, clearError } = useMfa();
 
-      await setupMfa();
+      await setupMfa('Onetime Secret', 'test@example.com');
       expect(error.value).toBe('web.auth.security.authentication_failed');
 
       // Clear error manually
@@ -474,7 +474,7 @@ describe('useMfa', () => {
       // First attempt fails
       axiosMock.onPost('/auth/otp-setup').reply(403, { error: 'Forbidden' });
 
-      await setupMfa();
+      await setupMfa('Onetime Secret', 'test@example.com');
       expect(error.value).toBeTruthy();
 
       // Second attempt succeeds - reset the mock
@@ -484,7 +484,7 @@ describe('useMfa', () => {
         otp_raw_secret: 'SECRET',
       });
 
-      await setupMfa();
+      await setupMfa('Onetime Secret', 'test@example.com');
       // Error should be cleared by clearError() call at start of setupMfa
       expect(error.value).toBeNull();
     });

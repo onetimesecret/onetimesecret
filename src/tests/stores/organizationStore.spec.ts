@@ -122,7 +122,7 @@ describe('Organization Store', () => {
 
       const updatedOrg = { ...mockOrganization, ...updates };
 
-      axiosMock?.onPatch('/api/organizations/org-123').reply(200, {
+      axiosMock?.onPut('/api/organizations/org-123').reply(200, {
         record: updatedOrg,
       });
 

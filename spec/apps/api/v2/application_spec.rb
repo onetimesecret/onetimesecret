@@ -1,50 +1,29 @@
-# .purgatory/spec/apps/api/v2/application_spec.rb
+# spec/apps/api/v2/application_spec.rb
 #
 # frozen_string_literal: true
 
 require_relative '../../../spec_helper'
 require 'v2/application'
 
-# Attempt to test that the v2 rack app includes JSONBodyParser middleware
+# Test that the v2 rack app includes JSONBodyParser middleware
 RSpec.describe V2::Application do
   describe 'middleware stack' do
-    # Create mock middleware classes that might not be loaded in test env
-    before(:all) do
-      skip 'Requires full application boot - run as integration test with test database'
-
-      unless defined?(Rack::JSONBodyParser)
-        module Rack
-          class JSONBodyParser
-          end
-        end
+    it 'includes JSONBodyParser middleware' do
+      # The middleware is declared at class level with `use Rack::JSONBodyParser`
+      # We can verify it's in the middleware stack by checking the class configuration
+      middleware_classes = described_class.middleware.map do |middleware_spec|
+        middleware_spec.first # First element is the middleware class
       end
+
+      expect(middleware_classes).to include(Rack::JSONBodyParser)
     end
 
-    it 'includes JSONBodyParser middleware' do
-      # Mock the build_router method to avoid external dependencies
-      allow_any_instance_of(described_class).to receive(:build_router).and_return(double('router').as_null_object)
-
-      # Set up minimal environment for application initialization
-      ENV['ONETIME_HOME'] ||= File.expand_path('../../../../../../../', __FILE__)
-
-      # Verify JSONBodyParser is included in the middleware stack
-      expect(Rack::Builder).to receive(:new) do |&block|
-        builder = double('builder')
-        allow(builder).to receive(:use)
-        allow(builder).to receive(:run)
-        allow(builder).to receive(:to_app).and_return(double('app'))
-        allow(builder).to receive(:warmup).and_yield  # Add support for warmup
-
-        # Critical expectation: verify JSONBodyParser is used
-        expect(builder).to receive(:use).with(Rack::JSONBodyParser)
-
-        # Allow the block to execute with our mock builder
-        block.call(builder)
-        builder
+    it 'includes CsrfResponseHeader middleware' do
+      middleware_classes = described_class.middleware.map do |middleware_spec|
+        middleware_spec.first
       end
 
-      # Create application which triggers the middleware setup
-      described_class.new
+      expect(middleware_classes).to include(Onetime::Middleware::CsrfResponseHeader)
     end
   end
 end

@@ -8,6 +8,8 @@ require 'rack/test'
 RSpec.describe 'Admin Interface', type: :integration do
   include Rack::Test::Methods
 
+  using Familia::Refinements::TimeLiterals
+
   before(:all) do
     ENV['RACK_ENV'] = 'test'
     ENV['AUTHENTICATION_MODE'] = 'advanced'
@@ -50,9 +52,11 @@ RSpec.describe 'Admin Interface', type: :integration do
 
   # Helper to create a session for a user
   def create_session_for(user)
-    # Set up session with user
+    # Otto's BaseSessionAuthStrategy looks for:
+    # - session['authenticated'] == true
+    # - session['external_id'] (matches Customer.find_by_extid)
     env 'rack.session', {
-      'customer_id' => user.objid,
+      'external_id' => user.extid,
       'authenticated' => true,
       'session_id' => SecureRandom.hex(16)
     }

@@ -37,9 +37,7 @@ module ColonelAPI
               shortid: secret.shortid,
               state: secret.state,
               created: secret.created,
-              created_human: natural_time(secret.created),
               expiration: secret.expiration,
-              expiration_human: natural_time(secret.expiration),
             }
           end
 
@@ -57,7 +55,6 @@ module ColonelAPI
               shortid: metadata.shortid,
               state: metadata.state,
               created: metadata.created,
-              created_human: natural_time(metadata.created),
             }
           end
 
@@ -89,11 +86,8 @@ module ColonelAPI
               role: user.role,
               verified: user.verified?,
               created: user.created,
-              created_human: natural_time(user.created),
               updated: user.updated,
-              updated_human: natural_time(user.updated),
               last_login: user.last_login,
-              last_login_human: user.last_login ? natural_time(user.last_login) : 'Never',
               planid: user.planid,
               locale: user.locale,
             },
