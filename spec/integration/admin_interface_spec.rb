@@ -8,6 +8,8 @@ require 'rack/test'
 RSpec.describe 'Admin Interface', type: :integration do
   include Rack::Test::Methods
 
+  using Familia::Refinements::TimeLiterals
+
   before(:all) do
     ENV['RACK_ENV'] = 'test'
     ENV['AUTHENTICATION_MODE'] = 'advanced'
