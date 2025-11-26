@@ -60,14 +60,12 @@ gem 'truemail'
 # ====================================
 
 # ORMs and database drivers
+# NOTE: We install both db drivers for the OCI images so that users can choose
+# which database to use at runtime via environment variable without rebuilding.
 gem 'familia', '~> 2.0.0.pre21'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'
-
-case ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase
-when 'postgresql', 'pg', 'postgres'
-  gem 'pg', '~> 1.4'
-end
+gem 'pg', '~> 1.6'
 
 # Redis/Valkey
 gem 'redis', '~> 5.4.0'

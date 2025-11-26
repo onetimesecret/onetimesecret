@@ -159,7 +159,6 @@ GEM
       net-pop
       net-smtp
     mini_mime (1.1.5)
-    mini_portile2 (2.8.9)
     minitest (5.26.1)
     multi_xml (0.7.2)
       bigdecimal (~> 3.1)
@@ -174,9 +173,6 @@ GEM
     net-smtp (0.5.1)
       net-protocol
     nio4r (2.7.5)
-    nokogiri (1.18.10)
-      mini_portile2 (~> 2.8.2)
-      racc (~> 1.4)
     nokogiri (1.18.10-aarch64-linux-gnu)
       racc (~> 1.4)
     nokogiri (1.18.10-arm64-darwin)
@@ -207,6 +203,10 @@ GEM
       racc
     pastel (0.8.0)
       tty-color (~> 0.5)
+    pg (1.6.2-aarch64-linux)
+    pg (1.6.2-arm64-darwin)
+    pg (1.6.2-x86_64-darwin)
+    pg (1.6.2-x86_64-linux)
     pp (0.6.3)
       prettyprint
     prettier_print (1.2.1)
@@ -330,8 +330,6 @@ GEM
     simplecov-html (0.13.2)
     simplecov_json_formatter (0.1.4)
     simpleidn (0.2.3)
-    sqlite3 (2.8.0)
-      mini_portile2 (~> 2.8.0)
     sqlite3 (2.8.0-aarch64-linux-gnu)
     sqlite3 (2.8.0-arm64-darwin)
     sqlite3 (2.8.0-x86_64-darwin)
@@ -390,7 +388,6 @@ GEM
 PLATFORMS
   aarch64-linux
   arm64-darwin
-  ruby
   x86_64-darwin
   x86_64-linux
 
@@ -414,6 +411,7 @@ DEPENDENCIES
   mail
   mustache
   otto (~> 2.0.0.pre7)
+  pg (~> 1.6)
   psych (~> 5.2.3)
   public_suffix
   puma (>= 6.0, < 8.0)
