@@ -110,4 +110,28 @@ rescue ArgumentError => e
 end
 #=> true
 
+## Complete migration workflow: bcrypt password migrates to argon2
+migration_customer = Onetime::Customer.new(email: generate_random_email)
+migration_password = 'migration-test-password'
+
+# Start with bcrypt
+migration_customer.update_passphrase(migration_password, algorithm: :bcrypt)
+migration_customer.passphrase_encryption == '1' &&
+migration_customer.argon2_hash?(migration_customer.passphrase) == false
+#=> true
+
+## Migration workflow: verify bcrypt password works
+migration_customer.passphrase?(migration_password)
+#=> true
+
+## Migration workflow: rehash to argon2
+migration_customer.update_passphrase!(migration_password)
+migration_customer.passphrase_encryption
+#=> '2'
+
+## Migration workflow: new argon2 hash is valid
+migration_customer.argon2_hash?(migration_customer.passphrase) &&
+migration_customer.passphrase?(migration_password)
+#=> true
+
 # Cleanup - don't save these test customers

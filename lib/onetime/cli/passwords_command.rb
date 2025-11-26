@@ -41,13 +41,14 @@ module Onetime
         puts ''
 
         Onetime::Customer.instances.all.each do |objid|
-          total_count += 1
           cust = Onetime::Customer.load(objid)
 
           if cust.nil?
             # Stale reference in instances set
             next
           end
+
+          total_count += 1
 
           unless cust.has_passphrase?
             no_pass_count += 1
