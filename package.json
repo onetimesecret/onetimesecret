@@ -88,7 +88,8 @@
     "type-check:tests": "pnpm run type-check:base -p ./tsconfig.test.json",
     "type-check:base": "vue-tsc --noEmit",
     "type-check:parallel": "pnpm -r exec vue-tsc --build --noEmit",
-    "type-check:watch": "pnpm run type-check:base --watch"
+    "type-check:watch": "pnpm run type-check:base --watch",
+    "worktrees": "./scripts/worktree-report.sh"
   },
   "keywords": [],
   "author": "",
