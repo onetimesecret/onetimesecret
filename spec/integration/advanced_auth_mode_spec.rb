@@ -13,6 +13,7 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
     ENV['RACK_ENV'] = 'test'
     ENV['AUTHENTICATION_MODE'] = 'advanced'
     ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../..'))
+    ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 
     # Reset both registries to clear state from previous test runs
     Onetime::Application::Registry.reset!
