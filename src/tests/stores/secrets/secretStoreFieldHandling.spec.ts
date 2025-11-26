@@ -5,8 +5,6 @@
 import { useSecretStore } from '@/stores/secretStore';
 import { setupTestPinia } from '../../setup';
 import type AxiosMockAdapter from 'axios-mock-adapter';
-import type { AxiosInstance } from 'axios';
-import type { ComponentPublicInstance } from 'vue';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -17,16 +15,12 @@ import {
 
 describe('secretStore', () => {
   let axiosMock: AxiosMockAdapter | null;
-  let api: AxiosInstance;
   let store: ReturnType<typeof useSecretStore>;
-  let appInstance: ComponentPublicInstance | null;
 
   beforeEach(async () => {
     // Setup testing environment with all needed components
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock;
-    api = setup.api;
-    appInstance = setup.appInstance;
 
     // Initialize the store
     store = useSecretStore();
@@ -83,7 +77,7 @@ describe('secretStore', () => {
         };
 
         // Use consistent API endpoint
-        axiosMock?.onGet(`/api/v2/secret/${testKey}`).reply(200, mockResponseWithoutLifespan);
+        axiosMock?.onGet(`/api/v3/secret/${testKey}`).reply(200, mockResponseWithoutLifespan);
 
         await store.fetch(testKey);
 

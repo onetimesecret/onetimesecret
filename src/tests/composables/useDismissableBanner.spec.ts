@@ -20,21 +20,25 @@ describe('useDismissableBanner', () => {
     vi.useRealTimers();
   });
 
-  it.skip('should be visible by default when no prior state exists', () => {
+  it('should be visible by default when no prior state exists', () => {
     const { isVisible } = useDismissableBanner('new-banner-default');
     expect(isVisible.value).toBe(true);
   });
 
   describe('Permanent Dismissal (expirationDays = 0 or not provided)', () => {
-    it.skip('should dismiss banner permanently and store state when expirationDays is 0', () => {
-      const { isVisible, dismiss } = useDismissableBanner(BANNER_ID_PERMANENT, 0);
+    it('should dismiss banner permanently and store state when expirationDays is 0', () => {
+      const { isVisible, dismiss, bannerId } = useDismissableBanner(BANNER_ID_PERMANENT, 0);
       expect(isVisible.value).toBe(true); // Initially visible
 
       dismiss();
       expect(isVisible.value).toBe(false); // Should be hidden after dismissal
 
       // Verify localStorage state
-      const storedState = JSON.parse(localStorage.getItem(`banner-${BANNER_ID_PERMANENT}`) || '{}');
+      const storageKey = `banner-${bannerId.value}`;
+      const storedValue = localStorage.getItem(storageKey);
+      expect(storedValue).not.toBeNull(); // Should exist in localStorage
+
+      const storedState = JSON.parse(storedValue || '{}');
       expect(storedState.dismissed).toBe(true);
       expect(storedState.timestamp).toBeTypeOf('string'); // Timestamp should be set
 
@@ -43,8 +47,9 @@ describe('useDismissableBanner', () => {
       expect(isVisibleAfterReinit.value).toBe(false); // Should remain hidden
     });
 
-    it.skip('should dismiss banner permanently and store state when expirationDays is not provided (defaults to 0)', () => {
-      const { isVisible, dismiss } = useDismissableBanner(BANNER_ID_PERMANENT); // No expirationDays argument
+    it('should dismiss banner permanently when expirationDays not provided', () => {
+      // No expirationDays argument defaults to 0 (permanent)
+      const { isVisible, dismiss } = useDismissableBanner(BANNER_ID_PERMANENT);
       expect(isVisible.value).toBe(true);
 
       dismiss();
@@ -58,7 +63,7 @@ describe('useDismissableBanner', () => {
       expect(isVisibleAfterReinit.value).toBe(false);
     });
 
-    it.skip('should remain dismissed permanently even after significant time has passed', () => {
+    it('should remain dismissed permanently even after significant time has passed', () => {
       const { isVisible, dismiss } = useDismissableBanner(BANNER_ID_PERMANENT, 0);
       dismiss();
       expect(isVisible.value).toBe(false);
@@ -79,7 +84,7 @@ describe('useDismissableBanner', () => {
       vi.setSystemTime(new Date(MOCK_CURRENT_DATE_STR));
     });
 
-    it.skip('should dismiss banner temporarily and store state with timestamp', () => {
+    it('should dismiss banner temporarily and store state with timestamp', () => {
       const { isVisible, dismiss } = useDismissableBanner(BANNER_ID_TEMPORARY, EXPIRATION_DAYS);
       expect(isVisible.value).toBe(true);
 
@@ -97,12 +102,13 @@ describe('useDismissableBanner', () => {
       expect(isVisibleAfterReinit.value).toBe(false); // Should remain hidden
     });
 
-    it.skip('should remain hidden if re-initialized before expiration period', () => {
+    it('should remain hidden if re-initialized before expiration period', () => {
       const { dismiss } = useDismissableBanner(BANNER_ID_TEMPORARY, EXPIRATION_DAYS);
       dismiss();
 
       // Advance time, but by less than the expiration period
-      vi.advanceTimersByTime(1000 * 60 * 60 * 24 * (EXPIRATION_DAYS - 1)); // e.g., 6 days for 7-day expiry
+      // e.g., 6 days for 7-day expiry
+      vi.advanceTimersByTime(1000 * 60 * 60 * 24 * (EXPIRATION_DAYS - 1));
 
       const { isVisible: isVisibleBeforeExpiration } = useDismissableBanner(
         BANNER_ID_TEMPORARY,
@@ -111,7 +117,7 @@ describe('useDismissableBanner', () => {
       expect(isVisibleBeforeExpiration.value).toBe(false); // Should still be hidden
     });
 
-    it.skip('should become visible again if re-initialized after expiration period', () => {
+    it('should become visible again if re-initialized after expiration period', () => {
       const { dismiss } = useDismissableBanner(BANNER_ID_TEMPORARY, EXPIRATION_DAYS);
       dismiss(); // Dismissed at MOCK_CURRENT_DATE_STR
 
@@ -132,7 +138,7 @@ describe('useDismissableBanner', () => {
       expect(isVisibleAfterExpiration.value).toBe(true); // Should now be visible
     });
 
-    it.skip('should be visible if initialized with a stored timestamp older than expiration period', () => {
+    it('should be visible if initialized with a stored timestamp older than expiration period', () => {
       const dismissedDate = new Date(MOCK_CURRENT_DATE_STR);
       // Set dismissal timestamp to be (EXPIRATION_DAYS + 1 day) in the past
       dismissedDate.setDate(dismissedDate.getDate() - (EXPIRATION_DAYS + 1));
@@ -150,7 +156,7 @@ describe('useDismissableBanner', () => {
       expect(isVisible.value).toBe(true); // Should be visible as it's expired
     });
 
-    it.skip('should remain hidden if initialized with a stored timestamp within expiration period', () => {
+    it('should remain hidden if initialized with a stored timestamp within expiration period', () => {
       const dismissedDate = new Date(MOCK_CURRENT_DATE_STR);
       // Set dismissal timestamp to be 1 day in the past
       dismissedDate.setDate(dismissedDate.getDate() - 1);
@@ -169,7 +175,7 @@ describe('useDismissableBanner', () => {
     });
   });
 
-  it.skip('should handle multiple banner instances independently', () => {
+  it('should handle multiple banner instances independently', () => {
     const banner1Id = 'multi-banner-1'; // Permanent
     const banner2Id = 'multi-banner-2'; // Temporary (5 days)
     const banner3Id = 'multi-banner-3'; // Permanent (default)
@@ -219,7 +225,7 @@ describe('useDismissableBanner', () => {
   });
 
   describe('generateBannerId', () => {
-    it.skip('should generate consistent IDs for the same content', async () => {
+    it('should generate consistent IDs for the same content', async () => {
       const options1 = { prefix: 'test', content: 'Hello World' };
       const options2 = { prefix: 'test', content: 'Hello World' };
 
@@ -229,7 +235,7 @@ describe('useDismissableBanner', () => {
       expect(id1).toBe(id2);
     });
 
-    it.skip('should generate different IDs for different content', async () => {
+    it('should generate different IDs for different content', async () => {
       const options1 = { prefix: 'test', content: 'Hello World' };
       const options2 = { prefix: 'test', content: 'Different content' };
 
@@ -239,14 +245,14 @@ describe('useDismissableBanner', () => {
       expect(id1).not.toBe(id2);
     });
 
-    it.skip('should include the prefix in the generated ID', async () => {
+    it('should include the prefix in the generated ID', async () => {
       const options = { prefix: 'custom-prefix', content: 'Some content' };
       const id = await generateBannerId(options);
 
       expect(id.startsWith('custom-prefix-')).toBe(true);
     });
 
-    it.skip('should handle null content by using a default value', async () => {
+    it('should handle null content by using a default value', async () => {
       const options = { prefix: 'test', content: null };
       const id = await generateBannerId(options);
 
@@ -254,7 +260,7 @@ describe('useDismissableBanner', () => {
     });
   });
 
-  it.skip('should handle invalid or missing localStorage data gracefully', () => {
+  it('should handle invalid or missing localStorage data gracefully', () => {
     // Case 1: Malformed JSON in localStorage
     localStorage.setItem('banner-bad-json', 'this is not valid json {');
     const { isVisible: isVisibleBadJson, dismiss: dismissBadJson } =
@@ -266,8 +272,8 @@ describe('useDismissableBanner', () => {
     expect(isVisibleBadJson.value).toBe(false);
     expect(JSON.parse(localStorage.getItem('banner-bad-json') || '{}').dismissed).toBe(true);
 
-    // Case 2: Item exists, dismissed is true, but timestamp is null (e.g. old/corrupted data)
-    // For temporary banners, this should effectively mean it's expired because (currentTime - 0) > expirationDays.
+    // Case 2: Item exists, dismissed true, but timestamp null (old/corrupted data)
+    // For temporary banners, effectively expired: (currentTime - 0) > expirationDays
     localStorage.setItem(
       `banner-${BANNER_ID_TEMPORARY}`,
       JSON.stringify({ dismissed: true, timestamp: null })
@@ -290,14 +296,14 @@ describe('useDismissableBanner', () => {
 
   describe('Content-based banner IDs', () => {
     // For these tests, we'll use string IDs since we already tested the hash generation separately
-    it.skip('should accept an options object for ID generation', () => {
+    it('should accept an options object for ID generation', () => {
       const { bannerId, isVisible } = useDismissableBanner('content-test-abc123', 0);
 
       expect(bannerId.value).toBe('content-test-abc123');
       expect(isVisible.value).toBe(true);
     });
 
-    it.skip('should treat different content as different banners', () => {
+    it('should treat different content as different banners', () => {
       // Set up a dismissed banner
       const { dismiss } = useDismissableBanner('content-message1', 0);
       dismiss();
@@ -308,7 +314,7 @@ describe('useDismissableBanner', () => {
       expect(isVisibleNewContent.value).toBe(true);
     });
 
-    it.skip('should recognize the same content as the same banner', () => {
+    it('should recognize the same content as the same banner', () => {
       const bannerId = 'repeat-same-content';
 
       // Set up a dismissed banner

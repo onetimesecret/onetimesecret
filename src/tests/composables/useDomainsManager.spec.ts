@@ -129,8 +129,6 @@ describe('useDomainsManager', () => {
 
     vi.clearAllMocks();
     // Reset reactive refs
-    mockDependencies.domainsStore.error.value = null;
-    mockDependencies.domainsStore.isLoading.value = false;
     mockDependencies.domainsStore.records.value = mockDomains;
     mockDependencies.errorHandler.wrap.mockImplementation(async (fn) => await fn());
   });
@@ -148,8 +146,8 @@ describe('useDomainsManager', () => {
           newDomainData.domainid
         );
         expect(mockDependencies.router.push).toHaveBeenCalledWith({
-          name: 'DomainVerify', // name of the route
-          params: { domain: newDomainData.domainid },
+          name: 'DomainVerify',
+          params: { extid: newDomainData.extid },
         });
         expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
           'Domain added successfully',

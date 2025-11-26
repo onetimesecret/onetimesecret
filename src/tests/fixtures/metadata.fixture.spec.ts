@@ -206,9 +206,11 @@ describe('Metadata Fixtures Integrity', () => {
       ];
 
       records.forEach((record) => {
-        expect(record.created).toBeInstanceOf(Date);
-        expect(record.updated).toBeInstanceOf(Date);
-        expect(record.updated.getTime()).toBeGreaterThanOrEqual(record.created.getTime());
+        // Timestamps in raw fixtures are Unix timestamps (numbers)
+        expect(typeof record.created).toBe('number');
+        expect(typeof record.updated).toBe('number');
+        expect(record.created).toBeGreaterThan(0);
+        expect(record.updated).toBeGreaterThanOrEqual(record.created);
       });
     });
 

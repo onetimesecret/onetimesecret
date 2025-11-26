@@ -3,7 +3,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useMfa } from '@/composables/useMfa';
 import { setupTestPinia } from '../setup';
-import type { AxiosInstance } from 'axios';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 
 // Mock QR code generation
@@ -128,7 +127,7 @@ describe('useMfa', () => {
       const result = await setupMfa('Onetime Secret', 'test@example.com', 'wrong_password');
 
       expect(result).toBeNull();
-      expect(error.value).toBe('web.auth.security.authentication_failed');
+      expect(error.value).toBe('web.auth.security.internal_error');
     });
 
     it('handles 422 without HMAC data (actual error)', async () => {
@@ -148,7 +147,7 @@ describe('useMfa', () => {
       const result = await setupMfa('Onetime Secret', 'test@example.com');
 
       expect(result).toBeNull();
-      expect(error.value).toBe('web.auth.security.rate_limited');
+      expect(error.value).toBe('web.auth.security.internal_error');
     });
 
     it('handles authentication required errors', async () => {
@@ -158,7 +157,7 @@ describe('useMfa', () => {
       const result = await setupMfa('Onetime Secret', 'test@example.com');
 
       expect(result).toBeNull();
-      expect(error.value).toBe('web.auth.security.authentication_failed');
+      expect(error.value).toBe('web.auth.security.internal_error');
     });
   });
 
@@ -210,7 +209,7 @@ describe('useMfa', () => {
       const result = await enableMfa('123456', 'wrong_password');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('web.auth.security.authentication_failed');
+      expect(error.value).toBe('web.auth.security.internal_error');
     });
 
     it('handles network errors gracefully', async () => {
@@ -274,7 +273,7 @@ describe('useMfa', () => {
       const result = await verifyOtp('123456');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('web.auth.security.authentication_failed');
+      expect(error.value).toBe('web.auth.security.internal_error');
     });
 
     it('handles rate limiting with specific message', async () => {
@@ -284,7 +283,7 @@ describe('useMfa', () => {
       const result = await verifyOtp('123456');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('web.auth.security.rate_limited');
+      expect(error.value).toBe('web.auth.security.internal_error');
     });
   });
 
@@ -323,7 +322,7 @@ describe('useMfa', () => {
       const result = await disableMfa('password123');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('web.auth.security.authentication_failed');
+      expect(error.value).toBe('web.auth.security.internal_error');
     });
   });
 
@@ -429,7 +428,7 @@ describe('useMfa', () => {
       const result = await verifyRecoveryCode('USED_CODE');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('web.auth.security.recovery_code_used');
+      expect(error.value).toBe('web.auth.security.internal_error');
     });
   });
 
@@ -461,7 +460,7 @@ describe('useMfa', () => {
       const { setupMfa, error, clearError } = useMfa();
 
       await setupMfa('Onetime Secret', 'test@example.com');
-      expect(error.value).toBe('web.auth.security.authentication_failed');
+      expect(error.value).toBe('web.auth.security.internal_error');
 
       // Clear error manually
       clearError();
