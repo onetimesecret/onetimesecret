@@ -32,13 +32,8 @@
   const secretContentRef = ref<InstanceType<typeof SecretContentInputArea> | null>(null);
 
   onMounted(async () => {
-    try {
-      await loadConfig();
-    } catch {
-      // Error is captured in incomingStore.configError
-    } finally {
-      isLoading.value = false;
-    }
+    await loadConfig();
+    isLoading.value = false;
   });
 
   const handleTitleBlur = () => {
@@ -86,23 +81,23 @@
       :show="isLoading"
       :message="t('incoming.loading_config')" />
 
-    <!-- Error State -->
-    <EmptyState v-if="incomingStore.configError" :show-action="false">
-      <template #title>
-        {{ t('incoming.config_error_title') }}
-      </template>
-      <template #description>
-        {{ incomingStore.configError }}
-      </template>
-    </EmptyState>
-
     <!-- Feature Disabled -->
-    <EmptyState v-else-if="!isFeatureEnabled" :show-action="false">
+    <EmptyState v-if="!isFeatureEnabled" :show-action="false">
       <template #title>
         {{ t('incoming.feature_disabled_title') }}
       </template>
       <template #description>
         {{ t('incoming.feature_disabled_description') }}
+      </template>
+    </EmptyState>
+
+    <!-- Error State -->
+    <EmptyState v-else-if="incomingStore.configError" :show-action="false">
+      <template #title>
+        {{ t('incoming.config_error_title') }}
+      </template>
+      <template #description>
+        {{ incomingStore.configError }}
       </template>
     </EmptyState>
 

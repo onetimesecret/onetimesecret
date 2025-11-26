@@ -59,6 +59,29 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
   const recipients = computed(() => incomingStore.recipients);
   const isFormValid = computed(() => !!(form.value.secret.trim() && form.value.recipientId));
 
+  // Two separate handlers because useAsyncHandler doesn't support per-call
+  // option overrides. Consider adding wrap(operation, overrides?) signature
+  // to useAsyncHandler if this pattern becomes common.
+
+  // Config loading: no notifications, sets store error state
+  const configHandlerOptions: AsyncHandlerOptions = {
+    notify: false,
+    setLoading: (loading) => (incomingStore.isLoading = loading),
+    onError: (err) => {
+      incomingStore.configError = err.message;
+    },
+  };
+
+  const { wrap: wrapConfig } = useAsyncHandler(configHandlerOptions);
+
+  // Form submission: shows user notifications
+  const submitHandlerOptions: AsyncHandlerOptions = {
+    notify: (message, severity) => notifications.show(message, severity),
+    setLoading: (loading) => (isSubmitting.value = loading),
+  };
+
+  const { wrap: wrapSubmit } = useAsyncHandler(submitHandlerOptions);
+
   // Validation
   const validateMemo = (): boolean => {
     // Memo is optional, only validate if provided
@@ -103,13 +126,6 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
     errors.value = {};
   };
 
-  const asyncHandlerOptions: AsyncHandlerOptions = {
-    notify: (message, severity) => notifications.show(message, severity),
-    setLoading: (loading) => (isSubmitting.value = loading),
-  };
-
-  const { wrap } = useAsyncHandler(asyncHandlerOptions);
-
   /**
    * Creates API payload from form data
    */
@@ -122,8 +138,8 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
   /**
    * Handles form submission
    */
-  const submit = async () =>
-    wrap(async () => {
+  const submit = () =>
+    wrapSubmit(async () => {
       if (!isFeatureEnabled.value) {
         throw createError('Incoming secrets feature is not enabled', 'human');
       }
@@ -162,15 +178,12 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
 
   /**
    * Loads configuration from API
+   * Errors are stored in incomingStore.configError for UI display
    */
-  const loadConfig = async () => {
-    try {
+  const loadConfig = () =>
+    wrapConfig(async () => {
       await incomingStore.loadConfig();
-    } catch (error) {
-      notifications.show('Failed to load configuration', 'error');
-      throw error;
-    }
-  };
+    });
 
   return {
     // Form state
