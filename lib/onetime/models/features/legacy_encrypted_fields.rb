@@ -234,7 +234,7 @@ module Onetime
             OT.li "[passphrase?] Invalid BCrypt hash: #{ex.message}"
             false
           rescue ::Argon2::ArgonHashFail => ex
-            OT.li "[passphrase?] Invalid Argon2 hash: #{ex.message}"
+            OT.li "[passphrase?] Argon2 hash operation failed: #{ex.message}"
             false
           end
 

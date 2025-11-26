@@ -47,6 +47,15 @@ module Core::Logic
           email: customer.obscure_email,
           action: 'password_hash_migration',
         }
+      rescue StandardError => ex
+        # Log the error but don't fail the login - the bcrypt hash remains
+        # intact and will be migrated on the next successful login attempt.
+        auth_logger.error 'Password hash migration failed', {
+          user_id: customer.objid,
+          email: customer.obscure_email,
+          error: ex.message,
+          action: 'password_hash_migration_failed',
+        }
       end
 
       def raise_concerns
