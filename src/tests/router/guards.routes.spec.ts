@@ -44,12 +44,21 @@ vi.mock('@/services/window.service', () => ({
   },
 }));
 
+vi.mock('@/composables/usePageTitle', () => ({
+  usePageTitle: vi.fn(() => ({
+    setTitle: vi.fn(),
+    useComputedTitle: vi.fn(),
+    formatTitle: vi.fn(),
+  })),
+}));
+
 describe('Router Guards', () => {
   let router: Router;
 
   beforeEach(() => {
     router = {
       beforeEach: vi.fn(),
+      afterEach: vi.fn(),
     } as unknown as Router;
 
     vi.clearAllMocks();

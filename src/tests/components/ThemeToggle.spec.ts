@@ -1,50 +1,65 @@
 // src/tests/components/ThemeToggle.spec.ts
 
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 
-const mockInitializeTheme = vi.fn();
-const mockToggleDarkMode = vi.fn();
 const mockIsDarkMode = { value: false };
-const mockGetThemeListenersSize = vi.fn();
+const mockInitializeTheme = vi.fn();
+const mockToggleDarkMode = vi.fn(() => {
+  mockIsDarkMode.value = !mockIsDarkMode.value;
+});
+const mockClearThemeListeners = vi.fn();
+const mockGetThemeListenersSize = vi.fn(() => 0);
 
 vi.mock('@/composables/useTheme', () => ({
   useTheme: vi.fn(() => ({
     isDarkMode: mockIsDarkMode,
     toggleDarkMode: mockToggleDarkMode,
     initializeTheme: mockInitializeTheme,
-    clearThemeListeners: vi.fn(),
+    clearThemeListeners: mockClearThemeListeners,
     getThemeListenersSize: mockGetThemeListenersSize,
   })),
 }));
 
+vi.mock('vue-i18n', () => ({
+  useI18n: vi.fn(() => ({
+    t: vi.fn((key: string) => key),
+  })),
+}));
+
 describe('ThemeToggle', () => {
+  beforeEach(() => {
+    // Reset mocks and state before each test
+    mockIsDarkMode.value = false;
+    mockInitializeTheme.mockClear();
+    mockToggleDarkMode.mockClear();
+    mockClearThemeListeners.mockClear();
+  });
+
   it('emits "theme-changed" event with correct value when toggled', async () => {
     const wrapper = mount(ThemeToggle);
     await wrapper.find('button').trigger('click');
+
+    // After toggle, isDarkMode changes from false to true
     expect(wrapper.emitted('theme-changed')).toBeTruthy();
-    expect(wrapper.emitted('theme-changed')?.[0]).toEqual([false]);
+    expect(wrapper.emitted('theme-changed')?.[0]).toEqual([true]);
   });
 
   it('initializes theme on mount', () => {
     mount(ThemeToggle);
-    expect(mockIsDarkMode.value).toEqual(false);
-    expect(mockInitializeTheme).toHaveBeenCalled();
-    expect(mockIsDarkMode.value).toEqual(false);
+    expect(mockInitializeTheme).toHaveBeenCalledOnce();
   });
 
   it('cleans up listeners on unmount', () => {
-    mockGetThemeListenersSize.mockReturnValue(0);
     const wrapper = mount(ThemeToggle);
-    expect(mockGetThemeListenersSize()).toBe(0);
     wrapper.unmount();
-    expect(mockGetThemeListenersSize()).toBe(0);
+    expect(mockClearThemeListeners).toHaveBeenCalledOnce();
   });
 
   it('initializes with correct dark mode state', () => {
     const wrapper = mount(ThemeToggle);
-    expect(mockIsDarkMode.value).toBe(false); // Assuming initial light mode
+    expect(mockIsDarkMode.value).toBe(false);
   });
 
   it.skip('emits "theme-changed" event with correct value on toggle', async () => {
@@ -80,12 +95,8 @@ describe('ThemeToggle', () => {
   });
 
   it('verifies cleanup on unmount', () => {
-    mockGetThemeListenersSize.mockReturnValue(0);
     const wrapper = mount(ThemeToggle);
-
-    // Perform some actions that add listeners
-    expect(mockGetThemeListenersSize()).toBe(0);
     wrapper.unmount();
-    expect(mockGetThemeListenersSize()).toBe(0);
+    expect(mockClearThemeListeners).toHaveBeenCalledOnce();
   });
 });

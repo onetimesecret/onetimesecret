@@ -45,11 +45,44 @@ import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
  *  metadata fixtures only. This is a security feature.
  *
  */
+// Raw API response format (before transformation) - used for mocking API responses
+export const mockMetadataRecordRaw = {
+  key: 'testkey123',
+  shortid: 'abc123',
+  secret_identifier: 'secret-test-key-123',
+  secret_shortid: 'secret-abc123',
+  state: MetadataState.NEW,
+  natural_expiration: '24 hours',
+  expiration: 1735171614, // Unix timestamp in seconds (2024-12-26T00:06:54Z)
+  expiration_in_seconds: '86400',
+  share_path: '/share/abc123',
+  burn_path: '/burn/abc123',
+  metadata_path: '/metadata/abc123',
+  share_url: 'https://example.com/share/abc123',
+  metadata_url: 'https://example.com/metadata/abc123',
+  burn_url: 'https://example.com/burn/abc123',
+  identifier: 'test-identifier',
+  is_viewed: 'false',
+  is_received: 'false',
+  is_burned: 'false',
+  is_destroyed: 'false',
+  is_expired: 'false',
+  is_orphaned: 'false',
+  burned: null,
+  received: null,
+  created: 1735142814, // Unix timestamp in seconds (2024-12-25T16:06:54Z)
+  updated: 1735204014, // Unix timestamp in seconds (2024-12-26T09:06:54Z)
+  secret_ttl: null,
+  metadata_ttl: null,
+  lifespan: null,
+};
+
+// Transformed format (after Zod transformation) - used for assertions
 export const mockMetadataRecord: Metadata = {
   key: 'testkey123',
   shortid: 'abc123',
-  secret_identifier: 'secret-test-key-123', // Added
-  secret_shortid: 'secret-abc123', // Added
+  secret_identifier: 'secret-test-key-123',
+  secret_shortid: 'secret-abc123',
   state: MetadataState.NEW,
   natural_expiration: '24 hours',
   expiration: new Date('2024-12-26T00:06:54Z'),
@@ -76,9 +109,26 @@ export const mockMetadataRecord: Metadata = {
   lifespan: null,
 };
 
+// Raw API response format for details
+export const mockMetadataDetailsRaw = {
+  type: 'record',
+  display_lines: '1',
+  no_cache: 'false',
+  secret_realttl: 86400,
+  view_count: '0',
+  has_passphrase: 'false',
+  can_decrypt: 'true',
+  secret_value: 'test-secret',
+  show_secret: 'true',
+  show_secret_link: 'true',
+  show_metadata_link: 'true',
+  show_metadata: 'true',
+  show_recipients: 'false',
+};
+
+// Transformed format for details
 export const mockMetadataDetails: MetadataDetails = {
   type: 'record',
-
   display_lines: 1,
   no_cache: false,
   secret_realttl: 86400,
@@ -93,17 +143,40 @@ export const mockMetadataDetails: MetadataDetails = {
   show_recipients: false,
 };
 
+// Raw API response for burned metadata
+export const mockBurnedMetadataRecordRaw = {
+  ...mockMetadataRecordRaw,
+  key: 'burnedkey',
+  shortid: 'b123',
+  state: MetadataState.BURNED,
+  burned: '2024-12-25T16:06:54Z', // ISO string for burned field
+  secret_identifier: 'secret-burned-key-123',
+  secret_shortid: 'secret-burned-abc123',
+  is_burned: 'true',
+};
+
+// Transformed burned metadata
 export const mockBurnedMetadataRecord: Metadata = {
   ...mockMetadataRecord,
   key: 'burnedkey',
   shortid: 'b123',
   state: MetadataState.BURNED,
   burned: new Date('2024-12-25T16:06:54Z'),
-  secret_identifier: 'secret-burned-key-123', // Updated
-  secret_shortid: 'secret-burned-abc123', // Updated
+  secret_identifier: 'secret-burned-key-123',
+  secret_shortid: 'secret-burned-abc123',
   is_burned: true,
 };
 
+// Raw API response for burned details
+export const mockBurnedMetadataDetailsRaw = {
+  ...mockMetadataDetailsRaw,
+  show_secret: 'false',
+  show_secret_link: 'false',
+  can_decrypt: 'false',
+  secret_value: null,
+};
+
+// Transformed burned details
 export const mockBurnedMetadataDetails: MetadataDetails = {
   ...mockMetadataDetails,
   show_secret: false,
@@ -118,8 +191,8 @@ export const mockReceivedMetadataRecord: Metadata = {
   shortid: 'rcv123',
   state: MetadataState.RECEIVED,
   received: new Date('2024-12-25T16:06:54Z'),
-  secret_identifier: 'secret-received-key-123', // Updated
-  secret_shortid: 'secret-received-abc123', // Updated
+  secret_identifier: 'secret-received-key-123',
+  secret_shortid: 'secret-received-abc123',
   is_received: true,
 };
 
