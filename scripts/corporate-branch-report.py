@@ -14,7 +14,7 @@ Arguments:
   base-branch    Branch to compare against (default: develop)
 
 Requirements:
-  pip install rich
+  pip install rich GitPython
 """
 
 import argparse
@@ -22,7 +22,14 @@ import shutil
 import subprocess
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
+try:
+    import git
+    from git import Repo
+except ImportError:
+    print("Please install GitPython: pip install GitPython", file=sys.stderr)
+    sys.exit(1)
 
 try:
     from rich.console import Console
@@ -41,17 +48,16 @@ console = Console(width=max(term_width, 140))
 @dataclass
 class Branch:
     name: str
+    commit: "git.Commit"
     ahead: int = 0
     behind: int = 0
-    base_name: str = ""  # merge-base branch/tag/hash
+    base_name: str = ""
     pr: str = "-"
-    latest_hash: str = ""
-    latest_msg: str = ""
-    push_timestamp: int = 0
-    forked_from: str = ""  # detected fork point
-    subsumed_by: str = ""  # branch that contains this one
+    forked_from: str = ""
+    subsumed_by: str = ""
     in_worktree: bool = False
     is_current: bool = False
+    commits_ahead: set = field(default_factory=set)  # Set of commit SHAs ahead of base
 
     @property
     def is_stale(self) -> bool:
@@ -68,6 +74,18 @@ class Branch:
     @property
     def display_forked_from(self) -> str:
         return self.forked_from or self.base_name
+
+    @property
+    def latest_hash(self) -> str:
+        return self.commit.hexsha[:4]
+
+    @property
+    def latest_msg(self) -> str:
+        return self.commit.message.split('\n')[0][:36]
+
+    @property
+    def push_timestamp(self) -> int:
+        return self.commit.committed_date
 
 
 def run(cmd: str, default: str = "") -> str:
@@ -97,7 +115,7 @@ def format_short_time(timestamp: int) -> str:
     return f"{diff // 86400}d"
 
 
-def get_worktrees() -> dict[str, str]:
+def get_worktrees(repo: Repo) -> dict[str, str]:
     """Return dict of branch_name -> worktree_path."""
     worktrees = {}
     output = run("git worktree list")
@@ -110,147 +128,152 @@ def get_worktrees() -> dict[str, str]:
     return worktrees
 
 
-def get_branch_refs() -> dict[str, str]:
-    """Return dict of commit_hash -> branch_name for all branches."""
-    refs = {}
-    output = run("git for-each-ref --format='%(objectname) %(refname:short)' refs/heads/")
-    for line in output.splitlines():
-        parts = line.split(maxsplit=1)
-        if len(parts) == 2:
-            refs[parts[0]] = parts[1]
-    return refs
+def get_commits_between(repo: Repo, base: str, head: str) -> set[str]:
+    """Get set of commit SHAs between base and head (commits in head but not in base)."""
+    try:
+        commits = set()
+        for commit in repo.iter_commits(f"{base}..{head}"):
+            commits.add(commit.hexsha)
+        return commits
+    except git.GitCommandError:
+        return set()
 
 
-def get_tags() -> dict[str, str]:
-    """Return dict of commit_hash -> tag_name."""
-    tags = {}
-    output = run("git for-each-ref --format='%(objectname) %(refname:short)' refs/tags/")
-    for line in output.splitlines():
-        parts = line.split(maxsplit=1)
-        if len(parts) == 2:
-            tags[parts[0]] = parts[1]
-    return tags
-
-
-def resolve_base_name(commit: str, branch_refs: dict, tags: dict) -> str:
+def resolve_base_name(repo: Repo, commit: "git.Commit") -> str:
     """Resolve a commit to branch name, tag name, or short hash."""
-    if commit in branch_refs:
-        return branch_refs[commit]
-    if commit in tags:
-        return tags[commit]
-    return commit[:7] if commit else "unknown"
+    commit_sha = commit.hexsha
+
+    # Check if any branch points to this commit
+    for ref in repo.heads:
+        try:
+            if ref.commit.hexsha == commit_sha:
+                return ref.name
+        except (ValueError, git.GitCommandError):
+            continue  # Skip invalid refs
+
+    # Check tags
+    for tag in repo.tags:
+        try:
+            if tag.commit.hexsha == commit_sha:
+                return tag.name
+        except (ValueError, git.GitCommandError):
+            continue
+
+    return commit_sha[:7]
 
 
-def collect_branches(base_branch: str, worktrees_only: bool) -> list[Branch]:
-    """Collect all branch data."""
-    worktrees = get_worktrees()
-    branch_refs = get_branch_refs()
-    tags = get_tags()
-    current = run("git rev-parse --abbrev-ref HEAD")
+def collect_branches(repo: Repo, base_branch: str, worktrees_only: bool) -> list[Branch]:
+    """Collect all branch data using GitPython."""
+    worktrees = get_worktrees(repo)
+    current = repo.active_branch.name if not repo.head.is_detached else ""
+
+    try:
+        base_commit = repo.commit(base_branch)
+    except git.BadName:
+        console.print(f"[red]Error: Base branch '{base_branch}' not found[/red]")
+        sys.exit(1)
 
     branches = []
-    branch_list = run("git for-each-ref --sort=-committerdate refs/heads/ --format='%(refname:short)'")
 
-    for name in branch_list.splitlines():
+    for ref in repo.heads:
+        name = ref.name
         if name == base_branch:
             continue
 
         if worktrees_only and name not in worktrees:
             continue
 
-        ahead = int(run(f"git rev-list --count {base_branch}..{name}", "0") or "0")
+        # Get commits ahead/behind
+        commits_ahead = get_commits_between(repo, base_branch, name)
+        ahead = len(commits_ahead)
+
         if ahead == 0:
             continue
 
-        behind = int(run(f"git rev-list --count {name}..{base_branch}", "0") or "0")
+        commits_behind = get_commits_between(repo, name, base_branch)
+        behind = len(commits_behind)
 
         # Get merge base
-        merge_base = run(f"git merge-base {name} {base_branch}")
-        base_name = resolve_base_name(merge_base, branch_refs, tags) if merge_base else "unknown"
+        try:
+            merge_bases = repo.merge_base(ref.commit, base_commit)
+            if merge_bases:
+                base_name = resolve_base_name(repo, merge_bases[0])
+            else:
+                base_name = "unknown"
+        except git.GitCommandError:
+            base_name = "unknown"
 
-        # Get PR
+        # Get PR (still use gh cli for this)
         pr = run(f"gh pr list --head {name} --json number --jq '.[0].number // empty'")
         pr = f"#{pr}" if pr else "-"
 
-        # Get latest commit
-        latest_hash = run(f"git log -1 --format='%h' {name}")[:4]
-        latest_msg = run(f"git log -1 --format='%s' {name}")[:36]
-
-        # Get push timestamp
-        push_ts = int(run(f"git log -1 --format='%ct' {name}", "0") or "0")
-
         branch = Branch(
             name=name,
+            commit=ref.commit,
             ahead=ahead,
             behind=behind,
             base_name=base_name,
             pr=pr,
-            latest_hash=latest_hash,
-            latest_msg=latest_msg,
-            push_timestamp=push_ts,
             in_worktree=name in worktrees,
             is_current=name == current,
+            commits_ahead=commits_ahead,
         )
         branches.append(branch)
 
     return branches
 
 
-def detect_subsumption(branches: list[Branch], base_branch: str) -> None:
-    """Detect which branches are subsumed by others (commit prefix matching)."""
+def detect_subsumption(branches: list[Branch]) -> None:
+    """
+    Detect which branches are subsumed by others using commit set containment.
+
+    A branch B1 is subsumed by B2 if:
+    - B1's commits are a proper subset of B2's commits
+    - We find the SMALLEST such B2 (immediate parent)
+    """
     # Only consider branches that are 0 behind (clean lineage from base)
-    branch_commits: dict[str, str] = {}
-    for b in branches:
-        if b.behind == 0:
-            commits = run(f"git rev-list --reverse {base_branch}..{b.name}")
-            branch_commits[b.name] = commits
+    clean_branches = [b for b in branches if b.behind == 0 and b.commits_ahead]
 
-    # Find subsumption relationships - find the SMALLEST branch that contains each
-    for b1 in branches:
-        if b1.name not in branch_commits:
-            continue
-        commits1 = branch_commits[b1.name]
-        if not commits1:
-            continue
-
-        # Find all branches that subsume b1, then pick the smallest (immediate parent)
+    for b1 in clean_branches:
+        # Find all branches whose commits are a proper superset of b1's commits
         subsumers = []
-        for b2 in branches:
-            if b1.name == b2.name or b2.name not in branch_commits:
+        for b2 in clean_branches:
+            if b1.name == b2.name:
                 continue
-            commits2 = branch_commits[b2.name]
-            if not commits2:
-                continue
-
-            # b1 is subsumed by b2 if b2's commits start with b1's commits
-            if commits2.startswith(commits1) and b1.ahead < b2.ahead:
+            # b2 subsumes b1 if b2's commits contain all of b1's commits AND has more
+            if b1.commits_ahead < b2.commits_ahead:  # proper subset
                 subsumers.append(b2)
 
         if subsumers:
             # Pick the smallest subsumer (immediate parent in the chain)
-            immediate_parent = min(subsumers, key=lambda x: x.ahead)
+            immediate_parent = min(subsumers, key=lambda x: len(x.commits_ahead))
             b1.subsumed_by = immediate_parent.name
+
             # Set forked_from on the parent (track the largest child)
-            if not immediate_parent.forked_from or b1.ahead > next(
-                (x.ahead for x in branches if x.name == immediate_parent.forked_from), 0
-            ):
+            current_fork = immediate_parent.forked_from
+            if not current_fork:
                 immediate_parent.forked_from = b1.name
+            else:
+                # Find the current fork branch and compare
+                current_fork_branch = next((b for b in branches if b.name == current_fork), None)
+                if current_fork_branch and len(b1.commits_ahead) > len(current_fork_branch.commits_ahead):
+                    immediate_parent.forked_from = b1.name
 
 
 def get_fork_age(branch: Branch, branches: list[Branch]) -> int:
     """Get timestamp of fork point for age calculation."""
     fork_name = branch.forked_from or branch.base_name
-    # Find the branch or use base_name as fallback
     for b in branches:
         if b.name == fork_name:
             return b.push_timestamp
-    # If not a branch, get commit timestamp
+    # If not a branch, get commit timestamp via subprocess
     ts = run(f"git log -1 --format='%ct' {fork_name}", "0")
     return int(ts) if ts else 0
 
 
 def build_subsumption_tree(branch_name: str, branches: list[Branch]) -> str:
     """Recursively build nested subsumption string."""
+    # Find all branches directly subsumed by this one
     direct = [b.name for b in branches if b.subsumed_by == branch_name]
     if not direct:
         return ""
@@ -355,7 +378,13 @@ def main():
 
     console.print(f"[bold]Corporate Branch Report[/bold] [dim](base: {args.base_branch})[/dim]\n")
 
-    branches = collect_branches(args.base_branch, args.worktrees)
+    try:
+        repo = Repo(".", search_parent_directories=True)
+    except git.InvalidGitRepositoryError:
+        console.print("[red]Error: Not a git repository[/red]")
+        sys.exit(1)
+
+    branches = collect_branches(repo, args.base_branch, args.worktrees)
 
     if not branches:
         console.print(f"  No branches ahead of {args.base_branch}")
@@ -363,7 +392,7 @@ def main():
             console.print("  (filtered to worktrees only)")
         return
 
-    detect_subsumption(branches, args.base_branch)
+    detect_subsumption(branches)
 
     # Sort by commits ahead
     branches.sort(key=lambda x: x.ahead)
