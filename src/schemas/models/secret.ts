@@ -1,3 +1,5 @@
+// src/schemas/models/secret.ts
+
 import { createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';

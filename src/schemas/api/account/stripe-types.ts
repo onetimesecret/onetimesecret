@@ -1,3 +1,5 @@
+// src/schemas/api/account/stripe-types.ts
+
 /**
  * Minimal Stripe Type Definitions for OpenAPI Documentation
  *

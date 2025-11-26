@@ -1,3 +1,5 @@
+// src/types/declarations/locales.d.ts
+
 type JSONValue = string | number | boolean | { [key: string]: JSONValue } | JSONValue[];
 
 // locales.d.ts - Individual locale file declarations (legacy)

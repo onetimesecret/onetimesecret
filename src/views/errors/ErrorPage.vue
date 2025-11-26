@@ -1,3 +1,5 @@
+<!-- src/views/errors/ErrorPage.vue -->
+
 <script setup lang="ts">
 
 const { t } = useI18n();

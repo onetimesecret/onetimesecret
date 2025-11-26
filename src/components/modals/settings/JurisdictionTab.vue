@@ -1,3 +1,5 @@
+<!-- src/components/modals/settings/JurisdictionTab.vue -->
+
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 import { WindowService } from '@/services/window.service';

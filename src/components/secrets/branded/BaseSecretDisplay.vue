@@ -1,4 +1,4 @@
-<!-- src/components/secrets/BaseSecretDisplay.vue -->
+<!-- src/components/secrets/branded/BaseSecretDisplay.vue -->
 
 <script setup lang="ts">
   /**

@@ -1,3 +1,5 @@
+<!-- src/components/account/DomainBrandView.vue -->
+
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';

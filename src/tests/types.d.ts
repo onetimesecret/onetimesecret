@@ -1,3 +1,5 @@
+// src/tests/types.d.ts
+
 import type { CustomDomain } from '@/schemas/models/domain';
 import type { Mock } from 'vitest';
 import type { Ref } from 'vue';

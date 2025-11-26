@@ -1,4 +1,5 @@
-// API Schema Organization
+// src/schemas/api/index.ts
+
 //
 // - auth/      - Shared authentication schemas (JSON-typed)
 // - v2/        - Public API with string-based responses (legacy)

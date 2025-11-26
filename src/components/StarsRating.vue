@@ -1,3 +1,5 @@
+<!-- src/components/StarsRating.vue -->
+
 <script setup lang="ts">
 
 interface Props {

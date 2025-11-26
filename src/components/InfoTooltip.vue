@@ -1,3 +1,5 @@
+<!-- src/components/InfoTooltip.vue -->
+
 <!--
   Usage:
 

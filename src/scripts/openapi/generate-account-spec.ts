@@ -1,3 +1,5 @@
+// src/scripts/openapi/generate-account-spec.ts
+
 /**
  * Generate OpenAPI 3.0.3 Specification for Account API
  *
@@ -16,23 +18,28 @@ import {
   parseApiRoutes,
   getAuthRequirements,
   toOpenAPIPath,
-  type OttoRoute
+  type OttoRoute,
 } from './otto-routes-parser';
 import { findRouteMapping, mergeResponses, type RouteMapping } from './route-config';
 
 // Import Account schemas
 import { apiTokenSchema, checkAuthDetailsSchema } from '@/schemas/api/account/endpoints/account';
-import { colonelInfoDetailsSchema, colonelStatsDetailsSchema } from '@/schemas/api/account/endpoints/colonel';
+import {
+  colonelInfoDetailsSchema,
+  colonelStatsDetailsSchema,
+} from '@/schemas/api/account/endpoints/colonel';
 import { customerSchema } from '@/schemas/models/customer';
 import { stripeCustomerSchema, stripeSubscriptionSchema } from '@/schemas/api/account/stripe-types';
 
 // Create OpenAPI-compatible account schema with proper Stripe types
-const accountSchemaForOpenAPI = z.object({
-  cust: customerSchema,
-  apitoken: z.string().optional(),
-  stripe_customer: stripeCustomerSchema.nullable(),
-  stripe_subscriptions: z.array(stripeSubscriptionSchema).nullable()
-}).openapi('Account');
+const accountSchemaForOpenAPI = z
+  .object({
+    cust: customerSchema,
+    apitoken: z.string().optional(),
+    stripe_customer: stripeCustomerSchema.nullable(),
+    stripe_subscriptions: z.array(stripeSubscriptionSchema).nullable(),
+  })
+  .openapi('Account');
 
 console.log('🔨 Generating OpenAPI Specification for Account API...\n');
 
@@ -47,14 +54,14 @@ const registry = new OpenAPIRegistry();
 registry.registerComponent('securitySchemes', 'BasicAuth', {
   type: 'http',
   scheme: 'basic',
-  description: 'HTTP Basic Authentication using API credentials (username:api_token)'
+  description: 'HTTP Basic Authentication using API credentials (username:api_token)',
 });
 
 registry.registerComponent('securitySchemes', 'SessionAuth', {
   type: 'apiKey',
   in: 'cookie',
   name: 'sess',
-  description: 'Session-based authentication via browser cookie'
+  description: 'Session-based authentication via browser cookie',
 });
 
 // Register component schemas
@@ -66,10 +73,12 @@ registry.register('ColonelInfo', colonelInfoDetailsSchema);
 registry.register('ColonelStats', colonelStatsDetailsSchema);
 
 // Error response schema
-const errorResponseSchema = z.object({
-  message: z.string(),
-  code: z.string().optional()
-}).openapi('ErrorResponse');
+const errorResponseSchema = z
+  .object({
+    message: z.string(),
+    code: z.string().optional(),
+  })
+  .openapi('ErrorResponse');
 registry.register('ErrorResponse', errorResponseSchema);
 
 console.log('✅ Schemas registered\n');
@@ -101,15 +110,22 @@ function getSecurityArray(route: OttoRoute) {
 }
 
 // Request schemas for endpoints that accept input
-const changePasswordRequestSchema = z.object({
-  current_password: z.string(),
-  new_password: z.string().min(6),
-  confirm_password: z.string()
-}).openapi('ChangePasswordRequest');
+const changePasswordRequestSchema = z
+  .object({
+    current_password: z.string(),
+    new_password: z.string().min(6),
+    confirm_password: z.string(),
+  })
+  .openapi('ChangePasswordRequest');
 
-const updateLocaleRequestSchema = z.object({
-  locale: z.string().regex(/^[a-z]{2}(-[A-Z]{2})?$/).describe('Language code (e.g., en, es, fr)')
-}).openapi('UpdateLocaleRequest');
+const updateLocaleRequestSchema = z
+  .object({
+    locale: z
+      .string()
+      .regex(/^[a-z]{2}(-[A-Z]{2})?$/)
+      .describe('Language code (e.g., en, es, fr)'),
+  })
+  .openapi('UpdateLocaleRequest');
 
 /**
  * Route mapping configuration - declarative approach
@@ -120,11 +136,15 @@ const routeMappings: RouteMapping[] = [
     matcher: { method: 'POST', path: '/account/destroy' },
     openapi: {
       summary: 'Destroy account',
-      description: 'Permanently delete the user account and all associated data. This action cannot be undone.',
-      responses: mergeResponses({
-        200: { description: 'Account destroyed successfully' }
-      }, [401, 500])
-    }
+      description:
+        'Permanently delete the user account and all associated data. This action cannot be undone.',
+      responses: mergeResponses(
+        {
+          200: { description: 'Account destroyed successfully' },
+        },
+        [401, 500]
+      ),
+    },
   },
   {
     matcher: { method: 'POST', path: '/account/change-password' },
@@ -132,76 +152,94 @@ const routeMappings: RouteMapping[] = [
       summary: 'Change password',
       description: 'Update the account password. Requires current password verification.',
       requestSchema: changePasswordRequestSchema,
-      responses: mergeResponses({
-        200: { description: 'Password changed successfully' }
-      }, [400, 401])
-    }
+      responses: mergeResponses(
+        {
+          200: { description: 'Password changed successfully' },
+        },
+        [400, 401]
+      ),
+    },
   },
   {
     matcher: { method: 'POST', path: '/account/update-locale' },
     openapi: {
       summary: 'Update locale preference',
-      description: 'Change the user\'s language preference for the interface.',
+      description: "Change the user's language preference for the interface.",
       requestSchema: updateLocaleRequestSchema,
-      responses: mergeResponses({
-        200: { description: 'Locale updated successfully' }
-      }, [400])
-    }
+      responses: mergeResponses(
+        {
+          200: { description: 'Locale updated successfully' },
+        },
+        [400]
+      ),
+    },
   },
   {
     matcher: { method: 'POST', path: '/account/apitoken' },
     openapi: {
       summary: 'Generate API token',
-      description: 'Generate a new API token for programmatic access. Previous token will be invalidated.',
+      description:
+        'Generate a new API token for programmatic access. Previous token will be invalidated.',
       responseSchema: apiTokenSchema,
-      responses: mergeResponses({
-        200: {
-          description: 'API token generated successfully',
-          content: {
-            'application/json': {
-              schema: apiTokenSchema
-            }
-          }
-        }
-      }, [401])
-    }
+      responses: mergeResponses(
+        {
+          200: {
+            description: 'API token generated successfully',
+            content: {
+              'application/json': {
+                schema: apiTokenSchema,
+              },
+            },
+          },
+        },
+        [401]
+      ),
+    },
   },
   {
     matcher: { method: 'GET', path: '/account' },
     openapi: {
       summary: 'Get account details',
-      description: 'Retrieve complete account information including Stripe subscription data if applicable.',
+      description:
+        'Retrieve complete account information including Stripe subscription data if applicable.',
       responseSchema: accountSchemaForOpenAPI,
-      responses: mergeResponses({
-        200: {
-          description: 'Account details retrieved successfully',
-          content: {
-            'application/json': {
-              schema: accountSchemaForOpenAPI
-            }
-          }
-        }
-      }, [401])
-    }
+      responses: mergeResponses(
+        {
+          200: {
+            description: 'Account details retrieved successfully',
+            content: {
+              'application/json': {
+                schema: accountSchemaForOpenAPI,
+              },
+            },
+          },
+        },
+        [401]
+      ),
+    },
   },
   {
     matcher: { method: 'GET', path: '/colonel/info' },
     openapi: {
       summary: 'Get colonel dashboard info',
-      description: 'Retrieve comprehensive dashboard information for administrators. Requires colonel role.',
+      description:
+        'Retrieve comprehensive dashboard information for administrators. Requires colonel role.',
       responseSchema: colonelInfoDetailsSchema,
       tags: ['account', 'colonel'],
-      responses: mergeResponses({
-        200: {
-          description: 'Colonel info retrieved successfully',
-          content: {
-            'application/json': {
-              schema: colonelInfoDetailsSchema
-            }
-          }
-        }
-      }, [401, 403])
-    }
+      responses: mergeResponses(
+        {
+          200: {
+            description: 'Colonel info retrieved successfully',
+            content: {
+              'application/json': {
+                schema: colonelInfoDetailsSchema,
+              },
+            },
+          },
+        },
+        [401, 403]
+      ),
+    },
   },
   {
     matcher: { method: 'GET', path: '/colonel/stats' },
@@ -210,18 +248,21 @@ const routeMappings: RouteMapping[] = [
       description: 'Retrieve system-wide statistics for administrators. Requires colonel role.',
       responseSchema: colonelStatsDetailsSchema,
       tags: ['account', 'colonel'],
-      responses: mergeResponses({
-        200: {
-          description: 'Colonel stats retrieved successfully',
-          content: {
-            'application/json': {
-              schema: colonelStatsDetailsSchema
-            }
-          }
-        }
-      }, [401, 403])
-    }
-  }
+      responses: mergeResponses(
+        {
+          200: {
+            description: 'Colonel stats retrieved successfully',
+            content: {
+              'application/json': {
+                schema: colonelStatsDetailsSchema,
+              },
+            },
+          },
+        },
+        [401, 403]
+      ),
+    },
+  },
 ];
 
 // Process each route using the declarative configuration
@@ -234,23 +275,24 @@ for (const route of accountRoutes.routes) {
     continue;
   }
 
-  const tags = mapping.openapi.tags || (route.path.includes('/colonel') ? ['account', 'colonel'] : ['account']);
+  const tags =
+    mapping.openapi.tags ||
+    (route.path.includes('/colonel') ? ['account', 'colonel'] : ['account']);
   const security = getSecurityArray(route);
 
   // Path parameters
-  const pathParams = (openApiPath.match(/\{(\w+)\}/g) || []).map(param => param.slice(1, -1));
-  const params = pathParams.length > 0
-    ? {
-        path: z.object(
-          pathParams.reduce((acc, param) => ({ ...acc, [param]: z.string() }), {})
-        )
-      }
-    : undefined;
+  const pathParams = (openApiPath.match(/\{(\w+)\}/g) || []).map((param) => param.slice(1, -1));
+  const params =
+    pathParams.length > 0
+      ? {
+          path: z.object(pathParams.reduce((acc, param) => ({ ...acc, [param]: z.string() }), {})),
+        }
+      : undefined;
 
   // Construct full path - strip /account prefix from route path since it's in the base URL
   // Routes like "/account/destroy" should become "/api/account/destroy", not "/api/account/account/destroy"
   const routePath = openApiPath.startsWith('/account')
-    ? (openApiPath.slice('/account'.length) || '')
+    ? openApiPath.slice('/account'.length) || ''
     : openApiPath;
   const fullPath = routePath ? '/api/account' + routePath : '/api/account';
 
@@ -261,21 +303,21 @@ for (const route of accountRoutes.routes) {
       body: {
         content: {
           'application/json': {
-            schema: mapping.openapi.requestSchema
-          }
-        }
+            schema: mapping.openapi.requestSchema,
+          },
+        },
       },
-      params
+      params,
     };
   } else if (mapping.openapi.requestSchema) {
     request = {
       body: {
         content: {
           'application/json': {
-            schema: mapping.openapi.requestSchema
-          }
-        }
-      }
+            schema: mapping.openapi.requestSchema,
+          },
+        },
+      },
     };
   } else if (params) {
     request = { params };
@@ -290,7 +332,7 @@ for (const route of accountRoutes.routes) {
     tags,
     security,
     request,
-    responses: mapping.openapi.responses!
+    responses: mapping.openapi.responses!,
   });
 }
 
@@ -323,37 +365,37 @@ Some endpoints are restricted to users with the colonel (administrator) role.
     contact: {
       name: 'Onetime Secret Support',
       url: 'https://onetimesecret.com',
-      email: 'support@onetimesecret.com'
+      email: 'support@onetimesecret.com',
     },
     license: {
       name: 'MIT',
-      url: 'https://opensource.org/licenses/MIT'
-    }
+      url: 'https://opensource.org/licenses/MIT',
+    },
   },
   servers: [
     {
       url: 'https://onetimesecret.com',
-      description: 'Production server'
+      description: 'Production server',
     },
     {
       url: 'https://test.onetimesecret.com',
-      description: 'Test server'
+      description: 'Test server',
     },
     {
       url: 'http://localhost:3000',
-      description: 'Local development'
-    }
+      description: 'Local development',
+    },
   ],
   tags: [
     {
       name: 'account',
-      description: 'Account management operations'
+      description: 'Account management operations',
     },
     {
       name: 'colonel',
-      description: 'Administrator-only operations (requires colonel role)'
-    }
-  ]
+      description: 'Administrator-only operations (requires colonel role)',
+    },
+  ],
 });
 
 // Write to file
@@ -366,7 +408,9 @@ writeFileSync(outputPath, JSON.stringify(document, null, 2) + '\n', 'utf-8');
 console.log(`✅ OpenAPI spec written to: ${outputPath}`);
 console.log(`\n📊 Summary:`);
 console.log(`   - Routes: ${accountRoutes.routes.length}`);
-console.log(`   - Schemas: 6 (Account, ApiToken, ColonelInfo, ColonelStats, CheckAuthDetails, ErrorResponse)`);
+console.log(
+  `   - Schemas: 6 (Account, ApiToken, ColonelInfo, ColonelStats, CheckAuthDetails, ErrorResponse)`
+);
 console.log(`   - Security schemes: 2 (BasicAuth, SessionAuth)`);
 console.log(`   - Tags: 2 (account, colonel)`);
 console.log(`\n🎉 Done!\n`);

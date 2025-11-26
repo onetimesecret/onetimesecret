@@ -1,3 +1,5 @@
+<!-- src/views/account/AccountIndex.vue -->
+
 <script setup lang="ts">
   import AccountBillingSection from '@/components/account/AccountBillingSection.vue';
   import OIcon from '@/components/icons/OIcon.vue';

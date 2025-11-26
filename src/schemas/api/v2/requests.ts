@@ -1,3 +1,5 @@
+// src/schemas/api/v2/requests.ts
+
 import { brandSettingschema } from '@/schemas/models/domain/brand';
 import { z } from 'zod';
 

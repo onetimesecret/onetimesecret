@@ -1,3 +1,5 @@
+<!-- src/components/ButtonGroup.vue -->
+
 <script setup lang="ts">
 // Define your component's props
 defineProps({

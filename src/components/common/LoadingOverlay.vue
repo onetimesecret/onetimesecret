@@ -1,3 +1,5 @@
+<!-- src/components/common/LoadingOverlay.vue -->
+
 <script setup lang="ts">
 defineProps<{
   show: boolean;

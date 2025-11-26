@@ -1,3 +1,5 @@
+<!-- src/components/HomepageTaglines.vue -->
+
 <script setup lang="ts">
 
 const { t } = useI18n();

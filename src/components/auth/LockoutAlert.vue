@@ -1,3 +1,5 @@
+<!-- src/components/auth/LockoutAlert.vue -->
+
 <script setup lang="ts">
 import type { LockoutStatus } from '@/types/auth';
 import { computed } from 'vue';

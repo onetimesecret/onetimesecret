@@ -1,3 +1,5 @@
+// src/schemas/config/billing.ts
+
 /**
  * Billing Configuration Schema
  *

@@ -1,3 +1,5 @@
+// src/tests/utils/redirect.spec.ts
+
 import { validateRedirect } from '@/utils/redirect';
 import { beforeEach, describe, expect, it } from 'vitest';
 

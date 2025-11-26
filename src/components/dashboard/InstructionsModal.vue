@@ -1,3 +1,5 @@
+<!-- src/components/dashboard/InstructionsModal.vue -->
+
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import { useEventListener } from '@vueuse/core';

@@ -1,3 +1,5 @@
+<!-- src/components/modals/settings/JurisdictionList.vue -->
+
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 import type { Jurisdiction } from '@/schemas/models';

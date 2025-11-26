@@ -1,3 +1,5 @@
+<!-- src/components/DomainForm.vue -->
+
 <script setup lang="ts">
 import DomainInput from '@/components/DomainInput.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'

@@ -1,3 +1,5 @@
+<!-- src/components/SplitButton.vue -->
+
 // src/components/SplitButton.vue
 
 <script setup lang="ts">

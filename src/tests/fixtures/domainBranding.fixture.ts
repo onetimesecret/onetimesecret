@@ -1,3 +1,5 @@
+// src/tests/fixtures/domainBranding.fixture.ts
+
 import type { BrandSettings } from '@/schemas/models/domain';
 
 export const mockDefaultBranding: BrandSettings = {

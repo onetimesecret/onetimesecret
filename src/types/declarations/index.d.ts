@@ -1,3 +1,5 @@
+// src/types/declarations/index.d.ts
+
 import { LayoutProps } from '@/types/ui';
 import type { AxiosResponse } from 'axios';
 import type { Component } from 'vue';

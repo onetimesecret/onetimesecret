@@ -1,3 +1,5 @@
+// src/tests/i18n/security-messages.spec.ts
+
 /**
  * Security Message Compliance Tests
  *

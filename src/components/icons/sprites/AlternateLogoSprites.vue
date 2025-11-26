@@ -1,4 +1,4 @@
-<!-- src/components/logos/AlternateLogos.vue -->
+<!-- src/components/icons/sprites/AlternateLogoSprites.vue -->
 
 <template>
   <svg

@@ -1,4 +1,4 @@
-<!-- AccountChangePasswordForm.vue -->
+<!-- src/components/account/AccountChangePasswordForm.vue -->
 
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';

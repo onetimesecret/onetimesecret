@@ -1,3 +1,5 @@
+// src/tests/router/public.routes.spec.ts
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RouteRecordRaw } from 'vue-router';
 

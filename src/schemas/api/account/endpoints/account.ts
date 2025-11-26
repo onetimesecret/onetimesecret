@@ -1,3 +1,5 @@
+// src/schemas/api/account/endpoints/account.ts
+
 import { customerSchema } from '@/schemas/models/customer';
 import { transforms } from '@/schemas/transforms';
 import type Stripe from 'stripe';

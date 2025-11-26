@@ -1,3 +1,5 @@
+<!-- src/components/ctas/SuperFancyIconLink.vue -->
+
 <script setup lang="ts">
 defineProps<{
   text?: string;

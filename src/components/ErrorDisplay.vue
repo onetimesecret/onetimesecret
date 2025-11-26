@@ -1,3 +1,5 @@
+<!-- src/components/ErrorDisplay.vue -->
+
 <script setup lang="ts">
 import type { ApplicationError } from '@/schemas/errors';
 import { computed } from 'vue';

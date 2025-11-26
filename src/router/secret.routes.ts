@@ -1,3 +1,5 @@
+// src/router/secret.routes.ts
+
 import ShowSecretContainer from '@/views/secrets/ShowSecretContainer.vue';
 import { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 

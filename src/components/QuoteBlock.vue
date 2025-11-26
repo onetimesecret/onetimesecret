@@ -1,3 +1,5 @@
+<!-- src/components/QuoteBlock.vue -->
+
 <script setup lang="ts">
 import { testimonials } from '@/sources/testimonials'; // Adjust the path as necessary
 import { ref, computed } from 'vue';

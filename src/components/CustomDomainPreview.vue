@@ -1,3 +1,5 @@
+<!-- src/components/CustomDomainPreview.vue -->
+
 /** eslint-disable tailwindcss/migration-from-tailwind-2 */
 <!-- src/components/CustomDomainPreview.vue -->
 

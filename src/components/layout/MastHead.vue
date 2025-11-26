@@ -1,4 +1,4 @@
-<!-- src/components/layout/Masthead.vue -->
+<!-- src/components/layout/MastHead.vue -->
 
 <script setup lang="ts">
   import DefaultLogo from '@/components/logos/DefaultLogo.vue';

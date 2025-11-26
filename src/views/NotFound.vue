@@ -1,3 +1,5 @@
+<!-- src/views/NotFound.vue -->
+
 <script setup lang="ts">
 import ThemeToggle from '@/components/ThemeToggle.vue';
 

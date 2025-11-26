@@ -1,3 +1,5 @@
+// src/composables/useAccount.ts
+
 /**
  * Account information composable
  * Handles fetching and managing user account data

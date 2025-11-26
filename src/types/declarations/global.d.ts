@@ -1,3 +1,5 @@
+// src/types/declarations/global.d.ts
+
 import { OnetimeWindow } from './window';
 
 declare global {
