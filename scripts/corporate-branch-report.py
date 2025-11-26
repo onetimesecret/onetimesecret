@@ -57,7 +57,7 @@ class Branch:
     subsumed_by: str = ""
     in_worktree: bool = False
     is_current: bool = False
-    commits_ahead: set = field(default_factory=set)  # Set of commit SHAs ahead of base
+    commits_ahead: list = field(default_factory=list)  # List of commit SHAs ahead of base (oldest first)
 
     @property
     def is_stale(self) -> bool:
@@ -128,15 +128,20 @@ def get_worktrees(repo: Repo) -> dict[str, str]:
     return worktrees
 
 
-def get_commits_between(repo: Repo, base: str, head: str) -> set[str]:
-    """Get set of commit SHAs between base and head (commits in head but not in base)."""
+def get_commits_between(repo: Repo, base: str, head: str) -> list[str]:
+    """Get list of commit SHAs between base and head (commits in head but not in base).
+
+    Returns commits in oldest-first order to match bash script's prefix-based
+    subsumption detection (where b1 is subsumed by b2 if b1's commits are a
+    prefix of b2's commits).
+    """
     try:
-        commits = set()
-        for commit in repo.iter_commits(f"{base}..{head}"):
-            commits.add(commit.hexsha)
+        # iter_commits returns newest-first, so reverse for oldest-first
+        commits = [commit.hexsha for commit in repo.iter_commits(f"{base}..{head}")]
+        commits.reverse()
         return commits
     except git.GitCommandError:
-        return set()
+        return []
 
 
 def resolve_base_name(repo: Repo, commit: "git.Commit") -> str:
@@ -223,25 +228,36 @@ def collect_branches(repo: Repo, base_branch: str, worktrees_only: bool) -> list
     return branches
 
 
+def is_prefix(shorter: list, longer: list) -> bool:
+    """Check if shorter list is a prefix of longer list."""
+    if len(shorter) >= len(longer):
+        return False
+    return longer[:len(shorter)] == shorter
+
+
 def detect_subsumption(branches: list[Branch]) -> None:
     """
-    Detect which branches are subsumed by others using commit set containment.
+    Detect which branches are subsumed by others using commit prefix matching.
 
     A branch B1 is subsumed by B2 if:
-    - B1's commits are a proper subset of B2's commits
+    - B1's commits are a prefix of B2's commits (b2 branched from b1's tip)
+    - B1 has fewer commits than B2
     - We find the SMALLEST such B2 (immediate parent)
+
+    This matches the bash script's behavior where subsumption represents
+    linear history (b2 was branched from the tip of b1).
     """
     # Only consider branches that are 0 behind (clean lineage from base)
     clean_branches = [b for b in branches if b.behind == 0 and b.commits_ahead]
 
     for b1 in clean_branches:
-        # Find all branches whose commits are a proper superset of b1's commits
+        # Find all branches whose commits start with b1's commits (b1 is a prefix)
         subsumers = []
         for b2 in clean_branches:
             if b1.name == b2.name:
                 continue
-            # b2 subsumes b1 if b2's commits contain all of b1's commits AND has more
-            if b1.commits_ahead < b2.commits_ahead:  # proper subset
+            # b2 subsumes b1 if b1's commits are a prefix of b2's commits
+            if is_prefix(b1.commits_ahead, b2.commits_ahead):
                 subsumers.append(b2)
 
         if subsumers:
