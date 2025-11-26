@@ -66,8 +66,9 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
         ENV['RACK_ENV'] = 'test'
         ENV['AUTHENTICATION_MODE'] = 'basic'
 
-        # Reset registry to clear any apps loaded during spec_helper
+        # Reset both registries to clear state from previous test runs
         Onetime::Application::Registry.reset!
+        Onetime::Boot::InitializerRegistry.reset!
 
         # Reload auth config to pick up AUTHENTICATION_MODE env var
         Onetime.auth_config.reload!
@@ -118,8 +119,9 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
         ENV['RACK_ENV'] = 'test'
         ENV['AUTHENTICATION_MODE'] = 'advanced'
 
-        # Reset registry to clear any apps loaded
+        # Reset both registries to clear state from previous test runs
         Onetime::Application::Registry.reset!
+        Onetime::Boot::InitializerRegistry.reset!
 
         # Reload auth config to pick up AUTHENTICATION_MODE env var
         Onetime.auth_config.reload!

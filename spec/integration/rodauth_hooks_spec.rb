@@ -13,8 +13,11 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
     ENV['RACK_ENV'] = 'test'
     ENV['AUTHENTICATION_MODE'] = 'advanced'
 
-    # Reset registry and reload auth config to pick up AUTHENTICATION_MODE
+    # Reset both registries to clear state from previous test runs
     Onetime::Application::Registry.reset!
+    Onetime::Boot::InitializerRegistry.reset!
+
+    # Reload auth config to pick up AUTHENTICATION_MODE env var
     Onetime.auth_config.reload!
 
     # Boot application (Redis mocking is handled globally by integration_spec_helper.rb)
