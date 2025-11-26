@@ -1,259 +1,29 @@
-// src/schemas/api/endpoints/colonel.ts
+// src/schemas/api/account/endpoints/colonel.ts
+
+/**
+ * Colonel (Admin) API Endpoint Schemas
+ *
+ * This file contains schemas for the colonel/admin API endpoints.
+ * Config-related schemas are imported from @/schemas/config/config.ts
+ */
 
 import { feedbackSchema } from '@/schemas/models';
 import { transforms } from '@/schemas/transforms';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
-// Common types
-// More flexible type validation that can handle missing values
-const booleanOrString = z.union([z.boolean(), z.string()]).optional();
-const numberOrString = z.union([z.string(), z.number()]).optional();
+// Import system settings schemas from config
+import {
+  systemSettingsSchema,
+  systemSettingsDetailsSchema,
+} from '@/schemas/config/config';
 
-const interfaceSchema = z.object({
-  ui: z
-    .object({
-      enabled: booleanOrString.optional(),
-      header: z
-        .object({
-          enabled: booleanOrString.optional(),
-          branding: z
-            .object({
-              logo: z
-                .object({
-                  url: z.string().optional(),
-                  alt: z.string().optional(),
-                  link_to: z.string().optional(),
-                })
-                .optional(),
-              site_name: z.string().optional(),
-            })
-            .optional(),
-          navigation: z
-            .object({
-              enabled: booleanOrString.optional(),
-            })
-            .optional(),
-        })
-        .optional(),
-      footer_links: z
-        .object({
-          enabled: booleanOrString.optional(),
-          groups: z
-            .array(
-              z.object({
-                name: z.string().optional(),
-                i18n_key: z.string().optional(),
-                links: z
-                  .array(
-                    z.object({
-                      text: z.string().nullable().optional(),
-                      i18n_key: z.string().nullable().optional(),
-                      url: z.string().nullable().optional(),
-                      external: z.boolean().nullable().optional(),
-                      icon: z.string().nullable().optional(),
-                      visible: z.boolean().nullable().optional(),
-                    })
-                  )
-                  .optional(),
-              })
-            )
-            .optional(),
-        })
-        .optional(),
-    })
-    .optional(),
-  api: z
-    .object({
-      enabled: booleanOrString.optional(),
-    })
-    .optional(),
-});
+// Re-export for backward compatibility
+export { systemSettingsSchema, systemSettingsDetailsSchema };
+export type SystemSettingsDetails = z.infer<typeof systemSettingsDetailsSchema>;
 
-// Secret options
-const secretOptionsSchema = z.object({
-  default_ttl: numberOrString.optional(),
-  ttl_options: z.union([z.string(), z.array(z.number())]).optional(),
-  passphrase: z
-    .object({
-      required: booleanOrString.optional(),
-      minimum_length: numberOrString.optional(),
-      maximum_length: numberOrString.optional(),
-      enforce_complexity: booleanOrString.optional(),
-    })
-    .nullable()
-    .optional(),
-  password_generation: z
-    .object({
-      default_length: numberOrString.optional(),
-      character_sets: z
-        .object({
-          uppercase: booleanOrString.optional(),
-          lowercase: booleanOrString.optional(),
-          numbers: booleanOrString.optional(),
-          symbols: booleanOrString.optional(),
-          exclude_ambiguous: booleanOrString.optional(),
-        })
-        .nullable()
-        .optional(),
-    })
-    .nullable()
-    .optional(),
-});
-
-// Emailer schema (SMTP settings)
-const emailerSchema = z.object({
-  mode: z.string().nullable().optional(),
-  region: z.string().nullable().optional(),
-  from: z.string().nullable().optional(),
-  from_name: z.string().nullable().optional(),
-  reply_to: z.string().nullable().optional(),
-  host: z.string().nullable().optional(),
-  port: numberOrString.nullable().optional(),
-  user: z.string().nullable().optional(),
-  pass: z.string().nullable().optional(), // Should be masked by backend
-  auth: z.string().nullable().optional(),
-  tls: z.union([z.boolean(), z.string()]).nullable().optional(),
-});
-
-// Mail schema (TrueMail validation)
-const mailSchema = z.object({
-  truemail: z
-    .object({
-      default_validation_type: z.string().optional(),
-      verifier_email: z.string().optional(),
-      verifier_domain: z.string().optional(),
-      allowed_domains_only: z.boolean().optional(),
-      dns: z.array(z.string()).optional(),
-      smtp_fail_fast: z.boolean().optional(),
-      smtp_safe_check: z.boolean().optional(),
-      not_rfc_mx_lookup_flow: z.boolean().optional(),
-      logger: z
-        .object({
-          tracking_event: z.any().optional(),
-          stdout: z.any().optional(),
-        })
-        .optional(),
-    })
-    .optional(),
-});
-
-// Diagnostics schema
-const diagnosticsSchema = z.object({
-  enabled: booleanOrString.nullable().optional(),
-  redis_uri: z.string().nullable().optional(),
-  sentry: z
-    .object({
-      defaults: z
-        .object({
-          dsn: z.string().nullable().optional(),
-          sampleRate: z.union([z.string(), z.number()]).nullable().optional(),
-          maxBreadcrumbs: z.union([z.string(), z.number()]).nullable().optional(),
-          logErrors: booleanOrString.nullable().optional(),
-        })
-        .nullable()
-        .optional(),
-      backend: z
-        .object({
-          dsn: z.string().nullable().optional(),
-          sampleRate: z.union([z.string(), z.number()]).nullable().optional(),
-          maxBreadcrumbs: z.union([z.string(), z.number()]).nullable().optional(),
-          logErrors: booleanOrString.nullable().optional(),
-        })
-        .nullable()
-        .optional(),
-      frontend: z
-        .object({
-          dsn: z.string().nullable().optional(),
-          sampleRate: z.union([z.string(), z.number()]).nullable().optional(),
-          maxBreadcrumbs: z.union([z.string(), z.number()]).nullable().optional(),
-          logErrors: booleanOrString.nullable().optional(),
-          trackComponents: booleanOrString.nullable().optional(),
-        })
-        .nullable()
-        .optional(),
-    })
-    .nullable()
-    .optional(),
-});
-
-// Authentication schema
-const authenticationSchema = z.object({
-  enabled: booleanOrString.optional(),
-  signup: booleanOrString.optional(),
-  signin: booleanOrString.optional(),
-  autoverify: booleanOrString.optional(),
-  required: booleanOrString.optional(),
-  colonels: z.array(z.string()).nullable().optional(),
-  allowed_signup_domains: z.array(z.string()).nullable().optional(),
-});
-
-// Logging schema
-const loggingSchema = z.object({
-  default_level: z.string().nullable().optional(),
-  formatter: z.string().nullable().optional(),
-  loggers: z.record(z.string()).nullable().optional(),
-  http: z
-    .object({
-      enabled: booleanOrString.optional(),
-      level: z.string().nullable().optional(),
-      capture: z.string().nullable().optional(),
-      slow_request_ms: numberOrString.optional(),
-      ignore_paths: z.array(z.string()).nullable().optional(),
-    })
-    .nullable()
-    .optional(),
-});
-
-// Billing schema (when enabled)
-const billingSchema = z.object({
-  enabled: booleanOrString.optional(),
-  stripe_key: z.string().nullable().optional(), // Masked by backend
-  webhook_signing_secret: z.string().nullable().optional(), // Masked by backend
-  stripe_api_version: z.string().nullable().optional(),
-  capabilities: z.record(z.any()).nullable().optional(),
-});
-
-// Features schema
-const featuresSchema = z.object({
-  regions: z
-    .object({
-      enabled: booleanOrString.optional(),
-      current_jurisdiction: z.string().nullable().optional(),
-      jurisdictions: z.array(z.any()).nullable().optional(),
-    })
-    .nullable()
-    .optional(),
-  domains: z
-    .object({
-      enabled: booleanOrString.optional(),
-      default: z.string().nullable().optional(),
-      strategy: z.string().nullable().optional(),
-    })
-    .nullable()
-    .optional(),
-});
-
-/**
- * SystemSettingsSchema defines the top-level structure of the settings.
- * Each section references deeper schemas defined elsewhere.
- * Using .optional() to handle partial settings data during initialization.
- */
-export const systemSettingsSchema = z.object({
-  interface: interfaceSchema.nullable().optional(),
-  secret_options: secretOptionsSchema.nullable().optional(),
-  authentication: authenticationSchema.nullable().optional(),
-  emailer: emailerSchema.nullable().optional(),
-  mail: mailSchema.nullable().optional(),
-  diagnostics: diagnosticsSchema.nullable().optional(),
-  logging: loggingSchema.nullable().optional(),
-  billing: billingSchema.nullable().optional(),
-  features: featuresSchema.nullable().optional(),
-});
-
-export const systemSettingsDetailsSchema = systemSettingsSchema.extend({
-  // This extension allows for additional fields in the future without breaking changes
-  // All fields are optional with defaults to handle missing data
-});
+// ============================================================================
+// Colonel API Response Schemas
+// ============================================================================
 
 /**
  * An abridged customer record used in the recent list.
@@ -463,10 +233,6 @@ export const customDomainsDetailsSchema = z.object({
 });
 
 /**
- // Raw API data structures before transformation
- // These represent the API shape that will be transformed by input schemas
- */
-/**
  * Lightweight stats schema for dashboard display
  */
 export const colonelStatsDetailsSchema = z.object({
@@ -504,10 +270,12 @@ export const colonelInfoDetailsSchema = z.object({
   }),
 });
 
-// Export types
+// ============================================================================
+// Type Exports
+// ============================================================================
+
 export type ColonelStatsDetails = z.infer<typeof colonelStatsDetailsSchema>;
 export type ColonelInfoDetails = z.infer<typeof colonelInfoDetailsSchema>;
-export type SystemSettingsDetails = z.infer<typeof systemSettingsDetailsSchema>;
 export type RecentCustomer = z.infer<typeof recentCustomerSchema>;
 export type ColonelUser = z.infer<typeof colonelUserSchema>;
 export type ColonelUsersDetails = z.infer<typeof colonelUsersDetailsSchema>;
