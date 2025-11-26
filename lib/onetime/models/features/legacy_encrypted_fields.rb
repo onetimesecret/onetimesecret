@@ -186,11 +186,12 @@ module Onetime
               .save_fields(:passphrase_encryption, :passphrase)
           end
 
-          # Hash a new passphrase using argon2id (preferred) or bcrypt (legacy).
-          # New passphrases always use argon2id for improved security.
+          # Hash a new passphrase using argon2id (default) or bcrypt (legacy).
+          # argon2id is preferred for all new passphrases due to improved security.
+          # The bcrypt option exists for testing and backwards compatibility only.
           #
           # @param val [String] The plaintext passphrase to hash
-          # @param algorithm [Symbol] :argon2 (default) or :bcrypt (legacy only)
+          # @param algorithm [Symbol] :argon2 (default, recommended) or :bcrypt (legacy/testing only)
           # @return [self] Enable method chaining
           def update_passphrase(val, algorithm: :argon2)
             case algorithm
