@@ -27,7 +27,10 @@
 # Test harness for Onetime.
 
 # Set test environment variables
-ENV['SECRET'] ||= 'test-secret-key-for-rspec-tests-only-not-for-production-use-12345678901234567890'
+# Familia v2 requires base64-encoded encryption keys for encrypted_field feature.
+# This is a 32-byte test key, base64 encoded (AES-256 requires 32-byte keys).
+require 'base64'
+ENV['SECRET'] ||= Base64.strict_encode64('rspec-test-key-32bytes-exactly!')
 
 require 'rspec'
 require 'yaml'
