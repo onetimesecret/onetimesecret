@@ -1,4 +1,4 @@
-// src/schemas/api/payloads/base.ts
+// src/schemas/api/v3/payloads/base.ts
 
 import { z } from 'zod';
 

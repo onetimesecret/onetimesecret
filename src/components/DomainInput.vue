@@ -1,3 +1,5 @@
+<!-- src/components/DomainInput.vue -->
+
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 import { defineEmits } from 'vue';

@@ -1,3 +1,5 @@
+// src/scripts/openapi/test-parser.ts
+
 /**
  * Test Otto Routes Parser
  *
@@ -8,7 +10,7 @@ import {
   parseApiRoutes,
   getAuthRequirements,
   isCsrfExempt,
-  getResponseType,
+  getResponseType as _getResponseType,
   getPathParams,
   toOpenAPIPath,
   groupRoutesByTag,

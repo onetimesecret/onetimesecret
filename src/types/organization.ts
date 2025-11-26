@@ -1,3 +1,5 @@
+// src/types/organization.ts
+
 /**
  * Organization management type definitions
  * Used across organization components, stores, and views

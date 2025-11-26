@@ -1,4 +1,4 @@
-# apps/api/account/logic/colonel/list_secrets.rb
+# apps/api/colonel/logic/colonel/list_secrets.rb
 #
 # frozen_string_literal: true
 
@@ -45,9 +45,7 @@ module ColonelAPI
               owner_id: secret.owner_id,
               state: secret.state,
               created: secret.created,
-              created_human: natural_time(secret.created),
               expiration: secret.expiration,
-              expiration_human: natural_time(secret.expiration),
               lifespan: secret.lifespan,
               metadata_id: secret.metadata_identifier,
               age: secret.age,

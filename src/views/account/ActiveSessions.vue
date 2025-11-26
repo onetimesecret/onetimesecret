@@ -1,3 +1,5 @@
+<!-- src/views/account/ActiveSessions.vue -->
+
 <script setup lang="ts">
   import SessionListItem from '@/components/account/SessionListItem.vue';
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';

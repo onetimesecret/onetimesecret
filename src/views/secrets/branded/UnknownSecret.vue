@@ -1,4 +1,4 @@
-<!-- src/components/secrets/branded/UnknownSecret.vue -->
+<!-- src/views/secrets/branded/UnknownSecret.vue -->
 
 <script setup lang="ts">
   import BaseUnknownSecret from '@/components/base/BaseUnknownSecret.vue';

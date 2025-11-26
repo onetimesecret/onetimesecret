@@ -1,3 +1,5 @@
+// src/schemas/api/v3/responses.ts
+
 import {
   accountSchema,
   apiTokenSchema,

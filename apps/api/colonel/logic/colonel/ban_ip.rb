@@ -1,4 +1,4 @@
-# apps/api/account/logic/colonel/ban_ip.rb
+# apps/api/colonel/logic/colonel/ban_ip.rb
 #
 # frozen_string_literal: true
 

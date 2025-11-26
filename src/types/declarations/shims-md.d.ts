@@ -1,3 +1,5 @@
+// src/types/declarations/shims-md.d.ts
+
 declare module '*.md' {
   import type { ComponentOptions } from 'vue'
   const component: ComponentOptions

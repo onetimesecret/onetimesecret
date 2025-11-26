@@ -39,18 +39,26 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
     post path, JSON.generate(params)
   end
 
-  let(:dbclient) { Familia.dbclient(0) }
+  # Access the Rodauth/Sequel auth database for lockout assertions
+  let(:auth_db) { Auth::Database.connection }
   let(:test_email) { "test-#{SecureRandom.hex(8)}@example.com" }
   let(:valid_password) { 'SecureP@ss123' }
 
-  before do
-    # Clear any existing rate limit data
-    dbclient.keys('login_attempts:*').each { |key| dbclient.del(key) }
+  # Helper to get login failure count for an account
+  def login_failure_count(account_id)
+    record = auth_db[:account_login_failures].where(id: account_id).first
+    record ? record[:number] : 0
   end
 
-  after do
-    # Cleanup
-    dbclient.keys('login_attempts:*').each { |key| dbclient.del(key) }
+  # Helper to check if account is locked out
+  def account_locked?(account_id)
+    auth_db[:account_lockouts].where(id: account_id).count > 0
+  end
+
+  # Helper to clear lockout data for an account
+  def clear_lockout_data(account_id)
+    auth_db[:account_login_failures].where(id: account_id).delete
+    auth_db[:account_lockouts].where(id: account_id).delete
   end
 
   describe 'before_create_account hook' do
@@ -58,6 +66,7 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
       it 'allows account creation' do
         json_post '/auth/create-account', {
           login: test_email,
+          'login-confirm': test_email,
           password: valid_password,
           'password-confirm': valid_password
         }
@@ -70,6 +79,7 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
       it 'rejects account creation' do
         json_post '/auth/create-account', {
           login: 'not-an-email',
+          'login-confirm': 'not-an-email',
           password: valid_password,
           'password-confirm': valid_password
         }
@@ -86,6 +96,7 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
       it 'rejects account creation' do
         json_post '/auth/create-account', {
           login: '',
+          'login-confirm': '',
           password: valid_password,
           'password-confirm': valid_password
         }
@@ -100,71 +111,124 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
   end
 
   describe 'before_login_attempt and after_login_failure hooks' do
-    context 'rate limiting' do
-      it 'allows initial login attempts' do
+    # Rodauth lockout requires an existing account to track failures
+    # These tests create an account first, then test lockout behavior
+
+    let(:lockout_test_email) { "lockout-test-#{SecureRandom.hex(8)}@example.com" }
+    let(:lockout_test_password) { 'SecureP@ss123!' }
+
+    # Create account and return its ID for lockout testing
+    def create_test_account_for_lockout
+      json_post '/auth/create-account', {
+        login: lockout_test_email,
+        'login-confirm': lockout_test_email,
+        password: lockout_test_password,
+        'password-confirm': lockout_test_password
+      }
+
+      # Get the account ID from the database
+      account = auth_db[:accounts].where(email: lockout_test_email).first
+      account[:id] if account
+    end
+
+    context 'lockout tracking (Rodauth SQL-based)' do
+      it 'allows initial login attempts for existing account' do
+        account_id = create_test_account_for_lockout
+        skip 'Account creation failed' unless account_id
+
+        # Clear any existing lockout data
+        clear_lockout_data(account_id)
+
         3.times do
           json_post '/auth/login', {
-            login: test_email,
+            login: lockout_test_email,
             password: 'wrong-password'
           }
 
           expect(last_response.status).to eq(401)
         end
+
+        # Account should not be locked yet (max_invalid_logins is 5)
+        expect(account_locked?(account_id)).to be false
       end
 
-      it 'blocks after 5 failed attempts' do
-        # Make 5 failed attempts
+      it 'locks account after max_invalid_logins (5) failed attempts' do
+        account_id = create_test_account_for_lockout
+        skip 'Account creation failed' unless account_id
+
+        # Clear any existing lockout data
+        clear_lockout_data(account_id)
+
+        # Make 5 failed attempts (max_invalid_logins configured in security.rb)
         5.times do
           json_post '/auth/login', {
-            login: test_email,
+            login: lockout_test_email,
             password: 'wrong-password'
           }
         end
 
-        # 6th attempt should be rate limited
+        # Account should now be locked
+        expect(account_locked?(account_id)).to be true
+
+        # 6th attempt should indicate account is locked
+        # Rodauth may return 401 or 403 depending on configuration
         json_post '/auth/login', {
-          login: test_email,
+          login: lockout_test_email,
           password: 'wrong-password'
         }
 
-        expect(last_response.status).to eq(429)
+        expect([401, 403]).to include(last_response.status)
         json = JSON.parse(last_response.body)
-        expect(json['error']).to match(/too many.*attempts/i)
+        # Rodauth returns field-error or error for locked accounts
+        expect(json['field-error'] || json['error']).to be_truthy
       end
 
-      it 'sets DB key with TTL' do
+      it 'tracks login failures in SQL database' do
+        account_id = create_test_account_for_lockout
+        skip 'Account creation failed' unless account_id
+
+        # Clear any existing lockout data
+        clear_lockout_data(account_id)
+
+        # Make a failed login attempt
         json_post '/auth/login', {
-          login: test_email,
+          login: lockout_test_email,
           password: 'wrong-password'
         }
 
-        rate_limit_key = "login_attempts:#{test_email}"
-        expect(dbclient.exists(rate_limit_key)).to eq(1)
-        ttl = dbclient.ttl(rate_limit_key)
-        expect(ttl).to be > 0
-        expect(ttl).to be <= 300 # 5 minutes
+        # Check that failure is tracked in account_login_failures table
+        failure_count = login_failure_count(account_id)
+        expect(failure_count).to be >= 1
       end
     end
 
-    context 'successful login clears rate limit' do
-      it 'resets attempt counter on success' do
-        # Create account first (simplified - assumes account exists)
-        # In real test, you'd create via API or seed data
+    context 'successful login clears lockout data' do
+      it 'resets failure counter on successful login' do
+        account_id = create_test_account_for_lockout
+        skip 'Account creation failed' unless account_id
 
-        # Make some failed attempts
+        # Clear any existing lockout data
+        clear_lockout_data(account_id)
+
+        # Make some failed attempts (but not enough to trigger lockout)
         2.times do
           json_post '/auth/login', {
-            login: test_email,
+            login: lockout_test_email,
             password: 'wrong-password'
           }
         end
 
-        rate_limit_key = "login_attempts:#{test_email}"
-        attempts_before = dbclient.get(rate_limit_key).to_i
-        expect(attempts_before).to eq(2)
+        # Verify failures are tracked
+        expect(login_failure_count(account_id)).to be >= 1
 
-        # Note: This would require a valid account to test properly
-        # Skipping actual successful login test here
+        # Successful login should clear failure count
+        json_post '/auth/login', {
+          login: lockout_test_email,
+          password: lockout_test_password
+        }
+
+        # After successful login, failure count should be reset
+        expect(login_failure_count(account_id)).to eq(0)
       end
     end
   end

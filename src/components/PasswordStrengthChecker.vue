@@ -1,3 +1,5 @@
+<!-- src/components/PasswordStrengthChecker.vue -->
+
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 

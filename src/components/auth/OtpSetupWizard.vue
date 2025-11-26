@@ -1,3 +1,5 @@
+<!-- src/components/auth/OtpSetupWizard.vue -->
+
 <script setup lang="ts">
 import OtpCodeInput from '@/components/auth/OtpCodeInput.vue';
 import { useMfa } from '@/composables/useMfa';

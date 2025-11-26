@@ -1,4 +1,4 @@
-# apps/api/account/logic/colonel/export_usage.rb
+# apps/api/colonel/logic/colonel/export_usage.rb
 #
 # frozen_string_literal: true
 

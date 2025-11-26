@@ -1,3 +1,5 @@
+<!-- src/components/DomainsTable.vue -->
+
 <script setup lang="ts">
   import ToggleWithIcon from '@/components/common/ToggleWithIcon.vue';
   import DomainsTableActionsCell from '@/components/dashboard/DomainsTableActionsCell.vue';

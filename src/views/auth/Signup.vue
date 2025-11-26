@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <!-- src/views/auth/Signup.vue -->
 <script setup lang="ts">
   import AlternateSignUpMethods from '@/components/auth/AlternateSignUpMethods.vue';

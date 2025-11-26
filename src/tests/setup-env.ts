@@ -1,3 +1,5 @@
+// src/tests/setup-env.ts
+
 import type { OnetimeWindow } from '@/types/declarations/window';
 
 (window as OnetimeWindow).__ONETIME_STATE__ = {

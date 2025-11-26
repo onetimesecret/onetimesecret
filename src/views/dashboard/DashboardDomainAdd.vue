@@ -1,3 +1,5 @@
+<!-- src/views/dashboard/DashboardDomainAdd.vue -->
+
 <script setup lang="ts">
 import DomainForm from '@/components/DomainForm.vue';
 import ErrorDisplay from '@/components/ErrorDisplay.vue';

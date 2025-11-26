@@ -1,4 +1,5 @@
 <!-- src/components/icons/sprites/HeroiconsSprites.vue -->
+
 <!--
   Name:  Icon from HeroIcons by Refactoring UI Inc
   License: MIT

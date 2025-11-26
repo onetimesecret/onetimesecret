@@ -1,3 +1,5 @@
+<!-- src/components/icons/IconSprites.vue -->
+
 <script setup lang="ts">
   import { type PropType, computed } from 'vue';
 

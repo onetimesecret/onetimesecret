@@ -1,3 +1,5 @@
+// src/scripts/openapi/poc.ts
+
 /**
  * Proof of Concept: OpenAPI Generation with @asteasolutions/zod-to-openapi
  *
@@ -66,7 +68,7 @@ console.log('Test 3: Custom transform compatibility');
 // IMPORTANT: In OpenAPI metadata for transforms, `type` refers to the INPUT type
 // (what the API accepts), NOT the output type (what Zod produces after transformation).
 // This schema accepts a string "42" from the API, then transforms it to number 42 internally.
-const transformTestSchema = z.object({
+const _transformTestSchema = z.object({
   count: z.string().transform((val) => parseInt(val, 10)).openapi({
     description: 'Count as string that transforms to number',
     example: '42',

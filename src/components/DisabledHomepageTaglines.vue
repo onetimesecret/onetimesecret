@@ -1,3 +1,4 @@
+<!-- src/components/DisabledHomepageTaglines.vue -->
 
 <script setup lang="ts">
 

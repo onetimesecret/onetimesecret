@@ -1,3 +1,5 @@
+// src/composables/useActiveSessions.ts
+
 /**
  * Active sessions management composable
  * Handles fetching, removing, and managing user sessions

@@ -1,4 +1,5 @@
 <!-- src/components/icons/sprites/CarbonSprites.vue -->
+
 <!--
 License: Apache 2.0
   Source:

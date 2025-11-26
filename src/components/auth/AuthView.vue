@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <!-- src/components/auth/AuthView.vue -->
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';

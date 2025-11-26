@@ -1,4 +1,4 @@
-# apps/api/account/logic/colonel/get_redis_metrics.rb
+# apps/api/colonel/logic/colonel/get_redis_metrics.rb
 #
 # frozen_string_literal: true
 
@@ -27,7 +27,6 @@ module ColonelAPI
             details: {
               redis_info: redis_full_info,
               timestamp: Familia.now.to_i,
-              timestamp_human: natural_time(Familia.now.to_i),
             },
           }
         end

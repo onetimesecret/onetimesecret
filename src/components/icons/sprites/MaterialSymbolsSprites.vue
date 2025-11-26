@@ -1,4 +1,5 @@
 <!-- src/components/icons/sprites/MaterialSymbolsSprites.vue -->
+
 <!--
 License: Apache 2.0
   Source: https://github.com/material-icons/material-icons/blob/fae3760/LICENSE

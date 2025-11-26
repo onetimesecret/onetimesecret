@@ -1,4 +1,4 @@
-// src/schemas/api/payloads/conceal.ts
+// src/schemas/api/v3/payloads/conceal.ts
 
 // NOTE: We may want to import some details from the metadata and secret schemas
 // since they are obviously highly correleated with the conceal payload. For now,

@@ -171,7 +171,14 @@ export default [
     },
     rules: {
       // ...tseslint.configs.recommended.rules,
-      '@typescript-eslint/no-unused-vars': 'error', // Prevent unused variables
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ], // Prevent unused variables (underscore prefix allowed)
 
       // Note: you must disable the base rule as it can report incorrect errors
       'no-unused-expressions': 'off',
@@ -528,7 +535,14 @@ export default [
     },
     rules: {
       'no-undef': 'error',
-      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
       // Explicitly disable all type-aware rules
       '@typescript-eslint/await-thenable': 'off',
       '@typescript-eslint/no-floating-promises': 'off',

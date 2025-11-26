@@ -1,4 +1,4 @@
-<!-- SignUpForm.vue -->
+<!-- src/components/auth/SignUpForm.vue -->
 
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';

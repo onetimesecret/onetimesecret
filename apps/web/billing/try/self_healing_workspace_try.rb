@@ -1,8 +1,7 @@
-# try/billing/self_healing_workspace_try.rb
+# apps/web/billing/try/self_healing_workspace_try.rb
 #
 # frozen_string_literal: true
 
-#
 # Billing Self-Healing Workspace Test Suite
 #
 

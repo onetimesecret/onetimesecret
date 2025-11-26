@@ -1,4 +1,4 @@
-# apps/api/account/logic/colonel/update_user_plan.rb
+# apps/api/colonel/logic/colonel/update_user_plan.rb
 #
 # frozen_string_literal: true
 

@@ -1,3 +1,5 @@
+// src/scripts/openapi/route-config.ts
+
 /**
  * Data-Driven Route Configuration for OpenAPI Generation
  *

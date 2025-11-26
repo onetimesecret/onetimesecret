@@ -1,3 +1,5 @@
+<!-- src/components/secrets/metadata/BurnButtonForm.vue -->
+
 /** eslint-disable tailwindcss/classnames-order */
 <!-- src/components/secrets/metadata/BurnButtonForm.vue -->
 

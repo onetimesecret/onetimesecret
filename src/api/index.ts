@@ -1,3 +1,5 @@
+// src/api/index.ts
+
 import {
   errorInterceptor,
   requestInterceptor,

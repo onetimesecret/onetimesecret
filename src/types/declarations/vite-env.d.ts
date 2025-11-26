@@ -1,3 +1,5 @@
+// src/types/declarations/vite-env.d.ts
+
 import type { Plugin } from 'rollup';
 
 /**

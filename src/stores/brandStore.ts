@@ -1,3 +1,5 @@
+// src/stores/brandStore.ts
+
 import { responseSchemas } from '@/schemas/api/v3';
 import type { BrandSettings, ImageProps } from '@/schemas/models';
 import { AxiosInstance } from 'axios';

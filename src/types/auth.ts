@@ -1,3 +1,5 @@
+// src/types/auth.ts
+
 /**
  * Authentication and account management type definitions
  * Used across authentication components, composables, and views

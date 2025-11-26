@@ -1,4 +1,4 @@
-// src/schemas/api/payloads/generate.ts
+// src/schemas/api/v2/payloads/generate.ts
 
 // NOTE: We may want to import some details from the metadata and secret schemas
 // since they are obviously highly correleated with the conceal payload. For now,

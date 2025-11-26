@@ -1,3 +1,5 @@
+// src/scripts/openapi/generate-v3-spec.ts
+
 /**
  * Generate OpenAPI 3.0.3 Specification for V3 API
  *
@@ -435,7 +437,7 @@ const outputDir = join(process.cwd(), 'docs', 'api');
 mkdirSync(outputDir, { recursive: true });
 
 const outputPath = join(outputDir, 'v3-openapi.json');
-writeFileSync(outputPath, JSON.stringify(document, null, 2));
+writeFileSync(outputPath, JSON.stringify(document, null, 2) + '\n');
 
 console.log(`💾 Wrote OpenAPI spec to: ${outputPath}\n`);
 

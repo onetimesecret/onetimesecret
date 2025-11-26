@@ -115,7 +115,7 @@ describe('CSRF Store', () => {
       store.updateShrimp(newShrimp);
 
       // Mock successful validation response
-      axiosMock?.onPost('/api/v2/validate-shrimp').reply(200, {
+      axiosMock?.onPost('/api/v3/validate-shrimp').reply(200, {
         isValid: true,
         shrimp: newShrimp,
       });
@@ -131,7 +131,7 @@ describe('CSRF Store', () => {
       store.shrimp = 'initial-shrimp';
 
       // Mock the API response - focus on behavior rather than implementation details
-      axiosMock?.onPost('/api/v2/validate-shrimp').reply((config) => {
+      axiosMock?.onPost('/api/v3/validate-shrimp').reply((config) => {
         // Verify that the shrimp token is included in the request (test behavior)
         const shrimpHeader = config.headers?.get ? config.headers.get('O-Shrimp') : config.headers?.['O-Shrimp'];
         expect(shrimpHeader).toBe('initial-shrimp');
@@ -155,13 +155,13 @@ describe('CSRF Store', () => {
 
       // Verify request was made
       expect(axiosMock?.history.post.length).toBe(1);
-      expect(axiosMock?.history.post[0].url).toBe('/api/v2/validate-shrimp');
+      expect(axiosMock?.history.post[0].url).toBe('/api/v3/validate-shrimp');
     });
 
     it('handles shrimp validity check failure', async () => {
       store.shrimp = 'initial-shrimp';
 
-      axiosMock?.onPost('/api/v2/validate-shrimp').reply(200, {
+      axiosMock?.onPost('/api/v3/validate-shrimp').reply(200, {
         isValid: false,
         shrimp: store.shrimp,
       });
@@ -191,7 +191,7 @@ describe('CSRF Store', () => {
       store.isValid = true;
 
       // Mock network error
-      axiosMock?.onPost('/api/v2/validate-shrimp').networkError();
+      axiosMock?.onPost('/api/v3/validate-shrimp').networkError();
 
       // Act & Assert
       await expect(store.checkShrimpValidity()).rejects.toThrow();
@@ -203,7 +203,7 @@ describe('CSRF Store', () => {
 
     it.skip('starts periodic check correctly', async () => {
       // Mock successful validation response ahead of time
-      axiosMock?.onPost('/api/v2/validate-shrimp').reply(200, {
+      axiosMock?.onPost('/api/v3/validate-shrimp').reply(200, {
         isValid: true,
         shrimp: 'test-shrimp',
       });
@@ -220,7 +220,7 @@ describe('CSRF Store', () => {
       await vi.waitFor(() => {
         // Verify the API call was made
         expect(axiosMock?.history.post.length).toBe(1);
-        expect(axiosMock?.history.post[0].url).toBe('/api/v2/validate-shrimp');
+        expect(axiosMock?.history.post[0].url).toBe('/api/v3/validate-shrimp');
       });
 
       // Verify store was updated

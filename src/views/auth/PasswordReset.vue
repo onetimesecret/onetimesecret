@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <!-- src/views/auth/PasswordReset.vue -->
 
 <script setup lang="ts">

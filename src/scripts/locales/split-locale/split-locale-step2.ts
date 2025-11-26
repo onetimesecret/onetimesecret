@@ -1,4 +1,6 @@
 #!/usr/bin/env ts-node
+
+// src/scripts/locales/split-locale/split-locale-step2.ts
 /**
  * Locale Feature Splitter Script (Step 2)
  *
@@ -178,7 +180,11 @@ function extractKeysFromWeb(webData: any, keys: string[]): any {
 /**
  * Process basic auth file content
  */
-function processBasicAuth(webData: any, mapping: FileMappingConfig, processedKeys: Set<string>): any {
+function processBasicAuth(
+  webData: any,
+  mapping: FileMappingConfig,
+  processedKeys: Set<string>
+): any {
   let fileContent: any = {};
 
   const extractedKeys = extractKeysFromWeb(webData, mapping.keys);
@@ -222,7 +228,11 @@ function processAdvancedAuth(webData: any): any {
 /**
  * Process standard file content
  */
-function processStandardFile(webData: any, mapping: FileMappingConfig, processedKeys: Set<string>): any {
+function processStandardFile(
+  webData: any,
+  mapping: FileMappingConfig,
+  processedKeys: Set<string>
+): any {
   let fileContent: any = {};
 
   const extracted = extractKeysFromWeb(webData, mapping.keys);
@@ -364,16 +374,15 @@ function verifyReversibility(originalPath: string, splitDir: string): boolean {
   const sourceFileName = path.basename(originalPath);
   const files = fs
     .readdirSync(splitDir)
-    .filter((f) =>
-      // Exclude the original source file (web.json, email.json, uncategorized.json)
-      // Exclude directories
-      // Include all feature files including _common.json
-       (
+    .filter(
+      (f) =>
+        // Exclude the original source file (web.json, email.json, uncategorized.json)
+        // Exclude directories
+        // Include all feature files including _common.json
         f.endsWith('.json') &&
         f !== sourceFileName &&
         f !== '_debug' &&
         !['web.json', 'email.json', 'uncategorized.json'].includes(f)
-      )
     )
     .sort(); // Sort for consistent ordering
 

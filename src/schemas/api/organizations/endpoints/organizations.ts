@@ -1,3 +1,5 @@
+// src/schemas/api/organizations/endpoints/organizations.ts
+
 /**
  * Organizations API endpoint schemas
  * Defines request/response schemas for organization management endpoints

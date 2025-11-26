@@ -1,4 +1,4 @@
-# apps/api/account/logic/colonel/get_colonel_info.rb
+# apps/api/colonel/logic/colonel/get_colonel_info.rb
 #
 # frozen_string_literal: true
 
@@ -70,7 +70,7 @@ module ColonelAPI
               secrets_shared: this_cust.secrets_shared,
               emails_sent: this_cust.emails_sent,
               verified: this_cust.verified?,
-              stamp: natural_time(this_cust.created) || '[no create stamp]',
+              created: this_cust.created,
             }
           end.compact.reverse
 

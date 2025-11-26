@@ -1,3 +1,5 @@
+// src/types/billing.ts
+
 /**
  * Billing and subscription type definitions
  * Used across billing components, stores, and views

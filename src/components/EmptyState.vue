@@ -7,6 +7,7 @@ const { t } = useI18n();
 defineProps<{
   actionRoute?: string;
   actionText?: string;
+  showAction?: boolean;
 }>();
 </script>
 
@@ -36,7 +37,7 @@ defineProps<{
         <div>{{ t('theyll-appear-here-once-youve-shared-them') }}</div>
       </slot>
     </p>
-    <div class="mt-6">
+    <div v-if="showAction !== false" class="mt-6">
       <slot name="actionLabel">
         <router-link
           :to="actionRoute || '/'"

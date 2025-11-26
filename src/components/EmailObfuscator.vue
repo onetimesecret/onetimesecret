@@ -1,4 +1,4 @@
-<!-- EmailObfuscator.vue -->
+<!-- src/components/EmailObfuscator.vue -->
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';

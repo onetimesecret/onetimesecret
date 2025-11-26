@@ -1,3 +1,5 @@
+<!-- src/components/LanguageToggle.vue -->
+
 <script setup lang="ts">
   import { useLanguage } from '@/composables/useLanguage';
   import { computed, onMounted, onUnmounted, ref } from 'vue';

@@ -1,3 +1,5 @@
+<!-- src/components/ui/ToastNotification.vue -->
+
 <script setup lang="ts">
   defineProps<{
     show: boolean;

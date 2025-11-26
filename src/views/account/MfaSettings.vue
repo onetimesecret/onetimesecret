@@ -1,3 +1,5 @@
+<!-- src/views/account/MfaSettings.vue -->
+
 <script setup lang="ts">
   import OtpSetupWizard from '@/components/auth/OtpSetupWizard.vue';
   import OIcon from '@/components/icons/OIcon.vue';

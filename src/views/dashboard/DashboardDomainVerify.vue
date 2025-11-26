@@ -1,3 +1,5 @@
+<!-- src/views/dashboard/DashboardDomainVerify.vue -->
+
 <script setup lang="ts">
   import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
   import MoreInfoText from '@/components/MoreInfoText.vue';

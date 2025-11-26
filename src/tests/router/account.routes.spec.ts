@@ -1,3 +1,5 @@
+// src/tests/router/account.routes.spec.ts
+
 import accountRoutes from '@/router/account.routes';
 import { describe, expect, it } from 'vitest';
 import { RouteRecordRaw } from 'vue-router';

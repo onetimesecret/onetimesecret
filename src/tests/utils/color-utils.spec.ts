@@ -1,3 +1,5 @@
+// src/tests/utils/color-utils.spec.ts
+
 import { shouldUseLightText } from '@/utils/color-utils';
 import { describe, expect, it } from 'vitest';
 

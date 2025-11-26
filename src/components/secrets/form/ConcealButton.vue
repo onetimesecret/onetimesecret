@@ -1,3 +1,5 @@
+<!-- src/components/secrets/form/ConcealButton.vue -->
+
 <script setup lang="ts">
   import { computed, ref } from 'vue';
 

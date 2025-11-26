@@ -1,3 +1,5 @@
+// src/tests/setupDocument.ts
+
 import { vi } from 'vitest';
 import { ref } from 'vue';
 

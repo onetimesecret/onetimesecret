@@ -1,4 +1,4 @@
-<!-- src/components/layout/Masthead.vue -->
+<!-- src/components/layout/BrandedMastHead.vue -->
 
 <script setup lang="ts">
   import { useProductIdentity } from '@/stores/identityStore';

@@ -1,3 +1,5 @@
+// src/composables/useSecretExpiration.ts
+
 import { formatDistance } from 'date-fns';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 

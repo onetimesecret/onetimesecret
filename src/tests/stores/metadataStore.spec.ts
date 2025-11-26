@@ -16,9 +16,13 @@ import { ZodError, ZodIssue } from 'zod';
 import {
   createMetadataWithPassphrase,
   mockBurnedMetadataDetails,
+  mockBurnedMetadataDetailsRaw,
   mockBurnedMetadataRecord,
+  mockBurnedMetadataRecordRaw,
   mockMetadataDetails,
+  mockMetadataDetailsRaw,
   mockMetadataRecord,
+  mockMetadataRecordRaw,
 } from '../fixtures/metadata.fixture';
 
 function isZodInvalidTypeIssue(
@@ -59,11 +63,11 @@ describe('metadataStore', () => {
     it('should fetch and validate metadata successfully', async () => {
       const testKey = mockMetadataRecord.key;
       const mockResponse = {
-        record: mockMetadataRecord,
-        details: mockMetadataDetails,
+        record: mockMetadataRecordRaw,
+        details: mockMetadataDetailsRaw,
       };
 
-      axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(200, mockResponse);
+      axiosMock?.onGet(`/api/v3/receipt/${testKey}`).reply(200, mockResponse);
 
       await store.fetch(testKey);
 
@@ -75,7 +79,7 @@ describe('metadataStore', () => {
       const testKey = mockMetadataRecord.key;
       const errorMessage = 'Request failed with status code 404';
 
-      axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(404, {
+      axiosMock?.onGet(`/api/v3/receipt/${testKey}`).reply(404, {
         message: errorMessage,
       });
 
@@ -90,8 +94,8 @@ describe('metadataStore', () => {
     it('should burn metadata successfully', async () => {
       const testKey = mockMetadataRecord.key;
       const mockResponse = {
-        record: mockBurnedMetadataRecord,
-        details: mockBurnedMetadataDetails,
+        record: mockBurnedMetadataRecordRaw,
+        details: mockBurnedMetadataDetailsRaw,
       };
 
       // Set initial state to ensure canBurn returns true
@@ -103,13 +107,13 @@ describe('metadataStore', () => {
       store.details = mockMetadataDetails;
 
       // Mock the burn request
-      axiosMock?.onPost(`/api/v2/receipt/${testKey}/burn`).reply(200, mockResponse);
+      axiosMock?.onPost(`/api/v3/receipt/${testKey}/burn`).reply(200, mockResponse);
 
       const result = await store.burn(testKey);
 
       // Verify the request was made correctly
       expect(axiosMock?.history.post).toHaveLength(1);
-      expect(axiosMock?.history.post[0].url).toBe(`/api/v2/receipt/${testKey}/burn`);
+      expect(axiosMock?.history.post[0].url).toBe(`/api/v3/receipt/${testKey}/burn`);
       expect(JSON.parse(axiosMock?.history.post[0].data)).toEqual({
         passphrase: undefined,
         continue: true,
@@ -118,7 +122,10 @@ describe('metadataStore', () => {
       // Verify state changes
       expect(store.record).toEqual(mockBurnedMetadataRecord);
       expect(store.details).toEqual(mockBurnedMetadataDetails);
-      expect(result).toMatchObject(mockResponse);
+      expect(result).toMatchObject({
+        record: mockBurnedMetadataRecord,
+        details: mockBurnedMetadataDetails,
+      });
     });
 
     // Add test for invalid burn attempt
@@ -136,15 +143,15 @@ describe('metadataStore', () => {
       const { record, details } = createMetadataWithPassphrase(passphrase);
 
       const mockResponse = {
-        record: mockBurnedMetadataRecord,
-        details: mockBurnedMetadataDetails,
+        record: mockBurnedMetadataRecordRaw,
+        details: mockBurnedMetadataDetailsRaw,
       };
 
       store.record = record;
       store.details = details;
 
       axiosMock
-        .onPost(`/api/v2/receipt/${testKey}/burn`, {
+        .onPost(`/api/v3/receipt/${testKey}/burn`, {
           passphrase,
           continue: true,
         })
@@ -184,7 +191,7 @@ describe('metadataStore', () => {
   describe('error handling', () => {
     it('handles network errors correctly', async () => {
       // Simulate network error
-      axiosMock?.onGet(`/api/v2/receipt/${mockMetadataRecord.key}`).networkError();
+      axiosMock?.onGet(`/api/v3/receipt/${mockMetadataRecord.key}`).networkError();
 
       await expect(store.fetch(mockMetadataRecord.key)).rejects.toThrow('Network Error');
 
@@ -195,7 +202,7 @@ describe('metadataStore', () => {
 
     it('handles validation errors correctly', async () => {
       // Send invalid data that won't match schema
-      axiosMock?.onGet(`/api/v2/receipt/${mockMetadataRecord.key}`).reply(200, {
+      axiosMock?.onGet(`/api/v3/receipt/${mockMetadataRecord.key}`).reply(200, {
         record: { invalid: 'data' },
       });
 
@@ -208,7 +215,7 @@ describe('metadataStore', () => {
 
     it('resets error state between requests', async () => {
       // First request fails
-      axiosMock?.onGet(`/api/v2/receipt/${mockMetadataRecord.key}`).networkError();
+      axiosMock?.onGet(`/api/v3/receipt/${mockMetadataRecord.key}`).networkError();
 
       try {
         await store.fetch(mockMetadataRecord.key);
@@ -220,9 +227,9 @@ describe('metadataStore', () => {
       }
 
       // Second request succeeds
-      axiosMock?.onGet(`/api/v2/receipt/${mockMetadataRecord.key}`).reply(200, {
-        record: mockMetadataRecord,
-        details: mockMetadataDetails,
+      axiosMock?.onGet(`/api/v3/receipt/${mockMetadataRecord.key}`).reply(200, {
+        record: mockMetadataRecordRaw,
+        details: mockMetadataDetailsRaw,
       });
 
       await store.fetch(mockMetadataRecord.key);
@@ -282,7 +289,7 @@ describe('metadataStore', () => {
         const testKey = mockMetadataRecord.key;
 
         // Configure axios mock to timeout
-        axiosMock?.onGet(`/api/v2/receipt/${testKey}`).timeout();
+        axiosMock?.onGet(`/api/v3/receipt/${testKey}`).timeout();
 
         await expect(store.fetch(testKey)).rejects.toThrow('timeout');
 
@@ -294,7 +301,7 @@ describe('metadataStore', () => {
         const testKey = mockMetadataRecord.key;
 
         // Simulate 403 Forbidden scenario
-        axiosMock?.onPost(`/api/v2/receipt/${testKey}/burn`).reply(403, {
+        axiosMock?.onPost(`/api/v3/receipt/${testKey}/burn`).reply(403, {
           message: 'Unauthorized to burn this metadata',
         });
 
@@ -335,12 +342,12 @@ describe('metadataStore', () => {
       it('handles concurrent fetch requests gracefully', async () => {
         const testKey = mockMetadataRecord.key;
         const mockResponse = {
-          record: mockMetadataRecord,
-          details: mockMetadataDetails,
+          record: mockMetadataRecordRaw,
+          details: mockMetadataDetailsRaw,
         };
 
         // Simulate slow response with delay
-        axiosMock?.onGet(`/api/v2/receipt/${testKey}`).reply(() => new Promise((resolve) => {
+        axiosMock?.onGet(`/api/v3/receipt/${testKey}`).reply(() => new Promise((resolve) => {
             setTimeout(() => resolve([200, mockResponse]), 100);
           }));
 
@@ -370,14 +377,14 @@ describe('metadataStore', () => {
 
         // Mock server responses: first succeeds, others fail with 400
         let burnAttempts = 0;
-        axiosMock?.onPost(`/api/v2/receipt/${testKey}/burn`).reply(() => {
+        axiosMock?.onPost(`/api/v3/receipt/${testKey}/burn`).reply(() => {
           burnAttempts++;
           if (burnAttempts === 1) {
             return [
               200,
               {
-                record: mockBurnedMetadataRecord,
-                details: mockBurnedMetadataDetails,
+                record: mockBurnedMetadataRecordRaw,
+                details: mockBurnedMetadataDetailsRaw,
               },
             ];
           }

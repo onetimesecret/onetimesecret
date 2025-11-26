@@ -1,8 +1,9 @@
+// src/tests/stores/storeExample.spec.ts
+
 import axios, { type AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createApp } from 'vue';
 
 // Minimal store implementation
 const useTestStore = defineStore('test', {
@@ -90,11 +91,14 @@ describe('Store Testing Pattern', () => {
 
   it('handles delayed responses correctly', async () => {
     // 1. Setup delayed response
-    axiosMock.onGet('/api/data/123').reply(() => new Promise((resolve) => {
-        setTimeout(() => {
-          resolve([200, mockData]);
-        }, 50);
-      }));
+    axiosMock.onGet('/api/data/123').reply(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve([200, mockData]);
+          }, 50);
+        })
+    );
 
     // 2. Start the request
     const promise = store.fetchData('123', axiosInstance);

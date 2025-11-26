@@ -1,3 +1,5 @@
+// src/composables/helpers/magicLinkHelpers.ts
+
 /**
  * Helper functions for Magic Link composable
  */

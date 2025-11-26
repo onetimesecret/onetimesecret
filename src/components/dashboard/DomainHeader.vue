@@ -1,3 +1,5 @@
+<!-- src/components/dashboard/DomainHeader.vue -->
+
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import { useDomainStatus } from '@/composables/useDomainStatus';

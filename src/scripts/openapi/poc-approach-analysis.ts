@@ -1,3 +1,5 @@
+// src/scripts/openapi/poc-approach-analysis.ts
+
 /**
  * PoC: Approach Analysis for OpenAPI Integration
  *

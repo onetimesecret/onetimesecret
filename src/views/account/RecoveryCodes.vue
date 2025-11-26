@@ -1,3 +1,5 @@
+<!-- src/views/account/RecoveryCodes.vue -->
+
 <script setup lang="ts">
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
   import { useMfa } from '@/composables/useMfa';

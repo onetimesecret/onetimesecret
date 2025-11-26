@@ -1,4 +1,4 @@
-# try/billing/04_capabilities_try.rb
+# apps/web/billing/try/04_capabilities_try.rb
 #
 # frozen_string_literal: true
 

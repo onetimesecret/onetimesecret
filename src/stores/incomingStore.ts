@@ -21,7 +21,7 @@ interface StoreOptions extends PiniaPluginOptions {}
 export type IncomingStore = {
   // State
   config: IncomingConfig | null;
-  isConfigLoading: boolean;
+  isLoading: boolean;
   configError: string | null;
   _initialized: boolean;
 
@@ -34,7 +34,7 @@ export type IncomingStore = {
 
   // Actions
   init: () => { isInitialized: boolean };
-  loadConfig: () => Promise<IncomingConfig>;
+  loadConfig: () => Promise<IncomingConfig | undefined>;
   createIncomingSecret: (payload: IncomingSecretPayload) => Promise<IncomingSecretResponse>;
   clear: () => void;
   $reset: () => void;
@@ -49,7 +49,7 @@ export const useIncomingStore = defineStore('incoming', () => {
 
   // State
   const config = ref<IncomingConfig | null>(null);
-  const isConfigLoading = ref(false);
+  const isLoading = ref(false);
   const configError = ref<string | null>(null);
   const _initialized = ref(false);
 
@@ -61,7 +61,6 @@ export const useIncomingStore = defineStore('incoming', () => {
   const defaultTtl = computed(() => config.value?.default_ttl);
 
   // Actions
-
   function init(options?: StoreOptions) {
     if (_initialized.value) return { isInitialized };
 
@@ -74,31 +73,15 @@ export const useIncomingStore = defineStore('incoming', () => {
 
   /**
    * Loads incoming secrets configuration from API
-   * @throws Will throw an error if the API call fails or validation fails
-   * @returns Validated incoming config response
+   * @returns Validated incoming config response or undefined on error
    */
-  async function loadConfig(): Promise<IncomingConfig> {
-    isConfigLoading.value = true;
+  const loadConfig = async () => {
     configError.value = null;
-
-    try {
-      const response = await $api.get('/api/v3/incoming/config');
-      const validated = incomingConfigSchema.parse(response.data.config);
-      config.value = validated;
-      return validated;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load configuration';
-      configError.value = errorMessage;
-      if (error instanceof Error) {
-        loggingService.error(error);
-      } else {
-        loggingService.error(new Error('Failed to load incoming config'));
-      }
-      throw error;
-    } finally {
-      isConfigLoading.value = false;
-    }
-  }
+    const response = await $api.get('/api/v3/incoming/config');
+    const validated = incomingConfigSchema.parse(response.data.config);
+    config.value = validated;
+    return validated;
+  };
 
   /**
    * Creates a new incoming secret
@@ -124,7 +107,7 @@ export const useIncomingStore = defineStore('incoming', () => {
   function clear() {
     config.value = null;
     configError.value = null;
-    isConfigLoading.value = false;
+    isLoading.value = false;
   }
 
   /**
@@ -133,14 +116,14 @@ export const useIncomingStore = defineStore('incoming', () => {
   function $reset() {
     config.value = null;
     configError.value = null;
-    isConfigLoading.value = false;
+    isLoading.value = false;
     _initialized.value = false;
   }
 
   return {
     // State
     config,
-    isConfigLoading,
+    isLoading,
     configError,
     _initialized,
 

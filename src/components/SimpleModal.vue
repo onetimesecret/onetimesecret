@@ -1,3 +1,5 @@
+<!-- src/components/SimpleModal.vue -->
+
 <script setup>
 import OIcon from '@/components/icons/OIcon.vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
