@@ -74,12 +74,6 @@ RSpec.describe 'Rhales Migration Integration' do
   end
 
   describe 'VuePoint rendering with Rhales' do
-    # Skip all Rhales tests until templates are implemented
-    # TODO: Remove skip once index template and Rhales integration is complete
-    before(:all) do
-      skip 'Rhales templates not yet implemented - awaiting index template creation'
-    end
-
     let(:view) { Core::Views::VuePoint.new(request) }
     let(:rendered_html) { view.render('index') }
     let(:doc) { Nokogiri::HTML(rendered_html) }
