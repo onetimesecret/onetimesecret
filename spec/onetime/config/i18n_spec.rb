@@ -1,8 +1,6 @@
-# .purgatory/spec/onetime/config/i18n_spec.rb
+# spec/onetime/config/i18n_spec.rb
 #
 # frozen_string_literal: true
-
-# e.g. pnpm run rspec tests/unit/ruby/rspec/config/i18n_spec.rb
 
 require_relative '../../spec_helper'
 

@@ -1,4 +1,4 @@
-# .purgatory/spec/onetime/initializers/boot_part2_spec.rb
+# spec/onetime/initializers/boot_part2_spec.rb
 #
 # frozen_string_literal: true
 

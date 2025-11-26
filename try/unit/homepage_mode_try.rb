@@ -1,7 +1,6 @@
 # try/unit/homepage_mode_try.rb
 #
-# Unit tests for Homepage Mode functionality with CIDR matching and header fallback
-#
+# frozen_string_literal: true
 
 ENV['RACK_ENV'] = 'test'
 ENV['VALKEY_URL'] = 'valkey://127.0.0.1:2121/0'

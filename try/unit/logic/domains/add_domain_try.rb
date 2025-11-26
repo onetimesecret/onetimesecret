@@ -1,7 +1,7 @@
 # try/unit/logic/domains/add_domain_try.rb
 #
 # frozen_string_literal: true
-#
+
 # Tests for AddDomain logic class with enhanced duplicate handling
 #
 # Validates three scenarios:

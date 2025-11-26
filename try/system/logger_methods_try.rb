@@ -1,8 +1,7 @@
-# try/system/logging_system_try.rb
+# try/system/logger_methods_try.rb
 #
 # frozen_string_literal: true
 
-#
 # Tryouts for the structured logging system with strategic categories.
 # Tests SemanticLogger integration, backward compatibility, and the Logging module.
 

@@ -1,7 +1,6 @@
 # try/disabled/domains/verification_try_disabled.rb
+#
 # frozen_string_literal: true
-
-# These tryouts test the validation and verification status functionality of custom domains
 
 require 'securerandom'
 
