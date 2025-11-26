@@ -17,6 +17,7 @@ module Auth::Config::Features
   #
   module Argon2
     def self.configure(auth)
+      # Use argon2id for password hashing (more secure than bcrypt)
       auth.enable :argon2
 
       # Optional secret key for additional security.

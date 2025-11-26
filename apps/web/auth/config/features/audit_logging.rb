@@ -5,6 +5,8 @@
 module Auth::Config::Features
   module AuditLogging
     def self.configure(auth)
+      auth.enable :audit_logging
+
       # ========================================================================
       # Table Configuration
       # ========================================================================

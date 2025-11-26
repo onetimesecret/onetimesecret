@@ -11,9 +11,10 @@ module Auth::Config::Features
   # @see https://rodauth.jeremyevans.net/rdoc/files/doc/otp_rdoc.html
   module MFA
     def self.configure(auth)
-      # Multi-Factor Authentication
-      # enable :otp  # Time-based One-Time Password (TOTP)
-      # enable :recovery_codes  # Backup codes for MFA
+      # Multi-Factor Authentication (conditionally enabled via ENV in config.rb)
+      auth.enable :two_factor_base
+      auth.enable :otp             # Time-based One-Time Password (TOTP)
+      auth.enable :recovery_codes  # Backup codes for MFA
 
       # MFA Configuration
       auth.otp_issuer 'OneTimeSecret'

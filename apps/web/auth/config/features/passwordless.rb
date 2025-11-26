@@ -9,8 +9,8 @@ module Auth::Config::Features
     using Familia::Refinements::TimeLiterals
 
     def self.configure(auth)
-      # Email Auth (Magic Links)
-      # enable :email_auth
+      # Email Auth / Magic Links (conditionally enabled via ENV in config.rb)
+      auth.enable :email_auth
 
       # Magic links are only valid for a short period so we also keep
       # the resend interval short to avoid user frustration.

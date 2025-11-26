@@ -85,20 +85,20 @@ empty_cust.passphrase?('anything')
 
 ## Customer.dummy uses argon2
 Onetime::Customer.instance_variable_set(:@dummy, nil) # Reset cached dummy
-dummy = Onetime::Customer.dummy
-dummy.passphrase.start_with?('$argon2id$')
+@dummy = Onetime::Customer.dummy
+@dummy.passphrase.start_with?('$argon2id$')
 #=> true
 
 ## Customer.dummy has passphrase_encryption = '2'
-dummy.passphrase_encryption
+@dummy.passphrase_encryption
 #=> '2'
 
 ## Customer.dummy is frozen
-dummy.frozen?
+@dummy.frozen?
 #=> true
 
 ## argon2_hash_cost returns test cost in test environment
-@argon2_customer.argon2_hash_cost
+with_env('RACK_ENV', 'test') { @argon2_customer.argon2_hash_cost }
 #=> { t_cost: 1, m_cost: 5, p_cost: 1 }
 
 ## Invalid algorithm raises ArgumentError
@@ -111,27 +111,25 @@ end
 #=> true
 
 ## Complete migration workflow: bcrypt password migrates to argon2
-migration_customer = Onetime::Customer.new(email: generate_random_email)
-migration_password = 'migration-test-password'
+@migration_customer = Onetime::Customer.new(email: generate_random_email)
+@migration_password = 'migration-test-password'
 
 # Start with bcrypt
-migration_customer.update_passphrase(migration_password, algorithm: :bcrypt)
-migration_customer.passphrase_encryption == '1' &&
-migration_customer.argon2_hash?(migration_customer.passphrase) == false
+@migration_customer.update_passphrase(@migration_password, algorithm: :bcrypt)
+@migration_customer.passphrase_encryption == '1' &&
+@migration_customer.argon2_hash?(@migration_customer.passphrase) == false
 #=> true
 
 ## Migration workflow: verify bcrypt password works
-migration_customer.passphrase?(migration_password)
+@migration_customer.passphrase?(@migration_password)
 #=> true
 
 ## Migration workflow: rehash to argon2
-migration_customer.update_passphrase!(migration_password)
-migration_customer.passphrase_encryption
+@migration_customer.update_passphrase!(@migration_password)
+@migration_customer.passphrase_encryption
 #=> '2'
 
 ## Migration workflow: new argon2 hash is valid
-migration_customer.argon2_hash?(migration_customer.passphrase) &&
-migration_customer.passphrase?(migration_password)
+@migration_customer.argon2_hash?(@migration_customer.passphrase) &&
+@migration_customer.passphrase?(@migration_password)
 #=> true
-
-# Cleanup - don't save these test customers
