@@ -89,7 +89,8 @@
     "type-check:base": "vue-tsc --noEmit",
     "type-check:parallel": "pnpm -r exec vue-tsc --build --noEmit",
     "type-check:watch": "pnpm run type-check:base --watch",
-    "worktrees": "./scripts/worktree-report.sh"
+    "branches": "./scripts/corporate-branch-report.sh",
+    "branches:worktrees": "./scripts/corporate-branch-report.sh --worktrees"
   },
   "keywords": [],
   "author": "",
