@@ -1,7 +1,7 @@
 <!-- src/views/incoming/IncomingSecretForm.vue -->
 
 <script setup lang="ts">
-  import { onMounted, ref } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useIncomingSecret } from '@/composables/useIncomingSecret';
   import { useIncomingStore } from '@/stores/incomingStore';
   import IncomingMemoInput from '@/components/incoming/IncomingMemoInput.vue';
@@ -30,6 +30,8 @@
 
   const isLoading = ref(true);
   const secretContentRef = ref<InstanceType<typeof SecretContentInputArea> | null>(null);
+
+  const showFeatureDisabled = computed(() => !isLoading.value && !isFeatureEnabled.value);
 
   onMounted(async () => {
     await loadConfig();
@@ -66,23 +68,8 @@
 
 <template>
   <div class="container mx-auto mt-16 max-w-3xl px-4 pb-20 sm:mt-20 sm:pb-24">
-    <!-- Header -->
-    <div class="mb-10">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
-        {{ t('incoming.page_title') }}
-      </h1>
-      <p class="mt-3 text-base text-gray-600 dark:text-gray-400 sm:text-lg">
-        {{ t('incoming.page_description') }}
-      </p>
-    </div>
-
-    <!-- Loading State -->
-    <LoadingOverlay
-      :show="isLoading"
-      :message="t('incoming.loading_config')" />
-
-    <!-- Feature Disabled -->
-    <EmptyState v-if="!isFeatureEnabled" :show-action="false">
+    <!-- Feature Disabled (no header) -->
+    <EmptyState v-if="showFeatureDisabled" :show-action="false">
       <template #title>
         {{ t('incoming.feature_disabled_title') }}
       </template>
@@ -91,20 +78,37 @@
       </template>
     </EmptyState>
 
-    <!-- Error State -->
-    <EmptyState v-else-if="incomingStore.configError" :show-action="false">
-      <template #title>
-        {{ t('incoming.config_error_title') }}
-      </template>
-      <template #description>
-        {{ incomingStore.configError }}
-      </template>
-    </EmptyState>
+    <!-- Normal flow: header + content -->
+    <template v-else>
+      <!-- Header -->
+      <div class="mb-10">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
+          {{ t('incoming.page_title') }}
+        </h1>
+        <p class="mt-3 text-base text-gray-600 dark:text-gray-400 sm:text-lg">
+          {{ t('incoming.page_description') }}
+        </p>
+      </div>
 
-    <!-- Form -->
-    <div
-      v-else
-      class="overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-slate-800">
+      <!-- Loading State -->
+      <LoadingOverlay
+        :show="isLoading"
+        :message="t('incoming.loading_config')" />
+
+      <!-- Error State -->
+      <EmptyState v-if="incomingStore.configError" :show-action="false">
+        <template #title>
+          {{ t('incoming.config_error_title') }}
+        </template>
+        <template #description>
+          {{ incomingStore.configError }}
+        </template>
+      </EmptyState>
+
+      <!-- Form -->
+      <div
+        v-else-if="!isLoading"
+        class="overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-slate-800">
       <form
         @submit.prevent="handleSubmit"
         class="space-y-8 p-8 sm:p-10">
@@ -184,6 +188,7 @@
             </button>
           </div>
       </form>
-    </div>
+      </div>
+    </template>
   </div>
 </template>
