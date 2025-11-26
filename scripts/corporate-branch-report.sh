@@ -69,6 +69,7 @@ declare -A branch_ahead=()
 declare -A branch_behind=()
 declare -A branch_prs=()
 declare -A branch_latest=()
+declare -A branch_base=()
 
 # Get all local branches
 while IFS= read -r branch; do
@@ -89,9 +90,18 @@ while IFS= read -r branch; do
   # Count commits behind base
   behind=$(git rev-list --count "$branch..$BASE_BRANCH" 2>/dev/null || echo "0")
 
+  # Get merge base (where branch diverged from base)
+  merge_base=$(git merge-base "$branch" "$BASE_BRANCH" 2>/dev/null || echo "")
+  if [[ -n "$merge_base" ]]; then
+    base_short=$(git log --oneline -1 "$merge_base" 2>/dev/null | cut -c1-7 || echo "unknown")
+  else
+    base_short="unknown"
+  fi
+
   branches+=("$branch")
   branch_ahead["$branch"]="$ahead"
   branch_behind["$branch"]="$behind"
+  branch_base["$branch"]="$base_short"
 
   # Get associated PR (if any)
   pr=$(gh pr list --head "$branch" --json number --jq '.[0].number // empty' 2>/dev/null || true)
@@ -117,8 +127,8 @@ if [[ ${#branches[@]} -eq 0 ]]; then
 fi
 
 # Print table header
-printf "| %-28s | %5s | %6s | %-42s | %-6s |\n" "Branch" "Ahead" "Behind" "Latest Commit" "PR"
-printf "|%s|%s|%s|%s|%s|\n" "$(printf '%.0s-' {1..30})" "$(printf '%.0s-' {1..7})" "$(printf '%.0s-' {1..8})" "$(printf '%.0s-' {1..44})" "$(printf '%.0s-' {1..8})"
+printf "| %-28s | %7s | %-9s | %-34s | %-6s |\n" "Branch" "-/+" "Based On" "Latest Commit" "PR"
+printf "|%s|%s|%s|%s|%s|\n" "$(printf '%.0s-' {1..30})" "$(printf '%.0s-' {1..9})" "$(printf '%.0s-' {1..11})" "$(printf '%.0s-' {1..36})" "$(printf '%.0s-' {1..8})"
 
 # Sort by commits ahead (ascending) for suggested merge order
 sorted_branches=()
@@ -133,17 +143,21 @@ current_branch=$(git rev-parse --abbrev-ref HEAD)
 for item in "${sorted[@]}"; do
   ahead="${item%%|*}"
   branch="${item#*|}"
+  behind="${branch_behind[$branch]}"
 
   # Build display branch with markers
   display_branch="$branch"
   [[ -n "${worktree_paths[$branch]:-}" ]] && display_branch="🌳 $branch"
   [[ "$branch" == "$current_branch" ]] && display_branch="$display_branch *"
 
-  printf "| %-28s | %5s | %6s | %-42s | %-6s |\n" \
+  # Format -/+ column: right-align behind, left-align ahead (e.g., "  0/16")
+  diff_display=$(printf "%3s/%-3s" "$behind" "$ahead")
+
+  printf "| %-28s | %7s | %-9s | %-34s | %-6s |\n" \
     "${display_branch:0:28}" \
-    "$ahead" \
-    "${branch_behind[$branch]}" \
-    "${branch_latest[$branch]:0:42}" \
+    "$diff_display" \
+    "${branch_base[$branch]}" \
+    "${branch_latest[$branch]:0:34}" \
     "${branch_prs[$branch]}"
 done
 
@@ -161,7 +175,7 @@ for item in "${sorted[@]}"; do
   behind_note=""
   [[ "$behind" != "0" ]] && behind_note=" ⚠️  $behind behind"
 
-  echo "  $order. $branch ($ahead ahead$behind_note) $pr"
+  echo "  $order. $branch (-$behind/+$ahead$behind_note) $pr"
   ((order++))
 done
 
