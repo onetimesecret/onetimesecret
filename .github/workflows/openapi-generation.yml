@@ -21,7 +21,7 @@ on:
       - develop
     paths:
       - 'src/schemas/**/*.ts'
-      - 'apps/api/*/routes'
+      - 'apps/api/*/routes.txt'
       - 'src/scripts/openapi/**/*.ts'
   pull_request:
     branches:
@@ -29,7 +29,7 @@ on:
       - main
     paths:
       - 'src/schemas/**/*.ts'
-      - 'apps/api/*/routes'
+      - 'apps/api/*/routes.txt'
       - 'src/scripts/openapi/**/*.ts'
   workflow_dispatch:
     inputs:
