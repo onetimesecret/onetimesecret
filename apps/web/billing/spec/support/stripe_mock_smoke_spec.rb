@@ -1,4 +1,4 @@
-# spec/support/stripe_mock_smoke_spec.rb
+# apps/web/billing/spec/support/stripe_mock_smoke_spec.rb
 #
 # frozen_string_literal: true
 

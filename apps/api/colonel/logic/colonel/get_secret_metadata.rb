@@ -1,4 +1,4 @@
-# apps/api/account/logic/colonel/get_secret_metadata.rb
+# apps/api/colonel/logic/colonel/get_secret_metadata.rb
 #
 # frozen_string_literal: true
 

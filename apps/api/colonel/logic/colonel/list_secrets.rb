@@ -1,4 +1,4 @@
-# apps/api/account/logic/colonel/list_secrets.rb
+# apps/api/colonel/logic/colonel/list_secrets.rb
 #
 # frozen_string_literal: true
 

@@ -1,3 +1,5 @@
+# apps/web/billing/cli/validation_helpers.rb
+#
 # frozen_string_literal: true
 
 module Onetime

@@ -1,4 +1,4 @@
-# spec/apps/api/domains/logic/domains/add_domain_spec.rb
+# apps/api/domains/spec/logic/domains/add_domain_spec.rb
 #
 # frozen_string_literal: true
 

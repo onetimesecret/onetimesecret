@@ -1,8 +1,7 @@
-# spec/support/vcr_setup.rb
+# apps/web/billing/spec/support/vcr_setup.rb
 #
 # frozen_string_literal: true
 
-#
 # VCR configuration for recording/replaying HTTP interactions with Stripe API.
 #
 # Usage Modes:

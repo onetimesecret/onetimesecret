@@ -1,4 +1,4 @@
-# lib/onetime/models/banned_ip.rb
+# apps/api/colonel/models/banned_ip.rb
 #
 # frozen_string_literal: true
 

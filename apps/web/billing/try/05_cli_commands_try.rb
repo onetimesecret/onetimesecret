@@ -1,4 +1,4 @@
-# try/billing/05_cli_commands_try.rb
+# apps/web/billing/try/05_cli_commands_try.rb
 #
 # frozen_string_literal: true
 

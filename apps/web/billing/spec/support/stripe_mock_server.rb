@@ -1,4 +1,4 @@
-# spec/support/stripe_mock_server.rb
+# apps/web/billing/spec/support/stripe_mock_server.rb
 #
 # frozen_string_literal: true
 

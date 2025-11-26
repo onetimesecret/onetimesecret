@@ -1,4 +1,4 @@
-# spec/apps/web/core/logic/authentication/authenticate_session_spec.rb
+# apps/web/core/spec/logic/authentication/authenticate_session_spec.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# .purgatory/spec/apps/api/v2/models/authentication_database_flows_spec.rb
+# apps/api/v2/spec/models/authentication_database_flows_spec.rb
 #
 # frozen_string_literal: true
 

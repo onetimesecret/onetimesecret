@@ -1,4 +1,4 @@
-# .purgatory/spec/apps/api/v2/models/secret_encryption_alt_spec.rb
+# apps/api/v2/spec/models/secret_encryption_alt_spec.rb
 #
 # frozen_string_literal: true
 

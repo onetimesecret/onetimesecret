@@ -1,4 +1,4 @@
-# .purgatory/spec/apps/api/v2/logic/authentication/reset_password_spec.rb
+# apps/api/account/spec/logic/authentication/reset_password_spec.rb
 #
 # frozen_string_literal: true
 

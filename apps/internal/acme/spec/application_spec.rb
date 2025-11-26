@@ -1,4 +1,4 @@
-# spec/apps/internal/acme/application_spec.rb
+# apps/internal/acme/spec/application_spec.rb
 #
 # frozen_string_literal: true
 

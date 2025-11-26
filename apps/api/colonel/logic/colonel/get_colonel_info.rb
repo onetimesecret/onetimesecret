@@ -1,4 +1,4 @@
-# apps/api/account/logic/colonel/get_colonel_info.rb
+# apps/api/colonel/logic/colonel/get_colonel_info.rb
 #
 # frozen_string_literal: true
 
