@@ -49,7 +49,7 @@ module Onetime
   #   - Use extid. Don't log internal IDs.
   #
   # Easy way to remember: if you can see a UUID, it's an internal ID. If
-  # you can't, it's an external ID.
+  # you can't and it has a two character prefix, it's an external ID.
   class CustomDomain < Familia::Horreum
     include Familia::Features::Autoloader
 
