@@ -70,6 +70,7 @@ declare -A branch_behind=()
 declare -A branch_prs=()
 declare -A branch_latest=()
 declare -A branch_base=()
+declare -A branch_base_age=()
 
 # Get all local branches
 while IFS= read -r branch; do
@@ -93,15 +94,18 @@ while IFS= read -r branch; do
   # Get merge base (where branch diverged from base)
   merge_base=$(git merge-base "$branch" "$BASE_BRANCH" 2>/dev/null || echo "")
   if [[ -n "$merge_base" ]]; then
-    base_short=$(git log --oneline -1 "$merge_base" 2>/dev/null | cut -c1-7 || echo "unknown")
+    base_short=$(git rev-parse --short=7 "$merge_base" 2>/dev/null || echo "unknown")
+    base_age=$(git log -1 --format='%cr' "$merge_base" 2>/dev/null | sed 's/ ago//' || echo "?")
   else
     base_short="unknown"
+    base_age="?"
   fi
 
   branches+=("$branch")
   branch_ahead["$branch"]="$ahead"
   branch_behind["$branch"]="$behind"
   branch_base["$branch"]="$base_short"
+  branch_base_age["$branch"]="$base_age"
 
   # Get associated PR (if any)
   pr=$(gh pr list --head "$branch" --json number --jq '.[0].number // empty' 2>/dev/null || true)
@@ -112,7 +116,7 @@ while IFS= read -r branch; do
   fi
 
   # Get latest commit (hash + message)
-  latest=$(git log --oneline -1 "$branch" 2>/dev/null | cut -c1-40 || echo "unknown")
+  latest=$(git log --oneline -1 "$branch" 2>/dev/null | cut -c1-50 || echo "unknown")
   branch_latest["$branch"]="${latest:-"unknown"}"
 
 done < <(git for-each-ref --sort=-committerdate refs/heads/ --format='%(refname:short)')
@@ -127,8 +131,8 @@ if [[ ${#branches[@]} -eq 0 ]]; then
 fi
 
 # Print table header
-printf "| %-28s | %7s | %-9s | %-34s | %-6s |\n" "Branch" "-/+" "Based On" "Latest Commit" "PR"
-printf "|%s|%s|%s|%s|%s|\n" "$(printf '%.0s-' {1..30})" "$(printf '%.0s-' {1..9})" "$(printf '%.0s-' {1..11})" "$(printf '%.0s-' {1..36})" "$(printf '%.0s-' {1..8})"
+printf "| %-25s | %9s | %-18s | %-44s | %-6s |\n" "Branch" "-/+" "Based On" "Latest Commit" "PR"
+printf "|%s|%s|%s|%s|%s|\n" "$(printf '%.0s-' {1..27})" "$(printf '%.0s-' {1..11})" "$(printf '%.0s-' {1..20})" "$(printf '%.0s-' {1..46})" "$(printf '%.0s-' {1..8})"
 
 # Sort by commits ahead (ascending) for suggested merge order
 sorted_branches=()
@@ -146,18 +150,29 @@ for item in "${sorted[@]}"; do
   behind="${branch_behind[$branch]}"
 
   # Build display branch with markers
+  # Use fixed-width prefix for worktree indicator to maintain alignment
+  if [[ -n "${worktree_paths[$branch]:-}" ]]; then
+    wt_prefix="🌳"
+  else
+    wt_prefix="  "
+  fi
+
   display_branch="$branch"
-  [[ -n "${worktree_paths[$branch]:-}" ]] && display_branch="🌳 $branch"
-  [[ "$branch" == "$current_branch" ]] && display_branch="$display_branch *"
+  [[ "$branch" == "$current_branch" ]] && display_branch="$branch *"
 
-  # Format -/+ column: right-align behind, left-align ahead (e.g., "  0/16")
-  diff_display=$(printf "%3s/%-3s" "$behind" "$ahead")
+  # Format -/+ column: right-align behind, left-align ahead with fixed width
+  diff_display=$(printf "%4d/%-4d" "$behind" "$ahead")
 
-  printf "| %-28s | %7s | %-9s | %-34s | %-6s |\n" \
-    "${display_branch:0:28}" \
+  # Format base with age
+  base_display="${branch_base[$branch]} ${branch_base_age[$branch]}"
+
+  # Print with worktree prefix separate to handle emoji width
+  printf "| %s %-22s | %9s | %-18s | %-44s | %-6s |\n" \
+    "$wt_prefix" \
+    "${display_branch:0:22}" \
     "$diff_display" \
-    "${branch_base[$branch]}" \
-    "${branch_latest[$branch]:0:34}" \
+    "${base_display:0:18}" \
+    "${branch_latest[$branch]:0:44}" \
     "${branch_prs[$branch]}"
 done
 
