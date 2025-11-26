@@ -1,8 +1,8 @@
-# .purgatory/spec/apps/web/views/base_json_spec.rb
+# apps/web/core/spec/views/base_json_spec.rb
 #
 # frozen_string_literal: true
 
-require_relative '../../../spec_helper'
+require_relative '../../../../../spec/spec_helper'
 require 'familia/json_serializer'
 
 RSpec.xdescribe Core::Views::BaseView, "JSON Output" do

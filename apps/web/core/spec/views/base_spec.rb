@@ -1,13 +1,11 @@
-# .purgatory/spec/apps/web/views/base_spec.rb
+# apps/web/core/spec/views/base_spec.rb
 #
 # frozen_string_literal: true
 
-# e.g. pnpm run rspec tests/unit/ruby/rspec/apps/web/views/base_spec.rb
+require_relative '../../../../../spec/spec_helper'
 
-require_relative '../../../spec_helper'
-
-require 'core/views/base'
-require 'core/views/serializers'
+require_relative '../../views/base'
+require_relative '../../views/serializers'
 
 RSpec.describe Core::Views::BaseView do
   include_context "rack_test_context"

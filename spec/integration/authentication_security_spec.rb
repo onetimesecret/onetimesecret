@@ -1,8 +1,8 @@
-# .purgatory/spec/apps/api/authentication_security_spec.rb
+# spec/integration/authentication_security_spec.rb
 #
 # frozen_string_literal: true
 
-require_relative '../../spec_helper'
+require_relative '../spec_helper'
 
 RSpec.xdescribe 'Authentication Security Attack Vectors' do
   skip 'Temporarily skipped - added by #1677, extracted from an orphan branch, but never passing yet'

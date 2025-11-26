@@ -1,8 +1,8 @@
-# .purgatory/spec/apps/api/authentication_e2e_spec.rb
+# spec/integration/authentication_e2e_spec.rb
 #
 # frozen_string_literal: true
 
-require 'spec_helper'
+require_relative '../spec_helper'
 
 RSpec.xdescribe 'End-to-End Authentication Journeys', :allow_redis do
   skip 'Temporarily skipped - added by #1677, extracted from an orphan branch, but never passing yet'
