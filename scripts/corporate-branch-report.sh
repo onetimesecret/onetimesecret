@@ -65,9 +65,10 @@ done < <(git worktree list)
 
 # Collect branch data
 declare -a branches=()
-declare -A branch_commits=()
+declare -A branch_ahead=()
+declare -A branch_behind=()
 declare -A branch_prs=()
-declare -A branch_focus=()
+declare -A branch_latest=()
 
 # Get all local branches
 while IFS= read -r branch; do
@@ -80,13 +81,17 @@ while IFS= read -r branch; do
   fi
 
   # Count commits ahead of base
-  commits=$(git rev-list --count "$BASE_BRANCH..$branch" 2>/dev/null || echo "0")
+  ahead=$(git rev-list --count "$BASE_BRANCH..$branch" 2>/dev/null || echo "0")
 
   # Skip branches with no commits ahead
-  [[ "$commits" == "0" ]] && continue
+  [[ "$ahead" == "0" ]] && continue
+
+  # Count commits behind base
+  behind=$(git rev-list --count "$branch..$BASE_BRANCH" 2>/dev/null || echo "0")
 
   branches+=("$branch")
-  branch_commits["$branch"]="$commits"
+  branch_ahead["$branch"]="$ahead"
+  branch_behind["$branch"]="$behind"
 
   # Get associated PR (if any)
   pr=$(gh pr list --head "$branch" --json number --jq '.[0].number // empty' 2>/dev/null || true)
@@ -96,9 +101,9 @@ while IFS= read -r branch; do
     branch_prs["$branch"]="-"
   fi
 
-  # Get focus from most recent commit message
-  focus=$(git log --oneline -1 "$branch" 2>/dev/null | sed 's/^[a-f0-9]* //' | cut -c1-30 || echo "Various")
-  branch_focus["$branch"]="${focus:-"Various"}"
+  # Get latest commit (hash + message)
+  latest=$(git log --oneline -1 "$branch" 2>/dev/null | cut -c1-40 || echo "unknown")
+  branch_latest["$branch"]="${latest:-"unknown"}"
 
 done < <(git for-each-ref --sort=-committerdate refs/heads/ --format='%(refname:short)')
 
@@ -112,13 +117,13 @@ if [[ ${#branches[@]} -eq 0 ]]; then
 fi
 
 # Print table header
-printf "| %-25s | %5s | %-32s | %-6s | %-2s |\n" "Branch" "Ahead" "Focus" "PR" "WT"
-printf "|%s|%s|%s|%s|%s|\n" "$(printf '%.0s-' {1..27})" "$(printf '%.0s-' {1..7})" "$(printf '%.0s-' {1..34})" "$(printf '%.0s-' {1..8})" "$(printf '%.0s-' {1..4})"
+printf "| %-28s | %5s | %6s | %-42s | %-6s |\n" "Branch" "Ahead" "Behind" "Latest Commit" "PR"
+printf "|%s|%s|%s|%s|%s|\n" "$(printf '%.0s-' {1..30})" "$(printf '%.0s-' {1..7})" "$(printf '%.0s-' {1..8})" "$(printf '%.0s-' {1..44})" "$(printf '%.0s-' {1..8})"
 
 # Sort by commits ahead (ascending) for suggested merge order
 sorted_branches=()
 for branch in "${branches[@]}"; do
-  sorted_branches+=("${branch_commits[$branch]}|$branch")
+  sorted_branches+=("${branch_ahead[$branch]}|$branch")
 done
 
 IFS=$'\n' sorted=($(sort -t'|' -k1 -n <<< "${sorted_branches[*]}")); unset IFS
@@ -126,23 +131,20 @@ IFS=$'\n' sorted=($(sort -t'|' -k1 -n <<< "${sorted_branches[*]}")); unset IFS
 # Print rows
 current_branch=$(git rev-parse --abbrev-ref HEAD)
 for item in "${sorted[@]}"; do
-  commits="${item%%|*}"
+  ahead="${item%%|*}"
   branch="${item#*|}"
 
-  # Mark current branch
+  # Build display branch with markers
   display_branch="$branch"
-  [[ "$branch" == "$current_branch" ]] && display_branch="$branch *"
+  [[ -n "${worktree_paths[$branch]:-}" ]] && display_branch="🌳 $branch"
+  [[ "$branch" == "$current_branch" ]] && display_branch="$display_branch *"
 
-  # Worktree indicator
-  wt_marker=""
-  [[ -n "${worktree_paths[$branch]:-}" ]] && wt_marker="✓"
-
-  printf "| %-25s | %5s | %-32s | %-6s | %-2s |\n" \
-    "${display_branch:0:25}" \
-    "$commits" \
-    "${branch_focus[$branch]:0:32}" \
-    "${branch_prs[$branch]}" \
-    "$wt_marker"
+  printf "| %-28s | %5s | %6s | %-42s | %-6s |\n" \
+    "${display_branch:0:28}" \
+    "$ahead" \
+    "${branch_behind[$branch]}" \
+    "${branch_latest[$branch]:0:42}" \
+    "${branch_prs[$branch]}"
 done
 
 echo ""
@@ -152,10 +154,14 @@ echo ""
 order=1
 for item in "${sorted[@]}"; do
   branch="${item#*|}"
-  commits="${branch_commits[$branch]}"
+  ahead="${branch_ahead[$branch]}"
+  behind="${branch_behind[$branch]}"
   pr="${branch_prs[$branch]}"
 
-  echo "  $order. $branch ($commits commits) $pr"
+  behind_note=""
+  [[ "$behind" != "0" ]] && behind_note=" ⚠️  $behind behind"
+
+  echo "  $order. $branch ($ahead ahead$behind_note) $pr"
   ((order++))
 done
 
