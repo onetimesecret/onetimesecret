@@ -4,8 +4,9 @@
 # Controls the authentication mode and related settings
 ---
 
-# Authentication mode: off, 'basic' (Redis-only) or 'advanced' (requires SQL db)
-mode: basic
+# Authentication mode: 'basic' (Redis-only) or 'advanced' (requires SQL db)
+# Can be overridden with AUTHENTICATION_MODE environment variable
+mode: <%= ENV['AUTHENTICATION_MODE'] || 'basic' %>
 
 # Shared session configuration (both modes)
 session:

@@ -6,7 +6,7 @@ require 'spec_helper'
 require 'onetime/domain_validation/strategy'
 
 RSpec.describe Onetime::DomainValidation::Strategy do
-  let(:config) { { 'site' => { 'domains' => { 'strategy' => strategy_name } } } }
+  let(:config) { { 'features' => { 'domains' => { 'strategy' => strategy_name } } } }
   let(:custom_domain) do
     double('CustomDomain',
            display_domain: 'example.com',
@@ -75,7 +75,7 @@ RSpec.describe Onetime::DomainValidation::Strategy do
       context 'with strict mode enabled' do
         let(:config) do
           {
-            'site' => {
+            'features' => {
               'domains' => {
                 'strategy' => strategy_name,
                 'strict_strategy' => true
@@ -99,11 +99,11 @@ RSpec.describe Onetime::DomainValidation::Strategy do
     end
 
     context 'with no strategy configured (default)' do
-      let(:config) { { 'site' => { 'domains' => {} } } }
+      let(:config) { { 'features' => { 'domains' => {} } } }
 
-      it 'defaults to approximated strategy' do
+      it 'defaults to passthrough strategy' do
         strategy = described_class.for_config(config)
-        expect(strategy).to be_a(Onetime::DomainValidation::ApproximatedStrategy)
+        expect(strategy).to be_a(Onetime::DomainValidation::PassthroughStrategy)
       end
     end
 

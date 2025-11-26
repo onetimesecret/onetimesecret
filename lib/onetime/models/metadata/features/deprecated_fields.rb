@@ -189,6 +189,7 @@ module Onetime::Metadata::Features
         self.state             = 'expired'
         self.updated           = Familia.now.to_i
         self.secret_identifier = ''
+        self.secret_key        = ''
         save update_expiration: false
 
         secret_logger.info 'Metadata state transition to expired', {

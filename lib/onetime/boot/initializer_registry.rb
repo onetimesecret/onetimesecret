@@ -206,9 +206,12 @@ module Onetime
 
         # Reset registry state (for testing)
         #
-        # Clears all registrations and cached state
+        # Clears instance state and cached execution data, but preserves class registrations.
+        # Initializer classes are registered once via the inherited hook when first required.
+        # After reset!, calling load_all will re-instantiate from the preserved class list.
         def reset!
-          @registered_classes = []
+          # Keep @registered_classes - these are static class references that don't change
+          # Only clear instance state and execution data
           @initializers       = []
           @capability_map     = {}
           @execution_order    = nil

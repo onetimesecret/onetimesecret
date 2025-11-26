@@ -83,7 +83,7 @@ module Onetime
             encryption_mode = value_encryption.to_i
             v_encrypted     = value
             v_encrypted     = '' if encryption_mode.negative? && v_encrypted.nil?
-            v_encrypted.force_encoding('utf-8')
+            v_encrypted     = v_encrypted.dup.force_encoding('utf-8')
 
             # First try with the primary global secret
             begin
@@ -99,7 +99,7 @@ module Onetime
                             else
                               raise "Unknown encryption mode: #{value_encryption}"
                             end
-              v_decrypted.force_encoding('utf-8') # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
+              v_decrypted = v_decrypted.dup.force_encoding('utf-8') # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
               v_decrypted
             rescue OpenSSL::Cipher::CipherError => ex
               OT.le "[decrypted_value] m:#{metadata_identifier} s:#{key} CipherError #{ex.message}"
@@ -138,7 +138,7 @@ module Onetime
               # Generate key using the fallback secret
               encryption_key = Onetime::Secret.encryption_key(fallback_secret, key, passphrase_temp)
               result         = encrypted_value.decrypt(opts.merge(key: encryption_key))
-              result.force_encoding('utf-8')
+              result         = result.dup.force_encoding('utf-8')
               OT.li "[try_fallback_secrets] m:#{metadata_identifier} s:#{key} Success (index #{index})"
               return result
             rescue OpenSSL::Cipher::CipherError
