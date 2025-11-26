@@ -127,7 +127,7 @@ describe('Team Store', () => {
   describe('Creating teams', () => {
     it('creates a new team successfully', async () => {
       const newTeamPayload = {
-        name: 'New Team',
+        display_name: 'New Team',
         description: 'A new test team',
       };
 
@@ -151,10 +151,10 @@ describe('Team Store', () => {
 
     it('updates a team successfully', async () => {
       const updates = {
-        name: 'Updated Team Name',
+        display_name: 'Updated Team Name',
       };
 
-      const updatedTeam = { ...mockTeam, ...updates };
+      const updatedTeam = { ...mockTeam, display_name: 'Updated Team Name' };
 
       axiosMock?.onPatch('/api/teams/team-123').reply(200, {
         record: updatedTeam,
