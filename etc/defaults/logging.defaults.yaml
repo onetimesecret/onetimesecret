@@ -32,14 +32,14 @@
 
 # Global default log level
 # Options: trace, debug, info, warn, error, fatal
-default_level: info
+default_level: <%= ENV['DEFAULT_LOG_LEVEL'] || 'warn' %>
 
 # Output formatter
 # Options: color, json, default
 # - color: Human-readable with ANSI colors, timestamps, PID/thread (recommended)
 # - json: Structured JSON for production log shipping
 # - default: Plain text without colors
-formatter: color
+formatter: <%= ENV['LOG_FORMATTER'] || 'color' %>
 
 # Named logger levels
 # Each category can be configured independently. Loggers added here are
@@ -71,10 +71,10 @@ http:
   #   minimal:  method, path, status, duration
   #   standard: + request_id, ip
   #   debug:    + params, headers, session_id
-  capture: standard
+  capture: <%= ENV['LOG_HTTP_CAPTURE'] || 'minimal' %>
 
   # Threshold for logging slow requests as warnings (milliseconds)
-  slow_request_ms: 1000
+  slow_request_ms: <%= ENV['LOG_HTTP_SLOW_REQUEST_MS'] || 1000 %>
 
   # Paths to ignore (glob patterns)
   ignore_paths:
