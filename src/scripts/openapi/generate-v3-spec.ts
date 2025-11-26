@@ -1,3 +1,5 @@
+// src/scripts/openapi/generate-v3-spec.ts
+
 /**
  * Generate OpenAPI 3.0.3 Specification for V3 API
  *
