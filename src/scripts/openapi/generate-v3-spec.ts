@@ -435,7 +435,7 @@ const outputDir = join(process.cwd(), 'docs', 'api');
 mkdirSync(outputDir, { recursive: true });
 
 const outputPath = join(outputDir, 'v3-openapi.json');
-writeFileSync(outputPath, JSON.stringify(document, null, 2));
+writeFileSync(outputPath, JSON.stringify(document, null, 2) + '\n');
 
 console.log(`💾 Wrote OpenAPI spec to: ${outputPath}\n`);
 
