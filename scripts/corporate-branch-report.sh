@@ -71,6 +71,7 @@ declare -A branch_prs=()
 declare -A branch_latest=()
 declare -A branch_base=()
 declare -A branch_base_age=()
+declare -A branch_last_push=()
 
 # Get all local branches
 while IFS= read -r branch; do
@@ -119,6 +120,10 @@ while IFS= read -r branch; do
   latest=$(git log --oneline -1 "$branch" 2>/dev/null | cut -c1-50 || echo "unknown")
   branch_latest["$branch"]="${latest:-"unknown"}"
 
+  # Get latest push date
+  last_push=$(git log -1 --format=%cd --date=short "$branch" 2>/dev/null || echo "?")
+  branch_last_push["$branch"]="$last_push"
+
 done < <(git for-each-ref --sort=-committerdate refs/heads/ --format='%(refname:short)')
 
 # Check if we have any branches to show
@@ -131,8 +136,8 @@ if [[ ${#branches[@]} -eq 0 ]]; then
 fi
 
 # Print table header
-printf "| %-25s | %9s | %-18s | %-44s | %-6s |\n" "Branch" "-/+" "Based On" "Latest Commit" "PR"
-printf "|%s|%s|%s|%s|%s|\n" "$(printf '%.0s-' {1..27})" "$(printf '%.0s-' {1..11})" "$(printf '%.0s-' {1..20})" "$(printf '%.0s-' {1..46})" "$(printf '%.0s-' {1..8})"
+printf "| %-25s | %9s | %-18s | %-10s | %-34s | %-6s |\n" "Branch" "-/+" "Based On" "Pushed" "Latest Commit" "PR"
+printf "|%s|%s|%s|%s|%s|%s|\n" "$(printf '%.0s-' {1..27})" "$(printf '%.0s-' {1..11})" "$(printf '%.0s-' {1..20})" "$(printf '%.0s-' {1..12})" "$(printf '%.0s-' {1..36})" "$(printf '%.0s-' {1..8})"
 
 # Sort by commits ahead (ascending) for suggested merge order
 sorted_branches=()
@@ -167,12 +172,13 @@ for item in "${sorted[@]}"; do
   base_display="${branch_base[$branch]} ${branch_base_age[$branch]}"
 
   # Print with worktree prefix separate to handle emoji width
-  printf "| %s %-22s | %9s | %-18s | %-44s | %-6s |\n" \
+  printf "| %s %-22s | %9s | %-18s | %-10s | %-34s | %-6s |\n" \
     "$wt_prefix" \
     "${display_branch:0:22}" \
     "$diff_display" \
     "${base_display:0:18}" \
-    "${branch_latest[$branch]:0:44}" \
+    "${branch_last_push[$branch]}" \
+    "${branch_latest[$branch]:0:34}" \
     "${branch_prs[$branch]}"
 done
 
