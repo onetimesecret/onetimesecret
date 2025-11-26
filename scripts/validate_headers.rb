@@ -8,6 +8,9 @@
 # Usage:
 #   ruby scripts/validate_headers.rb
 #   ruby scripts/validate_headers.rb --fix
+#   ruby scripts/validate_headers.rb lib/onetime/
+#   ruby scripts/validate_headers.rb --fix src/**/*.ts
+#   ruby scripts/validate_headers.rb apps/ lib/onetime/*.rb
 #
 # Expected header formats:
 #
@@ -28,14 +31,18 @@ require 'pathname'
 class HeaderValidator
   REPO_ROOT = Pathname.new(__dir__).parent.freeze
 
-  def initialize(fix: false)
-    @fix    = fix
-    @errors = []
+  def initialize(fix: false, paths: [])
+    @fix         = fix
+    @paths       = paths
+    @errors      = []
+    @fixed       = []
+    @files_found = 0
   end
 
   def validate_all
     puts 'Validating file headers...'
     puts "Fix mode: #{@fix ? 'ON' : 'OFF'}"
+    puts "Paths: #{@paths.empty? ? '(all)' : @paths.join(', ')}"
     puts
 
     validate_ruby_files
@@ -47,13 +54,35 @@ class HeaderValidator
 
   private
 
+  def files_for_glob(pattern)
+    if @paths.empty?
+      Dir.glob(pattern, base: REPO_ROOT)
+    else
+      @paths.flat_map do |path|
+        full_path = REPO_ROOT / path
+        if full_path.directory?
+          # Path is a directory - search within it
+          Dir.glob(File.join(path, '**/*.{rb,ts,vue}'), base: REPO_ROOT)
+             .select { |f| File.fnmatch?(pattern, f, File::FNM_PATHNAME) }
+        else
+          # Path is a glob or file pattern
+          Dir.glob(path, base: REPO_ROOT)
+             .select { |f| File.fnmatch?(pattern, f, File::FNM_PATHNAME) }
+        end
+      end.uniq
+    end
+  end
+
   def validate_ruby_files
     puts 'Checking Ruby files...'
 
-    Dir.glob('**/*.rb', base: REPO_ROOT).each do |file_path|
+    files_for_glob('**/*.rb').each do |file_path|
       next if skip_file?(file_path)
 
       full_path = REPO_ROOT / file_path
+      next unless full_path.file?
+
+      @files_found += 1
       validate_ruby_header(full_path, file_path)
     end
   end
@@ -61,10 +90,13 @@ class HeaderValidator
   def validate_typescript_files
     puts 'Checking TypeScript files...'
 
-    Dir.glob('src/**/*.ts', base: REPO_ROOT).each do |file_path|
+    files_for_glob('src/**/*.ts').each do |file_path|
       next if skip_file?(file_path)
 
       full_path = REPO_ROOT / file_path
+      next unless full_path.file?
+
+      @files_found += 1
       validate_typescript_header(full_path, file_path)
     end
   end
@@ -72,10 +104,13 @@ class HeaderValidator
   def validate_vue_files
     puts 'Checking Vue files...'
 
-    Dir.glob('src/**/*.vue', base: REPO_ROOT).each do |file_path|
+    files_for_glob('src/**/*.vue').each do |file_path|
       next if skip_file?(file_path)
 
       full_path = REPO_ROOT / file_path
+      next unless full_path.file?
+
+      @files_found += 1
       validate_vue_header(full_path, file_path)
     end
   end
@@ -116,8 +151,37 @@ class HeaderValidator
     end
 
     if errors.any?
-      @errors << { file: relative_path, issues: errors }
+      if @fix
+        fix_ruby_header(full_path, relative_path, lines)
+      else
+        @errors << { file: relative_path, issues: errors }
+      end
     end
+  end
+
+  def fix_ruby_header(full_path, relative_path, lines)
+    # Find where original content starts (skip existing header attempts)
+    content_start = find_ruby_content_start(lines)
+    content = lines[content_start..].join
+
+    new_header = "# #{relative_path}\n#\n# frozen_string_literal: true\n\n"
+    File.write(full_path, new_header + content)
+    @fixed << relative_path
+  end
+
+  def find_ruby_content_start(lines)
+    # Skip lines that look like header comments or frozen_string_literal
+    idx = 0
+    while idx < lines.length
+      line = lines[idx].strip
+      break unless line.empty? ||
+                   line == '#' ||
+                   line.start_with?('# frozen_string_literal') ||
+                   (line.start_with?('#') && !line.start_with?('##') && idx < 4)
+
+      idx += 1
+    end
+    idx
   end
 
   def validate_typescript_header(full_path, relative_path)
@@ -141,8 +205,33 @@ class HeaderValidator
     end
 
     if errors.any?
-      @errors << { file: relative_path, issues: errors }
+      if @fix
+        fix_typescript_header(full_path, relative_path, lines)
+      else
+        @errors << { file: relative_path, issues: errors }
+      end
     end
+  end
+
+  def fix_typescript_header(full_path, relative_path, lines)
+    content_start = find_typescript_content_start(lines)
+    content = lines[content_start..].join
+
+    new_header = "// #{relative_path}\n\n"
+    File.write(full_path, new_header + content)
+    @fixed << relative_path
+  end
+
+  def find_typescript_content_start(lines)
+    idx = 0
+    while idx < lines.length
+      line = lines[idx].strip
+      # Skip empty lines and single-line path comments at the start
+      break unless line.empty? || (line.start_with?('//') && idx == 0)
+
+      idx += 1
+    end
+    idx
   end
 
   def validate_vue_header(full_path, relative_path)
@@ -166,8 +255,33 @@ class HeaderValidator
     end
 
     if errors.any?
-      @errors << { file: relative_path, issues: errors }
+      if @fix
+        fix_vue_header(full_path, relative_path, lines)
+      else
+        @errors << { file: relative_path, issues: errors }
+      end
     end
+  end
+
+  def fix_vue_header(full_path, relative_path, lines)
+    content_start = find_vue_content_start(lines)
+    content = lines[content_start..].join
+
+    new_header = "<!-- #{relative_path} -->\n\n"
+    File.write(full_path, new_header + content)
+    @fixed << relative_path
+  end
+
+  def find_vue_content_start(lines)
+    idx = 0
+    while idx < lines.length
+      line = lines[idx].strip
+      # Skip empty lines and HTML comment headers at the start
+      break unless line.empty? || (line.start_with?('<!--') && line.end_with?('-->') && idx == 0)
+
+      idx += 1
+    end
+    idx
   end
 
   def skip_file?(path)
@@ -181,8 +295,16 @@ class HeaderValidator
     puts
     puts '=' * 80
 
-    if @errors.empty?
+    if @fix && @fixed.any?
+      puts "✓ Fixed #{@fixed.size} files:"
+      @fixed.each { |f| puts "  - #{f}" }
+      puts
+      print_tally
+      exit 0
+    elsif @errors.empty?
       puts '✓ All file headers are valid!'
+      puts
+      print_tally
       exit 0
     else
       puts "✗ Found #{@errors.size} files with invalid headers:"
@@ -198,13 +320,25 @@ class HeaderValidator
 
       puts '=' * 80
       puts
+      print_tally
+      puts
       puts "To fix these issues, run: ruby #{__FILE__} --fix"
       exit 1
     end
   end
+
+  def print_tally
+    compliant = @files_found - @errors.size - @fixed.size
+    puts 'Summary:'
+    puts "  Files scanned:     #{@files_found}"
+    puts "  Compliant:         #{compliant}"
+    puts "  Non-compliant:     #{@errors.size}" unless @fix
+    puts "  Fixed:             #{@fixed.size}" if @fix
+  end
 end
 
 # Main execution
-fix_mode  = ARGV.include?('--fix')
-validator = HeaderValidator.new(fix: fix_mode)
+fix_mode = ARGV.delete('--fix')
+paths    = ARGV.dup
+validator = HeaderValidator.new(fix: !!fix_mode, paths: paths)
 validator.validate_all

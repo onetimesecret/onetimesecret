@@ -1,3 +1,5 @@
+<!-- src/components/colonel/FeedbackSection.vue -->
+
 <script setup lang="ts">
 import { Feedback } from '@/schemas/models/feedback'
 defineProps<{

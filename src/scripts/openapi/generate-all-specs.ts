@@ -1,3 +1,5 @@
+// src/scripts/openapi/generate-all-specs.ts
+
 /**
  * Generate All OpenAPI Specifications
  *
@@ -16,7 +18,7 @@ console.log('🚀 Generating OpenAPI specifications for all APIs...\n');
 
 const generators = [
   { name: 'V3 API', script: 'pnpm run openapi:generate:v3' },
-  { name: 'Account API', script: 'pnpm run openapi:generate:account' }
+  { name: 'Account API', script: 'pnpm run openapi:generate:account' },
 ];
 
 let successCount = 0;
@@ -33,7 +35,7 @@ for (const generator of generators) {
 
     console.log(`\n✅ ${generator.name} spec generated successfully\n`);
   } catch (error) {
-    console.error(`\n❌ ${generator.name} spec generation failed\n`);
+    console.error(`\n❌ ${generator.name} spec generation failed ${error}\n`);
     failCount++;
   }
 }

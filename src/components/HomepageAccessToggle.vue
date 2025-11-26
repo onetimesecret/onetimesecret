@@ -1,3 +1,5 @@
+<!-- src/components/HomepageAccessToggle.vue -->
+
 <script setup lang="ts">
 
 const { t } = useI18n();

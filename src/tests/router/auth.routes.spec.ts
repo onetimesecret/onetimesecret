@@ -1,3 +1,5 @@
+// src/tests/router/auth.routes.spec.ts
+
 import authRoutes from '@/router/auth.routes';
 import { useAuthStore } from '@/stores/authStore';
 import { setupRouter } from '@/tests/utils/routerSetup';
@@ -112,7 +114,7 @@ describe('Auth Routes Configuration', () => {
       const authStore = useAuthStore();
       const error = new Error('Logout failed');
       const logoutSpy = vi.spyOn(authStore, 'logout').mockRejectedValue(error);
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {}); // Provide an empty function as argument
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Mock window.location
       const originalLocation = window.location;

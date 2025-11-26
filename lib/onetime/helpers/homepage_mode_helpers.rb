@@ -1,3 +1,5 @@
+# lib/onetime/helpers/homepage_mode_helpers.rb
+#
 # frozen_string_literal: true
 
 require 'ipaddr'

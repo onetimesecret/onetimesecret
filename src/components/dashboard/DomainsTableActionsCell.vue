@@ -1,4 +1,4 @@
-<!-- src/components/dashboard/DomainsTableRowActionDropdown.vue -->
+<!-- src/components/dashboard/DomainsTableActionsCell.vue -->
 
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';

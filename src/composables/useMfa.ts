@@ -1,3 +1,5 @@
+// src/composables/useMfa.ts
+
 /**
  * Multi-Factor Authentication (MFA) composable
  * Handles OTP setup, verification, disabling, and recovery codes

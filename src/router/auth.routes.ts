@@ -1,3 +1,5 @@
+// src/router/auth.routes.ts
+
 /* src/router/auth.routes.ts */
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import QuietLayout from '@/layouts/QuietLayout.vue';

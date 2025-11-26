@@ -1,3 +1,5 @@
+<!-- src/views/Feedback.vue -->
+
 <script setup lang="ts">
 import FeedbackForm from '@/components/FeedbackForm.vue';
 

@@ -1,3 +1,5 @@
+// src/tests/utils/routerSetup.ts
+
 import { createRouter, createWebHistory } from 'vue-router';
 
 export function setupRouter() {

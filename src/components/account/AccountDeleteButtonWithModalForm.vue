@@ -1,3 +1,5 @@
+<!-- src/components/account/AccountDeleteButtonWithModalForm.vue -->
+
 <script setup lang="ts">
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { Customer } from '@/schemas/models';

@@ -1,3 +1,5 @@
+// src/scripts/openapi/otto-routes-parser.ts
+
 /**
  * Otto Routes Parser
  *
@@ -98,7 +100,7 @@ export function parseRoutesFile(filePath: string): ParsedRoutes {
  * Parse all Otto routes for a specific API
  */
 export function parseApiRoutes(apiName: string): ParsedRoutes {
-  const routesPath = join(process.cwd(), 'apps', 'api', apiName, 'routes');
+  const routesPath = join(process.cwd(), 'apps', 'api', apiName, 'routes.txt');
   return parseRoutesFile(routesPath);
 }
 
@@ -200,12 +202,12 @@ export function discoverApiNames(): string[] {
     // Read all directories in apps/api/
     const entries = readdirSync(apiDir, { withFileTypes: true });
 
-    // Filter for directories that contain a 'routes' file
+    // Filter for directories that contain a 'routes.txt' file
     const apiNames = entries
       .filter(entry => entry.isDirectory())
       .map(entry => entry.name)
       .filter(name => {
-        const routesPath = join(apiDir, name, 'routes');
+        const routesPath = join(apiDir, name, 'routes.txt');
         return existsSync(routesPath);
       });
 

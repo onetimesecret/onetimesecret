@@ -1,3 +1,5 @@
+<!-- src/components/secrets/form/GenerateButton.vue -->
+
 <script setup lang="ts">
 
 const { t } = useI18n();

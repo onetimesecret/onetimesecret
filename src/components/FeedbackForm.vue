@@ -1,3 +1,5 @@
+<!-- src/components/FeedbackForm.vue -->
+
 <script setup lang="ts">
   import { useFormSubmission } from '@/composables/useFormSubmission';
   import { WindowService } from '@/services/window.service';

@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <!-- src/views/auth/EmailLogin.vue -->
 <script setup lang="ts">
 import { useMagicLink } from '@/composables/useMagicLink';

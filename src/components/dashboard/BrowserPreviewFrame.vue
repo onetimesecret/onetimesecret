@@ -1,3 +1,5 @@
+<!-- src/components/dashboard/BrowserPreviewFrame.vue -->
+
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 

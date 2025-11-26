@@ -1,3 +1,4 @@
+<!-- src/components/GithubCorner.vue -->
 
 <template>
   <a

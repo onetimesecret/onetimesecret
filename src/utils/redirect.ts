@@ -1,3 +1,5 @@
+// src/utils/redirect.ts
+
 import type {
   RouteLocationNamedRaw,
   RouteLocationPathRaw,

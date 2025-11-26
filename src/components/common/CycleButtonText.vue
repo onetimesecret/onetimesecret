@@ -1,4 +1,4 @@
-<!-- src/components/common/CycleButton.vue -->
+<!-- src/components/common/CycleButtonText.vue -->
 
 <script setup lang="ts">
 import { computed } from 'vue';

@@ -1,3 +1,5 @@
+// src/schemas/api/v3/base.ts
+
 import { z } from 'zod';
 
 const resolveDetailsSchema = <T extends z.ZodTypeAny | undefined>(schema?: T) =>

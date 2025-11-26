@@ -1,3 +1,5 @@
+<!-- src/components/MovingGlobules.vue -->
+
 <!--
   The shapes "jump" visually after the first interval because the initial
   [`clipPath`] value is set directly in the [`ref`]() without any transition. When

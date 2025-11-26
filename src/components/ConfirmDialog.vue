@@ -1,3 +1,5 @@
+<!-- src/components/ConfirmDialog.vue -->
+
 <script setup lang="ts">
 import { ref } from 'vue';
 

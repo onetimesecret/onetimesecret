@@ -184,7 +184,7 @@ module Onetime
 
             if defined?(OT) && OT.respond_to?(:conf)
               site = OT.conf.dig('site') || {}
-              scheme = site['ssl'] ? 'https://' : 'http://'
+              scheme = site['ssl'] != false ? 'https://' : 'http://'
               host = site['host'] || 'localhost'
               @site_baseuri = "#{scheme}#{host}"
             else

@@ -1,3 +1,5 @@
+// src/schemas/config/billing.ts
+
 /**
  * Billing Configuration Schema
  *
@@ -18,7 +20,7 @@
  * ```
  */
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 /**
  * Capability Category

@@ -31,7 +31,8 @@ module Onetime
 
           # SendGrid returns 202 Accepted for successful sends
           unless response.code.to_i >= 200 && response.code.to_i < 300
-            raise "SendGrid API error: #{response.code} #{response.body}"
+            error_body = response.body.to_s[0, 500]
+            raise "SendGrid API error: #{response.code} #{error_body}"
           end
 
           log_delivery(email)

@@ -1,3 +1,5 @@
+<!-- src/components/ctas/FancyIconLinkSpinning.vue -->
+
 <script setup lang="ts">
 /**
  * Props for FancyIconLink component

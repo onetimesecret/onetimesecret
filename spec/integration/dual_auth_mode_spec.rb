@@ -12,8 +12,12 @@ require_relative 'integration_spec_helper'
 require 'json'
 require 'familia'
 
-RSpec.describe 'Dual Authentication Mode Integration', type: :request do
+RSpec.xdescribe 'Dual Authentication Mode Integration', type: :request do
   include Rack::Test::Methods
+
+  # Updated: 2025-11-25
+  skip 'Waiting for: 1) otto v2 update to fix JSON api responses, ' \
+       '2) auth-testing to continue in argon2 branch'
 
   def json_response
     response = JSON.parse(last_response.body)

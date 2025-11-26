@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <!-- src/views/auth/MfaVerify.vue -->
 <script setup lang="ts">
   import AuthView from '@/components/auth/AuthView.vue';

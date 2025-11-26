@@ -1,7 +1,7 @@
 # try/unit/models/custom_domain_familia_v2_try.rb
 #
 # frozen_string_literal: true
-#
+
 # Familia v2 relationship validation tests for CustomDomain model
 # Tests verify migration from custid ownership to org_id-based ownership
 #

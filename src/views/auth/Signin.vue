@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <!-- src/views/auth/Signin.vue -->
 <script setup lang="ts">
 import AuthMethodSelector from '@/components/auth/AuthMethodSelector.vue';

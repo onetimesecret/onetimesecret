@@ -1,4 +1,4 @@
-# apps/web/billing/spec/models/stripe_webhook_event_spec.rb
+# apps/web/billing/spec/models/processed_webhook_event_spec.rb
 #
 # frozen_string_literal: true
 

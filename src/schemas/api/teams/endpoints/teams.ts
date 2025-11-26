@@ -1,3 +1,5 @@
+// src/schemas/api/teams/endpoints/teams.ts
+
 /**
  * Teams API endpoint schemas
  * Defines request/response schemas for team management endpoints

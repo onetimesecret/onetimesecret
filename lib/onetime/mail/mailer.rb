@@ -12,6 +12,7 @@ require_relative 'templates/secret_link'
 require_relative 'templates/welcome'
 require_relative 'templates/password_request'
 require_relative 'templates/incoming_secret'
+require_relative 'templates/feedback_email'
 
 module Onetime
   module Mail
@@ -102,7 +103,12 @@ module Onetime
         # @return [String, nil]
         def from_name
           conf = emailer_config
-          conf['from_name'] || conf['fromname'] # fromname is deprecated since v0.23
+          if conf['from_name']
+            conf['from_name']
+          elsif conf['fromname']
+            log_info "[mail] DEPRECATION: 'fromname' config is deprecated since v0.23, use 'from_name' instead"
+            conf['fromname']
+          end
         end
 
         private
@@ -117,6 +123,8 @@ module Onetime
             Templates::PasswordRequest
           when :incoming_secret
             Templates::IncomingSecret
+          when :feedback_email
+            Templates::FeedbackEmail
           else
             raise ArgumentError, "Unknown template: #{name}"
           end
@@ -172,8 +180,8 @@ module Onetime
           # Auto-detect based on configuration
           if ENV['RACK_ENV'] == 'test'
             'logger'
-          elsif conf['pass'] && conf['region']
-            # AWS SES uses region + credentials
+          elsif (conf['region'] || ENV['AWS_REGION']) && (conf['user'] || ENV['AWS_ACCESS_KEY_ID'])
+            # AWS SES uses region + AWS credentials
             'ses'
           elsif ENV['SENDGRID_API_KEY'] || conf['sendgrid_api_key']
             'sendgrid'

@@ -1,3 +1,5 @@
+<!-- src/components/VerifyDomainDetails.vue -->
+
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';

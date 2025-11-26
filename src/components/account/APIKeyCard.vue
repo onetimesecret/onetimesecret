@@ -1,4 +1,4 @@
-<!-- src/components/ApiTokenDisplay.vue -->
+<!-- src/components/account/APIKeyCard.vue -->
 
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';

@@ -1,3 +1,5 @@
+// src/assets/tailwind-safelist.ts
+
 /**
  * Tailwind v4 Safelist Workaround
  *

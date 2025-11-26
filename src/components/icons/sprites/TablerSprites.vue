@@ -1,4 +1,5 @@
 <!-- src/components/icons/sprites/TablerSprites.vue -->
+
 <!--
   Name: Icon from Tabler Icons by Paweł Kuna
   License: MIT

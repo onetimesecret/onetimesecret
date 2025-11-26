@@ -1,3 +1,5 @@
+<!-- src/components/StatusBar.vue -->
+
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 import { useNotificationsStore } from '@/stores/notificationsStore';

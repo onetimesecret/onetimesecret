@@ -1,3 +1,5 @@
+<!-- src/components/modals/settings/GeneralTab.vue -->
+
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';

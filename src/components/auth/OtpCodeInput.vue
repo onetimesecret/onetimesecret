@@ -1,3 +1,5 @@
+<!-- src/components/auth/OtpCodeInput.vue -->
+
 <script setup lang="ts">
 import { ref, nextTick } from 'vue';
 

@@ -1,4 +1,4 @@
-# apps/api/account/logic/colonel/delete_secret.rb
+# apps/api/colonel/logic/colonel/delete_secret.rb
 #
 # frozen_string_literal: true
 

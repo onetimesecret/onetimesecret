@@ -1,3 +1,5 @@
+<!-- src/components/common/ToggleWithIcon.vue -->
+
 <script setup lang="ts">
   import { Switch } from '@headlessui/vue';
 

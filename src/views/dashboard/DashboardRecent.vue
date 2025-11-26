@@ -1,3 +1,5 @@
+<!-- src/views/dashboard/DashboardRecent.vue -->
+
 <script setup lang="ts">
   import TableSkeleton from '@/components/closet/TableSkeleton.vue';
   import EmptyState from '@/components/EmptyState.vue';

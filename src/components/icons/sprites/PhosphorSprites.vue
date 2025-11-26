@@ -1,4 +1,5 @@
 <!-- src/components/icons/sprites/PhosphorSprites.vue -->
+
 <!--
   Name: Icon from Phosphor by Phosphor Icons
   License: MIT

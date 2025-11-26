@@ -1,4 +1,5 @@
 // src/tests/team-schema.spec.ts
+
 import { describe, it, expect } from 'vitest';
 import { teamWithRoleSchema } from '@/schemas/models/team';
 import { teamsResponseSchema } from '@/schemas/api/teams/endpoints/teams';

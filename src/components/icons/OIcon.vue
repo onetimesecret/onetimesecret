@@ -1,3 +1,5 @@
+<!-- src/components/icons/OIcon.vue -->
+
 <!--
   Usage:
 

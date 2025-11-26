@@ -42,11 +42,13 @@ module Onetime
   if Onetime::Utils.yes?(ENV.fetch('STDOUT_SYNC', false))
     $stdout.sync = true
     $stderr.sync = true
-    $stderr.puts <<~NOTICE # rubocop:disable Style/StderrPuts
-      [onetime] STDOUT and STDERR sync mode enabled. Output will be unbuffered
-      which is useful for real-time logging visibility but is not recommended
-      for production. It makes the process IO bound which can impact performance.
-    NOTICE
+    if Onetime::Utils.yes?(ENV['ONETIME_DEBUG'])
+      $stderr.puts <<~NOTICE # rubocop:disable Style/StderrPuts
+        [onetime] STDOUT and STDERR sync mode enabled. Output will be unbuffered
+        which is useful for real-time logging visibility but is not recommended
+        for production. It makes the process IO bound which can impact performance.
+      NOTICE
+    end
   end
 
   unless defined?(Onetime::HOME)

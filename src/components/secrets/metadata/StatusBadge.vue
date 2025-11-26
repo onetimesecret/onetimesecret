@@ -1,3 +1,5 @@
+<!-- src/components/secrets/metadata/StatusBadge.vue -->
+
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
   import { useSecretExpiration } from '@/composables/useSecretExpiration';
