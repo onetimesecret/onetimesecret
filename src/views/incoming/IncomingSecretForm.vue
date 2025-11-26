@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { onMounted, ref } from 'vue';
   import { useIncomingSecret } from '@/composables/useIncomingSecret';
+  import { useIncomingStore } from '@/stores/incomingStore';
   import IncomingMemoInput from '@/components/incoming/IncomingMemoInput.vue';
   import IncomingRecipientDropdown from '@/components/incoming/IncomingRecipientDropdown.vue';
   import SecretContentInputArea from '@/components/secrets/form/SecretContentInputArea.vue';
@@ -11,7 +12,7 @@
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
-
+  const incomingStore = useIncomingStore();
   const {
     form,
     errors,
@@ -28,14 +29,13 @@
   } = useIncomingSecret();
 
   const isLoading = ref(true);
-  const loadError = ref<string | null>(null);
   const secretContentRef = ref<InstanceType<typeof SecretContentInputArea> | null>(null);
 
   onMounted(async () => {
     try {
       await loadConfig();
-    } catch (error) {
-      loadError.value = error instanceof Error ? error.message : 'Failed to load configuration';
+    } catch {
+      // Error is captured in incomingStore.configError
     } finally {
       isLoading.value = false;
     }
@@ -87,28 +87,22 @@
       :message="t('incoming.loading_config')" />
 
     <!-- Error State -->
-    <EmptyState v-if="loadError">
+    <EmptyState v-if="incomingStore.configError" :show-action="false">
       <template #title>
         {{ t('incoming.config_error_title') }}
       </template>
       <template #description>
-        {{ loadError }}
-      </template>
-      <template #actionLabel>
-        <!-- No action button for error state -->
+        {{ incomingStore.configError }}
       </template>
     </EmptyState>
 
     <!-- Feature Disabled -->
-    <EmptyState v-else-if="!isFeatureEnabled">
+    <EmptyState v-else-if="!isFeatureEnabled" :show-action="false">
       <template #title>
         {{ t('incoming.feature_disabled_title') }}
       </template>
       <template #description>
         {{ t('incoming.feature_disabled_description') }}
-      </template>
-      <template #actionLabel>
-        <!-- No action button for disabled state -->
       </template>
     </EmptyState>
 
