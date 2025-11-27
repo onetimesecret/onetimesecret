@@ -12,8 +12,8 @@ labels: authstrategies
 
 Onetime Secret supports dual authentication modes with unified session management:
 
-- **Basic Mode**: Simple Redis-only authentication for single deployments
-- **Advanced Mode**: Rodauth integration with PostgreSQL for enterprise features (MFA, account verification, password policies)
+- **Simple Mode**: Simple Redis-only authentication for single deployments
+- **Full Mode**: Rodauth integration with PostgreSQL for enterprise features (MFA, account verification, password policies)
 
 Both modes share the same session cookie (`onetime.session`) and Otto authentication strategies, enabling seamless mode switching without data migration.
 
@@ -89,7 +89,7 @@ end
 | Environment Key | Set By | Contains |
 |----------------|--------|----------|
 | `identity.resolved` | Identity Middleware | Customer or nil |
-| `identity.source` | Identity Middleware | 'basic', 'advanced', or 'anonymous' |
+| `identity.source` | Identity Middleware | 'simple', 'full', or 'anonymous' |
 | `identity.authenticated` | Identity Middleware | Boolean |
 | `identity.metadata` | Identity Middleware | Hash with customer_id, external_id |
 | `otto.user` | RouteAuthWrapper | Authenticated Customer |
@@ -98,9 +98,9 @@ end
 
 ## Authentication Modes
 
-### Basic Mode (Default)
+### Simple Mode (Default)
 
-**Configuration**: `AUTHENTICATION_MODE=basic`
+**Configuration**: `AUTHENTICATION_MODE=simple`
 
 **Stack**:
 - Core app handles `/auth/*` routes
@@ -113,9 +113,9 @@ end
 - Development environments
 - Simple authentication requirements
 
-### Advanced Mode
+### Full Mode
 
-**Configuration**: `AUTHENTICATION_MODE=advanced`
+**Configuration**: `AUTHENTICATION_MODE=full`
 
 **Stack**:
 - Auth app (Roda + Rodauth) mounted at `/auth`
@@ -125,7 +125,7 @@ end
 
 **Session Keys Comparison**:
 
-| Session Key | Basic Mode | Advanced Mode | Purpose |
+| Session Key | Simple Mode | Full Mode | Purpose |
 |------------|------------|---------------|---------|
 | `authenticated` | ✓ | ✓ | Auth state flag |
 | `external_id` | ✓ | ✓ | Customer ID |
@@ -173,7 +173,7 @@ module Auth::Config
   # Features: json, login, logout, create_account, change_password, reset_password
   # Integration points: create_otto_customer, sync_session_with_otto
   # Hooks: after_create_account, after_login
-  # Session key: 'onetime.session' (shared with basic mode)
+  # Session key: 'onetime.session' (shared with simple mode)
 end
 ```
 
@@ -420,7 +420,7 @@ end
 - **Purpose**: Modify account settings
 - **Session Fields**: `email` (if changed)
 
-## Integration with Rodauth (Advanced Mode)
+## Integration with Rodauth (Full Mode)
 
 ### Identity Resolution Middleware
 
@@ -435,8 +435,8 @@ class IdentityResolution
   private
   # Key decisions:
   # - Check session['authenticated'] == true
-  # - Advanced mode: lookup via session['account_external_id']
-  # - Basic mode: lookup via session['external_id']
+  # - Full mode: lookup via session['account_external_id']
+  # - Simple mode: lookup via session['external_id']
   # - Returns identity hash with user, source, authenticated, metadata
 end
 ```
@@ -452,8 +452,8 @@ Authentication tests are organized by mode to prevent false failures and improve
 **Directory Structure**:
 ```
 try/integration/authentication/
-├── basic_mode/      # Redis-based auth tests (AUTHENTICATION_MODE=basic)
-├── advanced_mode/   # Rodauth tests (AUTHENTICATION_MODE=advanced)
+├── simple_mode/      # Redis-based auth tests (AUTHENTICATION_MODE=simple)
+├── full_mode/   # Rodauth tests (AUTHENTICATION_MODE=full)
 ├── disabled_mode/   # No-auth tests (AUTHENTICATION_MODE=disabled)
 └── common/          # Tests that work in any mode
 ```
@@ -465,8 +465,8 @@ try/integration/authentication/
 **Running Tests**:
 ```bash
 # Mode-specific tests (auto-skip if wrong mode)
-AUTHENTICATION_MODE=basic bundle exec try --agent try/integration/authentication/basic_mode/
-AUTHENTICATION_MODE=advanced bundle exec try --agent try/integration/authentication/advanced_mode/
+AUTHENTICATION_MODE=simple bundle exec try --agent try/integration/authentication/simple_mode/
+AUTHENTICATION_MODE=full bundle exec try --agent try/integration/authentication/full_mode/
 AUTHENTICATION_MODE=disabled bundle exec try --agent try/integration/authentication/disabled_mode/
 
 # Common tests (work in any mode)
@@ -500,7 +500,7 @@ bundle exec try --agent try/integration/authentication/common/
 **Environment Variables**:
 - `AUTHENTICATION_MODE`: `basic` or `advanced`
 - `HMAC_SECRET`: Session integrity
-- `DATABASE_URL`: SQL database connection (advanced mode only)
+- `DATABASE_URL`: SQL database connection (full mode only)
   - PostgreSQL: `postgresql://user:pass@host/database`
   - SQLite: `sqlite://path/to/db.sqlite`
 
@@ -519,7 +519,7 @@ bundle exec try --agent try/integration/authentication/common/
 
 3. **Session not persisting**: Verify `Rack::Test` preserves cookies via `last_response.headers['Set-Cookie']`
 
-4. **Advanced mode errors**: Requires `AUTHENTICATION_MODE=advanced` and SQL database `DATABASE_URL` (PostgreSQL or SQLite)
+4. **Full mode errors**: Requires `AUTHENTICATION_MODE=full` and SQL database `DATABASE_URL` (PostgreSQL or SQLite)
 
 5. **Logic class variable errors**: Use consistent instance variables (`@objid`, not `@custid`) across `process_params`, `raise_concerns`, and `process`
 

@@ -4,7 +4,7 @@
 
 #
 # Synchronizes customer records from Redis to Auth application SQL database.
-# Primary use case: Switching from auth mode=basic to mode=advanced.
+# Primary use case: Switching from auth mode=simple to mode=full.
 #
 # This command creates account records in the Rodauth database for existing
 # customers in Redis, linking them via external_id for future synchronization.
@@ -28,16 +28,16 @@ module Onetime
 
         boot_application!
 
-        # Check that advanced mode is enabled
-        unless Onetime.auth_config.advanced_enabled?
+        # Check that full mode is enabled
+        unless Onetime.auth_config.full_enabled?
           puts <<~MESSAGE
 
-            ⚠️  Advanced auth mode is not enabled.
+            ⚠️  Full auth mode is not enabled.
 
-            This command is only useful when switching from basic to advanced mode.
-            Please set authentication.mode to 'advanced' in your config or use:
+            This command is only useful when switching from simple to full mode.
+            Please set authentication.mode to 'full' in your config or use:
 
-              AUTHENTICATION_MODE=advanced bin/ots sync-auth-accounts
+              AUTHENTICATION_MODE=full bin/ots sync-auth-accounts
 
           MESSAGE
           return
@@ -203,7 +203,7 @@ module Onetime
             Next steps:
             1. Verify accounts in database: sqlite3 data/auth.db "SELECT COUNT(*) FROM accounts;"
             2. Test login with existing credentials
-            3. Update authentication.mode to 'advanced' in config if not already set
+            3. Update authentication.mode to 'full' in config if not already set
 
           MESSAGE
         end
@@ -228,7 +228,7 @@ module Onetime
           Description:
             Synchronizes customer records from Redis to the Auth SQL database.
             Creates account records for existing customers, enabling migration
-            from basic auth mode to advanced (Rodauth) auth mode.
+            from simple auth mode to full (Rodauth) auth mode.
 
           Options:
             --run                 Execute synchronization (required for actual operation)
@@ -251,7 +251,7 @@ module Onetime
             - Skips anonymous customers automatically
             - Links existing accounts via external_id if found
             - Creates new accounts with appropriate status (verified/unverified)
-            - Requires advanced auth mode to be enabled
+            - Requires full auth mode to be enabled
 
         USAGE
         true
