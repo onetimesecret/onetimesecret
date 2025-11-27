@@ -6,7 +6,7 @@ billing:
   # It doesn't make sense to have an enabled flag for turning the billing functionality
   # on. If the billing.yaml config file exists, we assume it is enabled. Ah, but what if
   # you want to turn off billing but not delete the file. That's what this flag is for.
-  enabled: true
+  enabled: <%= ENV['BILLING_ENABLED'] != 'false' %>
   stripe_key: <%= ENV['STRIPE_KEY'] || 'nostripekey' %>
   webhook_signing_secret: <%= ENV['STRIPE_WEBHOOK_SIGNING_SECRET'] || 'nosigningsecret' %>
   stripe_api_version: "2025-11-17.clover"
