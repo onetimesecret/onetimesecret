@@ -18,9 +18,9 @@ module Auth
   class Application < Onetime::Application::Base
     @uri_prefix = '/auth'
 
-    # Auth app should only load in advanced mode
+    # Auth app should only load in full mode
     def self.should_skip_loading?
-      Onetime.auth_config.mode != 'advanced'
+      Onetime.auth_config.mode != 'full'
     end
 
     # Auth app specific middleware (common middleware is in MiddlewareStack)

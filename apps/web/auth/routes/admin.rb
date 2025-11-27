@@ -19,11 +19,11 @@ module Auth
                     active_sessions: db[:account_active_session_keys].count,
                     mfa_enabled_accounts: db[:account_otp_keys].count,
                     unused_recovery_codes: db[:account_recovery_codes].where(used_at: nil).count,
-                    mode: 'advanced',
+                    mode: 'full',
                   }
                 else
                   {
-                    mode: 'basic',
+                    mode: 'simple',
                     message: 'Stats not available',
                   }
                 end

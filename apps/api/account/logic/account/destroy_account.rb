@@ -61,8 +61,8 @@ module AccountAPI::Logic
           # to minimize the chance of the event not being logged.
           OT.info "[destroy-account] Account destroyed. #{cust.objid} #{cust.role} #{session_sid}"
 
-          # If in advanced mode, also delete from auth database
-          delete_auth_account(cust) if Onetime.auth_config.advanced_enabled?
+          # If in full mode, also delete from auth database
+          delete_auth_account(cust) if Onetime.auth_config.full_enabled?
         end
 
         # We replace the session and session ID and then add a message
@@ -84,7 +84,7 @@ module AccountAPI::Logic
 
       private
 
-      # Delete account from auth database in advanced mode
+      # Delete account from auth database in full mode
       # @param customer [Onetime::Customer]
       def delete_auth_account(customer)
         return unless customer&.extid

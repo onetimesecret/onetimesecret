@@ -10,8 +10,8 @@ module Onetime
     # Identity Resolution Middleware for OneTimeSecret
     #
     # This middleware provides a flexible identity resolution layer that
-    # bridges between the basic (e.g. Redis) and advanced authentication
-    # services (e.g., Advanced with PostgreSQL/SQLite).
+    # bridges between the simple (e.g. Redis) and full authentication
+    # services (e.g., Rodauth with PostgreSQL/SQLite).
     #
     # ### Usage
     #
@@ -21,7 +21,7 @@ module Onetime
     #
     # The middleware sets the following env variables:
     # - `env['identity.resolved']` - The resolved identity object (Customer instance)
-    # - `env['identity.source']` - Source of identity ('advanced', 'basic', 'anonymous')
+    # - `env['identity.source']` - Source of identity ('full', 'simple', 'anonymous')
     # - `env['identity.authenticated']` - Boolean authentication status
     # - `env['identity.metadata']` - Additional metadata about the identity
     #
@@ -73,52 +73,52 @@ module Onetime
       private
 
       def resolve_identity(request, env)
-        # Check authentication mode (basic vs advanced)
+        # Check authentication mode (simple vs full)
         auth_mode = detect_auth_mode
 
         case auth_mode
-        when 'advanced'
-          # Try Advanced session first
-          advanced_identity = resolve_advanced_identity(request, env)
-          return advanced_identity if advanced_identity[:user]
-        when 'basic'
-          # Use basic (Valkey/Redis-only) authentication
-          basic_identity = resolve_basic_identity(request, env)
-          return basic_identity if basic_identity[:user]
+        when 'full'
+          # Try full mode (Rodauth) session first
+          full_identity = resolve_full_identity(request, env)
+          return full_identity if full_identity[:user]
+        when 'simple'
+          # Use simple (Valkey/Redis-only) authentication
+          simple_identity = resolve_simple_identity(request, env)
+          return simple_identity if simple_identity[:user]
         end
 
         # Default to anonymous user
         resolve_anonymous_identity(request, env)
       end
 
-      def resolve_advanced_identity(_request, env)
+      def resolve_full_identity(_request, env)
           # Get session from Valkey/Redis session middleware
           session = env['rack.session']
 
           return no_identity unless session
 
-          # Check for Advanced authentication markers
-          return no_identity unless advanced_authenticated?(session)
+          # Check for full mode (Rodauth) authentication markers
+          return no_identity unless full_authenticated?(session)
 
           # Lookup customer by derived extid
           customer = Onetime::Customer.find_by_extid(session['account_external_id'])
           return no_identity unless customer
 
           {
-            user: build_advanced_user(customer, session),
-            source: 'advanced',
+            user: build_full_user(customer, session),
+            source: 'full',
             authenticated: true,
             metadata: {
               customer_id: customer.objid,
               external_id: customer.extid,
               account_id: session['account_id'],
-              auth_method: 'advanced',
+              auth_method: 'full',
               authenticated_at: session['authenticated_at'],
               expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86_400 : nil,
             },
           }
       rescue StandardError => ex
-          logger.error "[IdentityResolution] Advanced identity error: #{ex.message}"
+          logger.error "[IdentityResolution] Full mode identity error: #{ex.message}"
           no_identity
       end
 
@@ -150,7 +150,7 @@ module Onetime
           no_identity
       end
 
-      def resolve_basic_identity(request, env)
+      def resolve_simple_identity(request, env)
         # Use Rack::Session from middleware
         session = env['rack.session']
 
@@ -168,7 +168,7 @@ module Onetime
         # Controllers will lazy-load via SessionHelpers#current_customer when needed
         {
           user: nil,  # Don't load here - let controllers use SessionHelpers
-          source: 'basic',
+          source: 'simple',
           authenticated: true,
           metadata: {
             external_id: session['external_id'],
@@ -236,12 +236,12 @@ module Onetime
         nil # Placeholder
       end
 
-      def build_advanced_user(customer, _session)
-        # Build user object from Advanced-authenticated customer
+      def build_full_user(customer, _session)
+        # Build user object from full mode (Rodauth) authenticated customer
         customer
       end
 
-      def build_basic_user(customer, _session)
+      def build_simple_user(customer, _session)
         # Return the customer object directly
         # Session metadata is already available in identity[:metadata]
         customer
@@ -252,7 +252,7 @@ module Onetime
         Onetime::Customer.anonymous
       end
 
-      def advanced_authenticated?(session)
+      def full_authenticated?(session)
         return false unless session['authenticated_at']
         return false unless session['external_id'] || session['account_id']
 
