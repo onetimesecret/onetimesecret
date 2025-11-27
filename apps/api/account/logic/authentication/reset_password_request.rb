@@ -49,8 +49,6 @@ module AccountAPI::Logic
 
         cust.reset_secret = secret.identifier  # as a standalone dbkey, writes immediately
 
-        view = OT::Mail::PasswordRequest.new cust, locale, secret
-
         auth_logger.debug 'Delivering password reset email', {
           customer_id: cust.objid,
           email: cust.obscure_email,
@@ -59,7 +57,10 @@ module AccountAPI::Logic
         }
 
         begin
-          view.deliver_email token
+          Onetime::Mail.deliver(:password_request, {
+            email_address: cust.email,
+            secret: secret
+          }, locale: locale)
         rescue StandardError => ex
           errmsg = "Couldn't send the notification email. Let know below."
           auth_logger.error 'Password reset email delivery failed', {
