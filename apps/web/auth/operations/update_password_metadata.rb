@@ -44,10 +44,9 @@ module Auth
       # Updates the customer's password metadata
       # @param customer [Onetime::Customer]
       def update_customer_metadata(customer)
-        customer.passphrase_updated = Familia.now.to_i
-        customer.save
+        customer.last_password_update! Familia.now.to_i # use fast-writer for just this field
 
-        OT.info "[update-password-metadata] Updated password metadata for customer: #{customer.custid}"
+        OT.info "[update-password-metadata] Updated password metadata for customer: #{customer.extid}"
       end
     end
   end

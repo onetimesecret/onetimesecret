@@ -110,6 +110,7 @@ module Onetime
     field :locale
     field :planid
 
+    field :last_password_update
     field :last_login
 
     def init
