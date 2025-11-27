@@ -8,7 +8,7 @@ require 'stripe'
 
 # Load the billing application for controller testing
 require_relative '../../application'
-require_relative '../../plan_definitions'
+require_relative '../../plan_helpers'
 
 RSpec.describe 'Billing::Controllers::Capabilities', :integration, :vcr, :stripe_sandbox_api do
   include Rack::Test::Methods
