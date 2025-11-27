@@ -12,7 +12,7 @@ RSpec.describe 'Admin Interface', type: :integration do
 
   before(:all) do
     ENV['RACK_ENV'] = 'test'
-    ENV['AUTHENTICATION_MODE'] = 'advanced'
+    ENV['AUTHENTICATION_MODE'] = 'full'
     ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../..'))
     ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 

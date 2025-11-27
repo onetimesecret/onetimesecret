@@ -17,10 +17,10 @@ import { nullableString } from './shared/primitives';
 /**
  * Authentication mode
  */
-const authModeSchema = z.enum(['basic', 'advanced']);
+const authModeSchema = z.enum(['simple', 'full']);
 
 /**
- * Session configuration (shared between basic and advanced modes)
+ * Session configuration (shared between simple and full modes)
  */
 const sessionConfigSchema = z.object({
   secret: nullableString,
@@ -31,17 +31,17 @@ const sessionConfigSchema = z.object({
 });
 
 /**
- * Basic mode settings (Redis-only authentication)
+ * Simple mode settings (Redis-only authentication)
  */
-const basicModeSchema = z.object({
+const simpleModeSchema = z.object({
   password_hash_cost: z.number().int().positive().optional(),
   session_timeout: z.number().int().positive().optional(),
 });
 
 /**
- * Advanced mode settings (Rodauth-based application)
+ * Full mode settings (Rodauth-based application)
  */
-const advancedModeSchema = z.object({
+const fullModeSchema = z.object({
   /**
    * Application database connection URL
    *
@@ -71,24 +71,24 @@ const advancedModeSchema = z.object({
  * Matches the structure from etc/defaults/auth.defaults.yaml
  */
 const authConfigSchema = z.object({
-  mode: authModeSchema.default('basic'),
+  mode: authModeSchema.default('simple'),
   session: sessionConfigSchema.optional(),
-  basic: basicModeSchema.optional(),
-  advanced: advancedModeSchema.optional(),
+  simple: simpleModeSchema.optional(),
+  full: fullModeSchema.optional(),
 });
 
 export type AuthMode = z.infer<typeof authModeSchema>;
 export type SessionConfig = z.infer<typeof sessionConfigSchema>;
-export type BasicModeConfig = z.infer<typeof basicModeSchema>;
-export type AdvancedModeConfig = z.infer<typeof advancedModeSchema>;
+export type SimpleModeConfig = z.infer<typeof simpleModeSchema>;
+export type FullModeConfig = z.infer<typeof fullModeSchema>;
 export type AuthConfig = z.infer<typeof authConfigSchema>;
 
 export {
   authConfigSchema,
   authModeSchema,
   sessionConfigSchema,
-  basicModeSchema,
-  advancedModeSchema,
+  simpleModeSchema,
+  fullModeSchema,
 };
 
 /**

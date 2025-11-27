@@ -74,7 +74,7 @@ module Auth
       end
 
       # All Rodauth routes (login, logout, create-account, reset-password, etc.)
-      # Rodauth handles all /auth/* routes when advanced mode is enabled
+      # Rodauth handles all /auth/* routes when full mode is enabled
       r.rodauth
 
       # Account routes (mfa-status, account info)

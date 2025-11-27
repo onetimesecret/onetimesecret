@@ -18,7 +18,7 @@
   - Regular menu items are hidden (only MFA verification link shown)
   - Links to /mfa-verify route
 
-  This state occurs in advanced authentication mode when:
+  This state occurs in full authentication mode when:
   - User logs in with password but has MFA enabled
   - User clicks magic link but has MFA enabled
   - Backend sets session['awaiting_mfa'] = true
@@ -33,6 +33,7 @@ import { Customer } from '@/schemas/models';
 import { WindowService } from '@/services/window.service';
 import { useTeamStore } from '@/stores/teamStore';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   cust: Customer | null;

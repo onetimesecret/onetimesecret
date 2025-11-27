@@ -1,4 +1,4 @@
-# try/integration/authentication/advanced_mode/env_toggles/mfa_enabled_try.rb
+# try/integration/authentication/full_mode/env_toggles/mfa_enabled_try.rb
 #
 # frozen_string_literal: true
 
@@ -16,15 +16,15 @@
 # - /auth/recovery-codes (view/generate recovery codes)
 # - /auth/recovery-auth (authenticate with recovery code)
 #
-# REQUIRES: Advanced mode with AUTHENTICATION_MODE=advanced and ENABLE_MFA=true
+# REQUIRES: Full mode with AUTHENTICATION_MODE=full and ENABLE_MFA=true
 
 require_relative '../../../../support/test_helpers'
 require_relative '../../../../support/auth_mode_config'
-Object.new.extend(AuthModeConfig).skip_unless_mode :advanced
+Object.new.extend(AuthModeConfig).skip_unless_mode :full
 
-# Ensure database URL is configured for advanced mode
+# Ensure database URL is configured for full mode
 if ENV['AUTH_DATABASE_URL'].to_s.strip.empty?
-  puts 'SKIPPING: Advanced mode requires AUTH_DATABASE_URL'
+  puts 'SKIPPING: Full mode requires AUTH_DATABASE_URL'
   exit 0
 end
 

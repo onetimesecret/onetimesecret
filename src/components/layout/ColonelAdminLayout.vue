@@ -67,7 +67,7 @@ const sections: NavigationItem[] = [
         to: '/colonel/database/authdb',
         icon: { collection: 'heroicons', name: 'key' },
         label: 'Auth Database',
-        visible: () => windowProps.authentication?.mode === 'advanced',
+        visible: () => windowProps.authentication?.mode === 'full',
       },
     ],
   },

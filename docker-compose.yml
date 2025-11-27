@@ -51,7 +51,7 @@ services:
       - VALKEY_URL=redis://redis:6379/0
       - SECRET=${SECRET:?SECRET must be set in .env}
       - SESSION_SECRET=${SESSION_SECRET:?SESSION_SECRET must be set in .env}
-      - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-basic}
+      - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-simple}
       - ONETIME_HOME=/app
       - PUBLIC_DIR=/var/www/public
     entrypoint: ['./bin/entrypoint.sh']

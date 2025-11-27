@@ -65,7 +65,7 @@ for (const path in localeModules) {
 
     if (hasStructuredKeys) {
       // Structured file: merge under "web" or "email" keys using deep merge
-      // to prevent namespace collisions (e.g., auth.json and auth-advanced.json both use web.auth)
+      // to prevent namespace collisions (e.g., auth.json and auth-full.json both use web.auth)
       Object.keys(content).forEach((topKey) => {
         if (typeof content[topKey] === 'object' && content[topKey] !== null) {
           if (!messages[locale][topKey]) {

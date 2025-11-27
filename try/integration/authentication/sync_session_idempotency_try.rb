@@ -5,14 +5,14 @@
 # Tests idempotency protection in Auth::Operations::SyncSession
 # Ensures the operation can be safely retried without double-execution
 
-# Skip if not in advanced mode
+# Skip if not in full mode
 require_relative '../../support/test_helpers'
 require_relative '../../support/auth_mode_config'
-Object.new.extend(AuthModeConfig).skip_unless_mode :advanced
+Object.new.extend(AuthModeConfig).skip_unless_mode :full
 
 # Ensure database URL is configured
 if ENV['AUTH_DATABASE_URL'].to_s.strip.empty?
-  puts "SKIPPING: Advanced mode requires AUTH_DATABASE_URL."
+  puts "SKIPPING: Full mode requires AUTH_DATABASE_URL."
   exit 0
 end
 

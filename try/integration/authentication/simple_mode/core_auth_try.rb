@@ -1,8 +1,8 @@
-# try/integration/authentication/basic_mode/core_auth_try.rb
+# try/integration/authentication/simple_mode/core_auth_try.rb
 #
 # frozen_string_literal: true
 
-# Integration tests for basic authentication mode
+# Integration tests for simple authentication mode
 #
 # Tests the complete authentication flow via Core app:
 # - Login (valid/invalid credentials)
@@ -13,12 +13,12 @@
 # - Error handling
 # - JSON response format
 #
-# REQUIRES: Basic mode (Core app handles /auth/* routes)
+# REQUIRES: Simple mode (Core app handles /auth/* routes)
 
-# Skip if not in basic mode
+# Skip if not in simple mode
 require_relative '../../../support/test_helpers'
 require_relative '../../../support/auth_mode_config'
-Object.new.extend(AuthModeConfig).skip_unless_mode :basic
+Object.new.extend(AuthModeConfig).skip_unless_mode :simple
 
 # Setup - Load the real application
 ENV['RACK_ENV'] = 'test'
@@ -43,7 +43,7 @@ Onetime::Application::Registry.prepare_application_registry
 require 'rack/test'
 require 'json'
 
-# Create test instance for Core app (handles /auth/* in basic mode)
+# Create test instance for Core app (handles /auth/* in simple mode)
 @test = Object.new
 @test.extend Rack::Test::Methods
 
@@ -71,18 +71,18 @@ def @test.json_response?
 end
 
 # -------------------------------------------------------------------
-# BASIC MODE TESTS
+# SIMPLE MODE TESTS
 # -------------------------------------------------------------------
 
-## Verify basic mode is active
+## Verify simple mode is active
 Onetime.auth_config.mode
-#=> 'basic'
+#=> 'simple'
 
-## Verify advanced mode is disabled
-Onetime.auth_config.advanced_enabled?
+## Verify full mode is disabled
+Onetime.auth_config.full_enabled?
 #=> false
 
-## Verify Auth app is not mounted in basic mode
+## Verify Auth app is not mounted in simple mode
 p [:PLOP, Onetime::Application::Registry.mount_mappings]
 Onetime::Application::Registry.mount_mappings.key?('/auth')
 #=> false

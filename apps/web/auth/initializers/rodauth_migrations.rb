@@ -13,7 +13,7 @@ module Auth
       @provides = [:rodauth_schema]
 
       def should_skip?
-        !Onetime.auth_config.advanced_enabled?
+        !Onetime.auth_config.full_enabled?
       end
 
       def execute(_context)
@@ -22,7 +22,7 @@ module Auth
         require 'auth/migrator'
 
         Auth::Migrator.run_if_needed
-        Onetime.auth_logger.debug 'Auth application initialized (advanced mode)'
+        Onetime.auth_logger.debug 'Auth application initialized (full mode)'
       end
     end
   end

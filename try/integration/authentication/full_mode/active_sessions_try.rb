@@ -1,8 +1,8 @@
-# try/integration/authentication/advanced_mode/active_sessions_try.rb
+# try/integration/authentication/full_mode/active_sessions_try.rb
 #
 # frozen_string_literal: true
 
-# Integration tests for active sessions management in advanced mode
+# Integration tests for active sessions management in full mode
 #
 # Tests:
 # - GET /auth/active-sessions - List all active sessions
@@ -10,16 +10,16 @@
 # - POST /auth/remove-all-active-sessions - Remove all other sessions
 # - Account info includes active_sessions_count
 #
-# REQUIRES: Advanced mode with SQL database
+# REQUIRES: Full mode with SQL database
 
-# Skip if not in advanced mode
+# Skip if not in full mode
 require_relative '../../../support/test_helpers'
 require_relative '../../../support/auth_mode_config'
-Object.new.extend(AuthModeConfig).skip_unless_mode :advanced
+Object.new.extend(AuthModeConfig).skip_unless_mode :full
 
 # Ensure database URL is configured
 if ENV['AUTH_DATABASE_URL'].to_s.strip.empty?
-  puts "SKIPPING: Advanced mode requires AUTH_DATABASE_URL."
+  puts "SKIPPING: Full mode requires AUTH_DATABASE_URL."
   exit 0
 end
 

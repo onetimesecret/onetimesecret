@@ -15,11 +15,11 @@
  * @see docs/i18n-security-messages.md for complete guidelines
  */
 
-import authAdvancedMessages from '@/locales/en/auth-advanced.json';
+import authFullMessages from '@/locales/en/auth-full.json';
 
 describe('Security Message Compliance', () => {
   // Extract security messages from the i18n file
-  const securityMessages = (authAdvancedMessages as any)?.web?.auth?.security;
+  const securityMessages = (authFullMessages as any)?.web?.auth?.security;
 
   // Forbidden patterns that should NEVER appear in security messages
   const forbiddenPatterns = {

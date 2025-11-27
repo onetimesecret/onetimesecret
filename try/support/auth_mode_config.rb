@@ -7,18 +7,18 @@
 #
 # Authentication Modes:
 #   - disabled: No authentication required (simplest deployment)
-#   - basic: Simple Redis-based auth via Core app (default)
-#   - advanced: Full Rodauth with PostgreSQL database
+#   - simple: Simple Redis-based auth via Core app (default)
+#   - full: Full Rodauth with PostgreSQL database
 #
 # Usage in tests:
 #   require_relative '../../support/auth_mode_config'
 #   include AuthModeConfig
-#   skip_unless_mode :basic
+#   skip_unless_mode :simple
 #
 module AuthModeConfig
   # Get current authentication mode from environment
   def auth_mode
-    ENV['AUTHENTICATION_MODE'] || 'basic'
+    ENV['AUTHENTICATION_MODE'] || 'simple'
   end
 
   # Check if authentication is completely disabled
@@ -26,14 +26,14 @@ module AuthModeConfig
     auth_mode == 'disabled'
   end
 
-  # Check if running in basic mode (Core app auth)
-  def basic_mode?
-    auth_mode == 'basic'
+  # Check if running in simple mode (Core app auth)
+  def simple_mode?
+    auth_mode == 'simple'
   end
 
-  # Check if running in advanced mode (Rodauth)
-  def advanced_mode?
-    auth_mode == 'advanced'
+  # Check if running in full mode (Rodauth)
+  def full_mode?
+    auth_mode == 'full'
   end
 
   # Skip test file unless in required mode
@@ -62,12 +62,12 @@ module AuthModeConfig
 
   # Check if Auth app should be mounted
   def auth_app_mounted?
-    advanced_mode?
+    full_mode?
   end
 
   # Check if Core app handles auth routes
   def core_handles_auth?
-    basic_mode? || auth_disabled?
+    simple_mode? || auth_disabled?
   end
 
   # Get expected status for auth endpoints
@@ -80,7 +80,7 @@ module AuthModeConfig
       when :protected then 200  # No protection
       else 404
       end
-    when 'basic'
+    when 'simple'
       # Core app handles auth
       case endpoint_type
       when :login then [200, 302, 400, 401]
@@ -88,7 +88,7 @@ module AuthModeConfig
       when :protected then [200, 302, 401]
       else [200, 400]
       end
-    when 'advanced'
+    when 'full'
       # Rodauth handles auth
       case endpoint_type
       when :login then [200, 401, 422]

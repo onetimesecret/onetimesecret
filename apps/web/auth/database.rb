@@ -12,9 +12,9 @@ module Auth
     extend Onetime::LoggerMethods
 
     def self.connection
-      # Only create database connection in advanced mode
-      # Basic mode operates without SQL database dependencies
-      return nil unless Onetime.auth_config.advanced_enabled?
+      # Only create database connection in full mode
+      # Simple mode operates without SQL database dependencies
+      return nil unless Onetime.auth_config.full_enabled?
 
       @connection ||= create_connection
     end

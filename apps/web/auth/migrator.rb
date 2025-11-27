@@ -5,7 +5,7 @@
 # Auto-migration module for Rodauth authentication database
 #
 # This module provides automatic database migration capabilities
-# for the auth service when running in advanced mode. It checks
+# for the auth service when running in full mode. It checks
 # if migrations are needed and runs them transparently during
 # application startup.
 
@@ -20,7 +20,7 @@ module Auth
     extend Onetime::LoggerMethods
 
     class << self
-      # Run migrations if needed (called during warmup in advanced mode)
+      # Run migrations if needed (called during warmup in full mode)
       # Sequel::Migrator.run automatically skips already-run migrations
       def run_if_needed
         return unless database_connection

@@ -1,4 +1,4 @@
-# try/integration/authentication/advanced_mode/auth_logging_try.rb
+# try/integration/authentication/full_mode/auth_logging_try.rb
 #
 # frozen_string_literal: true
 

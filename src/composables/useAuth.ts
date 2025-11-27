@@ -38,7 +38,7 @@ import { useRouter } from 'vue-router';
 /**
  * Authentication composable for handling login, signup, logout, and password reset
  *
- * Works with both basic and advanced authentication modes - backend returns
+ * Works with both email and full authentication modes - backend returns
  * Rodauth-compatible JSON format in both cases.
  *
  * @example

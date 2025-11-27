@@ -1,4 +1,4 @@
-# Switching from Basic to Advanced Auth Mode
+# Switching from Simple to Full Auth Mode
 
 **Last Updated:** 2025-10-23
 **Applies To:** OneTimeSecret v2.0+
@@ -7,10 +7,10 @@
 
 OneTimeSecret supports two authentication modes:
 
-- **Basic Mode**: Lightweight authentication managed by Core app using Redis sessions
-- **Advanced Mode**: Full-featured authentication using Rodauth with SQL database
+- **Simple Mode**: Lightweight authentication managed by Core app using Redis sessions
+- **Full Mode**: Full-featured authentication using Rodauth with SQL database
 
-Advanced mode enables:
+Full mode enables:
 - Multi-factor authentication (TOTP, WebAuthn)
 - Passwordless login (magic links, security keys)
 - Account verification workflows
@@ -25,7 +25,7 @@ Before switching modes:
 1. **Database Setup**: Configure a SQL database (SQLite or PostgreSQL)
 2. **Backup**: Back up your Redis data
 3. **Downtime Window**: Plan for brief service interruption during migration
-4. **Testing**: Test advanced mode in non-production environment first
+4. **Testing**: Test full mode in non-production environment first
 
 ## Migration Steps
 
@@ -36,7 +36,7 @@ Set the database URL for the Auth application:
 ```yaml
 # etc/config.yaml
 authentication:
-  mode: basic  # Keep basic during setup
+  mode: simple  # Keep simple during setup
   database_url: sqlite://data/auth.db
 ```
 
@@ -63,7 +63,7 @@ psql -U user -d onetime_auth -f apps/web/auth/migrations/schemas/postgres/001_in
 Or use Sequel migrations:
 
 ```bash
-AUTHENTICATION_MODE=advanced bundle exec ruby -e "
+AUTHENTICATION_MODE=full bundle exec ruby -e "
   require_relative 'apps/web/auth/migrator'
   Auth::Migrator.run!
 "
@@ -75,13 +75,13 @@ Migrate customer records from Redis to the SQL database:
 
 ```bash
 # Preview what will be migrated (dry-run mode)
-AUTHENTICATION_MODE=advanced bin/ots sync-auth-accounts
+AUTHENTICATION_MODE=full bin/ots sync-auth-accounts
 
 # Execute the synchronization
-AUTHENTICATION_MODE=advanced bin/ots sync-auth-accounts --run
+AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run
 
 # Verbose output for detailed progress
-AUTHENTICATION_MODE=advanced bin/ots sync-auth-accounts --run -v
+AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run -v
 ```
 
 **What the sync command does:**
@@ -137,14 +137,14 @@ sqlite3 data/auth.db "SELECT COUNT(*) FROM accounts WHERE external_id IS NULL;"
 # Should return 0
 ```
 
-### 5. Switch to Advanced Mode
+### 5. Switch to Full Mode
 
 Update your configuration:
 
 ```yaml
 # etc/config.yaml
 authentication:
-  mode: advanced
+  mode: full
   database_url: sqlite://data/auth.db
   session:
     expire_after: 86400  # 24 hours
@@ -153,7 +153,7 @@ authentication:
 Or via environment:
 
 ```bash
-export AUTHENTICATION_MODE=advanced
+export AUTHENTICATION_MODE=full
 ```
 
 ### 6. Restart Application
@@ -162,8 +162,8 @@ export AUTHENTICATION_MODE=advanced
 # Stop current process
 pkill -f puma
 
-# Start with advanced mode
-AUTHENTICATION_MODE=advanced bundle exec puma -C config/puma.rb
+# Start with full mode
+AUTHENTICATION_MODE=full bundle exec puma -C config/puma.rb
 ```
 
 ### 7. Verify Authentication Works
@@ -206,21 +206,21 @@ Restart the application after enabling new features.
 
 ## Rollback Procedure
 
-If issues occur, revert to basic mode:
+If issues occur, revert to simple mode:
 
 1. Stop the application
-2. Change config: `authentication.mode: basic`
+2. Change config: `authentication.mode: simple`
 3. Restart application
 4. Customer data remains in Redis (unchanged)
 
-**Note:** Accounts created during advanced mode will remain in SQL database but won't be used in basic mode.
+**Note:** Accounts created during full mode will remain in SQL database but won't be used in simple mode.
 
 ## Troubleshooting
 
 ### Sync Command Shows "Advanced auth mode is not enabled"
 
-**Cause:** `AUTHENTICATION_MODE` not set or set to `basic`
-**Solution:** Run with `AUTHENTICATION_MODE=advanced` prefix
+**Cause:** `AUTHENTICATION_MODE` not set or set to `simple`
+**Solution:** Run with `AUTHENTICATION_MODE=full` prefix
 
 ### Database Connection Errors
 
@@ -236,7 +236,7 @@ If issues occur, revert to basic mode:
 **Solution:**
 ```bash
 # Re-run sync to fix links
-AUTHENTICATION_MODE=advanced bin/ots sync-auth-accounts --run
+AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run
 
 # Check specific account
 sqlite3 data/auth.db "SELECT * FROM accounts WHERE email='user@example.com';"
@@ -266,7 +266,7 @@ Safe to run sync command multiple times:
 
 ```bash
 # Adds any new customers created since last sync
-AUTHENTICATION_MODE=advanced bin/ots sync-auth-accounts --run
+AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run
 ```
 
 ### Checking Sync Status

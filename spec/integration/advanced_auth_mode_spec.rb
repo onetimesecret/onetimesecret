@@ -5,13 +5,13 @@
 require_relative 'integration_spec_helper'
 require 'rack/test'
 
-RSpec.describe 'Advanced Authentication Mode', type: :integration do
+RSpec.describe 'Full Authentication Mode', type: :integration do
   include Rack::Test::Methods
 
   before(:all) do
-    # Set advanced mode before loading the application
+    # Set full mode before loading the application
     ENV['RACK_ENV'] = 'test'
-    ENV['AUTHENTICATION_MODE'] = 'advanced'
+    ENV['AUTHENTICATION_MODE'] = 'full'
     ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../..'))
     ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 
@@ -26,7 +26,7 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
     # Redis mocking is handled globally by integration_spec_helper.rb
     Onetime.boot! :test
 
-    # Now prepare registry with advanced mode ENV set
+    # Now prepare registry with full mode ENV set
     Onetime::Application::Registry.prepare_application_registry
   end
 
@@ -35,12 +35,12 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
   end
 
   describe 'Configuration' do
-    it 'activates advanced mode' do
-      expect(Onetime.auth_config.mode).to eq('advanced')
+    it 'activates full mode' do
+      expect(Onetime.auth_config.mode).to eq('full')
     end
 
-    it 'enables advanced mode features' do
-      expect(Onetime.auth_config.advanced_enabled?).to be true
+    it 'enables full mode features' do
+      expect(Onetime.auth_config.full_enabled?).to be true
     end
   end
 
@@ -96,7 +96,7 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
       it 'includes status and mode information' do
         body = JSON.parse(last_response.body)
         expect(body['status']).to eq('ok')
-        expect(body['mode']).to eq('advanced')
+        expect(body['mode']).to eq('full')
       end
     end
 
@@ -287,8 +287,8 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
   end
 
   describe 'Database Connection' do
-    it 'creates database connection in advanced mode' do
-      if Onetime.auth_config.advanced_enabled?
+    it 'creates database connection in full mode' do
+      if Onetime.auth_config.full_enabled?
         expect(Auth::Database.connection).not_to be_nil
       else
         expect(Auth::Database.connection).to be_nil

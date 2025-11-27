@@ -133,59 +133,59 @@ jobs:
       - name: Generate random secrets for testing
         uses: ./.github/actions/generate-test-secrets
 
-      - name: Run test specs (basic mode)
+      - name: Run test specs (simple mode)
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'basic'
+          AUTHENTICATION_MODE: 'simple'
           # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
         run: |
-          echo "Testing RSpec in basic authentication mode..."
+          echo "Testing RSpec in simple authentication mode..."
           mkdir -p tmp && bundle exec rspec \
             --format progress \
             --format json \
-            --out tmp/rspec_results_basic.json
+            --out tmp/rspec_results_simple.json
 
-      - name: Run test specs (advanced mode)
+      - name: Run test specs (full mode)
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'advanced'
+          AUTHENTICATION_MODE: 'full'
           AUTH_DATABASE_URL: 'sqlite::memory:'
           # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
         run: |
-          echo "Testing RSpec in advanced authentication mode..."
+          echo "Testing RSpec in full authentication mode..."
           bundle exec rspec \
             --format progress \
             --format json \
-            --out tmp/rspec_results_advanced.json
+            --out tmp/rspec_results_full.json
 
       - name: Generate job summary
         if: always()
         run: |
           echo "## Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "### Basic Mode" >> $GITHUB_STEP_SUMMARY
-          if [ -f tmp/rspec_results_basic.json ]; then
-            echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results_basic.json)" >> $GITHUB_STEP_SUMMARY
-            echo "Failures: $(jq '.summary.failure_count' tmp/rspec_results_basic.json)" >> $GITHUB_STEP_SUMMARY
+          echo "### Simple Mode" >> $GITHUB_STEP_SUMMARY
+          if [ -f tmp/rspec_results_simple.json ]; then
+            echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results_simple.json)" >> $GITHUB_STEP_SUMMARY
+            echo "Failures: $(jq '.summary.failure_count' tmp/rspec_results_simple.json)" >> $GITHUB_STEP_SUMMARY
           fi
-          echo "### Advanced Mode" >> $GITHUB_STEP_SUMMARY
-          if [ -f tmp/rspec_results_advanced.json ]; then
-            echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results_advanced.json)" >> $GITHUB_STEP_SUMMARY
-            echo "Failures: $(jq '.summary.failure_count' tmp/rspec_results_advanced.json)" >> $GITHUB_STEP_SUMMARY
+          echo "### Full Mode" >> $GITHUB_STEP_SUMMARY
+          if [ -f tmp/rspec_results_full.json ]; then
+            echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results_full.json)" >> $GITHUB_STEP_SUMMARY
+            echo "Failures: $(jq '.summary.failure_count' tmp/rspec_results_full.json)" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Run tryouts (basic mode)
+      - name: Run tryouts (simple mode)
         continue-on-error: ${{ matrix.continue-on-error }}
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'basic'
+          AUTHENTICATION_MODE: 'simple'
           # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
         run: |
-          echo "Testing basic authentication mode..."
+          echo "Testing simple authentication mode..."
           bundle exec tryouts -vf try/unit try/system
-          bundle exec tryouts -vf try/integration/authentication/basic_mode
+          bundle exec tryouts -vf try/integration/authentication/simple_mode
           bundle exec tryouts -vf try/integration/authentication/common
 
       - name: Run tryouts (disabled mode)
@@ -200,18 +200,18 @@ jobs:
           bundle exec tryouts -vf try/integration/authentication/disabled_mode
           bundle exec tryouts -vf try/integration/authentication/common
 
-      - name: Run tryouts (advanced mode)
+      - name: Run tryouts (full mode)
         continue-on-error: ${{ matrix.continue-on-error }}
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'advanced'
+          AUTHENTICATION_MODE: 'full'
           # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
-          # Advanced mode requires a database. Using in-memory SQLite for CI.
+          # Full mode requires a database. Using in-memory SQLite for CI.
           DATABASE_URL: 'sqlite::memory:'
         run: |
-          echo "Testing advanced authentication mode..."
-          bundle exec tryouts -vf try/integration/authentication/advanced_mode
+          echo "Testing full authentication mode..."
+          bundle exec tryouts -vf try/integration/authentication/full_mode
           bundle exec tryouts -vf try/integration/authentication/common
 
   test-typescript:
