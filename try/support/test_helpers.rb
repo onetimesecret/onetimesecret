@@ -18,6 +18,19 @@ OT::Config.path = File.join(project_root, 'spec', 'config.test.yaml')
 # NOTE: Database logging is now handled by the SetupDatabaseLogging initializer
 # which runs automatically during OT.boot!. Set DEBUG_DATABASE=1 to enable.
 
+# Temporarily set an environment variable within a block, restoring it after.
+# @param key [String] The environment variable name
+# @param value [String] The value to set
+# @yield The block to execute with the modified environment
+# @return The return value of the block
+def with_env(key, value)
+  original = ENV[key]
+  ENV[key] = value
+  yield
+ensure
+  ENV[key] = original
+end
+
 def generate_random_email
   # Generate a random username
   username = (0...8).map { ('a'..'z').to_a[rand(26)] }.join

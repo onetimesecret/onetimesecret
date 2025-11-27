@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { useTheme } from '@/composables/useTheme';
   import { onMounted, onUnmounted } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   import OIcon from './icons/OIcon.vue';
 

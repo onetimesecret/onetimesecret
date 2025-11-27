@@ -416,10 +416,6 @@ end
 - **Purpose**: Create new account and log in
 - **Session Fields**: `authenticated`, `external_id`, `email`, `authenticated_at`
 
-#### DestroySession
-- **Purpose**: Log out user
-- **Session Fields**: Clears all fields via `@sess.clear`
-
 #### UpdateAccount
 - **Purpose**: Modify account settings
 - **Session Fields**: `email` (if changed)

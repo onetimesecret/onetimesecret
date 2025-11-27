@@ -27,11 +27,11 @@ s.passphrase = 'plop'
 s.passphrase
 #=> 'plop'
 
-## Can store a one-way, encrypted passphrase
+## Can store a one-way, encrypted passphrase (now uses argon2id by default)
 s = Onetime::Secret.new :shared
 s.update_passphrase 'plop'
 [s.passphrase_encryption, s.passphrase?('plop')]
-#=> ["1", true]
+#=> ["2", true]
 
 ## Calling update_passphrase! automatically saves the passphrase
 s = Onetime::Secret.new :shared
@@ -41,7 +41,7 @@ secret_identifier = s.identifier
 s2 = Onetime::Secret.find_by_identifier secret_identifier
 
 [s2.passphrase_encryption, s2.passphrase?('plop')]
-#=> ["1", true]
+#=> ["2", true]
 
 ## Calling update_passphrase (without bang) automatically saves the passphrase too
 s = Onetime::Secret.new :shared
@@ -51,4 +51,4 @@ secret_identifier = s.identifier
 s2 = Onetime::Secret.find_by_identifier secret_identifier
 
 [s2.passphrase_encryption, s2.passphrase?('plop')]
-#=> ["1", true]
+#=> ["2", true]

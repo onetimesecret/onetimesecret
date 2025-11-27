@@ -133,27 +133,47 @@ jobs:
       - name: Generate random secrets for testing
         uses: ./.github/actions/generate-test-secrets
 
-      - name: Run test specs
+      - name: Run test specs (basic mode)
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'basic'
+          # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
+        run: |
+          echo "Testing RSpec in basic authentication mode..."
+          mkdir -p tmp && bundle exec rspec \
+            --format progress \
+            --format json \
+            --out tmp/rspec_results_basic.json
+
+      - name: Run test specs (advanced mode)
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'advanced'
+          AUTH_DATABASE_URL: 'sqlite::memory:'
           # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
         run: |
-          mkdir tmp && bundle exec rspec \
+          echo "Testing RSpec in advanced authentication mode..."
+          bundle exec rspec \
             --format progress \
             --format json \
-            --out tmp/rspec_results.json
+            --out tmp/rspec_results_advanced.json
 
       - name: Generate job summary
         if: always()
         run: |
           echo "## Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "$(bundle exec rspec \
-            --dry-run \
-            --format documentation \
-            $(find ./spec -name '*_spec.rb' ! -name 'spec_helper.rb'))" >> $GITHUB_STEP_SUMMARY
-          echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results.json)" >> $GITHUB_STEP_SUMMARY
+          echo "### Basic Mode" >> $GITHUB_STEP_SUMMARY
+          if [ -f tmp/rspec_results_basic.json ]; then
+            echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results_basic.json)" >> $GITHUB_STEP_SUMMARY
+            echo "Failures: $(jq '.summary.failure_count' tmp/rspec_results_basic.json)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "### Advanced Mode" >> $GITHUB_STEP_SUMMARY
+          if [ -f tmp/rspec_results_advanced.json ]; then
+            echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results_advanced.json)" >> $GITHUB_STEP_SUMMARY
+            echo "Failures: $(jq '.summary.failure_count' tmp/rspec_results_advanced.json)" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Run tryouts (basic mode)
         continue-on-error: ${{ matrix.continue-on-error }}

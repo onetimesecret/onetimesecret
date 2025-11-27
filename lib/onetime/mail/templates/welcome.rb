@@ -37,7 +37,7 @@ module Onetime
 
         def verify_uri
           secret = data[:secret]
-          key = secret.respond_to?(:key) ? secret.key : secret.to_s
+          key = secret.respond_to?(:identifier) ? secret.identifier : secret.to_s
           "/secret/#{key}"
         end
 

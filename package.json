@@ -88,7 +88,10 @@
     "type-check:tests": "pnpm run type-check:base -p ./tsconfig.test.json",
     "type-check:base": "vue-tsc --noEmit",
     "type-check:parallel": "pnpm -r exec vue-tsc --build --noEmit",
-    "type-check:watch": "pnpm run type-check:base --watch"
+    "type-check:watch": "pnpm run type-check:base --watch",
+    "branches": "./scripts/corporate-branch-report.sh",
+    "branches:worktrees": "./scripts/corporate-branch-report.sh --worktrees",
+    "branches:py": "python3 ./scripts/corporate-branch-report.py"
   },
   "keywords": [],
   "author": "",

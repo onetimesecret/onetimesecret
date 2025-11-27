@@ -26,6 +26,36 @@ module Core::Logic
         passwd_matches = potential.passphrase?(@passwd)
         @cust          = potential if passwd_matches
         @objid         = @cust.objid if @cust
+
+        # Transparent password hash migration: rehash bcrypt passwords to argon2
+        # on successful login while we have the plaintext password available.
+        migrate_password_hash_if_needed(potential, @passwd) if passwd_matches
+      end
+
+      # Migrate legacy bcrypt password hashes to argon2id on successful login.
+      # This provides a gradual, transparent migration path without forcing
+      # password resets or requiring user action.
+      #
+      # @param customer [Onetime::Customer] The authenticated customer
+      # @param password [String] The verified plaintext password
+      def migrate_password_hash_if_needed(customer, password)
+        return if customer.argon2_hash?(customer.passphrase)
+
+        customer.update_passphrase!(password)
+        auth_logger.info 'Password hash migrated to argon2', {
+          user_id: customer.objid,
+          email: customer.obscure_email,
+          action: 'password_hash_migration',
+        }
+      rescue StandardError => ex
+        # Log the error but don't fail the login - the bcrypt hash remains
+        # intact and will be migrated on the next successful login attempt.
+        auth_logger.error 'Password hash migration failed', {
+          user_id: customer.objid,
+          email: customer.obscure_email,
+          error: ex.message,
+          action: 'password_hash_migration_failed',
+        }
       end
 
       def raise_concerns
@@ -57,15 +87,30 @@ module Core::Logic
             status: :pending,
           }
 
-          auth_logger.info 'Resending verification email', {
-            customer_id: cust.objid,
-            email: cust.obscure_email,
-          }
+          # Do not send an email to a someone that's just logged-in with a basic
+          # authmode account where verified=false and autoverify is disabled. With
+          # autoverify disabled, the registration flow sets verified=true and
+          # skips the email verification process. However, if the site admin
+          # has manually set verified=false on the account (e.g. for moderation
+          # purposes), we don't want to spam them with verification emails
+          # every time they log in. This scenario could also happen if the
+          # site configuration changes after users have already signed up
+          # but not yet verified.
+          autoverify = OT.conf.dig('site', 'authentication', 'autoverify')
+          unless autoverify.to_s == 'true'
+            # When autoverify is enabled, proactively help pending accounts
+            # get verified by resending the verification email (valid for 24h)
+            auth_logger.info 'Resending verification email (autoverify mode)', {
+              customer_id: cust.objid,
+              email: cust.obscure_email,
+            }
 
-          send_verification_email nil
+            send_verification_email nil
 
-          msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."
-          set_info_message(msg)
+            msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."
+            set_info_message(msg)
+          end
+
           return success_data
         end
 

@@ -5,8 +5,17 @@
 module Auth::Config::Features
   module AccountManagement
     def self.configure(auth)
+
+      # Account lifecycle features
+      auth.enable :create_account
+      auth.enable :close_account
+      auth.enable :change_password
+      auth.enable :reset_password
+
       # Only configure verify_account if the feature is enabled (disabled in test)
       unless ENV['RACK_ENV'] == 'test'
+        auth.enable :verify_account
+
         # Password is set during account creation, not during verification
         # This prevents verify_account from requiring password fields
         auth.verify_account_set_password? false

@@ -228,7 +228,7 @@ describe('metadataListStore', () => {
         // store.setupAsyncHandler(axiosInstance, { notify: notifySpy });
 
         // Send malformed data that won't match schema
-        axiosMock.onGet(`/api/v2/receipt/recent`).reply(200, {
+        axiosMock.onGet('/api/v3/receipt/recent').reply(200, {
           record: {
             invalidField: true,
             // Missing required records array
@@ -243,7 +243,7 @@ describe('metadataListStore', () => {
         // store.setupAsyncHandler(axiosInstance, { notify: notifySpy });
 
         // Simulate 403 Forbidden
-        axiosMock.onGet(`/api/v2/receipt/recent`).reply(403, {
+        axiosMock.onGet('/api/v3/receipt/recent').reply(403, {
           message: 'Invalid authentication credentials',
         });
 
@@ -306,12 +306,13 @@ describe('metadataListStore', () => {
     describe('error recovery', () => {
       it('recovers from error state on successful request', async () => {
         // First request fails
-        axiosMock.onGet(`/api/v2/receipt/recent`).reply(500);
+        axiosMock.onGet('/api/v3/receipt/recent').reply(500);
 
         await expect(store.fetchList()).rejects.toThrow();
 
-        // Second request succeeds
-        axiosMock.onGet(`/api/v2/receipt/recent`).reply(200, {
+        // Second request succeeds - reset mock to allow new request
+        axiosMock.reset();
+        axiosMock.onGet('/api/v3/receipt/recent').reply(200, {
           records: mockMetadataRecentRecords,
           details: mockMetadataRecentDetails,
         });

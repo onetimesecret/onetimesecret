@@ -12,11 +12,16 @@ module Onetime
   class AuthConfig
     include Singleton
 
+    class << self
+      # Allow setting custom config file path (for testing)
+      attr_accessor :path
+    end
+
     attr_reader :config, :mode, :environment
 
     def initialize
       @environment = ENV['RACK_ENV'] || 'development'
-      @config_file = File.join(Onetime::HOME, 'etc/auth.yaml')
+      @config_file = self.class.path || File.join(Onetime::HOME, 'etc/auth.yaml')
       load_config
     end
 
@@ -66,7 +71,9 @@ module Onetime
     end
 
     # Reload configuration (useful for testing)
+    # Also picks up any changes to AuthConfig.path
     def reload!
+      @config_file = self.class.path || File.join(Onetime::HOME, 'etc/auth.yaml')
       load_config
       self
     end

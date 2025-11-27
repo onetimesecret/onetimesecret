@@ -33,7 +33,7 @@ module Onetime
           truemail_config.each do |key, value|
             actual_key = OT::Config.mapped_key(key)
             unless config.respond_to?("#{actual_key}=")
-              OT.le "config.#{actual_key} does not exist"
+              OT.le "config.#{actual_key}= does not exist (from key=#{key})"
               next
             end
 
@@ -43,13 +43,13 @@ module Onetime
               value = value.to_sym
             end
 
-            # Convert validation_type_for hash values from strings to symbols
-            # YAML parses `example.com: regex` as {string => string}, but Truemail expects {string => symbol}
+            # Convert validation_type_for hash values (not keys) to symbols
+            # YAML parses `example.com: regex` as {string => string/symbol}
+            # Truemail expects {string => symbol} - domain keys must be strings!
             if key == 'validation_type_for' && value.is_a?(Hash)
-              value = value.transform_values(&:to_sym)
+              value = value.transform_keys(&:to_s).transform_values(&:to_sym)
             end
 
-            # OT.ld "[init] Truemail #{key} to #{value}"
             config.send("#{actual_key}=", value)
           end
         end

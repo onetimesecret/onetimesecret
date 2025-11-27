@@ -60,14 +60,12 @@ gem 'truemail'
 # ====================================
 
 # ORMs and database drivers
+# NOTE: We install both db drivers for the OCI images so that users can choose
+# which database to use at runtime via environment variable without rebuilding.
 gem 'familia', '~> 2.0.0.pre21'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'
-
-case ENV.fetch('DATABASE_ADAPTER', 'sqlite3').downcase
-when 'postgresql', 'pg', 'postgres'
-  gem 'pg', '~> 1.4'
-end
+gem 'pg', '~> 1.6'
 
 # Redis/Valkey
 gem 'redis', '~> 5.4.0'
@@ -77,6 +75,7 @@ gem 'uri-valkey', '~> 1.4.0'
 # Security & Encryption
 # ====================================
 
+gem 'argon2', '~> 2.3'
 gem 'bcrypt', '~> 3.1'
 gem 'encryptor', '= 1.1.3'
 gem 'rotp', '~> 6.2'
@@ -133,6 +132,7 @@ end
 group :test do
   # Note: FakeRedis removed due to redis 5.x incompatibility
   # See spec_helper.rb for details about mock_redis as future alternative
+  gem 'climate_control'
   gem 'rack-test', require: false
   gem 'rspec', git: 'https://github.com/rspec/rspec'
   gem 'simplecov', require: false

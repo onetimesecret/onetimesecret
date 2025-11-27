@@ -6,6 +6,10 @@ require_relative '../database'
 
 module Auth::Config::Base
   def self.configure(auth)
+    # Core features required for all authentication flows
+    auth.enable :base, :json, :login, :logout, :table_guard, :external_identity
+    auth.enable :hmac_secret_guard
+
     auth.db Auth::Database.connection
 
     auth.table_guard_mode :error

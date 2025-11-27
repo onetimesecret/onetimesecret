@@ -5,8 +5,10 @@
 module Auth::Config::Features
   module WebAuthn
     def self.configure(auth)
-      # WebAuthn feature
-      # auth.enable :webauthn
+      # WebAuthn features (conditionally enabled via ENV in config.rb)
+      auth.enable :webauthn, :webauthn_login, :webauthn_modify_email
+      auth.enable :webauthn_verify_account if ENV['WEBAUTHN_VERIFY_ACCOUNT']
+      auth.enable :webauthn_autofill if ENV['WEBAUTHN_AUTOFILL']
 
       # WebAuthn configuration
       auth.webauthn_rp_id do

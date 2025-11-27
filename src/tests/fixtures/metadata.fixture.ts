@@ -237,26 +237,31 @@ export const mockMetadataRecentRecords = [
   {
     custid: 'customer123',
     secret_ttl: 3600,
-    show_recipients: true,
-    is_received: false,
-    is_burned: false,
-    is_orphaned: true,
-    is_destroyed: false,
+    show_recipients: 'true',
+    is_received: 'false',
+    is_burned: 'false',
+    is_orphaned: 'true',
+    is_destroyed: 'false',
     identifier: 'abc123def456',
     // Add these required fields from metadataBaseSchema
     state: 'new',
     key: 'key123',
     shortid: 'short123',
-    created: new Date(),
-    updated: new Date(),
+    created: 1735142814, // Unix timestamp in seconds (2024-12-25T16:06:54Z)
+    updated: 1735204014, // Unix timestamp in seconds (2024-12-26T09:06:54Z)
+    // Add required boolean fields from metadataBaseSchema
+    is_viewed: 'false',
+    is_expired: 'false',
+    metadata_ttl: 0,
+    lifespan: 0,
   },
 ];
 
 export const mockMetadataRecentDetails = {
   type: 'list',
-  since: Date.now(),
-  now: new Date(),
-  has_items: true,
+  since: Math.floor(Date.now() / 1000), // Unix timestamp in seconds
+  now: new Date().toISOString(), // ISO string for date transform
+  has_items: 'true',
   received: [
     {
       key: 'received-metadata-1',
@@ -265,14 +270,18 @@ export const mockMetadataRecentDetails = {
       custid: 'user-789',
       secret_ttl: 1800, // 30 minutes
       state: MetadataState.RECEIVED,
-      created: new Date('2024-12-25T16:06:54Z'),
-      updated: new Date('2024-12-26T09:06:54Z'),
-      show_recipients: false,
-      is_received: true,
-      is_burned: false,
-      is_orphaned: false,
-      is_destroyed: false,
+      created: 1735142814, // Unix timestamp in seconds (2024-12-25T16:06:54Z)
+      updated: 1735204014, // Unix timestamp in seconds (2024-12-26T09:06:54Z)
+      show_recipients: 'false',
+      is_received: 'true',
+      is_burned: 'false',
+      is_orphaned: 'false',
+      is_destroyed: 'false',
+      is_viewed: 'false',
+      is_expired: 'false',
       identifier: 'received-metadata-1',
+      metadata_ttl: 0,
+      lifespan: 0,
     },
   ],
   notreceived: [
@@ -283,14 +292,18 @@ export const mockMetadataRecentDetails = {
       custid: 'user-101',
       secret_ttl: 5400, // 1.5 hours
       state: MetadataState.NEW,
-      created: new Date('2024-12-25T16:06:54Z'),
-      updated: new Date('2024-12-26T09:06:54Z'),
-      show_recipients: false,
-      is_received: false,
-      is_burned: false,
-      is_orphaned: false,
-      is_destroyed: false,
+      created: 1735142814, // Unix timestamp in seconds (2024-12-25T16:06:54Z)
+      updated: 1735204014, // Unix timestamp in seconds (2024-12-26T09:06:54Z)
+      show_recipients: 'false',
+      is_received: 'false',
+      is_burned: 'false',
+      is_orphaned: 'false',
+      is_destroyed: 'false',
+      is_viewed: 'false',
+      is_expired: 'false',
       identifier: 'not-received-metadata-1',
+      metadata_ttl: 0,
+      lifespan: 0,
     },
   ],
 };

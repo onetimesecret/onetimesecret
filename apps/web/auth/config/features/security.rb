@@ -7,11 +7,11 @@ module Auth::Config::Features
   #
   module Security
     def self.configure(auth)
-      # Security features
-      # enable :lockout         # Brute force protection (includes login failure tracking)
-      # enable :active_sessions # Track active sessions
-      # enable :login_password_requirements_base
-      # enable :remember        # Remember me functionality
+      # Security features (conditionally enabled via ENV in config.rb)
+      auth.enable :lockout                          # Brute force protection
+      auth.enable :active_sessions                  # Track active sessions
+      auth.enable :login_password_requirements_base # Password validation
+      auth.enable :remember                         # Remember me functionality
 
       # Active sessions settings
       #

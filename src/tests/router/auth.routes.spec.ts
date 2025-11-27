@@ -28,21 +28,23 @@ describe('Auth Routes Configuration', () => {
       expect(route?.meta?.requiresAuth).toBe(false);
       expect(route?.meta?.layout).toBeDefined();
       expect(route?.meta?.layoutProps).toBeDefined(); // Ensure layoutProps is defined
-      expect((route?.meta?.layoutProps as any).displayMasthead).toBe(false); // Type assertion to avoid TS2339 error
+      // Type assertion to avoid TS2339 error
+      expect((route?.meta?.layoutProps as any).displayMasthead).toBe(false);
     });
 
     it('should define signup routes with correct children', () => {
       const route = authRoutes.find((route: RouteRecordRaw) => route.path === '/signup');
-      expect(route?.children).toHaveLength(1);
+      expect(route?.children).toHaveLength(2);
       expect(route?.children?.[0].path).toBe('');
+      expect(route?.children?.[1].path).toBe(':planCode');
       expect(route?.meta?.requiresAuth).toBe(false);
     });
 
-    it('should define forgot password routes correctly', () => {
+    it('should define forgot password route correctly', () => {
       const route = authRoutes.find((route: RouteRecordRaw) => route.path === '/forgot');
-      expect(route?.children).toHaveLength(2);
-      expect(route?.children?.[0].name).toBe('Forgot Password');
-      expect(route?.children?.[1].name).toBe('Reset Password');
+      expect(route).toBeDefined();
+      expect(route?.name).toBe('Forgot Password');
+      expect(route?.meta?.requiresAuth).toBe(false);
       expect((route?.meta?.layoutProps as any).displayNavigation).toBe(false);
     });
   });
@@ -157,9 +159,9 @@ describe('Auth Routes Configuration', () => {
 
     it('should navigate to password reset with reset key', async () => {
       const resetKey = 'abc123';
-      await router.push(`/forgot/${resetKey}`);
-      expect(router.currentRoute.value.path).toBe(`/forgot/${resetKey}`);
-      expect(router.currentRoute.value.params.resetKey).toBe(resetKey);
+      await router.push(`/reset-password?key=${resetKey}`);
+      expect(router.currentRoute.value.path).toBe('/reset-password');
+      expect(router.currentRoute.value.query.key).toBe(resetKey);
     });
   });
 
@@ -190,11 +192,12 @@ describe('Auth Routes Configuration', () => {
     it('should have correct layout props for forgot password', () => {
       const route = authRoutes.find((route: RouteRecordRaw) => route.path === '/forgot');
       expect(route?.meta?.layoutProps).toEqual({
-        displayMasthead: true,
+        displayMasthead: false,
         displayNavigation: false,
         displayFooterLinks: false,
-        displayFeedback: true,
-        displayVersion: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayToggles: true,
       });
     });
   });

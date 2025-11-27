@@ -12,12 +12,24 @@ describe('Organization Store', () => {
   let axiosMock: AxiosMockAdapter | null;
   let store: ReturnType<typeof useOrganizationStore>;
 
+  // Raw API response format (Unix timestamps)
+  const mockOrganizationRaw = {
+    id: 'org-123',
+    display_name: 'Test Organization',
+    description: 'A test organization',
+    is_default: false,
+    created_at: Math.floor(new Date('2024-01-01T00:00:00Z').getTime() / 1000),
+    updated_at: Math.floor(new Date('2024-01-01T00:00:00Z').getTime() / 1000),
+  };
+
+  // Transformed format (Date objects) for expectations
   const mockOrganization: Organization = {
     id: 'org-123',
     display_name: 'Test Organization',
     description: 'A test organization',
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
+    is_default: false,
+    created_at: new Date('2024-01-01T00:00:00Z'),
+    updated_at: new Date('2024-01-01T00:00:00Z'),
   };
 
   beforeEach(async () => {
@@ -55,7 +67,7 @@ describe('Organization Store', () => {
   describe('Fetching organizations', () => {
     it('fetches all organizations successfully', async () => {
       axiosMock?.onGet('/api/organizations').reply(200, {
-        records: [mockOrganization],
+        records: [mockOrganizationRaw],
         count: 1,
       });
 
@@ -80,7 +92,7 @@ describe('Organization Store', () => {
 
     it('fetches a single organization by ID', async () => {
       axiosMock?.onGet('/api/organizations/org-123').reply(200, {
-        record: mockOrganization,
+        record: mockOrganizationRaw,
       });
 
       const org = await store.fetchOrganization('org-123');
@@ -98,7 +110,7 @@ describe('Organization Store', () => {
       };
 
       axiosMock?.onPost('/api/organizations').reply(200, {
-        record: mockOrganization,
+        record: mockOrganizationRaw,
       });
 
       const org = await store.createOrganization(newOrgPayload);
@@ -120,10 +132,10 @@ describe('Organization Store', () => {
         display_name: 'Updated Organization Name',
       };
 
-      const updatedOrg = { ...mockOrganization, ...updates };
+      const updatedOrgRaw = { ...mockOrganizationRaw, ...updates };
 
       axiosMock?.onPut('/api/organizations/org-123').reply(200, {
-        record: updatedOrg,
+        record: updatedOrgRaw,
       });
 
       const result = await store.updateOrganization('org-123', updates);

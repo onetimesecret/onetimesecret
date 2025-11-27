@@ -80,17 +80,21 @@ export const errorClassifier = {
       return 'human';
     }
 
+    // Check if status code is explicitly classified as security (auth/rate-limit)
+    // This must happen before the heuristic to ensure security codes like 401/403
+    // are always classified correctly even when they have user messages
+    if (HTTP_STATUS_CODES.SECURITY.has(status)) {
+      return 'security';
+    }
+
     // Heuristic: If backend sends a user-friendly message for a client error (4xx),
-    // it's signaling that this error is user-actionable, regardless of status code.
+    // it's signaling that this error is user-actionable.
     // The backend controls classification by choosing to include a friendly message.
     const hasUserMessage = Boolean(details.error || details.message);
     const isClientError = status >= 400 && status < 500;
 
     if (hasUserMessage && isClientError) {
-      // Exception: Rate limiting is always a security concern even with a message
-      if (status === 429) return 'security';
-
-      // All other 4xx with friendly messages are user-actionable
+      // All 4xx with friendly messages are user-actionable
       return 'human';
     }
 

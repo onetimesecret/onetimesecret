@@ -27,12 +27,10 @@ module Onetime
             === END EMAIL ===
           EMAIL
 
-          # Log using OT if available, otherwise puts
-          if defined?(OT) && OT.respond_to?(:info)
-            OT.info output
-          else
-            puts output
-          end
+          # Log straight to standard out, bypassing our centralized semantic
+          # logger. This avoids confusing scenarios where nothing appears in
+          # the logs b/c the log level was set incorrectly.
+          puts output
           log_delivery(email, 'logged')
 
           # Return a simple success indicator

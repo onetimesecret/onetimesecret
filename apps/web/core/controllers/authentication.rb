@@ -28,12 +28,37 @@ module Core
       def logout
         res.do_not_cache!
 
-        logic = AccountAPI::Logic::Authentication::DestroySession.new(strategy_result, req.params, locale)
-        execute_with_error_handling(
-          logic,
-          success_message: 'You have been logged out',
-          success_redirect: res.app_path('/'),
-        )
+        # Capture session info for logging before clearing
+        customer_id = session['external_id']
+        session_id = session.id&.public_id rescue nil
+
+        auth_logger.debug 'Session destruction initiated', {
+          customer_id: customer_id,
+          session_id: session_id,
+          ip: req.ip,
+        }
+
+        # Clear all session data
+        session.clear
+
+        # Regenerate session ID to prevent session fixation attacks
+        # This invalidates the old session ID entirely
+        if req.env['rack.session.options']
+          req.env['rack.session.options'][:renew] = true
+        end
+
+        auth_logger.info 'Session destroyed', {
+          customer_id: customer_id,
+          session_id: session_id,
+          ip: req.ip,
+        }
+
+        if json_requested?
+          json_success('You have been logged out')
+        else
+          session['success_message'] = 'You have been logged out'
+          res.redirect res.app_path('/')
+        end
       end
 
       private

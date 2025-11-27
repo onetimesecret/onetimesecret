@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'argon2'
+
 module Onetime
   module Models
     module Features
@@ -184,29 +186,77 @@ module Onetime
               .save_fields(:passphrase_encryption, :passphrase)
           end
 
-          def update_passphrase(val)
-            self.passphrase_encryption = '1'
-            self.passphrase            = BCrypt::Password.create(val, cost: 12).to_s
-            self  # Enable chaining
+          # Hash a new passphrase using argon2id (default) or bcrypt (legacy).
+          # argon2id is preferred for all new passphrases due to improved security.
+          # The bcrypt option exists for testing and backwards compatibility only.
+          #
+          # @param val [String] The plaintext passphrase to hash
+          # @param algorithm [Symbol] :argon2 (default, recommended) or :bcrypt (legacy/testing only)
+          # @return [self] Enable method chaining
+          def update_passphrase(val, algorithm: :argon2)
+            case algorithm
+            when :argon2
+              self.passphrase_encryption = '2'
+              self.passphrase = ::Argon2::Password.create(val, argon2_hash_cost)
+            when :bcrypt
+              self.passphrase_encryption = '1'
+              self.passphrase = BCrypt::Password.create(val, cost: 12).to_s
+            else
+              raise ArgumentError, "Unknown password algorithm: #{algorithm}"
+            end
+            self # Enable chaining
           end
 
           def has_passphrase?
             !passphrase.to_s.empty?
           end
 
+          # Verify a passphrase against the stored hash.
+          # Supports both argon2id (passphrase_encryption='2') and
+          # bcrypt (passphrase_encryption='1' or legacy) hashes.
+          #
+          # @param val [String] The plaintext passphrase to verify
+          # @return [Boolean] true if the passphrase matches
           def passphrase?(val)
             # Immediately return false if there's no passphrase to compare against.
             # This prevents a DoS vector where an attacker could trigger exceptions
             # by attempting to verify passphrases on accounts that don't have one.
             return false if passphrase.to_s.empty?
 
-            # Constant-time comparison prevents timing attacks that could leak
-            # the hash prefix by measuring how long the comparison takes to fail.
-            BCrypt::Password.new(passphrase) == val
+            # Detect algorithm from hash format and verify accordingly.
+            # Argon2id hashes start with '$argon2id$', bcrypt with '$2a$' or '$2b$'.
+            if argon2_hash?(passphrase)
+              ::Argon2::Password.verify_password(val, passphrase)
+            else
+              # BCrypt constant-time comparison prevents timing attacks
+              BCrypt::Password.new(passphrase) == val
+            end
           rescue BCrypt::Errors::InvalidHash => ex
-            prefix = '[passphrase?]'
-            OT.li "#{prefix} Invalid passphrase hash: #{ex.message}"
+            OT.li "[passphrase?] Invalid BCrypt hash: #{ex.message}"
             false
+          rescue ::Argon2::ArgonHashFail => ex
+            OT.li "[passphrase?] Argon2 hash operation failed: #{ex.message}"
+            false
+          end
+
+          # Check if a hash string is an argon2id hash.
+          #
+          # @param hash [String] The hash to check
+          # @return [Boolean] true if the hash is argon2id format
+          def argon2_hash?(hash)
+            hash.to_s.start_with?('$argon2id$')
+          end
+
+          # Returns the argon2 hash cost parameters.
+          # Uses lower cost in test environment for faster test execution.
+          #
+          # @return [Hash] Cost parameters for Argon2::Password.create
+          def argon2_hash_cost
+            if ENV['RACK_ENV'] == 'test'
+              { t_cost: 1, m_cost: 5, p_cost: 1 }
+            else
+              { t_cost: 2, m_cost: 16, p_cost: 1 }
+            end
           end
         end
       end

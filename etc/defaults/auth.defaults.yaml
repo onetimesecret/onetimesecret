@@ -36,7 +36,7 @@ advanced:
   #   - 'sqlite:///tmp/auth.db' - Temporary, lost on restart
   #
   # ⚠️  In OCI containers: SQLite files MUST be in a mounted volume directory
-  #     (e.g., /data) or all data will be lost on container restart.
+  #     (e.g., /app/data or /data) or all data will be lost on container restart.
   #
   database_url: <%= ENV['AUTH_DATABASE_URL'] || 'sqlite://data/auth.db' %>
 

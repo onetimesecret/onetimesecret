@@ -46,6 +46,7 @@ onMounted(() => {
 
       <EmptyState
         v-else
+        :showAction="true"
         action-route="/domains/add"
         action-text="Add a Domain">
         <template #title>

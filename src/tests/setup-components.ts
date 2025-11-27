@@ -34,13 +34,33 @@ const i18n = createI18n({
 config.global.plugins = [i18n];
 
 // Mock localStorage for theme and other component needs
+// Create a functional localStorage mock that actually stores data
+const createLocalStorageMock = () => {
+  let store: Record<string, string> = {};
+
+  return {
+    getItem: vi.fn((key: string) => store[key] || null),
+    setItem: vi.fn((key: string, value: string) => {
+      store[key] = value.toString();
+    }),
+    removeItem: vi.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
+    get length() {
+      return Object.keys(store).length;
+    },
+    key: vi.fn((index: number) => {
+      const keys = Object.keys(store);
+      return keys[index] || null;
+    }),
+  };
+};
+
 Object.defineProperty(window, 'localStorage', {
-  value: {
-    getItem: vi.fn(() => null),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
-  },
+  value: createLocalStorageMock(),
   writable: true,
 });
 

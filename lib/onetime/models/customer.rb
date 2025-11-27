@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'rack/utils'
+require 'argon2'
 require 'bcrypt'
 
 require_relative 'features'
@@ -109,6 +110,7 @@ module Onetime
     field :locale
     field :planid
 
+    field :last_password_update
     field :last_login
 
     def init
@@ -237,14 +239,18 @@ module Onetime
         end
       end
 
-      # Create a dummy customer with realistic passphrase for timing consistency
+      # Create a dummy customer with realistic passphrase for timing consistency.
+      # Uses argon2id to match the algorithm used for real password verification,
+      # ensuring timing attacks cannot distinguish between existing and
+      # non-existing users based on hash algorithm differences.
       def dummy
         @dummy ||= begin
-          # Create a dummy customer with a proper BCrypt hash
-          # This ensures constant-time comparison in passphrase? method
           dummy_cust                       = new(role: 'anon')
-          dummy_cust.passphrase_encryption = '1'
-          dummy_cust.passphrase            = BCrypt::Password.create(SecureRandom.hex(16), cost: 12).to_s
+          dummy_cust.passphrase_encryption = '2'
+          dummy_cust.passphrase            = ::Argon2::Password.create(
+            SecureRandom.hex(16),
+            dummy_cust.argon2_hash_cost
+          )
           dummy_cust.freeze
         end
       end

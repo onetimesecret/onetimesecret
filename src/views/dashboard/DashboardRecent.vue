@@ -134,6 +134,7 @@
             :is-loading="isLoading"
             :aria-labelledby="'dashboard-recent-heading'" />
           <EmptyState
+            :showAction="true"
             v-else
             action-route="/"
             :action-text="t('create-a-secret')">

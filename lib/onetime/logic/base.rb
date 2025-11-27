@@ -4,6 +4,7 @@
 
 require 'timeout'
 
+require 'onetime/mail'
 require 'onetime/refinements/stripe_refinements'
 require 'onetime/logic/organization_context'
 
@@ -132,26 +133,28 @@ module Onetime
       end
 
       # Requires the implementing class to have cust and session fields
-      def send_verification_email(token = nil)
-        # NOTE: Disabled - requires refactoring to use new Metadata.spawn_pair API
-        # _, secret = Onetime::Secret.spawn_pair cust.custid, token
-
-        OT.lw '[send_verification_email] DISABLED'
-        return
-
+      #
+      # Used by:
+      #   - AccountAPI::Logic::Account::CreateAccount
+      #   - Core::Logic::Authentication::AuthenticateSession
+      def send_verification_email(_token = nil)
         msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
 
-        secret.encrypt_value msg
+        _metadata, secret = Onetime::Metadata.spawn_pair(cust&.objid, 24.days, msg)
+
         secret.verification = true
         secret.custid       = cust.custid
         secret.save
 
-        cust.reset_secret = secret.identifier # as a standalone dbkey, writes immediately
-
-        view = Onetime::Mail::Welcome.new cust, locale, secret
+        # The reset_secret field is a related standalone dbkey, writes
+        # immediately. e.g. customer:abcd1234:reset_secret
+        cust.reset_secret = secret.identifier
 
         begin
-          view.deliver_email token
+          Onetime::Mail::Mailer.deliver(:welcome, {
+            email_address: cust.email,
+            secret: secret
+          })
         rescue StandardError => ex
           errmsg = "Couldn't send the verification email. Let us know below."
           OT.le "Error sending verification email: #{ex.message}", ex.backtrace
