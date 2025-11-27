@@ -61,7 +61,7 @@ const FILE_MAPPINGS: FileMappingConfig[] = [
     keys: ['login', 'signup'],
   },
   {
-    filename: 'auth-advanced.json',
+    filename: 'auth-full.json',
     description: 'MFA, sessions, recovery codes, WebAuthn, magic links',
     keys: [], // We'll handle auth.* specially
   },
@@ -123,7 +123,7 @@ const FILE_MAPPINGS: FileMappingConfig[] = [
 const BASIC_AUTH_KEYS = ['verify', 'change-password', 'close-account', 'passwordReset', 'account'];
 
 /**
- * Auth keys that should go into auth-advanced.json
+ * Auth keys that should go into auth-full.json
  */
 const ADVANCED_AUTH_KEYS = [
   'mfa',
@@ -274,7 +274,7 @@ function splitLocaleFile(inputFilePath: string): void {
     if (mapping.filename === 'auth.json') {
       // Handle basic auth
       fileContent = processBasicAuth(webData, mapping, processedKeys);
-    } else if (mapping.filename === 'auth-advanced.json') {
+    } else if (mapping.filename === 'auth-full.json') {
       // Handle advanced auth
       fileContent = processAdvancedAuth(webData);
     } else {

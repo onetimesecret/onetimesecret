@@ -7,7 +7,7 @@ Tools for synchronizing locale file structures with the base English locale.
 Each locale is a directory containing 17 JSON files:
 - `_common.json` - Common translations
 - `account.json`, `account-billing.json` - Account management
-- `auth.json`, `auth-advanced.json` - Authentication
+- `auth.json`, `auth-full.json` - Authentication
 - `colonel.json`, `dashboard.json` - Admin and dashboard
 - `email.json` - Email templates
 - `feature-*.json` - Feature-specific translations (domains, incoming, organizations, regions, secrets, teams)

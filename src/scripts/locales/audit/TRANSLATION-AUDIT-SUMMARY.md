@@ -64,11 +64,11 @@ A comprehensive audit was performed on all locale translations to identify keys 
 ### Most Affected Files Across Locales:
 1. **_common.json** - Core UI strings, many locales have gaps
 2. **uncategorized.json** - Legacy/uncategorized strings
-3. **auth-advanced.json** - Security metadata and OWASP references
+3. **auth-full.json** - Security metadata and OWASP references
 4. **feature-*.json** - Feature-specific strings
 
 ### Frequently Missing Keys:
-- Security documentation metadata (auth-advanced.json)
+- Security documentation metadata (auth-full.json)
 - Template strings with placeholders (e.g., "{0}/{1}/{2}")
 - Brand names and proper nouns (intentionally left English in some cases)
 - Recent additions from harmonization work
@@ -97,7 +97,7 @@ A comprehensive audit was performed on all locale translations to identify keys 
 ### Most Problematic Files:
 1. **uncategorized.json** - 2,017 missing translations (88 avg/locale)
 2. **_common.json** - 643 missing translations across ALL 27 locales (24 avg/locale)
-3. **auth-advanced.json** - 515 missing translations (primarily security metadata)
+3. **auth-full.json** - 515 missing translations (primarily security metadata)
 4. **account.json** - 312 missing translations
 5. **account-billing.json** - 193 missing translations
 
@@ -113,7 +113,7 @@ These are excellent candidates for batch translation:
 Many of the widely-missing keys fall into these categories:
 - **Pure formatting templates** (e.g., `{0}/{1}/{2}`) - May not need translation
 - **Brand names** - Usually stay in English
-- **Security metadata** in auth-advanced.json - Documentation for translators
+- **Security metadata** in auth-full.json - Documentation for translators
 - **Proper nouns** - Names, products, etc.
 
 ## Files Generated:

@@ -53,7 +53,7 @@ src/locales/en/
 ├── layout.json           (45 keys)  - Footer, navigation, site metadata
 ├── homepage.json         (26 keys)  - Homepage marketing
 ├── auth.json             (10 keys)  - Basic authentication
-├── auth-advanced.json    (1 keys)   - MFA, sessions, recovery codes
+├── auth-full.json    (1 keys)   - MFA, sessions, recovery codes
 ├── secrets.json          (54 keys)  - Secret management
 ├── incoming.json         (13 keys)  - Incoming workflow
 ├── dashboard.json        (6 keys)   - Dashboard views
@@ -93,7 +93,7 @@ src/locales/
     ├── uncategorized.json    # Flat keys (from step 1)
     ├── _common.json          # Common UI (from step 2)
     ├── auth.json             # Authentication (from step 2)
-    ├── auth-advanced.json    # Advanced auth (from step 2)
+    ├── auth-full.json    # Advanced auth (from step 2)
     ├── secrets.json          # Secret features (from step 2)
     ├── incoming.json         # Incoming workflow (from step 2)
     ├── dashboard.json        # Dashboard (from step 2)
@@ -124,7 +124,7 @@ src/locales/
 - **layout.json** - Footer, navigation, site metadata, help
 - **homepage.json** - Homepage marketing content
 - **auth.json** - Basic authentication (login, signup, password reset)
-- **auth-advanced.json** - MFA, sessions, recovery codes, WebAuthn, magic links
+- **auth-full.json** - MFA, sessions, recovery codes, WebAuthn, magic links
 - **secrets.json** - Secret creation, viewing, sharing
 - **incoming.json** - Incoming secret workflow
 - **dashboard.json** - Dashboard and recent items
