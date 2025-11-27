@@ -23,7 +23,7 @@
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
 # - AUTH_DATABASE_URL set (SQLite or PostgreSQL)
-# - AUTHENTICATION_MODE=advanced
+# - AUTHENTICATION_MODE=full
 #
 # RUN:
 #   VALKEY_URL='valkey://127.0.0.1:2121/0' AUTH_DATABASE_URL='sqlite://data/test_auth.db' \
@@ -71,10 +71,10 @@ RSpec.describe 'Auth Route Availability', type: :integration do
         expect(json['status']).to eq('ok')
       end
 
-      it 'reports advanced mode' do
+      it 'reports full mode' do
         json_get '/auth/health'
         json = JSON.parse(last_response.body)
-        expect(json['mode']).to eq('advanced')
+        expect(json['mode']).to eq('full')
       end
     end
 

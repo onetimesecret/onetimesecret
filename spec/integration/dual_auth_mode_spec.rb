@@ -100,7 +100,7 @@ RSpec.xdescribe 'Dual Authentication Mode Integration', type: :request do
     end
 
     it 'runs in basic mode' do
-      expect(Onetime.auth_config.mode).to eq('basic')
+      expect(Onetime.auth_config.mode).to eq('simple')
     end
 
     it 'has advanced mode disabled' do

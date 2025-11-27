@@ -36,7 +36,7 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
 
   describe 'Configuration' do
     it 'activates advanced mode' do
-      expect(Onetime.auth_config.mode).to eq('advanced')
+      expect(Onetime.auth_config.mode).to eq('full')
     end
 
     it 'enables advanced mode features' do
@@ -96,7 +96,7 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
       it 'includes status and mode information' do
         body = JSON.parse(last_response.body)
         expect(body['status']).to eq('ok')
-        expect(body['mode']).to eq('advanced')
+        expect(body['mode']).to eq('full')
       end
     end
 

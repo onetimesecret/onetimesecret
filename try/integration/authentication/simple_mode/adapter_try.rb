@@ -1,17 +1,17 @@
-# try/integration/authentication/basic_mode/adapter_try.rb
+# try/integration/authentication/simple_mode/adapter_try.rb
 #
 # frozen_string_literal: true
 
-# Test to verify Auth app adapter behavior in basic mode
+# Test to verify Auth app adapter behavior in simple mode
 #
 # This test verifies:
-# 1. Basic mode works without SQL database
+# 1. Simple mode works without SQL database
 # 2. Conditional loading of Rodauth
-# 3. Auth app returns 404 for Rodauth routes in basic mode
+# 3. Auth app returns 404 for Rodauth routes in simple mode
 #
-# REQUIRES: Basic mode
+# REQUIRES: Simple mode
 
-# Skip if not in basic mode
+# Skip if not in simple mode
 require_relative '../../../support/test_helpers'
 require_relative '../../../support/auth_mode_config'
 Object.new.extend(AuthModeConfig).skip_unless_mode :simple
@@ -47,7 +47,7 @@ end
 # TEST CASES
 # -------------------------------------------------------------------
 
-## Verify the auth application starts in basic mode without database errors
+## Verify the auth application starts in simple mode without database errors
 begin
   app = Auth::Application.new
   app.respond_to?(:call)
@@ -56,22 +56,22 @@ rescue => e
 end
 #=> true
 
-## Verify basic mode is active
+## Verify simple mode is active
 Onetime.auth_config.mode
-#=> 'basic'
+#=> 'simple'
 
-## Verify advanced mode is disabled
+## Verify full mode is disabled
 Onetime.auth_config.full_enabled?
 #=> false
 
-## Verify database connection returns nil in basic mode
+## Verify database connection returns nil in simple mode
 require 'web/auth/config/database'
 Auth::Database.connection
 #=> nil
 
-## The login endpoint returns 404 in basic mode (Rodauth not loaded)
+## The login endpoint returns 404 in simple mode (Rodauth not loaded)
 @test.post '/auth/login', { login: 'test@example.com', password: 'password' }
-# In basic mode, Auth app has no Rodauth routes, so returns 404
+# In simple mode, Auth app has no Rodauth routes, so returns 404
 @test.last_response.status
 #=> 404
 
@@ -88,18 +88,18 @@ content_type = @test.last_response.headers['Content-Type']
 content_type && content_type.include?('application/json')
 #=> true
 
-## The create account endpoint returns 404 in basic mode
+## The create account endpoint returns 404 in simple mode
 @test.post '/auth/create-account', { login: 'new@example.com', password: 'password' }
-# In basic mode, no Rodauth routes exist
+# In simple mode, no Rodauth routes exist
 @test.last_response.status
 #=> 404
 
-## The password reset endpoint returns 404 in basic mode
+## The password reset endpoint returns 404 in simple mode
 @test.post '/auth/reset-password', { login: 'reset@example.com' }
 @test.last_response.status
 #=> 404
 
-## The reset password with token endpoint returns 404 in basic mode
+## The reset password with token endpoint returns 404 in simple mode
 @test.post '/auth/reset-password/testkey123', { p: 'newpassword' }
 @test.last_response.status
 #=> 404

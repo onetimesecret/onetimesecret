@@ -1,8 +1,8 @@
-# try/integration/authentication/advanced_mode/rodauth_try.rb
+# try/integration/authentication/full_mode/rodauth_try.rb
 #
 # frozen_string_literal: true
 
-# Integration tests for advanced authentication mode with Rodauth
+# Integration tests for full authentication mode with Rodauth
 #
 # Tests:
 # - Auth app mounts correctly at /auth
@@ -10,20 +10,20 @@
 # - Session bridging with Otto Customer model
 # - JSON-only responses
 #
-# REQUIRES: Advanced mode with SQL database (PostgreSQL or SQLite)
+# REQUIRES: Full mode with SQL database (PostgreSQL or SQLite)
 
-# Skip if not in advanced mode
+# Skip if not in full mode
 require_relative '../../../support/test_helpers'
 require_relative '../../../support/auth_mode_config'
 Object.new.extend(AuthModeConfig).skip_unless_mode :full
 
-# Ensure database URL is configured for advanced mode
+# Ensure database URL is configured for full mode
 if ENV['AUTH_DATABASE_URL'].to_s.strip.empty?
-  puts "SKIPPING: Advanced mode requires AUTH_DATABASE_URL (PostgreSQL or SQLite)."
+  puts "SKIPPING: Full mode requires AUTH_DATABASE_URL (PostgreSQL or SQLite)."
   exit 0
 end
 
-# Setup - Load in advanced mode
+# Setup - Load in full mode
 ENV['RACK_ENV'] = 'test'
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../../..')).freeze
 
@@ -60,18 +60,18 @@ def @test.json_response
 end
 
 # -------------------------------------------------------------------
-# ADVANCED MODE TESTS
+# FULL MODE TESTS
 # -------------------------------------------------------------------
 
-## Verify advanced mode is active
+## Verify full mode is active
 Onetime.auth_config.mode
-#=> 'advanced'
+#=> 'full'
 
-## Verify advanced mode is enabled
+## Verify full mode is enabled
 Onetime.auth_config.full_enabled?
 #=> true
 
-## Verify Auth app is mounted in advanced mode
+## Verify Auth app is mounted in full mode
 Onetime::Application::Registry.mount_mappings.key?('/auth')
 #=> true
 
@@ -120,7 +120,7 @@ response.key?('message') && response.key?('version')
 ## Health response includes status and mode
 @test.get '/auth/health'
 health = JSON.parse(@test.last_response.body)
-health['status'] == 'ok' && health['mode'] == 'advanced'
+health['status'] == 'ok' && health['mode'] == 'full'
 #=> true
 
 ## Admin stats endpoint exists

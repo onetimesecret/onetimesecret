@@ -9,7 +9,7 @@ import { z } from 'zod';
  * - Success: { success: "message" }
  * - Error: { error: "message", "field-error": ["field", "error"] }
  *
- * These schemas work with both basic and advanced authentication modes.
+ * These schemas work with both email and full authentication modes.
  */
 
 // Success response schema

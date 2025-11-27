@@ -6,8 +6,8 @@ Authentication tests are organized by mode to ensure they run only when appropri
 
 ```
 authentication/
-├── simple_mode/       # Tests requiring basic authentication mode
-├── full_mode/    # Tests requiring advanced (Rodauth) mode
+├── simple_mode/       # Tests requiring simple authentication mode
+├── full_mode/    # Tests requiring full (Rodauth) mode
 ├── disabled_mode/    # Tests for when auth is completely disabled
 └── common/          # Tests that work in any mode
 ```
@@ -23,13 +23,13 @@ authentication/
 
 ### Simple Mode (`AUTHENTICATION_MODE=simple` or unset)
 - Default mode
-- Redis-based authentication
+- Redis-based authentication (simple authentication mode)
 - Core app handles `/auth/*` routes
 - No external database required
 - Use case: Standard deployments, small teams
 
 ### Full Mode (`AUTHENTICATION_MODE=full`)
-- Rodauth integration
+- Rodauth integration (full Rodauth mode)
 - SQL database required (PostgreSQL or SQLite)
 - Auth app mounted at `/auth`
 - Supports MFA, password policies, account verification
@@ -117,7 +117,7 @@ FAMILIA_DEBUG=0 bundle exec try --agent try/integration/authentication/simple_mo
 Each mode-specific test file includes:
 ```ruby
 require_relative '../../../support/auth_mode_config'
-Object.new.extend(AuthModeConfig).skip_unless_mode :basic
+Object.new.extend(AuthModeConfig).skip_unless_mode :simple
 ```
 
 This causes the test file to exit cleanly (status 0) if not in the required mode, preventing false failures in CI.
@@ -175,7 +175,7 @@ This ensures all authentication modes are tested without false positives from mo
 3. Add skip logic for mode-specific tests:
    ```ruby
    require_relative '../../../support/auth_mode_config'
-   Object.new.extend(AuthModeConfig).skip_unless_mode :basic
+   Object.new.extend(AuthModeConfig).skip_unless_mode :simple
    ```
 4. Follow test patterns above (controllers read env, logic writes session)
 5. Update this README if adding new test categories

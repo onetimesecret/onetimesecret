@@ -12,16 +12,16 @@
 # 2. Login with password → No MFA → Immediate session sync → Authenticated
 # 3. Idempotency During Session Sync
 #
-# REQUIRES: Advanced mode with SQL database (PostgreSQL or SQLite)
+# REQUIRES: Full mode with SQL database (PostgreSQL or SQLite)
 
-# Skip if not in advanced mode
+# Skip if not in full mode
 require_relative '../../../support/test_helpers'
 require_relative '../../../support/auth_mode_config'
 Object.new.extend(AuthModeConfig).skip_unless_mode :full
 
 # Ensure database URL is configured
 if ENV['AUTH_DATABASE_URL'].to_s.strip.empty?
-  puts "SKIPPING: Advanced mode requires AUTH_DATABASE_URL."
+  puts "SKIPPING: Full mode requires AUTH_DATABASE_URL."
   exit 0
 end
 

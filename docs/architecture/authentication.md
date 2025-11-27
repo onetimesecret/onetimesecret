@@ -6,7 +6,7 @@ labels: authstrategies
 **Last Updated:** 2025-10-10
 **Framework:** Otto v2.0.0-pre2 + Rodauth 2.x
 **Session Store:** Redis via Rack::Session
-**Authentication Modes:** Basic (default) | Advanced (Rodauth)
+**Authentication Modes:** Simple (default) | Full (Rodauth)
 
 ## Overview
 
@@ -34,7 +34,7 @@ Both modes share the same session cookie (`onetime.session`) and Otto authentica
 3. **Identity Resolution Middleware**
    - **Location**: `lib/onetime/middleware/identity_resolution.rb`
    - Reads session data
-   - Determines auth mode (basic/advanced)
+   - Determines auth mode (simple/full)
    - Populates `env['identity.*']` keys
 
 4. **Otto Router**
@@ -498,7 +498,7 @@ bundle exec try --agent try/integration/authentication/common/
 ### Authentication Mode
 
 **Environment Variables**:
-- `AUTHENTICATION_MODE`: `basic` or `advanced`
+- `AUTHENTICATION_MODE`: `simple` or `full`
 - `HMAC_SECRET`: Session integrity
 - `DATABASE_URL`: SQL database connection (full mode only)
   - PostgreSQL: `postgresql://user:pass@host/database`

@@ -8,7 +8,7 @@
 
 # Setup - Load the real application
 ENV['RACK_ENV'] = 'test'
-ENV['AUTHENTICATION_MODE'] = 'simple'  # Force basic mode before boot
+ENV['AUTHENTICATION_MODE'] = 'simple'  # Force simple mode before boot
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..')).freeze
 
 require 'rack'

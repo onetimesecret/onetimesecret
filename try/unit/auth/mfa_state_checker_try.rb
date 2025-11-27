@@ -24,12 +24,12 @@ require_relative '../../../apps/web/auth/operations/mfa_state_checker'
 # Setup Test Database
 # =============================================================================
 
-# Get database connection (requires advanced mode)
+# Get database connection (requires full mode)
 @db = Auth::Database.connection
 
-# Skip tests if database is not available (basic mode)
+# Skip tests if database is not available (simple mode)
 if @db.nil?
-  puts "Skipping MfaStateChecker tests - database not available in basic mode"
+  puts "Skipping MfaStateChecker tests - database not available in simple mode"
   exit 0
 end
 

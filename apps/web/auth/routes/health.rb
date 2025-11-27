@@ -9,7 +9,7 @@ module Auth
         # Health check endpoint
         r.on('health') do
           r.get do
-              # Test database connection if in advanced mode
+              # Test database connection if in full mode
               db_status = if Auth::Database.connection
                 Auth::Database.connection.test_connection ? 'ok' : 'error'
               else

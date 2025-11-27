@@ -1,4 +1,4 @@
-# Switching from Basic to Advanced Auth Mode
+# Switching from Simple to Full Auth Mode
 
 **Last Updated:** 2025-10-23
 **Applies To:** OneTimeSecret v2.0+
@@ -36,7 +36,7 @@ Set the database URL for the Auth application:
 ```yaml
 # etc/config.yaml
 authentication:
-  mode: basic  # Keep basic during setup
+  mode: simple  # Keep simple during setup
   database_url: sqlite://data/auth.db
 ```
 
@@ -144,7 +144,7 @@ Update your configuration:
 ```yaml
 # etc/config.yaml
 authentication:
-  mode: advanced
+  mode: full
   database_url: sqlite://data/auth.db
   session:
     expire_after: 86400  # 24 hours
@@ -209,7 +209,7 @@ Restart the application after enabling new features.
 If issues occur, revert to simple mode:
 
 1. Stop the application
-2. Change config: `authentication.mode: basic`
+2. Change config: `authentication.mode: simple`
 3. Restart application
 4. Customer data remains in Redis (unchanged)
 
@@ -219,7 +219,7 @@ If issues occur, revert to simple mode:
 
 ### Sync Command Shows "Advanced auth mode is not enabled"
 
-**Cause:** `AUTHENTICATION_MODE` not set or set to `basic`
+**Cause:** `AUTHENTICATION_MODE` not set or set to `simple`
 **Solution:** Run with `AUTHENTICATION_MODE=full` prefix
 
 ### Database Connection Errors
