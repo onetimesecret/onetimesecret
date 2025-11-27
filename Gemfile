@@ -132,6 +132,7 @@ end
 group :test do
   # Note: FakeRedis removed due to redis 5.x incompatibility
   # See spec_helper.rb for details about mock_redis as future alternative
+  gem 'climate_control'
   gem 'rack-test', require: false
   gem 'rspec', git: 'https://github.com/rspec/rspec'
   gem 'simplecov', require: false
