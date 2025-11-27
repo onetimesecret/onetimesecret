@@ -1,4 +1,4 @@
-# try/integration/authentication/advanced_mode/mfa_complete_flow_try.rb
+# try/integration/authentication/full_mode/mfa_complete_flow_try.rb
 #
 # frozen_string_literal: true
 

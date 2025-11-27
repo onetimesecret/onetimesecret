@@ -1,4 +1,4 @@
-# try/integration/authentication/advanced_mode/audit_logging_config_try.rb
+# try/integration/authentication/full_mode/audit_logging_config_try.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# try/integration/authentication/advanced_mode/env_toggles/security_features_try.rb
+# try/integration/authentication/full_mode/env_toggles/security_features_try.rb
 #
 # frozen_string_literal: true
 
