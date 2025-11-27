@@ -29,7 +29,7 @@
 | Authentication                  | N/A           | ❌ Not tested        | ⭐ Poor       |
 | Session Management              |               |                     |              |
 | Active sessions list            | N/A           | ✅ Route + Tryouts   | ⭐⭐⭐ Adequate |
-| Session termination             | N/A           | ⭐ Minimal           | ⭐ Poor       |
+| Session termination             | N/A           | ✅ Tryouts           | ⭐⭐⭐ Adequate |
 | Session sync                    | ✅ Tryouts     | ✅ Tryouts           | ⭐⭐⭐⭐ Good    |
 | Admin/Colonel                   |               |                     |              |
 | Admin stats                     | ✅ Route tests | ✅ Route tests       | ⭐⭐⭐ Adequate |
@@ -49,11 +49,20 @@
 
 - **Basic Mode:** Good coverage for core flows (login, logout, registration), gaps in password reset completion
 - **Advanced Mode:** Better coverage overall, but MFA and WebAuthn need more integration tests
-- **Gaps:** Password change, magic link login, WebAuthn authentication, session termination
+- **Gaps:** Password change, magic link login, WebAuthn authentication
+
+## Skipped Test Suites
+
+The following comprehensive test files exist but are currently disabled (`xdescribe`):
+
+- `spec/integration/authentication_e2e_spec.rb` - Full E2E authentication journeys
+- `spec/integration/authentication_security_spec.rb` - Security attack vector tests
+
+Enabling these would significantly improve coverage ratings.
 
 ## Recommended Next Steps
 
 1. Add E2E tests for password reset completion flow
 2. Add integration tests for magic link login
 3. Add WebAuthn authentication tests with mocked authenticators
-4. Add session termination integration tests
+4. Enable and fix skipped E2E/security test suites
