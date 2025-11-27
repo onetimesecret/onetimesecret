@@ -25,6 +25,13 @@ require_relative 'vcr_setup'
 # Load BannedIP model needed by IPBan middleware
 require_relative '../../../../api/colonel/models/banned_ip'
 
+# Ensure BillingConfig picks up the test environment
+# The singleton may have been created before RACK_ENV was set to 'test'
+# (e.g., if shell has RACK_ENV=development). Reload to use billing.test.yaml.
+puts "[DEBUG] Before reload - RACK_ENV=#{ENV['RACK_ENV']}, enabled=#{Onetime.billing_config.enabled?}, file=#{Onetime::BillingConfig.instance.instance_variable_get(:@config_file)}"
+Onetime::BillingConfig.instance.reload!
+puts "[DEBUG] After reload - RACK_ENV=#{ENV['RACK_ENV']}, enabled=#{Onetime.billing_config.enabled?}, file=#{Onetime::BillingConfig.instance.instance_variable_get(:@config_file)}"
+
 # Run full boot process for billing integration tests
 # This initializes Familia, locales, billing config, and sets ready flag
 OT.boot! unless OT.ready?

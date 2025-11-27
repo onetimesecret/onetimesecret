@@ -14,8 +14,9 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
   include Rack::Test::Methods
 
   # The Rack application for testing
+  # Wrap with URLMap to match production mounting behavior
   def app
-    @app ||= Billing::Application.new
+    @app ||= Rack::URLMap.new('/billing' => Billing::Application.new)
   end
 
   let(:webhook_secret) { ENV.fetch('STRIPE_WEBHOOK_SECRET', 'whsec_test_secret') }
@@ -114,7 +115,7 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :vcr, :stripe_san
         expect(last_response.body).to include('already processed')
       end
 
-      it 'rejects malformed JSON payload', :vcr do
+      it 'rejects malformed JSON payload' do
         invalid_payload = 'not valid json {'
 
         signature = generate_stripe_signature(
