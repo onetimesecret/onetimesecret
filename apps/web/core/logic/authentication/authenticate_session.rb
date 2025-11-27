@@ -87,15 +87,30 @@ module Core::Logic
             status: :pending,
           }
 
-          auth_logger.info 'Resending verification email', {
-            customer_id: cust.objid,
-            email: cust.obscure_email,
-          }
+          # Do not send an email to a someone that's just logged-in with a basic
+          # authmode account where verified=false and autoverify is disabled. With
+          # autoverify disabled, the registration flow sets verified=true and
+          # skips the email verification process. However, if the site admin
+          # has manually set verified=false on the account (e.g. for moderation
+          # purposes), we don't want to spam them with verification emails
+          # every time they log in. This scenario could also happen if the
+          # site configuration changes after users have already signed up
+          # but not yet verified.
+          autoverify = OT.conf.dig('site', 'authentication', 'autoverify')
+          unless autoverify.to_s == 'true'
+            # When autoverify is enabled, proactively help pending accounts
+            # get verified by resending the verification email (valid for 24h)
+            auth_logger.info 'Resending verification email (autoverify mode)', {
+              customer_id: cust.objid,
+              email: cust.obscure_email,
+            }
 
-          send_verification_email nil
+            send_verification_email nil
 
-          msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."
-          set_info_message(msg)
+            msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."
+            set_info_message(msg)
+          end
+
           return success_data
         end
 
