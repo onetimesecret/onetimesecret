@@ -5,6 +5,9 @@
 module AccountAPI::Logic
   module Account
     class CreateAccount < AccountAPI::Logic::Base
+
+      using Familia::Refinements::TimeLiterals
+
       attr_reader :cust, :autoverify, :customer_role, :email, :password, :skill
       attr_accessor :token
 
@@ -41,7 +44,7 @@ module AccountAPI::Logic
       def process
         # Security: Timing-safe account creation to prevent email enumeration
         # Always return the same success message regardless of account existence
-        existing_customer = Onetime::Customer.load(email)
+        existing_customer = Onetime::Customer.find_by_email(email)
 
         if existing_customer
           # Account already exists - handle silently without revealing this fact

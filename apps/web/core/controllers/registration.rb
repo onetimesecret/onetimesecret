@@ -6,6 +6,23 @@ require_relative 'base'
 
 module Core
   module Controllers
+    # Handles account creation and password reset requests.
+    #
+    # For basic authentication mode only.
+    #
+    # Security: Identical responses for new/existing accounts prevent email
+    # enumeration. This is how it plays out:
+    #
+    # Scenario                           | Message       | Accurate?
+    # -----------------------------------|---------------|-------------------------
+    # Autoverify + new                   | "Sign in"     | Yes
+    # Autoverify + existing              | "Sign in"     | Yes
+    # No-autoverify + new                | "Check email" | Yes
+    # No-autoverify + existing unverifed | "Check email" | Yes (resent)
+    # No-autoverify + existing verified  | "Check email" | Acceptable misdirection
+    #
+    # @see OWASP Authentication Cheat Sheet.
+    #
     class Registration
       include Controllers::Base
 
@@ -16,12 +33,12 @@ module Core
 
         logic = AccountAPI::Logic::Account::CreateAccount.new(strategy_result, req.params, locale)
 
-        # Determine success message based on autoverify setting
+        # Same message for new/existing accounts (email enumeration prevention)
         autoverify      = OT.conf.dig('site', 'authentication', 'autoverify')
         success_message = if autoverify.to_s == 'true'
-                            'Your account has been created. Please sign in.'
+                            'You can now sign in.'
                           else
-                            'A verification email has been sent to your email address.'
+                            'Check your email for verification.'
                           end
 
         execute_with_error_handling(
