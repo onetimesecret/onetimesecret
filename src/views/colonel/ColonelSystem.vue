@@ -5,8 +5,6 @@
   import { WindowService } from '@/services/window.service';
   import { computed } from 'vue';
 
-  const { t } = useI18n();
-
   const windowProps = WindowService.getMultiple(['authentication']);
 
   // System sections with conditional visibility
@@ -28,8 +26,8 @@
       },
     ];
 
-    // Conditionally add Auth Database if authentication mode is advanced
-    if (windowProps.authentication?.mode === 'advanced') {
+    // Conditionally add Auth Database if authentication mode is full
+    if (windowProps.authentication?.mode === 'full') {
       sections.push({
         name: 'Auth Database',
         description: 'SQLite/PostgreSQL authentication database monitoring',

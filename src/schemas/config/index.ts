@@ -98,8 +98,8 @@ export {
   authConfigSchema,
   authModeSchema,
   sessionConfigSchema,
-  basicModeSchema,
-  advancedModeSchema,
+  simpleModeSchema,
+  fullModeSchema,
   isAuthConfig,
 } from './auth';
 
@@ -107,8 +107,8 @@ export type {
   AuthConfig,
   AuthMode,
   SessionConfig,
-  BasicModeConfig,
-  AdvancedModeConfig,
+  SimpleModeConfig,
+  FullModeConfig,
 } from './auth';
 
 // ============================================================================
