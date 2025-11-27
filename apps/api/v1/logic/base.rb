@@ -93,31 +93,6 @@ module V1
         domain_strategy.to_s == 'custom'
       end
 
-      # Requires the implementing class to have cust and session fields
-      def send_verification_email token=nil
-      _, secret = Onetime::Secret.spawn_pair cust.custid, token
-
-        msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
-
-        secret.encrypt_value msg
-        secret.verification = true
-        secret.custid = cust.custid
-        secret.save
-
-        cust.reset_secret = secret.key # as a standalone dbkey, writes immediately
-
-        view = Onetime::Mail::Welcome.new cust, locale, secret
-
-        begin
-          view.deliver_email token
-
-        rescue StandardError => ex
-          errmsg = "Couldn't send the verification email. Let us know below."
-          OT.le "Error sending verification email: #{ex.message}", ex.backtrace
-          sess.set_info_message errmsg
-        end
-      end
-
       module ClassMethods
         def normalize_password(password, max_length = 128)
           password.to_s.strip.slice(0, max_length)
