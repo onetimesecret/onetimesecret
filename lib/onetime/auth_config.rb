@@ -25,24 +25,24 @@ module Onetime
       load_config
     end
 
-    # Main authentication mode: 'basic' or 'advanced'
+    # Main authentication mode: 'simple' or 'full'
     #
     # The environment variable is capture in the config file
     def mode
       return nil if config.nil?
-      return config['mode'] if config['mode'].match?(/\A(?:basic|advanced)\z/)
+      return config['mode'] if config['mode'].match?(/\A(?:simple|full)\z/)
 
-      'basic'
+      'simple'
     end
 
-    # Advanced configuration
-    def advanced
-      auth_config['advanced'] || {}
+    # Full mode configuration (Rodauth-based)
+    def full
+      auth_config['full'] || {}
     end
 
-    # Basic mode configuration
-    def basic
-      auth_config['basic'] || {}
+    # Simple mode configuration (Redis-only)
+    def simple
+      auth_config['simple'] || {}
     end
 
     # Session configuration
@@ -55,19 +55,19 @@ module Onetime
       session_config
     end
 
-    # Advanced database URL
+    # Full mode database URL
     def database_url
-      ENV['AUTH_DATABASE_URL'] || advanced['database_url'] || 'sqlite://data/auth.db'
+      ENV['AUTH_DATABASE_URL'] || full['database_url'] || 'sqlite://data/auth.db'
     end
 
-    # Whether Advanced mode is enabled
-    def advanced_enabled?
-      mode == 'advanced'
+    # Whether full mode is enabled (Rodauth-based)
+    def full_enabled?
+      mode == 'full'
     end
 
-    # Whether basic mode is enabled
-    def basic_enabled?
-      mode == 'basic'
+    # Whether simple mode is enabled (Redis-only)
+    def simple_enabled?
+      mode == 'simple'
     end
 
     # Reload configuration (useful for testing)

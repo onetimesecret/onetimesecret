@@ -4,9 +4,9 @@
 # Controls the authentication mode and related settings
 ---
 
-# Authentication mode: 'basic' (Redis-only) or 'advanced' (requires SQL db)
+# Authentication mode: 'simple' (Redis-only) or 'full' (requires SQL db)
 # Can be overridden with AUTHENTICATION_MODE environment variable
-mode: <%= ENV['AUTHENTICATION_MODE'] || 'basic' %>
+mode: <%= ENV['AUTHENTICATION_MODE'] || 'simple' %>
 
 # Shared session configuration (both modes)
 session:
@@ -16,13 +16,13 @@ session:
   secure: true              # Set based on SSL configuration
   same_site: strict
 
-# Basic mode settings (Redis-only authentication)
-basic:
+# Simple mode settings (Redis-only authentication)
+simple:
   #password_hash_cost: 12
   #session_timeout: 86400    # 24 hours
 
-# Advanced mode settings (Rodauth-based application)
-advanced:
+# Full mode settings (Rodauth-based application)
+full:
   # Application Connection
   #
   # Used at runtime by the application.
@@ -58,7 +58,7 @@ advanced:
   # Service URL (used for internal requests)
   #service_url: <%= ENV['AUTH_SERVICE_URL'] || 'http://127.0.0.1:3000/auth' %>
 
-  # Advanced features to enable (COMING SOON)
+  # Full mode features to enable (COMING SOON)
   # features:
   #   - login
   #   - logout
