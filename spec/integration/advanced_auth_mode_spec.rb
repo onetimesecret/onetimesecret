@@ -11,7 +11,7 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
   before(:all) do
     # Set advanced mode before loading the application
     ENV['RACK_ENV'] = 'test'
-    ENV['AUTHENTICATION_MODE'] = 'advanced'
+    ENV['AUTHENTICATION_MODE'] = 'full'
     ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../..'))
     ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 
@@ -40,7 +40,7 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
     end
 
     it 'enables advanced mode features' do
-      expect(Onetime.auth_config.advanced_enabled?).to be true
+      expect(Onetime.auth_config.full_enabled?).to be true
     end
   end
 
@@ -288,7 +288,7 @@ RSpec.describe 'Advanced Authentication Mode', type: :integration do
 
   describe 'Database Connection' do
     it 'creates database connection in advanced mode' do
-      if Onetime.auth_config.advanced_enabled?
+      if Onetime.auth_config.full_enabled?
         expect(Auth::Database.connection).not_to be_nil
       else
         expect(Auth::Database.connection).to be_nil

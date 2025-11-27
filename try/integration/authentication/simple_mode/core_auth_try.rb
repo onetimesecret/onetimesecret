@@ -18,7 +18,7 @@
 # Skip if not in basic mode
 require_relative '../../../support/test_helpers'
 require_relative '../../../support/auth_mode_config'
-Object.new.extend(AuthModeConfig).skip_unless_mode :basic
+Object.new.extend(AuthModeConfig).skip_unless_mode :simple
 
 # Setup - Load the real application
 ENV['RACK_ENV'] = 'test'
@@ -79,7 +79,7 @@ Onetime.auth_config.mode
 #=> 'basic'
 
 ## Verify advanced mode is disabled
-Onetime.auth_config.advanced_enabled?
+Onetime.auth_config.full_enabled?
 #=> false
 
 ## Verify Auth app is not mounted in basic mode

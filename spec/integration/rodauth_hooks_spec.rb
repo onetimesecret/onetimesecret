@@ -11,7 +11,7 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
   before(:all) do
     # Set advanced mode before loading the application
     ENV['RACK_ENV'] = 'test'
-    ENV['AUTHENTICATION_MODE'] = 'advanced'
+    ENV['AUTHENTICATION_MODE'] = 'full'
     ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 
     # Reset both registries to clear state from previous test runs

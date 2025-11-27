@@ -15,7 +15,7 @@
 # Skip if not in advanced mode
 require_relative '../../../support/test_helpers'
 require_relative '../../../support/auth_mode_config'
-Object.new.extend(AuthModeConfig).skip_unless_mode :advanced
+Object.new.extend(AuthModeConfig).skip_unless_mode :full
 
 # Ensure database URL is configured for advanced mode
 if ENV['AUTH_DATABASE_URL'].to_s.strip.empty?
@@ -68,7 +68,7 @@ Onetime.auth_config.mode
 #=> 'advanced'
 
 ## Verify advanced mode is enabled
-Onetime.auth_config.advanced_enabled?
+Onetime.auth_config.full_enabled?
 #=> true
 
 ## Verify Auth app is mounted in advanced mode

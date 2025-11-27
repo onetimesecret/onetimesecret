@@ -68,7 +68,7 @@ RSpec.xdescribe 'Dual Authentication Mode Integration', type: :request do
       @basic_app ||= begin
         # Setup environment for basic mode
         ENV['RACK_ENV'] = 'test'
-        ENV['AUTHENTICATION_MODE'] = 'basic'
+        ENV['AUTHENTICATION_MODE'] = 'simple'
         ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 
         # Reset both registries to clear state from previous test runs
@@ -104,7 +104,7 @@ RSpec.xdescribe 'Dual Authentication Mode Integration', type: :request do
     end
 
     it 'has advanced mode disabled' do
-      expect(Onetime.auth_config.advanced_enabled?).to be false
+      expect(Onetime.auth_config.full_enabled?).to be false
     end
 
     it 'does not mount Auth app' do
@@ -122,7 +122,7 @@ RSpec.xdescribe 'Dual Authentication Mode Integration', type: :request do
       @advanced_app ||= begin
         # Setup environment for advanced mode
         ENV['RACK_ENV'] = 'test'
-        ENV['AUTHENTICATION_MODE'] = 'advanced'
+        ENV['AUTHENTICATION_MODE'] = 'full'
         ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 
         # Reset both registries to clear state from previous test runs

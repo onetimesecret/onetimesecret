@@ -17,7 +17,7 @@
 
 require_relative '../../../../support/test_helpers'
 require_relative '../../../../support/auth_mode_config'
-Object.new.extend(AuthModeConfig).skip_unless_mode :advanced
+Object.new.extend(AuthModeConfig).skip_unless_mode :full
 
 # Ensure database URL is configured for advanced mode
 if ENV['AUTH_DATABASE_URL'].to_s.strip.empty?
