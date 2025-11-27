@@ -8,6 +8,17 @@ module V2::Logic
 
     # Very similar logic to ShowSecret, but with a few key differences
     # as required by the v2 API. The v1 API uses the original ShowSecret.
+    #
+    # NOTE: As a general rule, it is bad "form" (no pun intended) to raise an
+    # http error response during the reveal flow unless it is necessary like
+    # in the case of a secret that doesn't exist or when there's a passphrase
+    # and it was entered incorrectly. When the value is included in the payload
+    # and the response is anything but a 2xx, the UI won't display it; it'll
+    # revert to the Click to Reveal UI, which will then continue to show an
+    # error since the secret will have been expunged by that point. Then it's
+    # not until a hard refresh that the backend responds with a 404 for the
+    # page itself. It's confusing and even worse it loses the secret.
+    #
     class RevealSecret < V2::Logic::Base
       include Onetime::LoggerMethods
 
@@ -49,17 +60,39 @@ module V2::Logic
           @secret_value = secret.ciphertext.reveal { it }
 
           if verification
-            if owner.nil? || owner.anonymous? || owner.verified?
-              secret_logger.error 'Invalid verification attempt', {
+
+            if owner.nil?
+              secret_logger.error 'Invalid verification attempt - owner not found', {
                 secret_identifier: secret.shortid,
-                owner_nil: owner.nil?,
-                owner_anonymous: owner&.anonymous?,
-                owner_verified: owner&.verified?,
                 action: 'verification',
                 result: :invalid,
               }
-              secret.received!
+              # Do not mark as received obviously
               raise_form_error i18n.dig(:web, :COMMON, :verification_not_valid) || 'Verification not valid'
+            elsif owner.anonymous?
+              secret_logger.error 'Invalid verification attempt - owner anonymous', {
+                secret_identifier: secret.shortid,
+                action: 'verification',
+                result: :invalid,
+              }
+              # Do not mark as received for an anonymous soul. How did we
+              # even get here? It means a verification secret for authentication_mode=basic
+              # has a nil or invalid object identifier for the owner.
+              raise_form_error i18n.dig(:web, :COMMON, :verification_not_valid) || 'Verification not valid'
+            elsif owner.verified?
+              secret_logger.error 'Invalid verification attempt - owner already verified', {
+                secret_identifier: secret.shortid,
+                action: 'verification',
+                result: :invalid,
+              }
+              # This bloke was already verified. How did we get here? Who sent
+              # multiple verification secrets? Or who sent a verification secret
+              # even though the account was already verified?
+              #
+              # In any case, we logged it as an error but mark the secret as
+              # having been received (which updates the receipt record and then
+              # expunges the secret record) and allows the user to carry on.
+              secret.received!
 
             elsif owner && (cust&.anonymous? || (cust&.custid == owner.custid && !owner.verified?))
               secret_logger.info 'Owner verification successful', {

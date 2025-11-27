@@ -230,7 +230,6 @@ module V2::Logic
       private
 
       def create_secret_pair
-        # def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil)
         @metadata, @secret = Onetime::Metadata.spawn_pair(
           cust&.objid, ttl, secret_value, passphrase: passphrase, domain: share_domain
         )
