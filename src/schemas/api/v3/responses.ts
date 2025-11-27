@@ -16,6 +16,7 @@ import {
   bannedIPsDetailsSchema,
   usageExportDetailsSchema,
   customDomainsDetailsSchema,
+  queueMetricsDetailsSchema,
 } from '@/schemas/api/account/endpoints/colonel';
 import {
   metadataRecordsDetailsSchema,
@@ -68,6 +69,7 @@ export const responseSchemas = {
   redisMetrics: createApiResponseSchema(z.object({}), redisMetricsDetailsSchema),
   bannedIPs: createApiResponseSchema(z.object({}), bannedIPsDetailsSchema),
   usageExport: createApiResponseSchema(z.object({}), usageExportDetailsSchema),
+  queueMetrics: createApiResponseSchema(z.object({}), queueMetricsDetailsSchema),
   systemSettings: createApiResponseSchema(z.object({}), systemSettingsDetailsSchema),
   concealData: createApiResponseSchema(concealDataSchema),
   customDomain: createApiResponseSchema(customDomainSchema, customDomainDetailsSchema),

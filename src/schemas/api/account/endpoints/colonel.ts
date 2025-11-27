@@ -289,3 +289,28 @@ export type BannedIPsDetails = z.infer<typeof bannedIPsDetailsSchema>;
 export type UsageExportDetails = z.infer<typeof usageExportDetailsSchema>;
 export type CustomDomain = z.infer<typeof customDomainSchema>;
 export type CustomDomainsDetails = z.infer<typeof customDomainsDetailsSchema>;
+
+/**
+ * Queue metrics schema
+ */
+export const queueMetricSchema = z.object({
+  name: z.string(),
+  pending_messages: z.number(),
+  consumers: z.number(),
+  rate: z.number().optional(),
+});
+
+export const queueMetricsDetailsSchema = z.object({
+  connection: z.object({
+    connected: z.boolean(),
+    host: z.string().optional(),
+  }),
+  worker_health: z.object({
+    status: z.enum(['healthy', 'degraded', 'unhealthy', 'unknown']),
+    active_workers: z.number().optional(),
+  }),
+  queues: z.array(queueMetricSchema),
+});
+
+export type QueueMetric = z.infer<typeof queueMetricSchema>;
+export type QueueMetrics = z.infer<typeof queueMetricsDetailsSchema>;
