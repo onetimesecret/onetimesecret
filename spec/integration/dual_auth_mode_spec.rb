@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-# Integration tests for dual authentication mode (basic/advanced)
+# Integration tests for dual authentication mode (simple/full)
 #
 # @note: You can add `DEBUG_DATABASE=1` when running rspec or tryouts
 # tests to see the database commands in stderr. Be careful how many tests
@@ -63,10 +63,10 @@ RSpec.xdescribe 'Dual Authentication Mode Integration', type: :request do
     cust
   end
 
-  describe 'Basic Mode Configuration' do
+  describe 'Simple Mode Configuration' do
     def app
-      @basic_app ||= begin
-        # Setup environment for basic mode
+      @simple_app ||= begin
+        # Setup environment for simple mode
         ENV['RACK_ENV'] = 'test'
         ENV['AUTHENTICATION_MODE'] = 'simple'
         ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
@@ -81,7 +81,7 @@ RSpec.xdescribe 'Dual Authentication Mode Integration', type: :request do
         # Boot application (Redis mocking is handled globally by integration_spec_helper.rb)
         Onetime.boot! :test
 
-        # Prepare registry with basic mode ENV set
+        # Prepare registry with simple mode ENV set
         Onetime::Application::Registry.prepare_application_registry
 
         # Return full Rack app with middleware stack (including session middleware)
@@ -99,11 +99,11 @@ RSpec.xdescribe 'Dual Authentication Mode Integration', type: :request do
       ENV.delete('AUTHENTICATION_MODE')
     end
 
-    it 'runs in basic mode' do
+    it 'runs in simple mode' do
       expect(Onetime.auth_config.mode).to eq('simple')
     end
 
-    it 'has advanced mode disabled' do
+    it 'has full mode disabled' do
       expect(Onetime.auth_config.full_enabled?).to be false
     end
 
@@ -116,11 +116,11 @@ RSpec.xdescribe 'Dual Authentication Mode Integration', type: :request do
     end
   end
 
-  # All /auth/* endpoint tests require advanced mode
-  describe 'Advanced Mode - Auth Endpoints' do
+  # All /auth/* endpoint tests require full mode
+  describe 'Full Mode - Auth Endpoints' do
     def app
-      @advanced_app ||= begin
-        # Setup environment for advanced mode
+      @full_app ||= begin
+        # Setup environment for full mode
         ENV['RACK_ENV'] = 'test'
         ENV['AUTHENTICATION_MODE'] = 'full'
         ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
@@ -135,7 +135,7 @@ RSpec.xdescribe 'Dual Authentication Mode Integration', type: :request do
         # Boot application
         Onetime.boot! :test
 
-        # Prepare registry with advanced mode ENV set
+        # Prepare registry with full mode ENV set
         Onetime::Application::Registry.prepare_application_registry
 
         # Return full Rack app with middleware stack
@@ -144,7 +144,7 @@ RSpec.xdescribe 'Dual Authentication Mode Integration', type: :request do
     end
 
     before(:all) do
-      # Force app loading in advanced mode
+      # Force app loading in full mode
       app
     end
 
