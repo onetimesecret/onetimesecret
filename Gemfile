@@ -94,6 +94,15 @@ gem 'rdoc'
 gem 'stringio', '~> 3.1.6'
 
 # ====================================
+# Background Job Processing
+# ====================================
+
+gem 'bunny', '~> 2.22'           # RabbitMQ AMQP client
+gem 'connection_pool', '~> 2.4'  # Thread-safe connection pooling
+gem 'rufus-scheduler', '~> 3.9'  # Cron-style job scheduling
+gem 'sneakers', '~> 2.12'        # RabbitMQ worker framework
+
+# ====================================
 # Third-Party Service Integrations
 # ====================================
 
@@ -132,6 +141,7 @@ end
 group :test do
   # Note: FakeRedis removed due to redis 5.x incompatibility
   # See spec_helper.rb for details about mock_redis as future alternative
+  gem 'bunny-mock', '~> 1.7', require: false  # Mock RabbitMQ for testing
   gem 'climate_control'
   gem 'rack-test', require: false
   gem 'rspec', git: 'https://github.com/rspec/rspec'
