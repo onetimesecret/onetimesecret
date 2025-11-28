@@ -101,6 +101,20 @@ module Onetime
       dup.tap { |h| keys.each { |k| h.delete(k) } }
     end
 
+    # YAML serialization: encode as plain Hash to avoid Psych::DisallowedClass
+    # errors when using YAML.safe_load or YAML.load with restricted classes.
+    #
+    # Without this, YAML.dump would output:
+    #   --- !ruby/hash:Onetime::IndifferentHash
+    #
+    # With this, it outputs:
+    #   ---
+    #
+    # This ensures deep_clone and other YAML-based operations work transparently.
+    def encode_with(coder)
+      coder.represent_map(nil, self)
+    end
+
     private
 
     def convert_key(key)
