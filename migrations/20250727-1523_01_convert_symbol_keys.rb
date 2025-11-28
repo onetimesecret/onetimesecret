@@ -116,7 +116,7 @@ module Onetime
     end
 
     def backup_config
-      backup_path = "#{@config_file}.#{@backup_suffix}.bak"
+      backup_path = "#{@config_file}.#{@backup_suffix}-01.bak"
 
       return backup_path if File.exist?(backup_path)
 
