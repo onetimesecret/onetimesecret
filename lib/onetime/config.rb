@@ -1,5 +1,7 @@
 # lib/onetime/config.rb
 
+require_relative 'indifferent_hash'
+
 module Onetime
   module Config
     extend self
@@ -43,8 +45,8 @@ module Onetime
                 numbers: true,
                 symbols: false,
                 exclude_ambiguous: true,
-              }
-            }
+              },
+            },
           },
           interface: {
             ui: { enabled: true },
@@ -84,7 +86,7 @@ module Onetime
           incoming: {
             enabled: false,
             memo_max_length: 50,
-            default_ttl: 604800,
+            default_ttl: 604_800,
             default_passphrase: nil,
             recipients: [],
           },
@@ -103,6 +105,11 @@ module Onetime
       # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
       # consistency. We ensure both are considered for compatability.
       ENV['REGIONS_ENABLED'] = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first || 'false'
+
+      # Normalize VALKEY_URL to REDIS_URL for compatibility. The config
+      # template uses REDIS_URL, but some environments set VALKEY_URL.
+      # REDIS_URL takes precedence if both are set.
+      ENV['REDIS_URL'] ||= ENV['VALKEY_URL'] if ENV['VALKEY_URL']
     end
 
     # Load a YAML configuration file, allowing for ERB templating within the file.
@@ -119,7 +126,11 @@ module Onetime
 
       parsed_template = ERB.new(File.read(path))
 
-      YAML.load(parsed_template.result)
+      parsed_config = YAML.safe_load(parsed_template.result, permitted_classes: [Symbol])
+
+      # Convert to IndifferentHash for symbol/string agnostic access
+      Onetime::IndifferentHash.deep_convert(parsed_config)
+
     rescue StandardError => e
       OT.le "Error loading config: #{path}"
 
@@ -365,12 +376,9 @@ module Onetime
     #   all configuration elements are serializable before using this method.
     #
     def deep_clone(config_hash)
-      # Previously used Marshal here. But in Ruby 3.1 it died cryptically with
-      # a singleton error. It seems like it's related to gibbler but since we
-      # know we only expect a regular hash here without any methods, procs
-      # etc, we use YAML instead to accomplish the same thing (JSON is
-      # another option but it turns all the symbol keys into strings).
-      YAML.load(YAML.dump(config_hash))
+      cloned = YAML.load(YAML.dump(config_hash))
+      # Re-wrap in IndifferentHash if the input was one
+      Onetime::IndifferentHash.deep_convert(cloned)
     rescue TypeError => ex
       raise OT::Problem, "[deep_clone] #{ex.message}"
     end
@@ -405,17 +413,30 @@ module Onetime
       # Extract defaults from the configuration
       defaults = config[:defaults]
 
-      # If no valid defaults exist, return config without the :defaults key
-      return config.except(:defaults) unless defaults.is_a?(Hash)
+      # If no valid defaults exist, convert to IndifferentHash and return
+      # without the :defaults key for consistent string-key access
+      unless defaults.is_a?(Hash)
+        result = Onetime::IndifferentHash.new
+        config.each do |section, values|
+          next if section.to_s == 'defaults'
+          result[section] = values.is_a?(Hash) ? Onetime::IndifferentHash.deep_convert(values) : values
+        end
+        return result
+      end
 
       # Process each section, applying defaults
-      config.each_with_object({}) do |(section, values), result|
-        next if section == :defaults   # Skip the :defaults key
-        next unless values.is_a?(Hash) # Process only sections that are hashes
+      # Note: IndifferentHash yields string keys during iteration, so we
+      # convert to string for comparison to handle both symbol and string keys.
+      # We use IndifferentHash for the result to maintain consistent access patterns.
+      result = Onetime::IndifferentHash.new
+      config.each do |section, values|
+        next if section.to_s == 'defaults'  # Skip the defaults key
+        next unless values.is_a?(Hash)      # Process only sections that are hashes
 
         # Apply defaults to each section
         result[section] = deep_merge(defaults, values)
       end
+      result
     end
 
     # Searches for configuration files in predefined locations based on application mode.
@@ -452,7 +473,7 @@ module Onetime
     # Standard deep_merge implementation based on widely used patterns
     # @param original [Hash] Base hash with default values
     # @param other [Hash] Hash with values that override defaults
-    # @return [Hash] A new hash containing the merged result
+    # @return [IndifferentHash] A new IndifferentHash containing the merged result
     def deep_merge(original, other)
       return deep_clone(other) if original.nil?
       return deep_clone(original) if other.nil?
@@ -468,7 +489,9 @@ module Onetime
           v2
         end
       end
-      original_clone.merge(other_clone, &merger)
+      merged = original_clone.merge(other_clone, &merger)
+      # Ensure result is IndifferentHash for consistent symbol/string access
+      Onetime::IndifferentHash.deep_convert(merged)
     end
   end
 

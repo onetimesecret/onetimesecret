@@ -65,6 +65,8 @@ module Onetime
       load_locales
       set_global_secret
       set_rotated_secrets
+      # Run detector early, before the main connect_databases initializer runs
+      detect_legacy_data_and_warn if connect_to_db
       setup_authentication
       setup_diagnostics
       configure_domains
@@ -73,7 +75,9 @@ module Onetime
       load_fortunes
       load_plans
       setup_incoming_recipients
+
       if connect_to_db
+        check_redis_url
         connect_databases
         check_global_banner
       end

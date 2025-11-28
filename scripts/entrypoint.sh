@@ -26,6 +26,12 @@
 #     PUMA_MAX_THREADS=16       - Maximum number of threads
 #     PUMA_WORKERS=2            - Number of worker processes
 #
+#   Config Migration Options (for upgrades from v0.22 or earlier):
+#
+#     CONFIG_MIGRATE=check (default) - Check if migration needed, halt if so
+#     CONFIG_MIGRATE=auto            - Automatically run migrations
+#     CONFIG_MIGRATE=skip            - Skip migration check entirely
+#
 
 # Stop at the first sign of trouble
 set -e
@@ -71,6 +77,10 @@ if [[ "${BUNDLE_INSTALL,,}" == "true" ]]; then
 else
   >&2 echo "INFO: Skipping bundle install. Use BUNDLE_INSTALL=true to run it."
 fi
+
+# Migration check (for upgrades from v0.22 or earlier)
+# See bin/check-migration-status.sh for details
+bin/check-migration-status.sh
 
 if [ -d "/mnt/public" ]; then
   # By default the static web assets are available at /mnt/public/web

@@ -1,6 +1,8 @@
-require 'syslog'
+# lib/middleware/header_logger_middleware.rb
+#
+# frozen_string_literal: true
 
-SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
+require 'logger'
 
 # Rack::HeaderLoggerMiddleware
 #
@@ -9,6 +11,14 @@ SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 # production use, as it will log sensitive information such as cookies and
 # authorization headers. It's particularly helpful for debugging proxies and
 # load balancers that may be modifying headers.
+#
+# SECURITY WARNING: This middleware will log sensitive headers that may contain:
+# - Session cookies (Cookie header)
+# - Authentication tokens (Authorization header: "Bearer abc123...")
+# - API keys (X-Api-Key, X-Auth-Token headers)
+# - User tracking data (various custom headers)
+# Logs containing this information could be exposed through log aggregation
+# systems, shared development environments, or accidental inclusion in bug reports.
 #
 # To use HeaderLoggerMiddleware, add the following line to your config.ru file
 # after the require statements:
@@ -20,9 +30,10 @@ SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 #     use HeaderLoggerMiddleware
 #
 class Rack::HeaderLoggerMiddleware
-  def initialize(app)
-    @app = app
-    OT.ld("HeaderLoggerMiddleware initialized")
+
+  def initialize(app, logger: nil)
+    @app           = app
+    @custom_logger = logger || Logger.new($stdout)
   end
 
   def call(env)
@@ -30,16 +41,20 @@ class Rack::HeaderLoggerMiddleware
     @app.call(env)
   end
 
+  # Override logger to allow custom logger injection
+  def logger
+    @custom_logger || super
+  end
+
   private
 
   def log_headers(env)
-    OT.info("Request Headers for #{env['REQUEST_METHOD']} #{env['PATH_INFO']}:")
+    logger.info "Request Headers for #{env['REQUEST_METHOD']} #{env['PATH_INFO']}"
     env.each do |key, value|
       if key.start_with?('HTTP_')
         header_name = key.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
-        OT.info(">  #{header_name}: #{value}")
+        logger.info "  #{header_name}: #{value}"
       end
     end
-    OT.info("\n")  # Add a blank line for readability between requests
   end
 end

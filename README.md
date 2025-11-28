@@ -58,7 +58,7 @@ docker run -p 3000:3000 -d \
 Create `./etc/config.yaml` from the example:
 
 ```bash
-cp ./etc/config.example.yaml ./etc/config.yaml
+cp ./etc/defaults/config.defaults.yaml ./etc/config.yaml
 ```
 
 Key configuration areas:
@@ -129,7 +129,7 @@ docker build -t onetimesecret .
 git clone https://github.com/onetimesecret/onetimesecret.git
 cd onetimesecret
 bundle install
-cp ./etc/config.example.yaml ./etc/config.yaml
+cp ./etc/defaults/config.defaults.yaml ./etc/config.yaml
 # Edit config.yaml as needed
 RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
 ```

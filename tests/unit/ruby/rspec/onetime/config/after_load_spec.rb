@@ -227,7 +227,8 @@ RSpec.describe "Onetime boot configuration process" do
 
         processed_config = Onetime::Config.after_load(raw_config)
         expect(processed_config[:internationalization][:enabled]).to be(false)
-        expect(processed_config[:internationalization].keys).to eq([:enabled, :default_locale])
+        # IndifferentHash stores string keys internally
+        expect(processed_config[:internationalization].keys.map(&:to_s).sort).to eq(['default_locale', 'enabled'])
       end
     end
 
@@ -260,14 +261,16 @@ RSpec.describe "Onetime boot configuration process" do
 
       processed_config = Onetime::Config.after_load(config)
 
-      expect(processed_config[:site][:domains]).to eq({ enabled: false })
+      # Use indifferent access for value check
+      expect(processed_config[:site][:domains][:enabled]).to eq(false)
     end
 
     it 'initializes empty plans configuration' do
       config = minimal_config.dup
       processed_config = Onetime::Config.after_load(config)
 
-      expect(processed_config[:site][:plans]).to eq({ enabled: false })
+      # Use indifferent access for value check
+      expect(processed_config[:site][:plans][:enabled]).to eq(false)
     end
 
     it 'initializes empty regions configuration' do
@@ -275,7 +278,8 @@ RSpec.describe "Onetime boot configuration process" do
 
       processed_config = Onetime::Config.after_load(config)
 
-      expect(processed_config[:site][:regions]).to eq({ enabled: false })
+      # Use indifferent access for value check
+      expect(processed_config[:site][:regions][:enabled]).to eq(false)
     end
 
     it 'disables authentication sub-features when main feature is off' do

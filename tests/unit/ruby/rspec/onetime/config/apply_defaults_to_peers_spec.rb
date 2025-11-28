@@ -33,27 +33,26 @@ RSpec.describe Onetime::Config do
       context 'with valid inputs' do
         it 'merges defaults into sections' do
           result = described_class.apply_defaults_to_peers(basic_config)
-          expect(result[:api]).to eq({ timeout: 10, enabled: true })
-          expect(result[:web]).to eq({ timeout: 5, enabled: true })
+          # Use indifferent access - result is IndifferentHash
+          expect(result[:api][:timeout]).to eq(10)
+          expect(result[:api][:enabled]).to eq(true)
+          expect(result[:web][:timeout]).to eq(5)
+          expect(result[:web][:enabled]).to eq(true)
         end
 
         it 'handles sentry-specific configuration' do
           result = described_class.apply_defaults_to_peers(sentry_config)
 
-          expect(result[:backend]).to eq({
-            dsn: 'backend-dsn',
-            environment: 'test',
-            enabled: true,
-            traces_sample_rate: 0.1
-          })
+          expect(result[:backend][:dsn]).to eq('backend-dsn')
+          expect(result[:backend][:environment]).to eq('test')
+          expect(result[:backend][:enabled]).to eq(true)
+          expect(result[:backend][:traces_sample_rate]).to eq(0.1)
 
-          expect(result[:frontend]).to eq({
-            dsn: 'default-dsn',
-            environment: 'test',
-            enabled: true,
-            path: '/web',
-            profiles_sample_rate: 0.2
-          })
+          expect(result[:frontend][:dsn]).to eq('default-dsn')
+          expect(result[:frontend][:environment]).to eq('test')
+          expect(result[:frontend][:enabled]).to eq(true)
+          expect(result[:frontend][:path]).to eq('/web')
+          expect(result[:frontend][:profiles_sample_rate]).to eq(0.2)
         end
       end
 
@@ -77,7 +76,8 @@ RSpec.describe Onetime::Config do
         it 'handles missing defaults section' do
           config = { api: { timeout: 10 } }
           result = described_class.apply_defaults_to_peers(config)
-          expect(result).to eq({ api: { timeout: 10 } })
+          # Result is IndifferentHash, use value access
+          expect(result[:api][:timeout]).to eq(10)
         end
 
         it 'skips non-hash section values' do
@@ -87,7 +87,8 @@ RSpec.describe Onetime::Config do
             web: { port: 3000 }
           }
           result = described_class.apply_defaults_to_peers(config)
-          expect(result.keys).to contain_exactly(:web)
+          # Check that only web key exists (api was skipped)
+          expect(result.keys.map(&:to_s)).to contain_exactly('web')
         end
 
         it 'preserves original defaults' do
@@ -121,8 +122,11 @@ RSpec.describe Onetime::Config do
     it 'merges defaults into sections, allowing section-specific values to override defaults' do
       result = described_class.apply_defaults_to_peers(config_with_defaults)
 
-      expect(result[:api]).to eq({ timeout: 10, enabled: true })
-      expect(result[:web]).to eq({ timeout: 5, enabled: true })
+      # Use indifferent access
+      expect(result[:api][:timeout]).to eq(10)
+      expect(result[:api][:enabled]).to eq(true)
+      expect(result[:web][:timeout]).to eq(5)
+      expect(result[:web][:enabled]).to eq(true)
     end
 
     it "applies default values when a section's corresponding key is present but has a nil value" do
@@ -139,16 +143,13 @@ RSpec.describe Onetime::Config do
     it 'correctly applies defaults to a typical service configuration with multiple sections' do
       result = described_class.apply_defaults_to_peers(service_config)
 
-      expect(result[:backend]).to eq({
-        dsn: 'backend-dsn',
-        environment: 'test'
-      })
+      # Use indifferent access
+      expect(result[:backend][:dsn]).to eq('backend-dsn')
+      expect(result[:backend][:environment]).to eq('test')
 
-      expect(result[:frontend]).to eq({
-        dsn: 'default-dsn',
-        environment: 'test',
-        path: '/web'
-      })
+      expect(result[:frontend][:dsn]).to eq('default-dsn')
+      expect(result[:frontend][:environment]).to eq('test')
+      expect(result[:frontend][:path]).to eq('/web')
     end
 
     it 'does not modify the original defaults hash passed as an argument' do

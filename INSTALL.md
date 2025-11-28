@@ -164,7 +164,7 @@ docker logs redis-onetime
 3. **Initialize configuration:**
    ```bash
    git rev-parse --short HEAD > .commit_hash.txt
-   cp ./etc/config.example.yaml ./etc/config.yaml
+   cp ./etc/defaults/config.defaults.yaml ./etc/config.yaml
    ```
 
 4. **Edit configuration:**

@@ -44,6 +44,7 @@ module Onetime
     #
     module Approximated
       include HTTParty
+
       base_uri 'https://cloud.approximated.app/api'
       headers 'Content-Type' => 'application/json'
 

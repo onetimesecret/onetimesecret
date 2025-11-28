@@ -2,91 +2,58 @@
 # check=error=true
 
 ##
-# ONETIME SECRET - DOCKER IMAGE - 2025-05-15
+# ONETIME SECRET - DOCKER IMAGE (2025-11-27)
 #
-# For detailed instructions on building, running, and deploying this Docker image,
-# please refer to our comprehensive Docker guide:
+# Multi-stage build optimized for production deployment.
+# See docs/docker.md for detailed usage instructions.
 #
-#     docs/DOCKER.md
+# For general project information, see README.md.
 #
-# This guide includes information on:
-# - Quick start instructions
-# - Configuration options
-# - Production deployment considerations
-# - Updating the Docker image
-# - Using specific version tags
-#
-# For more detailed configuration options, you can also refer to the README.md file.
-#
-# GETTING STARTED:
-#
-# To build and use this image, you need to copy the example
-# configuration files into place:
-#
-#     $ cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config
-#     $ cp --preserve --no-clobber .env.example .env
-#
-# The default values work as-is but it's a good practice to have
-# a look and customize as you like (particularly the main secret
-# `SECRET` and redis password in `REDIS_URL`).
 #
 # BUILDING:
 #
+# Build the Docker image:
+#
 #     $ docker build -t onetimesecret .
-#
-# For multi-platform builds:
-#
-#     $ docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret
 #
 # RUNNING:
 #
-# First, start a Redis server (version 5+) with persistence enabled:
+#     # 1. Create a dedicated docker network
+#     $ docker network create onetime-network
 #
-#     $ docker run -p 6379:6379 -d redis:bookworm
+#     # 2. Start a Valkey/Redis container with persistent storage:
+#     $ docker run -d --name onetime-maindb \
+#         --network onetime-network \
+#         -p 6379:6379 \
+#         -v onetime_maindb_data:/data \
+#         valkey/valkey
 #
-# Then set essential environment variables:
+#     # 3. Set a unique secret:
+#     $ openssl rand -hex 24
+#     [Copy the output and save it somewhere safe]
 #
-#     $ export HOST=localhost:3000
-#     $ export SSL=false
-#     $ export SECRET=MUST_BE_UNIQUE
-#     $ export REDIS_URL=redis://host.docker.internal:6379/0
-#     $ export RACK_ENV=production
+#     $ echo -n "Enter a secret and press [ENTER]: "; read -s SECRET
+#     [Paste the secret you copied from the openssl command]
 #
-# Run the OnetimeSecret container:
+#     # 4. Run the application:
+#     $ docker run -p 3000:3000 --name onetime-app \
+#         --network onetime-network \
+#         -e SECRET=$SECRET \
+#         -e SESSION_SECRET=$SESSION_SECRET \
+#         -e REDIS_URL=redis://onetime-maindb:6379/0 \
+#         --detach \
+#         onetimesecret
 #
-#     $ docker run -p 3000:3000 -d --name onetimesecret \
-#       -e REDIS_URL=$REDIS_URL \
-#       -e SECRET=$SECRET \
-#       -e HOST=$HOST \
-#       -e SSL=$SSL \
-#       -e RACK_ENV=$RACK_ENV \
-#       onetimesecret
+# The app will be at http://localhost:3000. For more, see docs/docker.md.
 #
-# It will be accessible on http://localhost:3000.
+#     # Double-check the persistent storage for redis
+#     $ docker exec onetime-maindb ls -la /data
 #
-# PRODUCTION DEPLOYMENT:
+#     $ docker volume inspect onetime_maindb_data
 #
-# When deploying to production, protect your Redis instance with
-# authentication and enable persistence. Also, change the secret and
-# specify the domain it will be deployed on. For example:
-#
-#   $ openssl rand -hex 32
-#   [copy value to set SECRET]
-#   $ export HOST=example.com
-#   $ export SSL=true
-#   $ export SECRET=COPIED_VALUE
-#   $ export REDIS_URL=redis://username:password@hostname:6379/0
-#   $ export RACK_ENV=production
-#
-#   $ docker run -p 3000:3000 -d --name onetimesecret \
-#     -e REDIS_URL=$REDIS_URL \
-#     -e SECRET=$SECRET \
-#     -e HOST=$HOST \
-#     -e SSL=$SSL \
-#     -e RACK_ENV=$RACK_ENV \
-#     onetimesecret
-#
-# For more detailed configuration options, refer to the README.md file.
+#     # View application logs
+#     $ docker logs onetime-app
+
 
 ##
 # BUILDER LAYER
@@ -102,7 +69,7 @@ ARG VERSION
 FROM docker.io/library/ruby:3.4-slim-bookworm@sha256:1ca19bf218752c371039ebe6c8a1aa719cd6e6424b32d08faffdb2a6938f3241 AS base
 
 # Limit to packages needed for the system itself
-ARG PACKAGES="build-essential rsync netcat-openbsd libffi-dev libyaml-dev git"
+ARG PACKAGES="build-essential rsync netcat-openbsd libffi-dev libyaml-dev git curl"
 
 # Fast fail on errors while installing system packages
 RUN set -eux \
@@ -110,6 +77,20 @@ RUN set -eux \
   && apt-get install -y $PACKAGES \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
+
+# Install yq (optimized for multi-arch)
+# Used for migrating config from symbol keys to string keys (v0.22 to v0.23+)
+RUN set -eux && \
+    ARCH=$(dpkg --print-architecture) && \
+    case "$ARCH" in \
+        amd64) YQ_ARCH="amd64" ;; \
+        arm64) YQ_ARCH="arm64" ;; \
+        *) YQ_ARCH="amd64" ;; \
+    esac && \
+    curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${YQ_ARCH}" \
+        -o /usr/local/bin/yq && \
+    chmod +x /usr/local/bin/yq && \
+    yq --version
 
 # Copy Node.js and npm from the official image
 COPY --from=docker.io/library/node:22@sha256:4ad2c2b350ab49fb637ab40a269ffe207c61818bb7eb3a4ea122001a0c605e1f /usr/local/bin/node /usr/local/bin/
@@ -202,6 +183,7 @@ LABEL org.opencontainers.image.version=$VERSION
 WORKDIR $CODE_ROOT
 
 ## Copy only necessary files from previous stages
+COPY --from=base /usr/local/bin/yq /usr/local/bin/yq
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build $CODE_ROOT/public $CODE_ROOT/public
 COPY --from=build $CODE_ROOT/templates $CODE_ROOT/templates
@@ -210,7 +192,10 @@ COPY bin $CODE_ROOT/bin
 COPY apps $CODE_ROOT/apps
 COPY etc $CODE_ROOT/etc
 COPY lib $CODE_ROOT/lib
-COPY migrate $CODE_ROOT/migrate
+COPY scripts/entrypoint.sh ./bin/
+COPY scripts/check-migration-status.sh ./bin/
+COPY scripts/update-version.sh ./bin/
+COPY migrations $CODE_ROOT/migrations
 COPY package.json config.ru Gemfile Gemfile.lock $CODE_ROOT/
 
 # Copy build stage metadata files
@@ -241,8 +226,9 @@ WORKDIR $CODE_ROOT
 # example, if the config file has been previously copied
 # (and modified) the "--no-clobber" argument prevents
 # those changes from being overwritten.
-RUN set -eux \
-  && cp --preserve --no-clobber etc/config.example.yaml etc/config.yaml
+RUN set -eux && \
+    cp --preserve --no-clobber etc/defaults/config.defaults.yaml etc/config.yaml && \
+    chmod +x bin/entrypoint.sh bin/check-migration-status.sh
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:

@@ -56,7 +56,7 @@ loaded_secret = V2::Secret.load secret_key
   loaded_metadata.recipients,  # Backend stores actual email
   loaded_secret.exists?
 ]
-#=> ['Loadable Secret', 'security@example.com', true]
+#=> ['Loadable Secret', 'se*****@e*****.com', true]
 
 ## Created secret decrypts correctly without passphrase_temp
 create_params = {

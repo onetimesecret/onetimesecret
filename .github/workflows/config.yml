@@ -40,7 +40,7 @@ jobs:
         continue-on-error: false
         with:
           schema: etc/config.schema.yaml
-          target: etc/config.example.yaml
+          target: etc/defaults/config.defaults.yaml
 
       - uses: nrkno/yaml-schema-validator-github-action@32c469c6568f476abfaafb5ea5acf8b8a41b29a9 # v4
         continue-on-error: true

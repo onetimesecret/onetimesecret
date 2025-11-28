@@ -85,6 +85,11 @@ jobs:
           # our dev redis instances.
           - 2121:6379
 
+    env:
+      # Redis runs on port 2121 (mapped from service container's 6379)
+      REDIS_URL: redis://localhost:2121/0
+      VALKEY_URL: redis://localhost:2121/0
+
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4

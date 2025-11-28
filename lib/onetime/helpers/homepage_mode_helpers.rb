@@ -204,10 +204,12 @@ module Onetime
         # Step 1: Try to extract from trusted headers (if behind proxy)
         if trusted_proxy_depth > 0
           ip = extract_ip_from_header(trusted_ip_header, trusted_proxy_depth)
-          OT.ld '[homepage_mode] Extracted from header', {
-            header_type: trusted_ip_header,
-            extracted_ip: ip,
-          } if ip
+          if ip
+            OT.ld '[homepage_mode] Extracted from header', {
+              header_type: trusted_ip_header,
+              extracted_ip: ip,
+            }
+          end
         else
           OT.ld '[homepage_mode] Skipping header extraction (trusted_proxy_depth=0)'
         end

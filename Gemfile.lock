@@ -67,37 +67,50 @@ GEM
     bcrypt (3.1.20)
     benchmark (0.4.1)
     bigdecimal (3.1.9)
-    byebug (11.1.3)
-    byebug-dap (0.1.4)
-      byebug (~> 11.1)
-      ruby-dap (~> 0.1.2)
-    coderay (1.1.3)
+    climate_control (1.2.0)
     concurrent-ruby (1.3.5)
     connection_pool (2.5.4)
+    crack (1.0.1)
+      bigdecimal
+      rexml
     csv (3.3.5)
     daemons (1.4.1)
+    database_cleaner-core (2.0.1)
+    database_cleaner-sequel (2.0.2)
+      database_cleaner-core (~> 2.0.0)
+      sequel
     date (3.4.1)
+    debug (1.11.0)
+      irb (~> 1.10)
+      reline (>= 0.3.8)
     diff-lcs (1.6.1)
     docile (1.4.1)
     dotenv (3.1.8)
     drydock (0.6.9)
     encryptor (1.1.3)
     eventmachine (1.2.7)
-    fakeredis (0.1.4)
+    faker (3.5.2)
+      i18n (>= 1.8.11, < 2)
     familia (1.2.3)
       logger
       redis (>= 4.8.1, < 6.0)
       stringio (~> 3.1.1)
       uri-redis (~> 1.3)
     fastimage (2.4.0)
-    fiddle (1.1.8)
+    ffi (1.17.2)
+    ffi (1.17.2-aarch64-linux-gnu)
+    ffi (1.17.2-arm64-darwin)
+    ffi (1.17.2-x86_64-linux-gnu)
     gibbler (1.0.0)
       attic (~> 1.0)
       rake (~> 13.0)
+    hashdiff (1.2.1)
     httparty (0.23.2)
       csv
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
+    i18n (1.14.7)
+      concurrent-ruby (~> 1.0)
     io-console (0.8.1)
     irb (1.15.3)
       pp (>= 0.6.0)
@@ -107,13 +120,15 @@ GEM
     json (2.10.2)
     language_server-protocol (3.17.0.4)
     lint_roller (1.1.0)
+    listen (3.9.0)
+      rb-fsevent (~> 0.10, >= 0.10.3)
+      rb-inotify (~> 0.9, >= 0.9.10)
     logger (1.7.0)
     mail (2.8.1)
       mini_mime (>= 0.1.1)
       net-imap
       net-pop
       net-smtp
-    method_source (1.1.0)
     mini_mime (1.1.5)
     minitest (5.25.5)
     multi_json (1.15.0)
@@ -143,14 +158,9 @@ GEM
       tty-color (~> 0.5)
     pp (0.6.3)
       prettyprint
+    prettier_print (1.2.1)
     prettyprint (0.2.0)
     prism (1.4.0)
-    pry (0.14.2)
-      coderay (~> 1.1)
-      method_source (~> 1.0)
-    pry-byebug (3.10.1)
-      byebug (~> 11.0)
-      pry (>= 0.13, < 0.15)
     psych (5.2.6)
       date
       stringio
@@ -170,8 +180,16 @@ GEM
       rack (>= 1.3)
     rack-utf8_sanitizer (1.10.1)
       rack (>= 1.0, < 4.0)
+    rackup (1.0.1)
+      rack (< 3)
+      webrick
     rainbow (3.1.1)
     rake (13.0.6)
+    rb-fsevent (0.11.2)
+    rb-inotify (0.11.1)
+      ffi (~> 1.0)
+    rbs (3.9.5)
+      logger
     rdoc (6.13.1)
       psych (>= 4.0.0)
     redis (5.4.1)
@@ -181,8 +199,10 @@ GEM
     regexp_parser (2.10.0)
     reline (0.6.3)
       io-console (~> 0.5)
+    rerun (0.14.0)
+      listen (~> 3.0)
     rexml (3.4.2)
-    rubocop (1.75.4)
+    rubocop (1.81.7)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
@@ -190,10 +210,10 @@ GEM
       parser (>= 3.3.0.2)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 2.9.3, < 3.0)
-      rubocop-ast (>= 1.44.0, < 2.0)
+      rubocop-ast (>= 1.47.1, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 4.0)
-    rubocop-ast (1.44.1)
+    rubocop-ast (1.48.0)
       parser (>= 3.3.7.2)
       prism (~> 1.4)
     rubocop-performance (1.25.0)
@@ -203,10 +223,16 @@ GEM
     rubocop-rspec (3.6.0)
       lint_roller (~> 1.1)
       rubocop (~> 1.72, >= 1.72.1)
+    rubocop-sequel (0.4.1)
+      lint_roller (~> 1.1)
+      rubocop (>= 1.72.1, < 2)
     rubocop-thread_safety (0.7.2)
       lint_roller (~> 1.1)
       rubocop (~> 1.72, >= 1.72.1)
-    ruby-dap (0.1.3)
+    ruby-lsp (0.26.4)
+      language_server-protocol (~> 3.17.0)
+      prism (>= 1.2, < 2.0)
+      rbs (>= 3, < 5)
     ruby-progressbar (1.13.0)
     ruby_http_client (3.5.5)
     sendgrid-ruby (6.7.0)
@@ -214,6 +240,8 @@ GEM
     sentry-ruby (5.23.0)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
+    sequel (5.98.0)
+      bigdecimal
     simplecov (0.22.0)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
@@ -230,25 +258,26 @@ GEM
       unicode_utils (~> 1.4)
     strings-ansi (0.2.0)
     stripe (15.0.0)
+    syntax_tree (6.3.0)
+      prettier_print (>= 1.2.0)
     sysinfo (0.10.0)
       drydock (< 1.0)
       storable (~> 0.10)
-    syslog (0.3.0)
-      logger
     thin (1.8.2)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
+    timecop (0.9.10)
     timeout (0.4.4)
     truemail (3.3.1)
       simpleidn (~> 0.2.1)
-    tryouts (3.6.0)
-      concurrent-ruby (~> 1.0)
+    tryouts (3.7.1)
+      concurrent-ruby (~> 1.0, < 2)
       irb
       minitest (~> 5.0)
       pastel (~> 0.8)
       prism (~> 1.0)
-      rspec (~> 3.0)
+      rspec (>= 3.0, < 5.0)
       tty-cursor (~> 0.7)
       tty-screen (~> 0.8)
     tty-color (0.6.0)
@@ -260,7 +289,15 @@ GEM
       tty-screen (~> 0.8)
     unicode-display_width (2.6.0)
     unicode_utils (1.4.0)
-    uri-redis (1.3.0)
+    uri-redis (1.4.0)
+    uri-valkey (1.4.0)
+    vcr (6.3.1)
+      base64
+    webmock (3.26.1)
+      addressable (>= 2.8.0)
+      crack (>= 0.3.2)
+      hashdiff (>= 0.4.0, < 2.0.0)
+    webrick (1.9.2)
 
 PLATFORMS
   aarch64-linux
@@ -269,21 +306,20 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  addressable
   altcha (~> 0.2.1)
   aws-sdk-sesv2 (~> 1.74)
   base64
-  bcrypt
+  bcrypt (~> 3.1)
   benchmark
-  byebug
-  byebug-dap
+  climate_control
+  database_cleaner-sequel (~> 2.0)
+  debug
   dotenv
   drydock
   encryptor (= 1.1.3)
-  fakeredis
-  familia (~> 1.2.0)
+  faker (~> 3.2)
+  familia (~> 1.2.3)
   fastimage (~> 2.4)
-  fiddle
   gibbler
   httparty
   irb
@@ -294,8 +330,6 @@ DEPENDENCIES
   net-imap (~> 0.5.7)
   ostruct
   otto (~> 1.1.0.pre.alpha4)
-  pry
-  pry-byebug
   psych (~> 5.2.3)
   public_suffix
   puma (~> 6.6)
@@ -305,18 +339,22 @@ DEPENDENCIES
   rack-proxy
   rack-test
   rack-utf8_sanitizer (~> 1.10.1)
+  rackup
   rdoc
   redis (~> 5.4.0)
   reline
+  rerun (~> 0.14)
   rspec!
   rspec-core!
   rspec-expectations!
   rspec-mocks!
   rspec-support!
-  rubocop
+  rubocop (~> 1.81.7)
   rubocop-performance
   rubocop-rspec
+  rubocop-sequel
   rubocop-thread_safety
+  ruby-lsp
   sendgrid-ruby
   sentry-ruby
   simplecov
@@ -324,16 +362,19 @@ DEPENDENCIES
   storable
   stringio (~> 3.1.6)
   stripe
+  syntax_tree
   sysinfo
-  syslog (~> 0.3.0)
   thin
+  timecop (~> 0.9)
   truemail
-  tryouts (~> 3.6)
+  tryouts (~> 3.7.1)
   tty-table (~> 0.12.0)
-  uri-redis (~> 1.3.0)
+  uri-valkey (~> 1.4.0)
+  vcr (~> 6.0)
+  webmock (~> 3.0)
 
 RUBY VERSION
    ruby 3.3.5p100
 
 BUNDLED WITH
-   2.6.6
+   2.7.2

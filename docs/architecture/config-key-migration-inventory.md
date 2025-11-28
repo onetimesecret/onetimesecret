@@ -285,7 +285,7 @@ def load(path=nil)
 end
 ```
 
-**YAML Files (etc/config.example.yaml):**
+**YAML Files (etc/defaults/config.defaults.yaml):**
 ```yaml
 :site:        # Symbol notation → creates {site: ...} (symbol key)
   :host: foo
@@ -311,7 +311,7 @@ end
 #### B. Update YAML Files
 Convert from symbol notation to string notation:
 ```bash
-# Before (etc/config.example.yaml):
+# Before (etc/defaults/config.defaults.yaml):
 :site:
   :host: example.com
   :authentication:
