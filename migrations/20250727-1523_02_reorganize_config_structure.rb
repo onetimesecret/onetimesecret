@@ -29,6 +29,7 @@ require 'onetime/migration'
 require 'yaml'
 require 'fileutils'
 require 'json'
+require 'shellwords'
 
 module Onetime
   class Migration < BaseMigration
@@ -260,15 +261,21 @@ module Onetime
       end
     end
 
-    # Properly escape a string for use in yq commands
-    # Handles backslashes, quotes, and other special characters
+    # Properly escape a string for use in yq commands embedded in shell
+    #
+    # Uses Shellwords.escape (Ruby stdlib) to handle all shell metacharacters
+    # including command substitution ($(), ``), quotes, and special characters.
+    #
+    # For yq string values, we first create a quoted YAML string expression,
+    # then shell-escape the entire thing to prevent injection.
+    #
     def escape_for_yq(str)
-      escaped = str.to_s
-                   .gsub('\\', '\\\\\\\\')  # Backslashes first
-                   .gsub('"', '\\"')         # Double quotes
-                   .gsub("\n", '\\n')        # Newlines
-                   .gsub("\t", '\\t')        # Tabs
-      "\"#{escaped}\""
+      # Create a properly quoted YAML string (yq expects "quoted" for strings)
+      # Escape internal backslashes and double quotes for YAML
+      yaml_string = "\"#{str.to_s.gsub('\\', '\\\\\\\\').gsub('"', '\\"')}\""
+
+      # Shell-escape the entire quoted string to prevent command injection
+      Shellwords.escape(yaml_string)
     end
 
     def finalize_config
