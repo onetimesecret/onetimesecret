@@ -1,8 +1,8 @@
-# migrations/20250727-1523_02_reorganize_config_hierarchy.rb
+# migrations/20250727-1523_02_reorganize_config_structure.rb
 #
 # frozen_string_literal: true
 
-# Migration 2 of 2: Reorganize Config Hierarchy
+# Migration 2 of 2: Reorganize Config Structure
 #
 # This migration reorganizes the config.yaml hierarchy, moving settings
 # to their new locations. It expects string keys (run migration 01 first
@@ -12,8 +12,8 @@
 # Install with: brew install yq (macOS) or apt install yq (Ubuntu)
 #
 # Usage:
-#   ruby migrations/20250727-1523_02_reorganize_config_hierarchy.rb --dry-run
-#   ruby migrations/20250727-1523_02_reorganize_config_hierarchy.rb --run
+#   ruby migrations/20250727-1523_02_reorganize_config_structure.rb --dry-run
+#   ruby migrations/20250727-1523_02_reorganize_config_structure.rb --run
 #
 # What it does:
 #   1. Creates a timestamped backup of etc/config.yaml
@@ -40,11 +40,17 @@ module Onetime
       { 'from' => 'site.secret', 'to' => 'site.secret' },
       { 'from' => 'site.authenticity', 'to' => 'site.authenticity' },
 
-      # Session config (new section)
-      { 'from' => 'doesnotexist', 'to' => 'site.session', 'default' => {} },
+      # Adding to site
+      { 'from' => 'site.ssl', 'to' => 'site.session.secure' },
+      { 'from' => 'site.secret', 'to' => 'site.session.secret' },
+      { 'from' => 'experimental.middleware', 'to' => 'site.middleware', 'default' => { 'static_files' => true, 'utf8_sanitizer' => true } },
 
       # Interface moves out of site
-      { 'from' => 'site.interface', 'to' => 'interface' },
+      { 'from' => 'site.interface.ui.enabled', 'to' => 'interface.ui.enabled' },
+      { 'from' => 'site.interface.ui.header', 'to' => 'interface.ui.page_header' },
+      { 'from' => 'site.interface.ui.footer_links', 'to' => 'interface.ui.page_footer.links' },
+      { 'from' => 'site.interface.api', 'to' => 'interface.api' },
+      { 'from' => 'site.support', 'to' => 'interface.support' },
 
       # Features consolidation
       { 'from' => 'features', 'to' => 'features', 'default' => {} },
@@ -64,43 +70,40 @@ module Onetime
       { 'from' => 'doesnotexist', 'to' => 'mail.validation.accounts', 'default' => {} },
 
       # Top-level sections (kept as-is)
-      { 'from' => 'limits', 'to' => 'limits' },
-      { 'from' => 'logging', 'to' => 'logging' },
+      { 'from' => 'limits', 'to' => 'deprecated.limits' },
+      { 'from' => 'logging', 'to' => 'deprecated.logging' },
       { 'from' => 'internationalization', 'to' => 'i18n' },
       { 'from' => 'diagnostics', 'to' => 'diagnostics' },
-      { 'from' => 'development', 'to' => 'development' },
+      { 'from' => 'development', 'to' => 'dev' },
 
       # Experimental settings
-      { 'from' => 'experimental.allow_nil_global_secret', 'to' => 'experimental.allow_nil_global_secret', 'default' => false },
-      { 'from' => 'experimental.rotated_secrets', 'to' => 'experimental.rotated_secrets', 'default' => [] },
-      { 'from' => 'experimental.freeze_app', 'to' => 'experimental.freeze_app', 'default' => false },
-      { 'from' => 'experimental.middleware', 'to' => 'site.middleware', 'default' => { 'static_files' => true, 'utf8_sanitizer' => true } },
+      { 'from' => 'experimental.allow_nil_global_secret', 'to' => 'deprecated.allow_nil_global_secret', 'default' => false },
+      { 'from' => 'experimental.rotated_secrets', 'to' => 'deprecated.rotated_secrets', 'default' => [] },
+      { 'from' => 'experimental.freeze_app', 'to' => 'deprecated.freeze_app', 'default' => false },
+
     ].freeze
 
     def prepare
-      info('Preparing config hierarchy reorganization')
       @base_path = BASE_PATH
       @source_config = File.join(@base_path, 'etc', 'config.yaml')
       @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
       @temp_config = File.join(@base_path, 'etc', 'config.reorganized.yaml')
-
-      debug ''
-      debug 'Paths:'
-      debug "  Base path: #{@base_path}"
-      debug "  Source config: #{@source_config}"
-      debug "  Temp config: #{@temp_config}"
-      debug ''
+      @old_keys_found = []  # Store detected old structure
+      @blocked_by_prerequisite = false
     end
 
     def migration_needed?
       unless File.exist?(@source_config)
-        error "Source config file does not exist: #{@source_config}"
+        error "Config file does not exist: #{relative_path(@source_config)}"
+        @blocked_by_prerequisite = true
         return false
       end
 
       # Check for symbol keys first - if found, migration 01 needs to run first
       if has_symbol_keys?
-        error 'Config file still has symbol keys. Run migration 01 first:'
+        @blocked_by_prerequisite = true
+        error 'Prerequisite not met: config still has symbol keys'
+        error 'Run migration 01 first:'
         error '  ruby migrations/20250727-1523_01_convert_symbol_keys.rb --run'
         return false
       end
@@ -109,11 +112,16 @@ module Onetime
       needs_reorganization?
     end
 
-    def migrate
-      run_mode_banner
+    def handle_migration_not_needed
+      return nil if @blocked_by_prerequisite  # Error already printed
 
+      info 'Config already in new structure - no changes needed'
+      nil
+    end
+
+    def migrate
       unless File.exist?(@source_config)
-        error "Source config file not found: #{@source_config}"
+        error "Config file not found: #{relative_path(@source_config)}"
         return false
       end
 
@@ -124,38 +132,38 @@ module Onetime
         return false
       end
 
-      info 'Starting config hierarchy reorganization'
-      info "Source: #{@source_config}"
-      debug ''
+      # Print consolidated header
+      mode_label = dry_run? ? '(dry-run)' : ''
+      info "Config Structure Migration #{mode_label}".strip
+      info "File: #{relative_path(@source_config)}"
+      info ''
 
-      # Show current structure
-      debug 'Current top-level keys:'
-      system("yq eval 'keys' '#{@source_config}'")
-      debug ''
+      # Show what triggered the migration
+      info 'Old structure detected:'
+      @old_keys_found.each { |key| info "  - #{key}" }
+      info ''
 
-      # Step 1: Create backup
-      backup_config
-
-      # Step 2: Generate reorganized config
-      generate_reorganized_config
-
-      # Step 3: Replace original with reorganized
+      # Perform migration steps
+      backup_path = backup_config
+      mappings_count = generate_reorganized_config
       finalize_config
 
-      print_summary do
-        info ''
-        info 'Config hierarchy reorganization completed successfully'
-        info "Config file: #{@source_config}"
-        info ''
-        info 'New top-level keys:'
-        system("yq eval 'keys' '#{@source_config}'") if actual_run?
-        info ''
+      # Result line
+      if dry_run?
+        info "Would apply #{CONFIG_MAPPINGS.size} mappings - no changes made"
+      else
+        info "Applied #{CONFIG_MAPPINGS.size} mappings"
+        info "Backup: #{relative_path(backup_path)}" if backup_path
       end
 
       true
     end
 
     private
+
+    def relative_path(path)
+      path.sub("#{@base_path}/", '')
+    end
 
     def has_symbol_keys?
       content = File.read(@source_config)
@@ -164,25 +172,15 @@ module Onetime
 
     def needs_reorganization?
       begin
-        config = YAML.safe_load_file(@source_config)
+        config = YAML.safe_load_file(@source_config, permitted_classes: [Symbol])
 
-        # Check if old structure exists (redis, emailer, internationalization)
-        old_paths_exist = config.key?('redis') ||
-                          config.key?('emailer') ||
-                          config.key?('internationalization') ||
-                          (config.dig('site', 'interface') && !config.key?('interface'))
+        # Detect old structure markers
+        @old_keys_found << 'redis' if config.key?('redis')
+        @old_keys_found << 'emailer' if config.key?('emailer')
+        @old_keys_found << 'internationalization' if config.key?('internationalization')
+        @old_keys_found << 'site.interface' if config.dig('site', 'interface') && !config.key?('interface')
 
-        if old_paths_exist
-          info 'Old config structure detected - reorganization needed'
-          debug '  Found: redis' if config.key?('redis')
-          debug '  Found: emailer' if config.key?('emailer')
-          debug '  Found: internationalization' if config.key?('internationalization')
-          debug '  Found: site.interface (should be top-level interface)' if config.dig('site', 'interface')
-          true
-        else
-          info 'Config already appears to be in new structure'
-          false
-        end
+        @old_keys_found.any?
       rescue StandardError => e
         error "Failed to parse config: #{e.message}"
         false
@@ -192,37 +190,27 @@ module Onetime
     def backup_config
       backup_path = "#{@source_config}.#{@backup_suffix}.bak"
 
-      if File.exist?(backup_path)
-        info "Backup already exists: #{backup_path}"
-        return
-      end
+      return backup_path if File.exist?(backup_path)
 
       for_realsies_this_time? do
         FileUtils.cp(@source_config, backup_path)
         track_stat(:backup_created)
-        info "Created backup: #{backup_path}"
       end
+
+      backup_path
     end
 
     def generate_reorganized_config
       for_realsies_this_time? do
-        info 'Creating reorganized configuration with yq...'
-
         # Initialize empty config file
         system("echo '---' > '#{@temp_config}'")
 
-        # Apply each mapping
+        # Apply each mapping silently
         CONFIG_MAPPINGS.each do |mapping|
           apply_mapping(mapping)
         end
 
         track_stat(:mappings_applied, CONFIG_MAPPINGS.size)
-        info "Generated reorganized config: #{@temp_config}"
-
-        # Show new structure
-        debug ''
-        debug 'New config structure:'
-        system("yq eval 'keys' '#{@temp_config}'")
       end
     end
 
@@ -233,44 +221,25 @@ module Onetime
 
       # Skip 'doesnotexist' paths - these are just for setting defaults
       if from_path == 'doesnotexist'
-        if default_value
-          apply_default_value(to_path, default_value)
-        end
+        apply_default_value(to_path, default_value) if default_value
         return
       end
 
-      # Convert dot notation to yq path
-      from_yq = from_path
-      to_yq = to_path
-
       # Build yq command
       if default_value.nil?
-        # No default - copy value or null
-        cmd = "yq eval '.#{to_yq} = load(\"#{@source_config}\").#{from_yq}' -i '#{@temp_config}'"
+        cmd = "yq eval '.#{to_path} = load(\"#{@source_config}\").#{from_path}' -i '#{@temp_config}'"
       else
-        # With default fallback
         formatted_default = format_for_yq(default_value)
-        cmd = "yq eval '.#{to_yq} = (load(\"#{@source_config}\").#{from_yq} // #{formatted_default})' -i '#{@temp_config}'"
+        cmd = "yq eval '.#{to_path} = (load(\"#{@source_config}\").#{from_path} // #{formatted_default})' -i '#{@temp_config}'"
       end
 
-      info "  #{from_path} → #{to_path}" + (default_value ? " (default: #{default_value.inspect})" : '')
-
-      success = system(cmd)
-      unless success
-        warn "    Warning: Failed to map #{from_path} → #{to_path}"
-      end
+      system(cmd)
     end
 
     def apply_default_value(to_path, default_value)
       formatted_default = format_for_yq(default_value)
       cmd = "yq eval '.#{to_path} = #{formatted_default}' -i '#{@temp_config}'"
-
-      info "  (new) → #{to_path} (default: #{default_value.inspect})"
-
-      success = system(cmd)
-      unless success
-        warn "    Warning: Failed to set default for #{to_path}"
-      end
+      system(cmd)
     end
 
     def format_for_yq(value)
@@ -296,7 +265,6 @@ module Onetime
       for_realsies_this_time? do
         FileUtils.mv(@temp_config, @source_config)
         track_stat(:config_finalized)
-        info "Replaced config with reorganized version"
       end
     end
   end

@@ -226,7 +226,7 @@ module Onetime
     # Generate separator line for visual formatting
     # @return [String] dash separator line
     def separator
-      '-' * 60
+      '-' * 54
     end
 
     # Progress indicator for long operations
