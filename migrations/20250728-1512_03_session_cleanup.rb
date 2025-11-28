@@ -19,11 +19,9 @@ BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..')
 $LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 
 require 'onetime/migration'
-require 'familia/refinements/time_utils'
 
 module Onetime
   class Migration < PipelineMigration
-    using Familia::Refinements::TimeLiterals
 
     def prepare
       @model_class = V2::Session
