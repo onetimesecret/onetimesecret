@@ -80,7 +80,9 @@ jobs:
           docker run -d \
             --name onetime-test-container \
             -p 3000:3000 \
-            -e VALKEY_URL=redis://host.docker.internal:6379/0 \
+            -e VALKEY_URL="redis://host.docker.internal:6379/0" \
+            -e REDIS_URL="redis://host.docker.internal:6379/0" \
+            -e REDIS_DB="0" \
             -e SESSION_SECRET="${SESSION_SECRET}" \
             -e HMAC_SECRET="${HMAC_SECRET}" \
             -e SECRET="${SECRET}" \

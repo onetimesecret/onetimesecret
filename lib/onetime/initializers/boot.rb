@@ -77,6 +77,7 @@ module Onetime
       setup_incoming_recipients
 
       if connect_to_db
+        check_redis_url
         connect_databases
         check_global_banner
       end
