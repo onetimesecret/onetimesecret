@@ -246,7 +246,7 @@ module Onetime
     def format_for_yq(value)
       case value
       when String
-        "\"#{value.gsub('\\', '\\\\\\\\').gsub('"', '\\"')}\""
+        escape_for_yq(value)
       when TrueClass, FalseClass
         value.to_s
       when Numeric
@@ -256,8 +256,19 @@ module Onetime
       when Array, Hash
         value.to_json
       else
-        "\"#{value}\""
+        escape_for_yq(value.to_s)
       end
+    end
+
+    # Properly escape a string for use in yq commands
+    # Handles backslashes, quotes, and other special characters
+    def escape_for_yq(str)
+      escaped = str.to_s
+                   .gsub('\\', '\\\\\\\\')  # Backslashes first
+                   .gsub('"', '\\"')         # Double quotes
+                   .gsub("\n", '\\n')        # Newlines
+                   .gsub("\t", '\\t')        # Tabs
+      "\"#{escaped}\""
     end
 
     def finalize_config
