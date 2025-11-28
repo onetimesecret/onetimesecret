@@ -15,12 +15,15 @@
 #   bin/ots migrate --run 1512_customer_cleanup.rb
 #
 
+BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..')
+$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
+
 require 'onetime/migration'
 
 module Onetime
   class Migration < PipelineMigration
     def prepare
-      @model_class = Onetime::Customer
+      @model_class = V2::Customer
       @batch_size  = 1000
     end
 
