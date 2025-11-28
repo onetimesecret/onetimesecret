@@ -30,18 +30,43 @@ module Onetime
     # Configuration mapping for splitting monolithic config
     CONFIG_MAPPINGS = {
       'static' => [
-        { 'from' => 'features', 'to' => 'features' },
-        { 'from' => 'site', 'to' => 'site' },
-        { 'from' => 'redis', 'to' => 'db' },
+        # Staying in site
+        { 'from' => 'site.host', 'to' => 'site.host' },
+        { 'from' => 'site.ssl', 'to' => 'site.ssl' },
+        { 'from' => 'site.secret', 'to' => 'site.secret' },
+        { 'from' => 'doesnotexist', 'to' => 'site.session', 'default' => {} },
+        { 'from' => 'site.authenticity', 'to' => 'site.authenticity' },
+
+        # Moving out of site
+        { 'from' => 'site.interface', 'to' => 'interface' },
+        { 'from' => 'features', 'to' => 'features', 'default' => {} },
+        { 'from' => 'site.secret_options', 'to' => 'features.secret_links.privacy_options' },
+        { 'from' => 'site.regions', 'to' => 'features.regions', 'default' => { 'enabled' => false} },
+        { 'from' => 'site.domains', 'to' => 'features.domains', 'default' => { 'enabled' => false} },
+        { 'from' => 'features.incoming', 'to' => 'features.incoming', 'default' => { 'enabled' => false} },
+
+        # Redis
+        { 'from' => 'redis.uri', 'to' => 'database.url' },
+        { 'from' => 'redis.dbs', 'to' => 'database.model_mapping' },
+
+        # Mail & Emailer are consolidating
+        { 'from' => 'emailer', 'to' => 'mail.connection' },
+        { 'from' => 'mail.truemail', 'to' => 'mail.validation.defaults' },
+        { 'from' => 'doesnotexist', 'to' => 'mail.validation.recipients', 'default' => {}  },
+        { 'from' => 'doesnotexist', 'to' => 'mail.validation.accounts', 'default' => {}  },
+
+        # Limits, logging, i81n, d9s, and development
+        { 'from' => 'limits', 'to' => 'limits' },
         { 'from' => 'logging', 'to' => 'logging' },
-        { 'from' => 'emailer', 'to' => 'emailer' },
-        { 'from' => 'billing', 'to' => 'billing', 'default' => {} },
-        { 'from' => 'mail', 'to' => 'mail' },
-        { 'from' => 'internationalization', 'to' => 'internationalization' },
+        { 'from' => 'internationalization', 'to' => 'i18n' },
         { 'from' => 'diagnostics', 'to' => 'diagnostics' },
         { 'from' => 'development', 'to' => 'development' },
-        { 'from' => 'experimental', 'to' => 'experimental' },
-        { 'from' => 'logging', 'to' => 'logging' },
+
+        # Experimental
+        { 'from' => 'experimental.allow_nil_global_secret', 'to' => 'experimental.allow_nil_global_secret', 'default' => false },
+        { 'from' => 'experimental.rotated_secrets', 'to' => 'experimental.rotated_secrets', 'default' => [] },
+        { 'from' => 'experimental.freeze_app', 'to' => 'experimental.freeze_app', 'default' => false },
+        { 'from' => 'experimental.middleware', 'to' => 'site.middleware', 'default' => { 'static_files': true, 'utf8_sanitizer': true} },
       ],
     }.freeze
 
@@ -80,10 +105,12 @@ module Onetime
         from_path     = mapping['from']
         default_value = mapping.fetch('default', nil)
         value         = get_nested_value(config, from_path.split('.'))
+
         info("Checking setting (is nil: #{value.nil?}): #{from_path} #{value.class}")
         # If there is a value or a default value, all is good
         !value.nil? || !default_value.nil?
       end
+
     rescue StandardError => ex
       error "Error: #{ex.message}"
       false
