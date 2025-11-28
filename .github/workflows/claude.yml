@@ -10,6 +10,7 @@ on:
       - 'wip/*'
       - 'rel/*'
       - 'develop'
+      - 'main'
   issue_comment:
     types: [created]
   pull_request_review_comment:

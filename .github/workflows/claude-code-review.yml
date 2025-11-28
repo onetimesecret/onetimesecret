@@ -10,6 +10,7 @@ on:
       - 'wip/*'
       - 'rel/*'
       - 'develop'
+      - 'main'
     types: [opened, synchronize, labeled]
   workflow_dispatch:
 
