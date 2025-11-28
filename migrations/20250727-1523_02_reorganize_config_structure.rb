@@ -22,7 +22,7 @@
 #   3. Replaces the original with the reorganized version
 
 BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..')
-$:.unshift File.join(BASE_PATH, 'lib')
+$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
 
 require 'onetime'
 require 'onetime/migration'

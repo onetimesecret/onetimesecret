@@ -14,12 +14,15 @@
 #   bin/ots migrate --run 1512_02_custom_domain_cleanup.rb
 #
 
+BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..')
+$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
+
 require 'onetime/migration'
 
 module Onetime
   class Migration < ModelMigration
     def prepare
-      @model_class  = Onetime::Customer
+      @model_class  = V2::Customer
       @batch_size   = 1000
       @scan_pattern = "#{@model_class.prefix}:*:custom_domain"
 
@@ -31,7 +34,7 @@ module Onetime
     # records which are orphans, meaning they don't have customer object records
     # associated to them. They are defined as:
     #     `Customer.sorted_set :custom_domains, suffix: 'custom_domain'
-    # Their only model association is  via Onetime::Customer which is why this is
+    # Their only model association is via V2::Customer which is why this is
     # a customer data migration, customized for these orphan records.
     #
     def load_from_key(key)

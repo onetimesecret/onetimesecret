@@ -19,6 +19,9 @@
 #   ruby -I./lib migrate/20250728-1512_00_customer_objid.rb --run
 #
 
+BASE_PATH = File.expand_path File.join(File.dirname(__FILE__), '..')
+$LOAD_PATH.unshift File.join(BASE_PATH, 'lib')
+
 require 'onetime/migration'
 require 'onetime/refinements/uuidv7_refinements'
 
@@ -27,7 +30,7 @@ module Onetime
     using Onetime::UUIDv7Refinements
 
     def prepare
-      @model_class = Onetime::Customer
+      @model_class = V2::Customer
       @batch_size  = 100  # Smaller batches for pipeline
     end
 
