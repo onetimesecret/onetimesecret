@@ -37,7 +37,7 @@ module Onetime
     def prepare
       info('Preparing symbol-to-string key conversion')
       @base_path = BASE_PATH
-      @config_file = File.join(@base_path, 'etc', 'config.yaml')
+      @config_file = File.join(@base_path, 'etc', 'defaults', 'config.defaults.yaml')
       @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
 
       debug ''
