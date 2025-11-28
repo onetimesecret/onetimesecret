@@ -408,8 +408,16 @@ module Onetime
       # Extract defaults from the configuration
       defaults = config[:defaults]
 
-      # If no valid defaults exist, return config without the :defaults key
-      return config.except(:defaults) unless defaults.is_a?(Hash)
+      # If no valid defaults exist, convert to IndifferentHash and return
+      # without the :defaults key for consistent string-key access
+      unless defaults.is_a?(Hash)
+        result = Onetime::IndifferentHash.new
+        config.each do |section, values|
+          next if section.to_s == 'defaults'
+          result[section] = values.is_a?(Hash) ? Onetime::IndifferentHash.deep_convert(values) : values
+        end
+        return result
+      end
 
       # Process each section, applying defaults
       # Note: IndifferentHash yields string keys during iteration, so we

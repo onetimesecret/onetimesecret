@@ -33,26 +33,27 @@ RSpec.describe Onetime::Config do
       context 'with valid inputs' do
         it 'merges defaults into sections' do
           result = described_class.apply_defaults_to_peers(basic_config)
-          expect(result[:api]).to eq({ timeout: 10, enabled: true })
-          expect(result[:web]).to eq({ timeout: 5, enabled: true })
+          # Result uses string keys (IndifferentHash stores keys as strings)
+          expect(result[:api]).to eq({ 'timeout' => 10, 'enabled' => true })
+          expect(result[:web]).to eq({ 'timeout' => 5, 'enabled' => true })
         end
 
         it 'handles sentry-specific configuration' do
           result = described_class.apply_defaults_to_peers(sentry_config)
 
           expect(result[:backend]).to eq({
-            dsn: 'backend-dsn',
-            environment: 'test',
-            enabled: true,
-            traces_sample_rate: 0.1,
+            'dsn' => 'backend-dsn',
+            'environment' => 'test',
+            'enabled' => true,
+            'traces_sample_rate' => 0.1,
           })
 
           expect(result[:frontend]).to eq({
-            dsn: 'default-dsn',
-            environment: 'test',
-            enabled: true,
-            path: '/web',
-            profiles_sample_rate: 0.2,
+            'dsn' => 'default-dsn',
+            'environment' => 'test',
+            'enabled' => true,
+            'path' => '/web',
+            'profiles_sample_rate' => 0.2,
           })
         end
       end
@@ -69,7 +70,8 @@ RSpec.describe Onetime::Config do
         it 'handles missing defaults section' do
           config = { api: { timeout: 10 } }
           result = described_class.apply_defaults_to_peers(config)
-          expect(result).to eq({ api: { timeout: 10 } })
+          # Result uses string keys (IndifferentHash stores keys as strings)
+          expect(result).to eq({ 'api' => { 'timeout' => 10 } })
         end
 
         it 'skips non-hash section values' do
@@ -79,7 +81,8 @@ RSpec.describe Onetime::Config do
             web: { port: 3000 },
           }
           result = described_class.apply_defaults_to_peers(config)
-          expect(result.keys).to contain_exactly(:web)
+          # Result keys are strings in IndifferentHash
+          expect(result.keys).to contain_exactly('web')
         end
 
         it 'preserves original defaults' do
@@ -113,8 +116,9 @@ RSpec.describe Onetime::Config do
     it 'merges defaults into sections while preserving overrides' do
       result = described_class.apply_defaults_to_peers(config_with_defaults)
 
-      expect(result[:api]).to eq({ timeout: 10, enabled: true })
-      expect(result[:web]).to eq({ timeout: 5, enabled: true })
+      # Result uses string keys (IndifferentHash stores keys as strings)
+      expect(result[:api]).to eq({ 'timeout' => 10, 'enabled' => true })
+      expect(result[:web]).to eq({ 'timeout' => 5, 'enabled' => true })
     end
 
     it 'handles empty config' do
@@ -142,14 +146,14 @@ RSpec.describe Onetime::Config do
       result = described_class.apply_defaults_to_peers(service_config)
 
       expect(result[:backend]).to eq({
-        dsn: 'backend-dsn',
-        environment: 'test',
+        'dsn' => 'backend-dsn',
+        'environment' => 'test',
       })
 
       expect(result[:frontend]).to eq({
-        dsn: 'default-dsn',
-        environment: 'test',
-        path: '/web',
+        'dsn' => 'default-dsn',
+        'environment' => 'test',
+        'path' => '/web',
       })
     end
 
