@@ -35,16 +35,10 @@ require 'fileutils'
 module Onetime
   class Migration < BaseMigration
     def prepare
-      info('Preparing symbol-to-string key conversion')
       @base_path = BASE_PATH
-      @config_file = File.join(@base_path, 'etc', 'defaults', 'config.defaults.yaml')
+      @config_file = File.join(@base_path, 'etc', 'config.yaml')
       @backup_suffix = Time.now.strftime('%Y%m%d%H%M%S')
-
-      debug ''
-      debug 'Paths:'
-      debug "  Base path: #{@base_path}"
-      debug "  Config file: #{@config_file}"
-      debug ''
+      @findings = []  # Store findings for consolidated output
     end
 
     def migration_needed?
@@ -53,42 +47,40 @@ module Onetime
         return false
       end
 
-      # Check if there are any symbol keys remaining in the file
-      has_symbol_keys?
+      scan_for_symbol_keys
     end
 
     def migrate
-      run_mode_banner
+      # Print consolidated header
+      mode_label = dry_run? ? '(dry-run)' : ''
+      info "Symbol Key Migration #{mode_label}".strip
+      info "File: #{relative_path(@config_file)}"
+      info ''
 
-      unless File.exist?(@config_file)
-        error "Config file not found: #{@config_file}"
-        return false
+      # Show what will change
+      @findings.each do |finding|
+        info "  Line #{finding[:line_num].to_s.rjust(4)}: :#{finding[:key]}: → #{finding[:key]}:"
       end
+      info ''
 
-      info 'Starting symbol-to-string key conversion'
-      info "Config file: #{@config_file}"
-      debug ''
+      # Capture count before validation resets @findings
+      keys_to_convert = @findings.size
 
-      # Step 1: Create backup
-      backup_config
-
-      # Step 2: Convert symbols to strings
+      # Perform migration steps
+      backup_path = backup_config
       convert_symbols_to_strings
-
-      # Step 3: Validate conversion
       success = validate_conversion
 
-      print_summary do
-        if success
-          info ''
-          info 'Symbol-to-string conversion completed successfully'
-          info "Config file: #{@config_file}"
-          info ''
+      # Result line
+      if success
+        if dry_run?
+          info "Would convert #{keys_to_convert} key(s) - no changes made"
         else
-          error ''
-          error 'Conversion failed - check backup file to restore'
-          error ''
+          info "Converted #{keys_to_convert} key(s)"
+          info "Backup: #{relative_path(backup_path)}" if backup_path
         end
+      else
+        error "Conversion failed - restore from backup: #{relative_path(backup_path)}"
       end
 
       success
@@ -96,39 +88,44 @@ module Onetime
 
     private
 
-    def has_symbol_keys?
+    def relative_path(path)
+      path.sub("#{@base_path}/", '')
+    end
+
+    def scan_for_symbol_keys
       content = File.read(@config_file)
+      lines = content.lines
 
       # Check for symbol key patterns:
       # 1. Start of line with optional whitespace, then :key:
       # 2. Array item syntax: - :key:
       symbol_pattern = /^(\s*)(-\s*)?:([a-zA-Z_][a-zA-Z0-9_]*):/
 
-      matches = content.scan(symbol_pattern)
+      lines.each_with_index do |line, idx|
+        next unless line.match?(symbol_pattern)
 
-      if matches.any?
-        info "Found #{matches.size} symbol key(s) to convert"
-        debug "Sample matches: #{matches.first(5).map { |m| ":#{m[2]}:" }.join(', ')}"
-        true
-      else
-        info 'No symbol keys found - config already uses string keys'
-        false
+        match = line.match(symbol_pattern)
+        @findings << {
+          line_num: idx + 1,
+          key: match[3],
+          content: line.chomp
+        }
       end
+
+      @findings.any?
     end
 
     def backup_config
       backup_path = "#{@config_file}.#{@backup_suffix}.bak"
 
-      if File.exist?(backup_path)
-        info "Backup already exists: #{backup_path}"
-        return
-      end
+      return backup_path if File.exist?(backup_path)
 
       for_realsies_this_time? do
         FileUtils.cp(@config_file, backup_path)
         track_stat(:backup_created)
-        info "Created backup: #{backup_path}"
       end
+
+      backup_path
     end
 
     def convert_symbols_to_strings
@@ -137,21 +134,16 @@ module Onetime
         # Pattern handles:
         #   - Top-level and nested: ^(\s*):key: → \1key:
         #   - Array items: ^(\s*)(-\s*):key: → \1\2key:
-        #
-        # Using -i for in-place editing (creates .bak on some systems)
         cmd = <<~SHELL
           perl -i -pe 's/^(\\s*)(-\\s*)?:([a-zA-Z_][a-zA-Z0-9_]*)/\\1\\2\\3/g' '#{@config_file}'
         SHELL
 
-        success = system(cmd)
-
-        unless success
-          error 'Failed to convert symbol keys to strings'
+        unless system(cmd)
+          error 'perl conversion failed'
           return false
         end
 
         track_stat(:symbols_converted)
-        info 'Converted symbol keys to string keys'
         true
       end
     end
@@ -159,21 +151,19 @@ module Onetime
     def validate_conversion
       return true if dry_run?
 
-      info 'Validating conversion...'
-
-      # Check for any remaining symbol keys
-      if has_symbol_keys?
-        error 'Validation failed: symbol keys still present'
+      # Re-scan to check for remaining symbol keys
+      @findings = []
+      if scan_for_symbol_keys
+        error 'Symbol keys still present after conversion'
         return false
       end
 
       # Verify YAML is still valid
       begin
         YAML.safe_load_file(@config_file, permitted_classes: [Symbol])
-        info 'Validation passed: YAML is valid and no symbol keys remain'
         true
       rescue Psych::SyntaxError => e
-        error "Validation failed: YAML syntax error - #{e.message}"
+        error "YAML syntax error: #{e.message}"
         false
       end
     end
