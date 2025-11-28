@@ -36,7 +36,7 @@ module Onetime
         # Store for frontend display (without email)
         public_recipients << {
           hash: hash_key,
-          name: name
+          name: name,
         }
 
         OT.info "[IncomingSecrets] Registered recipient: #{name} (#{OT::Utils.obscure_email(email)})"

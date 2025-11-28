@@ -45,8 +45,8 @@ module Onetime
                 numbers: true,
                 symbols: false,
                 exclude_ambiguous: true,
-              }
-            }
+              },
+            },
           },
           interface: {
             ui: { enabled: true },
@@ -86,7 +86,7 @@ module Onetime
           incoming: {
             enabled: false,
             memo_max_length: 50,
-            default_ttl: 604800,
+            default_ttl: 604_800,
             default_passphrase: nil,
             recipients: [],
           },

@@ -24,6 +24,7 @@ require 'forwardable'
 module V2
   class RateLimit < Familia::Horreum
     extend Forwardable
+
     @events = {}
 
     # Default limit for events that haven't been explicitly configured

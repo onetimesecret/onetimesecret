@@ -180,7 +180,7 @@ module Onetime
         [['Status', 'disabled']]
       else
         [
-          ['Mail Settings', mail_config.map { |k,v| "#{k}=#{v}" }.join(', ')]
+          ['Mail Settings', mail_config.map { |k,v| "#{k}=#{v}" }.join(', ')],
         ]
       end
     end

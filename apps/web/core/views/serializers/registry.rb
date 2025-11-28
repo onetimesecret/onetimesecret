@@ -24,6 +24,7 @@ module Core
   module Views
     class SerializerRegistry
       extend TSort
+
       @serializers = []
       @dependencies = {}
 

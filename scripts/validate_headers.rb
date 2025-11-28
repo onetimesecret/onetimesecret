@@ -79,11 +79,11 @@ class HeaderValidator
         if full_path.directory?
           # Path is a directory - search within it
           Dir.glob(File.join(path, '**/*.{rb,ts,vue}'), base: REPO_ROOT)
-             .select { |f| File.fnmatch?(pattern, f, File::FNM_PATHNAME) }
+            .select { |f| File.fnmatch?(pattern, f, File::FNM_PATHNAME) }
         else
           # Path is a glob or file pattern
           Dir.glob(path, base: REPO_ROOT)
-             .select { |f| File.fnmatch?(pattern, f, File::FNM_PATHNAME) }
+            .select { |f| File.fnmatch?(pattern, f, File::FNM_PATHNAME) }
         end
       end.uniq
     end

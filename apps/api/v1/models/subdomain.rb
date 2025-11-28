@@ -134,7 +134,7 @@ module V1
       end
 
       def normalize_cname cname
-        cname.to_s.downcase.gsub(/[^a-z0-9\_]/, '')
+        cname.to_s.downcase.gsub(/[^a-z0-9_]/, '')
       end
     end
 

@@ -109,7 +109,7 @@ module Onetime
         @findings << {
           line_num: idx + 1,
           key: match[3],
-          content: line.chomp
+          content: line.chomp,
         }
       end
 

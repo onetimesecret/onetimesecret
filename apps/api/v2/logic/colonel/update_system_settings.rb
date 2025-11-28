@@ -86,7 +86,7 @@ module V2
           # Return the record and the sections that were provided
           {
             record: @record&.safe_dump || {},
-            details: build_update_fields
+            details: build_update_fields,
           }
         end
 
