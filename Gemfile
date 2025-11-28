@@ -26,6 +26,7 @@ gem 'otto', '~> 1.1.0.pre.alpha4'
 gem 'rack', '>= 2.2.12', '< 3.0'
 gem 'rack-contrib', '~> 2.5'
 gem 'rack-protection', '~> 3.2'
+gem 'rack-proxy'
 gem 'rack-utf8_sanitizer', '~> 1.10.1'
 gem 'thin'
 
