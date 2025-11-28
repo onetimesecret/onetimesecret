@@ -20,20 +20,17 @@ source 'https://rubygems.org/'
 # ====================================
 
 gem 'altcha', '~> 0.2.1'
-
+gem 'drydock'
+gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha4'
-
 gem 'rack', '>= 2.2.12', '< 3.0'
 gem 'rack-contrib', '~> 2.5'
 gem 'rack-protection', '~> 3.2'
 gem 'rack-proxy'
 gem 'rack-utf8_sanitizer', '~> 1.10.1'
-gem 'thin'
-
-gem 'drydock'
-gem 'gibbler'
 gem 'storable'
 gem 'sysinfo'
+gem 'thin'
 gem 'tty-table', '~> 0.12.0'
 
 # ====================================
@@ -45,10 +42,10 @@ gem 'dotenv'
 gem "fastimage", "~> 2.4"
 gem 'httparty'
 gem 'mail'
-gem 'mustache'
 gem 'multi_json'
-gem 'public_suffix'
+gem 'mustache'
 gem 'net-imap', '~> 0.5.7'
+gem 'public_suffix'
 gem 'truemail'
 
 # ====================================
@@ -77,8 +74,8 @@ gem 'irb'
 gem 'logger'
 gem 'psych', '~> 5.2.3'
 gem 'rdoc'
-gem 'stringio', '~> 3.1.6'
 gem 'reline'
+gem 'stringio', '~> 3.1.6'
 
 # ====================================
 # Third-Party Service Integrations
