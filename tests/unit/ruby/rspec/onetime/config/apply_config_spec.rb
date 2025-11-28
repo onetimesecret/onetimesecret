@@ -168,7 +168,8 @@ RSpec.describe Onetime::Config do
         expect(OT).to receive(:replace_config!) do |merged_config|
           # nil values in override should preserve original values
           expect(merged_config[:site][:interface][:ui][:enabled]).to eq(true)
-          expect(merged_config[:mail]).to eq(original_config[:mail])
+          # IndifferentHash returns values via indifferent access
+          expect(merged_config[:mail][:truemail][:verifier_email]).to eq(original_config[:mail][:truemail][:verifier_email])
         end
 
         described_class.apply_config(override_with_nils)
