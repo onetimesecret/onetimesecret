@@ -26,6 +26,7 @@ require_relative './support/mail_context'
 require_relative './support/rack_context'
 require_relative './support/view_context'
 require_relative './support/model_test_helper'
+require_relative './support/migration_context'
 
 begin
   require 'onetime'
