@@ -261,8 +261,6 @@ GEM
     sysinfo (0.10.0)
       drydock (< 1.0)
       storable (~> 0.10)
-    syslog (0.3.0)
-      logger
     thin (1.8.2)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
@@ -363,7 +361,6 @@ DEPENDENCIES
   stripe
   syntax_tree
   sysinfo
-  syslog
   thin
   timecop (~> 0.9)
   truemail

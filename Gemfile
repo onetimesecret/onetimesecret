@@ -88,7 +88,6 @@ gem 'sendgrid-ruby', require: false
 gem 'sentry-ruby', require: false
 gem 'stackprof', require: false
 gem 'stripe', require: false
-gem 'syslog'
 
 # ====================================
 # Development & Testing Dependencies
