@@ -11,6 +11,7 @@ on:
       - feature/*
       - rel/*
       - develop
+      - main
   workflow_dispatch:
     inputs:
       debug_enabled:
