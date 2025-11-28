@@ -165,6 +165,7 @@
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-tailwindcss": "4.0.0-beta.0",
     "eslint-plugin-vue": "10.5.1",
+    "git-json-merge": "^1.0.0",
     "globals": "16.2.0",
     "happy-dom": "20.0.2",
     "jiti": "2.4.2",

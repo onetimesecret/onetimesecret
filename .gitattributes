@@ -1,0 +1,11 @@
+# Semantic 3-way merge for locale JSON files
+# Automatically resolves non-conflicting changes (different keys on each branch)
+# Falls back to standard conflict markers for same-key modifications
+#
+# Setup required (one-time per developer):
+#   git config merge.json.driver "npx git-json-merge %A %O %B"
+#   git config merge.json.name "Custom 3-way merge driver for JSON files"
+#
+# See CONTRIBUTING.md for details
+
+src/locales/**/*.json merge=json
