@@ -44,6 +44,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
+        if: ${{ inputs.debug_enabled }}
+        with:
+          detached: true
+
       # Generate .commit_hash.txt in the build context. This guarantees the file
       # is created before the build context is submitted.
       - name: Generate commit hash

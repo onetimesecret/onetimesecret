@@ -36,6 +36,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        with:
+          detached: true
+
       - uses: nrkno/yaml-schema-validator-github-action@32c469c6568f476abfaafb5ea5acf8b8a41b29a9 # v4
         continue-on-error: false
         with:
