@@ -6,6 +6,10 @@
 
 # Validates that all Ruby, TypeScript, and Vue files have correct header format
 #
+# Update: 2025-11-27 - Added support for executable Ruby files with shebangs.
+#         Executables now validate a 6-line header (shebang, blank, path, #,
+#         frozen_string_literal, blank) instead of being skipped entirely.
+#
 # Usage:
 #   ruby scripts/validate_headers.rb
 #   ruby scripts/validate_headers.rb --fix
@@ -15,16 +19,27 @@
 #
 # Expected header formats:
 #
-# Ruby files:
+# Ruby files (non-executable):
 #   # path/to/file.rb
 #   #
 #   # frozen_string_literal: true
+#   (blank)
+#
+# Ruby executables (with shebang):
+#   #!/usr/bin/env ruby (or similar)
+#   (blank)
+#   # path/to/file.rb
+#   #
+#   # frozen_string_literal: true
+#   (blank)
 #
 # TypeScript files:
 #   // path/to/file.ts
+#   (blank)
 #
 # Vue files:
 #   <!-- path/to/file.vue -->
+#   (blank)
 #
 
 require 'pathname'
@@ -120,10 +135,18 @@ class HeaderValidator
     lines = File.readlines(full_path)
     return if lines.empty?
 
-    # Skip files with shebangs
-    return if lines[0].start_with?('#!')
+    # Check if file has a shebang (executable)
+    has_shebang = lines[0]&.start_with?('#!')
 
-    # Expected header:
+    if has_shebang
+      validate_ruby_executable_header(full_path, relative_path, lines)
+    else
+      validate_ruby_standard_header(full_path, relative_path, lines)
+    end
+  end
+
+  def validate_ruby_standard_header(full_path, relative_path, lines)
+    # Expected header for non-executables:
     # Line 1: # path/to/file.rb
     # Line 2: #
     # Line 3: # frozen_string_literal: true
@@ -153,16 +176,63 @@ class HeaderValidator
 
     if errors.any?
       if @fix
-        fix_ruby_header(full_path, relative_path, lines)
+        fix_ruby_standard_header(full_path, relative_path, lines)
       else
         @errors << { file: relative_path, issues: errors }
       end
     end
   end
 
-  def fix_ruby_header(full_path, relative_path, lines)
+  def validate_ruby_executable_header(full_path, relative_path, lines)
+    # Expected header for executables:
+    # Line 1: #!/usr/bin/env ruby (or similar shebang)
+    # Line 2: (blank)
+    # Line 3: # path/to/file.rb
+    # Line 4: #
+    # Line 5: # frozen_string_literal: true
+    # Line 6: (blank)
+
+    errors = []
+
+    # Line 1 is shebang (already verified by caller)
+
+    # Check line 2: blank line after shebang
+    unless lines[1]&.strip == ''
+      errors << "Line 2: Expected blank line after shebang, got: #{lines[1]&.strip.inspect}"
+    end
+
+    # Check line 3: filename comment
+    unless lines[2]&.strip == "# #{relative_path}"
+      errors << "Line 3: Expected '# #{relative_path}', got: #{lines[2]&.strip.inspect}"
+    end
+
+    # Check line 4: empty comment
+    unless lines[3]&.strip == '#'
+      errors << "Line 4: Expected '#', got: #{lines[3]&.strip.inspect}"
+    end
+
+    # Check line 5: frozen pragma
+    unless lines[4]&.strip == '# frozen_string_literal: true'
+      errors << "Line 5: Expected '# frozen_string_literal: true', got: #{lines[4]&.strip.inspect}"
+    end
+
+    # Check line 6: blank line
+    unless lines[5]&.strip == ''
+      errors << "Line 6: Expected blank line, got: #{lines[5]&.strip.inspect}"
+    end
+
+    if errors.any?
+      if @fix
+        fix_ruby_executable_header(full_path, relative_path, lines)
+      else
+        @errors << { file: relative_path, issues: errors }
+      end
+    end
+  end
+
+  def fix_ruby_standard_header(full_path, relative_path, lines)
     # Find where original content starts (skip existing header attempts)
-    content_start = find_ruby_content_start(lines)
+    content_start = find_ruby_content_start(lines, has_shebang: false)
     content = lines[content_start..].join
 
     new_header = "# #{relative_path}\n#\n# frozen_string_literal: true\n\n"
@@ -170,15 +240,30 @@ class HeaderValidator
     @fixed << relative_path
   end
 
-  def find_ruby_content_start(lines)
+  def fix_ruby_executable_header(full_path, relative_path, lines)
+    # Preserve the shebang line
+    shebang = lines[0]
+
+    # Find where original content starts (skip existing header attempts after shebang)
+    content_start = find_ruby_content_start(lines, has_shebang: true)
+    content = lines[content_start..].join
+
+    new_header = "#{shebang}\n# #{relative_path}\n#\n# frozen_string_literal: true\n\n"
+    File.write(full_path, new_header + content)
+    @fixed << relative_path
+  end
+
+  def find_ruby_content_start(lines, has_shebang: false)
     # Skip lines that look like header comments or frozen_string_literal
-    idx = 0
+    idx = has_shebang ? 1 : 0  # Start after shebang if present
+    max_header_lines = has_shebang ? 6 : 4
+
     while idx < lines.length
       line = lines[idx].strip
       break unless line.empty? ||
                    line == '#' ||
                    line.start_with?('# frozen_string_literal') ||
-                   (line.start_with?('#') && !line.start_with?('##') && idx < 4)
+                   (line.start_with?('#') && !line.start_with?('##') && idx < max_header_lines)
 
       idx += 1
     end
