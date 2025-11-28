@@ -4,21 +4,20 @@ import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
- * Zod schema for SecretOptions
+ * Public API Secret Options Schema
+ *
+ * This schema is for parsing public settings API responses where values may
+ * be stringified from environment variables. Uses transforms.fromString.*
+ * for automatic string-to-type coercion.
+ *
+ * NOTE: This is distinct from config/section/secret_options.ts which validates
+ * backend YAML configuration structure.
  *
  * @example Validate and parse the data
- *    const parsedSecretOptions: SecretOptions = secretOptionsSchema.parse(receivedSecretOptions);
- *    const parsedAuthSettings: Authentication = authenticationSchema.parse(receivedAuthSettings);
- *
- *    console.log(parsedSecretOptions);
- *       Output:
- *       {
- *         default_ttl: 604800,
- *         ttl_options: [600, 1800, 3600]
- *       }
+ *    const parsedSecretOptions: SecretOptions = publicSecretOptionsSchema.parse(receivedSecretOptions);
  *
  */
-export const secretOptionsSchema = z.object({
+export const publicSecretOptionsSchema = z.object({
   /**
    * Default Time-To-Live (TTL) for secrets in seconds
    * Default: 604800 (7 days in seconds)
@@ -102,12 +101,18 @@ export const secretOptionsSchema = z.object({
 /**
  * Inferred TypeScript type for SecretOptions
  */
-export type SecretOptions = z.infer<typeof secretOptionsSchema>;
+export type SecretOptions = z.infer<typeof publicSecretOptionsSchema>;
 
 /**
- * Zod schema for Authentication
+ * Public API Authentication Schema
+ *
+ * This schema is for parsing public settings API responses where boolean
+ * values may be stringified. Uses transforms.fromString.boolean for coercion.
+ *
+ * NOTE: This is distinct from config/section/site.ts:siteAuthenticationSchema
+ * which validates backend YAML configuration structure.
  */
-export const authenticationSchema = z.object({
+export const publicAuthenticationSchema = z.object({
   /**
    * Flag to enable or disable authentication
    */
@@ -137,7 +142,7 @@ export const authenticationSchema = z.object({
 /**
  * Inferred TypeScript type for Authentication
  */
-export type AuthenticationSettings = z.infer<typeof authenticationSchema>;
+export type AuthenticationSettings = z.infer<typeof publicAuthenticationSchema>;
 
 /**
  * Schema for the :jurisdiction section
@@ -199,9 +204,15 @@ const supportSchema = z.object({
 });
 
 /**
- * Schema for features configuration
+ * Public API Features Schema
+ *
+ * This schema is for parsing public settings API responses for feature flags.
+ * Uses transforms.fromString.boolean for stringified boolean coercion.
+ *
+ * NOTE: This is distinct from config/section/features.ts:featuresSchema
+ * which validates backend YAML configuration structure.
  */
-export const featuresSchema = z.object({
+export const publicFeaturesSchema = z.object({
   regions: regionsSchema,
   domains: domainsSchema,
 });
@@ -213,11 +224,11 @@ export const publicSettingsSchema = z
   .object({
     host: z.string(),
     ssl: transforms.fromString.boolean,
-    authentication: authenticationSchema,
+    authentication: publicAuthenticationSchema,
     // secret: z.string(),
     authenticity: authenticitySchema,
     support: supportSchema,
-    secret_options: secretOptionsSchema,
+    secret_options: publicSecretOptionsSchema,
   })
   .strict();
 
@@ -229,4 +240,4 @@ export type PublicSettings = z.infer<typeof publicSettingsSchema>;
 /**
  * Inferred TypeScript type for Features
  */
-export type Features = z.infer<typeof featuresSchema>;
+export type Features = z.infer<typeof publicFeaturesSchema>;
