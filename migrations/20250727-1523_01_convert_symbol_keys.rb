@@ -11,8 +11,9 @@
 # comments, and formatting.
 #
 # Usage:
-#   ruby migrations/20250727-1523_01_convert_symbol_keys.rb --dry-run  # Preview
-#   ruby migrations/20250727-1523_01_convert_symbol_keys.rb --run      # Execute
+#   ruby migrations/20250727-1523_01_convert_symbol_keys.rb --dry-run  # Preview changes
+#   ruby migrations/20250727-1523_01_convert_symbol_keys.rb --run      # Execute migration
+#   ruby migrations/20250727-1523_01_convert_symbol_keys.rb --check    # Exit 1 if needed, 0 if not
 #
 # What it does:
 #   1. Creates a timestamped backup of etc/config.yaml
@@ -173,5 +174,5 @@ end
 # Run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.run(run: ARGV.include?('--run')) ? 0 : 1)
+  exit(Onetime::Migration.cli_run)
 end

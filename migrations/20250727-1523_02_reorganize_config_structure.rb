@@ -12,8 +12,9 @@
 # Install with: brew install yq (macOS) or apt install yq (Ubuntu)
 #
 # Usage:
-#   ruby migrations/20250727-1523_02_reorganize_config_structure.rb --dry-run
-#   ruby migrations/20250727-1523_02_reorganize_config_structure.rb --run
+#   ruby migrations/20250727-1523_02_reorganize_config_structure.rb --dry-run  # Preview changes
+#   ruby migrations/20250727-1523_02_reorganize_config_structure.rb --run      # Execute migration
+#   ruby migrations/20250727-1523_02_reorganize_config_structure.rb --check    # Exit 1 if needed, 0 if not
 #
 # What it does:
 #   1. Creates a timestamped backup of etc/config.yaml
@@ -273,5 +274,5 @@ end
 # Run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.run(run: ARGV.include?('--run')) ? 0 : 1)
+  exit(Onetime::Migration.cli_run)
 end
