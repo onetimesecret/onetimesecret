@@ -242,13 +242,13 @@ GEM
     timeout (0.4.4)
     truemail (3.3.1)
       simpleidn (~> 0.2.1)
-    tryouts (3.6.0)
-      concurrent-ruby (~> 1.0)
+    tryouts (3.7.1)
+      concurrent-ruby (~> 1.0, < 2)
       irb
       minitest (~> 5.0)
       pastel (~> 0.8)
       prism (~> 1.0)
-      rspec (~> 3.0)
+      rspec (>= 3.0, < 5.0)
       tty-cursor (~> 0.7)
       tty-screen (~> 0.8)
     tty-color (0.6.0)
@@ -328,7 +328,7 @@ DEPENDENCIES
   syslog (~> 0.3.0)
   thin
   truemail
-  tryouts (~> 3.6)
+  tryouts (~> 3.7.1)
   tty-table (~> 0.12.0)
   uri-redis (~> 1.4.0)
 
