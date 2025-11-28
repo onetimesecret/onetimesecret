@@ -88,19 +88,29 @@ module V2::Logic
       # @param email [String] The email address to validate
       # @return [Boolean] true if domain is allowed or no restrictions configured
       def allowed_signup_domain?(email)
-        allowed_domains = OT.conf.dig(:site, :authentication, :allowed_signup_domains)
+        allowed_domains = OT.conf.dig(:site, :authentication, :allowed_signup_domains) || []
 
-        # If no restrictions are configured, allow all domains
-        return true if allowed_domains.nil? || allowed_domains.empty?
+        # Filter out nil, empty strings, and whitespace-only strings
+        # Convert to lowercase for case-insensitive comparison
+        valid_domains = allowed_domains
+          .compact
+          .map { |d| d.to_s.strip.downcase }
+          .reject(&:empty?)
 
-        # Extract domain from email address
-        email_domain = email.to_s.downcase.split('@').last
-        return false if email_domain.nil? || email_domain.empty?
+        # If no valid restrictions are configured, allow all domains
+        return true if valid_domains.empty?
+
+        # Extract and validate domain from email address
+        email_parts = email.to_s.strip.split('@')
+        return false if email_parts.length != 2
+
+        email_domain = email_parts.last.strip.downcase
+        return false if email_domain.empty?
 
         # Check if the email domain is in the allowed list
-        # Convert all domains to lowercase for case-insensitive comparison
-        allowed_domains.map(&:downcase).include?(email_domain)
+        valid_domains.include?(email_domain)
       end
+
 
       def form_fields
         { :planid => planid, :custid => custid }

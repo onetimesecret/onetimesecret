@@ -204,7 +204,7 @@ site:
     # out to allow sign-ups from any domain.
     # Example: Add more lines for additional domains
     allowed_signup_domains:
-      - <%= ENV['ALLOWED_SIGNUP_DOMAIN'] || nil %>
+      - <%= ENV['ALLOWED_SIGNUP_DOMAIN'] %>
   # A captcha-like feature that protects the feedback form
   # from bots and other tomfoolery.
   authenticity:
