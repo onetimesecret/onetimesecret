@@ -78,9 +78,9 @@ else
   >&2 echo "INFO: Skipping bundle install. Use BUNDLE_INSTALL=true to run it."
 fi
 
-# Config migration check (for upgrades from v0.22 or earlier)
-# See bin/check-config-migration.sh for details
-bin/check-config-migration.sh etc/config.yaml
+# Migration check (for upgrades from v0.22 or earlier)
+# See bin/check-migration-status.sh for details
+bin/check-migration-status.sh
 
 if [ -d "/mnt/public" ]; then
   # By default the static web assets are available at /mnt/public/web

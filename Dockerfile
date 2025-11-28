@@ -193,7 +193,7 @@ COPY apps $CODE_ROOT/apps
 COPY etc $CODE_ROOT/etc
 COPY lib $CODE_ROOT/lib
 COPY scripts/entrypoint.sh ./bin/
-COPY scripts/check-config-migration.sh ./bin/
+COPY scripts/check-migration-status.sh ./bin/
 COPY scripts/update-version.sh ./bin/
 COPY migrations $CODE_ROOT/migrations
 COPY package.json config.ru Gemfile Gemfile.lock $CODE_ROOT/
@@ -228,7 +228,7 @@ WORKDIR $CODE_ROOT
 # those changes from being overwritten.
 RUN set -eux && \
     cp --preserve --no-clobber etc/defaults/config.defaults.yaml etc/config.yaml && \
-    chmod +x bin/entrypoint.sh bin/check-config-migration.sh
+    chmod +x bin/entrypoint.sh bin/check-migration-status.sh
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:
