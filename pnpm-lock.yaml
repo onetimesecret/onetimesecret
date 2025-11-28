@@ -192,6 +192,9 @@ importers:
       eslint-plugin-vue:
         specifier: 10.4.0
         version: 10.4.0(@typescript-eslint/parser@8.32.1(eslint@9.35.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.35.0(jiti@2.4.2))(vue-eslint-parser@10.2.0(eslint@9.35.0(jiti@2.4.2)))
+      git-json-merge:
+        specifier: ^1.0.0
+        version: 1.0.0
       globals:
         specifier: 16.1.0
         version: 16.1.0
@@ -1595,6 +1598,9 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
+  adiff@0.2.13:
+    resolution: {integrity: sha512-EeKiARTSOy/Tah9RXE83g/PmW1gLQdRKTYiX6c1+OWjzWaJPqbECKvSVB1kejSPQSYJJah0JhuTUsU3CerEH6Q==}
+
   agent-base@6.0.2:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
     engines: {node: '>= 6.0.0'}
@@ -1939,6 +1945,10 @@ packages:
   delayed-stream@1.0.0:
     resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
     engines: {node: '>=0.4.0'}
+
+  detect-indent@6.1.0:
+    resolution: {integrity: sha512-reYkTUJAZb9gUuZ2RvVCNhVHdg62RHnJ7WJl8ftMi4diZ6NWlciOzQN88pUhSELEwflJht4oQDv0F0BMlwaYtA==}
+    engines: {node: '>=8'}
 
   didyoumean@1.2.2:
     resolution: {integrity: sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw==}
@@ -2350,6 +2360,11 @@ packages:
 
   get-tsconfig@4.10.0:
     resolution: {integrity: sha512-kGzZ3LWWQcGIAmg6iWvXn0ei6WDtV26wzHRMwDSzmAbcXrTEXxHy6IehI6/4eT6VRKyMP1eF1VqwrVUmE/LR7A==}
+
+  git-json-merge@1.0.0:
+    resolution: {integrity: sha512-bugFzAfvFMrFEEEMWGXVCyJxRNcWICyziOCMIbAJjQmvlLDNaiLxtxy0W1H4aFyLIHU4KBWpqNAhtnZibl7g9g==}
+    engines: {node: '>=6'}
+    hasBin: true
 
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
@@ -3959,6 +3974,9 @@ packages:
       utf-8-validate:
         optional: true
 
+  xdiff@0.2.11:
+    resolution: {integrity: sha512-724yjHkwZyON3AqfmlEDLKPHJS0y3kxK8/oHtMu3qfDrESAGymv1QiKk5htK49fSMirRZmeAg2ocudWsiVvr8g==}
+
   xml-name-validator@4.0.0:
     resolution: {integrity: sha512-ICP2e+jsHvAj2E2lIHxa5tjXRlKDJo4IdvPvCXbXQGdzSfmSpNVyIKMvoZHjDY9DP0zV17iI85o90vRFXNccRw==}
     engines: {node: '>=12'}
@@ -5276,6 +5294,8 @@ snapshots:
 
   acorn@8.15.0: {}
 
+  adiff@0.2.13: {}
+
   agent-base@6.0.2:
     dependencies:
       debug: 4.4.0
@@ -5645,6 +5665,8 @@ snapshots:
       object-keys: 1.1.1
 
   delayed-stream@1.0.0: {}
+
+  detect-indent@6.1.0: {}
 
   didyoumean@1.2.2: {}
 
@@ -6189,6 +6211,11 @@ snapshots:
   get-tsconfig@4.10.0:
     dependencies:
       resolve-pkg-maps: 1.0.0
+
+  git-json-merge@1.0.0:
+    dependencies:
+      detect-indent: 6.1.0
+      xdiff: 0.2.11
 
   glob-parent@5.1.2:
     dependencies:
@@ -7905,6 +7932,10 @@ snapshots:
       strip-ansi: 7.1.0
 
   ws@8.18.1: {}
+
+  xdiff@0.2.11:
+    dependencies:
+      adiff: 0.2.13
 
   xml-name-validator@4.0.0: {}
 

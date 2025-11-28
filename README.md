@@ -165,6 +165,19 @@ pnpm run dev
 For complete setup with dependencies:
 [Docker Compose repo](https://github.com/onetimesecret/docker-compose/)
 
+### Git JSON Merge Driver (Recommended)
+
+This repository uses a custom merge driver for locale JSON files to automatically resolve conflicts:
+
+1. Install dependencies: `pnpm install`
+2. Configure Git (one-time setup):
+   ```bash
+   git config merge.json.driver "npx git-json-merge %A %O %B"
+   git config merge.json.name "Custom 3-way merge driver for JSON files"
+   ```
+
+The driver automatically resolves conflicts when multiple branches modify different keys in the same locale file. If a conflict cannot be resolved automatically (e.g., same key modified on both sides), Git falls back to standard conflict markers.
+
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/onetimesecret/onetimesecret/issues)
