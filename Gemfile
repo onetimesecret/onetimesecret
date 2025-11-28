@@ -114,7 +114,7 @@ group :development do
 end
 
 group :test do
-  # Note: FakeRedis removed due to redis 5.x incompatibility
+  # NOTE: FakeRedis removed due to redis 5.x incompatibility
   # See spec_helper.rb for details about mock_redis as future alternative
   gem 'climate_control'
   gem 'ostruct'   # OpenStruct library for creating data objects (required by json)

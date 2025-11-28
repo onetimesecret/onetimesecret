@@ -32,7 +32,7 @@ module V2::Logic
       def success_data
         {
           recipient: recipient_hash,
-          valid: is_valid
+          valid: is_valid,
         }
       end
     end

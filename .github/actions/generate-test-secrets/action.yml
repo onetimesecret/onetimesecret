@@ -1,0 +1,48 @@
+name: Generate Test Secrets
+description: |
+  Generate random secrets for testing and CI environments.
+  Creates three distinct secrets exported to GITHUB_ENV:
+  - SESSION_SECRET: For session management
+  - HMAC_SECRET: For HMAC operations
+  - SECRET: General purpose secret
+
+  ⚠️  TESTING ONLY: These secrets are ephemeral, generated fresh for each CI run,
+  used only with test data, and discarded when the job completes. They are logged
+  in plaintext for debugging purposes. DO NOT use this action for production secrets.
+
+runs:
+  using: composite
+  steps:
+    - name: Generate ephemeral test secrets
+      shell: bash
+      run: |
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "⚠️  Generating ephemeral secrets for testing purposes only"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+        # Generate unique random secrets
+        SESSION_SECRET=$(openssl rand -hex 32)
+        HMAC_SECRET=$(openssl rand -hex 32)
+        SECRET=$(openssl rand -hex 32)
+
+        # Export to GITHUB_ENV for subsequent steps
+        echo "SESSION_SECRET=${SESSION_SECRET}" >> $GITHUB_ENV
+        echo "HMAC_SECRET=${HMAC_SECRET}" >> $GITHUB_ENV
+        echo "SECRET=${SECRET}" >> $GITHUB_ENV
+
+        # Log secrets for debugging (safe because these are ephemeral test secrets)
+        echo ""
+        echo "SESSION_SECRET=${SESSION_SECRET}"
+        echo "HMAC_SECRET=${HMAC_SECRET}"
+        echo "SECRET=${SECRET}"
+        echo ""
+
+        # Verify all secrets are different
+        if [ "$SESSION_SECRET" != "$HMAC_SECRET" ] && [ "$SESSION_SECRET" != "$SECRET" ] && [ "$HMAC_SECRET" != "$SECRET" ]; then
+          echo "✅ All secrets are unique"
+        else
+          echo "❌ ERROR: Secrets are not unique!"
+          exit 1
+        fi
+
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

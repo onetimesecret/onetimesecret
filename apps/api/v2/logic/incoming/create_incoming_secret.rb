@@ -54,7 +54,7 @@ module V2::Logic
           raise_form_error "Invalid recipient"
         end
 
-        unless recipient_email.to_s.match?(/\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i)
+        unless recipient_email.to_s.match?(/\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i)
           OT.le "[IncomingSecret] Lookup returned invalid email for hash: #{@recipient_hash}"
           raise_form_error "Invalid recipient configuration"
         end

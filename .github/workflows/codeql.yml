@@ -27,6 +27,7 @@ on:
   # This ensures code reviews before deployment, enhancing security
   pull_request:
     branches:
+      - main
       - develop
       - 'rel/*'
       - 'feature/*'

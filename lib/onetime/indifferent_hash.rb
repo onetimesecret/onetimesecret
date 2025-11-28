@@ -55,8 +55,8 @@ module Onetime
       nil
     end
 
-    def fetch(key, *args, &block)
-      super(convert_key(key), *args, &block)
+    def fetch(key, ...)
+      super(convert_key(key), ...)
     end
 
     def key?(key)
@@ -66,16 +66,16 @@ module Onetime
     alias include? key?
     alias member? key?
 
-    def delete(key, &block)
-      super(convert_key(key), &block)
+    def delete(key, &)
+      super(convert_key(key), &)
     end
 
     def values_at(*keys)
       keys.map { |key| self[key] }
     end
 
-    def merge(other, &block)
-      dup.merge!(other, &block)
+    def merge(other, &)
+      dup.merge!(other, &)
     end
 
     def merge!(other, &block)

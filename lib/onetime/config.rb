@@ -45,8 +45,8 @@ module Onetime
                 numbers: true,
                 symbols: false,
                 exclude_ambiguous: true,
-              }
-            }
+              },
+            },
           },
           interface: {
             ui: { enabled: true },
@@ -86,7 +86,7 @@ module Onetime
           incoming: {
             enabled: false,
             memo_max_length: 50,
-            default_ttl: 604800,
+            default_ttl: 604_800,
             default_passphrase: nil,
             recipients: [],
           },
@@ -105,6 +105,11 @@ module Onetime
       # In v0.20.6, REGIONS_ENABLE was renamed to REGIONS_ENABLED for
       # consistency. We ensure both are considered for compatability.
       ENV['REGIONS_ENABLED'] = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first || 'false'
+
+      # Normalize VALKEY_URL to REDIS_URL for compatibility. The config
+      # template uses REDIS_URL, but some environments set VALKEY_URL.
+      # REDIS_URL takes precedence if both are set.
+      ENV['REDIS_URL'] ||= ENV['VALKEY_URL'] if ENV['VALKEY_URL']
     end
 
     # Load a YAML configuration file, allowing for ERB templating within the file.

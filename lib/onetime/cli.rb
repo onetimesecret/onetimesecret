@@ -153,7 +153,7 @@ module Onetime
       return unless domains_to_process
 
       total = domains_to_process.size
-      puts "Processing #{total} domain#{total == 1 ? '' : 's'}"
+      puts "Processing #{total} domain#{'s' unless total == 1}"
 
       process_domains_in_batches(domains_to_process)
 

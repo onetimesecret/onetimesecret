@@ -45,7 +45,7 @@ module Onetime
       rescue Redis::BaseError => ex
         OT.ld "[init] Detect legacy data: Could not set completion marker: #{ex.message}"
       end
-      end
+    end
 
     # Detects legacy data distribution across multiple Redis databases
     # and warns about potential data loss when upgrading to db 0 defaults

@@ -8,7 +8,7 @@ module Onetime
       limit = option.limit || 10
       email_filter = argv.first
 
-      puts "Viewing recent email change reports#{email_filter ? " for #{email_filter}" : ""} (limit: #{limit})"
+      puts "Viewing recent email change reports#{" for #{email_filter}" if email_filter} (limit: #{limit})"
       puts "=" * 50
 
       # Connect to Redis DB 0 where audit logs are stored
@@ -19,7 +19,7 @@ module Onetime
       keys = redis.keys(pattern).sort_by { |k| k.split(':').last.to_i }.reverse.first(limit.to_i)
 
       if keys.empty?
-        puts "No email change reports found#{email_filter ? " for #{email_filter}" : ""}."
+        puts "No email change reports found#{" for #{email_filter}" if email_filter}."
         return
       end
 
@@ -31,16 +31,15 @@ module Onetime
 
         puts "#{idx+1}. #{old_email} → #{new_email} (#{timestamp.strftime('%Y-%m-%d %H:%M:%S')})"
 
-        if option.verbose
-          # Show full report in verbose mode
-          report = redis.get(key)
-          if report
-            puts "-" * 40
-            puts report
-            puts "-" * 40
-          else
-            puts "  Report data not available"
-          end
+        next unless option.verbose
+        # Show full report in verbose mode
+        report = redis.get(key)
+        if report
+          puts "-" * 40
+          puts report
+          puts "-" * 40
+        else
+          puts "  Report data not available"
         end
       end
 
@@ -87,7 +86,11 @@ module Onetime
       domains = []
 
       # Load customer to check if exists
-      customer = V2::Customer.load(old_email) rescue nil
+      customer = begin
+                   V2::Customer.load(old_email)
+      rescue
+                   nil
+      end
       if customer.nil?
         puts "Error: Customer with email #{old_email} not found"
         exit 1
