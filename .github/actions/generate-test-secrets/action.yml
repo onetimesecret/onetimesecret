@@ -1,41 +1,48 @@
-# .github/actions/generate-test-secrets/action.yml
-#
-# Generates random secrets for container testing
-#
-name: 'Generate Test Secrets'
-description: 'Generates random secrets for OCI container test runs'
+name: Generate Test Secrets
+description: |
+  Generate random secrets for testing and CI environments.
+  Creates three distinct secrets exported to GITHUB_ENV:
+  - SESSION_SECRET: For session management
+  - HMAC_SECRET: For HMAC operations
+  - SECRET: General purpose secret
 
-outputs:
-  session_secret:
-    description: 'Random session secret'
-    value: ${{ steps.generate.outputs.session_secret }}
-  hmac_secret:
-    description: 'Random HMAC secret'
-    value: ${{ steps.generate.outputs.hmac_secret }}
-  secret:
-    description: 'Random secret'
-    value: ${{ steps.generate.outputs.secret }}
+  ⚠️  TESTING ONLY: These secrets are ephemeral, generated fresh for each CI run,
+  used only with test data, and discarded when the job completes. They are logged
+  in plaintext for debugging purposes. DO NOT use this action for production secrets.
 
 runs:
-  using: 'composite'
+  using: composite
   steps:
-    - name: Generate random secrets
-      id: generate
+    - name: Generate ephemeral test secrets
       shell: bash
       run: |
-        # Generate cryptographically secure random secrets
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "⚠️  Generating ephemeral secrets for testing purposes only"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+        # Generate unique random secrets
         SESSION_SECRET=$(openssl rand -hex 32)
         HMAC_SECRET=$(openssl rand -hex 32)
         SECRET=$(openssl rand -hex 32)
 
-        # Export to environment for subsequent steps
-        echo "SESSION_SECRET=$SESSION_SECRET" >> $GITHUB_ENV
-        echo "HMAC_SECRET=$HMAC_SECRET" >> $GITHUB_ENV
-        echo "SECRET=$SECRET" >> $GITHUB_ENV
+        # Export to GITHUB_ENV for subsequent steps
+        echo "SESSION_SECRET=${SESSION_SECRET}" >> $GITHUB_ENV
+        echo "HMAC_SECRET=${HMAC_SECRET}" >> $GITHUB_ENV
+        echo "SECRET=${SECRET}" >> $GITHUB_ENV
 
-        # Also set as outputs for explicit usage
-        echo "session_secret=$SESSION_SECRET" >> $GITHUB_OUTPUT
-        echo "hmac_secret=$HMAC_SECRET" >> $GITHUB_OUTPUT
-        echo "secret=$SECRET" >> $GITHUB_OUTPUT
+        # Log secrets for debugging (safe because these are ephemeral test secrets)
+        echo ""
+        echo "SESSION_SECRET=${SESSION_SECRET}"
+        echo "HMAC_SECRET=${HMAC_SECRET}"
+        echo "SECRET=${SECRET}"
+        echo ""
 
-        echo "Generated random secrets for container testing"
+        # Verify all secrets are different
+        if [ "$SESSION_SECRET" != "$HMAC_SECRET" ] && [ "$SESSION_SECRET" != "$SECRET" ] && [ "$HMAC_SECRET" != "$SECRET" ]; then
+          echo "✅ All secrets are unique"
+        else
+          echo "❌ ERROR: Secrets are not unique!"
+          exit 1
+        fi
+
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
