@@ -194,7 +194,7 @@ COPY etc $CODE_ROOT/etc
 COPY lib $CODE_ROOT/lib
 COPY scripts/entrypoint.sh ./bin/
 COPY scripts/update-version.sh ./bin/
-COPY migrate $CODE_ROOT/migrate
+COPY migrations $CODE_ROOT/migrations
 COPY package.json config.ru Gemfile Gemfile.lock $CODE_ROOT/
 
 # Copy build stage metadata files
