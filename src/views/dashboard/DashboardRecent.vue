@@ -15,7 +15,7 @@
   interface Props {}
   defineProps<Props>();
 
-  const { t } = useI18n();
+  const { t } = useI18n(); // auto-import
   const { details, recordCount, isLoading, refreshRecords, error } = useMetadataList();
 
   const sectionId = ref(`dashboard-recent-${Math.random().toString(36).substring(2, 9)}`);

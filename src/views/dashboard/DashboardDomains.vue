@@ -9,7 +9,7 @@ import { useDomainsManager } from '@/composables/useDomainsManager';
 import type { CustomDomain } from '@/schemas/models';
 import { computed, onMounted } from 'vue';
 
-const { t } = useI18n();
+const { t } = useI18n(); // auto-import
 
 const {
   isLoading,

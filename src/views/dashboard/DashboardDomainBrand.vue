@@ -17,7 +17,7 @@
   import { computed, onMounted, ref, watch } from 'vue';
   import { onBeforeRouteLeave } from 'vue-router';
 
-  const { t } = useI18n();
+  const { t } = useI18n(); // auto-import
 
   const props = defineProps<{ extid: string }>();
   const {

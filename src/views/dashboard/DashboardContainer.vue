@@ -8,7 +8,6 @@
   import { CAPABILITIES } from '@/types/organization';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   // Dashboard variants
   import DashboardBasic from './DashboardBasic.vue';
@@ -16,7 +15,7 @@
   import DashboardIndex from './DashboardIndex.vue';
   import SingleTeamDashboard from './SingleTeamDashboard.vue';
 
-  const { t } = useI18n();
+  const { t } = useI18n(); // auto-import
   const orgStore = useOrganizationStore();
   const teamStore = useTeamStore();
   const { currentOrganization } = storeToRefs(orgStore);
