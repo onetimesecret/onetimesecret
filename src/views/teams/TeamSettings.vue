@@ -83,9 +83,18 @@
     isSubmitting.value = true;
 
     try {
-      updateTeamPayloadSchema.parse(formData.value);
+      // Only send changed fields (PATCH semantics)
+      const payload: Partial<UpdateTeamPayload> = {};
+      if (formData.value.display_name !== activeTeam.value?.display_name) {
+        payload.display_name = formData.value.display_name;
+      }
+      if (formData.value.description !== (activeTeam.value?.description || '')) {
+        payload.description = formData.value.description;
+      }
 
-      await teamStore.updateTeam(teamId.value, formData.value);
+      updateTeamPayloadSchema.partial().parse(payload);
+
+      await teamStore.updateTeam(teamId.value, payload as UpdateTeamPayload);
 
       successMessage.value = t('web.teams.update_success');
     } catch (err) {

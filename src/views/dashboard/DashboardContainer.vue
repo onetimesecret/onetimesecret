@@ -1,12 +1,14 @@
 <!-- src/views/dashboard/DashboardContainer.vue -->
 
 <script setup lang="ts">
+  import OIcon from '@/components/icons/OIcon.vue';
   import { useCapabilities } from '@/composables/useCapabilities';
   import { useOrganizationStore } from '@/stores/organizationStore';
   import { useTeamStore } from '@/stores/teamStore';
   import { CAPABILITIES } from '@/types/organization';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   // Dashboard variants
   import DashboardBasic from './DashboardBasic.vue';
@@ -14,6 +16,7 @@
   import DashboardIndex from './DashboardIndex.vue';
   import SingleTeamDashboard from './SingleTeamDashboard.vue';
 
+  const { t } = useI18n();
   const orgStore = useOrganizationStore();
   const teamStore = useTeamStore();
   const { currentOrganization } = storeToRefs(orgStore);
@@ -22,6 +25,7 @@
 
   // Track if initial team fetch is complete
   const teamsLoaded = ref(false);
+  const fetchError = ref(false);
 
   // Team count for experience adaptation
   const teamCount = computed(() => teams.value.length);
@@ -92,21 +96,61 @@
     return `${mode}-${dashboardVariant.value}`;
   });
 
-  // Fetch teams on mount
-  onMounted(async () => {
+  // Fetch teams with error handling
+  const fetchTeamsWithRetry = async () => {
+    fetchError.value = false;
     try {
       await teamStore.fetchTeams();
     } catch {
-      // Silently fail - experience will adapt to 0 teams
+      fetchError.value = true;
     } finally {
       teamsLoaded.value = true;
     }
-  });
+  };
+
+  // Fetch teams on mount
+  onMounted(fetchTeamsWithRetry);
 </script>
 
 <template>
   <div class="dashboard-container">
-    <Transition name="dashboard-fade" mode="out-in">
+    <!-- Error state with retry -->
+    <div
+      v-if="fetchError && hasTeamCapability"
+      class="container mx-auto min-w-[320px] max-w-2xl py-12 text-center">
+      <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+        <OIcon
+          collection="heroicons"
+          name="exclamation-triangle"
+          class="size-6 text-red-600 dark:text-red-400"
+          aria-hidden="true" />
+      </div>
+      <h2 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
+        {{ t('web.dashboard.fetch_error_title', 'Unable to load teams') }}
+      </h2>
+      <p class="mb-6 text-sm text-gray-600 dark:text-gray-400">
+        {{ t('web.dashboard.fetch_error_description', 'There was a problem loading your teams. Please try again.') }}
+      </p>
+      <button
+        type="button"
+        @click="fetchTeamsWithRetry"
+        :disabled="teamsLoading"
+        class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+        <OIcon
+          v-if="!teamsLoading"
+          collection="heroicons"
+          name="arrow-path"
+          class="size-5"
+          aria-hidden="true" />
+        {{ teamsLoading ? t('web.COMMON.loading', 'Loading...') : t('web.COMMON.retry', 'Try again') }}
+      </button>
+    </div>
+
+    <!-- Normal dashboard variants -->
+    <Transition
+      v-else
+      name="dashboard-fade"
+      mode="out-in">
       <Component
         :key="componentKey"
         :is="dashboardComponent" />
