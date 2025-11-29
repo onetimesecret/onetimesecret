@@ -26,8 +26,8 @@ module Onetime
 
         def self.collect_stats
           {
-            secrets: Onetime::Secret.values.count,
-            metadata: Onetime::Metadata.values.count
+            secrets: Onetime::Secret.count,
+            metadata: Onetime::Metadata.count
           }
         rescue StandardError => e
           OT.le "[HeartbeatJob] Failed to collect stats: #{e.message}"
