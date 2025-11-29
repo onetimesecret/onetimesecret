@@ -10,8 +10,8 @@ module Onetime
     # SetupLoggers initializer
     #
     # Configure SemanticLogger with strategic categories for debugging and
-    # operational instrumentation. Categories: Auth, Session, HTTP, Familia,
-    # Otto, Rhales, Secret, App (default).
+    # operational instrumentation. Categories: Auth, Bunny, Familia, HTTP,
+    # Otto, Rhales, Secret, Session, App (default).
     #
     # Configuration loaded from etc/logging.yaml with environment variable
     # overrides for flexible development and production use.
@@ -132,6 +132,7 @@ module Onetime
         apply_quick_debug_flag(cached_loggers, 'Auth',    ENV.fetch('DEBUG_AUTH', nil))
         apply_quick_debug_flag(cached_loggers, 'Billing', ENV.fetch('DEBUG_BILLING', nil))
         apply_quick_debug_flag(cached_loggers, 'Boot',    ENV.fetch('DEBUG_BOOT', nil))
+        apply_quick_debug_flag(cached_loggers, 'Bunny',   ENV.fetch('DEBUG_BUNNY', nil))
         apply_quick_debug_flag(cached_loggers, 'HTTP',    ENV.fetch('DEBUG_HTTP', nil))
         apply_quick_debug_flag(cached_loggers, 'Rhales',  ENV.fetch('DEBUG_RHALES', nil))
         apply_quick_debug_flag(cached_loggers, 'Secret',  ENV.fetch('DEBUG_SECRET', nil))
@@ -195,6 +196,7 @@ module Onetime
       # ensuring consistent formatting and centralized log level control.
       #
       # Libraries configured:
+      # - Bunny: RabbitMQ client with SemanticLogger['Bunny'] (passed to Bunny.new)
       # - Familia: Redis ORM with SemanticLogger['Familia']
       # - Otto: Router framework with SemanticLogger['Otto']
       # - Rhales: Ruby SFC framework with SemanticLogger['Rhales']
@@ -204,6 +206,11 @@ module Onetime
       # For those, we rely on our own logging within wrapper code.
       #
       def configure_external_loggers(cached_loggers)
+        # Bunny RabbitMQ client - logger passed to Bunny.new() in setup_rabbitmq.rb
+        # Heartbeats logged at debug level, set Bunny: warn to suppress
+        # NOTE: Bunny doesn't have a class-level logger setter; it's configured
+        # per-connection via Onetime.get_logger('Bunny') in the initializer
+
         # Familia Redis ORM - also responds to FAMILIA_DEBUG
         Familia.logger = cached_loggers['Familia']
 

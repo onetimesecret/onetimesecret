@@ -51,7 +51,7 @@ module Onetime
           url,
           recover_from_connection_close: true,
           network_recovery_interval: 5,
-          logger: OT.logger
+          logger: Onetime.get_logger('Bunny')
         )
 
         $rmq_conn.start

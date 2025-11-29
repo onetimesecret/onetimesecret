@@ -69,15 +69,16 @@ module Onetime
           LOGGING CATEGORIES
           ══════════════════
 
+          App      - Default fallback for application-level logging
           Auth     - Authentication/authorization flows
-          Session  - Session lifecycle management
-          HTTP     - HTTP requests, responses, and middleware
+          Bunny    - RabbitMQ AMQP client (connection, heartbeats)
           Familia  - Redis operations via Familia ORM
+          HTTP     - HTTP requests, responses, and middleware
           Otto     - Otto framework operations
           Rhales   - Rhales template rendering
-          Sequel   - Database queries and operations
           Secret   - Secret lifecycle (create, view, burn)
-          App      - Default fallback for application-level logging
+          Sequel   - Database queries and operations
+          Session  - Session lifecycle management
 
           ENVIRONMENT VARIABLES (Applied in Order)
           ═════════════════════════════════════════
@@ -96,12 +97,13 @@ module Onetime
              Effect:  Sets specific logger levels, overriding YAML configuration
 
           4. DEBUG_* - Individual quick flags (override YAML config)
+             DEBUG_APP=1       - Set App logger to debug
              DEBUG_AUTH=1      - Set Auth logger to debug
-             DEBUG_SESSION=1   - Set Session logger to debug
+             DEBUG_BUNNY=1     - Set Bunny logger to debug (RabbitMQ)
              DEBUG_HTTP=1      - Set HTTP logger to debug
              DEBUG_SECRET=1    - Set Secret logger to debug
              DEBUG_SEQUEL=1    - Set Sequel logger to debug (SQL at trace)
-             DEBUG_APP=1       - Set App logger to debug
+             DEBUG_SESSION=1   - Set Session logger to debug
 
           EXTERNAL LIBRARY FLAGS
           ═══════════════════════

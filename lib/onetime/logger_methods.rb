@@ -8,7 +8,7 @@ module Onetime
   # Category-aware logging support for Onetime classes and modules.
   #
   # Provides access to SemanticLogger instances scoped to strategic categories:
-  # Auth, Session, HTTP, Familia, Otto, Rhales, Secret, App (default).
+  # Auth, Bunny, Familia, HTTP, Otto, Rhales, Secret, Session, App (default).
   #
   # Usage in classes:
   #   class MyAuthController
@@ -127,6 +127,10 @@ module Onetime
 
     def boot_logger
       Onetime.get_logger('Boot')
+    end
+
+    def bunny_logger
+      Onetime.get_logger('Bunny')
     end
 
     def auth_logger
