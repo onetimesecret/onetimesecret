@@ -12,9 +12,9 @@ module V3
       attr_reader :msg, :greenlighted, :tz, :version
 
       def process_params
-        @msg     = params[:msg].to_s.slice(0, 999)
-        @tz      = params[:tz].to_s.slice(0, 64)
-        @version = params[:version].to_s.slice(0, 32)
+        @msg     = params['msg'].to_s.slice(0, 999)
+        @tz      = params['tz'].to_s.slice(0, 64)
+        @version = params['version'].to_s.slice(0, 32)
       end
 
       def raise_concerns

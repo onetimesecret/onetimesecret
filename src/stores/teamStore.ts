@@ -163,7 +163,7 @@ export const useTeamStore = defineStore('team', () => {
     try {
       const validated = updateTeamPayloadSchema.parse(payload);
 
-      const response = await $api.patch(`/api/teams/${teamId}`, validated);
+      const response = await $api.put(`/api/teams/${teamId}`, validated);
 
       const teamData = teamResponseSchema.parse(response.data);
 

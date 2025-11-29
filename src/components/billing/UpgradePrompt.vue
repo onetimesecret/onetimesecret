@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 import OIcon from '@/components/icons/OIcon.vue';
+import { WindowService } from '@/services/window.service';
 import { computed } from 'vue';
 
 const { t } = useI18n();
@@ -18,6 +19,9 @@ const props = withDefaults(
     compact: false,
   }
 );
+
+// Hide upgrade prompts when billing is disabled (self-hosted mode)
+const billingEnabled = computed(() => WindowService.get('billing_enabled') || false);
 
 const displayMessage = computed(() => {
   if (props.message) return props.message;
@@ -36,7 +40,9 @@ const upgradeUrl = computed(() => `/account/billing/plans?upgrade_to=${props.upg
 </script>
 
 <template>
+  <!-- Hidden when billing is disabled (self-hosted mode) -->
   <div
+    v-if="billingEnabled"
     :class="[
       'rounded-lg border bg-gradient-to-br',
       compact

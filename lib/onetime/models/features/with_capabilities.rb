@@ -21,6 +21,21 @@ module Onetime
       module WithCapabilities
         Familia::Base.add_feature self, :with_capabilities
 
+        # Default capabilities for self-hosted/opensource installations
+        # When billing is disabled or plan cache is empty, users get full access
+        DEFAULT_OPENSOURCE_CAPABILITIES = %w[
+          create_secrets basic_sharing create_team create_teams
+          custom_domains api_access priority_support audit_logs
+        ].freeze
+
+        # Default limits for self-hosted (-1 means unlimited)
+        DEFAULT_OPENSOURCE_LIMITS = {
+          'teams.max' => 'unlimited',
+          'members_per_team.max' => 'unlimited',
+          'secrets_per_day.max' => 'unlimited',
+          'custom_domains.max' => 'unlimited'
+        }.freeze
+
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
           base.include InstanceMethods
@@ -43,20 +58,30 @@ module Onetime
           #
           # @return [Array<String>] List of capability strings
           #
-          # Falls back safely to empty array if:
-          # - planid is nil/empty
+          # Falls back to full opensource capabilities if:
+          # - billing is disabled (self-hosted mode)
           # - plan not found in cache
-          # - capabilities missing from plan
+          #
+          # This ensures 100% feature parity for self-hosted installations.
           #
           # @example
           #   org.capabilities  # => ["create_secrets", "create_team", "custom_domains"]
           def capabilities
+            # Self-hosted fallback: full access when billing disabled
+            unless billing_enabled?
+              return WithCapabilities::DEFAULT_OPENSOURCE_CAPABILITIES.dup
+            end
+
             return [] if planid.to_s.empty?
 
             plan = ::Billing::Plan.load(planid)
-            return [] unless plan  # Fail safely
 
-            plan.capabilities.to_a
+            # If plan cache is empty (Stripe not synced), use fallback
+            return WithCapabilities::DEFAULT_OPENSOURCE_CAPABILITIES.dup unless plan
+
+            caps = plan.capabilities.to_a
+            # If plan exists but has no capabilities, use fallback
+            caps.empty? ? WithCapabilities::DEFAULT_OPENSOURCE_CAPABILITIES.dup : caps
           end
 
           # Get limit for a specific resource
@@ -64,21 +89,22 @@ module Onetime
           # @param resource [String, Symbol] Resource to check limit for
           # @return [Numeric] Limit value (Float::INFINITY for unlimited)
           #
-          # Falls back safely to 0 (no access) if:
-          # - planid is nil/empty
-          # - plan not found in cache
-          # - limits hash missing
-          # - resource not in limits (fail-closed for security)
+          # Falls back to unlimited for self-hosted installations.
           #
           # @example
           #   org.limit_for('teams')            # => 1
           #   org.limit_for(:members_per_team)  # => Float::INFINITY
           #   org.limit_for('unknown')          # => 0
           def limit_for(resource)
+            # Self-hosted fallback: unlimited when billing disabled
+            return Float::INFINITY unless billing_enabled?
+
             return 0 if planid.to_s.empty?
 
             plan = ::Billing::Plan.load(planid)
-            return 0 unless plan
+
+            # If plan cache is empty, use unlimited fallback
+            return Float::INFINITY unless plan
 
             # Flattened key: "teams" => "teams.max"
             key = resource.to_s.include?('.') ? resource.to_s : "#{resource}.max"
@@ -142,6 +168,16 @@ module Onetime
             return false if limit == Float::INFINITY
 
             current_count >= limit
+          end
+
+          private
+
+          # Check if billing system is enabled
+          # Returns false for self-hosted installations
+          def billing_enabled?
+            Onetime::BillingConfig.instance.enabled?
+          rescue StandardError
+            false # If BillingConfig fails, assume billing disabled
           end
         end
       end

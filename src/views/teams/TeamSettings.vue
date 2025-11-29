@@ -49,7 +49,7 @@
 
   onMounted(async () => {
     if (!isOwner.value) {
-      router.push({ name: 'Team Dashboard', params: { extid: teamId.value } });
+      router.push({ name: 'Teams Dashboard', params: { extid: teamId.value } });
       return;
     }
 
@@ -121,7 +121,7 @@
   };
 
   const navigateToTeam = () => {
-    router.push({ name: 'Team Dashboard', params: { extid: teamId.value } });
+    router.push({ name: 'Teams Dashboard', params: { extid: teamId.value } });
   };
 </script>
 
@@ -201,11 +201,8 @@
             aria-hidden="true" />
           <div>
             <h3 class="text-sm font-medium text-blue-900 dark:text-blue-300">
-              {{ t('web.billing.notices.team_billing_disabled') }}
-            </h3>
-            <p class="mt-1 text-sm text-blue-700 dark:text-blue-400">
               {{ t('web.billing.notices.org_managed', { orgName: 'Organization' }) }}
-            </p>
+            </h3>
             <router-link
               :to="`/billing/org/${activeTeam.org_id}`"
               class="mt-2 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">

@@ -53,11 +53,11 @@
   });
 
   const handleTeamClick = (extid: string) => {
-    router.push({ name: 'Team Dashboard', params: { extid } });
+    router.push({ name: 'Teams Dashboard', params: { extid } });
   };
 
   const handleTeamCreated = (extid: string) => {
-    router.push({ name: 'Team Dashboard', params: { extid } });
+    router.push({ name: 'Teams Dashboard', params: { extid } });
   };
 
   const openCreateModal = () => {

@@ -7,8 +7,8 @@ module AccountAPI::Logic
     class UpdatePassword < UpdateAccountField
       def process_params
         OT.ld "[UpdatePassword#process_params] params: #{params.inspect}"
-        @password        = self.class.normalize_password(params[:password]) # was currentp
-        @newpassword     = self.class.normalize_password(params[:newpassword]) # was newp
+        @password        = self.class.normalize_password(params['password']) # was currentp
+        @newpassword     = self.class.normalize_password(params['newpassword']) # was newp
         @passwordconfirm = self.class.normalize_password(params['password-confirm']) # was newp2
       end
 

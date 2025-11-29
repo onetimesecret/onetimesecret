@@ -566,7 +566,7 @@ watch(activeTab, async (newTab) => {
                       class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
                       <OIcon
                         collection="heroicons"
-                        name="cog-6-tooth"
+                        name="cog-6-tooth-solid"
                         class="size-4"
                         aria-hidden="true" />
                       {{ t('web.billing.overview.manage_billing') }}

@@ -1,5 +1,6 @@
 // src/composables/useCapabilities.ts
 
+import { WindowService } from '@/services/window.service';
 import type { Organization } from '@/types/organization';
 import { CAPABILITIES } from '@/types/organization';
 import { computed, type Ref } from 'vue';
@@ -12,12 +13,24 @@ import { computed, type Ref } from 'vue';
  */
 export function useCapabilities(org: Ref<Organization | null>) {
   /**
+   * Check if running in opensource/self-hosted mode
+   * When billing is disabled, all capabilities are available
+   */
+  const isOpensourceMode = computed(() => {
+    const billingEnabled = WindowService.get('billing_enabled');
+    return !billingEnabled;
+  });
+
+  /**
    * Check if the organization has a specific capability
    *
    * @param capability - The capability to check
    * @returns True if the organization has the capability
    */
   const can = (capability: string): boolean => {
+    // Opensource mode: all capabilities available
+    if (isOpensourceMode.value) return true;
+
     if (!org.value) return false;
     return org.value.capabilities?.includes(capability as any) ?? false;
   };
@@ -88,6 +101,7 @@ export function useCapabilities(org: Ref<Organization | null>) {
     hasReachedLimit,
     capabilities,
     planId,
+    isOpensourceMode,
     CAPABILITIES,
   };
 }

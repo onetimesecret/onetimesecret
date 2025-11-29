@@ -9,8 +9,8 @@ module TeamAPI::Logic
 
       def process_params
         @team_id      = params['extid']
-        @display_name = params[:display_name].to_s.strip
-        @description  = params[:description].to_s.strip
+        @display_name = params['display_name'].to_s.strip
+        @description  = params['description'].to_s.strip
       end
 
       def raise_concerns
