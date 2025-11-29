@@ -12,7 +12,7 @@ module Onetime
     module Workers
       # Email delivery worker
       #
-      # Consumes messages from email.immediate queue and delivers emails
+      # Consumes messages from email.message.send queue and delivers emails
       # via Onetime::Mail.deliver. Implements retry logic and dead letter
       # queue handling for failed deliveries.
       #
@@ -40,7 +40,7 @@ module Onetime
 
         # Queue config from single source of truth (QueueConfig)
         # Prevents PRECONDITION_FAILED errors from queue property mismatches
-        QUEUE_NAME = 'email.immediate'
+        QUEUE_NAME = 'email.message.send'
         QUEUE_OPTS = QueueConfig::QUEUES[QUEUE_NAME]
 
         from_queue QUEUE_NAME,

@@ -125,7 +125,7 @@ module Onetime
       def verify_connection
         $rmq_channel_pool.with do |channel|
           # Verify channel is open and functional
-          channel.queue('email.immediate', passive: true)
+          channel.queue('email.message.send', passive: true)
         end
         Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Connectivity verified"
       rescue Bunny::NotFound
