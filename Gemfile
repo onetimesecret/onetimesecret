@@ -91,6 +91,7 @@ gem 'irb'
 gem 'logger'
 gem 'psych', '~> 5.2.3'
 gem 'rdoc'
+gem 'rerun'
 gem 'stringio', '~> 3.1.6'
 
 # ====================================
