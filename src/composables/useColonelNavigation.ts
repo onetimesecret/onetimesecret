@@ -25,6 +25,11 @@ export function useColonelNavigation() {
       icon: { collection: 'material-symbols', name: 'family-home-rounded' },
     },
     {
+      name: t('web.colonel.system'),
+      href: '/colonel/system',
+      icon: { collection: 'material-symbols', name: 'monitoring' },
+    },
+    {
       name: t('web.colonel.settings'),
       href: '/colonel/settings',
       icon: { collection: 'material-symbols', name: 'settings' },

@@ -40,3 +40,6 @@ require_relative 'colonel/list_custom_domains'
 
 # Usage export
 require_relative 'colonel/export_usage'
+
+# Queue metrics (RabbitMQ)
+require_relative 'colonel/get_queue_metrics'

@@ -33,6 +33,7 @@
       "usersDescription": "Manage user accounts and permissions",
       "domains": "Domains",
       "settings": "Settings",
+      "system": "System",
       "welcome": "Welcome to Colonel",
       "welcomeDesc": "Administrative control panel for OneTimeSecret",
       "quickActions": "Quick Actions",
