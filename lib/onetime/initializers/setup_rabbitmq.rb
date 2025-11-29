@@ -27,6 +27,14 @@ module Onetime
       def execute(_context)
         return unless OT.conf.dig('jobs', 'enabled')
 
+        # Workers create their own RabbitMQ connections via Sneakers.
+        # Skip setup here to avoid ConnectionPool.after_fork issues when
+        # Sneakers forks and tries to close inherited (stale) channels.
+        if ENV['SKIP_RABBITMQ_SETUP'] == '1'
+          OT.ld "[init] Setup RabbitMQ: Skipped (worker mode - Sneakers handles connections)"
+          return
+        end
+
         setup_rabbitmq_connection
       end
 

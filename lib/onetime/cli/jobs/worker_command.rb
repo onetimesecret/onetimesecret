@@ -38,6 +38,11 @@ module Onetime
 
         def call(queues: nil, concurrency: 10, daemonize: false, environment: 'development',
                  log_level: 'info', **)
+          # Skip RabbitMQ setup during boot - Sneakers creates its own connections.
+          # This prevents ConnectionPool.after_fork from timing out when closing
+          # inherited channels after Sneakers forks worker processes.
+          ENV['SKIP_RABBITMQ_SETUP'] = '1'
+
           boot_application!
 
           # Configure Kicks (via Sneakers-compatible API)

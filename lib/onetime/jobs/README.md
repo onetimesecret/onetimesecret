@@ -188,3 +188,40 @@ The DLQ preserves the original message plus headers showing why it was dead-lett
 ```
 
 With 4 Puma workers, after ~4 email requests your entire app becomes unresponsive.
+
+
+## Adding a Queue
+
+| Component | Restart Required? | Why                                                             |
+|-----------|-------------------|-----------------------------------------------------------------|
+| Puma      | Yes               | Initializer declares queues at boot (setup_rabbitmq.rb:109-114) |
+| Workers   | Yes               | Workers only consume queues they're started with                |
+
+Workflow:
+1. Add queue to QueueConfig::QUEUES
+2. Create the worker class
+3. Restart Puma (declares the queue in RabbitMQ)
+4. Restart workers (starts consuming from new queue)
+
+Removing a Queue
+
+| Component | Restart Required? | Why                                   |
+|-----------|-------------------|---------------------------------------|
+| Workers   | Yes               | Stop consuming before removing        |
+| Puma      | Optional          | Won't declare it anymore, but no harm |
+
+Workflow:
+1. Stop workers first (drain in-flight messages)
+2. Remove from QueueConfig::QUEUES
+3. Restart workers
+4. Optionally delete queue from RabbitMQ: rabbitmqctl delete_queue <name>
+
+Hot Reload?
+
+RabbitMQ itself doesn't require restart - queues can be declared anytime. But your code references QueueConfig::QUEUES at runtime, so:
+
+- Publishers check this constant
+- Workers are configured at startup
+- Initializer declares on boot
+
+No hot reload - you need process restarts to pick up queue config changes.
