@@ -15,6 +15,7 @@
 #
 
 require 'rufus-scheduler'
+require_relative '../../../onetime/jobs/scheduled_job'
 
 module Onetime
   module CLI
