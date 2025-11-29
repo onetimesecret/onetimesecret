@@ -116,10 +116,13 @@ module Onetime
 
       def verify_connection
         $rmq_channel_pool.with do |channel|
-          # Simple heartbeat check
-          channel.queue_exists?('email.immediate')
+          # Verify channel is open and functional
+          channel.queue('email.immediate', passive: true)
         end
         OT.ld "[init] Setup RabbitMQ: Connectivity verified"
+      rescue Bunny::NotFound
+        # Queue doesn't exist yet - that's fine, connection works
+        OT.ld "[init] Setup RabbitMQ: Connectivity verified (queue not yet declared)"
       rescue StandardError => e
         OT.le "[init] Setup RabbitMQ: Verification failed: #{e.message}"
         raise

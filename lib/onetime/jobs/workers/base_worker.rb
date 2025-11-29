@@ -117,8 +117,8 @@ module Onetime
                 sleep(delay)
                 retry
               else
-                log_error "Max retries exceeded", e
-                reject! # Send to DLQ
+                log_error "Max retries exceeded: #{e.message}"
+                raise # Re-raise to let caller handle reject!
               end
             end
           end

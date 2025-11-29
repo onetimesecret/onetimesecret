@@ -76,6 +76,7 @@ require_relative 'cli/totp_command'
 require_relative 'cli/jobs/worker_command'
 require_relative 'cli/jobs/scheduler_command'
 require_relative 'cli/jobs/status_command'
+require_relative 'cli/jobs/reset_queues_command'
 
 # Auto-discover app CLI commands
 apps_root = File.join(ENV['ONETIME_HOME'] || Dir.pwd, 'apps')
