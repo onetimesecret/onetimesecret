@@ -89,4 +89,37 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(described_class::Versions::V1).to eq(1)
     end
   end
+
+  describe 'DEAD_LETTER_CONFIG' do
+    subject(:dead_letter_config) { described_class::DEAD_LETTER_CONFIG }
+
+    it 'is a frozen hash' do
+      expect(dead_letter_config).to be_frozen
+    end
+
+    it 'has 3 entries' do
+      expect(dead_letter_config.size).to eq(3)
+    end
+
+    it "contains 'dlx.email' with queue 'dlq.email'" do
+      expect(dead_letter_config).to have_key('dlx.email')
+      expect(dead_letter_config['dlx.email'][:queue]).to eq('dlq.email')
+    end
+
+    it "contains 'dlx.webhooks' with queue 'dlq.webhooks'" do
+      expect(dead_letter_config).to have_key('dlx.webhooks')
+      expect(dead_letter_config['dlx.webhooks'][:queue]).to eq('dlq.webhooks')
+    end
+
+    it "contains 'dlx.billing' with queue 'dlq.billing'" do
+      expect(dead_letter_config).to have_key('dlx.billing')
+      expect(dead_letter_config['dlx.billing'][:queue]).to eq('dlq.billing')
+    end
+  end
+
+  describe 'IDEMPOTENCY_TTL' do
+    it 'is defined as 3600' do
+      expect(described_class::IDEMPOTENCY_TTL).to eq(3600)
+    end
+  end
 end

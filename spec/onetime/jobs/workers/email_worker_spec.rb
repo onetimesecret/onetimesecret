@@ -38,3 +38,262 @@
 # Run with: bundle exec rspec spec/onetime/jobs/workers/email_worker_spec.rb
 
 require 'spec_helper'
+require 'sneakers'
+require 'ostruct'
+require_relative '../../../../lib/onetime/jobs/workers/email_worker'
+require_relative '../../../../lib/onetime/jobs/queue_config'
+
+RSpec.describe Onetime::Jobs::Workers::EmailWorker do
+  # Create test worker class with accessible delivery_info
+  let(:test_worker_class) do
+    Class.new(Onetime::Jobs::Workers::EmailWorker) do
+      attr_accessor :delivery_info, :acked, :rejected
+
+      def self.name
+        'TestEmailWorker'
+      end
+
+      def initialize
+        super
+        @acked = false
+        @rejected = false
+      end
+
+      def ack!
+        @acked = true
+      end
+
+      def reject!
+        @rejected = true
+      end
+
+      def acked?
+        @acked
+      end
+
+      def rejected?
+        @rejected
+      end
+    end
+  end
+
+  let(:worker) { test_worker_class.new }
+  let(:message_id) { 'test-msg-123' }
+
+  # Mock Sneakers delivery_info with properties
+  let(:delivery_info) do
+    OpenStruct.new(
+      delivery_tag: 1,
+      routing_key: 'email.immediate',
+      redelivered?: false,
+      properties: OpenStruct.new(
+        message_id: message_id,
+        headers: { 'x-schema-version' => 1 }
+      )
+    )
+  end
+
+  before do
+    # Set delivery_info on worker
+    worker.delivery_info = delivery_info
+
+    # Mock Onetime::Mail module
+    allow(Onetime::Mail).to receive(:deliver)
+    allow(Onetime::Mail).to receive(:deliver_raw)
+
+    # Mock sleep to speed up retry tests
+    allow(worker).to receive(:sleep)
+  end
+
+  describe '#work' do
+    context 'templated email delivery' do
+      let(:message) do
+        JSON.generate(
+          template: 'secret_link',
+          data: {
+            secret_id: 'abc123',
+            recipient: 'user@example.com'
+          }
+        )
+      end
+
+      it 'calls Mail.deliver with template symbol and data hash' do
+        worker.work(message)
+
+        expect(Onetime::Mail).to have_received(:deliver).with(
+          :secret_link,
+          {
+            secret_id: 'abc123',
+            recipient: 'user@example.com'
+          }
+        )
+      end
+
+      it 'acknowledges the message after successful delivery' do
+        worker.work(message)
+
+        expect(worker.acked?).to be true
+      end
+
+      it 'marks message as processed after successful delivery' do
+        worker.work(message)
+
+        expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
+      end
+    end
+
+    context 'raw email delivery' do
+      let(:message) do
+        JSON.generate(
+          raw: true,
+          email: {
+            to: 'user@example.com',
+            from: 'noreply@example.com',
+            subject: 'Test Email',
+            body: 'Email body content'
+          }
+        )
+      end
+
+      it 'calls Mail.deliver_raw with email hash when raw: true' do
+        worker.work(message)
+
+        expect(Onetime::Mail).to have_received(:deliver_raw).with(
+          {
+            to: 'user@example.com',
+            from: 'noreply@example.com',
+            subject: 'Test Email',
+            body: 'Email body content'
+          }
+        )
+      end
+
+      it 'acknowledges the message after successful delivery' do
+        worker.work(message)
+
+        expect(worker.acked?).to be true
+      end
+
+      it 'marks message as processed after successful delivery' do
+        worker.work(message)
+
+        expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
+      end
+    end
+
+    context 'idempotency handling' do
+      let(:message) do
+        JSON.generate(
+          template: 'secret_link',
+          data: { secret_id: 'abc123' }
+        )
+      end
+
+      it 'skips delivery and acknowledges when message already processed' do
+        # Pre-set Redis idempotency key
+        Familia.dbclient.setex("job:processed:#{message_id}", 3600, '1')
+
+        worker.work(message)
+
+        # Should ack without calling Mail
+        expect(worker.acked?).to be true
+        expect(Onetime::Mail).not_to have_received(:deliver)
+        expect(Onetime::Mail).not_to have_received(:deliver_raw)
+      end
+
+      it 'creates Redis idempotency key after successful delivery' do
+        # Ensure key doesn't exist initially
+        Familia.dbclient.del("job:processed:#{message_id}")
+
+        worker.work(message)
+
+        # Verify key was created with TTL
+        expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
+        ttl = Familia.dbclient.ttl("job:processed:#{message_id}")
+        expect(ttl).to be > 0
+        expect(ttl).to be <= Onetime::Jobs::QueueConfig::IDEMPOTENCY_TTL
+      end
+    end
+
+    context 'failure handling' do
+      let(:message) do
+        JSON.generate(
+          template: 'secret_link',
+          data: { secret_id: 'abc123' }
+        )
+      end
+
+      it 'calls reject! after exhausting retries when Mail.deliver raises StandardError' do
+        allow(Onetime::Mail).to receive(:deliver).and_raise(StandardError, 'Delivery failed')
+
+        worker.work(message)
+
+        # with_retry calls reject! after max retries, but doesn't stop execution
+        # so the worker continues and calls ack! as well (current implementation behavior)
+        expect(worker.rejected?).to be true
+        expect(Onetime::Mail).to have_received(:deliver).exactly(4).times # initial + 3 retries
+      end
+
+      it 'calls reject! after exhausting retries when Mail.deliver raises DeliveryError' do
+        error = Onetime::Mail::DeliveryError.new('SMTP error', transient: false)
+        allow(Onetime::Mail).to receive(:deliver).and_raise(error)
+
+        worker.work(message)
+
+        # with_retry calls reject! after max retries
+        expect(worker.rejected?).to be true
+        expect(Onetime::Mail).to have_received(:deliver).exactly(4).times # initial + 3 retries
+      end
+
+      it 'marks message as processed even when delivery fails after retries' do
+        # Current implementation behavior: mark_processed is called after with_retry returns,
+        # even if reject! was called inside with_retry
+        Familia.dbclient.del("job:processed:#{message_id}")
+
+        allow(Onetime::Mail).to receive(:deliver).and_raise(StandardError, 'Delivery failed')
+
+        worker.work(message)
+
+        # with_retry doesn't raise after calling reject!, so execution continues
+        # and mark_processed is called (this is current behavior, not ideal)
+        expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
+      end
+    end
+
+    context 'with missing template' do
+      let(:message) do
+        JSON.generate(
+          data: { secret_id: 'abc123' }
+        )
+      end
+
+      it 'calls reject! for invalid message format' do
+        worker.work(message)
+
+        expect(worker.rejected?).to be true
+        expect(Onetime::Mail).not_to have_received(:deliver)
+      end
+    end
+
+    context 'with missing email data in raw mode' do
+      let(:message) do
+        JSON.generate(
+          raw: true,
+          email: {}
+        )
+      end
+
+      it 'calls reject! for invalid raw message' do
+        worker.work(message)
+
+        expect(worker.rejected?).to be true
+        expect(Onetime::Mail).not_to have_received(:deliver_raw)
+      end
+    end
+  end
+
+  # Clean up Redis keys after each test
+  after do
+    Familia.dbclient.del("job:processed:#{message_id}")
+  end
+end
