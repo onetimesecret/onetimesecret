@@ -13,10 +13,10 @@ import { computed, type Ref } from 'vue';
  */
 export function useCapabilities(org: Ref<Organization | null>) {
   /**
-   * Check if running in opensource/self-hosted mode
-   * When billing is disabled, all capabilities are available
+   * Check if running in standalone mode (all capabilities available)
+   * When billing is disabled, full access is granted
    */
-  const isOpensourceMode = computed(() => {
+  const isStandaloneMode = computed(() => {
     const billingEnabled = WindowService.get('billing_enabled');
     return !billingEnabled;
   });
@@ -28,8 +28,8 @@ export function useCapabilities(org: Ref<Organization | null>) {
    * @returns True if the organization has the capability
    */
   const can = (capability: string): boolean => {
-    // Opensource mode: all capabilities available
-    if (isOpensourceMode.value) return true;
+    // Standalone mode: all capabilities available
+    if (isStandaloneMode.value) return true;
 
     if (!org.value) return false;
     return org.value.capabilities?.includes(capability as any) ?? false;
@@ -101,7 +101,7 @@ export function useCapabilities(org: Ref<Organization | null>) {
     hasReachedLimit,
     capabilities,
     planId,
-    isOpensourceMode,
+    isStandaloneMode,
     CAPABILITIES,
   };
 }

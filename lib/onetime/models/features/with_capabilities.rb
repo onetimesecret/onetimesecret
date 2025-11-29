@@ -28,14 +28,6 @@ module Onetime
           custom_domains api_access priority_support audit_logs
         ].freeze
 
-        # Default limits for self-hosted (-1 means unlimited)
-        DEFAULT_OPENSOURCE_LIMITS = {
-          'teams.max' => 'unlimited',
-          'members_per_team.max' => 'unlimited',
-          'secrets_per_day.max' => 'unlimited',
-          'custom_domains.max' => 'unlimited'
-        }.freeze
-
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
           base.include InstanceMethods

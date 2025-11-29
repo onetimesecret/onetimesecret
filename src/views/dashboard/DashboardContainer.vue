@@ -20,7 +20,7 @@
   const teamStore = useTeamStore();
   const { currentOrganization } = storeToRefs(orgStore);
   const { teams, loading: teamsLoading } = storeToRefs(teamStore);
-  const { can, isOpensourceMode } = useCapabilities(currentOrganization);
+  const { can, isStandaloneMode } = useCapabilities(currentOrganization);
 
   // Track if initial team fetch is complete
   const teamsLoaded = ref(false);
@@ -31,10 +31,10 @@
 
   // Check if user has team management capabilities
   const hasTeamCapability = computed(() => {
-    // Opensource mode: all capabilities available
-    if (isOpensourceMode.value) return true;
+    // Standalone mode: all capabilities available
+    if (isStandaloneMode.value) return true;
 
-    // SaaS: check actual capabilities
+    // Check actual capabilities
     return can(CAPABILITIES.CREATE_TEAM) || can(CAPABILITIES.CREATE_TEAMS);
   });
 
@@ -51,7 +51,7 @@
    * | Has team cap   | 1          | SingleTeamDashboard  |
    * | Has team cap   | 2+         | DashboardIndex       |
    *
-   * Self-hosted always has team capability via backend fallback.
+   * Standalone mode always has team capability via backend fallback.
    */
   const dashboardComponent = computed(() => {
     // Wait for teams to load before making team-count decisions
@@ -91,7 +91,7 @@
 
   // Computed key for transitions - only changes when variant changes
   const componentKey = computed(() => {
-    const mode = isOpensourceMode.value ? 'opensource' : 'saas';
+    const mode = isStandaloneMode.value ? 'standalone' : 'hosted';
     return `${mode}-${dashboardVariant.value}`;
   });
 

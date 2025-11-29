@@ -25,7 +25,6 @@
 
     <!-- Upgrade Prompt (SaaS only) -->
     <UpgradePrompt
-      v-if="billingEnabled"
       class="mb-8"
       capability="create_teams"
       upgrade-plan="team_v1" />
