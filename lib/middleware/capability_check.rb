@@ -65,7 +65,7 @@ module Rack
       else
         logger.info("[CapabilityCheck] #{org.objid} denied #{@capability}", {
           current_plan: org.planid,
-          upgrade_to: Billing::PlanDefinitions.upgrade_path_for(@capability, org.planid),
+          upgrade_to: Billing::PlanHelpers.upgrade_path_for(@capability, org.planid),
         }
         )
 
@@ -73,7 +73,7 @@ module Rack
           error: 'Feature not available',
           capability: @capability,
           current_plan: org.planid,
-          upgrade_to: Billing::PlanDefinitions.upgrade_path_for(@capability, org.planid),
+          upgrade_to: Billing::PlanHelpers.upgrade_path_for(@capability, org.planid),
           message: upgrade_message(org),
         )
       end
@@ -100,11 +100,11 @@ module Rack
     # @param org [Onetime::Organization] Organization
     # @return [String] Upgrade message
     def upgrade_message(org)
-      upgrade_plan = Billing::PlanDefinitions.upgrade_path_for(@capability, org.planid)
-      catalog_name    = Billing::PlanDefinitions.catalog_name(upgrade_plan) if upgrade_plan
+      upgrade_plan = Billing::PlanHelpers.upgrade_path_for(@capability, org.planid)
+      plan_name    = Billing::PlanHelpers.plan_name(upgrade_plan) if upgrade_plan
 
-      if catalog_name
-        "This feature requires #{catalog_name}. Upgrade your plan to access #{@capability.tr('_', ' ')}."
+      if plan_name
+        "This feature requires #{plan_name}. Upgrade your plan to access #{@capability.tr('_', ' ')}."
       else
         'This feature is not available on your current plan.'
       end
