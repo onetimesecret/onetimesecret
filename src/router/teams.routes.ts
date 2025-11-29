@@ -26,9 +26,9 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/teams/:extid',
-    name: 'Teams Dashboard',
+    name: 'Team View',
     components: {
-      default: () => import('@/views/teams/TeamsDashboard.vue'),
+      default: () => import('@/views/teams/TeamView.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },

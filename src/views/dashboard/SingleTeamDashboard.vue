@@ -25,7 +25,7 @@
 
   const navigateToTeam = () => {
     if (team.value) {
-      router.push({ name: 'Teams Dashboard', params: { extid: team.value.extid } });
+      router.push({ name: 'Team View', params: { extid: team.value.extid } });
     }
   };
 

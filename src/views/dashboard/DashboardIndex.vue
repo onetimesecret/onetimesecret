@@ -32,7 +32,7 @@
   });
 
   const navigateToTeam = (teamId: string) => {
-    router.push({ name: 'Teams Dashboard', params: { extid: teamId } });
+    router.push({ name: 'Team View', params: { extid: teamId } });
   };
 
   const navigateToTeams = () => {
@@ -40,7 +40,7 @@
   };
 
   const handleCreateSecret = (teamId: string) => {
-    router.push({ name: 'Teams Dashboard', params: { extid: teamId }, hash: '#create-secret' });
+    router.push({ name: 'Team View', params: { extid: teamId }, hash: '#create-secret' });
   };
 </script>
 

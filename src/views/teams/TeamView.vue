@@ -1,4 +1,4 @@
-<!-- src/views/teams/TeamsDashboard.vue -->
+<!-- src/views/teams/TeamView.vue -->
 
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
