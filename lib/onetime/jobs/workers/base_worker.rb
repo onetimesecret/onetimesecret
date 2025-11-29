@@ -39,7 +39,7 @@ module Onetime
         module ClassMethods
           # Override to provide worker-specific configuration
           def worker_name
-            name.split('::').last
+            name.split('::').last # can replace with familia refinement, config_name
           end
         end
 

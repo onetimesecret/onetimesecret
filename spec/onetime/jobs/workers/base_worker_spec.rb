@@ -385,4 +385,53 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
       end
     end
   end
+
+  describe 'race condition handling (concurrent idempotency)' do
+    # This test demonstrates the race condition vulnerability in the current
+    # already_processed? + mark_processed pattern. Multiple threads checking
+    # simultaneously can all see "not processed" before any thread marks it.
+    #
+    # Expected behavior: Only ONE worker should successfully "claim" a message.
+    # Current behavior: Multiple workers may claim the same message (RACE CONDITION).
+    #
+    # Fix: Replace with atomic claim_for_processing using SET NX EX.
+
+    let(:redis) { Familia.dbclient }
+    let(:msg_id) { SecureRandom.uuid }
+    let(:idempotency_key) { "job:processed:#{msg_id}" }
+
+    after do
+      redis.del(idempotency_key)
+    end
+
+    it 'should allow only one worker to claim a message (EXPECTED TO FAIL with current implementation)' do
+      results = Queue.new  # Thread-safe queue
+
+      # Spawn 10 threads racing to check and mark the same message
+      threads = 10.times.map do
+        Thread.new do
+          # Simulate the current pattern: check then mark
+          unless worker.already_processed?(msg_id)
+            # Small sleep to widen the race window
+            sleep(0.01)
+            worker.mark_processed(msg_id)
+            results << :claimed
+          else
+            results << :skipped
+          end
+        end
+      end
+
+      threads.each(&:join)
+
+      # Collect results
+      claims = []
+      claims << results.pop until results.empty?
+
+      # With atomic operation, exactly ONE should claim
+      # With race condition, MULTIPLE will claim (test fails)
+      expect(claims.count(:claimed)).to eq(1),
+        "Expected exactly 1 claim but got #{claims.count(:claimed)} - RACE CONDITION DETECTED"
+    end
+  end
 end
