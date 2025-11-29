@@ -56,7 +56,7 @@ module ColonelAPI
           return nil unless $rmq_conn
 
           "#{$rmq_conn.host}:#{$rmq_conn.port}"
-        rescue StandardError
+        rescue Bunny::Exception
           nil
         end
 
@@ -71,7 +71,7 @@ module ColonelAPI
               fetch_single_queue_stats(channel, queue_name)
             end
           end
-        rescue StandardError => e
+        rescue Bunny::Exception  => e
           OT.le "[GetQueueMetrics] Error fetching queue stats: #{e.message}"
           []
         end
@@ -91,7 +91,7 @@ module ColonelAPI
         rescue Bunny::NotFound
           # Queue hasn't been declared yet - return zeros
           { name: queue_name, pending_messages: 0, consumers: 0 }
-        rescue StandardError => e
+        rescue Bunny::Exception  => e
           OT.le "[GetQueueMetrics] Error checking queue #{queue_name}: #{e.message}"
           { name: queue_name, pending_messages: 0, consumers: 0 }
         end
