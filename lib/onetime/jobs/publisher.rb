@@ -83,7 +83,7 @@ module Onetime
         end
 
         with_fallback(fallback, :templated) do
-          publish('email.immediate', { template: template, data: data })
+          publish('email.message.send', { template: template, data: data })
           OT.ld "[Jobs::Publisher] Enqueued email: #{template}"
           true
         end
@@ -103,7 +103,7 @@ module Onetime
 
         with_fallback(fallback, :templated) do
           publish(
-            'email.scheduled',
+            'email.message.schedule',
             { template: template, data: data },
             expiration: (delay_seconds * 1000).to_s # Convert to milliseconds
           )
@@ -125,7 +125,7 @@ module Onetime
         end
 
         with_fallback(fallback, :raw) do
-          publish('email.immediate', { raw: true, email: email })
+          publish('email.message.send', { raw: true, email: email })
           OT.ld "[Jobs::Publisher] Enqueued raw email to: #{email[:to]}"
           true
         end

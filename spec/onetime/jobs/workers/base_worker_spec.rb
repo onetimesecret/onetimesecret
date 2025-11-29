@@ -90,7 +90,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
   let(:delivery_info) do
     DeliveryInfoStub.new(
       delivery_tag: 1,
-      routing_key: 'email.immediate',
+      routing_key: 'email.message.send',
       redelivered?: false
     )
   end
@@ -332,7 +332,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
 
       expect(metadata).to include(
         delivery_tag: 1,
-        routing_key: 'email.immediate',
+        routing_key: 'email.message.send',
         redelivered: false,
         message_id: message_id_value,
         schema_version: 1

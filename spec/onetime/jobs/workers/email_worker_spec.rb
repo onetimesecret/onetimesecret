@@ -5,7 +5,7 @@
 # EmailWorker Test Suite
 #
 # Tests the email delivery worker that consumes messages from the
-# email.immediate queue and delivers emails via Onetime::Mail.
+# email.message.send queue and delivers emails via Onetime::Mail.
 #
 # Test Categories:
 #
@@ -87,7 +87,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
   let(:delivery_info) do
     DeliveryInfoStub.new(
       delivery_tag: 1,
-      routing_key: 'email.immediate',
+      routing_key: 'email.message.send',
       redelivered?: false
     )
   end

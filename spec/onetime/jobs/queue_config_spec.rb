@@ -13,45 +13,49 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(queues).to be_frozen
     end
 
-    it 'defines email.immediate queue' do
-      expect(queues).to have_key('email.immediate')
+    it 'defines email.message.send queue' do
+      expect(queues).to have_key('email.message.send')
     end
 
-    it 'defines email.scheduled queue' do
-      expect(queues).to have_key('email.scheduled')
+    it 'defines email.message.schedule queue' do
+      expect(queues).to have_key('email.message.schedule')
     end
 
-    it 'defines notifications.push queue' do
-      expect(queues).to have_key('notifications.push')
+    it 'defines notifications.alert.push queue' do
+      expect(queues).to have_key('notifications.alert.push')
     end
 
-    it 'defines billing.events queue' do
-      expect(queues).to have_key('billing.events')
+    it 'defines billing.event.process queue' do
+      expect(queues).to have_key('billing.event.process')
     end
 
-    it 'defines webhooks.deliver queue' do
-      expect(queues).to have_key('webhooks.deliver')
+    it 'defines webhooks.payload.deliver queue' do
+      expect(queues).to have_key('webhooks.payload.deliver')
     end
 
-    it 'has 5 queues total' do
-      expect(queues.size).to eq(5)
+    it 'defines system.transient queue' do
+      expect(queues).to have_key('system.transient')
+    end
+
+    it 'has 6 queues total' do
+      expect(queues.size).to eq(6)
     end
   end
 
-  describe 'email.immediate queue' do
-    subject(:queue) { described_class::QUEUES['email.immediate'] }
+  describe 'email.message.send queue' do
+    subject(:queue) { described_class::QUEUES['email.message.send'] }
 
     it 'is durable' do
       expect(queue[:durable]).to be true
     end
 
     it 'has dead letter exchange configured' do
-      expect(queue[:arguments]['x-dead-letter-exchange']).to eq('dlx.email')
+      expect(queue[:arguments]['x-dead-letter-exchange']).to eq('dlx.email.message')
     end
   end
 
-  describe 'email.scheduled queue' do
-    subject(:queue) { described_class::QUEUES['email.scheduled'] }
+  describe 'email.message.schedule queue' do
+    subject(:queue) { described_class::QUEUES['email.message.schedule'] }
 
     it 'is durable' do
       expect(queue[:durable]).to be true
@@ -62,19 +66,59 @@ RSpec.describe Onetime::Jobs::QueueConfig do
     end
 
     it 'has dead letter exchange configured' do
-      expect(queue[:arguments]['x-dead-letter-exchange']).to eq('dlx.email')
+      expect(queue[:arguments]['x-dead-letter-exchange']).to eq('dlx.email.message')
     end
   end
 
-  describe 'billing.events queue' do
-    subject(:queue) { described_class::QUEUES['billing.events'] }
+  describe 'billing.event.process queue' do
+    subject(:queue) { described_class::QUEUES['billing.event.process'] }
 
     it 'is durable' do
       expect(queue[:durable]).to be true
     end
 
     it 'has dead letter exchange configured' do
-      expect(queue[:arguments]['x-dead-letter-exchange']).to eq('dlx.billing')
+      expect(queue[:arguments]['x-dead-letter-exchange']).to eq('dlx.billing.event')
+    end
+  end
+
+  describe 'notifications.alert.push queue' do
+    subject(:queue) { described_class::QUEUES['notifications.alert.push'] }
+
+    it 'is durable' do
+      expect(queue[:durable]).to be true
+    end
+
+    it 'has dead letter exchange configured' do
+      expect(queue[:arguments]['x-dead-letter-exchange']).to eq('dlx.notifications.alert')
+    end
+  end
+
+  describe 'webhooks.payload.deliver queue' do
+    subject(:queue) { described_class::QUEUES['webhooks.payload.deliver'] }
+
+    it 'is durable' do
+      expect(queue[:durable]).to be true
+    end
+
+    it 'has dead letter exchange configured' do
+      expect(queue[:arguments]['x-dead-letter-exchange']).to eq('dlx.webhooks.payload')
+    end
+  end
+
+  describe 'system.transient queue' do
+    subject(:queue) { described_class::QUEUES['system.transient'] }
+
+    it 'is not durable (ephemeral)' do
+      expect(queue[:durable]).to be false
+    end
+
+    it 'has auto_delete enabled' do
+      expect(queue[:auto_delete]).to be true
+    end
+
+    it 'has message TTL configured (5 minutes)' do
+      expect(queue[:arguments]['x-message-ttl']).to eq(300_000)
     end
   end
 
@@ -97,23 +141,28 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(dead_letter_config).to be_frozen
     end
 
-    it 'has 3 entries' do
-      expect(dead_letter_config.size).to eq(3)
+    it 'has 4 entries' do
+      expect(dead_letter_config.size).to eq(4)
     end
 
-    it "contains 'dlx.email' with queue 'dlq.email'" do
-      expect(dead_letter_config).to have_key('dlx.email')
-      expect(dead_letter_config['dlx.email'][:queue]).to eq('dlq.email')
+    it "contains 'dlx.email.message' with queue 'dlq.email.message'" do
+      expect(dead_letter_config).to have_key('dlx.email.message')
+      expect(dead_letter_config['dlx.email.message'][:queue]).to eq('dlq.email.message')
     end
 
-    it "contains 'dlx.webhooks' with queue 'dlq.webhooks'" do
-      expect(dead_letter_config).to have_key('dlx.webhooks')
-      expect(dead_letter_config['dlx.webhooks'][:queue]).to eq('dlq.webhooks')
+    it "contains 'dlx.notifications.alert' with queue 'dlq.notifications.alert'" do
+      expect(dead_letter_config).to have_key('dlx.notifications.alert')
+      expect(dead_letter_config['dlx.notifications.alert'][:queue]).to eq('dlq.notifications.alert')
     end
 
-    it "contains 'dlx.billing' with queue 'dlq.billing'" do
-      expect(dead_letter_config).to have_key('dlx.billing')
-      expect(dead_letter_config['dlx.billing'][:queue]).to eq('dlq.billing')
+    it "contains 'dlx.webhooks.payload' with queue 'dlq.webhooks.payload'" do
+      expect(dead_letter_config).to have_key('dlx.webhooks.payload')
+      expect(dead_letter_config['dlx.webhooks.payload'][:queue]).to eq('dlq.webhooks.payload')
+    end
+
+    it "contains 'dlx.billing.event' with queue 'dlq.billing.event'" do
+      expect(dead_letter_config).to have_key('dlx.billing.event')
+      expect(dead_letter_config['dlx.billing.event'][:queue]).to eq('dlq.billing.event')
     end
   end
 

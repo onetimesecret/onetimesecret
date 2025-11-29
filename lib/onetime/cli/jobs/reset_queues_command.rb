@@ -24,7 +24,7 @@ module Onetime
   module CLI
     module Jobs
       class ResetQueuesCommand < Command
-        desc 'Reset RabbitMQ queues (fixes PRECONDITION_FAILED errors)'
+        desc 'Reset RabbitMQ queues (WARNING: destroys pending messages)'
 
         option :queue, type: :string, aliases: ['q'],
           desc: 'Reset specific queue only'
