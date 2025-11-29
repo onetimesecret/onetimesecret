@@ -23,7 +23,7 @@
 #
 #   - Retry logic (Unit):
 #       * with_retry retries on failure then succeeds
-#       * with_retry exhausts max retries then rejects (mocked reject!)
+#       * with_retry exhausts max retries then raises (caller handles reject!)
 #
 # Setup Requirements:
 #   - Redis test instance: VALKEY_URL='valkey://127.0.0.1:2121/0'
@@ -279,25 +279,29 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
     end
 
     context 'when max retries are exhausted' do
-      it 'calls reject! after max retries' do
+      it 'raises after max retries to let caller handle rejection' do
         attempt = 0
 
-        worker.with_retry(max_retries: 2, base_delay: 0.01) do
-          attempt += 1
-          raise StandardError, 'Persistent failure'
-        end
+        expect {
+          worker.with_retry(max_retries: 2, base_delay: 0.01) do
+            attempt += 1
+            raise StandardError, 'Persistent failure'
+          end
+        }.to raise_error(StandardError, 'Persistent failure')
 
-        expect(worker.rejected?).to be true
         expect(attempt).to eq(3) # Initial attempt + 2 retries
+        # Note: reject! is NOT called here - caller is responsible
+        expect(worker.rejected?).to be false
       end
 
       it 'logs error with max retries message' do
-        expect(OT).to receive(:le).with(/Max retries exceeded/)
-        expect(OT).to receive(:le).with(/Error: StandardError/)
+        expect(OT).to receive(:le).with(/Max retries exceeded: Always fails/)
 
-        worker.with_retry(max_retries: 1, base_delay: 0.01) do
-          raise StandardError, 'Always fails'
-        end
+        expect {
+          worker.with_retry(max_retries: 1, base_delay: 0.01) do
+            raise StandardError, 'Always fails'
+          end
+        }.to raise_error(StandardError)
       end
     end
 

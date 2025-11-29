@@ -238,8 +238,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
 
         worker.work_with_params(message, delivery_info, metadata)
 
-        # with_retry calls reject! after max retries, but doesn't stop execution
-        # so the worker continues and calls ack! as well (current implementation behavior)
+        # with_retry raises after max retries, outer rescue catches and calls reject!
         expect(worker.rejected?).to be true
         expect(Onetime::Mail).to have_received(:deliver).exactly(4).times # initial + 3 retries
       end
@@ -250,7 +249,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
 
         worker.work_with_params(message, delivery_info, metadata)
 
-        # with_retry calls reject! after max retries
+        # with_retry raises after max retries, outer rescue catches and calls reject!
         expect(worker.rejected?).to be true
         expect(Onetime::Mail).to have_received(:deliver).exactly(4).times # initial + 3 retries
       end

@@ -171,3 +171,20 @@ channel.queue_declare(
 - Messages rejected after exhausting retry attempts
 
 The DLQ preserves the original message plus headers showing why it was dead-lettered, letting you inspect failures, fix bugs, and replay messages after deploying fixes.
+
+
+## Cascading Failure Scenario
+
+```
+  | Step                  | Time          | Effect                         |
+  |-----------------------|---------------|--------------------------------|
+  | RabbitMQ goes down    | t=0           |                                |
+  | Request 1 tries email | t=0           | Worker 1 blocked               |
+  | Retry 1 + sleep       | +0.5s         | Worker 1 still blocked         |
+  | Retry 2 + sleep       | +1.5s         | Worker 1 still blocked         |
+  | Retry 3 + sleep       | +3.0s         | Worker 1 still blocked         |
+  | Sync SMTP call        | +3.0s to +33s | Worker 1 blocked for SMTP      |
+  | Requests 2-N          | queued        | All workers eventually blocked |
+```
+
+With 4 Puma workers, after ~4 email requests your entire app becomes unresponsive.

@@ -10,12 +10,14 @@ module Onetime
     # configuration set during boot. This state is immutable after
     # initialization and thread-safe.
     #
-    # Set by: SetupConnectionPool, SetupLoggers, SetupDiagnostics initializers
+    # Set by: SetupConnectionPool, SetupLoggers, SetupDiagnostics, SetupRabbitMQ
     #
     Infrastructure = Data.define(
-      :database_pool,      # ConnectionPool for Redis/Valkey connections
-      :cached_loggers,     # Hash of cached SemanticLogger instances
-      :d9s_enabled,        # Whether diagnostics (Sentry) is enabled
+      :database_pool,          # ConnectionPool for Redis/Valkey connections
+      :cached_loggers,         # Hash of cached SemanticLogger instances
+      :d9s_enabled,            # Whether diagnostics (Sentry) is enabled
+      :rabbitmq_connection,    # Bunny connection for RabbitMQ
+      :rabbitmq_channel_pool,  # ConnectionPool for RabbitMQ channels
     ) do
       # Factory method for default state
       #
@@ -26,6 +28,8 @@ module Onetime
           database_pool: nil,
           cached_loggers: {},
           d9s_enabled: false,
+          rabbitmq_connection: nil,
+          rabbitmq_channel_pool: nil,
         )
       end
 
@@ -35,6 +39,14 @@ module Onetime
       #
       def database_configured?
         !database_pool.nil?
+      end
+
+      # Check if RabbitMQ is configured
+      #
+      # @return [Boolean] true if RabbitMQ connection exists
+      #
+      def rabbitmq_configured?
+        !rabbitmq_connection.nil? && !rabbitmq_channel_pool.nil?
       end
 
       # Check if diagnostics are enabled

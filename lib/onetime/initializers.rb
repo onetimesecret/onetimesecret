@@ -25,6 +25,7 @@ require_relative 'initializers/load_fortunes'
 # Dependent initializers
 require_relative 'initializers/setup_diagnostics'      # depends_on: [:logging]
 require_relative 'initializers/setup_database_logging' # depends_on: [:logging]
+require_relative 'initializers/setup_rabbitmq'         # depends_on: [:logging]
 require_relative 'initializers/configure_familia'      # depends_on: [:logging]
 require_relative 'initializers/detect_legacy_data_and_warn' # depends_on: [:familia_config]
 require_relative 'initializers/setup_connection_pool'  # depends_on: [:legacy_check]
