@@ -22,26 +22,6 @@ module AccountAPI::Logic
       def process
         return unless billing_enabled
 
-        # @stripe_customer     = cust.get_stripe_customer
-        # @stripe_subscription = cust.get_stripe_subscription
-
-        # # Rudimentary normalization to make sure that all Onetime customers
-        # # that have a stripe customer and subscription record, have the
-        # # RedisHash fields stripe_customer_id and stripe_subscription_id
-        # # fields populated. The subscription section on the account screen
-        # # depends on these ID fields being populated.
-        # if stripe_customer
-        #   OT.info 'Recording stripe customer ID'
-        #   cust.stripe_customer_id = stripe_customer.id
-        # end
-
-        # if stripe_subscription
-        #   OT.info 'Recording stripe subscription ID'
-        #   cust.stripe_subscription_id = stripe_subscription.id
-        # end
-
-        # cust.save
-
         success_data
       end
 

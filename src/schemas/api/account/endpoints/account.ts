@@ -2,7 +2,6 @@
 
 import { customerSchema } from '@/schemas/models/customer';
 import { transforms } from '@/schemas/transforms';
-import type Stripe from 'stripe';
 import { z } from 'zod';
 
 /**
@@ -10,9 +9,7 @@ import { z } from 'zod';
  */
 export const accountSchema = z.object({
   cust: customerSchema,
-  apitoken: z.string().optional(),
-  stripe_customer: z.custom<Stripe.Customer>().nullable(),
-  stripe_subscriptions: z.array(z.custom<Stripe.Subscription>()).nullable(),
+  apitoken: z.string().nullable(),
 });
 
 export type Account = z.infer<typeof accountSchema>;

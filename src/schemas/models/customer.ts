@@ -38,7 +38,7 @@ export const customerSchema = withFeatureFlags(
       CustomerRole.RECIPIENT,
       CustomerRole.USER_DELETED_SELF,
     ]),
-    email: z.string().email(),
+    email: z.email(),
 
     // Boolean fields from API
     verified: transforms.fromString.boolean,
@@ -59,11 +59,6 @@ export const customerSchema = withFeatureFlags(
 
     // Notification preferences
     notify_on_reveal: transforms.fromString.boolean.default(false),
-
-    // Stripe-related fields
-    stripe_customer_id: z.string().nullable(),
-    stripe_subscription_id: z.string().nullable(),
-    stripe_checkout_email: z.string().nullable(),
   }).strict()
 );
 
