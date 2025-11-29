@@ -15,6 +15,7 @@
 
 require 'bunny'
 require 'json'
+require_relative '../../jobs/queue_config'
 
 module Onetime
   module CLI
@@ -105,8 +106,8 @@ module Onetime
 
           queues = {}
 
-          # Known queues - could be auto-discovered from worker classes
-          %w[email notifications default].each do |queue_name|
+          # Use actual queue names from QueueConfig
+          Onetime::Jobs::QueueConfig::QUEUES.each_key do |queue_name|
             begin
               queue = channel.queue(queue_name, durable: true, passive: true)
               queues[queue_name] = {
