@@ -56,7 +56,10 @@ module Onetime
 
         OT.ld "[init] Setup RabbitMQ: channel pool created (size: #{pool_size})"
 
-        # Declare queues at boot
+        # Declare dead letter infrastructure first (exchanges + queues)
+        declare_dead_letter_infrastructure
+
+        # Declare main queues (which reference DLX)
         declare_queues
 
         # Verify connectivity
@@ -81,6 +84,23 @@ module Onetime
         OT.le "[init] Setup RabbitMQ: Unexpected error: #{e.message}"
         OT.le e.backtrace.join("\n") if OT.debug?
         raise
+      end
+
+      def declare_dead_letter_infrastructure
+        require_relative '../jobs/queue_config'
+
+        $rmq_channel_pool.with do |channel|
+          Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.each do |exchange_name, config|
+            # Declare fanout exchange for dead letters
+            channel.fanout(exchange_name, durable: true)
+            OT.ld "[init] Setup RabbitMQ: Declared DLX '#{exchange_name}'"
+
+            # Declare and bind the dead letter queue
+            queue = channel.queue(config[:queue], durable: true)
+            queue.bind(exchange_name)
+            OT.ld "[init] Setup RabbitMQ: Declared and bound DLQ '#{config[:queue]}'"
+          end
+        end
       end
 
       def declare_queues

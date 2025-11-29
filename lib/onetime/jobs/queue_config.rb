@@ -40,6 +40,17 @@ module Onetime
         }
       }.freeze
 
+      # Dead letter exchange and queue configuration
+      # These must be declared BEFORE the main queues that reference them
+      DEAD_LETTER_CONFIG = {
+        'dlx.email' => { queue: 'dlq.email' },
+        'dlx.webhooks' => { queue: 'dlq.webhooks' },
+        'dlx.billing' => { queue: 'dlq.billing' }
+      }.freeze
+
+      # TTL for processed message idempotency keys (1 hour)
+      IDEMPOTENCY_TTL = 3600
+
       # Schema versioning constants
       CURRENT_SCHEMA_VERSION = 1
 
