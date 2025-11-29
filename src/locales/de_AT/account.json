@@ -131,6 +131,17 @@
         "no-analytics-statement": "Keine Analysen. Kein Tracking. Punkt.",
         "explanation": "Dies ist keine Einstellung, weil es nichts ein- oder auszuschalten gibt. Ihr Datenschutz ist in unserer Arbeitsweise eingebaut."
       },
+      "notifications": {
+        "title": "Benachrichtigungseinstellungen",
+        "description": "Verwalten Sie, wie Sie Benachrichtigungen erhalten",
+        "error-updating": "Benachrichtigungseinstellung konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
+        "reveal-notifications": {
+          "title": "Benachrichtigungen bei Geheimnis-Anzeige",
+          "description": "Erhalten Sie eine E-Mail, wenn jemand Ihr Geheimnis ansieht",
+          "help": "Sie werden jedes Mal benachrichtigt, wenn ein Empfänger eines Ihrer Geheimnisse öffnet"
+        },
+        "privacy-note": "Benachrichtigungs-E-Mails enthalten nur den Zeitstempel und die Geheimnis-ID. Informationen über den Betrachter werden niemals einbezogen."
+      },
       "caution": {
         "title": "Bereich für sorgfältige Überlegung",
         "description": "Erweiterte Einstellungen und Datenverwaltung",

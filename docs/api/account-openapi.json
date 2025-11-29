@@ -315,6 +315,11 @@
                 "type": "string",
                 "nullable": true
               },
+              "notify_on_reveal": {
+                "type": "boolean",
+                "nullable": true,
+                "default": false
+              },
               "stripe_customer_id": {
                 "type": "string",
                 "nullable": true

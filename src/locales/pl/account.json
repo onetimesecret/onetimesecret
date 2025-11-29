@@ -131,6 +131,17 @@
         "no-analytics-statement": "Bez analityki. Bez śledzenia. Kropka.",
         "explanation": "To nie jest ustawienie, ponieważ nie ma nic do włączenia ani wyłączenia. Twoja prywatność jest wbudowana w sposób naszego działania."
       },
+      "notifications": {
+        "title": "Ustawienia powiadomień",
+        "description": "Zarządzaj sposobem otrzymywania powiadomień",
+        "error-updating": "Nie udało się zaktualizować preferencji powiadomień. Spróbuj ponownie.",
+        "reveal-notifications": {
+          "title": "Powiadomienia o odczytaniu sekretu",
+          "description": "Otrzymuj e-mail, gdy ktoś wyświetli Twój sekret",
+          "help": "Otrzymasz powiadomienie za każdym razem, gdy odbiorca odczyta jeden z Twoich sekretów"
+        },
+        "privacy-note": "E-maile z powiadomieniami zawierają tylko znacznik czasu i identyfikator sekretu. Informacje o osobie przeglądającej nigdy nie są dołączane."
+      },
       "caution": {
         "title": "Strefa rozważnej decyzji",
         "description": "Ustawienia zaawansowane i zarządzanie danymi",

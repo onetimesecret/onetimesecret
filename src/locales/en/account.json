@@ -131,6 +131,17 @@
         "no-analytics-statement": "No analytics. No tracking. Period.",
         "explanation": "This isn't a setting because there's nothing to turn on or off. Your privacy is built into how we operate."
       },
+      "notifications": {
+        "title": "Notification Settings",
+        "description": "Manage how you receive notifications",
+        "error-updating": "Failed to update notification preference. Please try again.",
+        "reveal-notifications": {
+          "title": "Secret Reveal Notifications",
+          "description": "Receive an email when someone views your secret",
+          "help": "You'll be notified each time a recipient reveals one of your secrets"
+        },
+        "privacy-note": "Notification emails include only the timestamp and secret ID. Viewer information is never included."
+      },
       "caution": {
         "title": "Careful Consideration Zone",
         "description": "Advanced settings and data management",

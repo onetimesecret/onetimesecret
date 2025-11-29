@@ -131,6 +131,17 @@
         "no-analytics-statement": "Sem análises. Sem rastreamento. Ponto final.",
         "explanation": "Isto não é uma definição porque não há nada para ativar ou desativar. A sua privacidade está integrada na forma como operamos."
       },
+      "notifications": {
+        "title": "Definições de Notificações",
+        "description": "Gira como recebe notificações",
+        "error-updating": "Falha ao atualizar preferência de notificação. Por favor, tente novamente.",
+        "reveal-notifications": {
+          "title": "Notificações de Visualização de Segredos",
+          "description": "Receba um e-mail quando alguém visualizar o seu segredo",
+          "help": "Será notificado sempre que um destinatário visualizar um dos seus segredos"
+        },
+        "privacy-note": "Os e-mails de notificação incluem apenas o carimbo de data/hora e o ID do segredo. Informações do visualizador nunca são incluídas."
+      },
       "caution": {
         "title": "Zona de Consideração Cuidadosa",
         "description": "Definições avançadas e gestão de dados",

@@ -131,6 +131,17 @@
         "no-analytics-statement": "",
         "explanation": ""
       },
+      "notifications": {
+        "title": "Aviseringsinställningar",
+        "description": "Hantera hur du får aviseringar",
+        "error-updating": "Kunde inte uppdatera aviseringsinställningen. Försök igen.",
+        "reveal-notifications": {
+          "title": "Aviseringar när hemligheter visas",
+          "description": "Få ett e-postmeddelande när någon visar din hemlighet",
+          "help": "Du får en avisering varje gång en mottagare visar en av dina hemligheter"
+        },
+        "privacy-note": "Aviseringar via e-post innehåller endast tidsstämpeln och hemlighetens ID. Information om vem som visade hemligheten inkluderas aldrig."
+      },
       "caution": {
         "title": "",
         "description": "",

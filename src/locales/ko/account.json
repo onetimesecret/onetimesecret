@@ -131,6 +131,17 @@
         "no-analytics-statement": "분석 없음. 추적 없음. 확실합니다.",
         "explanation": "켜거나 끌 것이 없기 때문에 설정이 아닙니다. 귀하의 개인정보 보호는 저희 운영 방식에 내재되어 있습니다."
       },
+      "notifications": {
+        "title": "알림 설정",
+        "description": "알림 수신 방법을 관리합니다",
+        "error-updating": "알림 설정 업데이트에 실패했습니다. 다시 시도해 주세요.",
+        "reveal-notifications": {
+          "title": "비밀 열람 알림",
+          "description": "누군가 비밀을 열람하면 이메일을 받습니다",
+          "help": "수신자가 비밀을 열람할 때마다 알림을 받습니다"
+        },
+        "privacy-note": "알림 이메일에는 타임스탬프와 비밀 ID만 포함됩니다. 열람자 정보는 포함되지 않습니다."
+      },
       "caution": {
         "title": "신중한 고려 구역",
         "description": "고급 설정 및 데이터 관리",

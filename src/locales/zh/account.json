@@ -131,6 +131,17 @@
         "no-analytics-statement": "无分析。无跟踪。就是这样。",
         "explanation": "这不是一项设置，因为没有什么可以打开或关闭。您的隐私已内置于我们的运营方式中。"
       },
+      "notifications": {
+        "title": "通知设置",
+        "description": "管理您接收通知的方式",
+        "error-updating": "更新通知偏好失败。请重试。",
+        "reveal-notifications": {
+          "title": "内容查看通知",
+          "description": "当有人查看您的内容时收到邮件通知",
+          "help": "每当收件人查看您的内容时，您将收到通知"
+        },
+        "privacy-note": "通知邮件仅包含时间戳和内容 ID。绝不包含查看者信息。"
+      },
       "caution": {
         "title": "谨慎操作区域",
         "description": "高级设置和数据管理",

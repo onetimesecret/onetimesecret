@@ -1294,6 +1294,12 @@
           d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75s-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12M12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75m0 8.25a.75.75 0 1 0 0-1.5a.75.75 0 0 0 0 1.5"
           clip-rule="evenodd" />
       </symbol>
+      <symbol viewBox="0 0 24 24" id="heroicons-bell"><path fill="none"
+stroke="currentColor"
+stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="1.5"
+d="M14.857 17.082a24 24 0 0 0 5.454-1.31A8.97 8.97 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.97 8.97 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.3 24.3 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></symbol>
       <symbol
         viewBox="0 0 24 24"
         id="heroicons-exclamation-circle">
@@ -1305,6 +1311,10 @@
           stroke-width="1.5"
           d="M12 9v3.75m9-.75a9 9 0 1 1-18 0a9 9 0 0 1 18 0m-9 3.75h.008v.008H12z" />
       </symbol>
+      <symbol viewBox="0 0 24 24" id="heroicons-bell-solid"><path fill="currentColor"
+fill-rule="evenodd"
+d="M5.25 9a6.75 6.75 0 0 1 13.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206c-1.544.57-3.16.99-4.831 1.243q.01.14.01.281a3.75 3.75 0 1 1-7.49-.28a24.6 24.6 0 0 1-4.831-1.244a.75.75 0 0 1-.298-1.206A8.22 8.22 0 0 0 5.25 9.75zm4.502 8.9l-.002.1a2.25 2.25 0 1 0 4.498-.1a25 25 0 0 1-4.496 0"
+clip-rule="evenodd" /></symbol>
       <symbol
         viewBox="0 0 24 24"
         id="heroicons-exclamation-triangle-solid">

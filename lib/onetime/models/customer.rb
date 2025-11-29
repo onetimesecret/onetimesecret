@@ -113,6 +113,9 @@ module Onetime
     field :last_password_update
     field :last_login
 
+    # Notification preferences
+    field :notify_on_reveal  # Boolean string: 'true' or 'false'
+
     def init
       super
 
@@ -153,6 +156,12 @@ module Onetime
 
     def role?(guess)
       role.to_s.eql?(guess.to_s)
+    end
+
+    # Check if user wants notification when their secret is revealed
+    # @return [Boolean] true if notifications enabled, false otherwise (default)
+    def notify_on_reveal?
+      notify_on_reveal.to_s == 'true'
     end
 
     # Hash-like accessor for Otto's RouteAuthWrapper#extract_user_roles

@@ -131,6 +131,17 @@
         "no-analytics-statement": "Nessuna analisi. Nessun tracciamento. Punto",
         "explanation": "Questa non è un'impostazione perché non c'è niente da attivare o disattivare. La tua privacy è integrata nel nostro modo di operare"
       },
+      "notifications": {
+        "title": "Impostazioni notifiche",
+        "description": "Gestisci come ricevi le notifiche",
+        "error-updating": "Impossibile aggiornare la preferenza di notifica. Riprova.",
+        "reveal-notifications": {
+          "title": "Notifiche di visualizzazione dei segreti",
+          "description": "Ricevi un'email quando qualcuno visualizza il tuo segreto",
+          "help": "Riceverai una notifica ogni volta che un destinatario visualizza uno dei tuoi segreti"
+        },
+        "privacy-note": "Le email di notifica includono solo il timestamp e l'ID del segreto. Le informazioni sul visitatore non sono mai incluse."
+      },
       "caution": {
         "title": "Zona di attenta considerazione",
         "description": "Impostazioni avanzate e gestione dati",

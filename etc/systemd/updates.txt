@@ -1,0 +1,17 @@
+  Files Modified
+
+  ots-worker@.service
+  - Added graceful shutdown: TimeoutStopSec=90, KillMode=mixed, SuccessExitStatus=0 143
+  - Added Debian 13 hardening: ProtectClock, ProtectHostname, ProtectProc=invisible
+  - Split ReadWritePaths to separate lines
+
+  ots-scheduler.service
+  - Added ExecReload=/bin/kill -USR1 $MAINPID for status logging via systemctl reload
+  - Added graceful shutdown: TimeoutStopSec=90, KillMode=mixed, SuccessExitStatus=0 143
+  - Added Debian 13 hardening: ProtectClock, ProtectHostname, ProtectProc=invisible
+  - Split ReadWritePaths to separate lines
+
+  README.md
+  - Documented new security directives with systemd version requirement
+  - Added "Graceful Shutdown" section explaining the timeout behavior
+  - Added "Scheduler Reload" section showing how to trigger status logging

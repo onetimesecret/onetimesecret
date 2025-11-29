@@ -24,7 +24,6 @@ module Onetime::Customer::Features
       base.safe_dump_field :identifier, ->(obj) { obj.identifier }
       base.safe_dump_field :objid
       base.safe_dump_field :extid
-      base.safe_dump_field :custid
       base.safe_dump_field :email
       base.safe_dump_field :role
       base.safe_dump_field :verified
@@ -32,10 +31,6 @@ module Onetime::Customer::Features
       base.safe_dump_field :locale
       base.safe_dump_field :updated
       base.safe_dump_field :created
-      base.safe_dump_field :stripe_customer_id
-      base.safe_dump_field :stripe_subscription_id
-      base.safe_dump_field :stripe_checkout_email
-      base.safe_dump_field :planid
 
       # NOTE: The secrets_created incrementer is null until the first secret
       # is created. See ConcealSecret for where the incrementer is called. This
@@ -48,6 +43,9 @@ module Onetime::Customer::Features
 
       # We use the hash syntax here since `:active?` is not a valid symbol.
       base.safe_dump_field :active, ->(cust) { cust.active? }
+
+      # Notification preferences
+      base.safe_dump_field :notify_on_reveal, ->(cust) { cust.notify_on_reveal? }
     end
   end
 end

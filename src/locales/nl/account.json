@@ -131,6 +131,17 @@
         "no-analytics-statement": "Geen analytics. Geen tracking. Punt uit.",
         "explanation": "Dit is geen instelling omdat er niets aan of uit te zetten is. Je privacy is ingebouwd in hoe we werken."
       },
+      "notifications": {
+        "title": "Meldingsinstellingen",
+        "description": "Beheer hoe je meldingen ontvangt",
+        "error-updating": "Meldingsvoorkeur bijwerken mislukt. Probeer het opnieuw.",
+        "reveal-notifications": {
+          "title": "Meldingen bij bekijken van berichten",
+          "description": "Ontvang een e-mail wanneer iemand je bericht bekijkt",
+          "help": "Je ontvangt een melding elke keer dat een ontvanger een van je berichten bekijkt"
+        },
+        "privacy-note": "Meldingse-mails bevatten alleen het tijdstempel en de bericht-ID. Informatie over de kijker wordt nooit opgenomen."
+      },
       "caution": {
         "title": "Zone voor zorgvuldige overweging",
         "description": "Geavanceerde instellingen en gegevensbeheer",

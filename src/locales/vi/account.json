@@ -131,6 +131,17 @@
         "no-analytics-statement": "Không phân tích. Không theo dõi. Chấm hết.",
         "explanation": "Đây không phải là cài đặt vì không có gì để bật hoặc tắt. Quyền riêng tư của bạn được tích hợp vào cách chúng tôi hoạt động."
       },
+      "notifications": {
+        "title": "Cài đặt thông báo",
+        "description": "Quản lý cách bạn nhận thông báo",
+        "error-updating": "Không thể cập nhật tùy chọn thông báo. Vui lòng thử lại.",
+        "reveal-notifications": {
+          "title": "Thông báo khi bí mật được xem",
+          "description": "Nhận email khi ai đó xem bí mật của bạn",
+          "help": "Bạn sẽ nhận thông báo mỗi khi người nhận xem một trong các bí mật của bạn"
+        },
+        "privacy-note": "Email thông báo chỉ bao gồm dấu thời gian và ID bí mật. Thông tin về người xem không bao giờ được bao gồm."
+      },
       "caution": {
         "title": "Vùng cân nhắc cẩn thận",
         "description": "Cài đặt nâng cao và quản lý dữ liệu",

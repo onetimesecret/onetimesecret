@@ -24,8 +24,38 @@ module V3
       end
 
       # Reveal a secret (decrypt and return value)
+      # Extended to notify owner when their secret is revealed
       class RevealSecret < V2::Logic::Secrets::RevealSecret
         # include ::V3::Logic::Base
+
+        def process
+          result = super
+
+          # Only notify on actual reveal (not verification flow)
+          # show_secret is set in parent class when secret is actually shown
+          notify_owner_of_reveal if show_secret && !verification
+
+          result
+        end
+
+        private
+
+        # Send notification to secret owner if they have opted in
+        def notify_owner_of_reveal
+          owner = secret.load_owner
+          return if owner.nil? || owner.anonymous?
+          return unless owner.email.to_s.present?
+          return unless owner.notify_on_reveal?
+
+          Onetime::Jobs::Publisher.enqueue_email(:secret_revealed, {
+            recipient: owner.email,
+            secret_shortid: secret.shortid,
+            revealed_at: Time.now.utc.iso8601,
+          })
+        rescue StandardError => e
+          # Log but don't fail the reveal - notification is non-critical
+          secret_logger.error "[RevealSecret] Failed to notify owner: #{e.message}"
+        end
       end
 
       # Show secret metadata without revealing value
