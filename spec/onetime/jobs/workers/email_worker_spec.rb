@@ -43,8 +43,8 @@ require_relative '../../../../lib/onetime/jobs/workers/email_worker'
 require_relative '../../../../lib/onetime/jobs/queue_config'
 
 # Data classes for mocking AMQP envelope components (immutable, Ruby 3.2+)
-DeliveryInfoStub = Data.define(:delivery_tag, :routing_key, :redelivered?)
-MetadataStub = Data.define(:message_id, :headers)
+DeliveryInfoStub = Data.define(:delivery_tag, :routing_key, :redelivered?) unless defined?(DeliveryInfoStub)
+MetadataStub = Data.define(:message_id, :headers) unless defined?(MetadataStub)
 
 RSpec.describe Onetime::Jobs::Workers::EmailWorker do
   # Create test worker class with accessible delivery_info
@@ -101,6 +101,9 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
   end
 
   before do
+    # Ensure clean Redis state for idempotency tests
+    Familia.dbclient.del("job:processed:#{message_id}")
+
     # Store envelope is called by work_with_params, but we can also pre-set for tests
     worker.store_envelope(delivery_info, metadata)
 
@@ -252,17 +255,17 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
         expect(Onetime::Mail).to have_received(:deliver).exactly(4).times # initial + 3 retries
       end
 
-      it 'marks message as processed even when delivery fails after retries' do
-        # Current implementation behavior: mark_processed is called after with_retry returns,
-        # even if reject! was called inside with_retry
+      it 'keeps idempotency key even when delivery fails after retries' do
+        # claim_for_processing atomically sets the key BEFORE attempting delivery,
+        # so the key exists regardless of delivery success/failure. This prevents
+        # re-processing on redelivery even if the original attempt failed.
         Familia.dbclient.del("job:processed:#{message_id}")
 
         allow(Onetime::Mail).to receive(:deliver).and_raise(StandardError, 'Delivery failed')
 
         worker.work_with_params(message, delivery_info, metadata)
 
-        # with_retry doesn't raise after calling reject!, so execution continues
-        # and mark_processed is called (this is current behavior, not ideal)
+        # Key was set by claim_for_processing at the start
         expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
       end
     end

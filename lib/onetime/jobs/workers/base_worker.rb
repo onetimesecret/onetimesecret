@@ -147,7 +147,9 @@ module Onetime
             @metadata&.message_id
           end
 
-          # Idempotency: Check if message was already processed
+          # A simple predicate to be used as a read-only check only. Hot path
+          # code should use claim_for_processing. This is an idempotency check.
+          #
           # @param msg_id [String] Message ID to check
           # @return [Boolean] true if already processed
           def already_processed?(msg_id)
@@ -155,12 +157,14 @@ module Onetime
             Familia.dbclient.exists?("job:processed:#{msg_id}")
           end
 
-          # Idempotency: Mark message as processed
-          # @param msg_id [String] Message ID to mark
-          def mark_processed(msg_id)
-            return unless msg_id
+          # Idempotency check.
+          # Returns true if this call successfully claimed the message
+          # Returns false if already claimed by another worker
+          def claim_for_processing(msg_id)
+            return false unless msg_id
             ttl = Onetime::Jobs::QueueConfig::IDEMPOTENCY_TTL
-            Familia.dbclient.setex("job:processed:#{msg_id}", ttl, '1')
+            # Familia.dbclient.set returns true if SET NX succeeded, false if key existed
+            Familia.dbclient.set("job:processed:#{msg_id}", '1', nx: true, ex: ttl)
           end
         end
       end

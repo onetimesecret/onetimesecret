@@ -10,12 +10,12 @@
 #
 # Test Categories:
 #   - Property extraction (Unit):
-#       * message_id: Extracts message_id from delivery_info properties
+#       * message_id: Extracts message_id from AMQP metadata properties
 #
 #   - Idempotency (Integration - requires Redis):
-#       * already_processed? returns true when key exists
+#       * already_processed? returns true when key exists (read-only check)
 #       * already_processed? returns false when key absent
-#       * mark_processed sets Redis key with SETEX and correct TTL
+#       * claim_for_processing atomically claims message with SET NX EX
 #
 #   - Message parsing (Unit):
 #       * parse_message returns hash from valid JSON
@@ -27,7 +27,7 @@
 #
 # Setup Requirements:
 #   - Redis test instance: VALKEY_URL='valkey://127.0.0.1:2121/0'
-#   - Mocked delivery_info struct (Sneakers/Kicks format)
+#   - Mocked delivery_info and metadata structs (Kicks/Sneakers format)
 #   - Mocked ack!/reject! methods on test worker instance
 #
 # Trust Rationale:
@@ -158,7 +158,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
     end
   end
 
-  describe '#mark_processed' do
+  describe '#claim_for_processing' do
     let(:msg_id) { 'test-msg-456' }
     let(:redis_key) { "job:processed:#{msg_id}" }
 
@@ -166,27 +166,33 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
       Familia.dbclient.del(redis_key)
     end
 
-    it 'sets Redis key with TTL matching IDEMPOTENCY_TTL' do
-      worker.mark_processed(msg_id)
+    it 'returns true and sets Redis key on first claim' do
+      result = worker.claim_for_processing(msg_id)
 
-      # Verify key exists
+      expect(result).to be true
       expect(Familia.dbclient.exists?(redis_key)).to be true
 
       # Verify TTL is set correctly (allow 1 second variance for test execution)
       ttl = Familia.dbclient.ttl(redis_key)
       expected_ttl = Onetime::Jobs::QueueConfig::IDEMPOTENCY_TTL
       expect(ttl).to be_between(expected_ttl - 1, expected_ttl)
+    end
 
-      # Verify value
-      expect(Familia.dbclient.get(redis_key)).to eq('1')
+    it 'returns false on second claim (already claimed)' do
+      first_claim = worker.claim_for_processing(msg_id)
+      second_claim = worker.claim_for_processing(msg_id)
+
+      expect(first_claim).to be true
+      expect(second_claim).to be false
     end
 
     context 'when msg_id is nil' do
-      it 'does not set any Redis key' do
+      it 'returns false without setting any Redis key' do
         initial_keys = Familia.dbclient.keys('job:processed:*')
-        worker.mark_processed(nil)
+        result = worker.claim_for_processing(nil)
         final_keys = Familia.dbclient.keys('job:processed:*')
 
+        expect(result).to be false
         expect(final_keys).to eq(initial_keys)
       end
     end
@@ -395,14 +401,19 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
   end
 
   describe 'race condition handling (concurrent idempotency)' do
-    # This test demonstrates the race condition vulnerability in the current
-    # already_processed? + mark_processed pattern. Multiple threads checking
-    # simultaneously can all see "not processed" before any thread marks it.
+    # This test verifies that claim_for_processing prevents race conditions.
     #
-    # Expected behavior: Only ONE worker should successfully "claim" a message.
-    # Current behavior: Multiple workers may claim the same message (RACE CONDITION).
+    # The OLD two-step pattern (already_processed? + mark_processed) was vulnerable:
+    #   Worker A: already_processed? → false
+    #   Worker B: already_processed? → false
+    #   Worker A: processes, mark_processed
+    #   Worker B: processes (DUPLICATE), mark_processed
     #
-    # Fix: Replace with atomic claim_for_processing using SET NX EX.
+    # The NEW atomic pattern (claim_for_processing with SET NX EX) is safe:
+    #   Worker A: claim_for_processing → true (SET NX succeeds)
+    #   Worker B: claim_for_processing → false (SET NX fails, key exists)
+    #   Worker A: processes
+    #   Worker B: skips
 
     let(:redis) { Familia.dbclient }
     let(:msg_id) { SecureRandom.uuid }
@@ -412,21 +423,18 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
       redis.del(idempotency_key)
     end
 
-    it 'should allow only one worker to claim a message (EXPECTED TO FAIL with current implementation)' do
+    it 'allows only one worker to claim a message via atomic SET NX' do
       results = Queue.new  # Thread-safe queue
 
-      # Spawn 10 threads racing to check and mark the same message
+      # Spawn 10 threads racing to claim the same message
       threads = 10.times.map do
         Thread.new do
-          # Simulate the current pattern: check then mark
-          unless worker.already_processed?(msg_id)
-            # Small sleep to widen the race window
-            sleep(0.01)
-            worker.mark_processed(msg_id)
-            results << :claimed
+          value = if worker.claim_for_processing(msg_id)
+            :claimed
           else
-            results << :skipped
+            :skipped
           end
+          results << value
         end
       end
 
@@ -436,8 +444,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
       claims = []
       claims << results.pop until results.empty?
 
-      # With atomic operation, exactly ONE should claim
-      # With race condition, MULTIPLE will claim (test fails)
+      # With atomic SET NX, exactly ONE should claim
       expect(claims.count(:claimed)).to eq(1),
         "Expected exactly 1 claim but got #{claims.count(:claimed)} - RACE CONDITION DETECTED"
     end
