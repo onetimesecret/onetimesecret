@@ -57,6 +57,9 @@ export const customerSchema = withFeatureFlags(
     // Optional fields
     locale: z.string().nullable(),
 
+    // Notification preferences
+    notify_on_reveal: transforms.fromString.boolean.default(false),
+
     // Stripe-related fields
     stripe_customer_id: z.string().nullable(),
     stripe_subscription_id: z.string().nullable(),

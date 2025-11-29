@@ -123,6 +123,21 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    path: '/account/settings/profile/notifications',
+    name: 'Notification Settings',
+    components: {
+      default: () => import('@/views/account/settings/NotificationSettings.vue'),
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
+    },
+    meta: {
+      title: 'web.TITLES.notification_settings',
+      requiresAuth: true,
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
+    },
+  },
+  {
     path: '/account/settings/profile/email',
     name: 'Change Email',
     components: {

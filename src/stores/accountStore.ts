@@ -55,6 +55,15 @@ export const useAccountStore = defineStore('account', () => {
     return validated;
   }
 
+  async function updateNotificationPreference(field: string, value: boolean) {
+    const response = await $api.post('/api/account/account/update-notification-preference', {
+      field,
+      value,
+    });
+    await fetch();
+    return response.data;
+  }
+
   function $reset() {
     abort();
     account.value = null;
@@ -69,6 +78,7 @@ export const useAccountStore = defineStore('account', () => {
     updateLocale,
     changePassword,
     generateApiToken,
+    updateNotificationPreference,
     abort,
     $reset,
   };
