@@ -16,6 +16,15 @@
 #    VCR_MODE=all bundle exec rspec
 #
 # Cassettes are stored in: spec/fixtures/vcr_cassettes/
+#
+# VCR modes:
+#
+#   Mode         | Behavior
+#  --------------|---------------------------------------
+#   all          | Re-record all requests
+#   new_episodes | Replay existing, record new (default)
+#   none         | Playback only, error if missing
+#   once         | Record once, then playback forever
 
 require 'vcr'
 require 'webmock'
@@ -80,10 +89,13 @@ VCR.configure do |config|
 end
 
 # WebMock configuration
+# Allow Stripe API for VCR recording, stripe-mock for local testing
 WebMock.disable_net_connect!(
   allow_localhost: true,
   allow: [
-    'localhost:12111', # stripe-mock server
+    'localhost:12111',    # stripe-mock server
     '127.0.0.1:12111',
+    'api.stripe.com',     # Real Stripe API (for VCR recording)
+    /\.stripe\.com\z/,    # All Stripe subdomains (anchored)
   ],
 )

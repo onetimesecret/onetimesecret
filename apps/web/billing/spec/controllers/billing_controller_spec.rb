@@ -13,8 +13,9 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :vcr, :s
   include Rack::Test::Methods
 
   # The Rack application for testing
+  # Wrap with URLMap to match production mounting behavior
   def app
-    @app ||= Billing::Application.new
+    @app ||= Rack::URLMap.new('/billing' => Billing::Application.new)
   end
 
   let(:created_customers) { [] }

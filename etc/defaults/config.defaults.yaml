@@ -423,6 +423,43 @@ mail:
       tracking_event: :error
       stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'
+
+# Background Job Processing (RabbitMQ)
+# ------------------------------------
+# Async processing for emails, notifications, webhooks, and scheduled tasks.
+# When disabled, email delivery falls back to synchronous mode.
+jobs:
+  # Master switch for background job system
+  enabled: <%= ENV['JOBS_ENABLED'] == 'true' || false %>
+
+  # RabbitMQ connection URL
+  # Format: amqp://[user:password@]host[:port][/vhost]
+  rabbitmq_url: <%= ENV['RABBITMQ_URL'] || 'amqp://guest:guest@localhost:5672' %>
+
+  # Publisher settings (Puma process)
+  # Channel pool size for multi-threaded web server
+  channel_pool_size: <%= ENV['RABBITMQ_CHANNEL_POOL_SIZE']&.to_i || 5 %>
+
+  # Fallback to synchronous delivery when RabbitMQ unavailable
+  # Recommended: true for production to ensure emails always send
+  fallback_to_sync: <%= ENV['JOBS_FALLBACK_SYNC'] != 'false' %>
+
+  # Worker settings (consumer processes)
+  workers:
+    email:
+      threads: <%= ENV['EMAIL_WORKER_THREADS']&.to_i || 4 %>
+      prefetch: <%= ENV['EMAIL_WORKER_PREFETCH']&.to_i || 10 %>
+    notifications:
+      threads: <%= ENV['NOTIFICATION_WORKER_THREADS']&.to_i || 2 %>
+      prefetch: <%= ENV['NOTIFICATION_WORKER_PREFETCH']&.to_i || 10 %>
+    billing:
+      threads: <%= ENV['BILLING_WORKER_THREADS']&.to_i || 2 %>
+      prefetch: <%= ENV['BILLING_WORKER_PREFETCH']&.to_i || 5 %>
+
+  # Scheduler settings (rufus-scheduler daemon)
+  scheduler:
+    enabled: <%= ENV['JOBS_SCHEDULER_ENABLED'] == 'true' || false %>
+
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
   default_locale: <%= ENV['I18N_DEFAULT_LOCALE'] || 'en' %>

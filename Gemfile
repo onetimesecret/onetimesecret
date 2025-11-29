@@ -18,7 +18,7 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
-gem 'otto', '~> 2.0.0.pre7'
+gem 'otto', '~> 2.0.0.pre8'
 gem 'rhales', '~> 0.5.3'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
@@ -91,7 +91,17 @@ gem 'irb'
 gem 'logger'
 gem 'psych', '~> 5.2.3'
 gem 'rdoc'
+gem 'rerun'
 gem 'stringio', '~> 3.1.6'
+
+# ====================================
+# Background Job Processing
+# ====================================
+
+gem 'bunny', '~> 2.22'           # RabbitMQ AMQP client
+gem 'connection_pool', '~> 2.4'  # Thread-safe connection pooling
+gem 'rufus-scheduler', '~> 3.9'  # Cron-style job scheduling
+gem 'kicks', '~> 3.0'            # RabbitMQ worker framework (Sneakers successor)
 
 # ====================================
 # Third-Party Service Integrations
@@ -132,6 +142,7 @@ end
 group :test do
   # Note: FakeRedis removed due to redis 5.x incompatibility
   # See spec_helper.rb for details about mock_redis as future alternative
+  gem 'bunny-mock', '~> 1.7', require: false  # Mock RabbitMQ for testing
   gem 'climate_control'
   gem 'rack-test', require: false
   gem 'rspec', git: 'https://github.com/rspec/rspec'

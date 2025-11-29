@@ -33,6 +33,7 @@
       "usersDescription": "Manage user accounts and permissions",
       "domains": "Domains",
       "settings": "Settings",
+      "system": "System",
       "welcome": "Welcome to Colonel",
       "welcomeDesc": "Administrative control panel for OneTimeSecret",
       "quickActions": "Quick Actions",
@@ -59,7 +60,18 @@
         "configureDomainsDesc": "Domain and DNS settings",
         "systemSettings": "System Settings",
         "systemSettingsDesc": "Application configuration"
-      }
+      },
+      "backgroundJobs": "Background Jobs",
+      "queueStatus": "Queue Status",
+      "queueName": "Queue",
+      "pendingMessages": "Pending",
+      "consumers": "Consumers",
+      "processingRate": "Rate/sec",
+      "connectionStatus": "Connection Status",
+      "workerHealth": "Worker Health",
+      "activeWorkers": "active workers",
+      "noQueueData": "No queue data available",
+      "loadingQueueData": "Loading queue data..."
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "When you submit feedback, we'll see:",

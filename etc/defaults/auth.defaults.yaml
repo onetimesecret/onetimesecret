@@ -12,8 +12,8 @@ mode: <%= ENV['AUTHENTICATION_MODE'] || 'simple' %>
 session:
   secret: <%= ENV['SESSION_SECRET'] %>
   expire_after: 86400       # 24 hours
-  key: 'onetime.session'        # Unified cookie name
-  secure: true              # Set based on SSL configuration
+  key: 'onetime.session'    # Unified cookie name
+  secure: <%= ENV['SSL'] == 'true' || false %>
   same_site: strict
 
 # Simple mode settings (Redis-only authentication)

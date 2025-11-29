@@ -16,6 +16,7 @@ import {
   type UsageExportDetails,
   type CustomDomainsDetails,
   type CustomDomain,
+  type QueueMetrics,
 } from '@/schemas/api/account/endpoints/colonel';
 import { responseSchemas } from '@/schemas/api/v3';
 import { AxiosInstance } from 'axios';
@@ -43,6 +44,7 @@ export type ColonelInfoStore = {
   redisMetrics: RedisMetricsDetails | null;
   bannedIPs: BannedIP[];
   usageExport: UsageExportDetails | null;
+  queueMetrics: QueueMetrics | null;
 
   // Actions
   fetchInfo: () => Promise<ColonelInfoDetails>;
@@ -55,6 +57,7 @@ export type ColonelInfoStore = {
   banIP: (ipAddress: string, reason?: string) => Promise<void>;
   unbanIP: (ipAddress: string) => Promise<void>;
   fetchUsageExport: (startDate?: number, endDate?: number) => Promise<UsageExportDetails>;
+  fetchQueueMetrics: () => Promise<QueueMetrics>;
   fetchConfig: () => Promise<SystemSettingsDetails>;
   updateConfig: (config: SystemSettingsDetails) => Promise<void>;
   dispose: () => void;
@@ -79,6 +82,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
   const customDomains = ref<CustomDomain[]>([]);
   const customDomainsPagination = ref<Pagination | null>(null);
   const usageExport = ref<UsageExportDetails | null>(null);
+  const queueMetrics = ref<QueueMetrics | null>(null);
   const _initialized = ref(false);
   const isLoading = ref(false);
 
@@ -338,6 +342,27 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     }
   }
 
+  // Fetch queue metrics
+  async function fetchQueueMetrics() {
+    isLoading.value = true;
+    try {
+      const response = await $api.get('/api/colonel/queue');
+      const validated = responseSchemas.queueMetrics.parse(response.data);
+
+      if (validated.details) {
+        queueMetrics.value = validated.details;
+      }
+
+      return validated.details!;
+    } catch (error) {
+      console.error('Failed to fetch queue metrics:', error);
+      queueMetrics.value = null;
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   function dispose() {
     record.value = null;
     details.value = null;
@@ -351,6 +376,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     bannedIPs.value = [];
     currentIP.value = null;
     usageExport.value = null;
+    queueMetrics.value = null;
   }
 
   /**
@@ -369,6 +395,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     bannedIPs.value = [];
     currentIP.value = null;
     usageExport.value = null;
+    queueMetrics.value = null;
     _initialized.value = false;
   }
 
@@ -389,6 +416,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     customDomains,
     customDomainsPagination,
     usageExport,
+    queueMetrics,
     isLoading,
 
     // Actions
@@ -403,6 +431,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     unbanIP,
     fetchCustomDomains,
     fetchUsageExport,
+    fetchQueueMetrics,
     dispose,
     $reset,
   };

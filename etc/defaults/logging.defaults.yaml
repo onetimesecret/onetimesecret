@@ -6,6 +6,7 @@
 #   Auth     - Authentication/authorization flows
 #   Session  - Session lifecycle management
 #   HTTP     - HTTP requests, responses, and middleware
+#   Bunny    - RabbitMQ AMQP client (connection, heartbeats)
 #   Familia  - Redis operations via Familia ORM
 #   Otto     - Otto framework operations
 #   Rhales   - Rhales template rendering (future)
@@ -19,9 +20,10 @@
 #
 # Application category quick flags:
 #   DEBUG_AUTH=1                          - Quick debug flag for Auth
-#   DEBUG_SESSION=1                       - Quick debug flag for Session
+#   DEBUG_BUNNY=1                         - Quick debug flag for Bunny (RabbitMQ)
 #   DEBUG_HTTP=1                          - Quick debug flag for HTTP
 #   DEBUG_SECRET=1                        - Quick debug flag for Secret
+#   DEBUG_SESSION=1                       - Quick debug flag for Session
 #
 # External library debug flags (use library's own flags):
 #   FAMILIA_DEBUG=1                       - Familia's built-in debug flag
@@ -49,6 +51,7 @@ loggers:
   Auth: info      # Authentication/authorization flows
   Billing: info   # Only used when billing.enabled=true
   Boot: info      # During initialization
+  Bunny: warn     # RabbitMQ client (heartbeats at debug level)
   Familia: warn   # Redis/Familia main database operations
   HTTP: warn      # HTTP requests and middleware operations
   Otto: warn      # Otto framework operations

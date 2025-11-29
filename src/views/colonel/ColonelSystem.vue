@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
+  import QueueStatus from '@/components/colonel/QueueStatus.vue';
   import { WindowService } from '@/services/window.service';
   import { computed } from 'vue';
 
@@ -84,6 +85,11 @@
           collection="heroicons"
           class="size-4 text-gray-400 group-hover:text-brand-500 dark:group-hover:text-brand-400" />
       </a>
+    </div>
+
+    <!-- Queue Status Section -->
+    <div class="mt-6">
+      <QueueStatus />
     </div>
   </div>
 </template>

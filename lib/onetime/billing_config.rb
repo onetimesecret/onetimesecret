@@ -4,6 +4,10 @@
 
 # Optional billing configuration loader
 # Returns empty config if billing.yaml doesn't exist
+#
+# Supports environment-specific config files:
+# - etc/billing.test.yaml (when RACK_ENV=test)
+# - etc/billing.yaml (default)
 
 require 'yaml'
 require 'erb'
@@ -13,10 +17,16 @@ module Onetime
   class BillingConfig
     include Singleton
 
-    attr_reader :config
+    class << self
+      # Allow setting custom config file path (for testing)
+      attr_accessor :path
+    end
+
+    attr_reader :config, :environment
 
     def initialize
-      @config_file = File.join(Onetime::HOME, 'etc/billing.yaml')
+      @environment = ENV['RACK_ENV'] || 'development'
+      @config_file = resolve_config_file
       load_config
     end
 
@@ -52,12 +62,32 @@ module Onetime
     end
 
     # Reload configuration (useful for testing)
+    # Also picks up any changes to BillingConfig.path
     def reload!
+      @environment = ENV['RACK_ENV'] || 'development'
+      @config_file = resolve_config_file
       load_config
       self
     end
 
     private
+
+    # Resolve config file path with environment-specific fallback
+    #
+    # Priority:
+    # 1. BillingConfig.path (if explicitly set)
+    # 2. etc/billing.{env}.yaml (environment-specific)
+    # 3. etc/billing.yaml (default)
+    #
+    # @return [String] Path to config file
+    def resolve_config_file
+      return self.class.path if self.class.path
+
+      env_specific = File.join(Onetime::HOME, "etc/billing.#{@environment}.yaml")
+      return env_specific if File.exist?(env_specific)
+
+      File.join(Onetime::HOME, 'etc/billing.yaml')
+    end
 
     def load_config
       unless File.exist?(@config_file)

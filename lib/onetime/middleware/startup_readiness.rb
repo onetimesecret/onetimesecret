@@ -106,6 +106,17 @@ module Onetime
 
         lang_code = parse_accept_language(env)
 
+        if Onetime.debug?
+          # We can rely on the loggers being loaded here so we use STDOUT. We don't
+          # use STDERR b/c we have rubocop configured to convert $stderr.puts to
+          # warn. That's acceptable most of the time but it's really confusing
+          # when this middleware is running and returning 503 responses without
+          # any indication of why in the logs. So we use $stdout.puts directly.
+          $stdout.puts "[StartupReadiness] Application not ready #{@app.inspect}"
+        else
+          warn '[StartupReadiness] Application not ready'
+        end
+
         if should_return_json?(env)
           json_response(lang_code)
         else
@@ -164,7 +175,7 @@ module Onetime
           timestamp: Familia.now.utc.iso8601,
         }
 
-        [503,
+        [503, # Service Unavailable
          { 'content-type' => 'application/json; charset=utf-8' },
          [response_body.to_json]]
       end

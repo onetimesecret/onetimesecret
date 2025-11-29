@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/mail'
+require 'onetime/jobs/publisher'
 
 module Auth::Config::Email
   def self.configure(auth)
@@ -18,13 +19,14 @@ module Auth::Config::Email
         rack_env: ENV.fetch('RACK_ENV', nil),
       }
 
-      # Deliver email using unified Onetime::Mail system
-      Onetime::Mail.deliver_raw(
+      # Critical auth flow (verification, password reset): use sync fallback
+      # Rodauth emails must be delivered - user is waiting for auth action
+      Onetime::Jobs::Publisher.enqueue_email_raw({
         to: email.to,
         from: email.from,
         subject: email.subject,
         body: email.body.to_s
-      )
+      }, fallback: :sync)
     end
 
     OT.info "[email] Email delivery configured"

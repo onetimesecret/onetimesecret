@@ -16,7 +16,7 @@ require_relative '../../../../try/support/test_helpers'
 
 ## Setup: Load models and billing modules
 require 'lib/onetime/models/organization'
-require 'apps/web/billing/plan_definitions'
+require 'apps/web/billing/plan_helpers'
 require 'apps/web/billing/models/plan'
 
 ## Setup: Populate Plan cache with test data (replaces hardcoded PLAN_DEFINITIONS)

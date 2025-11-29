@@ -8,26 +8,35 @@
 #
 # All Stripe mocking will be done via stripe-mock server + VCR.
 
+# IMPORTANT: Set test environment BEFORE loading anything
+# These must be set before OT.boot! reads config files
+ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
+ENV['STRIPE_KEY'] ||= 'sk_test_mock'
+ENV['RACK_ENV'] ||= 'test'
+
 require 'spec_helper'
 require 'openssl'
+require 'stripe'
 
 # Load Stripe testing infrastructure
 require_relative 'stripe_mock_server'
 require_relative 'vcr_setup'
 
-# Configure Familia to use test Redis on port 2121
-ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
+# Load BannedIP model needed by IPBan middleware
+require_relative '../../../../api/colonel/models/banned_ip'
 
-# Configure Stripe API key for CLI tests
-# CLI commands use stripe_configured? which checks STRIPE_KEY env var
-ENV['STRIPE_KEY'] ||= 'sk_test_mock'
+# Ensure BillingConfig picks up the test environment
+# The singleton may have been created before RACK_ENV was set to 'test'
+# (e.g., if shell has RACK_ENV=development). Reload to use billing.test.yaml.
+Onetime::BillingConfig.instance.reload!
 
-# Initialize Onetime configuration for billing tests
-# This ensures OT.conf is available for auth strategy initialization
-OT.boot! unless OT.conf
+# Run full boot process for billing integration tests
+# This initializes Familia, locales, billing config, and sets ready flag
+OT.boot! unless OT.ready?
 
-# Force Familia to reconnect with the test URL
-Familia.reset! if Familia.respond_to?(:reset!)
+# Set Stripe.api_key for tests that call Stripe SDK directly
+# STRIPE_API_KEY takes precedence (for real API/VCR recording)
+Stripe.api_key = ENV['STRIPE_API_KEY'] || OT.billing_config.stripe_key
 
 module BillingSpecHelper
   # Freeze time for time-sensitive tests using Timecop
@@ -91,10 +100,15 @@ module BillingSpecHelper
 end
 
 RSpec.configure do |config|
+  # Include BillingSpecHelper for both `type:` metadata and symbol tags
+  # e.g., `type: :integration` AND `:integration` symbol tag
   config.include BillingSpecHelper, type: :billing
   config.include BillingSpecHelper, type: :controller
   config.include BillingSpecHelper, type: :integration
   config.include BillingSpecHelper, type: :cli
+  # Symbol tag matching (for RSpec.describe 'Name', :integration do)
+  config.include BillingSpecHelper, integration: true
+  config.include BillingSpecHelper, billing_cli: true
 
   # stripe-mock is NOT used for integration tests
   # Integration tests use VCR to record/replay real Stripe API calls
@@ -157,5 +171,17 @@ RSpec.configure do |config|
 
   config.before(:each, type: :integration) do
     @sleep_delays = []
+  end
+
+  # Symbol tag matching for :integration (webhook controller tests use this pattern)
+  config.before(:each, integration: true) do
+    @sleep_delays = []
+    # Flush test Redis to ensure clean slate
+    Familia.dbclient.flushdb
+  end
+
+  config.after(:each, integration: true) do
+    # Clean up test data after each test
+    Familia.dbclient.flushdb
   end
 end

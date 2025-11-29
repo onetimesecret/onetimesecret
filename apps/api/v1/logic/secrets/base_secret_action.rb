@@ -265,8 +265,7 @@ module V1::Logic
 
       def send_email_to_recipient
         return if recipient.nil? || recipient.empty?
-        klass = OT::Mail::SecretLink
-        metadata.deliver_by_email cust, locale, secret, recipient.first, klass
+        metadata.deliver_by_email cust, locale, secret, recipient.first
       end
 
       # Determines which domain should be used for sharing.

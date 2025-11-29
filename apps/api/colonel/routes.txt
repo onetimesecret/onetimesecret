@@ -18,6 +18,7 @@ POST   /users/:user_id/plan               ColonelAPI::Logic::Colonel::UpdateUser
 # System Monitoring
 GET    /system/database                   ColonelAPI::Logic::Colonel::GetDatabaseMetrics response=json auth=sessionauth
 GET    /system/redis                      ColonelAPI::Logic::Colonel::GetRedisMetrics response=json auth=sessionauth
+GET    /queue                             ColonelAPI::Logic::Colonel::GetQueueMetrics response=json auth=sessionauth
 
 # IP Banning
 GET    /banned-ips                        ColonelAPI::Logic::Colonel::ListBannedIPs response=json auth=sessionauth

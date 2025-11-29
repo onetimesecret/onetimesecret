@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require 'onetime/jobs/publisher'
 
 module V3
   module Logic
@@ -66,15 +67,17 @@ module V3
       end
 
       def send_feedback(cust, message)
-        view                 = Onetime::Mail::FeedbackEmail.new cust, locale
-        view.display_domain  = display_domain
-        view.domain_strategy = domain_strategy
-        view.message         = message
-
-        OT.ld "[send_feedback] Calling deliver_email (#{message.size} chars)"
+        OT.ld "[send_feedback] Delivering feedback email (#{message.size} chars)"
 
         begin
-          view.deliver_email
+          # Non-critical: feedback is saved in Redis regardless of email
+          # Use :none fallback - don't block or spawn threads for notifications
+          Onetime::Jobs::Publisher.enqueue_email(:feedback_email, {
+            email_address: cust.email,
+            message: message,
+            display_domain: display_domain,
+            domain_strategy: domain_strategy
+          }, fallback: :none)
         rescue StandardError => ex
           OT.le "Error sending feedback email: #{ex.message}", ex.backtrace
           # No need to notify the user of this error. The message is still
