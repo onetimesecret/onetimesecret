@@ -137,8 +137,10 @@ module Onetime
       end
 
       def sanitize_url(url)
-        # Hide password in logs
-        url.gsub(%r{://([^:]+):([^@]+)@}, '://\1:***@')
+        # Hide credentials in logs
+        # Handles both user:pass@host and key@host formats
+        url.gsub(%r{://([^:@]+):([^@]+)@}, '://\1:***@')  # user:pass@host
+           .gsub(%r{://([^/:@]+)@}, '://***@')             # key@host (no colon)
       end
     end
   end

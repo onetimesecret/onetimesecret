@@ -12,11 +12,14 @@ module Onetime
       # Logs a message every minute to verify the scheduler is running.
       # Useful for development/debugging and as an example for other jobs.
       #
-      # To disable in production, remove this file or check environment:
-      #   return unless OT.conf.dig('jobs', 'heartbeat_enabled')
+      # Disabled by default. Enable via config:
+      #   jobs:
+      #     heartbeat_enabled: true
       #
       class HeartbeatJob < ScheduledJob
         def self.schedule(scheduler)
+          return unless OT.conf.dig('jobs', 'heartbeat_enabled')
+
           every(scheduler, '1m', first_in: '5s') do
             stats = collect_stats
             OT.ld "[HeartbeatJob] #{Time.now.utc.iso8601} | " \
