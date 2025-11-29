@@ -14,10 +14,17 @@ module Onetime
       # via Onetime::Mail.deliver. Implements retry logic and dead letter
       # queue handling for failed deliveries.
       #
-      # Message format:
+      # Message formats:
+      #   Templated email:
       #   {
       #     "template": "secret_link",
       #     "data": { "secret_id": "abc123", "recipient": "user@example.com" }
+      #   }
+      #
+      #   Raw email (for Rodauth integration):
+      #   {
+      #     "raw": true,
+      #     "email": { "to": "user@example.com", "from": "...", "subject": "...", "body": "..." }
       #   }
       #
       # Configuration:
@@ -56,16 +63,15 @@ module Onetime
         private
 
         # Deliver email via Onetime::Mail
+        # Handles both templated and raw email formats
         def deliver_email(data)
-          template = data[:template]&.to_sym
-          email_data = data[:data] || {}
-
-          unless template
-            raise ArgumentError, 'Missing template in message payload'
-          end
-
           require_relative '../../mail'
-          Onetime::Mail.deliver(template, email_data)
+
+          if data[:raw]
+            deliver_raw_email(data)
+          else
+            deliver_templated_email(data)
+          end
         rescue Onetime::Mail::DeliveryError => e
           # Mail-specific errors - these might be transient
           log_error "Mail delivery error: #{e.message}"
@@ -74,6 +80,29 @@ module Onetime
           # Bad message format - don't retry
           log_error "Invalid message format: #{e.message}"
           reject!
+        end
+
+        # Deliver templated email
+        def deliver_templated_email(data)
+          template = data[:template]&.to_sym
+          email_data = data[:data] || {}
+
+          unless template
+            raise ArgumentError, 'Missing template in message payload'
+          end
+
+          Onetime::Mail.deliver(template, email_data)
+        end
+
+        # Deliver raw email (non-templated)
+        def deliver_raw_email(data)
+          email = data[:email]
+
+          unless email && email[:to]
+            raise ArgumentError, 'Missing email data in raw message payload'
+          end
+
+          Onetime::Mail.deliver_raw(email)
         end
       end
     end

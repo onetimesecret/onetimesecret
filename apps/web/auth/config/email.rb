@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/mail'
+require 'onetime/jobs/publisher'
 
 module Auth::Config::Email
   def self.configure(auth)
@@ -18,8 +19,8 @@ module Auth::Config::Email
         rack_env: ENV.fetch('RACK_ENV', nil),
       }
 
-      # Deliver email using unified Onetime::Mail system
-      Onetime::Mail.deliver_raw(
+      # Use async delivery with automatic fallback to sync if unavailable
+      Onetime::Jobs::Publisher.enqueue_email_raw(
         to: email.to,
         from: email.from,
         subject: email.subject,

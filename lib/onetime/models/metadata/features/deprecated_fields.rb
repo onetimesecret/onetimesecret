@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/jobs/publisher'
+
 module Onetime::Metadata::Features
   module DeprecatedFields
     Familia::Base.add_feature self, :deprecated_fields
@@ -73,11 +75,12 @@ module Onetime::Metadata::Features
 
         # Deliver to first recipient only
         email_address = eaddrs.first
-        Onetime::Mail.deliver(:secret_link, {
+        # Use async delivery with automatic fallback to sync if unavailable
+        Onetime::Jobs::Publisher.enqueue_email(:secret_link, {
           secret: secret,
           recipient: email_address,
           sender_email: cust.email
-        }, locale: locale)
+        })
       end
 
       # NOTE: We override the default fast writer (bang!) methods from familia

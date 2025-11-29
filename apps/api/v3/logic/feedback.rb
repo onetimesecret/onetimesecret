@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require 'onetime/jobs/publisher'
 
 module V3
   module Logic
@@ -69,12 +70,13 @@ module V3
         OT.ld "[send_feedback] Delivering feedback email (#{message.size} chars)"
 
         begin
-          Onetime::Mail.deliver(:feedback_email, {
+          # Use async delivery with automatic fallback to sync if unavailable
+          Onetime::Jobs::Publisher.enqueue_email(:feedback_email, {
             email_address: cust.email,
             message: message,
             display_domain: display_domain,
             domain_strategy: domain_strategy
-          }, locale: locale)
+          })
         rescue StandardError => ex
           OT.le "Error sending feedback email: #{ex.message}", ex.backtrace
           # No need to notify the user of this error. The message is still

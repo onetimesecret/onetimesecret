@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require 'onetime/jobs/publisher'
 
 module AccountAPI::Logic
   module Authentication
@@ -57,10 +58,11 @@ module AccountAPI::Logic
         }
 
         begin
-          Onetime::Mail.deliver(:password_request, {
+          # Use async delivery with automatic fallback to sync if unavailable
+          Onetime::Jobs::Publisher.enqueue_email(:password_request, {
             email_address: cust.email,
             secret: secret
-          }, locale: locale)
+          })
         rescue StandardError => ex
           errmsg = "Couldn't send the notification email. Let know below."
           auth_logger.error 'Password reset email delivery failed', {
