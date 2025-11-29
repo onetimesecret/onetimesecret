@@ -27,7 +27,7 @@
     <UpgradePrompt
       v-if="billingEnabled"
       class="mb-8"
-      capability="manage_teams"
+      capability="create_teams"
       upgrade-plan="team_v1" />
 
     <!-- Space divider -->

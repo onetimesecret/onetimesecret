@@ -2,7 +2,6 @@
 
 <script setup lang="ts">
   import { useCapabilities } from '@/composables/useCapabilities';
-  import { WindowService } from '@/services/window.service';
   import { useOrganizationStore } from '@/stores/organizationStore';
   import { useTeamStore } from '@/stores/teamStore';
   import { CAPABILITIES } from '@/types/organization';
@@ -19,16 +18,10 @@
   const teamStore = useTeamStore();
   const { currentOrganization } = storeToRefs(orgStore);
   const { teams, loading: teamsLoading } = storeToRefs(teamStore);
-  const { can } = useCapabilities(currentOrganization);
+  const { can, isOpensourceMode } = useCapabilities(currentOrganization);
 
   // Track if initial team fetch is complete
   const teamsLoaded = ref(false);
-
-  // Check if billing is enabled (for SaaS vs self-hosted distinction)
-  const billingEnabled = computed(() => WindowService.get('billing_enabled') || false);
-
-  // Self-hosted mode: billing disabled means full access
-  const isOpensourceMode = computed(() => !billingEnabled.value);
 
   // Team count for experience adaptation
   const teamCount = computed(() => teams.value.length);

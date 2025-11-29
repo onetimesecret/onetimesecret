@@ -6,16 +6,15 @@
   import RecentSecretsTable from '@/components/secrets/RecentSecretsTable.vue';
   import TeamCard from '@/components/teams/TeamCard.vue';
   import { WindowService } from '@/services/window.service';
-  import { useAuthStore } from '@/stores/authStore';
   import { useTeamStore } from '@/stores/teamStore';
   import { storeToRefs } from 'pinia';
-  import { computed, onMounted } from 'vue';
+  import { computed } from 'vue';
   import { useRouter } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const cust = WindowService.get('cust');
   const router = useRouter();
-  const authStore = useAuthStore();
   const teamStore = useTeamStore();
 
   const { teams } = storeToRefs(teamStore);
@@ -23,24 +22,12 @@
   const isBetaEnabled = computed(() => cust?.feature_flags?.beta ?? false);
   const hasTeams = computed(() => teams.value.length > 0);
 
-  onMounted(async () => {
-    if (authStore.isAuthenticated && teams.value.length === 0) {
-      await teamStore.fetchTeams().catch(() => {
-        // Silently fail
-      });
-    }
-  });
-
   const navigateToTeam = (teamId: string) => {
     router.push({ name: 'Team View', params: { extid: teamId } });
   };
 
   const navigateToTeams = () => {
     router.push({ name: 'Teams' });
-  };
-
-  const handleCreateSecret = (teamId: string) => {
-    router.push({ name: 'Team View', params: { extid: teamId }, hash: '#create-secret' });
   };
 </script>
 
@@ -77,8 +64,7 @@
           v-for="team in teams.slice(0, 4)"
           :key="team.extid"
           :team="team"
-          @click="navigateToTeam(team.extid)"
-          @create-secret="handleCreateSecret" />
+          @click="navigateToTeam(team.extid)" />
       </div>
     </div>
 
