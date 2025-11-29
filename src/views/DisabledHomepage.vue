@@ -1,6 +1,7 @@
 <!-- src/views/DisabledHomepage.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import DisabledHomepageTaglines from '@/components/DisabledHomepageTaglines.vue';
 
   const { t } = useI18n();

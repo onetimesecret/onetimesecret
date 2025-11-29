@@ -1,6 +1,7 @@
 <!-- src/views/billing/BillingOverview.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import BillingLayout from '@/components/layout/BillingLayout.vue';

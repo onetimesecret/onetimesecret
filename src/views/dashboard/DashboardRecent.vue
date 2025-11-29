@@ -1,6 +1,7 @@
 <!-- src/views/dashboard/DashboardRecent.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import TableSkeleton from '@/components/closet/TableSkeleton.vue';
   import EmptyState from '@/components/EmptyState.vue';
   import ErrorDisplay from '@/components/ErrorDisplay.vue';

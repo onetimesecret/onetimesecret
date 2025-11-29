@@ -1,6 +1,7 @@
 <!-- src/views/auth/PasswordResetRequest.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import AuthView from '@/components/auth/AuthView.vue';
 import { useAuth } from '@/composables/useAuth';
 import { ref } from 'vue';

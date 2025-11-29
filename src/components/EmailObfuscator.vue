@@ -1,6 +1,7 @@
 <!-- src/components/EmailObfuscator.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import { ref, onMounted } from 'vue';
 
 interface Props {

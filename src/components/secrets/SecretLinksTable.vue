@@ -1,6 +1,7 @@
 <!-- src/components/secrets/SecretLinksTable.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import OIcon from '@/components/icons/OIcon.vue';
   import ToastNotification from '@/components/ui/ToastNotification.vue';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';

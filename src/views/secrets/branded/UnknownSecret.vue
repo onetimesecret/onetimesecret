@@ -1,6 +1,7 @@
 <!-- src/views/secrets/branded/UnknownSecret.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import BaseUnknownSecret from '@/components/base/BaseUnknownSecret.vue';
   import type { BrandSettings } from '@/schemas/models/domain/brand';
   import { fontFamilyClasses, FontFamily } from '@/schemas/models/domain/brand';

@@ -1,6 +1,7 @@
 <!-- src/components/DomainInput.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
 import { defineEmits } from 'vue';
 

@@ -1,6 +1,7 @@
 <!-- src/views/account/ActiveSessions.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import SessionListItem from '@/components/account/SessionListItem.vue';
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
   import { useActiveSessions } from '@/composables/useActiveSessions';

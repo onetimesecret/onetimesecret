@@ -1,6 +1,7 @@
 <!-- src/components/secrets/form/ConcealButton.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import { computed, ref } from 'vue';
 
 const { t } = useI18n();

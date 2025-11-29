@@ -1,6 +1,7 @@
 <!-- src/components/secrets/SecretMetadataTableItem.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
 import { type MetadataRecords } from '@/schemas/api/account/endpoints/recent';
 import { formatRelativeTime } from '@/utils/format'

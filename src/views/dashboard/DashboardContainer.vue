@@ -1,6 +1,7 @@
 <!-- src/views/dashboard/DashboardContainer.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import OIcon from '@/components/icons/OIcon.vue';
   import { useCapabilities } from '@/composables/useCapabilities';
   import { useOrganizationStore } from '@/stores/organizationStore';

@@ -1,6 +1,7 @@
 <!-- src/components/dashboard/DomainsTableActionsCell.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import OIcon from '@/components/icons/OIcon.vue';
   import MinimalDropdownMenu from '@/components/MinimalDropdownMenu.vue';
   import { CustomDomain } from '@/schemas/models'

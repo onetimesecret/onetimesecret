@@ -1,6 +1,7 @@
 <!-- src/views/colonel/SystemSettings.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import OIcon from '@/components/icons/OIcon.vue';
   import { useSystemSettings, type ConfigSectionKey } from '@/composables/useSystemSettings';
   import { useTheme } from '@/composables/useTheme';

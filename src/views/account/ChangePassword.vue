@@ -1,6 +1,7 @@
 <!-- src/views/account/ChangePassword.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
   import { useAuth } from '@/composables/useAuth';
   import { computed, ref } from 'vue';

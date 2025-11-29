@@ -1,6 +1,7 @@
 <!-- src/components/common/ColorPicker.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
 
 import HoverTooltip from './HoverTooltip.vue';

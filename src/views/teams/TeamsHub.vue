@@ -1,6 +1,7 @@
 <!-- src/views/teams/TeamsHub.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import UpgradePrompt from '@/components/billing/UpgradePrompt.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import CreateTeamModal from '@/components/teams/CreateTeamModal.vue';

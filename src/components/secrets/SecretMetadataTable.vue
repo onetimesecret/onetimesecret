@@ -1,6 +1,7 @@
 <!-- src/components/secrets/SecretMetadataTable.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import OIcon from '@/components/icons/OIcon.vue';
   import SecretMetadataTableItem from '@/components/secrets/SecretMetadataTableItem.vue';
   import { MetadataRecords } from '@/schemas/api/account/endpoints/recent';

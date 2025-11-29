@@ -1,6 +1,7 @@
 <!-- src/App.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import { iconLibraryComponents } from '@/components/icons/sprites';
   import CriticalSprites from '@/components/icons/sprites/CriticalSprites.vue';
   import StatusBar from '@/components/StatusBar.vue';

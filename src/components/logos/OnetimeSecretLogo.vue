@@ -1,6 +1,7 @@
 <!-- src/components/logos/OnetimeSecretLogo.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 
   import OIcon from '@/components/icons/OIcon.vue';
   import OnetimeSecretIcon from '@/components/icons/OnetimeSecretIcon.vue';

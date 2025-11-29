@@ -1,6 +1,7 @@
 <!-- src/components/secrets/metadata/MetadataFAQ.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import { Metadata, MetadataDetails } from '@/schemas/models';
 
   const { t } = useI18n();

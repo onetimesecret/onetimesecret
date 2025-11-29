@@ -1,6 +1,7 @@
 <!-- src/components/dashboard/DomainsTableDomainCell.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
   import { useDomainStatus } from '@/composables/useDomainStatus';
   import type { CustomDomain } from '@/schemas/models/domain';

@@ -1,6 +1,7 @@
 <!-- src/components/layout/MastHead.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import DefaultLogo from '@/components/logos/DefaultLogo.vue';
   import UserMenu from '@/components/navigation/UserMenu.vue';
   import { WindowService } from '@/services/window.service';

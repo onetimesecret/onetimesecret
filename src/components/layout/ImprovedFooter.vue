@@ -5,6 +5,7 @@
   - Wider, changing max-w-2xl to max-w-4xl
 -->
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import FeedbackToggle from '@/components/FeedbackToggle.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import JurisdictionToggle from '@/components/JurisdictionToggle.vue';

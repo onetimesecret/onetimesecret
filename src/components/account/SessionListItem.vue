@@ -1,6 +1,7 @@
 <!-- src/components/account/SessionListItem.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import type { Session } from '@/types/auth';
 import { computed } from 'vue';
 

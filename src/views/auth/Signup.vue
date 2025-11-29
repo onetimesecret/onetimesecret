@@ -1,5 +1,6 @@
 <!-- src/views/auth/Signup.vue -->
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import AlternateSignUpMethods from '@/components/auth/AlternateSignUpMethods.vue';
   import AuthView from '@/components/auth/AuthView.vue';
   import SignUpForm from '@/components/auth/SignUpForm.vue';

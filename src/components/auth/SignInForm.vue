@@ -1,6 +1,7 @@
 <!-- src/components/auth/SignInForm.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import LockoutAlert from '@/components/auth/LockoutAlert.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { useAuth } from '@/composables/useAuth';

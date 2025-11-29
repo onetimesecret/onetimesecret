@@ -1,6 +1,7 @@
 <!-- src/components/secrets/canonical/SecretDisplayCase.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
   import SecretDisplayHelpContent from '@/components/secrets/SecretDisplayHelpContent.vue';
   import { useClipboard } from '@/composables/useClipboard';

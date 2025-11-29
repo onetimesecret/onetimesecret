@@ -1,6 +1,7 @@
 <!-- src/views/secrets/UnknownMetadata.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import BaseUnknownSecret from '@/components/base/BaseUnknownSecret.vue';
   import OIcon from '@/components/icons/OIcon.vue';
 

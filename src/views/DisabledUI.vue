@@ -1,6 +1,7 @@
 <!-- src/views/DisabledUI.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import DisabledHomepageTaglines from '@/components/DisabledHomepageTaglines.vue';
   import { WindowService } from '@/services/window.service';
 

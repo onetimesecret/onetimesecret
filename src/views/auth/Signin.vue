@@ -1,5 +1,6 @@
 <!-- src/views/auth/Signin.vue -->
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import AuthMethodSelector from '@/components/auth/AuthMethodSelector.vue';
 import AuthView from '@/components/auth/AuthView.vue';
 import { useLanguageStore } from '@/stores/languageStore';

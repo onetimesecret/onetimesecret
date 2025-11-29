@@ -1,6 +1,7 @@
 <!-- src/views/dashboard/DashboardIndex.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import OIcon from '@/components/icons/OIcon.vue';
   import SecretForm from '@/components/secrets/form/SecretForm.vue';
   import RecentSecretsTable from '@/components/secrets/RecentSecretsTable.vue';

@@ -3,6 +3,7 @@
 <!-- TODO: Rename "quiet" layout components to "identity" (e.g. IdentityHeader) -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import BrandedMasthead from '@/components/layout/BrandedMastHead.vue';
   import MastHead from '@/components/layout/MastHead.vue';
   import { useProductIdentity } from '@/stores/identityStore';

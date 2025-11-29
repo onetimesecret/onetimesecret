@@ -1,6 +1,7 @@
 <!-- src/components/account/AccountDeleteButtonWithModalForm.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { Customer } from '@/schemas/models';
 import { useCsrfStore } from '@/stores/csrfStore';

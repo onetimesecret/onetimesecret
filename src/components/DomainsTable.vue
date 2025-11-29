@@ -1,6 +1,7 @@
 <!-- src/components/DomainsTable.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import ToggleWithIcon from '@/components/common/ToggleWithIcon.vue';
   import DomainsTableActionsCell from '@/components/dashboard/DomainsTableActionsCell.vue';
   import DomainsTableDomainCell from '@/components/dashboard/DomainsTableDomainCell.vue';

@@ -1,6 +1,7 @@
 <!-- src/views/Feedback.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import FeedbackForm from '@/components/FeedbackForm.vue';
 
 const { t } = useI18n();

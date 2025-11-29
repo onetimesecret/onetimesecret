@@ -1,6 +1,7 @@
 <!-- src/components/logos/LegacyLogo.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import OnetimeSecretIcon from '@/components/icons/OnetimeSecretIcon.vue';
 import { type LogoConfig } from '@/types/ui/layouts';
   import { computed } from 'vue';

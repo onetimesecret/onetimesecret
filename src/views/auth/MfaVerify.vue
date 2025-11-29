@@ -1,5 +1,6 @@
 <!-- src/views/auth/MfaVerify.vue -->
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import AuthView from '@/components/auth/AuthView.vue';
   import OtpCodeInput from '@/components/auth/OtpCodeInput.vue';
   import { useAuth } from '@/composables/useAuth';

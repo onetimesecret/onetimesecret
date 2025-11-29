@@ -1,6 +1,7 @@
 <!-- src/components/GlobalBroadcast.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import OIcon from '@/components/icons/OIcon.vue';
   import MovingGlobules from '@/components/MovingGlobules.vue';
   import { useDismissableBanner } from '@/composables/useDismissableBanner';

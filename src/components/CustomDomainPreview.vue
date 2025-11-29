@@ -4,6 +4,7 @@
 <!-- src/components/CustomDomainPreview.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   /**
    * CustomDomainPreview Component
    *

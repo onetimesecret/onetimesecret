@@ -1,6 +1,7 @@
 <!-- src/components/secrets/branded/SecretDisplayCase.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
   import { useClipboard } from '@/composables/useClipboard';
   import { Secret, SecretDetails, brandSettingschema } from '@/schemas/models';

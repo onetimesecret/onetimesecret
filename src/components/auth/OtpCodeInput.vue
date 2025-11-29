@@ -1,6 +1,7 @@
 <!-- src/components/auth/OtpCodeInput.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import { ref, nextTick } from 'vue';
 
 const { t } = useI18n();

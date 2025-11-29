@@ -1,6 +1,7 @@
 <!-- src/components/modals/settings/JurisdictionTab.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
 import { WindowService } from '@/services/window.service';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';

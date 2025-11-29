@@ -1,6 +1,7 @@
 <!-- src/components/layout/FooterLinks.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import { WindowService } from '@/services/window.service';
   import type { FooterLinksConfig } from '@/types/declarations/window';
   import { computed } from 'vue';

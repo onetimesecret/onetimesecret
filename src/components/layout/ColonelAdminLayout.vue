@@ -7,7 +7,6 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
-// const { t } = useI18n();
 
 const windowProps = WindowService.getMultiple(['domains_enabled', 'authentication']);
 

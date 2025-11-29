@@ -1,6 +1,7 @@
 <!-- src/views/dashboard/DashboardDomains.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import TableSkeleton from '@/components/closet/TableSkeleton.vue'
 import DomainsTable from '@/components/DomainsTable.vue';
 import EmptyState from '@/components/EmptyState.vue';

@@ -1,6 +1,7 @@
 <!-- src/components/modals/SettingsModal.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import { WindowService } from '@/services/window.service';
   import { FocusTrap } from 'focus-trap-vue';
   import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';

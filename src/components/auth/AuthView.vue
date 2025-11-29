@@ -1,5 +1,6 @@
 <!-- src/components/auth/AuthView.vue -->
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import OIcon from '@/components/icons/OIcon.vue';
   import { Jurisdiction } from '@/schemas/models';
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';
