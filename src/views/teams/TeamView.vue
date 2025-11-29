@@ -1,7 +1,8 @@
-<!-- src/views/teams/TeamDashboard.vue -->
+<!-- src/views/teams/TeamView.vue -->
 
 <script setup lang="ts">
   import OIcon from '@/components/icons/OIcon.vue';
+  import SecretForm from '@/components/secrets/form/SecretForm.vue';
   import { useAsyncHandler } from '@/composables/useAsyncHandler';
   import { getRoleBadgeColor, getRoleLabel } from '@/schemas/models/team';
   import { useTeamStore } from '@/stores/teamStore';
@@ -23,6 +24,7 @@
 
   const activeTab = ref<'overview' | 'members' | 'settings'>('overview');
   const error = ref('');
+  const showCreateSecret = ref(false);
 
   const teamId = computed(() => route.params.extid as string);
 
@@ -30,6 +32,11 @@
     const result = await wrap(() => teamStore.fetchTeam(teamId.value));
     if (!result) {
       error.value = t('web.teams.fetch_team_error');
+    }
+
+    // Check if we should auto-open the create secret form
+    if (route.hash === '#create-secret') {
+      showCreateSecret.value = true;
     }
   });
 
@@ -171,7 +178,7 @@
             <div class="flex items-center gap-2">
               <OIcon
                 collection="heroicons"
-                name="cog-6-tooth"
+                name="cog-6-tooth-solid"
                 class="size-5"
                 aria-hidden="true" />
               <span>{{ t('web.teams.settings') }}</span>
@@ -184,6 +191,56 @@
       <div
         v-if="activeTab === 'overview'"
         class="space-y-6">
+        <!-- Create Team Secret Section -->
+        <div
+          class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div class="mb-4 flex items-start justify-between">
+            <div>
+              <h2 class="text-lg font-medium text-gray-900 dark:text-white">
+                {{ t('web.teams.create_team_secret') }}
+              </h2>
+              <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                {{ t('web.teams.create_team_secret_description') }}
+              </p>
+            </div>
+            <button
+              v-if="showCreateSecret"
+              type="button"
+              @click="showCreateSecret = false"
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              :aria-label="t('web.teams.close_secret_form')">
+              <OIcon
+                collection="heroicons"
+                name="x-mark"
+                class="size-5"
+                aria-hidden="true" />
+            </button>
+          </div>
+
+          <div v-if="!showCreateSecret">
+            <button
+              type="button"
+              @click="showCreateSecret = true"
+              class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-brand-500 dark:hover:bg-brand-600">
+              <OIcon
+                collection="heroicons"
+                name="plus"
+                class="size-5"
+                aria-hidden="true" />
+              {{ t('web.teams.new_team_secret') }}
+            </button>
+          </div>
+
+          <div
+            v-else
+            class="mt-4">
+            <SecretForm
+              :with-generate="false"
+              :with-recipient="false"
+              :with-expiry="true" />
+          </div>
+        </div>
+
         <!-- Quick Actions -->
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <button
@@ -224,7 +281,7 @@
                 class="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900">
                 <OIcon
                   collection="heroicons"
-                  name="cog-6-tooth"
+                  name="cog-6-tooth-solid"
                   class="size-6 text-brand-600 dark:text-brand-400"
                   aria-hidden="true" />
               </div>

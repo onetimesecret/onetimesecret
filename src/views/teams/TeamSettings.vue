@@ -49,7 +49,7 @@
 
   onMounted(async () => {
     if (!isOwner.value) {
-      router.push({ name: 'Team Dashboard', params: { extid: teamId.value } });
+      router.push({ name: 'Team View', params: { extid: teamId.value } });
       return;
     }
 
@@ -83,9 +83,18 @@
     isSubmitting.value = true;
 
     try {
-      updateTeamPayloadSchema.parse(formData.value);
+      // Only send changed fields (PATCH semantics)
+      const payload: Partial<UpdateTeamPayload> = {};
+      if (formData.value.display_name !== activeTeam.value?.display_name) {
+        payload.display_name = formData.value.display_name;
+      }
+      if (formData.value.description !== (activeTeam.value?.description || '')) {
+        payload.description = formData.value.description;
+      }
 
-      await teamStore.updateTeam(teamId.value, formData.value);
+      updateTeamPayloadSchema.partial().parse(payload);
+
+      await teamStore.updateTeam(teamId.value, payload as UpdateTeamPayload);
 
       successMessage.value = t('web.teams.update_success');
     } catch (err) {
@@ -121,7 +130,7 @@
   };
 
   const navigateToTeam = () => {
-    router.push({ name: 'Team Dashboard', params: { extid: teamId.value } });
+    router.push({ name: 'Team View', params: { extid: teamId.value } });
   };
 </script>
 
@@ -201,11 +210,8 @@
             aria-hidden="true" />
           <div>
             <h3 class="text-sm font-medium text-blue-900 dark:text-blue-300">
-              {{ t('web.billing.notices.team_billing_disabled') }}
-            </h3>
-            <p class="mt-1 text-sm text-blue-700 dark:text-blue-400">
               {{ t('web.billing.notices.org_managed', { orgName: 'Organization' }) }}
-            </p>
+            </h3>
             <router-link
               :to="`/billing/org/${activeTeam.org_id}`"
               class="mt-2 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">

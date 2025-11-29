@@ -9,7 +9,7 @@ module TeamAPI::Logic
 
       def process_params
         @team_id = params['extid']
-        @email   = params[:email].to_s.strip.downcase
+        @email   = params['email'].to_s.strip.downcase
       end
 
       def raise_concerns

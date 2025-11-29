@@ -55,7 +55,7 @@ const sections: NavigationItem[] = [
     children: [
       {
         to: '/colonel/settings',
-        icon: { collection: 'heroicons', name: 'cog-6-tooth' },
+        icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
         label: 'Configuration',
       },
       {

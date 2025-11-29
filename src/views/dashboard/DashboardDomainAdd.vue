@@ -5,7 +5,7 @@ import DomainForm from '@/components/DomainForm.vue';
 import ErrorDisplay from '@/components/ErrorDisplay.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
 
-const { t } = useI18n();
+const { t } = useI18n(); // auto-import
 
 const {
   isLoading,

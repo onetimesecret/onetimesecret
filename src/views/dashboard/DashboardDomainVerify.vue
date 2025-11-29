@@ -10,7 +10,7 @@
   import { onMounted, ref } from 'vue';
   import { useRoute } from 'vue-router';
 
-  const { t } = useI18n();
+  const { t } = useI18n(); // auto-import
   const route = useRoute();
   const { getDomain } = useDomainsManager();
 

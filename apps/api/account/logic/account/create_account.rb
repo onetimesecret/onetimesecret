@@ -15,8 +15,8 @@ module AccountAPI::Logic
         OT.ld "[CreateAccount#process_params] param keys: #{params.keys.sort}"
 
         # NOTE: The parameter names should match what rodauth uses.
-        @email    = params[:login].to_s.downcase.strip
-        @password = self.class.normalize_password(params[:password])
+        @email    = params['login'].to_s.downcase.strip
+        @password = self.class.normalize_password(params['password'])
 
         autoverify_setting = site.dig('authentication', 'autoverify')
         @autoverify        = autoverify_setting.to_s.eql?('true') || false
@@ -24,7 +24,7 @@ module AccountAPI::Logic
         # This is a hidden field, so it should be empty. If it has a value, it's
         # a simple bot trying to submit the form or similar chicanery. We just
         # quietly redirect to the home page to mimic a successful response.
-        @skill = params[:skill].to_s.strip.slice(0, 60)
+        @skill = params['skill'].to_s.strip.slice(0, 60)
       end
 
       def raise_concerns
