@@ -41,7 +41,7 @@
   const getTotalCustomersStat = () => createStatItem(
     'web.colonel.stats.totalCustomers',
     stats.value?.counts?.customer_count?.toLocaleString() || '0',
-    'rectangle-group'
+    'users'
   );
 
   // Helper function to get stats data

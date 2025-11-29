@@ -160,7 +160,7 @@ const getRoleBadge = (role: string) => ({
               <div class="mt-0.5 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                 <OIcon
                   collection="heroicons"
-                  name="rectangle-group"
+                  name="users"
                   class="size-3"
                   aria-hidden="true" />
                 <span>{{ team.member_count }} {{ team.member_count === 1 ? t('web.teams.member') : t('web.teams.members') }}</span>

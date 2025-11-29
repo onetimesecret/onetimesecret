@@ -462,6 +462,7 @@ DEPENDENCIES
   rackup
   rdoc
   redis (~> 5.4.0)
+  reline
   rerun (~> 0.14)
   rhales (~> 0.5.3)
   roda (~> 3.0)

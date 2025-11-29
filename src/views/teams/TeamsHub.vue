@@ -118,7 +118,7 @@
             <div class="flex items-center gap-2">
               <OIcon
                 collection="heroicons"
-                name="rectangle-group"
+                name="users"
                 class="size-5"
                 aria-hidden="true" />
               <span>{{ t('web.teams.my_teams') }}</span>
@@ -203,7 +203,7 @@
             class="text-center">
             <OIcon
               collection="heroicons"
-              name="rectangle-group"
+              name="users"
               class="mx-auto size-12 text-gray-400 dark:text-gray-600"
               aria-hidden="true" />
             <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">

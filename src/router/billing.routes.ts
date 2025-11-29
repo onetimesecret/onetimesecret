@@ -1,8 +1,11 @@
 // src/router/billing.routes.ts
 
-import ExpandedFooter from '@/components/layout/ExpandedFooter.vue';
-import ExpandedHeader from '@/components/layout/ExpandedHeader.vue';
-import AccountLayout from '@/layouts/AccountLayout.vue';
+import {
+  ImprovedFooter,
+  ImprovedHeader,
+  ImprovedLayout,
+  standardLayoutProps,
+} from './layout.config';
 import { WindowService } from '@/services/window.service';
 import { RouteRecordRaw } from 'vue-router';
 
@@ -32,16 +35,14 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: checkBillingEnabled,
     components: {
       default: () => import('@/views/billing/BillingOverview.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.billing.overview.title',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -50,16 +51,14 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: checkBillingEnabled,
     components: {
       default: () => import('@/views/account/settings/OrganizationsSettings.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.organizations_settings',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -68,16 +67,14 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: checkBillingEnabled,
     components: {
       default: () => import('@/views/account/settings/OrganizationSettings.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.organization_settings',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -86,16 +83,14 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: checkBillingEnabled,
     components: {
       default: () => import('@/views/billing/PlanSelector.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.billing.plans.title',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -104,16 +99,14 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: checkBillingEnabled,
     components: {
       default: () => import('@/views/billing/InvoiceList.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.billing.invoices.title',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   // Legacy routes for backward compatibility

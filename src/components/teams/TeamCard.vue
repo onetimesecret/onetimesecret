@@ -4,6 +4,7 @@
 import OIcon from '@/components/icons/OIcon.vue';
 import { getRoleBadgeColor, getRoleLabel, type TeamWithRole } from '@/schemas/models/team';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
@@ -67,7 +68,7 @@ const handleClick = () => {
       <div class="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
         <OIcon
           collection="heroicons"
-          name="rectangle-group"
+          name="users"
           class="size-4"
           aria-hidden="true" />
         <span>{{ memberCountLabel }}</span>

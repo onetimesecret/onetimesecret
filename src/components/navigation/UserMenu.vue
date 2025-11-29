@@ -111,7 +111,7 @@ const menuItems = computed<MenuItem[]>(() => [
     id: 'teams',
     to: '/teams',
     label: t('web.teams.menu.teams'),
-    icon: { collection: 'heroicons', name: 'rectangle-group-solid' },
+    icon: { collection: 'heroicons', name: 'users-solid' },
     condition: () => !props.awaitingMfa && teamStore.hasTeams,
   },
   // Colonel (conditional)

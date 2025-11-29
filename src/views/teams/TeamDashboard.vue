@@ -8,6 +8,7 @@
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const route = useRoute();
@@ -103,7 +104,7 @@
             <div class="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
               <OIcon
                 collection="heroicons"
-                name="rectangle-group"
+                name="users"
                 class="size-4"
                 aria-hidden="true" />
               <span>{{ activeTeam.member_count }}
@@ -148,7 +149,7 @@
             <div class="flex items-center gap-2">
               <OIcon
                 collection="heroicons"
-                name="rectangle-group"
+                name="users"
                 class="size-5"
                 aria-hidden="true" />
               <span>{{ t('web.teams.members') }}</span>
@@ -194,7 +195,7 @@
                 class="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900">
                 <OIcon
                   collection="heroicons"
-                  name="rectangle-group"
+                  name="users"
                   class="size-6 text-brand-600 dark:text-brand-400"
                   aria-hidden="true" />
               </div>

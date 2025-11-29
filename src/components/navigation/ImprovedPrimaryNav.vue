@@ -82,7 +82,7 @@ const primaryNavItems = computed((): NavItem[] => {
     id: 'teams',
     path: '/teams',
     label: t('web.teams.title'),
-    icon: 'rectangle-group',
+    icon: 'users',
   });
 
   return items;

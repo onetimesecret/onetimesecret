@@ -1,8 +1,11 @@
 // src/router/account.routes.ts
 
-import ExpandedFooter from '@/components/layout/ExpandedFooter.vue';
-import ExpandedHeader from '@/components/layout/ExpandedHeader.vue';
-import AccountLayout from '@/layouts/AccountLayout.vue';
+import {
+  ImprovedFooter,
+  ImprovedHeader,
+  ImprovedLayout,
+  standardLayoutProps,
+} from './layout.config';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
@@ -11,16 +14,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Account',
     components: {
       default: () => import('@/views/account/settings/ProfileSettings.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.account',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -28,16 +29,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Data Region',
     components: {
       default: () => import('@/views/account/DataRegion.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.data_region',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -45,16 +44,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Current Region',
     components: {
       default: () => import('@/views/account/region/CurrentRegion.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.current_region',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -62,16 +59,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Available Regions',
     components: {
       default: () => import('@/views/account/region/AvailableRegions.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.available_regions',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -79,16 +74,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Why Data Sovereignty Matters',
     components: {
       default: () => import('@/views/account/region/WhyItMatters.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.why_data_sovereignty',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -104,16 +97,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Preferences Settings',
     components: {
       default: () => import('@/views/account/settings/ProfileSettings.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.preferences_settings',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -121,16 +112,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Privacy Settings',
     components: {
       default: () => import('@/views/account/settings/PrivacySettings.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.privacy_settings',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -138,16 +127,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Change Email',
     components: {
       default: () => import('@/views/account/settings/ChangeEmail.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.change_email',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -155,16 +142,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Security Overview',
     components: {
       default: () => import('@/views/account/settings/SecurityOverview.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.security_overview',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -172,16 +157,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Change Password',
     components: {
       default: () => import('@/views/account/ChangePassword.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.change_password',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -189,16 +172,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Multi-Factor Authentication',
     components: {
       default: () => import('@/views/account/MfaSettings.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.mfa_settings',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -206,16 +187,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Active Sessions',
     components: {
       default: () => import('@/views/account/ActiveSessions.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.active_sessions',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -223,16 +202,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Recovery Codes',
     components: {
       default: () => import('@/views/account/RecoveryCodes.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.recovery_codes',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -240,16 +217,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'API Settings',
     components: {
       default: () => import('@/views/account/settings/ApiSettings.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.api_settings',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -257,16 +232,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Advanced Settings',
     components: {
       default: () => import('@/views/account/settings/CautionZone.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.advanced_settings',
       requiresAuth: true,
-      layout: AccountLayout,
-      layoutProps: {
-        displayPoweredBy: false,
-      },
+      layout: ImprovedLayout,
+      layoutProps: standardLayoutProps,
     },
   },
   // Legacy route for backward compatibility
