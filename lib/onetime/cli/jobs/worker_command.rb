@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 #
-# CLI command for running Sneakers workers
+# CLI command for running Kicks workers (RabbitMQ background processing)
 #
 # Usage:
 #   ots jobs worker [options]
@@ -23,7 +23,7 @@ module Onetime
   module CLI
     module Jobs
       class WorkerCommand < Command
-        desc 'Start Sneakers job workers'
+        desc 'Start Kicks job workers'
 
         option :queues, type: :string, aliases: ['q'],
           desc: 'Comma-separated list of queues to process (default: all)'
@@ -40,8 +40,8 @@ module Onetime
                  log_level: 'info', **)
           boot_application!
 
-          # Configure Sneakers
-          configure_sneakers(
+          # Configure Kicks (via Sneakers-compatible API)
+          configure_kicks(
             concurrency: concurrency,
             daemonize: daemonize,
             environment: environment,
@@ -66,7 +66,7 @@ module Onetime
 
         private
 
-        def configure_sneakers(concurrency:, daemonize:, environment:, log_level:)
+        def configure_kicks(concurrency:, daemonize:, environment:, log_level:)
           Sneakers.configure(
             amqp: ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'),
             vhost: ENV.fetch('RABBITMQ_VHOST', '/'),
@@ -84,7 +84,7 @@ module Onetime
             prefetch: concurrency
           )
 
-          # Set Sneakers logger to match OT log level
+          # Set Kicks logger to match OT log level
           Sneakers.logger.level = logger_level(log_level)
         end
 

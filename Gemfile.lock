@@ -155,6 +155,12 @@ GEM
       simpleidn (~> 0.2)
     jwt (3.1.2)
       base64
+    kicks (3.2.0)
+      bunny (~> 2.19)
+      concurrent-ruby (~> 1.0)
+      rake (>= 12.3, < 14.0)
+      serverengine (~> 2.1)
+      thor
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
     listen (3.9.0)
@@ -350,12 +356,6 @@ GEM
     simplecov-html (0.13.2)
     simplecov_json_formatter (0.1.4)
     simpleidn (0.2.3)
-    sneakers (2.12.0)
-      bunny (~> 2.14)
-      concurrent-ruby (~> 1.0)
-      rake (~> 12.3)
-      serverengine (~> 2.1.0)
-      thor
     sorted_set (1.0.3)
       rbtree
       set (~> 1.0)
@@ -443,6 +443,7 @@ DEPENDENCIES
   httparty
   irb
   json_schemer
+  kicks (~> 3.0)
   logger
   mail
   mustache
@@ -485,7 +486,6 @@ DEPENDENCIES
   sentry-ruby
   sequel (~> 5.0)
   simplecov
-  sneakers (~> 2.12)
   sqlite3 (~> 2.0)
   stackprof
   stringio (~> 3.1.6)

@@ -8,7 +8,7 @@ require 'json'
 module Onetime
   module Jobs
     module Workers
-      # Base module for RabbitMQ workers
+      # Base module for RabbitMQ workers (using Kicks gem)
       #
       # Provides common functionality for all workers:
       # - Logging with OT.ld/li/le
