@@ -115,8 +115,31 @@ module Onetime
               delivery_tag: delivery_info&.delivery_tag,
               routing_key: delivery_info&.routing_key,
               redelivered: delivery_info&.redelivered?,
+              message_id: message_id,
               schema_version: delivery_info&.properties&.headers&.[]('x-schema-version')
             }
+          end
+
+          # Get message ID from AMQP properties
+          # @return [String, nil] The message_id or nil if not present
+          def message_id
+            delivery_info&.properties&.message_id
+          end
+
+          # Idempotency: Check if message was already processed
+          # @param msg_id [String] Message ID to check
+          # @return [Boolean] true if already processed
+          def already_processed?(msg_id)
+            return false unless msg_id
+            Familia.dbclient.exists?("job:processed:#{msg_id}")
+          end
+
+          # Idempotency: Mark message as processed
+          # @param msg_id [String] Message ID to mark
+          def mark_processed(msg_id)
+            return unless msg_id
+            ttl = Onetime::Jobs::QueueConfig::IDEMPOTENCY_TTL
+            Familia.dbclient.setex("job:processed:#{msg_id}", ttl, '1')
           end
         end
       end

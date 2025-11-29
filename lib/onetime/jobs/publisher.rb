@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'securerandom'
 require_relative 'queue_config'
 
 module Onetime
@@ -116,20 +117,26 @@ module Onetime
       # @param queue_name [String] Queue name
       # @param payload [Hash] Message payload
       # @param options [Hash] Additional AMQP options
+      # @return [String] The message_id assigned to this message
       def publish(queue_name, payload, **options)
         unless $rmq_channel_pool
           raise Onetime::Problem, 'RabbitMQ channel pool not initialized. Check config[:jobs][:enabled]'
         end
+
+        message_id = SecureRandom.uuid
 
         $rmq_channel_pool.with do |channel|
           channel.default_exchange.publish(
             payload.to_json,
             routing_key: queue_name,
             persistent: true,
+            message_id: message_id,
             headers: { 'x-schema-version' => QueueConfig::CURRENT_SCHEMA_VERSION },
             **options
           )
         end
+
+        message_id
       end
 
       private

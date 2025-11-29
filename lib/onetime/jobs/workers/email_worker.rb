@@ -47,11 +47,20 @@ module Onetime
           data = parse_message(msg)
           return unless data # parse_message handles reject on error
 
+          # Idempotency check: skip if already processed
+          if already_processed?(message_id)
+            log_info "Skipping duplicate message: #{message_id}"
+            return ack!
+          end
+
           log_debug "Processing email: #{data[:template]} (metadata: #{message_metadata})"
 
           with_retry(max_retries: 3, base_delay: 2.0) do
             deliver_email(data)
           end
+
+          # Mark as processed after successful delivery
+          mark_processed(message_id)
 
           log_info "Email delivered: #{data[:template]}"
           ack!
