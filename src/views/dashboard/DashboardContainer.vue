@@ -84,11 +84,19 @@
     return DashboardIndex;
   });
 
-  // Computed key for transitions
+  // Derive variant name for transition key (avoids re-render when 2→3→4 teams)
+  const dashboardVariant = computed(() => {
+    if (!teamsLoaded.value && teamsLoading.value) return 'loading';
+    if (!hasTeamCapability.value) return 'basic';
+    if (teamCount.value === 0) return 'empty';
+    if (teamCount.value === 1) return 'single';
+    return 'multi';
+  });
+
+  // Computed key for transitions - only changes when variant changes
   const componentKey = computed(() => {
     const mode = isOpensourceMode.value ? 'opensource' : 'saas';
-    const capability = hasTeamCapability.value ? 'teams' : 'basic';
-    return `${mode}-${capability}-${teamCount.value}`;
+    return `${mode}-${dashboardVariant.value}`;
   });
 
   // Fetch teams on mount
