@@ -1,8 +1,11 @@
 // src/router/teams.routes.ts
 
-import ImprovedFooter from '@/components/layout/ImprovedFooter.vue';
-import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
-import ImprovedLayout from '@/layouts/ImprovedLayout.vue';
+import {
+  ImprovedFooter,
+  ImprovedHeader,
+  ImprovedLayout,
+  standardLayoutProps,
+} from './layout.config';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
@@ -18,15 +21,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.teams',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -41,15 +36,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.team_dashboard',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -64,15 +51,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.team_members',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -87,15 +66,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.team_settings',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
 ];

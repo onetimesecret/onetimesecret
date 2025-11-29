@@ -1,8 +1,11 @@
 // src/router/billing.routes.ts
 
-import ImprovedFooter from '@/components/layout/ImprovedFooter.vue';
-import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
-import ImprovedLayout from '@/layouts/ImprovedLayout.vue';
+import {
+  ImprovedFooter,
+  ImprovedHeader,
+  ImprovedLayout,
+  standardLayoutProps,
+} from './layout.config';
 import { WindowService } from '@/services/window.service';
 import { RouteRecordRaw } from 'vue-router';
 
@@ -39,15 +42,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.billing.overview.title',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -63,15 +58,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.organizations_settings',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -87,15 +74,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.organization_settings',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -111,15 +90,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.billing.plans.title',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -135,15 +106,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.billing.invoices.title',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   // Legacy routes for backward compatibility

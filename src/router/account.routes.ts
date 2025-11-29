@@ -1,8 +1,11 @@
 // src/router/account.routes.ts
 
-import ImprovedFooter from '@/components/layout/ImprovedFooter.vue';
-import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
-import ImprovedLayout from '@/layouts/ImprovedLayout.vue';
+import {
+  ImprovedFooter,
+  ImprovedHeader,
+  ImprovedLayout,
+  standardLayoutProps,
+} from './layout.config';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
@@ -18,15 +21,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.account',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -41,15 +36,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.data_region',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -64,15 +51,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.current_region',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -87,15 +66,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.available_regions',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -110,15 +81,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.why_data_sovereignty',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -141,15 +104,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.preferences_settings',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -164,15 +119,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.privacy_settings',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -187,15 +134,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.change_email',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -210,15 +149,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.security_overview',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -233,15 +164,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.change_password',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -256,15 +179,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.mfa_settings',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -279,15 +194,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.active_sessions',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -302,15 +209,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.recovery_codes',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -325,15 +224,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.api_settings',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   {
@@ -348,15 +239,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.advanced_settings',
       requiresAuth: true,
       layout: ImprovedLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        showSidebar: false,
-      },
+      layoutProps: standardLayoutProps,
     },
   },
   // Legacy route for backward compatibility
