@@ -44,6 +44,26 @@ require_relative 'mail/mailer'
 
 module Onetime
   module Mail
+    # Exception raised when email delivery fails.
+    # Used to distinguish mail-specific errors from other failures
+    # and enable appropriate retry/rejection logic in workers.
+    class DeliveryError < StandardError
+      attr_reader :original_error, :transient
+
+      # @param message [String] Error message
+      # @param original_error [Exception, nil] The underlying error
+      # @param transient [Boolean] Whether the error is likely transient (retry-able)
+      def initialize(message, original_error: nil, transient: false)
+        super(message)
+        @original_error = original_error
+        @transient = transient
+      end
+
+      def transient?
+        @transient
+      end
+    end
+
     # Convenience method for delivering emails
     # @see Mailer.deliver
     def self.deliver(template_name, data = {}, locale: 'en')
