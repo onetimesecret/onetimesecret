@@ -175,7 +175,7 @@ module Onetime
           timestamp: Familia.now.utc.iso8601,
         }
 
-        [504,
+        [503, # Service Unavailable
          { 'content-type' => 'application/json; charset=utf-8' },
          [response_body.to_json]]
       end

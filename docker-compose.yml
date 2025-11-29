@@ -68,7 +68,7 @@ services:
       - '3000'
     restart: unless-stopped
     volumes:
-      - .:/app
+      - ./data:/app/data
       - ./etc:/app/etc
 
   redis:
@@ -123,7 +123,7 @@ services:
       - onetime-network
     # Note: Ports are NOT exposed externally - only to containers on the same network
     expose:
-      - '5672'  # AMQP
+      - '5672' # AMQP
       - '15672' # Management UI
     restart: unless-stopped
     volumes:
@@ -153,7 +153,18 @@ services:
       - VALKEY_URL=redis://redis:6379/0
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672
       - ONETIME_HOME=/app
-    command: ['./bin/ots', 'jobs', 'worker', '--queues', 'email', '--concurrency', '5', '--environment', 'production']
+    command:
+      [
+        './bin/ots',
+        'jobs',
+        'worker',
+        '--queues',
+        'email',
+        '--concurrency',
+        '5',
+        '--environment',
+        'production',
+      ]
     logging:
       driver: 'json-file'
       options:
