@@ -4,7 +4,8 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
   import { useAccountStore } from '@/stores/accountStore';
-  import { computed, ref } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const accountStore = useAccountStore();
@@ -27,6 +28,10 @@
       isLoading.value = false;
     }
   };
+
+  onMounted(async () => {
+    await accountStore.fetch();
+  });
 </script>
 
 <template>
@@ -111,7 +116,7 @@
             </div>
 
             <!-- Help text -->
-            <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+            <p class="mt-3 text-xs text-gray-500 dark:text-gray-500">
               {{ t('web.settings.notifications.reveal-notifications.help') }}
             </p>
           </div>

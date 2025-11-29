@@ -43,6 +43,9 @@ module Onetime::Customer::Features
 
       # We use the hash syntax here since `:active?` is not a valid symbol.
       base.safe_dump_field :active, ->(cust) { cust.active? }
+
+      # Notification preferences
+      base.safe_dump_field :notify_on_reveal, ->(cust) { cust.notify_on_reveal? }
     end
   end
 end

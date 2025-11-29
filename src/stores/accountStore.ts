@@ -60,6 +60,10 @@ export const useAccountStore = defineStore('account', () => {
       field,
       value,
     });
+    // NOTE: We refetch the full account rather than merging the response locally.
+    // This guarantees consistency but costs an extra request. If this becomes a
+    // pattern worth optimizing, consider having update endpoints return the full
+    // object or implementing optimistic local merges across the codebase.
     await fetch();
     return response.data;
   }

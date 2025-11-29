@@ -30,13 +30,8 @@ function createAccountFixture(overrides: { notify_on_reveal?: boolean } = {}) {
         last_login: null,
         locale: 'en',
         notify_on_reveal: overrides.notify_on_reveal ? 'true' : 'false',
-        stripe_customer_id: null,
-        stripe_subscription_id: null,
-        stripe_checkout_email: null,
       },
       apitoken: 'test-api-token-123',
-      stripe_customer: null,
-      stripe_subscriptions: [],
     },
   };
 }
