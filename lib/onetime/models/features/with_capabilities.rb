@@ -21,9 +21,9 @@ module Onetime
       module WithCapabilities
         Familia::Base.add_feature self, :with_capabilities
 
-        # Default capabilities for self-hosted/opensource installations
+        # Full capability set for standalone mode
         # When billing is disabled or plan cache is empty, users get full access
-        DEFAULT_OPENSOURCE_CAPABILITIES = %w[
+        STANDALONE_CAPABILITIES = %w[
           create_secrets basic_sharing create_team create_teams
           custom_domains api_access priority_support audit_logs
         ].freeze
@@ -50,18 +50,18 @@ module Onetime
           #
           # @return [Array<String>] List of capability strings
           #
-          # Falls back to full opensource capabilities if:
-          # - billing is disabled (self-hosted mode)
+          # Falls back to full standalone capabilities if:
+          # - billing is disabled (standalone mode)
           # - plan not found in cache
           #
-          # This ensures 100% feature parity for self-hosted installations.
+          # This ensures full feature access in standalone mode.
           #
           # @example
           #   org.capabilities  # => ["create_secrets", "create_team", "custom_domains"]
           def capabilities
-            # Self-hosted fallback: full access when billing disabled
+            # Standalone fallback: full access when billing disabled
             unless billing_enabled?
-              return WithCapabilities::DEFAULT_OPENSOURCE_CAPABILITIES.dup
+              return WithCapabilities::STANDALONE_CAPABILITIES.dup
             end
 
             return [] if planid.to_s.empty?
@@ -69,11 +69,11 @@ module Onetime
             plan = ::Billing::Plan.load(planid)
 
             # If plan cache is empty (Stripe not synced), use fallback
-            return WithCapabilities::DEFAULT_OPENSOURCE_CAPABILITIES.dup unless plan
+            return WithCapabilities::STANDALONE_CAPABILITIES.dup unless plan
 
             caps = plan.capabilities.to_a
             # If plan exists but has no capabilities, use fallback
-            caps.empty? ? WithCapabilities::DEFAULT_OPENSOURCE_CAPABILITIES.dup : caps
+            caps.empty? ? WithCapabilities::STANDALONE_CAPABILITIES.dup : caps
           end
 
           # Get limit for a specific resource
@@ -88,7 +88,7 @@ module Onetime
           #   org.limit_for(:members_per_team)  # => Float::INFINITY
           #   org.limit_for('unknown')          # => 0
           def limit_for(resource)
-            # Self-hosted fallback: unlimited when billing disabled
+            # Standalone fallback: unlimited when billing disabled
             return Float::INFINITY unless billing_enabled?
 
             return 0 if planid.to_s.empty?
@@ -165,7 +165,7 @@ module Onetime
           private
 
           # Check if billing system is enabled
-          # Returns false for self-hosted installations
+          # Returns false in standalone mode
           def billing_enabled?
             Onetime::BillingConfig.instance.enabled?
           rescue StandardError
