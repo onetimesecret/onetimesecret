@@ -4,7 +4,9 @@
       "title_received": "تم العرض",
       "title_not_received": "لم يتم العرض",
       "title_no_recent_secrets": "لا اسرار جديدة",
-      "get-started-by-creating-your-first-secret": "ابدأ بإنشاء سرك الأول."
+      "get-started-by-creating-your-first-secret": "ابدأ بإنشاء سرك الأول.",
+      "fetch_error_title": "Unable to load teams",
+      "fetch_error_description": "There was a problem loading your teams. Please try again."
     }
   }
 }

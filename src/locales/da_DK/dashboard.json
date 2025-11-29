@@ -4,7 +4,9 @@
       "title_received": "Modtaget",
       "title_not_received": "Ikke modtaget",
       "title_no_recent_secrets": "Ingen nylige beskeder",
-      "get-started-by-creating-your-first-secret": "Kom i gang med at oprette din første hemmelighed."
+      "get-started-by-creating-your-first-secret": "Kom i gang med at oprette din første hemmelighed.",
+      "fetch_error_title": "Unable to load teams",
+      "fetch_error_description": "There was a problem loading your teams. Please try again."
     }
   }
 }

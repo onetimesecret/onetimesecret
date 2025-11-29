@@ -4,7 +4,9 @@
       "title_received": "Megkapva",
       "title_not_received": "Nem kapott meg",
       "title_no_recent_secrets": "Nincsenek legutóbbi titkok",
-      "get-started-by-creating-your-first-secret": "Kezdje el első titka létrehozásával."
+      "get-started-by-creating-your-first-secret": "Kezdje el első titka létrehozásával.",
+      "fetch_error_title": "Unable to load teams",
+      "fetch_error_description": "There was a problem loading your teams. Please try again."
     }
   }
 }

@@ -4,7 +4,9 @@
       "title_received": "Ontvangen",
       "title_not_received": "Niet ontvangen",
       "title_no_recent_secrets": "Geen recente berichten",
-      "get-started-by-creating-your-first-secret": "Begin door uw eerste bericht aan te maken."
+      "get-started-by-creating-your-first-secret": "Begin door uw eerste bericht aan te maken.",
+      "fetch_error_title": "Unable to load teams",
+      "fetch_error_description": "There was a problem loading your teams. Please try again."
     }
   }
 }

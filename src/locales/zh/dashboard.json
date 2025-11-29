@@ -4,7 +4,9 @@
       "title_received": "已接收",
       "title_not_received": "未接收",
       "title_no_recent_secrets": "无最近内容",
-      "get-started-by-creating-your-first-secret": "创建您的第一个内容来开始使用。"
+      "get-started-by-creating-your-first-secret": "创建您的第一个内容来开始使用。",
+      "fetch_error_title": "Unable to load teams",
+      "fetch_error_description": "There was a problem loading your teams. Please try again."
     }
   }
 }

@@ -3,7 +3,9 @@
     "dashboard": {
       "title_received": "Received",
       "title_not_received": "Not Received",
-      "title_no_recent_secrets": "No recent secrets"
+      "title_no_recent_secrets": "No recent secrets",
+      "fetch_error_title": "Unable to load teams",
+      "fetch_error_description": "There was a problem loading your teams. Please try again."
     }
   }
 }

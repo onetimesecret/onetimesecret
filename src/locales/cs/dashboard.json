@@ -4,7 +4,9 @@
       "title_received": "Přijato",
       "title_not_received": "Nepřijato",
       "title_no_recent_secrets": "Žádná nedávná tajemství",
-      "get-started-by-creating-your-first-secret": "Začni vytvořením svého prvního tajemství."
+      "get-started-by-creating-your-first-secret": "Začni vytvořením svého prvního tajemství.",
+      "fetch_error_title": "Unable to load teams",
+      "fetch_error_description": "There was a problem loading your teams. Please try again."
     }
   }
 }

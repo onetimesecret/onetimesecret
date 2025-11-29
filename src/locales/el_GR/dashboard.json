@@ -4,7 +4,9 @@
       "title_received": "Ληφθέντα",
       "title_not_received": "Μη Ληφθέντα",
       "title_no_recent_secrets": "Δεν υπάρχουν πρόσφατα μυστικά",
-      "get-started-by-creating-your-first-secret": "Ξεκινήστε δημιουργώντας το πρώτο σας μυστικό."
+      "get-started-by-creating-your-first-secret": "Ξεκινήστε δημιουργώντας το πρώτο σας μυστικό.",
+      "fetch_error_title": "Unable to load teams",
+      "fetch_error_description": "There was a problem loading your teams. Please try again."
     }
   }
 }

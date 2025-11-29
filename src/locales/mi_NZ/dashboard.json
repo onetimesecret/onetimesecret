@@ -4,7 +4,9 @@
       "title_received": "Kua Tae",
       "title_not_received": "Kāore i Tae",
       "title_no_recent_secrets": "Kāore he karere huna tata",
-      "get-started-by-creating-your-first-secret": "Tīmatahia mā te waihanga i tō karere huna tuatahi."
+      "get-started-by-creating-your-first-secret": "Tīmatahia mā te waihanga i tō karere huna tuatahi.",
+      "fetch_error_title": "Unable to load teams",
+      "fetch_error_description": "There was a problem loading your teams. Please try again."
     }
   }
 }

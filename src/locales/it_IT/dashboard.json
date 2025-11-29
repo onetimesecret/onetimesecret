@@ -4,7 +4,9 @@
       "title_received": "Ricevuto",
       "title_not_received": "Non ricevuto",
       "title_no_recent_secrets": "Nessun segreto recente",
-      "get-started-by-creating-your-first-secret": "Inizia creando il tuo primo segreto"
+      "get-started-by-creating-your-first-secret": "Inizia creando il tuo primo segreto",
+      "fetch_error_title": "Unable to load teams",
+      "fetch_error_description": "There was a problem loading your teams. Please try again."
     }
   }
 }

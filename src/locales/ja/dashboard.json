@@ -4,7 +4,9 @@
       "title_received": "受信済み",
       "title_not_received": "未受信",
       "title_no_recent_secrets": "最近のシークレットはありません",
-      "get-started-by-creating-your-first-secret": "最初のシークレットを作成して始めましょう。"
+      "get-started-by-creating-your-first-secret": "最初のシークレットを作成して始めましょう。",
+      "fetch_error_title": "Unable to load teams",
+      "fetch_error_description": "There was a problem loading your teams. Please try again."
     }
   }
 }
