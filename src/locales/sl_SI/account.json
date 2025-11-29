@@ -131,6 +131,17 @@
         "no-analytics-statement": "Brez analitike. Brez sledenja. Pika.",
         "explanation": "To ni nastavitev, ker ni ničesar za vklopiti ali izklopiti. Vaša zasebnost je vgrajena v način našega delovanja."
       },
+      "notifications": {
+        "title": "Nastavitve obvestil",
+        "description": "Upravljajte, kako prejemate obvestila",
+        "error-updating": "Posodobitev nastavitev obvestil ni uspela. Poskusite znova.",
+        "reveal-notifications": {
+          "title": "Obvestila o ogledu skrivnosti",
+          "description": "Prejmite e-pošto, ko nekdo pogleda vašo skrivnost",
+          "help": "Obveščeni boste vsakič, ko prejemnik pogleda eno od vaših skrivnosti"
+        },
+        "privacy-note": "E-poštna obvestila vsebujejo samo časovni žig in ID skrivnosti. Informacije o ogledovalcu niso nikoli vključene."
+      },
       "caution": {
         "title": "Območje previdnosti",
         "description": "Napredne nastavitve in upravljanje podatkov",

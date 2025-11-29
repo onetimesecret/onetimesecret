@@ -131,6 +131,17 @@
         "no-analytics-statement": "Cap analítica. Cap seguiment. Punt.",
         "explanation": "Això no és una configuració perquè no hi ha res a activar o desactivar. La teva privadesa està integrada en com operem."
       },
+      "notifications": {
+        "title": "Configuració de notificacions",
+        "description": "Gestiona com reps les notificacions",
+        "error-updating": "No s'ha pogut actualitzar la preferència de notificacions. Torna-ho a provar.",
+        "reveal-notifications": {
+          "title": "Notificacions de visualització de secrets",
+          "description": "Rep un correu electrònic quan algú visualitza el teu secret",
+          "help": "Rebràs una notificació cada vegada que un destinatari visualitzi un dels teus secrets"
+        },
+        "privacy-note": "Els correus de notificació només inclouen la marca de temps i l'identificador del secret. Mai s'inclou informació del visualitzador."
+      },
       "caution": {
         "title": "Zona de consideració acurada",
         "description": "Configuració avançada i gestió de dades",

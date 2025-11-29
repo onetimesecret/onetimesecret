@@ -131,6 +131,17 @@
         "no-analytics-statement": "Nincs analitika. Nincs követés. Pont.",
         "explanation": "Ez nem beállítás, mert nincs mit be- vagy kikapcsolni. Az adatvédelem bele van építve működésünkbe."
       },
+      "notifications": {
+        "title": "Értesítési beállítások",
+        "description": "Értesítések fogadásának kezelése",
+        "error-updating": "Nem sikerült frissíteni az értesítési beállítást. Kérjük, próbálja újra.",
+        "reveal-notifications": {
+          "title": "Titok megtekintési értesítések",
+          "description": "E-mail értesítés fogadása, amikor valaki megtekinti a titkot",
+          "help": "Értesítést kap minden alkalommal, amikor egy címzett megtekint egyet a titkaiból"
+        },
+        "privacy-note": "Az értesítő e-mailek csak az időbélyeget és a titok azonosítóját tartalmazzák. A megtekintő adatai soha nem kerülnek bele."
+      },
       "caution": {
         "title": "Óvatosan mérlegelendő zóna",
         "description": "Speciális beállítások és adatkezelés",
