@@ -1,8 +1,8 @@
 // src/router/billing.routes.ts
 
-import ExpandedFooter from '@/components/layout/ExpandedFooter.vue';
-import ExpandedHeader from '@/components/layout/ExpandedHeader.vue';
-import AccountLayout from '@/layouts/AccountLayout.vue';
+import ImprovedFooter from '@/components/layout/ImprovedFooter.vue';
+import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
+import ImprovedLayout from '@/layouts/ImprovedLayout.vue';
 import { WindowService } from '@/services/window.service';
 import { RouteRecordRaw } from 'vue-router';
 
@@ -32,15 +32,21 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: checkBillingEnabled,
     components: {
       default: () => import('@/views/billing/BillingOverview.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.billing.overview.title',
       requiresAuth: true,
-      layout: AccountLayout,
+      layout: ImprovedLayout,
       layoutProps: {
+        displayMasthead: true,
+        displayNavigation: true,
+        displayFooterLinks: true,
+        displayFeedback: true,
         displayPoweredBy: false,
+        displayVersion: true,
+        showSidebar: false,
       },
     },
   },
@@ -50,15 +56,21 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: checkBillingEnabled,
     components: {
       default: () => import('@/views/account/settings/OrganizationsSettings.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.organizations_settings',
       requiresAuth: true,
-      layout: AccountLayout,
+      layout: ImprovedLayout,
       layoutProps: {
+        displayMasthead: true,
+        displayNavigation: true,
+        displayFooterLinks: true,
+        displayFeedback: true,
         displayPoweredBy: false,
+        displayVersion: true,
+        showSidebar: false,
       },
     },
   },
@@ -68,15 +80,21 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: checkBillingEnabled,
     components: {
       default: () => import('@/views/account/settings/OrganizationSettings.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.TITLES.organization_settings',
       requiresAuth: true,
-      layout: AccountLayout,
+      layout: ImprovedLayout,
       layoutProps: {
+        displayMasthead: true,
+        displayNavigation: true,
+        displayFooterLinks: true,
+        displayFeedback: true,
         displayPoweredBy: false,
+        displayVersion: true,
+        showSidebar: false,
       },
     },
   },
@@ -86,15 +104,21 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: checkBillingEnabled,
     components: {
       default: () => import('@/views/billing/PlanSelector.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.billing.plans.title',
       requiresAuth: true,
-      layout: AccountLayout,
+      layout: ImprovedLayout,
       layoutProps: {
+        displayMasthead: true,
+        displayNavigation: true,
+        displayFooterLinks: true,
+        displayFeedback: true,
         displayPoweredBy: false,
+        displayVersion: true,
+        showSidebar: false,
       },
     },
   },
@@ -104,15 +128,21 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: checkBillingEnabled,
     components: {
       default: () => import('@/views/billing/InvoiceList.vue'),
-      header: ExpandedHeader,
-      footer: ExpandedFooter,
+      header: ImprovedHeader,
+      footer: ImprovedFooter,
     },
     meta: {
       title: 'web.billing.invoices.title',
       requiresAuth: true,
-      layout: AccountLayout,
+      layout: ImprovedLayout,
       layoutProps: {
+        displayMasthead: true,
+        displayNavigation: true,
+        displayFooterLinks: true,
+        displayFeedback: true,
         displayPoweredBy: false,
+        displayVersion: true,
+        showSidebar: false,
       },
     },
   },

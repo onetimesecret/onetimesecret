@@ -1,6 +1,6 @@
 // src/types/declarations/index.d.ts
 
-import { LayoutProps } from '@/types/ui';
+import { ImprovedLayoutProps, LayoutProps } from '@/types/ui';
 import type { AxiosResponse } from 'axios';
 import type { Component } from 'vue';
 
@@ -11,7 +11,7 @@ declare module 'vue-router' {
   interface RouteMeta {
     requiresAuth?: boolean;
     layout?: Component;
-    layoutProps?: LayoutProps;
+    layoutProps?: LayoutProps | ImprovedLayoutProps;
 
     // TODO: Do a find for this key and replace with data loading approach
     initialData?: AxiosResponse<unknown>;
