@@ -79,8 +79,13 @@ module Onetime
         def safely_execute
           yield
         rescue StandardError => e
-          OT.le "[#{name}] Scheduled job failed: #{e.message}"
-          OT.le e.backtrace.join("\n") if OT.debug?
+          scheduler_logger.error "[#{name}] Scheduled job failed: #{e.message}"
+          scheduler_logger.error e.backtrace.join("\n") if OT.debug?
+        end
+
+        # Dedicated logger for scheduled jobs
+        def scheduler_logger
+          @scheduler_logger ||= Onetime.get_logger('Scheduler')
         end
       end
     end

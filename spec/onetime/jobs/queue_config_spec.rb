@@ -89,8 +89,8 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(queue[:durable]).to be true
     end
 
-    it 'has no dead letter exchange (simple queue)' do
-      expect(queue[:arguments]).to be_nil
+    it 'has dead letter exchange configured' do
+      expect(queue[:arguments]['x-dead-letter-exchange']).to eq('dlx.notifications.alert')
     end
   end
 
@@ -141,13 +141,18 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(dead_letter_config).to be_frozen
     end
 
-    it 'has 3 entries' do
-      expect(dead_letter_config.size).to eq(3)
+    it 'has 4 entries' do
+      expect(dead_letter_config.size).to eq(4)
     end
 
     it "contains 'dlx.email.message' with queue 'dlq.email.message'" do
       expect(dead_letter_config).to have_key('dlx.email.message')
       expect(dead_letter_config['dlx.email.message'][:queue]).to eq('dlq.email.message')
+    end
+
+    it "contains 'dlx.notifications.alert' with queue 'dlq.notifications.alert'" do
+      expect(dead_letter_config).to have_key('dlx.notifications.alert')
+      expect(dead_letter_config['dlx.notifications.alert'][:queue]).to eq('dlq.notifications.alert')
     end
 
     it "contains 'dlx.webhooks.payload' with queue 'dlq.webhooks.payload'" do

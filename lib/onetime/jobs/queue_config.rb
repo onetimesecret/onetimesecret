@@ -37,7 +37,8 @@ module Onetime
           }
         },
         'notifications.alert.push' => {
-          durable: true
+          durable: true,
+          arguments: { 'x-dead-letter-exchange' => 'dlx.notifications.alert' }
         },
         'webhooks.payload.deliver' => {
           durable: true,
@@ -60,6 +61,7 @@ module Onetime
       # These must be declared BEFORE the main queues that reference them
       DEAD_LETTER_CONFIG = {
         'dlx.email.message' => { queue: 'dlq.email.message' },
+        'dlx.notifications.alert' => { queue: 'dlq.notifications.alert' },
         'dlx.webhooks.payload' => { queue: 'dlq.webhooks.payload' },
         'dlx.billing.event' => { queue: 'dlq.billing.event' }
       }.freeze
