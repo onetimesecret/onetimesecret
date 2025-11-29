@@ -96,6 +96,6 @@ WebMock.disable_net_connect!(
     'localhost:12111',    # stripe-mock server
     '127.0.0.1:12111',
     'api.stripe.com',     # Real Stripe API (for VCR recording)
-    /stripe\.com/,        # All Stripe subdomains
+    /\.stripe\.com\z/,    # All Stripe subdomains (anchored)
   ],
 )
