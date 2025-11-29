@@ -38,8 +38,11 @@
 require_relative '../../../spec_helper'
 require_relative '../../../../lib/onetime/jobs/workers/base_worker'
 require_relative '../../../../lib/onetime/jobs/queue_config'
-require 'ostruct'
 require 'sneakers'
+
+# Data classes for mocking AMQP envelope components (immutable, Ruby 3.2+)
+DeliveryInfoStub = Data.define(:delivery_tag, :routing_key, :redelivered?) unless defined?(DeliveryInfoStub)
+MetadataStub = Data.define(:message_id, :headers) unless defined?(MetadataStub)
 
 RSpec.describe Onetime::Jobs::Workers::BaseWorker do
   # Create a test worker class that includes both Sneakers::Worker and BaseWorker
@@ -80,48 +83,47 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
 
   let(:worker) { test_worker_class.new }
 
-  # Mock delivery_info structure matching Sneakers/AMQP format
+  # Mock AMQP envelope components matching Kicks/Sneakers format
   let(:message_id_value) { 'msg-12345-abcde' }
+
+  # delivery_info contains routing information
   let(:delivery_info) do
-    OpenStruct.new(
+    DeliveryInfoStub.new(
       delivery_tag: 1,
       routing_key: 'email.immediate',
-      redelivered?: false,
-      properties: OpenStruct.new(
-        message_id: message_id_value,
-        headers: { 'x-schema-version' => 1 }
-      )
+      redelivered?: false
+    )
+  end
+
+  # metadata contains message properties (message_id, headers)
+  let(:metadata) do
+    MetadataStub.new(
+      message_id: message_id_value,
+      headers: { 'x-schema-version' => 1 }
     )
   end
 
   before do
-    worker.delivery_info = delivery_info
+    worker.store_envelope(delivery_info, metadata)
   end
 
   describe '#message_id' do
-    context 'when delivery_info has message_id' do
-      it 'extracts message_id from delivery_info.properties.message_id' do
+    context 'when metadata has message_id' do
+      it 'extracts message_id from metadata.message_id' do
         expect(worker.message_id).to eq(message_id_value)
       end
     end
 
-    context 'when delivery_info is nil' do
-      before { worker.delivery_info = nil }
+    context 'when metadata is nil' do
+      before { worker.metadata = nil }
 
       it 'returns nil without raising error' do
         expect(worker.message_id).to be_nil
       end
     end
 
-    context 'when properties is nil' do
-      before do
-        worker.delivery_info = OpenStruct.new(properties: nil)
-      end
-
-      it 'returns nil without raising error' do
-        expect(worker.message_id).to be_nil
-      end
-    end
+    # Note: delivery_info being nil doesn't affect message_id since
+    # message_id comes from metadata, not delivery_info
   end
 
   describe '#already_processed?' do
@@ -327,13 +329,16 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
       )
     end
 
-    context 'when delivery_info is nil' do
-      before { worker.delivery_info = nil }
+    context 'when delivery_info and metadata are nil' do
+      before do
+        worker.delivery_info = nil
+        worker.metadata = nil
+      end
 
       it 'returns hash with nil values' do
-        metadata = worker.message_metadata
+        result = worker.message_metadata
 
-        expect(metadata).to include(
+        expect(result).to include(
           delivery_tag: nil,
           routing_key: nil,
           redelivered: nil,
@@ -348,10 +353,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
     let(:data) { { test: 'data' } }
 
     context 'when schema version is valid (V1)' do
-      before do
-        delivery_info.properties.headers['x-schema-version'] = 1
-      end
-
+      # Default metadata has 'x-schema-version' => 1
       it 'does not reject the message' do
         worker.validate_schema(data)
         expect(worker.rejected?).to be false
@@ -359,8 +361,11 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
     end
 
     context 'when schema version header is missing' do
-      before do
-        delivery_info.properties.headers.delete('x-schema-version')
+      let(:metadata) do
+        MetadataStub.new(
+          message_id: message_id_value,
+          headers: {}
+        )
       end
 
       it 'defaults to version 1 and does not reject' do
@@ -370,8 +375,11 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
     end
 
     context 'when schema version is unknown' do
-      before do
-        delivery_info.properties.headers['x-schema-version'] = 999
+      let(:metadata) do
+        MetadataStub.new(
+          message_id: message_id_value,
+          headers: { 'x-schema-version' => 999 }
+        )
       end
 
       it 'rejects the message' do

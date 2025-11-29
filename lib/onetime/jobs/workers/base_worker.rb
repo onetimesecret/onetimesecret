@@ -23,7 +23,8 @@ module Onetime
       #
       #     from_queue 'my.queue', ack: true, threads: 4
       #
-      #     def work(msg)
+      #     def work_with_params(msg, delivery_info, metadata)
+      #       store_envelope(delivery_info, metadata)
       #       data = parse_message(msg)
       #       # ... do work ...
       #       ack!
@@ -44,6 +45,19 @@ module Onetime
         end
 
         module InstanceMethods
+          # AMQP envelope accessors - set by work_with_params
+          # These provide access to delivery_info and metadata from the AMQP envelope
+          attr_accessor :delivery_info, :metadata
+
+          # Store AMQP envelope for access by helper methods
+          # Call this at the start of work_with_params
+          # @param delivery_info [Bunny::DeliveryInfo] AMQP delivery info
+          # @param metadata [Bunny::MessageProperties] AMQP message properties
+          def store_envelope(delivery_info, metadata)
+            @delivery_info = delivery_info
+            @metadata = metadata
+          end
+
           # Parse and validate message payload
           # @param msg [String] Raw message body
           # @return [Hash] Parsed message data
@@ -59,7 +73,7 @@ module Onetime
 
           # Validate message schema version
           def validate_schema(data)
-            version = delivery_info&.properties&.headers&.[]('x-schema-version') || 1
+            version = @metadata&.headers&.[]('x-schema-version') || 1
 
             unless Onetime::Jobs::QueueConfig::Versions.const_defined?("V#{version}")
               log_error "Unknown schema version: #{version}"
@@ -110,20 +124,27 @@ module Onetime
           end
 
           # Extract metadata from message properties
+          #
+          # NOTE: redelivered? is useful for logging/debugging but not as a
+          # substitute for idempotency checks. A message can be delivered
+          # exactly once and still be a duplicate (publisher retry before
+          # broker ack), and a redelivered message might legitimately need
+          # processing (worker crashed before your code ran). The Valkey
+          # check remains the source of truth.
           def message_metadata
             {
-              delivery_tag: delivery_info&.delivery_tag,
-              routing_key: delivery_info&.routing_key,
-              redelivered: delivery_info&.redelivered?,
+              delivery_tag: @delivery_info&.delivery_tag,
+              routing_key: @delivery_info&.routing_key,
+              redelivered: @delivery_info&.redelivered?,
               message_id: message_id,
-              schema_version: delivery_info&.properties&.headers&.[]('x-schema-version')
+              schema_version: @metadata&.headers&.[]('x-schema-version')
             }
           end
 
           # Get message ID from AMQP properties
           # @return [String, nil] The message_id or nil if not present
           def message_id
-            delivery_info&.properties&.message_id
+            @metadata&.message_id
           end
 
           # Idempotency: Check if message was already processed

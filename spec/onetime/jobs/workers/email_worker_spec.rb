@@ -39,9 +39,12 @@
 
 require 'spec_helper'
 require 'sneakers'
-require 'ostruct'
 require_relative '../../../../lib/onetime/jobs/workers/email_worker'
 require_relative '../../../../lib/onetime/jobs/queue_config'
+
+# Data classes for mocking AMQP envelope components (immutable, Ruby 3.2+)
+DeliveryInfoStub = Data.define(:delivery_tag, :routing_key, :redelivered?)
+MetadataStub = Data.define(:message_id, :headers)
 
 RSpec.describe Onetime::Jobs::Workers::EmailWorker do
   # Create test worker class with accessible delivery_info
@@ -80,22 +83,26 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
   let(:worker) { test_worker_class.new }
   let(:message_id) { 'test-msg-123' }
 
-  # Mock Sneakers delivery_info with properties
+  # Mock Sneakers delivery_info (envelope info)
   let(:delivery_info) do
-    OpenStruct.new(
+    DeliveryInfoStub.new(
       delivery_tag: 1,
       routing_key: 'email.immediate',
-      redelivered?: false,
-      properties: OpenStruct.new(
-        message_id: message_id,
-        headers: { 'x-schema-version' => 1 }
-      )
+      redelivered?: false
+    )
+  end
+
+  # Mock Sneakers metadata (message properties - passed separately by Kicks)
+  let(:metadata) do
+    MetadataStub.new(
+      message_id: message_id,
+      headers: { 'x-schema-version' => 1 }
     )
   end
 
   before do
-    # Set delivery_info on worker
-    worker.delivery_info = delivery_info
+    # Store envelope is called by work_with_params, but we can also pre-set for tests
+    worker.store_envelope(delivery_info, metadata)
 
     # Mock Onetime::Mail module
     allow(Onetime::Mail).to receive(:deliver)
@@ -105,7 +112,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
     allow(worker).to receive(:sleep)
   end
 
-  describe '#work' do
+  describe '#work_with_params' do
     context 'templated email delivery' do
       let(:message) do
         JSON.generate(
@@ -118,7 +125,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
       end
 
       it 'calls Mail.deliver with template symbol and data hash' do
-        worker.work(message)
+        worker.work_with_params(message, delivery_info, metadata)
 
         expect(Onetime::Mail).to have_received(:deliver).with(
           :secret_link,
@@ -130,13 +137,13 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
       end
 
       it 'acknowledges the message after successful delivery' do
-        worker.work(message)
+        worker.work_with_params(message, delivery_info, metadata)
 
         expect(worker.acked?).to be true
       end
 
       it 'marks message as processed after successful delivery' do
-        worker.work(message)
+        worker.work_with_params(message, delivery_info, metadata)
 
         expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
       end
@@ -156,7 +163,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
       end
 
       it 'calls Mail.deliver_raw with email hash when raw: true' do
-        worker.work(message)
+        worker.work_with_params(message, delivery_info, metadata)
 
         expect(Onetime::Mail).to have_received(:deliver_raw).with(
           {
@@ -169,13 +176,13 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
       end
 
       it 'acknowledges the message after successful delivery' do
-        worker.work(message)
+        worker.work_with_params(message, delivery_info, metadata)
 
         expect(worker.acked?).to be true
       end
 
       it 'marks message as processed after successful delivery' do
-        worker.work(message)
+        worker.work_with_params(message, delivery_info, metadata)
 
         expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
       end
@@ -193,7 +200,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
         # Pre-set Redis idempotency key
         Familia.dbclient.setex("job:processed:#{message_id}", 3600, '1')
 
-        worker.work(message)
+        worker.work_with_params(message, delivery_info, metadata)
 
         # Should ack without calling Mail
         expect(worker.acked?).to be true
@@ -205,7 +212,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
         # Ensure key doesn't exist initially
         Familia.dbclient.del("job:processed:#{message_id}")
 
-        worker.work(message)
+        worker.work_with_params(message, delivery_info, metadata)
 
         # Verify key was created with TTL
         expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
@@ -226,7 +233,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
       it 'calls reject! after exhausting retries when Mail.deliver raises StandardError' do
         allow(Onetime::Mail).to receive(:deliver).and_raise(StandardError, 'Delivery failed')
 
-        worker.work(message)
+        worker.work_with_params(message, delivery_info, metadata)
 
         # with_retry calls reject! after max retries, but doesn't stop execution
         # so the worker continues and calls ack! as well (current implementation behavior)
@@ -238,7 +245,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
         error = Onetime::Mail::DeliveryError.new('SMTP error', transient: false)
         allow(Onetime::Mail).to receive(:deliver).and_raise(error)
 
-        worker.work(message)
+        worker.work_with_params(message, delivery_info, metadata)
 
         # with_retry calls reject! after max retries
         expect(worker.rejected?).to be true
@@ -252,7 +259,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
 
         allow(Onetime::Mail).to receive(:deliver).and_raise(StandardError, 'Delivery failed')
 
-        worker.work(message)
+        worker.work_with_params(message, delivery_info, metadata)
 
         # with_retry doesn't raise after calling reject!, so execution continues
         # and mark_processed is called (this is current behavior, not ideal)
@@ -268,7 +275,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
       end
 
       it 'calls reject! for invalid message format' do
-        worker.work(message)
+        worker.work_with_params(message, delivery_info, metadata)
 
         expect(worker.rejected?).to be true
         expect(Onetime::Mail).not_to have_received(:deliver)
@@ -284,7 +291,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
       end
 
       it 'calls reject! for invalid raw message' do
-        worker.work(message)
+        worker.work_with_params(message, delivery_info, metadata)
 
         expect(worker.rejected?).to be true
         expect(Onetime::Mail).not_to have_received(:deliver_raw)

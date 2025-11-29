@@ -43,7 +43,11 @@ module Onetime
 
         # Process email delivery message
         # @param msg [String] JSON-encoded message
-        def work(msg)
+        # @param delivery_info [Bunny::DeliveryInfo] AMQP delivery info
+        # @param metadata [Bunny::MessageProperties] AMQP message properties
+        def work_with_params(msg, delivery_info, metadata)
+          store_envelope(delivery_info, metadata)
+
           data = parse_message(msg)
           return unless data # parse_message handles reject on error
 
