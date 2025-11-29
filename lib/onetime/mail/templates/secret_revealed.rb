@@ -52,7 +52,7 @@ module Onetime
         end
 
         def settings_path
-          '/account/settings/profile/preferences'
+          '/account/settings/profile/notifications'
         end
 
         def baseuri
