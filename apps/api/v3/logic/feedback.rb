@@ -70,13 +70,14 @@ module V3
         OT.ld "[send_feedback] Delivering feedback email (#{message.size} chars)"
 
         begin
-          # Use async delivery with automatic fallback to sync if unavailable
+          # Non-critical: feedback is saved in Redis regardless of email
+          # Use :none fallback - don't block or spawn threads for notifications
           Onetime::Jobs::Publisher.enqueue_email(:feedback_email, {
             email_address: cust.email,
             message: message,
             display_domain: display_domain,
             domain_strategy: domain_strategy
-          })
+          }, fallback: :none)
         rescue StandardError => ex
           OT.le "Error sending feedback email: #{ex.message}", ex.backtrace
           # No need to notify the user of this error. The message is still

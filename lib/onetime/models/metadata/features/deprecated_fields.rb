@@ -75,12 +75,13 @@ module Onetime::Metadata::Features
 
         # Deliver to first recipient only
         email_address = eaddrs.first
-        # Use async delivery with automatic fallback to sync if unavailable
+        # Secret sharing: use default async_thread fallback (non-blocking)
+        # User expects email but doesn't need to wait for it
         Onetime::Jobs::Publisher.enqueue_email(:secret_link, {
           secret: secret,
           recipient: email_address,
           sender_email: cust.email
-        })
+        }) # fallback: :async_thread is the default
       end
 
       # NOTE: We override the default fast writer (bang!) methods from familia

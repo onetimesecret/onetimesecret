@@ -37,12 +37,12 @@ RSpec.describe Onetime::Jobs::Publisher do
   end
 
   describe 'constants' do
-    it 'defines MAX_RETRIES as 3' do
-      expect(described_class::MAX_RETRIES).to eq(3)
+    it 'defines FALLBACK_STRATEGIES with valid options' do
+      expect(described_class::FALLBACK_STRATEGIES).to eq(%i[async_thread sync raise none])
     end
 
-    it 'defines RETRY_DELAY as 0.5' do
-      expect(described_class::RETRY_DELAY).to eq(0.5)
+    it 'defines DEFAULT_FALLBACK as :async_thread' do
+      expect(described_class::DEFAULT_FALLBACK).to eq(:async_thread)
     end
   end
 
@@ -71,18 +71,77 @@ RSpec.describe Onetime::Jobs::Publisher do
   describe '#enqueue_email without RabbitMQ' do
     subject(:publisher) { described_class.new }
 
-    context 'when channel pool is not initialized' do
-      before do
-        $rmq_channel_pool = nil
-      end
+    before do
+      $rmq_channel_pool = nil
+    end
 
-      it 'falls back to synchronous email when Onetime::Mail is available' do
+    context 'with fallback: :sync' do
+      it 'falls back to synchronous email delivery' do
         allow(Onetime::Mail).to receive(:deliver)
 
-        # Should not raise, should fall back to sync
+        publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync)
+
+        expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' })
+      end
+    end
+
+    context 'with fallback: :async_thread (default)' do
+      it 'spawns a thread for email delivery' do
+        allow(Onetime::Mail).to receive(:deliver)
+
+        # Default fallback spawns a thread
         publisher.enqueue_email(:welcome, { email: 'test@example.com' })
 
-        expect(Onetime::Mail).to have_received(:deliver)
+        # Give the thread time to execute
+        sleep 0.1
+
+        expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' })
+      end
+    end
+
+    context 'with fallback: :none' do
+      it 'does not attempt to send email' do
+        allow(Onetime::Mail).to receive(:deliver)
+
+        publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :none)
+
+        expect(Onetime::Mail).not_to have_received(:deliver)
+      end
+    end
+
+    context 'with fallback: :raise' do
+      it 'raises DeliveryError' do
+        expect {
+          publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :raise)
+        }.to raise_error(Onetime::Mail::DeliveryError, /RabbitMQ unavailable/)
+      end
+    end
+
+    context 'with invalid fallback strategy' do
+      it 'raises ArgumentError' do
+        expect {
+          publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :invalid)
+        }.to raise_error(ArgumentError, /Invalid fallback strategy/)
+      end
+    end
+  end
+
+  describe '#enqueue_email_raw without RabbitMQ' do
+    subject(:publisher) { described_class.new }
+
+    before do
+      $rmq_channel_pool = nil
+    end
+
+    let(:raw_email) { { to: 'test@example.com', from: 'noreply@example.com', subject: 'Test', body: 'Hello' } }
+
+    context 'with fallback: :sync' do
+      it 'falls back to synchronous raw email delivery' do
+        allow(Onetime::Mail).to receive(:deliver_raw)
+
+        publisher.enqueue_email_raw(raw_email, fallback: :sync)
+
+        expect(Onetime::Mail).to have_received(:deliver_raw).with(raw_email)
       end
     end
   end

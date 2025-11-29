@@ -7,64 +7,82 @@ require_relative 'queue_config'
 
 module Onetime
   module Jobs
-    # Thread-safe RabbitMQ publisher with fallback to synchronous execution
+    # Thread-safe RabbitMQ publisher with configurable fallback behavior
     #
     # Uses connection pool for thread safety in multi-threaded environments
-    # like Puma. Falls back to synchronous execution if RabbitMQ is unavailable
-    # after retry attempts.
+    # like Puma. Fallback behavior is configurable per-call:
+    #
+    #   - :async_thread - Spawn a thread to deliver (non-blocking, default)
+    #   - :sync         - Block and deliver synchronously
+    #   - :raise        - Raise an error on failure
+    #   - :none         - Log and return false silently
     #
     # Example:
+    #   # Default: async thread fallback (best for Puma)
     #   Onetime::Jobs::Publisher.enqueue_email(:secret_link, { secret_id: 'abc123' })
     #
+    #   # Critical auth flow: block if needed
+    #   Onetime::Jobs::Publisher.enqueue_email(:password_reset, data, fallback: :sync)
+    #
+    #   # Non-critical: just fail
+    #   Onetime::Jobs::Publisher.enqueue_email(:feedback, data, fallback: :none)
+    #
     class Publisher
-      MAX_RETRIES = 3
-      RETRY_DELAY = 0.5 # seconds
+      # Valid fallback strategies
+      FALLBACK_STRATEGIES = %i[async_thread sync raise none].freeze
+
+      # Default fallback - async thread is non-blocking for Puma
+      DEFAULT_FALLBACK = :async_thread
 
       class << self
         # Enqueue an email for immediate delivery
         # @param template [Symbol] Email template name
         # @param data [Hash] Template data
-        # @return [Boolean] true if published, false if fell back to sync
-        def enqueue_email(template, data)
-          new.enqueue_email(template, data)
+        # @param fallback [Symbol] Fallback strategy if RabbitMQ unavailable
+        # @return [Boolean] true if published to queue, false if fallback used
+        def enqueue_email(template, data, fallback: DEFAULT_FALLBACK)
+          new.enqueue_email(template, data, fallback: fallback)
         end
 
         # Schedule an email for delayed delivery
         # @param template [Symbol] Email template name
         # @param data [Hash] Template data
         # @param delay_seconds [Integer] Delay in seconds
-        # @return [Boolean] true if published, false if fell back to sync
-        def schedule_email(template, data, delay_seconds:)
-          new.schedule_email(template, data, delay_seconds: delay_seconds)
+        # @param fallback [Symbol] Fallback strategy if RabbitMQ unavailable
+        # @return [Boolean] true if published to queue, false if fallback used
+        def schedule_email(template, data, delay_seconds:, fallback: DEFAULT_FALLBACK)
+          new.schedule_email(template, data, delay_seconds: delay_seconds, fallback: fallback)
         end
 
         # Enqueue a raw email (non-templated) for immediate delivery
         # Used for Rodauth integration where emails are pre-formatted
         # @param email [Hash] Raw email with :to, :from, :subject, :body keys
-        # @return [Boolean] true if published, false if fell back to sync
-        def enqueue_email_raw(email)
-          new.enqueue_email_raw(email)
+        # @param fallback [Symbol] Fallback strategy if RabbitMQ unavailable
+        # @return [Boolean] true if published to queue, false if fallback used
+        def enqueue_email_raw(email, fallback: DEFAULT_FALLBACK)
+          new.enqueue_email_raw(email, fallback: fallback)
         end
       end
 
       def initialize
         @pending_template = nil
         @pending_data = nil
+        @pending_raw_email = nil
       end
 
       # Enqueue email for immediate delivery
-      def enqueue_email(template, data)
+      def enqueue_email(template, data, fallback: DEFAULT_FALLBACK)
+        validate_fallback!(fallback)
         @pending_template = template
         @pending_data = data
 
         # Gracefully fallback if jobs are disabled (no pool initialized)
         unless jobs_enabled?
-          OT.ld "[Jobs::Publisher] Jobs disabled, sending synchronously: #{template}"
-          send_synchronously
-          return false
+          OT.ld "[Jobs::Publisher] Jobs disabled, using fallback #{fallback}: #{template}"
+          return execute_fallback(fallback, :templated)
         end
 
-        with_fallback do
+        with_fallback(fallback, :templated) do
           publish('email.immediate', { template: template, data: data })
           OT.ld "[Jobs::Publisher] Enqueued email: #{template}"
           true
@@ -72,18 +90,18 @@ module Onetime
       end
 
       # Schedule email for delayed delivery
-      def schedule_email(template, data, delay_seconds:)
+      def schedule_email(template, data, delay_seconds:, fallback: DEFAULT_FALLBACK)
+        validate_fallback!(fallback)
         @pending_template = template
         @pending_data = data
 
         # Gracefully fallback if jobs are disabled (no pool initialized)
         unless jobs_enabled?
-          OT.ld "[Jobs::Publisher] Jobs disabled, sending synchronously: #{template}"
-          send_synchronously
-          return false
+          OT.ld "[Jobs::Publisher] Jobs disabled, using fallback #{fallback}: #{template}"
+          return execute_fallback(fallback, :templated)
         end
 
-        with_fallback do
+        with_fallback(fallback, :templated) do
           publish(
             'email.scheduled',
             { template: template, data: data },
@@ -96,17 +114,17 @@ module Onetime
 
       # Enqueue raw email (non-templated) for immediate delivery
       # Used for Rodauth integration where emails are pre-formatted
-      def enqueue_email_raw(email)
+      def enqueue_email_raw(email, fallback: DEFAULT_FALLBACK)
+        validate_fallback!(fallback)
         @pending_raw_email = email
 
         # Gracefully fallback if jobs are disabled (no pool initialized)
         unless jobs_enabled?
-          OT.ld "[Jobs::Publisher] Jobs disabled, sending raw email synchronously"
-          send_raw_synchronously
-          return false
+          OT.ld "[Jobs::Publisher] Jobs disabled, using fallback #{fallback} for raw email"
+          return execute_fallback(fallback, :raw)
         end
 
-        with_fallback_raw do
+        with_fallback(fallback, :raw) do
           publish('email.immediate', { raw: true, email: email })
           OT.ld "[Jobs::Publisher] Enqueued raw email to: #{email[:to]}"
           true
@@ -141,91 +159,119 @@ module Onetime
 
       private
 
+      # Validate fallback strategy
+      def validate_fallback!(fallback)
+        return if FALLBACK_STRATEGIES.include?(fallback)
+
+        raise ArgumentError, "Invalid fallback strategy: #{fallback}. Valid options: #{FALLBACK_STRATEGIES.join(', ')}"
+      end
+
       # Check if the job system is enabled and initialized
       # @return [Boolean] true if RabbitMQ channel pool is available
       def jobs_enabled?
         !$rmq_channel_pool.nil?
       end
 
-      # Wrap publish operation with retry and fallback logic
-      def with_fallback
-        retries = 0
-        begin
-          yield
-        rescue Bunny::ConnectionClosedError, Bunny::NetworkFailure => e
-          retries += 1
-          if retries <= MAX_RETRIES
-            OT.li "[Jobs::Publisher] RabbitMQ connection failed (attempt #{retries}/#{MAX_RETRIES}), retrying in #{RETRY_DELAY * retries}s: #{e.message}"
-            sleep(RETRY_DELAY * retries)
-            retry
-          else
-            OT.li "[Jobs::Publisher] RabbitMQ unavailable after #{MAX_RETRIES} retries, falling back to sync: #{e.message}"
-            send_synchronously
-            false
-          end
-        rescue StandardError => e
-          OT.le "[Jobs::Publisher] Unexpected error publishing message: #{e.message}"
-          OT.le e.backtrace.join("\n") if OT.debug?
-          send_synchronously
+      # Wrap publish operation with fallback logic (no retries, no sleeps)
+      # @param fallback [Symbol] Fallback strategy
+      # @param email_type [Symbol] :templated or :raw
+      def with_fallback(fallback, email_type)
+        yield
+      rescue Bunny::ConnectionClosedError, Bunny::NetworkFailure => e
+        OT.li "[Jobs::Publisher] RabbitMQ unavailable, using fallback #{fallback}: #{e.message}"
+        execute_fallback(fallback, email_type)
+      rescue StandardError => e
+        OT.le "[Jobs::Publisher] Unexpected error publishing message: #{e.message}"
+        OT.le e.backtrace.join("\n") if OT.debug?
+        execute_fallback(fallback, email_type)
+      end
+
+      # Execute the configured fallback strategy
+      # @param fallback [Symbol] Fallback strategy
+      # @param email_type [Symbol] :templated or :raw
+      # @return [Boolean] false (fallback was used, not queued)
+      def execute_fallback(fallback, email_type)
+        case fallback
+        when :async_thread
+          send_via_thread(email_type)
+          false
+        when :sync
+          send_synchronously(email_type)
+          false
+        when :raise
+          raise Onetime::Mail::DeliveryError, 'RabbitMQ unavailable and fallback disabled'
+        when :none
+          OT.li "[Jobs::Publisher] Fallback disabled, email not sent"
+          clear_pending_state
           false
         end
       end
 
-      # Fallback to synchronous email delivery
-      def send_synchronously
-        return unless @pending_template && @pending_data
+      # Poor man's background job - spawn a thread to deliver
+      # Non-blocking for the request thread in Puma.
+      #
+      # Note: Works with Thin/EventMachine too (creates real OS thread outside
+      # the reactor), but no thread pool limits - sustained RabbitMQ outages
+      # could cause thread proliferation. For Thin, consider :sync instead.
+      #
+      # @param email_type [Symbol] :templated or :raw
+      def send_via_thread(email_type)
+        # Capture state before thread (instance vars won't be accessible)
+        template = @pending_template
+        data = @pending_data
+        raw_email = @pending_raw_email
 
-        begin
-          require_relative '../mail'
-          Onetime::Mail.deliver(@pending_template, @pending_data)
-          OT.li "[Jobs::Publisher] Sent email synchronously: #{@pending_template}"
+        clear_pending_state
+
+        Thread.new do
+          deliver_email(email_type, template: template, data: data, raw_email: raw_email)
         rescue StandardError => e
-          OT.le "[Jobs::Publisher] Sync fallback failed: #{e.message}"
-          raise
-        ensure
-          @pending_template = nil
-          @pending_data = nil
+          # Log but don't crash - this is fire-and-forget
+          OT.le "[Jobs::Publisher] Async thread delivery failed: #{e.message}"
+          OT.le e.backtrace.first(5).join("\n") if OT.debug?
+        end
+
+        OT.li "[Jobs::Publisher] Spawned thread for #{email_type} email delivery"
+      end
+
+      # Blocking synchronous delivery
+      # @param email_type [Symbol] :templated or :raw
+      def send_synchronously(email_type)
+        template = @pending_template
+        data = @pending_data
+        raw_email = @pending_raw_email
+
+        clear_pending_state
+
+        deliver_email(email_type, template: template, data: data, raw_email: raw_email)
+        OT.li "[Jobs::Publisher] Sent #{email_type} email synchronously"
+      end
+
+      # Actually deliver the email
+      # @param email_type [Symbol] :templated or :raw
+      # @param template [Symbol, nil] Template name for templated emails
+      # @param data [Hash, nil] Template data for templated emails
+      # @param raw_email [Hash, nil] Raw email hash for raw emails
+      def deliver_email(email_type, template:, data:, raw_email:)
+        require_relative '../mail'
+
+        case email_type
+        when :templated
+          return unless template && data
+
+          Onetime::Mail.deliver(template, data)
+        when :raw
+          return unless raw_email
+
+          Onetime::Mail.deliver_raw(raw_email)
         end
       end
 
-      # Wrap raw email publish with retry and fallback logic
-      def with_fallback_raw
-        retries = 0
-        begin
-          yield
-        rescue Bunny::ConnectionClosedError, Bunny::NetworkFailure => e
-          retries += 1
-          if retries <= MAX_RETRIES
-            OT.li "[Jobs::Publisher] RabbitMQ connection failed (attempt #{retries}/#{MAX_RETRIES}), retrying in #{RETRY_DELAY * retries}s: #{e.message}"
-            sleep(RETRY_DELAY * retries)
-            retry
-          else
-            OT.li "[Jobs::Publisher] RabbitMQ unavailable after #{MAX_RETRIES} retries, falling back to sync raw: #{e.message}"
-            send_raw_synchronously
-            false
-          end
-        rescue StandardError => e
-          OT.le "[Jobs::Publisher] Unexpected error publishing raw message: #{e.message}"
-          OT.le e.backtrace.join("\n") if OT.debug?
-          send_raw_synchronously
-          false
-        end
-      end
-
-      # Fallback to synchronous raw email delivery
-      def send_raw_synchronously
-        return unless @pending_raw_email
-
-        begin
-          require_relative '../mail'
-          Onetime::Mail.deliver_raw(@pending_raw_email)
-          OT.li "[Jobs::Publisher] Sent raw email synchronously to: #{@pending_raw_email[:to]}"
-        rescue StandardError => e
-          OT.le "[Jobs::Publisher] Sync raw fallback failed: #{e.message}"
-          raise
-        ensure
-          @pending_raw_email = nil
-        end
+      # Clear pending state
+      def clear_pending_state
+        @pending_template = nil
+        @pending_data = nil
+        @pending_raw_email = nil
       end
     end
   end

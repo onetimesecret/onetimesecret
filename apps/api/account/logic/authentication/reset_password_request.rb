@@ -58,11 +58,12 @@ module AccountAPI::Logic
         }
 
         begin
-          # Use async delivery with automatic fallback to sync if unavailable
+          # Critical auth flow: use sync fallback to ensure email is sent
+          # User is waiting for password reset, blocking is acceptable
           Onetime::Jobs::Publisher.enqueue_email(:password_request, {
             email_address: cust.email,
             secret: secret
-          })
+          }, fallback: :sync)
         rescue StandardError => ex
           errmsg = "Couldn't send the notification email. Let know below."
           auth_logger.error 'Password reset email delivery failed', {
