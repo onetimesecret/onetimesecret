@@ -5,12 +5,12 @@ Here's the URL → File Path mapping:
 
 | URL                                 | File Path                                        |
 |-------------------------------------|--------------------------------------------------|
-| /                                   | src/apps/exchange/conceal/Homepage.vue          |
-| /secret/:key                        | src/apps/exchange/consumption/ShowSecret.vue     |
-| /receipt/:key                       | src/apps/exchange/consumption/ShowReceipt.vue    |
-| /incoming                           | src/apps/exchange/conceal/IncomingForm.vue      |
-| /incoming/:key                      | src/apps/exchange/conceal/IncomingSuccess.vue   |
-| /feedback                           | src/apps/exchange/support/Feedback.vue           |
+| /                                   | src/apps/secret/conceal/Homepage.vue          |
+| /secret/:key                        | src/apps/secret/reveal/ShowSecret.vue     |
+| /receipt/:key                       | src/apps/secret/reveal/ShowReceipt.vue    |
+| /incoming                           | src/apps/secret/conceal/IncomingForm.vue      |
+| /incoming/:key                      | src/apps/secret/conceal/IncomingSuccess.vue   |
+| /feedback                           | src/apps/secret/support/Feedback.vue           |
 | /signin                             | src/apps/session/views/Login.vue                 |
 | /signup                             | src/apps/session/views/Register.vue              |
 | /logout                             | src/apps/session/views/Logout.vue                |
@@ -45,12 +45,12 @@ Here's the URL → File Path mapping:
 Directory tree:
 
 src/apps/
-├── exchange/
+├── secret/
 │   ├── conceal/
 │   │   ├── Homepage.vue
 │   │   ├── IncomingForm.vue
 │   │   └── IncomingSuccess.vue
-│   ├── consumption/
+│   ├── reveal/
 │   │   ├── ShowSecret.vue
 │   │   └── ShowReceipt.vue
 │   ├── support/
@@ -114,7 +114,7 @@ Question: Do layouts move into apps, or stay shared?
 
 Recommendation: Layouts stay in shared/layouts/ but are named by purpose, not app:
 shared/layouts/
-├── TransactionalLayout.vue    # Exchange (lightweight, brandable)
+├── TransactionalLayout.vue    # Secret (lightweight, brandable)
 ├── ManagementLayout.vue       # Workspace (sidebar, navigation)
 ├── AdminLayout.vue            # Kernel (utilitarian)
 └── MinimalLayout.vue          # Session (clean, focused)
@@ -128,12 +128,12 @@ Here is how the **Interaction Mode** architecture looks using your terminology.
 
 ### 1. The Directory Structure
 
-This structure separates the high-traffic, branded "Exchange" logic from the authenticated "Workspace" logic.
+This structure separates the high-traffic, branded "Secret" logic from the authenticated "Workspace" logic.
 
 ```text
 src/
 ├── apps/
-│   ├── exchange/                    # THE TRANSACTION (Branded, Ephemeral)
+│   ├── secret/                    # THE TRANSACTION (Branded, Ephemeral)
 │   │   ├── conceal/                 # Input: The Act of Hiding
 │   │   │   ├── Homepage.vue         # The main form
 │   │   │   └── IncomingRoute.vue    # API-driven concealment
@@ -141,9 +141,9 @@ src/
 │   │   ├── reveal/                  # Output: The Act of Viewing
 │   │   │   ├── Secret.vue           # The secret display (Canonical & Branded)
 │   │   │   ├── Burn.vue             # Prematurely destroying the secret
-│   │   │   └── Metadata.vue         # The receipt/status (Creator viewing the result)
+│   │   │   └── ShowReceipt.vue      # The receipt/status (Creator viewing the result)
 │   │   │
-│   │   └── composables/             # Logic specific to the Exchange
+│   │   └── composables/             # Logic specific to the Secret app
 │   │       └── useBranding.ts       # Handles domain_strategy logic
 │   │
 │   ├── workspace/                   # THE DASHBOARD (Standard, Persistent)
@@ -157,7 +157,7 @@ src/
 │
 ├── shared/                          # Universal UI & Logic
 │   ├── layouts/
-│   │   ├── ExchangeLayout.vue       # Lightweight, brand-aware
+│   │   ├── SecretLayout.vue         # Lightweight, brand-aware
 │   │   └── WorkspaceLayout.vue      # Sidebar, user menu, heavier
 │   └── components/                  # Buttons, Alerts, Forms
 ```
@@ -168,17 +168,17 @@ This approach groups routes by what the user is *attempting to do*, not their ac
 
 | Path | App | Mode | Description |
 | :--- | :--- | :--- | :--- |
-| `/` | Exchange | **Conceal** | User is hiding information. |
-| `/incoming` | Exchange | **Conceal** | API user is hiding information. |
-| `/secret/:id` | Exchange | **Reveal** | User is retrieving hidden information. |
-| `/private/:id` | Exchange | **Reveal** | Creator is checking the status of the reveal (Receipt). |
+| `/` | Secret | **Conceal** | User is hiding information. |
+| `/incoming` | Secret | **Conceal** | API user is hiding information. |
+| `/secret/:id` | Secret | **Reveal** | User is retrieving hidden information. |
+| `/receipt/:id` | Secret | **Reveal** | Creator is checking the status of the reveal (Receipt). |
 | `/dashboard` | Workspace | **Manage** | User is managing their account/history. |
 | `/colonel` | Kernel | **Admin** | User is administering the platform. |
 
 ### 3. Why this solves the "Audience" confusion
 
 1.  **The "Recipient" is just a User in Reveal Mode.**
-    Whether they are a stranger or a logged-in coworker, if they hit `/secret/xyz`, they enter the **Reveal** flow. The `ExchangeLayout` loads. If the secret has a custom domain, `useBranding` applies the colors.
+    Whether they are a stranger or a logged-in coworker, if they hit `/secret/xyz`, they enter the **Reveal** flow. The `SecretLayout` loads. If the secret has a custom domain, `useBranding` applies the colors.
 
 2.  **The "Creator" is just a User in Conceal Mode.**
     Whether anonymous or authenticated, if they are on the Homepage, they are in the **Conceal** flow. If they are logged in, the application injects their `custid` into the submission, but the *interaction* (filling out a form) remains the same.

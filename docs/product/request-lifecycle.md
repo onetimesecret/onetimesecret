@@ -1,62 +1,92 @@
 
 
-Our current request flow provides the exact "raw material" needed to power the new mental model.
+From **Imperative Routing** ("Go to file X") to **Declarative Rendering** ("Render file X using Config Y").
 
-The difference is not in **what** data we receive (middleware), but **where** and **how** that data is consumed (frontend).
+*   **Old Way (Routing Branch):** The router acts like a traffic cop. It stops the request, checks the ID, and points to Road A (Canonical) or Road B (Branded). These are two totally different roads.
+*   **New Way (Adaptive Rendering):** The router is just a highway. Everyone drives down the same road to the same destination. But the *destination* changes its appearance (adapts) based on who walks through the door.
 
-### The Shift: From "Routing Branch" to "State Consumption"
+### The Shift: From "Routing Branch" to "Adaptive Rendering"
 
 Currently, we treat `domain_strategy` as a **Fork in the Road** at the Router level.
-In the new model, `domain_strategy` is just **Context Data** fed into the Matrix.
+In the new model, `domain_strategy` is just **Context Data** that tells the component how to adapt.
 
 Here is how the flow evolves:
 
 #### 1. The Request (Unchanged)
 The backend does its job perfectly. It identifies the environment.
 ```text
-Rack::DetectHost 
-   ↓ 
+Rack::DetectHost
+   ↓
 window.__ONETIME_STATE__.domain_strategy = 'subdomain' | 'canonical'
 ```
 
 #### 2. The Router (Simplified)
 Instead of asking "Which component do I load?", the Router now simply asks "Which App is this?"
 
-*   **Old Way:** `HomepageContainer` checks domain → switches between `Homepage` vs `BrandedHomepage`.
-*   **New Way:** Router loads `apps/exchange/views/Homepage.vue` unconditionally.
+*   **Old Way (Branching):** `HomepageContainer` checks domain → switches between `Homepage.vue` vs `BrandedHomepage.vue`.
+*   **New Way (Unified):** Router loads `apps/secret/conceal/Homepage.vue` unconditionally.
 
-#### 3. The Component (The Matrix)
-The component (inside the Exchange App) consumes the state to decide its *presentation*, not its existence.
+#### 3. The Component (Adaptive)
+The component (inside the Secret App) accepts the context and **adapts** its presentation. It does not need to be told *which* component to be; it just needs to know *how* to look.
 
-```javascript
-// apps/exchange/views/Homepage.vue
-
+```vue
+<!-- apps/secret/conceal/Homepage.vue -->
 <template>
   <div :class="layoutClasses">
-    <!-- 
+    <!--
        If Canonical: Shows "The #1 way to share secrets..."
-       If Custom: Shows nothing, or custom logo 
+       If Custom: Adapts to show nothing, or custom logo
     -->
-    <MarketingHero v-if="matrix.showMarketing" />
+    <MarketingHero v-if="uiConfig.showMarketing" />
 
-    <!-- 
+    <!--
        The core form is identical for both.
-       The *styling* of the form changes based on matrix.theme 
+       The *styling* of the form adapts based on uiConfig.theme
     -->
-    <SecretForm :theme="matrix.theme" />
-    
-    <!-- 
+    <SecretForm :theme="uiConfig.theme" />
+
+    <!--
        If Canonical: Standard Footer
-       If Custom: Minimal "Powered by" 
+       If Custom: Adapts to Minimal "Powered by"
     -->
-    <Footer :mode="matrix.footerMode" />
+    <Footer :mode="uiConfig.footerMode" />
   </div>
 </template>
 
 <script setup>
-// The Matrix logic lives here
-const { matrix } = useExchangeContext(); 
+// The logic lives here, not in the Router
+const { uiConfig } = useSecretContext();
 </script>
+```
+
+---
+
+### Visualization of the Change
+
+We are moving the decision logic **down** from the Router level into the Component level.
+
+#### Current State (The Fork)
+```text
+window.domain_strategy
+       │
+       ▼
+[Container Component]
+       │
+       ├─ (Canonical) ──> [Canonical Component] (Duplicate Logic)
+       │
+       └─ (Custom) ─────> [Branded Component] (Duplicate Logic)
+```
+
+#### New State (The Lens)
+```text
+window.domain_strategy
+       │
+       ▼
+[Secret Context] ──> Converts 'strategy' into 'Configuration'
+       │
+       ▼
+[Unified Component]
+(Adapts purely based on Configuration)
 ```
 
 ---
@@ -70,7 +100,7 @@ We are moving the decision logic **down** from the Router/Container level into t
 window.domain_strategy
        │
        ▼
-[Container Component] 
+[Container Component]
        │
        ├─ (Canonical) ──> [Canonical Component] (Duplicate Logic)
        │
@@ -82,10 +112,10 @@ window.domain_strategy
 window.domain_strategy
        │
        ▼
-[Exchange Context Composable] ──> Converts 'strategy' into 'UI Config'
+[Secret Context Composable] ──> Converts 'strategy' into 'UI Config'
        │
        ▼
-[Unified Component] 
+[Unified Component]
 (Renders differently based on Config)
 ```
 
@@ -104,11 +134,10 @@ window.domain_strategy
 │  window.__ONETIME_STATE__ ◄─────────────────────────┘                │
 │       ↓                                                              │
 │  ┌─────────────────────────────────────────────────────────────────┐ │
-│  │  useUserContext() composable assembles ALL dimensions:          │ │
+│  │  useSecretContext() composable assembles ALL dimensions:        │ │
 │  │    • domainStrategy (from window state)                         │ │
 │  │    • authState (from auth store)                                │ │
-│  │    • contentRelationship (from route + ownership check)         │ │
-│  │    • capabilities (from user profile)                           │ │
+│  │    • relationship (from route + ownership check)                │ │
 │  └─────────────────────────────────────────────────────────────────┘ │
 │       ↓                                                              │
 │  ┌─────────────────────────────────────────────────────────────────┐ │
@@ -120,12 +149,11 @@ window.domain_strategy
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
+### Why this supports the "Apps" Model
 
-### Why this supports the "Audience" Model
+This fits perfectly because **only the Secret App listens to this signal.**
 
-This fits perfectly because **only the Exchange App listens to this signal.**
-
-1.  **Exchange App:** Eagerly consumes `domain_strategy`. It drastically changes the UI (Colors, Logos, Copy) based on the value.
+1.  **Secret App:** Eagerly consumes `domain_strategy`. It drastically changes the UI (Colors, Logos, Copy) based on the value.
 2.  **Workspace App:** Ignores `domain_strategy`. If a user logs into `dashboard`, they get the standard `ImprovedLayout`. The context is "Management," so the branding is always canonical.
 3.  **Kernel App:** Ignores `domain_strategy`.
 
