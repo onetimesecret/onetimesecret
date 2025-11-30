@@ -87,7 +87,7 @@ module Onetime
               if @capability_map.key?(capability)
                 existing = @capability_map[capability]
                 raise ArgumentError,
-                      "Capability '#{capability}' already provided by #{existing.name}"
+                  "Capability '#{capability}' already provided by #{existing.name}"
               end
               @capability_map[capability] = initializer
             end
@@ -261,8 +261,9 @@ module Onetime
         def init_logger
           @init_logger ||= begin
             logger = Logger.new($stderr)
-            # Check DEBUG_BOOT directly since logger config hasn't run yet
-            logger.level = ENV['DEBUG_BOOT'] ? Logger::DEBUG : Logger::INFO
+            # Check DEBUG_BOOT directly since SemanticLogger config hasn't run yet.
+            # Fall back to WARN to match typical loggers.Boot config.
+            logger.level = ENV['DEBUG_BOOT'] ? Logger::DEBUG : Logger::WARN
             logger.formatter = proc do |_severity, _datetime, _progname, msg|
               "#{msg}\n"
             end

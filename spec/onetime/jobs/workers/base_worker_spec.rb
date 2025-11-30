@@ -235,7 +235,9 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
 
       it 'logs error message' do
         allow(worker).to receive(:reject!)
-        expect(OT).to receive(:le).with(/Invalid JSON/)
+        mock_logger = instance_double(SemanticLogger::Logger)
+        allow(worker).to receive(:logger).and_return(mock_logger)
+        expect(mock_logger).to receive(:error).with(/Invalid JSON/, hash_including(:worker))
 
         worker.parse_message(invalid_message)
       end
@@ -295,7 +297,10 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
       end
 
       it 'logs error with max retries message' do
-        expect(OT).to receive(:le).with(/Max retries exceeded: Always fails/)
+        mock_logger = instance_double(SemanticLogger::Logger)
+        allow(worker).to receive(:logger).and_return(mock_logger)
+        allow(mock_logger).to receive(:info) # Allow retry info logs
+        expect(mock_logger).to receive(:error).with(/Max retries exceeded/, hash_including(:worker))
 
         expect {
           worker.with_retry(max_retries: 1, base_delay: 0.01) do
@@ -398,7 +403,9 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker do
       end
 
       it 'logs an error' do
-        expect(OT).to receive(:le).with(/Unknown schema version: 999/)
+        mock_logger = instance_double(SemanticLogger::Logger)
+        allow(worker).to receive(:logger).and_return(mock_logger)
+        expect(mock_logger).to receive(:error).with(/Unknown schema version: 999/, hash_including(:worker))
         worker.validate_schema(data)
       end
     end

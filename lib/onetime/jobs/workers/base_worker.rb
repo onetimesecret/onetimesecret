@@ -11,7 +11,7 @@ module Onetime
       # Base module for RabbitMQ workers (using Kicks gem)
       #
       # Provides common functionality for all workers:
-      # - Logging with OT.ld/li/le
+      # - Logging via SemanticLogger (named 'Workers')
       # - Message schema validation
       # - Retry logic with exponential backoff
       # - Dead letter queue handling
@@ -81,20 +81,26 @@ module Onetime
             end
           end
 
-          # Logging helpers
-          def log_info(message)
-            OT.li "[#{worker_name}] #{message}"
+          # @return [SemanticLogger::Logger] Logger for worker operations
+          def logger
+            @logger ||= Onetime.get_logger('Workers')
           end
 
-          def log_debug(message)
-            OT.ld "[#{worker_name}] #{message}"
+          # Logging helpers with structured data
+          def log_info(message, **payload)
+            logger.info message, worker: worker_name, **payload
           end
 
-          def log_error(message, error = nil)
-            OT.le "[#{worker_name}] #{message}"
+          def log_debug(message, **payload)
+            logger.debug message, worker: worker_name, **payload
+          end
+
+          def log_error(message, error = nil, **payload)
             if error
-              OT.le "[#{worker_name}] Error: #{error.class}: #{error.message}"
-              OT.le error.backtrace.join("\n") if OT.debug?
+              logger.error message, worker: worker_name, error: error.message,
+                           error_class: error.class.name, backtrace: error.backtrace&.first(5), **payload
+            else
+              logger.error message, worker: worker_name, **payload
             end
           end
 
