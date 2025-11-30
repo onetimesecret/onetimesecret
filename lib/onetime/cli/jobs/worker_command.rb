@@ -72,11 +72,30 @@ module Onetime
         private
 
         def configure_kicks(concurrency:, daemonize:, environment:, log_level:)
+          # Exchange Configuration
+          #
+          # We use the default exchange (empty string) with direct routing.
+          # This matches how Publisher.publish() works - it uses channel.default_exchange
+          # which routes messages directly to queues by routing_key (queue name).
+          #
+          # Why not a custom exchange?
+          # - Custom exchanges (e.g., 'onetime-jobs' with topic type) require
+          #   explicit queue bindings to route messages
+          # - The default exchange automatically binds every queue by its name
+          # - Simpler setup: Publisher sends to 'email.message.send', worker
+          #   consumes from 'email.message.send' - no binding configuration needed
+          #
+          # If you need topic-based routing or fan-out in the future, you would:
+          # 1. Declare a named exchange in setup_rabbitmq.rb
+          # 2. Bind queues to that exchange with routing patterns
+          # 3. Update Publisher to use that exchange
+          # 4. Update this config to match
+          #
           Sneakers.configure(
             amqp: ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'),
             vhost: ENV.fetch('RABBITMQ_VHOST', '/'),
-            exchange: 'onetime-jobs',
-            exchange_type: :topic,
+            exchange: '',
+            exchange_type: :direct,
             threads: concurrency,
             workers: 1, # Number of worker processes (vs threads)
             daemonize: daemonize,
@@ -86,7 +105,7 @@ module Onetime
             durable: true,
             ack: true,
             heartbeat: 30,
-            prefetch: concurrency
+            prefetch: concurrency,
           )
 
           # Set Kicks logger to match OT log level
