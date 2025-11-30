@@ -52,6 +52,7 @@ loggers:
   Billing: info   # Only used when billing.enabled=true
   Boot: info      # During initialization
   Bunny: warn     # RabbitMQ client (heartbeats at debug level)
+  CLI: info       # Command-line interface operations
   Familia: warn   # Redis/Familia main database operations
   HTTP: warn      # HTTP requests and middleware operations
   Otto: warn      # Otto framework operations
