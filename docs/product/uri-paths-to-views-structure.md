@@ -1,3 +1,13 @@
+---
+title: URI Path Mapping
+type: reference
+status: draft
+updated: 2025-11-30
+parent: interaction-modes.md
+summary: Complete URL to Vue component mapping for the apps architecture
+---
+
+# URI Path Mapping
 
 ## URI Path → File Path
 

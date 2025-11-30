@@ -1,4 +1,13 @@
+---
+title: Request Lifecycle
+type: reference
+status: draft
+updated: 2025-11-30
+parent: interaction-modes.md
+summary: Explains the architectural shift from routing-branch to adaptive-rendering
+---
 
+# Request Lifecycle
 
 From **Imperative Routing** ("Go to file X") to **Declarative Rendering** ("Render file X using Config Y").
 
@@ -57,36 +66,6 @@ The component (inside the Secret App) accepts the context and **adapts** its pre
 // The logic lives here, not in the Router
 const { uiConfig } = useSecretContext();
 </script>
-```
-
----
-
-### Visualization of the Change
-
-We are moving the decision logic **down** from the Router level into the Component level.
-
-#### Current State (The Fork)
-```text
-window.domain_strategy
-       │
-       ▼
-[Container Component]
-       │
-       ├─ (Canonical) ──> [Canonical Component] (Duplicate Logic)
-       │
-       └─ (Custom) ─────> [Branded Component] (Duplicate Logic)
-```
-
-#### New State (The Lens)
-```text
-window.domain_strategy
-       │
-       ▼
-[Secret Context] ──> Converts 'strategy' into 'Configuration'
-       │
-       ▼
-[Unified Component]
-(Adapts purely based on Configuration)
 ```
 
 ---

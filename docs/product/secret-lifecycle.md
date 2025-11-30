@@ -1,4 +1,13 @@
+---
+title: Secret Lifecycle
+type: reference
+status: draft
+updated: 2025-11-30
+parent: interaction-modes.md
+summary: FSM pattern separating environmental context from entity state
+---
 
+# Secret Lifecycle
 
 This distinction is critical because it decouples **UX logic** (who sees what) from **Business logic** (is the data actually there).
 

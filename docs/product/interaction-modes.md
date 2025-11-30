@@ -1,14 +1,228 @@
+---
+title: Interaction Modes
+type: technical-design
+status: draft
+version: "1.0"
+updated: 2025-11-30
+summary: Frontend architectural model organizing code by user intent (Conceal/Reveal/Manage/Admin) rather than audience or domain
+---
 
+# Interaction Modes
 
 > [!NOTE]
-> **We are trying to create our "Pit of Success": a way of organzing files and folders that makes it hard to put code in the wrong place.**
+> **We are trying to create our "Pit of Success": a way of organizing files and folders that makes it hard to put code in the wrong place.**
+
+This document defines the architectural model for the frontend. It answers:
+- Where does this code belong?
+- Why does this view look different in different contexts?
+- How do the pieces compose?
+
+## Table of Contents
+
+1. [Executive Summary](#executive-summary)
+2. [Problem Statement](#problem-statement)
+3. [The Three Dimensions](#the-three-dimensions)
+4. [Solution: Organize by Interaction Mode](#the-solution-organize-by-interaction-mode)
+5. [Architecture](#architecture)
+6. [Technical Design](#modes--dimensions)
+7. [Implementation Examples](#more-on-the-homepage)
+8. [Decision Log](#decision-log)
+9. [Appendix: Clarifications FAQ](#appendix-clarifications-faq)
+10. [Related Documents](#related-documents)
+
+---
+
+## Executive Summary
+
+**Core insight**: Organize frontend code by *what the user is doing* (Interaction Mode), not by *who they are* (audience) or *how it looks* (domain branding).
+
+| App | Mode | Purpose |
+|-----|------|---------|
+| Secret | Conceal/Reveal | Transactional (create & view secrets) |
+| Workspace | Manage | Account management |
+| Kernel | Admin | System administration |
+| Session | Gateway | Authentication |
+
+Three independent dimensions control rendering:
+- **Interaction Mode** (design-time): Which app handles the request
+- **Domain Context** (runtime): How it looks (canonical vs branded)
+- **Homepage Mode** (deployment-time): Whether creation is permitted
+
+---
+
+## Problem Statement
+
+**Current Problem**: Views are organized by domain (`canonical/`, `branded/`) not by audience.
+
+This creates:
+- **Duplication**: Two components doing the same thing with different styling
+- **Unclear ownership**: Which audience does `canonical/ShowSecret.vue` serve?
+- **Fragile boundaries**: Changes to reveal logic must be synchronized across folders
+- **Innovation friction**: Fear of breaking the "other" variant discourages iteration
+
+## The Three Dimensions
+
+We have three inputs that determine how a view renders. Conflating them was the source of our architectural confusion.
+
+### Dimension 1: Interaction Mode (Design-Time)
+
+Interaction Mode is a structural decision made when the route is defined. It determines which app handles the request.
+
+| Route         | App       | Mode    | Designed For                               |
+|---------------|-----------|---------|--------------------------------------------|
+| /             | Secret    | Conceal | Creator (anon or auth) submitting the form |
+| /secret/:key  | Secret    | Reveal  | Recipient viewing shared content           |
+| /receipt/:key | Secret    | Reveal  | Creator checking delivery status           |
+| /dashboard/*  | Workspace | Manage  | Account holder managing history            |
+| /colonel/*    | Kernel    | Admin   | System administrator                       |
+| /signin       | Session   | Gateway | Identity verification                      |
+
+### Dimension 2: Domain Context (Runtime)
+
+Domain Context is detected per-request by `Rack::DetectHost` + `DomainStrategy` middleware. It determines presentation, not structure.
+
+| Domain Type | Detection                     | Affects                               |
+|-------------|-------------------------------|---------------------------------------|
+| Canonical   | Config-defined, static        | Default branding, full marketing copy |
+| Custom      | Per-request header inspection | Custom branding, minimal chrome       |
+
+### Dimension 3: Homepage Mode (Deployment-Time)
+
+Homepage Mode is a scoped gatekeeper configured at deployment. It only applies to the Conceal context (Homepage).
+
+| Mode     | Who Can Create       | Who Can View | Homepage Shows        |
+|----------|----------------------|--------------|-----------------------|
+| Open     | Anyone               | Anyone       | Form + explainer      |
+| Internal | Internal IPs/headers | Anyone       | Form + explainer      |
+| External | Nobody               | Anyone       | "Nothing to see here" |
+
+### The Insight
+
+Each dimension answers a different question at a different time:
+
+| Dimension        | Binding Time    | Question                  | Role                          |
+|------------------|-----------------|---------------------------|-------------------------------|
+| Interaction Mode | Design-time     | "What is the user doing?" | Router — selects the App      |
+| Domain Context   | Runtime         | "How should it look?"     | Wrapper — adapts presentation |
+| Homepage Mode    | Deployment-time | "Is creation permitted?"  | Gatekeeper — gates access     |
+
+These are independent axes. Homepage Mode gates; Domain Context wraps:
+
+```
+Request to /
+      │
+      ▼
+┌─────────────────────┐
+│  Homepage Mode      │ ◄── GATE (Open? Internal? External?)
+│  (Deployment-time)  │
+└─────────────────────┘
+      │
+      ├─ External ──────► AccessDenied.vue (stop here)
+      │
+      ▼ Open/Internal
+┌─────────────────────┐
+│  Domain Context     │ ◄── WRAPPER (Canonical? Custom?)
+│  (Runtime)          │
+└─────────────────────┘
+      │
+      ▼
+┌─────────────────────┐
+│  Homepage.vue       │ ◄── Unified component, adapts to context
+└─────────────────────┘
+```
+
+The complete dimensional matrix for Conceal:
+
+```
+                          HOMEPAGE MODE (deployment-time)
+                          ┌──────────┬──────────┬──────────┐
+                          │  Open    │ Internal │ External │
+┌─────────────────────────┼──────────┴──────────┼──────────┤
+│ DOMAIN      │ Canonical │    Form + copy      │ Disabled │
+│ CONTEXT     ├───────────┼─────────────────────┼──────────┤
+│ (runtime)   │ Custom    │    Form + brand     │ Branded  │
+│             │           │                     │ Disabled │
+└─────────────┴───────────┴─────────────────────┴──────────┘
+```
+
+For Reveal, only two dimensions apply (Homepage Mode is irrelevant):
+
+```
+              ┌─────────────────────────────────────┐
+              │         DOMAIN CONTEXT              │
+              │    (runtime, per-request)           │
+              ├─────────────────┬───────────────────┤
+              │   Canonical     │     Custom        │
+┌─────────────┼─────────────────┼───────────────────┤
+│ Reveal      │ Standard reveal │ Branded reveal    │
+└─────────────┴─────────────────┴───────────────────┘
+```
+
+For Workspace/Kernel, neither Domain Context nor Homepage Mode apply:
+
+```
+┌─────────────┬─────────────────────────────────────┐
+│ Manage      │ Always OTS-branded (no custom)      │
+├─────────────┼─────────────────────────────────────┤
+│ Admin       │ Always OTS-branded (no custom)      │
+└─────────────┴─────────────────────────────────────┘
+```
+
+### Current Problem
+
+Views are organized by Domain Context (a presentation axis):
+
+```
+src/views/secrets/
+├── canonical/    ← Domain-based folder
+│   └── ShowSecret.vue
+└── branded/      ← Domain-based folder
+    └── ShowSecret.vue
+```
+
+This creates:
+- **Duplication**: Two components doing the same thing with different styling
+- **Unclear ownership**: Which audience does `canonical/ShowSecret.vue` serve?
+- **Fragile boundaries**: Changes to reveal logic must be synchronized across folders
+- **Innovation friction**: Fear of breaking the "other" variant discourages iteration
+
+### The Solution: Organize by Interaction Mode
+
+The new architecture organizes by what the user is doing, with Domain Context and Homepage Mode handled via composables:
+
+```
+src/apps/
+├── secret/           ← Interaction Mode: Transaction
+│   ├── conceal/      ← Sub-mode: Input (Homepage Mode applies here)
+│   │   ├── Homepage.vue
+│   │   └── AccessDenied.vue
+│   └── reveal/       ← Sub-mode: Output (Domain Context applies here)
+│       └── ShowSecret.vue
+├── workspace/        ← Interaction Mode: Management (no dimensions apply)
+├── session/          ← Interaction Mode: Gateway
+└── kernel/           ← Interaction Mode: Administration
+```
+
+Safe passage is handled by composables that compute `uiConfig` from all applicable dimensions:
+
+```javascript
+// Conceal context: Gate first, then wrap
+const homepageMode = useHomepageMode();      // Dimension 3: Gatekeeper
+const { isCanonical } = useBranding();       // Dimension 2: Wrapper
+
+if (homepageMode.isDisabled) return <AccessDenied />;
+return isCanonical ? <CanonicalLayout /> : <BrandedLayout />;
+
+// Reveal context: Only wrap (no gate)
+const { theme, uiPermissions } = useSecretContext();  // Dimension 2 + actor role
+```
 
 
-## Architecture Summary
 
-### Current
+## Architecture
 
-  Current Architecture Summary
+### Current Request FLow
+
 
 ```text
   ┌──────────────────────────────────────────────────────────────────────┐
@@ -31,16 +245,6 @@
   │  └────────────────┘          └────────────────┘                      │
   └──────────────────────────────────────────────────────────────────────┘
 ```
-
-  The Two Dimensions (Your Framework)
-
-  | Dimension | Determined By               | Values                    |
-  |-----------|-----------------------------|---------------------------|
-  | Audience  | Design-time (route purpose) | Recipient, Creator, Admin |
-  | Domain    | Runtime (middleware)        | Canonical, Custom         |
-
-  Current Problem: Views are organized by domain (canonical/, branded/) not by audience.
-
 
 
 ### Proposed
@@ -260,7 +464,7 @@ We can now document our architecture with absolute clarity:
 
 This creates a **"Pit of Success"**: It is hard to put code in the wrong place because the boundaries are defined by *what the code does*, not just *who looks at it*.
 
-## Clarifications
+## Appendix: Clarifications FAQ
 
 ### 1. Branding: Split Data from Presentation
 
@@ -501,9 +705,9 @@ You should model the Secret Lifecycle as a Finite State Machine (FSM).
 
 
 
-## Retrospective
+## Decision Log
 
-### Why this was difficult
+### Why This Architecture Was Chosen
 
 We were struggling because we were attempting to map Personas (Who they are) to code, which is fluid. A recipient can indeed be a creator, an admin, or a total stranger. Instead of organizing by Identity, we organize by Interaction Mode (What they are doing).
 
@@ -614,8 +818,8 @@ Outcome: A single CreateSecretForm component reused across all valid states, wra
 
 
 
-## Further Reading
+## Related Documents
 
-@./request-lifecycle.md
-@./secret-lifecycle.md
-@./uri-paths-to-views-structure.md
+- **[Request Lifecycle](./request-lifecycle.md)** — Explains the shift from routing-branch to adaptive-rendering pattern
+- **[Secret Lifecycle](./secret-lifecycle.md)** — FSM pattern separating environmental context from entity state
+- **[URI Path Mapping](./uri-paths-to-views-structure.md)** — Complete URL → Vue component mapping table
