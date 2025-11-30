@@ -52,15 +52,16 @@ module Onetime
       Onetime.get_logger(category)
     end
 
-    # Access a cached logger instance by name
-    # Returns the pre-configured logger with the correct level set
+    # Access a cached logger instance by name.
+    # Returns the pre-configured logger with the correct level from SetupLoggers.
+    # Falls back to creating uncached logger during early boot.
     #
     # @param name [String, Symbol] Logger category name
     # @return [SemanticLogger::Logger] Cached logger instance
     #
     def get_logger(name)
-      @cached_loggers            ||= {}
-      @cached_loggers[name.to_s] ||= SemanticLogger[name.to_s]
+      cached = Onetime::Runtime.infrastructure&.cached_loggers
+      cached&.[](name.to_s) || SemanticLogger[name.to_s]
     end
 
     # Box drawing helper for formatted log output.
