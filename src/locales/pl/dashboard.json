@@ -5,8 +5,8 @@
       "title_not_received": "Nieodebrane",
       "title_no_recent_secrets": "Brak ostatnich wiadomości",
       "get-started-by-creating-your-first-secret": "Zacznij od utworzenia swojej pierwszej wiadomości.",
-      "fetch_error_title": "Unable to load teams",
-      "fetch_error_description": "There was a problem loading your teams. Please try again."
+      "fetch_error_title": "Nie można załadować zespołów",
+      "fetch_error_description": "Wystąpił problem podczas ładowania Twoich zespołów. Spróbuj ponownie."
     }
   }
 }

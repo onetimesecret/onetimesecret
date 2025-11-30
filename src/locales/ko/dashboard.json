@@ -5,8 +5,8 @@
       "title_not_received": "수신되지 않음",
       "title_no_recent_secrets": "최근 비밀 메시지 없음",
       "get-started-by-creating-your-first-secret": "첫 번째 비밀 메시지를 생성하여 시작하세요.",
-      "fetch_error_title": "Unable to load teams",
-      "fetch_error_description": "There was a problem loading your teams. Please try again."
+      "fetch_error_title": "팀을 불러올 수 없습니다",
+      "fetch_error_description": "팀을 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요."
     }
   }
 }

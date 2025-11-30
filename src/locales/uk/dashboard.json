@@ -5,8 +5,8 @@
       "title_not_received": "Не отримано",
       "title_no_recent_secrets": "Немає недавніх секретів",
       "get-started-by-creating-your-first-secret": "Почніть зі створення вашого першого секрету.",
-      "fetch_error_title": "Unable to load teams",
-      "fetch_error_description": "There was a problem loading your teams. Please try again."
+      "fetch_error_title": "Не вдалося завантажити команди",
+      "fetch_error_description": "Виникла проблема під час завантаження ваших команд. Будь ласка, спробуйте ще раз."
     }
   }
 }

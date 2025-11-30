@@ -5,8 +5,8 @@
       "title_not_received": "no s'ha rebut",
       "title_no_recent_secrets": "No hi ha secrets recents",
       "get-started-by-creating-your-first-secret": "Comença creant el teu primer secret.",
-      "fetch_error_title": "Unable to load teams",
-      "fetch_error_description": "There was a problem loading your teams. Please try again."
+      "fetch_error_title": "No s'han pogut carregar els equips",
+      "fetch_error_description": "Hi ha hagut un problema en carregar els teus equips. Si us plau, torna-ho a provar."
     }
   }
 }

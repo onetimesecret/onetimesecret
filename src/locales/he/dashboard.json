@@ -5,8 +5,8 @@
       "title_not_received": "לא התקבל",
       "title_no_recent_secrets": "אין סודות אחרונים",
       "get-started-by-creating-your-first-secret": "התחילו על ידי יצירת הסוד הראשון שלכם.",
-      "fetch_error_title": "Unable to load teams",
-      "fetch_error_description": "There was a problem loading your teams. Please try again."
+      "fetch_error_title": "לא ניתן לטעון את הצוותים",
+      "fetch_error_description": "אירעה בעיה בטעינת הצוותים שלך. אנא נסה שוב."
     }
   }
 }

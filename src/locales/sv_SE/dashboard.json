@@ -5,8 +5,8 @@
       "title_not_received": "Ej mottagen",
       "title_no_recent_secrets": "Du har inte haft några hemligheter nyligen",
       "get-started-by-creating-your-first-secret": "Kom igång genom att skapa din första hemlighet.",
-      "fetch_error_title": "Unable to load teams",
-      "fetch_error_description": "There was a problem loading your teams. Please try again."
+      "fetch_error_title": "Kunde inte ladda team",
+      "fetch_error_description": "Det uppstod ett problem vid laddning av dina team. Försök igen."
     }
   }
 }

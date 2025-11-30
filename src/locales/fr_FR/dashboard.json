@@ -5,8 +5,8 @@
       "title_not_received": "Messages en attente",
       "title_no_recent_secrets": "Aucun message récent",
       "get-started-by-creating-your-first-secret": "Commencez en créant votre premier message sécurisé",
-      "fetch_error_title": "Unable to load teams",
-      "fetch_error_description": "There was a problem loading your teams. Please try again."
+      "fetch_error_title": "Impossible de charger les équipes",
+      "fetch_error_description": "Un problème est survenu lors du chargement de vos équipes. Veuillez réessayer."
     }
   }
 }

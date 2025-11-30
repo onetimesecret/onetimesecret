@@ -5,8 +5,8 @@
       "title_not_received": "Неполучени",
       "title_no_recent_secrets": "Няма последни тайни",
       "get-started-by-creating-your-first-secret": "Започнете, като създадете първата си тайна.",
-      "fetch_error_title": "Unable to load teams",
-      "fetch_error_description": "There was a problem loading your teams. Please try again."
+      "fetch_error_title": "Неуспешно зареждане на екипите",
+      "fetch_error_description": "Възникна проблем при зареждането на вашите екипи. Моля, опитайте отново."
     }
   }
 }

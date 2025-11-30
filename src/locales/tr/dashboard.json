@@ -5,8 +5,8 @@
       "title_not_received": "Alınmayan",
       "title_no_recent_secrets": "Yeni gizli mesaj yok",
       "get-started-by-creating-your-first-secret": "İlk gizli mesajınızı oluşturarak başlayın.",
-      "fetch_error_title": "Unable to load teams",
-      "fetch_error_description": "There was a problem loading your teams. Please try again."
+      "fetch_error_title": "Ekipler yüklenemedi",
+      "fetch_error_description": "Ekipleriniz yüklenirken bir sorun oluştu. Lütfen tekrar deneyin."
     }
   }
 }

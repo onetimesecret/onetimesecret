@@ -5,8 +5,8 @@
       "title_not_received": "Nicht erhalten",
       "title_no_recent_secrets": "Keine neuen Geheimnisse",
       "get-started-by-creating-your-first-secret": "Beginnen Sie mit der Erstellung Ihres ersten Geheimnisses.",
-      "fetch_error_title": "Unable to load teams",
-      "fetch_error_description": "There was a problem loading your teams. Please try again."
+      "fetch_error_title": "Teams konnten nicht geladen werden",
+      "fetch_error_description": "Beim Laden Ihrer Teams ist ein Problem aufgetreten. Bitte versuchen Sie es erneut."
     }
   }
 }
