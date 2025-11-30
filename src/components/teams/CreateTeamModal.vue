@@ -87,16 +87,16 @@ const handleSubmit = async () => {
     emit('created', team.extid);
     closeModal();
   } catch (error) {
-    if (error instanceof z.ZodError && error.errors) {
-      // Handle validation errors
-      error.errors.forEach((err) => {
-        const field = err.path[0] as string;
-        errors.value[field] = err.message;
+    if (error instanceof z.ZodError) {
+      // Handle validation errors - ZodError uses .issues not .errors
+      error.issues.forEach((issue) => {
+        const field = issue.path[0] as string;
+        errors.value[field] = issue.message;
       });
     } else {
-      // Handle API errors
+      // Handle API errors - ApplicationError uses .message not .userMessage
       const classified = classifyError(error);
-      generalError.value = classified.userMessage || t('web.teams.create_error');
+      generalError.value = classified.message || t('web.teams.create_error');
 
       // Log for debugging
       console.error('[CreateTeamModal] Error creating team:', error);
