@@ -293,13 +293,13 @@ module Onetime
     #
     def category_for_path(path)
       case path
-      when %r{/auth/|authenticate|session}i then 'Auth'
-      when %r{/billing/|stripe|subscription}i then 'Billing'
-      when %r{/secret|metadata}i then 'Secret'
-      when /controller|middleware|request/i then 'HTTP'
-      when %r{/initializer|boot}i then 'Boot'
+      when %r{/auth/|/authenticate|/session}i then 'Auth'
+      when %r{/billing/|/stripe|/subscription}i then 'Billing'
+      when %r{/secrets?/|/metadata}i then 'Secret'
+      when %r{/controllers?/|/middleware/|/request}i then 'HTTP'
+      when %r{/initializers?/|/boot}i then 'Boot'
       when %r{/cli/}i then 'CLI'
-      when /familia/i then 'Familia'
+      when %r{/familia/}i then 'Familia'
       else 'App'
       end
     end
