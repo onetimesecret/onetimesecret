@@ -20,7 +20,7 @@ module Onetime
       #   Templated email:
       #   {
       #     "template": "secret_link",
-      #     "data": { "secret_id": "abc123", "recipient": "user@example.com" }
+      #     "data": { "secret_key": "abc123", "share_domain": null, "recipient": "user@example.com", "sender_email": "sender@example.com" }
       #   }
       #
       #   Raw email (for Rodauth integration):

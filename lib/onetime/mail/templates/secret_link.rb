@@ -10,18 +10,22 @@ module Onetime
       # Email template for sharing a secret link with a recipient.
       #
       # Required data:
-      #   secret:       Secret object with #key and #share_domain methods
+      #   secret_key:   Secret key for URL (string)
       #   recipient:    Recipient email address
       #   sender_email: Sender's email address (shown in email body)
       #
       # Optional data:
+      #   share_domain: Custom domain for secret sharing
       #   baseuri:      Override site base URI
+      #
+      # NOTE: Uses primitive data types for RabbitMQ serialization.
+      # Secret objects cannot be serialized to JSON.
       #
       class SecretLink < Base
         protected
 
         def validate_data!
-          raise ArgumentError, 'Secret required' unless data[:secret]
+          raise ArgumentError, 'Secret key required' unless data[:secret_key]
           raise ArgumentError, 'Recipient required' unless data[:recipient]
           raise ArgumentError, 'Sender email required' unless data[:sender_email]
         end
@@ -39,16 +43,13 @@ module Onetime
 
         # Computed template variables
         def display_domain
-          secret = data[:secret]
           scheme = site_ssl? ? 'https://' : 'http://'
-          host = secret.respond_to?(:share_domain) && secret.share_domain || site_host
+          host = data[:share_domain].to_s.empty? ? site_host : data[:share_domain]
           "#{scheme}#{host}"
         end
 
         def uri_path
-          secret = data[:secret]
-          key = secret.respond_to?(:key) ? secret.key : secret.to_s
-          "/secret/#{key}"
+          "/secret/#{data[:secret_key]}"
         end
 
         def custid

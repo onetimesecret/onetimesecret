@@ -121,8 +121,10 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
         JSON.generate(
           template: 'secret_link',
           data: {
-            secret_id: 'abc123',
-            recipient: 'user@example.com'
+            secret_key: 'abc123',
+            share_domain: nil,
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com'
           }
         )
       end
@@ -133,8 +135,10 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
         expect(Onetime::Mail).to have_received(:deliver).with(
           :secret_link,
           {
-            secret_id: 'abc123',
-            recipient: 'user@example.com'
+            secret_key: 'abc123',
+            share_domain: nil,
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com'
           }
         )
       end
@@ -195,7 +199,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
       let(:message) do
         JSON.generate(
           template: 'secret_link',
-          data: { secret_id: 'abc123' }
+          data: { secret_key: 'abc123', recipient: 'test@example.com', sender_email: 'sender@example.com' }
         )
       end
 
@@ -229,7 +233,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
       let(:message) do
         JSON.generate(
           template: 'secret_link',
-          data: { secret_id: 'abc123' }
+          data: { secret_key: 'abc123', recipient: 'test@example.com', sender_email: 'sender@example.com' }
         )
       end
 
@@ -272,7 +276,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker do
     context 'with missing template' do
       let(:message) do
         JSON.generate(
-          data: { secret_id: 'abc123' }
+          data: { secret_key: 'abc123', recipient: 'test@example.com', sender_email: 'sender@example.com' }
         )
       end
 
