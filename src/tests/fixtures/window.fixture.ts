@@ -39,6 +39,7 @@ export const stateFixture: OnetimeWindow = {
     signup: true,
     signin: true,
     autoverify: false,
+    mode: 'simple',
   },
   secret_options: {
     default_ttl: 604800.0,
