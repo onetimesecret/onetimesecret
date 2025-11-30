@@ -16,12 +16,12 @@ module Onetime
   module ClassMethods
     prepend Onetime::LoggerMethods
 
-    @env    = nil
-    @mode ||= :app
-    @debug  = nil
-    @logger = nil
+    @env          = nil
+    @mode       ||= :app
+    @debug        = nil
+    @logger       = nil
     @logging_conf = nil
-    @d9s_enabled = false
+    @d9s_enabled  = false
 
     attr_accessor :mode, :env, :logging_conf, :d9s_enabled
     attr_writer :debug
@@ -223,11 +223,11 @@ module Onetime
 
     # Logging methods using SemanticLogger for structured logging
     #
-    # All methods now use SemanticLogger with consistent output format.
-    # Messages without payload will log with empty payload hash.
+    # All methods use SemanticLogger with automatic category inference based on
+    # the caller's file path. Log levels are controlled via etc/logging.yaml.
     #
     # Basic usage:
-    #   Onetime.li "User logged in"  # -> SemanticLogger with empty payload
+    #   Onetime.li "User logged in"  # -> Category inferred from caller path
     #   Onetime.le "Authentication failed"
     #
     # Structured logging (recommended):
@@ -238,63 +238,79 @@ module Onetime
     #   Onetime.le "Operation failed", exception: ex, context: value
     #   Onetime.le "Login failed", exception: ex, email: email, ip: ip
     #
-    # Category-aware logging via thread-local:
-    #   Thread.current[:log_category] = 'Auth'
-    #   Onetime.ld "Processing login", email: email
+    # Category inference maps caller paths to semantic categories:
+    #   /auth/, /session/ -> Auth
+    #   /billing/, /stripe/ -> Billing
+    #   /secret/, /metadata/ -> Secret
+    #   /controller/, /middleware/ -> HTTP
+    #   etc.
     #
     def info(*msgs, **payload)
-      return unless mode?(:app) || mode?(:cli) # can reduce output in tryouts
-
-      logger.info(msgs.join(' '), payload)
+      get_logger(infer_category_from_caller).info(msgs.join(' '), payload)
     end
 
     def li(*msgs, **payload)
-      logger.info(msgs.join(' '), payload)
+      get_logger(infer_category_from_caller).info(msgs.join(' '), payload)
     end
 
     def lw(*msgs, **payload)
-      logger.warn(msgs.join(' '), payload)
+      get_logger(infer_category_from_caller).warn(msgs.join(' '), payload)
     end
 
     def le(*msgs, exception: nil, **payload)
-      # If exception is provided, use SemanticLogger's exception handling
+      log = get_logger(infer_category_from_caller)
       if exception.is_a?(Exception)
         msg = msgs.join(' ')
-        msg = "#{exception.class.name}" if msg.empty?
-        # Pass exception as keyword argument, not positional
-        logger.error(msg, **payload, exception: exception)
+        msg = exception.class.name if msg.empty?
+        log.error(msg, **payload, exception: exception)
       else
-        logger.error(msgs.join(' '), **payload)
-        logger.debug(caller(0..5).join("\n")) if Onetime.debug
+        log.error(msgs.join(' '), **payload)
       end
     end
 
     def ld(*msgs, **payload)
-      return unless Onetime.debug
+      get_logger(infer_category_from_caller).debug(msgs.join(' '), payload)
+    end
 
-      logger.debug(msgs.join(' '), payload)
+    # Infers log category from caller's file path using cached lookups.
+    # Uses caller_locations(2,1) to skip this method and the calling log method.
+    #
+    # @return [String] Category name for SemanticLogger
+    #
+    def infer_category_from_caller
+      loc = caller_locations(2, 1)&.first
+      return 'App' unless loc
+
+      path                         = loc.path
+      @path_category_cache       ||= {}
+      @path_category_cache[path] ||= category_for_path(path)
+    end
+
+    # Maps file paths to semantic log categories.
+    #
+    # @param path [String] File path from caller_locations
+    # @return [String] Category name
+    #
+    def category_for_path(path)
+      case path
+      when %r{/auth/|authenticate|session}i then 'Auth'
+      when %r{/billing/|stripe|subscription}i then 'Billing'
+      when %r{/secret|metadata}i then 'Secret'
+      when /controller|middleware|request/i then 'HTTP'
+      when %r{/initializer|boot}i then 'Boot'
+      when %r{/cli/}i then 'CLI'
+      when /familia/i then 'Familia'
+      else 'App'
+      end
     end
 
     # Returns the appropriate SemanticLogger instance for the current context.
-    # Defaults to 'App' category unless overridden via thread-local variable.
     #
-    # Used by Onetime.ld/le/li/lw methods for bootstrap and early-stage logging
-    # before all loggers are configured. Defaults to 'App' category unless
-    # overridden via thread-local variable.
+    # Note: The li/ld/le/lw methods now use caller-based category inference.
+    # This logger method is used for direct logger access when needed.
     #
-    # Note: This is distinct from Onetime::LoggerMethods#logger which provides
-    # automatic category inference for instance methods in classes.
-    #
-    # @example Module-level logging
-    #   Onetime.ld "Bootstrap message"  # → SemanticLogger['App']
-    #
-    # @example With thread-local override
-    #   Thread.current[:log_category] = 'Auth'
-    #   Onetime.li "Auth message"  # → SemanticLogger['Auth']
-    #
-    # @example
-    #   Thread.current[:log_category] = 'Auth'
-    #   logger.info "Processing login"  # Uses SemanticLogger['Auth']
+    # @example Direct logger access
+    #   Onetime.logger.info "Message"  # Uses thread-local or inferred category
     #
     def logger
       return @logger if @logger
