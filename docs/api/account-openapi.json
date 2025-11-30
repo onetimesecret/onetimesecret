@@ -315,17 +315,10 @@
                 "type": "string",
                 "nullable": true
               },
-              "stripe_customer_id": {
-                "type": "string",
-                "nullable": true
-              },
-              "stripe_subscription_id": {
-                "type": "string",
-                "nullable": true
-              },
-              "stripe_checkout_email": {
-                "type": "string",
-                "nullable": true
+              "notify_on_reveal": {
+                "type": "boolean",
+                "nullable": true,
+                "default": false
               },
               "feature_flags": {
                 "type": "object",
@@ -353,10 +346,7 @@
               "extid",
               "role",
               "email",
-              "locale",
-              "stripe_customer_id",
-              "stripe_subscription_id",
-              "stripe_checkout_email"
+              "locale"
             ],
             "additionalProperties": false
           },

@@ -13,10 +13,11 @@ module Onetime
       }.freeze
 
       def initialize(app, config)
-        @app     = app
-        @config  = config
-        @logger  = Onetime.get_logger('HTTP')
-        @capture = CAPTURE_MODES[config['capture']&.to_sym || :standard]
+        @app                 = app
+        @config              = config
+        @logger              = Onetime.get_logger('HTTP')
+        @capture             = CAPTURE_MODES[config['capture']&.to_sym || :standard]
+        @slow_threshold_μs   = (config['slow_request_ms'] || 1000) * 1000
       end
 
       def call(env)
@@ -26,23 +27,23 @@ module Onetime
         start   = Onetime.now_in_μs
 
         status, headers, body = @app.call(env)
-        duration              = Onetime.now_in_μs - start  # Duration in microseconds
+        duration_μs           = Onetime.now_in_μs - start  # Duration in microseconds
 
-        log_request(request, status, duration)
+        log_request(request, status, duration_μs)
 
         [status, headers, body]
       end
 
       private
 
-      def log_request(request, status, duration)
-        level   = determine_level(status, duration)
-        payload = build_payload(request, status, duration)
+      def log_request(request, status, duration_μs)
+        level   = determine_level(status, duration_μs)
+        payload = build_payload(request, status, duration_μs)
 
         @logger.send(level, status, payload)
       end
 
-      def build_payload(request, status, duration)
+      def build_payload(request, status, duration_μs)
         payload = {}
 
         payload[:method]     = request.request_method if capture?(:method)
@@ -57,8 +58,8 @@ module Onetime
           payload[:headers] = request.env.select { |k, _| k.start_with?('HTTP_') }
         end
 
-        # Add duration last so it appears rightmost in logs
-        payload[:duration_ms] = duration / 1000.0 if capture?(:duration_ms)
+        # Add duration_μs last so it appears rightmost in logs
+        payload[:duration_ms] = duration_μs / 1000.0 if capture?(:duration_ms)
 
         payload
       end
@@ -67,15 +68,21 @@ module Onetime
         @capture.include?(field)
       end
 
-      def determine_level(status, duration)
+      # Determine log level based on response status and duration.
+      # - 5xx errors → :error
+      # - 4xx client errors → :warn
+      # - Slow requests (exceeding threshold) → :warn
+      # - Normal requests → :info
+      def determine_level(status, duration_μs)
         return :error if status >= 500
+        return :warn if status >= 400
+        return :warn if slow_request?(duration_μs)
 
-        # Duration is in microseconds (μs), slow_request_ms is in milliseconds
-        # Convert microseconds to milliseconds for threshold comparison
-        duration_ms = duration / 1000
-        return :warn if status >= 400 || duration_ms > @config['slow_request_ms']
+        :info
+      end
 
-        @config['level']&.to_sym || :info
+      def slow_request?(duration_μs)
+        duration_μs > @slow_threshold_μs
       end
 
       def redact_params(params)

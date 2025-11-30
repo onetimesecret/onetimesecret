@@ -131,6 +131,17 @@
         "no-analytics-statement": "Kāore he tātaritanga. Kāore he aroturuki. Kua mutu.",
         "explanation": "Ehara tēnei i te tautuhinga nō te mea kāore he mea hei hurihia. Kua hangaia tō matatapu ki tā mātou mahi."
       },
+      "notifications": {
+        "title": "Ngā Tautuhinga Pānui",
+        "description": "Whakahaere i te āhuatanga e whiwhi pānui ai koe",
+        "error-updating": "I rahua te whakahou i te manakohanga pānui. Tēnā ngana anō.",
+        "reveal-notifications": {
+          "title": "Ngā Pānui Whakaatu Karere Huna",
+          "description": "Whiwhi īmēra ina tirohia e tētahi tō karere huna",
+          "help": "Ka whakamōhiotia koe i ia wā ka tirohia e te kaiwhiwhi tētahi o ō karere huna"
+        },
+        "privacy-note": "Ko ngā īmēra pānui ka whai i te tohu wā me te ID karere huna anake. Kāore ngā mōhiohio kaitirotiro i te whakaurua."
+      },
       "caution": {
         "title": "Wāhi Whiriwhiri Tūpato",
         "description": "Ngā tautuhinga arā atu me te whakahaere raraunga",

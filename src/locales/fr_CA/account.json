@@ -131,6 +131,17 @@
         "no-analytics-statement": "Aucune analyse. Aucun suivi. Point final.",
         "explanation": "Ce n'est pas un paramètre parce qu'il n'y a rien à activer ou désactiver. Votre confidentialité est intégrée dans notre mode de fonctionnement."
       },
+      "notifications": {
+        "title": "Paramètres de notification",
+        "description": "Gérer la façon dont vous recevez les notifications",
+        "error-updating": "Échec de la mise à jour de la préférence de notification. Veuillez réessayer.",
+        "reveal-notifications": {
+          "title": "Notifications de consultation de secrets",
+          "description": "Recevoir un courriel lorsque quelqu'un consulte votre secret",
+          "help": "Vous serez notifié chaque fois qu'un destinataire consulte l'un de vos secrets"
+        },
+        "privacy-note": "Les courriels de notification ne contiennent que l'horodatage et l'identifiant du secret. Les informations sur le visiteur ne sont jamais incluses."
+      },
       "caution": {
         "title": "Zone de prudence",
         "description": "Paramètres avancés et gestion des données",

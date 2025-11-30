@@ -40,6 +40,11 @@ const sections: NavigationItem[] = [
         icon: { collection: 'heroicons', name: 'envelope' },
         label: t('web.settings.profile.change-email'),
       },
+      {
+        to: '/account/settings/profile/notifications',
+        icon: { collection: 'heroicons', name: 'bell-solid' },
+        label: t('web.settings.notifications.title'),
+      },
     ],
   },
   {

@@ -131,6 +131,17 @@
         "no-analytics-statement": "",
         "explanation": ""
       },
+      "notifications": {
+        "title": "Bildirim Ayarları",
+        "description": "Bildirimlerinizi nasıl alacağınızı yönetin",
+        "error-updating": "Bildirim tercihi güncellenemedi. Lütfen tekrar deneyin.",
+        "reveal-notifications": {
+          "title": "Gizli Mesaj Görüntüleme Bildirimleri",
+          "description": "Birisi gizli mesajınızı görüntülediğinde e-posta alın",
+          "help": "Bir alıcı gizli mesajlarınızdan birini her görüntülediğinde bildirim alırsınız"
+        },
+        "privacy-note": "Bildirim e-postaları yalnızca zaman damgası ve gizli mesaj kimliğini içerir. Görüntüleyen kişi hakkında bilgi asla dahil edilmez."
+      },
       "caution": {
         "title": "",
         "description": "",

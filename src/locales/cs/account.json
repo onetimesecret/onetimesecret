@@ -131,6 +131,17 @@
         "no-analytics-statement": "Žádná analytika. Žádné sledování. Tečka.",
         "explanation": "Toto není nastavení, protože není co zapínat nebo vypínat. Tvé soukromí je zabudováno do způsobu, jak fungujeme."
       },
+      "notifications": {
+        "title": "Nastavení oznámení",
+        "description": "Spravuj, jak přijímáš oznámení",
+        "error-updating": "Nepodařilo se aktualizovat předvolby oznámení. Zkus to prosím znovu.",
+        "reveal-notifications": {
+          "title": "Oznámení o zobrazení tajemství",
+          "description": "Obdrž e-mail, když někdo zobrazí tvé tajemství",
+          "help": "Budeš upozorněn/a pokaždé, když příjemce zobrazí některé z tvých tajemství"
+        },
+        "privacy-note": "E-maily s oznámením obsahují pouze časové razítko a identifikátor tajemství. Informace o prohlížejícím nejsou nikdy zahrnuty."
+      },
       "caution": {
         "title": "Zóna opatrného zvážení",
         "description": "Pokročilé nastavení a správa dat",

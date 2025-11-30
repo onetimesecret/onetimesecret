@@ -45,7 +45,6 @@ module Onetime::Metadata::Features
           metadata_id: identifier,
           secret_id: secret.identifier,
           user: cust.obscure_email,
-          token: token.nil? ? nil : 'present',
           action: 'deliver_email',
         }
 
@@ -77,10 +76,15 @@ module Onetime::Metadata::Features
         email_address = eaddrs.first
         # Secret sharing: use default async_thread fallback (non-blocking)
         # User expects email but doesn't need to wait for it
+        #
+        # NOTE: Pass serializable data, not objects. The Secret object can't
+        # be serialized to JSON for the message queue - it becomes "#<Secret:0x...>".
+        # The template uses secret_key for the URL and share_domain for custom domains.
         Onetime::Jobs::Publisher.enqueue_email(:secret_link, {
-          secret: secret,
+          secret_key: secret.key,
+          share_domain: secret.share_domain,
           recipient: email_address,
-          sender_email: cust.email
+          sender_email: cust.email,
         }) # fallback: :async_thread is the default
       end
 

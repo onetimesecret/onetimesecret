@@ -131,6 +131,17 @@
         "no-analytics-statement": "Sin análisis. Sin rastreo. Punto.",
         "explanation": "Esto no es una configuración porque no hay nada que activar o desactivar. Tu privacidad está integrada en cómo operamos."
       },
+      "notifications": {
+        "title": "Configuración de Notificaciones",
+        "description": "Gestiona cómo recibes las notificaciones",
+        "error-updating": "Error al actualizar la preferencia de notificaciones. Por favor, inténtalo de nuevo.",
+        "reveal-notifications": {
+          "title": "Notificaciones de Visualización de Secretos",
+          "description": "Recibe un correo electrónico cuando alguien vea tu secreto",
+          "help": "Serás notificado cada vez que un destinatario visualice uno de tus secretos"
+        },
+        "privacy-note": "Los correos de notificación solo incluyen la marca de tiempo y el ID del secreto. La información del visualizador nunca se incluye."
+      },
       "caution": {
         "title": "Zona de Consideración Cuidadosa",
         "description": "Configuración avanzada y gestión de datos",

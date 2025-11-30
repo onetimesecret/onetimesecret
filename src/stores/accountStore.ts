@@ -55,6 +55,19 @@ export const useAccountStore = defineStore('account', () => {
     return validated;
   }
 
+  async function updateNotificationPreference(field: string, value: boolean) {
+    const response = await $api.post('/api/account/account/update-notification-preference', {
+      field,
+      value,
+    });
+    // NOTE: We refetch the full account rather than merging the response locally.
+    // This guarantees consistency but costs an extra request. If this becomes a
+    // pattern worth optimizing, consider having update endpoints return the full
+    // object or implementing optimistic local merges across the codebase.
+    await fetch();
+    return response.data;
+  }
+
   function $reset() {
     abort();
     account.value = null;
@@ -69,6 +82,7 @@ export const useAccountStore = defineStore('account', () => {
     updateLocale,
     changePassword,
     generateApiToken,
+    updateNotificationPreference,
     abort,
     $reset,
   };

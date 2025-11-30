@@ -28,6 +28,14 @@ module Onetime
     #   Onetime::Jobs::Publisher.enqueue_email(:feedback, data, fallback: :none)
     #
     class Publisher
+      # @return [SemanticLogger::Logger] Logger for job publishing operations
+      def self.logger
+        @logger ||= Onetime.get_logger('Jobs')
+      end
+
+      def logger
+        self.class.logger
+      end
       # Valid fallback strategies
       FALLBACK_STRATEGIES = %i[async_thread sync raise none].freeze
 
@@ -78,13 +86,13 @@ module Onetime
 
         # Gracefully fallback if jobs are disabled (no pool initialized)
         unless jobs_enabled?
-          OT.ld "[Jobs::Publisher] Jobs disabled, using fallback #{fallback}: #{template}"
+          logger.info "Jobs disabled, using fallback", template: template, fallback: fallback
           return execute_fallback(fallback, :templated)
         end
 
         with_fallback(fallback, :templated) do
-          publish('email.message.send', { template: template, data: data })
-          OT.ld "[Jobs::Publisher] Enqueued email: #{template}"
+          message_id = publish('email.message.send', { template: template, data: data })
+          logger.info "Enqueued email", template: template, message_id: message_id, queue: 'email.message.send'
           true
         end
       end
@@ -97,17 +105,17 @@ module Onetime
 
         # Gracefully fallback if jobs are disabled (no pool initialized)
         unless jobs_enabled?
-          OT.ld "[Jobs::Publisher] Jobs disabled, using fallback #{fallback}: #{template}"
+          logger.info "Jobs disabled, using fallback", template: template, fallback: fallback
           return execute_fallback(fallback, :templated)
         end
 
         with_fallback(fallback, :templated) do
-          publish(
+          message_id = publish(
             'email.message.schedule',
             { template: template, data: data },
             expiration: (delay_seconds * 1000).to_s # Convert to milliseconds
           )
-          OT.ld "[Jobs::Publisher] Scheduled email: #{template} (+#{delay_seconds}s)"
+          logger.info "Scheduled email", template: template, message_id: message_id, delay_seconds: delay_seconds
           true
         end
       end
@@ -120,13 +128,13 @@ module Onetime
 
         # Gracefully fallback if jobs are disabled (no pool initialized)
         unless jobs_enabled?
-          OT.ld "[Jobs::Publisher] Jobs disabled, using fallback #{fallback} for raw email"
+          logger.info "Jobs disabled, using fallback for raw email", fallback: fallback
           return execute_fallback(fallback, :raw)
         end
 
         with_fallback(fallback, :raw) do
-          publish('email.message.send', { raw: true, email: email })
-          OT.ld "[Jobs::Publisher] Enqueued raw email to: #{email[:to]}"
+          message_id = publish('email.message.send', { raw: true, email: email })
+          logger.info "Enqueued raw email", to: email[:to], message_id: message_id
           true
         end
       end
@@ -178,11 +186,10 @@ module Onetime
       def with_fallback(fallback, email_type)
         yield
       rescue Bunny::ConnectionClosedError, Bunny::NetworkFailure => e
-        OT.li "[Jobs::Publisher] RabbitMQ unavailable, using fallback #{fallback}: #{e.message}"
+        logger.warn "RabbitMQ unavailable, using fallback", fallback: fallback, error: e.message
         execute_fallback(fallback, email_type)
       rescue StandardError => e
-        OT.le "[Jobs::Publisher] Unexpected error publishing message: #{e.message}"
-        OT.le e.backtrace.join("\n") if OT.debug?
+        logger.error "Unexpected error publishing message", error: e.message, backtrace: e.backtrace.first(5)
         execute_fallback(fallback, email_type)
       end
 
@@ -201,7 +208,7 @@ module Onetime
         when :raise
           raise Onetime::Mail::DeliveryError, 'RabbitMQ unavailable and fallback disabled'
         when :none
-          OT.li "[Jobs::Publisher] Fallback disabled, email not sent"
+          logger.info "Fallback disabled, email not sent"
           clear_pending_state
           false
         end
@@ -227,11 +234,10 @@ module Onetime
           deliver_email(email_type, template: template, data: data, raw_email: raw_email)
         rescue StandardError => e
           # Log but don't crash - this is fire-and-forget
-          OT.le "[Jobs::Publisher] Async thread delivery failed: #{e.message}"
-          OT.le e.backtrace.first(5).join("\n") if OT.debug?
+          logger.error "Async thread delivery failed", error: e.message, backtrace: e.backtrace.first(5)
         end
 
-        OT.li "[Jobs::Publisher] Spawned thread for #{email_type} email delivery"
+        logger.info "Spawned thread for email delivery", email_type: email_type
       end
 
       # Blocking synchronous delivery
@@ -244,7 +250,7 @@ module Onetime
         clear_pending_state
 
         deliver_email(email_type, template: template, data: data, raw_email: raw_email)
-        OT.li "[Jobs::Publisher] Sent #{email_type} email synchronously"
+        logger.info "Sent email synchronously", email_type: email_type
       end
 
       # Actually deliver the email
