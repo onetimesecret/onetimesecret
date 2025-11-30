@@ -1,6 +1,7 @@
 <!-- src/components/PasswordStrengthChecker.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import { ref, computed, onMounted } from 'vue';
 
 const password = ref('');

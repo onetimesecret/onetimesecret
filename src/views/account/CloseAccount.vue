@@ -1,6 +1,7 @@
 <!-- src/views/account/CloseAccount.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import { useAuth } from '@/composables/useAuth';
   import { ref, computed } from 'vue';
 

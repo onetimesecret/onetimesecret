@@ -1,6 +1,7 @@
 <!-- src/layouts/QuietLayout.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
 

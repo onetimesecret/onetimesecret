@@ -1,6 +1,7 @@
 <!-- src/components/teams/TeamSelector.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import HoverTooltip from '@/components/common/HoverTooltip.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { getRoleBadgeColor, getRoleLabel, type TeamWithRole } from '@/schemas/models/team';

@@ -1,6 +1,7 @@
 <!-- src/components/StatusBar.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import { computed } from 'vue';

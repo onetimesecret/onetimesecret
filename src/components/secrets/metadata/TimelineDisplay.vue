@@ -1,6 +1,7 @@
 <!-- src/components/secrets/metadata/TimelineDisplay.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import OIcon from '@/components/icons/OIcon.vue';
   import { useSecretExpiration } from '@/composables/useSecretExpiration';
   import type { Metadata, MetadataDetails } from '@/schemas/models';

@@ -1,6 +1,7 @@
 <!-- src/components/auth/OtpSetupWizard.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import OtpCodeInput from '@/components/auth/OtpCodeInput.vue';
 import { useMfa } from '@/composables/useMfa';
 import { WindowService } from '@/services/window.service';

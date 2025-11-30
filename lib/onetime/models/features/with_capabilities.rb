@@ -68,12 +68,10 @@ module Onetime
 
             plan = ::Billing::Plan.load(planid)
 
-            # If plan cache is empty (Stripe not synced), use fallback
-            return WithCapabilities::STANDALONE_CAPABILITIES.dup unless plan
+            # When billing enabled but no plan (SaaS free tier), fail-closed
+            return [] unless plan
 
-            caps = plan.capabilities.to_a
-            # If plan exists but has no capabilities, use fallback
-            caps.empty? ? WithCapabilities::STANDALONE_CAPABILITIES.dup : caps
+            plan.capabilities.to_a
           end
 
           # Get limit for a specific resource
@@ -95,8 +93,8 @@ module Onetime
 
             plan = ::Billing::Plan.load(planid)
 
-            # If plan cache is empty, use unlimited fallback
-            return Float::INFINITY unless plan
+            # When billing enabled but no plan (SaaS free tier), fail-closed
+            return 0 unless plan
 
             # Flattened key: "teams" => "teams.max"
             key = resource.to_s.include?('.') ? resource.to_s : "#{resource}.max"
@@ -140,7 +138,7 @@ module Onetime
             }
 
             unless allowed
-              result[:upgrade_to] = Billing::PlanDefinitions.upgrade_path_for(capability, planid)
+              result[:upgrade_to] = Billing::PlanHelpers.upgrade_path_for(capability, planid)
             end
 
             result

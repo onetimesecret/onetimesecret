@@ -43,9 +43,9 @@ Create products in [Stripe Dashboard → Products](https://dashboard.stripe.com/
 }
 ```
 
-**Available plan_id values:** See `apps/web/billing/plan_definitions.rb`
+**Available plan_id values:** See `apps/web/billing/plan_helpers.rb` and plan cache
 
-**Capabilities list:** See `Billing::PlanDefinitions::CAPABILITY_CATEGORIES` constant in same file
+**Capabilities list:** See `WithCapabilities::STANDALONE_CAPABILITIES` constant in `lib/onetime/models/features/with_capabilities.rb`
 
 **Limits:** Use `-1` for unlimited, `0` for none, positive integers for specific limits
 

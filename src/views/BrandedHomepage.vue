@@ -1,6 +1,7 @@
 <!-- src/views/BrandedHomepage.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import SecretForm from '@/components/secrets/form/SecretForm.vue';
   import { useProductIdentity } from '@/stores/identityStore';
 

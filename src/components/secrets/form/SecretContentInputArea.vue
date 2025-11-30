@@ -1,6 +1,7 @@
 <!-- src/components/secrets/form/SecretContentInputArea.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import { useCharCounter } from '@/composables/useCharCounter';
   import { useTextarea } from '@/composables/useTextarea';
   import { computed, watch } from 'vue';

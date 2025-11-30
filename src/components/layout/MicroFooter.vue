@@ -1,6 +1,7 @@
 <!-- src/components/layout/MicroFooter.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
   import FooterControls from '@/components/layout/SecretFooterControls.vue';
   import { WindowService } from '@/services/window.service';

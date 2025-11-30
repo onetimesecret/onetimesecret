@@ -1,6 +1,7 @@
 <!-- src/views/account/AccountIndex.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import AccountBillingSection from '@/components/account/AccountBillingSection.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import LanguageToggle from '@/components/LanguageToggle.vue';

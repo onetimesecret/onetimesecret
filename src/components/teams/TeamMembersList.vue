@@ -1,6 +1,7 @@
 <!-- src/components/teams/TeamMembersList.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import OIcon from '@/components/icons/OIcon.vue';
 import { classifyError } from '@/schemas/errors';

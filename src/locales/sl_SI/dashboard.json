@@ -4,7 +4,9 @@
       "title_received": "Prejeto",
       "title_not_received": "Ni prejeto",
       "title_no_recent_secrets": "Ni nedavnih skrivnosti",
-      "get-started-by-creating-your-first-secret": "Začnite z ustvarjanjem svoje prve skrivnosti."
+      "get-started-by-creating-your-first-secret": "Začnite z ustvarjanjem svoje prve skrivnosti.",
+      "fetch_error_title": "Ekip ni bilo mogoče naložiti",
+      "fetch_error_description": "Pri nalaganju vaših ekip je prišlo do težave. Poskusite znova."
     }
   }
 }

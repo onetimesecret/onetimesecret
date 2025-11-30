@@ -1,6 +1,7 @@
 <!-- src/components/secrets/RecentSecretsTable.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import SecretLinksTable from '@/components/secrets/SecretLinksTable.vue';
 import { useConcealedMetadataStore } from '@/stores/concealedMetadataStore';
 import { computed, ref } from 'vue';

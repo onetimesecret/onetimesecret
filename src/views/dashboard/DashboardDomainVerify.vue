@@ -1,6 +1,7 @@
 <!-- src/views/dashboard/DashboardDomainVerify.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
   import MoreInfoText from '@/components/MoreInfoText.vue';
   import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';

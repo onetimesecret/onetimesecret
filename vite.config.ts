@@ -4,7 +4,6 @@ import Vue from '@vitejs/plugin-vue';
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
 import { resolve } from 'path';
 import process from 'process';
-import AutoImport from 'unplugin-auto-import/vite';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
@@ -152,25 +151,6 @@ export default defineConfig({
       // - Specifies that <i18n> blocks in .vue files use JSON format
       // - Alternatives: 'yaml', 'json5', 'yml'
       defaultSFCLang: 'json',
-    }),
-
-    // Automatically import only true global packages that where the trade-off
-    // for being able to see explicit imports
-    AutoImport({
-      imports: [
-        'vue',
-        'vue-router',
-        {
-          'vue-i18n': ['useI18n'],
-        },
-      ],
-      dts: 'auto-imports.d.ts',
-
-      eslintrc: {
-        enabled: true,
-        filepath: '.eslintrc-auto-import.json',
-        globalsPropValue: true,
-      },
     }),
 
     // Enable Vue Devtools

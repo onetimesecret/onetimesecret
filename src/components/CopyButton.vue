@@ -1,6 +1,7 @@
 <!-- src/components/CopyButton.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import OIcon from '@/components/icons/OIcon.vue';
   import { ref, computed, onBeforeUnmount } from 'vue';
   const { t } = useI18n();

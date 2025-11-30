@@ -1,6 +1,7 @@
 <!-- src/views/account/region/AvailableRegions.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
   import JurisdictionList from '@/components/modals/settings/JurisdictionList.vue';
   import { useJurisdictionStore } from '@/stores/jurisdictionStore';

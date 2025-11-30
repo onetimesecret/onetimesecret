@@ -1,6 +1,7 @@
 <!-- src/views/secrets/ShowMetadata.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import MetadataSkeleton from '@/components/closet/MetadataSkeleton.vue';
   import CopyButton from '@/components/CopyButton.vue';
   import OIcon from '@/components/icons/OIcon.vue';

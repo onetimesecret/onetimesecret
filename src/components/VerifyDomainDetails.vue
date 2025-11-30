@@ -1,6 +1,7 @@
 <!-- src/components/VerifyDomainDetails.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import OIcon from '@/components/icons/OIcon.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { CustomDomainResponse } from '@/schemas/api/v3/responses';

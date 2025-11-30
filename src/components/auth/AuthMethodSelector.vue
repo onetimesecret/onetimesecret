@@ -1,6 +1,7 @@
 <!-- src/components/auth/AuthMethodSelector.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import { isMagicLinksEnabled } from '@/utils/features';
 import { ref, computed } from 'vue';
 

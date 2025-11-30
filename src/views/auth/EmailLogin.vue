@@ -1,5 +1,6 @@
 <!-- src/views/auth/EmailLogin.vue -->
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import { useMagicLink } from '@/composables/useMagicLink';
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';

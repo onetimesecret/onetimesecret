@@ -4,7 +4,9 @@
       "title_received": "Empfangen",
       "title_not_received": "Nicht empfangen",
       "title_no_recent_secrets": "Keine kürzlich erstellten Geheimnisse",
-      "get-started-by-creating-your-first-secret": "Lege los, indem du dein erstes Geheimnis erstellst."
+      "get-started-by-creating-your-first-secret": "Lege los, indem du dein erstes Geheimnis erstellst.",
+      "fetch_error_title": "Teams konnten nicht geladen werden",
+      "fetch_error_description": "Beim Laden deiner Teams ist ein Problem aufgetreten. Bitte versuche es erneut."
     }
   }
 }

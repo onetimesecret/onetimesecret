@@ -1,6 +1,7 @@
 <!-- src/components/account/APIKeyForm.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import APIKeyCard from '@/components/account/APIKeyCard.vue';
   import { useFormSubmission } from '@/composables/useFormSubmission';
   import { responseSchemas } from '@/schemas/api/v3/responses';

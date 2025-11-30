@@ -1,6 +1,7 @@
 <!-- src/components/secrets/branded/SecretConfirmationForm.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import { Secret, SecretDetails, brandSettingschema } from '@/schemas/models';
   import {
     CornerStyle,

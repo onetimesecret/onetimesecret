@@ -1,6 +1,7 @@
 <!-- src/views/account/AccountSettings.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
   import { ref } from 'vue';
   import { useRoute } from 'vue-router';

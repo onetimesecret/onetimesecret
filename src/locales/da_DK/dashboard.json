@@ -4,7 +4,9 @@
       "title_received": "Modtaget",
       "title_not_received": "Ikke modtaget",
       "title_no_recent_secrets": "Ingen nylige beskeder",
-      "get-started-by-creating-your-first-secret": "Kom i gang med at oprette din første hemmelighed."
+      "get-started-by-creating-your-first-secret": "Kom i gang med at oprette din første hemmelighed.",
+      "fetch_error_title": "Kunne ikke indlæse hold",
+      "fetch_error_description": "Der opstod et problem ved indlæsning af dine hold. Prøv venligst igen."
     }
   }
 }

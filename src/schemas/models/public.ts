@@ -137,6 +137,11 @@ export const publicAuthenticationSchema = z.object({
    * Flag to enable or disable homepage secret form when not logged in.
    */
   required: transforms.fromString.boolean,
+
+  /**
+   * Authentication mode: 'simple' (Redis-only) or 'full' (Rodauth with SQL db)
+   */
+  mode: z.enum(['simple', 'full']).optional(),
 });
 
 /**

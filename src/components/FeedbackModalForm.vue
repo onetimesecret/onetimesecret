@@ -1,6 +1,7 @@
 <!-- src/components/FeedbackModalForm.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { WindowService } from '@/services/window.service';
 import { useCsrfStore } from '@/stores/csrfStore';

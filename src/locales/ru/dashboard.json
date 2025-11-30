@@ -4,7 +4,9 @@
       "title_received": "Получено",
       "title_not_received": "Не получено",
       "title_no_recent_secrets": "Нет недавних тайн",
-      "get-started-by-creating-your-first-secret": "Начните с создания вашего первого секрета."
+      "get-started-by-creating-your-first-secret": "Начните с создания вашего первого секрета.",
+      "fetch_error_title": "Не удалось загрузить команды",
+      "fetch_error_description": "Произошла ошибка при загрузке ваших команд. Попробуйте ещё раз."
     }
   }
 }

@@ -1,6 +1,7 @@
 <!-- src/views/account/RecoveryCodes.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import SettingsLayout from '@/components/layout/SettingsLayout.vue';
   import { useMfa } from '@/composables/useMfa';
   import { ref, onMounted, computed } from 'vue';

@@ -1,6 +1,7 @@
 <!-- src/components/secrets/canonical/SecretConfirmationForm.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
   import SecretRecipientHelpContent from '@/components/secrets/SecretRecipientHelpContent.vue';
   import { Secret, SecretDetails } from '@/schemas/models';

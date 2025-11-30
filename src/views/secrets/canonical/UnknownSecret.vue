@@ -1,6 +1,7 @@
 <!-- src/views/secrets/canonical/UnknownSecret.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import BaseUnknownSecret from '@/components/base/BaseUnknownSecret.vue';
   import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
   import UnknownSecretHelpContent from '@/components/secrets/UnknownSecretHelpContent.vue';

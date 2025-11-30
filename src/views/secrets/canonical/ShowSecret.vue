@@ -1,6 +1,7 @@
 <!-- src/views/secrets/canonical/ShowSecret.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   /**
    * Core Onetime Secret implementation that uses distinct layouts for confirmation
    * and reveal states to optimize for marketing and user acquisition.

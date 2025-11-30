@@ -1,6 +1,7 @@
 <!-- src/views/teams/TeamMembers.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import TeamMembersList from '@/components/teams/TeamMembersList.vue';

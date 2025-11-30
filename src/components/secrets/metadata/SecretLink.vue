@@ -1,6 +1,7 @@
 <!-- src/components/secrets/metadata/SecretLink.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import CopyButton from '@/components/CopyButton.vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import type { Metadata, MetadataDetails } from '@/schemas/models';

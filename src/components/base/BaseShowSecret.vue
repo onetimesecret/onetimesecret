@@ -1,6 +1,7 @@
 <!-- src/components/base/BaseShowSecret.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   /**
    * Base component for secret display implementations
    * Provides core secret loading/display logic and structural slots for customization

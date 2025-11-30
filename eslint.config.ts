@@ -64,9 +64,6 @@ import pluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
 import vueEslintParser from 'vue-eslint-parser';
 
-// @ts-expect-error - auto-import globals are generated at build time
-import autoImportGlobals from './src/.eslintrc-auto-import.json' assert { type: 'json' };
-
 // Validate that required plugin configs are available
 if (!pluginVue.configs?.['flat/strongly-recommended']) {
   throw new Error('Vue ESLint plugin flat/strongly-recommended config not found');
@@ -94,7 +91,6 @@ export default [
     languageOptions: {
       globals: {
         ...globals.browser,
-        ...autoImportGlobals.globals,
         process: true, // Allow process global for environment variables
       },
       parser: parserTs,

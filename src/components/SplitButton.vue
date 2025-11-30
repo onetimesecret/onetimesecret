@@ -3,6 +3,7 @@
 // src/components/SplitButton.vue
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 
   const { t } = useI18n();

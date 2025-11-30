@@ -1,6 +1,7 @@
 <!-- src/views/dashboard/DashboardDomainBrand.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
   import BrandSettingsBar from '@/components/dashboard/BrandSettingsBar.vue';
   import BrowserPreviewFrame from '@/components/dashboard/BrowserPreviewFrame.vue';

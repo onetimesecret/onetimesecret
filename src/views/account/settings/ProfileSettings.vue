@@ -1,6 +1,7 @@
 <!-- src/views/account/settings/ProfileSettings.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
   // import { useAccount } from '@/composables/useAccount';
   import OIcon from '@/components/icons/OIcon.vue';
   import LanguageToggle from '@/components/LanguageToggle.vue';

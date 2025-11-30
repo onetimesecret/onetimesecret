@@ -1,6 +1,7 @@
 <!-- src/components/DomainForm.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import DomainInput from '@/components/DomainInput.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { createDomainRequestSchema } from '@/schemas/api/v3/requests';

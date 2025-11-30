@@ -1,6 +1,7 @@
 <!-- src/components/ErrorDisplay.vue -->
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
 import type { ApplicationError } from '@/schemas/errors';
 import { computed } from 'vue';
 import { ZodError } from 'zod';

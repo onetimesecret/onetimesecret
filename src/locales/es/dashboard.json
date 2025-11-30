@@ -4,7 +4,9 @@
       "title_received": "Recibido",
       "title_not_received": "No recibido",
       "title_no_recent_secrets": "No hay secretos recientes",
-      "get-started-by-creating-your-first-secret": "Empieza creando tu primer secreto."
+      "get-started-by-creating-your-first-secret": "Empieza creando tu primer secreto.",
+      "fetch_error_title": "No se pudieron cargar los equipos",
+      "fetch_error_description": "Hubo un problema al cargar tus equipos. Por favor, inténtalo de nuevo."
     }
   }
 }
