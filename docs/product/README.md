@@ -43,10 +43,17 @@ The frontend is organized into four apps based on what users are doing:
 | Domain Context | Runtime | How it looks (canonical vs branded) |
 | Homepage Mode | Deployment-time | Whether secret creation is permitted |
 
+## Tasks
+
+| Document | Purpose | Status |
+|----------|---------|--------|
+| [Vue Frontend Discovery](tasks/vue-frontend-discovery.md) | Map current architecture before migration | Pending |
+
 ## Document Types
 
 - **Technical Design** (`type: technical-design`) — How systems work
 - **Reference** (`type: reference`) — Lookup tables and specifications
+- **Assessment** (`type: assessment`) — Current state snapshots before change
 
 ## Contributing
 
