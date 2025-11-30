@@ -382,14 +382,124 @@ The architecture now clearly separates the two ways a secret is created, driven 
 | **Ownership** | Bearer Token (URL) | Database Record (Account ID) |
 
 
+### 6. Where do Homepage files live?
 
+The Homepage is the creation interface, not a marketing funnel. It does have marketing content though but more for explaining what it is ("Keep sensitive info out of your chat logs and email") and onboarding/redirecting Interaction Modes.
+
+We have another dimension that's deployment-time (not runtime):
+
+| Deployment Mode | Who Can Create       | Who Can View | Homepage Shows        |
+|-----------------|----------------------|--------------|-----------------------|
+| Open            | Anyone               | Anyone       | Form + explainer      |
+| Internal        | Internal IPs/headers | Anyone       | Form + explainer      |
+| External        | Nobody               | Anyone       | "Nothing to see here" |
+
+This is orthogonal to the branded/canonical dimension:
+
+              ┌─────────────────────────────────────────────┐
+              │             DEPLOYMENT MODE                 │
+              │    (config-time, per-instance)              │
+              ├─────────────┬─────────────┬─────────────────┤
+              │   Open      │  Internal   │    External     │
+┌─────────────┼─────────────┼─────────────┼─────────────────┤
+│ Canonical   │ Form+copy   │ Form+copy   │ Disabled msg    │
+├─────────────┼─────────────┼─────────────┼─────────────────┤
+│ Branded     │ Form+brand  │ Form+brand  │ Brand+disabled  │
+└─────────────┴─────────────┴─────────────┴─────────────────┘
+
+So the structure holds:
+
+```
+apps/exchange/
+├── creation/
+│   ├── Homepage.vue          # The form + explainer (respects deployment mode)
+│   ├── DisabledHomepage.vue  # "External" mode message
+│   └── IncomingForm.vue      # API-consumer creation
+├── consumption/
+│   └── ...
+```
+
+The useExchangeContext() composable gains a deployment mode input:
+
+```ts
+  // From window.__ONETIME_STATE__ or config
+  const deploymentMode = computed(() =>
+    WindowService.get('homepage_mode') // 'open' | 'internal' | 'external'
+  );
+
+  const canCreateSecrets = computed(() =>
+    deploymentMode.value !== 'external'
+  );
+
+  And the Homepage router guard checks this before even rendering:
+
+  // apps/exchange/router.ts
+  {
+    path: '/',
+    component: () => import('./creation/Homepage.vue'),
+    beforeEnter: (to) => {
+      const mode = WindowService.get('homepage_mode');
+      if (mode === 'external') {
+        return { name: 'DisabledHomepage' };
+      }
+    }
+  }
+```
+
+```yaml
+# Homepage Mode
+#
+# Determines which homepage experience to show based on the request
+# headers. It can change the content presented to a visitor when they
+# navigate to the homepage but it does not expand or restrict access.
+#
+# ✓ Can do: Hide the Create Secret form for external users
+# ✗ Cannot do: Grant access to endpoints for creating secret links
+#
+# This does not protect API endpoints and has no effect on existing
+# authentication or authorization logic.
+#
+# Detection Methods (evaluated in order):
+#   1. matching_cidrs - Client IP must match one of these subnets
+#   2. mode_header - Fallback if no CIDR match (requires header value = mode)
+#
+homepage:
+  mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
+  matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
+  mode_header: <%= ENV['UI_HOMEPAGE_MODE_HEADER'] || 'O-Homepage-Mode' %>
+  trusted_proxy_depth: <%= ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
+  trusted_ip_header: <%= ENV['UI_HOMEPAGE_TRUSTED_IP_HEADER'] || 'X-Forwarded-For' %>
+```
+
+### 7. Incoming Secrets
+
+A destination page with a variation of the secret create form that the user submits and the secret link is sent automatically to an email address associated to the page (e.g. so top-level /incoming is a project-wide configuration). Authenticated user can generate an incoming secrets page (e.g. /incoming/abcd1234). But can a non-authenticated user create an incoming secrets page? I don't know.
+
+An "Incoming Page" is a persistent resource that requires an owner. It needs a verified destination (email) and a configuration state. Anonymous users cannot "own" persistent resources in this system.
+  
+  
 **Why it fits the Matrix (Exchange) and not Workspace:**
 
-* Branding: If a user created a branded secret, the "Metadata/Receipt" page should likely reflect that brand (or at least not clash with it). Workspace never supports custom branding.
-* Access Pattern: Users often arrive here via a direct link saved immediately after creation, not by browsing a table in a dashboard.
+* Brandisercet/ If a user created a branded secret, the "Metadata/Receipt" page should likely reflect that brand (or at least not clash with it). Workspace never supports custom branding.
+* Access Pattern: Users often arrive here via a direct link saved immediately after conceal, not by browsing a table in a dashboard.
 * _The "Single Item" Rule_:
   * Exchange is for viewing singular entities in high fidelity (The Secret, The Receipt).
   * Workspace is for viewing collections (List of secrets, list of domains).
+
+
+### 8. Secret State
+
+Question: The matrix handles CREATOR | AUTH_RECIPIENT | ANON_RECIPIENT, but the secret lifecycle has more states. Should useExchangeContext() also ingest secret state, or should that be a separate composable (useSecretState())?
+
+Answer: Separate them.
+
+Mixing "Environmental Context" (Branding/Audience) with "Entity State" (Secret Lifecycle) violates Single Responsibility Principle and creates testing nightmares.
+
+useExchangeContext() answers: "Where are we?" (Domain) and "Who is looking?" (Identity).
+useSecretLifecycle() answers: "What is the status of this specific data?"
+
+You should model the Secret Lifecycle as a Finite State Machine (FSM).
+
 
 
 ## Retrospective
@@ -418,3 +528,87 @@ The UI can now make nuanced decisions:
 - But include "Create our own" CTA (capabilities = premium)
 - Use authenticated header (auth state = authenticated)
 - Skip marketing copy (intent = retrieve, not discover)
+
+
+## More on the Homepage 
+
+Handling the Deployment Matrix
+You have two orthogonal inputs controlling this view. Do not try to solve this with CSS or minor v-if tweaks. Solve it with Component Composition.
+
+The Logic Flow
+Deployment Mode acts as a Gatekeeper (Do we show the form?).
+Branding Mode acts as a Wrapper (How do we decorate the form?).
+Implementation: The Orchestrator (Homepage.vue)
+This file is responsible for intersecting the two dimensions.
+
+
+
+
+```vue
+<!-- apps/exchange/creation/Homepage.vue -->
+<template>
+  <!-- Gating Layer: Deployment Mode -->
+  <AccessDenied v-if="deployment.isDisabled" />
+
+  <component :is="layoutComponent" v-else>
+    <!-- The Shared Core: Passed into the slot of the layout -->
+    <CreateSecretForm 
+      :allowed-options="deployment.options" 
+    />
+  </component>
+</template>
+
+<script setup>
+import { computed } from 'vue';
+import { useDeployment } from '@/shared/composables/useDeployment';
+import { useBranding } from '@/apps/exchange/composables/useBranding';
+
+// Components
+import CanonicalLayout from './layouts/CanonicalHome.vue';
+import BrandedLayout from './layouts/BrandedHome.vue';
+import AccessDenied from './views/AccessDenied.vue';
+
+// 1. Check Deployment (Open vs External)
+const deployment = useDeployment(); 
+
+// 2. Check Branding (Canonical vs Custom)
+const { isCanonical } = useBranding();
+
+// 3. Select Layout based on Branding
+const layoutComponent = computed(() => 
+  isCanonical.value ? CanonicalLayout : BrandedLayout
+);
+</script>
+```
+
+
+3. The Layouts (The Visual Dimension)
+This resolves your table. The CreateSecretForm is identical in both; only the surrounding context changes.
+
+A. layouts/CanonicalHome.vue (Open + Canonical)
+
+Role: Explain the product + provide the form.
+Content: Large Typography, SEO Text, "Keep your secrets safe", <slot />.
+B. layouts/BrandedHome.vue (Open + Branded)
+
+Role: Reinforce trust + provide the form.
+Content: Company Logo, specific instructions (e.g., "Secure message for Acme Corp employees"), <slot />.
+C. views/AccessDenied.vue (External)
+
+Role: Block access.
+Content: "This installation is private." (This handles the bottom-right cell of your matrix).
+4. Why this is robust
+By separating the Gatekeeper (Deployment) from the Decorator (Branding), you handle edge cases cleanly:
+
+Internal Mode:
+
+This is just "Open" but with a restricted audience.
+useDeployment() checks the config. If config.mode === 'internal', it returns isDisabled: false (shows the form), but perhaps passes a prop showInternalWarning: true.
+The CreateSecretForm receives this prop and might add a banner: "Internal Use Only - Logged IP."
+The "Partial" Brand:
+
+If a user is on the Canonical site (onetimesecret.com) but the Deployment Mode is set to "Maintenance" (a form of External), the AccessDenied component takes over before the Branding logic even runs.
+Summary
+File Location: apps/exchange/creation/Homepage.vue
+Responsibility: Orchestrating the intersection of Deployment Config and Runtime Branding.
+Outcome: A single CreateSecretForm component reused across all valid states, wrapped in the appropriate context.
