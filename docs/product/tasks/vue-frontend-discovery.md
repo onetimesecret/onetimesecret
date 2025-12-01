@@ -11,21 +11,57 @@ agent: Explore
 
 Agent prompt for mapping the current Vue 3 frontend before migrating to the Interaction Modes architecture.
 
+## Required Context
+
+**Read first**: `docs/product/interaction-modes.md`
+
+The target architecture organizes by **interaction mode** (what the user is doing), NOT by domain (canonical vs branded). This is the core insight:
+
+| App | Mode | Routes | Purpose |
+|-----|------|--------|---------|
+| `secret/` | Conceal/Reveal | `/`, `/secret/:key`, `/receipt/:key` | Transactional |
+| `workspace/` | Manage | `/dashboard/*`, `/account/*` | Account management |
+| `session/` | Gateway | `/signin`, `/signup`, `/logout` | Authentication |
+| `kernel/` | Admin | `/colonel/*` | System administration |
+
+**Target structure**:
+```
+src/apps/
+├── secret/
+│   ├── conceal/          # Homepage, IncomingForm
+│   └── reveal/           # ShowSecret, ShowReceipt
+├── workspace/
+│   ├── dashboard/
+│   ├── account/
+│   └── billing/
+├── session/
+│   └── views/            # Login, Register, Logout
+└── kernel/
+    └── views/            # Colonel admin views
+```
+
+Domain context (canonical vs branded) is handled by **composables** within components, NOT by folder structure. The `branded/` and `canonical/` folders are the **problem being solved**, not a pattern to replicate.
+
+---
+
 ## Objective
 
-Map the current Vue 3 frontend architecture to understand component organization, state flow, and how pieces interconnect before planning any refactoring.
+Map the **current** Vue 3 frontend architecture to understand:
+1. What exists today
+2. How it differs from the target structure
+3. What migration steps are needed
 
 ## Discovery Tasks
 
 ### 1. Directory Structure
 - List `src/` top-level directories and their purposes
 - Identify which folders contain components vs views vs utilities
-- Note any existing `apps/` structure if present (proposed architecture may be partially implemented)
+- Note any existing `apps/` structure (target may be partially implemented)
 
 ### 2. Component Organization
-- Count components in `src/components/` — are they flat or categorized?
-- Identify container components (ones that orchestrate others)
-- Find "branded" vs "canonical" variants — where do they live?
+- Count components in `src/components/` — flat or categorized?
+- Identify container components (orchestrators)
+- **Find `branded/` vs `canonical/` variants** — these are migration targets
 - Look for `*Container.vue` patterns that switch between variants
 
 ### 3. State Management
@@ -47,9 +83,7 @@ Map the current Vue 3 frontend architecture to understand component organization
 
 ## Output Format
 
-Produce a structured report:
-
-```
+```markdown
 ## Current Architecture Summary
 
 ### Directory Map
@@ -63,12 +97,19 @@ src/
 ### State Flow
 [diagram or description of how state moves through the app]
 
-### Pain Points Observed
-- [specific duplication or unclear boundaries found]
+### Domain-Based Patterns Found (Migration Targets)
+- [list files/folders organized by canonical/branded]
+- [container components that switch variants]
 
-### Alignment with Interaction Modes Doc
-- [what matches the proposed architecture]
-- [what differs from the proposed architecture]
+### Gap Analysis vs Target Architecture
+
+| Target App | Current Location | Migration Notes |
+|------------|------------------|-----------------|
+| `secret/conceal/` | [where Homepage lives now] | [what needs to move] |
+| `secret/reveal/` | [where ShowSecret lives now] | [what needs to move] |
+| `workspace/` | [current dashboard location] | [what needs to move] |
+| `session/` | [current auth views] | [what needs to move] |
+| `kernel/` | [current colonel views] | [what needs to move] |
 ```
 
 ## Constraints
@@ -76,7 +117,8 @@ src/
 - Read-only exploration — no code changes
 - Focus on structure, not implementation details
 - Note file paths for key findings
-- Flag any `canonical/` and `branded/` folder patterns specifically
+- **Flag `canonical/` and `branded/` folder patterns as migration targets**
+- Any proposed structure must follow the interaction modes pattern above
 
 ## Usage
 
@@ -84,6 +126,6 @@ Invoke via Task tool:
 
 ```
 subagent_type: Explore
-prompt: [copy Discovery Tasks and Output Format sections above]
+prompt: [copy entire document from "Required Context" through "Constraints"]
 description: Vue frontend architecture discovery
 ```
