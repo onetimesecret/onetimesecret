@@ -24,7 +24,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '../..');
 const SRC = path.join(ROOT, 'src');
-const BACKUP = path.join(ROOT, 'src.backup');
 
 interface MigrationOptions {
   dryRun: boolean;
@@ -56,23 +55,8 @@ function logPhase(phase: number, name: string) {
 // ============================================================================
 
 function phase1Backup(dryRun: boolean) {
-  logPhase(1, 'Create Backup');
-
-  if (fs.existsSync(BACKUP)) {
-    log(`⚠️  Backup already exists at ${BACKUP}`);
-    log(`   Remove it first or use --rollback to restore`);
-    if (!dryRun) {
-      throw new Error('Backup exists - aborting to prevent data loss');
-    }
-  }
-
-  if (dryRun) {
-    log(`[DRY RUN] Would copy ${SRC} → ${BACKUP}`);
-  } else {
-    log(`Creating backup: ${SRC} → ${BACKUP}`);
-    fs.copySync(SRC, BACKUP);
-    log(`✅ Backup created`);
-  }
+  logPhase(1, 'Skip Backup (use git to rollback)');
+  log(`ℹ️  Backup skipped - use 'git checkout -- src/' to rollback`);
 }
 
 // ============================================================================
@@ -599,20 +583,9 @@ function phase6Validate(dryRun: boolean) {
 // ============================================================================
 
 function rollback() {
-  console.log('\n🔄 Rolling back migration...');
-
-  if (!fs.existsSync(BACKUP)) {
-    console.error('❌ No backup found at', BACKUP);
-    process.exit(1);
-  }
-
-  // Remove current src
-  fs.removeSync(SRC);
-
-  // Restore backup
-  fs.moveSync(BACKUP, SRC);
-
-  console.log('✅ Rollback complete - restored from backup');
+  console.log('\n🔄 Rolling back migration via git...');
+  console.log('Run: git checkout -- src/');
+  console.log('Or:  git restore src/');
 }
 
 // ============================================================================
@@ -652,7 +625,7 @@ async function main() {
   } catch (e) {
     console.error('\n❌ Migration failed:', (e as Error).message);
     if (!options.dryRun) {
-      console.log('\nRun with --rollback to restore from backup');
+      console.log('\nRollback with: git checkout -- src/');
     }
     process.exit(1);
   }

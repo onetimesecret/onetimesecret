@@ -25,7 +25,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '../..');
 const SRC = path.join(ROOT, 'src');
-const BACKUP = path.join(ROOT, 'src.backup');
 const LOG_FILE = path.join(ROOT, 'migration.log');
 
 interface MigrationState {
@@ -57,7 +56,7 @@ interface FixResult {
 const MAX_RETRIES_PER_PHASE = 3;
 const MAX_TOTAL_RETRIES = 10;
 const PHASES = [
-  { num: 1, name: 'Backup', canRetry: false },
+  { num: 1, name: 'Skip Backup (use git)', canRetry: false },
   { num: 2, name: 'Create Directories', canRetry: true },
   { num: 3, name: 'Move Files', canRetry: true },
   { num: 4, name: 'Rewrite Imports', canRetry: true },
@@ -462,25 +461,14 @@ async function runMigration(options: { dryRun: boolean; maxRetries: number; unat
     console.log('\n⚠️  Migration incomplete. Options:');
     console.log('  1. Review errors in migration.log');
     console.log('  2. Fix issues manually and re-run');
-    console.log('  3. Rollback: npx tsx scripts/migration/migrate.ts --rollback');
+    console.log('  3. Rollback: git checkout -- src/');
   }
 }
 
 async function rollback() {
-  log('Rolling back migration...', 'warn');
-
-  if (!fs.existsSync(BACKUP)) {
-    log('No backup found - cannot rollback', 'error');
-    return;
-  }
-
-  try {
-    fs.removeSync(SRC);
-    fs.moveSync(BACKUP, SRC);
-    log('Rollback complete', 'success');
-  } catch (e) {
-    log(`Rollback failed: ${(e as Error).message}`, 'error');
-  }
+  log('Rolling back migration via git...', 'warn');
+  console.log('Run: git checkout -- src/');
+  console.log('Or:  git restore src/');
 }
 
 // ============================================================================
@@ -511,7 +499,7 @@ Options:
   --dry-run        Preview changes without executing
   --unattended, -y Run without prompts (auto-retry/skip on failure)
   --max-retries N  Maximum total retries (default: ${MAX_TOTAL_RETRIES})
-  --rollback       Restore from backup
+  --rollback       Show git rollback instructions
   --help, -h       Show this help
 
 Examples:
@@ -524,8 +512,8 @@ Examples:
   # Preview what would happen
   npx tsx scripts/migration/auto-migrate.ts --dry-run
 
-  # Restore original state
-  npx tsx scripts/migration/auto-migrate.ts --rollback
+  # Rollback via git
+  git checkout -- src/
 `);
 }
 
