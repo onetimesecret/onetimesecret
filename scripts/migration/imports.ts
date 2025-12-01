@@ -68,6 +68,9 @@ export const PATH_MAPPINGS: PathMapping[] = [
   // Remaining flat components → shared/ui
   { from: /^@\/components\/([A-Z][^/]+)\.vue$/, to: '@/shared/components/ui/$1.vue' },
 
+  // Icons sprites (special case - stays in components)
+  { from: /^@\/components\/icons\/sprites/, to: '@/shared/components/icons/sprites' },
+
   // Component directories → shared
   { from: /^@\/components\/base\//, to: '@/shared/components/base/' },
   { from: /^@\/components\/ui\//, to: '@/shared/components/ui/' },
