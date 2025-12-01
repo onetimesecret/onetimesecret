@@ -16,10 +16,13 @@
  */
 
 import { execSync, spawn } from 'child_process';
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import * as readline from 'readline';
+import fs from 'fs-extra';
+import path from 'path';
+import readline from 'readline';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '../..');
 const SRC = path.join(ROOT, 'src');
 const BACKUP = path.join(ROOT, 'src.backup');

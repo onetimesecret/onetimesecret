@@ -13,12 +13,15 @@
  */
 
 import { execSync } from 'child_process';
-import * as fs from 'fs-extra';
-import * as path from 'path';
+import fs from 'fs-extra';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { Project } from 'ts-morph';
-import { fileMoves, FileMove } from './moves';
-import { rewriteImports, PATH_MAPPINGS } from './imports';
+import { fileMoves, FileMove } from './moves.js';
+import { rewriteImports, PATH_MAPPINGS } from './imports.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '../..');
 const SRC = path.join(ROOT, 'src');
 const BACKUP = path.join(ROOT, 'src.backup');
