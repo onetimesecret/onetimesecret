@@ -28,7 +28,7 @@ module V1
     @events = {}
 
     # Default limit for events that haven't been explicitly configured
-    DEFAULT_LIMIT = 25 unless defined?(V1::RateLimit::DEFAULT_LIMIT)
+    DEFAULT_LIMIT = 100 unless defined?(V1::RateLimit::DEFAULT_LIMIT)
 
     feature :expiration
     feature :quantization
@@ -162,7 +162,7 @@ module V1
       # @param event [Symbol] the event to get the limit for
       # @return [Integer] the configured limit or DEFAULT_LIMIT
       def event_limit event
-        events[event] || DEFAULT_LIMIT # Float::INFINITY-1
+        events[event.to_s] || DEFAULT_LIMIT # Float::INFINITY-1
       end
 
       # Check if a count exceeds the limit for an event
