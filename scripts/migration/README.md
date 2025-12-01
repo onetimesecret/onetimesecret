@@ -13,29 +13,29 @@ pnpm add -D ts-morph fs-extra @types/fs-extra tsx
 
 ```bash
 # Fully automated - runs until complete or gives up
-npx tsx scripts/migration/auto-migrate.ts --unattended
+pnpx tsx scripts/migration/auto-migrate.ts --unattended
 
 # Interactive - prompts on each failure
-npx tsx scripts/migration/auto-migrate.ts
+pnpx tsx scripts/migration/auto-migrate.ts
 
 # Preview first
-npx tsx scripts/migration/auto-migrate.ts --dry-run
+pnpx tsx scripts/migration/auto-migrate.ts --dry-run
 ```
 
 ## Manual Usage
 
 ```bash
 # Dry run - see what would happen without making changes
-npx tsx scripts/migration/migrate.ts --dry-run
+pnpx tsx scripts/migration/migrate.ts --dry-run
 
 # Run specific phase only (for debugging)
-npx tsx scripts/migration/migrate.ts --dry-run --phase 3
+pnpx tsx scripts/migration/migrate.ts --dry-run --phase 3
 
 # Execute migration
-npx tsx scripts/migration/migrate.ts
+pnpx tsx scripts/migration/migrate.ts
 
 # If something goes wrong, rollback
-npx tsx scripts/migration/migrate.ts --rollback
+pnpx tsx scripts/migration/migrate.ts --rollback
 ```
 
 ## Phases
@@ -81,7 +81,7 @@ If migration fails or produces unexpected results:
 
 ```bash
 # Automatic rollback from backup
-npx tsx scripts/migration/auto-migrate.ts --rollback
+pnpx tsx scripts/migration/auto-migrate.ts --rollback
 
 # Or manual rollback
 rm -rf src
