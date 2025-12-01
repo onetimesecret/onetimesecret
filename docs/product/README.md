@@ -48,6 +48,7 @@ The frontend is organized into four apps based on what users are doing:
 | Document | Purpose | Status |
 |----------|---------|--------|
 | [Vue Frontend Discovery](tasks/vue-frontend-discovery.md) | Map current architecture before migration | Pending |
+| [Architecture Gap Analysis](tasks/architecture-gap-analysis.md) | Compare current vs target, size gaps | Pending |
 
 ## Document Types
 
