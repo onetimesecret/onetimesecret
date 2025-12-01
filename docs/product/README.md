@@ -47,7 +47,8 @@ The frontend is organized into four apps based on what users are doing:
 
 | Document | Purpose | Status |
 |----------|---------|--------|
-| [Vue Frontend Discovery](tasks/vue-frontend-discovery.md) | Map current architecture before migration | Pending |
+| [Vue Frontend Discovery](tasks/vue-frontend-discovery.md) | Map current architecture before migration | Complete |
+| [Migration Manifest](tasks/interaction-modes-migration-manifest.md) | File-by-file migration plan for big bang restructure | Pending |
 | [Architecture Gap Analysis](tasks/architecture-gap-analysis.md) | Compare current vs target, size gaps | Pending |
 
 ## Document Types
@@ -55,6 +56,26 @@ The frontend is organized into four apps based on what users are doing:
 - **Technical Design** (`type: technical-design`) — How systems work
 - **Reference** (`type: reference`) — Lookup tables and specifications
 - **Assessment** (`type: assessment`) — Current state snapshots before change
+
+## Running
+
+1. "Run docs/product/tasks/vue-frontend-discovery.md"
+2. (The agent produces the assessment)
+3. "Run docs/product/tasks/architecture-gap-analysis.md"
+4. (The agent produces the gap inventory)
+
+
+### The workflow:
+
+```plain
+tasks/vue-frontend-discovery.md
+    ↓ produces
+assessments/vue-frontend-current-state.md
+    ↓ consumed by
+tasks/architecture-gap-analysis.md
+    ↓ produces
+assessments/vue-frontend-gap-analysis.md
+```
 
 ## Contributing
 
