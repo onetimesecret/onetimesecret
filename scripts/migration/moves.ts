@@ -115,11 +115,41 @@ export function fileMoves(): FileMove[] {
     },
 
     // ========================================================================
-    // Secret App: Components
+    // Secret App: Components (flat files in components/secrets/)
     // ========================================================================
+    {
+      from: 'components/secrets/HomepageLinksPlaceholder.vue',
+      to: 'apps/secret/components/HomepageLinksPlaceholder.vue',
+      action: 'move',
+    },
     {
       from: 'components/secrets/RecentSecretsTable.vue',
       to: 'apps/secret/components/RecentSecretsTable.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretDisplayHelpContent.vue',
+      to: 'apps/secret/components/SecretDisplayHelpContent.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretLinkLine.vue',
+      to: 'apps/secret/components/SecretLinkLine.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretLinksTable.vue',
+      to: 'apps/secret/components/SecretLinksTable.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretLinksTableRow.vue',
+      to: 'apps/secret/components/SecretLinksTableRow.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretLinksTableRowActions.vue',
+      to: 'apps/secret/components/SecretLinksTableRowActions.vue',
       action: 'move',
     },
     {
@@ -127,6 +157,22 @@ export function fileMoves(): FileMove[] {
       to: 'apps/secret/components/SecretMetadataTable.vue',
       action: 'move',
     },
+    {
+      from: 'components/secrets/SecretMetadataTableItem.vue',
+      to: 'apps/secret/components/SecretMetadataTableItem.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretRecipientHelpContent.vue',
+      to: 'apps/secret/components/SecretRecipientHelpContent.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/UnknownSecretHelpContent.vue',
+      to: 'apps/secret/components/UnknownSecretHelpContent.vue',
+      action: 'move',
+    },
+    // Subdirectories in components/secrets/
     {
       from: 'components/secrets/form',
       to: 'apps/secret/components/form',
@@ -809,6 +855,26 @@ export function fileMoves(): FileMove[] {
       to: null,
       action: 'delete',
       notes: 'Use shared ErrorNotFound',
+    },
+
+    // ========================================================================
+    // Shared: Stores
+    // ========================================================================
+    {
+      from: 'stores',
+      to: 'shared/stores',
+      action: 'move',
+      notes: 'All stores are shared across apps',
+    },
+
+    // ========================================================================
+    // Shared: Composables
+    // ========================================================================
+    {
+      from: 'composables',
+      to: 'shared/composables',
+      action: 'move',
+      notes: 'Move wholesale first, then relocate app-specific ones',
     },
   ];
 }

@@ -111,6 +111,7 @@ const DIRECTORIES = [
   'shared/layouts',
   'shared/branding/api',
   'shared/composables',
+  'shared/stores',
 ];
 
 function phase2CreateDirectories(dryRun: boolean) {
@@ -207,6 +208,7 @@ function phase4RewriteImports(dryRun: boolean) {
     path.join(SRC, 'schemas/**/*.ts'),
     path.join(SRC, 'types/**/*.ts'),
     path.join(SRC, 'utils/**/*.ts'),
+    path.join(SRC, 'plugins/**/*.ts'),
   ];
 
   for (const pattern of patterns) {

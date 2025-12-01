@@ -96,6 +96,14 @@ export const PATH_MAPPINGS: PathMapping[] = [
   { from: /^@\/layouts\/QuietLayout\.vue$/, to: '@/shared/layouts/MinimalLayout.vue' },
   { from: /^@\/layouts\//, to: '@/shared/layouts/' },
 
+  // Stores → shared/stores
+  { from: /^@\/stores$/, to: '@/shared/stores' },
+  { from: /^@\/stores\//, to: '@/shared/stores/' },
+
+  // Composables → shared/composables
+  { from: /^@\/composables$/, to: '@/shared/composables' },
+  { from: /^@\/composables\//, to: '@/shared/composables/' },
+
   // Relative imports within moved container files
   { from: /^\.\/branded\/ShowSecret\.vue$/, to: './branded/ShowSecret.vue' },  // Keep relative
   { from: /^\.\/canonical\/ShowSecret\.vue$/, to: './canonical/ShowSecret.vue' },  // Keep relative
