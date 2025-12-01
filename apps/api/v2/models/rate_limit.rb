@@ -162,7 +162,7 @@ module V2
       # @param event [Symbol] the event to get the limit for
       # @return [Integer] the configured limit or DEFAULT_LIMIT
       def event_limit event
-        events[event] || DEFAULT_LIMIT # Float::INFINITY-1
+        events[event.to_s] || DEFAULT_LIMIT # Float::INFINITY-1
       end
 
       # Check if a count exceeds the limit for an event
