@@ -9,7 +9,20 @@ Atomic migration from `src/views/` + `src/components/` to `src/apps/` structure.
 pnpm add -D ts-morph fs-extra @types/fs-extra tsx
 ```
 
-## Usage
+## Quick Start (Recommended)
+
+```bash
+# Fully automated - runs until complete or gives up
+npx tsx scripts/migration/auto-migrate.ts --unattended
+
+# Interactive - prompts on each failure
+npx tsx scripts/migration/auto-migrate.ts
+
+# Preview first
+npx tsx scripts/migration/auto-migrate.ts --dry-run
+```
+
+## Manual Usage
 
 ```bash
 # Dry run - see what would happen without making changes
@@ -36,9 +49,31 @@ npx tsx scripts/migration/migrate.ts --rollback
 
 ## Files
 
-- `migrate.ts` - Main orchestrator script
-- `moves.ts` - File move definitions (from manifest)
-- `imports.ts` - AST-based import rewriting with ts-morph
+| File | Purpose |
+|------|---------|
+| `auto-migrate.ts` | Iterative runner with auto-retry and error recovery |
+| `migrate.ts` | Core migration orchestrator (6 phases) |
+| `moves.ts` | File move definitions (from manifest) |
+| `imports.ts` | AST-based import rewriting with ts-morph |
+
+## Auto-Migration Features
+
+The `auto-migrate.ts` runner provides:
+
+- **Iterative execution** - Runs phases in sequence
+- **Auto-retry** - Retries failed phases up to 3 times
+- **Error analysis** - Recognizes common error patterns
+- **Auto-fix** - Applies fixes for known issues (missing dirs, duplicates)
+- **Interactive mode** - Prompts for guidance on failure
+- **Unattended mode** - Fully automated with `--unattended`
+- **Logging** - Full log written to `migration.log`
+
+### Error Patterns Handled
+
+- Missing directories → Auto-create
+- Duplicate destination files → Compare and dedupe
+- Unresolved imports → Log for manual review
+- Type errors → Log for manual review
 
 ## Rollback
 
@@ -46,7 +81,7 @@ If migration fails or produces unexpected results:
 
 ```bash
 # Automatic rollback from backup
-npx tsx scripts/migration/migrate.ts --rollback
+npx tsx scripts/migration/auto-migrate.ts --rollback
 
 # Or manual rollback
 rm -rf src
