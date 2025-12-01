@@ -16,8 +16,12 @@ Compare current Vue frontend against the Interaction Modes target architecture.
 
 ## Inputs
 
-- **Current State**: Output from `vue-frontend-discovery.md`
+- **Current State**: `docs/product/assessments/vue-frontend-current-state.md`
 - **Target State**: `interaction-modes.md` sections: "The Solution", "Architecture"
+
+## Output Location
+
+Save results to: `docs/product/assessments/vue-frontend-gap-analysis.md`
 
 ## Output: Gap Inventory
 

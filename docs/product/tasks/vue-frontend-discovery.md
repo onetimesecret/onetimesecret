@@ -112,6 +112,10 @@ src/
 | `kernel/` | [current colonel views] | [what needs to move] |
 ```
 
+## Output Location
+
+Save results to: `docs/product/assessments/vue-frontend-current-state.md`
+
 ## Constraints
 
 - Read-only exploration — no code changes
