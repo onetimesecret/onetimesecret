@@ -118,6 +118,16 @@ export function fileMoves(): FileMove[] {
     // Secret App: Components
     // ========================================================================
     {
+      from: 'components/secrets/RecentSecretsTable.vue',
+      to: 'apps/secret/components/RecentSecretsTable.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretMetadataTable.vue',
+      to: 'apps/secret/components/SecretMetadataTable.vue',
+      action: 'move',
+    },
+    {
       from: 'components/secrets/form',
       to: 'apps/secret/components/form',
       action: 'move',

@@ -27,7 +27,10 @@ export const PATH_MAPPINGS: PathMapping[] = [
   { from: /^@\/views\/secrets\/canonical\//, to: '@/apps/secret/reveal/' },
   { from: /^@\/views\/secrets\//, to: '@/apps/secret/reveal/' },
   { from: /^@\/views\/incoming\//, to: '@/apps/secret/conceal/' },
-  { from: /^@\/views\/dashboard\/Dashboard(Domain.*)/, to: '@/apps/workspace/domains/$1' },
+  { from: /^@\/views\/dashboard\/DashboardDomains\.vue$/, to: '@/apps/workspace/domains/DomainsList.vue' },
+  { from: /^@\/views\/dashboard\/DashboardDomainAdd\.vue$/, to: '@/apps/workspace/domains/DomainAdd.vue' },
+  { from: /^@\/views\/dashboard\/DashboardDomainVerify\.vue$/, to: '@/apps/workspace/domains/DomainVerify.vue' },
+  { from: /^@\/views\/dashboard\/DashboardDomainBrand\.vue$/, to: '@/apps/workspace/domains/DomainBrand.vue' },
   { from: /^@\/views\/dashboard\//, to: '@/apps/workspace/dashboard/' },
   { from: /^@\/views\/account\/region\//, to: '@/apps/workspace/account/region/' },
   { from: /^@\/views\/account\/settings\//, to: '@/apps/workspace/account/settings/' },
@@ -98,6 +101,10 @@ export const PATH_MAPPINGS: PathMapping[] = [
   { from: /^\.\/canonical\/ShowSecret\.vue$/, to: './canonical/ShowSecret.vue' },  // Keep relative
   { from: /^\.\/BrandedHomepage\.vue$/, to: './BrandedHomepage.vue' },  // Keep relative
   { from: /^\.\/DisabledHomepage\.vue$/, to: './AccessDenied.vue' },  // Rename
+
+  // Cross-app relative imports → absolute
+  { from: /^\.\.?\/\.\.\/CustomDomainPreview\.vue$/, to: '@/apps/workspace/components/domains/CustomDomainPreview.vue' },
+  { from: /^\.\.?\/\.\.\/\.\.\/CustomDomainPreview\.vue$/, to: '@/apps/workspace/components/domains/CustomDomainPreview.vue' },
 
   // Relative imports → absolute (for files moved to shared/components/ui/)
   { from: /^\.\/icons\//, to: '@/shared/components/icons/' },
