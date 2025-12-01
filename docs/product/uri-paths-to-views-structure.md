@@ -15,7 +15,7 @@ Here's the URL → File Path mapping:
 
 | URL                                 | File Path                                              |
 |-------------------------------------|--------------------------------------------------------|
-| /                                   | src/apps/secret/views/conceal/Homepage.vue             |
+| /                                   | src/apps/secret/views/Homepage.vue             |
 | /secret/:key                        | src/apps/secret/views/reveal/ShowSecret.vue            |
 | /receipt/:key                       | src/apps/secret/views/reveal/ShowReceipt.vue           |
 | /incoming                           | src/apps/secret/views/conceal/IncomingForm.vue         |
