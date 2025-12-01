@@ -67,6 +67,8 @@ const DIRECTORIES = [
   // Apps
   'apps/secret/conceal',
   'apps/secret/reveal',
+  'apps/secret/reveal/branded',
+  'apps/secret/reveal/canonical',
   'apps/secret/support',
   'apps/secret/composables',
   'apps/secret/branding',
@@ -74,6 +76,8 @@ const DIRECTORIES = [
   'apps/secret/components/reveal',
   'apps/secret/components/support',
   'apps/secret/components/incoming',
+  'apps/secret/components/branded',
+  'apps/secret/components/canonical',
   'apps/workspace/dashboard',
   'apps/workspace/account/region',
   'apps/workspace/account/settings',
@@ -192,13 +196,17 @@ function phase4RewriteImports(dryRun: boolean) {
     skipAddingFilesFromTsConfig: true,
   });
 
-  // Add all .vue and .ts files in src/apps and src/shared
+  // Add all .vue and .ts files that may have imports to rewrite
   const patterns = [
+    path.join(SRC, '*.{ts,vue}'),           // Root files (App.vue, main.ts)
     path.join(SRC, 'apps/**/*.{ts,vue}'),
     path.join(SRC, 'shared/**/*.{ts,vue}'),
     path.join(SRC, 'router/**/*.ts'),
     path.join(SRC, 'stores/**/*.ts'),
     path.join(SRC, 'composables/**/*.ts'),
+    path.join(SRC, 'schemas/**/*.ts'),
+    path.join(SRC, 'types/**/*.ts'),
+    path.join(SRC, 'utils/**/*.ts'),
   ];
 
   for (const pattern of patterns) {

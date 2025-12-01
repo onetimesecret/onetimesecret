@@ -33,14 +33,11 @@ pnpx tsx scripts/migration/migrate.ts --dry-run --phase 3
 
 # Execute migration
 pnpx tsx scripts/migration/migrate.ts
-
-# If something goes wrong, rollback
-pnpx tsx scripts/migration/migrate.ts --rollback
 ```
 
 ## Phases
 
-1. **Backup** - Copy `src/` to `src.backup/`
+1. **Skip Backup** - Use git for rollback instead
 2. **Create Directories** - Build new `apps/` and `shared/` structure
 3. **Move Files** - Execute file moves from manifest
 4. **Rewrite Imports** - AST-based import path updates
@@ -80,17 +77,15 @@ The `auto-migrate.ts` runner provides:
 If migration fails or produces unexpected results:
 
 ```bash
-# Automatic rollback from backup
-pnpx tsx scripts/migration/auto-migrate.ts --rollback
+# Rollback via git
+git checkout -- src/
 
-# Or manual rollback
-rm -rf src
-mv src.backup src
+# Or restore specific files
+git restore src/
 ```
 
 ## After Migration
 
-1. Delete `src.backup/` when confident
-2. Delete empty old directories (`src/views/`, `src/components/`, `src/layouts/`)
-3. Update any hardcoded paths in config files
-4. Run full test suite
+1. Delete empty old directories (`src/views/`, `src/components/`, `src/layouts/`)
+2. Update any hardcoded paths in config files
+3. Run full test suite

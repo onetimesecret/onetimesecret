@@ -31,9 +31,9 @@ export function fileMoves(): FileMove[] {
     },
     {
       from: 'views/BrandedHomepage.vue',
-      to: null,
-      action: 'delete',
-      notes: 'Merged into Homepage.vue',
+      to: 'apps/secret/conceal/BrandedHomepage.vue',
+      action: 'move',
+      notes: 'Keep for container import until refactored',
     },
     {
       from: 'views/DisabledHomepage.vue',
@@ -67,21 +67,21 @@ export function fileMoves(): FileMove[] {
     },
     {
       from: 'views/secrets/branded/ShowSecret.vue',
-      to: null,
-      action: 'delete',
-      notes: 'Merged into ShowSecret.vue',
+      to: 'apps/secret/reveal/branded/ShowSecret.vue',
+      action: 'move',
+      notes: 'Keep for container import until refactored',
     },
     {
       from: 'views/secrets/canonical/ShowSecret.vue',
-      to: null,
-      action: 'delete',
-      notes: 'Merged into ShowSecret.vue',
+      to: 'apps/secret/reveal/canonical/ShowSecret.vue',
+      action: 'move',
+      notes: 'Keep for container import until refactored',
     },
     {
       from: 'views/secrets/branded/UnknownSecret.vue',
-      to: null,
-      action: 'delete',
-      notes: 'Merged into UnknownSecret.vue',
+      to: 'apps/secret/reveal/branded/UnknownSecret.vue',
+      action: 'move',
+      notes: 'Keep for container import until refactored',
     },
     {
       from: 'views/secrets/canonical/UnknownSecret.vue',
@@ -129,15 +129,15 @@ export function fileMoves(): FileMove[] {
     },
     {
       from: 'components/secrets/branded',
-      to: null,
-      action: 'delete',
-      notes: 'Merged into unified components',
+      to: 'apps/secret/components/branded',
+      action: 'move',
+      notes: 'Keep until views refactored',
     },
     {
       from: 'components/secrets/canonical',
-      to: null,
-      action: 'delete',
-      notes: 'Merged into unified components',
+      to: 'apps/secret/components/canonical',
+      action: 'move',
+      notes: 'Keep until views refactored',
     },
     {
       from: 'components/incoming',
@@ -150,8 +150,8 @@ export function fileMoves(): FileMove[] {
     // ========================================================================
     {
       from: 'views/dashboard/DashboardContainer.vue',
-      to: null,
-      action: 'delete',
+      to: 'apps/workspace/dashboard/DashboardContainer.vue',
+      action: 'move',
       notes: 'Logic moves to composables',
     },
     {

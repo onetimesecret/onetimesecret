@@ -19,7 +19,10 @@ export interface PathMapping {
  * Order matters - more specific patterns should come first.
  */
 export const PATH_MAPPINGS: PathMapping[] = [
-  // Views → Apps
+  // Views → Apps (specific renames first)
+  { from: /^@\/views\/incoming\/IncomingSecretForm\.vue$/, to: '@/apps/secret/conceal/IncomingForm.vue' },
+  { from: /^@\/views\/incoming\/IncomingSuccessView\.vue$/, to: '@/apps/secret/conceal/IncomingSuccess.vue' },
+  { from: /^@\/views\/secrets\/ShowSecretContainer\.vue$/, to: '@/apps/secret/reveal/ShowSecret.vue' },
   { from: /^@\/views\/secrets\/branded\//, to: '@/apps/secret/reveal/' },
   { from: /^@\/views\/secrets\/canonical\//, to: '@/apps/secret/reveal/' },
   { from: /^@\/views\/secrets\//, to: '@/apps/secret/reveal/' },
@@ -89,6 +92,26 @@ export const PATH_MAPPINGS: PathMapping[] = [
   { from: /^@\/layouts\/ColonelLayout\.vue$/, to: '@/shared/layouts/AdminLayout.vue' },
   { from: /^@\/layouts\/QuietLayout\.vue$/, to: '@/shared/layouts/MinimalLayout.vue' },
   { from: /^@\/layouts\//, to: '@/shared/layouts/' },
+
+  // Relative imports within moved container files
+  { from: /^\.\/branded\/ShowSecret\.vue$/, to: './branded/ShowSecret.vue' },  // Keep relative
+  { from: /^\.\/canonical\/ShowSecret\.vue$/, to: './canonical/ShowSecret.vue' },  // Keep relative
+  { from: /^\.\/BrandedHomepage\.vue$/, to: './BrandedHomepage.vue' },  // Keep relative
+  { from: /^\.\/DisabledHomepage\.vue$/, to: './AccessDenied.vue' },  // Rename
+
+  // Relative imports → absolute (for files moved to shared/components/ui/)
+  { from: /^\.\/icons\//, to: '@/shared/components/icons/' },
+  { from: /^\.\.\/icons\//, to: '@/shared/components/icons/' },
+  { from: /^\.\/logos\//, to: '@/shared/components/logos/' },
+  { from: /^\.\.\/logos\//, to: '@/shared/components/logos/' },
+  { from: /^\.\/base\//, to: '@/shared/components/base/' },
+  { from: /^\.\.\/base\//, to: '@/shared/components/base/' },
+  { from: /^\.\/ui\//, to: '@/shared/components/ui/' },
+  { from: /^\.\.\/ui\//, to: '@/shared/components/ui/' },
+  { from: /^\.\/modals\//, to: '@/shared/components/modals/' },
+  { from: /^\.\.\/modals\//, to: '@/shared/components/modals/' },
+  { from: /^\.\/common\//, to: '@/shared/components/common/' },
+  { from: /^\.\.\/common\//, to: '@/shared/components/common/' },
 ];
 
 /**
