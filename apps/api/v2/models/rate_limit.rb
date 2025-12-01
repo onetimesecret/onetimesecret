@@ -28,7 +28,7 @@ module V2
     @events = {}
 
     # Default limit for events that haven't been explicitly configured
-    DEFAULT_LIMIT = 25 unless defined?(V2::RateLimit::DEFAULT_LIMIT)
+    DEFAULT_LIMIT = 100 unless defined?(V2::RateLimit::DEFAULT_LIMIT)
 
     feature :expiration
     feature :quantization
