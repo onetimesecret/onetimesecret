@@ -137,10 +137,18 @@ module Onetime
         secret.lifespan            = lifespan
         secret.metadata_identifier = metadata.objid
 
+        # NOTE: Transient fields that are used for aad protection (like
+        # ciphertext_domain) need to be populated before encrypting the
+        # content.
+        secret.ciphertext_domain = domain
         secret.share_domain      = domain
-        secret.ciphertext_domain = domain # transient fields need to be populated before
-        secret.passphrase        = passphrase # encrypting the content fio aad protection
         secret.ciphertext        = content
+
+        # Set the passphrase via the special update method that ensures it
+        # is encrypted before its saved. We could override the field setter,
+        # but prefer to be explicit about it.
+        secret.update_passphrase passphrase unless passphrase.nil?
+
         secret.save
 
         metadata.secret_shortid = secret.shortid
