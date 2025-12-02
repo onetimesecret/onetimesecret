@@ -25,11 +25,7 @@ export type NotificationsStore = {
 
   // Actions
   init: () => void;
-  show: (
-    msg: string,
-    sev: 'success' | 'error' | 'info',
-    pos?: NotificationPosition
-  ) => void;
+  show: (msg: string, sev: 'success' | 'error' | 'info', pos?: NotificationPosition) => void;
   hide: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
@@ -116,11 +112,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
    * show('Changes saved', 'success', 'top');
    * ```
    */
-  function show(
-    msg: string,
-    sev: NotificationSeverity,
-    pos?: NotificationPosition
-  ) {
+  function show(msg: string, sev: NotificationSeverity, pos?: NotificationPosition) {
     message.value = msg;
     severity.value = sev;
     position.value = pos || 'bottom';

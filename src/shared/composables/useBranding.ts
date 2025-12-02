@@ -135,7 +135,7 @@ export function useBranding(domainId?: string) {
         brandSettings.value = updated;
         originalSettings.value = { ...brandSettings.value };
       }
-      notifications.show('Brand settings saved successfully', 'success');
+      notifications.show('Brand settings saved successfully', 'success', 'top');
     });
 
   const handleLogoUpload = async (file: File) =>
