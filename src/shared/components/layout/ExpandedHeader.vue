@@ -1,4 +1,4 @@
-<!-- src/components/layout/ExpandedHeader.vue -->
+<!-- src/shared/components/layout/ExpandedHeader.vue -->
 
 <script setup lang="ts">
   import MastHead from '@/shared/components/layout/MastHead.vue';

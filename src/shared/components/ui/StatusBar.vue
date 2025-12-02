@@ -1,4 +1,4 @@
-<!-- src/components/StatusBar.vue -->
+<!-- src/shared/components/ui/StatusBar.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

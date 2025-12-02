@@ -1,4 +1,4 @@
-// src/composables/useAsyncHandler.ts
+// src/shared/composables/useAsyncHandler.ts
 
 import { SENTRY_KEY, SentryInstance } from '@/plugins/core/enableDiagnostics';
 import type { ApplicationError } from '@/schemas/errors';

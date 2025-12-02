@@ -1,4 +1,4 @@
-<!-- src/components/secrets/SecretLinkLine.vue -->
+<!-- src/apps/secret/components/SecretLinkLine.vue -->
 
 <script setup lang="ts">
 import { ref } from 'vue';

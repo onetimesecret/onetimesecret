@@ -1,4 +1,4 @@
-<!-- src/components/icons/OIcon.vue -->
+<!-- src/shared/components/icons/OIcon.vue -->
 
 <!--
   Usage:

@@ -1,3 +1,5 @@
+// src/scripts/locales/split-locale/split-locale-step2.ts
+
 #!/usr/bin/env ts-node
 
 // src/scripts/locales/split-locale/split-locale-step2.ts

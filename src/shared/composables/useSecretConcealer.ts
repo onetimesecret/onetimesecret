@@ -1,4 +1,4 @@
-// src/composables/useSecretConcealer.ts
+// src/shared/composables/useSecretConcealer.ts
 
 import {
   AsyncHandlerOptions,

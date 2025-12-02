@@ -1,4 +1,4 @@
-<!-- src/components/secrets/form/ConcealButton.vue -->
+<!-- src/apps/secret/components/form/ConcealButton.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

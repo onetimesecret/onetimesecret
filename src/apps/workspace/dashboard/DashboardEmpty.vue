@@ -1,4 +1,5 @@
-<!-- src/views/dashboard/DashboardEmpty.vue -->
+<!-- src/apps/workspace/dashboard/DashboardEmpty.vue -->
+
 <!-- Onboarding dashboard for users with team capability but no teams yet -->
 
 <script setup lang="ts">

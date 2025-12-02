@@ -1,4 +1,4 @@
-<!-- src/components/icons/sprites/HeroiconsSprites.vue -->
+<!-- src/shared/components/icons/sprites/HeroiconsSprites.vue -->
 
 <!--
   Name:  Icon from HeroIcons by Refactoring UI Inc

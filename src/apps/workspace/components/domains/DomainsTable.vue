@@ -1,4 +1,4 @@
-<!-- src/components/DomainsTable.vue -->
+<!-- src/apps/workspace/components/domains/DomainsTable.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

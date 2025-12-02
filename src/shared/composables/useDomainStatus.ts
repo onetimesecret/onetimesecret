@@ -1,4 +1,4 @@
-// src/composables/useDomainStatus.ts
+// src/shared/composables/useDomainStatus.ts
 
 import type { CustomDomain } from '@/schemas/models';
 import { computed } from 'vue';

@@ -1,4 +1,4 @@
-<!-- src/components/secrets/form/SecretForm.vue -->
+<!-- src/apps/secret/components/form/SecretForm.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

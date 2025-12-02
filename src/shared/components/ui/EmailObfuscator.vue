@@ -1,4 +1,4 @@
-<!-- src/components/EmailObfuscator.vue -->
+<!-- src/shared/components/ui/EmailObfuscator.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

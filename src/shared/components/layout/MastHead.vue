@@ -1,4 +1,4 @@
-<!-- src/components/layout/MastHead.vue -->
+<!-- src/shared/components/layout/MastHead.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

@@ -1,4 +1,4 @@
-<!-- src/components/navigation/UserMenu.vue -->
+<!-- src/shared/components/navigation/UserMenu.vue -->
 
 <!--
   "Complete MFA Verification" is shown in the UserMenu when:

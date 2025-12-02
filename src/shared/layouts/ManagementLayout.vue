@@ -1,4 +1,4 @@
-<!-- src/layouts/ImprovedLayout.vue -->
+<!-- src/shared/layouts/ManagementLayout.vue -->
 
 <!--
   Improved Layout with Optional Sidebar

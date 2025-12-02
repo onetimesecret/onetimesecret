@@ -1,4 +1,4 @@
-<!-- src/components/DetailField.vue -->
+<!-- src/shared/components/ui/DetailField.vue -->
 
 <script setup lang="ts">
 import CopyButton from './CopyButton.vue';

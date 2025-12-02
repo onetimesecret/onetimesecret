@@ -1,4 +1,4 @@
-<!-- src/components/modals/SettingsModal.vue -->
+<!-- src/shared/components/modals/SettingsModal.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

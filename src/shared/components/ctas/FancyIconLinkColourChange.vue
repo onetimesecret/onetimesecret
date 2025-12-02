@@ -1,4 +1,4 @@
-<!-- src/components/ctas/FancyIconLinkColourChange.vue -->
+<!-- src/shared/components/ctas/FancyIconLinkColourChange.vue -->
 
 <script setup lang="ts">
 defineProps<{

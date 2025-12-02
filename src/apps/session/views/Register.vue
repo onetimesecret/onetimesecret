@@ -1,4 +1,5 @@
-<!-- src/views/auth/Signup.vue -->
+<!-- src/apps/session/views/Register.vue -->
+
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import AlternateSignUpMethods from '@/apps/session/components/AlternateSignUpMethods.vue';

@@ -1,4 +1,4 @@
-<!-- src/components/auth/MagicLinkForm.vue -->
+<!-- src/apps/session/components/MagicLinkForm.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

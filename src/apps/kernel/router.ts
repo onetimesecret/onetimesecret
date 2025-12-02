@@ -1,3 +1,5 @@
+// src/apps/kernel/router.ts
+
 /**
  * Kernel App Routes (Placeholder)
  *

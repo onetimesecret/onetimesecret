@@ -1,4 +1,4 @@
-<!-- src/views/account/ChangePassword.vue -->
+<!-- src/apps/workspace/account/ChangePassword.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

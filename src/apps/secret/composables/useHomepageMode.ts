@@ -1,3 +1,5 @@
+// src/apps/secret/composables/useHomepageMode.ts
+
 import { computed } from 'vue';
 import { WindowService } from '@/services/window.service';
 

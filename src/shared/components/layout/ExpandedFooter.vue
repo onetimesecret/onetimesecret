@@ -1,4 +1,4 @@
-<!-- src/components/layout/ExpandedFooter.vue -->
+<!-- src/shared/components/layout/ExpandedFooter.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

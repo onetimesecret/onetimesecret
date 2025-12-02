@@ -1,4 +1,4 @@
-<!-- src/views/account/AccountSettings.vue -->
+<!-- src/apps/workspace/account/AccountSettings.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

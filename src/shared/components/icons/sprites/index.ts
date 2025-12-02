@@ -1,4 +1,4 @@
-// src/components/icons/sprites/index.ts
+// src/shared/components/icons/sprites/index.ts
 
 import type { Component } from 'vue';
 

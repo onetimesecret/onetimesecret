@@ -1,4 +1,4 @@
-<!-- src/components/layout/BillingLayout.vue -->
+<!-- src/shared/components/layout/BillingLayout.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

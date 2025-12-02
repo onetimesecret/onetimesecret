@@ -1,4 +1,4 @@
-// src/composables/useAuth.ts
+// src/shared/composables/useAuth.ts
 
 import {
   useAsyncHandler,

@@ -1,4 +1,4 @@
-<!-- src/views/colonel/ColonelIndex.vue -->
+<!-- src/apps/kernel/views/ColonelIndex.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

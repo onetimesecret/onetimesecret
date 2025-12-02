@@ -1,4 +1,4 @@
-<!-- src/components/CopyButton.vue -->
+<!-- src/shared/components/ui/CopyButton.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

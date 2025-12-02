@@ -1,4 +1,4 @@
-<!-- src/components/logos/LegacyLogo.vue -->
+<!-- src/shared/components/logos/LegacyLogo.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

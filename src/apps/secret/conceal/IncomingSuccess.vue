@@ -1,4 +1,4 @@
-<!-- src/views/incoming/IncomingSuccessView.vue -->
+<!-- src/apps/secret/conceal/IncomingSuccess.vue -->
 
 <script setup lang="ts">
   import { computed, ref } from 'vue';

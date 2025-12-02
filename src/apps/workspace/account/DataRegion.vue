@@ -1,4 +1,4 @@
-<!-- src/views/account/DataRegion.vue -->
+<!-- src/apps/workspace/account/DataRegion.vue -->
 
 <script setup lang="ts">
   import { onMounted } from 'vue';

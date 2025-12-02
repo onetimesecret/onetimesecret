@@ -1,4 +1,4 @@
-<!-- src/components/layout/MicroFooter.vue -->
+<!-- src/shared/components/layout/MicroFooter.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

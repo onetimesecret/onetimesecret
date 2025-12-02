@@ -1,4 +1,4 @@
-<!-- src/views/account/region/AvailableRegions.vue -->
+<!-- src/apps/workspace/account/region/AvailableRegions.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

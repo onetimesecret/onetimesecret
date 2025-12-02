@@ -1,4 +1,4 @@
-<!-- src/components/organizations/CreateOrganizationModal.vue -->
+<!-- src/apps/workspace/components/organizations/CreateOrganizationModal.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

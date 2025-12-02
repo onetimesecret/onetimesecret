@@ -1,4 +1,4 @@
-// src/composables/useAccount.ts
+// src/shared/composables/useAccount.ts
 
 /**
  * Account information composable

@@ -1,4 +1,4 @@
-// src/composables/useDomainsManager.ts
+// src/shared/composables/useDomainsManager.ts
 
 import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { ApplicationError } from '@/schemas/errors';

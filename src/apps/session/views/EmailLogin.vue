@@ -1,4 +1,5 @@
-<!-- src/views/auth/EmailLogin.vue -->
+<!-- src/apps/session/views/EmailLogin.vue -->
+
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import { useMagicLink } from '@/shared/composables/useMagicLink';

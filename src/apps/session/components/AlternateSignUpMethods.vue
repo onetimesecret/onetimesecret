@@ -1,4 +1,4 @@
-<!-- src/components/auth/AlternateSignUpMethods.vue -->
+<!-- src/apps/session/components/AlternateSignUpMethods.vue -->
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';

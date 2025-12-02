@@ -1,4 +1,4 @@
-<!-- src/components/secrets/metadata/BurnButtonForm.vue -->
+<!-- src/apps/secret/components/metadata/BurnButtonForm.vue -->
 
 /** eslint-disable tailwindcss/classnames-order */
 <!-- src/components/secrets/metadata/BurnButtonForm.vue -->

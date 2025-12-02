@@ -1,4 +1,4 @@
-<!-- src/views/billing/InvoiceList.vue -->
+<!-- src/apps/workspace/billing/InvoiceList.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

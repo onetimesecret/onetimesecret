@@ -1,4 +1,4 @@
-<!-- src/views/account/settings/PrivacySettings.vue -->
+<!-- src/apps/workspace/account/settings/PrivacySettings.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

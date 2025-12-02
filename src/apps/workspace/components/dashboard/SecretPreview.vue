@@ -1,4 +1,4 @@
-<!-- src/components/dashboard/SecretPreview.vue -->
+<!-- src/apps/workspace/components/dashboard/SecretPreview.vue -->
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';

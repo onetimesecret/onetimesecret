@@ -1,4 +1,4 @@
-<!-- src/components/teams/TeamCard.vue -->
+<!-- src/apps/workspace/components/teams/TeamCard.vue -->
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';

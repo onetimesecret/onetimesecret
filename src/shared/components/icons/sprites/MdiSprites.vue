@@ -1,4 +1,4 @@
-<!-- src/components/icons/sprites/MdiSprites.vue -->
+<!-- src/shared/components/icons/sprites/MdiSprites.vue -->
 
 <!--
 License: Apache License 2.0

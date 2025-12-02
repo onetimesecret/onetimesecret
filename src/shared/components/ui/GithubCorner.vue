@@ -1,4 +1,4 @@
-<!-- src/components/GithubCorner.vue -->
+<!-- src/shared/components/ui/GithubCorner.vue -->
 
 <template>
   <a

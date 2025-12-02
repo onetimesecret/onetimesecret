@@ -1,4 +1,4 @@
-// src/stores/teamStore.ts
+// src/shared/stores/teamStore.ts
 
 import {
   teamMemberResponseSchema,

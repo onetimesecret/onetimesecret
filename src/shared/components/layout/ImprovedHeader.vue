@@ -1,4 +1,4 @@
-<!-- src/components/layout/ImprovedHeader.vue -->
+<!-- src/shared/components/layout/ImprovedHeader.vue -->
 
 <!--
   Changes from DefaultHeader:

@@ -1,4 +1,4 @@
-// src/composables/usePageTitle.ts
+// src/shared/composables/usePageTitle.ts
 
 import { globalComposer } from '@/i18n';
 import { WindowService } from '@/services/window.service';

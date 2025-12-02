@@ -1,4 +1,4 @@
-<!-- src/components/MovingGlobules.vue -->
+<!-- src/shared/components/ui/MovingGlobules.vue -->
 
 <!--
   The shapes "jump" visually after the first interval because the initial

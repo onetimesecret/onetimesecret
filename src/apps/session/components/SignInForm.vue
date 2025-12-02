@@ -1,4 +1,4 @@
-<!-- src/components/auth/SignInForm.vue -->
+<!-- src/apps/session/components/SignInForm.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

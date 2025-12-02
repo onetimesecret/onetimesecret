@@ -1,4 +1,4 @@
-<!-- src/components/secrets/canonical/SecretDisplayCase.vue -->
+<!-- src/apps/secret/components/canonical/SecretDisplayCase.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

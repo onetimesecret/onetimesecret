@@ -1,4 +1,4 @@
-<!-- src/views/account/CloseAccount.vue -->
+<!-- src/apps/workspace/account/CloseAccount.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

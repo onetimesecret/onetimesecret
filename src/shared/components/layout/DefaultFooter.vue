@@ -1,4 +1,4 @@
-<!-- src/components/layout/DefaultFooter.vue -->
+<!-- src/shared/components/layout/DefaultFooter.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

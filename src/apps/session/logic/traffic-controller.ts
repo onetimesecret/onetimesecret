@@ -1,3 +1,5 @@
+// src/apps/session/logic/traffic-controller.ts
+
 import { RouteLocationNormalized } from 'vue-router';
 
 export interface TrafficDecision {

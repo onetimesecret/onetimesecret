@@ -1,4 +1,4 @@
-// src/composables/useDropdown.ts
+// src/shared/composables/useDropdown.ts
 
 import { onMounted, onUnmounted, ref } from 'vue';
 

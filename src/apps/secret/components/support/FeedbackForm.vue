@@ -1,4 +1,4 @@
-<!-- src/components/FeedbackForm.vue -->
+<!-- src/apps/secret/components/support/FeedbackForm.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

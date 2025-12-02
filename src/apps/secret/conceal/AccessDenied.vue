@@ -1,4 +1,4 @@
-<!-- src/views/DisabledHomepage.vue -->
+<!-- src/apps/secret/conceal/AccessDenied.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

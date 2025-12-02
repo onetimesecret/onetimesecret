@@ -1,4 +1,4 @@
-// src/composables/useColonelNavigation.ts
+// src/shared/composables/useColonelNavigation.ts
 
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';

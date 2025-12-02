@@ -1,4 +1,4 @@
-<!-- src/views/errors/ErrorNotFound.vue -->
+<!-- src/shared/components/errors/ErrorNotFound.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

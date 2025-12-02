@@ -1,4 +1,4 @@
-<!-- src/views/account/settings/CautionZone.vue -->
+<!-- src/apps/workspace/account/settings/CautionZone.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

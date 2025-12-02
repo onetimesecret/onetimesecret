@@ -1,4 +1,4 @@
-<!-- src/components/dashboard/BrandSettingsBar.vue -->
+<!-- src/apps/workspace/components/dashboard/BrandSettingsBar.vue -->
 
 /** eslint-disable tailwindcss/classnames-order */
 <!-- src/components/dashboard/BrandSettingsBar.vue -->

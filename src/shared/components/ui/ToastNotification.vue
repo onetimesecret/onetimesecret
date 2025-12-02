@@ -1,4 +1,4 @@
-<!-- src/components/ui/ToastNotification.vue -->
+<!-- src/shared/components/ui/ToastNotification.vue -->
 
 <script setup lang="ts">
   defineProps<{

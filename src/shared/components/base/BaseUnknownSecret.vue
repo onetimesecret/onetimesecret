@@ -1,4 +1,4 @@
-<!-- src/components/base/BaseUnknownSecret.vue -->
+<!-- src/shared/components/base/BaseUnknownSecret.vue -->
 
 <script setup lang="ts">
   import type { BrandSettings } from '@/schemas/models/domain/brand';

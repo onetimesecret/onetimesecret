@@ -1,4 +1,4 @@
-// src/stores/systemSettingsStore.ts
+// src/shared/stores/systemSettingsStore.ts
 
 import {
   systemSettingsSchema,

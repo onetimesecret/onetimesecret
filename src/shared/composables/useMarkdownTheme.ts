@@ -1,4 +1,4 @@
-// src/composables/useMarkdownTheme.ts
+// src/shared/composables/useMarkdownTheme.ts
 
 import { useTheme } from '@/shared/composables/useTheme';
 import { ref, watchEffect } from 'vue';

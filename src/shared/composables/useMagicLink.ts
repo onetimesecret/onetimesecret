@@ -1,4 +1,4 @@
-// src/composables/useMagicLink.ts
+// src/shared/composables/useMagicLink.ts
 
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';

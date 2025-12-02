@@ -1,4 +1,4 @@
-// src/stores/colonelInfoStore.ts
+// src/shared/stores/colonelInfoStore.ts
 
 import {
   type SystemSettingsDetails,

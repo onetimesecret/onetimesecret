@@ -1,4 +1,4 @@
-<!-- src/components/secrets/SecretRecipientHelpContent.vue -->
+<!-- src/apps/secret/components/SecretRecipientHelpContent.vue -->
 
 /** eslint-disable tailwindcss/classnames-order */
 <script setup lang="ts">

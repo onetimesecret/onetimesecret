@@ -1,4 +1,4 @@
-// src/composables/useLanguage.ts
+// src/shared/composables/useLanguage.ts
 
 import { useLanguageStore } from '@/shared/stores/languageStore';
 import { ref, reactive, computed } from 'vue';

@@ -1,4 +1,4 @@
-<!-- src/views/colonel/SystemSettings.vue -->
+<!-- src/apps/kernel/views/SystemSettings.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

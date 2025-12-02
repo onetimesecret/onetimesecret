@@ -1,4 +1,4 @@
-<!-- src/components/StarsRating.vue -->
+<!-- src/shared/components/ui/StarsRating.vue -->
 
 <script setup lang="ts">
 

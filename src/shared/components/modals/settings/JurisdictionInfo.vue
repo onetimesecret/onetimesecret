@@ -1,4 +1,4 @@
-<!-- src/components/modals/settings/JurisdictionInfo.vue -->
+<!-- src/shared/components/modals/settings/JurisdictionInfo.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

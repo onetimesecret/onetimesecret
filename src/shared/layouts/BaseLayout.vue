@@ -1,4 +1,4 @@
-<!-- src/layouts/BaseLayout.vue -->
+<!-- src/shared/layouts/BaseLayout.vue -->
 
 <script setup lang="ts">
   import GlobalBroadcast from '@/shared/components/ui/GlobalBroadcast.vue';

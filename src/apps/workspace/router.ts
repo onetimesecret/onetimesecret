@@ -1,3 +1,5 @@
+// src/apps/workspace/router.ts
+
 /**
  * Workspace App Routes (Placeholder)
  *

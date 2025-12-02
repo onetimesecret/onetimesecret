@@ -1,4 +1,4 @@
-<!-- src/components/modals/NeedHelpModal.vue -->
+<!-- src/shared/components/modals/NeedHelpModal.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

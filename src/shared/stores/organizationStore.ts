@@ -1,4 +1,4 @@
-// src/stores/organizationStore.ts
+// src/shared/stores/organizationStore.ts
 
 import {
   organizationResponseSchema,

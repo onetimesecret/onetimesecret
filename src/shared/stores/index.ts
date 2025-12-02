@@ -1,4 +1,4 @@
-// src/stores/index.ts
+// src/shared/stores/index.ts
 
 // See store design docs in types/declarations/pinia.d.ts
 

@@ -1,4 +1,4 @@
-<!-- src/components/account/APIKeyCard.vue -->
+<!-- src/apps/workspace/components/account/APIKeyCard.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

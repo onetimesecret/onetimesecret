@@ -1,4 +1,4 @@
-<!-- src/views/HomepageContainer.vue -->
+<!-- src/apps/secret/conceal/Homepage.vue -->
 
 <script setup lang="ts">
   import { useProductIdentity } from '@/shared/stores/identityStore';

@@ -1,4 +1,4 @@
-<!-- src/components/icons/sprites/MaterialSymbolsSprites.vue -->
+<!-- src/shared/components/icons/sprites/MaterialSymbolsSprites.vue -->
 
 <!--
 License: Apache 2.0

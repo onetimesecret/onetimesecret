@@ -1,3 +1,5 @@
+// src/apps/session/router.ts
+
 /**
  * Session App Routes (Placeholder)
  *

@@ -1,4 +1,4 @@
-<!-- src/views/DisabledUI.vue -->
+<!-- src/apps/secret/conceal/DisabledUI.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

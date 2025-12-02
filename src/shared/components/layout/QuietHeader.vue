@@ -1,4 +1,4 @@
-<!-- src/components/layout/QuietHeader.vue -->
+<!-- src/shared/components/layout/QuietHeader.vue -->
 
 <!-- TODO: Rename "quiet" layout components to "identity" (e.g. IdentityHeader) -->
 

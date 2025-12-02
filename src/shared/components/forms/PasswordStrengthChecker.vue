@@ -1,4 +1,4 @@
-<!-- src/components/PasswordStrengthChecker.vue -->
+<!-- src/shared/components/forms/PasswordStrengthChecker.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

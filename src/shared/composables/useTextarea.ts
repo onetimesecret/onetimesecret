@@ -1,4 +1,4 @@
-// src/composables/useTextarea.ts
+// src/shared/composables/useTextarea.ts
 
 import { onMounted, ref, watch } from 'vue';
 

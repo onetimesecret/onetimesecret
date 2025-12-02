@@ -1,4 +1,4 @@
-<!-- src/components/InfoTooltip.vue -->
+<!-- src/shared/components/ui/InfoTooltip.vue -->
 
 <!--
   Usage:

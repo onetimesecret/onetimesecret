@@ -1,4 +1,4 @@
-// src/composables/useBranding.ts
+// src/shared/composables/useBranding.ts
 
 import { createI18nInstance } from '@/i18n';
 import { ApplicationError } from '@/schemas';

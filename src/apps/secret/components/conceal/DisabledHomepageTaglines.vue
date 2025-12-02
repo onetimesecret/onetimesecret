@@ -1,4 +1,4 @@
-<!-- src/components/DisabledHomepageTaglines.vue -->
+<!-- src/apps/secret/components/conceal/DisabledHomepageTaglines.vue -->
 
 <script setup lang="ts">
 

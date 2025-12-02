@@ -1,4 +1,4 @@
-// src/stores/identityStore.ts
+// src/shared/stores/identityStore.ts
 
 import { brandSettingschema, type BrandSettings } from '@/schemas/models/domain/brand';
 import { WindowService } from '@/services/window.service';

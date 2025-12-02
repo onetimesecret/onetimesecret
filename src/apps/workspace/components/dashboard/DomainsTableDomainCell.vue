@@ -1,4 +1,4 @@
-<!-- src/components/dashboard/DomainsTableDomainCell.vue -->
+<!-- src/apps/workspace/components/dashboard/DomainsTableDomainCell.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

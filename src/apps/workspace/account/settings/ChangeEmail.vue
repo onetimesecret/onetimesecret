@@ -1,4 +1,4 @@
-<!-- src/views/account/settings/ChangeEmail.vue -->
+<!-- src/apps/workspace/account/settings/ChangeEmail.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

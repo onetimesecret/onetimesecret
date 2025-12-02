@@ -1,4 +1,4 @@
-<!-- src/views/secrets/canonical/ShowSecret.vue -->
+<!-- src/apps/secret/reveal/canonical/ShowSecret.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

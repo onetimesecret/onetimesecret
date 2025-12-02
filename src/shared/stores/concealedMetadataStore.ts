@@ -1,4 +1,4 @@
-// src/stores/concealedMetadataStore.ts
+// src/shared/stores/concealedMetadataStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { loggingService } from '@/services/logging.service';

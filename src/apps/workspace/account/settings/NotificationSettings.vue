@@ -1,4 +1,4 @@
-<!-- src/views/account/settings/NotificationSettings.vue -->
+<!-- src/apps/workspace/account/settings/NotificationSettings.vue -->
 
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';

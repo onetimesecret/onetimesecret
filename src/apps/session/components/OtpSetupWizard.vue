@@ -1,4 +1,4 @@
-<!-- src/components/auth/OtpSetupWizard.vue -->
+<!-- src/apps/session/components/OtpSetupWizard.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

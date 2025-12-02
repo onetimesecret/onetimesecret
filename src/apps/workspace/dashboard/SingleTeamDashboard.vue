@@ -1,4 +1,5 @@
-<!-- src/views/dashboard/SingleTeamDashboard.vue -->
+<!-- src/apps/workspace/dashboard/SingleTeamDashboard.vue -->
+
 <!-- Focused dashboard for users with exactly one team -->
 
 <script setup lang="ts">

@@ -1,4 +1,4 @@
-// src/composables/useCharCounter.ts
+// src/shared/composables/useCharCounter.ts
 
 import { ref } from 'vue';
 

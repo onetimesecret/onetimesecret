@@ -1,4 +1,4 @@
-<!-- src/components/ThemeToggle.vue -->
+<!-- src/shared/components/ui/ThemeToggle.vue -->
 
 <script setup lang="ts">
   import { useTheme } from '@/shared/composables/useTheme';

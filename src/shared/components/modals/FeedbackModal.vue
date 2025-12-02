@@ -1,4 +1,4 @@
-<!-- src/components/modals/FeedbackModal.vue -->
+<!-- src/shared/components/modals/FeedbackModal.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

@@ -1,4 +1,4 @@
-// src/stores/domainsStore.ts
+// src/shared/stores/domainsStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { UpdateDomainBrandRequest } from '@/schemas/api/v3';

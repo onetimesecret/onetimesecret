@@ -1,4 +1,4 @@
-<!-- src/components/VerifyDomainDetails.vue -->
+<!-- src/apps/workspace/components/domains/VerifyDomainDetails.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

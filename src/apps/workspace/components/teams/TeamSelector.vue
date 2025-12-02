@@ -1,4 +1,4 @@
-<!-- src/components/teams/TeamSelector.vue -->
+<!-- src/apps/workspace/components/teams/TeamSelector.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

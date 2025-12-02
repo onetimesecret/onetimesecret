@@ -1,4 +1,4 @@
-<!-- src/components/layout/FooterLinks.vue -->
+<!-- src/shared/components/layout/FooterLinks.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

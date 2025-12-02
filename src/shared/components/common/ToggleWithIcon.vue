@@ -1,4 +1,4 @@
-<!-- src/components/common/ToggleWithIcon.vue -->
+<!-- src/shared/components/common/ToggleWithIcon.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

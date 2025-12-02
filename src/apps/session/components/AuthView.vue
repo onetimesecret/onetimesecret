@@ -1,4 +1,5 @@
-<!-- src/components/auth/AuthView.vue -->
+<!-- src/apps/session/components/AuthView.vue -->
+
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';

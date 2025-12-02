@@ -1,4 +1,4 @@
-<!-- src/components/icons/sprites/CarbonSprites.vue -->
+<!-- src/shared/components/icons/sprites/CarbonSprites.vue -->
 
 <!--
 License: Apache 2.0

@@ -1,4 +1,4 @@
-<!-- src/components/account/AccountChangePasswordForm.vue -->
+<!-- src/apps/workspace/components/account/AccountChangePasswordForm.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

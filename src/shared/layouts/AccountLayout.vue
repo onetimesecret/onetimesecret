@@ -1,4 +1,4 @@
-<!-- src/layouts/AccountLayout.vue -->
+<!-- src/shared/layouts/AccountLayout.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

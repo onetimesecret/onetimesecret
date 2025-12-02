@@ -1,4 +1,4 @@
-<!-- src/views/secrets/ShowMetadata.vue -->
+<!-- src/apps/secret/reveal/ShowMetadata.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

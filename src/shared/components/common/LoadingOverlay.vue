@@ -1,4 +1,4 @@
-<!-- src/components/common/LoadingOverlay.vue -->
+<!-- src/shared/components/common/LoadingOverlay.vue -->
 
 <script setup lang="ts">
 defineProps<{

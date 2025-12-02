@@ -1,4 +1,4 @@
-<!-- src/views/dashboard/DashboardDomainAdd.vue -->
+<!-- src/apps/workspace/domains/DomainAdd.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

@@ -1,3 +1,5 @@
+// src/apps/secret/composables/useSecretLifecycle.ts
+
 import { ref, computed } from 'vue';
 import { useSecretStore } from '@/shared/stores/secretStore';
 

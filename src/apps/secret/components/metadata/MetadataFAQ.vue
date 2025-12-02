@@ -1,4 +1,4 @@
-<!-- src/components/secrets/metadata/MetadataFAQ.vue -->
+<!-- src/apps/secret/components/metadata/MetadataFAQ.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

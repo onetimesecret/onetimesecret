@@ -1,4 +1,4 @@
-<!-- src/components/layout/SettingsLayout.vue -->
+<!-- src/shared/components/layout/SettingsLayout.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

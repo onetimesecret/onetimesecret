@@ -1,4 +1,4 @@
-<!-- src/components/ctas/FancyIcon.vue -->
+<!-- src/shared/components/ctas/FancyIcon.vue -->
 
 <template>
   <svg

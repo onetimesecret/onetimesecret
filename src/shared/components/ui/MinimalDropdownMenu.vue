@@ -1,4 +1,4 @@
-<!-- src/components/MinimalDropdownMenu.vue -->
+<!-- src/shared/components/ui/MinimalDropdownMenu.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

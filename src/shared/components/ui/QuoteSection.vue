@@ -1,4 +1,4 @@
-<!-- src/components/QuoteSection.vue -->
+<!-- src/shared/components/ui/QuoteSection.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

@@ -1,4 +1,4 @@
-<!-- src/views/secrets/BurnSecret.vue -->
+<!-- src/apps/secret/reveal/BurnSecret.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

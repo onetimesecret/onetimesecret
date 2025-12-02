@@ -1,4 +1,5 @@
-<!-- src/views/auth/Signin.vue -->
+<!-- src/apps/session/views/Login.vue -->
+
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import AuthMethodSelector from '@/apps/session/components/AuthMethodSelector.vue';

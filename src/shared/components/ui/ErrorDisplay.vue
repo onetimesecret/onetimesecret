@@ -1,4 +1,4 @@
-<!-- src/components/ErrorDisplay.vue -->
+<!-- src/shared/components/ui/ErrorDisplay.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

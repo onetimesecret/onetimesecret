@@ -1,4 +1,4 @@
-// src/composables/useMfa.ts
+// src/shared/composables/useMfa.ts
 
 /**
  * Multi-Factor Authentication (MFA) composable

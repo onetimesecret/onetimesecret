@@ -1,4 +1,4 @@
-<!-- src/views/secrets/ShowSecretContainer.vue -->
+<!-- src/apps/secret/reveal/ShowSecret.vue -->
 
 <script setup lang="ts">
 // import { domainStrategy } from '@/composables/useBranding';

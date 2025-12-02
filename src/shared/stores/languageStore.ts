@@ -1,4 +1,4 @@
-// src/stores/languageStore.ts
+// src/shared/stores/languageStore.ts
 
 import { setGlobalLocale } from '@/i18n';
 import type { PiniaPluginOptions } from '@/plugins/pinia/types';

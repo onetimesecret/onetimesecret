@@ -1,4 +1,4 @@
-<!-- src/components/base/BaseShowSecret.vue -->
+<!-- src/shared/components/base/BaseShowSecret.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

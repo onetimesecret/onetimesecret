@@ -1,4 +1,4 @@
-// src/composables/useTheme.ts
+// src/shared/composables/useTheme.ts
 
 import { ref, watch } from 'vue';
 

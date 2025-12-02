@@ -1,4 +1,4 @@
-<!-- src/views/account/settings/SecurityOverview.vue -->
+<!-- src/apps/workspace/account/settings/SecurityOverview.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

@@ -1,4 +1,4 @@
-// src/composables/useClipboard.ts
+// src/shared/composables/useClipboard.ts
 
 import { ref } from 'vue'
 

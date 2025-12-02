@@ -1,4 +1,4 @@
-<!-- src/components/icons/sprites/FontAwesome6Sprites.vue -->
+<!-- src/shared/components/icons/sprites/FontAwesome6Sprites.vue -->
 
 <!--
 License: CC-BY-4.0

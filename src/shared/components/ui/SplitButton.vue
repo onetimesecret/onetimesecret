@@ -1,4 +1,4 @@
-<!-- src/components/SplitButton.vue -->
+<!-- src/shared/components/ui/SplitButton.vue -->
 
 // src/components/SplitButton.vue
 

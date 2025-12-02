@@ -1,4 +1,4 @@
-<!-- src/views/account/MfaSettings.vue -->
+<!-- src/apps/workspace/account/MfaSettings.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

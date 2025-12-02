@@ -1,4 +1,4 @@
-// src/composables/useWebAuthn.ts
+// src/shared/composables/useWebAuthn.ts
 
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';

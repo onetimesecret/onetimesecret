@@ -1,4 +1,4 @@
-<!-- src/components/HomepageAccessToggle.vue -->
+<!-- src/apps/secret/components/conceal/HomepageAccessToggle.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

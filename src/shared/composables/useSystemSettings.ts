@@ -1,4 +1,4 @@
-// src/composables/useSystemSettings.ts
+// src/shared/composables/useSystemSettings.ts
 
 import { systemSettingsSchema, type SystemSettingsDetails } from '@/schemas/api/account/endpoints/colonel';
 import { useNotificationsStore } from '@/shared/stores';

@@ -1,4 +1,4 @@
-// src/stores/incomingStore.ts
+// src/shared/stores/incomingStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import {

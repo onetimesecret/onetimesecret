@@ -1,4 +1,4 @@
-<!-- src/components/common/CycleButtonText.vue -->
+<!-- src/shared/components/common/CycleButtonText.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

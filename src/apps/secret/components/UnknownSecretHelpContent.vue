@@ -1,4 +1,4 @@
-<!-- src/components/secrets/UnknownSecretHelpContent.vue -->
+<!-- src/apps/secret/components/UnknownSecretHelpContent.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

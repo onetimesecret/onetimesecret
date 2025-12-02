@@ -1,4 +1,4 @@
-<!-- src/views/dashboard/DashboardIndex.vue -->
+<!-- src/apps/workspace/dashboard/DashboardIndex.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

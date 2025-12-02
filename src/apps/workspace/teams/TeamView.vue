@@ -1,4 +1,4 @@
-<!-- src/views/teams/TeamView.vue -->
+<!-- src/apps/workspace/teams/TeamView.vue -->
 
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';

@@ -1,4 +1,4 @@
-<!-- src/views/secrets/branded/ShowSecret.vue -->
+<!-- src/apps/secret/reveal/branded/ShowSecret.vue -->
 
 <script setup lang="ts">
   /**

@@ -1,4 +1,4 @@
-// src/composables/useMetadata.ts
+// src/shared/composables/useMetadata.ts
 
 import { ApplicationError } from '@/schemas';
 import { useMetadataStore } from '@/shared/stores/metadataStore';

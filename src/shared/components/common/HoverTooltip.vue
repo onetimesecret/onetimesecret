@@ -1,4 +1,4 @@
-<!-- src/components/common/HoverTooltip.vue -->
+<!-- src/shared/components/common/HoverTooltip.vue -->
 
 <script setup lang="ts"></script>
 

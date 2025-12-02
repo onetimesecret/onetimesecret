@@ -1,4 +1,4 @@
-// src/composables/useSecret.ts
+// src/shared/composables/useSecret.ts
 
 import { useSecretStore } from '@/shared/stores/secretStore';
 import { storeToRefs } from 'pinia';

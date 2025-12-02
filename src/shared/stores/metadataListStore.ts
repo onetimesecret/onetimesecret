@@ -1,4 +1,4 @@
-// src/stores/metadataListStore.ts
+// src/shared/stores/metadataListStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/account/endpoints/recent';

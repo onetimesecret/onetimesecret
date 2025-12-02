@@ -1,4 +1,4 @@
-<!-- src/views/colonel/ColonelSystem.vue -->
+<!-- src/apps/kernel/views/ColonelSystem.vue -->
 
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';

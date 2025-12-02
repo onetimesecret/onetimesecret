@@ -1,4 +1,4 @@
-<!-- src/components/incoming/IncomingMemoInput.vue -->
+<!-- src/apps/secret/components/incoming/IncomingMemoInput.vue -->
 
 <script setup lang="ts">
   import { computed } from 'vue';

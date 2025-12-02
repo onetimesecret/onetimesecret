@@ -1,4 +1,4 @@
-<!-- src/views/colonel/ColonelBannedIPs.vue -->
+<!-- src/apps/kernel/views/ColonelBannedIPs.vue -->
 
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';

@@ -1,4 +1,4 @@
-<!-- src/views/teams/TeamMembers.vue -->
+<!-- src/apps/workspace/teams/TeamMembers.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

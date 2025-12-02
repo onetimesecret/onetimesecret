@@ -1,4 +1,4 @@
-<!-- src/views/colonel/ColonelSystemAuthDB.vue -->
+<!-- src/apps/kernel/views/ColonelSystemAuthDB.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

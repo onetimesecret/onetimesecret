@@ -1,4 +1,4 @@
-// src/composables/useIncomingSecret.ts
+// src/shared/composables/useIncomingSecret.ts
 
 import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { IncomingSecretPayload, IncomingSecretResponse } from '@/schemas/api/incoming';

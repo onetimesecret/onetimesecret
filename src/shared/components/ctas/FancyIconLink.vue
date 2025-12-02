@@ -1,4 +1,4 @@
-<!-- src/components/ctas/FancyIconLink.vue -->
+<!-- src/shared/components/ctas/FancyIconLink.vue -->
 
 <script setup lang="ts">
   import FancyIcon from '@/shared/components/ctas/FancyIcon.vue';

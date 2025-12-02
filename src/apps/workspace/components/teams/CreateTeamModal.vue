@@ -1,4 +1,4 @@
-<!-- src/components/teams/CreateTeamModal.vue -->
+<!-- src/apps/workspace/components/teams/CreateTeamModal.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

@@ -1,4 +1,5 @@
-<!-- src/views/dashboard/DashboardBasic.vue -->
+<!-- src/apps/workspace/dashboard/DashboardBasic.vue -->
+
 <!-- Basic dashboard for free tier users (no team capabilities) -->
 
 <script setup lang="ts">

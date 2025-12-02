@@ -1,4 +1,4 @@
-<!-- src/views/account/settings/ApiSettings.vue -->
+<!-- src/apps/workspace/account/settings/ApiSettings.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

@@ -1,4 +1,4 @@
-// src/stores/customerStore.ts
+// src/shared/stores/customerStore.ts
 
 import { createError } from '@/shared/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';

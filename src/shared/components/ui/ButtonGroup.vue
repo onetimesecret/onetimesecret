@@ -1,4 +1,4 @@
-<!-- src/components/ButtonGroup.vue -->
+<!-- src/shared/components/ui/ButtonGroup.vue -->
 
 <script setup lang="ts">
 // Define your component's props

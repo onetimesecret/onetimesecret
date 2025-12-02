@@ -1,4 +1,4 @@
-// src/composables/useDomain.ts
+// src/shared/composables/useDomain.ts
 
 import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/shared/stores';

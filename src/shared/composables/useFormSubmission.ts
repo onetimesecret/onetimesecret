@@ -1,4 +1,4 @@
-// src/composables/useFormSubmission.ts
+// src/shared/composables/useFormSubmission.ts
 
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import type { FormSubmissionOptions } from '@/types/ui';

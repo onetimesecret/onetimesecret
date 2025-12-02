@@ -1,4 +1,4 @@
-<!-- src/components/secrets/metadata/StatusBadge.vue -->
+<!-- src/apps/secret/components/metadata/StatusBadge.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

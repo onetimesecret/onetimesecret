@@ -1,4 +1,4 @@
-// src/composables/useSecretForm.ts
+// src/shared/composables/useSecretForm.ts
 
 import { transforms } from '@/schemas/transforms';
 import { WindowService } from '@/services/window.service';

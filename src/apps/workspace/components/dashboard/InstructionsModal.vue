@@ -1,4 +1,4 @@
-<!-- src/components/dashboard/InstructionsModal.vue -->
+<!-- src/apps/workspace/components/dashboard/InstructionsModal.vue -->
 
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';

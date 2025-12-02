@@ -1,4 +1,4 @@
-<!-- src/components/incoming/IncomingRecipientDropdown.vue -->
+<!-- src/apps/secret/components/incoming/IncomingRecipientDropdown.vue -->
 
 <script setup lang="ts">
   import { ref, computed } from 'vue';

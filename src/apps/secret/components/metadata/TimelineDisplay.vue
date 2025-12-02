@@ -1,4 +1,4 @@
-<!-- src/components/secrets/metadata/TimelineDisplay.vue -->
+<!-- src/apps/secret/components/metadata/TimelineDisplay.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

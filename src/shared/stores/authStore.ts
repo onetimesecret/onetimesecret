@@ -1,4 +1,4 @@
-// src/stores/authStore.ts
+// src/shared/stores/authStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { classifyError, errorGuards } from '@/schemas/errors';

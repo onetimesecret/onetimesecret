@@ -1,4 +1,4 @@
-<!-- src/components/secrets/SecretLinksTableRow.vue -->
+<!-- src/apps/secret/components/SecretLinksTableRow.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

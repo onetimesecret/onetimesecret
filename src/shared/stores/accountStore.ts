@@ -1,4 +1,4 @@
-// src/stores/accountStore.ts
+// src/shared/stores/accountStore.ts
 
 import type { Account } from '@/schemas/api/account/endpoints/account';
 import { responseSchemas } from '@/schemas/api/v3/responses';

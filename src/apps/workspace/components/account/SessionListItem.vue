@@ -1,4 +1,4 @@
-<!-- src/components/account/SessionListItem.vue -->
+<!-- src/apps/workspace/components/account/SessionListItem.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

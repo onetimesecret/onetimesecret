@@ -1,4 +1,4 @@
-// src/composables/useClickOutside.ts
+// src/shared/composables/useClickOutside.ts
 
 import { onMounted, onUnmounted, Ref } from 'vue'
 

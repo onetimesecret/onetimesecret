@@ -1,4 +1,4 @@
-<!-- src/components/layout/SecretFooterControls.vue -->
+<!-- src/shared/components/layout/SecretFooterControls.vue -->
 
 <script setup lang="ts">
   import LanguageToggle from '@/shared/components/ui/LanguageToggle.vue';

@@ -1,4 +1,4 @@
-<!-- src/components/dashboard/LanguageSelector.vue -->
+<!-- src/apps/workspace/components/dashboard/LanguageSelector.vue -->
 
 <script setup lang="ts">
 import HoverTooltip from '@/shared/components/common/HoverTooltip.vue';

@@ -1,4 +1,4 @@
-// src/tests/views/NotificationSettings.spec.ts
+// src/tests/views/notificationSettings.spec.ts
 
 import { useAccountStore } from '@/stores/accountStore';
 import { setupTestPinia } from '../setup';

@@ -1,4 +1,4 @@
-// src/stores/notificationsStore.ts
+// src/shared/stores/notificationsStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { loggingService } from '@/services/logging.service';

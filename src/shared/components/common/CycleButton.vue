@@ -1,4 +1,4 @@
-<!-- src/components/common/CycleButton.vue -->
+<!-- src/shared/components/common/CycleButton.vue -->
 
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';

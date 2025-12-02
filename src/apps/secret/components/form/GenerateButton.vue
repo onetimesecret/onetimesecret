@@ -1,4 +1,4 @@
-<!-- src/components/secrets/form/GenerateButton.vue -->
+<!-- src/apps/secret/components/form/GenerateButton.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

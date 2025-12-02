@@ -1,4 +1,4 @@
-<!-- src/views/colonel/ColonelUsageExport.vue -->
+<!-- src/apps/kernel/views/ColonelUsageExport.vue -->
 
 <script setup lang="ts">
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';

@@ -1,4 +1,4 @@
-<!-- src/components/EmptyState.vue -->
+<!-- src/shared/components/ui/EmptyState.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

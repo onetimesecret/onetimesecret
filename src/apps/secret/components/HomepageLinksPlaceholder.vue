@@ -1,4 +1,4 @@
-<!-- src/components/secrets/HomepageLinksPlaceholder.vue -->
+<!-- src/apps/secret/components/HomepageLinksPlaceholder.vue -->
 
 <script setup lang="ts">
 

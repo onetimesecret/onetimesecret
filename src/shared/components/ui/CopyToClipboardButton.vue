@@ -1,4 +1,4 @@
-<!-- src/components/ui/CopyToClipboardButton.vue -->
+<!-- src/shared/components/ui/CopyToClipboardButton.vue -->
 
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';

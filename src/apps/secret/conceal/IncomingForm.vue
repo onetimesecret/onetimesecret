@@ -1,4 +1,4 @@
-<!-- src/views/incoming/IncomingSecretForm.vue -->
+<!-- src/apps/secret/conceal/IncomingForm.vue -->
 
 <script setup lang="ts">
   import { computed, onMounted, ref } from 'vue';

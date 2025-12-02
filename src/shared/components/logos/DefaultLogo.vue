@@ -1,4 +1,4 @@
-<!-- src/components/logos/DefaultLogo.vue -->
+<!-- src/shared/components/logos/DefaultLogo.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

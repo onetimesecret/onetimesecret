@@ -1,3 +1,5 @@
+// src/apps/secret/router.ts
+
 /**
  * Secret App Routes (Placeholder)
  *

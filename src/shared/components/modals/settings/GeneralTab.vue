@@ -1,4 +1,4 @@
-<!-- src/components/modals/settings/GeneralTab.vue -->
+<!-- src/shared/components/modals/settings/GeneralTab.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

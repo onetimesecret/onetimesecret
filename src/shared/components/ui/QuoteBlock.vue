@@ -1,4 +1,4 @@
-<!-- src/components/QuoteBlock.vue -->
+<!-- src/shared/components/ui/QuoteBlock.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

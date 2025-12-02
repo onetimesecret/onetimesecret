@@ -1,4 +1,4 @@
-<!-- src/components/closet/MetadataSkeleton.vue -->
+<!-- src/shared/components/closet/MetadataSkeleton.vue -->
 
 <template>
   <div class="animate-pulse space-y-8">

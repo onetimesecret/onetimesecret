@@ -1,4 +1,4 @@
-<!-- src/components/BasicFormAlerts.vue -->
+<!-- src/shared/components/forms/BasicFormAlerts.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

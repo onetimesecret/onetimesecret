@@ -1,4 +1,4 @@
-<!-- src/layouts/ColonelLayout.vue -->
+<!-- src/shared/layouts/AdminLayout.vue -->
 
 <script setup lang="ts">
   import ColonelAdminLayout from '@/shared/components/layout/ColonelAdminLayout.vue';

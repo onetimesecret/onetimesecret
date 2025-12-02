@@ -1,4 +1,4 @@
-<!-- src/components/SimpleModal.vue -->
+<!-- src/shared/components/modals/SimpleModal.vue -->
 
 <script setup>
   import { useI18n } from 'vue-i18n';

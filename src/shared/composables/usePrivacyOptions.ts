@@ -1,4 +1,4 @@
-// src/composables/usePrivacyOptions.ts
+// src/shared/composables/usePrivacyOptions.ts
 
 import type { SecretOptions } from '@/schemas/models';
 import { WindowService } from '@/services/window.service';

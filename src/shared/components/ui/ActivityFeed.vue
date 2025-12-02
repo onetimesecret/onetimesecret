@@ -1,4 +1,4 @@
-<!-- src/components/ActivityFeed.vue -->
+<!-- src/shared/components/ui/ActivityFeed.vue -->
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';

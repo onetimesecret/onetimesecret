@@ -1,4 +1,4 @@
-// src/composables/useActiveSessions.ts
+// src/shared/composables/useActiveSessions.ts
 
 /**
  * Active sessions management composable

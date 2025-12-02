@@ -1,4 +1,4 @@
-<!-- src/components/layout/ImprovedFooter.vue -->
+<!-- src/shared/components/layout/ImprovedFooter.vue -->
 
 <!--
   Changes from DefaultFooter:

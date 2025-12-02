@@ -1,4 +1,4 @@
-// src/composables/useMetadataList.ts
+// src/shared/composables/useMetadataList.ts
 
 import { ApplicationError } from '@/schemas';
 import { useMetadataListStore } from '@/shared/stores/metadataListStore';

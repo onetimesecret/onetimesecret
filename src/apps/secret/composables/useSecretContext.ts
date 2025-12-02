@@ -1,3 +1,5 @@
+// src/apps/secret/composables/useSecretContext.ts
+
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useProductIdentity } from '@/shared/stores/identityStore';

@@ -1,4 +1,4 @@
-<!-- src/components/secrets/canonical/SecretConfirmationForm.vue -->
+<!-- src/apps/secret/components/canonical/SecretConfirmationForm.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

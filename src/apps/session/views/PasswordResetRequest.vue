@@ -1,4 +1,4 @@
-<!-- src/views/auth/PasswordResetRequest.vue -->
+<!-- src/apps/session/views/PasswordResetRequest.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

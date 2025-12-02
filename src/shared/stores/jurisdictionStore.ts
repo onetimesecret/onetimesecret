@@ -1,4 +1,4 @@
-// src/stores/jurisdictionStore.ts
+// src/shared/stores/jurisdictionStore.ts
 
 import { createError } from '@/shared/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';

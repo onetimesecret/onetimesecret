@@ -1,4 +1,4 @@
-<!-- src/components/secrets/SecretMetadataTableItem.vue -->
+<!-- src/apps/secret/components/SecretMetadataTableItem.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

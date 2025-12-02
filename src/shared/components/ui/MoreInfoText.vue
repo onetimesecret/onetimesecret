@@ -1,4 +1,4 @@
-<!-- src/components/MoreInfoText.vue -->
+<!-- src/shared/components/ui/MoreInfoText.vue -->
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';

@@ -1,4 +1,4 @@
-<!-- src/components/icons/IconSprites.vue -->
+<!-- src/shared/components/icons/IconSprites.vue -->
 
 <script setup lang="ts">
   import { type PropType, computed } from 'vue';

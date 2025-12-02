@@ -1,4 +1,4 @@
-<!-- src/components/account/AccountDeleteButtonWithModalForm.vue -->
+<!-- src/apps/workspace/components/account/AccountDeleteButtonWithModalForm.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

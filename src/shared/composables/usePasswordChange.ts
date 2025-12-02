@@ -1,4 +1,4 @@
-// src/composables/usePasswordChange.ts
+// src/shared/composables/usePasswordChange.ts
 
 import { useAccountStore } from '@/shared/stores/accountStore';
 import { computed, reactive } from 'vue';

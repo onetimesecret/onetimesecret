@@ -1,4 +1,4 @@
-<!-- src/views/BrandedHomepage.vue -->
+<!-- src/apps/secret/conceal/BrandedHomepage.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

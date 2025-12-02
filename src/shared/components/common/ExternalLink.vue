@@ -1,4 +1,4 @@
-<!-- src/components/common/ExternalLink.vue -->
+<!-- src/shared/components/common/ExternalLink.vue -->
 
 <script setup lang="ts">
   defineProps<{

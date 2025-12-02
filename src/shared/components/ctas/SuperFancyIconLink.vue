@@ -1,4 +1,4 @@
-<!-- src/components/ctas/SuperFancyIconLink.vue -->
+<!-- src/shared/components/ctas/SuperFancyIconLink.vue -->
 
 <script setup lang="ts">
 defineProps<{

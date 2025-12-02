@@ -1,4 +1,4 @@
-// src/composables/useCapabilities.ts
+// src/shared/composables/useCapabilities.ts
 
 import { WindowService } from '@/services/window.service';
 import type { Organization } from '@/types/organization';

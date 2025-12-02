@@ -1,4 +1,4 @@
-<!-- src/layouts/DefaultLayout.vue -->
+<!-- src/shared/layouts/TransactionalLayout.vue -->
 
 <script setup lang="ts">
   import DefaultFooter from '@/shared/components/layout/DefaultFooter.vue';

@@ -1,4 +1,4 @@
-<!-- src/components/common/ColorPicker.vue -->
+<!-- src/shared/components/common/ColorPicker.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

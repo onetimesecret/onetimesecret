@@ -1,4 +1,4 @@
-<!-- src/components/logos/OnetimeSecretLogo.vue -->
+<!-- src/shared/components/logos/OnetimeSecretLogo.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

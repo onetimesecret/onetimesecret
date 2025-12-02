@@ -1,4 +1,4 @@
-// src/composables/helpers/mfaHelpers.ts
+// src/shared/composables/helpers/mfaHelpers.ts
 
 /**
  * Helper functions for MFA composable

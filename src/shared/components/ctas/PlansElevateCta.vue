@@ -1,4 +1,4 @@
-<!-- src/components/ctas/PlansElevateCta.vue -->
+<!-- src/shared/components/ctas/PlansElevateCta.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

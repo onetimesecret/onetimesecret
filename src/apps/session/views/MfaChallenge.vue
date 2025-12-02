@@ -1,4 +1,5 @@
-<!-- src/views/auth/MfaVerify.vue -->
+<!-- src/apps/session/views/MfaChallenge.vue -->
+
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import AuthView from '@/apps/session/components/AuthView.vue';
