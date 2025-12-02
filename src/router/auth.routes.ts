@@ -1,16 +1,16 @@
 // src/router/auth.routes.ts
 
 /* src/router/auth.routes.ts */
-import DefaultLayout from '@/layouts/DefaultLayout.vue';
-import QuietLayout from '@/layouts/QuietLayout.vue';
-import { useAuthStore } from '@/stores/authStore';
+import DefaultLayout from '@/shared/layouts/TransactionalLayout.vue';
+import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/signin',
     name: 'Sign In',
-    component: () => import('@/views/auth/Signin.vue'),
+    component: () => import('@/apps/session/views/Login.vue'),
     meta: {
       title: 'web.TITLES.signin',
       requiresAuth: false,
@@ -32,7 +32,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: '',
         name: 'Sign Up',
-        component: () => import('@/views/auth/Signup.vue'),
+        component: () => import('@/apps/session/views/Register.vue'),
         meta: {
           title: 'web.TITLES.signup',
         },
@@ -40,7 +40,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: ':planCode',
         name: 'Sign Up with Plan',
-        component: () => import('@/views/auth/Signup.vue'),
+        component: () => import('@/apps/session/views/Register.vue'),
         props: true,
         meta: {
           title: 'web.TITLES.signup',
@@ -63,7 +63,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/forgot',
     name: 'Forgot Password',
-    component: () => import('@/views/auth/PasswordResetRequest.vue'),
+    component: () => import('@/apps/session/views/PasswordResetRequest.vue'),
     meta: {
       title: 'web.TITLES.forgot_password',
       requiresAuth: false,
@@ -106,7 +106,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/verify-account',
     name: 'Verify Account',
-    component: () => import('@/views/auth/VerifyAccount.vue'),
+    component: () => import('@/apps/session/views/VerifyAccount.vue'),
     meta: {
       title: 'web.TITLES.verify_account',
       requiresAuth: false,
@@ -124,7 +124,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/mfa-verify',
     name: 'MFA Verify',
-    component: () => import('@/views/auth/MfaVerify.vue'),
+    component: () => import('@/apps/session/views/MfaChallenge.vue'),
     meta: {
       title: 'web.TITLES.mfa_verify',
       requiresAuth: false,
@@ -143,7 +143,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/email-login',
     name: 'Email Login',
-    component: () => import('@/views/auth/EmailLogin.vue'),
+    component: () => import('@/apps/session/views/EmailLogin.vue'),
     meta: {
       title: 'web.TITLES.email_login',
       requiresAuth: false,
@@ -162,7 +162,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/reset-password',
     name: 'Reset Password (Rodauth)',
-    component: () => import('@/views/auth/PasswordReset.vue'),
+    component: () => import('@/apps/session/views/PasswordReset.vue'),
     props: (route) => ({ resetKey: route.query.key }),
     meta: {
       title: 'web.TITLES.reset_password',

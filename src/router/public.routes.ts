@@ -1,10 +1,10 @@
 // src/router/public.routes.ts
 
-import DefaultFooter from '@/components/layout/DefaultFooter.vue';
-import DefaultHeader from '@/components/layout/DefaultHeader.vue';
-import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import DefaultFooter from '@/shared/components/layout/DefaultFooter.vue';
+import DefaultHeader from '@/shared/components/layout/DefaultHeader.vue';
+import DefaultLayout from '@/shared/layouts/TransactionalLayout.vue';
 import { WindowService } from '@/services/window.service';
-import HomepageContainer from '@/views/HomepageContainer.vue';
+import HomepageContainer from '@/apps/secret/conceal/Homepage.vue';
 import { RouteRecordRaw } from 'vue-router';
 
 // Extend RouteRecordRaw meta to include our custom componentMode
@@ -122,7 +122,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/feedback',
     name: 'Feedback',
-    component: () => import('@/views/Feedback.vue'),
+    component: () => import('@/apps/secret/support/Feedback.vue'),
     meta: {
       title: 'web.TITLES.feedback',
       requiresAuth: false,

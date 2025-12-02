@@ -1,7 +1,7 @@
 // src/router/index.ts
 
 import { setupRouterGuards } from '@/router/guards.routes';
-import NotFound from '@/views/NotFound.vue';
+import NotFound from '@/shared/components/errors/ErrorNotFound.vue';
 import type { Router, RouteRecordRaw } from 'vue-router';
 import { createRouter, createWebHistory } from 'vue-router';
 

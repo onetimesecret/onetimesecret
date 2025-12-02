@@ -1,11 +1,11 @@
 // src/router/metadata.routes.ts
 
-import QuietFooter from '@/components/layout/QuietFooter.vue';
-import QuietHeader from '@/components/layout/QuietHeader.vue';
-import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import QuietFooter from '@/shared/components/layout/QuietFooter.vue';
+import QuietHeader from '@/shared/components/layout/QuietHeader.vue';
+import DefaultLayout from '@/shared/layouts/TransactionalLayout.vue';
 import { WindowService } from '@/services/window.service';
-import BurnSecret from '@/views/secrets/BurnSecret.vue';
-import ShowMetadata from '@/views/secrets/ShowMetadata.vue';
+import BurnSecret from '@/apps/secret/reveal/BurnSecret.vue';
+import ShowMetadata from '@/apps/secret/reveal/ShowMetadata.vue';
 import { RouteLocationNormalized, RouteRecordMultipleViews } from 'vue-router';
 
 /**

@@ -13,7 +13,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/teams',
     name: 'Teams',
     components: {
-      default: () => import('@/views/teams/TeamsHub.vue'),
+      default: () => import('@/apps/workspace/teams/TeamsHub.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -28,7 +28,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/teams/:extid',
     name: 'Team View',
     components: {
-      default: () => import('@/views/teams/TeamView.vue'),
+      default: () => import('@/apps/workspace/teams/TeamView.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -43,7 +43,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/teams/:extid/members',
     name: 'Team Members',
     components: {
-      default: () => import('@/views/teams/TeamMembers.vue'),
+      default: () => import('@/apps/workspace/teams/TeamMembers.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -58,7 +58,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/teams/:extid/settings',
     name: 'Team Settings',
     components: {
-      default: () => import('@/views/teams/TeamSettings.vue'),
+      default: () => import('@/apps/workspace/teams/TeamSettings.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },

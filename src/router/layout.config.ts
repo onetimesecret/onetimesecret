@@ -3,9 +3,9 @@
 // Shared layout configuration for route definitions.
 // Centralizes layout props to reduce duplication and ensure consistency.
 
-import ImprovedFooter from '@/components/layout/ImprovedFooter.vue';
-import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
-import ImprovedLayout from '@/layouts/ImprovedLayout.vue';
+import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
+import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
+import ImprovedLayout from '@/shared/layouts/ManagementLayout.vue';
 
 /**
  * Standard layout props for authenticated pages with full navigation.

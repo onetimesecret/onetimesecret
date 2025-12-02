@@ -4,7 +4,7 @@
  * Iterative, self-healing migration that runs until complete or max retries.
  *
  * Usage:
- *   npx tsx scripts/migration/auto-migrate.ts [--max-retries <n>] [--dry-run]
+ *   pnpx tsx scripts/migration/auto-migrate.ts [--max-retries <n>] [--dry-run]
  *
  * Features:
  * - Runs migration phases iteratively
@@ -200,19 +200,19 @@ async function analyzeAndFix(error: string, state: MigrationState): Promise<FixR
 // Phase Execution
 // ============================================================================
 
-function runPhase(phase: number, dryRun: boolean): { success: boolean; output: string; error?: string } {
+function runPhase(
+  phase: number,
+  dryRun: boolean
+): { success: boolean; output: string; error?: string } {
   const args = dryRun ? ['--dry-run', '--phase', String(phase)] : ['--phase', String(phase)];
 
   try {
-    const output = execSync(
-      `npx tsx scripts/migration/migrate.ts ${args.join(' ')}`,
-      {
-        cwd: ROOT,
-        encoding: 'utf-8',
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 300000, // 5 minute timeout per phase
-      }
-    );
+    const output = execSync(`npx tsx scripts/migration/migrate.ts ${args.join(' ')}`, {
+      cwd: ROOT,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 300000, // 5 minute timeout per phase
+    });
     return { success: true, output };
   } catch (e: any) {
     return {
@@ -247,9 +247,10 @@ function runBuild(): { success: boolean; errors: string[] } {
     return { success: true, errors: [] };
   } catch (e: any) {
     const output = e.stdout?.toString() || e.stderr?.toString() || '';
-    const errors = output.split('\n').filter((line: string) =>
-      line.includes('error') || line.includes('Error')
-    ).slice(0, 20);
+    const errors = output
+      .split('\n')
+      .filter((line: string) => line.includes('error') || line.includes('Error'))
+      .slice(0, 20);
     return { success: false, errors };
   }
 }
@@ -272,7 +273,9 @@ async function prompt(question: string): Promise<string> {
   });
 }
 
-async function confirmContinue(state: MigrationState): Promise<'continue' | 'retry' | 'abort' | 'skip'> {
+async function confirmContinue(
+  state: MigrationState
+): Promise<'continue' | 'retry' | 'abort' | 'skip'> {
   console.log('\nOptions:');
   console.log('  c - Continue to next phase');
   console.log('  r - Retry current phase');
@@ -282,11 +285,16 @@ async function confirmContinue(state: MigrationState): Promise<'continue' | 'ret
   const answer = await prompt('Choice [c/r/s/a]: ');
 
   switch (answer) {
-    case 'c': return 'continue';
-    case 'r': return 'retry';
-    case 's': return 'skip';
-    case 'a': return 'abort';
-    default: return 'continue';
+    case 'c':
+      return 'continue';
+    case 'r':
+      return 'retry';
+    case 's':
+      return 'skip';
+    case 'a':
+      return 'abort';
+    default:
+      return 'continue';
   }
 }
 
@@ -333,7 +341,6 @@ async function runMigration(options: { dryRun: boolean; maxRetries: number; unat
       state.attempt = 1;
       consecutiveFailures = 0;
       state.phase++;
-
     } else {
       log(`Phase ${state.phase} failed`, 'error');
       console.log(result.output);
@@ -493,7 +500,7 @@ function printHelp() {
 Auto-Migration Runner
 
 Usage:
-  npx tsx scripts/migration/auto-migrate.ts [options]
+  pnpx tsx scripts/migration/auto-migrate.ts [options]
 
 Options:
   --dry-run        Preview changes without executing
@@ -504,13 +511,13 @@ Options:
 
 Examples:
   # Interactive migration with prompts on failure
-  npx tsx scripts/migration/auto-migrate.ts
+  pnpx tsx scripts/migration/auto-migrate.ts
 
   # Fully automated - retries failures, skips if stuck
-  npx tsx scripts/migration/auto-migrate.ts --unattended
+  pnpx tsx scripts/migration/auto-migrate.ts --unattended
 
   # Preview what would happen
-  npx tsx scripts/migration/auto-migrate.ts --dry-run
+  pnpx tsx scripts/migration/auto-migrate.ts --dry-run
 
   # Rollback via git
   git checkout -- src/

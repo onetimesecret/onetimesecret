@@ -13,7 +13,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account',
     name: 'Account',
     components: {
-      default: () => import('@/views/account/settings/ProfileSettings.vue'),
+      default: () => import('@/apps/workspace/account/settings/ProfileSettings.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -28,7 +28,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/region',
     name: 'Data Region',
     components: {
-      default: () => import('@/views/account/DataRegion.vue'),
+      default: () => import('@/apps/workspace/account/DataRegion.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -43,7 +43,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/region/current',
     name: 'Current Region',
     components: {
-      default: () => import('@/views/account/region/CurrentRegion.vue'),
+      default: () => import('@/apps/workspace/account/region/CurrentRegion.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -58,7 +58,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/region/available',
     name: 'Available Regions',
     components: {
-      default: () => import('@/views/account/region/AvailableRegions.vue'),
+      default: () => import('@/apps/workspace/account/region/AvailableRegions.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -73,7 +73,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/region/why',
     name: 'Why Data Sovereignty Matters',
     components: {
-      default: () => import('@/views/account/region/WhyItMatters.vue'),
+      default: () => import('@/apps/workspace/account/region/WhyItMatters.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -96,7 +96,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/settings/profile/preferences',
     name: 'Preferences Settings',
     components: {
-      default: () => import('@/views/account/settings/ProfileSettings.vue'),
+      default: () => import('@/apps/workspace/account/settings/ProfileSettings.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -111,7 +111,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/settings/profile/privacy',
     name: 'Privacy Settings',
     components: {
-      default: () => import('@/views/account/settings/PrivacySettings.vue'),
+      default: () => import('@/apps/workspace/account/settings/PrivacySettings.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -126,7 +126,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/settings/profile/notifications',
     name: 'Notification Settings',
     components: {
-      default: () => import('@/views/account/settings/NotificationSettings.vue'),
+      default: () => import('@/apps/workspace/account/settings/NotificationSettings.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -141,7 +141,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/settings/profile/email',
     name: 'Change Email',
     components: {
-      default: () => import('@/views/account/settings/ChangeEmail.vue'),
+      default: () => import('@/apps/workspace/account/settings/ChangeEmail.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -156,7 +156,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/settings/security',
     name: 'Security Overview',
     components: {
-      default: () => import('@/views/account/settings/SecurityOverview.vue'),
+      default: () => import('@/apps/workspace/account/settings/SecurityOverview.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -171,7 +171,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/settings/security/password',
     name: 'Change Password',
     components: {
-      default: () => import('@/views/account/ChangePassword.vue'),
+      default: () => import('@/apps/workspace/account/ChangePassword.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -186,7 +186,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/settings/security/mfa',
     name: 'Multi-Factor Authentication',
     components: {
-      default: () => import('@/views/account/MfaSettings.vue'),
+      default: () => import('@/apps/workspace/account/MfaSettings.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -201,7 +201,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/settings/security/sessions',
     name: 'Active Sessions',
     components: {
-      default: () => import('@/views/account/ActiveSessions.vue'),
+      default: () => import('@/apps/workspace/account/ActiveSessions.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -216,7 +216,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/settings/security/recovery-codes',
     name: 'Recovery Codes',
     components: {
-      default: () => import('@/views/account/RecoveryCodes.vue'),
+      default: () => import('@/apps/workspace/account/RecoveryCodes.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -231,7 +231,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/settings/api',
     name: 'API Settings',
     components: {
-      default: () => import('@/views/account/settings/ApiSettings.vue'),
+      default: () => import('@/apps/workspace/account/settings/ApiSettings.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -246,7 +246,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/settings/caution',
     name: 'Advanced Settings',
     components: {
-      default: () => import('@/views/account/settings/CautionZone.vue'),
+      default: () => import('@/apps/workspace/account/settings/CautionZone.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },

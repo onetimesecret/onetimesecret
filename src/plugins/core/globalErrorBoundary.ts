@@ -1,7 +1,7 @@
 // src/plugins/core/globalErrorBoundary.ts
 
 //
-import { AsyncHandlerOptions } from '@/composables/useAsyncHandler';
+import { AsyncHandlerOptions } from '@/shared/composables/useAsyncHandler';
 import { classifyError, errorGuards } from '@/schemas/errors';
 import { loggingService } from '@/services/logging.service';
 import type { App, Plugin } from 'vue';

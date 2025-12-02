@@ -4,7 +4,7 @@
  * Atomic migration from src/views + src/components to src/apps structure.
  *
  * Usage:
- *   npx tsx scripts/migration/migrate.ts [--dry-run] [--phase <n>]
+ *   pnpx tsx scripts/migration/migrate.ts [--dry-run] [--phase <n>]
  *
  * Options:
  *   --dry-run    Show what would be done without making changes
@@ -199,7 +199,7 @@ function phase4RewriteImports(dryRun: boolean) {
 
   // Add all .vue and .ts files that may have imports to rewrite
   const patterns = [
-    path.join(SRC, '*.{ts,vue}'),           // Root files (App.vue, main.ts)
+    path.join(SRC, '*.{ts,vue}'), // Root files (App.vue, main.ts)
     path.join(SRC, 'apps/**/*.{ts,vue}'),
     path.join(SRC, 'shared/**/*.{ts,vue}'),
     path.join(SRC, 'router/**/*.ts'),

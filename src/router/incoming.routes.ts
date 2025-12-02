@@ -1,7 +1,7 @@
 // src/router/incoming.routes.ts
 
-import ImprovedFooter from '@/components/layout/ImprovedFooter.vue';
-import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
+import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
+import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
 import type { RouteRecordRaw } from 'vue-router';
 
 const incomingRoutes: RouteRecordRaw[] = [
@@ -9,7 +9,7 @@ const incomingRoutes: RouteRecordRaw[] = [
     path: '/incoming',
     name: 'IncomingSecretForm',
     components: {
-      default: () => import('@/views/incoming/IncomingSecretForm.vue'),
+      default: () => import('@/apps/secret/conceal/IncomingForm.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -29,7 +29,7 @@ const incomingRoutes: RouteRecordRaw[] = [
     path: '/incoming/:metadataKey',
     name: 'IncomingSuccess',
     components: {
-      default: () => import('@/views/incoming/IncomingSuccessView.vue'),
+      default: () => import('@/apps/secret/conceal/IncomingSuccess.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },

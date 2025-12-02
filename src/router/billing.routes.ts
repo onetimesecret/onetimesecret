@@ -34,7 +34,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Billing Overview',
     beforeEnter: checkBillingEnabled,
     components: {
-      default: () => import('@/views/billing/BillingOverview.vue'),
+      default: () => import('@/apps/workspace/billing/BillingOverview.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -50,7 +50,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Billing Organizations',
     beforeEnter: checkBillingEnabled,
     components: {
-      default: () => import('@/views/account/settings/OrganizationsSettings.vue'),
+      default: () => import('@/apps/workspace/account/settings/OrganizationsSettings.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -66,7 +66,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Billing Organization Settings',
     beforeEnter: checkBillingEnabled,
     components: {
-      default: () => import('@/views/account/settings/OrganizationSettings.vue'),
+      default: () => import('@/apps/workspace/account/settings/OrganizationSettings.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -82,7 +82,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Billing Plans',
     beforeEnter: checkBillingEnabled,
     components: {
-      default: () => import('@/views/billing/PlanSelector.vue'),
+      default: () => import('@/apps/workspace/billing/PlanSelector.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -98,7 +98,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Billing Invoices',
     beforeEnter: checkBillingEnabled,
     components: {
-      default: () => import('@/views/billing/InvoiceList.vue'),
+      default: () => import('@/apps/workspace/billing/InvoiceList.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },

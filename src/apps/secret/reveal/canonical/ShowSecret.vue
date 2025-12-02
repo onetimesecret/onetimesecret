@@ -1,0 +1,185 @@
+<!-- src/views/secrets/canonical/ShowSecret.vue -->
+
+<script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
+  /**
+   * Core Onetime Secret implementation that uses distinct layouts for confirmation
+   * and reveal states to optimize for marketing and user acquisition.
+   *
+   * This component deliberately uses different UIs:
+   * 1. Confirmation: Marketing-focused layout with onboarding content
+   * 2. Reveal: Simplified secret display focused on content delivery
+   *
+   * Unlike the branded implementation, this does not use BaseSecretDisplay for confirmation
+   * state to allow for richer marketing content placement.
+   *
+   * @see SecretConfirmationForm - Marketing-optimized confirmation layout
+   * @see SecretDisplayCase - Simplified secret reveal display
+   */
+  import BaseShowSecret, { type Props } from '@/shared/components/base/BaseShowSecret.vue';
+  import FooterAttribution from '@/shared/components/layout/SecretFooterAttribution.vue';
+  import FooterControls from '@/shared/components/layout/SecretFooterControls.vue';
+  import SecretConfirmationForm from '@/apps/secret/components/canonical/SecretConfirmationForm.vue';
+  import SecretDisplayCase from '@/apps/secret/components/canonical/SecretDisplayCase.vue';
+  import {  nextTick } from 'vue';
+
+  import UnknownSecret from '../UnknownSecret.vue';
+
+  defineProps<Props>();
+
+  const { t } = useI18n();
+
+  // Watch for transitions between confirmation and reveal states
+  // This assumes there's a showSecret or similar state variable in BaseShowSecret
+  // that we can access via props or emitted events
+
+  // Focus management for a11y when secret is revealed
+  const handleSecretRevealed = async () => {
+    await nextTick();
+    // Focus the first focusable element in the SecretDisplayCase
+    const displayCase = document.querySelector('.secret-display-case');
+    if (displayCase) {
+      const focusableElements = displayCase.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusableElements.length > 0) {
+        (focusableElements[0] as HTMLElement).focus();
+      }
+    }
+  };
+
+  // Call this method after secret is revealed
+  defineExpose({ handleSecretRevealed });
+
+  const closeWarning = (event: Event) => {
+    const element = event.target as HTMLElement;
+    const warning = element.closest('.bg-amber-50, .bg-brand-50, .bg-amber-900, .bg-brand-900');
+    if (warning) {
+      warning.remove();
+    }
+  };
+</script>
+
+<template>
+  <BaseShowSecret
+    :secret-identifier="secretIdentifier"
+    :branded="false"
+    :site-host="siteHost"
+    class="container mx-auto mt-24 px-4">
+    <!-- Loading slot -->
+    <template #loading="{}">
+      <div class="flex justify-center">
+        <div
+          class="size-32 animate-spin rounded-full
+            border-4 border-brand-500 border-t-transparent"
+          role="status"
+          aria-live="polite">
+          <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
+        </div>
+      </div>
+    </template>
+
+    <!-- Error slot -->
+    <template #error="{ error }">
+      <div class="rounded-lg border-l-4 border-red-500 bg-red-50 p-4 text-red-700">
+        {{ error }}
+      </div>
+    </template>
+
+    <!-- Alerts slot -->
+    <template #alerts="{ record, isOwner, showSecret }">
+      <template v-if="!record.verification">
+        <div
+          v-if="isOwner && !showSecret"
+          class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4 text-amber-700
+            dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
+          role="alert"
+          aria-live="polite">
+          <button
+            type="button"
+            class="float-right rounded-md p-1
+              hover:text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500
+              dark:hover:text-amber-50"
+            @click="closeWarning"
+            :aria-label="t('dismiss-warning')">
+            <span aria-hidden="true" class="text-lg">&times;</span>
+          </button>
+          <strong class="font-medium">{{ t('web.COMMON.warning') }}:</strong>
+          {{ t('web.shared.you_created_this_secret') }}
+        </div>
+
+        <div
+          v-if="isOwner && showSecret"
+          class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4 text-brand-700
+            dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
+          role="alert"
+          aria-live="polite">
+          <button
+            type="button"
+            class="float-right rounded-md p-1
+              hover:text-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-500
+              dark:hover:text-brand-50"
+            @click="closeWarning"
+            :aria-label="t('dismiss-notification')">
+            <span aria-hidden="true" class="text-lg">&times;</span>
+          </button>
+          {{ t('web.shared.viewed_own_secret') }}
+        </div>
+      </template>
+    </template>
+
+    <!-- Confirmation slot -->
+    <template #confirmation="{ record, details, error, isLoading, onConfirm }">
+      <div class="mx-auto max-w-2xl space-y-48 ">
+        <SecretConfirmationForm
+          :secret-identifier="secretIdentifier"
+          :record="record"
+          :details="details"
+          :error="error"
+          :is-submitting="isLoading"
+          @user-confirmed="onConfirm" />
+      </div>
+    </template>
+
+    <!-- Onboarding slot -->
+    <template #onboarding="{ record }">
+      <div v-if="!record.verification">
+      </div>
+    </template>
+
+    <!-- Reveal slot -->
+    <template #reveal="{ record, details }">
+      <div class="space-y-4">
+        <SecretDisplayCase
+          class="w-full"
+          :record="record"
+          :details="details" />
+      </div>
+    </template>
+
+    <!-- Unknown secret slot -->
+    <template #unknown="{ branded }">
+      <UnknownSecret :branded="branded" />
+    </template>
+
+    <!-- Footer slot -->
+    <template #footer="{ siteHost }">
+      <div class="flex flex-col items-center space-y-8 py-8">
+        <div class="flex items-center justify-center">
+          <FooterControls :show-language="true" />
+        </div>
+        <FooterAttribution
+          :site-host="siteHost"
+          :show-nav="false"
+          :show-terms="false" />
+      </div>
+    </template>
+  </BaseShowSecret>
+</template>
+
+<style scoped>
+  :focus {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+</style>

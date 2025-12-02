@@ -1,10 +1,10 @@
 // src/router/dashboard.routes.ts
 
-import ImprovedFooter from '@/components/layout/ImprovedFooter.vue';
-import ImprovedHeader from '@/components/layout/ImprovedHeader.vue';
-import ImprovedLayout from '@/layouts/ImprovedLayout.vue';
-import DashboardContainer from '@/views/dashboard/DashboardContainer.vue';
-import DashboardRecent from '@/views/dashboard/DashboardRecent.vue';
+import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
+import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
+import ImprovedLayout from '@/shared/layouts/ManagementLayout.vue';
+import DashboardContainer from '@/apps/workspace/dashboard/DashboardContainer.vue';
+import DashboardRecent from '@/apps/workspace/dashboard/DashboardRecent.vue';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
@@ -57,7 +57,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/domains',
     name: 'DashboardDomains',
     components: {
-      default: () => import('@/views/dashboard/DashboardDomains.vue'),
+      default: () => import('@/apps/workspace/domains/DomainsList.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -76,7 +76,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/domains/add',
     name: 'DomainAdd',
     components: {
-      default: () => import('@/views/dashboard/DashboardDomainAdd.vue'),
+      default: () => import('@/apps/workspace/domains/DomainAdd.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -95,7 +95,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/domains/:extid/verify',
     name: 'DomainVerify',
     components: {
-      default: () => import('@/views/dashboard/DashboardDomainVerify.vue'),
+      default: () => import('@/apps/workspace/domains/DomainVerify.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
@@ -113,7 +113,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/domains/:extid/brand',
     name: 'DomainBrand',
     components: {
-      default: () => import('@/views/dashboard/DashboardDomainBrand.vue'),
+      default: () => import('@/apps/workspace/domains/DomainBrand.vue'),
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },
