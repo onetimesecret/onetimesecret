@@ -86,6 +86,15 @@
       class="space-y-6"
       :aria-labelledby="record?.has_passphrase ? passphraseHeadingId : undefined"
       :aria-describedby="record?.has_passphrase ? passphraseDescriptionId : undefined">
+      <!-- Hidden username field for accessibility/password managers -->
+      <input
+        type="text"
+        name="username"
+        autocomplete="username"
+        class="sr-only"
+        tabindex="-1"
+        aria-hidden="true" />
+
       <!-- Conditional Passphrase Section -->
       <div
         v-if="record?.has_passphrase"
