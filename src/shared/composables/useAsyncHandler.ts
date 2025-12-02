@@ -7,6 +7,7 @@ import { loggingService } from '@/services/logging.service';
 import type {} from '@/shared/stores/notificationsStore';
 import type { NotificationSeverity } from '@/types/ui/notifications';
 import { inject } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 export interface AsyncHandlerOptions {
   /**
@@ -91,6 +92,15 @@ export { createError, errorGuards, wrapError }; // Re-export for convenience
 export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
   const sentry = inject(SENTRY_KEY, null) as SentryInstance | null;
 
+  // useAsyncHandler is called during component setup (synchronously), so we put
+  // useI18n() here to execute in the correct context. The t function it returns
+  // is then available via closure when wrap() is called later.
+  //
+  // Vue composables that use injection (inject, useI18n, useRouter, etc.) must
+  // be called synchronously at the top level of setup() or another composable
+  // and not never inside callbacks, async functions, or event handlers.
+  const { t } = useI18n();
+
   // Default implementations that will be used if no options provided
   const handlers = {
     notify:
@@ -154,9 +164,7 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
       // Always notify the user, but use a generic message for technical/security errors
       if (handlers.notify) {
         const isHuman = errorGuards.isOfHumanInterest(classifiedError);
-        const message = isHuman
-          ? classifiedError.message
-          : 'web.COMMON.unexpected_error';
+        const message = isHuman ? classifiedError.message : t('web.COMMON.unexpected_error');
         handlers.notify(message, classifiedError.severity);
       }
 
