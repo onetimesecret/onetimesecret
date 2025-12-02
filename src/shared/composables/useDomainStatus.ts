@@ -5,6 +5,8 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 export function useDomainStatus(domain: CustomDomain) {
+  const { t } = useI18n(); // Must be called at setup time, not in computed callbacks
+
   const isActive = computed(() => {
     const status = domain.vhost?.status;
     const decision =
@@ -13,7 +15,6 @@ export function useDomainStatus(domain: CustomDomain) {
   });
 
   const displayStatus = computed(() => {
-    const { t } = useI18n();
     if (isActive.value) return t('web.STATUS.active');
     if (isWarning.value) return t('web.STATUS.dns-incorrect');
     return t('web.STATUS.inactive');

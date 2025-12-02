@@ -31,6 +31,7 @@ import { AsyncHandlerOptions, useAsyncHandler, createError } from './useAsyncHan
 export function useBranding(domainId?: string) {
   const store = useBrandStore();
   const notifications = useNotificationsStore();
+  const router = useRouter(); // Must be called at setup time, not in callbacks
   const isLoading = ref(false);
   const isInitialized = ref(false);
   const error = ref<ApplicationError | null>(null);
@@ -44,7 +45,6 @@ export function useBranding(domainId?: string) {
     notify: (message, severity) => notifications.show(message, severity),
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => {
-      const router = useRouter();
       if (err.code === 404 || err.code === 422 || err.code === 403) {
         return router.push({ name: 'NotFound' });
       }
@@ -59,7 +59,6 @@ export function useBranding(domainId?: string) {
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
   const initialize = () => {
-    const router = useRouter();
     wrap(async () => {
       if (!domainId) return;
       const settings = await store.fetchSettings(domainId);
