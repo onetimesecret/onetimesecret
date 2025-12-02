@@ -206,9 +206,9 @@ src/
 ## Pain Points Observed
 
 1. **Duplicated Components:**
-   - `secrets/canonical/BaseSecretDisplay.vue` (23 lines, minimal slot-based)
-   - `secrets/branded/BaseSecretDisplay.vue` (164 lines, complex branding logic)
-   - Similar duplication in `SecretConfirmationForm.vue` and `SecretDisplayCase.vue`
+   - `secrets/canonical/BaseSecretDisplay.vue` (185 lines, complex logic)
+   - `secrets/branded/BaseSecretDisplay.vue` (131 lines, branding-focused)
+   - Total: 4 files forming 2 pairs (BaseSecretDisplay + one other) in canonical/branded
 
 2. **Flat Component Structure:**
    - 37 components directly in `/components` (legacy pattern)
@@ -300,7 +300,7 @@ store.init(); // Call after store creation
 - Flat components: **37** (23%)
 - Categorized components: **126** (77%)
 - Container components: **3**
-- Canonical/branded duplicates: **6** components (3 canonical + 3 branded in secrets)
+- Canonical/branded duplicates: **4** files (2 pairs in secrets)
 
 ## Notable Architectural Decisions
 

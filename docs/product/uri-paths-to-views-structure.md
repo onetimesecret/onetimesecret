@@ -39,9 +39,9 @@ Here's the URL → File Path mapping:
 | /account/settings/security/password | src/apps/workspace/views/account/ChangePassword.vue    |
 | /account/settings/security/mfa      | src/apps/workspace/views/account/MfaSettings.vue       |
 | /account/settings/api               | src/apps/workspace/views/account/ApiSettings.vue       |
-| /billing/overview                   | src/apps/workspace/views/billing/BillingOverview.vue   |
-| /billing/plans                      | src/apps/workspace/views/billing/PlanSelector.vue      |
-| /billing/invoices                   | src/apps/workspace/views/billing/InvoiceList.vue       |
+| /billing/overview                   | src/apps/billing/views/BillingOverview.vue             |
+| /billing/plans                      | src/apps/billing/views/PlanSelector.vue                |
+| /billing/invoices                   | src/apps/billing/views/InvoiceList.vue                 |
 | /teams                              | src/apps/workspace/views/teams/TeamsHub.vue            |
 | /teams/:extid                       | src/apps/workspace/views/teams/TeamView.vue            |
 | /teams/:extid/members               | src/apps/workspace/views/teams/TeamMembers.vue         |
@@ -52,8 +52,7 @@ Here's the URL → File Path mapping:
 | /colonel/system                     | src/apps/kernel/views/ColonelSystem.vue                |
 
 
-The key insight: subfolders within each app mirror the domain, not the URL structure. Workspace has dashboard/, domains/, account/, billing/, teams/ because those
-are distinct feature areas—even though URLs like /domains sit at root level.
+The key insight: subfolders within each app mirror the domain, not the URL structure. Workspace has dashboard/, domains/, account/, teams/ because those are distinct feature areas—even though URLs like /domains sit at root level. Billing is a separate app due to its distinct business logic and potential for standalone deployment.
 
 
 ## Shared Layout Components
@@ -91,7 +90,8 @@ src/
 │   │   │   │   └── IncomingSuccess.vue
 │   │   │   ├── reveal/                 # Viewing secrets
 │   │   │   │   ├── ShowSecret.vue
-│   │   │   │   └── ShowReceipt.vue
+│   │   │   │   ├── ShowReceipt.vue
+│   │   │   │   └── AccessDenied.vue    # "External" homepage mode
 │   │   │   └── support/                # Feedback
 │   │   │       └── Feedback.vue
 │   │   ├── components/
@@ -131,10 +131,6 @@ src/
 │   │   │   │   ├── ChangePassword.vue
 │   │   │   │   ├── MfaSettings.vue
 │   │   │   │   └── ApiSettings.vue
-│   │   │   ├── billing/
-│   │   │   │   ├── BillingOverview.vue
-│   │   │   │   ├── PlanSelector.vue
-│   │   │   │   └── InvoiceList.vue
 │   │   │   └── teams/
 │   │   │       ├── TeamsHub.vue
 │   │   │       ├── TeamView.vue
@@ -143,8 +139,16 @@ src/
 │   │   │   ├── dashboard/
 │   │   │   ├── domains/
 │   │   │   ├── account/
-│   │   │   ├── billing/
 │   │   │   └── teams/
+│   │   ├── composables/
+│   │   └── router.ts
+│   │
+│   ├── billing/                       # THE COMMERCE (Subscription Management)
+│   │   ├── views/
+│   │   │   ├── BillingOverview.vue
+│   │   │   ├── PlanSelector.vue
+│   │   │   └── InvoiceList.vue
+│   │   ├── components/
 │   │   ├── composables/
 │   │   └── router.ts
 │   │
@@ -169,7 +173,11 @@ src/
     └── composables/
 ```
 
-### 2. Route Mapping
+### 2. Router Architecture
+
+> **Note**: Each app contains a `router.ts` file. After the initial migration, these are **placeholder stubs** — routes remain in `src/router/*.routes.ts` until route consolidation is completed. The migration script moves views and rewrites imports but does not migrate route definitions.
+
+### 3. Route Mapping
 
 This approach groups routes by what the user is *attempting to do*, not their account status.
 

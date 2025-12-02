@@ -30,7 +30,8 @@ The current architecture organizes code by **Domain Context** (canonical/branded
 |------|---------|--------|----------|--------|--------------|
 | **Top-level structure** | `src/views/`, `src/components/` | `src/apps/secret/`, `workspace/`, `kernel/`, `session/` | Restructure | L | Router migration |
 | **Secret app** | `views/secrets/canonical/`, `views/secrets/branded/` | `apps/secret/conceal/`, `apps/secret/reveal/` | Restructure | M | useSecretContext composable |
-| **Workspace app** | `views/dashboard/`, `views/account/`, `views/billing/`, `views/teams/` | `apps/workspace/dashboard/`, `settings/` | Restructure | M | Router migration |
+| **Workspace app** | `views/dashboard/`, `views/account/`, `views/teams/` | `apps/workspace/dashboard/`, `account/`, `teams/`, `domains/` | Restructure | M | Router migration |
+| **Billing app** | `views/billing/` | `apps/billing/views/` | Restructure | S | Router migration |
 | **Kernel app** | `views/colonel/` | `apps/kernel/views/` | Restructure | S | Router migration |
 | **Session app** | `views/auth/` | `apps/session/views/` | Restructure | S | Router migration, traffic-controller |
 | **Shared components** | `components/` (163 files, 37 flat) | `shared/components/`, `shared/branding/` | Restructure | L | Component audit |
@@ -54,7 +55,7 @@ The current architecture organizes code by **Domain Context** (canonical/branded
 | **Branded components** | Canonical (185 lines) vs branded (131 lines) | Unified components with brand context | Refactor | M | useBrandPresentation |
 | **Flat components** | 37 in `components/` root | Categorized in `shared/components/` | Restructure | M | Component audit |
 | **Homepage** | `HomepageContainer` → variants | Single `Homepage.vue` with layout composition | Refactor | S | useHomepageMode, Layout components |
-| **Access denied** | `DisabledHomepage`, `DisabledUI` | `AccessDenied.vue` in `apps/secret/conceal/` | Restructure | S | Homepage mode |
+| **Access denied** | `DisabledHomepage`, `DisabledUI` | `AccessDenied.vue` in `apps/secret/views/reveal/` | Restructure | S | Homepage mode |
 
 ### Router Gaps
 
@@ -62,7 +63,7 @@ The current architecture organizes code by **Domain Context** (canonical/branded
 |------|---------|--------|----------|--------|--------------|
 | **Router structure** | Single `router/index.ts` with feature files | Per-app `router.ts` aggregated in main router | Restructure | M | Apps structure |
 | **Route order** | Implicit | Explicit: Session → Kernel → Workspace → Secret | Refactor | S | Router restructure |
-| **Homepage routing** | `beforeEnter` sets `componentMode` | Guard redirects to `DisabledHomepage` | Refactor | S | useHomepageMode |
+| **Homepage routing** | `beforeEnter` sets `componentMode` | Guard redirects to `AccessDenied` | Refactor | S | useHomepageMode |
 
 ### State Management Gaps
 
@@ -145,9 +146,10 @@ The current architecture organizes code by **Domain Context** (canonical/branded
 ### Phase 4: Workspace App Migration (Effort: M)
 **Goal**: Consolidate management views
 
-1. Move `views/dashboard/`, `views/account/`, `views/billing/`, `views/teams/` → `apps/workspace/`
-2. Organize into `dashboard/` and `settings/` subfolders
-3. Update workspace router
+1. Move `views/dashboard/`, `views/account/`, `views/teams/` → `apps/workspace/`
+2. Move `views/billing/` → `apps/billing/`
+3. Organize workspace into `dashboard/`, `account/`, `teams/`, `domains/` subfolders
+4. Update workspace and billing routers
 
 **Dependencies**: Phase 1 router structure
 **Risk**: Medium (many views affected)

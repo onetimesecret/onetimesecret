@@ -44,9 +44,11 @@ src/apps/
 ├── workspace/                 # Management (always OTS-branded)
 │   ├── dashboard/
 │   ├── account/
-│   ├── billing/
 │   ├── teams/
 │   ├── domains/
+│   └── router.ts
+├── billing/                   # Commerce (subscription management)
+│   ├── views/
 │   └── router.ts
 ├── kernel/                    # Admin
 │   ├── views/
@@ -316,9 +318,12 @@ src/shared/
 | File | Purpose |
 |------|---------|
 | `apps/secret/router.ts` | Routes: `/`, `/secret/*`, `/receipt/*`, `/incoming/*`, `/feedback` |
-| `apps/workspace/router.ts` | Routes: `/dashboard/*`, `/account/*`, `/billing/*`, `/teams/*`, `/domains/*` |
+| `apps/workspace/router.ts` | Routes: `/dashboard/*`, `/account/*`, `/teams/*`, `/domains/*` |
+| `apps/billing/router.ts` | Routes: `/billing/*` |
 | `apps/kernel/router.ts` | Routes: `/colonel/*` |
 | `apps/session/router.ts` | Routes: `/signin`, `/signup`, `/logout`, `/forgot`, `/reset-password`, `/mfa-verify` |
+
+> **Note**: After migration, these router.ts files are **placeholder stubs** with TODO comments. Routes remain in `src/router/*.routes.ts` until manual route consolidation.
 
 ### 7.3 Branding
 
@@ -356,10 +361,11 @@ router/
 ├── index.ts              # Aggregates app routers in order
 └── guards.ts             # Global guards only
 
-apps/secret/router.ts     # Combines: public.routes + secret.routes + incoming.routes + metadata.routes
-apps/workspace/router.ts  # Combines: dashboard.routes + account.routes + billing.routes + teams.routes
-apps/kernel/router.ts     # Combines: colonel.routes
-apps/session/router.ts    # Combines: auth.routes
+apps/secret/router.ts     # TODO: Combine public.routes + secret.routes + incoming.routes + metadata.routes
+apps/workspace/router.ts  # TODO: Combine dashboard.routes + account.routes + teams.routes
+apps/billing/router.ts    # TODO: Combine billing.routes
+apps/kernel/router.ts     # TODO: Combine colonel.routes
+apps/session/router.ts    # TODO: Combine auth.routes
 ```
 
 ### New `router/index.ts`
@@ -442,7 +448,7 @@ find . -name "*.vue" -o -name "*.ts" | xargs sed -i '' \
 | `router/metadata.routes.ts` | Merged into apps/secret/router.ts |
 | `router/dashboard.routes.ts` | Merged into apps/workspace/router.ts |
 | `router/account.routes.ts` | Merged into apps/workspace/router.ts |
-| `router/billing.routes.ts` | Merged into apps/workspace/router.ts |
+| `router/billing.routes.ts` | Merged into apps/billing/router.ts |
 | `router/teams.routes.ts` | Merged into apps/workspace/router.ts |
 | `router/colonel.routes.ts` | Merged into apps/kernel/router.ts |
 | `router/auth.routes.ts` | Merged into apps/session/router.ts |

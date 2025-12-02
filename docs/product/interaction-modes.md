@@ -264,37 +264,42 @@ const { theme, uiPermissions } = useSecretContext();  // Dimension 2 + actor rol
 src/
 ├── apps/                            # DISTINCT INTERACTION MODES
 │   ├── secret/                      # THE TRANSACTION (Branded/Canonical)
-│   │   ├── conceal/                 # Homepage, Incoming API
-│   │   ├── reveal/                  # ShowSecret, ShowReceipt, Burn
-│   │   ├── support/                 # Feedback
+│   │   ├── views/
+│   │   │   ├── conceal/             # Homepage, Incoming API
+│   │   │   ├── reveal/              # ShowSecret, ShowReceipt, Burn
+│   │   │   └── support/             # Feedback
 │   │   └── router.ts                # Routes: /, /secret/*, /receipt/*
 │   │
 │   ├── workspace/                   # THE MANAGEMENT (Standard UI)
-│   │   ├── dashboard/               # Recent, Domains
-│   │   ├── settings/                # Account, Billing, Teams
-│   │   ├── auth/                    # Login, Signup, MFA (Entry to Workspace)
-│   │   └── router.ts                # Routes: /dashboard, /account, /signin
+│   │   ├── dashboard/               # Recent secrets, activity
+│   │   ├── domains/                 # Custom domain management
+│   │   ├── account/                 # Profile, security settings
+│   │   ├── teams/                   # Team management
+│   │   └── router.ts                # Routes: /dashboard, /account, /domains, /teams
 │   │
-│   │── kernel/                      # THE SYSTEM (Admin)
+│   ├── billing/                     # THE COMMERCE (Subscription Management)
+│   │   ├── views/                   # Overview, plans, invoices
+│   │   └── router.ts                # Routes: /billing/*
+│   │
+│   ├── kernel/                      # THE SYSTEM (Admin)
 │   │   ├── views/                   # Colonel views
 │   │   └── router.ts                # Routes: /colonel/*
 │   │
-│   │
-│   └── session/                       # THE GATEWAY
+│   └── session/                     # THE GATEWAY (Authentication)
 │       ├── views/
 │       │   ├── Login.vue
 │       │   ├── Register.vue
 │       │   ├── PasswordReset.vue
 │       │   ├── MfaChallenge.vue
 │       │   └── Logout.vue
-│       ├── router.ts                  # /signin, /signup, /logout
+│       ├── router.ts                # Routes: /signin, /signup, /logout, /mfa-verify
 │       └── logic/
-│           └── traffic-controller.ts  # Handles the "Direction" -- a utility (e.g., traffic-controller.ts) that handles the "What happens next?"
+│           └── traffic-controller.ts
 │
 ├── shared/
-│   ├── branding/                      # Logic for White-labeling (only used by 'secret')
-│   │   └── useBrandContext.ts         # The composable replacing our Container logic
-│   └── components/                    # Buttons, Inputs, Layouts
+│   ├── branding/                    # Logic for White-labeling (only used by 'secret')
+│   │   └── useBrandContext.ts       # The composable replacing our Container logic
+│   └── components/                  # Buttons, Inputs, Layouts
 ```
 
 
@@ -614,12 +619,18 @@ So the structure holds:
 
 ```
 apps/secret/
-├── conceal/
+├── views/
 │   ├── Homepage.vue          # The form + explainer (respects homepage mode)
-│   ├── DisabledHomepage.vue  # "External" mode message
-│   └── IncomingForm.vue      # API-consumer conceal
-├── reveal/
-│   └── ...
+│   ├── conceal/
+│   │   ├── IncomingForm.vue  # API-consumer conceal
+│   │   └── IncomingSuccess.vue
+│   ├── reveal/
+│   │   ├── ShowSecret.vue
+│   │   ├── ShowReceipt.vue
+│   │   └── AccessDenied.vue  # "External" mode / disabled state
+│   └── support/
+│       └── Feedback.vue
+└── router.ts
 ```
 
 The useSecretContext() composable gains a homepage mode input:
@@ -639,11 +650,11 @@ The useSecretContext() composable gains a homepage mode input:
   // apps/secret/router.ts
   {
     path: '/',
-    component: () => import('./conceal/Homepage.vue'),
+    component: () => import('./views/Homepage.vue'),
     beforeEnter: (to) => {
       const mode = WindowService.get('homepage_mode');
       if (mode === 'external') {
-        return { name: 'DisabledHomepage' };
+        return { name: 'AccessDenied' };
       }
     }
   }
