@@ -120,12 +120,22 @@ export function useBranding(domainId?: string) {
     { immediate: true } // Add immediate to handle initial locale
   );
 
-  const saveBranding = (updates: Partial<BrandSettings>) =>
+  /**
+   * Save branding updates for a domain.
+   * @param updates - Partial brand settings to update
+   * @param targetDomainId - Optional domain ID override (for use when composable
+   *                         is called at setup time but needs to save to different domains)
+   */
+  const saveBranding = (updates: Partial<BrandSettings>, targetDomainId?: string) =>
     wrap(async () => {
-      if (!domainId) return;
-      const updated = await store.updateSettings(domainId, updates);
-      brandSettings.value = updated;
-      originalSettings.value = { ...brandSettings.value };
+      const effectiveDomainId = targetDomainId || domainId;
+      if (!effectiveDomainId) return;
+      const updated = await store.updateSettings(effectiveDomainId, updates);
+      // Only update local state if we're saving to the composable's domain
+      if (!targetDomainId || targetDomainId === domainId) {
+        brandSettings.value = updated;
+        originalSettings.value = { ...brandSettings.value };
+      }
       notifications.show('Brand settings saved successfully', 'success');
     });
 

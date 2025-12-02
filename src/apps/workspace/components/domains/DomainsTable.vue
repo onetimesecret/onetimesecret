@@ -20,6 +20,10 @@
 
 const { t } = useI18n();
 
+  // Call useBranding at setup time (required for Vue composable hooks)
+  // Pass domain ID to saveBranding when needed
+  const { saveBranding } = useBranding();
+
   defineProps<{
     domains: CustomDomain[];
     isLoading: boolean;
@@ -38,11 +42,10 @@ const { t } = useI18n();
   };
 
   const handleHomepageToggle = async (domain: CustomDomain) => {
-    const { saveBranding } = useBranding(domain.display_domain);
-
-    await saveBranding({
-      allow_public_homepage: !domain.brand?.allow_public_homepage,
-    });
+    await saveBranding(
+      { allow_public_homepage: !domain.brand?.allow_public_homepage },
+      domain.display_domain
+    );
 
     emit('toggle-homepage', domain);
 
