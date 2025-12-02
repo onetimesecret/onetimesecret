@@ -44,7 +44,7 @@ const { t } = useI18n();
   const handleHomepageToggle = async (domain: CustomDomain) => {
     await saveBranding(
       { allow_public_homepage: !domain.brand?.allow_public_homepage },
-      domain.display_domain
+      domain.extid
     );
 
     emit('toggle-homepage', domain);
