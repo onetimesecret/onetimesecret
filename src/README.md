@@ -1,87 +1,184 @@
-# Vue 3 File Naming Style Guide
+# Vue 3 Frontend Architecture
 
-## Core Rules
+## Interaction Modes Architecture
 
-- Use PascalCase for components, layouts, Stores, views: `UserProfile.vue`
-- Use descriptive suffixes ("discriminator suffixes") to indicate file type/purpose: `auth.routes.ts`
-- Consider kebab-case for non-Vue specific files (e.g. `color-utils.ts`)
+The frontend is organized by **interaction mode** - what the user is doing - rather than domain or branding. This provides clear separation of concerns and better maintainability.
 
-## Benefits
+### Apps (`src/apps/`)
 
-1. **Clear Purpose**: Suffixes immediately identify file responsibility
-2. **Prevents Conflicts**: Allows related files to share base names without collision
-3. **Better Organization**: Makes codebase more navigable and maintainable
-4. **IDE Support**: Improves autocompletion and file searching
-
-## By Directory
+Each app represents a distinct user interaction mode:
 
 ```
-api/
-  secrets.ts           // API endpoints/clients
-
-assets/                // Static assets, styles, images
-  style.css
-
-components/
-  HomepageTaglines.vue // UI components
-  DefaultHeader.vue
-
-composables/
-  useMetadata.ts       // Composable hooks
-
-layouts/
-  DefaultLayout.vue    // Page layouts
-
-locales/               // i18n translation files
-  en.json
-
-plugins/               // Plugin configurations
-  errorHandler.ts
-
-router/
-  auth.routes.ts       // Route definitions
-
-schemas/               // Data/validation schemas
-  customer.ts
-
-services/              // Business logic
-  window.ts
-
-stores/                // State management
-  README.md            // Store guidelines & patterns
-  authStore.ts
-
-types/                 // TypeScript definitions
-  forms.ts
-
-utils/                 // Helper functions
-  colorUtils.ts
-
-views/                 // Page components
-  Homepage.vue
+apps/
+├── secret/              # Transactional: creating and revealing secrets
+│   ├── conceal/         # Homepage, secret creation
+│   ├── reveal/          # ShowSecret, ShowMetadata, Burn
+│   ├── support/         # Feedback forms
+│   ├── components/      # Secret-specific components
+│   └── branding/        # Brand presentation logic
+│
+├── workspace/           # Management: dashboard, settings, teams
+│   ├── dashboard/       # Secret management dashboard
+│   ├── account/         # Account settings, profile
+│   ├── billing/         # Subscription and payment
+│   ├── teams/           # Team management
+│   └── domains/         # Custom domain configuration
+│
+├── session/             # Authentication: login, signup, MFA
+│   ├── views/           # Auth flow pages
+│   └── logic/           # Auth utilities
+│
+└── kernel/              # Admin: colonel/admin interface
+    └── views/           # Admin pages
 ```
 
-## Common Suffixes
-- `.vue` - Components, views, layouts
-- `.routes.ts` - Route definitions and guards
-- `.store.ts` - Pinia stores
-- `.utils.ts` - Helper functions
-- `.fixture.ts` - Test fixtures/data
-- `.spec.ts` - Unit/integration tests
-- `.d.ts` - TypeScript declarations
-- `.json` - Data/configuration files
-- `.md` - Documentation
-- `.css` - Stylesheets
+### Shared Resources (`src/shared/`)
 
-## Documentation Conventions
-- Include a `README.md` in each major directory
-- READMEs should document:
-  - Directory purpose
-  - Code conventions
-  - Important patterns
-  - Setup requirements
-  - Usage examples
-- Keep READMEs focused on their directory context
-- Maintain READMEs as living documentation
+Cross-app shared resources:
 
-This standardized naming helps us understand file purposes and reduces ambiguity.
+```
+shared/
+├── components/          # Categorized UI components
+│   ├── base/            # Foundational components
+│   ├── ui/              # General UI (buttons, badges, toggles)
+│   ├── forms/           # Form elements and validation
+│   ├── modals/          # Modal dialogs
+│   ├── icons/           # Icon components
+│   └── ...              # Other categories
+│
+├── composables/         # Shared Vue composables
+│   ├── useAuth.ts
+│   ├── useTheme.ts
+│   └── ...
+│
+├── stores/              # Pinia state management
+│   ├── authStore.ts
+│   ├── secretStore.ts
+│   └── ...
+│
+├── layouts/             # Page layout components
+│   ├── TransactionalLayout.vue
+│   ├── ManagementLayout.vue
+│   └── ...
+│
+└── branding/            # Brand data and utilities
+```
+
+### Other Directories
+
+```
+src/
+├── api/                 # API client and endpoints
+├── assets/              # Static assets, global styles
+├── locales/             # i18n translation files (34+ languages)
+├── plugins/             # Vue plugin configurations
+├── router/              # Route definitions
+├── schemas/             # Zod validation schemas
+├── services/            # Business logic services
+├── types/               # TypeScript definitions
+├── utils/               # Helper functions
+├── tests/               # Vitest unit tests
+├── App.vue              # Root component
+├── main.ts              # Application entry point
+└── i18n.ts              # i18n configuration
+```
+
+## File Naming Conventions
+
+### Core Rules
+
+- **PascalCase** for components, layouts, stores, views: `UserProfile.vue`
+- **Discriminator suffixes** indicate file type/purpose: `auth.routes.ts`
+- **kebab-case** for non-Vue specific utilities: `color-utils.ts`
+
+### Common Suffixes
+
+| Suffix | Purpose | Example |
+|--------|---------|---------|
+| `.vue` | Vue components | `SecretForm.vue` |
+| `.routes.ts` | Route definitions | `secret.routes.ts` |
+| `Store.ts` | Pinia stores | `authStore.ts` |
+| `.spec.ts` | Unit tests | `useAuth.spec.ts` |
+| `.fixture.ts` | Test fixtures | `metadata.fixture.ts` |
+| `.d.ts` | Type declarations | `window.d.ts` |
+
+## Key Patterns
+
+### Composables
+
+Composables encapsulate reusable logic. Located in `shared/composables/` for cross-app use or within app directories for app-specific logic.
+
+```typescript
+// shared/composables/useAuth.ts
+export function useAuth() {
+  const authStore = useAuthStore();
+  const isAuthenticated = computed(() => authStore.isAuthenticated);
+  // ...
+  return { isAuthenticated, login, logout };
+}
+```
+
+### Stores
+
+Pinia stores in `shared/stores/` manage global state. Each store follows a consistent pattern:
+
+```typescript
+// shared/stores/secretStore.ts
+export const useSecretStore = defineStore('secret', () => {
+  const record = ref<SecretRecord | null>(null);
+  // state, getters, actions
+  return { record, /* ... */ };
+});
+```
+
+### Layouts
+
+Layout components wrap pages with consistent structure:
+
+- `TransactionalLayout` - For secret flows (supports branding)
+- `ManagementLayout` - For workspace/dashboard
+- `AuthLayout` - For authentication pages
+
+### Import Aliases
+
+```typescript
+import Component from '@/shared/components/ui/Component.vue';
+import { useAuth } from '@/shared/composables/useAuth';
+import { useAuthStore } from '@/shared/stores/authStore';
+import SecretView from '@/apps/secret/reveal/ShowSecret.vue';
+```
+
+## Testing
+
+Tests are located in `src/tests/` mirroring the source structure:
+
+```
+tests/
+├── components/          # Component tests
+├── composables/         # Composable tests
+├── stores/              # Store tests
+├── router/              # Route tests
+├── views/               # View tests
+├── fixtures/            # Shared test fixtures
+└── setup.ts             # Test configuration
+```
+
+Run tests: `pnpm test`
+
+## Development Commands
+
+```bash
+pnpm run dev          # Start dev server with HMR
+pnpm run build        # Production build
+pnpm run type-check   # TypeScript validation
+pnpm run lint         # ESLint
+pnpm test             # Run Vitest tests
+```
+
+## Documentation
+
+Each major directory should contain a `README.md` documenting:
+- Directory purpose
+- Code conventions
+- Important patterns
+- Usage examples
