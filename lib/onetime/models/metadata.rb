@@ -125,6 +125,23 @@ module Onetime
         instances.count # e.g. zcard dbkey
       end
 
+      # Creates a linked Secret and Metadata pair for secure content storage.
+      #
+      # SECURITY CONTRACT: Callers must validate domain and passphrase before
+      # calling this method, as both are used as cryptographic inputs:
+      #
+      # - domain: Used as Additional Authenticated Data (AAD) for encryption.
+      #   API callers validate via: process_share_domain (format validation),
+      #   validate_domain_access (DB lookup + existence check), and
+      #   validate_domain_permissions (ownership/access rules). Attackers
+      #   cannot bind secrets to arbitrary AAD values.
+      #
+      # - passphrase: Used for secret access control (encrypted before storage).
+      #   API callers validate via: validate_passphrase (min/max length) and
+      #   validate_passphrase_complexity (when enforce_complexity enabled).
+      #
+      # See: apps/api/v2/logic/secrets/base_secret_action.rb for validation.
+      #
       def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil)
         secret   = Onetime::Secret.new(owner_id: owner_id)
         metadata = Onetime::Metadata.new(owner_id: owner_id)
