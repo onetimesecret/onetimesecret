@@ -13,12 +13,12 @@
 #
 # Organization API uses same modern conventions as Account API and Team API for consistency.
 
-require_relative '../../v2/logic/base'
-require_relative '../../../../lib/onetime/application/authorization_policies'
+require 'onetime/logic/base'
+require 'onetime/application/authorization_policies'
 
 module OrganizationAPI
   module Logic
-    class Base < V2::Logic::Base
+    class Base < Onetime::Logic::Base
       include Onetime::Application::AuthorizationPolicies
 
       # Organization API-specific serialization helper

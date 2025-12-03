@@ -13,11 +13,11 @@
 #
 # Team API uses same modern conventions as Account API for consistency.
 
-require_relative '../../v2/logic/base'
+require 'onetime/logic/base'
 
 module TeamAPI
   module Logic
-    class Base < V2::Logic::Base
+    class Base < Onetime::Logic::Base
       # Validation constants
       MAX_DISPLAY_NAME_LENGTH = 100
       MIN_DISPLAY_NAME_LENGTH = 3

@@ -2,11 +2,13 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/logic/base'
+
 module Core::Logic
   module Authentication
     using Familia::Refinements::TimeLiterals
 
-    class AuthenticateSession < V2::Logic::Base
+    class AuthenticateSession < Onetime::Logic::Base
       include Onetime::LoggerMethods
 
       attr_reader :objid, :stay, :greenlighted, :session_ttl, :potential_email_address
