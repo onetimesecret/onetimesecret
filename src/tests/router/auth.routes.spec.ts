@@ -1,7 +1,7 @@
 // src/tests/router/auth.routes.spec.ts
 
 import authRoutes from '@/router/auth.routes';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { setupRouter } from '@/tests/utils/routerSetup';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

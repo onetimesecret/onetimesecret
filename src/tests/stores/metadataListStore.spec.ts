@@ -1,6 +1,6 @@
 // src/tests/stores/metadataListStore.spec.ts
 
-import { useMetadataListStore } from '@/stores/metadataListStore';
+import { useMetadataListStore } from '@/shared/stores/metadataListStore';
 import { createApi } from '@/api';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

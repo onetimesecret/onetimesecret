@@ -5,7 +5,7 @@ import { setupWindowState } from '../setupWindow';
 
 import type { TeamWithRole } from '@/schemas/models/team';
 import { TeamRole } from '@/schemas/models/team';
-import { useTeamStore } from '@/stores/teamStore';
+import { useTeamStore } from '@/shared/stores/teamStore';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 

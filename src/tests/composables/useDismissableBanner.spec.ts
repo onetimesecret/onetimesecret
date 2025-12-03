@@ -1,6 +1,6 @@
 // src/tests/composables/useDismissableBanner.spec.ts
 
-import { useDismissableBanner, generateBannerId } from '@/composables/useDismissableBanner';
+import { useDismissableBanner, generateBannerId } from '@/shared/composables/useDismissableBanner';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 describe('useDismissableBanner', () => {

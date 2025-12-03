@@ -1,6 +1,6 @@
 // src/tests/composables/useDomainsManager.spec.ts
 
-import { useDomainsManager } from '@/composables/useDomainsManager';
+import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { ApplicationError } from '@/schemas/errors';
 import { mockDomains, newDomainData } from '@/tests/fixtures/domains.fixture';
 import { createPinia, setActivePinia } from 'pinia';
@@ -59,7 +59,7 @@ vi.mock('vue-router', () => ({
   useRouter: () => mockDependencies.router,
 }));
 
-vi.mock('@/stores/domainsStore', () => ({
+vi.mock('@/shared/stores/domainsStore', () => ({
   useDomainsStore: () => mockDependencies.domainsStore,
 }));
 
@@ -74,15 +74,15 @@ vi.mock('pinia', async (importOriginal) => {
   };
 });
 
-vi.mock('@/stores/notificationsStore', () => ({
+vi.mock('@/shared/stores/notificationsStore', () => ({
   useNotificationsStore: () => mockDependencies.notificationsStore,
 }));
 
-vi.mock('@/composables/useConfirmDialog', () => ({
+vi.mock('@/shared/composables/useConfirmDialog', () => ({
   useConfirmDialog: () => mockDependencies.confirmDialog,
 }));
 
-vi.mock('@/composables/useAsyncHandler', () => ({
+vi.mock('@/shared/composables/useAsyncHandler', () => ({
   useAsyncHandler: () => mockDependencies.errorHandler,
   createError: (message: string, type: string, severity: string) => ({
     message,

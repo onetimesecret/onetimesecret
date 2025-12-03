@@ -5,7 +5,7 @@ import {
   setupRouterGuards,
   validateAuthentication,
 } from '@/router/guards.routes';
-import { useAuthStore } from '@/stores';
+import { useAuthStore } from '@/shared/stores';
 import { beforeEach, describe, expect, it, test, vi } from 'vitest';
 import { RouteLocationNormalized, Router } from 'vue-router';
 
@@ -26,7 +26,7 @@ const publicRoute: RouteLocationNormalized = {
   meta: { requiresAuth: false },
 };
 
-vi.mock('@/stores/authStore', () => ({
+vi.mock('@/shared/stores/authStore', () => ({
   useAuthStore: vi.fn(() => ({
     isAuthenticated: false,
     needsCheck: false,
@@ -34,7 +34,7 @@ vi.mock('@/stores/authStore', () => ({
   })),
 }));
 
-vi.mock('@/stores/languageStore', () => ({
+vi.mock('@/shared/stores/languageStore', () => ({
   useLanguageStore: vi.fn(() => ({
     setCurrentLocale: vi.fn(),
   })),
@@ -46,7 +46,7 @@ vi.mock('@/services/window.service', () => ({
   },
 }));
 
-vi.mock('@/composables/usePageTitle', () => ({
+vi.mock('@/shared/composables/usePageTitle', () => ({
   usePageTitle: vi.fn(() => ({
     setTitle: vi.fn(),
     useComputedTitle: vi.fn(),

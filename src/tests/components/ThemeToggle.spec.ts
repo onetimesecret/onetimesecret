@@ -2,7 +2,7 @@
 
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import ThemeToggle from '@/components/ThemeToggle.vue';
+import ThemeToggle from '@/shared/components/ui/ThemeToggle.vue';
 
 const mockIsDarkMode = { value: false };
 const mockInitializeTheme = vi.fn();
@@ -12,7 +12,7 @@ const mockToggleDarkMode = vi.fn(() => {
 const mockClearThemeListeners = vi.fn();
 const mockGetThemeListenersSize = vi.fn(() => 0);
 
-vi.mock('@/composables/useTheme', () => ({
+vi.mock('@/shared/composables/useTheme', () => ({
   useTheme: vi.fn(() => ({
     isDarkMode: mockIsDarkMode,
     toggleDarkMode: mockToggleDarkMode,

@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  // import { useAccount } from '@/composables/useAccount';
+  // import { useAccount } from '@/shared/composables/useAccount';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import LanguageToggle from '@/shared/components/ui/LanguageToggle.vue';
   import SettingsLayout from '@/shared/components/layout/SettingsLayout.vue';

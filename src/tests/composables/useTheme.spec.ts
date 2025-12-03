@@ -1,6 +1,6 @@
 // src/tests/composables/useTheme.spec.ts
 
-import { useTheme } from '@/composables/useTheme';
+import { useTheme } from '@/shared/composables/useTheme';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';

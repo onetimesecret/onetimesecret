@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { RouteRecordRaw } from 'vue-router';
 
 // Mock the secrets store
-vi.mock('@/stores/secretStore', () => ({
+vi.mock('@/shared/stores/secretStore', () => ({
   useSecretStore: vi.fn(() => ({
     fetch: vi.fn().mockResolvedValue({
       record: {

@@ -5,7 +5,7 @@
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
-  // import TeamSelector from '@/components/teams/TeamSelector.vue';
+  // import TeamSelector from '@/shared/components/teams/TeamSelector.vue';
   import { useDomainDropdown } from '@/shared/composables/useDomainDropdown';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';

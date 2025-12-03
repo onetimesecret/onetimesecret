@@ -1,7 +1,7 @@
 <!-- src/apps/secret/reveal/ShowSecret.vue -->
 
 <script setup lang="ts">
-// import { domainStrategy } from '@/composables/useBranding';
+// import { domainStrategy } from '@/shared/composables/useBranding';
 import { WindowService } from '@/services/window.service';
 import { computed } from 'vue';
 
