@@ -200,7 +200,7 @@ src/apps/
 │       └── ShowSecret.vue
 ├── workspace/        ← Interaction Mode: Management (no dimensions apply)
 ├── session/          ← Interaction Mode: Gateway
-└── kernel/           ← Interaction Mode: Administration
+└── colonel/           ← Interaction Mode: Administration
 ```
 
 Safe passage is handled by composables that compute `uiConfig` from all applicable dimensions:
@@ -281,7 +281,7 @@ src/
 │   │   ├── views/                   # Overview, plans, invoices
 │   │   └── router.ts                # Routes: /billing/*
 │   │
-│   ├── kernel/                      # THE SYSTEM (Admin)
+│   ├── colonel/                      # THE SYSTEM (Admin)
 │   │   ├── views/                   # Colonel views
 │   │   └── router.ts                # Routes: /colonel/*
 │   │
@@ -537,7 +537,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 // Import modules
 import { routes as sessionRoutes } from '@/apps/session/routes';
 import { routes as workspaceRoutes } from '@/apps/workspace/routes';
-import { routes as kernelRoutes } from '@/apps/colonel/routes';
+import { routes as colonelRoutes } from '@/apps/colonel/routes';
 import { routes as secretRoutes } from '@/apps/secret/routes'; // Includes 404 wildcard
 
 export const router = createRouter({
@@ -547,7 +547,7 @@ export const router = createRouter({
     ...sessionRoutes,
 
     // 2. Kernel (Admin) - High specificity
-    ...kernelRoutes,
+    ...colonelRoutes,
 
     // 3. Workspace (Dashboard) - Auth required
     ...workspaceRoutes,

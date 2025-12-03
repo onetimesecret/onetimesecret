@@ -152,7 +152,7 @@ src/
 │   │   ├── composables/
 │   │   └── router.ts
 │   │
-│   └── kernel/
+│   └── colonel/
 │       ├── views/
 │       │   ├── ColonelIndex.vue
 │       │   ├── ColonelUsers.vue

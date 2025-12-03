@@ -135,7 +135,7 @@ pnpm run test:all:clean
 - **Security guidance:** `src/locales/SECURITY-TRANSLATION-GUIDE.md` (auth error messages)
 
 ## Project Structure
-- Apps: `src/apps/` (secret, workspace, session, kernel)
+- Apps: `src/apps/` (secret, workspace, session, colonel)
 - Shared: `src/shared/` (components, composables, stores, layouts)
 - Types: `src/types/`
 - Tests: `tests/`, `src/**/__tests__/`

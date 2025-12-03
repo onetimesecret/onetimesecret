@@ -28,7 +28,7 @@ The current architecture organizes code by **Domain Context** (canonical/branded
 
 | Area | Current | Target | Gap Type | Effort | Dependencies |
 |------|---------|--------|----------|--------|--------------|
-| **Top-level structure** | `src/views/`, `src/components/` | `src/apps/secret/`, `workspace/`, `kernel/`, `session/` | Restructure | L | Router migration |
+| **Top-level structure** | `src/views/`, `src/components/` | `src/apps/secret/`, `workspace/`, `colonel/`, `session/` | Restructure | L | Router migration |
 | **Secret app** | `views/secrets/canonical/`, `views/secrets/branded/` | `apps/secret/conceal/`, `apps/secret/reveal/` | Restructure | M | useSecretContext composable |
 | **Workspace app** | `views/dashboard/`, `views/account/`, `views/teams/` | `apps/workspace/dashboard/`, `account/`, `teams/`, `domains/` | Restructure | M | Router migration |
 | **Billing app** | `views/billing/` | `apps/billing/views/` | Restructure | S | Router migration |
@@ -158,7 +158,7 @@ The current architecture organizes code by **Domain Context** (canonical/branded
 **Goal**: Isolate admin views
 
 1. Move `views/colonel/` → `apps/colonel/views/`
-2. Update kernel router
+2. Update colonel router
 
 **Dependencies**: Phase 1 router structure
 **Risk**: Low (admin is already isolated)
@@ -236,7 +236,7 @@ The current architecture organizes code by **Domain Context** (canonical/branded
 
 ## Success Criteria
 
-1. **Structure**: All code lives in `src/apps/{secret,workspace,kernel,session}/` or `src/shared/`
+1. **Structure**: All code lives in `src/apps/{secret,workspace,colonel,session}/` or `src/shared/`
 2. **Composables**: `useSecretContext()` returns `actorRole` and `uiConfig`, not raw booleans
 3. **Containers**: No manual container components; variant selection via composables
 4. **Branding**: `apps/secret/branding/` owns presentation; `shared/api/brand.ts` owns data
