@@ -30,7 +30,7 @@
     email: '',
     role: TeamRole.MEMBER,
   });
-  const inviteErrors = ref<Record>({});
+  const inviteErrors = ref<Record<string, string>>({});
   const inviteGeneralError = ref('');
   const isInviting = ref(false);
   const error = ref('');
@@ -46,7 +46,7 @@
   });
 
   // Get current user ID from window state
-  const currentUserId = computed(() => window.__ONETIME_STATE__?.customer?.custid);
+  const currentUserId = computed(() => window.__ONETIME_STATE__?.custid);
 
   onMounted(async () => {
     let result;
@@ -83,13 +83,13 @@
       showInviteForm.value = false;
     } catch (err) {
       if (err instanceof z.ZodError) {
-        err.errors.forEach((error) => {
-          const field = error.path[0] as string;
-          inviteErrors.value[field] = error.message;
+        err.issues.forEach((issue) => {
+          const field = issue.path[0] as string;
+          inviteErrors.value[field] = issue.message;
         });
       } else {
         const classified = classifyError(err);
-        inviteGeneralError.value = classified.userMessage || t('web.teams.invite_error');
+        inviteGeneralError.value = classified.message || t('web.teams.invite_error');
       }
     } finally {
       isInviting.value = false;

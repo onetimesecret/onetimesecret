@@ -1,9 +1,7 @@
 // src/shared/stores/systemSettingsStore.ts
 
-import {
-  systemSettingsSchema,
-  type SystemSettingsDetails,
-} from '@/schemas/api/account/endpoints/colonel';
+import { systemSettingsSchema } from '@/schemas/api/account/endpoints/colonel';
+import { type SystemSettingsDetails } from '@/schemas/config';
 import { responseSchemas } from '@/schemas/api/v3';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';

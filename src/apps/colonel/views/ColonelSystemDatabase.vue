@@ -12,6 +12,21 @@
   const { databaseMetrics, isLoading } = storeToRefs(store);
   const { fetchDatabaseMetrics } = store;
 
+  // Type guard for database size entries (can be object or string from Redis INFO)
+  const getDbKeys = (dbInfo: unknown): number => {
+    if (typeof dbInfo === 'object' && dbInfo !== null && 'keys' in dbInfo) {
+      return (dbInfo as { keys: number }).keys;
+    }
+    return 0;
+  };
+
+  const getDbExpires = (dbInfo: unknown): number => {
+    if (typeof dbInfo === 'object' && dbInfo !== null && 'expires' in dbInfo) {
+      return (dbInfo as { expires: number }).expires;
+    }
+    return 0;
+  };
+
   onMounted(() => fetchDatabaseMetrics());
 </script>
 
@@ -113,7 +128,7 @@
             class="border border-gray-200 dark:border-gray-700 rounded p-4">
             <div class="font-semibold text-gray-900 dark:text-white">{{ dbName }}</div>
             <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              {{ dbInfo.keys.toLocaleString() }} keys, {{ dbInfo.expires.toLocaleString() }} with TTL
+              {{ getDbKeys(dbInfo).toLocaleString() }} keys, {{ getDbExpires(dbInfo).toLocaleString() }} with TTL
             </div>
           </div>
         </div>

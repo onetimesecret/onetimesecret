@@ -11,7 +11,7 @@ cornerStyleClasses,
 fontFamilyClasses
 } from '@/schemas/models/domain/brand';
 import { computed, ref } from 'vue';
-import { Composer } from 'vue-i18n';
+import { Composer, useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

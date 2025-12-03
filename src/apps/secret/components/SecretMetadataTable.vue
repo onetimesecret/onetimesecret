@@ -34,7 +34,7 @@
   const handleCopy = async (item: MetadataRecords) => {
     try {
       await navigator.clipboard.writeText(getShareLink(item));
-      copiedItemKey.value = item.identifier;
+      copiedItemKey.value = item.identifier ?? null;
 
       // Reset copied state after 1.5 seconds
       setTimeout(() => {
@@ -102,7 +102,7 @@
                 <!-- prettier-ignore-attribute class -->
                 <tr
                   v-for="item in notReceived"
-                  :key="item.identifier"
+                  :key="item.identifier ?? item.shortid ?? undefined"
                   class="group border-b border-gray-200 transition-all duration-200
                     hover:bg-gray-50/80 dark:border-gray-700 dark:hover:bg-slate-800/70">
                   <td class="whitespace-nowrap px-6 py-4">
@@ -285,7 +285,7 @@
                 <!-- prettier-ignore-attribute class -->
                 <tr
                   v-for="item in received"
-                  :key="item.identifier"
+                  :key="item.identifier ?? item.shortid ?? undefined"
                   class="group border-b border-gray-200 transition-all duration-200
                     hover:bg-gray-50/80 dark:border-gray-700 dark:hover:bg-slate-800/70">
                   <td class="whitespace-nowrap px-6 py-4">

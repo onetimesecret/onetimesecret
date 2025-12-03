@@ -69,7 +69,7 @@ const handleRemoveMember = async () => {
     emit('member-removed', memberId);
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.userMessage || t('web.teams.remove_member_error');
+    error.value = classified.message || t('web.teams.remove_member_error');
   } finally {
     isProcessing.value = false;
   }
@@ -86,7 +86,7 @@ const handleChangeRole = async (memberId: string, newRole: TeamRole) => {
     emit('role-changed', memberId, newRole);
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.userMessage || t('web.teams.change_role_error');
+    error.value = classified.message || t('web.teams.change_role_error');
   } finally {
     isProcessing.value = false;
   }

@@ -1,7 +1,6 @@
 // src/shared/stores/colonelInfoStore.ts
 
 import {
-  type SystemSettingsDetails,
   type ColonelStatsDetails,
   type ColonelInfoDetails,
   type ColonelUsersDetails,
@@ -14,10 +13,10 @@ import {
   type BannedIPsDetails,
   type BannedIP,
   type UsageExportDetails,
-  type CustomDomainsDetails,
-  type CustomDomain,
+  type ColonelCustomDomain,
   type QueueMetrics,
 } from '@/schemas/api/account/endpoints/colonel';
+import { type SystemSettingsDetails } from '@/schemas/config';
 import { responseSchemas } from '@/schemas/api/v3';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -79,7 +78,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
   const redisMetrics = ref<RedisMetricsDetails | null>(null);
   const bannedIPs = ref<BannedIP[]>([]);
   const currentIP = ref<string | null>(null);
-  const customDomains = ref<CustomDomain[]>([]);
+  const customDomains = ref<ColonelCustomDomain[]>([]);
   const customDomainsPagination = ref<Pagination | null>(null);
   const usageExport = ref<UsageExportDetails | null>(null);
   const queueMetrics = ref<QueueMetrics | null>(null);

@@ -69,7 +69,7 @@
                 v-if="domain.has_logo"
                 class="size-16 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
                 <img
-                  :src="domain.logo_url"
+                  :src="domain.logo_url ?? undefined"
                   :alt="`${domain.display_domain} logo`"
                   class="size-full object-contain"
                   loading="lazy" />
@@ -178,7 +178,7 @@
             <span class="text-xs text-gray-500 dark:text-gray-400">Favicon:</span>
             <div class="mt-2 inline-block size-8 overflow-hidden rounded border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
               <img
-                :src="domain.icon_url"
+                :src="domain.icon_url ?? undefined"
                 :alt="`${domain.display_domain} favicon`"
                 class="size-full object-contain"
                 loading="lazy" />

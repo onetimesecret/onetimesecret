@@ -26,6 +26,7 @@ const formSchema = z.object({
   passphrase: z.string(),
   recipient: transforms.fromString.optionalEmail,
   share_domain: z.string(),
+  team_id: z.string().optional(),
 });
 
 /**

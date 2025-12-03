@@ -18,7 +18,7 @@
 
   const props = defineProps<Props>();
 
-  const { burn, isLoading, passphrase } = useMetadata(props.record.key);
+  const { burn, isLoading, passphrase } = useMetadata(props.record.key ?? '');
 
   const showConfirmation = ref(false);
   const isHovered = ref(false);

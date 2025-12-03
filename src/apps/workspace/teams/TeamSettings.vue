@@ -29,7 +29,7 @@
     display_name: '',
     description: '',
   });
-  const errors = ref<Record>({});
+  const errors = ref<Record<string, string>>({});
   const generalError = ref('');
   const successMessage = ref('');
   const isSubmitting = ref(false);
@@ -100,13 +100,13 @@
       successMessage.value = t('web.teams.update_success');
     } catch (err) {
       if (err instanceof z.ZodError) {
-        err.errors.forEach((error) => {
-          const field = error.path[0] as string;
-          errors.value[field] = error.message;
+        err.issues.forEach((issue) => {
+          const field = issue.path[0] as string;
+          errors.value[field] = issue.message;
         });
       } else {
         const classified = classifyError(err);
-        generalError.value = classified.userMessage || t('web.teams.update_error');
+        generalError.value = classified.message || t('web.teams.update_error');
       }
     } finally {
       isSubmitting.value = false;
@@ -125,7 +125,7 @@
       router.push({ name: 'Teams' });
     } catch (err) {
       const classified = classifyError(err);
-      generalError.value = classified.userMessage || t('web.teams.delete_error');
+      generalError.value = classified.message || t('web.teams.delete_error');
       isDeleting.value = false;
     }
   };
@@ -347,7 +347,7 @@
             <button
               type="button"
               @click="showDeleteConfirm = true"
-              :disabled="isDeleting || activeTeam?.is_default"
+              :disabled="isDeleting || !!activeTeam?.is_default"
               class="ml-4 inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-600">
               <OIcon
                 collection="heroicons"

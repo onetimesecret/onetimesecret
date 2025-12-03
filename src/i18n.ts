@@ -19,9 +19,10 @@ import { createI18n, type Composer } from 'vue-i18n';
  * 1. Structured: {"web": {...}, "email": {...}} - most files
  * 2. Flat: {"key": "value", ...} - uncategorized.json
  */
-const localeModules = import.meta.glob<{ default: Record<string, any> }>('@/locales/*/*.json', {
+// Using type assertion for Vite's import.meta.glob (types from vite/client reference)
+const localeModules = (import.meta as any).glob('@/locales/*/*.json', {
   eager: true,
-});
+}) as Record<string, { default: Record<string, any> }>;
 
 const messages: Record<string, any> = {};
 

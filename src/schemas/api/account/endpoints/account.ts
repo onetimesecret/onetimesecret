@@ -10,6 +10,9 @@ import { z } from 'zod';
 export const accountSchema = z.object({
   cust: customerSchema,
   apitoken: z.string().nullable(),
+  // Optional Stripe billing fields (present when billing is enabled)
+  stripe_customer: z.any().optional(),
+  stripe_subscriptions: z.any().optional(),
 });
 
 export type Account = z.infer<typeof accountSchema>;

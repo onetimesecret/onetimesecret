@@ -4,7 +4,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useEventListener } from '@vueuse/core';
   import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
-  import { Composer } from 'vue-i18n';
+  import { Composer, useI18n } from 'vue-i18n';
 
   import HoverTooltip from '@/shared/components/common/HoverTooltip.vue';
 

@@ -1,5 +1,11 @@
 <!-- src/shared/components/ui/GithubCorner.vue -->
 
+<script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
+
+  const { t } = useI18n();
+</script>
+
 <template>
   <a
     href="https://github.com/onetimesecret/onetimesecret"

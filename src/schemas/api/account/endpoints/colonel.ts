@@ -19,7 +19,7 @@ import {
 
 // Re-export for backward compatibility
 export { systemSettingsSchema, systemSettingsDetailsSchema };
-export type SystemSettingsDetails = z.infer<typeof systemSettingsDetailsSchema>;
+// SystemSettingsDetails type already exported from config/config.ts
 
 // ============================================================================
 // Colonel API Response Schemas
@@ -117,6 +117,7 @@ export const databaseMetricsDetailsSchema = z.object({
     instantaneous_ops_per_sec: z.number(),
   }),
   database_sizes: z.record(
+    z.string(),
     z.union([
       z.object({
         keys: z.number(),
@@ -147,7 +148,7 @@ export const databaseMetricsDetailsSchema = z.object({
  * Redis metrics response details (full Redis INFO)
  */
 export const redisMetricsDetailsSchema = z.object({
-  redis_info: z.record(z.string()),
+  redis_info: z.record(z.string(), z.string()),
   timestamp: z.number(),
   timestamp_human: z.string(),
 });
@@ -186,18 +187,19 @@ export const usageExportDetailsSchema = z.object({
   usage_data: z.object({
     total_secrets: z.number(),
     total_new_users: z.number(),
-    secrets_by_state: z.record(z.number()),
+    secrets_by_state: z.record(z.string(), z.number()),
     avg_secrets_per_day: z.number(),
     avg_users_per_day: z.number(),
   }),
-  secrets_by_day: z.record(z.number()),
-  users_by_day: z.record(z.number()),
+  secrets_by_day: z.record(z.string(), z.number()),
+  users_by_day: z.record(z.string(), z.number()),
 });
 
 /**
- * Custom domain schema
+ * Custom domain schema for colonel/admin API
+ * (Different from models/domain customDomainSchema - this is the admin list view)
  */
-export const customDomainSchema = z.object({
+export const colonelCustomDomainSchema = z.object({
   domain_id: z.string(),
   extid: z.string(),
   display_domain: z.string(),
@@ -227,8 +229,8 @@ export const customDomainSchema = z.object({
   icon_url: z.string().nullable(),
 });
 
-export const customDomainsDetailsSchema = z.object({
-  domains: z.array(customDomainSchema),
+export const colonelCustomDomainsDetailsSchema = z.object({
+  domains: z.array(colonelCustomDomainSchema),
   pagination: paginationSchema,
 });
 
@@ -287,8 +289,8 @@ export type RedisMetricsDetails = z.infer<typeof redisMetricsDetailsSchema>;
 export type BannedIP = z.infer<typeof bannedIPSchema>;
 export type BannedIPsDetails = z.infer<typeof bannedIPsDetailsSchema>;
 export type UsageExportDetails = z.infer<typeof usageExportDetailsSchema>;
-export type CustomDomain = z.infer<typeof customDomainSchema>;
-export type CustomDomainsDetails = z.infer<typeof customDomainsDetailsSchema>;
+export type ColonelCustomDomain = z.infer<typeof colonelCustomDomainSchema>;
+export type ColonelCustomDomainsDetails = z.infer<typeof colonelCustomDomainsDetailsSchema>;
 
 /**
  * Queue metrics schema

@@ -43,7 +43,7 @@
         </div>
 
         <div class="p-6">
-          <APIKeyForm :apitoken="account?.apitoken" />
+          <APIKeyForm :apitoken="account?.apitoken ?? undefined" />
         </div>
       </section>
 

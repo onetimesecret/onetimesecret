@@ -37,7 +37,7 @@ const isLoadingBilling = ref(false);
 const error = ref('');
 const success = ref('');
 
-const billingEnabled = computed(() => WindowService.getWindowProperty('billing_enabled', false));
+const billingEnabled = computed(() => WindowService.get('billing_enabled') ?? false);
 
 // Capabilities
 const { capabilities, can } = useCapabilities(organization);
@@ -103,7 +103,7 @@ const loadOrganization = async () => {
     }
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.userMessage || t('web.organizations.load_error');
+    error.value = classified.message || t('web.organizations.load_error');
     console.error('[OrganizationSettings] Error loading organization:', err);
   } finally {
     isLoading.value = false;
@@ -175,7 +175,7 @@ const handleSave = async () => {
     await loadOrganization(); // Reload to get latest data
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.userMessage || t('web.organizations.update_error');
+    error.value = classified.message || t('web.organizations.update_error');
     console.error('[OrganizationSettings] Error updating organization:', err);
   } finally {
     isSaving.value = false;

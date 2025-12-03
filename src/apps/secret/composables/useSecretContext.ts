@@ -4,6 +4,7 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useAuthStore } from '@/shared/stores/authStore';
+import { WindowService } from '@/services/window.service';
 
 export type ActorRole = 'CREATOR' | 'AUTH_RECIPIENT' | 'ANON_RECIPIENT';
 
@@ -18,12 +19,13 @@ export function useSecretContext() {
   const identity = useProductIdentity();
   const auth = useAuthStore();
 
-  const isAuthenticated = computed(() => auth.isLoggedIn);
+  const isAuthenticated = computed(() => auth.isAuthenticated === true);
 
   // Determine if viewer is the creator of this specific secret
   const isOwner = computed(() => {
     const creatorId = route.meta?.creatorId as string | undefined;
-    return creatorId ? auth.custid === creatorId : false;
+    const custid = WindowService.get('custid');
+    return creatorId ? custid === creatorId : false;
   });
 
   const actorRole = computed<ActorRole>(() => {
