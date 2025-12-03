@@ -58,11 +58,9 @@ export function useSecretContext() {
     }
   });
 
-  const theme = computed(() => {
-    return identity.domainStrategy === 'custom'
+  const theme = computed(() => identity.domainStrategy === 'custom'
       ? { mode: 'branded' as const, colors: identity.brand?.primary_color }
-      : { mode: 'canonical' as const, colors: null };
-  });
+      : { mode: 'canonical' as const, colors: null });
 
   return {
     actorRole,

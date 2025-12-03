@@ -63,6 +63,7 @@ export type ColonelInfoStore = {
   $reset: () => void;
 } & PiniaCustomProperties;
 
+// eslint-disable-next-line max-lines-per-function -- Admin store with many related endpoints
 export const useColonelInfoStore = defineStore('colonel', () => {
   const $api = inject('api') as AxiosInstance;
 

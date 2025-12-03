@@ -1,9 +1,7 @@
 <!-- src/apps/colonel/views/ColonelSystemAuthDB.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
-
-  const { t } = useI18n();
+  // No i18n needed - admin-only view with hardcoded strings
 </script>
 
 <template>

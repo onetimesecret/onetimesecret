@@ -14,7 +14,8 @@
   const isBetaEnabled = computed(() => cust?.feature_flags?.beta ?? false);
 
   // Only show upgrade prompts in SaaS mode (billing enabled)
-  const billingEnabled = computed(() => WindowService.get('billing_enabled') || false);
+  // Note: UpgradePrompt component handles its own visibility based on billing state
+  const _billingEnabled = computed(() => WindowService.get('billing_enabled') || false);
 </script>
 
 <template>

@@ -4,9 +4,6 @@
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
-
-  const { t } = useI18n();
 
   const store = useColonelInfoStore();
   const { usageExport, isLoading } = storeToRefs(store);
