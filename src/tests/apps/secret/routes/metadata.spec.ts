@@ -1,6 +1,6 @@
-// src/tests/router/metadata.routes.spec.ts
+// src/tests/apps/secret/routes/metadata.spec.ts
 
-import routes from '@/router/metadata.routes';
+import routes from '@/apps/secret/routes/metadata';
 import { describe, expect, it, vi } from 'vitest';
 import { RouteRecordRaw } from 'vue-router';
 

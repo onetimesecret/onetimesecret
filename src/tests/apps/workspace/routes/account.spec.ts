@@ -1,6 +1,6 @@
-// src/tests/router/account.routes.spec.ts
+// src/tests/apps/workspace/routes/account.spec.ts
 
-import accountRoutes from '@/router/account.routes';
+import accountRoutes from '@/apps/workspace/routes/account';
 import { describe, expect, it } from 'vitest';
 import { RouteRecordRaw } from 'vue-router';
 

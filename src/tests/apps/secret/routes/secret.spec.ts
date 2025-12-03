@@ -1,6 +1,6 @@
-// src/tests/router/secret.routes.spec.ts
+// src/tests/apps/secret/routes/secret.spec.ts
 
-import routes from '@/router/secret.routes';
+import routes from '@/apps/secret/routes/secret';
 import ShowSecretContainer from '@/apps/secret/reveal/ShowSecret.vue';
 import { describe, expect, it } from 'vitest';
 

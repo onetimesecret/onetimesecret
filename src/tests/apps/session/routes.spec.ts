@@ -1,6 +1,6 @@
-// src/tests/router/auth.routes.spec.ts
+// src/tests/apps/session/routes.spec.ts
 
-import authRoutes from '@/router/auth.routes';
+import authRoutes from '@/apps/session/routes';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { setupRouter } from '@/tests/utils/routerSetup';
 import { createPinia, setActivePinia } from 'pinia';

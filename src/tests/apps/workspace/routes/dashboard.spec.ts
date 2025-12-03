@@ -1,6 +1,6 @@
-// src/tests/router/dashboard.routes.spec.ts
+// src/tests/apps/workspace/routes/dashboard.spec.ts
 
-import dashboardRoutes from '@/router/dashboard.routes';
+import dashboardRoutes from '@/apps/workspace/routes/dashboard';
 import { describe, expect, it } from 'vitest';
 import { RouteRecordRaw } from 'vue-router';
 
