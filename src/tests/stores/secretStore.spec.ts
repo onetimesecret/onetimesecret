@@ -1,6 +1,6 @@
 // src/tests/stores/secretStore.spec.ts
 
-import { useSecretStore } from '@/stores/secretStore';
+import { useSecretStore } from '@/shared/stores/secretStore';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App, ComponentPublicInstance } from 'vue';

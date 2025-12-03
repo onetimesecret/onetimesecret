@@ -2,8 +2,9 @@
 
 import { z } from 'zod';
 
-const resolveDetailsSchema = <T extends z.ZodTypeAny | undefined>(schema?: T) =>
-  schema ?? z.record(z.string(), z.any());
+// Helper type to resolve details schema with proper typing
+type _ResolvedDetailsSchema<T extends z.ZodTypeAny | undefined> =
+  T extends z.ZodTypeAny ? T : z.ZodRecord<z.ZodString, z.ZodAny>;
 
 /**
  * Base schema patterns for API v3 responses.
@@ -60,26 +61,26 @@ const apiResponseBaseSchema = z.object({
 
 export const createApiResponseSchema = <
   TRecord extends z.ZodTypeAny,
-  TDetails extends z.ZodTypeAny | undefined = undefined,
+  TDetails extends z.ZodTypeAny = z.ZodRecord<z.ZodString, z.ZodAny>,
 >(
   recordSchema: TRecord,
   detailsSchema?: TDetails
 ) =>
   apiResponseBaseSchema.extend({
     record: recordSchema,
-    details: resolveDetailsSchema(detailsSchema).optional(),
+    details: (detailsSchema ?? z.record(z.string(), z.any())).optional() as z.ZodOptional<TDetails>,
   });
 
 export const createApiListResponseSchema = <
   TRecord extends z.ZodTypeAny,
-  TDetails extends z.ZodTypeAny | undefined = undefined,
+  TDetails extends z.ZodTypeAny = z.ZodRecord<z.ZodString, z.ZodAny>,
 >(
   recordSchema: TRecord,
   detailsSchema?: TDetails
 ) =>
   apiResponseBaseSchema.extend({
     records: z.array(recordSchema),
-    details: resolveDetailsSchema(detailsSchema).optional(),
+    details: (detailsSchema ?? z.record(z.string(), z.any())).optional() as z.ZodOptional<TDetails>,
     count: z.number().int().optional(),
   });
 

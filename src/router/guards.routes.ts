@@ -1,9 +1,9 @@
 // src/router/guards.routes.ts
 
-import { usePageTitle } from '@/composables/usePageTitle';
+import { usePageTitle } from '@/shared/composables/usePageTitle';
 import { WindowService } from '@/services/window.service';
-import { useAuthStore } from '@/stores/authStore';
-import { useLanguageStore } from '@/stores/languageStore';
+import { useAuthStore } from '@/shared/stores/authStore';
+import { useLanguageStore } from '@/shared/stores/languageStore';
 import { RouteLocationNormalized, Router } from 'vue-router';
 
 import { processQueryParams } from './queryParams.handler';

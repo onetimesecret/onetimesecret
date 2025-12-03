@@ -31,9 +31,9 @@ export function fileMoves(): FileMove[] {
     },
     {
       from: 'views/BrandedHomepage.vue',
-      to: null,
-      action: 'delete',
-      notes: 'Merged into Homepage.vue',
+      to: 'apps/secret/conceal/BrandedHomepage.vue',
+      action: 'move',
+      notes: 'Keep for container import until refactored',
     },
     {
       from: 'views/DisabledHomepage.vue',
@@ -67,21 +67,21 @@ export function fileMoves(): FileMove[] {
     },
     {
       from: 'views/secrets/branded/ShowSecret.vue',
-      to: null,
-      action: 'delete',
-      notes: 'Merged into ShowSecret.vue',
+      to: 'apps/secret/reveal/branded/ShowSecret.vue',
+      action: 'move',
+      notes: 'Keep for container import until refactored',
     },
     {
       from: 'views/secrets/canonical/ShowSecret.vue',
-      to: null,
-      action: 'delete',
-      notes: 'Merged into ShowSecret.vue',
+      to: 'apps/secret/reveal/canonical/ShowSecret.vue',
+      action: 'move',
+      notes: 'Keep for container import until refactored',
     },
     {
       from: 'views/secrets/branded/UnknownSecret.vue',
-      to: null,
-      action: 'delete',
-      notes: 'Merged into UnknownSecret.vue',
+      to: 'apps/secret/reveal/branded/UnknownSecret.vue',
+      action: 'move',
+      notes: 'Keep for container import until refactored',
     },
     {
       from: 'views/secrets/canonical/UnknownSecret.vue',
@@ -115,8 +115,64 @@ export function fileMoves(): FileMove[] {
     },
 
     // ========================================================================
-    // Secret App: Components
+    // Secret App: Components (flat files in components/secrets/)
     // ========================================================================
+    {
+      from: 'components/secrets/HomepageLinksPlaceholder.vue',
+      to: 'apps/secret/components/HomepageLinksPlaceholder.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/RecentSecretsTable.vue',
+      to: 'apps/secret/components/RecentSecretsTable.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretDisplayHelpContent.vue',
+      to: 'apps/secret/components/SecretDisplayHelpContent.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretLinkLine.vue',
+      to: 'apps/secret/components/SecretLinkLine.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretLinksTable.vue',
+      to: 'apps/secret/components/SecretLinksTable.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretLinksTableRow.vue',
+      to: 'apps/secret/components/SecretLinksTableRow.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretLinksTableRowActions.vue',
+      to: 'apps/secret/components/SecretLinksTableRowActions.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretMetadataTable.vue',
+      to: 'apps/secret/components/SecretMetadataTable.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretMetadataTableItem.vue',
+      to: 'apps/secret/components/SecretMetadataTableItem.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/SecretRecipientHelpContent.vue',
+      to: 'apps/secret/components/SecretRecipientHelpContent.vue',
+      action: 'move',
+    },
+    {
+      from: 'components/secrets/UnknownSecretHelpContent.vue',
+      to: 'apps/secret/components/UnknownSecretHelpContent.vue',
+      action: 'move',
+    },
+    // Subdirectories in components/secrets/
     {
       from: 'components/secrets/form',
       to: 'apps/secret/components/form',
@@ -129,15 +185,15 @@ export function fileMoves(): FileMove[] {
     },
     {
       from: 'components/secrets/branded',
-      to: null,
-      action: 'delete',
-      notes: 'Merged into unified components',
+      to: 'apps/secret/components/branded',
+      action: 'move',
+      notes: 'Keep until views refactored',
     },
     {
       from: 'components/secrets/canonical',
-      to: null,
-      action: 'delete',
-      notes: 'Merged into unified components',
+      to: 'apps/secret/components/canonical',
+      action: 'move',
+      notes: 'Keep until views refactored',
     },
     {
       from: 'components/incoming',
@@ -150,8 +206,8 @@ export function fileMoves(): FileMove[] {
     // ========================================================================
     {
       from: 'views/dashboard/DashboardContainer.vue',
-      to: null,
-      action: 'delete',
+      to: 'apps/workspace/dashboard/DashboardContainer.vue',
+      action: 'move',
       notes: 'Logic moves to composables',
     },
     {
@@ -385,67 +441,67 @@ export function fileMoves(): FileMove[] {
     // ========================================================================
     {
       from: 'views/colonel/ColonelIndex.vue',
-      to: 'apps/kernel/views/ColonelIndex.vue',
+      to: 'apps/colonel/views/ColonelIndex.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelUsers.vue',
-      to: 'apps/kernel/views/ColonelUsers.vue',
+      to: 'apps/colonel/views/ColonelUsers.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelSecrets.vue',
-      to: 'apps/kernel/views/ColonelSecrets.vue',
+      to: 'apps/colonel/views/ColonelSecrets.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelDomains.vue',
-      to: 'apps/kernel/views/ColonelDomains.vue',
+      to: 'apps/colonel/views/ColonelDomains.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelSystem.vue',
-      to: 'apps/kernel/views/ColonelSystem.vue',
+      to: 'apps/colonel/views/ColonelSystem.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelSystemAuthDB.vue',
-      to: 'apps/kernel/views/ColonelSystemAuthDB.vue',
+      to: 'apps/colonel/views/ColonelSystemAuthDB.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelSystemDatabase.vue',
-      to: 'apps/kernel/views/ColonelSystemDatabase.vue',
+      to: 'apps/colonel/views/ColonelSystemDatabase.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelSystemMainDB.vue',
-      to: 'apps/kernel/views/ColonelSystemMainDB.vue',
+      to: 'apps/colonel/views/ColonelSystemMainDB.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelSystemRedis.vue',
-      to: 'apps/kernel/views/ColonelSystemRedis.vue',
+      to: 'apps/colonel/views/ColonelSystemRedis.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelUsageExport.vue',
-      to: 'apps/kernel/views/ColonelUsageExport.vue',
+      to: 'apps/colonel/views/ColonelUsageExport.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelBannedIPs.vue',
-      to: 'apps/kernel/views/ColonelBannedIPs.vue',
+      to: 'apps/colonel/views/ColonelBannedIPs.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/SystemSettings.vue',
-      to: 'apps/kernel/views/SystemSettings.vue',
+      to: 'apps/colonel/views/SystemSettings.vue',
       action: 'move',
     },
     {
       from: 'components/colonel',
-      to: 'apps/kernel/components',
+      to: 'apps/colonel/components',
       action: 'move',
     },
 
@@ -799,6 +855,26 @@ export function fileMoves(): FileMove[] {
       to: null,
       action: 'delete',
       notes: 'Use shared ErrorNotFound',
+    },
+
+    // ========================================================================
+    // Shared: Stores
+    // ========================================================================
+    {
+      from: 'stores',
+      to: 'shared/stores',
+      action: 'move',
+      notes: 'All stores are shared across apps',
+    },
+
+    // ========================================================================
+    // Shared: Composables
+    // ========================================================================
+    {
+      from: 'composables',
+      to: 'shared/composables',
+      action: 'move',
+      notes: 'Move wholesale first, then relocate app-specific ones',
     },
   ];
 }

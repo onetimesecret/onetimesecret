@@ -425,10 +425,16 @@ export default [
 
   /**
    * Page and Layout Components Exception
-   * Relaxes naming convention for top-level components
+   * Relaxes naming convention for top-level components (views, layouts, page-level routes)
    */
   {
-    files: ['src/views/*.vue', 'src/layouts/*.vue'],
+    files: [
+      'src/views/*.vue',
+      'src/layouts/*.vue',
+      'src/apps/**/views/*.vue',
+      'src/apps/secret/conceal/*.vue',
+      'src/apps/secret/support/*.vue',
+    ],
     rules: {
       'vue/multi-word-component-names': 'off', // Allow single-word names for pages/layouts
     },

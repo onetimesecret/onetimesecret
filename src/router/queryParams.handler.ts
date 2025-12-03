@@ -1,8 +1,8 @@
 // src/router/queryParams.handler.ts
 
-import { useTheme } from '@/composables/useTheme';
+import { useTheme } from '@/shared/composables/useTheme';
 import { localeSchema } from '@/schemas/i18n/locale';
-import { useLanguageStore } from '@/stores/languageStore';
+import { useLanguageStore } from '@/shared/stores/languageStore';
 
 interface QueryParamHandler {
   key: string;

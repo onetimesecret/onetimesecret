@@ -125,6 +125,23 @@ module Onetime
         instances.count # e.g. zcard dbkey
       end
 
+      # Creates a linked Secret and Metadata pair for secure content storage.
+      #
+      # SECURITY CONTRACT: Callers must validate domain and passphrase before
+      # calling this method, as both are used as cryptographic inputs:
+      #
+      # - domain: Used as Additional Authenticated Data (AAD) for encryption.
+      #   API callers validate via: process_share_domain (format validation),
+      #   validate_domain_access (DB lookup + existence check), and
+      #   validate_domain_permissions (ownership/access rules). Attackers
+      #   cannot bind secrets to arbitrary AAD values.
+      #
+      # - passphrase: Used for secret access control (encrypted before storage).
+      #   API callers validate via: validate_passphrase (min/max length) and
+      #   validate_passphrase_complexity (when enforce_complexity enabled).
+      #
+      # See: apps/api/v2/logic/secrets/base_secret_action.rb for validation.
+      #
       def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil)
         secret   = Onetime::Secret.new(owner_id: owner_id)
         metadata = Onetime::Metadata.new(owner_id: owner_id)
@@ -137,10 +154,18 @@ module Onetime
         secret.lifespan            = lifespan
         secret.metadata_identifier = metadata.objid
 
+        # NOTE: Transient fields that are used for aad protection (like
+        # ciphertext_domain) need to be populated before encrypting the
+        # content.
+        secret.ciphertext_domain = domain
         secret.share_domain      = domain
-        secret.ciphertext_domain = domain # transient fields need to be populated before
-        secret.passphrase        = passphrase # encrypting the content fio aad protection
         secret.ciphertext        = content
+
+        # Set the passphrase via the special update method that ensures it
+        # is encrypted before its saved. We could override the field setter,
+        # but prefer to be explicit about it.
+        secret.update_passphrase passphrase unless passphrase.nil?
+
         secret.save
 
         metadata.secret_shortid = secret.shortid

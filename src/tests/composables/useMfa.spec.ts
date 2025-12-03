@@ -1,7 +1,7 @@
 // src/tests/composables/useMfa.spec.ts
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useMfa } from '@/composables/useMfa';
+import { useMfa } from '@/shared/composables/useMfa';
 import { setupTestPinia } from '../setup';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 

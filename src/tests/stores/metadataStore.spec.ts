@@ -3,7 +3,7 @@
 // IMPORTANT: This test uses centralized test setup pattern
 // DO NOT revert to individual axios.create() - use setupTestPinia() instead
 import { errorGuards } from '@/schemas/errors';
-import { useMetadataStore } from '@/stores/metadataStore';
+import { useMetadataStore } from '@/shared/stores/metadataStore';
 import { setupTestPinia } from '../setup';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import type { AxiosInstance } from 'axios';

@@ -1,12 +1,19 @@
 // src/tests/composables/useSecretConcealer.spec.ts
 
-import { useSecretConcealer } from '@/composables/useSecretConcealer';
-import { useSecretStore } from '@/stores/secretStore';
+import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
+import { useSecretStore } from '@/shared/stores/secretStore';
 import { Router, useRouter } from 'vue-router';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/stores/secretStore');
+// Mock vue-i18n for useAsyncHandler dependency
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
+vi.mock('@/shared/stores/secretStore');
 vi.mock('vue-router');
 
 const mockRouter = {

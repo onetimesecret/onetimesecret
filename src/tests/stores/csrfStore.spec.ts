@@ -4,7 +4,7 @@ import { setupTestPinia } from '../setup';
 import { mockVisibility } from '../setupDocument';
 import { setupWindowState } from '../setupWindow';
 
-import { useCsrfStore } from '@/stores/csrfStore';
+import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick, ref } from 'vue';
 import type { ComponentPublicInstance } from 'vue';

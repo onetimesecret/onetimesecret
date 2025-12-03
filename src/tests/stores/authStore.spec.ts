@@ -1,7 +1,7 @@
 // src/tests/stores/authStore.spec.ts
 
 import { Customer } from '@/schemas/models';
-import { AUTH_CHECK_CONFIG, useAuthStore } from '@/stores/authStore';
+import { AUTH_CHECK_CONFIG, useAuthStore } from '@/shared/stores/authStore';
 import { createApi } from '@/api';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

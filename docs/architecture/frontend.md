@@ -38,13 +38,13 @@ The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeSc
    - WindowService reads from window.__ONETIME_STATE__
 
 4. Component Access
-   Location: src/components/**/*.vue
+   Location: src/apps/**/components/**/*.vue, src/shared/components/**/*.vue
    - Components use WindowService directly OR
    - Components use Pinia stores
    - Both sources read from window.__ONETIME_STATE__
 
 5. State Refresh (every 15 minutes)
-   Location: src/stores/authStore.ts
+   Location: src/shared/stores/authStore.ts
    - checkWindowStatus() fetches /window endpoint
    - Updates entire window.__ONETIME_STATE__
    - Components using computed() react automatically
@@ -88,7 +88,7 @@ const windowProps = computed(() => WindowService.getMultiple([
 
 ## State Management (Pinia)
 
-**Store Locations:** `src/stores/*.ts`
+**Store Locations:** `src/shared/stores/*.ts`
 
 **Key Stores:**
 - `authStore.ts` - Authentication state, periodic window refresh
@@ -190,7 +190,7 @@ router.beforeEach(async (to) => {
 
 ## Composables
 
-**Location:** `src/composables/*.ts`
+**Location:** `src/shared/composables/*.ts`
 
 **Authentication:**
 - `useAuth.ts` - Login, signup, logout, password reset operations
@@ -331,7 +331,7 @@ const message = t('web.COMMON.verification_sent');
 - Shows user-friendly error messages
 
 **Async Error Handler:**
-- **Location:** `src/composables/useAsyncHandler.ts`
+- **Location:** `src/shared/composables/useAsyncHandler.ts`
 - Wraps async operations
 - Provides loading/error states
 - Integrates with notifications store
@@ -475,4 +475,4 @@ export function useFeature() {
 - **TypeScript Documentation:** https://www.typescriptlang.org/
 - **Tailwind CSS:** https://tailwindcss.com/
 - **Backend Architecture:** `docs/architecture/authentication.md`
-- **Store Patterns:** `src/stores/README.md`
+- **Store Patterns:** `src/shared/stores/README.md`

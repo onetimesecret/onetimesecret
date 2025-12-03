@@ -2,7 +2,7 @@
 
 // IMPORTANT: This test uses centralized test setup pattern
 // DO NOT revert to individual axios.create() - use setupTestPinia() instead
-import { useSecretStore } from '@/stores/secretStore';
+import { useSecretStore } from '@/shared/stores/secretStore';
 import { setupTestPinia } from '../../setup';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

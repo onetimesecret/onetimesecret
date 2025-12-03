@@ -1,6 +1,6 @@
-// src/tests/views/NotificationSettings.spec.ts
+// src/tests/views/notificationSettings.spec.ts
 
-import { useAccountStore } from '@/stores/accountStore';
+import { useAccountStore } from '@/shared/stores/accountStore';
 import { setupTestPinia } from '../setup';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type AxiosMockAdapter from 'axios-mock-adapter';

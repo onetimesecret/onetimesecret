@@ -4,7 +4,7 @@
  * Atomic migration from src/views + src/components to src/apps structure.
  *
  * Usage:
- *   npx tsx scripts/migration/migrate.ts [--dry-run] [--phase <n>]
+ *   pnpx tsx scripts/migration/migrate.ts [--dry-run] [--phase <n>]
  *
  * Options:
  *   --dry-run    Show what would be done without making changes
@@ -13,15 +13,17 @@
  */
 
 import { execSync } from 'child_process';
-import * as fs from 'fs-extra';
-import * as path from 'path';
+import fs from 'fs-extra';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { Project } from 'ts-morph';
-import { fileMoves, FileMove } from './moves';
-import { rewriteImports, PATH_MAPPINGS } from './imports';
+import { fileMoves, FileMove } from './moves.js';
+import { rewriteImports, PATH_MAPPINGS } from './imports.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '../..');
 const SRC = path.join(ROOT, 'src');
-const BACKUP = path.join(ROOT, 'src.backup');
 
 interface MigrationOptions {
   dryRun: boolean;
@@ -53,23 +55,8 @@ function logPhase(phase: number, name: string) {
 // ============================================================================
 
 function phase1Backup(dryRun: boolean) {
-  logPhase(1, 'Create Backup');
-
-  if (fs.existsSync(BACKUP)) {
-    log(`⚠️  Backup already exists at ${BACKUP}`);
-    log(`   Remove it first or use --rollback to restore`);
-    if (!dryRun) {
-      throw new Error('Backup exists - aborting to prevent data loss');
-    }
-  }
-
-  if (dryRun) {
-    log(`[DRY RUN] Would copy ${SRC} → ${BACKUP}`);
-  } else {
-    log(`Creating backup: ${SRC} → ${BACKUP}`);
-    fs.copySync(SRC, BACKUP);
-    log(`✅ Backup created`);
-  }
+  logPhase(1, 'Skip Backup (use git to rollback)');
+  log(`ℹ️  Backup skipped - use 'git checkout -- src/' to rollback`);
 }
 
 // ============================================================================
@@ -80,6 +67,8 @@ const DIRECTORIES = [
   // Apps
   'apps/secret/conceal',
   'apps/secret/reveal',
+  'apps/secret/reveal/branded',
+  'apps/secret/reveal/canonical',
   'apps/secret/support',
   'apps/secret/composables',
   'apps/secret/branding',
@@ -87,6 +76,8 @@ const DIRECTORIES = [
   'apps/secret/components/reveal',
   'apps/secret/components/support',
   'apps/secret/components/incoming',
+  'apps/secret/components/branded',
+  'apps/secret/components/canonical',
   'apps/workspace/dashboard',
   'apps/workspace/account/region',
   'apps/workspace/account/settings',
@@ -99,8 +90,8 @@ const DIRECTORIES = [
   'apps/workspace/components/teams',
   'apps/workspace/components/organizations',
   'apps/workspace/components/domains',
-  'apps/kernel/views',
-  'apps/kernel/components',
+  'apps/colonel/views',
+  'apps/colonel/components',
   'apps/session/views',
   'apps/session/logic',
   'apps/session/components',
@@ -120,6 +111,7 @@ const DIRECTORIES = [
   'shared/layouts',
   'shared/branding/api',
   'shared/composables',
+  'shared/stores',
 ];
 
 function phase2CreateDirectories(dryRun: boolean) {
@@ -205,13 +197,18 @@ function phase4RewriteImports(dryRun: boolean) {
     skipAddingFilesFromTsConfig: true,
   });
 
-  // Add all .vue and .ts files in src/apps and src/shared
+  // Add all .vue and .ts files that may have imports to rewrite
   const patterns = [
+    path.join(SRC, '*.{ts,vue}'), // Root files (App.vue, main.ts)
     path.join(SRC, 'apps/**/*.{ts,vue}'),
     path.join(SRC, 'shared/**/*.{ts,vue}'),
     path.join(SRC, 'router/**/*.ts'),
     path.join(SRC, 'stores/**/*.ts'),
     path.join(SRC, 'composables/**/*.ts'),
+    path.join(SRC, 'schemas/**/*.ts'),
+    path.join(SRC, 'types/**/*.ts'),
+    path.join(SRC, 'utils/**/*.ts'),
+    path.join(SRC, 'plugins/**/*.ts'),
   ];
 
   for (const pattern of patterns) {
@@ -256,8 +253,8 @@ function phase5CreateNewFiles(dryRun: boolean) {
     'apps/secret/composables/useSecretContext.ts': `
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { useIdentityStore } from '@/stores/identityStore';
-import { useBranding } from '@/composables/useBranding';
+import { useProductIdentity } from '@/stores/identityStore';
+import { useAuthStore } from '@/stores/authStore';
 
 export type ActorRole = 'CREATOR' | 'AUTH_RECIPIENT' | 'ANON_RECIPIENT';
 
@@ -269,15 +266,15 @@ export interface UIConfig {
 
 export function useSecretContext() {
   const route = useRoute();
-  const identity = useIdentityStore();
-  const { domainStrategy, brand } = useBranding();
+  const identity = useProductIdentity();
+  const auth = useAuthStore();
 
-  const isAuthenticated = computed(() => identity.isAuthenticated);
+  const isAuthenticated = computed(() => auth.isLoggedIn);
 
   // Determine if viewer is the creator of this specific secret
   const isOwner = computed(() => {
     const creatorId = route.meta?.creatorId as string | undefined;
-    return creatorId ? identity.custid === creatorId : false;
+    return creatorId ? auth.custid === creatorId : false;
   });
 
   const actorRole = computed<ActorRole>(() => {
@@ -311,8 +308,8 @@ export function useSecretContext() {
   });
 
   const theme = computed(() => {
-    return domainStrategy.value === 'custom'
-      ? { mode: 'branded' as const, colors: brand.value?.colors }
+    return identity.domainStrategy === 'custom'
+      ? { mode: 'branded' as const, colors: identity.brand?.primary_color }
       : { mode: 'canonical' as const, colors: null };
   });
 
@@ -386,23 +383,24 @@ export function useSecretLifecycle(secretKey: string) {
     ['ready', 'passphrase'].includes(state.value)
   );
 
-  async function fetch() {
+  async function load() {
     state.value = 'loading';
     error.value = null;
 
     try {
-      const data = await secretStore.fetchSecret(secretKey);
+      const data = await secretStore.fetch(secretKey);
 
-      if (!data) {
+      if (!data?.record) {
         state.value = 'unknown';
         return;
       }
 
-      if (data.state === 'burned') {
+      const record = data.record;
+      if (record.state === 'burned') {
         state.value = 'burned';
-      } else if (data.state === 'expired') {
-        state.value = 'expired';
-      } else if (data.has_passphrase && !data.unlocked) {
+      } else if (record.state === 'viewed') {
+        state.value = 'revealed';
+      } else if (record.has_passphrase) {
         state.value = 'passphrase';
       } else {
         state.value = 'ready';
@@ -417,21 +415,12 @@ export function useSecretLifecycle(secretKey: string) {
     if (!canReveal.value) return;
 
     try {
-      const data = await secretStore.revealSecret(secretKey, passphrase);
-      payload.value = data.value;
+      await secretStore.reveal(secretKey, passphrase);
+      payload.value = secretStore.record?.secret_value ?? null;
       state.value = 'revealed';
     } catch (e) {
       error.value = e as Error;
       // Stay in current state on error
-    }
-  }
-
-  async function burn() {
-    try {
-      await secretStore.burnSecret(secretKey);
-      state.value = 'burned';
-    } catch (e) {
-      error.value = e as Error;
     }
   }
 
@@ -441,9 +430,8 @@ export function useSecretLifecycle(secretKey: string) {
     error,
     isTerminal,
     canReveal,
-    fetch,
+    load,
     reveal,
-    burn,
   };
 }
 `.trim(),
@@ -497,179 +485,60 @@ function isValidReturnPath(path: string): boolean {
 }
 `.trim(),
 
-    // App routers (stubs - to be filled with actual routes)
+    // App routers - placeholder files for future route organization
+    // Routes are currently defined in src/router/*.routes.ts
     'apps/secret/router.ts': `
-import type { RouteRecordRaw } from 'vue-router';
-
-export const routes: RouteRecordRaw[] = [
-  // Conceal
-  {
-    path: '/',
-    name: 'Homepage',
-    component: () => import('./conceal/Homepage.vue'),
-    meta: { layout: 'transactional' },
-  },
-  {
-    path: '/incoming',
-    name: 'IncomingForm',
-    component: () => import('./conceal/IncomingForm.vue'),
-    meta: { layout: 'transactional' },
-  },
-
-  // Reveal
-  {
-    path: '/secret/:secretKey',
-    name: 'ShowSecret',
-    component: () => import('./reveal/ShowSecret.vue'),
-    meta: { layout: 'transactional' },
-  },
-  {
-    path: '/private/:metadataKey',
-    name: 'ShowMetadata',
-    component: () => import('./reveal/ShowMetadata.vue'),
-    meta: { layout: 'transactional' },
-  },
-
-  // Support
-  {
-    path: '/feedback',
-    name: 'Feedback',
-    component: () => import('./support/Feedback.vue'),
-    meta: { layout: 'transactional' },
-  },
-];
+/**
+ * Secret App Routes (Placeholder)
+ *
+ * Routes for this app are currently defined in:
+ * - src/router/public.routes.ts (homepage, feedback)
+ * - src/router/secret.routes.ts (reveal)
+ * - src/router/incoming.routes.ts (conceal via API)
+ * - src/router/metadata.routes.ts (metadata views)
+ *
+ * TODO: Consolidate routes here when refactoring router architecture
+ */
+export {};
 `.trim(),
 
     'apps/workspace/router.ts': `
-import type { RouteRecordRaw } from 'vue-router';
-
-export const routes: RouteRecordRaw[] = [
-  // Dashboard
-  {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: () => import('./dashboard/DashboardIndex.vue'),
-    meta: { requiresAuth: true, layout: 'management' },
-  },
-  {
-    path: '/recent',
-    name: 'Recent',
-    component: () => import('./dashboard/DashboardRecent.vue'),
-    meta: { requiresAuth: true, layout: 'management' },
-  },
-
-  // Account
-  {
-    path: '/account',
-    name: 'Account',
-    component: () => import('./account/AccountIndex.vue'),
-    meta: { requiresAuth: true, layout: 'management' },
-  },
-
-  // Billing
-  {
-    path: '/billing',
-    name: 'Billing',
-    component: () => import('./billing/BillingOverview.vue'),
-    meta: { requiresAuth: true, layout: 'management' },
-  },
-
-  // Teams
-  {
-    path: '/teams',
-    name: 'Teams',
-    component: () => import('./teams/TeamsHub.vue'),
-    meta: { requiresAuth: true, layout: 'management' },
-  },
-
-  // Domains
-  {
-    path: '/domains',
-    name: 'Domains',
-    component: () => import('./domains/DomainsList.vue'),
-    meta: { requiresAuth: true, layout: 'management' },
-  },
-];
+/**
+ * Workspace App Routes (Placeholder)
+ *
+ * Routes for this app are currently defined in:
+ * - src/router/dashboard.routes.ts
+ * - src/router/account.routes.ts
+ * - src/router/billing.routes.ts
+ * - src/router/teams.routes.ts
+ *
+ * TODO: Consolidate routes here when refactoring router architecture
+ */
+export {};
 `.trim(),
 
-    'apps/kernel/router.ts': `
-import type { RouteRecordRaw } from 'vue-router';
-
-export const routes: RouteRecordRaw[] = [
-  {
-    path: '/colonel',
-    name: 'Colonel',
-    component: () => import('./views/ColonelIndex.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true, layout: 'admin' },
-  },
-  {
-    path: '/colonel/users',
-    name: 'ColonelUsers',
-    component: () => import('./views/ColonelUsers.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true, layout: 'admin' },
-  },
-  {
-    path: '/colonel/secrets',
-    name: 'ColonelSecrets',
-    component: () => import('./views/ColonelSecrets.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true, layout: 'admin' },
-  },
-  {
-    path: '/colonel/domains',
-    name: 'ColonelDomains',
-    component: () => import('./views/ColonelDomains.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true, layout: 'admin' },
-  },
-  {
-    path: '/colonel/system',
-    name: 'ColonelSystem',
-    component: () => import('./views/ColonelSystem.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true, layout: 'admin' },
-  },
-];
+    'apps/colonel/router.ts': `
+/**
+ * Kernel App Routes (Placeholder)
+ *
+ * Routes for this app are currently defined in:
+ * - src/router/colonel.routes.ts
+ *
+ * TODO: Consolidate routes here when refactoring router architecture
+ */
+export {};
 `.trim(),
 
     'apps/session/router.ts': `
-import type { RouteRecordRaw } from 'vue-router';
-
-export const routes: RouteRecordRaw[] = [
-  {
-    path: '/signin',
-    name: 'Login',
-    component: () => import('./views/Login.vue'),
-    meta: { layout: 'minimal', guestOnly: true },
-  },
-  {
-    path: '/signup',
-    name: 'Register',
-    component: () => import('./views/Register.vue'),
-    meta: { layout: 'minimal', guestOnly: true },
-  },
-  {
-    path: '/forgot',
-    name: 'PasswordResetRequest',
-    component: () => import('./views/PasswordResetRequest.vue'),
-    meta: { layout: 'minimal' },
-  },
-  {
-    path: '/reset-password',
-    name: 'PasswordReset',
-    component: () => import('./views/PasswordReset.vue'),
-    meta: { layout: 'minimal' },
-  },
-  {
-    path: '/mfa-verify',
-    name: 'MfaChallenge',
-    component: () => import('./views/MfaChallenge.vue'),
-    meta: { layout: 'minimal' },
-  },
-  {
-    path: '/verify-account',
-    name: 'VerifyAccount',
-    component: () => import('./views/VerifyAccount.vue'),
-    meta: { layout: 'minimal' },
-  },
-];
+/**
+ * Session App Routes (Placeholder)
+ *
+ * Routes for this app are currently defined in:
+ * - src/router/auth.routes.ts
+ *
+ * TODO: Consolidate routes here when refactoring router architecture
+ */
+export {};
 `.trim(),
   };
 
@@ -724,20 +593,9 @@ function phase6Validate(dryRun: boolean) {
 // ============================================================================
 
 function rollback() {
-  console.log('\n🔄 Rolling back migration...');
-
-  if (!fs.existsSync(BACKUP)) {
-    console.error('❌ No backup found at', BACKUP);
-    process.exit(1);
-  }
-
-  // Remove current src
-  fs.removeSync(SRC);
-
-  // Restore backup
-  fs.moveSync(BACKUP, SRC);
-
-  console.log('✅ Rollback complete - restored from backup');
+  console.log('\n🔄 Rolling back migration via git...');
+  console.log('Run: git checkout -- src/');
+  console.log('Or:  git restore src/');
 }
 
 // ============================================================================
@@ -777,7 +635,7 @@ async function main() {
   } catch (e) {
     console.error('\n❌ Migration failed:', (e as Error).message);
     if (!options.dryRun) {
-      console.log('\nRun with --rollback to restore from backup');
+      console.log('\nRollback with: git checkout -- src/');
     }
     process.exit(1);
   }

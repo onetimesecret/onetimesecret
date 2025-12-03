@@ -2,10 +2,10 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import { iconLibraryComponents } from '@/components/icons/sprites';
-  import CriticalSprites from '@/components/icons/sprites/CriticalSprites.vue';
-  import StatusBar from '@/components/StatusBar.vue';
-  import QuietLayout from '@/layouts/QuietLayout.vue';
+  import { iconLibraryComponents } from '@/shared/components/icons/sprites';
+  import CriticalSprites from '@/shared/components/icons/sprites/CriticalSprites.vue';
+  import StatusBar from '@/shared/components/ui/StatusBar.vue';
+  import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, ref, onMounted, type Component, markRaw } from 'vue';
   import { useRoute } from 'vue-router';

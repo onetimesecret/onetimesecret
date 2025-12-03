@@ -38,12 +38,19 @@ Unless otherwise specified, pull requests target `develop` branch.
   - `lib/onetime/initializers/`: Boot-time setup modules
 - **`bin/ots`**: CLI tool for administration and operations
 
-### Frontend Structure
-- **`src/`**: Vue 3 + TypeScript application
-  - `src/locales/`: i18n JSON files (hierarchical keys)
-  - `src/stores/`: Pinia state management
-  - `src/types/`: TypeScript type definitions
-  - `src/views/`: Vue components and templates
+### Frontend Structure (Interaction Modes Architecture)
+- **`src/apps/`**: Domain-specific Vue applications
+  - `src/apps/secret/`: Transactional flows (conceal, reveal, support)
+  - `src/apps/workspace/`: Management (dashboard, account, billing, teams, domains)
+  - `src/apps/session/`: Authentication (login, signup, MFA)
+  - `src/apps/colonel/`: Admin (colonel)
+- **`src/shared/`**: Cross-app shared resources
+  - `src/shared/components/`: Categorized components (ui/, forms/, modals/, etc.)
+  - `src/shared/composables/`: Shared composables
+  - `src/shared/stores/`: Pinia state management
+  - `src/shared/layouts/`: Layout components (TransactionalLayout, ManagementLayout, etc.)
+- **`src/locales/`**: i18n JSON files (hierarchical keys)
+- **`src/types/`**: TypeScript type definitions
 
 ## Development Commands
 
@@ -128,11 +135,10 @@ pnpm run test:all:clean
 - **Security guidance:** `src/locales/SECURITY-TRANSLATION-GUIDE.md` (auth error messages)
 
 ## Project Structure
-- Components: `src/components/`, `src/views/`
-- State: `src/stores/` (Pinia)
+- Apps: `src/apps/` (secret, workspace, session, colonel)
+- Shared: `src/shared/` (components, composables, stores, layouts)
 - Types: `src/types/`
-- Utils: `src/utils/`
-- Tests: `src/components/__tests__/`, `tests/`
+- Tests: `tests/`, `src/**/__tests__/`
 
 # important-instruction-reminders
 Do what has been asked; nothing more, nothing less.

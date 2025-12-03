@@ -1,8 +1,7 @@
 # spec/onetime/jobs/workers/base_worker_spec.rb
+#
 # frozen_string_literal: true
 
-# Tests for Onetime::Jobs::Workers::BaseWorker
-#
 # Purpose:
 #   Verifies the shared worker functionality provided by BaseWorker module,
 #   including message parsing, idempotency checks, retry logic, and metadata

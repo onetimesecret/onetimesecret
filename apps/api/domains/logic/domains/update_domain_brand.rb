@@ -101,6 +101,13 @@ module DomainsAPI::Logic
           raise_form_error 'Please provide a domain ID'
         end
 
+        # Validate extid format (alphanumeric only, no dots/special chars)
+        # This catches cases where domain name is passed instead of extid
+        unless valid_extid?(@extid)
+          OT.ld "[UpdateDomainBrand] Error: Invalid extid format '#{@extid}'"
+          raise_form_error 'Invalid domain identifier format'
+        end
+
         # Get customer's organization for domain ownership
         # Organization available via @organization
         require_organization!
@@ -172,6 +179,13 @@ module DomainsAPI::Logic
       # Validate button style
       def valid_corner_style?(style)
         %w[rounded square pill].include?(style.to_s.downcase)
+      end
+
+      # Validate extid format (lowercase alphanumeric only)
+      # extids are generated identifiers like "abc123def456"
+      # Domain names contain dots and are not valid extids
+      def valid_extid?(extid)
+        extid.match?(/\A[a-z0-9]+\z/)
       end
     end
   end

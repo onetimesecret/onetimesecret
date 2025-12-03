@@ -13,7 +13,21 @@ module Auth
       @provides = [:rodauth_schema]
 
       def should_skip?
-        !Onetime.auth_config.full_enabled?
+        # Skip in simple auth mode
+        return true unless Onetime.auth_config.full_enabled?
+
+        # Skip for job workers - they don't need database migrations
+        # and connecting before Sneakers forks causes SQLite warnings.
+        # Check if we're running a jobs command by looking at ARGV.
+        return true if jobs_command?
+
+        false
+      end
+
+      private
+
+      def jobs_command?
+        ARGV.any? { |arg| arg == 'jobs' }
       end
 
       def execute(_context)

@@ -15,7 +15,7 @@ import {
   redisMetricsDetailsSchema,
   bannedIPsDetailsSchema,
   usageExportDetailsSchema,
-  customDomainsDetailsSchema,
+  colonelCustomDomainsDetailsSchema,
   queueMetricsDetailsSchema,
 } from '@/schemas/api/account/endpoints/colonel';
 import {
@@ -64,7 +64,7 @@ export const responseSchemas = {
   colonelStats: createApiResponseSchema(z.object({}), colonelStatsDetailsSchema),
   colonelUsers: createApiResponseSchema(z.object({}), colonelUsersDetailsSchema),
   colonelSecrets: createApiResponseSchema(z.object({}), colonelSecretsDetailsSchema),
-  customDomains: createApiResponseSchema(z.object({}), customDomainsDetailsSchema),
+  customDomains: createApiResponseSchema(z.object({}), colonelCustomDomainsDetailsSchema),
   databaseMetrics: createApiResponseSchema(z.object({}), databaseMetricsDetailsSchema),
   redisMetrics: createApiResponseSchema(z.object({}), redisMetricsDetailsSchema),
   bannedIPs: createApiResponseSchema(z.object({}), bannedIPsDetailsSchema),

@@ -4,7 +4,7 @@ import {
   mockCustomBrandingRed,
   mockDefaultBranding,
 } from '@/tests/fixtures/domainBranding.fixture';
-import { useBranding } from '@/composables/useBranding';
+import { useBranding } from '@/shared/composables/useBranding';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -27,7 +27,7 @@ const mockNotificationsStore = vi.fn(() => ({
   show: vi.fn(),
 }));
 
-vi.mock('@/stores/brandStore', () => ({
+vi.mock('@/shared/stores/brandStore', () => ({
   useBrandStore: () => mockBrandStore(),
 }));
 
@@ -48,7 +48,7 @@ vi.mock('@/i18n', () => ({
   }),
 }));
 
-vi.mock('@/composables/useAsyncHandler', () => ({
+vi.mock('@/shared/composables/useAsyncHandler', () => ({
   useAsyncHandler: () => ({
     wrap: vi.fn(async (fn) => await fn()),
   }),

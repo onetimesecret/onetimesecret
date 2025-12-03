@@ -3,7 +3,7 @@
 import { setupTestPinia } from '../setup';
 import { setupWindowState } from '../setupWindow';
 
-import { useOrganizationStore } from '@/stores/organizationStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type AxiosMockAdapter from 'axios-mock-adapter';

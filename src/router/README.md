@@ -128,3 +128,35 @@ Layout Selection:
 route.meta.layout determines which layout wraps page
 route.meta.layoutProps overrides default layout props
 ```
+
+## Route File Organization
+
+Routes are organized by app domain under `src/apps/`, with cross-cutting routes in `src/router/`:
+
+```
+src/
+├── apps/
+│   ├── colonel/
+│   │   └── routes.ts              # Admin routes
+│   ├── secret/
+│   │   └── routes/
+│   │       ├── incoming.ts        # Secret creation (API-driven)
+│   │       ├── metadata.ts        # Metadata views
+│   │       └── secret.ts          # Secret reveal
+│   ├── session/
+│   │   └── routes.ts              # Auth routes (login, signup, etc.)
+│   └── workspace/
+│       └── routes/
+│           ├── account.ts         # Account settings
+│           ├── billing.ts         # Billing/subscription
+│           ├── dashboard.ts       # Dashboard views
+│           └── teams.ts           # Team management
+└── router/
+    ├── index.ts                   # Main router (assembles all routes)
+    ├── guards.routes.ts           # Navigation guards
+    ├── layout.config.ts           # Layout component config
+    ├── public.routes.ts           # Public pages (home, feedback, etc.)
+    └── queryParams.handler.ts     # Query param handling
+```
+
+The main router (`src/router/index.ts`) imports and assembles routes from all apps.

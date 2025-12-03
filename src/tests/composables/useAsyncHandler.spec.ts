@@ -1,8 +1,15 @@
 // src/tests/composables/useAsyncHandler.spec.ts
 
-import { useAsyncHandler } from '@/composables/useAsyncHandler';
+import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { createError } from '@/schemas/errors/classifier';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// Mock vue-i18n before importing the composable
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
+}));
 
 describe('useAsyncHandler', () => {
   const mockOptions = {

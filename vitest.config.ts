@@ -37,6 +37,7 @@ export default defineConfig({
       '**/.trunk/**',
       '**/dist/**',
       '**/.{idea,git,cache,output,temp}/**',
+      'src/tests/e2e/**', // Playwright E2E tests - run separately
     ],
     setupFiles: [
       'src/tests/setup-env.ts',

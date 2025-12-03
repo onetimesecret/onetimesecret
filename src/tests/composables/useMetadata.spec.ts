@@ -1,9 +1,9 @@
 // src/tests/composables/useMetadata.spec.ts
 
-import { useMetadata } from '@/composables/useMetadata';
+import { useMetadata } from '@/shared/composables/useMetadata';
 import { AxiosError } from 'axios';
-import { useMetadataStore } from '@/stores/metadataStore';
-import { useNotificationsStore } from '@/stores/notificationsStore';
+import { useMetadataStore } from '@/shared/stores/metadataStore';
+import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi, Mock } from 'vitest';
 import { ref } from 'vue';
@@ -16,8 +16,15 @@ import {
   mockMetadataRecord,
 } from '../fixtures/metadata.fixture';
 
-vi.mock('@/stores/metadataStore');
-vi.mock('@/stores/notificationsStore');
+// Mock vue-i18n for useAsyncHandler dependency
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
+vi.mock('@/shared/stores/metadataStore');
+vi.mock('@/shared/stores/notificationsStore');
 vi.mock('vue-router');
 
 const storeMock: Partial<ReturnType<typeof useMetadataStore>> = {

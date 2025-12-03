@@ -182,7 +182,7 @@ jobs:
         if: always()
         with:
           name: playwright-report-e2e-integration
-          path: playwright-report/
+          path: src/tests/e2e/playwright-report/
           retention-days: 7
 
       - name: Debug on failure

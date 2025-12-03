@@ -9,7 +9,7 @@
  * - Handles edge cases like empty strings, errors, and large inputs
  */
 
-import { useHash, type HashAlgorithm } from '@/composables/useHash';
+import { useHash, type HashAlgorithm } from '@/shared/composables/useHash';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 describe('useHash', () => {
