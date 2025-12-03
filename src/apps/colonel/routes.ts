@@ -18,7 +18,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/colonel',
     name: 'Colonel',
-    component: () => import('@/apps/kernel/views/ColonelIndex.vue'),
+    component: () => import('@/apps/colonel/views/ColonelIndex.vue'),
     meta: {
       ...defaultMeta,
       title: 'web.TITLES.colonel',
@@ -28,7 +28,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/colonel/users',
     name: 'ColonelUsers',
-    component: () => import('@/apps/kernel/views/ColonelUsers.vue'),
+    component: () => import('@/apps/colonel/views/ColonelUsers.vue'),
     meta: {
       ...defaultMeta,
       title: 'web.TITLES.colonel_users',
@@ -38,7 +38,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/colonel/system',
     name: 'ColonelSystem',
-    component: () => import('@/apps/kernel/views/ColonelSystem.vue'),
+    component: () => import('@/apps/colonel/views/ColonelSystem.vue'),
     meta: {
       ...defaultMeta,
       title: 'web.TITLES.colonel_system',
@@ -48,7 +48,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/colonel/settings',
     name: 'SystemSettings',
-    component: () => import('@/apps/kernel/views/SystemSettings.vue'),
+    component: () => import('@/apps/colonel/views/SystemSettings.vue'),
     meta: {
       ...defaultMeta,
       title: 'web.TITLES.system_settings',
@@ -58,7 +58,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/colonel/secrets',
     name: 'ColonelSecrets',
-    component: () => import('@/apps/kernel/views/ColonelSecrets.vue'),
+    component: () => import('@/apps/colonel/views/ColonelSecrets.vue'),
     meta: {
       ...defaultMeta,
       title: 'web.TITLES.colonel_secrets',
@@ -68,7 +68,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/colonel/domains',
     name: 'ColonelDomains',
-    component: () => import('@/apps/kernel/views/ColonelDomains.vue'),
+    component: () => import('@/apps/colonel/views/ColonelDomains.vue'),
     meta: {
       ...defaultMeta,
       title: 'web.TITLES.colonel_domains',
@@ -78,7 +78,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/colonel/database/maindb',
     name: 'ColonelSystemMainDB',
-    component: () => import('@/apps/kernel/views/ColonelSystemMainDB.vue'),
+    component: () => import('@/apps/colonel/views/ColonelSystemMainDB.vue'),
     meta: {
       ...defaultMeta,
       title: 'web.TITLES.colonel_maindb',
@@ -88,7 +88,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/colonel/database/authdb',
     name: 'ColonelSystemAuthDB',
-    component: () => import('@/apps/kernel/views/ColonelSystemAuthDB.vue'),
+    component: () => import('@/apps/colonel/views/ColonelSystemAuthDB.vue'),
     meta: {
       ...defaultMeta,
       title: 'web.TITLES.colonel_authdb',
@@ -98,7 +98,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/colonel/system/redis',
     name: 'ColonelSystemRedis',
-    component: () => import('@/apps/kernel/views/ColonelSystemRedis.vue'),
+    component: () => import('@/apps/colonel/views/ColonelSystemRedis.vue'),
     meta: {
       ...defaultMeta,
       title: 'web.TITLES.colonel_redis',
@@ -108,7 +108,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/colonel/banned-ips',
     name: 'ColonelBannedIPs',
-    component: () => import('@/apps/kernel/views/ColonelBannedIPs.vue'),
+    component: () => import('@/apps/colonel/views/ColonelBannedIPs.vue'),
     meta: {
       ...defaultMeta,
       title: 'web.TITLES.colonel_banned_ips',
@@ -118,7 +118,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/colonel/usage',
     name: 'ColonelUsageExport',
-    component: () => import('@/apps/kernel/views/ColonelUsageExport.vue'),
+    component: () => import('@/apps/colonel/views/ColonelUsageExport.vue'),
     meta: {
       ...defaultMeta,
       title: 'web.TITLES.colonel_usage',

@@ -32,7 +32,7 @@ The current architecture organizes code by **Domain Context** (canonical/branded
 | **Secret app** | `views/secrets/canonical/`, `views/secrets/branded/` | `apps/secret/conceal/`, `apps/secret/reveal/` | Restructure | M | useSecretContext composable |
 | **Workspace app** | `views/dashboard/`, `views/account/`, `views/teams/` | `apps/workspace/dashboard/`, `account/`, `teams/`, `domains/` | Restructure | M | Router migration |
 | **Billing app** | `views/billing/` | `apps/billing/views/` | Restructure | S | Router migration |
-| **Kernel app** | `views/colonel/` | `apps/kernel/views/` | Restructure | S | Router migration |
+| **Kernel app** | `views/colonel/` | `apps/colonel/views/` | Restructure | S | Router migration |
 | **Session app** | `views/auth/` | `apps/session/views/` | Restructure | S | Router migration, traffic-controller |
 | **Shared components** | `components/` (163 files, 37 flat) | `shared/components/`, `shared/branding/` | Restructure | L | Component audit |
 | **Layouts** | `layouts/` (6 files) | `shared/layouts/` named by purpose | Refactor | S | Layout naming convention |
@@ -157,7 +157,7 @@ The current architecture organizes code by **Domain Context** (canonical/branded
 ### Phase 5: Kernel App Migration (Effort: S)
 **Goal**: Isolate admin views
 
-1. Move `views/colonel/` → `apps/kernel/views/`
+1. Move `views/colonel/` → `apps/colonel/views/`
 2. Update kernel router
 
 **Dependencies**: Phase 1 router structure

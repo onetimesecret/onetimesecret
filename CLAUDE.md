@@ -43,7 +43,7 @@ Unless otherwise specified, pull requests target `develop` branch.
   - `src/apps/secret/`: Transactional flows (conceal, reveal, support)
   - `src/apps/workspace/`: Management (dashboard, account, billing, teams, domains)
   - `src/apps/session/`: Authentication (login, signup, MFA)
-  - `src/apps/kernel/`: Admin (colonel)
+  - `src/apps/colonel/`: Admin (colonel)
 - **`src/shared/`**: Cross-app shared resources
   - `src/shared/components/`: Categorized components (ui/, forms/, modals/, etc.)
   - `src/shared/composables/`: Shared composables

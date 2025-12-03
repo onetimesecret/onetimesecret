@@ -26,7 +26,7 @@ Complete file-by-file mapping for restructuring from `src/views/` + `src/compone
 ```bash
 mkdir -p src/apps/secret/{conceal,reveal,support,composables,branding}
 mkdir -p src/apps/workspace/{dashboard,account,billing,teams,domains}
-mkdir -p src/apps/kernel/views
+mkdir -p src/apps/colonel/views
 mkdir -p src/apps/session/{views,logic}
 mkdir -p src/shared/{components,layouts,branding,api}
 ```
@@ -191,19 +191,19 @@ src/shared/
 
 | Current | Target | Action |
 |---------|--------|--------|
-| `views/colonel/ColonelIndex.vue` | `apps/kernel/views/ColonelIndex.vue` | Move |
-| `views/colonel/ColonelUsers.vue` | `apps/kernel/views/ColonelUsers.vue` | Move |
-| `views/colonel/ColonelSecrets.vue` | `apps/kernel/views/ColonelSecrets.vue` | Move |
-| `views/colonel/ColonelDomains.vue` | `apps/kernel/views/ColonelDomains.vue` | Move |
-| `views/colonel/ColonelSystem.vue` | `apps/kernel/views/ColonelSystem.vue` | Move |
-| `views/colonel/ColonelSystemAuthDB.vue` | `apps/kernel/views/ColonelSystemAuthDB.vue` | Move |
-| `views/colonel/ColonelSystemDatabase.vue` | `apps/kernel/views/ColonelSystemDatabase.vue` | Move |
-| `views/colonel/ColonelSystemMainDB.vue` | `apps/kernel/views/ColonelSystemMainDB.vue` | Move |
-| `views/colonel/ColonelSystemRedis.vue` | `apps/kernel/views/ColonelSystemRedis.vue` | Move |
-| `views/colonel/ColonelUsageExport.vue` | `apps/kernel/views/ColonelUsageExport.vue` | Move |
-| `views/colonel/ColonelBannedIPs.vue` | `apps/kernel/views/ColonelBannedIPs.vue` | Move |
-| `views/colonel/SystemSettings.vue` | `apps/kernel/views/SystemSettings.vue` | Move |
-| `components/colonel/` | `apps/kernel/components/` | Move |
+| `views/colonel/ColonelIndex.vue` | `apps/colonel/views/ColonelIndex.vue` | Move |
+| `views/colonel/ColonelUsers.vue` | `apps/colonel/views/ColonelUsers.vue` | Move |
+| `views/colonel/ColonelSecrets.vue` | `apps/colonel/views/ColonelSecrets.vue` | Move |
+| `views/colonel/ColonelDomains.vue` | `apps/colonel/views/ColonelDomains.vue` | Move |
+| `views/colonel/ColonelSystem.vue` | `apps/colonel/views/ColonelSystem.vue` | Move |
+| `views/colonel/ColonelSystemAuthDB.vue` | `apps/colonel/views/ColonelSystemAuthDB.vue` | Move |
+| `views/colonel/ColonelSystemDatabase.vue` | `apps/colonel/views/ColonelSystemDatabase.vue` | Move |
+| `views/colonel/ColonelSystemMainDB.vue` | `apps/colonel/views/ColonelSystemMainDB.vue` | Move |
+| `views/colonel/ColonelSystemRedis.vue` | `apps/colonel/views/ColonelSystemRedis.vue` | Move |
+| `views/colonel/ColonelUsageExport.vue` | `apps/colonel/views/ColonelUsageExport.vue` | Move |
+| `views/colonel/ColonelBannedIPs.vue` | `apps/colonel/views/ColonelBannedIPs.vue` | Move |
+| `views/colonel/SystemSettings.vue` | `apps/colonel/views/SystemSettings.vue` | Move |
+| `components/colonel/` | `apps/colonel/components/` | Move |
 
 ---
 
@@ -320,7 +320,7 @@ src/shared/
 | `apps/secret/router.ts` | Routes: `/`, `/secret/*`, `/receipt/*`, `/incoming/*`, `/feedback` |
 | `apps/workspace/router.ts` | Routes: `/dashboard/*`, `/account/*`, `/teams/*`, `/domains/*` |
 | `apps/billing/router.ts` | Routes: `/billing/*` |
-| `apps/kernel/router.ts` | Routes: `/colonel/*` |
+| `apps/colonel/router.ts` | Routes: `/colonel/*` |
 | `apps/session/router.ts` | Routes: `/signin`, `/signup`, `/logout`, `/forgot`, `/reset-password`, `/mfa-verify` |
 
 > **Note**: After migration, these router.ts files are **placeholder stubs** with TODO comments. Routes remain in `src/router/*.routes.ts` until manual route consolidation.
@@ -364,7 +364,7 @@ router/
 apps/secret/router.ts     # TODO: Combine public.routes + secret.routes + incoming.routes + metadata.routes
 apps/workspace/router.ts  # TODO: Combine dashboard.routes + account.routes + teams.routes
 apps/billing/router.ts    # TODO: Combine billing.routes
-apps/kernel/router.ts     # TODO: Combine colonel.routes
+apps/colonel/router.ts     # TODO: Combine colonel.routes
 apps/session/router.ts    # TODO: Combine auth.routes
 ```
 
@@ -372,7 +372,7 @@ apps/session/router.ts    # TODO: Combine auth.routes
 ```typescript
 import { createRouter, createWebHistory } from 'vue-router';
 import { routes as sessionRoutes } from '@/apps/session/router';
-import { routes as kernelRoutes } from '@/apps/kernel/router';
+import { routes as kernelRoutes } from '@/apps/colonel/router';
 import { routes as workspaceRoutes } from '@/apps/workspace/router';
 import { routes as secretRoutes } from '@/apps/secret/router';
 
@@ -401,7 +401,7 @@ export const router = createRouter({
 | `@/views/account/` | `@/apps/workspace/account/` |
 | `@/views/billing/` | `@/apps/workspace/billing/` |
 | `@/views/teams/` | `@/apps/workspace/teams/` |
-| `@/views/colonel/` | `@/apps/kernel/views/` |
+| `@/views/colonel/` | `@/apps/colonel/views/` |
 | `@/views/auth/` | `@/apps/session/views/` |
 | `@/views/incoming/` | `@/apps/secret/conceal/` |
 | `@/components/secrets/` | `@/apps/secret/components/` |
@@ -409,7 +409,7 @@ export const router = createRouter({
 | `@/components/account/` | `@/apps/workspace/components/account/` |
 | `@/components/billing/` | `@/apps/workspace/components/billing/` |
 | `@/components/teams/` | `@/apps/workspace/components/teams/` |
-| `@/components/colonel/` | `@/apps/kernel/components/` |
+| `@/components/colonel/` | `@/apps/colonel/components/` |
 | `@/components/auth/` | `@/apps/session/components/` |
 | `@/layouts/` | `@/shared/layouts/` |
 
@@ -422,7 +422,7 @@ find . -name "*.vue" -o -name "*.ts" | xargs sed -i '' \
   -e "s|@/views/account/|@/apps/workspace/account/|g" \
   -e "s|@/views/billing/|@/apps/workspace/billing/|g" \
   -e "s|@/views/teams/|@/apps/workspace/teams/|g" \
-  -e "s|@/views/colonel/|@/apps/kernel/views/|g" \
+  -e "s|@/views/colonel/|@/apps/colonel/views/|g" \
   -e "s|@/views/auth/|@/apps/session/views/|g" \
   -e "s|@/views/incoming/|@/apps/secret/conceal/|g" \
   -e "s|@/layouts/|@/shared/layouts/|g"
@@ -450,7 +450,7 @@ find . -name "*.vue" -o -name "*.ts" | xargs sed -i '' \
 | `router/account.routes.ts` | Merged into apps/workspace/router.ts |
 | `router/billing.routes.ts` | Merged into apps/billing/router.ts |
 | `router/teams.routes.ts` | Merged into apps/workspace/router.ts |
-| `router/colonel.routes.ts` | Merged into apps/kernel/router.ts |
+| `router/colonel.routes.ts` | Merged into apps/colonel/router.ts |
 | `router/auth.routes.ts` | Merged into apps/session/router.ts |
 | `router/layout.config.ts` | No longer needed (layouts per-app) |
 

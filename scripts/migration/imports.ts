@@ -20,24 +20,45 @@ export interface PathMapping {
  */
 export const PATH_MAPPINGS: PathMapping[] = [
   // Views → Apps (specific renames first)
-  { from: /^@\/views\/incoming\/IncomingSecretForm\.vue$/, to: '@/apps/secret/conceal/IncomingForm.vue' },
-  { from: /^@\/views\/incoming\/IncomingSuccessView\.vue$/, to: '@/apps/secret/conceal/IncomingSuccess.vue' },
-  { from: /^@\/views\/secrets\/ShowSecretContainer\.vue$/, to: '@/apps/secret/reveal/ShowSecret.vue' },
+  {
+    from: /^@\/views\/incoming\/IncomingSecretForm\.vue$/,
+    to: '@/apps/secret/conceal/IncomingForm.vue',
+  },
+  {
+    from: /^@\/views\/incoming\/IncomingSuccessView\.vue$/,
+    to: '@/apps/secret/conceal/IncomingSuccess.vue',
+  },
+  {
+    from: /^@\/views\/secrets\/ShowSecretContainer\.vue$/,
+    to: '@/apps/secret/reveal/ShowSecret.vue',
+  },
   { from: /^@\/views\/secrets\/branded\//, to: '@/apps/secret/reveal/' },
   { from: /^@\/views\/secrets\/canonical\//, to: '@/apps/secret/reveal/' },
   { from: /^@\/views\/secrets\//, to: '@/apps/secret/reveal/' },
   { from: /^@\/views\/incoming\//, to: '@/apps/secret/conceal/' },
-  { from: /^@\/views\/dashboard\/DashboardDomains\.vue$/, to: '@/apps/workspace/domains/DomainsList.vue' },
-  { from: /^@\/views\/dashboard\/DashboardDomainAdd\.vue$/, to: '@/apps/workspace/domains/DomainAdd.vue' },
-  { from: /^@\/views\/dashboard\/DashboardDomainVerify\.vue$/, to: '@/apps/workspace/domains/DomainVerify.vue' },
-  { from: /^@\/views\/dashboard\/DashboardDomainBrand\.vue$/, to: '@/apps/workspace/domains/DomainBrand.vue' },
+  {
+    from: /^@\/views\/dashboard\/DashboardDomains\.vue$/,
+    to: '@/apps/workspace/domains/DomainsList.vue',
+  },
+  {
+    from: /^@\/views\/dashboard\/DashboardDomainAdd\.vue$/,
+    to: '@/apps/workspace/domains/DomainAdd.vue',
+  },
+  {
+    from: /^@\/views\/dashboard\/DashboardDomainVerify\.vue$/,
+    to: '@/apps/workspace/domains/DomainVerify.vue',
+  },
+  {
+    from: /^@\/views\/dashboard\/DashboardDomainBrand\.vue$/,
+    to: '@/apps/workspace/domains/DomainBrand.vue',
+  },
   { from: /^@\/views\/dashboard\//, to: '@/apps/workspace/dashboard/' },
   { from: /^@\/views\/account\/region\//, to: '@/apps/workspace/account/region/' },
   { from: /^@\/views\/account\/settings\//, to: '@/apps/workspace/account/settings/' },
   { from: /^@\/views\/account\//, to: '@/apps/workspace/account/' },
   { from: /^@\/views\/billing\//, to: '@/apps/workspace/billing/' },
   { from: /^@\/views\/teams\//, to: '@/apps/workspace/teams/' },
-  { from: /^@\/views\/colonel\//, to: '@/apps/kernel/views/' },
+  { from: /^@\/views\/colonel\//, to: '@/apps/colonel/views/' },
   { from: /^@\/views\/auth\/Signin\.vue$/, to: '@/apps/session/views/Login.vue' },
   { from: /^@\/views\/auth\/Signup\.vue$/, to: '@/apps/session/views/Register.vue' },
   { from: /^@\/views\/auth\/MfaVerify\.vue$/, to: '@/apps/session/views/MfaChallenge.vue' },
@@ -61,15 +82,27 @@ export const PATH_MAPPINGS: PathMapping[] = [
   { from: /^@\/components\/billing\//, to: '@/apps/workspace/components/billing/' },
   { from: /^@\/components\/teams\//, to: '@/apps/workspace/components/teams/' },
   { from: /^@\/components\/organizations\//, to: '@/apps/workspace/components/organizations/' },
-  { from: /^@\/components\/colonel\//, to: '@/apps/kernel/components/' },
+  { from: /^@\/components\/colonel\//, to: '@/apps/colonel/components/' },
   { from: /^@\/components\/auth\//, to: '@/apps/session/components/' },
 
   // Flat components → categorized
-  { from: /^@\/components\/(ConfirmDialog|SimpleModal)\.vue$/, to: '@/shared/components/modals/$1.vue' },
-  { from: /^@\/components\/(BasicFormAlerts|PasswordStrengthChecker)\.vue$/, to: '@/shared/components/forms/$1.vue' },
-  { from: /^@\/components\/(Domain.*|VerifyDomainDetails|CustomDomainPreview)\.vue$/, to: '@/apps/workspace/components/domains/$1.vue' },
+  {
+    from: /^@\/components\/(ConfirmDialog|SimpleModal)\.vue$/,
+    to: '@/shared/components/modals/$1.vue',
+  },
+  {
+    from: /^@\/components\/(BasicFormAlerts|PasswordStrengthChecker)\.vue$/,
+    to: '@/shared/components/forms/$1.vue',
+  },
+  {
+    from: /^@\/components\/(Domain.*|VerifyDomainDetails|CustomDomainPreview)\.vue$/,
+    to: '@/apps/workspace/components/domains/$1.vue',
+  },
   { from: /^@\/components\/(Feedback.*)\.vue$/, to: '@/apps/secret/components/support/$1.vue' },
-  { from: /^@\/components\/(Homepage.*|DisabledHomepageTaglines)\.vue$/, to: '@/apps/secret/components/conceal/$1.vue' },
+  {
+    from: /^@\/components\/(Homepage.*|DisabledHomepageTaglines)\.vue$/,
+    to: '@/apps/secret/components/conceal/$1.vue',
+  },
 
   // Remaining flat components → shared/ui
   { from: /^@\/components\/([A-Z][^/]+)\.vue$/, to: '@/shared/components/ui/$1.vue' },
@@ -105,14 +138,20 @@ export const PATH_MAPPINGS: PathMapping[] = [
   { from: /^@\/composables\//, to: '@/shared/composables/' },
 
   // Relative imports within moved container files
-  { from: /^\.\/branded\/ShowSecret\.vue$/, to: './branded/ShowSecret.vue' },  // Keep relative
-  { from: /^\.\/canonical\/ShowSecret\.vue$/, to: './canonical/ShowSecret.vue' },  // Keep relative
-  { from: /^\.\/BrandedHomepage\.vue$/, to: './BrandedHomepage.vue' },  // Keep relative
-  { from: /^\.\/DisabledHomepage\.vue$/, to: './AccessDenied.vue' },  // Rename
+  { from: /^\.\/branded\/ShowSecret\.vue$/, to: './branded/ShowSecret.vue' }, // Keep relative
+  { from: /^\.\/canonical\/ShowSecret\.vue$/, to: './canonical/ShowSecret.vue' }, // Keep relative
+  { from: /^\.\/BrandedHomepage\.vue$/, to: './BrandedHomepage.vue' }, // Keep relative
+  { from: /^\.\/DisabledHomepage\.vue$/, to: './AccessDenied.vue' }, // Rename
 
   // Cross-app relative imports → absolute
-  { from: /^\.\.?\/\.\.\/CustomDomainPreview\.vue$/, to: '@/apps/workspace/components/domains/CustomDomainPreview.vue' },
-  { from: /^\.\.?\/\.\.\/\.\.\/CustomDomainPreview\.vue$/, to: '@/apps/workspace/components/domains/CustomDomainPreview.vue' },
+  {
+    from: /^\.\.?\/\.\.\/CustomDomainPreview\.vue$/,
+    to: '@/apps/workspace/components/domains/CustomDomainPreview.vue',
+  },
+  {
+    from: /^\.\.?\/\.\.\/\.\.\/CustomDomainPreview\.vue$/,
+    to: '@/apps/workspace/components/domains/CustomDomainPreview.vue',
+  },
 
   // Relative imports → absolute (for files moved to shared/components/ui/)
   { from: /^\.\/icons\//, to: '@/shared/components/icons/' },
@@ -215,9 +254,7 @@ export function extractVueScriptContent(vueContent: string): {
   lang: 'ts' | 'js';
 } | null {
   // Match <script setup lang="ts"> or <script lang="ts"> or <script>
-  const scriptMatch = vueContent.match(
-    /(<script[^>]*>)([\s\S]*?)(<\/script>)/
-  );
+  const scriptMatch = vueContent.match(/(<script[^>]*>)([\s\S]*?)(<\/script>)/);
 
   if (!scriptMatch) {
     return null;
@@ -225,9 +262,7 @@ export function extractVueScriptContent(vueContent: string): {
 
   const [fullMatch, openTag, scriptContent, closeTag] = scriptMatch;
   const beforeScript = vueContent.slice(0, scriptMatch.index);
-  const afterScript = vueContent.slice(
-    (scriptMatch.index || 0) + fullMatch.length
-  );
+  const afterScript = vueContent.slice((scriptMatch.index || 0) + fullMatch.length);
 
   const isTypeScript = openTag.includes('lang="ts"') || openTag.includes("lang='ts'");
 

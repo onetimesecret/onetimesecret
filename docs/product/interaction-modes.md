@@ -537,7 +537,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 // Import modules
 import { routes as sessionRoutes } from '@/apps/session/routes';
 import { routes as workspaceRoutes } from '@/apps/workspace/routes';
-import { routes as kernelRoutes } from '@/apps/kernel/routes';
+import { routes as kernelRoutes } from '@/apps/colonel/routes';
 import { routes as secretRoutes } from '@/apps/secret/routes'; // Includes 404 wildcard
 
 export const router = createRouter({

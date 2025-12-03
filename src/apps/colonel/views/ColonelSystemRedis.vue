@@ -1,4 +1,4 @@
-<!-- src/apps/kernel/views/ColonelSystemRedis.vue -->
+<!-- src/apps/colonel/views/ColonelSystemRedis.vue -->
 
 <script setup lang="ts">
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';

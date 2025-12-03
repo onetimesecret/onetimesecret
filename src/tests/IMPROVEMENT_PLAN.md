@@ -38,7 +38,7 @@ Lower-priority (UI helpers):
 #### Untested App Domains
 - `src/apps/secret/` - Core secret creation/reveal flows (0 component tests)
 - `src/apps/session/` - Login/signup/MFA views (0 tests)
-- `src/apps/kernel/` - Admin/colonel interface (0 tests)
+- `src/apps/colonel/` - Admin/colonel interface (0 tests)
 - `src/apps/workspace/billing/` - Billing components (0 tests)
 - `src/apps/workspace/domains/` - Domain management views (0 tests)
 

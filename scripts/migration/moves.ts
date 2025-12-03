@@ -441,67 +441,67 @@ export function fileMoves(): FileMove[] {
     // ========================================================================
     {
       from: 'views/colonel/ColonelIndex.vue',
-      to: 'apps/kernel/views/ColonelIndex.vue',
+      to: 'apps/colonel/views/ColonelIndex.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelUsers.vue',
-      to: 'apps/kernel/views/ColonelUsers.vue',
+      to: 'apps/colonel/views/ColonelUsers.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelSecrets.vue',
-      to: 'apps/kernel/views/ColonelSecrets.vue',
+      to: 'apps/colonel/views/ColonelSecrets.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelDomains.vue',
-      to: 'apps/kernel/views/ColonelDomains.vue',
+      to: 'apps/colonel/views/ColonelDomains.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelSystem.vue',
-      to: 'apps/kernel/views/ColonelSystem.vue',
+      to: 'apps/colonel/views/ColonelSystem.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelSystemAuthDB.vue',
-      to: 'apps/kernel/views/ColonelSystemAuthDB.vue',
+      to: 'apps/colonel/views/ColonelSystemAuthDB.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelSystemDatabase.vue',
-      to: 'apps/kernel/views/ColonelSystemDatabase.vue',
+      to: 'apps/colonel/views/ColonelSystemDatabase.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelSystemMainDB.vue',
-      to: 'apps/kernel/views/ColonelSystemMainDB.vue',
+      to: 'apps/colonel/views/ColonelSystemMainDB.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelSystemRedis.vue',
-      to: 'apps/kernel/views/ColonelSystemRedis.vue',
+      to: 'apps/colonel/views/ColonelSystemRedis.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelUsageExport.vue',
-      to: 'apps/kernel/views/ColonelUsageExport.vue',
+      to: 'apps/colonel/views/ColonelUsageExport.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/ColonelBannedIPs.vue',
-      to: 'apps/kernel/views/ColonelBannedIPs.vue',
+      to: 'apps/colonel/views/ColonelBannedIPs.vue',
       action: 'move',
     },
     {
       from: 'views/colonel/SystemSettings.vue',
-      to: 'apps/kernel/views/SystemSettings.vue',
+      to: 'apps/colonel/views/SystemSettings.vue',
       action: 'move',
     },
     {
       from: 'components/colonel',
-      to: 'apps/kernel/components',
+      to: 'apps/colonel/components',
       action: 'move',
     },
 

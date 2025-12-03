@@ -1,4 +1,4 @@
-<!-- src/apps/kernel/components/FeedbackSection.vue -->
+<!-- src/apps/colonel/components/FeedbackSection.vue -->
 
 <script setup lang="ts">
 import { Feedback } from '@/schemas/models/feedback'

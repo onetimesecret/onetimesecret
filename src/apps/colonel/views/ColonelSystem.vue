@@ -1,8 +1,8 @@
-<!-- src/apps/kernel/views/ColonelSystem.vue -->
+<!-- src/apps/colonel/views/ColonelSystem.vue -->
 
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import QueueStatus from '@/apps/kernel/components/QueueStatus.vue';
+  import QueueStatus from '@/apps/colonel/components/QueueStatus.vue';
   import { WindowService } from '@/services/window.service';
   import { computed } from 'vue';
 

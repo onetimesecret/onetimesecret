@@ -8,7 +8,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import accountRoutes from './account.routes';
 import authRoutes from './auth.routes';
 import billingRoutes from './billing.routes';
-import colonelRoutes from './colonel.routes';
+import colonelRoutes from '@/apps/colonel/routes';
 import dashboardRoutes from './dashboard.routes';
 import incomingRoutes from './incoming.routes';
 import metadataRoutes from './metadata.routes';

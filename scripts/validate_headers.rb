@@ -188,6 +188,9 @@ class HeaderValidator
     lines = File.readlines(full_path)
     return if lines.empty?
 
+    # Skip files with shebangs (executable scripts)
+    return if lines[0].start_with?('#!')
+
     # Expected header:
     # Line 1: // path/to/file.ts
     # Line 2: (blank)

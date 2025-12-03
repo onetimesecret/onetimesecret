@@ -1,4 +1,4 @@
-<!-- src/apps/kernel/components/QueueStatus.vue -->
+<!-- src/apps/colonel/components/QueueStatus.vue -->
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';

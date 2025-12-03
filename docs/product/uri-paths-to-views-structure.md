@@ -45,11 +45,11 @@ Here's the URL → File Path mapping:
 | /teams                              | src/apps/workspace/views/teams/TeamsHub.vue            |
 | /teams/:extid                       | src/apps/workspace/views/teams/TeamView.vue            |
 | /teams/:extid/members               | src/apps/workspace/views/teams/TeamMembers.vue         |
-| /colonel                            | src/apps/kernel/views/ColonelIndex.vue                 |
-| /colonel/users                      | src/apps/kernel/views/ColonelUsers.vue                 |
-| /colonel/secrets                    | src/apps/kernel/views/ColonelSecrets.vue               |
-| /colonel/domains                    | src/apps/kernel/views/ColonelDomains.vue               |
-| /colonel/system                     | src/apps/kernel/views/ColonelSystem.vue                |
+| /colonel                            | src/apps/colonel/views/ColonelIndex.vue                 |
+| /colonel/users                      | src/apps/colonel/views/ColonelUsers.vue                 |
+| /colonel/secrets                    | src/apps/colonel/views/ColonelSecrets.vue               |
+| /colonel/domains                    | src/apps/colonel/views/ColonelDomains.vue               |
+| /colonel/system                     | src/apps/colonel/views/ColonelSystem.vue                |
 
 
 The key insight: subfolders within each app mirror the domain, not the URL structure. Workspace has dashboard/, domains/, account/, teams/ because those are distinct feature areas—even though URLs like /domains sit at root level. Billing is a separate app due to its distinct business logic and potential for standalone deployment.

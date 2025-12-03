@@ -90,8 +90,8 @@ const DIRECTORIES = [
   'apps/workspace/components/teams',
   'apps/workspace/components/organizations',
   'apps/workspace/components/domains',
-  'apps/kernel/views',
-  'apps/kernel/components',
+  'apps/colonel/views',
+  'apps/colonel/components',
   'apps/session/views',
   'apps/session/logic',
   'apps/session/components',
@@ -517,7 +517,7 @@ export {};
 export {};
 `.trim(),
 
-    'apps/kernel/router.ts': `
+    'apps/colonel/router.ts': `
 /**
  * Kernel App Routes (Placeholder)
  *
