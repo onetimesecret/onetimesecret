@@ -92,8 +92,8 @@ module Onetime
   end
 end
 
-# If this script is run directly
+# Run directly
 if __FILE__ == $0
   OT.boot! :cli
-  exit(Onetime::Migration.run(run: ARGV.include?('--run')) ? 0 : 1)
+  exit(Onetime::Migration.cli_run)
 end
