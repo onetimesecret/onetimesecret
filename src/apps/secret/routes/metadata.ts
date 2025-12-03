@@ -1,4 +1,4 @@
-// src/router/metadata.routes.ts
+// src/apps/secret/routes/metadata.ts
 
 import QuietFooter from '@/shared/components/layout/QuietFooter.vue';
 import QuietHeader from '@/shared/components/layout/QuietHeader.vue';

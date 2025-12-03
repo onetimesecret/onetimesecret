@@ -1,11 +1,11 @@
-// src/router/account.routes.ts
+// src/apps/workspace/routes/account.ts
 
 import {
   ImprovedFooter,
   ImprovedHeader,
   ImprovedLayout,
   standardLayoutProps,
-} from './layout.config';
+} from '@/router/layout.config';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [

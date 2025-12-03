@@ -1,4 +1,4 @@
-// src/router/auth.routes.ts
+// src/apps/session/routes.ts
 
 /* src/router/auth.routes.ts */
 import DefaultLayout from '@/shared/layouts/TransactionalLayout.vue';

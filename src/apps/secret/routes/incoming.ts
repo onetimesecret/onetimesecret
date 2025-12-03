@@ -1,4 +1,4 @@
-// src/router/incoming.routes.ts
+// src/apps/secret/routes/incoming.ts
 
 import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
 import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';

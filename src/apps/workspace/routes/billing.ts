@@ -1,11 +1,11 @@
-// src/router/billing.routes.ts
+// src/apps/workspace/routes/billing.ts
 
 import {
   ImprovedFooter,
   ImprovedHeader,
   ImprovedLayout,
   standardLayoutProps,
-} from './layout.config';
+} from '@/router/layout.config';
 import { WindowService } from '@/services/window.service';
 import { RouteRecordRaw } from 'vue-router';
 

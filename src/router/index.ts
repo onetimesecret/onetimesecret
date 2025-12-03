@@ -5,16 +5,19 @@ import NotFound from '@/shared/components/errors/ErrorNotFound.vue';
 import type { Router, RouteRecordRaw } from 'vue-router';
 import { createRouter, createWebHistory } from 'vue-router';
 
-import accountRoutes from './account.routes';
-import authRoutes from './auth.routes';
-import billingRoutes from './billing.routes';
+// App-specific routes
 import colonelRoutes from '@/apps/colonel/routes';
-import dashboardRoutes from './dashboard.routes';
-import incomingRoutes from './incoming.routes';
-import metadataRoutes from './metadata.routes';
+import incomingRoutes from '@/apps/secret/routes/incoming';
+import metadataRoutes from '@/apps/secret/routes/metadata';
+import secretRoutes from '@/apps/secret/routes/secret';
+import authRoutes from '@/apps/session/routes';
+import accountRoutes from '@/apps/workspace/routes/account';
+import billingRoutes from '@/apps/workspace/routes/billing';
+import dashboardRoutes from '@/apps/workspace/routes/dashboard';
+import teamsRoutes from '@/apps/workspace/routes/teams';
+
+// Cross-cutting routes
 import publicRoutes from './public.routes';
-import secretRoutes from './secret.routes';
-import teamsRoutes from './teams.routes';
 
 const routes: RouteRecordRaw[] = [
   ...publicRoutes,

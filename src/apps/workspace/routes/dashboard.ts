@@ -1,4 +1,4 @@
-// src/router/dashboard.routes.ts
+// src/apps/workspace/routes/dashboard.ts
 
 import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
 import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
