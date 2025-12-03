@@ -40,8 +40,8 @@ This document describes the standardized error handling pattern used across all 
 ### Basic Pattern
 
 ```typescript
-import { useAsyncHandler } from '@/composables/useAsyncHandler';
-import { useNotificationsStore } from '@/stores';
+import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
+import { useNotificationsStore } from '@/shared/stores';
 
 export function useMyFeature() {
   const notifications = useNotificationsStore();
@@ -180,7 +180,7 @@ The error classifier automatically extracts messages from both `error` and `mess
 ### Creating Custom Errors
 
 ```typescript
-import { createError } from '@/composables/useAsyncHandler';
+import { createError } from '@/shared/composables/useAsyncHandler';
 
 // Human error with details
 throw createError(
@@ -349,7 +349,7 @@ await wrap(async () => {
 
 When migrating existing composables to use `useAsyncHandler`:
 
-- [ ] Import `useAsyncHandler` from `@/composables/useAsyncHandler`
+- [ ] Import `useAsyncHandler` from `@/shared/composables/useAsyncHandler`
 - [ ] Configure handler options (`notify`, `setLoading`, `onError`)
 - [ ] Replace all try/catch blocks with `wrap()` calls
 - [ ] Remove manual `isLoading.value = true/false` assignments
@@ -392,15 +392,15 @@ describe('useMyFeature', () => {
 
 ## Reference Implementations
 
-- **`src/composables/useDomainsManager.ts`** - Full implementation with custom error handling
-- **`src/composables/useSecret.ts`** - Clean, minimal usage
-- **`src/composables/useMetadata.ts`** - Error state management
-- **`src/composables/usePasswordChange.ts`** - Form-based error handling
+- **`src/shared/composables/useDomainsManager.ts`** - Full implementation with custom error handling
+- **`src/shared/composables/useSecret.ts`** - Clean, minimal usage
+- **`src/shared/composables/useMetadata.ts`** - Error state management
+- **`src/shared/composables/usePasswordChange.ts`** - Form-based error handling
 
 ## Related Files
 
-- `src/composables/useAsyncHandler.ts` - Core composable
+- `src/shared/composables/useAsyncHandler.ts` - Core composable
 - `src/schemas/errors/classifier.ts` - Error classification logic
 - `src/schemas/errors/guards.ts` - Type guards
 - `src/plugins/core/globalErrorBoundary.ts` - Global Vue error handler
-- `src/stores/notificationsStore.ts` - User notifications
+- `src/shared/stores/notificationsStore.ts` - User notifications

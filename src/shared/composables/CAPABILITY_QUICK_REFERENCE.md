@@ -5,7 +5,7 @@
 ```typescript
 import { useCapabilities } from '@/composables/useCapabilities';
 import { CAPABILITIES } from '@/types/organization';
-import UpgradePrompt from '@/components/billing/UpgradePrompt.vue';
+import UpgradePrompt from '@/shared/components/billing/UpgradePrompt.vue';
 import { useOrganizationStore } from '@/stores/organizationStore';
 
 const organizationStore = useOrganizationStore();

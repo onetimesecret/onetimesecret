@@ -1,7 +1,6 @@
 <!-- src/apps/workspace/components/domains/CustomDomainPreview.vue -->
 
 /** eslint-disable tailwindcss/migration-from-tailwind-2 */
-<!-- src/components/CustomDomainPreview.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

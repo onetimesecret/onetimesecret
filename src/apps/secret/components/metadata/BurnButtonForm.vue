@@ -1,7 +1,6 @@
 <!-- src/apps/secret/components/metadata/BurnButtonForm.vue -->
 
 /** eslint-disable tailwindcss/classnames-order */
-<!-- src/components/secrets/metadata/BurnButtonForm.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

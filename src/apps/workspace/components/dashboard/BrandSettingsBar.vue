@@ -1,7 +1,6 @@
 <!-- src/apps/workspace/components/dashboard/BrandSettingsBar.vue -->
 
 /** eslint-disable tailwindcss/classnames-order */
-<!-- src/components/dashboard/BrandSettingsBar.vue -->
 
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -17,7 +16,7 @@
     fontOptions,
   } from '@/schemas/models/domain/brand';
   import { computed } from 'vue';
-  import { Composer } from 'vue-i18n';
+  import { useI18n, Composer } from 'vue-i18n';
 
   import ColorPicker from '@/shared/components/common/ColorPicker.vue';
   import CycleButton from '@/shared/components/common/CycleButton.vue';
