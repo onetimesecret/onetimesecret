@@ -299,12 +299,20 @@ module Onetime
       dbclient.exists?(dbkey)
     end
 
+    # Returns brand settings as an immutable BrandSettings Data object.
+    # Useful for pattern matching, validation, or when you need the full settings.
+    #
+    # @return [BrandSettings] Immutable brand settings instance
+    def brand_settings
+      BrandSettings.from_hash(brand.hgetall)
+    end
+
     def allow_public_homepage?
-      brand.get('allow_public_homepage').to_s == 'true'
+      brand_settings.allow_public_homepage?
     end
 
     def allow_public_api?
-      brand.get('allow_public_api').to_s == 'true'
+      brand_settings.allow_public_api?
     end
 
     # Validates the format of TXT record host and value used for domain verification.
@@ -747,3 +755,6 @@ module Onetime
     extend ClassMethods
   end
 end
+
+# Load after class definition to avoid superclass mismatch
+require_relative 'custom_domain/brand_settings'
