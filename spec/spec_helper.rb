@@ -76,8 +76,7 @@ require 'rack/test'
 # Block all external HTTP connections by default
 # Tests must use VCR cassettes or explicit stubs for any HTTP calls
 require 'webmock/rspec'
-# WebMock.disable_net_connect!(allow_localhost: true)
-WebMock.allow_net_connect!
+WebMock.disable_net_connect!(allow_localhost: true)
 # Path setup - do one thing well
 spec_root = File.expand_path(__dir__)
 base_path = File.expand_path('..', spec_root)

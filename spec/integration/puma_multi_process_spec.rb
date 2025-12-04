@@ -4,7 +4,7 @@
 
 # Puma Multi-Process Integration Test for OT.instance
 #
-# Usage: pnpm run test:rspec tests/integration/ruby/puma_multi_process_spec.rb
+# Usage: bundle exec rspec spec/integration/puma_multi_process_spec.rb
 #
 # This Ruby integration test verifies that OneTimeSecret's OT.instance correctly
 # generates unique identifiers when running in Puma's multi-process environment.
@@ -13,7 +13,7 @@
 # 1. OT.instance is a unique string generated per-process
 # 2. Each Puma worker process gets a unique PID, therefore unique OT.instance
 # 3. The instance value remains consistent within a worker's lifetime
-# 4. CLI boot mode allows testing without full application dependencies
+# 4. Requires full boot! with database connection for realistic testing
 #
 # This validates that process-level identification works correctly for:
 # - Debugging and traceability across worker processes
@@ -49,21 +49,23 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
       @test_app_file = Tempfile.new(['test_app', '.ru'])
 
       # Minimal Puma configuration for testing
+      # NOTE: We disable preload to ensure boot! runs per-worker, not in master
       puma_config_content = <<~CONFIG
         bind "tcp://#{@host}:#{@port}"
         workers #{@workers}
-        worker_timeout 10 # Must be > worker reporting interval (5)
+        worker_timeout 30 # Allow time for boot! to complete
         pidfile "#{@puma_pid_file.path}"
 
         # Binding options to handle port conflicts
         bind_to_activated_sockets false
 
-        # Each worker initializes separately to ensure unique OT.instance
-        # No preload_app! - this ensures per-worker boot process
+        # CRITICAL: Do NOT preload the app - we need boot! to run in each worker
+        # after fork, not in the master process before fork. This avoids sharing
+        # RabbitMQ/Redis connections across fork boundaries.
+        # preload_app! is OFF by default but being explicit here.
 
-        # Redirect stdout/stderr to /dev/null for cleaner test output
-        # In CI, these might be captured or handled differently.
-        stdout_redirect '/dev/null', '/dev/null', true
+        # Don't redirect stdout/stderr - let errors propagate to tempfiles
+        # for debugging. Errors during worker boot need to be visible.
       CONFIG
 
       # Test Rack application that exposes OT.instance and process info
@@ -72,6 +74,8 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
       apps_root = File.join(Dir.pwd, 'apps')
       test_app_content_content = <<~RUBY
         # Minimal test app for OT.instance verification
+        # IMPORTANT: We use lazy initialization to ensure boot! runs AFTER fork,
+        # not during rackup file loading (which happens before fork in cluster mode).
         $LOAD_PATH.unshift('#{lib_path}')
 
         # Add apps directories to load path for v2 models
@@ -81,11 +85,25 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
 
         require 'onetime'
 
-        # Boot once per worker - generates unique OT.instance per process
-        # Use :cli mode to avoid full app dependencies and continue on config errors
-        Onetime.boot! :cli, false # false means don't connect to DB
+        # Lazy boot - called on first request, after fork
+        BOOT_MUTEX = Mutex.new
+        @booted = false
+
+        def ensure_booted!
+          return if @booted
+          BOOT_MUTEX.synchronize do
+            return if @booted
+            # Boot once per worker - generates unique OT.instance per process
+            # Use :cli mode to allow continuation on non-fatal config errors
+            Onetime.boot! :cli, true # true means connect to DB
+            @booted = true
+          end
+        end
 
         app = proc do |env|
+          # Boot on first request (after fork)
+          ensure_booted!
+
           case env['PATH_INFO']
           when '/instance'
             [200, {'content-type' => 'text/plain'}, [Onetime.instance.to_s]]
@@ -298,7 +316,8 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
   end
 
   def wait_for_server_start
-    sleep 5
+    # Brief initial delay for Puma master to start
+    sleep 2
     Timeout.timeout(30) do
       loop do
         sleep 0.5 # Increased sleep
@@ -329,21 +348,10 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
     http.read_timeout = 5 # seconds
     request = Net::HTTP::Get.new(uri.request_uri)
 
-    puts "  🔍 DEBUG: Making request to #{uri}"
-
-    response = http.request(request)
-
-
-      puts "  🔍 DEBUG: Response code: #{response.code}"
-      puts "  🔍 DEBUG: Response body: #{response.body.strip}" if response.body
-
-
-    response
+    http.request(request)
   rescue => e
-    puts "  ❌ DEBUG: Request to #{uri} failed: #{e.class} - #{e.message}"
-    puts "  🔍 DEBUG: Running curl for additional diagnostics..."
-    curl_output = `curl -v -k #{uri} 2>&1`
-    puts "  🔍 DEBUG: curl output:\n#{curl_output}"
+    # Only output debug info on failure
+    warn "  ❌ Request to #{uri} failed: #{e.class} - #{e.message}"
     raise
   end
 end
