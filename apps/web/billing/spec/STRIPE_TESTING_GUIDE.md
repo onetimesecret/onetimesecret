@@ -135,7 +135,7 @@ RSpec.configure do |config|
       # Unit tests: point to stripe-mock
       Stripe.api_key = 'sk_test_mock'
       Stripe.api_base = 'http://localhost:12111'
-      WebMock.disable_net_connect!(allow_localhost: true)
+      # WebMock.disable_net_connect!(allow_localhost: true)
     end
   end
 end

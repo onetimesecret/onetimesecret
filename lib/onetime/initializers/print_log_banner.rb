@@ -88,7 +88,7 @@ module Onetime
       # Footer
 
       # Output everything with a single OT.li call
-      OT.boot_logger.info output.join("\n")
+      OT.boot_logger.debug output.join("\n")
     end
 
     private

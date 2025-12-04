@@ -104,7 +104,7 @@ module Onetime
           has_custom: !custom_check.nil?,
         )
 
-        raise_form_error(message, field: :user_id, error_type: :forbidden)
+        raise Onetime::Forbidden, message
       end
 
       # Verify user has ALL of the specified roles/permissions
@@ -116,7 +116,7 @@ module Onetime
       # @param admin [Boolean] Require admin role
       # @param custom_check [Proc, nil] Custom authorization check (must return true)
       # @param error_message [String, nil] Override default error message
-      # @raise [FormError] If any condition fails
+      # @raise [Onetime::Forbidden] If any condition fails
       #
       # @example Must be colonel AND pass custom check
       #   verify_all_roles!(
@@ -127,19 +127,19 @@ module Onetime
         # Check colonel if required
         if colonel && !has_system_role?('colonel')
           message = error_message || 'Requires colonel role'
-          raise_form_error(message, field: :user_id, error_type: :forbidden)
+          raise Onetime::Forbidden, message
         end
 
         # Check admin if required
         if admin && !has_system_role?('admin')
           message = error_message || 'Requires admin role'
-          raise_form_error(message, field: :user_id, error_type: :forbidden)
+          raise Onetime::Forbidden, message
         end
 
         # Check custom condition if specified
         if custom_check && !custom_check.call
           message = error_message || 'Insufficient permissions'
-          raise_form_error(message, field: :user_id, error_type: :forbidden)
+          raise Onetime::Forbidden, message
         end
 
         true

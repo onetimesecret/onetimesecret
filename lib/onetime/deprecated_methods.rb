@@ -62,6 +62,10 @@ module Onetime
     Runtime.infrastructure.d9s_enabled
   end
 
+  def self.d9s_enabled=(value)
+    Runtime.update_infrastructure(d9s_enabled: value)
+  end
+
   # Features runtime state accessors
   def self.global_banner
     Runtime.features.global_banner

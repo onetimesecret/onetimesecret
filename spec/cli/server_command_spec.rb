@@ -160,7 +160,11 @@ RSpec.describe 'Server Command', type: :cli do
 
   describe 'error handling' do
     it 'logs server configuration' do
-      expect(Onetime.app_logger).to receive(:debug).with(/Starting puma with config/)
+      # Stub app_logger to return a consistent mock since Onetime.app_logger
+      # returns a new SemanticLogger instance each time it's called
+      logger_mock = instance_double(SemanticLogger::Logger)
+      allow(Onetime).to receive(:app_logger).and_return(logger_mock)
+      expect(logger_mock).to receive(:debug).with(/Starting puma with config/)
       run_cli_command_quietly('server')
     end
   end

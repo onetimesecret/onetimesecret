@@ -4,7 +4,7 @@
 
 # Debugging helpers for tests
 #
-# To debug tests with IRB console:
+# To debug tests with IRB console (debugger):
 #   RUBY_DEBUG_IRB_CONSOLE=true pnpm run test:rspec spec/your_test_spec.rb
 #
 # To run specific tests:
@@ -76,8 +76,8 @@ require 'rack/test'
 # Block all external HTTP connections by default
 # Tests must use VCR cassettes or explicit stubs for any HTTP calls
 require 'webmock/rspec'
-WebMock.disable_net_connect!(allow_localhost: true)
-
+# WebMock.disable_net_connect!(allow_localhost: true)
+WebMock.allow_net_connect!
 # Path setup - do one thing well
 spec_root = File.expand_path(__dir__)
 base_path = File.expand_path('..', spec_root)

@@ -64,7 +64,7 @@ module Onetime
         @application_context = application_context
         features_config      = OT.conf&.dig('features') || {}
         self.class.initialize_from_config(features_config)
-        boot_logger.info 'DomainStrategy initialized', {
+        boot_logger.debug 'DomainStrategy initialized', {
           app_context: @application_context,
           canonical_domain: canonical_domain,
         }

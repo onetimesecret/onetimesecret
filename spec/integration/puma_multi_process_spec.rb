@@ -128,14 +128,22 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
 
     rescue => e
       puts "❌ Puma startup failed on port #{@port}: #{e.message}"
+
+      # Check for port binding issues BEFORE cleanup (stderr may be closed after)
+      stderr_content = begin
+        @puma_stderr&.rewind
+        @puma_stderr&.read
+      rescue IOError
+        nil
+      end
+      is_port_issue = e.message.include?('Address already in use') ||
+                      e.message.include?('bind(2)') ||
+                      e.message.include?('execution expired') ||
+                      stderr_content&.include?('EADDRINUSE')
+
       # Clean up on failure
       cleanup_puma_process
       cleanup_temp_files
-
-      # Check for port binding issues in both exception and stderr
-      is_port_issue = e.message.include?('Address already in use') ||
-                      e.message.include?('bind(2)') ||
-                      (@puma_stderr && @puma_stderr.respond_to?(:read) && @puma_stderr.read.include?('EADDRINUSE'))
 
       if startup_attempts < max_startup_attempts && is_port_issue
         backoff_time = startup_attempts * 0.5
@@ -155,27 +163,6 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
   end
 
   describe 'OT.instance behavior in multi-process environment' do
-
-  private
-
-  def cleanup_puma_process
-    if @puma_pid
-      begin
-        Process.kill('TERM', @puma_pid)
-        Timeout.timeout(10) { Process.wait(@puma_pid) }
-      rescue Errno::ESRCH, Timeout::Error
-        Process.kill('KILL', @puma_pid) rescue nil # Force kill if TERM fails
-      end
-    end
-  end
-
-  def cleanup_temp_files
-    # Clean up temp files
-    [@puma_pid_file, @puma_config_file, @test_app_file, @puma_stdout, @puma_stderr].compact.each do |file|
-      file.close
-      file.unlink # Explicitly delete the temp file
-    end
-  end
     it 'generates valid instance identifiers' do
       response = make_request('/instance')
       expect(response.code).to eq('200')
@@ -285,10 +272,14 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
   end
 
   def cleanup_temp_files
-    # Clean up temp files
+    # Clean up temp files safely
     [@puma_pid_file, @puma_config_file, @test_app_file, @puma_stdout, @puma_stderr].compact.each do |file|
-      file.close
-      file.unlink # Explicitly delete the temp file
+      begin
+        file.close unless file.closed?
+        file.unlink if file.respond_to?(:path) && File.exist?(file.path)
+      rescue IOError, Errno::ENOENT
+        # Already closed or deleted, ignore
+      end
     end
   end
 
@@ -307,6 +298,7 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
   end
 
   def wait_for_server_start
+    sleep 5
     Timeout.timeout(30) do
       loop do
         sleep 0.5 # Increased sleep
@@ -336,6 +328,22 @@ RSpec.describe 'Puma Multi-Process Integration', type: :integration do
     http.open_timeout = 5 # seconds
     http.read_timeout = 5 # seconds
     request = Net::HTTP::Get.new(uri.request_uri)
-    http.request(request)
+
+    puts "  🔍 DEBUG: Making request to #{uri}"
+
+    response = http.request(request)
+
+
+      puts "  🔍 DEBUG: Response code: #{response.code}"
+      puts "  🔍 DEBUG: Response body: #{response.body.strip}" if response.body
+
+
+    response
+  rescue => e
+    puts "  ❌ DEBUG: Request to #{uri} failed: #{e.class} - #{e.message}"
+    puts "  🔍 DEBUG: Running curl for additional diagnostics..."
+    curl_output = `curl -v -k #{uri} 2>&1`
+    puts "  🔍 DEBUG: curl output:\n#{curl_output}"
+    raise
   end
 end

@@ -8,121 +8,89 @@ RSpec.describe "Internationalization config" do
   describe Onetime do
     describe '.locales' do
       context 'when config not loaded' do
-        let(:original_state) do
-          {
-            i18n_enabled: described_class.i18n_enabled,
-            locales: described_class.instance_variable_get(:@locales),
-            default_locale: described_class.default_locale,
-          }
-        end
+        let(:original_i18n) { Onetime::Runtime.internationalization }
 
         before do
-          described_class.instance_variable_set(:@i18n_enabled, false)
-          described_class.instance_variable_set(:@locales, nil)
+          # Set up a disabled i18n state with nil locales to simulate unloaded config
+          Onetime::Runtime.internationalization = Onetime::Runtime::Internationalization.new(
+            enabled: false,
+            supported_locales: [],
+            default_locale: 'en',
+            fallback_locale: 'en',
+            locales: nil
+          )
         end
 
         after do
-          described_class.instance_variable_set(:@i18n_enabled, original_state[:i18n_enabled])
-          described_class.instance_variable_set(:@locales, original_state[:locales])
-          described_class.instance_variable_set(:@default_locale, original_state[:default_locale])
+          Onetime::Runtime.internationalization = original_i18n
         end
 
         it 'returns nil' do
-          # Test the direct instance variable first
-          expect(described_class.instance_variable_get(:@locales)).to be_nil
-
-          # Test the accessor method behavior
           expect(described_class.locales).to be_nil
         end
 
         it 'does not cache empty hash after first access' do
           described_class.locales # First access
-          expect(described_class.instance_variable_get(:@locales)).to be_nil
           expect(described_class.locales).to be_nil
         end
       end
 
       context 'when internationalization is disabled' do
-        let(:original_state) do
-           {
-             i18n_enabled: described_class.i18n_enabled,
-             locales: described_class.instance_variable_get(:@locales),
-             default_locale: described_class.default_locale,
-             supported_locales: described_class.supported_locales,
-           }
-        end
-
-         before do
-           # Setup disabled internationalization state
-           described_class.instance_variable_set(:@i18n_enabled, false)
-           described_class.instance_variable_set(:@default_locale, 'en')
-           described_class.instance_variable_set(:@supported_locales, ['en'])
-
-           # Simulate loading only English locale
-           en_locale = {greeting: 'Hello'}
-           described_class.instance_variable_set(:@locales, {'en' => en_locale})
-         end
-
-         after do
-           # Restore original state
-           described_class.instance_variable_set(:@i18n_enabled, original_state[:i18n_enabled])
-           described_class.instance_variable_set(:@locales, original_state[:locales])
-           described_class.instance_variable_set(:@default_locale, original_state[:default_locale])
-           described_class.instance_variable_set(:@supported_locales, original_state[:supported_locales])
-         end
-
-         it 'returns only English locale' do
-           expect(described_class.locales).to include('en')
-           expect(described_class.locales.keys.length).to eq(1)
-         end
-
-         it 'has English as default locale' do
-           expect(described_class.default_locale).to eq('en')
-         end
-
-         it 'only has English in supported locales' do
-           expect(described_class.supported_locales).to eq(['en'])
-         end
-
-         it 'accesses locale content correctly' do
-           expect(described_class.locales['en'][:greeting]).to eq('Hello')
-         end
-      end
-
-      context 'when internationalization is enabled' do
-        let(:original_state) do
-          {
-            i18n_enabled: described_class.i18n_enabled,
-            locales: described_class.instance_variable_get(:@locales),
-            default_locale: described_class.default_locale,
-            supported_locales: described_class.supported_locales,
-            fallback_locale: described_class.fallback_locale,
-          }
-        end
+        let(:original_i18n) { Onetime::Runtime.internationalization }
 
         before do
-          # Setup enabled internationalization state
-          described_class.instance_variable_set(:@i18n_enabled, true)
-          described_class.instance_variable_set(:@default_locale, 'fr_FR')
-          described_class.instance_variable_set(:@supported_locales, %w[en fr_FR de_AT])
-          described_class.instance_variable_set(:@fallback_locale, {'fr-CA': %w[fr_CA fr_FR en], default: ['en']})
-
-          # Simulate loading multiple locales
-          test_locales = {
-            'en' => {greeting: 'Hello'},
-            'fr_FR' => {greeting: 'Bonjour'},
-            'de_AT' => {greeting: 'Grüß Gott'},
-          }
-          described_class.instance_variable_set(:@locales, test_locales)
+          # Setup disabled internationalization state with only English locale
+          Onetime::Runtime.internationalization = Onetime::Runtime::Internationalization.new(
+            enabled: false,
+            supported_locales: ['en'],
+            default_locale: 'en',
+            fallback_locale: 'en',
+            locales: {'en' => {greeting: 'Hello'}}
+          )
         end
 
         after do
-          # Restore original state
-          described_class.instance_variable_set(:@i18n_enabled, original_state[:i18n_enabled])
-          described_class.instance_variable_set(:@locales, original_state[:locales])
-          described_class.instance_variable_set(:@default_locale, original_state[:default_locale])
-          described_class.instance_variable_set(:@supported_locales, original_state[:supported_locales])
-          described_class.instance_variable_set(:@fallback_locale, original_state[:fallback_locale])
+          Onetime::Runtime.internationalization = original_i18n
+        end
+
+        it 'returns only English locale' do
+          expect(described_class.locales).to include('en')
+          expect(described_class.locales.keys.length).to eq(1)
+        end
+
+        it 'has English as default locale' do
+          expect(described_class.default_locale).to eq('en')
+        end
+
+        it 'only has English in supported locales' do
+          expect(described_class.supported_locales).to eq(['en'])
+        end
+
+        it 'accesses locale content correctly' do
+          expect(described_class.locales['en'][:greeting]).to eq('Hello')
+        end
+      end
+
+      context 'when internationalization is enabled' do
+        let(:original_i18n) { Onetime::Runtime.internationalization }
+
+        before do
+          # Setup enabled internationalization state with multiple locales
+          Onetime::Runtime.internationalization = Onetime::Runtime::Internationalization.new(
+            enabled: true,
+            supported_locales: %w[en fr_FR de_AT],
+            default_locale: 'fr_FR',
+            fallback_locale: {'fr-CA': %w[fr_CA fr_FR en], default: ['en']},
+            locales: {
+              'en' => {greeting: 'Hello'},
+              'fr_FR' => {greeting: 'Bonjour'},
+              'de_AT' => {greeting: 'Grüß Gott'},
+            }
+          )
+        end
+
+        after do
+          Onetime::Runtime.internationalization = original_i18n
         end
 
         it 'returns all configured locales' do

@@ -70,6 +70,15 @@ module Onetime
   class Unauthorized < RuntimeError
   end
 
+  class Forbidden < RuntimeError
+    attr_reader :message
+
+    def initialize(message = 'Forbidden')
+      super
+      @message = message
+    end
+  end
+
   class Redirect < RuntimeError
     attr_reader :location, :status
 

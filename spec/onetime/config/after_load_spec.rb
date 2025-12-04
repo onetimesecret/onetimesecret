@@ -196,6 +196,29 @@ RSpec.describe "Onetime boot configuration process" do
     end
 
     context 'with error handling' do
+      before(:each) do
+        # Reset initializer registry before each test to avoid "already registered" errors
+        Onetime::Boot::InitializerRegistry.reset!
+        # Fully reset global state to ensure boot! runs from scratch
+        Onetime.instance_variable_set(:@conf, nil)
+        Onetime.instance_variable_set(:@mode, nil)
+        Onetime.instance_variable_set(:@env, nil)
+        Onetime.instance_variable_set(:@ready, nil) # Critical: this controls ready? check in boot!
+        Onetime.instance_variable_set(:@instance, nil)
+      end
+
+      after(:each) do
+        # Re-run boot! to restore proper state for subsequent tests
+        # Reset registry first to avoid "already registered" errors
+        Onetime::Boot::InitializerRegistry.reset!
+        Onetime.instance_variable_set(:@conf, nil)
+        Onetime.instance_variable_set(:@mode, nil)
+        Onetime.instance_variable_set(:@env, nil)
+        Onetime.instance_variable_set(:@ready, nil)
+        Onetime.instance_variable_set(:@instance, nil)
+        Onetime.boot!(:test) rescue nil
+      end
+
       around do |example|
         original_rack_env = ENV['RACK_ENV']
         ENV['RACK_ENV'] = 'test'
@@ -211,7 +234,10 @@ RSpec.describe "Onetime boot configuration process" do
       end
 
       it 'handles Redis connection errors' do
-        allow(Onetime::Config).to receive(:load).and_return(test_config)
+        # Create config with port 2121 to pass test environment safety check
+        config_with_test_port = test_config.dup
+        config_with_test_port['redis'] = { 'uri' => 'redis://127.0.0.1:2121/0' }
+        allow(Onetime::Config).to receive(:load).and_return(config_with_test_port)
         allow(Familia).to receive(:uri=).and_raise(Redis::CannotConnectError.new("Connection refused"))
         expect(Onetime).to receive(:le).with(/Cannot connect to the database .* \(Redis::CannotConnectError\)/)
         expect { Onetime.boot!(:test) }.to raise_error(Redis::CannotConnectError)
