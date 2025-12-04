@@ -12,7 +12,7 @@
 # (populated by authentication strategies during RouteAuthWrapper execution).
 #
 # Usage:
-#   class MyLogic < V2::Logic::Base
+#   class MyLogic < Onetime::Logic::Base
 #     def process
 #       # @organization and @team automatically available
 #       @organization.list_domains

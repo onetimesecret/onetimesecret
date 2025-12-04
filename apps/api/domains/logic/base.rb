@@ -13,11 +13,11 @@
 #
 # Domains API uses same modern conventions as v3 API for consistency.
 
-require_relative '../../v2/logic/base'
+require 'onetime/logic/base'
 
 module DomainsAPI
   module Logic
-    class Base < V2::Logic::Base
+    class Base < Onetime::Logic::Base
       # Domains API-specific serialization helper
       #
       # Converts Familia model to JSON hash with native types.

@@ -2,12 +2,12 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../../api/v2/logic/base'
+require 'onetime/logic/base'
 
 module Core
   module Logic
     module Welcome
-      class FromStripePaymentLink < V2::Logic::Base
+      class FromStripePaymentLink < Onetime::Logic::Base
         attr_reader :checkout_session_id, :checkout_session, :checkout_email, :update_customer_fields
 
         def process_params
@@ -93,7 +93,7 @@ module Core
         end
       end
 
-      class StripeWebhook < V2::Logic::Base
+      class StripeWebhook < Onetime::Logic::Base
         attr_reader :event
         attr_accessor :payload, :stripe_signature
 

@@ -74,13 +74,50 @@ module Onetime
       @stats   = Hash.new(0)  # Auto-incrementing counter for tracking migration stats
     end
 
+    # CLI entry point for migration execution
+    #
+    # Handles command-line argument parsing and returns appropriate exit codes.
+    # This is the recommended entry point for migration scripts.
+    #
+    # @param argv [Array<String>] command-line arguments (default: ARGV)
+    # @return [Integer] exit code (0 = success, 1 = error/action required)
+    #
+    # @example In migration script
+    #   if __FILE__ == $0
+    #     OT.boot! :cli
+    #     exit(Onetime::Migration.cli_run)
+    #   end
+    def self.cli_run(argv = ARGV)
+      if argv.include?('--check')
+        check_only
+      else
+        result = run(run: argv.include?('--run'))
+        # nil (not needed) and true (success) both return 0
+        # only false (failure) returns 1
+        result == false ? 1 : 0
+      end
+    end
+
+    # Check-only mode for programmatic use
+    #
+    # Returns exit code indicating whether migration is needed.
+    # Does not perform any migration work.
+    #
+    # @return [Integer] 0 if no migration needed, 1 if migration needed
+    def self.check_only
+      migration = new
+      migration.prepare
+      migration.migration_needed? ? 1 : 0
+    end
+
     # Main entry point for migration execution
     #
     # Orchestrates the full migration process including preparation,
     # conditional execution based on {#migration_needed?}, and cleanup.
     #
     # @param options [Hash] CLI options, typically { run: true/false }
-    # @return [Boolean, nil] true if migration completed successfully, nil if not needed
+    # @return [Boolean, nil] true if migration completed successfully,
+    #   nil if not needed, false if failed
     def self.run(options = {})
       migration         = new
       migration.options = options
