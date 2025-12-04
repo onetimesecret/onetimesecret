@@ -18,19 +18,16 @@ try/
 
 ```bash
 # All tests
-bundle exec try --agent try/
+pnpm run test:tryouts:agent try/
 
 # Specific category
-bundle exec try --agent try/unit/models/v2/
+pnpm run test:tryouts:agent try/unit/models/v2/
 
 # Single file
-bundle exec try --agent try/unit/models/v2/customer_try.rb
+pnpm run test:tryouts:agent try/unit/models/v2/customer_try.rb
 
-# Debug with verbose output
-bundle exec try --verbose --fails try/unit/models/v2/customer_try.rb
-
-# Specific test case
-bundle exec try --verbose try/unit/models/v2/customer_try.rb:42
+# Specific test case with verbose output
+pnpm run test:tryouts:failures try/unit/models/v2/customer_try.rb:42
 ```
 
 ## Writing Tests
@@ -48,4 +45,4 @@ code_to_test
 **Tryouts are best for:** Realistic code examples, happy paths, demonstrating how things work.
 **Use RSpec for:** Edge cases, mocks, complex state machines, security validation.
 
-See `bundle exec try --help` for full options and expectation types (`#=>`, `#==>`, `#=:>`, etc.)
+See `pnpm run test:tryouts --help` for full options and expectation types (`#=>`, `#==>`, `#=:>`, etc.)

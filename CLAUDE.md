@@ -93,14 +93,13 @@ bin/ots domains --list
 ```bash
 # RSpec tests
 pnpm run test:rspec
-bundle exec rspec
+pnpm run test:rspec:failures spec/path/file_spec.rb
 
-# Tryouts framework (preferred for integration)
-pnpm run test:tryouts --agent
-VALKEY_URL='valkey://127.0.0.1:2121/0' bundle exec try --agent
+# Tryouts framework (preferred for running all tests)
+pnpm run test:tryouts:agent
 
-# Individual tryout files
-bundle exec try --verbose --fails --stack try/path/file_try.rb:L100-L200
+# Individual tryout files (verbose, failures only)
+pnpm run test:tryouts:failures try/path/file_try.rb:L100-L200
 ```
 
 #### Frontend Tests

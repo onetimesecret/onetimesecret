@@ -60,19 +60,19 @@ This installs:
 **Default mode (uses stripe-mock + existing VCR cassettes):**
 
 ```bash
-bundle exec rspec spec/billing
+pnpm run test:rspec spec/billing
 ```
 
 **Record new cassettes (uses REAL Stripe test API):**
 
 ```bash
-STRIPE_API_KEY=sk_test_xxx bundle exec rspec spec/billing
+STRIPE_API_KEY=sk_test_xxx pnpm run test:rspec spec/billing
 ```
 
 **Force re-record all cassettes:**
 
 ```bash
-VCR_MODE=all STRIPE_API_KEY=sk_test_xxx bundle exec rspec spec/billing
+VCR_MODE=all STRIPE_API_KEY=sk_test_xxx pnpm run test:rspec spec/billing
 ```
 
 ## RSpec Tag-Based Test Organization
@@ -222,37 +222,37 @@ Indicates tests that:
 **Unit tests only (default, no API required):**
 
 ```bash
-bundle exec rspec
+pnpm run test:rspec
 ```
 
 **Integration tests only (requires Stripe test API):**
 
 ```bash
-INTEGRATION=true bundle exec rspec --tag integration
+INTEGRATION=true pnpm run test:rspec --tag integration
 ```
 
 **All tests (unit + integration):**
 
 ```bash
-INTEGRATION=true bundle exec rspec
+INTEGRATION=true pnpm run test:rspec
 ```
 
 **Specific tag:**
 
 ```bash
-bundle exec rspec --tag vcr
+pnpm run test:rspec --tag vcr
 ```
 
 **Skip tests that need refactoring:**
 
 ```bash
-bundle exec rspec --tag '~code_smell'
+pnpm run test:rspec --tag '~code_smell'
 ```
 
 **Force re-record VCR cassettes:**
 
 ```bash
-INTEGRATION=true bundle exec rspec --tag integration
+INTEGRATION=true pnpm run test:rspec --tag integration
 # Then delete and re-run specific tests to re-record
 ```
 
@@ -387,7 +387,7 @@ end
 rm spec/fixtures/vcr_cassettes/specific_test.yml
 
 # Re-record with real API
-INTEGRATION=true STRIPE_KEY=sk_test_xxx bundle exec rspec spec/path/to/spec.rb:42
+INTEGRATION=true STRIPE_KEY=sk_test_xxx pnpm run test:rspec spec/path/to/spec.rb:42
 ```
 
 ### 5. CI Configuration
@@ -397,10 +397,10 @@ INTEGRATION=true STRIPE_KEY=sk_test_xxx bundle exec rspec spec/path/to/spec.rb:4
 ```yaml
 # .github/workflows/test.yml
 - name: Unit tests
-  run: bundle exec rspec --tag ~integration
+  run: pnpm run test:rspec --tag ~integration
 
 - name: Integration tests
-  run: INTEGRATION=true bundle exec rspec --tag integration
+  run: INTEGRATION=true pnpm run test:rspec --tag integration
   env:
     STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
 ```

@@ -70,31 +70,31 @@ pnpm run test:database:stop
 ### Run All Tests for Current Mode
 ```bash
 # Runs tests based on AUTHENTICATION_MODE environment variable
-bundle exec try --agent try/integration/authentication/
+pnpm run test:tryouts:agent try/integration/authentication/
 ```
 
 ### Run Mode-Specific Tests
 ```bash
 # Simple mode tests only
-AUTHENTICATION_MODE=simple bundle exec try --agent try/integration/authentication/simple_mode/
+AUTHENTICATION_MODE=simple pnpm run test:tryouts:agent try/integration/authentication/simple_mode/
 
 # Full mode tests only (requires PostgreSQL or SQLite)
-AUTHENTICATION_MODE=full bundle exec try --agent try/integration/authentication/full_mode/
+AUTHENTICATION_MODE=full pnpm run test:tryouts:agent try/integration/authentication/full_mode/
 
 # Disabled mode tests
-AUTHENTICATION_MODE=disabled bundle exec try --agent try/integration/authentication/disabled_mode/
+AUTHENTICATION_MODE=disabled pnpm run test:tryouts:agent try/integration/authentication/disabled_mode/
 
 # Common tests (run in any mode)
-bundle exec try --agent try/integration/authentication/common/
+pnpm run test:tryouts:agent try/integration/authentication/common/
 ```
 
 ### Debug Specific Failures
 ```bash
 # Verbose output with stack traces for specific test lines
-bundle exec try --verbose --fails --stack try/integration/authentication/simple_mode/core_auth_try.rb:169-180
+pnpm run test:tryouts:failures try/integration/authentication/simple_mode/core_auth_try.rb:169-180
 
 # Agent mode with FAMILIA_DEBUG disabled (cleaner output)
-FAMILIA_DEBUG=0 bundle exec try --agent try/integration/authentication/simple_mode/
+pnpm run test:tryouts:agent try/integration/authentication/simple_mode/
 ```
 
 ### Test Files
