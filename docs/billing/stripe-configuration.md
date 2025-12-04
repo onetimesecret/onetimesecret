@@ -66,7 +66,7 @@ Create products in [Stripe Dashboard → Products](https://dashboard.stripe.com/
 
 **Backend:**
 ```bash
-FAMILIA_DEBUG=0 bundle exec try --agent try/billing/
+pnpm run test:tryouts:agent try/billing/
 # Should show: 55 testcases passed
 ```
 

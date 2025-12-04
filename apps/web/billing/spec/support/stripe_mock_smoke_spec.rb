@@ -4,7 +4,7 @@
 
 # Smoke test to verify stripe-mock and VCR setup is working correctly.
 #
-# Run with: bundle exec rspec spec/support/stripe_mock_smoke_spec.rb
+# Run with: pnpm run test:rspec spec/support/stripe_mock_smoke_spec.rb
 
 require 'spec_helper'
 

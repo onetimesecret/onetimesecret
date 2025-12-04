@@ -10,7 +10,7 @@ require_relative '../../../../try/support/test_helpers'
 # and test helpers. Requires STRIPE_KEY environment variable set to a test key.
 #
 # Run with:
-#   STRIPE_KEY=sk_test_xxx bundle exec try --agent try/billing/05_cli_commands_try.rb
+#   STRIPE_KEY=sk_test_xxx pnpm run test:tryouts:agent try/billing/05_cli_commands_try.rb
 
 ## Setup: Skip if no Stripe test key
 unless ENV['STRIPE_KEY']&.start_with?('sk_test_')

@@ -27,7 +27,7 @@
 #
 # RUN:
 #   VALKEY_URL='valkey://127.0.0.1:2121/0' AUTH_DATABASE_URL='sqlite://data/test_auth.db' \
-#     bundle exec rspec apps/web/auth/spec/hooks/account_lifecycle_spec.rb
+#     pnpm run test:rspec apps/web/auth/spec/hooks/account_lifecycle_spec.rb
 #
 # =============================================================================
 

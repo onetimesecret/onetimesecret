@@ -11,12 +11,10 @@ RSpec.describe "Onetime global state after boot", :allow_redis do
   let(:source_config_path) { File.expand_path(File.join(Onetime::HOME, 'spec', 'config.test.yaml')) }
   let(:loaded_config) { YAML.load(ERB.new(File.read(source_config_path)).result) }
 
-  # This simulates Redis for our tests
-  let(:redis_double) { double('redis') }
-
   before(:each) do
-    # Reset all environment variables
+    # Reset environment variables
     ENV['RACK_ENV'] = 'test'
+    ENV['VALKEY_URL'] = 'redis://127.0.0.1:2121/0'
     ENV['ONETIME_DEBUG'] = nil
     ENV['DEFAULT_TTL'] = nil
     ENV['TTL_OPTIONS'] = nil
@@ -39,36 +37,26 @@ RSpec.describe "Onetime global state after boot", :allow_redis do
     Onetime.instance_variable_set(:@global_banner, nil)
     OT::Utils.instance_variable_set(:@fortunes, nil)
 
-    # Mock Redis connection for Familia 2
-    allow(Familia).to receive(:uri=).and_return(true)
-    allow(Familia).to receive(:dbclient).and_return(redis_double)
-    allow(Familia).to receive(:uri).and_return(double('URI', serverid: 'localhost:6379'))
-    allow(redis_double).to receive(:get).with('global_banner').and_return(nil)
-    allow(redis_double).to receive(:scan_each).and_return([])
-    allow(redis_double).to receive(:scan).and_return(["0", []])  # For legacy data detection
-    allow(redis_double).to receive(:ping).and_return("PONG")  # For connectivity check
+    # NOTE: Tests that call boot! rely on a real database connection.
+    # The VALKEY_URL environment variable should be set to the test database.
+    # We only stub Familia.uri= to track that it's called with the right config.
+    allow(Familia).to receive(:uri=)
 
-    # Mock V2 model Redis connections and methods used in detect_first_boot
-    allow(Onetime::Metadata).to receive(:dbclient).and_return(redis_double)
-    allow(Onetime::Customer).to receive(:values).and_return(double('Values', element_count: 0))
-    # V2::Session removed - now using Rack::Session middleware
+    # NOTE: The boot process now uses InitializerRegistry with initializer classes.
+    # These methods no longer exist as direct module methods on Onetime:
+    # - detect_legacy_data_and_warn (now in DetectLegacyDataAndWarn initializer)
+    # - connect_databases (now in ConfigureFamilia initializer)
+    # - print_log_banner (now in PrintLogBanner initializer)
+    # Initializers run automatically via InitializerRegistry during boot!
+    # and are designed to work in test mode.
 
-    # Mock system settings setup methods - V2::SystemSettings might not exist in current codebase
-    system_settings_stub = Class.new do
-      def self.current
-        raise OT::RecordNotFound.new("No config found")
-      end
+    # Reset registry and Onetime ready state before each test
+    Onetime::Boot::InitializerRegistry.reset!
+    Onetime.not_ready
 
-      def self.create
-        double('SystemSettings', dbkey: 'test:config')
-      end
-    end
-    stub_const('V2::SystemSettings', system_settings_stub)
-
-    # Other common mocks
-    allow(Onetime).to receive(:detect_legacy_data_and_warn) # Skip legacy data detection in boot tests
-    allow(Onetime).to receive(:connect_databases).and_return(true)
-    allow(Onetime).to receive(:print_log_banner).and_return(nil)
+    # Mock Truemail configuration
+    truemail_config_double = double("Truemail::Configuration").as_null_object
+    allow(Truemail).to receive(:configure).and_yield(truemail_config_double)
 
     # Mock Sentry if it exists
     if defined?(Sentry)
@@ -163,18 +151,35 @@ RSpec.describe "Onetime global state after boot", :allow_redis do
     end
 
     context "regarding global banner" do
-      it "sets Onetime.global_banner from the database if present" do
-        test_banner = "Test system maintenance notice"
-        allow(redis_double).to receive(:get).with('global_banner').and_return(test_banner)
+      let(:test_banner) { "Test system maintenance notice" }
 
+      it "sets Onetime.global_banner from the database if present" do
+        # Do a first boot to set up Familia, then set banner and re-test
+        Onetime.boot!(:test)
+
+        # Set the banner after boot (Familia is now connected)
+        Familia.dbclient.set('global_banner', test_banner)
+
+        # Reset and boot again to pick up the banner
+        Onetime::Boot::InitializerRegistry.reset!
+        Onetime.not_ready
         Onetime.boot!(:test)
 
         expect(Onetime.global_banner).to eq(test_banner)
+
+        # Clean up
+        Familia.dbclient.del('global_banner')
       end
 
       it "sets Onetime.global_banner to nil if not present in Redis" do
-        allow(redis_double).to receive(:get).with('global_banner').and_return(nil)
+        Onetime.boot!(:test)
 
+        # Ensure no banner is set and check the runtime state
+        Familia.dbclient.del('global_banner')
+
+        # Reset and boot again
+        Onetime::Boot::InitializerRegistry.reset!
+        Onetime.not_ready
         Onetime.boot!(:test)
 
         expect(Onetime.global_banner).to be_nil
@@ -182,36 +187,31 @@ RSpec.describe "Onetime global state after boot", :allow_redis do
     end
 
     context "regarding print_log_banner" do
-      it "does not call print_log_banner when mode is :test" do
-        expect(Onetime).not_to receive(:print_log_banner)
-
+      it "runs PrintLogBanner initializer during boot" do
+        # The PrintLogBanner initializer runs in all modes (including test).
+        # It logs system information to help with debugging.
         Onetime.boot!(:test)
-      end
 
-      it "calls print_log_banner when mode is not :test" do
-        expect(Onetime).to receive(:print_log_banner)
-
-        # Mock $stdout.tty? to return true for this test
-        allow($stdout).to receive(:tty?).and_return(true)
-
-        # Set RACK_ENV to non-test value to allow banner display
-        original_rack_env = ENV['RACK_ENV']
-        begin
-          ENV['RACK_ENV'] = 'development'
-
-          Onetime.boot!(:development)
-        ensure
-          # Restore original RACK_ENV
-          ENV['RACK_ENV'] = original_rack_env
+        initializer = Onetime::Boot::InitializerRegistry.initializers.find do |i|
+          i.name == :"onetime.initializers.print_log_banner"
         end
+        expect(initializer).not_to be_nil
+        expect(initializer.completed?).to be true
       end
     end
 
     context "regarding database connections" do
-      it "calls Onetime.connect_databases" do
-        expect(Onetime).to receive(:connect_databases)
-
+      it "runs the ConfigureFamilia initializer (database connection)" do
+        # The boot process now uses InitializerRegistry with initializer classes.
+        # ConfigureFamilia replaces the old Onetime.connect_databases method.
         Onetime.boot!(:test)
+
+        # Check that the ConfigureFamilia initializer completed successfully
+        initializer = Onetime::Boot::InitializerRegistry.initializers.find do |i|
+          i.name == :"onetime.initializers.configure_familia"
+        end
+        expect(initializer).not_to be_nil
+        expect(initializer.completed?).to be true
       end
     end
 
@@ -233,22 +233,15 @@ RSpec.describe "Onetime global state after boot", :allow_redis do
       end
 
       it "handles Redis connection errors by re-raising the error when not in CLI mode" do
-        # Ensure the actual Onetime.connect_databases method is called for this test,
-        # overriding the general stub from the main before(:each) block.
-        # This allows us to test the error handling within Onetime.boot!
-        # when connect_databases itself encounters an issue.
-        allow(Onetime).to receive(:connect_databases).and_call_original
-
-        # Simulate that setting the Familia URI (which happens inside connect_databases)
+        # Simulate that setting the Familia URI (which happens inside ConfigureFamilia initializer)
         # results in a connection error. This ensures the error is raised
         # before any actual network connection to a database server is attempted by Familia.
         redis_error = Redis::CannotConnectError.new("Test Redis error")
         allow(Familia).to receive(:uri=).and_raise(redis_error)
 
-        # Onetime.boot! will call the original connect_databases.
-        # Within connect_databases, the call to Familia.uri= will trigger our stubbed redis_error.
-        # This error should then be caught by the rescue block in Onetime.boot!
-        # and re-raised because the mode is :test (not :cli).
+        # Onetime.boot! will run the ConfigureFamilia initializer.
+        # The call to Familia.uri= will trigger our stubbed redis_error.
+        # This error should then propagate up because the mode is :test (not :cli).
         expect {
           Onetime.boot!(:test)
         }.to raise_error(Redis::CannotConnectError, "Test Redis error")

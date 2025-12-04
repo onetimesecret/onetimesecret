@@ -11,7 +11,7 @@ require 'rack/test'
 #
 # To run integration tests:
 #   pnpm run test:database:start  # Start Valkey on port 2121
-#   VALKEY_URL='valkey://127.0.0.1:2121/0' bundle exec rspec spec/integration/
+#   pnpm rnu test:rspec:failures spec/integration/
 #
 # FakeRedis is NOT used for integration tests because:
 # 1. Integration tests require full application boot (Onetime.boot!)

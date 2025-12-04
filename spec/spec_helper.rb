@@ -5,23 +5,23 @@
 # Debugging helpers for tests
 #
 # To debug tests with IRB console:
-#   RUBY_DEBUG_IRB_CONSOLE=true bundle exec rspec spec/your_test_spec.rb
+#   RUBY_DEBUG_IRB_CONSOLE=true pnpm run test:rspec spec/your_test_spec.rb
 #
 # To run specific tests:
-#   bundle exec rspec spec/your_test_spec.rb:line_number
-#   bundle exec rspec spec/your_test_spec.rb -e "test description"
+#   pnpm run test:rspec spec/your_test_spec.rb:line_number
+#   pnpm run test:rspec spec/your_test_spec.rb -e "test description"
 #
 # To run tests with focus tag:
-#   Add `focus: true` to your it/describe blocks, then run: bundle exec rspec
+#   Add `focus: true` to your it/describe blocks, then run: pnpm run test:rspec
 #
 # To see full error backtraces:
-#   bundle exec rspec --backtrace
+#   pnpm run test:rspec --backtrace
 #
 # To run tests in the order they're written (not random):
-#   bundle exec rspec --order defined
+#   pnpm run test:rspec --order defined
 #
 # To see detailed output:
-#   bundle exec rspec --format documentation
+#   pnpm run test:rspec --format documentation
 
 # spec/spec_helper.rb
 # Test harness for Onetime.
@@ -65,7 +65,7 @@ require 'fileutils'
 # For now, tests requiring Redis should use real Valkey via .env.test:
 #   source .env.test  # Sets VALKEY_URL=valkey://127.0.0.1:2121/0
 #   pnpm run test:database:start  # Start Valkey on port 2121
-#   bundle exec rspec
+#   pnpm run test:rspec
 
 # Configure Timecop for time manipulation in tests
 require 'timecop'
