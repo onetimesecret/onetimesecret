@@ -11,20 +11,10 @@ module DomainsAPI::Logic
       attr_reader :greenlighted, :brand_settings, :display_domain, :custom_domain
 
       def process_params
-        @extid     = params['extid'].to_s.strip
-        valid_keys = [
-          :logo, # e.g. "image1"
-          :primary_color,
-          :instructions_pre_reveal,
-          :instructions_reveal,
-          :instructions_post_reveal,
-          :button_text_light,
-          :font_family,
-          :corner_style,
-          :allow_public_homepage,
-          :allow_public_api,
-          :locale,
-        ]
+        @extid = params['extid'].to_s.strip
+
+        # Use BrandSettings.members as the single source of truth for valid keys
+        valid_keys = Onetime::CustomDomain::BrandSettings.members
 
         # Filter out invalid keys and convert keys to symbols
         @brand_settings = params[:brand]&.transform_keys(&:to_sym)&.slice(*valid_keys) || {}
@@ -140,7 +130,7 @@ module DomainsAPI::Logic
         color = @brand_settings[:primary_color]
         return if color.nil?
 
-        return if valid_color?(color)
+        return if Onetime::CustomDomain::BrandSettings.valid_color?(color)
 
         OT.ld "[UpdateDomainBrand] Error: Invalid color format '#{color}'"
         raise_form_error 'Invalid primary color format - must be hex code (e.g. #FF0000)'
@@ -150,35 +140,20 @@ module DomainsAPI::Logic
         font = @brand_settings[:font_family]
         return if font.nil?
 
-        return if valid_font_family?(font)
+        return if Onetime::CustomDomain::BrandSettings.valid_font?(font)
 
         OT.ld "[UpdateDomainBrand] Error: Invalid font family '#{font}'"
-        raise_form_error 'Invalid font family - must be one of: sans, serif, mono'
+        raise_form_error "Invalid font family - must be one of: #{Onetime::CustomDomain::BrandSettings::FONTS.join(', ')}"
       end
 
       def validate_corner_style
         style = @brand_settings[:corner_style]
         return if style.nil?
 
-        return if valid_corner_style?(style)
+        return if Onetime::CustomDomain::BrandSettings.valid_corner_style?(style)
 
         OT.ld "[UpdateDomainBrand] Error: Invalid corner style '#{style}'"
-        raise_form_error 'Invalid corner style - must be one of: rounded, square, pill'
-      end
-
-      # Validate color format (hex code)
-      def valid_color?(color)
-        color.match?(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
-      end
-
-      # Validate font family
-      def valid_font_family?(font)
-        %w[sans serif mono].include?(font.to_s.downcase)
-      end
-
-      # Validate button style
-      def valid_corner_style?(style)
-        %w[rounded square pill].include?(style.to_s.downcase)
+        raise_form_error "Invalid corner style - must be one of: #{Onetime::CustomDomain::BrandSettings::CORNERS.join(', ')}"
       end
 
       # Validate extid format (lowercase alphanumeric only)
