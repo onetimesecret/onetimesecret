@@ -31,12 +31,12 @@ RSpec.describe 'Migrate Command', type: :cli do
     end
 
     it 'runs migration in dry-run mode by default' do
-      output = run_cli_command_quietly('migrate', 'test_migration.rb')
+      output = run_cli_command_quietly('migrate', @migration_path)
       expect(output[:stdout]).to include('Dry run completed successfully')
     end
 
     it 'runs migration with --run flag' do
-      output = run_cli_command_quietly('migrate', 'test_migration.rb', '--run')
+      output = run_cli_command_quietly('migrate', @migration_path, '--run')
       expect(output[:stdout]).to include('Migration completed successfully')
     end
 
@@ -51,10 +51,10 @@ RSpec.describe 'Migrate Command', type: :cli do
           end
         end
       RUBY
-      create_temp_migration('failing_migration.rb', failing_migration)
+      failing_path = create_temp_migration('failing_migration.rb', failing_migration)
 
       expect {
-        run_cli_command('migrate', 'failing_migration.rb')
+        run_cli_command('migrate', failing_path)
       }.to raise_error(SystemExit) do |error|
         expect(error.status).to eq(1)
       end
@@ -74,7 +74,7 @@ RSpec.describe 'Migrate Command', type: :cli do
     end
 
     it 'accepts -r short flag' do
-      output = run_cli_command_quietly('migrate', 'test_migration.rb', '-r')
+      output = run_cli_command_quietly('migrate', @migration_path, '-r')
       expect(output[:stdout]).to include('Migration completed successfully')
     end
   end

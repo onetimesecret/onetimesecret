@@ -5,8 +5,13 @@
 require 'spec_helper'
 require 'onetime/cli'
 require 'stringio'
+require 'tmpdir'
 
 module CLISpecHelper
+  # Get or create the temp migrations directory for this test run
+  def temp_migrations_dir
+    @temp_migrations_dir ||= Dir.mktmpdir('ots_test_migrations_')
+  end
   # Capture CLI output (stdout and stderr)
   def capture_output
     original_stdout = $stdout
@@ -77,10 +82,9 @@ module CLISpecHelper
     allow(Onetime).to receive(:boot!)
   end
 
-  # Create temporary migration file
+  # Create temporary migration file in isolated temp directory
   def create_temp_migration(name, content)
-    dir = File.join(Onetime::HOME, 'migrations')
-    FileUtils.mkdir_p(dir)
+    dir = temp_migrations_dir
     path = File.join(dir, name)
     File.write(path, content)
     path
@@ -94,8 +98,10 @@ module CLISpecHelper
 
   # Clean up temporary migration files
   def cleanup_temp_migrations
-    dir = File.join(Onetime::HOME, 'migrations')
-    FileUtils.rm_rf(dir) if Dir.exist?(dir)
+    return unless @temp_migrations_dir && Dir.exist?(@temp_migrations_dir)
+
+    FileUtils.rm_rf(@temp_migrations_dir)
+    @temp_migrations_dir = nil
   end
 end
 
