@@ -150,61 +150,7 @@ RSpec.describe "Internationalization config" do
     end
   end
 
-  describe V2::ControllerHelpers do
-    describe '#check_locale! (Regression for #1142)' do
-      let(:req) do
-        double('request', params: {}, env: {}).tap do |req_double|
-          allow(req_double).to receive(:check_locale!) do |locale, options|
-            # Simulate setting the locale in the environment
-            req_double.env[options[:locale_env_key]] = options[:default_locale]
-            options[:default_locale]
-          end
-        end
-      end
-      let(:cust) { double('customer', locale: nil) }
-      let(:helper) do
-        Class.new do
-          include V2::ControllerHelpers
-
-          attr_accessor :req, :cust
-
-          def initialize(req, cust)
-            @req = req
-            @cust = cust
-          end
-        end.new(req, cust)
-      end
-
-      context 'when OT.locales is nil' do
-        before do
-          @original_i18n_enabled = Onetime.i18n_enabled
-          @original_locales = Onetime.instance_variable_get(:@locales)
-          @original_default_locale = Onetime.default_locale
-
-          # Set up the previously buggy condition
-          Onetime.instance_variable_set(:@i18n_enabled, false)
-          Onetime.instance_variable_set(:@locales, nil)
-          Onetime.instance_variable_set(:@default_locale, 'en')
-
-          allow(Onetime).to receive(:ld) # Suppress logs
-        end
-
-        after do
-          Onetime.instance_variable_set(:@i18n_enabled, @original_i18n_enabled)
-          Onetime.instance_variable_set(:@locales, @original_locales)
-          Onetime.instance_variable_set(:@default_locale, @original_default_locale)
-        end
-
-        it 'handles nil locales gracefully without raising errors' do
-          # This should pass after the fix is applied
-          expect { helper.check_locale! }.not_to raise_error
-        end
-
-        it 'sets default locale in the environment' do
-          helper.check_locale!
-          expect(req.env['ots.locale']).to eq('en')
-        end
-      end
-    end
-  end
+  # NOTE: V2::ControllerHelpers tests removed - V2 API deprecated, module no longer exists.
+  # Regression test for #1142 was for old V2 API. V1::ControllerHelpers handles locale
+  # checking in the current implementation (apps/api/v1/controllers/helpers.rb).
 end
