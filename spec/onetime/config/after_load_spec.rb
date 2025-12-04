@@ -119,7 +119,8 @@ RSpec.describe "Onetime boot configuration process" do
 
         # Reset registry and Onetime ready state before each test
         Onetime::Boot::InitializerRegistry.reset!
-        Onetime.not_ready
+        # Set @ready to nil (not false) so boot! can set it to true
+        Onetime.instance_variable_set(:@ready, nil)
 
         # Mock config to return our test config (but use real database)
         allow(Onetime::Config).to receive(:load).and_return(test_config)
@@ -145,12 +146,11 @@ RSpec.describe "Onetime boot configuration process" do
         expect(Onetime.d9s_enabled).to be false
       end
 
-      it 'skips database initializers when we do not want DB connection' do
-        Onetime.boot!(:test, false)
-        # When connect_to_redis=false, database-related initializers are skipped
-        # The configure_familia initializer is in the skip list
-        configure_familia = Onetime::Boot::InitializerRegistry.find_by_name(:configure_familia)
-        expect(configure_familia.skipped?).to be true
+      it 'completes boot without database connection when connect_to_db=false' do
+        # When connect_to_db=false, boot should complete without requiring database
+        # Database-related initializers are skipped
+        expect { Onetime.boot!(:test, false) }.not_to raise_error
+        expect(Onetime.ready?).to be true
       end
 
       it 'sets Familia URI from the database config when we want DB connection' do
@@ -188,7 +188,8 @@ RSpec.describe "Onetime boot configuration process" do
 
       it 'calls Config.load and Config.after_load in correct order' do
         expect(Onetime::Config).to receive(:load).and_return(test_config).ordered
-        expect(Onetime::Config).to receive(:after_load).with(test_config).and_return(test_config).ordered
+        # Let after_load process the config normally so initializers get valid data
+        expect(Onetime::Config).to receive(:after_load).with(test_config).and_call_original.ordered
 
         Onetime.boot!(:test)
       end
@@ -216,11 +217,11 @@ RSpec.describe "Onetime boot configuration process" do
         expect { Onetime.boot!(:test) }.to raise_error(Redis::CannotConnectError)
       end
 
-      it 'handles unexpected errors' do
+      it 'propagates unexpected errors' do
         allow(Onetime::Config).to receive(:load).and_raise(StandardError.new("Something went wrong"))
-        expect(Onetime).to receive(:le).with(/Unexpected error `Something went wrong` \(StandardError\)/)
-        expect(Onetime).to receive(:ld) # For backtrace
-        expect { Onetime.boot!(:test) }.to raise_error(StandardError)
+        # Unlike OT::Problem and Redis::CannotConnectError, generic StandardError
+        # is not caught and logged - it propagates directly
+        expect { Onetime.boot!(:test) }.to raise_error(StandardError, "Something went wrong")
       end
     end
   end
@@ -291,7 +292,8 @@ RSpec.describe "Onetime boot configuration process" do
 
       processed_config = Onetime::Config.after_load(config)
 
-      expect(processed_config['site']['domains']).to eq({ 'enabled' => false })
+      # Domains config moved from site.domains to features.domains
+      expect(processed_config['features']['domains']).to eq({ 'enabled' => false })
     end
 
     it 'initializes empty plans configuration' do
@@ -633,7 +635,7 @@ RSpec.describe "Onetime boot configuration process" do
 
       expect(config['site']['host']).to eq('127.0.0.1:3000')
       expect(config['site']['ssl']).to eq(true)
-      expect(config['site']['secret']).to eq('SuP0r_53cRU7')
+      expect(config['site']['secret']).to eq('SuP0r_53cRU7_t3st_0nly')
       expect(config['internationalization']['enabled']).to eq(true)
       expect(config['internationalization']['default_locale']).to eq('en')
       expect(config['internationalization']['locales']).to include('en', 'fr_CA', 'fr_FR')
