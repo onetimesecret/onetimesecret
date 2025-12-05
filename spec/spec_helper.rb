@@ -122,7 +122,7 @@ OT.mode         = :test
 OT::Config.path = File.join(spec_root, 'config.test.yaml')
 
 # Use test auth config to avoid issues with local auth.yaml modifications
-Onetime::AuthConfig.path = File.join(base_path, 'etc', 'auth.test.yaml')
+Onetime::AuthConfig.path = File.join(spec_root, 'auth.test.yaml')
 
 # Load the test configuration so OT.conf is available to tests.
 # This is a minimal config load that doesn't run the full boot process.
