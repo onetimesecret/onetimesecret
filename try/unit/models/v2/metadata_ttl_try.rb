@@ -22,8 +22,8 @@ require_relative '../../../support/test_models'
 OT.boot! :test, false
 
 # Setup
-@metadata, @secret = V1::Secret.spawn_pair 'anon'
-# metadata, secret = V1::Secret.spawn_pair 'anon'
+@metadata, @secret = Onetime::Secret.spawn_pair 'anon'
+# metadata, secret = Onetime::Secret.spawn_pair 'anon'
 @metadata.save
 @secret.save
 
@@ -144,12 +144,12 @@ result['ttl']
 #=> nil
 
 ## Handling nil realttl
-class V1::Metadata
+class Onetime::Metadata
   def current_expiration; nil; end
 end
 result = V1::Controllers::Index.metadata_hsh(@metadata)
 p [:metadata_realttl, @metadata]
-class V1::Metadata
+class Onetime::Metadata
   remove_method :current_expiration
 end
 result['metadata_ttl']

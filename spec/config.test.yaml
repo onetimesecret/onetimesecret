@@ -82,10 +82,10 @@ features:
 
 redis:
   uri: <%=
-        ENV['VALKEY_URL'] ||
-        ENV['REDIS_URL'] ||
-        'redis://127.0.0.1:6379/0'
-      %>
+    ENV['VALKEY_URL'] ||
+    ENV['REDIS_URL'] ||
+    'redis://127.0.0.1:6379/0'
+    %>
   dbs:
     session: 0
     custom_domain: 0
@@ -94,7 +94,7 @@ redis:
     secret: 0
     feedback: 0
 emailer:
-  mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
+  mode: <%= ENV['EMAILER_MODE'] || 'logger' %>
   from: <%= ENV['FROM_EMAIL'] || ENV['FROM_EMAIL'] || 'tests@example.com' %>
   from_name: <%= ENV['FROM_NAME'] || 'Jan' %>
   host: <%= ENV['SMTP_HOST'] || 'localhost' %>

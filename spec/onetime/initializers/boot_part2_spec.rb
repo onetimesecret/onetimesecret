@@ -67,6 +67,11 @@ RSpec.describe "Onetime global state after boot", :allow_redis do
     Onetime::Config.path = source_config_path
   end
 
+  after(:each) do
+    # Reset ready state so subsequent tests can boot properly
+    Onetime.reset_ready!
+  end
+
   describe "When Onetime.boot! completes" do
     it "sets and freezes OT.conf" do
       Onetime.boot!(:test)

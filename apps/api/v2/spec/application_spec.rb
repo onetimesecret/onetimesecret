@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../../spec_helper'
+require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require 'v2/application'
 
 # Test that the v2 rack app includes JSONBodyParser middleware

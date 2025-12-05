@@ -11,4 +11,4 @@ $:.unshift(::File.join(ENV['ONETIME_HOME'], 'lib'))
 
 require 'onetime'
 
-y V1::Secret.dbclient.info
+y Onetime::Secret.dbclient.info

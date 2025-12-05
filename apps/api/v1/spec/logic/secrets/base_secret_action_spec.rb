@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../application'
+require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.rb')
 

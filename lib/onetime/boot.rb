@@ -152,6 +152,13 @@ module Onetime
       @ready = false
     end
 
+    # Resets the ready state to nil, allowing boot! to set it to true again.
+    # This is intended for test cleanup where tests call not_ready and need
+    # to restore the state for subsequent tests.
+    def reset_ready!
+      @ready = nil
+    end
+
     private
 
     # Replaces the global configuration instance. This method is private to
