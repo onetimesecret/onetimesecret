@@ -43,10 +43,11 @@ OT.boot! :test
 @session_id = SecureRandom.hex(16)
 
 ## Test 1: New email account creation returns generic success message
+# NOTE: CreateAccount uses params['login'] (string keys), not symbols
 params = {
-  login: @test_email,
-  password: 'new_password_789',
-  planid: 'basic'
+  'login' => @test_email,
+  'password' => 'new_password_789',
+  'planid' => 'basic'
 }
 strategy_result = Otto::Security::Authentication::StrategyResult.new(
   strategy_name: 'noauth',
@@ -61,13 +62,13 @@ logic.raise_concerns
 result = logic.process
 @success_message = logic.instance_variable_get(:@sess)['success_message']
 @success_message
-#=> /If an account with this email exists, you will receive a verification email/
+#=~> /If an account with this email exists, you will receive a verification email/
 
 ## Test 2: Existing verified email returns same generic message (no error)
 params2 = {
-  login: @existing_verified_email,
-  password: 'different_password_abc',
-  planid: 'basic'
+  'login' => @existing_verified_email,
+  'password' => 'different_password_abc',
+  'planid' => 'basic'
 }
 strategy_result2 = Otto::Security::Authentication::StrategyResult.new(
   strategy_name: 'noauth',
@@ -82,13 +83,13 @@ logic2.raise_concerns
 result2 = logic2.process
 @success_message2 = logic2.instance_variable_get(:@sess)['success_message']
 @success_message2
-#=> /If an account with this email exists, you will receive a verification email/
+#=~> /If an account with this email exists, you will receive a verification email/
 
 ## Test 3: Existing unverified email returns same generic message
 params3 = {
-  login: @existing_unverified_email,
-  password: 'another_password_xyz',
-  planid: 'basic'
+  'login' => @existing_unverified_email,
+  'password' => 'another_password_xyz',
+  'planid' => 'basic'
 }
 strategy_result3 = Otto::Security::Authentication::StrategyResult.new(
   strategy_name: 'noauth',
@@ -103,7 +104,7 @@ logic3.raise_concerns
 result3 = logic3.process
 @success_message3 = logic3.instance_variable_get(:@sess)['success_message']
 @success_message3
-#=> /If an account with this email exists, you will receive a verification email/
+#=~> /If an account with this email exists, you will receive a verification email/
 
 ## Test 4: Success messages are identical across all scenarios
 @success_message == @success_message2
@@ -117,9 +118,9 @@ result3 = logic3.process
 # This test verifies that existing accounts don't raise FormError
 # The logic should complete successfully without throwing errors
 params4 = {
-  login: @existing_verified_email,
-  password: 'attempt_password',
-  planid: 'basic'
+  'login' => @existing_verified_email,
+  'password' => 'attempt_password',
+  'planid' => 'basic'
 }
 strategy_result4 = Otto::Security::Authentication::StrategyResult.new(
   strategy_name: 'noauth',
@@ -141,9 +142,9 @@ end
 
 ## Test 7: Invalid email still shows validation error (not enumeration info)
 params5 = {
-  login: 'not-a-valid-email',
-  password: 'password123',
-  planid: 'basic'
+  'login' => 'not-a-valid-email',
+  'password' => 'password123',
+  'planid' => 'basic'
 }
 strategy_result5 = Otto::Security::Authentication::StrategyResult.new(
   strategy_name: 'noauth',
@@ -160,15 +161,15 @@ begin
 rescue OT::FormError => e
   e.message
 end
-#=> /valid email address/
+#=~> /valid email address/
 
 ## Test 8: Existing customer object is reused (not recreated)
 # For existing accounts, we should reuse the customer object
 @initial_customer_count = Onetime::Customer.dbclient.keys('customer:*').size
 params6 = {
-  login: @existing_verified_email,
-  password: 'another_attempt',
-  planid: 'basic'
+  'login' => @existing_verified_email,
+  'password' => 'another_attempt',
+  'planid' => 'basic'
 }
 strategy_result6 = Otto::Security::Authentication::StrategyResult.new(
   strategy_name: 'noauth',
@@ -196,9 +197,9 @@ require 'benchmark'
 # Time 1: New account creation
 time1 = Benchmark.realtime do
   params_t1 = {
-    login: "timing-test-new-#{SecureRandom.hex(4)}@test.dev",
-    password: 'password123',
-    planid: 'basic'
+    'login' => "timing-test-new-#{SecureRandom.hex(4)}@test.dev",
+    'password' => 'password123',
+    'planid' => 'basic'
   }
   strategy_t1 = Otto::Security::Authentication::StrategyResult.new(
     strategy_name: 'noauth',
@@ -217,9 +218,9 @@ end
 # Time 2: Existing verified account
 time2 = Benchmark.realtime do
   params_t2 = {
-    login: @existing_verified_email,
-    password: 'password456',
-    planid: 'basic'
+    'login' => @existing_verified_email,
+    'password' => 'password456',
+    'planid' => 'basic'
   }
   strategy_t2 = Otto::Security::Authentication::StrategyResult.new(
     strategy_name: 'noauth',
@@ -238,9 +239,9 @@ end
 # Time 3: Existing unverified account
 time3 = Benchmark.realtime do
   params_t3 = {
-    login: @existing_unverified_email,
-    password: 'password789',
-    planid: 'basic'
+    'login' => @existing_unverified_email,
+    'password' => 'password789',
+    'planid' => 'basic'
   }
   strategy_t3 = Otto::Security::Authentication::StrategyResult.new(
     strategy_name: 'noauth',
