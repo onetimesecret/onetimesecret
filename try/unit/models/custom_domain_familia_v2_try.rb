@@ -31,10 +31,8 @@ rescue Redis::CannotConnectError, Redis::ConnectionError => e
 end
 
 # Clean up any existing test data from previous runs
-if ENV['ENV'] == 'test'
-  Familia.dbclient.flushdb
-  OT.info "Cleaned Redis for fresh test run"
-end
+Familia.dbclient.flushdb
+OT.info "Cleaned Redis for fresh test run"
 
 # Setup test fixtures
 @timestamp = Familia.now.to_i
@@ -179,7 +177,7 @@ end
 
 ## Access pattern: Team Member -> Team -> Organization -> Domains
 @team = Onetime::Team.create!("Engineering", @owner, @org.objid)
-@team_org = Onetime::Organization.load(@team.objid)
+@team_org = Onetime::Organization.load(@org.objid)
 @team_org.list_domains.map(&:display_domain)
 #=> ["secrets.acme.com"]
 
@@ -295,21 +293,22 @@ end
 #=> false
 
 ## Domain owner is organization owner
-@domain2_org = @domain2.organization_instances.first
+@domain2_org = Onetime::Organization.load(@org.objid)
 @domain2_org.owner_id
 #=> @owner.custid
 
-## Convenience method: add_domain works
+## Convenience method: add_domain works (Note: @domain was destroyed earlier, only @domain2 exists)
+@org_count_before = @org.domain_count
 @domain4 = Onetime::CustomDomain.new(display_domain: "links.acme.com", org_id: @org.objid)
 @domain4.save
 @org.add_domain(@domain4)
 @org.domain_count
-#=> 2
+#=> @org_count_before + 1
 
 ## Convenience method: remove_domain works
 @org.remove_domain(@domain4)
 @org.domain_count
-#=> 1
+#=> @org_count_before
 
 # Teardown
 @domain4.destroy! if @domain4&.exists?

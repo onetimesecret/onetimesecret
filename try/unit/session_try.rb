@@ -7,7 +7,7 @@
 #
 
 # Setup - Load the real application
-ENV['RACK_ENV'] = 'test'
+ENV['RACK_ENV'] ||= 'test'
 ENV['AUTHENTICATION_MODE'] = 'simple'  # Force simple mode before boot
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..')).freeze
 
@@ -57,12 +57,14 @@ def call_private_method(obj, method_name, *args)
   obj.send(method_name, *args)
 end
 
-## Session initializes with required secret
+## Session initializes using site secret fallback when secret not provided
 begin
-  Session.new(@app, { key: 'test' })
-  false
+  session = Session.new(@app, { key: 'test' })
+  # Falls back to site secret in test config, so this should succeed
+  session.is_a?(Session)
 rescue ArgumentError => e
-  e.message.include?("Secret required")
+  # Only fails if site secret is also not available
+  false
 end
 #=> true
 

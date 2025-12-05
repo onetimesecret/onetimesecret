@@ -40,7 +40,7 @@ module V1::Logic
             secret.burned!
             owner.increment_field :secrets_burned unless owner.anonymous?
             # TODO:
-            # V1::Customer.global.increment_field :secrets_burned
+            # Onetime::Customer.global.increment_field :secrets_burned
 
           elsif !correct_passphrase
 

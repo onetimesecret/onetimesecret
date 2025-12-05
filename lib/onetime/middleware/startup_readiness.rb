@@ -172,7 +172,7 @@ module Onetime
             message: @translations[lang_code][:message1],
             details: @translations[lang_code][:message2],
           },
-          timestamp: Familia.now.utc.iso8601,
+          timestamp: Time.now.utc.iso8601,
         }
 
         [503, # Service Unavailable

@@ -41,13 +41,13 @@ OT.boot! :test, false
   email = "tryouts+60+#{entropy}@onetimesecret.com"
   pword = 'loopersucks'
   {
-    planid: :individual_v1,
-    login: email,
-    password: pword,
-    password2: pword,
+    'planid' => :individual_v1,
+    'login' => email,
+    'password' => pword,
+    'password2' => pword,
 
     # This is a hidden field, so it should be empty. If it has a value, it's
-    skill: '',
+    'skill' => '',
   }
 end
 
@@ -76,18 +76,16 @@ end
 
 ## Can create account and it's not verified by default.
 sess = {}
-strategy_result = MockStrategyResult.new(sess, nil)
-cust = Customer.new
+strategy_result = MockStrategyResult.new(session: sess, user: nil)
 logic = AccountAPI::Logic::Account::CreateAccount.new strategy_result, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
 [logic.autoverify, logic.cust.verified, OT.conf.dig('site', 'authentication', 'autoverify')]
-#=> [false, 'false', false]
+#=> [false, false, false]
 
 ## Can create account and have it auto-verified.
 sess = {}
-strategy_result = MockStrategyResult.new(sess, nil)
-cust = Customer.new
+strategy_result = MockStrategyResult.new(session: sess, user: nil)
 old_conf = OT.instance_variable_get(:@conf)
 new_conf = {
   'site' => {

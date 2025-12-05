@@ -35,7 +35,7 @@
 #   - Mocked Sneakers methods (ack!, reject!, delivery_info)
 #   - Redis idempotency key cleanup between tests
 #
-# Run with: bundle exec rspec spec/onetime/jobs/workers/email_worker_spec.rb
+# Run with: pnpm run test:rspec spec/onetime/jobs/workers/email_worker_spec.rb
 
 require 'spec_helper'
 require 'sneakers'

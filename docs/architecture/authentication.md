@@ -465,12 +465,12 @@ try/integration/authentication/
 **Running Tests**:
 ```bash
 # Mode-specific tests (auto-skip if wrong mode)
-AUTHENTICATION_MODE=simple bundle exec try --agent try/integration/authentication/simple_mode/
-AUTHENTICATION_MODE=full bundle exec try --agent try/integration/authentication/full_mode/
-AUTHENTICATION_MODE=disabled bundle exec try --agent try/integration/authentication/disabled_mode/
+AUTHENTICATION_MODE=simple pnpm run test:tryouts:agent try/integration/authentication/simple_mode/
+AUTHENTICATION_MODE=full pnpm run test:tryouts:agent try/integration/authentication/full_mode/
+AUTHENTICATION_MODE=disabled pnpm run test:tryouts:agent try/integration/authentication/disabled_mode/
 
 # Common tests (work in any mode)
-bundle exec try --agent try/integration/authentication/common/
+pnpm run test:tryouts:agent try/integration/authentication/common/
 ```
 
 ### Test Patterns

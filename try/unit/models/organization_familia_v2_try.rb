@@ -30,6 +30,10 @@ rescue Redis::CannotConnectError, Redis::ConnectionError => e
   exit 0
 end
 
+# Clean up any existing test data from previous runs
+Familia.dbclient.flushdb
+OT.info "Cleaned Redis for fresh test run"
+
 # Setup
 @owner = Onetime::Customer.create!(email: "org_owner_#{Familia.now.to_i}@test.com")
 @member = Onetime::Customer.create!(email: "org_member_#{Familia.now.to_i}@test.com")

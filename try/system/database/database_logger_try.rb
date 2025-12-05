@@ -16,7 +16,8 @@ require_relative '../../support/test_helpers'
 
 OT.boot! :test, true
 
-# Familia.reconnect!
+# Force reconnection to apply middleware to existing connections
+Familia.reconnect!
 
 # Set a logger for DatabaseLogger (optional for capture, required for logging)
 # When middleware is registered, it copies Familia.logger to DatabaseLogger.logger

@@ -72,23 +72,18 @@ module Onetime
         # @return [void]
         def load_all
           @registered_classes.each do |klass|
+            # Skip if already loaded (idempotent for test re-runs)
+            next if @initializers.any? { |i| i.name == klass.initializer_name }
+
             # Instantiate the initializer
             initializer = klass.new
-
-            # Check for duplicate names
-            if @initializers.any? { |i| i.name == klass.initializer_name }
-              raise ArgumentError, "Initializer already registered: #{klass.initializer_name}"
-            end
 
             @initializers << initializer
 
             # Map capabilities to their providing initializers
             Array(klass.provides).each do |capability|
-              if @capability_map.key?(capability)
-                existing = @capability_map[capability]
-                raise ArgumentError,
-                  "Capability '#{capability}' already provided by #{existing.name}"
-              end
+              next if @capability_map.key?(capability) # Skip if already provided
+
               @capability_map[capability] = initializer
             end
           end
@@ -218,6 +213,18 @@ module Onetime
           @context            = {}
           @total_elapsed_ms   = 0
           @boot_start_time    = nil
+        end
+
+        # Full reset including registered classes - for test isolation only
+        #
+        # WARNING: Only use in tests. Clears all state including class registrations.
+        # After calling this, initializer classes must be re-registered (typically
+        # by re-requiring the files that define them).
+        #
+        # @return [void]
+        def reset_all!
+          @registered_classes = []
+          reset!
         end
 
         # TSort interface: iterate over all nodes

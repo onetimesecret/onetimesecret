@@ -86,8 +86,7 @@ module Onetime
       OT.log_box([
                    "✅ DATABASE: Connected #{model_count} models to Redis",
                    "   Location: #{db_info}",
-                 ],
-                )
+                 ], level: :debug)
 
       # Optional: Single migration flag for entire DB 0
       dbkey      = Familia.join(%w[ots migration_needed db_0])

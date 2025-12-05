@@ -2,7 +2,9 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../../../spec_helper'
+require_relative '../../application'
+require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.rb')
 
 RSpec.describe Onetime::Secret, 'security hardening' do
   let(:secret) { create_stubbed_secret(key: "test-secret-key-12345") }

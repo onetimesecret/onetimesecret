@@ -10,7 +10,7 @@
 # 2. Error recovery flow: strategy_result is nil, fallback params provided
 
 # Setup - Load the real application
-ENV['RACK_ENV'] = 'test'
+ENV['RACK_ENV'] ||= 'test'
 ENV['AUTHENTICATION_MODE'] = 'simple'
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..')).freeze
 
@@ -42,6 +42,25 @@ env['onetime.nonce'] = 'test-nonce'
 req = Rack::Request.new(env)
 @view = Core::Views::VuePoint.new(req)
 
+# Setup for error recovery flow tests
+env_error = Rack::MockRequest.env_for('http://example.com/')
+# Note: otto.strategy_result is intentionally missing (nil)
+env_error['otto.locale'] = 'en'
+env_error['onetime.nonce'] = 'test-nonce'
+
+# Simulate fallback session (BaseView will extract from req.session)
+@fallback_session = { 'fallback_key' => 'fallback_value' }
+env_error['rack.session'] = @fallback_session
+
+# Initialize fallback customer for comparison
+@fallback_cust = Onetime::Customer.anonymous
+
+req_error = Rack::Request.new(env_error)
+
+# This should NOT crash even though strategy_result is nil
+# BaseView now extracts everything from req
+@view_error = Core::Views::VuePoint.new(req_error)
+
 ## Normal flow extracts session from strategy_result
 @view.sess
 #=> @mock_session
@@ -53,22 +72,6 @@ req = Rack::Request.new(env)
 ## Normal flow preserves strategy_result reference
 @view.strategy_result
 #=> @strategy_result
-
-# Setup for error recovery flow tests
-env_error = Rack::MockRequest.env_for('http://example.com/')
-# Note: otto.strategy_result is intentionally missing (nil)
-env_error['otto.locale'] = 'en'
-env_error['onetime.nonce'] = 'test-nonce'
-
-# Simulate fallback session (BaseView will extract from req.session)
-@fallback_session = { 'fallback_key' => 'fallback_value' }
-env_error['rack.session'] = @fallback_session
-
-req_error = Rack::Request.new(env_error)
-
-# This should NOT crash even though strategy_result is nil
-# BaseView now extracts everything from req
-@view_error = Core::Views::VuePoint.new(req_error)
 
 ## Error recovery view should not be nil after initialization
 @view_error.nil?
@@ -106,18 +109,14 @@ req_error = Rack::Request.new(env_error)
 @view.serialized_data.keys.include?('authentication')
 #=> true
 
-## Normal flow serializers include config data
-@view.serialized_data.keys.include?('config')
-#=> true
-
 ## Error recovery flow serializers still work
 @view_error.serialized_data.keys.include?('authentication')
 #=> true
 
 ## Error recovery flow shows not authenticated in serialized data
-@view_error.serialized_data['authentication']['authenticated']
+@view_error.serialized_data['authenticated']
 #=> false
 
 ## Error recovery flow serializes customer data
-@view_error.serialized_data['authentication']['cust']
+@view_error.serialized_data['cust']
 #=:> Hash

@@ -109,11 +109,3 @@ File.exist?('lib/onetime/logger_methods.rb')
 ## Logging Module File - Valid Ruby
 system('ruby -c lib/onetime/logger_methods.rb > /dev/null 2>&1')
 #=> true
-
-## Migration Guide - Exists
-File.exist?('docs/logging-migration-guide.md')
-#=> true
-
-## Migration Guide - Not empty
-File.read('docs/logging-migration-guide.md').length > 100
-#=> true

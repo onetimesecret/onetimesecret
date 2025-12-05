@@ -35,8 +35,7 @@ end
 #=> [Onetime::Team, "Engineering Team", @owner.custid]
 
 ## Team has a valid team_id (UUID format - Familia.generate_id)
-@team.team_id.class
-#=> String
+@team.team_id
 #=~> /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 ## Team owner is correctly set

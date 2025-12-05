@@ -20,7 +20,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
       let(:auth_logic) { V1::Logic::Authentication::AuthenticateSession.new(session, customer, params) }
 
       it 'consistently rejects invalid passwords' do
-        allow(V1::Customer).to receive(:load).and_return(customer)
+        allow(Onetime::Customer).to receive(:load).and_return(customer)
         allow(customer).to receive(:passphrase?).and_return(false)
 
         # Test multiple failed attempts
@@ -33,7 +33,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
       end
 
       it 'does not leak timing information for non-existent users' do
-        allow(V1::Customer).to receive(:load).and_return(nil)
+        allow(Onetime::Customer).to receive(:load).and_return(nil)
 
         start_time = Time.now
         params = { login: 'nonexistent@example.com', password: 'any_password' }
@@ -67,7 +67,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
       ]
 
       malicious_usernames.each do |malicious_username|
-        allow(V1::Customer).to receive(:load).with(malicious_username.downcase.strip).and_return(nil)
+        allow(Onetime::Customer).to receive(:load).with(malicious_username.downcase.strip).and_return(nil)
 
         params = { login: malicious_username, password: 'any_password' }
         logic = V1::Logic::Authentication::AuthenticateSession.new(session, customer, params)
@@ -85,7 +85,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
         "password'; exec('evil_code'); #"
       ]
 
-      allow(V1::Customer).to receive(:load).and_return(customer)
+      allow(Onetime::Customer).to receive(:load).and_return(customer)
       allow(customer).to receive(:passphrase?).and_return(false)
 
       malicious_passwords.each do |malicious_password|
@@ -151,7 +151,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
 
   describe 'session fixation attack protection' do
     it 'replaces session ID on successful authentication' do
-      allow(V1::Customer).to receive(:load).and_return(customer)
+      allow(Onetime::Customer).to receive(:load).and_return(customer)
       allow(customer).to receive(:passphrase?).and_return(true)
       allow(customer).to receive(:pending?).and_return(false)
 
@@ -167,12 +167,12 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
   describe 'information disclosure protection' do
     it 'does not reveal whether user exists through error messages' do
       # Test with non-existent user
-      allow(V1::Customer).to receive(:load).and_return(nil)
+      allow(Onetime::Customer).to receive(:load).and_return(nil)
       params1 = { login: 'nonexistent@example.com', password: 'any_password' }
       logic1 = V1::Logic::Authentication::AuthenticateSession.new(session, customer, params1)
 
       # Test with existing user but wrong password
-      allow(V1::Customer).to receive(:load).and_return(customer)
+      allow(Onetime::Customer).to receive(:load).and_return(customer)
       allow(customer).to receive(:passphrase?).and_return(false)
       params2 = { login: 'existing@example.com', password: 'wrong_password' }
       logic2 = V1::Logic::Authentication::AuthenticateSession.new(session, customer, params2)
@@ -186,7 +186,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
     end
 
     it 'obscures email addresses in logs' do
-      allow(V1::Customer).to receive(:load).and_return(customer)
+      allow(Onetime::Customer).to receive(:load).and_return(customer)
       allow(customer).to receive(:passphrase?).and_return(true)
       allow(customer).to receive(:pending?).and_return(false)
 
@@ -257,7 +257,7 @@ RSpec.xdescribe 'Authentication Security Attack Vectors' do
 
   describe 'race condition protection' do
     it 'handles concurrent authentication attempts safely' do
-      allow(V1::Customer).to receive(:load).and_return(customer)
+      allow(Onetime::Customer).to receive(:load).and_return(customer)
       allow(customer).to receive(:passphrase?).and_return(true)
       allow(customer).to receive(:pending?).and_return(false)
 

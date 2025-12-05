@@ -2,9 +2,7 @@
 #
 # frozen_string_literal: true
 
-ENV['RACK_ENV'] = 'test'
-ENV['VALKEY_URL'] = 'valkey://127.0.0.1:2121/0'
-ENV['SECRET'] = 'testsecret123456789012345678901234'
+ENV['RACK_ENV'] ||= 'test'
 require_relative '../../lib/onetime'
 require 'rack/mock'
 
@@ -41,6 +39,7 @@ def create_controller_with_config(env, homepage_config)
 
       # Extract client IP
       client_ip = extract_client_ip_for_homepage(homepage_config)
+      mode_header_name = homepage_config['request_header']
 
       # Priority 1: Check CIDR match
       if client_ip && ip_matches_homepage_cidrs?(client_ip)
@@ -48,7 +47,7 @@ def create_controller_with_config(env, homepage_config)
       end
 
       # Priority 2: Fallback to header check
-      if check_homepage_header(configured_mode, homepage_config)
+      if mode_header_name && header_matches_mode?(mode_header_name, configured_mode)
         return configured_mode
       end
 
@@ -60,15 +59,17 @@ def create_controller_with_config(env, homepage_config)
 end
 
 ## Integration: Internal mode with CIDR match
+# Use public IP ranges (TEST-NET-2: 198.51.100.0/24) because private IPs
+# in X-Forwarded-For are filtered as a security measure
 config = {
   'mode' => 'internal',
-  'matching_cidrs' => ['10.0.0.0/8', '192.168.0.0/16'],
+  'matching_cidrs' => ['198.51.100.0/24', '203.0.113.0/24'],
   'request_header' => 'O-Homepage-Mode',
   'trusted_proxy_depth' => 1
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
-  'HTTP_X_FORWARDED_FOR' => '10.0.1.100, 127.0.0.1'
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.50, 127.0.0.1'
 }
 controller = create_controller_with_config(env, config)
 mode = controller.determine_homepage_mode
@@ -159,16 +160,17 @@ mode
 #=> nil
 
 ## Integration: CIDR takes priority over header
+# Use public IP (198.51.100.x) - private IPs are filtered from X-Forwarded-For
 config = {
   'mode' => 'internal',
-  'matching_cidrs' => ['10.0.0.0/8'],
+  'matching_cidrs' => ['198.51.100.0/24'],
   'request_header' => 'O-Homepage-Mode',
   'trusted_proxy_depth' => 1
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
-  'HTTP_X_FORWARDED_FOR' => '10.0.1.100, 127.0.0.1',
-  'HTTP_O_HOMEPAGE_MODE' => 'external'  # Wrong value should be ignored
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.50, 127.0.0.1',
+  'HTTP_O_HOMEPAGE_MODE' => 'external'  # Wrong value should be ignored when CIDR matches
 }
 controller = create_controller_with_config(env, config)
 mode = controller.determine_homepage_mode
@@ -176,15 +178,16 @@ mode
 #=> 'internal'
 
 ## Integration: Multiple CIDRs, matches second range
+# Use public IP ranges - private IPs are filtered from X-Forwarded-For
 config = {
   'mode' => 'internal',
-  'matching_cidrs' => ['10.0.0.0/8', '192.168.0.0/16', '172.16.0.0/12'],
+  'matching_cidrs' => ['198.51.100.0/24', '203.0.113.0/24', '192.0.2.0/24'],
   'request_header' => 'O-Homepage-Mode',
   'trusted_proxy_depth' => 1
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
-  'HTTP_X_FORWARDED_FOR' => '192.168.1.100, 127.0.0.1'
+  'HTTP_X_FORWARDED_FOR' => '203.0.113.50, 127.0.0.1'
 }
 controller = create_controller_with_config(env, config)
 mode = controller.determine_homepage_mode
@@ -192,15 +195,16 @@ mode
 #=> 'internal'
 
 ## Integration: Behind 2 proxies (CDN + reverse proxy)
+# Use public IP (198.51.100.x) for client - private IPs filtered from X-Forwarded-For
 config = {
   'mode' => 'internal',
-  'matching_cidrs' => ['10.0.0.0/8'],
+  'matching_cidrs' => ['198.51.100.0/24'],
   'request_header' => 'O-Homepage-Mode',
   'trusted_proxy_depth' => 2
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
-  'HTTP_X_FORWARDED_FOR' => '10.0.1.100, 203.0.113.5, 127.0.0.1'
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.50, 203.0.113.5, 127.0.0.1'
 }
 controller = create_controller_with_config(env, config)
 mode = controller.determine_homepage_mode
@@ -287,15 +291,16 @@ mode
 #=> 'internal'
 
 ## Integration: Mixed IPv4 and IPv6 CIDRs
+# Use public IPv4 (198.51.100.x) - private IPs filtered from X-Forwarded-For
 config = {
   'mode' => 'internal',
-  'matching_cidrs' => ['10.0.0.0/8', '2001:db8::/48'],
+  'matching_cidrs' => ['198.51.100.0/24', '2001:db8::/48'],
   'request_header' => 'O-Homepage-Mode',
   'trusted_proxy_depth' => 1
 }
 env = {
   'REMOTE_ADDR' => '::1',
-  'HTTP_X_FORWARDED_FOR' => '10.0.1.100, ::1'
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.50, ::1'
 }
 controller = create_controller_with_config(env, config)
 mode = controller.determine_homepage_mode
@@ -352,16 +357,18 @@ mode = controller.determine_homepage_mode
 mode
 #=> 'internal'
 
-## Integration: Real-world scenario - Office VPN
+## Integration: Real-world scenario - Corporate network with public egress
+# In real deployments, the client IP seen from outside would be a public IP
+# Private IPs in X-Forwarded-For are filtered as a security measure
 config = {
   'mode' => 'internal',
-  'matching_cidrs' => ['10.0.0.0/8'],
+  'matching_cidrs' => ['198.51.100.0/24'],
   'request_header' => 'O-Homepage-Mode',
   'trusted_proxy_depth' => 1
 }
 env = {
   'REMOTE_ADDR' => '172.16.0.1',
-  'HTTP_X_FORWARDED_FOR' => '10.8.0.50, 172.16.0.1'  # VPN client IP
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.50, 172.16.0.1'  # Corporate egress IP
 }
 controller = create_controller_with_config(env, config)
 mode = controller.determine_homepage_mode

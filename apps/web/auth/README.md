@@ -37,7 +37,7 @@ Login → Rodauth validates (SQL) → DetectMfaRequirement → SyncSession → C
 **Testing**:
 ```bash
 # Backend (Tryouts)
-FAMILIA_DEBUG=0 bundle exec try --agent try/integration/authentication/
+pnpm run test:tryouts:agent try/integration/authentication/
 
 # Frontend (Vitest)
 pnpm test src/tests/composables/useMfa.spec.ts

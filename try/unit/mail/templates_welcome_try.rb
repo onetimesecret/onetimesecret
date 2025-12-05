@@ -18,8 +18,8 @@ require 'onetime/mail'
 
 require 'ostruct'
 
-# Setup mock secret
-@mock_secret = OpenStruct.new(key: 'welcome_verify_key_456')
+# Setup mock secret - responds to :identifier method like real Secret objects
+@mock_secret = OpenStruct.new(identifier: 'welcome_verify_key_456')
 
 @valid_data = {
   email_address: 'newuser@example.com',

@@ -82,10 +82,10 @@ features:
 
 redis:
   uri: <%=
-        ENV['VALKEY_URL'] ||
-        ENV['REDIS_URL'] ||
-        'redis://127.0.0.1:6379/0'
-      %>
+    ENV['VALKEY_URL'] ||
+    ENV['REDIS_URL'] ||
+    'redis://127.0.0.1:6379/0'
+    %>
   dbs:
     session: 0
     custom_domain: 0
@@ -94,7 +94,7 @@ redis:
     secret: 0
     feedback: 0
 emailer:
-  mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
+  mode: <%= ENV['EMAILER_MODE'] || 'logger' %>
   from: <%= ENV['FROM_EMAIL'] || ENV['FROM_EMAIL'] || 'tests@example.com' %>
   from_name: <%= ENV['FROM_NAME'] || 'Jan' %>
   host: <%= ENV['SMTP_HOST'] || 'localhost' %>
@@ -108,7 +108,8 @@ billing:
 mail:
   truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp
-    default_validation_type: :mx
+    # Use regex for tests to avoid MX lookups which can fail for test domains
+    default_validation_type: :regex
     # Required for :smtp validation
     verifier_email: <%= ENV['VERIFIER_EMAIL'] || 'CHANGEME@example.com' %>
     verifier_domain: <%= ENV['VERIFIER_DOMAIN'] || 'example.com' %>
@@ -117,6 +118,8 @@ mail:
     connection_attempts: 1
     validation_type_for:
       'example.com': :regex
+      'test.dev': :regex
+      'onetimesecret.com': :regex
     # Truemail will only validate email addresses that match the
     # domains listed in :allowed_domains. If the domain is not
     # listed, the email address will always be considered invalid.

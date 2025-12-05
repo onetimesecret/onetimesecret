@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../../../spec_helper'
+require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 
 RSpec.describe Onetime::Secret, allow_redis: false do
   describe 'encryption functionality' do

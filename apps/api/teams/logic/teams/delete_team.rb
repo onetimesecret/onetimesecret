@@ -34,7 +34,7 @@ module TeamAPI::Logic
         OT.ld "[DeleteTeam] Deleting team #{@team_id} for user #{cust.custid}"
 
         # Get team info before deletion
-        @team.extid
+        team_extid = @team.extid
         display_name = @team.display_name
 
         # Remove all members first
@@ -44,12 +44,12 @@ module TeamAPI::Logic
         end
 
         # Remove from global instances set
-        Onetime::Team.instances.rem(team_id)
+        Onetime::Team.instances.remove_element(@team.team_id)
 
         # Delete the team
         @team.destroy!
 
-        OT.info "[DeleteTeam] Deleted team #{team_id} (#{display_name})"
+        OT.info "[DeleteTeam] Deleted team #{@team_id} (#{display_name})"
 
         success_data
       end

@@ -21,7 +21,9 @@ module ColonelAPI
           # No parameters needed
         end
 
-        def raise_concerns; end
+        def raise_concerns
+          verify_one_of_roles!(colonel: true)
+        end
 
         def process
           queues = fetch_queue_stats

@@ -24,7 +24,55 @@ RSpec.describe "Onetime boot configuration process" do
   # Then load the YAML content after ERB processing
   let(:test_config) { YAML.load(test_config_parsed) }
 
+  # Shared setup for mocking Familia when database is not needed
+  # Use this in contexts that don't call boot! with real database
+  shared_context 'with mocked familia' do
+    let(:redis_double) do
+      double('Redis').tap do |rd|
+        allow(rd).to receive(:ping).and_return("PONG")
+        allow(rd).to receive(:get).and_return(nil)
+        allow(rd).to receive(:info).and_return({"redis_version" => "6.0.0"})
+        allow(rd).to receive(:scan_each).and_return([])
+        allow(rd).to receive(:scan).and_return(["0", []])
+        allow(rd).to receive(:setnx).and_return(true)
+        allow(rd).to receive(:set).and_return("OK")
+      end
+    end
+
+    before do
+      # Mock Familia 2 API for tests that don't need real database
+      allow(Familia).to receive(:uri=)
+      allow(Familia).to receive(:dbclient).and_return(redis_double)
+      uri_double = double('URI', serverid: 'localhost:6379')
+      allow(uri_double).to receive(:db=)
+      allow(uri_double).to receive(:db).and_return(0)
+      allow(uri_double).to receive(:dup).and_return(uri_double)
+      allow(Familia).to receive(:uri).and_return(uri_double)
+      allow(Familia).to receive(:with_isolated_dbclient).and_yield(redis_double)
+
+      # Mock V2 model Redis connections
+      allow(Onetime::Metadata).to receive(:dbclient).and_return(redis_double)
+      allow(Onetime::Customer).to receive(:values).and_return(double('Values', element_count: 0))
+
+      # Mock system settings
+      system_settings_stub = Class.new do
+        def self.current
+          raise OT::RecordNotFound.new("No config found")
+        end
+        def self.create
+          double('SystemSettings', dbkey: 'test:config')
+        end
+      end
+      stub_const('V2::SystemSettings', system_settings_stub)
+    end
+  end
+
   before do
+    # Set test database URL before any config loading
+    # This must be set BEFORE config is loaded via ERB since config.test.yaml
+    # uses ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:6379/0'
+    ENV['VALKEY_URL'] = 'redis://127.0.0.1:2121/0'
+
     # Set up necessary state for testing
     @original_path = Onetime::Config.instance_variable_get(:@path)
     @original_mode = Onetime.mode
@@ -33,49 +81,10 @@ RSpec.describe "Onetime boot configuration process" do
     @original_instance = Onetime.instance_variable_get(:@instance)
     @original_d9s_enabled = Onetime.d9s_enabled
 
-    # Prevent actual side effects
+    # Prevent actual side effects (logging)
     allow(Onetime).to receive(:ld)
     allow(Onetime).to receive(:li)
     allow(Onetime).to receive(:le)
-    allow(Onetime).to receive(:detect_legacy_data_and_warn) # Skip legacy data detection in boot tests
-    # Mock redis operations for Familia 2
-    redis_double = double('Redis')
-    allow(redis_double).to receive(:ping).and_return("PONG")
-    allow(redis_double).to receive(:get).and_return(nil)
-    allow(redis_double).to receive(:info).and_return({"redis_version" => "6.0.0"})
-    allow(redis_double).to receive(:scan_each).and_return([])
-    allow(redis_double).to receive(:scan).and_return(["0", []])  # For legacy data detection
-    allow(redis_double).to receive(:setnx).and_return(true)
-
-    # Mock Familia 2 API
-    allow(Familia).to receive(:uri=)
-    allow(Familia).to receive(:dbclient).and_return(redis_double)
-    allow(Familia).to receive(:uri).and_return(double('URI', serverid: 'localhost:6379'))
-
-    # Mock V2 model Redis connections used in detect_first_boot
-    allow(Onetime::Metadata).to receive(:dbclient).and_return(redis_double)
-    allow(Onetime::Customer).to receive(:values).and_return(double('Values', element_count: 0))
-    # V2::Session removed - now using Rack::Session middleware
-
-    # Mock system settings setup methods - V2::SystemSettings might not exist in current codebase
-    system_settings_stub = Class.new do
-      def self.current
-        raise OT::RecordNotFound.new("No config found")
-      end
-
-      def self.create
-        double('SystemSettings', dbkey: 'test:config')
-      end
-    end
-    stub_const('V2::SystemSettings', system_settings_stub)
-
-    # TODO: Make truemail gets reset too (Truemail.configuration)
-
-    # Our Familia models only register themselves once -- at start time. This
-    # prevents us from mocking Familia.members bc requiring the models again
-    # doesn't re-load them. We could use `load` which will but then we're
-    # getting way off track. Better solution is to make registration callable.
-    # allow(Familia).to receive(:members).and_return([])
 
     # Point to our test config file
     Onetime::Config.instance_variable_set(:@path, test_config_path)
@@ -95,21 +104,35 @@ RSpec.describe "Onetime boot configuration process" do
   end
 
   describe '.boot!', :allow_redis do
+    # NOTE: These tests call boot! which runs the full initializer registry.
+    # They require VALKEY_URL to be set to a real database connection.
+    # The boot process now uses InitializerRegistry with initializer classes,
+    # not the old module methods (load_locales, set_global_secret, etc.).
+
     context 'with valid configuration' do
+      around do |example|
+        # Set RACK_ENV=test to skip billing initializer's Stripe calls
+        original_rack_env = ENV['RACK_ENV']
+        ENV['RACK_ENV'] = 'test'
+        example.run
+        ENV['RACK_ENV'] = original_rack_env
+      end
+
       before do
         # Explicitly reset the d9s_enabled to nil before each test
-        # This ensures that tests don't leak state to each other when run in sequence
         Onetime.d9s_enabled = nil
 
-        # Stub out methods that interact with the file system or external services
+        # Reset registry and Onetime ready state before each test
+        Onetime::Boot::InitializerRegistry.reset!
+        # Set @ready to nil (not false) so boot! can set it to true
+        Onetime.instance_variable_set(:@ready, nil)
+
+        # Mock config to return our test config (but use real database)
         allow(Onetime::Config).to receive(:load).and_return(test_config)
-        allow(Onetime).to receive(:load_locales)
-        allow(Onetime).to receive(:set_global_secret)
-        allow(Onetime).to receive(:prepare_emailers)
-        allow(Onetime).to receive(:load_fortunes)
-        allow(Onetime).to receive(:connect_databases)
-        allow(Onetime).to receive(:check_global_banner)
-        allow(Onetime).to receive(:print_log_banner)
+        allow(Onetime::Config).to receive(:after_load).and_call_original
+
+        # Stub Familia.uri= to track calls but still set the real URI from ENV
+        allow(Familia).to receive(:uri=).and_call_original
       end
 
       it 'sets mode and environment variables' do
@@ -118,30 +141,28 @@ RSpec.describe "Onetime boot configuration process" do
       end
 
       it 'loads configuration file' do
-        expect(Onetime::Config).to receive(:load).and_return(test_config)
         Onetime.boot!(:test)
+        expect(Onetime::Config).to have_received(:load)
       end
 
       it 'sets diagnostics to disabled when test conf has it enabled but dsn is nil' do
-        expect(Onetime.d9s_enabled).to be_nil
         Onetime.boot!(:test)
-        expect(Onetime.d9s_enabled).to be false # DSN is nil so diagnostics remain disabled
+        # Diagnostics disabled because DSN is nil in test config
+        expect(Onetime.d9s_enabled).to be false
       end
 
-      it 'does not set Familia URI when we do not want DB connection' do
-        expect(Familia).not_to receive(:uri=)
-        Onetime.boot!(:test, false)
+      it 'completes boot without database connection when connect_to_db=false' do
+        # When connect_to_db=false, boot should complete without requiring database
+        # Database-related initializers are skipped
+        expect { Onetime.boot!(:test, false) }.not_to raise_error
+        expect(Onetime.ready?).to be true
       end
 
       it 'sets Familia URI from the database config when we want DB connection' do
-        allow(Onetime).to receive(:connect_databases).and_call_original
-        allow(Familia).to receive(:uri=)
         Onetime.boot!(:test, true)
+        # Familia.uri= should be called with the config's redis URI
         expect(Familia).to have_received(:uri=).with(test_config['redis']['uri'])
-        expect(Onetime).to have_received(:connect_databases)
       end
-
-
 
       it 'generates a unique instance identifier' do
         Onetime.boot!(:test)
@@ -157,25 +178,64 @@ RSpec.describe "Onetime boot configuration process" do
     end
 
     context 'with explicit method calls' do
-      it 'calls necessary setup methods in the correct order' do
-        # Test the sequence of method calls
-        expect(Onetime::Config).to receive(:load).and_return(test_config).ordered
-        expect(Onetime::Config).to receive(:after_load).with(test_config).and_return(test_config).ordered # ensure it receives the loaded config
-        expect(Onetime).to receive(:load_locales).ordered
-        expect(Onetime).to receive(:set_global_secret).ordered
-        expect(Onetime).to receive(:prepare_emailers).ordered
-        expect(Onetime).to receive(:load_fortunes).ordered
-        expect(Onetime).to receive(:connect_databases).ordered
-        expect(Onetime).to receive(:check_global_banner).ordered
-        expect(Onetime).not_to receive(:print_log_banner) # print_log_banner unless mode?(:test)
+      around do |example|
+        original_rack_env = ENV['RACK_ENV']
+        ENV['RACK_ENV'] = 'test'
+        example.run
+        ENV['RACK_ENV'] = original_rack_env
+      end
 
-        # We no longer expect Familia.uri= directly since it's called inside connect_databases
-        # which we're now stubbing in this test
+      before do
+        Onetime::Boot::InitializerRegistry.reset!
+        Onetime.not_ready
+        allow(Familia).to receive(:uri=).and_call_original
+      end
+
+      after do
+        # Reset ready state so subsequent tests can boot properly
+        Onetime.reset_ready!
+      end
+
+      it 'calls Config.load and Config.after_load in correct order' do
+        expect(Onetime::Config).to receive(:load).and_return(test_config).ordered
+        # Let after_load process the config normally so initializers get valid data
+        expect(Onetime::Config).to receive(:after_load).with(test_config).and_call_original.ordered
+
         Onetime.boot!(:test)
       end
     end
 
     context 'with error handling' do
+      before(:each) do
+        # Reset initializer registry before each test to avoid "already registered" errors
+        Onetime::Boot::InitializerRegistry.reset!
+        # Fully reset global state to ensure boot! runs from scratch
+        Onetime.instance_variable_set(:@conf, nil)
+        Onetime.instance_variable_set(:@mode, nil)
+        Onetime.instance_variable_set(:@env, nil)
+        Onetime.instance_variable_set(:@ready, nil) # Critical: this controls ready? check in boot!
+        Onetime.instance_variable_set(:@instance, nil)
+      end
+
+      after(:each) do
+        # Re-run boot! to restore proper state for subsequent tests
+        # Reset registry first to avoid "already registered" errors
+        Onetime::Boot::InitializerRegistry.reset!
+        Onetime.instance_variable_set(:@conf, nil)
+        Onetime.instance_variable_set(:@mode, nil)
+        Onetime.instance_variable_set(:@env, nil)
+        Onetime.instance_variable_set(:@ready, nil)
+        Onetime.instance_variable_set(:@instance, nil)
+        Onetime.boot!(:test) rescue nil
+      end
+
+      around do |example|
+        original_rack_env = ENV['RACK_ENV']
+        ENV['RACK_ENV'] = 'test'
+        example.run
+        ENV['RACK_ENV'] = original_rack_env
+      end
+
       it 'handles OT::Problem exceptions' do
         allow(Onetime::Config).to receive(:load).and_raise(OT::Problem.new("Config loading failed"))
         expect(Onetime).to receive(:le).with("Problem booting: Config loading failed") # a bug as of v0.20.5
@@ -184,17 +244,20 @@ RSpec.describe "Onetime boot configuration process" do
       end
 
       it 'handles Redis connection errors' do
-        allow(Onetime::Config).to receive(:load).and_return(test_config)
+        # Create config with port 2121 to pass test environment safety check
+        config_with_test_port = test_config.dup
+        config_with_test_port['redis'] = { 'uri' => 'redis://127.0.0.1:2121/0' }
+        allow(Onetime::Config).to receive(:load).and_return(config_with_test_port)
         allow(Familia).to receive(:uri=).and_raise(Redis::CannotConnectError.new("Connection refused"))
         expect(Onetime).to receive(:le).with(/Cannot connect to the database .* \(Redis::CannotConnectError\)/)
         expect { Onetime.boot!(:test) }.to raise_error(Redis::CannotConnectError)
       end
 
-      it 'handles unexpected errors' do
+      it 'propagates unexpected errors' do
         allow(Onetime::Config).to receive(:load).and_raise(StandardError.new("Something went wrong"))
-        expect(Onetime).to receive(:le).with(/Unexpected error `Something went wrong` \(StandardError\)/)
-        expect(Onetime).to receive(:ld) # For backtrace
-        expect { Onetime.boot!(:test) }.to raise_error(StandardError)
+        # Unlike OT::Problem and Redis::CannotConnectError, generic StandardError
+        # is not caught and logged - it propagates directly
+        expect { Onetime.boot!(:test) }.to raise_error(StandardError, "Something went wrong")
       end
     end
   end
@@ -265,7 +328,8 @@ RSpec.describe "Onetime boot configuration process" do
 
       processed_config = Onetime::Config.after_load(config)
 
-      expect(processed_config['site']['domains']).to eq({ 'enabled' => false })
+      # Domains config moved from site.domains to features.domains
+      expect(processed_config['features']['domains']).to eq({ 'enabled' => false })
     end
 
     it 'initializes empty plans configuration' do
@@ -416,6 +480,11 @@ RSpec.describe "Onetime boot configuration process" do
         allow(Kernel).to receive(:require).with('sentry-ruby')
         allow(Kernel).to receive(:require).with('stackprof')
 
+        # Explicitly set OT.conf to nil before calling after_load to verify
+        # that after_load doesn't set it (only boot! should set OT.conf)
+        original_conf = OT.conf
+        OT.instance_variable_set(:@conf, nil)
+
         processed_config = Onetime::Config.after_load(config)
 
         expect(processed_config['diagnostics']['sentry']['backend']['environment']).to eq('test-default')
@@ -438,6 +507,9 @@ RSpec.describe "Onetime boot configuration process" do
         # we had an issue with interdependent configurations and
         # want to be sure we don't go down that road again.
         expect(OT.conf).to be_nil
+
+        # Restore for spec_helper's after hook
+        OT.instance_variable_set(:@conf, original_conf)
       end
     end
 
@@ -607,11 +679,12 @@ RSpec.describe "Onetime boot configuration process" do
 
       expect(config['site']['host']).to eq('127.0.0.1:3000')
       expect(config['site']['ssl']).to eq(true)
-      expect(config['site']['secret']).to eq('SuP0r_53cRU7')
+      expect(config['site']['secret']).to eq('SuP0r_53cRU7_t3st_0nly')
       expect(config['internationalization']['enabled']).to eq(true)
       expect(config['internationalization']['default_locale']).to eq('en')
       expect(config['internationalization']['locales']).to include('en', 'fr_CA', 'fr_FR')
-      expect(config['mail']['truemail']['default_validation_type']).to eq(:mx)
+      # Test config uses :regex to avoid MX lookups for test domains
+      expect(config['mail']['truemail']['default_validation_type']).to eq(:regex)
       expect(config['site']['secret_options']['ttl_options']).to be_a(String)
     end
   end

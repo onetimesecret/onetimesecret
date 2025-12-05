@@ -27,9 +27,8 @@ class MockRedisClient
   end
 end
 
-# Create test class that includes our detection methods
-class LegacyDataDetector
-  include Onetime::Initializers
+# Create test class that has access to the detection methods
+class LegacyDataDetector < Onetime::Initializers::DetectLegacyDataAndWarn
 
   def initialize(mock_familia = nil)
     @mock_familia = mock_familia

@@ -27,7 +27,7 @@
 #
 # RUN:
 #   VALKEY_URL='valkey://127.0.0.1:2121/0' AUTH_DATABASE_URL='sqlite://data/test_auth.db' \
-#     bundle exec rspec apps/web/auth/spec/routes/availability_spec.rb
+#     pnpm run test:rspec apps/web/auth/spec/routes/availability_spec.rb
 #
 # =============================================================================
 
@@ -152,7 +152,7 @@ RSpec.describe 'Auth Route Availability', type: :integration do
     #   - In test/production mode: routes are not defined, return 404
     #
     # These tests verify the behavior for the current RACK_ENV.
-    # To test development mode behavior, run: RACK_ENV=development bundle exec rspec ...
+    # To test development mode behavior, run: RACK_ENV=development pnpm run test:rspec ...
 
     describe 'GET /auth/admin/stats' do
       it 'returns expected status for current environment' do

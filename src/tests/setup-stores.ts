@@ -4,13 +4,14 @@ import { vi, beforeEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import axios, { AxiosInstance } from 'axios';
+import AxiosMockAdapter from 'axios-mock-adapter';
 import { stateFixture } from './fixtures/window.fixture';
 import type { OnetimeWindow } from '@/types/declarations/window';
-import { createApi } from '@/api';
 
 // Create global test API instance that will be shared across tests
 // This gets the mock adapter applied to it in individual test setups
 let globalApi: AxiosInstance;
+let globalMock: AxiosMockAdapter;
 
 export function createSharedApiInstance(): AxiosInstance {
   if (!globalApi) {
@@ -18,8 +19,30 @@ export function createSharedApiInstance(): AxiosInstance {
       baseURL: 'http://localhost:3000',
       timeout: 5000,
     });
+    // Fail loudly on any unmocked request - prevents jsdom XHR noise
+    // and ensures tests explicitly mock all API calls they depend on
+    globalMock = new AxiosMockAdapter(globalApi, {
+      onNoMatch: 'throwException',
+    });
   }
   return globalApi;
+}
+
+/**
+ * Get the global axios mock adapter for configuring responses in tests.
+ * Use this to set up specific mock responses before test actions.
+ *
+ * @example
+ * ```ts
+ * const mock = getGlobalAxiosMock();
+ * mock.onGet('/api/v2/account').reply(200, { custid: 'test' });
+ * ```
+ */
+export function getGlobalAxiosMock(): AxiosMockAdapter {
+  if (!globalMock) {
+    createSharedApiInstance(); // Initialize if not already done
+  }
+  return globalMock;
 }
 
 // Mock Vue's inject function to return our test API

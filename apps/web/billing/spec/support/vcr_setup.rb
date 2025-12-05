@@ -7,13 +7,13 @@
 # Usage Modes:
 #
 # 1. Record new cassettes (uses REAL Stripe test API):
-#    STRIPE_API_KEY=sk_test_xxx bundle exec rspec
+#    STRIPE_API_KEY=sk_test_xxx pnpm run test:rspec
 #
 # 2. Replay recorded cassettes (default):
-#    bundle exec rspec
+#    pnpm run test:rspec
 #
 # 3. Force re-recording:
-#    VCR_MODE=all bundle exec rspec
+#    VCR_MODE=all pnpm run test:rspec
 #
 # Cassettes are stored in: spec/fixtures/vcr_cassettes/
 #

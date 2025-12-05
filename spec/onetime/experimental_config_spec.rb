@@ -18,12 +18,25 @@ RSpec.describe "Experimental config settings" do
     let(:test_config) { Onetime::Config.load(source_config_path) }
     let(:processed_config) { Onetime::Config.after_load(test_config) }
 
+    # Save original state for cleanup
+    let(:original_security) { Onetime::Runtime.security }
+    let(:original_conf) { OT.conf }
+
+    # Helper to set passphrase_temp on a secret (no setter method exists)
+    def set_passphrase_temp(secret, val)
+      secret.instance_variable_set(:@passphrase_temp, val)
+    end
+
     before(:each) do
+      # Force evaluation of original_conf before tests modify it
+      original_conf
     end
 
     after(:each) do
-      OT.instance_variable_set(:@conf, nil)
-      OT.instance_variable_set(:@global_secret, nil)
+      # Restore original config (not nil!)
+      OT.instance_variable_set(:@conf, original_conf)
+      # Restore original security state via Runtime
+      Onetime::Runtime.security = original_security
     end
 
     context "when allow_nil_global_secret is false (default)" do
@@ -39,17 +52,17 @@ RSpec.describe "Experimental config settings" do
         secret = Onetime::Secret.new
         secret.key = "regular_key_test"
 
-        # Set a non-nil global secret
-        OT.instance_variable_set(:@global_secret, regular_secret)
+        # Set a non-nil global secret via Runtime
+        Onetime::Runtime.update_security(global_secret: regular_secret)
 
         # Manually construct this secret to simulate it was encrypted with a regular global secret
-        secret.passphrase_temp = passphrase
+        set_passphrase_temp(secret, passphrase)
         encryption_key = Onetime::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
 
         # Decrypt with the same global secret
-        secret.passphrase_temp = passphrase
+        set_passphrase_temp(secret, passphrase)
         expect(secret.decrypted_value).to eq(test_value)
       end
 
@@ -59,17 +72,17 @@ RSpec.describe "Experimental config settings" do
         secret.key = "error_key_test"
 
         # First encrypt with a non-nil global secret
-        OT.instance_variable_set(:@global_secret, regular_secret)
+        Onetime::Runtime.update_security(global_secret: regular_secret)
 
         # Manually construct this secret to simulate it was encrypted with a regular global secret
-        secret.passphrase_temp = passphrase
+        set_passphrase_temp(secret, passphrase)
         encryption_key = Onetime::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
 
         # Then try to decrypt with a nil global secret
-        OT.instance_variable_set(:@global_secret, nil)
-        secret.passphrase_temp = passphrase
+        Onetime::Runtime.update_security(global_secret: nil)
+        set_passphrase_temp(secret, passphrase)
 
         expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
       end
@@ -88,11 +101,11 @@ RSpec.describe "Experimental config settings" do
         secret = Onetime::Secret.new
         secret.key = "special_test_key"
 
-        # Set a non-nil global secret
-        OT.instance_variable_set(:@global_secret, regular_secret)
+        # Set a non-nil global secret via Runtime
+        Onetime::Runtime.update_security(global_secret: regular_secret)
 
         # Set passphrase for encryption
-        secret.passphrase_temp = passphrase
+        set_passphrase_temp(secret, passphrase)
 
         # Encrypt with the non-nil global secret
         secret.encrypt_value(test_value, passphrase: passphrase)
@@ -101,7 +114,7 @@ RSpec.describe "Experimental config settings" do
         expect(secret.value).not_to be_nil
 
         # Ensure decryption works with the same passphrase and global secret
-        secret.passphrase_temp = passphrase
+        set_passphrase_temp(secret, passphrase)
         expect(secret.decrypted_value).to eq(test_value)
       end
 
@@ -110,11 +123,11 @@ RSpec.describe "Experimental config settings" do
         secret = Onetime::Secret.new
         secret.key = "nil_encryption_key"
 
-        # Set nil global secret
-        OT.instance_variable_set(:@global_secret, nil)
+        # Set nil global secret via Runtime
+        Onetime::Runtime.update_security(global_secret: nil)
 
         # Set passphrase for encryption
-        secret.passphrase_temp = passphrase
+        set_passphrase_temp(secret, passphrase)
 
         # Manually construct this secret to simulate it was encrypted with a nil global secret
         encryption_key = Onetime::Secret.encryption_key(nil, secret.key, passphrase)
@@ -125,7 +138,7 @@ RSpec.describe "Experimental config settings" do
         expect(secret.value).not_to be_nil
 
         # Decrypt with nil global secret
-        secret.passphrase_temp = passphrase
+        set_passphrase_temp(secret, passphrase)
         expect(secret.decrypted_value).to eq(test_value)
       end
 
@@ -135,26 +148,26 @@ RSpec.describe "Experimental config settings" do
         secret.key = "special_fallback_key"
 
         # First encrypt with a non-nil global secret
-        OT.instance_variable_set(:@global_secret, regular_secret)
+        Onetime::Runtime.update_security(global_secret: regular_secret)
 
         # Manually construct this secret to simulate it was encrypted with a regular global secret
-        secret.passphrase_temp = passphrase
+        set_passphrase_temp(secret, passphrase)
         encryption_key = Onetime::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
 
         # Switch to nil global secret for decryption
-        OT.instance_variable_set(:@global_secret, nil)
+        Onetime::Runtime.update_security(global_secret: nil)
 
         # Enable fallback mechanism
         @context_config['experimental']['allow_nil_global_secret'] = true
 
         # We need to know exactly what encryption key was used during encryption
-        # So we can return it during the mock of encryption_key_onetime_with_nil
-        allow(secret).to receive(:encryption_key_onetime_with_nil).and_return(encryption_key)
+        # So we can return it during the mock of encryption_key_v2_with_nil
+        allow(secret).to receive(:encryption_key_v2_with_nil).and_return(encryption_key)
 
         # The decryption should work via the fallback mechanism
-        secret.passphrase_temp = passphrase
+        set_passphrase_temp(secret, passphrase)
         expect(secret.decrypted_value).to eq(test_value)
       end
 
@@ -163,17 +176,17 @@ RSpec.describe "Experimental config settings" do
         secret = Onetime::Secret.new
         secret.key = "passphrase_test_key"
 
-        # Set a non-nil global secret
-        OT.instance_variable_set(:@global_secret, regular_secret)
+        # Set a non-nil global secret via Runtime
+        Onetime::Runtime.update_security(global_secret: regular_secret)
 
         # Manually construct this secret to simulate it was encrypted with a specific passphrase
-        secret.passphrase_temp = passphrase
+        set_passphrase_temp(secret, passphrase)
         encryption_key = Onetime::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
 
         # Try decrypting with wrong passphrase
-        secret.passphrase_temp = "wrong-passphrase"
+        set_passphrase_temp(secret, "wrong-passphrase")
 
         expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
       end
@@ -193,23 +206,23 @@ RSpec.describe "Experimental config settings" do
         secret.key = "no_fallback_key"
 
         # First encrypt with a non-nil global secret
-        OT.instance_variable_set(:@global_secret, regular_secret)
+        Onetime::Runtime.update_security(global_secret: regular_secret)
 
         # Manually construct this secret to simulate it was encrypted with a regular global secret
-        secret.passphrase_temp = passphrase
+        set_passphrase_temp(secret, passphrase)
         encryption_key = Onetime::Secret.encryption_key(regular_secret, secret.key, passphrase)
         secret.value = test_value.encrypt(key: encryption_key)
         secret.value_encryption = 2
 
         # Then try to decrypt with a nil global secret
-        OT.instance_variable_set(:@global_secret, nil)
+        Onetime::Runtime.update_security(global_secret: nil)
 
         # Enable fallback mechanism but mock it to fail
         @context_config['experimental']['allow_nil_global_secret'] = true
-        allow(secret).to receive(:encryption_key_onetime_with_nil).and_raise(OpenSSL::Cipher::CipherError)
+        allow(secret).to receive(:encryption_key_v2_with_nil).and_raise(OpenSSL::Cipher::CipherError)
 
         # Decryption should fail with CipherError
-        secret.passphrase_temp = passphrase
+        set_passphrase_temp(secret, passphrase)
         expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
       end
 
@@ -219,10 +232,10 @@ RSpec.describe "Experimental config settings" do
         secret.key = "nil_secret_key"
 
         # First encrypt with a nil global secret
-        OT.instance_variable_set(:@global_secret, nil)
+        Onetime::Runtime.update_security(global_secret: nil)
 
         # Generate the encryption key with nil global secret
-        secret.passphrase_temp = passphrase
+        set_passphrase_temp(secret, passphrase)
 
         # Manually construct this secret to simulate it was encrypted with a nil global secret
         encryption_key = Onetime::Secret.encryption_key(nil, secret.key, passphrase)
@@ -230,13 +243,13 @@ RSpec.describe "Experimental config settings" do
         secret.value_encryption = 2
 
         # Then try to decrypt with a non-nil global secret
-        OT.instance_variable_set(:@global_secret, regular_secret)
+        Onetime::Runtime.update_security(global_secret: regular_secret)
 
         # IMPORTANT: Completely disable the fallback
         @context_config['experimental']['allow_nil_global_secret'] = false
 
         # The decryption should fail since the key material is different
-        secret.passphrase_temp = passphrase
+        set_passphrase_temp(secret, passphrase)
         expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
       end
     end

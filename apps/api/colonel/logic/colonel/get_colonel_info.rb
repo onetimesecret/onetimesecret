@@ -24,7 +24,9 @@ module ColonelAPI
           @billing_enabled = OT.billing_config.enabled?
         end
 
-        def raise_concerns; end
+        def raise_concerns
+          verify_one_of_roles!(colonel: true)
+        end
 
         def process
           @title         = 'Home'

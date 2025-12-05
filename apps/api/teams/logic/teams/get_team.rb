@@ -39,6 +39,7 @@ module TeamAPI::Logic
           user_id: cust.objid,
           record: team.safe_dump.merge(
             current_user_role: team.owner?(cust) ? 'owner' : 'member',
+            is_owner: team.owner?(cust),
             members: members.map do |member|
               {
                 custid: member.custid,

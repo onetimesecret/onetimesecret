@@ -53,33 +53,33 @@ def last_response; @test.last_response; end
 @team.save
 @team.members.add(@owner.objid, Familia.now.to_f)
 @team.members.add(@member.objid, Familia.now.to_f)
-@team_id = @team.team_id
+@team_id = @team.extid  # Use extid for API calls, not objid
 
 ## Owner can view their team
 get "/api/teams/#{@team_id}",
   {},
   { 'rack.session' => @owner_session }
 resp = JSON.parse(last_response.body)
-[last_response.status, resp['record']['teamid']]
+[last_response.status, resp['record']['extid']]
 #=> [200, @team_id]
 
 ## Owner is marked as owner in team response
 resp = JSON.parse(last_response.body)
-resp['record']['is_owner']
-#=> true
+resp['record']['current_user_role']
+#=> 'owner'
 
 ## Member can view team
 get "/api/teams/#{@team_id}",
   {},
   { 'rack.session' => @member_session }
 resp = JSON.parse(last_response.body)
-[last_response.status, resp['record']['teamid']]
+[last_response.status, resp['record']['extid']]
 #=> [200, @team_id]
 
 ## Member is not marked as owner in team response
 resp = JSON.parse(last_response.body)
-resp['record']['is_owner']
-#=> false
+resp['record']['current_user_role']
+#=> 'member'
 
 ## Non-member cannot view team
 get "/api/teams/#{@team_id}",
@@ -120,8 +120,8 @@ last_response.status >= 400
 
 ## Owner can delete team
 @delete_test_team = Onetime::Team.create!("Delete Auth Test", @owner)
-delete_teamid = @delete_test_team.team_id
-delete "/api/teams/#{delete_teamid}",
+@delete_teamid = @delete_test_team.extid  # Use instance var + extid
+delete "/api/teams/#{@delete_teamid}",
   {},
   { 'rack.session' => @owner_session }
 last_response.status
@@ -130,28 +130,28 @@ last_response.status
 ## Member cannot delete team
 @member_delete_team = Onetime::Team.create!("Member Delete Test", @owner)
 @member_delete_team.add_member(@member, 'member')
-member_delete_teamid = @member_delete_team.extid
-delete "/api/teams/#{member_delete_teamid}",
+@member_delete_teamid = @member_delete_team.extid  # Instance var for cross-test access
+delete "/api/teams/#{@member_delete_teamid}",
   {},
   { 'rack.session' => @member_session }
 [last_response.status >= 400, @member_delete_team.team_id != nil]
 #=> [true, true]
 
 ## Team still exists after member delete attempt
-get "/api/teams/#{member_delete_teamid}",
+get "/api/teams/#{@member_delete_teamid}",
   {},
   { 'rack.session' => @owner_session }
 resp = JSON.parse(last_response.body)
 [last_response.status, resp['record']['extid']]
-#=> [200, member_delete_teamid]
+#=> [200, @member_delete_teamid]
 
 # Cleanup the test team
 @member_delete_team.destroy!
 
 ## Non-member cannot delete team
 @outsider_delete_team = Onetime::Team.create!("Outsider Delete Test", @owner)
-outsider_delete_teamid = @outsider_delete_team.team_id
-delete "/api/teams/#{outsider_delete_teamid}",
+@outsider_delete_teamid = @outsider_delete_team.extid  # Use extid
+delete "/api/teams/#{@outsider_delete_teamid}",
   {},
   { 'rack.session' => @outsider_session }
 [last_response.status >= 400, @outsider_delete_team.team_id != nil]
@@ -180,7 +180,7 @@ get "/api/teams/#{@team_id}/members",
   {},
   { 'rack.session' => @owner_session }
 resp = JSON.parse(last_response.body)
-member_ids = resp['records'].map { |m| m['custid'] }
+member_ids = resp['records'].map { |m| m['id'] }  # API returns 'id' not 'custid'
 member_ids.include?(@new_user.custid)
 #=> false
 
@@ -190,7 +190,7 @@ member_ids.include?(@new_user.custid)
 ## Non-member cannot add members
 @another_user = Onetime::Customer.create!(email: "anotheruser#{Familia.now.to_i}@onetimesecret.com")
 @outsider_team = Onetime::Team.create!("Outsider Team", @outsider)
-outsider_team_id = @outsider_team.team_id
+@outsider_team_id = @outsider_team.extid  # Use extid
 post "/api/teams/#{@team_id}/members",
   { email: @another_user.email }.to_json,
   { 'rack.session' => @outsider_session, 'CONTENT_TYPE' => 'application/json' }
@@ -223,7 +223,7 @@ get "/api/teams/#{@team_id}/members",
   {},
   { 'rack.session' => @owner_session }
 resp = JSON.parse(last_response.body)
-member_ids = resp['records'].map { |m| m['custid'] }
+member_ids = resp['records'].map { |m| m['id'] }  # API returns 'id' not 'custid'
 member_ids.include?(@another_member.custid)
 #=> true
 
@@ -253,19 +253,19 @@ get '/api/teams',
   {},
   { 'rack.session' => @user1_session }
 resp = JSON.parse(last_response.body)
-team_ids = resp['records'].map { |t| t['extid'] }
-[team_ids.include?(@user1_team.team_id), team_ids.include?(@user2_team.team_id)]
+team_extids = resp['records'].map { |t| t['extid'] }
+[team_extids.include?(@user1_team.extid), team_extids.include?(@user2_team.extid)]
 #=> [true, false]
 
 ## User 2 cannot access User 1's team
-get "/api/teams/#{@user1_team.team_id}",
+get "/api/teams/#{@user1_team.extid}",
   {},
   { 'rack.session' => @user2_session }
 last_response.status >= 400
 #=> true
 
 ## User 1 cannot access User 2's team
-get "/api/teams/#{@user2_team.team_id}",
+get "/api/teams/#{@user2_team.extid}",
   {},
   { 'rack.session' => @user1_session }
 last_response.status >= 400
@@ -285,9 +285,13 @@ last_response.status
 #=> 200
 
 ## Non-member cannot list members
+# Note: @outsider was added to the team earlier, so use a fresh non-member
+@non_member = Onetime::Customer.create!(email: "nonmember#{Familia.now.to_i}@onetimesecret.com")
+@non_member_session = { 'authenticated' => true, 'external_id' => @non_member.extid, 'email' => @non_member.email }
 get "/api/teams/#{@team_id}/members",
   {},
-  { 'rack.session' => @outsider_session }
+  { 'rack.session' => @non_member_session }
+@non_member.destroy!
 last_response.status >= 400
 #=> true
 

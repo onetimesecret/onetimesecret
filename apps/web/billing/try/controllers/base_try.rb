@@ -1,8 +1,8 @@
-# apps/web/billing/try/03_controllers_base_try.rb
+# apps/web/billing/try/controllers/base_try.rb
 #
 # frozen_string_literal: true
 
-require_relative '../../../../try/support/test_helpers'
+require_relative '../../../../../try/support/test_helpers'
 
 # Billing Controllers Base tests
 #
@@ -36,9 +36,11 @@ end.new(@req, @res)
 @controller.res.class
 #=> Rack::Response
 
-## Verify locale accessor
+## Verify locale accessor returns default locale
+# req.locale returns env['otto.locale'] || OT.default_locale
+# Since otto.locale isn't set in mock request, it returns the default 'en'
 @controller.locale
-#=> nil
+#=> 'en'
 
 ## Test JSON response helper
 @data = @controller.json_response({ test: 'data' }, status: 200)

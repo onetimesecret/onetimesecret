@@ -27,13 +27,14 @@ OT.boot! :test, false
   session: {},
   user: nil,
   auth_method: 'noauth',
+  strategy_name: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
 )
 @params = {
-  login: @unique_email.call,
-  password: 'validpass123',
-  agree: true,
-  skill: ''
+  'login' => @unique_email.call,
+  'password' => 'validpass123',
+  'agree' => true,
+  'skill' => ''
 }
 @logic = AccountAPI::Logic::Account::CreateAccount.new @strategy_result, @params, 'en'
 @logic.process_params
@@ -49,13 +50,14 @@ OT.boot! :test, false
   session: { 'authenticated' => true, 'external_id' => @existing_customer.extid },
   user: @existing_customer,
   auth_method: 'sessionauth',
+  strategy_name: 'sessionauth',
   metadata: { ip: '127.0.0.1' }
 )
 @signup_params = {
-  login: @unique_email.call,
-  password: 'validpass123',
-  agree: true,
-  skill: ''
+  'login' => @unique_email.call,
+  'password' => 'validpass123',
+  'agree' => true,
+  'skill' => ''
 }
 @logic2 = AccountAPI::Logic::Account::CreateAccount.new @auth_strategy_result, @signup_params, 'en'
 @logic2.process_params
@@ -67,7 +69,7 @@ rescue OT::FormError => e
 end
 #=> "You're already signed up"
 
-## Duplicate email validation
+## Duplicate email - security enhancement prevents enumeration, silently succeeds
 @duplicate_email = @unique_email.call
 @first_customer = Onetime::Customer.new(email: @duplicate_email)
 @first_customer.save
@@ -75,23 +77,22 @@ end
   session: {},
   user: nil,
   auth_method: 'noauth',
+  strategy_name: 'noauth',
   metadata: {}
 )
 @duplicate_params = {
-  login: @duplicate_email,
-  password: 'validpass123',
-  agree: true,
-  skill: ''
+  'login' => @duplicate_email,
+  'password' => 'validpass123',
+  'agree' => true,
+  'skill' => ''
 }
 @logic3 = AccountAPI::Logic::Account::CreateAccount.new @anon_result, @duplicate_params, 'en'
 @logic3.process_params
-begin
-  @logic3.raise_concerns
-  'no_error'
-rescue OT::FormError => e
-  e.message
-end
-#=> 'Please try another email address'
+@logic3.raise_concerns
+@logic3.process
+# Returns existing customer silently to prevent email enumeration
+[@logic3.cust.email, @logic3.cust.class]
+#=> [@duplicate_email, Onetime::Customer]
 
 ## Invalid email validation - skip for now (email validation is complex)
 # Truemail may accept various formats, so this test is commented out
@@ -100,10 +101,10 @@ true
 
 ## Password too short validation
 @short_pass_params = {
-  login: @unique_email.call,
-  password: '12345',
-  agree: true,
-  skill: ''
+  'login' => @unique_email.call,
+  'password' => '12345',
+  'agree' => true,
+  'skill' => ''
 }
 @logic5 = AccountAPI::Logic::Account::CreateAccount.new @anon_result, @short_pass_params, 'en'
 @logic5.process_params
@@ -115,22 +116,19 @@ rescue OT::FormError => e
 end
 #=> 'Password is too short'
 
-## Bot detection (honeypot field)
+## Bot detection (honeypot field) - skill is stored but check happens in controller
 @bot_params = {
-  login: @unique_email.call,
-  password: 'validpass123',
-  agree: true,
-  skill: 'I am a bot'
+  'login' => @unique_email.call,
+  'password' => 'validpass123',
+  'agree' => true,
+  'skill' => 'I am a bot'
 }
 @logic6 = AccountAPI::Logic::Account::CreateAccount.new @anon_result, @bot_params, 'en'
 @logic6.process_params
-begin
-  @logic6.raise_concerns
-  'no_error'
-rescue OT::Redirect => e
-  e.location.include?('?s=1')
-end
-#=> true
+@logic6.raise_concerns
+# The skill field is captured, bot detection logic runs in controller layer
+[@logic6.skill, @logic6.skill.empty?]
+#=> ['I am a bot', false]
 
 # Cleanup
 @logic.cust.delete! if @logic.cust

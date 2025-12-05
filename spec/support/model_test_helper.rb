@@ -3,9 +3,9 @@
 # frozen_string_literal: true
 
 module ModelTestHelper
-  # Factory method to create a fully stubbed V1::Secret instance
+  # Factory method to create a fully stubbed Onetime::Secret instance
   def create_stubbed_secret(attributes = {})
-    secret = V1::Secret.new
+    secret = Onetime::Secret.new
 
     # Apply default test attributes
     default_attrs = {
@@ -69,9 +69,9 @@ module ModelTestHelper
     secret
   end
 
-  # Factory method for V1::Metadata
+  # Factory method for Onetime::Metadata
   def create_stubbed_metadata(attributes = {})
-    metadata = V1::Metadata.new
+    metadata = Onetime::Metadata.new
 
     # Default attributes
     default_attrs = {
@@ -99,7 +99,7 @@ module ModelTestHelper
     metadata
   end
 
-  # Creates a linked pair of V1::Secret and V1::Metadata
+  # Creates a linked pair of Onetime::Secret and Onetime::Metadata
   def create_stubbed_secret_pair(attributes = {})
     secret_key = "test-secret-key-#{SecureRandom.hex(8)}"
     metadata_key = "test-metadata-key-#{SecureRandom.hex(8)}"

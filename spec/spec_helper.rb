@@ -4,24 +4,24 @@
 
 # Debugging helpers for tests
 #
-# To debug tests with IRB console:
-#   RUBY_DEBUG_IRB_CONSOLE=true bundle exec rspec spec/your_test_spec.rb
+# To debug tests with IRB console (debugger):
+#   RUBY_DEBUG_IRB_CONSOLE=true pnpm run test:rspec spec/your_test_spec.rb
 #
 # To run specific tests:
-#   bundle exec rspec spec/your_test_spec.rb:line_number
-#   bundle exec rspec spec/your_test_spec.rb -e "test description"
+#   pnpm run test:rspec spec/your_test_spec.rb:line_number
+#   pnpm run test:rspec spec/your_test_spec.rb -e "test description"
 #
 # To run tests with focus tag:
-#   Add `focus: true` to your it/describe blocks, then run: bundle exec rspec
+#   Add `focus: true` to your it/describe blocks, then run: pnpm run test:rspec
 #
 # To see full error backtraces:
-#   bundle exec rspec --backtrace
+#   pnpm run test:rspec --backtrace
 #
 # To run tests in the order they're written (not random):
-#   bundle exec rspec --order defined
+#   pnpm run test:rspec --order defined
 #
 # To see detailed output:
-#   bundle exec rspec --format documentation
+#   pnpm run test:rspec --format documentation
 
 # spec/spec_helper.rb
 # Test harness for Onetime.
@@ -31,6 +31,12 @@
 # This is a 32-byte test key, base64 encoded (AES-256 requires 32-byte keys).
 require 'base64'
 ENV['SECRET'] ||= Base64.strict_encode64('rspec-test-key-32bytes-exactly!')
+
+# Set test database URL - use port 2121 to avoid conflicts with development Redis
+# This MUST be set before config.test.yaml is loaded via ERB, since it checks:
+#   ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:6379/0'
+# CI sets REDIS_URL but we prefer VALKEY_URL for consistency with the code.
+ENV['VALKEY_URL'] ||= ENV['REDIS_URL'] || 'redis://127.0.0.1:2121/0'
 
 require 'rspec'
 require 'yaml'
@@ -62,10 +68,10 @@ require 'fileutils'
 # - Add to Gemfile: gem 'mock_redis', require: false
 # - See: https://rubygems.org/gems/mock_redis
 #
-# For now, tests requiring Redis should use real Valkey via .env.test:
-#   source .env.test  # Sets VALKEY_URL=valkey://127.0.0.1:2121/0
+# For now, tests requiring Redis should use real Valkey via spec/.env.test:
+#   source spec/.env.test  # Sets VALKEY_URL=valkey://127.0.0.1:2121/0
 #   pnpm run test:database:start  # Start Valkey on port 2121
-#   bundle exec rspec
+#   pnpm run test:rspec
 
 # Configure Timecop for time manipulation in tests
 require 'timecop'
@@ -77,7 +83,6 @@ require 'rack/test'
 # Tests must use VCR cassettes or explicit stubs for any HTTP calls
 require 'webmock/rspec'
 WebMock.disable_net_connect!(allow_localhost: true)
-
 # Path setup - do one thing well
 spec_root = File.expand_path(__dir__)
 base_path = File.expand_path('..', spec_root)
@@ -116,6 +121,9 @@ Dir[File.join(spec_root, 'support', '*.rb')].each { |f| require f }
 OT.mode         = :test
 OT::Config.path = File.join(spec_root, 'config.test.yaml')
 
+# Use test auth config to avoid issues with local auth.yaml modifications
+Onetime::AuthConfig.path = File.join(spec_root, 'auth.test.yaml')
+
 # Load the test configuration so OT.conf is available to tests.
 # This is a minimal config load that doesn't run the full boot process.
 # Integration tests that need full boot will call Onetime.boot! separately.
@@ -124,6 +132,11 @@ begin
   raw_conf = OT::Config.load
   processed_conf = OT::Config.after_load(raw_conf)
   OT.replace_config!(processed_conf)
+
+  # Set Familia.uri from config so integration test hooks can use Familia.dbclient
+  # before boot! runs. Without this, Familia uses default redis://127.0.0.1:6379.
+  redis_uri = OT.conf.dig('redis', 'uri')
+  Familia.uri = redis_uri if redis_uri
 rescue StandardError => ex
   warn "Failed to load test config: #{ex.message}"
   warn "Tests requiring OT.conf will fail"
@@ -143,8 +156,25 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
-  # Configure Timecop - automatically return to real time after each test
+  # Save critical OT global state before each test to prevent test isolation issues.
+  # Some tests modify these values directly or set them to nil; this ensures
+  # subsequent tests have valid state.
+  config.before(:each) do
+    @__original_ot_conf = OT.conf
+    # Save Runtime state - this is where locales and other i18n state lives
+    @__original_runtime_i18n = Onetime::Runtime.internationalization
+  end
+
   config.after(:each) do
+    # Restore OT.conf if it was changed during the test
+    if OT.conf != @__original_ot_conf
+      OT.instance_variable_set(:@conf, @__original_ot_conf)
+    end
+    # Restore Runtime internationalization state if changed
+    if Onetime::Runtime.internationalization != @__original_runtime_i18n
+      Onetime::Runtime.internationalization = @__original_runtime_i18n
+    end
+    # Configure Timecop - automatically return to real time after each test
     Timecop.return
   end
 

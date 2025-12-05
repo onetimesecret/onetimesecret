@@ -5,8 +5,8 @@
 require_relative '../../spec_helper'
 
 # Load migration to access its methods
-migration_path = File.expand_path('../../../../migrations/20250727-1523_02_reorganize_config_structure.rb', __FILE__)
-load migration_path
+require File.join(Onetime::HOME, 'migrations', 'pending', '20250727-1523_02_reorganize_config_structure.rb')
+
 
 RSpec.describe 'Config Migration Helpers' do
   include_context "migration_test_context"

@@ -51,14 +51,14 @@ last_response.status
 
 ## Can parse create organization response
 resp = JSON.parse(last_response.body)
-@objid = resp['record']['objid']
+@extid = resp['record']['id']
 [resp['record']['display_name'], resp['record']['owner_id']]
 #=> ['API Test Org', @cust.custid]
 
 ## Created organization response includes all expected fields
 resp = JSON.parse(last_response.body)
 [
-  resp['record'].key?('objid'),
+  resp['record'].key?('id'),
   resp['record'].key?('display_name'),
   resp['record'].key?('description'),
   resp['record'].key?('contact_email'),
@@ -84,17 +84,17 @@ resp = JSON.parse(last_response.body)
 
 ## Listed organizations include the created organization
 resp = JSON.parse(last_response.body)
-org_ids = resp['records'].map { |o| o['objid'] }
-org_ids.include?(@objid)
+org_ids = resp['records'].map { |o| o['id'] }
+org_ids.include?(@extid)
 #=> true
 
 ## Listed organizations have correct structure
 resp = JSON.parse(last_response.body)
 first_org = resp['records'].first
 [
-  first_org.key?('objid'),
+  first_org.key?('id'),
   first_org.key?('display_name'),
-  first_org.key?('is_owner')
+  first_org.key?('current_user_role')
 ]
 #=> [true, true, true]
 
@@ -103,8 +103,8 @@ get "/api/organizations/#{@extid}",
   {},
   { 'rack.session' => @session }
 resp = JSON.parse(last_response.body)
-[last_response.status, resp['record']['objid'], resp['record']['display_name']]
-#=> [200, @objid, 'API Test Org']
+[last_response.status, resp['record']['id'], resp['record']['display_name']]
+#=> [200, @extid, 'API Test Org']
 
 ## Organization details include description and contact email
 resp = JSON.parse(last_response.body)
@@ -146,12 +146,12 @@ resp = JSON.parse(last_response.body)
 #=> [200, 'Final Org Name', 'Final description', @final_email]
 
 ## Updated timestamp changes after update
-original_updated = JSON.parse(last_response.body)['record']['updated']
+original_updated = JSON.parse(last_response.body)['record']['updated_at']
 sleep 0.01
 put "/api/organizations/#{@extid}",
   { display_name: 'Timestamp Test' }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
-new_updated = JSON.parse(last_response.body)['record']['updated']
+new_updated = JSON.parse(last_response.body)['record']['updated_at']
 new_updated > original_updated
 #=> true
 
@@ -169,12 +169,13 @@ post '/api/organizations',
 last_response.status >= 400
 #=> true
 
-## Cannot create organization without contact email
+## Can create organization without contact email (optional field)
 post '/api/organizations',
-  { display_name: 'Missing Contact Email' }.to_json,
+  { display_name: 'No Contact Email Org' }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
-last_response.status >= 400
-#=> true
+@no_email_extid = JSON.parse(last_response.body)['record']['id'] rescue nil
+last_response.status
+#=> 200
 
 ## Cannot create organization with display name too long
 long_name = 'A' * 101
@@ -236,14 +237,16 @@ last_response.status >= 400
 post '/api/organizations',
   { display_name: 'Delete Test Org', contact_email: "deletetest#{Familia.now.to_i}@example.com" }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
-@delete_objid = JSON.parse(last_response.body)['record']['objid']
-delete "/api/organizations/#{@delete_objid}", {}, {}
-[last_response.status >= 400, @delete_objid != nil]
+@delete_extid = JSON.parse(last_response.body)['record']['id']
+delete "/api/organizations/#{@delete_extid}", {}, {}
+[last_response.status >= 400, @delete_extid != nil]
 #=> [true, true]
 
-# Cleanup the test organization we just created
-@org_to_cleanup = Onetime::Organization.load(@delete_objid)
+# Cleanup the test organizations we created
+@org_to_cleanup = Onetime::Organization.find_by_extid(@delete_extid)
 @org_to_cleanup.destroy! if @org_to_cleanup
+@no_email_org = Onetime::Organization.find_by_extid(@no_email_extid)
+@no_email_org.destroy! if @no_email_org
 
 # Teardown
 @cust.destroy!

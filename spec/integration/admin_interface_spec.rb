@@ -5,8 +5,11 @@
 require_relative 'integration_spec_helper'
 require 'rack/test'
 
-RSpec.describe 'Admin Interface', type: :integration do
+# Requires full authentication mode for admin/colonel functionality
+RSpec.describe 'Admin Interface', :full_auth_mode, type: :integration do
   include Rack::Test::Methods
+
+  skip_unless_mode :full
 
   using Familia::Refinements::TimeLiterals
 

@@ -74,6 +74,7 @@ module TeamAPI::Logic
           user_id: cust.objid,
           record: team.safe_dump.merge(
             current_user_role: 'owner',
+            is_owner: true,
           ),
         }
       end

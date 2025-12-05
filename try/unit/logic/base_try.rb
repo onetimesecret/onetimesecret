@@ -74,7 +74,7 @@ end
 ## Plan defaults to anonymous for nil customer
 @strategy_result_no_cust = MockStrategyResult.new(session: @session, user: nil)
 @obj_no_cust = TestLogic.new(@strategy_result_no_cust, {})
-@obj_no_cust.planid
+@obj_no_cust.cust.planid
 #=> nil
 
 ## Form error includes form fields

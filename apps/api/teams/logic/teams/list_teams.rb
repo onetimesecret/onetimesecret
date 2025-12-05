@@ -32,6 +32,7 @@ module TeamAPI::Logic
           records: teams.map do |team|
             team.safe_dump.merge(
               current_user_role: team.owner?(cust) ? 'owner' : 'member',
+              is_owner: team.owner?(cust),
             )
           end,
           count: teams.length,

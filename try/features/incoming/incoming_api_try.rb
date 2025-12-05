@@ -10,19 +10,19 @@
 #
 # Note: These tests require the incoming feature to be enabled in config.
 
-require_relative '../../support/test_models'
-OT.boot! :test, false
+require_relative '../../support/test_logic'
+require 'apps/api/v3/logic'
+
+begin
+  OT.boot! :test, false
+rescue Redis::CannotConnectError, Redis::ConnectionError => e
+  puts "SKIP: Requires Redis connection (#{e.class})"
+  exit 0
+end
 
 @email = "tryouts+incoming+#{Familia.now.to_i}@onetimesecret.com"
 @cust = Onetime::Customer.create!(email: @email)
-@sess = Onetime::Session.new ipaddress: '127.0.0.1'
-@sess['external_id'] = @cust.extid
-@sess.save
-
-# Helper to create a mock request context
-def mock_params(params = {})
-  params
-end
+@strategy_result = MockStrategyResult.new(session: {}, user: @cust)
 
 ## V3::Logic::Incoming::GetConfig class exists
 defined?(V3::Logic::Incoming::GetConfig)
@@ -38,7 +38,7 @@ defined?(V3::Logic::Incoming::CreateIncomingSecret)
 
 ## GetConfig raises error when feature is disabled
 begin
-  logic = V3::Logic::Incoming::GetConfig.new(@sess, @cust, mock_params)
+  logic = V3::Logic::Incoming::GetConfig.new(@strategy_result, {})
   logic.process_params
   logic.raise_concerns
   false
@@ -49,7 +49,7 @@ end
 
 ## ValidateRecipient raises error when feature is disabled
 begin
-  logic = V3::Logic::Incoming::ValidateRecipient.new(@sess, @cust, mock_params('recipient' => 'test_hash'))
+  logic = V3::Logic::Incoming::ValidateRecipient.new(@strategy_result, { 'recipient' => 'test_hash' })
   logic.process_params
   logic.raise_concerns
   false
@@ -60,13 +60,13 @@ end
 
 ## CreateIncomingSecret raises error when feature is disabled
 begin
-  logic = V3::Logic::Incoming::CreateIncomingSecret.new(@sess, @cust, mock_params(
+  logic = V3::Logic::Incoming::CreateIncomingSecret.new(@strategy_result, {
     'secret' => {
       'memo' => 'Test memo',
       'secret' => 'Test secret content',
       'recipient' => 'test_hash'
     }
-  ))
+  })
   logic.process_params
   logic.raise_concerns
   false
@@ -77,6 +77,5 @@ end
 
 ## Cleanup test data
 @cust.destroy! if @cust
-@sess.destroy! if @sess
 true
 #=> true

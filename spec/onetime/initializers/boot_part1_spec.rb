@@ -15,6 +15,11 @@ RSpec.describe "Onetime::Config during Onetime.boot!", :allow_redis do
   end
 
   before(:each) do
+    # Set test database URL before any config loading
+    # This must be set BEFORE config is loaded via ERB since config.test.yaml
+    # uses ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:6379/0'
+    ENV['VALKEY_URL'] = 'redis://127.0.0.1:2121/0'
+
     # Mock Onetime::Config.path to use the actual test config file
     allow(Onetime::Config).to receive(:path).and_return(source_config_path)
     allow(Onetime::Config).to receive(:find_configs).and_return([source_config_path])
@@ -42,28 +47,29 @@ RSpec.describe "Onetime::Config during Onetime.boot!", :allow_redis do
 
     allow(Familia).to receive(:uri=)
 
-    allow(Onetime).to receive(:load_locales).and_call_original # Changed from simple stub
-    allow(Onetime).to receive(:set_global_secret).and_call_original
-    allow(Onetime).to receive(:prepare_emailers).and_call_original
-    allow(Onetime).to receive(:load_fortunes).and_call_original # Ensure actual method is called
-    allow(Onetime).to receive(:detect_legacy_data_and_warn) # Skip legacy data detection in boot tests
-    allow(Onetime).to receive(:connect_databases).and_call_original
-    allow(Onetime).to receive(:check_global_banner).and_call_original # Ensure actual method is called
-    allow(Onetime).to receive(:print_log_banner)
+    # NOTE: The boot process now uses InitializerRegistry with initializer classes.
+    # These methods no longer exist as direct module methods on Onetime.
+    # Initializers run automatically via InitializerRegistry during boot!.
+    #
+    # To skip specific initializers in tests, you can:
+    # 1. Let them run (they're designed to work in test mode)
+    # 2. Stub the initializer class's execute method directly
+    # 3. Use InitializerRegistry.reset! to clear and selectively register
 
-    redis_double = double("Redis").as_null_object
-    allow(Familia).to receive(:dbclient).and_return(redis_double)
-    allow(Familia).to receive(:uri=)
-    allow(Familia).to receive(:uri).and_return(double('URI', serverid: 'localhost:6379'))
-    allow(redis_double).to receive(:ping).and_return("PONG")
-    allow(redis_double).to receive(:get).with('global_banner').and_return(nil)
-    allow(redis_double).to receive(:info).and_return({'redis_version' => 'test_version'})
-    allow(redis_double).to receive(:serverid).and_return('testserver:0000') # Added default for print_log_banner
+    # Reset registry and Onetime ready state before each test
+    Onetime::Boot::InitializerRegistry.reset!
+    Onetime.not_ready
 
-    allow(Onetime::Mail::Mailer::SMTPMailer).to receive(:setup)
-    # Add other mailers if they could be chosen by config
-    allow(Onetime::Mail::Mailer::SendGridMailer).to receive(:setup)
-    allow(Onetime::Mail::Mailer::SESMailer).to receive(:setup)
+    # NOTE: Tests that call boot! rely on a real database connection.
+    # The VALKEY_URL environment variable should be set to the test database.
+    # We only stub things that would cause side effects or output.
+    #
+    # If VALKEY_URL is not set, tests will fail - this is intentional to
+    # ensure test infrastructure is properly configured.
+
+    # Mailer classes have been refactored to Onetime::Mail::Delivery::*
+    # They no longer have a setup class method - they're instantiated with config.
+    # No mocking needed for boot tests.
 
     truemail_config_double = double("Truemail::Configuration").as_null_object
     allow(Truemail).to receive(:configure).and_yield(truemail_config_double)
@@ -95,6 +101,9 @@ RSpec.describe "Onetime::Config during Onetime.boot!", :allow_redis do
   after(:each) do
     # Remove the constant if we defined it, to avoid polluting other tests
     # Object.send(:remove_const, :DATABASE_IDS) if defined?(DATABASE_IDS_DEFINED_BY_TEST) && DATABASE_IDS_DEFINED_BY_TEST
+
+    # Reset ready state so subsequent tests can boot properly
+    Onetime.reset_ready!
   end
 
   describe "State of @conf after OT::Config.load and OT::Config.after_load" do
@@ -265,41 +274,59 @@ RSpec.describe "Onetime::Config during Onetime.boot!", :allow_redis do
 
     it "configures emailer based on @conf" do
       Onetime.boot!(:test)
-      expect(Onetime.emailer).to eq(Onetime::Mail::Mailer::SMTPMailer)
-      expect(Onetime::Mail::Mailer::SMTPMailer).to have_received(:setup)
+      # The emailer is now configured via OT.conf['emailer'] and accessed
+      # through Onetime::Mail::Mailer.send_email or similar methods.
+      # Verify the config is set correctly (test config uses 'logger' mode):
+      expect(Onetime.conf.dig('emailer', 'mode')).to eq('logger')
     end
-
-      require_relative '../../../apps/app_registry'
-      require 'v2/application'
 
     it "sets Familia.uri from the configuration" do
       Onetime.boot!(:test)
       expect(Familia).to have_received(:uri=).with(loaded_config.dig('redis', 'uri'))
     end
 
-    it "loads fortunes into OT::Utils.fortunes" do
-      sample_fortunes = ["Test Fortune 1", "Test Fortune 2: Electric Boogaloo"]
-      allow(File).to receive(:readlines).with(File.join(Onetime::HOME, 'etc', 'fortunes')).and_return(sample_fortunes)
-
+    it "loads fortunes into Onetime::Runtime.features" do
+      # The fortunes are loaded during boot from etc/fortunes file
       Onetime.boot!(:test)
 
-      expect(OT::Utils.fortunes).to eq(sample_fortunes)
+      # Fortunes should be loaded (non-empty array) after boot
+      # NOTE: Fortunes are now stored in Runtime.features, not OT::Utils.fortunes
+      features = Onetime::Runtime.features
+      expect(features).not_to be_nil
+      expect(features.fortunes).to be_an(Array)
+      expect(features.fortunes).not_to be_empty
     end
 
     context "when checking global banner" do
-      it "sets Onetime.global_banner to the banner from the database if present" do
-        test_banner_text = "Attention all planets of the Solar Federation: We have assumed control."
-        # Familia.dbclient is redis_double from the outer before_each block
-        allow(Familia.dbclient).to receive(:get).with('global_banner').and_return(test_banner_text)
+      let(:test_banner_text) { "Attention all planets of the Solar Federation: We have assumed control." }
 
+      it "sets Onetime.global_banner to the banner from the database if present" do
+        # Do a first boot to set up Familia, then set banner and re-test
+        Onetime.boot!(:test)
+
+        # Set the banner after boot (Familia is now connected)
+        Familia.dbclient.set('global_banner', test_banner_text)
+
+        # Reset and boot again to pick up the banner
+        Onetime::Boot::InitializerRegistry.reset!
+        Onetime.not_ready
         Onetime.boot!(:test)
 
         expect(Onetime.global_banner).to eq(test_banner_text)
+
+        # Clean up
+        Familia.dbclient.del('global_banner')
       end
 
       it "sets Onetime.global_banner to nil if not present in Redis" do
-        allow(Familia.dbclient).to receive(:get).with('global_banner').and_return(nil) # Explicitly ensure nil
+        Onetime.boot!(:test)
 
+        # Ensure no banner is set and check the runtime state
+        Familia.dbclient.del('global_banner')
+
+        # Reset and boot again
+        Onetime::Boot::InitializerRegistry.reset!
+        Onetime.not_ready
         Onetime.boot!(:test)
 
         expect(Onetime.global_banner).to be_nil
@@ -351,14 +378,17 @@ RSpec.describe "Onetime::Config during Onetime.boot!", :allow_redis do
       expect(Onetime.instance).to be_frozen
     end
 
-    it "calls Onetime.connect_databases" do
-      # The main before_each already allows Onetime.connect_databases to be called
-      # We just need to ensure it was indeed called.
-      # We can use a spy or re-allow with .and_call_original and expect it to have been received.
-      # Since it's already allow(...).to receive(...).and_call_original, we can check if it was called.
-      # However, a more direct way is to expect it.
-      expect(Onetime).to receive(:connect_databases).and_call_original
+    it "runs the ConfigureFamilia initializer (database connection)" do
+      # The boot process now uses InitializerRegistry with initializer classes.
+      # ConfigureFamilia replaces the old Onetime.connect_databases method.
       Onetime.boot!(:test)
+
+      # Check that the ConfigureFamilia initializer completed successfully
+      initializer = Onetime::Boot::InitializerRegistry.initializers.find do |i|
+        i.name == :"onetime.initializers.configure_familia"
+      end
+      expect(initializer).not_to be_nil
+      expect(initializer.completed?).to be true
     end
 
     context "debug mode" do
@@ -404,36 +434,16 @@ RSpec.describe "Onetime::Config during Onetime.boot!", :allow_redis do
     end
 
     context "regarding print_log_banner" do
-      it "does not call print_log_banner when mode is :test" do
-        # Onetime.boot! is called with :test mode.
-        # The global before(:each) in this file stubs :print_log_banner:
-        # allow(Onetime).to receive(:print_log_banner)
-
+      it "runs PrintLogBanner initializer during boot" do
+        # The PrintLogBanner initializer runs in all modes (including test).
+        # It logs system information to help with debugging.
         Onetime.boot!(:test)
-        expect(Onetime).not_to have_received(:print_log_banner)
-      end
 
-      it "calls print_log_banner when mode is not :test" do
-        # Allow print_log_banner to be called for this test specifically
-        allow(Onetime).to receive(:print_log_banner).and_call_original
-
-        # Mock $stdout.tty? to return true for this test
-        allow($stdout).to receive(:tty?).and_return(true)
-
-        # Set RACK_ENV to non-test value to allow banner display
-        original_rack_env = ENV['RACK_ENV']
-        begin
-          ENV['RACK_ENV'] = 'development'
-
-          # OT.li is already stubbed by config_spec_helper.rb
-          # Familia.dbclient.serverid is stubbed in the main before(:each)
-
-          Onetime.boot!(:app) # Use a non-test mode like :app
-          expect(Onetime).to have_received(:print_log_banner).at_least(:once)
-        ensure
-          # Restore original RACK_ENV
-          ENV['RACK_ENV'] = original_rack_env
+        initializer = Onetime::Boot::InitializerRegistry.initializers.find do |i|
+          i.name == :"onetime.initializers.print_log_banner"
         end
+        expect(initializer).not_to be_nil
+        expect(initializer.completed?).to be true
       end
     end
   end

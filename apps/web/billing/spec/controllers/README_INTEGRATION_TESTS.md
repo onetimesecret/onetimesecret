@@ -49,7 +49,7 @@ Once Stripe is configured, record VCR cassettes:
 rm -rf apps/web/billing/spec/fixtures/vcr_cassettes/
 
 # Re-record with real Stripe Test API
-VCR_MODE=all STRIPE_KEY=sk_test_xxx bundle exec rspec apps/web/billing/spec/controllers
+VCR_MODE=all STRIPE_KEY=sk_test_xxx pnpm run test:rspec apps/web/billing/spec/controllers
 ```
 
 ### 4. Running Tests
@@ -58,10 +58,10 @@ After setup:
 
 ```bash
 # Use recorded cassettes (no API calls)
-bundle exec rspec apps/web/billing/spec/controllers
+pnpm run test:rspec apps/web/billing/spec/controllers
 
 # Re-record cassettes
-VCR_MODE=all STRIPE_KEY=sk_test_xxx bundle exec rspec apps/web/billing/spec/controllers
+VCR_MODE=all STRIPE_KEY=sk_test_xxx pnpm run test:rspec apps/web/billing/spec/controllers
 ```
 
 ## Alternative: Mock-Based Testing

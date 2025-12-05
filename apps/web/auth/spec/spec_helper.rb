@@ -8,10 +8,10 @@
 # based on ENV variables after the configuration refactoring.
 #
 # Run all auth config tests:
-#   bundle exec rspec apps/web/auth/spec/
+#   pnpm run test:rspec apps/web/auth/spec/
 #
 # Run specific feature tests:
-#   bundle exec rspec apps/web/auth/spec/config/features/mfa_spec.rb
+#   pnpm run test:rspec apps/web/auth/spec/config/features/mfa_spec.rb
 
 require 'rspec'
 require 'sequel'

@@ -35,7 +35,7 @@ module TeamAPI::Logic
         verify_team_owner(@team)
 
         # Find customer by email
-        @new_member = Onetime::Customer.load_by_email(email)
+        @new_member = Onetime::Customer.find_by_email(email)
         if @new_member.nil?
           raise_form_error("No account found for email: #{email}", field: :email, error_type: :not_found)
         end

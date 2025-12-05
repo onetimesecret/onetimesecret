@@ -34,9 +34,9 @@
 #   - Integration tests: Use real Redis to verify I/O and TTL behavior
 #
 
-require_relative '../../../spec_helper'
-require_relative '../../../../lib/onetime/jobs/workers/base_worker'
-require_relative '../../../../lib/onetime/jobs/queue_config'
+require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require_relative File.join(Onetime::HOME, 'lib/onetime/jobs/workers/base_worker')
+require_relative File.join(Onetime::HOME, 'lib/onetime/jobs/queue_config')
 require 'sneakers'
 
 # Data classes for mocking AMQP envelope components (immutable, Ruby 3.2+)

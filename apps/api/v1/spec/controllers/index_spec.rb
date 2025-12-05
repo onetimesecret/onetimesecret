@@ -2,7 +2,9 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../../../spec_helper'
+require_relative '../../application'
+require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.rb')
 require 'v1/controllers'
 
 RSpec.describe V1::Controllers::Index, type: :request do

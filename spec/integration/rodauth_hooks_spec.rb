@@ -5,8 +5,11 @@
 require_relative 'integration_spec_helper'
 require 'rack/test'
 
-RSpec.describe 'Rodauth Security Hooks', type: :integration do
+# Requires full authentication mode - Rodauth/Auth::Database only available in full mode
+RSpec.describe 'Rodauth Security Hooks', :full_auth_mode, type: :integration do
   include Rack::Test::Methods
+
+  skip_unless_mode :full
 
   before(:all) do
     # Set full mode before loading the application

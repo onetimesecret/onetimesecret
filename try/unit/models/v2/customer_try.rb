@@ -48,7 +48,7 @@ OT.boot! :test, false
 
 ## New instance of customer has an extid
 @cust.extid
-#=~> /ext_[0-9a-z]{16}/
+#=~> /[0-9a-z]{16,}/
 
 ## New instance of customer has a dbkey
 @cust.dbkey

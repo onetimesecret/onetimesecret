@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../../../spec_helper'
+require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require 'account/logic'
 
 RSpec.describe AccountAPI::Logic::Account::UpdateNotificationPreference do

@@ -17,16 +17,16 @@ OT.boot! :test, false
 # Basic Configuration Tests
 
 ## Config initialization with domains enabled
-config = { 'features' => { 'domains' => { 'enabled' => true, 'default' => @canonical_domain } } }
+config = { 'enabled' => true, 'default' => @canonical_domain }
 Onetime::Middleware::DomainStrategy.initialize_from_config(config)
 Onetime::Middleware::DomainStrategy.canonical_domain
 #=> 'onetimesecret.com'
 
 ## Config initialization with domains disabled uses fallback host
-config = { 'features' => { 'domains' => { 'enabled' => false }, 'host' => 'fallback.com' } }
+config = { 'enabled' => false }
 Onetime::Middleware::DomainStrategy.initialize_from_config(config)
 Onetime::Middleware::DomainStrategy.canonical_domain
-#=> 'fallback.com'
+#=> '127.0.0.1:3000'
 
 # Domain Validation Tests
 ## Valid canonical domain passes validation
@@ -114,26 +114,21 @@ end
 #=> true
 
 ## Disables domains when canonical domain is invalid
-config = { 'features' => { domains' => { 'enabled' => true, 'default' => '..invalid..' } } }
+config = { 'enabled' => true, 'default' => '..invalid..' }
 Onetime::Middleware::DomainStrategy.initialize_from_config(config)
 Onetime::Middleware::DomainStrategy.domains_enabled?
 #=> false
 
 
-## DomainStrategy class method 'normalize_canonical_domain' returns the correct normalized domain
-@config_with_domains = {
-  'site' => {
-    'host' => 'onetimesecret.com',
-    'domains' => {
-      'enabled' => true,
-      'default' => 'example.Com'
-    }
-  }
+## DomainStrategy class method 'get_canonical_domain' returns the correct domain when domains enabled with default
+config_with_domains = {
+  'enabled' => true,
+  'default' => 'example.com'
 }
-pp [:plop, @config_with_domains]
 Onetime::Middleware::DomainStrategy.reset!
-Onetime::Middleware::DomainStrategy.get_canonical_domain(@config_with_domains['site'])
-#=> 'onetimesecret.com'
+Onetime::Middleware::DomainStrategy.initialize_from_config(config_with_domains)
+Onetime::Middleware::DomainStrategy.canonical_domain
+#=> 'example.com'
 
 # Teardown
 Onetime::Middleware::DomainStrategy.reset!

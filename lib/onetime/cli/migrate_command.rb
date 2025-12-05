@@ -37,8 +37,13 @@ module Onetime
           return
         end
 
-        migration_paths = migration_dirs.map { |dir| File.join(dir, migration_file) }
-        migration_path  = migration_paths.find { |path| File.exist?(path) }
+        # Check if migration_file is already a full path
+        if File.exist?(migration_file)
+          migration_path = migration_file
+        else
+          migration_paths = migration_dirs.map { |dir| File.join(dir, migration_file) }
+          migration_path  = migration_paths.find { |path| File.exist?(path) }
+        end
 
         unless migration_path
           puts "Migration script not found: #{migration_file}"

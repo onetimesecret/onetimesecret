@@ -94,42 +94,42 @@ OT.conf['site']['authentication']['signin']
 OT.conf['site']['authentication']['autoverify']
 #=> false
 
-## Option for emailer
+## Option for emailer (from environment)
 OT.conf['emailer']['from']
-#=> "tests@example.com"
+#=> "secure@onetime.dev"
 
-## Default emailer mode is :smtp
+## Default emailer mode is logger in test environment
 OT.conf['emailer']['mode']
-#=> "smtp"
+#=> "logger"
 
-## Default emailer from address is "CHANGEME@example.com"
+## Emailer from address is set via environment
 OT.conf['emailer']['from']
-#=> "tests@example.com"
+#=> "secure@onetime.dev"
 
 ## Default emailer from_name is "Jan"
 OT.conf['emailer']['from_name']
 #=> "Jan"
 
-## Default SMTP host is "localhost"
+## SMTP host in test environment (not set by default)
 OT.conf['emailer']['host']
-#=> "localhost"
+#=> nil
 
-## Default SMTP port is 587
+## SMTP port in test environment (not set by default)
 OT.conf['emailer']['port']
-#=> 587
+#=> nil
 
-## Default SMTP username is "CHANGEME"
+## SMTP username in test environment (not set by default)
 OT.conf['emailer']['user']
-#=> "user"
+#=> nil
 
-## Default SMTP password is "CHANGEME"
+## SMTP password in test environment (not set by default)
 OT.conf['emailer']['pass']
-#=> "pass"
+#=> nil
 
-## Default SMTP auth is "login"
+## SMTP auth in test environment (not set by default)
 OT.conf['emailer']['auth']
-#=> "login"
+#=> nil
 
-## Default SMTP TLS is true
+## SMTP TLS in test environment (not set by default)
 OT.conf['emailer']['tls']
-#=> true
+#=> nil

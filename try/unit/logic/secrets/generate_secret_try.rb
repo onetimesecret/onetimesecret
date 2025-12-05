@@ -42,14 +42,14 @@ secret.generate_id
 #=> [true, true]
 
 ## Test basic secret creation
-@secret_params = {
-  secret: 'test secret value',
-  passphrase: 'testpass123',
-  ttl: '7200',
-  recipient: 'recipient@example.com',
+@secret_payload = {
+  'secret' => 'test secret value',
+  'passphrase' => 'testpass123',
+  'ttl' => '7200',
+  'recipient' => ['recipient@example.com'],
 }
 @strategy_result_with_cust = MockStrategyResult.new(session: @session, user: @cust)
-logic = Logic::Secrets::ConcealSecret.new @strategy_result_with_cust, {secret: @secret_params}
+logic = Logic::Secrets::ConcealSecret.new @strategy_result_with_cust, {'secret' => @secret_payload}
 [
   logic.secret_value,
   logic.passphrase,
@@ -68,44 +68,44 @@ logic = Logic::Secrets::ConcealSecret.new @strategy_result_with_cust, {secret: @
 
 # Test secret viewing
 @view_params = {
-  key: @secret.identifier, # Key converted to symbol
-  passphrase: 'testpass123', # Key converted to symbol
+  'identifier' => @secret.identifier,
+  'passphrase' => 'testpass123',
 }
 logic = Logic::Secrets::ShowSecret.new @strategy_result_with_cust, @view_params
-[logic.key, logic.passphrase]
+[logic.identifier, logic.passphrase]
 #=> [@secret.identifier, 'testpass123']
 
 # RevealSecret Tests
 
 ## Test secret revealing (v2 API)
 logic = V2::Logic::Secrets::RevealSecret.new @strategy_result_with_cust, @view_params
-[logic.key, logic.passphrase]
+[logic.identifier, logic.passphrase]
 #=> [@secret.identifier, 'testpass123']
 
 # ShowMetadata Tests
 
 ## Test metadata viewing
-logic = Logic::Secrets::ShowMetadata.new @strategy_result_with_cust, { key: @metadata.identifier }
-[logic.instance_variables.include?(:@key), logic.instance_variables.include?(:@metadata_identifier), logic.instance_variables.include?(:@secret_identifier), logic.secret_identifier, logic.key]
+logic = Logic::Secrets::ShowMetadata.new @strategy_result_with_cust, { 'identifier' => @metadata.identifier }
+[logic.instance_variables.include?(:@identifier), logic.instance_variables.include?(:@metadata_identifier), logic.instance_variables.include?(:@secret_identifier), logic.secret_identifier, logic.identifier]
 #=> [true, false, false, nil, @metadata.identifier]
 
 # ListMetadata Tests
 
-## Note that process_params is not run unless params are passed in
+## process_params is automatically run when params are passed (even empty hash)
 logic = Logic::Secrets::ListMetadata.new @strategy_result_with_cust, {}
-[logic.since, logic.now]
-#=> [nil, nil]
+[logic.since.class, logic.now.class]
+#=> [Integer, Float]
 
 ## Test metadata list viewing
 logic = Logic::Secrets::ListMetadata.new @strategy_result_with_cust, {}
 [logic.records.class, logic.since.class, logic.now.class]
-#=> [NilClass, Integer, Time]
+#=> [NilClass, Integer, Float]
 
 # BurnSecret Tests
 
 ## Test secret burning
 logic = Logic::Secrets::BurnSecret.new @strategy_result_with_cust, @view_params
-[logic.key, logic.passphrase]
+[logic.identifier, logic.passphrase]
 #=> [@secret.identifier, 'testpass123']
 
 # Cleanup test data

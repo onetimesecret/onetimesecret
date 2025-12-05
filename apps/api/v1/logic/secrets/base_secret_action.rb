@@ -260,7 +260,7 @@ module V1::Logic
           cust.increment_field :secrets_created # cust.secrets_created.increment
         end
         # TODO:
-        # V1::Customer.global.increment_field :secrets_created # Customer.secrets_created.increment
+        # Onetime::Customer.global.increment_field :secrets_created # Customer.secrets_created.increment
       end
 
       def send_email_to_recipient
