@@ -132,6 +132,11 @@ begin
   raw_conf = OT::Config.load
   processed_conf = OT::Config.after_load(raw_conf)
   OT.replace_config!(processed_conf)
+
+  # Set Familia.uri from config so integration test hooks can use Familia.dbclient
+  # before boot! runs. Without this, Familia uses default redis://127.0.0.1:6379.
+  redis_uri = OT.conf.dig('redis', 'uri')
+  Familia.uri = redis_uri if redis_uri
 rescue StandardError => ex
   warn "Failed to load test config: #{ex.message}"
   warn "Tests requiring OT.conf will fail"
