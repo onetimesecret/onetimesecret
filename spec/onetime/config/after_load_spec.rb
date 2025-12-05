@@ -683,7 +683,8 @@ RSpec.describe "Onetime boot configuration process" do
       expect(config['internationalization']['enabled']).to eq(true)
       expect(config['internationalization']['default_locale']).to eq('en')
       expect(config['internationalization']['locales']).to include('en', 'fr_CA', 'fr_FR')
-      expect(config['mail']['truemail']['default_validation_type']).to eq(:mx)
+      # Test config uses :regex to avoid MX lookups for test domains
+      expect(config['mail']['truemail']['default_validation_type']).to eq(:regex)
       expect(config['site']['secret_options']['ttl_options']).to be_a(String)
     end
   end

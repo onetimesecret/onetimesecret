@@ -1,9 +1,12 @@
-# Authentication Configuration for OneTimeSecret
+# spec/auth.test.yaml
+#
+# Authentication Configuration for OneTimeSecret - TEST ENVIRONMENT
 # Controls the authentication mode and related settings
 ---
 
-# Authentication mode: off, 'basic' (Redis-only) or 'advanced' (RDBMS+Redis)
-mode: basic
+# Authentication mode: 'simple' (Redis-only) or 'full' (requires SQL db)
+# Can be overridden with AUTHENTICATION_MODE environment variable
+mode: <%= ENV['AUTHENTICATION_MODE'] || 'simple' %>
 
 # Shared session configuration (both modes)
 session:
@@ -16,21 +19,18 @@ session:
   same_site: strict
   redis_prefix: 'session'
 
-# Mode-specific configurations
-basic:
-  # Basic mode settings (Redis-only authentication)
+# Simple mode settings (Redis-only authentication)
+simple:
   password_hash_cost: 12
   session_timeout: 86400  # 24 hours
 
-advanced:
-  # Database connection for Advanced
-  # database_url: "postgres://user:password@host:port/database"
-  database_url: "sqlite://data/auth.db"
+# Full mode settings (Rodauth-based application)
+full:
+  # Database connection for Full mode
+  # Uses in-memory SQLite for tests to avoid file persistence issues
+  database_url: "<%= ENV['AUTH_DATABASE_URL'] || 'sqlite::memory:' %>"
 
-  # Service URL (only used when deployment: service)
-  service_url: "http://localhost:9393/auth"
-
-  # Advanced features to enable
+  # Full mode features (for reference)
   features:
     - login
     - logout
@@ -39,7 +39,7 @@ advanced:
     - change_password
     - reset_password
     - remember          # "Remember me" functionality
-    - verify_account     # Email verification (optional)
+    - verify_account    # Email verification (optional)
     - lockout           # Brute force protection
     - active_sessions   # Session tracking
     - otp               # TOTP MFA (optional)
