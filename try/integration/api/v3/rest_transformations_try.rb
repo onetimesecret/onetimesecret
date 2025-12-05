@@ -22,17 +22,17 @@ end
 
 @email = "tryouts+#{Familia.now.to_i}@onetimesecret.com"
 @cust = Onetime::Customer.create!(email: @email)
-@sess = Onetime::Session.new(@cust.custid)
-@sess.save
+@session = {}
+@strategy_result = MockStrategyResult.new(session: @session, user: @cust)
 
 ## V2 API preserves 'success' field
-v2_logic = V2::Logic::Secrets::ListMetadata.new({}, @cust, @sess, 'en', 'localhost', 'standard')
-v2_response = v2_logic.process
-[v2_response.key?('success'), v2_response['success']]
+@v2_logic = V2::Logic::Secrets::ListMetadata.new(@strategy_result, {})
+@v2_response = @v2_logic.process
+[@v2_response.key?('success'), @v2_response['success']]
 #=> [true, true]
 
 ## V2 API preserves 'custid' field
-[v2_response.key?('custid'), v2_response['custid'], v2_response.key?('user_id')]
+[@v2_response.key?('custid'), @v2_response['custid'], @v2_response.key?('user_id')]
 #=> [true, @cust.custid, false]
 
 # TODO: Rewrite V3 tests after strategy refactoring (commits 0986aeb38, 66fc5a57f)
@@ -47,7 +47,7 @@ v2_response = v2_logic.process
 # Needs complete rewrite to construct proper StrategyResult object with session and metadata.
 #
 # ## V3 API removes 'success' field
-# v3_logic = V3::Logic::Secrets::ListMetadata.new({}, @cust, @sess, 'en', 'localhost', 'standard')
+# v3_logic = V3::Logic::Secrets::ListMetadata.new(@strategy_result, {})
 # v3_response = v3_logic.process
 # [v3_response.key?(:success), v3_response.key?('success')]
 # #=> [false, false]
@@ -57,5 +57,4 @@ v2_response = v2_logic.process
 # #=> [false, false, true, @cust.objid]
 
 # Teardown
-@sess.destroy!
 @cust.destroy!
