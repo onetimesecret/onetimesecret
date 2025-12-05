@@ -108,7 +108,8 @@ billing:
 mail:
   truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp
-    default_validation_type: :mx
+    # Use regex for tests to avoid MX lookups which can fail for test domains
+    default_validation_type: :regex
     # Required for :smtp validation
     verifier_email: <%= ENV['VERIFIER_EMAIL'] || 'CHANGEME@example.com' %>
     verifier_domain: <%= ENV['VERIFIER_DOMAIN'] || 'example.com' %>
@@ -117,6 +118,8 @@ mail:
     connection_attempts: 1
     validation_type_for:
       'example.com': :regex
+      'test.dev': :regex
+      'onetimesecret.com': :regex
     # Truemail will only validate email addresses that match the
     # domains listed in :allowed_domains. If the domain is not
     # listed, the email address will always be considered invalid.

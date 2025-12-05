@@ -458,7 +458,9 @@ ip = controller.extract_client_ip_for_homepage({ 'trusted_proxy_depth' => 1 })
 ip
 #=> '203.0.113.1'
 
-## Client IP Extraction - Private IP from Header Falls Back to REMOTE_ADDR
+## Client IP Extraction - Private IP from Header Falls Back to REMOTE_ADDR which
+## we need to determine the user's access correctly. The private IPs are the
+## proxy servers which we don't want to use.
 env = {
   'REMOTE_ADDR' => '198.51.100.50',
   'HTTP_X_FORWARDED_FOR' => '10.0.1.100, 10.0.1.200'

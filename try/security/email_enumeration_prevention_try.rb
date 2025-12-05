@@ -16,13 +16,10 @@ require_relative '../support/test_logic'
 require 'securerandom'
 require 'benchmark'
 
-# Load the app with test configuration (need initializers for Truemail)
+# Load the app with test configuration
+# Note: spec/config.test.yaml configures Truemail to use :regex validation
+# for test.dev domain to avoid MX record lookup failures
 OT.boot! :test
-
-# Configure Truemail to accept our test domains
-Truemail.configuration.tap do |config|
-  config.allowed_domains = ['test.dev', 'example.com'] if config.respond_to?(:allowed_domains=)
-end
 
 ## Setup: Create test customer for enumeration testing
 # Use test.dev domain which is valid for testing
