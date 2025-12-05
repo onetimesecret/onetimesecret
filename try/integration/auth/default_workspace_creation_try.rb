@@ -84,10 +84,12 @@ customer_orgs.size
 @result3
 #=> nil
 
-## Verify full registration flow integration
+## Create new customer for registration flow test
 # This simulates what happens when a new user registers
-@registration_email = "fullflow_#{Familia.now.to_i}@example.com"
+@registration_email = "fullflow_#{SecureRandom.hex(8)}_#{Familia.now.to_i}@example.com"
 @new_customer = Onetime::Customer.create!(email: @registration_email)
+[@new_customer.class, @new_customer.organization_instances.count]
+#=> [Onetime::Customer, 0]
 
 ## Create workspace for new registration
 @workspace = Auth::Operations::CreateDefaultWorkspace.new(customer: @new_customer).call

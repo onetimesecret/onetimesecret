@@ -41,6 +41,7 @@ def create_controller_with_config(env, homepage_config)
 
       # Extract client IP
       client_ip = extract_client_ip_for_homepage(homepage_config)
+      mode_header_name = homepage_config['request_header']
 
       # Priority 1: Check CIDR match
       if client_ip && ip_matches_homepage_cidrs?(client_ip)
@@ -48,7 +49,7 @@ def create_controller_with_config(env, homepage_config)
       end
 
       # Priority 2: Fallback to header check
-      if check_homepage_header(configured_mode, homepage_config)
+      if mode_header_name && header_matches_mode?(mode_header_name, configured_mode)
         return configured_mode
       end
 
