@@ -48,7 +48,7 @@ module V1
         OT.ld "[valid_email?] Email field: #{email_field}"
 
         begin
-          validator = Truemail.validate(guess)
+          validator = Truemail.validate(email_field)
 
         rescue StandardError => e
           OT.le "Email validation error: #{e.message}"
