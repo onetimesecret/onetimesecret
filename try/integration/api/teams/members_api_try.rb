@@ -64,16 +64,16 @@ resp = JSON.parse(last_response.body)
 ## Initial member list includes owner
 resp = JSON.parse(last_response.body)
 members = resp['records']
-members.first['custid']
+members.first['id']  # API returns 'id' not 'custid'
 #=> @owner.custid
 
 ## Member record has expected fields
 resp = JSON.parse(last_response.body)
 member = resp['records'].first
 [
-  member.key?('custid'),
+  member.key?('id'),  # API uses 'id' not 'custid'
   member.key?('email'),
-  member.key?('display_name')
+  member.key?('role')  # API returns 'role' not 'display_name'
 ]
 #=> [true, true, true]
 
@@ -82,7 +82,7 @@ post "/api/teams/#{@team_id}/members",
   { email: @member1.email }.to_json,
   { 'rack.session' => @owner_session, 'CONTENT_TYPE' => 'application/json' }
 resp = JSON.parse(last_response.body)
-[last_response.status, resp['record']['custid'], resp['record']['email']]
+[last_response.status, resp['record']['id'], resp['record']['email']]  # API uses 'id' not 'custid'
 #=> [200, @member1.custid, @member1.email]
 
 ## Member list grows after adding member
@@ -95,7 +95,7 @@ resp['count']
 
 ## Added member appears in member list
 resp = JSON.parse(last_response.body)
-member_ids = resp['records'].map { |m| m['custid'] }
+member_ids = resp['records'].map { |m| m['id'] }  # API uses 'id' not 'custid'
 member_ids.include?(@member1.custid)
 #=> true
 
@@ -184,7 +184,7 @@ resp['count']
 
 ## Removed member not in member list
 resp = JSON.parse(last_response.body)
-member_ids = resp['records'].map { |m| m['custid'] }
+member_ids = resp['records'].map { |m| m['id'] }  # API uses 'id' not 'custid'
 member_ids.include?(@member2.custid)
 #=> false
 
@@ -195,8 +195,9 @@ delete "/api/teams/#{@team_id}/members/#{@member1.custid}",
 last_response.status >= 400
 #=> true
 
-## Non-owner cannot remove members
-delete "/api/teams/#{@team_id}/members/#{@member1.custid}",
+## Non-owner cannot remove OTHER members (but can remove themselves)
+# member1 tries to remove owner - should fail since member1 is not the owner
+delete "/api/teams/#{@team_id}/members/#{@owner.custid}",
   {},
   { 'rack.session' => @member1_session }
 last_response.status >= 400
@@ -216,24 +217,24 @@ delete "/api/teams/nonexistent123/members/#{@member1.custid}",
 last_response.status >= 400
 #=> true
 
-## Owner can remove themselves from team
+## Owner CANNOT remove themselves from team (API design: teams must have an owner)
 @initial_member_count = @team.member_count
 delete "/api/teams/#{@team_id}/members/#{@owner.custid}",
   {},
   { 'rack.session' => @owner_session }
-[last_response.status, @team.member_count]
-#=> [200, @initial_member_count - 1]
+[last_response.status >= 400, @team.member_count]  # Should fail, member count unchanged
+#=> [true, @initial_member_count]
 
-## Removed owner no longer in member list
+## Owner is still in member list after failed removal
 get "/api/teams/#{@team_id}/members",
   {},
-  { 'rack.session' => @member1_session }
+  { 'rack.session' => @owner_session }
 resp = JSON.parse(last_response.body)
-member_ids = resp['records'].map { |m| m['custid'] }
+member_ids = resp['records'].map { |m| m['id'] }  # API uses 'id' not 'custid'
 member_ids.include?(@owner.custid)
-#=> false
+#=> true
 
-## Owner can still access team even after removing themselves as member
+## Owner can still access team
 get "/api/teams/#{@team_id}",
   {},
   { 'rack.session' => @owner_session }
@@ -241,13 +242,12 @@ resp = JSON.parse(last_response.body)
 [last_response.status, resp['record']['extid']]
 #=> [200, @team_id]
 
-## Owner can add themselves back as member
-post "/api/teams/#{@team_id}/members",
-  { email: @owner.email }.to_json,
-  { 'rack.session' => @owner_session, 'CONTENT_TYPE' => 'application/json' }
-resp = JSON.parse(last_response.body)
-[last_response.status, resp['record']['custid']]
-#=> [200, @owner.custid]
+## Regular member can remove themselves from team
+delete "/api/teams/#{@team_id}/members/#{@member1.custid}",
+  {},
+  { 'rack.session' => @member1_session }
+last_response.status
+#=> 200
 
 # Teardown
 @team.destroy!

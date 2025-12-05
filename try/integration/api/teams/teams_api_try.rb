@@ -85,7 +85,7 @@ resp = JSON.parse(last_response.body)
 ## Listed teams include the created team
 resp = JSON.parse(last_response.body)
 team_ids = resp['records'].map { |t| t['extid'] }
-team_ids.include?(@team_id)
+team_ids.include?(@extid)
 #=> true
 
 ## Listed teams have correct structure
@@ -104,7 +104,7 @@ get "/api/teams/#{@extid}",
   { 'rack.session' => @session }
 resp = JSON.parse(last_response.body)
 [last_response.status, resp['record']['extid'], resp['record']['display_name']]
-#=> [200, @team_id, 'API Test Team']
+#=> [200, @extid, 'API Test Team']
 
 ## Team details include description
 resp = JSON.parse(last_response.body)
@@ -226,13 +226,13 @@ last_response.status >= 400
 post '/api/teams',
   { display_name: 'Delete Test Team' }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
-delete_teamid = JSON.parse(last_response.body)['record']['extid']
-delete "/api/teams/#{delete_teamid}", {}, {}
-[last_response.status >= 400, delete_teamid != nil]
+@delete_teamid = JSON.parse(last_response.body)['record']['extid']
+delete "/api/teams/#{@delete_teamid}", {}, {}
+[last_response.status >= 400, @delete_teamid != nil]
 #=> [true, true]
 
 # Cleanup the test team we just created
-@team_to_cleanup = Onetime::Team.load(delete_teamid)
+@team_to_cleanup = Onetime::Team.load(@delete_teamid)
 @team_to_cleanup.destroy! if @team_to_cleanup
 
 # Teardown

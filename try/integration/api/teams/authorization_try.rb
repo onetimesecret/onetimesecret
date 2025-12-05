@@ -180,7 +180,7 @@ get "/api/teams/#{@team_id}/members",
   {},
   { 'rack.session' => @owner_session }
 resp = JSON.parse(last_response.body)
-member_ids = resp['records'].map { |m| m['custid'] }
+member_ids = resp['records'].map { |m| m['id'] }  # API returns 'id' not 'custid'
 member_ids.include?(@new_user.custid)
 #=> false
 
@@ -223,7 +223,7 @@ get "/api/teams/#{@team_id}/members",
   {},
   { 'rack.session' => @owner_session }
 resp = JSON.parse(last_response.body)
-member_ids = resp['records'].map { |m| m['custid'] }
+member_ids = resp['records'].map { |m| m['id'] }  # API returns 'id' not 'custid'
 member_ids.include?(@another_member.custid)
 #=> true
 
@@ -285,9 +285,13 @@ last_response.status
 #=> 200
 
 ## Non-member cannot list members
+# Note: @outsider was added to the team earlier, so use a fresh non-member
+@non_member = Onetime::Customer.create!(email: "nonmember#{Familia.now.to_i}@onetimesecret.com")
+@non_member_session = { 'authenticated' => true, 'external_id' => @non_member.extid, 'email' => @non_member.email }
 get "/api/teams/#{@team_id}/members",
   {},
-  { 'rack.session' => @outsider_session }
+  { 'rack.session' => @non_member_session }
+@non_member.destroy!
 last_response.status >= 400
 #=> true
 
