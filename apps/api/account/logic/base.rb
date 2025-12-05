@@ -14,7 +14,7 @@
 # Account API uses same modern conventions as v3 API for consistency.
 
 require 'onetime/logic/base'
-require 'apps/api/v2/logic/helpers/i18n'
+require 'v2/logic/helpers/i18n'
 
 module AccountAPI
   module Logic
