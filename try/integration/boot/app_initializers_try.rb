@@ -15,6 +15,7 @@ class AppWithInit < Onetime::Application::Base
   end
 end
 
+Onetime::Boot::InitializerRegistry.load_all
 found = Onetime::Boot::InitializerRegistry.initializers.any? { |i| i.name == :app_init }
 found
 #=> true
@@ -28,6 +29,7 @@ class AppWithDeps < Onetime::Application::Base
   end
 end
 
+Onetime::Boot::InitializerRegistry.load_all
 base = Onetime::Boot::InitializerRegistry.initializers.find { |i| i.name == :base_init }
 base.provides
 #=> [:base]
@@ -51,6 +53,7 @@ class AppWithOptional < Onetime::Application::Base
   end
 end
 
+Onetime::Boot::InitializerRegistry.load_all
 optional = Onetime::Boot::InitializerRegistry.initializers.find { |i| i.name == :optional_init }
 optional.optional
 #=> true
@@ -61,6 +64,7 @@ class AppWithCapability < Onetime::Application::Base
   end
 end
 
+Onetime::Boot::InitializerRegistry.load_all
 Onetime::Boot::InitializerRegistry.capability_map.key?(:test_capability)
 #=> true
 
@@ -74,6 +78,7 @@ class AppForTracking < Onetime::Application::Base
   end
 end
 
+Onetime::Boot::InitializerRegistry.load_all
 tracked = Onetime::Boot::InitializerRegistry.initializers.find { |i| i.name == :tracked_init }
 tracked.application_class
 #=> AppForTracking
@@ -84,6 +89,7 @@ class AppWithDescription < Onetime::Application::Base
   end
 end
 
+Onetime::Boot::InitializerRegistry.load_all
 described = Onetime::Boot::InitializerRegistry.initializers.find { |i| i.name == :described_init }
 described.description
 #=> 'Custom description'

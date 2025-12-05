@@ -56,7 +56,7 @@ backend1.object_id == backend2.object_id
 ## Mailer.deliver with :secret_link returns success
 Onetime::Mail::Mailer.reset!
 result = Onetime::Mail::Mailer.deliver(:secret_link, {
-  secret: @mock_secret,
+  secret_key: @mock_secret.key,
   recipient: @recipient,
   sender_email: @sender
 }, locale: 'en')
@@ -66,7 +66,7 @@ result[:status]
 ## Mailer.deliver with :secret_link returns correct recipient
 Onetime::Mail::Mailer.reset!
 result = Onetime::Mail::Mailer.deliver(:secret_link, {
-  secret: @mock_secret,
+  secret_key: @mock_secret.key,
   recipient: @recipient,
   sender_email: @sender
 })
@@ -76,7 +76,7 @@ result[:to]
 ## Mailer.deliver_template accepts template instance
 Onetime::Mail::Mailer.reset!
 template = Onetime::Mail::Templates::SecretLink.new({
-  secret: @mock_secret,
+  secret_key: @mock_secret.key,
   recipient: @recipient,
   sender_email: @sender
 })
@@ -146,7 +146,7 @@ end
 ## Convenience method Onetime::Mail.deliver works
 Onetime::Mail::Mailer.reset!
 result = Onetime::Mail.deliver(:secret_link, {
-  secret: @mock_secret,
+  secret_key: @mock_secret.key,
   recipient: @recipient,
   sender_email: @sender
 })

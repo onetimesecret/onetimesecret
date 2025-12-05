@@ -70,8 +70,7 @@ require_relative '../../../apps/web/auth/operations/create_default_workspace'
 #=> nil
 
 ## Customer is member of exactly one organization
-all_orgs = Onetime::Organization.values.to_a.map { |id| Onetime::Organization.load(id) }.compact
-customer_orgs = all_orgs.select { |org| org.members.member?(@customer.objid) }
+customer_orgs = @customer.organization_instances.to_a
 customer_orgs.size
 #=> 1
 

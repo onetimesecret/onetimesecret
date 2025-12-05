@@ -249,8 +249,136 @@ delete "/api/teams/#{@team_id}/members/#{@member1.custid}",
 last_response.status
 #=> 200
 
+# ============================================================================
+# POST-REMOVAL BEHAVIOR TESTS
+# ============================================================================
+
+## Member loses list access after self-removal
+get "/api/teams/#{@team_id}/members",
+  {},
+  { 'rack.session' => @member1_session }
+last_response.status >= 400  # member1 removed themselves, should no longer have access
+#=> true
+
+## Can re-add a previously removed member
+post "/api/teams/#{@team_id}/members",
+  { email: @member1.email }.to_json,
+  { 'rack.session' => @owner_session, 'CONTENT_TYPE' => 'application/json' }
+[last_response.status, JSON.parse(last_response.body)['record']['id']]
+#=> [200, @member1.custid]
+
+## Re-added member can list team members again
+get "/api/teams/#{@team_id}/members",
+  {},
+  { 'rack.session' => @member1_session }
+last_response.status
+#=> 200
+
+# ============================================================================
+# RESPONSE FORMAT VALIDATION TESTS
+# ============================================================================
+
+## Member record contains all expected fields
+get "/api/teams/#{@team_id}/members",
+  {},
+  { 'rack.session' => @owner_session }
+resp = JSON.parse(last_response.body)
+member = resp['records'].first
+required_fields = %w[id team_extid user_id email role status created_at updated_at]
+required_fields.all? { |f| member.key?(f) }
+#=> true
+
+## Owner has 'owner' role in member list
+get "/api/teams/#{@team_id}/members",
+  {},
+  { 'rack.session' => @owner_session }
+resp = JSON.parse(last_response.body)
+owner_record = resp['records'].find { |m| m['id'] == @owner.custid }
+owner_record['role']
+#=> 'owner'
+
+## Regular member has 'member' role in member list
+resp = JSON.parse(last_response.body)
+member_record = resp['records'].find { |m| m['id'] == @member1.custid }
+member_record['role']
+#=> 'member'
+
+## Count field matches records array length
+resp = JSON.parse(last_response.body)
+resp['count'] == resp['records'].length
+#=> true
+
+## Error response returns 4xx status for invalid input
+post "/api/teams/#{@team_id}/members",
+  { email: 'invalid' }.to_json,
+  { 'rack.session' => @owner_session, 'CONTENT_TYPE' => 'application/json' }
+# Note: Error responses may be plain text (FormError) rather than JSON
+# Testing that we get an error status, not the exact format
+[last_response.status >= 400, last_response.body.length > 0]
+#=> [true, true]
+
+# ============================================================================
+# EDGE CASE TESTS
+# ============================================================================
+
+## Email lookup is case-insensitive
+@case_test_member = Onetime::Customer.create!(email: "casetest#{Familia.now.to_i}@onetimesecret.com")
+post "/api/teams/#{@team_id}/members",
+  { email: @case_test_member.email.upcase }.to_json,  # Send uppercase email
+  { 'rack.session' => @owner_session, 'CONTENT_TYPE' => 'application/json' }
+[last_response.status, JSON.parse(last_response.body)['record']['email']]
+#=> [200, @case_test_member.email]
+
+## Whitespace-only email is rejected
+post "/api/teams/#{@team_id}/members",
+  { email: '   ' }.to_json,
+  { 'rack.session' => @owner_session, 'CONTENT_TYPE' => 'application/json' }
+last_response.status >= 400
+#=> true
+
+## Adding owner (already a member) is rejected as duplicate
+post "/api/teams/#{@team_id}/members",
+  { email: @owner.email }.to_json,
+  { 'rack.session' => @owner_session, 'CONTENT_TYPE' => 'application/json' }
+last_response.status >= 400
+#=> true
+
+## Cannot add member to team where you're not the owner
+# Create a second team owned by member1
+@team2 = Onetime::Team.new(display_name: "Second Team", owner_id: @member1.custid)
+@team2.save
+@team2.members.add(@member1.objid, Familia.now.to_f)
+# Owner of team1 tries to add someone to team2 (which they don't own)
+post "/api/teams/#{@team2.extid}/members",
+  { email: @non_member.email }.to_json,
+  { 'rack.session' => @owner_session, 'CONTENT_TYPE' => 'application/json' }
+last_response.status >= 400
+#=> true
+
+# ============================================================================
+# CONTENT-TYPE HANDLING TESTS
+# ============================================================================
+
+## POST without Content-Type header is rejected or handled gracefully
+post "/api/teams/#{@team_id}/members",
+  { email: @non_member.email }.to_json,
+  { 'rack.session' => @owner_session }  # No CONTENT_TYPE
+# Should either fail (400+) or succeed - but not crash (500)
+last_response.status != 500
+#=> true
+
+## POST with form-encoded Content-Type also works (API is flexible)
+post "/api/teams/#{@team_id}/members",
+  "email=#{@non_member.email}",  # Form-encoded data
+  { 'rack.session' => @owner_session, 'CONTENT_TYPE' => 'application/x-www-form-urlencoded' }
+# API accepts both JSON and form-encoded data
+last_response.status
+#=> 200
+
 # Teardown
+@team2.destroy!
 @team.destroy!
+@case_test_member.destroy!
 @owner.destroy!
 @member1.destroy!
 @member2.destroy!
