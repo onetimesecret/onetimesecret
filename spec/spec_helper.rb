@@ -32,6 +32,12 @@
 require 'base64'
 ENV['SECRET'] ||= Base64.strict_encode64('rspec-test-key-32bytes-exactly!')
 
+# Set test database URL - use port 2121 to avoid conflicts with development Redis
+# This MUST be set before config.test.yaml is loaded via ERB, since it checks:
+#   ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:6379/0'
+# CI sets REDIS_URL but we prefer VALKEY_URL for consistency with the code.
+ENV['VALKEY_URL'] ||= ENV['REDIS_URL'] || 'redis://127.0.0.1:2121/0'
+
 require 'rspec'
 require 'yaml'
 require 'tempfile'

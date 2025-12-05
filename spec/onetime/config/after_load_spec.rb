@@ -68,6 +68,11 @@ RSpec.describe "Onetime boot configuration process" do
   end
 
   before do
+    # Set test database URL before any config loading
+    # This must be set BEFORE config is loaded via ERB since config.test.yaml
+    # uses ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:6379/0'
+    ENV['VALKEY_URL'] = 'redis://127.0.0.1:2121/0'
+
     # Set up necessary state for testing
     @original_path = Onetime::Config.instance_variable_get(:@path)
     @original_mode = Onetime.mode
