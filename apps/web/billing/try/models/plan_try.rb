@@ -1,8 +1,8 @@
-# apps/web/billing/try/01_plan_try.rb
+# apps/web/billing/try/models/plan_try.rb
 #
 # frozen_string_literal: true
 
-require_relative '../../../../try/support/test_helpers'
+require_relative '../../../../../try/support/test_helpers'
 
 # Billing Plan tests
 #

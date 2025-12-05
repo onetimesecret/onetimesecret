@@ -1,8 +1,8 @@
-# apps/web/billing/try/self_healing_workspace_try.rb
+# apps/web/auth/try/operations/create_default_workspace_try.rb
 #
 # frozen_string_literal: true
 
-# Billing Self-Healing Workspace Test Suite
+# CreateDefaultWorkspace Operation Test Suite
 #
 
 # Setup - Load the real application

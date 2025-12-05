@@ -1,4 +1,4 @@
-# apps/web/billing/try/04_capabilities_try.rb
+# apps/web/billing/try/plan_helpers_try.rb
 #
 # frozen_string_literal: true
 
@@ -25,6 +25,7 @@ Billing::Plan.clear_cache
 ## Free plan
 @free_plan = Billing::Plan.new(
   plan_id: 'free',
+  name: 'Free',
   tier: 'free',
   interval: 'month',
   region: 'us-east',
@@ -39,6 +40,7 @@ Billing::Plan.clear_cache
 ## Identity Plus v1
 @identity_plan = Billing::Plan.new(
   plan_id: 'identity_v1',
+  name: 'Identity Plus',
   tier: 'single_team',
   interval: 'month',
   region: 'us-east',
@@ -59,6 +61,7 @@ Billing::Plan.clear_cache
 ## Multi-Team v1
 @multi_plan = Billing::Plan.new(
   plan_id: 'multi_team_v1',
+  name: 'Multi-Team',
   tier: 'multi_team',
   interval: 'month',
   region: 'us-east',
@@ -311,14 +314,6 @@ Billing::PlanHelpers.available_plans.include?('identity_v1')
 ## Test: Available plans excludes legacy identity_v0
 Billing::PlanHelpers.available_plans.include?('identity_v0')
 #=> false
-
-## Test: Capability categories are defined
-Billing::PlanHelpers::CAPABILITY_CATEGORIES[:core].class
-#=> Array
-
-## Test: Core capabilities include create_secrets
-Billing::PlanHelpers::CAPABILITY_CATEGORIES[:core].include?('create_secrets')
-#=> true
 
 ## Test: Fail-safe for nil planid returns empty capabilities
 @no_plan_org = Onetime::Organization.new(

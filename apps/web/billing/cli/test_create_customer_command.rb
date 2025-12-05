@@ -44,19 +44,9 @@ module Onetime
         puts "  Email: #{customer.email}"
 
         if with_card
-          # Attach test card
-          pm = Stripe::PaymentMethod.create({
-            type: 'card',
-            card: {
-              number: '4242424242424242',
-              exp_month: 12,
-              exp_year: Time.now.year + 2,
-              cvc: '123',
-            },
-          },
-                                           )
-
-          Stripe::PaymentMethod.attach(pm.id, { customer: customer.id })
+          # Use Stripe's pre-defined test payment method token
+          # See: https://stripe.com/docs/testing#cards
+          pm = Stripe::PaymentMethod.attach('pm_card_visa', { customer: customer.id })
 
           Stripe::Customer.update(customer.id, {
             invoice_settings: {

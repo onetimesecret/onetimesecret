@@ -1,8 +1,8 @@
-# apps/web/billing/try/02_organization_billing_try.rb
+# try/unit/models/organization_billing_try.rb
 #
 # frozen_string_literal: true
 
-require_relative '../../../../try/support/test_helpers'
+require_relative '../../support/test_helpers'
 
 # Organization Billing Feature tests
 #
