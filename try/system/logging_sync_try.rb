@@ -16,6 +16,9 @@ require_relative '../support/test_helpers'
 @original_env = ENV.to_h
 @sync_values = %w[true yes 1]
 
+# Clear STDOUT_SYNC for clean test environment
+ENV.delete('STDOUT_SYNC')
+
 ## Sanity check
 @sync_values.include?(ENV['STDOUT_SYNC'])
 #=> false
