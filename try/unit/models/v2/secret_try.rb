@@ -48,7 +48,7 @@ unique_values.size
 #=> @iterations
 
 ## Generate a pair
-@metadata, @secret = Onetime::Secret.spawn_pair 'anon', :tryouts
+@metadata, @secret = Onetime::Metadata.spawn_pair 'anon', 3600, 'test secret'
 [@metadata.nil?, @secret.nil?]
 #=> [false, false]
 
@@ -67,53 +67,57 @@ p [@secret.identifier, @metadata.secret_identifier]
 #=> [Onetime::Metadata, Onetime::Secret]
 
 ## Can save a secret and check existence
-metadata, secret = Onetime::Secret.spawn_pair 'anon', :tryouts
+metadata, secret = Onetime::Metadata.spawn_pair 'anon', 3600, 'test secret'
 [metadata.save, metadata.exists?]
 #=> [true, true]
 
 ## A secret can be destroyed using Familia's destroy! method
-metadata, secret = Onetime::Secret.spawn_pair 'anon', :tryouts
+metadata, secret = Onetime::Metadata.spawn_pair 'anon', 3600, 'test secret'
 metadata.save
 metadata.destroy!
 !metadata.exists?
 #=> true
 
 ## Can set private secret to viewed state
-metadata, secret = Onetime::Secret.spawn_pair 'anon', :tryouts
+metadata, secret = Onetime::Metadata.spawn_pair 'anon', 3600, 'test secret'
 metadata.viewed!
 [metadata.viewed, metadata.state]
 #=> [Familia.now.to_i, 'viewed']
 
+# NOTE: The received method has been removed from the Secret model
 ## Can set shared secret to viewed state
-metadata, secret = Onetime::Secret.spawn_pair 'anon', :tryouts
-metadata.save && secret.save
-secret.received!
+#metadata, secret = Onetime::Metadata.spawn_pair 'anon', 3600, 'test secret'
+#metadata.save && secret.save
+#secret.received!
 # NOTE: The secret no longer keeps a reference to the metadata
-#metadata = secret.load_metadata
-[metadata.shared, metadata.state, secret.received, secret.state]
-##=> [Familia.now.to_i, 'shared', Familia.now.to_i, 'received']
+##metadata = secret.load_metadata
+#[metadata.shared, metadata.state, secret.received, secret.state]
+###=> [Familia.now.to_i, 'shared', Familia.now.to_i, 'received']
 
+# NOTE: view_count functionality has been removed from Secret model
+# These tests are commented out for now
+#
 ## Secrets have a counter for views
-@secret_with_counter = Onetime::Secret.new state: :shared
-@secret_with_counter.view_count.to_i
-#=> 0
-
+#@secret_with_counter = Onetime::Secret.new state: :shared
+#@secret_with_counter.view_count.to_i
+##=> 0
+#
 ## Secrets can keep a view count (1 of 2)
-@secret_with_counter.view_count.incr
-#=> 1
-
+#@secret_with_counter.view_count.incr
+##=> 1
+#
 ## Secrets can keep a view count (2 of 2)
-@secret_with_counter.view_count.incr
-#=> 2
-
+#@secret_with_counter.view_count.incr
+##=> 2
+#
 ## Secrets counters have their own key
-@secret_with_counter.view_count.dbkey
-#=> Familia.join(:secret, @secret_with_counter.key, :view_count)
-
+#@secret_with_counter.view_count.dbkey
+##=> Familia.join(:secret, @secret_with_counter.key, :view_count)
+#
 ## Secrets counters have their own ttl setting
-@secret_with_counter.view_count.default_expiration
-#=> 1209600.0
-
+#@secret_with_counter.view_count.default_expiration
+##=> 1209600.0
+#
 ## Secrets counters have their own realttl value
-@secret_with_counter.view_count.current_expiration
-#=> 1209600
+#@secret_with_counter.view_count.current_expiration
+##=> 1209600

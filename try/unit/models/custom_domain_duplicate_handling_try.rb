@@ -18,10 +18,8 @@ rescue Redis::CannotConnectError, Redis::ConnectionError => e
 end
 
 # Clean up any existing test data from previous runs
-if ENV['ENV'] == 'test'
-  Familia.dbclient.flushdb
-  OT.info "Cleaned Redis for fresh test run"
-end
+Familia.dbclient.flushdb
+OT.info "Cleaned Redis for fresh test run"
 
 # Setup test fixtures
 @timestamp = Familia.now.to_i
