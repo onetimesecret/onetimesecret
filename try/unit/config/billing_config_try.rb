@@ -5,15 +5,12 @@
 require_relative '../../../lib/onetime'
 require 'fileutils'
 
-# Backup existing billing config if it exists
-@billing_config_path = File.expand_path('../../../etc/billing.yaml', __dir__)
-@billing_config_backup = nil
-if File.exist?(@billing_config_path)
-  @billing_config_backup = File.read(@billing_config_path)
-  FileUtils.mv(@billing_config_path, "#{@billing_config_path}.bak")
-end
+# Force BillingConfig to use a non-existent path
+# This bypasses the normal file resolution which finds etc/billing.yaml
+@original_path = Onetime::BillingConfig.path
+Onetime::BillingConfig.path = '/nonexistent/billing.yaml'
 
-# Clear the singleton instance
+# Clear the singleton instance to force fresh load with new path
 Onetime::BillingConfig.instance_variable_set(:@instance, nil)
 
 ## Can load BillingConfig when file doesn't exist
@@ -41,7 +38,6 @@ config = Onetime::BillingConfig.instance
 config.payment_links
 #=> {}
 
-# Teardown: Restore billing config if it existed
-if @billing_config_backup
-  FileUtils.mv("#{@billing_config_path}.bak", @billing_config_path)
-end
+# Teardown: Restore original path and clear singleton
+Onetime::BillingConfig.path = @original_path
+Onetime::BillingConfig.instance_variable_set(:@instance, nil)
