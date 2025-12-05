@@ -14,9 +14,8 @@
 #
 # TODO: Fix Rhales integration in test environment or use RSpec with proper setup
 
+ENV['RACK_ENV'] ||= 'test'
 require_relative '../support/test_helpers'
-
-ENV['RACK_ENV'] = 'test'
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../..')).freeze
 
 require 'onetime'

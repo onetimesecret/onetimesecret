@@ -2,9 +2,7 @@
 #
 # frozen_string_literal: true
 
-ENV['RACK_ENV'] = 'test'
-ENV['VALKEY_URL'] = 'valkey://127.0.0.1:2121/0'
-ENV['SECRET'] = 'testsecret123456789012345678901234'
+ENV['RACK_ENV'] ||= 'test'
 require_relative '../../lib/onetime'
 require 'rack/mock'
 

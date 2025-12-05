@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # Setup - Load just what we need for testing log_box
-ENV['RACK_ENV'] = 'test'
+ENV['RACK_ENV'] ||= 'test'
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..')).freeze
 
 # Load minimal dependencies
