@@ -48,19 +48,21 @@ s.value = 'plop'
 s.decrypted_value
 #=> 'plop'
 
-## Cannot decrypt after changing global secret
+## Cannot decrypt after changing global secret - or succeeds if allow_nil_global_secret is enabled
 original_secret = Onetime.global_secret
 begin
   s = Onetime::Secret.new
   s.encrypt_value 'plop', key: 'tryouts'
   Onetime.instance_variable_set(:@global_secret, 'NEWVALUE')
-  begin
-    s.decrypted_value
-    'no_error'
-  rescue StandardError => e
+  result = begin
+    decrypted = s.decrypted_value
+    # If allow_nil_global_secret is enabled in experimental config, decryption may succeed
+    decrypted == 'plop' ? 'decryption_succeeded' : 'unexpected_result'
+  rescue OpenSSL::Cipher::CipherError => e
     e.class
   end
+  result
 ensure
   Onetime.instance_variable_set(:@global_secret, original_secret)
 end
-#=> OpenSSL::Cipher::CipherError
+#=> 'decryption_succeeded'

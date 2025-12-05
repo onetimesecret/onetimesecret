@@ -13,11 +13,11 @@
 require_relative '../../support/test_models'
 OT.boot! :test, false
 
+require 'apps/api/v3/logic/incoming'
+
 @email = "tryouts+incoming+#{Familia.now.to_i}@onetimesecret.com"
 @cust = Onetime::Customer.create!(email: @email)
-@sess = Onetime::Session.new ipaddress: '127.0.0.1'
-@sess['external_id'] = @cust.extid
-@sess.save
+@sess = MockSession.new
 
 # Helper to create a mock request context
 def mock_params(params = {})
@@ -77,6 +77,5 @@ end
 
 ## Cleanup test data
 @cust.destroy! if @cust
-@sess.destroy! if @sess
 true
 #=> true

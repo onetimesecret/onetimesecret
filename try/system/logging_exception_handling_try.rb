@@ -80,22 +80,22 @@ result
 #=> :ok
 
 ## Backward Compatibility - Legacy string message (no kwargs)
-# Now uses SemanticLogger with empty payload (returns false when suppressed)
+# Now uses SemanticLogger with empty payload (returns true when logged)
 result = OT.le "Legacy error message"
 result
-#=> false
+#=> true
 
 ## Backward Compatibility - Legacy multi-message
-# Now uses SemanticLogger with empty payload (returns false when suppressed)
+# Now uses SemanticLogger with empty payload (returns true when logged)
 result = OT.le "Error:", "Something went wrong"
 result
-#=> false
+#=> true
 
 ## Structured Logging - With payload but no exception
-# Should work with structured data without exception (returns false when log level suppresses output)
+# Should work with structured data without exception (returns true when logged)
 result = OT.le "Failed to save", model: :customer, reason: :validation
 result
-#=> false
+#=> true
 
 ## Category Awareness - Exception with thread-local category
 Thread.current[:log_category] = 'Auth'
@@ -110,10 +110,10 @@ result
 #=> :ok
 
 ## Exception Type - Not an exception (no-op)
-# Should handle non-exception gracefully when exception is not an Exception object
+# Should handle non-exception gracefully when exception is not an Exception object (returns true when logged)
 result = OT.le "Regular message", exception: "not an exception", context: :test
 result
-#=> false
+#=> true
 
 ## Multiple Arguments - Exception with multiple message parts
 result = begin
@@ -126,10 +126,10 @@ result
 #=> :ok
 
 ## Empty Exception - nil exception parameter
-# Should work with explicit nil and use structured logging path
+# Should work with explicit nil and use structured logging path (returns true when logged)
 result = OT.le "Error message", exception: nil, context: :value
 result
-#=> false
+#=> true
 
 ## Complex Context - Exception with nested payload
 result = begin

@@ -16,13 +16,19 @@ require_relative '../support/test_logic'
 require 'securerandom'
 require 'benchmark'
 
-# Load the app with test configuration
-OT.boot! :test, false
+# Load the app with test configuration (need initializers for Truemail)
+OT.boot! :test
+
+# Configure Truemail to accept our test domains
+Truemail.configuration.tap do |config|
+  config.allowed_domains = ['test.dev', 'example.com'] if config.respond_to?(:allowed_domains=)
+end
 
 ## Setup: Create test customer for enumeration testing
-@test_email = "enum-test-#{SecureRandom.hex(4)}@example.com"
-@existing_verified_email = "verified-#{SecureRandom.hex(4)}@example.com"
-@existing_unverified_email = "unverified-#{SecureRandom.hex(4)}@example.com"
+# Use test.dev domain which is valid for testing
+@test_email = "enum-test-#{SecureRandom.hex(4)}@test.dev"
+@existing_verified_email = "verified-#{SecureRandom.hex(4)}@test.dev"
+@existing_unverified_email = "unverified-#{SecureRandom.hex(4)}@test.dev"
 
 # Create existing verified customer
 @verified_customer = Onetime::Customer.create!(email: @existing_verified_email)
@@ -37,7 +43,7 @@ OT.boot! :test, false
 @unverified_customer.save
 
 @locale = :en
-@session = OpenStruct.new(identifier: SecureRandom.hex(16))
+@session_id = SecureRandom.hex(16)
 
 ## Test 1: New email account creation returns generic success message
 params = {
@@ -47,7 +53,7 @@ params = {
 }
 strategy_result = Otto::Security::Authentication::StrategyResult.new(
   strategy_name: 'noauth',
-  session: {},
+  session: { id: @session_id },
   user: nil,
   auth_method: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
@@ -56,7 +62,8 @@ logic = AccountAPI::Logic::Account::CreateAccount.new(strategy_result, params, @
 logic.process_params
 logic.raise_concerns
 result = logic.process
-success_message = logic.instance_variable_get(:@sess)['success_message']
+@success_message = logic.instance_variable_get(:@sess)['success_message']
+@success_message
 #=> /If an account with this email exists, you will receive a verification email/
 
 ## Test 2: Existing verified email returns same generic message (no error)
@@ -67,7 +74,7 @@ params2 = {
 }
 strategy_result2 = Otto::Security::Authentication::StrategyResult.new(
   strategy_name: 'noauth',
-  session: {},
+  session: { id: @session_id },
   user: nil,
   auth_method: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
@@ -76,7 +83,8 @@ logic2 = AccountAPI::Logic::Account::CreateAccount.new(strategy_result2, params2
 logic2.process_params
 logic2.raise_concerns
 result2 = logic2.process
-success_message2 = logic2.instance_variable_get(:@sess)['success_message']
+@success_message2 = logic2.instance_variable_get(:@sess)['success_message']
+@success_message2
 #=> /If an account with this email exists, you will receive a verification email/
 
 ## Test 3: Existing unverified email returns same generic message
@@ -87,7 +95,7 @@ params3 = {
 }
 strategy_result3 = Otto::Security::Authentication::StrategyResult.new(
   strategy_name: 'noauth',
-  session: {},
+  session: { id: @session_id },
   user: nil,
   auth_method: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
@@ -96,15 +104,16 @@ logic3 = AccountAPI::Logic::Account::CreateAccount.new(strategy_result3, params3
 logic3.process_params
 logic3.raise_concerns
 result3 = logic3.process
-success_message3 = logic3.instance_variable_get(:@sess)['success_message']
+@success_message3 = logic3.instance_variable_get(:@sess)['success_message']
+@success_message3
 #=> /If an account with this email exists, you will receive a verification email/
 
 ## Test 4: Success messages are identical across all scenarios
-success_message == success_message2
+@success_message == @success_message2
 #=> true
 
 ## Test 5: Verify messages are identical (all three scenarios)
-success_message == success_message3
+@success_message == @success_message3
 #=> true
 
 ## Test 6: No errors are raised for existing accounts
@@ -117,7 +126,7 @@ params4 = {
 }
 strategy_result4 = Otto::Security::Authentication::StrategyResult.new(
   strategy_name: 'noauth',
-  session: {},
+  session: { id: @session_id },
   user: nil,
   auth_method: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
@@ -141,7 +150,7 @@ params5 = {
 }
 strategy_result5 = Otto::Security::Authentication::StrategyResult.new(
   strategy_name: 'noauth',
-  session: {},
+  session: { id: @session_id },
   user: nil,
   auth_method: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
@@ -158,7 +167,7 @@ end
 
 ## Test 8: Existing customer object is reused (not recreated)
 # For existing accounts, we should reuse the customer object
-initial_customer_count = Onetime::Customer.dbclient.keys('customer:*').size
+@initial_customer_count = Onetime::Customer.dbclient.keys('customer:*').size
 params6 = {
   login: @existing_verified_email,
   password: 'another_attempt',
@@ -166,7 +175,7 @@ params6 = {
 }
 strategy_result6 = Otto::Security::Authentication::StrategyResult.new(
   strategy_name: 'noauth',
-  session: {},
+  session: { id: @session_id },
   user: nil,
   auth_method: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
@@ -175,9 +184,9 @@ logic6 = AccountAPI::Logic::Account::CreateAccount.new(strategy_result6, params6
 logic6.process_params
 logic6.raise_concerns
 logic6.process
-final_customer_count = Onetime::Customer.dbclient.keys('customer:*').size
+@final_customer_count = Onetime::Customer.dbclient.keys('customer:*').size
 # Count should not increase (no new customer created)
-final_customer_count == initial_customer_count
+@final_customer_count == @initial_customer_count
 #=> true
 
 ## Test 9: Response timing consistency check
@@ -185,26 +194,28 @@ final_customer_count == initial_customer_count
 # This is a basic timing attack prevention check
 require 'benchmark'
 
-times = []
+@times = []
 
 # Time 1: New account creation
 time1 = Benchmark.realtime do
   params_t1 = {
-    login: "timing-test-new-#{SecureRandom.hex(4)}@example.com",
+    login: "timing-test-new-#{SecureRandom.hex(4)}@test.dev",
     password: 'password123',
     planid: 'basic'
   }
-  strategy_t1 = OpenStruct.new(
-    authenticated?: false,
-    session: { id: @session.identifier },
-    metadata: { ip: '127.0.0.1' }
+  strategy_t1 = Otto::Security::Authentication::StrategyResult.new(
+    strategy_name: 'noauth',
+    session: { id: @session_id },
+    user: nil,
+    auth_method: 'noauth',
+    metadata: { ip: '127.0.0.1', user_agent: 'test' }
   )
   logic_t1 = AccountAPI::Logic::Account::CreateAccount.new(strategy_t1, params_t1, @locale)
   logic_t1.process_params
   logic_t1.raise_concerns
   logic_t1.process
 end
-times << time1
+@times << time1
 
 # Time 2: Existing verified account
 time2 = Benchmark.realtime do
@@ -213,17 +224,19 @@ time2 = Benchmark.realtime do
     password: 'password456',
     planid: 'basic'
   }
-  strategy_t2 = OpenStruct.new(
-    authenticated?: false,
-    session: { id: @session.identifier },
-    metadata: { ip: '127.0.0.1' }
+  strategy_t2 = Otto::Security::Authentication::StrategyResult.new(
+    strategy_name: 'noauth',
+    session: { id: @session_id },
+    user: nil,
+    auth_method: 'noauth',
+    metadata: { ip: '127.0.0.1', user_agent: 'test' }
   )
   logic_t2 = AccountAPI::Logic::Account::CreateAccount.new(strategy_t2, params_t2, @locale)
   logic_t2.process_params
   logic_t2.raise_concerns
   logic_t2.process
 end
-times << time2
+@times << time2
 
 # Time 3: Existing unverified account
 time3 = Benchmark.realtime do
@@ -232,31 +245,34 @@ time3 = Benchmark.realtime do
     password: 'password789',
     planid: 'basic'
   }
-  strategy_t3 = OpenStruct.new(
-    authenticated?: false,
-    session: { id: @session.identifier },
-    metadata: { ip: '127.0.0.1' }
+  strategy_t3 = Otto::Security::Authentication::StrategyResult.new(
+    strategy_name: 'noauth',
+    session: { id: @session_id },
+    user: nil,
+    auth_method: 'noauth',
+    metadata: { ip: '127.0.0.1', user_agent: 'test' }
   )
   logic_t3 = AccountAPI::Logic::Account::CreateAccount.new(strategy_t3, params_t3, @locale)
   logic_t3.process_params
   logic_t3.raise_concerns
   logic_t3.process
 end
-times << time3
+@times << time3
 
 # Calculate variance - should be relatively small
-max_time = times.max
-min_time = times.min
-variance = max_time - min_time
+@max_time = @times.max
+@min_time = @times.min
+@variance = @max_time - @min_time
 
 # Timing variance should be less than 100ms to prevent timing attacks
 # This is a reasonable threshold for non-network operations
-variance < 0.1
+@variance < 0.1
 #=> true
 
 ## Teardown: Clean up test data
-@verified_customer.destroy!
-@unverified_customer.destroy!
+@verified_customer.destroy! if @verified_customer
+@unverified_customer.destroy! if @unverified_customer
 # New customer created in Test 1
 Onetime::Customer.load(@test_email)&.destroy!
-# Timing test customer
+# Timing test customers are automatically created with unique emails and will be cleaned up
+true
