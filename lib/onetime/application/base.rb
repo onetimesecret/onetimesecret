@@ -219,6 +219,69 @@ module Onetime
           @warmup_block
         end
 
+        # DSL for registering inline initializers
+        #
+        # Creates an anonymous Initializer subclass and registers it with the
+        # InitializerRegistry. This provides a convenient syntax for app-specific
+        # boot initializers without requiring separate files.
+        #
+        # @param name [Symbol] Initializer name
+        # @param options [Hash] Configuration options
+        # @option options [Array<Symbol>] :depends_on Capability dependencies
+        # @option options [Array<Symbol>] :provides Capabilities this provides
+        # @option options [Boolean] :optional If true, failure won't halt boot
+        # @option options [String] :description Human-readable description
+        # @yield [ctx] Initializer code block
+        # @yieldparam ctx [Hash] Shared context across initializers
+        #
+        # @example
+        #   class MyApp < Onetime::Application::Base
+        #     initializer :setup_feature, provides: [:feature] do |ctx|
+        #       # initialization code
+        #     end
+        #   end
+        def initializer(name, **options, &block)
+          raise ArgumentError, 'Block required for initializer' unless block_given?
+
+          # Capture application class in closure
+          app_class = self
+
+          # Create anonymous initializer class
+          klass = Class.new(Onetime::Boot::Initializer) do
+            @initializer_name  = name
+            @application_class = app_class
+            @depends_on        = Array(options[:depends_on])
+            @provides          = Array(options[:provides])
+            @optional          = options.fetch(:optional, false)
+            @description_text  = options.fetch(:description, nil)
+            @init_block        = block
+
+            class << self
+              attr_reader :initializer_name, :application_class, :depends_on,
+                          :provides, :optional, :description_text, :init_block
+            end
+
+            # Override description if provided
+            def description
+              self.class.description_text || super
+            end
+
+            # Override application_class accessor to return the stored class
+            def application_class
+              self.class.application_class
+            end
+
+            # Instance method to execute the block
+            def execute(ctx)
+              instance_exec(ctx, &self.class.init_block)
+            end
+          end
+
+          # Don't auto-register here - the inherited hook will do it
+          # This prevents double registration
+          klass
+        end
+
       end
     end
   end
