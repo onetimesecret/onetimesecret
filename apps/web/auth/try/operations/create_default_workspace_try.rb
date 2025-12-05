@@ -8,16 +8,16 @@
 # Setup - Load the real application
 ENV['RACK_ENV'] = 'test'
 ENV['AUTHENTICATION_MODE'] = 'simple'
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..', '..', '..')).freeze
+ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..', '..', '..', '..')).freeze
 
-require_relative '../../../../try/support/test_helpers'
+require_relative '../../../../../try/support/test_helpers'
 
 require 'onetime'
 
 OT.boot! :test, false
 
-require_relative '../../auth/operations/create_default_workspace'
-require_relative '../controllers/billing'
+require_relative '../../operations/create_default_workspace'
+require_relative '../../../billing/controllers/billing'
 
 # Setup: Create test customer
 @customer = Onetime::Customer.create!(email: "selfheal_#{Familia.now.to_i}@example.com")
