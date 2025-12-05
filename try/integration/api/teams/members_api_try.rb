@@ -51,7 +51,7 @@ def last_response; @test.last_response; end
 @team = Onetime::Team.new(display_name: "Members Test Team", owner_id: @owner.custid)
 @team.save
 @team.members.add(@owner.objid, Familia.now.to_f)
-@team_id = @team.team_id
+@team_id = @team.extid  # Use extid for API calls, not objid
 
 ## Can list team members
 get "/api/teams/#{@team_id}/members",
@@ -217,12 +217,12 @@ last_response.status >= 400
 #=> true
 
 ## Owner can remove themselves from team
-initial_count = @team.member_count
+@initial_member_count = @team.member_count
 delete "/api/teams/#{@team_id}/members/#{@owner.custid}",
   {},
   { 'rack.session' => @owner_session }
 [last_response.status, @team.member_count]
-#=> [200, initial_count - 1]
+#=> [200, @initial_member_count - 1]
 
 ## Removed owner no longer in member list
 get "/api/teams/#{@team_id}/members",
