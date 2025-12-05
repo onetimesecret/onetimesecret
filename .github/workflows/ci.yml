@@ -5,14 +5,13 @@ name: CI
 # Main CI workflow that runs Ruby tests using RSpec and tryouts, plus TypeScript
 # tests using Vitest and validation steps (linting, type-checking).
 #
+# Architecture (Phase 1):
+# - Tier 1: Lint jobs (ruby-lint, typescript-lint) run first for fast feedback
+# - Tier 2: Test jobs (test-ruby, test-typescript) run after lint passes
+# - Tier 3: Container validation (check-oci-image) runs after all tests pass
+#
 # The workflow is triggered by push events on branches starting with "fix/" or
 # "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
-#
-# The workflow has jobs for:
-# - Ruby testing (RSpec and tryouts) across multiple Ruby versions
-# - TypeScript testing (Vitest) and validation (linting, type-checking)
-#
-# This workflow ensures comprehensive testing across the full stack.
 
 on:
   push:
@@ -36,22 +35,122 @@ on:
 permissions:
   contents: read
 
-jobs:
-  test-ruby:
-    timeout-minutes: 15 # prevent hung jobs
+# Cancel in-progress runs when a new commit is pushed to the same branch
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
-    # Can also be set to `self-hosted` if worker is running. Possible
-    # issue when switching (or trying to run a mix of github-hosted
-    # and self-hosted). All workflows in the repo stopped being queued
-    # up after having a self-hosted worker registered and available
-    # and then manually shutdown and removed. To the extent that open
-    # PRs showed 0 checks at all (as though there were no workflow
-    # yaml files at all). Adding a new workflow in a test branch
-    # seemed to wake up the dragon and all was well in the world.
-    #
-    # https://github.com/rubygems/rubygems/blob/master/CHANGELOG.md#breaking-changes
-    #
+jobs:
+  # ============================================================================
+  # TIER 1: LINT JOBS (~30-45s)
+  # Fast feedback on code style and syntax errors
+  # ============================================================================
+
+  ruby-lint:
+    name: Ruby Lint
+    timeout-minutes: 5
     runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - uses: ruby/setup-ruby@ab177d40ee5483edb974554986f56b33477e21d0
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      - name: Run Rubocop
+        id: rubocop
+        run: |
+          mkdir -p tmp
+          bundle exec rubocop --config .rubocop.yml \
+            --format progress \
+            --format json --out tmp/rubocop_results.json \
+            --fail-level warning || echo "RUBOCOP_FAILED=true" >> $GITHUB_ENV
+
+      - name: Upload Rubocop results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rubocop-results
+          path: tmp/rubocop_results.json
+          retention-days: 7
+
+      - name: Generate job summary
+        if: always()
+        run: |
+          echo "## Ruby Lint Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f tmp/rubocop_results.json ]; then
+            total=$(jq '.summary.offense_count' tmp/rubocop_results.json)
+            files=$(jq '.summary.target_file_count' tmp/rubocop_results.json)
+            echo "- Total offenses: $total" >> $GITHUB_STEP_SUMMARY
+            echo "- Files inspected: $files" >> $GITHUB_STEP_SUMMARY
+            if [ "$RUBOCOP_FAILED" = "true" ]; then
+              echo "⚠️ Rubocop found issues that need attention" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            else
+              echo "✅ All files pass linting" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+  typescript-lint:
+    name: TypeScript Lint
+    timeout-minutes: 5
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
+        with:
+          version: latest
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+        id: pnpm-cache
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run type checking
+        run: pnpm type-check
+
+      - name: Run linting
+        run: pnpm lint
+
+      - name: Generate job summary
+        if: always()
+        run: |
+          echo "## TypeScript Lint Results" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Type checking and linting completed." >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # TIER 2: TEST JOBS (~1-2 min)
+  # Run after lint jobs pass
+  # ============================================================================
+
+  test-ruby:
+    name: Ruby Tests
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    needs: [ruby-lint]
 
     strategy:
       fail-fast: true
@@ -69,10 +168,6 @@ jobs:
           --health-retries 5
           --memory=4g
         ports:
-          # https://docs.github.com/en/actions/using-containerized-services/creating-redis-service-containers#running-jobs-in-containers
-          # Maps port 6379 on service container to 2121 on the host to
-          # match the port we use in dev which helps us avoid clobbering
-          # our dev redis instances.
           - 2121:6379
 
     steps:
@@ -88,7 +183,6 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
-      # Add Node.js setup to Ruby job
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
@@ -98,6 +192,19 @@ jobs:
         uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
         with:
           version: latest
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+        id: pnpm-cache
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
@@ -138,7 +245,6 @@ jobs:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'simple'
-          # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
         run: |
           echo "Testing RSpec in simple authentication mode..."
           mkdir -p tmp && bundle exec rspec \
@@ -152,7 +258,6 @@ jobs:
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'full'
           AUTH_DATABASE_URL: 'sqlite::memory:'
-          # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
         run: |
           echo "Testing RSpec in full authentication mode..."
           bundle exec rspec \
@@ -181,7 +286,6 @@ jobs:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'simple'
-          # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
         run: |
           echo "Testing simple authentication mode..."
           bundle exec tryouts -vf try/unit try/system
@@ -194,7 +298,6 @@ jobs:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'disabled'
-          # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
         run: |
           echo "Testing disabled authentication mode..."
           bundle exec tryouts -vf try/integration/authentication/disabled_mode
@@ -206,8 +309,6 @@ jobs:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'full'
-          # SESSION_SECRET and HMAC_SECRET are set by the "Generate random secrets" step
-          # Full mode requires a database. Using in-memory SQLite for CI.
           DATABASE_URL: 'sqlite::memory:'
         run: |
           echo "Testing full authentication mode..."
@@ -215,8 +316,10 @@ jobs:
           bundle exec tryouts -vf try/integration/authentication/common
 
   test-typescript:
+    name: TypeScript Tests
     timeout-minutes: 15
     runs-on: ubuntu-24.04
+    needs: [typescript-lint]
 
     steps:
       - name: Checkout code
@@ -232,14 +335,21 @@ jobs:
         with:
           version: latest
 
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+        id: pnpm-cache
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Run type checking
-        run: pnpm type-check
-
-      - name: Run linting
-        run: pnpm lint
 
       - name: Run TypeScript tests
         run: pnpm test
@@ -252,9 +362,15 @@ jobs:
         if: always()
         run: |
           echo "## TypeScript Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "Type checking, linting, and unit tests completed." >> $GITHUB_STEP_SUMMARY
+          echo "Unit tests completed." >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # TIER 3: CONTAINER VALIDATION (~2-3 min)
+  # Run after all tests pass
+  # ============================================================================
 
   check-oci-image:
+    name: Container Validation
     timeout-minutes: 10
     runs-on: ubuntu-24.04
     needs: [test-ruby, test-typescript]
@@ -284,6 +400,19 @@ jobs:
         uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
         with:
           version: latest
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+        id: pnpm-cache
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
