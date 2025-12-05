@@ -153,9 +153,8 @@ module Onetime
           ip = extract_ip_from_header(trusted_ip_header, trusted_proxy_depth)
         end
 
-        # Step 2: Return extracted IP if valid (including private IPs for internal network detection)
-        # Note: We DO want to detect private IPs for internal/external mode detection
-        return ip if ip && !ip.to_s.empty?
+        # Step 2: Validate extracted IP is not a private proxy IP
+        return ip if ip && !private_ip?(ip)
 
         # Step 3: Fall back to REMOTE_ADDR (most secure, cannot be spoofed)
         req.env['REMOTE_ADDR']
