@@ -28,21 +28,21 @@ OT.boot! :test, false
 @cust = Onetime::Customer.new email: @email_address
 @strategy_result = MockStrategyResult.new(session: @session, user: @cust)
 @params = {
-  confirmation: 'pa55w0rd'
+  'confirmation' => 'pa55w0rd'
 }
 
 # TRYOUTS
 
 ## Can create DestroyAccount instance
 obj = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result, @params
-obj.params[:confirmation]
-#=> @params[:confirmation]
+obj.params['confirmation']
+#=> @params['confirmation']
 
 ## Processing params removes leading and trailing whitespace
 ## from current password, but not in the middle.
 password_guess = '   padded p455   '
-obj = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result, {confirmation: password_guess}
-obj.process_params
+obj = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result, {'confirmation' => password_guess}
+obj.instance_variable_get(:@confirmation)
 #=> 'padded p455'
 
 
@@ -57,7 +57,7 @@ end
 
 
 ## Raises an error if the current password is nil
-obj = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result, {confirmation: nil}
+obj = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result, {'confirmation' => nil}
 begin
   obj.raise_concerns
 rescue => e
@@ -67,7 +67,7 @@ end
 
 
 ## Raises an error if the current password is empty
-obj = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result, {confirmation: ''}
+obj = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result, {'confirmation' => ''}
 begin
   obj.raise_concerns
 rescue => e
@@ -91,7 +91,7 @@ end
 
 ## No errors are raised as long as the password is correct
 cust = Onetime::Customer.new email: generate_random_email
-password_guess = @params[:confirmation]
+password_guess = @params['confirmation']
 strategy_result = MockStrategyResult.new(session: @session, user: cust)
 obj = AccountAPI::Logic::Account::DestroyAccount.new strategy_result, @params
 cust.update_passphrase password_guess # update the password to be correct
@@ -100,7 +100,7 @@ obj.raise_concerns
 
 ## Attempt to process the request without calling raise_concerns first
 
-password_guess = @params[:confirmation]
+password_guess = @params['confirmation']
 obj = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result, @params
 begin
   obj.process
@@ -113,7 +113,7 @@ end
 cust = Onetime::Customer.new email: generate_random_email
 strategy_result = MockStrategyResult.new(session: @session, user: cust)
 obj = AccountAPI::Logic::Account::DestroyAccount.new strategy_result, @params
-cust.update_passphrase @params[:confirmation] # set the passphrase
+cust.update_passphrase @params['confirmation'] # set the passphrase
 obj.raise_concerns
 obj.process
 
@@ -134,7 +134,7 @@ cust = Onetime::Customer.new email: generate_random_email
 first_token = cust.regenerate_apitoken  # first we need to set an api key
 strategy_result = MockStrategyResult.new(session: @session, user: cust)
 obj = AccountAPI::Logic::Account::DestroyAccount.new strategy_result, @params
-cust.update_passphrase @params[:confirmation]
+cust.update_passphrase @params['confirmation']
 obj.raise_concerns
 obj.process
 

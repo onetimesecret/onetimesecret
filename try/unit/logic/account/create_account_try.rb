@@ -23,17 +23,17 @@ OT.boot! :test, false
 @unique_email = lambda { "test_#{SecureRandom.uuid}@example.com" }
 
 ## Anonymous user can create account
-@strategy_result = Otto::Security::Authentication::StrategyResult.new(
+@strategy_result = MockStrategyResult.new(
   session: {},
   user: nil,
   auth_method: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
 )
 @params = {
-  login: @unique_email.call,
-  password: 'validpass123',
-  agree: true,
-  skill: ''
+  'login' => @unique_email.call,
+  'password' => 'validpass123',
+  'agree' => true,
+  'skill' => ''
 }
 @logic = AccountAPI::Logic::Account::CreateAccount.new @strategy_result, @params, 'en'
 @logic.process_params
@@ -45,17 +45,17 @@ OT.boot! :test, false
 ## Authenticated user cannot create account
 @existing_customer = Onetime::Customer.new(email: @unique_email.call)
 @existing_customer.save
-@auth_strategy_result = Otto::Security::Authentication::StrategyResult.new(
+@auth_strategy_result = MockStrategyResult.new(
   session: { 'authenticated' => true, 'external_id' => @existing_customer.extid },
   user: @existing_customer,
   auth_method: 'sessionauth',
   metadata: { ip: '127.0.0.1' }
 )
 @signup_params = {
-  login: @unique_email.call,
-  password: 'validpass123',
-  agree: true,
-  skill: ''
+  'login' => @unique_email.call,
+  'password' => 'validpass123',
+  'agree' => true,
+  'skill' => ''
 }
 @logic2 = AccountAPI::Logic::Account::CreateAccount.new @auth_strategy_result, @signup_params, 'en'
 @logic2.process_params
@@ -71,17 +71,17 @@ end
 @duplicate_email = @unique_email.call
 @first_customer = Onetime::Customer.new(email: @duplicate_email)
 @first_customer.save
-@anon_result = Otto::Security::Authentication::StrategyResult.new(
+@anon_result = MockStrategyResult.new(
   session: {},
   user: nil,
   auth_method: 'noauth',
   metadata: {}
 )
 @duplicate_params = {
-  login: @duplicate_email,
-  password: 'validpass123',
-  agree: true,
-  skill: ''
+  'login' => @duplicate_email,
+  'password' => 'validpass123',
+  'agree' => true,
+  'skill' => ''
 }
 @logic3 = AccountAPI::Logic::Account::CreateAccount.new @anon_result, @duplicate_params, 'en'
 @logic3.process_params
@@ -100,10 +100,10 @@ true
 
 ## Password too short validation
 @short_pass_params = {
-  login: @unique_email.call,
-  password: '12345',
-  agree: true,
-  skill: ''
+  'login' => @unique_email.call,
+  'password' => '12345',
+  'agree' => true,
+  'skill' => ''
 }
 @logic5 = AccountAPI::Logic::Account::CreateAccount.new @anon_result, @short_pass_params, 'en'
 @logic5.process_params
@@ -117,10 +117,10 @@ end
 
 ## Bot detection (honeypot field)
 @bot_params = {
-  login: @unique_email.call,
-  password: 'validpass123',
-  agree: true,
-  skill: 'I am a bot'
+  'login' => @unique_email.call,
+  'password' => 'validpass123',
+  'agree' => true,
+  'skill' => 'I am a bot'
 }
 @logic6 = AccountAPI::Logic::Account::CreateAccount.new @anon_result, @bot_params, 'en'
 @logic6.process_params

@@ -45,16 +45,17 @@ class MockRequest
 end
 
 @sess = MockSession.new
+@strategy_result = MockStrategyResult.new(session: @sess, user: @cust)
 
 ## Can create a RevealSecret logic with all arguments
 params = {}
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 [logic.sess, logic.cust, logic.params, logic.locale]
 #=> [@sess, @cust, {}, 'en']
 
 ## success_data returns nil when no secret
 params = {}
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 logic.success_data
 #=> nil
 
@@ -62,22 +63,22 @@ logic.success_data
 metadata = @create_metadata.call
 secret = metadata.load_secret
 params = {
-  key: metadata.secret_identifier
+  'identifier' => metadata.secret_identifier
 }
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 ret = logic.success_data
 ret.keys
 #=> [:record, :details]
 
 ## Has some essential settings
 params = {}
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 [logic.site['host'], logic.authentication['enabled'], logic.domains_enabled]
 #=> ["127.0.0.1:3000", true, false]
 
 ## Raises an exception when there's no metadata (no metadata param)
 params = {}
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 logic.process_params
 begin
   logic.raise_concerns
@@ -88,9 +89,9 @@ end
 
 ## Raises an exception when there's no metadata (invalid metadata param)
 params = {
-  key: 'bogus'
+  'identifier' => 'bogus'
 }
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 logic.process_params
 begin
   logic.raise_concerns
@@ -101,9 +102,9 @@ end
 
 ## Raises an exception when there's no secret
 params = {
-  key: @metadata.identifier
+  'identifier' => @metadata.identifier
 }
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 begin
   logic.raise_concerns
 rescue Onetime::MissingSecret
@@ -116,9 +117,9 @@ metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.received!
 params = {
-  key: metadata.secret_identifier
+  'identifier' => metadata.secret_identifier
 }
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 begin
   logic.raise_concerns
 rescue Onetime::MissingSecret
@@ -129,9 +130,9 @@ end
 ## Share domain is site.host by default (same as metadata)
 metadata = @create_metadata.call
 params = {
-  key: metadata.secret_identifier
+  'identifier' => metadata.secret_identifier
 }
-@this_logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+@this_logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 @this_logic.process
 @this_logic.share_domain
 #=> "https://127.0.0.1:3000"
@@ -141,9 +142,9 @@ metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.share_domain! "example.com"
 params = {
-  key: metadata.secret_identifier
+  'identifier' => metadata.secret_identifier
 }
-@this_logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+@this_logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 @this_logic.process
 [@this_logic.share_domain, @this_logic.domains_enabled]
 #=> ["https://127.0.0.1:3000", false]
@@ -153,35 +154,35 @@ metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.share_domain! "example.com"
 params = {
-  key: metadata.secret_identifier
+  'identifier' => metadata.secret_identifier
 }
-@this_logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+@this_logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 @this_logic.instance_variable_set(:@domains_enabled, true)
 @this_logic.process
 [@this_logic.share_domain, @this_logic.domains_enabled]
 #=> ["https://example.com", true]
 
 ## Sets locale correctly
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, {}, 'es')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, {locale: 'es'}, 'es')
 logic.locale
 #=> 'es'
 
-## Falls back to nil locale if not provided
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, {}, nil)
+## Falls back to default locale if not provided in params
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, {}, nil)
 logic.locale
-#=> nil
+#=> 'en'
 
 ## Asking the logic about whether the secret value is a single line returns nil when no secret
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, {}, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, {}, 'en')
 logic.one_liner
 #=> nil
 
 ## Cannot determine if secret is a one-liner when the logic.show_secret is false, even if the secret itself is viewable
 metadata = @create_metadata.call
 params = {
-  key: metadata.secret_identifier
+  'identifier' => metadata.secret_identifier
 }
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 logic.raise_concerns
 logic.process
 [logic.secret.viewable?, logic.show_secret, logic.one_liner, logic.secret.can_decrypt?]
@@ -193,10 +194,10 @@ logic.process
 ## the secret has been received).
 metadata = @create_metadata.call
 params = {
-  key: metadata.secret_identifier,
-  continue: true
+  'identifier' => metadata.secret_identifier,
+  'continue' => true
 }
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 logic.raise_concerns
 logic.process
 [logic.secret.viewable?, logic.show_secret, logic.one_liner, logic.secret.can_decrypt?]
@@ -206,9 +207,9 @@ logic.process
 metadata = @create_metadata.call
 secret = metadata.load_secret
 params = {
-  key: metadata.secret_identifier
+  'identifier' => metadata.secret_identifier
 }
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 secret.received!
 logic.process
 [secret.viewable?, logic.one_liner]
@@ -216,15 +217,18 @@ logic.process
 
 ## Correctly determines if secret is NOT a one-liner (see note above
 ## about why logic.secret.viewable? reports false after running process).
-metadata = Onetime::Metadata.create
-secret = Onetime::Secret.create value: "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
+metadata = Onetime::Metadata.new
+metadata.save
+secret = Onetime::Secret.new
+secret.value = "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
+secret.save
 metadata.secret_identifier = secret.identifier
 metadata.save
 params = {
-  key: metadata.secret_identifier,
-  continue: true
+  'identifier' => metadata.secret_identifier,
+  'continue' => true
 }
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 logic.process
 [logic.secret.viewable?, logic.one_liner]
 #=> [false, false]
@@ -243,10 +247,10 @@ secret.save
 metadata.secret_identifier = secret.identifier
 metadata.save
 params = {
-  key: metadata.secret_identifier,
-  continue: true
+  'identifier' => metadata.secret_identifier,
+  'continue' => true
 }
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 logic.process
 logic.display_lines
 #=> 9
@@ -255,10 +259,10 @@ logic.display_lines
 metadata = @create_metadata.call
 secret = metadata.load_secret
 params = {
-  key: metadata.secret_identifier,
-  continue: true
+  'identifier' => metadata.secret_identifier,
+  'continue' => true
 }
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 logic.process
 [logic.secret.has_passphrase?, logic.correct_passphrase, logic.show_secret]
 #=> [false, false, true]
@@ -268,11 +272,11 @@ metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.update_passphrase('correct_pass')
 params = {
-  key: metadata.secret_identifier,
-  passphrase: 'wrong_pass',
-  continue: true
+  'identifier' => metadata.secret_identifier,
+  'passphrase' => 'wrong_pass',
+  'continue' => true
 }
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 begin
   logic.process
 rescue OT::FormError => e
@@ -285,11 +289,11 @@ metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.update_passphrase('correct_pass')
 params = {
-  key: metadata.secret_identifier,
-  passphrase: 'wrong_pass',
-  continue: true
+  'identifier' => metadata.secret_identifier,
+  'passphrase' => 'wrong_pass',
+  'continue' => true
 }
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'BOGUS')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'BOGUS')
 begin
   logic.process
 rescue OT::FormError => e
@@ -302,11 +306,11 @@ metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.update_passphrase('correct_pass')
 params = {
-  key: metadata.secret_identifier,
-  passphrase: 'correct_pass',
-  continue: true
+  'identifier' => metadata.secret_identifier,
+  'passphrase' => 'correct_pass',
+  'continue' => true
 }
-logic = V2::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 logic.process
 [logic.secret.has_passphrase?, logic.correct_passphrase, logic.show_secret]
 #=> [true, true, true]
