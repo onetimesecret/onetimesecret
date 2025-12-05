@@ -20,6 +20,7 @@ RSpec.describe "Experimental config settings" do
 
     # Save original state for cleanup
     let(:original_security) { Onetime::Runtime.security }
+    let(:original_conf) { OT.conf }
 
     # Helper to set passphrase_temp on a secret (no setter method exists)
     def set_passphrase_temp(secret, val)
@@ -27,10 +28,13 @@ RSpec.describe "Experimental config settings" do
     end
 
     before(:each) do
+      # Force evaluation of original_conf before tests modify it
+      original_conf
     end
 
     after(:each) do
-      OT.instance_variable_set(:@conf, nil)
+      # Restore original config (not nil!)
+      OT.instance_variable_set(:@conf, original_conf)
       # Restore original security state via Runtime
       Onetime::Runtime.security = original_security
     end

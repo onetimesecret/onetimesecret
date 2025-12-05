@@ -96,6 +96,9 @@ RSpec.describe "Onetime::Config during Onetime.boot!", :allow_redis do
   after(:each) do
     # Remove the constant if we defined it, to avoid polluting other tests
     # Object.send(:remove_const, :DATABASE_IDS) if defined?(DATABASE_IDS_DEFINED_BY_TEST) && DATABASE_IDS_DEFINED_BY_TEST
+
+    # Reset ready state so subsequent tests can boot properly
+    Onetime.reset_ready!
   end
 
   describe "State of @conf after OT::Config.load and OT::Config.after_load" do
@@ -268,8 +271,8 @@ RSpec.describe "Onetime::Config during Onetime.boot!", :allow_redis do
       Onetime.boot!(:test)
       # The emailer is now configured via OT.conf['emailer'] and accessed
       # through Onetime::Mail::Mailer.send_email or similar methods.
-      # Verify the config is set correctly:
-      expect(Onetime.conf.dig('emailer', 'mode')).to eq('smtp')
+      # Verify the config is set correctly (test config uses 'logger' mode):
+      expect(Onetime.conf.dig('emailer', 'mode')).to eq('logger')
     end
 
     it "sets Familia.uri from the configuration" do

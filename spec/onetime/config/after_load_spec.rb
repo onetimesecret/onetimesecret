@@ -186,6 +186,11 @@ RSpec.describe "Onetime boot configuration process" do
         allow(Familia).to receive(:uri=).and_call_original
       end
 
+      after do
+        # Reset ready state so subsequent tests can boot properly
+        Onetime.reset_ready!
+      end
+
       it 'calls Config.load and Config.after_load in correct order' do
         expect(Onetime::Config).to receive(:load).and_return(test_config).ordered
         # Let after_load process the config normally so initializers get valid data
@@ -470,6 +475,11 @@ RSpec.describe "Onetime boot configuration process" do
         allow(Kernel).to receive(:require).with('sentry-ruby')
         allow(Kernel).to receive(:require).with('stackprof')
 
+        # Explicitly set OT.conf to nil before calling after_load to verify
+        # that after_load doesn't set it (only boot! should set OT.conf)
+        original_conf = OT.conf
+        OT.instance_variable_set(:@conf, nil)
+
         processed_config = Onetime::Config.after_load(config)
 
         expect(processed_config['diagnostics']['sentry']['backend']['environment']).to eq('test-default')
@@ -492,6 +502,9 @@ RSpec.describe "Onetime boot configuration process" do
         # we had an issue with interdependent configurations and
         # want to be sure we don't go down that road again.
         expect(OT.conf).to be_nil
+
+        # Restore for spec_helper's after hook
+        OT.instance_variable_set(:@conf, original_conf)
       end
     end
 

@@ -142,8 +142,25 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
-  # Configure Timecop - automatically return to real time after each test
+  # Save critical OT global state before each test to prevent test isolation issues.
+  # Some tests modify these values directly or set them to nil; this ensures
+  # subsequent tests have valid state.
+  config.before(:each) do
+    @__original_ot_conf = OT.conf
+    # Save Runtime state - this is where locales and other i18n state lives
+    @__original_runtime_i18n = Onetime::Runtime.internationalization
+  end
+
   config.after(:each) do
+    # Restore OT.conf if it was changed during the test
+    if OT.conf != @__original_ot_conf
+      OT.instance_variable_set(:@conf, @__original_ot_conf)
+    end
+    # Restore Runtime internationalization state if changed
+    if Onetime::Runtime.internationalization != @__original_runtime_i18n
+      Onetime::Runtime.internationalization = @__original_runtime_i18n
+    end
+    # Configure Timecop - automatically return to real time after each test
     Timecop.return
   end
 
