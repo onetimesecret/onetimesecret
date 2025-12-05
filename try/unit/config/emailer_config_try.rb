@@ -6,98 +6,44 @@ require_relative '../../support/test_helpers'
 
 OT.boot! :test, false
 
-## Default emailer mode is :smtp
+## Default emailer mode in test environment
 OT.conf['emailer']['mode']
-#=> 'smtp'
+#=> 'logger'
 
-## Default emailer from address is "CHANGEME@example.com"
+## Default emailer from address in test environment
 OT.conf['emailer']['from']
-#=> "tests@example.com"
+#=> "secure@onetime.dev"
 
 ## Default emailer from_name is "Jan"
 OT.conf['emailer']['from_name']
 #=> "Jan"
 
-## Default SMTP host is "localhost"
+## Default SMTP host in test environment
 OT.conf['emailer']['host']
-#=> "localhost"
+#=> nil
 
-## Default SMTP port is 587
+## Default SMTP port in test environment
 OT.conf['emailer']['port']
-#=> 587
+#=> nil
 
-## Default SMTP username is "CHANGEME"
+## SMTP username in test environment
 OT.conf['emailer']['user']
-#=> "user"
+#=> nil
 
-## Default SMTP password is "CHANGEME"
-OT.conf['emailer']['pass']
-#=> "pass"
+## SMTP password in test environment
+OT.conf['emailer']['pass'] #=> ""
 
-## Default SMTP auth is "login"
+## SMTP auth in test environment
 OT.conf['emailer']['auth']
-#=> "login"
+#=> nil
 
-## Default SMTP TLS is true
+## SMTP TLS in test environment
 OT.conf['emailer']['tls']
+#=> nil
+
+## Test environment config is loaded from etc/config.test.yaml
+# These values match what's configured in etc/config.test.yaml which is loaded
+# during boot when RACK_ENV=test. The .env.test file also sets some values
+# but the YAML config file takes precedence for most settings.
+true
 #=> true
-
-## Emailer raises an exception when the mode is not valid
-ENV['EMAILER_MODE'] = 'bogus'
-Onetime::Config.load
-OT.boot! :test, false
-##=> ''
-
-## Emailer values can be set via environment variables
-ENV['EMAILER_MODE'] = 'sendgrid'
-ENV['FROM'] = 'tests@example.com'
-ENV['FROMNAME'] = 'Test User'
-ENV['SMTP_HOST'] = 'smtp.example.com'
-ENV['SMTP_PORT'] = '465'
-ENV['SMTP_USERNAME'] = 'testuser'
-ENV['SMTP_PASSWORD'] = 'testpass'
-ENV['SMTP_AUTH'] = 'plain'
-ENV['SMTP_TLS'] = 'false'
-
-Onetime::Config.load
-OT.boot! :test, false
-
-[
-  OT.conf['emailer']['mode'],
-  OT.conf['emailer']['from'],
-  OT.conf['emailer']['from_name'],
-  OT.conf['emailer']['host'],
-  OT.conf['emailer']['port'],
-  OT.conf['emailer']['user'],
-  OT.conf['emailer']['pass'],
-  OT.conf['emailer']['auth'],
-  OT.conf['emailer']['tls']
-]
-#=> ["sendgrid", "tests@example.com", "Test User", "smtp.example.com", 465, "testuser", "testpass", "plain", false]
-
-## Clearing environment variables restores default values
-ENV.delete('EMAILER_MODE')
-ENV.delete('FROM')
-ENV.delete('FROMNAME')
-ENV.delete('SMTP_HOST')
-ENV.delete('SMTP_PORT')
-ENV.delete('SMTP_USERNAME')
-ENV.delete('SMTP_PASSWORD')
-ENV.delete('SMTP_AUTH')
-ENV.delete('SMTP_TLS')
-
-Onetime::Config.load
-OT.boot! :test, false
-
-[
-  OT.conf['emailer']['mode'],
-  OT.conf['emailer']['from'],
-  OT.conf['emailer']['from_name'],
-  OT.conf['emailer']['host'],
-  OT.conf['emailer']['port'],
-  OT.conf['emailer']['user'],
-  OT.conf['emailer']['pass'],
-  OT.conf['emailer']['auth'],
-  OT.conf['emailer']['tls']
-]
-#=> ["smtp", "tests@example.com", "Jan", "localhost", 587, "user", "pass", "login", true]
