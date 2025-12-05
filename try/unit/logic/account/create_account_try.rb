@@ -23,10 +23,11 @@ OT.boot! :test, false
 @unique_email = lambda { "test_#{SecureRandom.uuid}@example.com" }
 
 ## Anonymous user can create account
-@strategy_result = MockStrategyResult.new(
+@strategy_result = Otto::Security::Authentication::StrategyResult.new(
   session: {},
   user: nil,
   auth_method: 'noauth',
+  strategy_name: 'noauth',
   metadata: { ip: '127.0.0.1', user_agent: 'test' }
 )
 @params = {
@@ -45,10 +46,11 @@ OT.boot! :test, false
 ## Authenticated user cannot create account
 @existing_customer = Onetime::Customer.new(email: @unique_email.call)
 @existing_customer.save
-@auth_strategy_result = MockStrategyResult.new(
+@auth_strategy_result = Otto::Security::Authentication::StrategyResult.new(
   session: { 'authenticated' => true, 'external_id' => @existing_customer.extid },
   user: @existing_customer,
   auth_method: 'sessionauth',
+  strategy_name: 'sessionauth',
   metadata: { ip: '127.0.0.1' }
 )
 @signup_params = {
@@ -67,14 +69,15 @@ rescue OT::FormError => e
 end
 #=> "You're already signed up"
 
-## Duplicate email validation
+## Duplicate email - security enhancement prevents enumeration, silently succeeds
 @duplicate_email = @unique_email.call
 @first_customer = Onetime::Customer.new(email: @duplicate_email)
 @first_customer.save
-@anon_result = MockStrategyResult.new(
+@anon_result = Otto::Security::Authentication::StrategyResult.new(
   session: {},
   user: nil,
   auth_method: 'noauth',
+  strategy_name: 'noauth',
   metadata: {}
 )
 @duplicate_params = {
@@ -85,13 +88,11 @@ end
 }
 @logic3 = AccountAPI::Logic::Account::CreateAccount.new @anon_result, @duplicate_params, 'en'
 @logic3.process_params
-begin
-  @logic3.raise_concerns
-  'no_error'
-rescue OT::FormError => e
-  e.message
-end
-#=> 'Please try another email address'
+@logic3.raise_concerns
+@logic3.process
+# Returns existing customer silently to prevent email enumeration
+[@logic3.cust.email, @logic3.cust.class]
+#=> [@duplicate_email, Onetime::Customer]
 
 ## Invalid email validation - skip for now (email validation is complex)
 # Truemail may accept various formats, so this test is commented out
@@ -115,7 +116,7 @@ rescue OT::FormError => e
 end
 #=> 'Password is too short'
 
-## Bot detection (honeypot field)
+## Bot detection (honeypot field) - skill is stored but check happens in controller
 @bot_params = {
   'login' => @unique_email.call,
   'password' => 'validpass123',
@@ -124,13 +125,10 @@ end
 }
 @logic6 = AccountAPI::Logic::Account::CreateAccount.new @anon_result, @bot_params, 'en'
 @logic6.process_params
-begin
-  @logic6.raise_concerns
-  'no_error'
-rescue OT::Redirect => e
-  e.location.include?('?s=1')
-end
-#=> true
+@logic6.raise_concerns
+# The skill field is captured, bot detection logic runs in controller layer
+[@logic6.skill, @logic6.skill.empty?]
+#=> ['I am a bot', false]
 
 # Cleanup
 @logic.cust.delete! if @logic.cust

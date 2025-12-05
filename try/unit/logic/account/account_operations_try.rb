@@ -22,6 +22,7 @@ OT.boot! :test, false
 
 # Setup common test variables
 @now = Familia.now
+# Generate a unique email address using a UUID with example.com domain for validation
 # Generate a unique email address using a UUID (use example.com - it's RFC compliant)
 @unique_email = lambda {"test_#{SecureRandom.uuid}@example.com"}
 
@@ -46,15 +47,16 @@ OT.boot! :test, false
   'skill' => '' # honeypot field should be empty
 }
 logic = AccountAPI::Logic::Account::CreateAccount.new @strategy_result, @create_params
+logic.process_params
 logic.raise_concerns
 logic.process
 [
   logic.cust.class,
-  logic.planid,
+  logic.cust.role,
   logic.autoverify,
   logic.customer_role
 ]
-#=> [Onetime::Customer, 'anonymous', false, 'customer']
+#=> [Onetime::Customer, 'customer', false, 'customer']
 
 # UpdatePassword Tests
 
