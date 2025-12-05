@@ -14,7 +14,7 @@
 require 'rack'
 require 'rack/mock'
 
-require_relative '../../support/test_models'
+require_relative '../../../support/test_models'
 
 # Initialize the real Rack application and create a mock request
 @app = Rack::Builder.parse_file('config.ru') # Tryouts 3.3.1 report this as line try/91_authentication_routes_try.rb:15

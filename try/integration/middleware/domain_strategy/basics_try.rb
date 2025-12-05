@@ -114,7 +114,7 @@ end
 #=> true
 
 ## Disables domains when canonical domain is invalid
-config = { 'features' => { domains' => { 'enabled' => true, 'default' => '..invalid..' } } }
+config = { 'features' => { 'domains' => { 'enabled' => true, 'default' => '..invalid..' } } }
 Onetime::Middleware::DomainStrategy.initialize_from_config(config)
 Onetime::Middleware::DomainStrategy.domains_enabled?
 #=> false
