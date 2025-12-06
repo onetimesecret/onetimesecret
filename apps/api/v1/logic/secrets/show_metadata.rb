@@ -110,12 +110,11 @@ module V1::Logic
         #
         # It will be true if ALL of these conditions are met:
         #   1. The metadata state is NOT received or burned, AND
-        #   2. Either the secret is showable (@show_secret is true) OR
-        #      the current customer is the owner of the metadata, AND
+        #   2. The secret is showable (@show_secret is true), AND
         #   3. There are no recipients specified (@recipients is nil)
         #
         @show_secret_link = !(metadata.state?(:received) || metadata.state?(:burned) || metadata.state?(:orphaned)) &&
-                            (@show_secret || metadata.owner?(cust)) &&
+                            @show_secret &&
                             @recipients.empty?
 
         # A simple check to show the metadata link only for newly

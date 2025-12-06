@@ -1,4 +1,4 @@
-# apps/api/v1/routes
+# apps/api/v1/routes.txt
 
 GET    /status                               V1::Controllers::Index#status
 GET    /authcheck                            V1::Controllers::Index#authcheck
