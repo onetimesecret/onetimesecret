@@ -29,7 +29,7 @@ module Core
         # This is crucial for error pages where authenticated=false but the user
         # had a valid session. The frontend uses this to avoid incorrect logouts.
         # A valid session has 'external_id' present (customer identifier in session)
-        sess = view_vars['sess']
+        sess                        = view_vars['sess']
         output['had_valid_session'] = !!(sess && !sess.empty? && !sess['external_id'].to_s.empty?)
 
         # When authenticated, provide full customer data

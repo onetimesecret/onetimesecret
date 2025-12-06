@@ -51,7 +51,7 @@ RSpec.describe 'Rodauth Hook Side Effects', type: :integration do
       login: email,
       'login-confirm': email,
       password: password,
-      'password-confirm': password
+      'password-confirm': password,
     }
     last_response
   end
@@ -105,11 +105,11 @@ RSpec.describe 'Rodauth Hook Side Effects', type: :integration do
           skip "Account creation returned #{response.status}"
         end
 
-        account = find_account_by_email(test_email)
+        account  = find_account_by_email(test_email)
         customer = find_customer_by_email(test_email)
 
-        expect(account).not_to be_nil, "Account should exist in auth database"
-        expect(customer).not_to be_nil, "Customer should exist in Redis"
+        expect(account).not_to be_nil, 'Account should exist in auth database'
+        expect(customer).not_to be_nil, 'Customer should exist in Redis'
 
         # The account's external_id should match the customer's extid
         expect(account[:external_id]).to eq(customer.extid),
@@ -192,7 +192,7 @@ RSpec.describe 'Rodauth Hook Side Effects', type: :integration do
         # Check that failure is tracked
         failure_record = auth_db[:account_login_failures].where(id: account[:id]).first
         expect(failure_record).not_to be_nil,
-          "Expected login failure to be tracked in account_login_failures table"
+          'Expected login failure to be tracked in account_login_failures table'
         expect(failure_record[:number]).to be >= 1
       end
 
@@ -237,13 +237,13 @@ RSpec.describe 'Rodauth Hook Side Effects', type: :integration do
     it 'creates password reset key in database' do
       json_post '/auth/reset-password-request', { login: password_email }
 
-      account = find_account_by_email(password_email)
+      account   = find_account_by_email(password_email)
       reset_key = auth_db[:account_password_reset_keys].where(id: account[:id]).first
 
       # Reset key should be created if the route succeeded
       if last_response.status == 200
         expect(reset_key).not_to be_nil,
-          "Expected password reset key to be created"
+          'Expected password reset key to be created'
       end
     end
   end

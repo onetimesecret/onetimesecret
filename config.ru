@@ -1,6 +1,7 @@
 # config.ru
 #
 # frozen_string_literal: true
+
 #
 # Usage:
 #
@@ -18,7 +19,7 @@
 #
 
 # Establish the environment
-ENV['RACK_ENV']     ||= 'production'.freeze
+ENV['RACK_ENV']     ||= 'production'
 ENV['ONETIME_HOME'] ||= File.expand_path(__dir__).freeze
 
 # Add lib to load path first

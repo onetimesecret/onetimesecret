@@ -34,7 +34,8 @@ module Onetime
         end
 
         puts format('%-20s %-18s %-10s %-10s %-12s %s',
-          'PLAN ID', 'TIER', 'INTERVAL', 'AMOUNT', 'REGION', 'CAPS')
+          'PLAN ID', 'TIER', 'INTERVAL', 'AMOUNT', 'REGION', 'CAPS'
+        )
         puts '-' * 90
 
         plans.each do |entry|

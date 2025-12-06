@@ -240,7 +240,7 @@ module Onetime
             strategy = statistics[:strategy_used]
 
             puts "\n   ✅ Successfully migrated #{statistics[:migrated_keys]} #{plan[:model]} keys"
-            puts "      Strategy: #{strategy.to_s.upcase}, Duration: #{'%.2f' % duration}s"
+            puts format('      Strategy: %s, Duration: %.2fs', strategy.to_s.upcase, duration)
 
             if statistics[:failed_keys] > 0
               puts "      ⚠️  #{statistics[:failed_keys]} keys failed to migrate"

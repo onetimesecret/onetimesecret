@@ -19,7 +19,7 @@ RSpec.describe 'Auth::Config::Features::MFA' do
     let(:app) do
       create_rodauth_app(
         db: db,
-        features: [:base, :login, :logout, :two_factor_base, :otp, :recovery_codes]
+        features: [:base, :login, :logout, :two_factor_base, :otp, :recovery_codes],
       ) do
         # Configuration values from mfa.rb
         otp_issuer 'OneTimeSecret'
@@ -75,11 +75,11 @@ RSpec.describe 'Auth::Config::Features::MFA' do
 
     describe 'configuration values' do
       let(:rodauth_instance) do
-        env = {
+        env     = {
           'REQUEST_METHOD' => 'GET',
           'PATH_INFO' => '/',
           'rack.input' => StringIO.new,
-          'rack.session' => {}
+          'rack.session' => {},
         }
         request = Roda::RodaRequest.new(app.new(env), env)
         app.rodauth.new(request.scope)
@@ -115,7 +115,7 @@ RSpec.describe 'Auth::Config::Features::MFA' do
     let(:app) do
       create_rodauth_app(
         db: db,
-        features: [:base, :login, :logout]
+        features: [:base, :login, :logout],
       )
     end
 

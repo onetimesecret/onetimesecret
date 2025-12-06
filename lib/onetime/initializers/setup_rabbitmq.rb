@@ -20,9 +20,10 @@ module Onetime
     # - One TCP connection per process (singleton)
     # - Pool of channels from that connection (thread-safe)
     #
+    # rubocop:disable Style/GlobalVars
     class SetupRabbitMQ < Onetime::Boot::Initializer
       @depends_on = [:logging]
-      @provides = [:rabbitmq]
+      @provides   = [:rabbitmq]
 
       def execute(_context)
         return unless OT.conf.dig('jobs', 'enabled')
@@ -31,7 +32,7 @@ module Onetime
         # Skip setup here to avoid ConnectionPool.after_fork issues when
         # Sneakers forks and tries to close inherited (stale) channels.
         if ENV['SKIP_RABBITMQ_SETUP'] == '1'
-          Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Skipped (worker mode - Sneakers handles connections)"
+          Onetime.bunny_logger.debug '[init] Setup RabbitMQ: Skipped (worker mode - Sneakers handles connections)'
           return
         end
 
@@ -41,7 +42,7 @@ module Onetime
       private
 
       def setup_rabbitmq_connection
-        url = OT.conf.dig('jobs', 'rabbitmq_url') || ENV.fetch('RABBITMQ_URL', 'amqp://localhost:5672')
+        url       = OT.conf.dig('jobs', 'rabbitmq_url') || ENV.fetch('RABBITMQ_URL', 'amqp://localhost:5672')
         pool_size = OT.conf.dig('jobs', 'channel_pool_size') || ENV.fetch('RABBITMQ_CHANNEL_POOL_SIZE', 5).to_i
 
         Onetime.bunny_logger.info "[init] RabbitMQ: Connecting to #{sanitize_url(url)}"
@@ -51,11 +52,11 @@ module Onetime
           url,
           recover_from_connection_close: true,
           network_recovery_interval: 5,
-          logger: Onetime.get_logger('Bunny')
+          logger: Onetime.get_logger('Bunny'),
         )
 
         $rmq_conn.start
-        Onetime.bunny_logger.debug "[init] Setup RabbitMQ: connection established"
+        Onetime.bunny_logger.debug '[init] Setup RabbitMQ: connection established'
 
         # Create channel pool for thread safety
         $rmq_channel_pool = ConnectionPool.new(size: pool_size, timeout: 5) do
@@ -74,23 +75,24 @@ module Onetime
         verify_connection
 
         OT.log_box([
-          "✅ RABBITMQ: Connected to message broker",
-          "   Pool size: #{pool_size} channels",
-          "   Queues: #{Onetime::Jobs::QueueConfig::QUEUES.size} declared"
-        ])
+                     '✅ RABBITMQ: Connected to message broker',
+                     "   Pool size: #{pool_size} channels",
+                     "   Queues: #{Onetime::Jobs::QueueConfig::QUEUES.size} declared",
+                   ],
+                  )
 
         # Set runtime state (optional, for introspection)
         Onetime::Runtime.update_infrastructure(
           rabbitmq_connection: $rmq_conn,
-          rabbitmq_channel_pool: $rmq_channel_pool
+          rabbitmq_channel_pool: $rmq_channel_pool,
         )
-      rescue Bunny::TCPConnectionFailed, Bunny::ConnectionTimeout => e
-        Onetime.bunny_logger.error "[init] Setup RabbitMQ: Connection failed: #{e.message}"
-        Onetime.bunny_logger.error "[init] Setup RabbitMQ: Jobs will fall back to synchronous execution"
+      rescue Bunny::TCPConnectionFailed, Bunny::ConnectionTimeout => ex
+        Onetime.bunny_logger.error "[init] Setup RabbitMQ: Connection failed: #{ex.message}"
+        Onetime.bunny_logger.error '[init] Setup RabbitMQ: Jobs will fall back to synchronous execution'
         # Don't raise - allow app to start with degraded functionality
-      rescue StandardError => e
-        Onetime.bunny_logger.error "[init] Setup RabbitMQ: Unexpected error: #{e.message}"
-        Onetime.bunny_logger.error e.backtrace.join("\n") if OT.debug?
+      rescue StandardError => ex
+        Onetime.bunny_logger.error "[init] Setup RabbitMQ: Unexpected error: #{ex.message}"
+        Onetime.bunny_logger.error ex.backtrace.join("\n") if OT.debug?
         raise
       end
 
@@ -127,12 +129,12 @@ module Onetime
           # Verify channel is open and functional
           channel.queue('email.message.send', passive: true)
         end
-        Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Connectivity verified"
+        Onetime.bunny_logger.debug '[init] Setup RabbitMQ: Connectivity verified'
       rescue Bunny::NotFound
         # Queue doesn't exist yet - that's fine, connection works
-        Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Connectivity verified (queue not yet declared)"
-      rescue StandardError => e
-        Onetime.bunny_logger.error "[init] Setup RabbitMQ: Verification failed: #{e.message}"
+        Onetime.bunny_logger.debug '[init] Setup RabbitMQ: Connectivity verified (queue not yet declared)'
+      rescue StandardError => ex
+        Onetime.bunny_logger.error "[init] Setup RabbitMQ: Verification failed: #{ex.message}"
         raise
       end
 
@@ -140,8 +142,9 @@ module Onetime
         # Hide credentials in logs
         # Handles both user:pass@host and key@host formats
         url.gsub(%r{://([^:@]+):([^@]+)@}, '://\1:***@')  # user:pass@host
-           .gsub(%r{://([^/:@]+)@}, '://***@')             # key@host (no colon)
+          .gsub(%r{://([^/:@]+)@}, '://***@')             # key@host (no colon)
       end
     end
+    # rubocop:enable Style/GlobalVars
   end
 end

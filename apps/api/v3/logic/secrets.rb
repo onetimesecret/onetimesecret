@@ -51,10 +51,11 @@ module V3
             recipient: owner.email,
             secret_shortid: secret.shortid,
             revealed_at: Time.now.utc.iso8601,
-          })
-        rescue StandardError => e
+          }
+          )
+        rescue StandardError => ex
           # Log but don't fail the reveal - notification is non-critical
-          secret_logger.error "[RevealSecret] Failed to notify owner: #{e.message}"
+          secret_logger.error "[RevealSecret] Failed to notify owner: #{ex.message}"
         end
       end
 

@@ -10,7 +10,7 @@ require 'onetime/models'
 require_relative '../base_json_api'
 require_relative 'logic'
 require_relative 'auth_strategies'
-# Note: initializers/setup_incoming_recipients.rb is auto-discovered
+# NOTE: initializers/setup_incoming_recipients.rb is auto-discovered
 # by lib/onetime/initializers.rb during boot
 
 module V3

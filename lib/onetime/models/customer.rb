@@ -258,7 +258,7 @@ module Onetime
           dummy_cust.passphrase_encryption = '2'
           dummy_cust.passphrase            = ::Argon2::Password.create(
             SecureRandom.hex(16),
-            dummy_cust.argon2_hash_cost
+            dummy_cust.argon2_hash_cost,
           )
           dummy_cust.freeze
         end

@@ -23,7 +23,7 @@ require 'apps/web/billing/models/plan'
 Billing::Plan.clear_cache
 
 ## Free plan
-@free_plan = Billing::Plan.new(
+@free_plan                               = Billing::Plan.new(
   plan_id: 'free',
   name: 'Free',
   tier: 'free',
@@ -38,7 +38,7 @@ Billing::Plan.clear_cache
 @free_plan.save
 
 ## Identity Plus v1
-@identity_plan = Billing::Plan.new(
+@identity_plan                                = Billing::Plan.new(
   plan_id: 'identity_v1',
   name: 'Identity Plus',
   tier: 'single_team',
@@ -52,14 +52,14 @@ Billing::Plan.clear_cache
 @identity_plan.capabilities.add('custom_domains')
 @identity_plan.capabilities.add('priority_support')
 @identity_plan.capabilities.add('extended_lifetime')
-@identity_plan.limits['teams.max'] = '1'
+@identity_plan.limits['teams.max']            = '1'
 @identity_plan.limits['members_per_team.max'] = 'unlimited'
-@identity_plan.limits['custom_domains.max'] = 'unlimited'
-@identity_plan.limits['secret_lifetime.max'] = '2592000'
+@identity_plan.limits['custom_domains.max']   = 'unlimited'
+@identity_plan.limits['secret_lifetime.max']  = '2592000'
 @identity_plan.save
 
 ## Multi-Team v1
-@multi_plan = Billing::Plan.new(
+@multi_plan                                = Billing::Plan.new(
   plan_id: 'multi_team_v1',
   name: 'Multi-Team',
   tier: 'multi_team',
@@ -76,15 +76,15 @@ Billing::Plan.clear_cache
 @multi_plan.capabilities.add('extended_lifetime')
 @multi_plan.capabilities.add('audit_logs')
 @multi_plan.capabilities.add('advanced_analytics')
-@multi_plan.limits['teams.max'] = 'unlimited'
+@multi_plan.limits['teams.max']            = 'unlimited'
 @multi_plan.limits['members_per_team.max'] = 'unlimited'
-@multi_plan.limits['custom_domains.max'] = 'unlimited'
-@multi_plan.limits['api_rate_limit.max'] = '10000'
-@multi_plan.limits['secret_lifetime.max'] = '7776000'
+@multi_plan.limits['custom_domains.max']   = 'unlimited'
+@multi_plan.limits['api_rate_limit.max']   = '10000'
+@multi_plan.limits['secret_lifetime.max']  = '7776000'
 @multi_plan.save
 
 ## Legacy Identity v0 (for testing legacy plan support)
-@legacy_plan = Billing::Plan.new(
+@legacy_plan                                = Billing::Plan.new(
   plan_id: 'identity_v0',
   tier: 'single_team',
   interval: 'month',
@@ -95,13 +95,13 @@ Billing::Plan.clear_cache
 @legacy_plan.capabilities.add('view_metadata')
 @legacy_plan.capabilities.add('create_team')
 @legacy_plan.capabilities.add('priority_support')
-@legacy_plan.limits['teams.max'] = '1'
+@legacy_plan.limits['teams.max']            = '1'
 @legacy_plan.limits['members_per_team.max'] = '10'
-@legacy_plan.limits['secret_lifetime.max'] = '1209600'
+@legacy_plan.limits['secret_lifetime.max']  = '1209600'
 @legacy_plan.save
 
 ## Create unique test ID suffix to avoid collisions
-@test_suffix = Time.now.to_i.to_s[-6..-1]
+@test_suffix = Time.now.to_i.to_s[-6..]
 @test_suffix.class
 #=> String
 
@@ -110,7 +110,7 @@ Billing::Plan.clear_cache
   display_name: 'Free Org',
   owner_id: 'cust_test_001',
   contact_email: "free-#{@test_suffix}@example.com",
-  planid: 'free'
+  planid: 'free',
 )
 @free_org.save
 @free_org.planid
@@ -121,7 +121,7 @@ Billing::Plan.clear_cache
   display_name: 'Identity Org',
   owner_id: 'cust_test_002',
   contact_email: "identity-#{@test_suffix}@example.com",
-  planid: 'identity_v1'
+  planid: 'identity_v1',
 )
 @identity_org.save
 @identity_org.planid
@@ -132,7 +132,7 @@ Billing::Plan.clear_cache
   display_name: 'Multi Org',
   owner_id: 'cust_test_003',
   contact_email: "multi-#{@test_suffix}@example.com",
-  planid: 'multi_team_v1'
+  planid: 'multi_team_v1',
 )
 @multi_org.save
 @multi_org.planid
@@ -143,7 +143,7 @@ Billing::Plan.clear_cache
   display_name: 'Legacy Org',
   owner_id: 'cust_test_004',
   contact_email: "legacy-#{@test_suffix}@example.com",
-  planid: 'identity_v0'
+  planid: 'identity_v0',
 )
 @legacy_org.save
 @legacy_org.planid
@@ -242,7 +242,7 @@ Billing::Plan.clear_cache
 #=> false
 
 ## Test: at_limit? never true for unlimited resources
-@multi_org.at_limit?('teams', 999999)
+@multi_org.at_limit?('teams', 999_999)
 #=> false
 
 ## Test: check_capability returns not allowed for missing capability
@@ -316,10 +316,10 @@ Billing::PlanHelpers.available_plans.include?('identity_v0')
 #=> false
 
 ## Test: Fail-safe for nil planid returns empty capabilities
-@no_plan_org = Onetime::Organization.new(
+@no_plan_org        = Onetime::Organization.new(
   display_name: 'No Plan',
   owner_id: 'cust_test_888',
-  contact_email: "noplan-#{@test_suffix}@example.com"
+  contact_email: "noplan-#{@test_suffix}@example.com",
 )
 @no_plan_org.planid = nil
 @no_plan_org.capabilities
@@ -334,10 +334,10 @@ Billing::PlanHelpers.available_plans.include?('identity_v0')
 #=> 0
 
 ## Test: Fail-safe for empty planid returns empty capabilities
-@empty_plan_org = Onetime::Organization.new(
+@empty_plan_org        = Onetime::Organization.new(
   display_name: 'Empty Plan',
   owner_id: 'cust_test_777',
-  contact_email: "empty-#{@test_suffix}@example.com"
+  contact_email: "empty-#{@test_suffix}@example.com",
 )
 @empty_plan_org.planid = ''
 @empty_plan_org.capabilities
@@ -347,7 +347,7 @@ Billing::PlanHelpers.available_plans.include?('identity_v0')
 @new_org = Onetime::Organization.new(
   display_name: 'New Org',
   owner_id: 'cust_test_555',
-  contact_email: "new-#{@test_suffix}@example.com"
+  contact_email: "new-#{@test_suffix}@example.com",
 )
 @new_org.planid
 #=> 'free'
@@ -358,7 +358,9 @@ Billing::PlanHelpers.available_plans.include?('identity_v0')
 
 ## Teardown: Clean up test organizations
 [@free_org, @identity_org, @multi_org, @legacy_org, @no_plan_org, @empty_plan_org, @new_org].each do |org|
-  org&.destroy! rescue nil
+    org&.destroy!
+rescue StandardError
+    nil
 end
 true
 #=> true

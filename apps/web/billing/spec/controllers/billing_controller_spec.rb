@@ -9,7 +9,7 @@ require 'stripe'
 # Load the billing application for controller testing
 require_relative '../../application'
 
-RSpec.describe 'Billing::Controllers::BillingController', :integration, :vcr, :stripe_sandbox_api do
+RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_sandbox_api, :vcr do
   include Rack::Test::Methods
 
   # The Rack application for testing

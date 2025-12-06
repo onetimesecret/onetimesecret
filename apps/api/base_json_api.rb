@@ -46,8 +46,8 @@ class BaseJSONAPI < Onetime::Application::Base
   # allow_if to skip /api/* routes. This just adds the response header.
   use Onetime::Middleware::CsrfResponseHeader
 
-  warmup do
-  end
+  # Warmup block placeholder for future initialization
+  warmup { nil }
 
   protected
 

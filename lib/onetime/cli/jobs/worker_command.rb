@@ -50,7 +50,7 @@ module Onetime
             concurrency: concurrency,
             daemonize: daemonize,
             environment: environment,
-            log_level: log_level
+            log_level: log_level,
           )
 
           # Determine which worker classes to run
@@ -124,7 +124,9 @@ module Onetime
 
           # Get all worker classes
           worker_classes = ObjectSpace.each_object(Class).select do |klass|
-            klass < Sneakers::Worker rescue false
+              klass < Sneakers::Worker
+          rescue StandardError
+              false
           end
 
           # Filter by queue names if specified
@@ -142,8 +144,6 @@ module Onetime
           case level_str.to_s.downcase
           when 'trace', 'debug'
             Logger::DEBUG
-          when 'info'
-            Logger::INFO
           when 'warn'
             Logger::WARN
           when 'error'
@@ -151,7 +151,7 @@ module Onetime
           when 'fatal'
             Logger::FATAL
           else
-            Logger::INFO
+            Logger::INFO # default for 'info' and unknown values
           end
         end
       end

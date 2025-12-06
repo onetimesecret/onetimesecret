@@ -5,18 +5,18 @@
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 
 RSpec.describe Onetime::Secret, 'security hardening' do
-  let(:secret) { create_stubbed_onetime_secret(key: "test-secret-key-12345") }
-  let(:passphrase) { "secure-test-passphrase" }
-  let(:secret_value) { "Sensitive information 123" }
+  let(:secret) { create_stubbed_onetime_secret(key: 'test-secret-key-12345') }
+  let(:passphrase) { 'secure-test-passphrase' }
+  let(:secret_value) { 'Sensitive information 123' }
 
   before do
-    allow(OT).to receive(:global_secret).and_return("global-test-secret")
-    allow(OT).to receive(:conf).and_return({
+    allow(OT).to receive_messages(global_secret: 'global-test-secret', conf: {
       'experimental' => {
         'allow_nil_global_secret' => false,
-        'rotated_secrets' => []
-      }
-    })
+        'rotated_secrets' => [],
+      },
+    }
+    )
   end
 
   describe 'timing attack resistance', allow_redis: false do
@@ -43,18 +43,18 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       # comparison algorithms that resist timing attacks
 
       # Skip in CI environment where timing can be unreliable
-      skip "Timing tests may be unreliable in CI environments" if ENV['CI']
+      skip 'Timing tests may be unreliable in CI environments' if ENV['CI']
 
       # Warm up
       5.times { secret.passphrase?(passphrase) }
-      5.times { secret.passphrase?("wrong-passphrase") }
+      5.times { secret.passphrase?('wrong-passphrase') }
 
       # Measure correct passphrase
       correct_times = []
       10.times do
         start_time = Onetime.now_in_μs
         secret.passphrase?(passphrase)
-        end_time = Onetime.now_in_μs
+        end_time   = Onetime.now_in_μs
         correct_times << (end_time - start_time)
       end
 
@@ -62,17 +62,17 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       incorrect_times = []
       10.times do
         start_time = Onetime.now_in_μs
-        secret.passphrase?("wrong-passphrase")
-        end_time = Onetime.now_in_μs
+        secret.passphrase?('wrong-passphrase')
+        end_time   = Onetime.now_in_μs
         incorrect_times << (end_time - start_time)
       end
 
       # Calculate averages (use float division for accurate timing)
-      avg_correct = correct_times.sum.to_f / correct_times.size
+      avg_correct   = correct_times.sum.to_f / correct_times.size
       avg_incorrect = incorrect_times.sum.to_f / incorrect_times.size
 
       # Skip if times are too small to measure reliably (< 100μs)
-      skip "Execution too fast to measure reliably" if avg_correct < 100 || avg_incorrect < 100
+      skip 'Execution too fast to measure reliably' if avg_correct < 100 || avg_incorrect < 100
 
       # Timing difference should be minimal
       # Allow up to 2x difference because BCrypt comparison exits early on
@@ -88,7 +88,7 @@ RSpec.describe Onetime::Secret, 'security hardening' do
 
     it 'raises an error when encrypted value is corrupted' do
       # Corrupt the encrypted value
-      secret.value = secret.value[0..-2] + "X"
+      secret.value = secret.value[0..-2] + 'X'
 
       expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
     end
@@ -97,24 +97,25 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       # Test with various forms of corruption
 
       # Case 1: Empty value
-      secret.value = ""
+      secret.value = ''
       # Empty value with encryption mode 2 can trigger different errors depending on
       # the environment (OpenSSL, frozen string handling, etc.)
-      expect { secret.decrypted_value }.to raise_error { |error|
+      expect { secret.decrypted_value }.to(raise_error do |error|
         expect([OpenSSL::Cipher::CipherError, ArgumentError, FrozenError]).to include(error.class)
-      }
+      end,
+                                          )
 
       # Case 2: Nil value
       secret.value = nil
       expect { secret.decrypted_value }.to raise_error(NoMethodError)
 
       # Case 3: Invalid encryption mode
-      secret.value = secret_value
+      secret.value            = secret_value
       secret.value_encryption = 99
       expect { secret.decrypted_value }.to raise_error(RuntimeError, /Unknown encryption mode/)
 
       # Case 4: Non-encrypted binary data
-      secret.value = "\x00\x01\x02\x03"
+      secret.value            = "\x00\x01\x02\x03"
       secret.value_encryption = 2
       expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
     end
@@ -123,14 +124,14 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       # Encrypt with v2
       secret.value_encryption = 2
       secret.encrypt_value(secret_value)
-      encrypted_value = secret.value.dup
+      encrypted_value         = secret.value.dup
 
       # Try to decrypt with v1
       secret.value_encryption = 1
       expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
 
       # Try to decrypt with no encryption
-      secret.value = encrypted_value
+      secret.value            = encrypted_value
       secret.value_encryption = 0
       expect { secret.decrypted_value }.not_to raise_error
       expect(secret.decrypted_value).not_to eq(secret_value)
@@ -152,12 +153,12 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       orig_key = secret.encryption_key_v2
 
       # Change secret key
-      allow(secret).to receive(:key).and_return("test-secret-key-12346") # Changed last digit
+      allow(secret).to receive(:key).and_return('test-secret-key-12346') # Changed last digit
       modified_key1 = secret.encryption_key_v2
 
       # Change global secret slightly
-      allow(secret).to receive(:key).and_return("test-secret-key-12345") # Original
-      allow(OT).to receive(:global_secret).and_return("global-test-secret-")
+      allow(secret).to receive(:key).and_return('test-secret-key-12345') # Original
+      allow(OT).to receive(:global_secret).and_return('global-test-secret-')
       modified_key2 = secret.encryption_key_v2
 
       # Keys should be completely different

@@ -16,6 +16,10 @@ require_relative '../../support/test_helpers'
 
 OT.boot! :test, true
 
+# Explicitly enable database logging in case boot already happened earlier
+# with DEBUG_DATABASE unset (common in full test suite runs)
+Familia.enable_database_logging = true
+
 # Force reconnection to apply middleware to existing connections
 Familia.reconnect!
 

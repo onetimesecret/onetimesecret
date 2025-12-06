@@ -38,7 +38,7 @@ module V3
 
         def process
           # Validate that the hash exists in our lookup table
-          @is_valid = !OT.lookup_incoming_recipient(recipient_hash).nil?
+          @is_valid     = !OT.lookup_incoming_recipient(recipient_hash).nil?
           @greenlighted = true
           success_data
         end
@@ -46,7 +46,7 @@ module V3
         def success_data
           {
             recipient: recipient_hash,
-            valid: is_valid
+            valid: is_valid,
           }
         end
       end

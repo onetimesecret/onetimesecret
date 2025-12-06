@@ -22,7 +22,7 @@ gem 'otto', '~> 2.0.0.pre8'
 gem 'rhales', '~> 0.5.3'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
-gem 'rodauth-tools', '~> 0.3.0'
+gem 'rodauth-tools', '~> 0.3.1'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'
@@ -63,9 +63,9 @@ gem 'truemail'
 # NOTE: We install both db drivers for the OCI images so that users can choose
 # which database to use at runtime via environment variable without rebuilding.
 gem 'familia', '~> 2.0.0.pre22'
+gem 'pg', '~> 1.6'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'
-gem 'pg', '~> 1.6'
 
 # Redis/Valkey
 gem 'redis', '~> 5.4.0'
@@ -100,8 +100,8 @@ gem 'stringio', '~> 3.1.6'
 
 gem 'bunny', '~> 2.22'           # RabbitMQ AMQP client
 gem 'connection_pool', '~> 2.4'  # Thread-safe connection pooling
-gem 'rufus-scheduler', '~> 3.9'  # Cron-style job scheduling
 gem 'kicks', '~> 3.0'            # RabbitMQ worker framework (Sneakers successor)
+gem 'rufus-scheduler', '~> 3.9'  # Cron-style job scheduling
 
 # ====================================
 # Third-Party Service Integrations
@@ -140,7 +140,7 @@ group :development do
 end
 
 group :test do
-  # Note: FakeRedis removed due to redis 5.x incompatibility
+  # NOTE: FakeRedis removed due to redis 5.x incompatibility
   # See spec_helper.rb for details about mock_redis as future alternative
   gem 'bunny-mock', '~> 1.7', require: false  # Mock RabbitMQ for testing
   gem 'climate_control'

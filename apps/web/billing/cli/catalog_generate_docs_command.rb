@@ -21,7 +21,7 @@ module Onetime
         boot_application!
 
         catalog_path = Billing::Config.catalog_path
-        output_path = output || File.join('docs', 'billing', 'plan-definitions.md')
+        output_path  = output || File.join('docs', 'billing', 'plan-definitions.md')
 
         unless File.exist?(catalog_path)
           puts "❌ Error: Catalog file not found: #{catalog_path}"
@@ -42,11 +42,11 @@ module Onetime
 
         puts "✅ Documentation generated: #{output_path}"
         puts "   #{markdown.lines.count} lines, #{markdown.bytesize} bytes"
-      rescue Psych::SyntaxError => e
-        puts "❌ YAML syntax error: #{e.message}"
-      rescue StandardError => e
-        puts "❌ Error generating docs: #{e.message}"
-        puts e.backtrace.first(5).join("\n") if OT.debug?
+      rescue Psych::SyntaxError => ex
+        puts "❌ YAML syntax error: #{ex.message}"
+      rescue StandardError => ex
+        puts "❌ Error generating docs: #{ex.message}"
+        puts ex.backtrace.first(5).join("\n") if OT.debug?
       end
 
       private
@@ -122,13 +122,14 @@ module Onetime
         plans.each do |plan_id, plan_data|
           show_icon = plan_data['show_on_plans_page'] ? '✓' : '✗'
           rows << format('| %s | %s | %s | %s | %s | %s | %s |',
-                         plan_id,
-                         plan_data['name'],
-                         plan_data['tier'],
-                         plan_data['tenancy'],
-                         plan_data['region'],
-                         plan_data['display_order'],
-                         show_icon)
+            plan_id,
+            plan_data['name'],
+            plan_data['tier'],
+            plan_data['tenancy'],
+            plan_data['region'],
+            plan_data['display_order'],
+            show_icon,
+          )
         end
 
         rows.join("\n")
@@ -149,7 +150,7 @@ module Onetime
         sections.join("\n")
       end
 
-      def generate_plan_section(plan_id, plan_data, capabilities)
+      def generate_plan_section(plan_id, plan_data, _capabilities)
         parts = []
 
         # Header
@@ -159,9 +160,9 @@ module Onetime
         parts << ''
 
         # Metadata
-        parts << '**Tier:** ' + plan_data['tier']
-        parts << '**Tenancy:** ' + plan_data['tenancy']
-        parts << '**Region:** ' + plan_data['region']
+        parts << ('**Tier:** ' + plan_data['tier'])
+        parts << ('**Tenancy:** ' + plan_data['tenancy'])
+        parts << ('**Region:** ' + plan_data['region'])
         parts << ''
 
         # Capabilities
@@ -182,7 +183,7 @@ module Onetime
 
           plan_data['limits'].each do |resource, value|
             formatted_value = format_limit_value(value)
-            notes = limit_notes(resource, value)
+            notes           = limit_notes(resource, value)
             parts << "| #{resource} | #{formatted_value} | #{notes} |"
           end
           parts << ''
@@ -219,7 +220,7 @@ module Onetime
       def limit_notes(resource, value)
         case resource
         when 'secret_lifetime'
-          value ? "#{value / 86400} days" : ''
+          value ? "#{value / 86_400} days" : ''
         when 'teams'
           value == 0 ? 'No team access' : ''
         when 'members_per_team'
@@ -242,10 +243,11 @@ module Onetime
 
         legacy.each do |plan_id, plan_data|
           parts << format('| %s | %s | %s | %s |',
-                          plan_id,
-                          plan_data['name'],
-                          plan_data['grandfathered_until'] || 'Indefinite',
-                          plan_data['description'] || '')
+            plan_id,
+            plan_data['name'],
+            plan_data['grandfathered_until'] || 'Indefinite',
+            plan_data['description'] || '',
+          )
         end
 
         parts << ''

@@ -32,8 +32,8 @@ module ColonelAPI
             details: {
               connection: connection_info,
               worker_health: worker_health(queues),
-              queues: queues
-            }
+              queues: queues,
+            },
           }
         end
 
@@ -45,7 +45,7 @@ module ColonelAPI
           if $rmq_conn&.open?
             {
               connected: true,
-              host: extract_host
+              host: extract_host,
             }
           else
             { connected: false }
@@ -73,8 +73,8 @@ module ColonelAPI
               fetch_single_queue_stats(channel, queue_name)
             end
           end
-        rescue Bunny::Exception  => e
-          OT.le "[GetQueueMetrics] Error fetching queue stats: #{e.message}"
+        rescue Bunny::Exception => ex
+          OT.le "[GetQueueMetrics] Error fetching queue stats: #{ex.message}"
           []
         end
 
@@ -88,13 +88,13 @@ module ColonelAPI
           {
             name: queue_name,
             pending_messages: queue.message_count,
-            consumers: queue.consumer_count
+            consumers: queue.consumer_count,
           }
         rescue Bunny::NotFound
           # Queue hasn't been declared yet - return zeros
           { name: queue_name, pending_messages: 0, consumers: 0 }
-        rescue Bunny::Exception  => e
-          OT.le "[GetQueueMetrics] Error checking queue #{queue_name}: #{e.message}"
+        rescue Bunny::Exception => ex
+          OT.le "[GetQueueMetrics] Error checking queue #{queue_name}: #{ex.message}"
           { name: queue_name, pending_messages: 0, consumers: 0 }
         end
 
@@ -109,7 +109,7 @@ module ColonelAPI
 
           {
             status: status,
-            active_workers: total_consumers
+            active_workers: total_consumers,
           }
         end
 

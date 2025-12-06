@@ -34,7 +34,8 @@ module Onetime
         payment_methods = Stripe::PaymentMethod.list({
           customer: customer_id,
           limit: 10,
-        })
+        },
+                                                    )
 
         puts 'Payment Methods:'
         if payment_methods.data.empty?

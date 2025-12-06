@@ -101,8 +101,7 @@ module Onetime
                             else
                               raise "Unknown encryption mode: #{value_encryption}"
                             end
-              v_decrypted = v_decrypted.dup.force_encoding('utf-8') # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
-              v_decrypted
+              v_decrypted.dup.force_encoding('utf-8') # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
             rescue OpenSSL::Cipher::CipherError => ex
               OT.le "[decrypted_value] m:#{metadata_identifier} s:#{key} CipherError #{ex.message}"
               # Try fallback global secrets for mode 2 (current encryption)
@@ -197,10 +196,10 @@ module Onetime
             case algorithm
             when :argon2
               self.passphrase_encryption = '2'
-              self.passphrase = ::Argon2::Password.create(val, argon2_hash_cost)
+              self.passphrase            = ::Argon2::Password.create(val, argon2_hash_cost)
             when :bcrypt
               self.passphrase_encryption = '1'
-              self.passphrase = BCrypt::Password.create(val, cost: 12).to_s
+              self.passphrase            = BCrypt::Password.create(val, cost: 12).to_s
             else
               raise ArgumentError, "Unknown password algorithm: #{algorithm}"
             end

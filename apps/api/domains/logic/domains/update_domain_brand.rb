@@ -11,7 +11,7 @@ module DomainsAPI::Logic
       attr_reader :greenlighted, :brand_settings, :display_domain, :custom_domain
 
       def process_params
-        @extid = params['extid'].to_s.strip
+        @extid     = params['extid'].to_s.strip
         valid_keys = [
           :logo, # e.g. "image1"
           :primary_color,

@@ -289,7 +289,7 @@ GEM
     rodauth (2.41.0)
       roda (>= 2.6.0)
       sequel (>= 4)
-    rodauth-tools (0.3.0)
+    rodauth-tools (0.3.1)
       dry-inflector (~> 1.1)
       rodauth (~> 2.41)
       sequel (~> 5.0)
@@ -467,7 +467,7 @@ DEPENDENCIES
   rhales (~> 0.5.3)
   roda (~> 3.0)
   rodauth (~> 2.0)
-  rodauth-tools (~> 0.3.0)
+  rodauth-tools (~> 0.3.1)
   rotp (~> 6.2)
   rqrcode (~> 3.1)
   rspec!

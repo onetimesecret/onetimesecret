@@ -6,7 +6,7 @@
 # Test script for AWS SES email delivery in OnetimeSecret
 # This utility verifies that Amazon SES is properly configured for sending emails
 
-$LOAD_PATH.unshift(File.expand_path("../../lib", __FILE__))
+$LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
 
 require 'onetime'
 require 'onetime/mail/mailer/ses_mailer'
@@ -18,21 +18,21 @@ Onetime.boot! :app
 Onetime::Mail::Mailer::SESMailer.setup
 
 # Initialize mailer with sender information
-mailer = Onetime::Mail::Mailer::SESMailer.new "sender@onetimesecret.com", "Test Sender"
+mailer = Onetime::Mail::Mailer::SESMailer.new 'sender@onetimesecret.com', 'Test Sender'
 
 # Send test email with HTML content
 response = mailer.send_email(
-  "recipient@example.com",
-  "AWS SES Test Email",
-  "<p>This is a test email sent via Amazon SES.</p>",
+  'recipient@example.com',
+  'AWS SES Test Email',
+  '<p>This is a test email sent via Amazon SES.</p>',
 )
 
 # Check and display the results
 if response&.message_id
-  puts "Email test successful"
+  puts 'Email test successful'
   puts "Message ID: #{response.message_id}"
 else
-  puts "Email test failed"
+  puts 'Email test failed'
   puts "Response: #{response.inspect}"
 end
 

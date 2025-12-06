@@ -152,7 +152,7 @@ module Onetime
 
           # Build complete metadata hash, then splat it into success()
           metadata_hash = build_metadata(env, additional_metadata(cust)).merge(
-            organization_context: org_context
+            organization_context: org_context,
           )
 
           success(
@@ -271,12 +271,12 @@ module Onetime
 
             # Load organization context for API key auth
             # Note: No session for stateless Basic auth, pass empty hash
-            session = env['rack.session'] || {}
+            session     = env['rack.session'] || {}
             org_context = load_organization_context(cust, session, env)
 
             # Build complete metadata hash, then splat it into success()
             metadata_hash = build_metadata(env, { auth_type: 'basic' }).merge(
-              organization_context: org_context
+              organization_context: org_context,
             )
 
             success(

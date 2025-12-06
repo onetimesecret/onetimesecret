@@ -30,27 +30,28 @@ module Onetime
         end
 
         puts format('%-22s %-40s %s',
-          'ID', 'SQL', 'CREATED')
+          'ID', 'SQL', 'CREATED'
+        )
         puts '-' * 80
 
         queries.data.each do |query|
           sql_preview = query.sql&.[](0..39) || 'N/A'
-          created = format_timestamp(query.created)
+          created     = format_timestamp(query.created)
 
           puts format('%-22s %-40s %s',
             query.id[0..21],
             sql_preview,
-            created)
+            created,
+          )
         end
 
         puts "\nTotal: #{queries.data.size} query/queries"
-
-      rescue Stripe::StripeError => e
-        if e.message.include?('This feature is not available')
-          puts "Error: Sigma is not available on your Stripe plan"
-          puts "Sigma requires a paid Stripe plan. See: https://stripe.com/docs/sigma"
+      rescue Stripe::StripeError => ex
+        if ex.message.include?('This feature is not available')
+          puts 'Error: Sigma is not available on your Stripe plan'
+          puts 'Sigma requires a paid Stripe plan. See: https://stripe.com/docs/sigma'
         else
-          puts "Error fetching Sigma queries: #{e.message}"
+          puts "Error fetching Sigma queries: #{ex.message}"
         end
       end
     end

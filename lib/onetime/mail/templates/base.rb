@@ -37,7 +37,7 @@ module Onetime
         # @param data [Hash] Template variables
         # @param locale [String] Locale code (default: 'en')
         def initialize(data = {}, locale: 'en')
-          @data = data
+          @data   = data
           @locale = locale
           validate_data!
         end
@@ -74,7 +74,7 @@ module Onetime
             reply_to: reply_to,
             subject: subject,
             text_body: render_text,
-            html_body: render_html
+            html_body: render_html,
           }
         end
 
@@ -90,10 +90,10 @@ module Onetime
         # @return [String]
         def template_name
           self.class.name
-              .split('::').last
-              .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
-              .gsub(/([a-z\d])([A-Z])/, '\1_\2')
-              .downcase
+            .split('::').last
+            .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
+            .gsub(/([a-z\d])([A-Z])/, '\1_\2')
+            .downcase
         end
 
         # Get the recipient email from data
@@ -106,7 +106,7 @@ module Onetime
         private
 
         def render_template(extension)
-          template_file = File.join(TEMPLATE_PATH, "#{template_name}.#{extension}.erb")
+          template_file    = File.join(TEMPLATE_PATH, "#{template_name}.#{extension}.erb")
           template_content = File.read(template_file)
 
           # Create a binding with access to data and helpers
@@ -124,7 +124,7 @@ module Onetime
         # Helper class to provide clean binding for ERB templates
         class TemplateContext
           def initialize(data, locale)
-            @data = data
+            @data   = data
             @locale = locale
           end
 
@@ -152,7 +152,7 @@ module Onetime
           # @param key [String] Translation key
           # @param options [Hash] Interpolation options
           # @return [String]
-          def t(key, **options)
+          def t(key, **_options)
             # TODO: Replace with I18n.t(key, locale: @locale, **options)
             # For now, return the key as a placeholder
             key.to_s
@@ -183,9 +183,9 @@ module Onetime
             return @site_baseuri if defined?(@site_baseuri)
 
             if defined?(OT) && OT.respond_to?(:conf)
-              site = OT.conf.dig('site') || {}
-              scheme = site['ssl'] != false ? 'https://' : 'http://'
-              host = site['host'] || 'localhost'
+              site          = OT.conf['site'] || {}
+              scheme        = site['ssl'] == false ? 'http://' : 'https://'
+              host          = site['host'] || 'localhost'
               @site_baseuri = "#{scheme}#{host}"
             else
               @site_baseuri = 'https://onetimesecret.com'

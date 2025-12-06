@@ -21,7 +21,7 @@ module ColonelAPI
           # Validate IP address or CIDR format
           begin
             IPAddr.new(ip_address)
-          rescue IPAddr::InvalidAddressError => e
+          rescue IPAddr::InvalidAddressError
             raise_form_error('Invalid IP address or CIDR format', field: :ip_address)
           end
         end

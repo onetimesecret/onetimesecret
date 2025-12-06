@@ -63,19 +63,17 @@ module Onetime
         }
 
         if config_file
-          config.merge!(config_files: config_file)
+          config[:config_files] = config_file
         elsif server == 'puma'
-          thread_config = parse_threads(threads)
-          config.merge!(
-            Threads: "#{thread_config[:min]}:#{thread_config[:max]}",
-            Workers: workers.to_i,
-          )
+          thread_config    = parse_threads(threads)
+          config[:Threads] = "#{thread_config[:min]}:#{thread_config[:max]}"
+          config[:Workers] = workers.to_i
         elsif server == 'thin'
           # Thin does not support threads or workers
         end
 
         # We remove app from the logged config to avoid cluttering the log
-        loggable_config = config.reject { |k, _| k == :app }.inspect
+        loggable_config = config.except(:app).inspect
         Onetime.app_logger.debug("Starting #{server} with config: #{loggable_config}")
 
         Rackup::Handler.get(server).run(config[:app], **config)

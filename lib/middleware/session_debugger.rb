@@ -28,7 +28,7 @@ module Rack
     end
 
     def call(env)
-      return @app.call(env) unless @enabled
+      return @app.call(env) unless @enabled # rubocop:disable ThreadSafety/RackMiddlewareInstanceVariable
 
       # Wrap all debugging in error handling - never break the request
       begin
@@ -181,9 +181,10 @@ module Rack
           ttl  = dbclient.ttl(key)
           data = dbclient.get(key)
 
-          # Try to parse session data
+          # Try to parse session data (from our own Redis session store)
+          # rubocop:disable Security/MarshalLoad
           parsed = begin
-            Marshal.load(data)
+            Marshal.load(data) # Session data serialized by Rack::Session
           rescue StandardError
             begin
               JSON.parse(data)
@@ -191,6 +192,7 @@ module Rack
               data
             end
           end
+          # rubocop:enable Security/MarshalLoad
 
           logger.debug 'Redis session found', {
             phase: phase,

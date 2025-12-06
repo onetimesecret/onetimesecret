@@ -103,15 +103,15 @@ module Core
                          end
 
           # Cache the resized favicon
-          encoded_favicon = Base64.strict_encode64(resized_data)
+          encoded_favicon                       = Base64.strict_encode64(resized_data)
           custom_domain.icon['encoded_favicon'] = encoded_favicon
 
           @icon_data = resized_data
 
           OT.info "[GetFavicon] Generated and cached favicon for #{custom_domain.display_domain}"
-        rescue StandardError => e
+        rescue StandardError => ex
           # If resizing fails, fall back to original
-          OT.le "[GetFavicon] Failed to resize favicon: #{e.message}"
+          OT.le "[GetFavicon] Failed to resize favicon: #{ex.message}"
           @icon_data = Base64.strict_decode64(original_encoded)
         end
 
@@ -134,7 +134,7 @@ module Core
             @icon_data      = File.binread(favicon_path)
             @content_type   = 'image/x-icon'
             @content_length = icon_data.bytesize.to_s
-            OT.ld "[GetFavicon] Serving default favicon"
+            OT.ld '[GetFavicon] Serving default favicon'
           else
             # Fallback to empty response if default doesn't exist
             @icon_data      = ''

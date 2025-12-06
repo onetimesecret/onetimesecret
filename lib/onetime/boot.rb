@@ -93,7 +93,7 @@ module Onetime
       # Verify registry health
       health = Boot::InitializerRegistry.health_check
       unless health[:healthy]
-        failed = Boot::InitializerRegistry.initializers.select(&:failed?)
+        failed       = Boot::InitializerRegistry.initializers.select(&:failed?)
         failed_names = failed.map { |i| "#{i.name} (#{i.error.class}: #{i.error.message})" }
         raise OT::Problem, "Initializer(s) failed: #{failed_names.join(', ')}"
       end

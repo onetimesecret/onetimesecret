@@ -6,13 +6,13 @@ require 'spec_helper'
 
 RSpec.xdescribe AccountAPI::Logic::Authentication::ResetPassword do
   skip 'Temporarily skipped - added by #1677, extracted from an orphan branch, but never passing yet'
+  subject { described_class.new(session, customer, params, locale) }
+
   let(:session) { double('Session', set_success_message: nil) }
   let(:customer) { double('Customer', custid: 'test@example.com', pending?: false, update_passphrase: nil, valid_reset_secret!: true) }
   let(:secret) { double('Secret', custid: 'test@example.com', load_customer: customer, received!: nil, destroy!: nil) }
   let(:params) { { key: 'secret_key_123', newpassword: 'newpassword123', 'password-confirm': 'newpassword123' } }
   let(:locale) { 'en' }
-
-  subject { described_class.new(session, customer, params, locale) }
 
   before do
     allow(Onetime::Secret).to receive(:load).and_return(secret)

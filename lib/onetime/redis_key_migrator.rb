@@ -499,7 +499,7 @@ module Onetime
       # Split batch in half and retry each part
       mid_point   = batch.size / 2
       first_half  = batch[0...mid_point]
-      second_half = batch[mid_point..-1]
+      second_half = batch[mid_point..]
 
       [first_half, second_half].each do |sub_batch|
         next if sub_batch.empty?

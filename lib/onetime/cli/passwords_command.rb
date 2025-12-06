@@ -70,7 +70,7 @@ module Onetime
         puts format('  BCrypt (legacy):  %6d (%5.1f%%)', bcrypt_count, percent(bcrypt_count, with_password))
         puts format('  Argon2id (new):   %6d (%5.1f%%)', argon2_count, percent(argon2_count, with_password))
         puts format('  No password:      %6d', no_pass_count)
-        puts '  ' + '-' * 30
+        puts '  ' + ('-' * 30)
         puts format('  With password:    %6d', with_password)
         puts format('  Total customers:  %6d', total_count)
         puts ''

@@ -68,7 +68,7 @@ module Onetime
             rabbitmq: check_rabbitmq_connection,
             queues: {},
             workers: check_workers,
-            scheduler: check_scheduler
+            scheduler: check_scheduler,
           }
 
           # Get queue depths if RabbitMQ is available
@@ -87,20 +87,20 @@ module Onetime
             connected: true,
             url: ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672').gsub(/:[^:@]+@/, ':***@'),
             vhost: conn.vhost,
-            heartbeat: conn.heartbeat
+            heartbeat: conn.heartbeat,
           }
 
           conn.close
           info
-        rescue StandardError => e
+        rescue StandardError => ex
           {
             connected: false,
-            error: e.message
+            error: ex.message,
           }
         end
 
         def check_queue_depths
-          conn = Bunny.new(ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'))
+          conn    = Bunny.new(ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'))
           conn.start
           channel = conn.create_channel
 
@@ -108,21 +108,19 @@ module Onetime
 
           # Use actual queue names from QueueConfig
           Onetime::Jobs::QueueConfig::QUEUES.each_key do |queue_name|
-            begin
-              queue = channel.queue(queue_name, durable: true, passive: true)
+              queue              = channel.queue(queue_name, durable: true, passive: true)
               queues[queue_name] = {
                 messages: queue.message_count,
-                consumers: queue.consumer_count
+                consumers: queue.consumer_count,
               }
-            rescue Bunny::NotFound
+          rescue Bunny::NotFound
               queues[queue_name] = { error: 'Queue not found' }
-            end
           end
 
           conn.close
           queues
-        rescue StandardError => e
-          { error: e.message }
+        rescue StandardError => ex
+          { error: ex.message }
         end
 
         def check_workers
@@ -139,8 +137,8 @@ module Onetime
           else
             { running: false }
           end
-        rescue StandardError => e
-          { error: e.message }
+        rescue StandardError => ex
+          { error: ex.message }
         end
 
         def check_scheduler
@@ -157,8 +155,8 @@ module Onetime
           else
             { running: false }
           end
-        rescue StandardError => e
-          { error: e.message }
+        rescue StandardError => ex
+          { error: ex.message }
         end
 
         def display_text_status(status)
@@ -192,7 +190,8 @@ module Onetime
                 puts format('  %s: %s', queue_name, info[:error])
               else
                 puts format('  %s: %d messages, %d consumers',
-                           queue_name, info[:messages], info[:consumers])
+                  queue_name, info[:messages], info[:consumers]
+                )
               end
             end
           end

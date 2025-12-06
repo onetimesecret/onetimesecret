@@ -120,23 +120,23 @@ module Billing
     # @return [Billing::StripeWebhookEvent] Event record
     #
     def initialize_event_record(stripe_event, payload)
-      event = Billing::StripeWebhookEvent.find_by_identifier(stripe_event.id)
+      event   = Billing::StripeWebhookEvent.find_by_identifier(stripe_event.id)
       event ||= Billing::StripeWebhookEvent.new(stripe_event_id: stripe_event.id)
 
       # Only initialize if this is a new event
       return event if event.first_seen_at
 
-      event.stripe_event_id = stripe_event.id
-      event.event_type = stripe_event.type
-      event.api_version = stripe_event.api_version
-      event.livemode = stripe_event.livemode.to_s
-      event.created = stripe_event.created.to_s
-      event.request_id = stripe_event.request&.id
-      event.data_object_id = stripe_event.data.object.id
+      event.stripe_event_id  = stripe_event.id
+      event.event_type       = stripe_event.type
+      event.api_version      = stripe_event.api_version
+      event.livemode         = stripe_event.livemode.to_s
+      event.created          = stripe_event.created.to_s
+      event.request_id       = stripe_event.request&.id
+      event.data_object_id   = stripe_event.data.object.id
       event.pending_webhooks = stripe_event.pending_webhooks.to_s
-      event.event_payload = payload
-      event.first_seen_at = Time.now.to_i.to_s
-      event.retry_count = '0'
+      event.event_payload    = payload
+      event.first_seen_at    = Time.now.to_i.to_s
+      event.retry_count      = '0'
       event.save
 
       billing_logger.debug '[WebhookValidator] Event metadata initialized', {
@@ -148,7 +148,6 @@ module Billing
 
       event
     end
-
 
     private
 

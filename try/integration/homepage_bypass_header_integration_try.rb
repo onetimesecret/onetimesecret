@@ -26,6 +26,11 @@ require 'onetime/middleware'
 require 'onetime/application/registry'
 Onetime::Application::Registry.prepare_application_registry
 
+# Ensure Onetime is marked as ready - this can be set to false by other tests
+# or by prepare_application_registry if it encounters errors during the full
+# test suite run. The StartupReadiness middleware returns 503 if not ready.
+Onetime.instance_variable_set(:@ready, true) unless Onetime.ready?
+
 require 'rack/test'
 require 'json'
 

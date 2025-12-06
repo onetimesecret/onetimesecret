@@ -50,7 +50,7 @@ module DomainsAPI::Logic
 
         res     = Onetime::Cluster::Approximated.delete_vhost(api_key, @display_domain)
         payload = res.parsed_response
-        OT.info '[RemoveDomain.delete_vhost] %s' % payload
+        OT.info format('[RemoveDomain.delete_vhost] %s', payload)
       rescue HTTParty::ResponseError => ex
         OT.le format('[RemoveDomain.delete_vhost error] %s %s %s', @cust.custid, @display_domain, ex)
       end

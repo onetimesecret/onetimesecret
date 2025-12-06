@@ -21,7 +21,6 @@ module Onetime::Secret::Features
       def count
         instances.count # e.g. zcard dbkey
       end
-
     end
 
     module InstanceMethods
@@ -30,11 +29,11 @@ module Onetime::Secret::Features
       end
 
       def viewable?
-        has_key?(:value) && (state?(:new) || state?(:viewed))
+        key?(:value) && (state?(:new) || state?(:viewed))
       end
 
       def receivable?
-        has_key?(:value) && (state?(:new) || state?(:viewed))
+        key?(:value) && (state?(:new) || state?(:viewed))
       end
 
       def viewed!

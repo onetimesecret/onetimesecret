@@ -101,7 +101,7 @@ module Billing
       @stripe_updated_at ||= 0
       @is_soft_deleted   ||= false
       @active            ||= true
-      @limits_hash       = nil  # Memoization cache
+      @limits_hash         = nil  # Memoization cache
     end
 
     # Get limits as hash with infinity conversion
@@ -136,10 +136,10 @@ module Billing
       return nil if snapshot.nil? || snapshot.empty?
 
       JSON.parse(snapshot)
-    rescue JSON::ParserError => e
+    rescue JSON::ParserError => ex
       Onetime.billing_logger.error 'Failed to parse stripe_data_snapshot', {
         plan_id: plan_id,
-        error: e.message
+        error: ex.message,
       }
       nil
     end
@@ -225,7 +225,7 @@ module Billing
             # Current behavior: plan_id from metadata (e.g., "identity_plus_v1") is same for monthly/yearly
             # This may cause yearly to overwrite monthly in cache if plan_id is used as Redis key
             base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID] || "#{tier}_#{region}"
-            plan_id = "#{base_plan_id}_#{interval}ly"
+            plan_id      = "#{base_plan_id}_#{interval}ly"
 
             # Extract capabilities from product metadata
             # Expected format: "create_secrets,create_team,custom_domains"
@@ -249,7 +249,7 @@ module Billing
             # Extract show_on_plans_page from product metadata (default to 'true')
             # Accepts: 'true', 'false', '1', '0', 'yes', 'no'
             show_on_plans_page_value = product.metadata[Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'true'
-            show_on_plans_page = %w[true 1 yes].include?(show_on_plans_page_value.to_s.downcase)
+            show_on_plans_page       = %w[true 1 yes].include?(show_on_plans_page_value.to_s.downcase)
 
             # Create or update plan cache
             plan = new(
@@ -267,12 +267,12 @@ module Billing
             )
 
             # Populate additional Stripe Price fields
-            plan.active = price.active.to_s
-            plan.billing_scheme = price.billing_scheme
-            plan.usage_type = price.recurring&.usage_type || 'licensed'
+            plan.active            = price.active.to_s
+            plan.billing_scheme    = price.billing_scheme
+            plan.usage_type        = price.recurring&.usage_type || 'licensed'
             plan.trial_period_days = price.recurring&.trial_period_days&.to_s
-            plan.nickname = price.nickname
-            plan.last_synced_at = Time.now.to_i.to_s
+            plan.nickname          = price.nickname
+            plan.last_synced_at    = Time.now.to_i.to_s
 
             # Add capabilities to set (unique values)
             plan.capabilities.clear
@@ -287,19 +287,19 @@ module Billing
             plan.limits.clear
             limits.each do |resource, value|
               # Flatten: "teams" => "teams.max", value -1 => "unlimited"
-              key = "#{resource}.max"
-              val = value == -1 ? 'unlimited' : value.to_s
+              key              = "#{resource}.max"
+              val              = value == -1 ? 'unlimited' : value.to_s
               plan.limits[key] = val
             end
 
             # Store original Stripe data for recovery/debugging
             # Allows re-parsing without full Stripe API sync if logic changes
-            stripe_snapshot = {
+            stripe_snapshot                 = {
               product: {
                 id: product.id,
                 name: product.name,
                 metadata: product.metadata.to_h,
-                marketing_features: product.marketing_features&.map(&:name) || []
+                marketing_features: product.marketing_features&.map(&:name) || [],
               },
               price: {
                 id: price.id,
@@ -307,10 +307,10 @@ module Billing
                 currency: price.currency,
                 unit_amount: price.unit_amount,
                 recurring: {
-                  interval: price.recurring.interval
-                }
+                  interval: price.recurring.interval,
+                },
               },
-              cached_at: Time.now.to_i
+              cached_at: Time.now.to_i,
             }
             plan.stripe_data_snapshot.value = stripe_snapshot.to_json
 

@@ -1,8 +1,17 @@
 import { defineConfig, devices } from '@playwright/test';
 
+// Default local server URL (Ruby backend with built assets)
+const DEFAULT_LOCAL_URL = 'http://localhost:7143';
+
 /**
  * Playwright configuration for E2E integration testing
- * This config runs tests against production builds and containers
+ *
+ * Usage:
+ *   # Auto-start local server (requires `pnpm run build` first)
+ *   pnpm playwright test --config=src/tests/e2e/playwright.config.ts
+ *
+ *   # Test against external URL (skips local server)
+ *   PLAYWRIGHT_BASE_URL=http://localhost:7143 pnpm test:playwright
  */
 export default defineConfig({
   // Test directory relative to this config file
@@ -32,15 +41,8 @@ export default defineConfig({
 
   /* Shared settings for all the projects below. */
   use: {
-    /* Base URL - will be set by environment variable */
-    baseURL:
-      process.env.PLAYWRIGHT_BASE_URL ||
-      process.env.FRONTEND_HOST ||
-      (() => {
-        throw new Error(
-          'No base URL configured. Set PLAYWRIGHT_BASE_URL or FRONTEND_HOST environment variable.'
-        );
-      })(),
+    /* Base URL - uses PLAYWRIGHT_BASE_URL if set, otherwise defaults to local server */
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || DEFAULT_LOCAL_URL,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -98,6 +100,18 @@ export default defineConfig({
   /* Output directory for test artifacts */
   outputDir: 'test-results/',
 
-  /* Don't configure webServer - we're testing against already running applications */
-  webServer: undefined,
+  /* Auto-start Ruby server when no external URL is provided.
+   * Requires `pnpm run build` first to generate frontend assets.
+   * Set PLAYWRIGHT_BASE_URL to skip auto-start and test against external server. */
+  webServer: process.env.PLAYWRIGHT_BASE_URL
+    ? undefined // External URL provided - don't start local server
+    : {
+        command: 'RACK_ENV=production bin/ots server',
+        cwd: '../../../', // Project root relative to this config
+        url: DEFAULT_LOCAL_URL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 30000,
+        stdout: 'pipe',
+        stderr: 'pipe',
+      },
 });

@@ -21,7 +21,7 @@ module Onetime
       #
       class SMTP < Base
         def deliver(email)
-          email = normalize_email(email)
+          email    = normalize_email(email)
           settings = smtp_settings
 
           OT.ld "[smtp] Delivering to #{OT::Utils.obscure_email(email[:to])} via #{settings[:address]}:#{settings[:port]}"
@@ -45,15 +45,15 @@ module Onetime
         protected
 
         def validate_config!
-          host = config[:host] || ENV['SMTP_HOST']
+          host = config[:host] || ENV.fetch('SMTP_HOST', nil)
           raise ArgumentError, 'SMTP host must be configured' if host.nil? || host.empty?
         end
 
         private
 
         def build_mail_message(email)
-          text_content = email[:text_body]
-          html_content = email[:html_body]
+          text_content  = email[:text_body]
+          html_content  = email[:html_body]
           reply_to_addr = email[:reply_to]
 
           ::Mail.new do
@@ -93,31 +93,31 @@ module Onetime
         def handle_auth_failure(mail, settings, error)
           OT.info "[smtp] Auth failed, retrying without auth: #{error.message}"
 
-          settings_no_auth = settings.reject { |k, _| [:user_name, :password, :authentication].include?(k) }
+          settings_no_auth = settings.except(:user_name, :password, :authentication)
           mail.delivery_method :smtp, settings_no_auth
           mail.deliver!
 
-          OT.ld "[smtp] Delivery successful without authentication"
+          OT.ld '[smtp] Delivery successful without authentication'
         end
 
         def smtp_settings
           settings = {
             address: config[:host] || ENV['SMTP_HOST'] || 'localhost',
             port: (config[:port] || ENV['SMTP_PORT'] || '587').to_i,
-            enable_starttls_auto: resolve_tls_setting
+            enable_starttls_auto: resolve_tls_setting,
           }
 
           # Add domain if configured
-          domain = config[:domain] || ENV['SMTP_DOMAIN']
+          domain            = config[:domain] || ENV.fetch('SMTP_DOMAIN', nil)
           settings[:domain] = domain if domain && !domain.empty?
 
           # Add authentication if credentials provided
-          username = config[:username] || ENV['SMTP_USERNAME']
-          password = config[:password] || ENV['SMTP_PASSWORD']
+          username = config[:username] || ENV.fetch('SMTP_USERNAME', nil)
+          password = config[:password] || ENV.fetch('SMTP_PASSWORD', nil)
 
           if username && !username.empty? && password && !password.empty?
-            settings[:user_name] = username
-            settings[:password] = password
+            settings[:user_name]      = username
+            settings[:password]       = password
             settings[:authentication] = :plain
           end
 
@@ -126,6 +126,7 @@ module Onetime
 
         def resolve_tls_setting
           return config[:tls] unless config[:tls].nil?
+
           ENV['SMTP_TLS'] != 'false'
         end
       end

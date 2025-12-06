@@ -21,7 +21,7 @@ module Onetime
 
         product = Stripe::Product.retrieve(product_id)
 
-        puts "Product Details:"
+        puts 'Product Details:'
         puts "  ID: #{product.id}"
         puts "  Name: #{product.name}"
         puts "  Active: #{product.active ? 'yes' : 'no'}"
@@ -29,7 +29,7 @@ module Onetime
         puts
 
         if product.metadata && product.metadata.any?
-          puts "Metadata:"
+          puts 'Metadata:'
           product.metadata.each do |key, value|
             puts "  #{key}: #{value}"
           end
@@ -38,7 +38,7 @@ module Onetime
 
         # Display marketing features
         if product.marketing_features && product.marketing_features.any?
-          puts "Marketing Features:"
+          puts 'Marketing Features:'
           product.marketing_features.each do |feature|
             puts "  - #{feature.name} (#{feature.id})"
           end
@@ -46,24 +46,23 @@ module Onetime
         end
 
         # Get associated prices
-        puts "Prices:"
+        puts 'Prices:'
         prices = Stripe::Price.list({ product: product_id, limit: 100 })
 
         if prices.data.empty?
-          puts "  (none)"
+          puts '  (none)'
         else
           prices.data.each do |price|
-            amount = format_amount(price.unit_amount, price.currency)
-            interval = price.recurring&.interval || 'one-time'
+            amount        = format_amount(price.unit_amount, price.currency)
+            interval      = price.recurring&.interval || 'one-time'
             interval_text = price.recurring ? "/#{interval}" : ''
-            active = price.active ? 'active' : 'inactive'
+            active        = price.active ? 'active' : 'inactive'
 
             puts "  #{price.id} - #{amount}#{interval_text} (#{active})"
           end
         end
-
-      rescue Stripe::StripeError => e
-        puts "Error retrieving product: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error retrieving product: #{ex.message}"
       end
     end
   end

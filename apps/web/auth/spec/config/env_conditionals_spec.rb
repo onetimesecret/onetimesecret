@@ -53,7 +53,7 @@ RSpec.describe 'Auth::Config ENV Conditional Logic' do
 
     it 'is enabled when ENV is "False" (case sensitive)' do
       ClimateControl.modify('ENABLE_SECURITY_FEATURES' => 'False') do
-        # Note: This is enabled because comparison is case-sensitive
+        # NOTE: This is enabled because comparison is case-sensitive
         expect(ENV['ENABLE_SECURITY_FEATURES'] != 'false').to be true
       end
     end
@@ -95,7 +95,7 @@ RSpec.describe 'Auth::Config ENV Conditional Logic' do
 
     it 'is disabled when ENV is "True" (case sensitive)' do
       ClimateControl.modify('ENABLE_MFA' => 'True') do
-        # Note: This is disabled because comparison is case-sensitive
+        # NOTE: This is disabled because comparison is case-sensitive
         expect(ENV['ENABLE_MFA'] == 'true').to be false
       end
     end

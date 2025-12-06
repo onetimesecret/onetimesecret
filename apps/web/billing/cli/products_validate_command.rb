@@ -20,8 +20,8 @@ module Onetime
         return unless stripe_configured?
 
         # Fetch products with timing
-        api_key = Stripe.api_key || 'unknown'
-        key_prefix = api_key[0..13]
+        api_key     = Stripe.api_key || 'unknown'
+        key_prefix  = api_key[0..13]
         api_version = Stripe.api_version || 'unknown'
 
         printf "Fetching products from Stripe API [#{key_prefix}/#{api_version}]..."
@@ -39,7 +39,7 @@ module Onetime
           return 0
         end
 
-        errors = []
+        errors   = []
         warnings = []
 
         # Validate each product and collect structured errors
@@ -63,7 +63,7 @@ module Onetime
 
       def validate_product(product, errors, warnings)
         required_fields = %w[app plan_id tier region]
-        missing_fields = required_fields.reject { |field| product.metadata[field] }
+        missing_fields  = required_fields.reject { |field| product.metadata[field] }
 
         if missing_fields.any?
           errors << {
@@ -74,26 +74,26 @@ module Onetime
             resolution: [
               "Update metadata: bin/ots billing products update #{product.id}",
               'Or archive if not needed',
-              "See: #{stripe_dashboard_url(:product, product.id)}"
-            ]
+              "See: #{stripe_dashboard_url(:product, product.id)}",
+            ],
           }
         end
 
         # Check for duplicate plan_ids (will be detected across all products)
         # Individual validation just ensures plan_id exists
-        unless product.metadata['plan_id']
-          warnings << {
-            product_id: product.id,
-            type: :missing_plan_id,
-            message: 'Missing plan_id',
-            details: 'Product metadata missing plan_id field'
-          }
-        end
+        return if product.metadata['plan_id']
+
+        warnings << {
+          product_id: product.id,
+          type: :missing_plan_id,
+          message: 'Missing plan_id',
+          details: 'Product metadata missing plan_id field',
+        }
       end
 
       def print_products_summary(products, price_counts, errors, warnings)
-        valid_count = count_valid_items(products, errors, warnings, :id)
-        error_count = errors.size
+        valid_count     = count_valid_items(products, errors, warnings, :id)
+        error_count     = errors.size
         duplicate_count = detect_duplicate_plan_ids(products)
 
         # Print summary section
@@ -107,16 +107,17 @@ module Onetime
         # Print table section
         print_section_header('PRODUCTS')
         puts format('%-22s %-20s %-20s %-7s %-7s %s',
-                    'PRODUCT ID', 'NAME', 'PLAN ID', 'REGION', 'PRICES', 'STATUS')
-        print_separator()
+          'PRODUCT ID', 'NAME', 'PLAN ID', 'REGION', 'PRICES', 'STATUS'
+        )
+        print_separator
 
         products.each do |product|
-          product_errors = errors.select { |e| e.is_a?(Hash) && e[:product_id] == product.id }
+          product_errors   = errors.select { |e| e.is_a?(Hash) && e[:product_id] == product.id }
           product_warnings = warnings.select { |w| w.is_a?(Hash) && w[:product_id] == product.id }
 
-          name = product.name[0..18]
-          plan_id = product.metadata['plan_id'] || 'n/a'
-          region = product.metadata['region'] || 'n/a'
+          name        = product.name[0..18]
+          plan_id     = product.metadata['plan_id'] || 'n/a'
+          region      = product.metadata['region'] || 'n/a'
           price_count = price_counts[product.id] || 0
 
           status = if product_errors.any?
@@ -128,7 +129,8 @@ module Onetime
                   end
 
           puts format('%-22s %-20s %-20s %-7s %-7s %s',
-                      product.id, name, plan_id[0..18], region[0..5], price_count, status)
+            product.id, name, plan_id[0..18], region[0..5], price_count, status
+          )
         end
 
         puts
@@ -139,9 +141,9 @@ module Onetime
         plan_ids.size - plan_ids.uniq.size
       end
 
-      def fetch_price_counts(products)
+      def fetch_price_counts(_products)
         # Fetch all prices and count by product
-        prices = Stripe::Price.list({ active: true, limit: 100 }).auto_paging_each
+        prices       = Stripe::Price.list({ active: true, limit: 100 }).auto_paging_each
         price_counts = Hash.new(0)
 
         prices.each do |price|

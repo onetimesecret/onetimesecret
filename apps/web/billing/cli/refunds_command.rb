@@ -21,7 +21,7 @@ module Onetime
         return unless stripe_configured?
 
         puts 'Fetching refunds from Stripe...'
-        params = { limit: limit }
+        params          = { limit: limit }
         params[:charge] = charge if charge
 
         refunds = Stripe::Refund.list(params)
@@ -32,11 +32,12 @@ module Onetime
         end
 
         puts format('%-22s %-22s %-12s %-10s %s',
-          'ID', 'CHARGE', 'AMOUNT', 'STATUS', 'CREATED')
+          'ID', 'CHARGE', 'AMOUNT', 'STATUS', 'CREATED'
+        )
         puts '-' * 90
 
         refunds.data.each do |refund|
-          amount = format_amount(refund.amount, refund.currency)
+          amount  = format_amount(refund.amount, refund.currency)
           created = format_timestamp(refund.created)
 
           puts format('%-22s %-22s %-12s %-10s %s',
@@ -44,13 +45,13 @@ module Onetime
             refund.charge[0..21],
             amount[0..11],
             refund.status[0..9],
-            created)
+            created,
+          )
         end
 
         puts "\nTotal: #{refunds.data.size} refund(s)"
-
-      rescue Stripe::StripeError => e
-        puts "Error fetching refunds: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error fetching refunds: #{ex.message}"
       end
     end
   end

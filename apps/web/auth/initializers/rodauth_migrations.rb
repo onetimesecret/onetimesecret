@@ -10,7 +10,7 @@ module Auth
     # Critical because Rodauth validates features during plugin load.
     class RodauthMigrations < Onetime::Boot::Initializer
       @depends_on = [:database]
-      @provides = [:rodauth_schema]
+      @provides   = [:rodauth_schema]
 
       def should_skip?
         # Skip in simple auth mode
@@ -27,7 +27,7 @@ module Auth
       private
 
       def jobs_command?
-        ARGV.any? { |arg| arg == 'jobs' }
+        ARGV.any?('jobs')
       end
 
       def execute(_context)

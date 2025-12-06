@@ -102,7 +102,6 @@ module Billing
       event.success?
     end
 
-
     # ========================================
     # State Checking Methods
     # ========================================

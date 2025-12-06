@@ -41,13 +41,13 @@ module Onetime
         def display_domain
           secret = data[:secret]
           scheme = site_ssl? ? 'https://' : 'http://'
-          host = secret.respond_to?(:share_domain) && secret.share_domain || site_host
+          host   = (secret.respond_to?(:share_domain) && secret.share_domain) || site_host
           "#{scheme}#{host}"
         end
 
         def uri_path
           secret = data[:secret]
-          key = secret.respond_to?(:key) ? secret.key : secret.to_s
+          key    = secret.respond_to?(:key) ? secret.key : secret.to_s
           "/secret/#{key}"
         end
 
@@ -76,11 +76,13 @@ module Onetime
 
         def site_ssl?
           return true unless defined?(OT) && OT.respond_to?(:conf)
+
           OT.conf.dig('site', 'ssl') != false
         end
 
         def site_host
           return 'onetimesecret.com' unless defined?(OT) && OT.respond_to?(:conf)
+
           OT.conf.dig('site', 'host') || 'onetimesecret.com'
         end
 
@@ -91,7 +93,7 @@ module Onetime
             memo: memo,
             has_memo: has_memo?,
             signature_link: signature_link,
-            baseuri: baseuri
+            baseuri: baseuri,
           )
           TemplateContext.new(computed_data, locale).get_binding
         end

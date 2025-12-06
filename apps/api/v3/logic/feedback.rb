@@ -8,7 +8,6 @@ require 'onetime/jobs/publisher'
 module V3
   module Logic
     class ReceiveFeedback < V3::Logic::Base
-
       attr_reader :msg, :greenlighted, :tz, :version
 
       def process_params
@@ -76,8 +75,9 @@ module V3
             email_address: cust.email,
             message: message,
             display_domain: display_domain,
-            domain_strategy: domain_strategy
-          }, fallback: :none)
+            domain_strategy: domain_strategy,
+          }, fallback: :none
+          )
         rescue StandardError => ex
           OT.le "Error sending feedback email: #{ex.message}", ex.backtrace
           # No need to notify the user of this error. The message is still

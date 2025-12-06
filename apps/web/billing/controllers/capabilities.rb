@@ -93,7 +93,7 @@ module Billing
         # Enhance with upgrade messaging if needed
         if result[:upgrade_needed] && result[:upgrade_to]
           result[:upgrade_plan_name] = Billing::PlanHelpers.plan_name(result[:upgrade_to])
-          result[:message]              = build_upgrade_message(capability, result[:upgrade_to])
+          result[:message]           = build_upgrade_message(capability, result[:upgrade_to])
         end
 
         json_response(result)
@@ -168,7 +168,7 @@ module Billing
       # @param upgrade_plan [String] Suggested plan ID
       # @return [String] User-friendly upgrade message
       def build_upgrade_message(capability, upgrade_plan)
-        plan_name    = Billing::PlanHelpers.plan_name(upgrade_plan)
+        plan_name       = Billing::PlanHelpers.plan_name(upgrade_plan)
         capability_name = capability.to_s.tr('_', ' ')
 
         "This feature requires #{plan_name}. Upgrade your plan to access #{capability_name}."

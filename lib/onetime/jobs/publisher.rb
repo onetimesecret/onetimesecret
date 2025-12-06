@@ -37,7 +37,7 @@ module Onetime
         self.class.logger
       end
       # Valid fallback strategies
-      FALLBACK_STRATEGIES = %i[async_thread sync raise none].freeze
+      FALLBACK_STRATEGIES = [:async_thread, :sync, :raise, :none].freeze
 
       # Default fallback - async thread is non-blocking for Puma
       DEFAULT_FALLBACK = :async_thread
@@ -73,8 +73,8 @@ module Onetime
       end
 
       def initialize
-        @pending_template = nil
-        @pending_data = nil
+        @pending_template  = nil
+        @pending_data      = nil
         @pending_raw_email = nil
       end
 
@@ -82,17 +82,17 @@ module Onetime
       def enqueue_email(template, data, fallback: DEFAULT_FALLBACK)
         validate_fallback!(fallback)
         @pending_template = template
-        @pending_data = data
+        @pending_data     = data
 
         # Gracefully fallback if jobs are disabled (no pool initialized)
         unless jobs_enabled?
-          logger.info "Jobs disabled, using fallback", template: template, fallback: fallback
+          logger.info 'Jobs disabled, using fallback', template: template, fallback: fallback
           return execute_fallback(fallback, :templated)
         end
 
         with_fallback(fallback, :templated) do
           message_id = publish('email.message.send', { template: template, data: data })
-          logger.info "Enqueued email", template: template, message_id: message_id, queue: 'email.message.send'
+          logger.info 'Enqueued email', template: template, message_id: message_id, queue: 'email.message.send'
           true
         end
       end
@@ -101,11 +101,11 @@ module Onetime
       def schedule_email(template, data, delay_seconds:, fallback: DEFAULT_FALLBACK)
         validate_fallback!(fallback)
         @pending_template = template
-        @pending_data = data
+        @pending_data     = data
 
         # Gracefully fallback if jobs are disabled (no pool initialized)
         unless jobs_enabled?
-          logger.info "Jobs disabled, using fallback", template: template, fallback: fallback
+          logger.info 'Jobs disabled, using fallback', template: template, fallback: fallback
           return execute_fallback(fallback, :templated)
         end
 
@@ -113,9 +113,9 @@ module Onetime
           message_id = publish(
             'email.message.schedule',
             { template: template, data: data },
-            expiration: (delay_seconds * 1000).to_s # Convert to milliseconds
+            expiration: (delay_seconds * 1000).to_s, # Convert to milliseconds
           )
-          logger.info "Scheduled email", template: template, message_id: message_id, delay_seconds: delay_seconds
+          logger.info 'Scheduled email', template: template, message_id: message_id, delay_seconds: delay_seconds
           true
         end
       end
@@ -128,13 +128,13 @@ module Onetime
 
         # Gracefully fallback if jobs are disabled (no pool initialized)
         unless jobs_enabled?
-          logger.info "Jobs disabled, using fallback for raw email", fallback: fallback
+          logger.info 'Jobs disabled, using fallback for raw email', fallback: fallback
           return execute_fallback(fallback, :raw)
         end
 
         with_fallback(fallback, :raw) do
           message_id = publish('email.message.send', { raw: true, email: email })
-          logger.info "Enqueued raw email", to: email[:to], message_id: message_id
+          logger.info 'Enqueued raw email', to: email[:to], message_id: message_id
           true
         end
       end
@@ -144,7 +144,7 @@ module Onetime
       # @param payload [Hash] Message payload
       # @param options [Hash] Additional AMQP options
       # @return [String] The message_id assigned to this message
-      def publish(queue_name, payload, **options)
+      def publish(queue_name, payload, **)
         unless $rmq_channel_pool
           raise Onetime::Problem, 'RabbitMQ channel pool not initialized. Check config[:jobs][:enabled]'
         end
@@ -158,7 +158,7 @@ module Onetime
             persistent: true,
             message_id: message_id,
             headers: { 'x-schema-version' => QueueConfig::CURRENT_SCHEMA_VERSION },
-            **options
+            **,
           )
         end
 
@@ -185,11 +185,11 @@ module Onetime
       # @param email_type [Symbol] :templated or :raw
       def with_fallback(fallback, email_type)
         yield
-      rescue Bunny::ConnectionClosedError, Bunny::NetworkFailure => e
-        logger.warn "RabbitMQ unavailable, using fallback", fallback: fallback, error: e.message
+      rescue Bunny::ConnectionClosedError, Bunny::NetworkFailure => ex
+        logger.warn 'RabbitMQ unavailable, using fallback', fallback: fallback, error: ex.message
         execute_fallback(fallback, email_type)
-      rescue StandardError => e
-        logger.error "Unexpected error publishing message", error: e.message, backtrace: e.backtrace.first(5)
+      rescue StandardError => ex
+        logger.error 'Unexpected error publishing message', error: ex.message, backtrace: ex.backtrace.first(5)
         execute_fallback(fallback, email_type)
       end
 
@@ -208,7 +208,7 @@ module Onetime
         when :raise
           raise Onetime::Mail::DeliveryError, 'RabbitMQ unavailable and fallback disabled'
         when :none
-          logger.info "Fallback disabled, email not sent"
+          logger.info 'Fallback disabled, email not sent'
           clear_pending_state
           false
         end
@@ -224,33 +224,35 @@ module Onetime
       # @param email_type [Symbol] :templated or :raw
       def send_via_thread(email_type)
         # Capture state before thread (instance vars won't be accessible)
-        template = @pending_template
-        data = @pending_data
+        template  = @pending_template
+        data      = @pending_data
         raw_email = @pending_raw_email
 
         clear_pending_state
 
+        # rubocop:disable ThreadSafety/NewThread
         Thread.new do
           deliver_email(email_type, template: template, data: data, raw_email: raw_email)
-        rescue StandardError => e
+        rescue StandardError => ex
           # Log but don't crash - this is fire-and-forget
-          logger.error "Async thread delivery failed", error: e.message, backtrace: e.backtrace.first(5)
+          logger.error 'Async thread delivery failed', error: ex.message, backtrace: ex.backtrace.first(5)
         end
-
-        logger.info "Spawned thread for email delivery", email_type: email_type
+        # rubocop:enable ThreadSafety/NewThread
+        #
+        logger.info 'Spawned thread for email delivery', email_type: email_type
       end
 
       # Blocking synchronous delivery
       # @param email_type [Symbol] :templated or :raw
       def send_synchronously(email_type)
-        template = @pending_template
-        data = @pending_data
+        template  = @pending_template
+        data      = @pending_data
         raw_email = @pending_raw_email
 
         clear_pending_state
 
         deliver_email(email_type, template: template, data: data, raw_email: raw_email)
-        logger.info "Sent email synchronously", email_type: email_type
+        logger.info 'Sent email synchronously', email_type: email_type
       end
 
       # Actually deliver the email
@@ -275,8 +277,8 @@ module Onetime
 
       # Clear pending state
       def clear_pending_state
-        @pending_template = nil
-        @pending_data = nil
+        @pending_template  = nil
+        @pending_data      = nil
         @pending_raw_email = nil
       end
     end

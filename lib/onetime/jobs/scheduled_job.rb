@@ -36,9 +36,9 @@ module Onetime
         # @param scheduler [Rufus::Scheduler] The scheduler instance
         # @param pattern [String] Cron pattern (e.g., '0 0 * * *')
         # @param options [Hash] Optional rufus-scheduler options
-        def cron(scheduler, pattern, **options, &block)
-          scheduler.cron(pattern, **options) do
-            safely_execute(&block)
+        def cron(scheduler, pattern, **, &)
+          scheduler.cron(pattern, **) do
+            safely_execute(&)
           end
         end
 
@@ -46,9 +46,9 @@ module Onetime
         # @param scheduler [Rufus::Scheduler] The scheduler instance
         # @param interval [String] Interval (e.g., '1h', '30m', '5s')
         # @param options [Hash] Optional rufus-scheduler options
-        def every(scheduler, interval, **options, &block)
-          scheduler.every(interval, **options) do
-            safely_execute(&block)
+        def every(scheduler, interval, **, &)
+          scheduler.every(interval, **) do
+            safely_execute(&)
           end
         end
 
@@ -56,9 +56,9 @@ module Onetime
         # @param scheduler [Rufus::Scheduler] The scheduler instance
         # @param delay [String] Delay (e.g., '10s', '5m')
         # @param options [Hash] Optional rufus-scheduler options
-        def in_time(scheduler, delay, **options, &block)
-          scheduler.in(delay, **options) do
-            safely_execute(&block)
+        def in_time(scheduler, delay, **, &)
+          scheduler.in(delay, **) do
+            safely_execute(&)
           end
         end
 
@@ -66,9 +66,9 @@ module Onetime
         # @param scheduler [Rufus::Scheduler] The scheduler instance
         # @param time [Time, String] When to run (e.g., Time.now + 3600)
         # @param options [Hash] Optional rufus-scheduler options
-        def at_time(scheduler, time, **options, &block)
-          scheduler.at(time, **options) do
-            safely_execute(&block)
+        def at_time(scheduler, time, **, &)
+          scheduler.at(time, **) do
+            safely_execute(&)
           end
         end
 
@@ -78,9 +78,9 @@ module Onetime
         # Logs errors but doesn't re-raise to avoid crashing the scheduler
         def safely_execute
           yield
-        rescue StandardError => e
-          scheduler_logger.error "[#{name}] Scheduled job failed: #{e.message}"
-          scheduler_logger.error e.backtrace.join("\n") if OT.debug?
+        rescue StandardError => ex
+          scheduler_logger.error "[#{name}] Scheduled job failed: #{ex.message}"
+          scheduler_logger.error ex.backtrace.join("\n") if OT.debug?
         end
 
         # Dedicated logger for scheduled jobs

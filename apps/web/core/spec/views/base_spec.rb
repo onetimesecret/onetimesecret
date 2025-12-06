@@ -8,8 +8,10 @@ require_relative '../../views/base'
 require_relative '../../views/serializers'
 
 RSpec.describe Core::Views::BaseView do
-  include_context "rack_test_context"
-  include_context "view_test_context"
+  subject { described_class.new(rack_request, session, customer) }
+
+  include_context 'rack_test_context'
+  include_context 'view_test_context'
 
   before(:all) do
     described_class.use_serializers(
@@ -22,7 +24,7 @@ RSpec.describe Core::Views::BaseView do
     )
   end
 
-  before(:each) do
+  before do
     allow(OT).to receive('default_locale').and_return('en')
     allow(OT).to receive('fallback_locale').and_return('en')
     allow(OT).to receive('supported_locales').and_return(['en'])
@@ -37,10 +39,9 @@ RSpec.describe Core::Views::BaseView do
           },
         },
       },
-    })
+    },
+                                              )
   end
-
-  subject { described_class.new(rack_request, session, customer) }
 
   describe '#initialize' do
     it 'sets basic template variables' do
@@ -61,14 +62,16 @@ RSpec.describe Core::Views::BaseView do
       expect(subject.serialized_data['authentication']).to eq({
         'enabled' => true,
         'signup' => true,
-      })
+      },
+                                                             )
     end
 
     it 'includes secret options' do
       expect(subject.serialized_data['secret_options']).to eq({
         'default_ttl' => 86_400,
         'ttl_options' => [3600, 86_400],
-      })
+      },
+                                                             )
     end
 
     context 'with development mode' do
@@ -94,23 +97,24 @@ RSpec.describe Core::Views::BaseView do
           planid: 'anonymous',
           custid: nil,
           safe_dump: {
-            "identifier" => "anon",
-            "custid" => "anon",
-            "role" => "customer",
-            "verified" => nil,
-            "last_login" => nil,
-            "locale" => "",
-            "updated" => nil,
-            "created" => nil,
-            "stripe_customer_id" => nil,
-            "stripe_subscription_id" => nil,
-            "stripe_checkout_email" => nil,
-            "secrets_created" => "0",
-            "secrets_burned" => "0",
-            "secrets_shared" => "0",
-            "emails_sent" => "0",
-            "active" => false,
-          })
+            'identifier' => 'anon',
+            'custid' => 'anon',
+            'role' => 'customer',
+            'verified' => nil,
+            'last_login' => nil,
+            'locale' => '',
+            'updated' => nil,
+            'created' => nil,
+            'stripe_customer_id' => nil,
+            'stripe_subscription_id' => nil,
+            'stripe_checkout_email' => nil,
+            'secrets_created' => '0',
+            'secrets_burned' => '0',
+            'secrets_shared' => '0',
+            'emails_sent' => '0',
+            'active' => false,
+          },
+        )
       end
 
       it 'sets appropriate anonymous state' do
@@ -128,7 +132,8 @@ RSpec.describe Core::Views::BaseView do
       expect(subject.messages).to include({
         'type' => 'info',
         'content' => 'Test message',
-      })
+      },
+                                         )
     end
 
     it 'adds error message to messages array' do
@@ -136,7 +141,8 @@ RSpec.describe Core::Views::BaseView do
       expect(subject.messages).to include({
         'type' => 'error',
         'content' => 'Error message',
-      })
+      },
+                                         )
     end
   end
 
@@ -152,7 +158,8 @@ RSpec.describe Core::Views::BaseView do
                                                       },
                                                     },
                                                   },
-                                                ))
+                                                ),
+                                               )
       end
 
       it 'sets diagnostic variables when enabled and DSN provided' do
@@ -161,7 +168,8 @@ RSpec.describe Core::Views::BaseView do
           'sentry' => {
             'dsn' => 'https://test-dsn@sentry.example.com/1',
           },
-        })
+        },
+                                         )
         expect(vars['d9s_enabled']).to be true
       end
     end
@@ -177,7 +185,8 @@ RSpec.describe Core::Views::BaseView do
                                                       },
                                                     },
                                                   },
-                                                ))
+                                                ),
+                                               )
       end
 
       it 'sets diagnostic to disabled when DSN not provided' do
@@ -187,7 +196,8 @@ RSpec.describe Core::Views::BaseView do
           'sentry' => {
             'dsn' => nil,
           },
-        })
+        },
+                                         )
       end
     end
   end
@@ -209,7 +219,8 @@ RSpec.describe Core::Views::BaseView do
       allow(OT).to receive('global_banner').and_return({
         type: 'info',
         message: 'System maintenance scheduled',
-      })
+      },
+                                                      )
     end
 
     it 'includes global banner when present' do
@@ -217,7 +228,8 @@ RSpec.describe Core::Views::BaseView do
       expect(view.serialized_data['global_banner']).to eq({
         type: 'info',
         message: 'System maintenance scheduled',
-      })
+      },
+                                                         )
     end
   end
 
@@ -275,46 +287,6 @@ RSpec.describe Core::Views::BaseView do
           "Expected serialized_data to include #{key}"
       end
     end
-
-    context 'with anonymous user' do
-      let(:customer) do
-        instance_double('Onetime::Customer',
-          custid: 'anon',
-          email: nil,
-          anonymous?: true,
-          planid: 'anonymous',
-          created: Familia.now.to_i,
-          safe_dump: {
-            "identifier" => "anon",
-            "custid" => "anon",
-            "role" => "customer",
-            "verified" => nil,
-            "last_login" => nil,
-            "locale" => "",
-            "updated" => nil,
-            "created" => nil,
-            "stripe_customer_id" => nil,
-            "stripe_subscription_id" => nil,
-            "stripe_checkout_email" => nil,
-            "secrets_created" => "0",
-            "secrets_burned" => "0",
-            "secrets_shared" => "0",
-            "emails_sent" => "0",
-            "active" => false,
-          },
-          verified?: false,
-          active?: false,
-          role: 'anonymous')
-      end
-
-      let(:session) do
-        # V2::Session removed - now using Rack::Session hash
-        {
-          'authenticated' => false,
-          'shrimp' => 'test_token'
-        }
-      end
-    end
   end
 
   context 'with locale configuration' do
@@ -326,7 +298,7 @@ RSpec.describe Core::Views::BaseView do
           'fallback_locale' => {
             'fr-CA' => %w[fr_CA fr_FR en],
             'fr' => %w[fr_FR fr_CA en],
-            'fr-*' => ['fr_FR', 'en'],
+            'fr-*' => %w[fr_FR en],
             'default' => ['en'],
           },
           'locales' => %w[en fr_CA fr_FR],
@@ -335,7 +307,10 @@ RSpec.describe Core::Views::BaseView do
     end
 
     # Test various locale scenarios
-    shared_examples "locale initialization" do |locale, expected|
+    shared_examples 'locale initialization' do |locale, expected|
+      # Create subject on demand to use the current rack_request
+      subject { described_class.new(rack_request, session, customer) }
+
       let(:rack_request) do
         env = {
           'REMOTE_ADDR' => '127.0.0.1',
@@ -344,14 +319,10 @@ RSpec.describe Core::Views::BaseView do
           'ots.locale' => locale,
         }
 
-        request = instance_double('Rack::Request')
-        allow(request).to receive(:env).and_return(env)
-        allow(request).to receive(:nil?).and_return(false)
+        request = instance_double(Rack::Request)
+        allow(request).to receive_messages(env: env, nil?: false)
         request
       end
-
-      # Create subject on demand to use the current rack_request
-      subject { described_class.new(rack_request, session, customer) }
 
       it 'sets correct locale variables' do
         vars = subject.serialized_data
@@ -360,28 +331,28 @@ RSpec.describe Core::Views::BaseView do
     end
 
     context 'with default locale' do
-      include_examples "locale initialization", 'en', {
+      it_behaves_like 'locale initialization', 'en', {
         locale: 'en',
         is_default: true,
       }
     end
 
     context 'with Canadian French locale' do
-      include_examples "locale initialization", 'fr_CA', {
+      it_behaves_like 'locale initialization', 'fr_CA', {
         locale: 'fr_CA',
         is_default: true,
       }
     end
 
     context 'with French locale' do
-      include_examples "locale initialization", 'fr_FR', {
+      it_behaves_like 'locale initialization', 'fr_FR', {
         locale: 'fr_FR',
         is_default: true,
       }
     end
 
     context 'with unsupported locale' do
-      include_examples "locale initialization", 'es', {
+      it_behaves_like 'locale initialization', 'es', {
         locale: 'es',
         is_default: true,
       }
@@ -389,8 +360,8 @@ RSpec.describe Core::Views::BaseView do
 
     context 'with nil locale' do
       let(:rack_request) do
-        env = {'ots.locale' => nil}
-        instance_double('Rack::Request', env: env)
+        env = { 'ots.locale' => nil }
+        instance_double(Rack::Request, env: env)
       end
 
       it 'falls back to default locale' do
@@ -399,7 +370,7 @@ RSpec.describe Core::Views::BaseView do
       end
     end
 
-    it "runs I18nSerializer" do
+    it 'runs I18nSerializer' do
       serialized = subject.serialized_data
       expect(serialized).to include('locale', 'default_locale', 'supported_locales')
     end

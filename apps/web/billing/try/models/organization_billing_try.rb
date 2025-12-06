@@ -14,7 +14,7 @@ require 'onetime/models/organization'
 
 ## Create test customer
 @cust = Onetime::Customer.create!(
-  email: "billing-test-#{SecureRandom.hex(4)}@example.com"
+  email: "billing-test-#{SecureRandom.hex(4)}@example.com",
 )
 @cust.class
 #=> Onetime::Customer
@@ -23,7 +23,7 @@ require 'onetime/models/organization'
 @org = Onetime::Organization.create!(
   'Test Billing Org',
   @cust,
-  @cust.email
+  @cust.email,
 )
 @org.class
 #=> Onetime::Organization
@@ -41,14 +41,14 @@ require 'onetime/models/organization'
 #=> true
 
 ## Set billing fields
-@test_stripe_customer_id = "cus_test_#{SecureRandom.hex(4)}"
+@test_stripe_customer_id     = "cus_test_#{SecureRandom.hex(4)}"
 @test_stripe_subscription_id = "sub_test_#{SecureRandom.hex(4)}"
-@org.stripe_customer_id = @test_stripe_customer_id
-@org.stripe_subscription_id = @test_stripe_subscription_id
-@org.subscription_status = 'active'
-@org.subscription_period_end = (Time.now + 30 * 24 * 60 * 60).to_i.to_s
-@org.planid = 'single_team_monthly_us_east'
-@org.billing_email = 'billing@example.com'
+@org.stripe_customer_id      = @test_stripe_customer_id
+@org.stripe_subscription_id  = @test_stripe_subscription_id
+@org.subscription_status     = 'active'
+@org.subscription_period_end = (Time.now + (30 * 24 * 60 * 60)).to_i.to_s
+@org.planid                  = 'single_team_monthly_us_east'
+@org.billing_email           = 'billing@example.com'
 @org.save
 #=> true
 

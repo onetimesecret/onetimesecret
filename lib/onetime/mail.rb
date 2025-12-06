@@ -56,7 +56,7 @@ module Onetime
       def initialize(message, original_error: nil, transient: false)
         super(message)
         @original_error = original_error
-        @transient = transient
+        @transient      = transient
       end
 
       def transient?

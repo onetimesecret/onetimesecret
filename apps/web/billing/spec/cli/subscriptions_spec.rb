@@ -25,8 +25,7 @@ require_relative '../../cli/subscriptions_update_command'
 #   - True unit tests (test CLI only, fully mock Stripe SDK)
 #   - Integration tests with :stripe_sandbox_api tag
 
-RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :stripe_mock, :code_smell do
-
+RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, :stripe_mock, :unit do
   using Familia::Refinements::TimeLiterals
 
   let(:stripe_client) { Billing::StripeClient.new }
@@ -43,36 +42,41 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
       canceled_at: nil,
       pause_collection: nil,
       items: double(data: [
-        double(
-          id: 'si_test',
-          price: double(id: 'price_test', unit_amount: 2000, currency: 'usd'),
-          quantity: 1
-        )
-      ])
+                      double(
+                        id: 'si_test',
+                        price: double(id: 'price_test', unit_amount: 2000, currency: 'usd'),
+                        quantity: 1,
+                      ),
+                    ],
+                   ),
     )
   end
 
   # Helper to create test subscription with stripe-mock
   def create_test_subscription(email: 'sub-test@example.com')
     customer = stripe_client.create(Stripe::Customer, {
-      email: email
-    })
+      email: email,
+    }
+    )
 
     product = stripe_client.create(Stripe::Product, {
-      name: "Test Product #{Time.now.to_i}"
-    })
+      name: "Test Product #{Time.now.to_i}",
+    }
+    )
 
     price = stripe_client.create(Stripe::Price, {
       unit_amount: 2000,
       currency: 'usd',
       recurring: { interval: 'month' },
-      product: product.id
-    })
+      product: product.id,
+    }
+    )
 
     subscription = stripe_client.create(Stripe::Subscription, {
       customer: customer.id,
-      items: [{ price: price.id }]
-    })
+      items: [{ price: price.id }],
+    }
+    )
 
     { customer: customer, product: product, price: price, subscription: subscription }
   end
@@ -85,18 +89,18 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
         it 'lists all subscriptions without filters' do
           # Mock response to avoid incomplete stripe-mock objects
           allow(Stripe::Subscription).to receive(:list).and_return(
-            double(data: [mock_subscription])
+            double(data: [mock_subscription]),
           )
 
-          expect {
+          expect do
             command.call(limit: 10)
-          }.to output(/Fetching subscriptions from Stripe/).to_stdout
+          end.to output(/Fetching subscriptions from Stripe/).to_stdout
         end
 
         it 'filters subscriptions by customer ID' do
           # stripe-mock doesn't filter, so mock the response
           allow(Stripe::Subscription).to receive(:list).and_return(
-            double(data: [mock_subscription(customer_id: 'cus_filter')])
+            double(data: [mock_subscription(customer_id: 'cus_filter')]),
           )
 
           output = capture_stdout do
@@ -110,7 +114,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
         it 'filters subscriptions by status' do
           # stripe-mock doesn't filter, mock the response to test CLI accepts parameter
           allow(Stripe::Subscription).to receive(:list).and_return(
-            double(data: [mock_subscription(status: 'active')])
+            double(data: [mock_subscription(status: 'active')]),
           )
 
           output = capture_stdout do
@@ -124,17 +128,17 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
         it 'respects limit parameter' do
           # Mock the response to avoid incomplete stripe-mock objects
           allow(Stripe::Subscription).to receive(:list).and_return(
-            double(data: [mock_subscription])
+            double(data: [mock_subscription]),
           )
 
-          expect {
+          expect do
             command.call(limit: 3)
-          }.to output(/Fetching subscriptions from Stripe/).to_stdout
+          end.to output(/Fetching subscriptions from Stripe/).to_stdout
         end
 
         it 'displays correct subscription information' do
           allow(Stripe::Subscription).to receive(:list).and_return(
-            double(data: [mock_subscription])
+            double(data: [mock_subscription]),
           )
 
           output = capture_stdout do
@@ -148,7 +152,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
 
         it 'displays available status filters' do
           allow(Stripe::Subscription).to receive(:list).and_return(
-            double(data: [])
+            double(data: []),
           )
 
           output = capture_stdout do
@@ -162,7 +166,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
       context 'when no subscriptions found' do
         it 'displays appropriate message' do
           allow(Stripe::Subscription).to receive(:list).and_return(
-            double(data: [])
+            double(data: []),
           )
 
           output = capture_stdout do
@@ -176,22 +180,22 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
       context 'with Stripe API errors' do
         it 'handles invalid customer ID gracefully' do
           allow(Stripe::Subscription).to receive(:list).and_raise(
-            Stripe::InvalidRequestError.new('Invalid customer', 'customer')
+            Stripe::InvalidRequestError.new('Invalid customer', 'customer'),
           )
 
-          expect {
+          expect do
             command.call(customer: 'invalid_id', limit: 10)
-          }.to output(/Error fetching subscriptions/).to_stdout
+          end.to output(/Error fetching subscriptions/).to_stdout
         end
 
         it 'handles network errors gracefully' do
           allow(Stripe::Subscription).to receive(:list).and_raise(
-            Stripe::APIConnectionError.new('Network error')
+            Stripe::APIConnectionError.new('Network error'),
           )
 
-          expect {
+          expect do
             command.call(limit: 10)
-          }.to output(/Error fetching subscriptions/).to_stdout
+          end.to output(/Error fetching subscriptions/).to_stdout
         end
       end
 
@@ -217,32 +221,30 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
           sub = mock_subscription
 
           # Mock Stripe SDK methods directly
-          allow(Stripe::Subscription).to receive(:retrieve).and_return(sub)
-          allow(Stripe::Subscription).to receive(:update).and_return(sub)
+          allow(Stripe::Subscription).to receive_messages(retrieve: sub, update: sub)
           allow($stdin).to receive(:gets).and_return("y\n")
 
           # Just verify the command accepts the request without errors
-          expect {
+          expect do
             capture_stdout do
               command.call(subscription_id: 'sub_test123')
             end
-          }.not_to raise_error
+          end.not_to raise_error
         end
 
         it 'cancels subscription immediately with --immediately flag' do
           sub = mock_subscription
 
           # Mock Stripe SDK methods directly
-          allow(Stripe::Subscription).to receive(:retrieve).and_return(sub)
-          allow(Stripe::Subscription).to receive(:delete).and_return(sub)
+          allow(Stripe::Subscription).to receive_messages(retrieve: sub, delete: sub)
           allow($stdin).to receive(:gets).and_return("y\n")
 
           # Just verify the command accepts the request without errors
-          expect {
+          expect do
             capture_stdout do
               command.call(subscription_id: 'sub_test123', immediately: true)
             end
-          }.not_to raise_error
+          end.not_to raise_error
         end
 
         it 'displays operation summary with dry run' do
@@ -250,26 +252,25 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
           allow(Stripe::Subscription).to receive(:retrieve).and_return(sub)
 
           # Just verify dry run doesn't raise errors
-          expect {
+          expect do
             capture_stdout do
               command.call(subscription_id: 'sub_test123', dry_run: true)
             end
-          }.not_to raise_error
+          end.not_to raise_error
         end
 
         it 'bypasses confirmation with --yes flag' do
           sub = mock_subscription
 
-          allow(Stripe::Subscription).to receive(:retrieve).and_return(sub)
-          allow(Stripe::Subscription).to receive(:update).and_return(sub)
+          allow(Stripe::Subscription).to receive_messages(retrieve: sub, update: sub)
           expect($stdin).not_to receive(:gets)
 
           # Just verify the command accepts the request without errors
-          expect {
+          expect do
             capture_stdout do
               command.call(subscription_id: 'sub_test123', yes: true)
             end
-          }.not_to raise_error
+          end.not_to raise_error
         end
 
         it 'aborts when user declines confirmation' do
@@ -290,7 +291,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
       context 'with invalid subscription ID' do
         it 'handles non-existent subscription gracefully' do
           allow(stripe_client).to receive(:retrieve).and_raise(
-            Stripe::InvalidRequestError.new('No such subscription', 'subscription')
+            Stripe::InvalidRequestError.new('No such subscription', 'subscription'),
           )
 
           output = capture_stdout do
@@ -320,12 +321,11 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
     describe '#call (pause subscription)' do
       context 'with valid subscription ID' do
         it 'pauses active subscription' do
-          sub = mock_subscription
+          sub        = mock_subscription
           paused_sub = mock_subscription
           allow(paused_sub).to receive(:pause_collection).and_return(double(behavior: 'void'))
 
-          allow(Stripe::Subscription).to receive(:retrieve).and_return(sub)
-          allow(Stripe::Subscription).to receive(:update).and_return(paused_sub)
+          allow(Stripe::Subscription).to receive_messages(retrieve: sub, update: paused_sub)
           allow($stdin).to receive(:gets).and_return("y\n")
 
           output = capture_stdout do
@@ -338,12 +338,11 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
         end
 
         it 'bypasses confirmation with --yes flag' do
-          sub = mock_subscription
+          sub        = mock_subscription
           paused_sub = mock_subscription
           allow(paused_sub).to receive(:pause_collection).and_return(double(behavior: 'void'))
 
-          allow(Stripe::Subscription).to receive(:retrieve).and_return(sub)
-          allow(Stripe::Subscription).to receive(:update).and_return(paused_sub)
+          allow(Stripe::Subscription).to receive_messages(retrieve: sub, update: paused_sub)
           expect($stdin).not_to receive(:gets)
 
           output = capture_stdout do
@@ -382,12 +381,12 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
       context 'with invalid subscription ID' do
         it 'handles non-existent subscription gracefully' do
           allow(Stripe::Subscription).to receive(:retrieve).and_raise(
-            Stripe::InvalidRequestError.new('No such subscription', 'subscription')
+            Stripe::InvalidRequestError.new('No such subscription', 'subscription'),
           )
 
-          expect {
+          expect do
             command.call(subscription_id: 'sub_nonexistent', yes: true)
-          }.to output(/Error pausing subscription/).to_stdout
+          end.to output(/Error pausing subscription/).to_stdout
         end
       end
 
@@ -414,8 +413,9 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
 
           # Pause first
           stripe_client.update(Stripe::Subscription, test_data[:subscription].id, {
-            pause_collection: { behavior: 'void' }
-          })
+            pause_collection: { behavior: 'void' },
+          }
+          )
 
           allow($stdin).to receive(:gets).and_return("y\n")
 
@@ -436,8 +436,9 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
 
           # Pause first
           stripe_client.update(Stripe::Subscription, test_data[:subscription].id, {
-            pause_collection: { behavior: 'void' }
-          })
+            pause_collection: { behavior: 'void' },
+          }
+          )
 
           expect($stdin).not_to receive(:gets)
 
@@ -469,8 +470,9 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
 
           # Pause first
           stripe_client.update(Stripe::Subscription, test_data[:subscription].id, {
-            pause_collection: { behavior: 'void' }
-          })
+            pause_collection: { behavior: 'void' },
+          }
+          )
 
           allow($stdin).to receive(:gets).and_return("n\n")
 
@@ -488,12 +490,12 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
       context 'with invalid subscription ID' do
         it 'handles non-existent subscription gracefully' do
           allow(Stripe::Subscription).to receive(:retrieve).and_raise(
-            Stripe::InvalidRequestError.new('No such subscription', 'subscription')
+            Stripe::InvalidRequestError.new('No such subscription', 'subscription'),
           )
 
-          expect {
+          expect do
             command.call(subscription_id: 'sub_nonexistent', yes: true)
-          }.to output(/Error resuming subscription/).to_stdout
+          end.to output(/Error resuming subscription/).to_stdout
         end
       end
 
@@ -540,8 +542,9 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
             unit_amount: 3000,
             currency: 'usd',
             recurring: { interval: 'month' },
-            product: test_data[:product].id
-          })
+            product: test_data[:product].id,
+          }
+          )
 
           allow($stdin).to receive(:gets).and_return("y\n")
 
@@ -565,7 +568,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
             command.call(
               subscription_id: test_data[:subscription].id,
               quantity: 2,
-              prorate: false
+              prorate: false,
             )
           end
 
@@ -608,12 +611,12 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
       context 'with invalid subscription ID' do
         it 'handles non-existent subscription gracefully' do
           allow(Stripe::Subscription).to receive(:retrieve).and_raise(
-            Stripe::InvalidRequestError.new('No such subscription', 'subscription')
+            Stripe::InvalidRequestError.new('No such subscription', 'subscription'),
           )
 
-          expect {
+          expect do
             command.call(subscription_id: 'sub_nonexistent', quantity: 2)
-          }.to output(/Error updating subscription/).to_stdout
+          end.to output(/Error updating subscription/).to_stdout
         end
       end
 
@@ -633,7 +636,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :unit, :strip
   # Helper to capture stdout
   def capture_stdout
     old_stdout = $stdout
-    $stdout = StringIO.new
+    $stdout    = StringIO.new
     yield
     $stdout.string
   ensure

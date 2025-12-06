@@ -15,8 +15,8 @@ module Onetime
     #
     class SetupDiagnostics < Onetime::Boot::Initializer
       @depends_on = [:logging]
-      @provides = [:diagnostics]
-      @optional = true
+      @provides   = [:diagnostics]
+      @optional   = true
 
       def execute(_context)
         d9s_enabled = OT.conf['diagnostics']['enabled'] || false

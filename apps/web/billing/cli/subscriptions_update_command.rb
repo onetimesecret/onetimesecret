@@ -23,21 +23,21 @@ module Onetime
         return unless stripe_configured?
 
         if price.nil? && quantity.nil?
-          puts "Error: Must specify --price or --quantity"
+          puts 'Error: Must specify --price or --quantity'
           return
         end
 
         subscription = Stripe::Subscription.retrieve(subscription_id)
         current_item = subscription.items.data.first
 
-        puts "Current subscription:"
+        puts 'Current subscription:'
         puts "  Subscription: #{subscription.id}"
         puts "  Current price: #{current_item.price.id}"
         puts "  Current quantity: #{current_item.quantity}"
         puts "  Amount: #{format_amount(current_item.price.unit_amount, current_item.price.currency)}"
         puts
 
-        puts "New configuration:"
+        puts 'New configuration:'
         puts "  New price: #{price || current_item.price.id}"
         puts "  New quantity: #{quantity || current_item.quantity}"
         puts "  Prorate: #{prorate}"
@@ -49,18 +49,17 @@ module Onetime
           items: [{
             id: current_item.id,
             price: price || current_item.price.id,
-            quantity: quantity || current_item.quantity
+            quantity: quantity || current_item.quantity,
           }],
-          proration_behavior: prorate ? 'create_prorations' : 'none'
+          proration_behavior: prorate ? 'create_prorations' : 'none',
         }
 
         updated = Stripe::Subscription.update(subscription_id, update_params)
 
         puts "\nSubscription updated successfully"
         puts "Status: #{updated.status}"
-
-      rescue Stripe::StripeError => e
-        puts "Error updating subscription: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error updating subscription: #{ex.message}"
       end
     end
   end

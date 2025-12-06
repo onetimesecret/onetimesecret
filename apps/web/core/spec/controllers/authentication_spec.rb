@@ -5,11 +5,13 @@
 require 'spec_helper'
 
 RSpec.describe Core::Controllers::Authentication do
+  subject(:controller) { described_class.new(req, res) }
+
   let(:session_data) { {} }
   let(:session_id) { double('SessionId', public_id: 'sess_abc123') }
   let(:rack_session) do
     # Create a proper double that supports both Hash-like access and session methods
-    session = double('RackSession')
+    session                                                          = double('RackSession')
     allow(session).to receive(:id).and_return(session_id)
     allow(session).to receive(:clear) { session_data.clear }
     allow(session).to receive(:[]) { |key| session_data[key] }
@@ -27,9 +29,7 @@ RSpec.describe Core::Controllers::Authentication do
   end
   let(:req) do
     request = double('Request')
-    allow(request).to receive(:env).and_return(env)
-    allow(request).to receive(:ip).and_return('127.0.0.1')
-    allow(request).to receive(:locale).and_return('en')
+    allow(request).to receive_messages(env: env, ip: '127.0.0.1', locale: 'en')
     request
   end
   let(:res) do
@@ -40,8 +40,6 @@ RSpec.describe Core::Controllers::Authentication do
     allow(response).to receive(:status=)
     response
   end
-
-  subject(:controller) { described_class.new(req, res) }
 
   before do
     # Stub logging methods
@@ -81,11 +79,11 @@ RSpec.describe Core::Controllers::Authentication do
 
         expect(logger).to receive(:debug).with(
           'Session destruction initiated',
-          hash_including(customer_id: 'ur_abc123', ip: '127.0.0.1')
+          hash_including(customer_id: 'ur_abc123', ip: '127.0.0.1'),
         )
         expect(logger).to receive(:info).with(
           'Session destroyed',
-          hash_including(customer_id: 'ur_abc123', ip: '127.0.0.1')
+          hash_including(customer_id: 'ur_abc123', ip: '127.0.0.1'),
         )
 
         controller.logout
@@ -144,11 +142,11 @@ RSpec.describe Core::Controllers::Authentication do
 
         expect(logger).to receive(:debug).with(
           'Session destruction initiated',
-          hash_including(customer_id: nil)
+          hash_including(customer_id: nil),
         )
         expect(logger).to receive(:info).with(
           'Session destroyed',
-          hash_including(customer_id: nil)
+          hash_including(customer_id: nil),
         )
 
         controller.logout
@@ -195,7 +193,7 @@ RSpec.describe Core::Controllers::Authentication do
       # The customer_id should be captured BEFORE clear is called
       expect(logger).to receive(:debug).with(
         'Session destruction initiated',
-        hash_including(customer_id: 'ur_secret123')
+        hash_including(customer_id: 'ur_secret123'),
       )
       expect(logger).to receive(:info)
 

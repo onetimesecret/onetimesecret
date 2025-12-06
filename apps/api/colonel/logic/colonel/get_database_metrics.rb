@@ -24,7 +24,7 @@ module ColonelAPI
             next unless key.start_with?('db')
 
             # Parse db0:keys=123,expires=45,avg_ttl=3600
-            parts          = value.split(',').map { |p| p.split('=') }.to_h
+            parts          = value.split(',').to_h { |p| p.split('=') }
             @db_sizes[key] = {
               keys: parts['keys'].to_i,
               expires: parts['expires'].to_i,

@@ -110,7 +110,7 @@ module Auth::Config::Hooks
       auth.audit_log_metadata_for :login do
         # Inside block, self is the Rodauth instance
         mfa_enabled = respond_to?(:otp_exists?) && otp_exists?
-        metadata = {
+        metadata    = {
           ip: request.ip,
           user_agent: request.user_agent,
           correlation_id: session[:auth_correlation_id] || 'none',

@@ -100,10 +100,10 @@ module Onetime
 
             # Validate subscription status is known value
             unless Billing::Metadata::VALID_SUBSCRIPTION_STATUSES.include?(subscription.status)
-              OT.lw "[Organization.update_from_stripe_subscription] Unknown subscription status", {
+              OT.lw '[Organization.update_from_stripe_subscription] Unknown subscription status', {
                 subscription_id: subscription.id,
                 status: subscription.status,
-                orgid: objid
+                orgid: objid,
               }
             end
 
@@ -114,7 +114,7 @@ module Onetime
             self.subscription_period_end = subscription.current_period_end.to_s
 
             # Extract plan ID with validation
-            plan_id = extract_plan_id_from_subscription(subscription)
+            plan_id     = extract_plan_id_from_subscription(subscription)
             self.planid = plan_id if plan_id
 
             save
@@ -155,9 +155,9 @@ module Onetime
               return subscription.items.data.first.price.metadata[Billing::Metadata::FIELD_PLAN_ID]
             end
 
-            OT.lw "[Organization.extract_plan_id_from_subscription] No plan_id in metadata", {
+            OT.lw '[Organization.extract_plan_id_from_subscription] No plan_id in metadata', {
               subscription_id: subscription.id,
-              orgid: objid
+              orgid: objid,
             }
             nil
           end

@@ -6,10 +6,9 @@
 # Basic SMTP checker for OnetimeSecret
 # This utility helps test SMTP email delivery using configured environment variables
 
-# frozen_string_literal: true
 # typed: false
 
-$LOAD_PATH.unshift(File.expand_path("../../lib", __FILE__))
+$LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
 
 require 'net/smtp'
 # TODO2: Removed dotenv since we only use it in tests and we should be mocking
@@ -21,14 +20,14 @@ require 'net/smtp'
 timestamp = Time.now.strftime('%Y-%m-%d %H:%M:%S')
 
 # Define the email parameters
-subject = 'Test Email'
-message = 'This is a test email sent from the Ruby script.'
+subject    = 'Test Email'
+message    = 'This is a test email sent from the Ruby script.'
 from_email = ENV.fetch('FROM_EMAIL', 'support@example.com')
-to_email = ENV.fetch('TO_EMAIL', 'recipient@example.com')
+to_email   = ENV.fetch('TO_EMAIL', 'recipient@example.com')
 
 # SMTP server configuration
-smtp_host = ENV.fetch('SMTP_HOST')
-smtp_port = ENV.fetch('SMTP_PORT', 587)
+smtp_host     = ENV.fetch('SMTP_HOST')
+smtp_port     = ENV.fetch('SMTP_PORT', 587)
 smtp_username = ENV.fetch('SMTP_USERNAME')
 smtp_password = ENV.fetch('SMTP_PASSWORD')
 
@@ -53,9 +52,9 @@ begin
     response = smtp.send_message(msg_str, from_email, to_email)
     puts "Message sent successfully. Status: #{response.status}"
   end
-rescue Net::SMTPError, StandardError => e
-  puts "Failed to send message: #{e.message}"
-  puts e.message
+rescue Net::SMTPError, StandardError => ex
+  puts "Failed to send message: #{ex.message}"
+  puts ex.message
   exit(1)
 end
 

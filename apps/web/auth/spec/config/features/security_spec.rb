@@ -20,7 +20,7 @@ RSpec.describe 'Auth::Config::Features::Security' do
     let(:app) do
       create_rodauth_app(
         db: db,
-        features: [:base, :login, :logout, :lockout, :active_sessions, :login_password_requirements_base, :remember]
+        features: [:base, :login, :logout, :lockout, :active_sessions, :login_password_requirements_base, :remember],
       ) do
         # Configuration values from security.rb
         session_inactivity_deadline 86_400   # 24 hours
@@ -70,11 +70,11 @@ RSpec.describe 'Auth::Config::Features::Security' do
     describe 'configuration values' do
       let(:rodauth_instance) do
         # Create a mock request environment for instantiation
-        env = {
+        env     = {
           'REQUEST_METHOD' => 'GET',
           'PATH_INFO' => '/',
           'rack.input' => StringIO.new,
-          'rack.session' => {}
+          'rack.session' => {},
         }
         request = Roda::RodaRequest.new(app.new(env), env)
         app.rodauth.new(request.scope)
@@ -99,7 +99,7 @@ RSpec.describe 'Auth::Config::Features::Security' do
     let(:app) do
       create_rodauth_app(
         db: db,
-        features: [:base, :login, :logout]
+        features: [:base, :login, :logout],
       )
     end
 

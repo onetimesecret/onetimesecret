@@ -14,7 +14,7 @@ module Onetime
       REQUIRED_METADATA_FIELDS = ::Billing::Metadata::REQUIRED_FIELDS
 
       # Retry configuration for Stripe API calls
-      MAX_STRIPE_RETRIES = 3
+      MAX_STRIPE_RETRIES      = 3
       STRIPE_RETRY_BASE_DELAY = 2 # seconds
 
       # Execute Stripe API call with automatic retry on network/rate-limit errors
@@ -38,26 +38,26 @@ module Onetime
         retries = 0
         begin
           yield
-        rescue Stripe::APIConnectionError => e
+        rescue Stripe::APIConnectionError => ex
           retries += 1
           if retries <= max_retries
             delay = STRIPE_RETRY_BASE_DELAY * retries
-            OT.lw "Stripe API connection error: #{e.message}, retrying in #{delay}s (attempt #{retries}/#{max_retries})"
+            OT.lw "Stripe API connection error: #{ex.message}, retrying in #{delay}s (attempt #{retries}/#{max_retries})"
             sleep(delay)
             retry
           end
-          OT.le "Stripe API connection failed after #{max_retries} retries: #{e.message}"
+          OT.le "Stripe API connection failed after #{max_retries} retries: #{ex.message}"
           raise
-        rescue Stripe::RateLimitError => e
+        rescue Stripe::RateLimitError => ex
           retries += 1
           if retries <= max_retries
             # Exponential backoff for rate limits
             delay = STRIPE_RETRY_BASE_DELAY * (2**retries)
-            OT.lw "Stripe rate limit hit: #{e.message}, backing off #{delay}s (attempt #{retries}/#{max_retries})"
+            OT.lw "Stripe rate limit hit: #{ex.message}, backing off #{delay}s (attempt #{retries}/#{max_retries})"
             sleep(delay)
             retry
           end
-          OT.le "Stripe rate limit exceeded after #{max_retries} retries: #{e.message}"
+          OT.le "Stripe rate limit exceeded after #{max_retries} retries: #{ex.message}"
           raise
         end
       end
@@ -99,7 +99,7 @@ module Onetime
         end
 
         require 'stripe'
-        Stripe.api_key = stripe_key
+        Stripe.api_key     = stripe_key
         Stripe.api_version = OT.billing_config.stripe_api_version if OT.billing_config.stripe_api_version
         true
       rescue LoadError
@@ -108,13 +108,13 @@ module Onetime
       end
 
       def format_product_row(product)
-        tier = product.metadata[Billing::Metadata::FIELD_TIER] || 'N/A'
-        tenancy = product.metadata[Billing::Metadata::FIELD_TENANCY] || 'N/A'
-        region = product.metadata[Billing::Metadata::FIELD_REGION] || 'N/A'
-        display_order = product.metadata[Billing::Metadata::FIELD_DISPLAY_ORDER] || '100'
-        show_on_plans = product.metadata[Billing::Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'true'
+        tier                  = product.metadata[Billing::Metadata::FIELD_TIER] || 'N/A'
+        tenancy               = product.metadata[Billing::Metadata::FIELD_TENANCY] || 'N/A'
+        region                = product.metadata[Billing::Metadata::FIELD_REGION] || 'N/A'
+        display_order         = product.metadata[Billing::Metadata::FIELD_DISPLAY_ORDER] || '100'
+        show_on_plans         = product.metadata[Billing::Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'true'
         show_on_plans_display = %w[true 1 yes].include?(show_on_plans.downcase) ? 'yes' : 'no'
-        active = product.active ? 'yes' : 'no'
+        active                = product.active ? 'yes' : 'no'
 
         format('%-22s %-30s %-12s %-12s %-10s %-8s %-10s %s',
           product.id[0..21],
@@ -129,27 +129,27 @@ module Onetime
       end
 
       def format_price_row(price)
-        amount = format_amount(price.unit_amount, price.currency)
-        interval = price.recurring&.interval || 'one-time'
+        amount       = format_amount(price.unit_amount, price.currency)
+        interval     = price.recurring&.interval || 'one-time'
         price_active = price.active ? 'yes' : 'no'
 
         # Fetch product details if price.product is an ID (string)
         # Otherwise use expanded product object
         if price.product.is_a?(String)
           begin
-            product = Stripe::Product.retrieve(price.product)
-            product_name = product.name[0..24]
+            product        = Stripe::Product.retrieve(price.product)
+            product_name   = product.name[0..24]
             product_status = product.active ? 'active' : 'inactive'
-            plan_id = product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'N/A'
+            plan_id        = product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'N/A'
           rescue Stripe::StripeError
-            product_name = price.product[0..24]
+            product_name   = price.product[0..24]
             product_status = '?'
-            plan_id = 'N/A'
+            plan_id        = 'N/A'
           end
         else
-          product_name = price.product.name[0..24]
+          product_name   = price.product.name[0..24]
           product_status = price.product.active ? 'active' : 'inactive'
-          plan_id = price.product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'N/A'
+          plan_id        = price.product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'N/A'
         end
 
         # Format product name with status
@@ -166,7 +166,7 @@ module Onetime
       end
 
       def format_plan_row(plan)
-        amount = format_amount(plan.amount, plan.currency)
+        amount             = format_amount(plan.amount, plan.currency)
         capabilities_count = plan.capabilities.size
 
         format('%-20s %-18s %-10s %-10s %-12s %d',
@@ -224,11 +224,11 @@ module Onetime
         metadata[Billing::Metadata::FIELD_CAPABILITIES] = $stdin.gets.chomp
 
         print 'Display order (higher = earlier, default: 0): '
-        display_order = $stdin.gets.chomp
+        display_order                                    = $stdin.gets.chomp
         metadata[Billing::Metadata::FIELD_DISPLAY_ORDER] = display_order.empty? ? '0' : display_order
 
         print 'Show on plans page? (yes/no, default: yes): '
-        show_on_plans = $stdin.gets.chomp
+        show_on_plans                                         = $stdin.gets.chomp
         metadata[Billing::Metadata::FIELD_SHOW_ON_PLANS_PAGE] = Onetime::Utils.yes?(show_on_plans, default: true).to_s
 
         print 'Limit teams (-1 for unlimited): '
@@ -243,8 +243,8 @@ module Onetime
       end
 
       def format_subscription_row(subscription)
-        customer_id = subscription.customer[0..21]
-        status = subscription.status[0..11]
+        customer_id        = subscription.customer[0..21]
+        status             = subscription.status[0..11]
         current_period_end = Time.at(subscription.current_period_end).strftime('%Y-%m-%d')
 
         format('%-22s %-22s %-12s %-12s',
@@ -256,8 +256,8 @@ module Onetime
       end
 
       def format_customer_row(customer)
-        email = customer.email || 'N/A'
-        name = customer.name || 'N/A'
+        email   = customer.email || 'N/A'
+        name    = customer.name || 'N/A'
         created = Time.at(customer.created).strftime('%Y-%m-%d')
 
         format('%-22s %-30s %-25s %s',
@@ -270,9 +270,9 @@ module Onetime
 
       def format_invoice_row(invoice)
         customer_id = invoice.customer[0..21]
-        amount = format_amount(invoice.amount_due, invoice.currency)
-        status = invoice.status || 'N/A'
-        created = Time.at(invoice.created).strftime('%Y-%m-%d')
+        amount      = format_amount(invoice.amount_due, invoice.currency)
+        status      = invoice.status || 'N/A'
+        created     = Time.at(invoice.created).strftime('%Y-%m-%d')
 
         format('%-22s %-22s %-12s %-10s %s',
           invoice.id[0..21],
@@ -285,7 +285,7 @@ module Onetime
 
       def format_event_row(event)
         event_type = event.type[0..34]
-        created = Time.at(event.created).strftime('%Y-%m-%d %H:%M:%S')
+        created    = Time.at(event.created).strftime('%Y-%m-%d %H:%M:%S')
 
         format('%-22s %-35s %s',
           event.id[0..21],
@@ -308,7 +308,7 @@ module Onetime
       # @return [Array] Result of block and elapsed time in milliseconds
       def measure_api_time
         start_time = Time.now
-        result = yield
+        result     = yield
         elapsed_ms = ((Time.now - start_time) * 1000).to_i
         [result, elapsed_ms]
       end
@@ -322,10 +322,10 @@ module Onetime
         return [] unless File.exist?(catalog_path)
 
         catalog = YAML.load_file(catalog_path)
-        plans = catalog['plans'] || {}
+        plans   = catalog['plans'] || {}
         plans.keys
-      rescue StandardError => e
-        OT.le "Error loading catalog: #{e.message}"
+      rescue StandardError => ex
+        OT.le "Error loading catalog: #{ex.message}"
         []
       end
 
@@ -337,8 +337,8 @@ module Onetime
         product_groups = {}
 
         products.each do |product|
-          region = product.metadata[Billing::Metadata::FIELD_REGION] || 'global'
-          key = "#{product.name}|#{region}"
+          region                = product.metadata[Billing::Metadata::FIELD_REGION] || 'global'
+          key                   = "#{product.name}|#{region}"
           product_groups[key] ||= []
           product_groups[key] << product
         end
@@ -349,14 +349,14 @@ module Onetime
 
       # Format validation table header with box-drawing characters
       def print_validation_section_header(title)
-        puts "┌─ #{title} " + '─' * (67 - title.length - 4)
+        puts "┌─ #{title} " + ('─' * (67 - title.length - 4))
         puts
       end
 
       # Format validation table footer
       def print_validation_section_footer
         puts ' ' * 67
-        puts '└' + '─' * 67
+        puts '└' + ('─' * 67)
       end
 
       # Print a simple table row for validation output
@@ -366,8 +366,8 @@ module Onetime
       # @param plan_id [String] Plan ID
       # @param status [String] Validation status marker (✓ or ✗)
       def print_validation_row(name, id, plan_id, status)
-        name_display = name[0..19].ljust(20)
-        id_display = id[0..21].ljust(22)
+        name_display    = name[0..19].ljust(20)
+        id_display      = id[0..21].ljust(22)
         plan_id_display = plan_id[0..13].ljust(14)
 
         puts "│  #{status} #{name_display}  #{id_display}  #{plan_id_display}│"
@@ -384,20 +384,20 @@ module Onetime
           has_plan_id ? 0 : 1
         end
 
-        puts "│  #{group_name}" + ' ' * (59 - group_name.length) + '│'
+        puts "│  #{group_name}" + (' ' * (59 - group_name.length)) + '│'
 
         sorted.each do |product|
-          plan_id = product.metadata[Billing::Metadata::FIELD_PLAN_ID]
-          status = plan_id ? '✓' : '✗'
+          plan_id         = product.metadata[Billing::Metadata::FIELD_PLAN_ID]
+          status          = plan_id ? '✓' : '✗'
           plan_id_display = plan_id || '(no plan_id)'
-          validation = plan_id ? 'VALID' : 'INVALID'
+          validation      = plan_id ? 'VALID' : 'INVALID'
 
-          line = "    #{status} #{product.id.ljust(22)}  #{plan_id_display.ljust(14)} #{validation}"
+          line    = "    #{status} #{product.id.ljust(22)}  #{plan_id_display.ljust(14)} #{validation}"
           padding = 61 - line.length
-          puts "│#{line}" + ' ' * padding + '│'
+          puts "│#{line}" + (' ' * padding) + '│'
         end
 
-        puts '│' + ' ' * 61 + '│'
+        puts '│' + (' ' * 61) + '│'
       end
 
       # Print compact duplicate comparison with region and active status
@@ -413,9 +413,9 @@ module Onetime
 
         sorted.each do |product|
           plan_id = product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'n/a'
-          region = product.metadata[Billing::Metadata::FIELD_REGION] || 'n/a'
-          active = product.active ? 'YES' : 'NO'
-          status = '✓'
+          region  = product.metadata[Billing::Metadata::FIELD_REGION] || 'n/a'
+          active  = product.active ? 'YES' : 'NO'
+          status  = '✓'
 
           # Format: ✓ prod_id  plan_id  region  active
           puts "    #{status} #{product.id.ljust(20)}  #{plan_id.ljust(18)} #{region.ljust(10)} #{active.ljust(7)}"

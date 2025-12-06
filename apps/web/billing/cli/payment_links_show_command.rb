@@ -22,7 +22,7 @@ module Onetime
         # Retrieve the payment link
         link = Stripe::PaymentLink.retrieve(link_id)
 
-        puts "Payment Link Details:"
+        puts 'Payment Link Details:'
         puts "  ID: #{link.id}"
         puts "  URL: #{link.url}"
         puts "  Active: #{link.active ? 'yes' : 'no'}"
@@ -37,24 +37,24 @@ module Onetime
 
             # Get price ID - handle both string and object
             price_id = line_item.price.is_a?(String) ? line_item.price : line_item.price.id
-            price = Stripe::Price.retrieve(price_id)
+            price    = Stripe::Price.retrieve(price_id)
 
             # Get product ID - handle both string and object
             product_id = price.product.is_a?(String) ? price.product : price.product.id
-            product = Stripe::Product.retrieve(product_id)
+            product    = Stripe::Product.retrieve(product_id)
 
-            puts "Product:"
+            puts 'Product:'
             puts "  ID: #{product.id}"
             puts "  Name: #{product.name}"
             puts
 
-            puts "Price:"
+            puts 'Price:'
             puts "  ID: #{price.id}"
             puts "  Amount: #{format_amount(price.unit_amount, price.currency)}"
             puts "  Interval: #{price.recurring&.interval || 'one-time'}"
             puts
 
-            puts "Configuration:"
+            puts 'Configuration:'
             quantity_text = line_item.adjustable_quantity&.enabled ? '(adjustable)' : '(fixed)'
             puts "  Quantity: #{line_item.quantity} #{quantity_text}"
 
@@ -62,24 +62,23 @@ module Onetime
               puts "  After completion: #{link.after_completion.redirect.url}"
             end
           else
-            puts "Line Items:"
-            puts "  (none configured)"
+            puts 'Line Items:'
+            puts '  (none configured)'
           end
-        rescue Stripe::StripeError => e
-          puts "Line Items:"
-          puts "  Error retrieving: #{e.message}"
-          OT.logger.warn { "Stripe error fetching line items for #{link_id}: #{e.message}" }
-        rescue StandardError => e
-          puts "Line Items:"
-          puts "  Error retrieving: #{e.message}"
-          OT.logger.error { "Unexpected error fetching line items for #{link_id}: #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}" }
+        rescue Stripe::StripeError => ex
+          puts 'Line Items:'
+          puts "  Error retrieving: #{ex.message}"
+          OT.logger.warn { "Stripe error fetching line items for #{link_id}: #{ex.message}" }
+        rescue StandardError => ex
+          puts 'Line Items:'
+          puts "  Error retrieving: #{ex.message}"
+          OT.logger.error { "Unexpected error fetching line items for #{link_id}: #{ex.class}: #{ex.message}\n#{ex.backtrace.first(5).join("\n")}" }
         end
-
-      rescue Stripe::StripeError => e
-        puts "Error retrieving payment link: #{e.message}"
-      rescue StandardError => e
-        puts "Error: #{e.message}"
-        puts e.backtrace.first(5).join("\n") if OT.debug?
+      rescue Stripe::StripeError => ex
+        puts "Error retrieving payment link: #{ex.message}"
+      rescue StandardError => ex
+        puts "Error: #{ex.message}"
+        puts ex.backtrace.first(5).join("\n") if OT.debug?
       end
     end
   end

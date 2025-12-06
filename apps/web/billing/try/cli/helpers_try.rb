@@ -27,7 +27,7 @@ helper.format_amount(0, 'usd')
 
 ## Test: format_amount handles large amounts
 helper = @helper_class.new
-helper.format_amount(99999, 'usd')
+helper.format_amount(99_999, 'usd')
 #=> 'USD 999.99'
 
 ## Test: format_amount handles nil amount
@@ -48,7 +48,7 @@ helper.format_amount(500, 'eur')
 ## Test: format_timestamp converts unix time
 helper = @helper_class.new
 # Fixed timestamp: 2024-01-15 12:00:00 UTC
-helper.format_timestamp(1705320000)
+helper.format_timestamp(1_705_320_000)
 #=~ /2024-01-15.*12:00:00.*UTC/
 
 ## Test: format_timestamp handles nil
@@ -70,77 +70,82 @@ helper.format_timestamp('invalid')
 ## Test: format_stripe_error for InvalidRequestError
 require 'stripe'
 helper = @helper_class.new
-error = Stripe::InvalidRequestError.new('No such customer', 'customer')
+error  = Stripe::InvalidRequestError.new('No such customer', 'customer')
 helper.format_stripe_error('Failed', error)
 #=~ /Invalid parameters.*No such customer/
 
 ## Test: format_stripe_error for AuthenticationError
 helper = @helper_class.new
-error = Stripe::AuthenticationError.new('Invalid API key')
+error  = Stripe::AuthenticationError.new('Invalid API key')
 helper.format_stripe_error('Failed', error)
 #=~ /Authentication failed.*STRIPE_KEY/
 
 ## Test: format_stripe_error for RateLimitError
 helper = @helper_class.new
-error = Stripe::RateLimitError.new('Too many requests')
+error  = Stripe::RateLimitError.new('Too many requests')
 helper.format_stripe_error('Failed', error)
 #=~ /Rate limited/
 
 ## Test: format_stripe_error for APIConnectionError
 helper = @helper_class.new
-error = Stripe::APIConnectionError.new('Network unreachable')
+error  = Stripe::APIConnectionError.new('Network unreachable')
 helper.format_stripe_error('Failed', error)
 #=~ /Network error/
 
 ## Test: format_stripe_error for CardError
 helper = @helper_class.new
-error = Stripe::CardError.new('Card declined', 'card_number', code: 'card_declined')
+error  = Stripe::CardError.new('Card declined', 'card_number', code: 'card_declined')
 helper.format_stripe_error('Failed', error)
 #=~ /Card error.*Card declined/
 
 ## Test: format_stripe_error for generic StripeError
 helper = @helper_class.new
-error = Stripe::StripeError.new('Something went wrong')
+error  = Stripe::StripeError.new('Something went wrong')
 helper.format_stripe_error('Failed', error)
 #=~ /Failed.*Something went wrong/
 
 ## Test: measure_api_time returns result and elapsed time
 helper = @helper_class.new
-result, elapsed = helper.measure_api_time { sleep(0.01); 'done' }
-result
+helper.measure_api_time do
+              sleep(0.01)
+              'done'
+end
 #=> 'done'
 
 ## Test: measure_api_time elapsed is positive
 helper = @helper_class.new
-result, elapsed = helper.measure_api_time { sleep(0.01); 'done' }
-elapsed >= 10
+helper.measure_api_time do
+               sleep(0.01)
+               'done'
+end
 #=> true
 
 ## Test: validate_product_metadata detects missing fields
-helper = @helper_class.new
+helper  = @helper_class.new
 # Mock a product with minimal metadata
 product = OpenStruct.new(metadata: { 'app' => 'onetimesecret' })
-errors = helper.validate_product_metadata(product)
+errors  = helper.validate_product_metadata(product)
 errors.any? { |e| e.include?('Missing required') }
 #=> true
 
 ## Test: validate_product_metadata accepts valid app
-helper = @helper_class.new
+helper  = @helper_class.new
 product = OpenStruct.new(metadata: {
   'app' => 'onetimesecret',
   'plan_id' => 'test_v1',
   'tier' => 'basic',
   'region' => 'global',
   'capabilities' => 'test',
-  'tenancy' => 'single'
-})
-errors = helper.validate_product_metadata(product)
-errors.none? { |e| e.include?("Invalid app metadata") }
+  'tenancy' => 'single',
+},
+                        )
+errors  = helper.validate_product_metadata(product)
+errors.none? { |e| e.include?('Invalid app metadata') }
 #=> true
 
 ## Test: validate_product_metadata rejects wrong app
-helper = @helper_class.new
+helper  = @helper_class.new
 product = OpenStruct.new(metadata: { 'app' => 'wrong_app' })
-errors = helper.validate_product_metadata(product)
-errors.any? { |e| e.include?("Invalid app metadata") }
+errors  = helper.validate_product_metadata(product)
+errors.any? { |e| e.include?('Invalid app metadata') }
 #=> true

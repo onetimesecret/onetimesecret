@@ -5,10 +5,11 @@ name: CI
 # Main CI workflow that runs Ruby tests using RSpec and tryouts, plus TypeScript
 # tests using Vitest and validation steps (linting, type-checking).
 #
-# Architecture (Phase 2):
+# Architecture (Phase 3):
 # - Tier 1: Lint jobs + build-assets (parallel, fast feedback)
-# - Tier 2: Test jobs download pre-built assets (no duplicate builds)
-# - Tier 3: Container validation uses pre-built assets
+# - Tier 2: Unit tests (ruby-unit, test-typescript)
+# - Tier 3: Integration tests by auth mode (parallel: simple, full, disabled)
+# - Tier 4: Container validation uses pre-built assets
 #
 # The workflow is triggered by push events on branches starting with "fix/" or
 # "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
@@ -199,21 +200,15 @@ jobs:
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
   # ============================================================================
-  # TIER 2: TEST JOBS (~1-2 min)
-  # Run after lint jobs pass, download pre-built assets
+  # TIER 2: UNIT TESTS (~30-45s)
+  # Run after lint jobs pass, tests that don't depend on auth mode
   # ============================================================================
 
-  test-ruby:
-    name: Ruby Tests
-    timeout-minutes: 15
+  ruby-unit:
+    name: Ruby Unit Tests
+    timeout-minutes: 10
     runs-on: ubuntu-24.04
     needs: [ruby-lint, build-assets]
-
-    strategy:
-      fail-fast: true
-      matrix:
-        ruby: ['3.4']
-        continue-on-error: [false]
 
     services:
       redis:
@@ -253,7 +248,7 @@ jobs:
 
       - uses: ruby/setup-ruby@ab177d40ee5483edb974554986f56b33477e21d0
         with:
-          ruby-version: ${{ matrix.ruby }}
+          ruby-version: '3.4'
           bundler-cache: true
 
       - name: Setup tmate session
@@ -262,8 +257,7 @@ jobs:
         with:
           detached: true
 
-      - name: Install dependencies (bundler ${{ matrix.bundler }})
-        continue-on-error: ${{ matrix.continue-on-error }}
+      - name: Install dependencies
         run: |
           bundle config path vendor/bundle
           bundle install --jobs 4 --retry 3
@@ -284,80 +278,39 @@ jobs:
       - name: Generate random secrets for testing
         uses: ./.github/actions/generate-test-secrets
 
-      - name: Run test specs (simple mode)
+      - name: Run unit tryouts
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'simple'
         run: |
-          echo "Testing RSpec in simple authentication mode..."
-          mkdir -p tmp && bundle exec rspec \
-            --format progress \
-            --format json \
-            --out tmp/rspec_results_simple.json
+          echo "Running unit and system tryouts..."
+          bundle exec tryouts --agent try/unit try/system
 
-      - name: Run test specs (full mode)
+      - name: Run RSpec unit tests
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'full'
-          AUTH_DATABASE_URL: 'sqlite::memory:'
+          AUTHENTICATION_MODE: 'simple'
         run: |
-          echo "Testing RSpec in full authentication mode..."
+          echo "Running RSpec unit tests..."
+          mkdir -p tmp
           bundle exec rspec \
             --format progress \
-            --format json \
-            --out tmp/rspec_results_full.json
+            --format json --out tmp/rspec_unit_results.json \
+            spec/onetime spec/lib spec/api spec/cli
 
       - name: Generate job summary
         if: always()
         run: |
-          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "### Simple Mode" >> $GITHUB_STEP_SUMMARY
-          if [ -f tmp/rspec_results_simple.json ]; then
-            echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results_simple.json)" >> $GITHUB_STEP_SUMMARY
-            echo "Failures: $(jq '.summary.failure_count' tmp/rspec_results_simple.json)" >> $GITHUB_STEP_SUMMARY
+          echo "## Ruby Unit Test Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f tmp/rspec_unit_results.json ]; then
+            echo "### RSpec" >> $GITHUB_STEP_SUMMARY
+            echo "- Total: $(jq '.summary.example_count' tmp/rspec_unit_results.json)" >> $GITHUB_STEP_SUMMARY
+            echo "- Failures: $(jq '.summary.failure_count' tmp/rspec_unit_results.json)" >> $GITHUB_STEP_SUMMARY
           fi
-          echo "### Full Mode" >> $GITHUB_STEP_SUMMARY
-          if [ -f tmp/rspec_results_full.json ]; then
-            echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results_full.json)" >> $GITHUB_STEP_SUMMARY
-            echo "Failures: $(jq '.summary.failure_count' tmp/rspec_results_full.json)" >> $GITHUB_STEP_SUMMARY
-          fi
-
-      - name: Run tryouts (simple mode)
-        continue-on-error: ${{ matrix.continue-on-error }}
-        env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
-          RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'simple'
-        run: |
-          echo "Testing simple authentication mode..."
-          bundle exec tryouts -vf try/unit try/system
-          bundle exec tryouts -vf try/integration/authentication/simple_mode
-          bundle exec tryouts -vf try/integration/authentication/common
-
-      - name: Run tryouts (disabled mode)
-        continue-on-error: ${{ matrix.continue-on-error }}
-        env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
-          RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'disabled'
-        run: |
-          echo "Testing disabled authentication mode..."
-          bundle exec tryouts -vf try/integration/authentication/disabled_mode
-          bundle exec tryouts -vf try/integration/authentication/common
-
-      - name: Run tryouts (full mode)
-        continue-on-error: ${{ matrix.continue-on-error }}
-        env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
-          RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'full'
-          DATABASE_URL: 'sqlite::memory:'
-        run: |
-          echo "Testing full authentication mode..."
-          bundle exec tryouts -vf try/integration/authentication/full_mode
-          bundle exec tryouts -vf try/integration/authentication/common
+          echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
+          echo "- Unit and system tests completed" >> $GITHUB_STEP_SUMMARY
 
   test-typescript:
     name: TypeScript Tests
@@ -409,7 +362,284 @@ jobs:
           echo "Unit tests completed." >> $GITHUB_STEP_SUMMARY
 
   # ============================================================================
-  # TIER 3: CONTAINER VALIDATION (~2-3 min)
+  # TIER 3: INTEGRATION TESTS (~45-90s each, run in parallel)
+  # Auth-mode-specific tests, each with dedicated Redis service
+  # ============================================================================
+
+  ruby-integration-simple:
+    name: Ruby Integration (Simple Mode)
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+    needs: [ruby-unit]
+
+    services:
+      redis:
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+          --memory=4g
+        ports:
+          - 2121:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: public/web/dist/
+
+      - name: Verify downloaded assets
+        run: |
+          if [ ! -d "public/web/dist" ] || [ -z "$(ls -A public/web/dist)" ]; then
+            echo "❌ Frontend assets not found or empty!"
+            exit 1
+          fi
+          echo "✅ Frontend assets verified"
+
+      - name: Enable memory overcommit for Redis
+        run: sudo sysctl -w vm.overcommit_memory=1
+
+      - uses: ruby/setup-ruby@ab177d40ee5483edb974554986f56b33477e21d0
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: |
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      - name: Setup test configuration
+        run: |
+          for file in etc/defaults/*.defaults.*; do
+            if [ -f "$file" ]; then
+              target="etc/$(basename "$file" | sed 's/\.defaults//')"
+              [ ! -f "$target" ] && cp "$file" "$target"
+            fi
+          done
+
+      - name: Generate random secrets for testing
+        uses: ./.github/actions/generate-test-secrets
+
+      - name: Run RSpec integration tests (simple mode)
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'simple'
+        run: |
+          echo "Running RSpec integration tests in simple mode..."
+          mkdir -p tmp
+          bundle exec rspec \
+            --format progress \
+            --format json --out tmp/rspec_simple_results.json \
+            spec/integration
+
+      - name: Run tryouts (simple mode)
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'simple'
+        run: |
+          echo "Running tryouts for simple authentication mode..."
+          bundle exec tryouts --agent try/integration/authentication/simple_mode
+          bundle exec tryouts --agent try/integration/authentication/common
+
+      - name: Generate job summary
+        if: always()
+        run: |
+          echo "## Simple Mode Integration Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f tmp/rspec_simple_results.json ]; then
+            echo "### RSpec" >> $GITHUB_STEP_SUMMARY
+            echo "- Total: $(jq '.summary.example_count' tmp/rspec_simple_results.json)" >> $GITHUB_STEP_SUMMARY
+            echo "- Failures: $(jq '.summary.failure_count' tmp/rspec_simple_results.json)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
+          echo "- Simple mode + common tests completed" >> $GITHUB_STEP_SUMMARY
+
+  ruby-integration-full:
+    name: Ruby Integration (Full Mode)
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+    needs: [ruby-unit]
+
+    services:
+      redis:
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+          --memory=4g
+        ports:
+          - 2121:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: public/web/dist/
+
+      - name: Verify downloaded assets
+        run: |
+          if [ ! -d "public/web/dist" ] || [ -z "$(ls -A public/web/dist)" ]; then
+            echo "❌ Frontend assets not found or empty!"
+            exit 1
+          fi
+          echo "✅ Frontend assets verified"
+
+      - name: Enable memory overcommit for Redis
+        run: sudo sysctl -w vm.overcommit_memory=1
+
+      - uses: ruby/setup-ruby@ab177d40ee5483edb974554986f56b33477e21d0
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: |
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      - name: Setup test configuration
+        run: |
+          for file in etc/defaults/*.defaults.*; do
+            if [ -f "$file" ]; then
+              target="etc/$(basename "$file" | sed 's/\.defaults//')"
+              [ ! -f "$target" ] && cp "$file" "$target"
+            fi
+          done
+
+      - name: Generate random secrets for testing
+        uses: ./.github/actions/generate-test-secrets
+
+      - name: Run RSpec integration tests (full mode)
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'full'
+          AUTH_DATABASE_URL: 'sqlite::memory:'
+        run: |
+          echo "Running RSpec integration tests in full mode..."
+          mkdir -p tmp
+          bundle exec rspec \
+            --format progress \
+            --format json --out tmp/rspec_full_results.json \
+            spec/integration
+
+      - name: Run tryouts (full mode)
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'full'
+          AUTH_DATABASE_URL: 'sqlite::memory:'
+        run: |
+          echo "Running tryouts for full authentication mode..."
+          bundle exec tryouts --agent try/integration/authentication/full_mode
+          bundle exec tryouts --agent try/integration/authentication/common
+
+      - name: Generate job summary
+        if: always()
+        run: |
+          echo "## Full Mode Integration Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f tmp/rspec_full_results.json ]; then
+            echo "### RSpec" >> $GITHUB_STEP_SUMMARY
+            echo "- Total: $(jq '.summary.example_count' tmp/rspec_full_results.json)" >> $GITHUB_STEP_SUMMARY
+            echo "- Failures: $(jq '.summary.failure_count' tmp/rspec_full_results.json)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
+          echo "- Full mode + common tests completed" >> $GITHUB_STEP_SUMMARY
+
+  ruby-integration-disabled:
+    name: Ruby Integration (Disabled Mode)
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
+    needs: [ruby-unit]
+
+    services:
+      redis:
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+          --memory=4g
+        ports:
+          - 2121:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: public/web/dist/
+
+      - name: Verify downloaded assets
+        run: |
+          if [ ! -d "public/web/dist" ] || [ -z "$(ls -A public/web/dist)" ]; then
+            echo "❌ Frontend assets not found or empty!"
+            exit 1
+          fi
+          echo "✅ Frontend assets verified"
+
+      - name: Enable memory overcommit for Redis
+        run: sudo sysctl -w vm.overcommit_memory=1
+
+      - uses: ruby/setup-ruby@ab177d40ee5483edb974554986f56b33477e21d0
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: |
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      - name: Setup test configuration
+        run: |
+          for file in etc/defaults/*.defaults.*; do
+            if [ -f "$file" ]; then
+              target="etc/$(basename "$file" | sed 's/\.defaults//')"
+              [ ! -f "$target" ] && cp "$file" "$target"
+            fi
+          done
+
+      - name: Generate random secrets for testing
+        uses: ./.github/actions/generate-test-secrets
+
+      - name: Run tryouts (disabled mode)
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'disabled'
+        run: |
+          echo "Running tryouts for disabled authentication mode..."
+          bundle exec tryouts --agent try/integration/authentication/disabled_mode
+          bundle exec tryouts --agent try/integration/authentication/common
+
+      - name: Generate job summary
+        if: always()
+        run: |
+          echo "## Disabled Mode Integration Results" >> $GITHUB_STEP_SUMMARY
+          echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
+          echo "- Disabled mode + common tests completed" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # TIER 4: CONTAINER VALIDATION (~2-3 min)
   # Run after all tests pass, uses pre-built assets
   # ============================================================================
 
@@ -417,7 +647,7 @@ jobs:
     name: Container Validation
     timeout-minutes: 10
     runs-on: ubuntu-24.04
-    needs: [test-ruby, test-typescript]
+    needs: [ruby-integration-simple, ruby-integration-full, ruby-integration-disabled, test-typescript]
 
     services:
       redis:

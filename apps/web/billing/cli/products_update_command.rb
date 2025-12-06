@@ -42,12 +42,12 @@ module Onetime
 
         product = Stripe::Product.retrieve(product_id)
         puts "Current product: #{product.name}"
-        puts "Current metadata:"
+        puts 'Current metadata:'
         product.metadata.each { |k, v| puts "  #{k}: #{v}" }
         puts
 
         # Extract marketing feature operations from options
-        add_feature = options.delete(:add_marketing_feature)
+        add_feature    = options.delete(:add_marketing_feature)
         remove_feature = options.delete(:remove_marketing_feature)
 
         metadata = if interactive
@@ -60,28 +60,28 @@ module Onetime
           updated_meta = current_meta.dup
 
           # Ensure required fields exist, preserving current values
-          updated_meta['app'] = 'onetimesecret'
-          updated_meta['created'] ||= Time.now.utc.iso8601
-          updated_meta['display_order'] ||= '100'
+          updated_meta['app']                  = 'onetimesecret'
+          updated_meta['created']            ||= Time.now.utc.iso8601
+          updated_meta['display_order']      ||= '100'
           updated_meta['show_on_plans_page'] ||= 'true'
 
           # Override ONLY with explicitly provided options (don't blank out existing values)
-          updated_meta['plan_id'] = options[:plan_id] if options[:plan_id]
-          updated_meta['tier'] = options[:tier] if options[:tier]
-          updated_meta['region'] = options[:region] if options[:region]
-          updated_meta['tenancy'] = options[:tenancy] if options[:tenancy]
-          updated_meta['capabilities'] = options[:capabilities] if options[:capabilities]
-          updated_meta['display_order'] = options[:display_order] if options[:display_order]
-          updated_meta['show_on_plans_page'] = options[:show_on_plans_page].to_s if options.key?(:show_on_plans_page)
-          updated_meta['limit_teams'] = options[:limit_teams] if options[:limit_teams]
+          updated_meta['plan_id']                = options[:plan_id] if options[:plan_id]
+          updated_meta['tier']                   = options[:tier] if options[:tier]
+          updated_meta['region']                 = options[:region] if options[:region]
+          updated_meta['tenancy']                = options[:tenancy] if options[:tenancy]
+          updated_meta['capabilities']           = options[:capabilities] if options[:capabilities]
+          updated_meta['display_order']          = options[:display_order] if options[:display_order]
+          updated_meta['show_on_plans_page']     = options[:show_on_plans_page].to_s if options.key?(:show_on_plans_page)
+          updated_meta['limit_teams']            = options[:limit_teams] if options[:limit_teams]
           updated_meta['limit_members_per_team'] = options[:limit_members_per_team] if options[:limit_members_per_team]
-          updated_meta['limit_custom_domains'] = options[:limit_custom_domains] if options[:limit_custom_domains]
-          updated_meta['limit_secret_lifetime'] = options[:limit_secret_lifetime] if options[:limit_secret_lifetime]
+          updated_meta['limit_custom_domains']   = options[:limit_custom_domains] if options[:limit_custom_domains]
+          updated_meta['limit_secret_lifetime']  = options[:limit_secret_lifetime] if options[:limit_secret_lifetime]
 
           updated_meta
         end
 
-        puts "Updating metadata:"
+        puts 'Updating metadata:'
         metadata.each { |k, v| puts "  #{k}: #{v}" }
 
         print "\nProceed? (y/n): "
@@ -112,15 +112,15 @@ module Onetime
         updated = Stripe::Product.update(product_id, update_params)
 
         puts "\nProduct updated successfully"
-        puts "Updated metadata:"
+        puts 'Updated metadata:'
         updated.metadata.each { |k, v| puts "  #{k}: #{v}" }
 
         if updated.marketing_features && updated.marketing_features.any?
           puts "\nMarketing features:"
           updated.marketing_features.each { |f| puts "  - #{f['name']}" }
         end
-      rescue Stripe::StripeError => e
-        puts "Error updating product: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error updating product: #{ex.message}"
       end
     end
   end

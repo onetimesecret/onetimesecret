@@ -9,7 +9,7 @@ require_relative '../../cli/products_create_command'
 require_relative '../../cli/products_show_command'
 require_relative '../../cli/products_update_command'
 
-RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit, :stripe_mock do
+RSpec.describe 'Billing Products CLI Commands', :billing_cli, :stripe_mock, :unit do
   let(:stripe_client) { Billing::StripeClient.new }
 
   describe Onetime::CLI::BillingProductsCommand do
@@ -53,7 +53,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit, :stripe_moc
       it 'handles empty results gracefully' do
         # Mock empty product list
         allow(Stripe::Product).to receive(:list).and_return(
-          double(data: [])
+          double(data: []),
         )
 
         output = capture_stdout do
@@ -240,6 +240,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit, :stripe_moc
 
   describe Onetime::CLI::BillingProductsShowCommand do
     subject(:command) { described_class.new }
+
     let(:product_id) { 'prod_test123' }
 
     describe '#call (show product)' do
@@ -258,8 +259,9 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit, :stripe_moc
         # Create product with description
         product = stripe_client.create(Stripe::Product, {
           name: 'Product with Description',
-          description: 'Test product description'
-        })
+          description: 'Test product description',
+        }
+        )
 
         output = capture_stdout do
           command.call(product_id: product.id)
@@ -278,9 +280,10 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit, :stripe_moc
           metadata: {
             app: 'onetimesecret',
             tier: 'pro',
-            region: 'global'
-          }
-        })
+            region: 'global',
+          },
+        }
+        )
 
         output = capture_stdout do
           command.call(product_id: product.id)
@@ -343,6 +346,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit, :stripe_moc
 
   describe Onetime::CLI::BillingProductsUpdateCommand do
     subject(:command) { described_class.new }
+
     let(:product_id) { 'prod_test123' }
 
     describe '#call (update product)' do
@@ -430,7 +434,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit, :stripe_moc
         expect(output).to include('capabilities: api,webhooks')
       end
 
-      it 'preserves existing metadata not being updated', :integration, :stripe_sandbox_api, :code_smell do
+      it 'preserves existing metadata not being updated', :code_smell, :integration, :stripe_sandbox_api do
         # This test requires verifying state preservation across API calls
         # stripe-mock doesn't maintain state between requests
         skip 'Requires integration test - cannot verify state preservation with stripe-mock'
@@ -499,7 +503,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit, :stripe_moc
   # Helper to capture stdout
   def capture_stdout
     old_stdout = $stdout
-    $stdout = StringIO.new
+    $stdout    = StringIO.new
     yield
     $stdout.string
   ensure

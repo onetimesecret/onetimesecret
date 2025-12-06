@@ -53,23 +53,27 @@ module ColonelAPI
               ciphertext_length: secret.ciphertext.to_s.length,
             },
             details: {
-              metadata: metadata ? {
-                metadata_id: metadata.objid,
-                shortid: metadata.shortid,
-                state: metadata.state,
-                secret_ttl: metadata.secret_ttl,
-                recipients: metadata.recipients,
-                has_passphrase: metadata.has_passphrase?,
-                share_domain: metadata.share_domain,
-                created: metadata.created,
-                secret_expired: metadata.secret_expired?,
-              } : nil,
-              owner: owner ? {
-                user_id: owner.objid,
-                email: owner.obscure_email,
-                role: owner.role,
-                verified: owner.verified?,
-              } : nil,
+              metadata: if metadata
+  {
+    metadata_id: metadata.objid,
+    shortid: metadata.shortid,
+    state: metadata.state,
+    secret_ttl: metadata.secret_ttl,
+    recipients: metadata.recipients,
+    has_passphrase: metadata.has_passphrase?,
+    share_domain: metadata.share_domain,
+    created: metadata.created,
+    secret_expired: metadata.secret_expired?,
+  }
+end,
+              owner: if owner
+  {
+    user_id: owner.objid,
+    email: owner.obscure_email,
+    role: owner.role,
+    verified: owner.verified?,
+  }
+end,
             },
           }
         end

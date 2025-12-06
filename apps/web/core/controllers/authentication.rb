@@ -30,7 +30,11 @@ module Core
 
         # Capture session info for logging before clearing
         customer_id = session['external_id']
-        session_id = session.id&.public_id rescue nil
+        session_id  = begin
+                       session.id&.public_id
+        rescue StandardError
+                       nil
+        end
 
         auth_logger.debug 'Session destruction initiated', {
           customer_id: customer_id,

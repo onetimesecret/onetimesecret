@@ -11,7 +11,8 @@ require 'fileutils'
 Onetime::BillingConfig.path = '/nonexistent/billing.yaml'
 
 # Clear the singleton instance to force fresh load with new path
-Onetime::BillingConfig.instance_variable_set(:@instance, nil)
+# Ruby's Singleton module uses @singleton__instance__ internally
+Onetime::BillingConfig.instance_variable_set(:@singleton__instance__, nil)
 
 ## Can load BillingConfig when file doesn't exist
 config = Onetime::BillingConfig.instance
@@ -40,4 +41,4 @@ config.payment_links
 
 # Teardown: Restore original path and clear singleton
 Onetime::BillingConfig.path = @original_path
-Onetime::BillingConfig.instance_variable_set(:@instance, nil)
+Onetime::BillingConfig.instance_variable_set(:@singleton__instance__, nil)

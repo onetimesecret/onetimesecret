@@ -65,7 +65,7 @@ module Onetime
 
           # Map by plan_id from metadata
           products.each do |product|
-            plan_id = product.metadata['plan_id']
+            plan_id               = product.metadata['plan_id']
             products_map[plan_id] = product.id if plan_id
           end
 
@@ -100,29 +100,24 @@ module Onetime
                               elsif lookup && products_map[plan_id]
                                 # Lookup from Stripe by plan_id metadata
                                 products_map[plan_id]
-                              else
-                                # Placeholder
-                                nil
                               end
 
           if actual_product_id
             puts "# Product ID: #{actual_product_id}"
-          else
-            if lookup
-              puts "# ⚠️  WARNING: No product found with plan_id='#{plan_id}' in Stripe"
-              puts '# NOTE: Create product first or use --product-id option'
+          elsif lookup
+            puts "# ⚠️  WARNING: No product found with plan_id='#{plan_id}' in Stripe"
+            puts '# NOTE: Create product first or use --product-id option'
             else
               puts '# NOTE: Replace PRODUCT_ID below with the actual Stripe product ID'
-              puts "#       Or use --lookup to auto-fetch from Stripe by plan_id metadata"
-            end
+              puts '#       Or use --lookup to auto-fetch from Stripe by plan_id metadata'
           end
 
           puts
 
           plan_data['prices'].each do |price|
-            amount = price['amount']
-            currency = price['currency'] || 'usd'
-            interval = price['interval']
+            amount         = price['amount']
+            currency       = price['currency'] || 'usd'
+            interval       = price['interval']
             interval_count = price['interval_count'] || 1
 
             # Format amount for display
@@ -137,7 +132,7 @@ module Onetime
             cmd_parts << "--interval=#{interval}"
             cmd_parts << "--interval-count=#{interval_count}" if interval_count != 1
 
-            puts "# #{currency.upcase} $#{amount_display} / #{interval_count > 1 ? "#{interval_count} " : ''}#{interval}#{interval_count > 1 ? 's' : ''}"
+            puts "# #{currency.upcase} $#{amount_display} / #{"#{interval_count} " if interval_count > 1}#{interval}#{'s' if interval_count > 1}"
             puts cmd_parts.join(' ')
             puts
           end

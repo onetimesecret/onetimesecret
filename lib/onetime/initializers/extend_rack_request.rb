@@ -76,7 +76,7 @@ class Rack::Request
     result = strategy_result
     return nil unless result
 
-    context = result.metadata[:organization_context]
+    context       = result.metadata[:organization_context]
     @organization = context[:organization] if context
   end
 
@@ -97,7 +97,7 @@ class Rack::Request
     return nil unless result
 
     context = result.metadata[:organization_context]
-    @team = context[:team] if context
+    @team   = context[:team] if context
   end
 
   # Get current team ID

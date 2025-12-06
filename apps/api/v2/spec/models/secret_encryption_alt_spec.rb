@@ -6,22 +6,22 @@ require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 
 RSpec.describe Onetime::Secret, allow_redis: false do
   let(:customer_id) { 'test-customer-123' }
+  let(:secret_pair) { create_stubbed_onetime_secret_pair(custid: customer_id, token: token) }
+  let(:metadata) { secret_pair[0] }
+  let(:secret) { secret_pair[1] }
   let(:token) { nil }
-  let(:secret_value) { "This is a test secret" }
-  let(:passphrase) { "secure-passphrase" }
+  let(:secret_value) { 'This is a test secret' }
+  let(:passphrase) { 'secure-passphrase' }
 
   before do
     allow(OT).to receive(:conf).and_return({
       experimental: {
         allow_nil_global_secret: false,
-        rotated_secrets: []
-      }
-    })
+        rotated_secrets: [],
+      },
+    },
+                                          )
   end
-
-  let(:secret_pair) { create_stubbed_onetime_secret_pair(custid: customer_id, token: token) }
-  let(:metadata) { secret_pair[0] }
-  let(:secret) { secret_pair[1] }
 
   describe '.spawn_pair' do
     it 'creates a valid secret and metadata pair' do
@@ -58,7 +58,7 @@ RSpec.describe Onetime::Secret, allow_redis: false do
     # unpredictable length variations while still enforcing size limits.
     it 'applies fuzzy truncation for information leakage prevention' do
       size_limit = 1000
-      long_value = "a" * 10_000
+      long_value = 'a' * 10_000
 
       secret.encrypt_value(long_value, size: size_limit)
       decrypted_length = secret.decrypted_value.length
@@ -75,7 +75,7 @@ RSpec.describe Onetime::Secret, allow_redis: false do
     end
 
     it 'handles special characters' do
-      special_value = "Special #$%^&*() characters and emojis 😀🔒"
+      special_value = "Special \#$%^&*() characters and emojis 😀🔒"
       secret.encrypt_value(special_value)
 
       expect(secret.can_decrypt?).to be true
@@ -120,13 +120,13 @@ RSpec.describe Onetime::Secret, allow_redis: false do
       passphrase_secret.update_passphrase(passphrase)
 
       expect(passphrase_secret.passphrase?(passphrase)).to be true
-      expect(passphrase_secret.passphrase?("wrong-passphrase")).to be false
+      expect(passphrase_secret.passphrase?('wrong-passphrase')).to be false
     end
 
     it 'uses BCrypt for secure hashing' do
       passphrase_secret.update_passphrase(passphrase)
 
-      expect(passphrase_secret.passphrase).to start_with("$2a$") # BCrypt hash format
+      expect(passphrase_secret.passphrase).to start_with('$2a$') # BCrypt hash format
     end
   end
 

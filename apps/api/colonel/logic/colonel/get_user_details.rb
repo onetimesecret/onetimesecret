@@ -25,12 +25,12 @@ module ColonelAPI
         def process
           # Get all secrets owned by this user
           all_secret_keys = Onetime::Secret.new.dbclient.keys('secret*:object')
-          @user_secrets = all_secret_keys.select do |key|
-            objid = key.split(':')[1]
+          @user_secrets   = all_secret_keys.select do |key|
+            objid  = key.split(':')[1]
             secret = Onetime::Secret.load(objid)
             secret&.owner_id == user.objid
           end.map do |key|
-            objid = key.split(':')[1]
+            objid  = key.split(':')[1]
             secret = Onetime::Secret.load(objid)
             {
               secret_id: secret.objid,
@@ -43,12 +43,12 @@ module ColonelAPI
 
           # Get all metadata owned by this user
           all_metadata_keys = Onetime::Metadata.new.dbclient.keys('metadata*:object')
-          @user_metadata = all_metadata_keys.select do |key|
-            objid = key.split(':')[1]
+          @user_metadata    = all_metadata_keys.select do |key|
+            objid    = key.split(':')[1]
             metadata = Onetime::Metadata.load(objid)
             metadata&.owner_id == user.objid
           end.map do |key|
-            objid = key.split(':')[1]
+            objid    = key.split(':')[1]
             metadata = Onetime::Metadata.load(objid)
             {
               metadata_id: metadata.objid,

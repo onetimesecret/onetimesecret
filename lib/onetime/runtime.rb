@@ -34,11 +34,11 @@ module Onetime
     require_relative 'runtime/email'
 
     # Initialize domain state with defaults
-    @security = Security.default
+    @security             = Security.default
     @internationalization = Internationalization.default
-    @infrastructure = Infrastructure.default
-    @features = Features.default
-    @email = Email.default
+    @infrastructure       = Infrastructure.default
+    @features             = Features.default
+    @email                = Email.default
 
     class << self
       # Domain state accessors (read-only)
@@ -85,23 +85,23 @@ module Onetime
       #   Runtime.update_security(global_secret: ENV['SECRET'])
       #
       def update_security(**changes)
-        self.security = Security.new(**@security.to_h.merge(changes))
+        self.security = Security.new(**@security.to_h, **changes)
       end
 
       def update_internationalization(**changes)
-        self.internationalization = Internationalization.new(**@internationalization.to_h.merge(changes))
+        self.internationalization = Internationalization.new(**@internationalization.to_h, **changes)
       end
 
       def update_infrastructure(**changes)
-        self.infrastructure = Infrastructure.new(**@infrastructure.to_h.merge(changes))
+        self.infrastructure = Infrastructure.new(**@infrastructure.to_h, **changes)
       end
 
       def update_features(**changes)
-        self.features = Features.new(**@features.to_h.merge(changes))
+        self.features = Features.new(**@features.to_h, **changes)
       end
 
       def update_email(**changes)
-        self.email = Email.new(**@email.to_h.merge(changes))
+        self.email = Email.new(**@email.to_h, **changes)
       end
 
       # Reset all runtime state to defaults (primarily for testing)
@@ -109,11 +109,11 @@ module Onetime
       # @return [void]
       #
       def reset!
-        @security = Security.default
+        @security             = Security.default
         @internationalization = Internationalization.default
-        @infrastructure = Infrastructure.default
-        @features = Features.default
-        @email = Email.default
+        @infrastructure       = Infrastructure.default
+        @features             = Features.default
+        @email                = Email.default
         nil
       end
 

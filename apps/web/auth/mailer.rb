@@ -115,7 +115,7 @@ module Auth
             fallback_strategy: 'remove_authentication'
 
           # Retry without authentication
-          settings_no_auth = settings.reject { |k, _v| [:user_name, :password, :authentication].include?(k) }
+          settings_no_auth = settings.except(:user_name, :password, :authentication)
           mail.delivery_method :smtp, settings_no_auth
           mail.deliver!
 
@@ -277,13 +277,10 @@ module Auth
         # Convert Mail::Message to hash format if needed
         email_hash = normalize_email(email)
 
-        case ENV['EMAIL_DELIVERY_MODE']&.downcase
-        when 'async'
-          # Future: implement async delivery
-          @delivery_strategy.deliver(email_hash)
-        when 'test'
+        if ENV['EMAIL_DELIVERY_MODE']&.downcase == 'test'
           Delivery::Logger.new.deliver(email_hash)
         else
+          # Async mode planned for future implementation
           @delivery_strategy.deliver(email_hash)
         end
       end
@@ -304,10 +301,10 @@ module Auth
           # It's already a hash, ensure basic structure
           email_hash = email.is_a?(Hash) ? email : {}
           {
-            to: email_hash[:to]&.to_s || '',
+            to: email_hash[:to].to_s,
             from: email_hash[:from]&.to_s || @from_address,
-            subject: email_hash[:subject]&.to_s || '',
-            body: email_hash[:body]&.to_s || '',
+            subject: email_hash[:subject].to_s,
+            body: email_hash[:body].to_s,
           }
         end
       end
@@ -342,20 +339,17 @@ module Auth
           aws_credentials: ENV.fetch('AWS_ACCESS_KEY_ID', nil) && ENV.fetch('AWS_SECRET_ACCESS_KEY', nil) ? 'configured' : nil
 
         # Auto-detect based on available configuration
-        if mode.nil?
-          if ENV['RACK_ENV'] == 'test'
-            'logger'
-          elsif ENV['SENDGRID_API_KEY']
-            'sendgrid'
-          elsif ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY']
-            'ses'
-          elsif ENV['SMTP_HOST']
-            'smtp'
-          else
-            'logger'
-          end
+        return mode if mode
+
+        # Test environment and default fallback both use logger
+        if ENV['RACK_ENV'] != 'test' && ENV['SENDGRID_API_KEY']
+          'sendgrid'
+        elsif ENV['RACK_ENV'] != 'test' && ENV.fetch('AWS_ACCESS_KEY_ID', nil) && ENV['AWS_SECRET_ACCESS_KEY']
+          'ses'
+        elsif ENV['RACK_ENV'] != 'test' && ENV['SMTP_HOST']
+          'smtp'
         else
-          mode
+          'logger'
         end
       end
 

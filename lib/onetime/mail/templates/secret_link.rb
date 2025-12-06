@@ -44,7 +44,7 @@ module Onetime
         # Computed template variables
         def display_domain
           scheme = site_ssl? ? 'https://' : 'http://'
-          host = data[:share_domain].to_s.empty? ? site_host : data[:share_domain]
+          host   = data[:share_domain].to_s.empty? ? site_host : data[:share_domain]
           "#{scheme}#{host}"
         end
 
@@ -68,11 +68,13 @@ module Onetime
 
         def site_ssl?
           return true unless defined?(OT) && OT.respond_to?(:conf)
+
           OT.conf.dig('site', 'ssl') != false
         end
 
         def site_host
           return 'onetimesecret.com' unless defined?(OT) && OT.respond_to?(:conf)
+
           OT.conf.dig('site', 'host') || 'onetimesecret.com'
         end
 
@@ -88,7 +90,7 @@ module Onetime
             uri_path: uri_path,
             custid: custid,
             signature_link: signature_link,
-            baseuri: baseuri
+            baseuri: baseuri,
           )
           TemplateContext.new(computed_data, locale).get_binding
         end

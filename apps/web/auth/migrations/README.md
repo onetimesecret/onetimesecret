@@ -170,6 +170,36 @@ SELECT * FROM get_account_security_summary(1);
 SELECT * FROM account_security_overview_enhanced WHERE id = 1;
 ```
 
+## Account ID Columns
+
+Tables with id as FK (1:1 relationship, uses primary_key: true):
+
+- account_password_hashes (base.erb)
+- account_otp_keys
+- account_email_auth_keys
+- account_lockouts (login_failures)
+- account_login_failures (lockout.erb)
+- account_password_reset_keys
+- account_remember_keys
+- account_single_session_keys
+- account_sms_codes_keys
+- account_verification_keys
+- account_login_change_keys
+- account_webauthn_user_ids
+- account_expiration_times
+- account_password_change_times
+- account_otp_unlock_keys
+- account_recovery_codes
+
+Tables with account_id as FK (1:many relationship):
+
+- account_active_session_keys
+- account_authentication_audit_logs
+- account_previous_password_hashes
+- account_jwt_refresh_keys
+- account_webauthn_keys
+
+
 ## Rollback
 
 ```bash

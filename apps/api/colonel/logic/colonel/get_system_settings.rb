@@ -16,7 +16,7 @@ module ColonelAPI
 
         def process
           @config_sections = {}
-          site_config = Onetime.conf['site'] || {}
+          site_config      = Onetime.conf['site'] || {}
 
           # Interface config (UI and API settings)
           @config_sections[:interface] = site_config['interface'] || {}
@@ -36,8 +36,8 @@ module ColonelAPI
 
           # Diagnostics (top-level 'diagnostics' key)
           # Include full diagnostics config, masking sensitive data
-          diagnostics_config = Onetime.conf['diagnostics'] || {}
-          @config_sections[:diagnostics] = deep_copy(diagnostics_config)
+          diagnostics_config                          = Onetime.conf['diagnostics'] || {}
+          @config_sections[:diagnostics]              = deep_copy(diagnostics_config)
           # Add redis URI with masked password for convenience
           @config_sections[:diagnostics]['redis_uri'] = Onetime.conf['redis']&.[]('uri')&.gsub(/:[^:@]*@/, ':****@')
 
@@ -46,10 +46,10 @@ module ColonelAPI
 
           # Billing config (if enabled) - mask sensitive keys
           if Onetime.conf.key?('billing') && Onetime.conf['billing']&.[]('enabled')
-            billing = deep_copy(Onetime.conf['billing'] || {})
-            billing['stripe_key'] = mask_key(billing['stripe_key'])
+            billing                           = deep_copy(Onetime.conf['billing'] || {})
+            billing['stripe_key']             = mask_key(billing['stripe_key'])
             billing['webhook_signing_secret'] = '****' if billing['webhook_signing_secret']
-            @config_sections[:billing] = billing
+            @config_sections[:billing]        = billing
           end
 
           # Features config (top-level 'features' key)
@@ -64,7 +64,7 @@ module ColonelAPI
         def deep_copy(obj)
           case obj
           when Hash
-            obj.each_with_object({}) { |(k, v), h| h[k] = deep_copy(v) }
+            obj.transform_values { |v| deep_copy(v) }
           when Array
             obj.map { |v| deep_copy(v) }
           else
@@ -77,7 +77,7 @@ module ColonelAPI
           return nil if key.nil?
           return '****' if key.length <= 4
 
-          '*' * (key.length - 4) + key[-4..]
+          ('*' * (key.length - 4)) + key[-4..]
         end
 
         def success_data

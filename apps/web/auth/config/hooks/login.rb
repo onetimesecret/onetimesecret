@@ -155,8 +155,8 @@ module Auth::Config::Hooks
         account_count = nil
         begin
           account_count = db[:accounts].count
-        rescue StandardError => e
-          OT.debug "[auth] Could not check account count: #{e.message}"
+        rescue StandardError => ex
+          OT.debug "[auth] Could not check account count: #{ex.message}"
         end
 
         if account_count&.zero?

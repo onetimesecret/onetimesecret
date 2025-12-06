@@ -32,8 +32,7 @@ module V3
       class CreateIncomingSecret < V3::Logic::Base
         include Onetime::LoggerMethods
 
-        attr_reader :memo, :secret_value, :recipient_email, :recipient_hash, :ttl, :passphrase
-        attr_reader :metadata, :secret, :greenlighted
+        attr_reader :memo, :secret_value, :recipient_email, :recipient_hash, :ttl, :passphrase, :metadata, :secret, :greenlighted
 
         def process_params
           # All parameters are passed in the :secret hash like other V3 endpoints
@@ -44,7 +43,7 @@ module V3
 
           # Extract and validate memo
           memo_max = incoming_config['memo_max_length'] || 50
-          @memo = @payload['memo'].to_s.strip[0...memo_max]
+          @memo    = @payload['memo'].to_s.strip[0...memo_max]
 
           # Extract secret value
           @secret_value = @payload['secret'].to_s
@@ -81,7 +80,7 @@ module V3
             raise_form_error 'Invalid recipient'
           end
 
-          unless recipient_email.to_s.match?(/\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i)
+          unless recipient_email.to_s.match?(/\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i)
             OT.le "[IncomingSecret] Lookup returned invalid email for hash: #{@recipient_hash}"
             raise_form_error 'Invalid recipient configuration'
           end
@@ -107,12 +106,12 @@ module V3
             success: greenlighted,
             record: {
               metadata: metadata.safe_dump,
-              secret: secret.safe_dump
+              secret: secret.safe_dump,
             },
             details: {
               memo: memo,
-              recipient: recipient_hash # Return hash, not email
-            }
+              recipient: recipient_hash, # Return hash, not email
+            },
           }
         end
 
@@ -120,7 +119,7 @@ module V3
           {
             memo: memo,
             secret: secret_value,
-            recipient: recipient_hash # Return hash, not email
+            recipient: recipient_hash, # Return hash, not email
           }
         end
 
@@ -132,11 +131,11 @@ module V3
             cust&.objid || 'anon',
             ttl,
             secret_value,
-            passphrase: passphrase
+            passphrase: passphrase,
           )
 
           # Store incoming-specific fields
-          metadata.memo = memo
+          metadata.memo       = memo
           metadata.recipients = recipient_email
           metadata.save
         end
@@ -171,9 +170,9 @@ module V3
           # For now, we log the event but don't send the email.
 
           Onetime.secret_logger.info "[IncomingSecret] Secret created for #{OT::Utils.obscure_email(recipient_email)} (metadata: #{metadata.shortid})"
-          Onetime.secret_logger.warn "[IncomingSecret] Email notification not sent - IncomingSecretNotification mail class not implemented"
-        rescue StandardError => e
-          Onetime.secret_logger.error "[IncomingSecret] Failed to send email notification: #{e.message}"
+          Onetime.secret_logger.warn '[IncomingSecret] Email notification not sent - IncomingSecretNotification mail class not implemented'
+        rescue StandardError => ex
+          Onetime.secret_logger.error "[IncomingSecret] Failed to send email notification: #{ex.message}"
           # Don't raise - email failure shouldn't prevent secret creation
         end
       end

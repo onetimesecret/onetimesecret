@@ -40,28 +40,28 @@ module Onetime
 
           # Validate queue names
           queues_to_reset.each do |q|
-            unless Onetime::Jobs::QueueConfig::QUEUES.key?(q)
-              puts "Unknown queue: #{q}"
-              puts "Available queues: #{Onetime::Jobs::QueueConfig::QUEUES.keys.join(', ')}"
-              exit 1
-            end
+            next if Onetime::Jobs::QueueConfig::QUEUES.key?(q)
+
+            puts "Unknown queue: #{q}"
+            puts "Available queues: #{Onetime::Jobs::QueueConfig::QUEUES.keys.join(', ')}"
+            exit 1
           end
 
           if dry_run
-            puts "DRY RUN - would reset these queues:"
+            puts 'DRY RUN - would reset these queues:'
             queues_to_reset.each { |q| puts "  - #{q}" }
             return
           end
 
           unless force
-            puts "This will DELETE and recreate the following queues:"
+            puts 'This will DELETE and recreate the following queues:'
             queues_to_reset.each { |q| puts "  - #{q}" }
             puts
-            puts "Messages in these queues will be LOST."
-            print "Continue? [y/N] "
+            puts 'Messages in these queues will be LOST.'
+            print 'Continue? [y/N] '
             response = $stdin.gets&.strip&.downcase
             unless response == 'y'
-              puts "Aborted."
+              puts 'Aborted.'
               exit 0
             end
           end
@@ -72,7 +72,7 @@ module Onetime
         private
 
         def reset_queues(queue_names)
-          conn = Bunny.new(ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'))
+          conn    = Bunny.new(ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'))
           conn.start
           channel = conn.create_channel
 
@@ -95,16 +95,16 @@ module Onetime
             channel.queue(
               queue_name,
               durable: config[:durable],
-              arguments: config[:arguments] || {}
+              arguments: config[:arguments] || {},
             )
             puts "Created: #{queue_name} (durable: #{config[:durable]}, arguments: #{config[:arguments] || {}})"
           end
 
           conn.close
           puts
-          puts "Done. Queues reset with configuration from QueueConfig."
-        rescue StandardError => e
-          puts "Error: #{e.message}"
+          puts 'Done. Queues reset with configuration from QueueConfig.'
+        rescue StandardError => ex
+          puts "Error: #{ex.message}"
           exit 1
         end
       end

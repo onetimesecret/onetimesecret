@@ -6,26 +6,24 @@ require 'spec_helper'
 
 RSpec.xdescribe AccountAPI::Logic::Authentication::ResetPasswordRequest do
   skip 'Temporarily skipped - added by #1677, extracted from an orphan branch, but never passing yet'
+  subject { described_class.new(session, customer, params, locale) }
+
   let(:session) { double('Session', set_info_message: nil, set_success_message: nil, set_error_message: nil, short_identifier: 'xyz789') }
-  let(:customer) { double('Customer', custid: 'test@example.com', pending?: false, :"reset_secret=" => nil) }
-  let(:secret) { double('Secret', key: 'secret_key_456', save: nil, :"default_expiration=" => nil, :"verification=" => nil) }
+  let(:customer) { double('Customer', custid: 'test@example.com', pending?: false, 'reset_secret=': nil) }
+  let(:secret) { double('Secret', key: 'secret_key_456', save: nil, 'default_expiration=': nil, 'verification=': nil) }
   let(:params) { { login: 'test@example.com' } }
   let(:locale) { 'en' }
   let(:mail_view) { double('PasswordRequest', deliver_email: true) }
 
-  subject { described_class.new(session, customer, params, locale) }
-
   before do
-    allow(Onetime::Customer).to receive(:exists?).and_return(true)
-    allow(Onetime::Customer).to receive(:load).and_return(customer)
+    allow(Onetime::Customer).to receive_messages(exists?: true, load: customer)
     allow(Onetime::Secret).to receive(:create).and_return(secret)
     allow(OT::Mail::PasswordRequest).to receive(:new).and_return(mail_view)
     allow(OT).to receive(:info)
     allow(OT).to receive(:li)
     allow(OT).to receive(:le)
     allow(OT).to receive(:ld)
-    allow(subject).to receive(:sess).and_return(session)
-    allow(subject).to receive(:valid_email?).and_return(true)
+    allow(subject).to receive_messages(sess: session, valid_email?: true)
   end
 
   describe '#process_params' do
@@ -79,8 +77,7 @@ RSpec.xdescribe AccountAPI::Logic::Authentication::ResetPasswordRequest do
   describe '#process' do
     before do
       subject.process_params
-      allow(subject).to receive(:token).and_return('test_token')
-      allow(subject).to receive(:i18n).and_return({ web: { COMMON: { verification_sent_to: 'Verification sent to' } } })
+      allow(subject).to receive_messages(token: 'test_token', i18n: { web: { COMMON: { verification_sent_to: 'Verification sent to' } } })
     end
 
     context 'when customer is pending' do
@@ -91,12 +88,12 @@ RSpec.xdescribe AccountAPI::Logic::Authentication::ResetPasswordRequest do
 
       it 'sends verification email instead of password reset' do
         expect(subject).to receive(:send_verification_email)
-        expect(OT).to receive(:li).with("[ResetPasswordRequest] Resending verification email to test@example.com")
+        expect(OT).to receive(:li).with('[ResetPasswordRequest] Resending verification email to test@example.com')
         subject.process
       end
 
       it 'sets info message about verification email' do
-        expect(session).to receive(:set_info_message).with("Verification sent to test@example.com.")
+        expect(session).to receive(:set_info_message).with('Verification sent to test@example.com.')
         subject.process
       end
     end
@@ -131,8 +128,8 @@ RSpec.xdescribe AccountAPI::Logic::Authentication::ResetPasswordRequest do
 
       context 'when email delivery succeeds' do
         it 'logs success and sets success message' do
-          expect(OT).to receive(:info).with("Password reset email sent to test@example.com for sess=xyz789")
-          expect(session).to receive(:set_success_message).with("We sent instructions to test@example.com")
+          expect(OT).to receive(:info).with('Password reset email sent to test@example.com for sess=xyz789')
+          expect(session).to receive(:set_success_message).with('We sent instructions to test@example.com')
           subject.process
         end
       end
@@ -143,7 +140,7 @@ RSpec.xdescribe AccountAPI::Logic::Authentication::ResetPasswordRequest do
         end
 
         it 'logs error and sets error message' do
-          expect(OT).to receive(:le).with("Error sending password reset email: SMTP error")
+          expect(OT).to receive(:le).with('Error sending password reset email: SMTP error')
           expect(session).to receive(:set_error_message).with("Couldn't send the notification email. Let know below.")
           subject.process
         end
@@ -210,7 +207,7 @@ RSpec.xdescribe AccountAPI::Logic::Authentication::ResetPasswordRequest do
 
     it 'logs email delivery attempts with session identifier' do
       allow(customer).to receive(:pending?).and_return(false)
-      expect(OT).to receive(:info).with("Password reset email sent to test@example.com for sess=xyz789")
+      expect(OT).to receive(:info).with('Password reset email sent to test@example.com for sess=xyz789')
       subject.process
     end
 
@@ -221,7 +218,7 @@ RSpec.xdescribe AccountAPI::Logic::Authentication::ResetPasswordRequest do
   end
 
   describe 'rate limiting considerations' do
-    it 'should be paired with rate limiting in controllers' do
+    it 'is paired with rate limiting in controllers' do
       # This test documents the expectation that rate limiting
       # should be implemented at the controller level
       expect(true).to be true # Placeholder - rate limiting should be tested separately

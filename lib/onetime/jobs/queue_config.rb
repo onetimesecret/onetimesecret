@@ -27,34 +27,34 @@ module Onetime
       QUEUES = {
         'email.message.send' => {
           durable: true,
-          arguments: { 'x-dead-letter-exchange' => 'dlx.email.message' }
+          arguments: { 'x-dead-letter-exchange' => 'dlx.email.message' },
         },
         'email.message.schedule' => {
           durable: true,
           arguments: {
             'x-dead-letter-exchange' => 'dlx.email.message',
-            'x-message-ttl' => 86_400_000 # 24 hours in milliseconds
-          }
+            'x-message-ttl' => 86_400_000, # 24 hours in milliseconds
+          },
         },
         'notifications.alert.push' => {
           durable: true,
-          arguments: { 'x-dead-letter-exchange' => 'dlx.notifications.alert' }
+          arguments: { 'x-dead-letter-exchange' => 'dlx.notifications.alert' },
         },
         'webhooks.payload.deliver' => {
           durable: true,
-          arguments: { 'x-dead-letter-exchange' => 'dlx.webhooks.payload' }
+          arguments: { 'x-dead-letter-exchange' => 'dlx.webhooks.payload' },
         },
         'billing.event.process' => {
           durable: true,
-          arguments: { 'x-dead-letter-exchange' => 'dlx.billing.event' }
+          arguments: { 'x-dead-letter-exchange' => 'dlx.billing.event' },
         },
         'system.transient' => {
           durable: false,
           auto_delete: true,
           arguments: {
-            'x-message-ttl' => 300_000 # 5 minutes in milliseconds
-          }
-        }
+            'x-message-ttl' => 300_000, # 5 minutes in milliseconds
+          },
+        },
       }.freeze
 
       # Dead letter exchange and queue configuration
@@ -63,7 +63,7 @@ module Onetime
         'dlx.email.message' => { queue: 'dlq.email.message' },
         'dlx.notifications.alert' => { queue: 'dlq.notifications.alert' },
         'dlx.webhooks.payload' => { queue: 'dlq.webhooks.payload' },
-        'dlx.billing.event' => { queue: 'dlq.billing.event' }
+        'dlx.billing.event' => { queue: 'dlq.billing.event' },
       }.freeze
 
       # TTL for processed message idempotency keys (1 hour)

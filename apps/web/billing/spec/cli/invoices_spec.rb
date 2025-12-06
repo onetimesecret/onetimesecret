@@ -19,7 +19,7 @@ require_relative '../../cli/invoices_command'
 # Most tests here are :code_smell - they try to validate Stripe API behavior
 # Should be rewritten as true unit tests or moved to :integration with :stripe_sandbox_api
 
-RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :integration, :stripe_sandbox_api, :code_smell do
+RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :code_smell, :integration, :stripe_sandbox_api do
   let(:stripe_client) { Billing::StripeClient.new }
 
   # Helper to create test invoice
@@ -27,26 +27,30 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :integration, :str
     customer = stripe_client.create(Stripe::Customer, { email: email })
 
     product = stripe_client.create(Stripe::Product, {
-      name: "Test Product #{Time.now.to_i}"
-    })
+      name: "Test Product #{Time.now.to_i}",
+    }
+    )
 
     price = stripe_client.create(Stripe::Price, {
       unit_amount: 5000,
       currency: 'usd',
-      product: product.id
-    })
+      product: product.id,
+    }
+    )
 
     # Create invoice item first
-    invoice_item = stripe_client.create(Stripe::InvoiceItem, {
+    stripe_client.create(Stripe::InvoiceItem, {
       customer: customer.id,
-      price: price.id
-    })
+      price: price.id,
+    }
+    )
 
     # Create invoice
     invoice = stripe_client.create(Stripe::Invoice, {
       customer: customer.id,
-      auto_advance: false
-    })
+      auto_advance: false,
+    }
+    )
 
     { customer: customer, product: product, price: price, invoice: invoice }
   end
@@ -59,9 +63,9 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :integration, :str
         it 'lists all invoices without filters', :vcr do
           test_data = create_test_invoice
 
-          expect {
+          expect do
             command.call(limit: 10)
-          }.to output(/Fetching invoices from Stripe/).to_stdout
+          end.to output(/Fetching invoices from Stripe/).to_stdout
 
           # Cleanup
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
@@ -97,27 +101,31 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :integration, :str
         it 'filters invoices by subscription ID', :integration, :stripe_sandbox_api, :vcr do
           # Create subscription to generate invoice
           customer = stripe_client.create(Stripe::Customer, {
-            email: 'invoice-sub-filter@example.com'
-          })
+            email: 'invoice-sub-filter@example.com',
+          }
+          )
 
           product = stripe_client.create(Stripe::Product, {
-            name: "Test Product #{Time.now.to_i}"
-          })
+            name: "Test Product #{Time.now.to_i}",
+          }
+          )
 
           price = stripe_client.create(Stripe::Price, {
             unit_amount: 2000,
             currency: 'usd',
             recurring: { interval: 'month' },
-            product: product.id
-          })
+            product: product.id,
+          }
+          )
 
           subscription = stripe_client.create(Stripe::Subscription, {
             customer: customer.id,
-            items: [{ price: price.id }]
-          })
+            items: [{ price: price.id }],
+          }
+          )
 
           # Get latest invoice from subscription
-          invoice = stripe_client.retrieve(Stripe::Invoice, subscription.latest_invoice)
+          stripe_client.retrieve(Stripe::Invoice, subscription.latest_invoice)
 
           output = capture_stdout do
             command.call(subscription: subscription.id, limit: 10)
@@ -130,9 +138,9 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :integration, :str
         end
 
         it 'respects limit parameter', :vcr do
-          expect {
+          expect do
             command.call(limit: 5)
-          }.to output(/Fetching invoices from Stripe/).to_stdout
+          end.to output(/Fetching invoices from Stripe/).to_stdout
         end
 
         it 'displays correct invoice information', :vcr do
@@ -191,7 +199,7 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :integration, :str
             command.call(
               customer: test_data[:customer].id,
               status: 'draft',
-              limit: 10
+              limit: 10,
             )
           end
 
@@ -237,52 +245,52 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :integration, :str
       context 'with Stripe API errors' do
         it 'handles invalid customer ID gracefully' do
           allow(Stripe::Invoice).to receive(:list).and_raise(
-            Stripe::InvalidRequestError.new('Invalid customer', 'customer')
+            Stripe::InvalidRequestError.new('Invalid customer', 'customer'),
           )
 
-          expect {
+          expect do
             command.call(customer: 'invalid_id', limit: 10)
-          }.to output(/Error fetching invoices/).to_stdout
+          end.to output(/Error fetching invoices/).to_stdout
         end
 
         it 'handles invalid status parameter gracefully' do
           allow(Stripe::Invoice).to receive(:list).and_raise(
-            Stripe::InvalidRequestError.new('Invalid status', 'status')
+            Stripe::InvalidRequestError.new('Invalid status', 'status'),
           )
 
-          expect {
+          expect do
             command.call(status: 'invalid_status', limit: 10)
-          }.to output(/Error fetching invoices/).to_stdout
+          end.to output(/Error fetching invoices/).to_stdout
         end
 
         it 'handles network errors gracefully' do
           allow(Stripe::Invoice).to receive(:list).and_raise(
-            Stripe::APIConnectionError.new('Network error')
+            Stripe::APIConnectionError.new('Network error'),
           )
 
-          expect {
+          expect do
             command.call(limit: 10)
-          }.to output(/Error fetching invoices/).to_stdout
+          end.to output(/Error fetching invoices/).to_stdout
         end
 
         it 'handles rate limit errors gracefully' do
           allow(Stripe::Invoice).to receive(:list).and_raise(
-            Stripe::RateLimitError.new('Rate limit exceeded')
+            Stripe::RateLimitError.new('Rate limit exceeded'),
           )
 
-          expect {
+          expect do
             command.call(limit: 10)
-          }.to output(/Error fetching invoices/).to_stdout
+          end.to output(/Error fetching invoices/).to_stdout
         end
 
         it 'handles authentication errors gracefully' do
           allow(Stripe::Invoice).to receive(:list).and_raise(
-            Stripe::AuthenticationError.new('Invalid API key')
+            Stripe::AuthenticationError.new('Invalid API key'),
           )
 
-          expect {
+          expect do
             command.call(limit: 10)
-          }.to output(/Error fetching invoices/).to_stdout
+          end.to output(/Error fetching invoices/).to_stdout
         end
       end
 
@@ -323,7 +331,7 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :integration, :str
           end
 
           # IDs should be truncated to fit column width (22 chars)
-          lines = output.split("\n")
+          lines      = output.split("\n")
           data_lines = lines.select { |l| l.start_with?('in_') }
           expect(data_lines).to be_present
 
@@ -372,7 +380,7 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :integration, :str
   # Helper to capture stdout
   def capture_stdout
     old_stdout = $stdout
-    $stdout = StringIO.new
+    $stdout    = StringIO.new
     yield
     $stdout.string
   ensure

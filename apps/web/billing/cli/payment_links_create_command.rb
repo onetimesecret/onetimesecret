@@ -26,27 +26,27 @@ module Onetime
 
         # Retrieve price to show details
         price_obj = Stripe::Price.retrieve(price)
-        product = Stripe::Product.retrieve(price_obj.product)
+        product   = Stripe::Product.retrieve(price_obj.product)
 
         puts "Price: #{price}"
         puts "Product: #{product.name}"
         puts "Amount: #{format_amount(price_obj.unit_amount, price_obj.currency)}/#{price_obj.recurring&.interval || 'one-time'}"
         puts
 
-        puts "Creating payment link..."
+        puts 'Creating payment link...'
 
         link_params = {
           line_items: [{
             price: price,
             quantity: quantity,
-            adjustable_quantity: allow_quantity ? { enabled: true } : nil
-          }.compact]
+            adjustable_quantity: allow_quantity ? { enabled: true } : nil,
+          }.compact],
         }
 
         if after_completion
           link_params[:after_completion] = {
             type: 'redirect',
-            redirect: { url: after_completion }
+            redirect: { url: after_completion },
           }
         end
 
@@ -56,9 +56,8 @@ module Onetime
         puts "  ID: #{link.id}"
         puts "  URL: #{link.url}"
         puts "\nShare this link with customers!"
-
-      rescue Stripe::StripeError => e
-        puts "Error creating payment link: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error creating payment link: #{ex.message}"
       end
     end
   end

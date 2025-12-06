@@ -48,11 +48,11 @@ module ColonelAPI
             next if cust.anonymous?
 
             # Count secrets owned by this user
-            user_secrets_count = Onetime::Secret.new.dbclient.keys('secret*:object').select do |key|
+            user_secrets_count = Onetime::Secret.new.dbclient.keys('secret*:object').count do |key|
               objid  = key.split(':')[1]
               secret = Onetime::Secret.load(objid)
               secret&.owner_id == cust.objid
-            end.count
+            end
 
             {
               user_id: cust.objid,

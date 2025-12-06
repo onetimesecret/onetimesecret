@@ -32,7 +32,7 @@ RSpec.describe 'Billing Controllers', :integration do
     it 'configures routes correctly' do
       # Verify route file exists and is loaded
       routes_file = File.join(File.dirname(__FILE__), '../../routes.txt')
-      expect(File.exist?(routes_file)).to eq(true)
+      expect(File.exist?(routes_file)).to be(true)
     end
   end
 

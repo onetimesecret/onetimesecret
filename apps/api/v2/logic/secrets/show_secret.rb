@@ -64,7 +64,8 @@ module V2::Logic
           end
 
         elsif continue && secret.has_passphrase? && !correct_passphrase
-
+          # Invalid passphrase - no action needed, secret remains in current state
+          nil
         end
 
         domain = if domains_enabled && !secret.share_domain.to_s.empty?

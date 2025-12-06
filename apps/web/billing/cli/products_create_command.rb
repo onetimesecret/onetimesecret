@@ -48,7 +48,7 @@ module Onetime
         if interactive || name.nil?
           print 'Product name: '
           input = $stdin.gets
-          name = input&.chomp
+          name  = input&.chomp
         end
 
         if name.to_s.strip.empty?
@@ -73,11 +73,11 @@ module Onetime
           }
 
           # Add limit fields if provided
-          base_metadata['limit_teams'] = options[:limit_teams] if options[:limit_teams]
+          base_metadata['limit_teams']            = options[:limit_teams] if options[:limit_teams]
           base_metadata['limit_members_per_team'] = options[:limit_members_per_team] if options[:limit_members_per_team]
-          base_metadata['limit_custom_domains'] = options[:limit_custom_domains] if options[:limit_custom_domains]
-          base_metadata['limit_secret_lifetime'] = options[:limit_secret_lifetime] if options[:limit_secret_lifetime]
-          base_metadata['limit_secrets_per_day'] = options[:limit_secrets_per_day] if options[:limit_secrets_per_day]
+          base_metadata['limit_custom_domains']   = options[:limit_custom_domains] if options[:limit_custom_domains]
+          base_metadata['limit_secret_lifetime']  = options[:limit_secret_lifetime] if options[:limit_secret_lifetime]
+          base_metadata['limit_secrets_per_day']  = options[:limit_secrets_per_day] if options[:limit_secrets_per_day]
 
           base_metadata
         end
@@ -87,7 +87,7 @@ module Onetime
           existing = find_existing_product(metadata['plan_id'])
 
           if existing
-            handle_existing_product(existing, name, metadata, options)
+            handle_existing_product(existing, name, metadata, options, update: update, yes: yes)
             return
           end
         end
@@ -127,7 +127,7 @@ module Onetime
       end
 
       # Handle case where product already exists
-      def handle_existing_product(existing, name, metadata, options)
+      def handle_existing_product(existing, name, metadata, options, update: false, yes: false)
         puts "\n⚠️  Product already exists with plan_id: #{metadata['plan_id']}"
         puts "  Product ID: #{existing.id}"
         puts "  Name: #{existing.name}"
@@ -140,23 +140,23 @@ module Onetime
         end
 
         # Auto-update if --update flag provided (requires --yes for non-interactive)
-        if options[:update]
-          if options[:yes]
+        if update
+          if yes
             puts "\n→ Auto-updating existing product (--update --yes)"
             update_existing_product(existing.id, name, metadata, options)
             return
           else
             puts "\n⚠️  Warning: --update requires --yes for non-interactive mode"
-            puts "Run with --yes --update to auto-update, or continue interactively below."
+            puts 'Run with --yes --update to auto-update, or continue interactively below.'
             puts
           end
         end
 
         # Interactive mode - prompt user
         puts "\nWhat would you like to do?"
-        puts "  1) Update existing product with new values"
-        puts "  2) Create duplicate anyway (not recommended)"
-        puts "  3) Cancel"
+        puts '  1) Update existing product with new values'
+        puts '  2) Create duplicate anyway (not recommended)'
+        puts '  3) Cancel'
 
         print "\nChoice (1-3): "
         choice = $stdin.gets&.chomp
@@ -182,7 +182,7 @@ module Onetime
         current_product = Stripe::Product.retrieve(product_id)
 
         # Merge new metadata with existing, preserving non-empty existing values
-        merged_metadata = current_product.metadata.to_h.merge(metadata) do |key, old_val, new_val|
+        merged_metadata = current_product.metadata.to_h.merge(metadata) do |_key, old_val, new_val|
           # Keep new value unless it's empty and old value exists
           (new_val.nil? || new_val.to_s.strip.empty?) && !old_val.to_s.strip.empty? ? old_val : new_val
         end
@@ -194,7 +194,7 @@ module Onetime
 
         # Add marketing features if provided
         if options[:marketing_features]
-          features = options[:marketing_features].split(',').map(&:strip)
+          features                           = options[:marketing_features].split(',').map(&:strip)
           update_params[:marketing_features] = features.map { |f| { name: f } }
         end
 
@@ -205,7 +205,7 @@ module Onetime
         puts "  Name: #{product.name}"
 
         puts "\nNext steps:"
-        puts "  bin/ots billing sync  # Update Redis cache"
+        puts '  bin/ots billing sync  # Update Redis cache'
         puts "  bin/ots billing products show #{product.id}  # View details"
       rescue Stripe::StripeError => ex
         puts "Error updating product: #{ex.message}"
@@ -219,7 +219,7 @@ module Onetime
         }
 
         if options[:marketing_features]
-          features = options[:marketing_features].split(',').map(&:strip)
+          features                            = options[:marketing_features].split(',').map(&:strip)
           product_params[:marketing_features] = features.map { |f| { name: f } }
         end
 

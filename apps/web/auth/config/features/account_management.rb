@@ -5,7 +5,6 @@
 module Auth::Config::Features
   module AccountManagement
     def self.configure(auth)
-
       # Account lifecycle features
       auth.enable :create_account
       auth.enable :close_account

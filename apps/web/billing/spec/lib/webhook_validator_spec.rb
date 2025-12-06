@@ -209,8 +209,8 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
         pending_webhooks: 1,
         request: { id: 'req_test123' },
         data: {
-          object: { id: 'sub_test123', object: 'subscription' }
-        }
+          object: { id: 'sub_test123', object: 'subscription' },
+        },
       }.to_json
     end
     let(:stripe_event) { Stripe::Event.construct_from(JSON.parse(payload)) }
@@ -241,7 +241,7 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
 
     it 'only initializes once for the same event' do
       # First call
-      event1 = validator.initialize_event_record(stripe_event, payload)
+      event1     = validator.initialize_event_record(stripe_event, payload)
       first_seen = event1.first_seen_at
 
       # Second call - should return existing data
@@ -260,5 +260,4 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
       expect(reloaded.event_payload).to eq(payload)
     end
   end
-
 end

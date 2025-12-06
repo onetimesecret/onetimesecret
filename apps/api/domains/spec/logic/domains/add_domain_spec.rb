@@ -16,27 +16,30 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
 
   let(:customer) do
     double('Customer',
-           custid: 'cust123',
-           objid: 'cust123')
+      custid: 'cust123',
+      objid: 'cust123',
+    )
   end
 
   let(:organization) do
     double('Organization',
-           objid: 'org123',
-           display_name: 'Test Org')
+      objid: 'org123',
+      display_name: 'Test Org',
+    )
   end
 
   let(:custom_domain) do
     double('CustomDomain',
-           identifier: 'domain123',
-           display_domain: 'example.com',
-           domainid: 'domain123',
-           vhost: nil,
-           'vhost=' => nil,
-           updated: nil,
-           'updated=' => nil,
-           save: true,
-           safe_dump: { display_domain: 'example.com' })
+      identifier: 'domain123',
+      display_domain: 'example.com',
+      domainid: 'domain123',
+      vhost: nil,
+      'vhost=' => nil,
+      updated: nil,
+      'updated=' => nil,
+      save: true,
+      safe_dump: { display_domain: 'example.com' },
+    )
   end
 
   let(:params) { { 'domain' => 'example.com' } }
@@ -45,10 +48,7 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
   before do
     allow(logic).to receive(:organization).and_return(organization)
     allow(logic).to receive(:require_organization!)
-    allow(Onetime::CustomDomain).to receive(:valid?).and_return(true)
-    allow(Onetime::CustomDomain).to receive(:parse).and_return(custom_domain)
-    allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(nil)
-    allow(Onetime::CustomDomain).to receive(:create!).and_return(custom_domain)
+    allow(Onetime::CustomDomain).to receive_messages(valid?: true, parse: custom_domain, load_by_display_domain: nil, create!: custom_domain)
     allow(Onetime::Cluster::Features).to receive(:cluster_safe_dump).and_return({})
     allow(OT.conf).to receive(:dig).and_return(nil)
   end
@@ -66,7 +66,7 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
         {
           status: 'requested',
           message: 'Certificate requested',
-          data: { 'vhost_id' => '123', 'status' => 'PENDING' }
+          data: { 'vhost_id' => '123', 'status' => 'PENDING' },
         }
       end
 

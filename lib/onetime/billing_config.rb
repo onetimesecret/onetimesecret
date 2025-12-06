@@ -97,7 +97,7 @@ module Onetime
 
       erb_template = ERB.new(File.read(@config_file))
       yaml_content = erb_template.result
-      @config = YAML.safe_load(yaml_content, symbolize_names: false) || {}
+      @config      = YAML.safe_load(yaml_content, symbolize_names: false) || {}
     rescue StandardError => ex
       OT.le "[BillingConfig] Error loading billing config: #{ex.message}"
       @config = {}

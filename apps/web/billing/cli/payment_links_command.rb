@@ -22,7 +22,7 @@ module Onetime
         return unless stripe_configured?
 
         puts 'Fetching payment links from Stripe...'
-        params = { limit: limit }
+        params          = { limit: limit }
         params[:active] = true if active_only
 
         links = Stripe::PaymentLink.list(params)
@@ -33,14 +33,15 @@ module Onetime
         end
 
         puts format('%-30s %-30s %-12s %-10s %s',
-          'ID', 'PRODUCT/PRICE', 'AMOUNT', 'INTERVAL', 'ACTIVE')
+          'ID', 'PRODUCT/PRICE', 'AMOUNT', 'INTERVAL', 'ACTIVE'
+        )
         puts '-' * 100
 
         links.data.each do |link|
-          active = link.active ? 'yes' : 'no'
+          active       = link.active ? 'yes' : 'no'
           product_name = 'N/A'
-          amount = 'N/A'
-          interval = 'N/A'
+          amount       = 'N/A'
+          interval     = 'N/A'
 
           begin
             # Retrieve with line_items expanded for each link
@@ -51,21 +52,21 @@ module Onetime
 
               # Get price ID - handle both string and object
               price_id = line_item.price.is_a?(String) ? line_item.price : line_item.price.id
-              price = Stripe::Price.retrieve(price_id)
+              price    = Stripe::Price.retrieve(price_id)
 
               # Get product ID - handle both string and object
               product_id = price.product.is_a?(String) ? price.product : price.product.id
-              product = Stripe::Product.retrieve(product_id)
+              product    = Stripe::Product.retrieve(product_id)
 
               product_name = product.name[0..29]
-              amount = format_amount(price.unit_amount, price.currency)
-              interval = price.recurring&.interval || 'one-time'
+              amount       = format_amount(price.unit_amount, price.currency)
+              interval     = price.recurring&.interval || 'one-time'
             end
-          rescue Stripe::StripeError => e
+          rescue Stripe::StripeError => ex
             # Continue with N/A values if we can't fetch details from Stripe
-            OT.logger.warn { "Stripe error fetching details for #{link.id}: #{e.message}" }
-          rescue StandardError => e
-            OT.logger.error { "Unexpected error fetching details for #{link.id}: #{e.class}: #{e.message}" }
+            OT.logger.warn { "Stripe error fetching details for #{link.id}: #{ex.message}" }
+          rescue StandardError => ex
+            OT.logger.error { "Unexpected error fetching details for #{link.id}: #{ex.class}: #{ex.message}" }
           end
 
           puts format('%-30s %-30s %-12s %-10s %s',
@@ -73,17 +74,17 @@ module Onetime
             product_name,
             amount[0..11],
             interval[0..9],
-            active)
+            active,
+          )
         end
 
         puts "\nTotal: #{links.data.size} payment link(s)"
         puts "\nUse 'bin/ots billing payment-links show <id>' for full details including URL"
-
-      rescue Stripe::StripeError => e
-        puts "Error fetching payment links: #{e.message}"
-      rescue StandardError => e
-        puts "Error: #{e.message}"
-        puts e.backtrace.first(5).join("\n") if OT.debug?
+      rescue Stripe::StripeError => ex
+        puts "Error fetching payment links: #{ex.message}"
+      rescue StandardError => ex
+        puts "Error: #{ex.message}"
+        puts ex.backtrace.first(5).join("\n") if OT.debug?
       end
     end
   end

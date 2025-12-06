@@ -80,13 +80,11 @@ module Onetime
 
           # Check all banned IPs/CIDRs for matches
           ip_index.keys.any? do |banned_cidr_string|
-            begin
               banned_cidr = IPAddr.new(banned_cidr_string)
               banned_cidr.include?(ip_to_check)
-            rescue IPAddr::InvalidAddressError
+          rescue IPAddr::InvalidAddressError
               # Skip invalid entries
               false
-            end
           end
         rescue IPAddr::InvalidAddressError
           # Invalid IP to check - not banned
@@ -97,7 +95,6 @@ module Onetime
       def count
         instances.count # e.g. zcard dbkey
       end
-
     end
   end
 end

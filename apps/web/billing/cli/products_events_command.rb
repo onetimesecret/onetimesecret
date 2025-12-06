@@ -29,7 +29,7 @@ module Onetime
         puts
 
         # Fetch events related to this product
-        params = { limit: 100 }  # Fetch more to filter
+        params        = { limit: 100 }  # Fetch more to filter
         params[:type] = type if type
 
         events = Stripe::Event.list(params)
@@ -58,26 +58,27 @@ module Onetime
         end
 
         puts format('%-22s %-35s %-12s %s',
-          'ID', 'TYPE', 'LIVEMODE', 'CREATED')
+          'ID', 'TYPE', 'LIVEMODE', 'CREATED'
+        )
         puts '-' * 85
 
         product_events.each do |event|
           livemode = event.livemode ? 'live' : 'test'
-          created = format_timestamp(event.created)
+          created  = format_timestamp(event.created)
 
           puts format('%-22s %-35s %-12s %s',
             event.id[0..21],
             event.type[0..34],
             livemode,
-            created)
+            created,
+          )
         end
 
         puts "\nTotal: #{product_events.size} event(s)"
         puts "\nFor details: bin/ots billing events --type product.updated"
-        puts "Common types: product.created, product.updated, price.created, price.updated"
-
-      rescue Stripe::StripeError => e
-        puts "Error retrieving product events: #{e.message}"
+        puts 'Common types: product.created, product.updated, price.created, price.updated'
+      rescue Stripe::StripeError => ex
+        puts "Error retrieving product events: #{ex.message}"
       end
     end
   end

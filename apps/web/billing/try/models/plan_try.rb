@@ -17,7 +17,7 @@ Billing::Plan.clear_cache.class
 #=> Integer
 
 ## Create a mock plan manually (metadata-based plan_id with interval)
-@plan = Billing::Plan.new(
+@plan                                = Billing::Plan.new(
   plan_id: 'identity_v1_monthly',
   stripe_price_id: 'price_test123',
   stripe_product_id: 'prod_test123',
@@ -32,7 +32,7 @@ Billing::Plan.clear_cache.class
 @plan.capabilities.add('create_team')
 @plan.features.add('Feature 1')
 @plan.features.add('Feature 2')
-@plan.limits['teams.max'] = '1'
+@plan.limits['teams.max']            = '1'
 @plan.limits['members_per_team.max'] = '10'
 @plan.save
 #=> true
@@ -60,7 +60,7 @@ Billing::Plan.instances.size
 #=> 'identity_v1_monthly'
 
 ## Get plan with yearly interval (different plan_id for yearly)
-@yearly_plan = Billing::Plan.new(
+@yearly_plan                                = Billing::Plan.new(
   plan_id: 'identity_v1_yearly',
   stripe_price_id: 'price_yearly123',
   stripe_product_id: 'prod_test123',
@@ -75,10 +75,10 @@ Billing::Plan.instances.size
 @yearly_plan.capabilities.add('create_team')
 @yearly_plan.features.add('Feature 1')
 @yearly_plan.features.add('Feature 2')
-@yearly_plan.limits['teams.max'] = '1'
+@yearly_plan.limits['teams.max']            = '1'
 @yearly_plan.limits['members_per_team.max'] = '10'
 @yearly_plan.save
-@yearly_retrieved = Billing::Plan.get_plan('single_team', 'yearly', 'us-east')
+@yearly_retrieved                           = Billing::Plan.get_plan('single_team', 'yearly', 'us-east')
 @yearly_retrieved.plan_id
 #=> 'identity_v1_yearly'
 

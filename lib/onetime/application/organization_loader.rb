@@ -51,7 +51,7 @@ module Onetime
           OT.ld "[OrganizationLoader] Using cached IDs for #{customer.objid}"
 
           # Reload objects from cached IDs
-          org = cached[:organization_id] ? Onetime::Organization.load(cached[:organization_id]) : nil
+          org  = cached[:organization_id] ? Onetime::Organization.load(cached[:organization_id]) : nil
           team = cached[:team_id] ? Onetime::Team.load(cached[:team_id]) : nil
 
           return {
@@ -59,7 +59,7 @@ module Onetime
             organization_id: org&.objid,
             team: team,
             team_id: team&.objid,
-            expires_at: cached[:expires_at]
+            expires_at: cached[:expires_at],
           }
         end
 
@@ -125,7 +125,7 @@ module Onetime
 
         # 2. Domain-based selection
         if env && env['HTTP_HOST']
-          host = env['HTTP_HOST'].split(':').first # Remove port
+          host   = env['HTTP_HOST'].split(':').first # Remove port
           domain = Onetime::CustomDomain.from_display_domain(host)
           if domain
             org = domain.primary_organization
@@ -181,7 +181,7 @@ module Onetime
         team_ids = organization.teams.to_a
         return nil if team_ids.empty?
 
-        teams = Onetime::Team.load_multi(team_ids).compact
+        teams       = Onetime::Team.load_multi(team_ids).compact
         member_team = teams.find { |t| t.member?(customer) }
 
         if member_team
@@ -205,8 +205,8 @@ module Onetime
         return orgs.first if orgs.any?
 
         # Create default organization
-        display_name = "#{customer.email}'s Workspace"
-        org = Onetime::Organization.create!(display_name, customer, customer.email)
+        display_name   = "#{customer.email}'s Workspace"
+        org            = Onetime::Organization.create!(display_name, customer, customer.email)
         org.is_default = true
         org.save
 
