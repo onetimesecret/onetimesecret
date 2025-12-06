@@ -95,14 +95,15 @@ redis:
     feedback: 0
 emailer:
   mode: <%= ENV['EMAILER_MODE'] || 'logger' %>
-  from: <%= ENV['FROM_EMAIL'] || ENV['FROM_EMAIL'] || 'tests@example.com' %>
+  from: <%= ENV['FROM_EMAIL'] || 'secure@onetime.dev' %>
   from_name: <%= ENV['FROM_NAME'] || 'Jan' %>
-  host: <%= ENV['SMTP_HOST'] || 'localhost' %>
-  port: <%= ENV['SMTP_PORT'] || 587 %>
-  user: <%= ENV['SMTP_USERNAME'] || 'user' %>
-  pass: <%= ENV['SMTP_PASSWORD'] || 'pass' %>
-  auth: <%= ENV['SMTP_AUTH'] || 'login' %>
-  tls: <%= ENV['SMTP_TLS'] || true %>
+  # SMTP settings: nil when not set (appropriate for 'logger' mode)
+  host: <%= ENV.fetch('SMTP_HOST', nil) %>
+  port: <%= ENV.fetch('SMTP_PORT', nil)&.to_i %>
+  user: <%= ENV.fetch('SMTP_USERNAME', nil) %>
+  pass: <%= ENV.fetch('SMTP_PASSWORD', nil) %>
+  auth: <%= ENV.fetch('SMTP_AUTH', nil) %>
+  tls: <%= ENV.key?('SMTP_TLS') ? ENV['SMTP_TLS'] == 'true' : nil %>
 billing:
   enabled: false
 mail:

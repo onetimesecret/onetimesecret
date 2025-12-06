@@ -31,7 +31,8 @@ OT.conf['emailer']['user']
 #=> nil
 
 ## SMTP password in test environment
-OT.conf['emailer']['pass'] #=> ""
+OT.conf['emailer']['pass']
+#=> nil
 
 ## SMTP auth in test environment
 OT.conf['emailer']['auth']
