@@ -41,6 +41,7 @@ def last_response; @test.last_response; end
 @member1 = Onetime::Customer.create!(email: generate_unique_test_email("members_member1"))
 @member2 = Onetime::Customer.create!(email: generate_unique_test_email("members_member2"))
 @non_member = Onetime::Customer.create!(email: generate_unique_test_email("members_nonmember"))
+@form_test_member = Onetime::Customer.create!(email: generate_unique_test_email("members_formtest"))
 
 @owner_session = { 'authenticated' => true, 'external_id' => @owner.extid, 'email' => @owner.email }
 @member1_session = { 'authenticated' => true, 'external_id' => @member1.extid, 'email' => @member1.email }
@@ -367,13 +368,13 @@ post "/api/teams/#{@team_id}/members",
 last_response.status != 500
 #=> true
 
-## POST with form-encoded Content-Type also works (API is flexible)
+## POST with form-encoded Content-Type returns 422 (Teams API only accepts JSON)
 post "/api/teams/#{@team_id}/members",
-  "email=#{@non_member.email}",  # Form-encoded data
+  "email=#{@form_test_member.email}",  # Form-encoded data
   { 'rack.session' => @owner_session, 'CONTENT_TYPE' => 'application/x-www-form-urlencoded' }
-# API accepts both JSON and form-encoded data
+# Teams API (v2-style) only accepts JSON, not form-encoded data
 last_response.status
-#=> 200
+#=> 422
 
 # Teardown
 @team2.destroy!
@@ -383,3 +384,4 @@ last_response.status
 @member1.destroy!
 @member2.destroy!
 @non_member.destroy!
+@form_test_member.destroy!
