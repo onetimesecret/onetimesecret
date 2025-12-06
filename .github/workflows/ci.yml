@@ -449,6 +449,18 @@ jobs:
           echo "Running tryouts for simple authentication mode..."
           bundle exec tryouts --agent try/integration/authentication/simple_mode
           bundle exec tryouts --agent try/integration/authentication/common
+          bundle exec tryouts --agent try/integration/authentication/sync_session_idempotency_try.rb
+
+          echo "Running other integration tests..."
+          bundle exec tryouts --agent try/integration/middleware
+          bundle exec tryouts --agent try/integration/boot
+          bundle exec tryouts --agent try/integration/auth
+          bundle exec tryouts --agent try/integration/web
+          bundle exec tryouts --agent try/integration/api
+          bundle exec tryouts --agent try/integration/email
+          bundle exec tryouts --agent try/integration/billing
+          bundle exec tryouts --agent try/integration/homepage_bypass_header_integration_try.rb
+          bundle exec tryouts --agent try/integration/homepage_mode_integration_try.rb
 
       - name: Generate job summary
         if: always()
@@ -460,7 +472,8 @@ jobs:
             echo "- Failures: $(jq '.summary.failure_count' tmp/rspec_simple_results.json)" >> $GITHUB_STEP_SUMMARY
           fi
           echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
-          echo "- Simple mode + common tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Simple mode auth tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Other integration tests (middleware, boot, auth, web, api, email, billing, homepage) completed" >> $GITHUB_STEP_SUMMARY
 
   ruby-integration-full:
     name: Ruby Integration (Full Mode)
