@@ -436,6 +436,7 @@ jobs:
           echo "Running RSpec integration tests in simple mode..."
           mkdir -p tmp
           bundle exec rspec \
+            --tag simple_auth_mode \
             --format progress \
             --format json --out tmp/rspec_simple_results.json \
             spec/integration
@@ -546,6 +547,7 @@ jobs:
           echo "Running RSpec integration tests in full mode..."
           mkdir -p tmp
           bundle exec rspec \
+            --tag full_auth_mode \
             --format progress \
             --format json --out tmp/rspec_full_results.json \
             spec/integration

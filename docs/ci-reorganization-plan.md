@@ -443,27 +443,46 @@ try/integration/billing/        # 2 files
 
 #### 3.3 RSpec Tag Strategy
 
-Add tags to RSpec integration tests to filter by auth mode:
+**IMPLEMENTED**: RSpec integration tests use auth mode tags for filtering:
+
+| Tag | Usage | Tests That Run |
+|-----|-------|----------------|
+| `:simple_auth_mode` | Tests for simple mode or mode-agnostic | `dual_auth_mode_spec.rb` (Simple Mode section), `puma_multi_process_spec.rb`, `rhales_migration_spec.rb` |
+| `:full_auth_mode` | Tests requiring full auth mode (Rodauth/SQL) | `dual_auth_mode_spec.rb` (Full Mode section), `advanced_auth_mode_spec.rb`, `admin_interface_spec.rb`, `rodauth_hooks_spec.rb` |
+
+Tag examples:
 
 ```ruby
-# spec/integration/dual_auth_mode_spec.rb
-RSpec.describe "Dual Auth Mode", :auth_mode_full do
+# Mode-specific nested context (dual_auth_mode_spec.rb)
+RSpec.describe 'Dual Authentication Mode Integration', type: :request do
+  describe 'Simple Mode Configuration', :simple_auth_mode do
+    # tests simple mode behavior
+  end
+
+  describe 'Full Mode - Auth Endpoints', :full_auth_mode do
+    # tests full mode behavior
+  end
+end
+
+# Full mode only spec (advanced_auth_mode_spec.rb)
+RSpec.describe 'Full Authentication Mode', :full_auth_mode, type: :integration do
+  skip_unless_mode :full  # Double-safety: skip if mode doesn't match
   # ...
 end
 
-# spec/integration/authentication_security_spec.rb
-RSpec.describe "Authentication Security", :auth_mode_simple do
-  # ...
+# Mode-agnostic spec runs in simple mode job (puma_multi_process_spec.rb)
+RSpec.describe 'Puma Multi-Process Integration', :simple_auth_mode, type: :integration do
+  # tests that don't depend on auth mode
 end
 ```
 
-Run with:
+CI runs with `--tag` filtering:
 ```bash
 # Simple mode job
-bundle exec rspec --tag auth_mode_simple spec/integration/
+bundle exec rspec --tag simple_auth_mode spec/integration/
 
 # Full mode job
-bundle exec rspec --tag auth_mode_full spec/integration/
+bundle exec rspec --tag full_auth_mode spec/integration/
 ```
 
 #### 3.4 Implementation Steps
