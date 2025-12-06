@@ -5,11 +5,18 @@ name: CI
 # Main CI workflow that runs Ruby tests using RSpec and tryouts, plus TypeScript
 # tests using Vitest and validation steps (linting, type-checking).
 #
-# Architecture (Phase 3):
+# Architecture (Phase 4):
+# - Tier 0: Path filtering to skip irrelevant jobs
 # - Tier 1: Lint jobs + build-assets (parallel, fast feedback)
 # - Tier 2: Unit tests (ruby-unit, test-typescript)
 # - Tier 3: Integration tests by auth mode (parallel: simple, full, disabled)
 # - Tier 4: Container validation uses pre-built assets
+#
+# Path Filtering:
+# - Ruby-only changes skip TypeScript jobs
+# - TypeScript-only changes skip Ruby jobs
+# - CI changes (.github/**) run all jobs
+# - Use [ci full] in commit message to force all jobs
 #
 # The workflow is triggered by push events on branches starting with "fix/" or
 # "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
@@ -32,6 +39,11 @@ on:
         description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
         required: false
         default: false
+      force_full:
+        type: boolean
+        description: 'Force full CI run (skip path filtering)'
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -43,6 +55,104 @@ concurrency:
 
 jobs:
   # ============================================================================
+  # TIER 0: PATH FILTERING (~5s)
+  # Detect what changed to skip irrelevant jobs
+  # ============================================================================
+
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    outputs:
+      ruby: ${{ steps.filter.outputs.ruby }}
+      typescript: ${{ steps.filter.outputs.typescript }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      docker: ${{ steps.filter.outputs.docker }}
+      ci: ${{ steps.filter.outputs.ci }}
+      force_full: ${{ steps.check-force.outputs.force_full }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Check for force full flag
+        id: check-force
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          # Check commit message for [ci full] or workflow_dispatch input
+          # Note: COMMIT_MESSAGE is passed via env to prevent command injection
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.force_full }}" == "true" ]]; then
+            echo "force_full=true" >> $GITHUB_OUTPUT
+            echo "Force full CI triggered via workflow_dispatch"
+          elif [[ "$COMMIT_MESSAGE" == *"[ci full]"* ]]; then
+            echo "force_full=true" >> $GITHUB_OUTPUT
+            echo "Force full CI triggered via commit message"
+          else
+            echo "force_full=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Detect file changes
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+          filters: |
+            ruby:
+              - '**/*.rb'
+              - 'Gemfile'
+              - 'Gemfile.lock'
+              - '.rubocop.yml'
+              - 'spec/**'
+              - 'try/**'
+              - 'apps/**'
+              - 'lib/**'
+              - 'bin/**'
+              - 'config.ru'
+            typescript:
+              - 'src/**/*.ts'
+              - 'src/**/*.vue'
+              - 'src/**/*.tsx'
+              - 'src/**/*.js'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'tsconfig.json'
+              - 'tsconfig.*.json'
+              - 'vite.config.ts'
+              - 'vitest.config.ts'
+              - 'tailwind.config.ts'
+              - 'eslint.config.ts'
+              - 'tests/**'
+            frontend:
+              - 'src/**'
+              - 'public/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'vite.config.ts'
+              - 'tailwind.config.ts'
+              - 'postcss.config.js'
+            docker:
+              - 'Dockerfile'
+              - 'Dockerfile-lite'
+              - 'scripts/entrypoint.sh'
+              - 'etc/**'
+              - 'config.ru'
+            ci:
+              - '.github/workflows/**'
+              - '.github/actions/**'
+
+      - name: Generate job summary
+        run: |
+          echo "## Path Filter Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Category | Changed |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby | ${{ steps.filter.outputs.ruby }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript | ${{ steps.filter.outputs.typescript }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | ${{ steps.filter.outputs.frontend }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker | ${{ steps.filter.outputs.docker }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| CI | ${{ steps.filter.outputs.ci }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Force Full | ${{ steps.check-force.outputs.force_full }} |" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
   # TIER 1: LINT & BUILD JOBS (~30-45s)
   # Fast feedback on code style and syntax errors, plus asset compilation
   # ============================================================================
@@ -51,6 +161,11 @@ jobs:
     name: Ruby Lint
     timeout-minutes: 5
     runs-on: ubuntu-24.04
+    needs: [changes]
+    if: |
+      needs.changes.outputs.ruby == 'true' ||
+      needs.changes.outputs.ci == 'true' ||
+      needs.changes.outputs.force_full == 'true'
 
     steps:
       - name: Checkout code
@@ -99,6 +214,11 @@ jobs:
     name: TypeScript Lint
     timeout-minutes: 5
     runs-on: ubuntu-24.04
+    needs: [changes]
+    if: |
+      needs.changes.outputs.typescript == 'true' ||
+      needs.changes.outputs.ci == 'true' ||
+      needs.changes.outputs.force_full == 'true'
 
     steps:
       - name: Checkout code
@@ -146,6 +266,12 @@ jobs:
     name: Build Frontend Assets
     timeout-minutes: 10
     runs-on: ubuntu-24.04
+    needs: [changes]
+    if: |
+      needs.changes.outputs.frontend == 'true' ||
+      needs.changes.outputs.ruby == 'true' ||
+      needs.changes.outputs.ci == 'true' ||
+      needs.changes.outputs.force_full == 'true'
 
     steps:
       - name: Checkout code
@@ -208,7 +334,12 @@ jobs:
     name: Ruby Unit Tests
     timeout-minutes: 10
     runs-on: ubuntu-24.04
-    needs: [ruby-lint, build-assets]
+    needs: [changes, ruby-lint, build-assets]
+    if: |
+      always() &&
+      (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
+      (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
+      (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped')
 
     services:
       redis:
@@ -316,7 +447,11 @@ jobs:
     name: TypeScript Tests
     timeout-minutes: 15
     runs-on: ubuntu-24.04
-    needs: [typescript-lint]
+    needs: [changes, typescript-lint]
+    if: |
+      always() &&
+      (needs.changes.outputs.typescript == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
+      (needs.typescript-lint.result == 'success' || needs.typescript-lint.result == 'skipped')
 
     steps:
       - name: Checkout code
@@ -370,7 +505,11 @@ jobs:
     name: Ruby Integration (Simple Mode)
     timeout-minutes: 10
     runs-on: ubuntu-24.04
-    needs: [ruby-unit]
+    needs: [changes, ruby-unit]
+    if: |
+      always() &&
+      (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
+      needs.ruby-unit.result == 'success'
 
     services:
       redis:
@@ -436,6 +575,7 @@ jobs:
           echo "Running RSpec integration tests in simple mode..."
           mkdir -p tmp
           bundle exec rspec \
+            --tag simple_auth_mode \
             --format progress \
             --format json --out tmp/rspec_simple_results.json \
             spec/integration
@@ -450,6 +590,17 @@ jobs:
           bundle exec tryouts --agent try/integration/authentication/simple_mode
           bundle exec tryouts --agent try/integration/authentication/common
 
+          echo "Running other integration tests..."
+          bundle exec tryouts --agent try/integration/middleware
+          bundle exec tryouts --agent try/integration/boot
+          bundle exec tryouts --agent try/integration/auth
+          bundle exec tryouts --agent try/integration/web
+          bundle exec tryouts --agent try/integration/api
+          bundle exec tryouts --agent try/integration/email
+          bundle exec tryouts --agent try/integration/billing
+          bundle exec tryouts --agent try/integration/homepage_bypass_header_integration_try.rb
+          bundle exec tryouts --agent try/integration/homepage_mode_integration_try.rb
+
       - name: Generate job summary
         if: always()
         run: |
@@ -460,13 +611,18 @@ jobs:
             echo "- Failures: $(jq '.summary.failure_count' tmp/rspec_simple_results.json)" >> $GITHUB_STEP_SUMMARY
           fi
           echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
-          echo "- Simple mode + common tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Simple mode auth tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Other integration tests (middleware, boot, auth, web, api, email, billing, homepage) completed" >> $GITHUB_STEP_SUMMARY
 
   ruby-integration-full:
     name: Ruby Integration (Full Mode)
     timeout-minutes: 10
     runs-on: ubuntu-24.04
-    needs: [ruby-unit]
+    needs: [changes, ruby-unit]
+    if: |
+      always() &&
+      (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
+      needs.ruby-unit.result == 'success'
 
     services:
       redis:
@@ -533,6 +689,7 @@ jobs:
           echo "Running RSpec integration tests in full mode..."
           mkdir -p tmp
           bundle exec rspec \
+            --tag full_auth_mode \
             --format progress \
             --format json --out tmp/rspec_full_results.json \
             spec/integration
@@ -547,6 +704,7 @@ jobs:
           echo "Running tryouts for full authentication mode..."
           bundle exec tryouts --agent try/integration/authentication/full_mode
           bundle exec tryouts --agent try/integration/authentication/common
+          bundle exec tryouts --agent try/integration/authentication/sync_session_idempotency_try.rb
 
       - name: Generate job summary
         if: always()
@@ -564,7 +722,11 @@ jobs:
     name: Ruby Integration (Disabled Mode)
     timeout-minutes: 10
     runs-on: ubuntu-24.04
-    needs: [ruby-unit]
+    needs: [changes, ruby-unit]
+    if: |
+      always() &&
+      (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
+      needs.ruby-unit.result == 'success'
 
     services:
       redis:
@@ -647,7 +809,15 @@ jobs:
     name: Container Validation
     timeout-minutes: 10
     runs-on: ubuntu-24.04
-    needs: [ruby-integration-simple, ruby-integration-full, ruby-integration-disabled, test-typescript]
+    needs: [changes, ruby-integration-simple, ruby-integration-full, ruby-integration-disabled, test-typescript]
+    if: |
+      always() &&
+      (needs.changes.outputs.docker == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
+      (needs.ruby-integration-simple.result == 'success' || needs.ruby-integration-simple.result == 'skipped') &&
+      (needs.ruby-integration-full.result == 'success' || needs.ruby-integration-full.result == 'skipped') &&
+      (needs.ruby-integration-disabled.result == 'success' || needs.ruby-integration-disabled.result == 'skipped') &&
+      (needs.test-typescript.result == 'success' || needs.test-typescript.result == 'skipped') &&
+      !contains(needs.*.result, 'failure')
 
     services:
       redis:
