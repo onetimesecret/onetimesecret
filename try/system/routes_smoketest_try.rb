@@ -51,7 +51,7 @@ response = @mock_request.get('/api/v1/status')
 [response.status, response.body]
 #=> [200, '{"status":"nominal","locale":"en"}']
 
-## Cannot access the v1 API auth check endpoint
+## v1 API does not have an authcheck endpoint
 response = @mock_request.get('/api/v1/authcheck')
 [response.status, response.body]
 #=> [404, "{\"message\":\"Not authorized\"}"]
@@ -59,12 +59,12 @@ response = @mock_request.get('/api/v1/authcheck')
 ## Can access the v2 API status
 response = @mock_request.get('/api/v2/status')
 [response.status, response.body]
-#=> [200, '{"status":"nominal","locale":"en"}']
+#=> [200, '{"success":true,"status":"nominal","locale":"en"}']
 
-## Cannot access the v2 API auth check endpoint
+## v2 API does not have an authcheck endpoint
 response = @mock_request.get('/api/v2/authcheck')
 [response.status, response.body]
-#=> [403, "{\"message\":\"Not authorized\"}"]
+#=> [404, '{"error":"Not Found"}']
 
 ## Can access the API share endpoint
 response = @mock_request.post('/api/v1/create')
