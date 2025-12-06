@@ -28,8 +28,8 @@ rescue Redis::CannotConnectError, Redis::ConnectionError => e
 end
 
 # Setup test data
-@owner = Onetime::Customer.create!(email: "team_owner_#{Familia.now.to_i}@test.com")
-@member = Onetime::Customer.create!(email: "team_member_#{Familia.now.to_i}@test.com")
+@owner = Onetime::Customer.create!(email: generate_unique_test_email("teamv2_owner"))
+@member = Onetime::Customer.create!(email: generate_unique_test_email("teamv2_member"))
 
 ## Creating a team adds owner as first member
 @team = Onetime::Team.create!("Engineering", @owner)

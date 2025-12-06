@@ -37,10 +37,10 @@ def delete(*args); @test.delete(*args); end
 def last_response; @test.last_response; end
 
 # Setup test data
-@owner = Onetime::Customer.create!(email: "owner#{Familia.now.to_i}@onetimesecret.com")
-@member1 = Onetime::Customer.create!(email: "member1#{Familia.now.to_i}@onetimesecret.com")
-@member2 = Onetime::Customer.create!(email: "member2#{Familia.now.to_i}@onetimesecret.com")
-@non_member = Onetime::Customer.create!(email: "nonmember#{Familia.now.to_i}@onetimesecret.com")
+@owner = Onetime::Customer.create!(email: generate_unique_test_email("members_owner"))
+@member1 = Onetime::Customer.create!(email: generate_unique_test_email("members_member1"))
+@member2 = Onetime::Customer.create!(email: generate_unique_test_email("members_member2"))
+@non_member = Onetime::Customer.create!(email: generate_unique_test_email("members_nonmember"))
 
 @owner_session = { 'authenticated' => true, 'external_id' => @owner.extid, 'email' => @owner.email }
 @member1_session = { 'authenticated' => true, 'external_id' => @member1.extid, 'email' => @member1.email }
@@ -322,7 +322,7 @@ post "/api/teams/#{@team_id}/members",
 # ============================================================================
 
 ## Email lookup is case-insensitive
-@case_test_member = Onetime::Customer.create!(email: "casetest#{Familia.now.to_i}@onetimesecret.com")
+@case_test_member = Onetime::Customer.create!(email: generate_unique_test_email("members_case"))
 post "/api/teams/#{@team_id}/members",
   { email: @case_test_member.email.upcase }.to_json,  # Send uppercase email
   { 'rack.session' => @owner_session, 'CONTENT_TYPE' => 'application/json' }

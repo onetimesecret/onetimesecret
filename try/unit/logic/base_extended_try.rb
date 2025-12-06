@@ -27,7 +27,7 @@ OT.boot! :test, false
 # Setup some variables for these tryouts
 @now = Familia.now
 @from_address = OT.conf.dig('emailer', 'from')
-@email_address = "tryouts+#{Familia.now.to_i}@onetimesecret.com"
+@email_address = generate_unique_test_email("base_extended")
 @session = {}
 @strategy_result = MockStrategyResult.new(session: @session, user: nil)
 @cust = Customer.new email: @email_address

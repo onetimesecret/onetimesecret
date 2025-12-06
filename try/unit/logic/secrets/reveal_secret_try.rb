@@ -18,7 +18,7 @@ require_relative '../../../support/test_logic'
 
 OT.boot! :test, false
 
-@email = "tryouts+#{Familia.now.to_i}@onetimesecret.com"
+@email = generate_unique_test_email("reveal_secret")
 @cust = Onetime::Customer.create!(email: @email)
 
 # Define a lambda to create and return a new metadata instance

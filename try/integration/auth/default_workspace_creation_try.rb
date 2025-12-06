@@ -18,7 +18,7 @@ end
 require_relative '../../../apps/web/auth/operations/create_default_workspace'
 
 # Setup: Create a new customer (simulating registration)
-@email = "newuser_#{Familia.now.to_i}@example.com"
+@email = generate_unique_test_email("workspace_new")
 @customer = Onetime::Customer.create!(email: @email)
 
 ## Customer created successfully
@@ -75,7 +75,7 @@ customer_orgs.size
 #=> 1
 
 ## Customer already in org scenario
-@existing_email = "existing_#{Familia.now.to_i}@example.com"
+@existing_email = generate_unique_test_email("workspace_exist")
 @existing_customer = Onetime::Customer.create!(email: @existing_email)
 @existing_org = Onetime::Organization.create!("Existing Org", @existing_customer, @existing_email)
 

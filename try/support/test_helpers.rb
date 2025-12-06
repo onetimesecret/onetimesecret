@@ -8,6 +8,16 @@
 ENV['RACK_ENV'] ||= 'test'
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..')).freeze
 
+# Set test database URL BEFORE config loads - use port 2121 to avoid conflicts
+# with development Redis. This must be set before config.test.yaml is loaded via
+# ERB since it checks ENV['VALKEY_URL'] || ENV['REDIS_URL'] || default.
+#
+# IMPORTANT: Override both VALKEY_URL and REDIS_URL to prevent production values
+# from .env file or CI environment leaking into tests.
+TEST_REDIS_URL = 'redis://127.0.0.1:2121/0'
+ENV['VALKEY_URL'] = TEST_REDIS_URL
+ENV['REDIS_URL'] = TEST_REDIS_URL
+
 project_root = ENV['ONETIME_HOME']
 app_root = File.join(project_root, '/apps').freeze
 
@@ -41,6 +51,15 @@ def generate_random_email
   domain = "onetimesecret.com"
   # Combine to form an email address
   "#{username}@#{domain}"
+end
+
+# Generate a unique test email with file context and entropy
+# @param prefix [String] Optional prefix to identify test context (e.g., "secrets", "auth")
+# @return [String] A unique email address for testing
+def generate_unique_test_email(prefix = "tryouts")
+  timestamp = Familia.now.to_i
+  entropy = SecureRandom.hex(4)
+  "#{prefix}+#{timestamp}+#{entropy}@onetimesecret.com"
 end
 
 # Mock StrategyResult for testing Logic classes
