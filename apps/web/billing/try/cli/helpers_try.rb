@@ -104,20 +104,22 @@ error  = Stripe::StripeError.new('Something went wrong')
 helper.format_stripe_error('Failed', error)
 #=~ /Failed.*Something went wrong/
 
-## Test: measure_api_time returns result and elapsed time
+## Test: measure_api_time returns result and elapsed time as array
 helper = @helper_class.new
-helper.measure_api_time do
-              sleep(0.01)
-              'done'
+result, elapsed = helper.measure_api_time do
+  sleep(0.01)
+  'done'
 end
+result
 #=> 'done'
 
-## Test: measure_api_time elapsed is positive
+## Test: measure_api_time elapsed is positive integer
 helper = @helper_class.new
-helper.measure_api_time do
-               sleep(0.01)
-               'done'
+result, elapsed = helper.measure_api_time do
+  sleep(0.01)
+  'done'
 end
+elapsed >= 10
 #=> true
 
 ## Test: validate_product_metadata detects missing fields

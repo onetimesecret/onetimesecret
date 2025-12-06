@@ -31,7 +31,8 @@ OT.conf['emailer']['user']
 #=> nil
 
 ## SMTP password in test environment
-OT.conf['emailer']['pass'] #=> ""
+OT.conf['emailer']['pass']
+#=> nil
 
 ## SMTP auth in test environment
 OT.conf['emailer']['auth']
@@ -43,7 +44,7 @@ OT.conf['emailer']['tls']
 
 ## Test environment config is loaded from etc/config.test.yaml
 # These values match what's configured in etc/config.test.yaml which is loaded
-# during boot when RACK_ENV=test. The .env.test file also sets some values
-# but the YAML config file takes precedence for most settings.
+# during boot when RACK_ENV=test. The YAML config file takes precedence for most
+# settings.
 true
 #=> true

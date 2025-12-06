@@ -34,12 +34,14 @@ end
 Familia.dbclient.flushdb
 OT.info "Cleaned Redis for fresh test run"
 
-# Setup
-@owner = Onetime::Customer.create!(email: "org_owner_#{Familia.now.to_i}@test.com")
-@member = Onetime::Customer.create!(email: "org_member_#{Familia.now.to_i}@test.com")
+# Setup with unique identifiers
+@test_suffix = "#{Familia.now.to_i}_#{rand(10000)}"
+@owner = Onetime::Customer.create!(email: "org_owner_#{@test_suffix}@test.com")
+@member = Onetime::Customer.create!(email: "org_member_#{@test_suffix}@test.com")
+@billing_email = "billing_#{@test_suffix}@acme.com"
 
 ## Creating organization
-@org = Onetime::Organization.create!("Acme Corp", @owner, "billing@acme.com")
+@org = Onetime::Organization.create!("Acme Corp", @owner, @billing_email)
 [@org.class, @org.display_name, @org.owner_id]
 #=> [Onetime::Organization, "Acme Corp", @owner.custid]
 

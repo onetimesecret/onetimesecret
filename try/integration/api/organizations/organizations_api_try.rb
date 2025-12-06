@@ -39,7 +39,7 @@ def delete(*args); @test.delete(*args); end
 def last_response; @test.last_response; end
 
 # Setup test data
-@cust = Onetime::Customer.create!(email: "testuser#{Familia.now.to_i}@onetimesecret.com")
+@cust = Onetime::Customer.create!(email: generate_unique_test_email("orgs_api"))
 @session = { 'authenticated' => true, 'external_id' => @cust.extid, 'email' => @cust.email }
 
 ## Can create organization via API - check status first

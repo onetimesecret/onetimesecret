@@ -34,7 +34,7 @@ Auth = Core::Logic::Authentication
 # on successful login, as implemented in migrate_password_hash_if_needed.
 
 # Setup a customer with bcrypt password for migration tests
-@migration_email = "migration+#{Familia.now.to_i}@onetimesecret.com"
+@migration_email = generate_unique_test_email("auth_migrate")
 @migration_cust = Customer.create!(email: @migration_email)
 @migration_cust.update_passphrase(@testpass, algorithm: :bcrypt)
 @migration_cust.save
@@ -78,7 +78,7 @@ Auth = Core::Logic::Authentication
 #=> true
 
 ## Failed login does not trigger migration (setup new bcrypt customer)
-@failed_email = "failed+#{Familia.now.to_i}@onetimesecret.com"
+@failed_email = generate_unique_test_email("auth_failed")
 @failed_cust = Customer.create!(email: @failed_email)
 @failed_cust.update_passphrase(@testpass, algorithm: :bcrypt)
 @failed_cust.save

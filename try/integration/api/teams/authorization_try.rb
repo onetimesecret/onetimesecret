@@ -40,9 +40,9 @@ def delete(*args); @test.delete(*args); end
 def last_response; @test.last_response; end
 
 # Setup test data
-@owner = Onetime::Customer.create!(email: "authowner#{Familia.now.to_i}@onetimesecret.com")
-@member = Onetime::Customer.create!(email: "authmember#{Familia.now.to_i}@onetimesecret.com")
-@outsider = Onetime::Customer.create!(email: "outsider#{Familia.now.to_i}@onetimesecret.com")
+@owner = Onetime::Customer.create!(email: generate_unique_test_email("auth_owner"))
+@member = Onetime::Customer.create!(email: generate_unique_test_email("auth_member"))
+@outsider = Onetime::Customer.create!(email: generate_unique_test_email("auth_outsider"))
 
 @owner_session = { 'authenticated' => true, 'external_id' => @owner.extid, 'email' => @owner.email }
 @member_session = { 'authenticated' => true, 'external_id' => @member.extid, 'email' => @member.email }
@@ -168,7 +168,7 @@ last_response.status
 #=> 200
 
 ## Member cannot add members
-@new_user = Onetime::Customer.create!(email: "newuser#{Familia.now.to_i}@onetimesecret.com")
+@new_user = Onetime::Customer.create!(email: generate_unique_test_email("auth_newuser"))
 post "/api/teams/#{@team_id}/members",
   { email: @new_user.email }.to_json,
   { 'rack.session' => @member_session, 'CONTENT_TYPE' => 'application/json' }
@@ -188,7 +188,7 @@ member_ids.include?(@new_user.custid)
 @new_user.destroy!
 
 ## Non-member cannot add members
-@another_user = Onetime::Customer.create!(email: "anotheruser#{Familia.now.to_i}@onetimesecret.com")
+@another_user = Onetime::Customer.create!(email: generate_unique_test_email("auth_another"))
 @outsider_team = Onetime::Team.create!("Outsider Team", @outsider)
 @outsider_team_id = @outsider_team.extid  # Use extid
 post "/api/teams/#{@team_id}/members",
@@ -210,7 +210,7 @@ last_response.status
 
 ## Member cannot remove other members
 @team.add_member(@member, 'member')
-@another_member = Onetime::Customer.create!(email: "anothermember#{Familia.now.to_i}@onetimesecret.com")
+@another_member = Onetime::Customer.create!(email: generate_unique_test_email("auth_anothermem"))
 @team.add_member(@another_member, 'member')
 delete "/api/teams/#{@team_id}/members/#{@another_member.custid}",
   {},
@@ -231,7 +231,7 @@ member_ids.include?(@another_member.custid)
 @another_member.destroy!
 
 ## Non-member cannot remove members
-@outsider_member = Onetime::Customer.create!(email: "outsidermember#{Familia.now.to_i}@onetimesecret.com")
+@outsider_member = Onetime::Customer.create!(email: generate_unique_test_email("auth_outmember"))
 @team.add_member(@outsider_member, 'member')
 delete "/api/teams/#{@team_id}/members/#{@outsider_member.custid}",
   {},
@@ -243,8 +243,8 @@ delete "/api/teams/#{@team_id}/members/#{@outsider_member.custid}",
 @outsider_member.destroy!
 
 ## Teams are isolated - user cannot see other user's teams
-@user1 = Onetime::Customer.create!(email: "isolation1#{Familia.now.to_i}@onetimesecret.com")
-@user2 = Onetime::Customer.create!(email: "isolation2#{Familia.now.to_i}@onetimesecret.com")
+@user1 = Onetime::Customer.create!(email: generate_unique_test_email("auth_iso1"))
+@user2 = Onetime::Customer.create!(email: generate_unique_test_email("auth_iso2"))
 @user1_session = { 'authenticated' => true, 'external_id' => @user1.extid, 'email' => @user1.email }
 @user2_session = { 'authenticated' => true, 'external_id' => @user2.extid, 'email' => @user2.email }
 @user1_team = Onetime::Team.create!("User 1 Team", @user1)
@@ -286,7 +286,7 @@ last_response.status
 
 ## Non-member cannot list members
 # Note: @outsider was added to the team earlier, so use a fresh non-member
-@non_member = Onetime::Customer.create!(email: "nonmember#{Familia.now.to_i}@onetimesecret.com")
+@non_member = Onetime::Customer.create!(email: generate_unique_test_email("auth_nonmember"))
 @non_member_session = { 'authenticated' => true, 'external_id' => @non_member.extid, 'email' => @non_member.email }
 get "/api/teams/#{@team_id}/members",
   {},

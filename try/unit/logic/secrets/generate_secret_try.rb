@@ -19,7 +19,7 @@ OT.boot! :test, false
 
 # Setup common test variables
 @now = Familia.now
-@email = "tryouts+#{Familia.now.to_i}@onetimesecret.com"
+@email = generate_unique_test_email("generate_secret")
 @session = {}
 @strategy_result = MockStrategyResult.new(session: @session, user: nil)
 @cust = Customer.create!(email: @email)

@@ -17,6 +17,18 @@ module V1
       @req, @res = req, res
     end
 
+    # Access the current session via Rack::Request extension
+    # Required by SessionHelpers module
+    def session
+      req.session
+    end
+
+    # Alias for req to support SessionHelpers
+    # Required by SessionHelpers#authenticate! which calls request.session_options
+    def request
+      req
+    end
+
     def publically
       carefully do
         check_locale!

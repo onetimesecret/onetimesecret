@@ -20,7 +20,7 @@ rescue Redis::CannotConnectError, Redis::ConnectionError => e
   exit 0
 end
 
-@email = "tryouts+#{Familia.now.to_i}@onetimesecret.com"
+@email = generate_unique_test_email("rest_transform")
 @cust = Onetime::Customer.create!(email: @email)
 @session = {}
 @strategy_result = MockStrategyResult.new(session: @session, user: @cust)
