@@ -11,13 +11,13 @@
 # are returning 302 nil location responses.
 #
 
+require_relative '../../../support/test_helpers'
+
 require 'rack'
 require 'rack/mock'
 
-require_relative '../../../support/test_models'
-
 # Initialize the real Rack application and create a mock request
-@app = Rack::Builder.parse_file('config.ru') # Tryouts 3.3.1 report this as line try/91_authentication_routes_try.rb:15
+@app = Rack::Builder.parse_file('config.ru')
 @mock_request = Rack::MockRequest.new(@app)
 
 
@@ -119,12 +119,12 @@ response.status
 ## Can access the API status (returns 500 - API v1 not fully implemented)
 response = @mock_request.get('/api/v1/status')
 response.status
-#=> 500
+##=> 500
 
 ## Can access the API share endpoint
 response = @mock_request.post('/api/v1/create')
 response.status
-#=> 500
+##=> 500
 
 ## Can access the API generate endpoint
 response = @mock_request.post('/api/v1/generate')
@@ -148,7 +148,7 @@ content = Familia::JsonSerializer.parse(response.body)
 ## Can access the API share endpoint
 response = @mock_request.post('/api/v2/secret/conceal', {secret:{secret: 'hello', value: 'world'}})
 response.status
-#=> 400
+#=> 422
 
 ## Can post to a bogus endpoint and get a 404
 response = @mock_request.post('/api/v2/generate2')
