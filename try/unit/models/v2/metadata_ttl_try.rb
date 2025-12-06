@@ -18,14 +18,12 @@
 
 require_relative '../../../support/test_models'
 
+require 'v1/controllers'
 
 OT.boot! :test, false
 
 # Setup
-@metadata, @secret = Onetime::Secret.spawn_pair 'anon'
-# metadata, secret = Onetime::Secret.spawn_pair 'anon'
-@metadata.save
-@secret.save
+@metadata, @secret = Onetime::Metadata.spawn_pair 'anon', 300, 'secret message' # 5 minutes
 
 ## Basic metadata transformation (this doubles as a check for FlexibleHashAccess)
 result = V1::Controllers::Index.metadata_hsh(@metadata)
