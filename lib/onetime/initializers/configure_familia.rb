@@ -48,8 +48,14 @@ module Onetime
         # Set encryption key with version to allow for future key rotation.
         # Without this config, familia's encrypted fields will raise an error
         # when trying to set or reveal a value.
+        #
+        # Familia expects a base64-encoded 32-byte key. We derive this from
+        # the site secret using SHA-256 to ensure consistent key length.
+        derived_key = Digest::SHA256.digest(secret_key)
+        encoded_key = Base64.strict_encode64(derived_key)
+
         Familia.config.encryption_keys     = {
-          v1: secret_key,
+          v1: encoded_key,
         }
         Familia.config.current_key_version = :v1
 
