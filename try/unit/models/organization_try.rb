@@ -166,13 +166,10 @@ rescue Onetime::Problem => e
 end
 #=> "Display name required"
 
-## Factory method requires contact email
-begin
-  Onetime::Organization.create!("Test Org", @owner, nil)
-rescue Onetime::Problem => e
-  e.message
-end
-#=> "Contact email required"
+## Factory method allows nil contact email (optional for billing setup later)
+org_without_email = Onetime::Organization.create!("Test Org No Email", @owner, nil)
+org_without_email.contact_email.nil?
+#=> true
 
 ## Factory method prevents duplicate contact email (skipped - requires unique index)
 # NOTE: This test requires a unique index on contact_email which isn't implemented yet
