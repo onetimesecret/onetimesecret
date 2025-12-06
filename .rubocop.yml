@@ -32,7 +32,7 @@ AllCops:
     - 'migrations/**/*'
     # The V1 API is in maintenance mode. No changes allowed 🚭
     - 'apps/api/v1/**/*'
-    - 'apps/*/*/spec/*'
+    - 'apps/**/**/spec/*'
     - 'bin/bundle'
     - 'node_modules/**/*'
     - 'spec/**/*'
@@ -84,6 +84,10 @@ Metrics/PerceivedComplexity:
 # When true: Use match? instead of =~ when MatchData is not used. True is preferred but not for autocorrection. Regexs are too picky. Need to manually check every time.
 Performance/RegexpMatch:
   Enabled: false
+
+RSpec/ExampleLength:
+  Enabled: true
+  Max: 10
 
 # Offense count: 186
 # Configuration parameters: AllowedConstants.
@@ -347,7 +351,7 @@ ThreadSafety/DirChdir:
 # Do not assign mutable objects to class instance variables.
 ThreadSafety/MutableClassInstanceVariable:
   Description:
-  Enabled: true
+  Enabled: false
   EnforcedStyle: literals # one of literals, strict
   SafeAutoCorrect: false
 

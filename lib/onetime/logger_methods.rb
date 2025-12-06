@@ -105,7 +105,7 @@ module Onetime
 
       # Output the box (note: no protection against overly long lines)
       lager.send(level, top_border)
-      lines.each do |it|
+      lines.each do
         padding = width - Reline::Unicode.calculate_width(it) - 2
         padding = 0 if padding.negative?
         lager.send(level, "#{vertical} #{it}#{' ' * (padding)} #{vertical}")

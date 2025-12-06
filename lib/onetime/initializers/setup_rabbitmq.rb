@@ -20,6 +20,7 @@ module Onetime
     # - One TCP connection per process (singleton)
     # - Pool of channels from that connection (thread-safe)
     #
+    # rubocop:disable Style/GlobalVars
     class SetupRabbitMQ < Onetime::Boot::Initializer
       @depends_on = [:logging]
       @provides   = [:rabbitmq]
@@ -144,5 +145,6 @@ module Onetime
           .gsub(%r{://([^/:@]+)@}, '://***@')             # key@host (no colon)
       end
     end
+    # rubocop:enable Style/GlobalVars
   end
 end

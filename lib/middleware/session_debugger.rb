@@ -28,7 +28,7 @@ module Rack
     end
 
     def call(env)
-      return @app.call(env) unless @enabled
+      return @app.call(env) unless @enabled # rubocop:disable ThreadSafety/RackMiddlewareInstanceVariable
 
       # Wrap all debugging in error handling - never break the request
       begin

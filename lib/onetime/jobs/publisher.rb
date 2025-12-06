@@ -230,13 +230,15 @@ module Onetime
 
         clear_pending_state
 
+        # rubocop:disable ThreadSafety/NewThread
         Thread.new do
           deliver_email(email_type, template: template, data: data, raw_email: raw_email)
         rescue StandardError => ex
           # Log but don't crash - this is fire-and-forget
           logger.error 'Async thread delivery failed', error: ex.message, backtrace: ex.backtrace.first(5)
         end
-
+        # rubocop:enable ThreadSafety/NewThread
+        #
         logger.info 'Spawned thread for email delivery', email_type: email_type
       end
 
