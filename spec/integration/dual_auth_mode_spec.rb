@@ -275,7 +275,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
 
       context 'without JSON Accept header' do
         it 'redirects on authentication failure' do
-          post_json '/auth/login', { login: 'test@example.com', password: 'password' }
+          post '/auth/login', { login: 'test@example.com', password: 'password' }
 
           # Should redirect or return 401, but never 500 (server error)
           expect(last_response.status).to eq(302).or eq(401)
