@@ -1,3 +1,5 @@
+inherit_from: .rubocop_todo.yml
+
 # .rubocop.yml
 #
 # This is the RuboCop configuration file.
@@ -252,15 +254,15 @@ Metrics/AbcSize:
 
 # Offense count: 217
 Layout/LineLength:
-  Enabled: false
+  Enabled: true
   AllowHeredoc: true
   AllowURI: true
   URISchemes:
     - https
-  IgnoreCopDirectives: true
+  IgnoreCopDirectives: false
   AllowedPatterns: []
   SplitStrings: false
-  Max: 100
+  #Max: 100
 
 # Align the arguments of a method call if they span more than one line.
 Layout/ArgumentAlignment:
@@ -305,7 +307,7 @@ Metrics/ClassLength:
 # Offense count: non-0
 Metrics/MethodLength:
   Enabled: true
-  Max: 50
+  #Max: 50
   CountAsOne: ['method_call']
 
 Metrics/ModuleLength:
