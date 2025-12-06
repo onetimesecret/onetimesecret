@@ -100,6 +100,7 @@ end
 #=> true
 
 ## Raises an exception when there's no secret
+@metadata.load_secret.received!
 params = {
   'identifier' => @metadata.secret_identifier
 }
@@ -169,7 +170,7 @@ logic.process
 metadata = @create_metadata.call
 params = {
   'identifier' => metadata.secret_identifier,
-  continue: true
+  'continue' => 'true'
 }
 logic = Logic::Secrets::ShowSecret.new(@strategy_result, params, 'en')
 logic.raise_concerns
@@ -195,7 +196,7 @@ multiline_content = "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
 metadata, _secret = Onetime::Metadata.spawn_pair(@cust.custid, 3600, multiline_content)
 params = {
   'identifier' => metadata.secret_identifier,
-  continue: true
+  'continue' => 'true'
 }
 logic = Logic::Secrets::ShowSecret.new(@strategy_result, params, 'en')
 logic.process
@@ -207,7 +208,7 @@ multiline_content = "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
 metadata, _secret = Onetime::Metadata.spawn_pair(@cust.custid, 3600, multiline_content)
 params = {
   'identifier' => metadata.secret_identifier,
-  continue: true
+  'continue' => 'true'
 }
 logic = Logic::Secrets::ShowSecret.new(@strategy_result, params, 'en')
 logic.process

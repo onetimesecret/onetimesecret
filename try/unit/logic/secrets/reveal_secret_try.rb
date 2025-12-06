@@ -255,6 +255,7 @@ logic.process
 metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.update_passphrase('correct_pass')
+secret.save
 params = {
   'identifier' => metadata.secret_identifier,
   'passphrase' => 'wrong_pass',
@@ -272,6 +273,7 @@ end
 metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.update_passphrase('correct_pass')
+secret.save
 params = {
   'identifier' => metadata.secret_identifier,
   'passphrase' => 'wrong_pass',
@@ -289,6 +291,7 @@ end
 metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.update_passphrase('correct_pass')
+secret.save
 params = {
   'identifier' => metadata.secret_identifier,
   'passphrase' => 'correct_pass',

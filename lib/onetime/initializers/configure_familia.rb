@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'digest'
+require 'base64'
+
 module Onetime
   module Initializers
     # ConfigureFamilia initializer
