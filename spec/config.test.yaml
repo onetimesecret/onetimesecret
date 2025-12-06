@@ -3,7 +3,7 @@ site:
   host: '127.0.0.1:3000'
   # Turns https/http on or off when generating links
   ssl: true
-  secret: <%= ENV['SITE_SECRET'] || 'SuP0r_53cRU7_t3st_0nly' %>
+  secret: <%= ENV['SECRET'] || 'SuP0r_53cRU7_t3st_0nly' %>
   interface:
     # Controls whether the web user interface is available. When disabled, the
     # homepage becomes a basic, readonly page with the logo and a brief
@@ -84,7 +84,7 @@ redis:
   uri: <%=
     ENV['VALKEY_URL'] ||
     ENV['REDIS_URL'] ||
-    'redis://127.0.0.1:6379/0'
+    'redis://127.0.0.1:2121/0'
     %>
   dbs:
     session: 0
@@ -103,9 +103,7 @@ emailer:
   user: <%= ENV.fetch('SMTP_USERNAME', nil) %>
   pass: <%= ENV.fetch('SMTP_PASSWORD', nil) %>
   auth: <%= ENV.fetch('SMTP_AUTH', nil) %>
-  tls: <%= ENV.key?('SMTP_TLS') ? ENV['SMTP_TLS'] == 'true' : nil %>
-billing:
-  enabled: false
+  tls: <%= ENV.fetch('SMTP_TLS', nil) == 'true' %>
 mail:
   truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp
