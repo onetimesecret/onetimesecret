@@ -149,7 +149,6 @@ module Onetime
       def count
         instances.count # e.g. zcard dbkey
       end
-
     end
   end
 end

@@ -33,8 +33,8 @@ module ColonelAPI
           all_domains.sort_by! { |domain| -(domain.created || 0) }
 
           # Paginate
-          start_idx        = (@page - 1) * @per_page
-          end_idx          = start_idx + @per_page - 1
+          start_idx         = (@page - 1) * @per_page
+          end_idx           = start_idx + @per_page - 1
           paginated_domains = all_domains[start_idx..end_idx] || []
 
           # Format domain data
@@ -52,8 +52,8 @@ module ColonelAPI
             }
 
             # Check if images exist
-            has_logo = domain.logo['filename'].to_s.length > 0
-            has_icon = domain.icon['filename'].to_s.length > 0
+            has_logo = !domain.logo['filename'].to_s.empty?
+            has_icon = !domain.icon['filename'].to_s.empty?
 
             {
               domain_id: domain.domainid,

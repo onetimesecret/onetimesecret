@@ -46,12 +46,12 @@ module Core
         # - Authentication tokens (:authenticity)
         # - Internal infrastructure details
         #
-        site_config = OT.conf.fetch('site', {})
+        site_config     = OT.conf.fetch('site', {})
         features_config = OT.conf.fetch('features', {})
-        development = OT.conf.fetch('development', {})
-        diagnostics = OT.conf.fetch('diagnostics', {})
+        development     = OT.conf.fetch('development', {})
+        diagnostics     = OT.conf.fetch('diagnostics', {})
 
-        safe_site = build_safe_site_config(site_config)
+        safe_site     = build_safe_site_config(site_config)
         safe_features = build_safe_features_config(features_config)
 
         # Extract values from session

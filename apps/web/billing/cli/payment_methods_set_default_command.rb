@@ -24,7 +24,7 @@ module Onetime
         pm = Stripe::PaymentMethod.retrieve(payment_method_id)
 
         unless pm.customer == customer
-          puts "Error: Payment method does not belong to customer"
+          puts 'Error: Payment method does not belong to customer'
           return
         end
 
@@ -36,15 +36,15 @@ module Onetime
 
         updated = Stripe::Customer.update(customer, {
           invoice_settings: {
-            default_payment_method: payment_method_id
-          }
-        })
+            default_payment_method: payment_method_id,
+          },
+        }
+        )
 
         puts "\nDefault payment method updated successfully"
         puts "Default: #{updated.invoice_settings.default_payment_method}"
-
-      rescue Stripe::StripeError => e
-        puts "Error setting default payment method: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error setting default payment method: #{ex.message}"
       end
     end
   end

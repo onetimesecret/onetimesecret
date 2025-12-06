@@ -55,7 +55,7 @@ module Onetime
           # @param metadata [Bunny::MessageProperties] AMQP message properties
           def store_envelope(delivery_info, metadata)
             @delivery_info = delivery_info
-            @metadata = metadata
+            @metadata      = metadata
           end
 
           # Parse and validate message payload
@@ -65,14 +65,14 @@ module Onetime
             data = JSON.parse(msg, symbolize_names: true)
             validate_schema(data)
             data
-          rescue JSON::ParserError => e
-            log_error "Invalid JSON: #{e.message}"
+          rescue JSON::ParserError => ex
+            log_error "Invalid JSON: #{ex.message}"
             reject!
             nil
           end
 
           # Validate message schema version
-          def validate_schema(data)
+          def validate_schema(_data)
             version = @metadata&.headers&.[]('x-schema-version') || 1
 
             unless Onetime::Jobs::QueueConfig::Versions.const_defined?("V#{version}")
@@ -98,7 +98,7 @@ module Onetime
           def log_error(message, error = nil, **payload)
             if error
               logger.error message, worker: worker_name, error: error.message,
-                           error_class: error.class.name, backtrace: error.backtrace&.first(5), **payload
+                error_class: error.class.name, backtrace: error.backtrace&.first(5), **payload
             else
               logger.error message, worker: worker_name, **payload
             end
@@ -115,15 +115,15 @@ module Onetime
             retries = 0
             begin
               yield
-            rescue StandardError => e
+            rescue StandardError => ex
               retries += 1
               if retries <= max_retries
                 delay = base_delay * (2**(retries - 1))
-                log_info "Retry #{retries}/#{max_retries} after #{delay}s: #{e.message}"
+                log_info "Retry #{retries}/#{max_retries} after #{delay}s: #{ex.message}"
                 sleep(delay)
                 retry
               else
-                log_error "Max retries exceeded: #{e.message}"
+                log_error "Max retries exceeded: #{ex.message}"
                 raise # Re-raise to let caller handle reject!
               end
             end
@@ -143,7 +143,7 @@ module Onetime
               routing_key: @delivery_info&.routing_key,
               redelivered: @delivery_info&.redelivered?,
               message_id: message_id,
-              schema_version: @metadata&.headers&.[]('x-schema-version')
+              schema_version: @metadata&.headers&.[]('x-schema-version'),
             }
           end
 
@@ -160,6 +160,7 @@ module Onetime
           # @return [Boolean] true if already processed
           def already_processed?(msg_id)
             return false unless msg_id
+
             Familia.dbclient.exists?("job:processed:#{msg_id}")
           end
 
@@ -168,6 +169,7 @@ module Onetime
           # Returns false if already claimed by another worker
           def claim_for_processing(msg_id)
             return false unless msg_id
+
             ttl = Onetime::Jobs::QueueConfig::IDEMPOTENCY_TTL
             # Familia.dbclient.set returns true if SET NX succeeded, false if key existed
             Familia.dbclient.set("job:processed:#{msg_id}", '1', nx: true, ex: ttl)

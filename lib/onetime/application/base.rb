@@ -247,7 +247,7 @@ module Onetime
           app_class = self
 
           # Create anonymous initializer class
-          klass = Class.new(Onetime::Boot::Initializer) do
+          Class.new(Onetime::Boot::Initializer) do
             @initializer_name  = name
             @application_class = app_class
             @depends_on        = Array(options[:depends_on])
@@ -258,7 +258,7 @@ module Onetime
 
             class << self
               attr_reader :initializer_name, :application_class, :depends_on,
-                          :provides, :optional, :description_text, :init_block
+                :provides, :optional, :description_text, :init_block
             end
 
             # Override description if provided
@@ -279,9 +279,7 @@ module Onetime
 
           # Don't auto-register here - the inherited hook will do it
           # This prevents double registration
-          klass
         end
-
       end
     end
   end

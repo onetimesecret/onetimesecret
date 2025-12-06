@@ -28,7 +28,11 @@ module Auth::Config::Hooks
              ex.message.include?('account_id')
 
             # Extract account_id from session if available
-            session_account_id = session[:account_id] rescue 'unknown'
+            session_account_id = begin
+                                   session[:account_id]
+            rescue StandardError
+                                   'unknown'
+            end
 
             diagnostic_hint = <<~HINT.strip
               Account ID #{session_account_id} exists in Redis session but not in SQLite

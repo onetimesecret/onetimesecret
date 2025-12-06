@@ -37,7 +37,7 @@ module Onetime
       # @param req [Rack::Request] The request object
       # @return [String, nil] 'internal', 'external', or nil
       def determine_homepage_mode
-        ui_config = OT.conf.dig('site', 'interface', 'ui') || {}
+        ui_config       = OT.conf.dig('site', 'interface', 'ui') || {}
         homepage_config = ui_config['homepage'] || {}
 
         configured_mode = homepage_config['mode']
@@ -47,7 +47,7 @@ module Onetime
         @cidr_matchers ||= compile_homepage_cidrs(homepage_config)
 
         # Extract client IP
-        client_ip = extract_client_ip_for_homepage(homepage_config)
+        client_ip        = extract_client_ip_for_homepage(homepage_config)
         mode_header_name = homepage_config['mode_header']
 
         # Priority 1: Check CIDR match
@@ -103,10 +103,10 @@ module Onetime
           end
 
           cidr
-        rescue IPAddr::InvalidAddressError => e
+        rescue IPAddr::InvalidAddressError => ex
           http_logger.error '[homepage_mode] Invalid CIDR', {
             cidr: cidr_string,
-            error: e.message,
+            error: ex.message,
           }
           nil
         end.compact
@@ -146,7 +146,7 @@ module Onetime
       def extract_client_ip_for_homepage(config)
         trusted_proxy_depth = config['trusted_proxy_depth'] || 1
         trusted_ip_header   = config['trusted_ip_header'] || 'X-Forwarded-For'
-        ip = nil
+        ip                  = nil
 
         # Step 1: Try to extract from trusted headers (if behind proxy)
         if trusted_proxy_depth > 0
@@ -278,10 +278,10 @@ module Onetime
         begin
           ip = IPAddr.new(ip_string)
           @cidr_matchers.any? { |cidr| cidr.include?(ip) }
-        rescue IPAddr::InvalidAddressError => e
+        rescue IPAddr::InvalidAddressError => ex
           http_logger.error '[homepage_mode] Invalid IP address', {
             ip: ip_string,
-            error: e.message,
+            error: ex.message,
           }
           false
         end

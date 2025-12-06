@@ -33,7 +33,7 @@ RSpec.describe 'Rodauth Feature Combinations' do
           :email_auth,
           # WebAuthn
           :webauthn, :webauthn_login, :webauthn_modify_email
-        ]
+        ],
       ) do
         # Security configuration
         session_inactivity_deadline 86_400
@@ -102,7 +102,7 @@ RSpec.describe 'Rodauth Feature Combinations' do
         features: [
           :base, :login, :logout,
           :two_factor_base, :otp, :recovery_codes
-        ]
+        ],
       ) do
         otp_issuer 'OneTimeSecret'
         otp_auth_failures_limit 10
@@ -132,7 +132,7 @@ RSpec.describe 'Rodauth Feature Combinations' do
         features: [
           :base, :login, :logout,
           :webauthn, :webauthn_login
-        ]
+        ],
       ) do
         webauthn_rp_name 'OnetimeSecret'
         webauthn_setup_timeout 60_000
@@ -159,7 +159,7 @@ RSpec.describe 'Rodauth Feature Combinations' do
           :base, :login, :logout,
           :email_auth,
           :webauthn, :webauthn_login
-        ]
+        ],
       ) do
         email_auth_route 'email-login'
         webauthn_rp_name 'OnetimeSecret'
@@ -188,7 +188,7 @@ RSpec.describe 'Rodauth Feature Combinations' do
     let(:app) do
       create_rodauth_app(
         db: db,
-        features: [:base, :login, :logout]
+        features: [:base, :login, :logout],
       )
     end
 

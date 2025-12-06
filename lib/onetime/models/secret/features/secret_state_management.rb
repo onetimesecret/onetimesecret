@@ -21,7 +21,6 @@ module Onetime::Secret::Features
       def count
         instances.count # e.g. zcard dbkey
       end
-
     end
 
     module InstanceMethods

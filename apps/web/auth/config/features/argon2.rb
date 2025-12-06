@@ -22,7 +22,7 @@ module Auth::Config::Features
 
       # Optional secret key for additional security.
       # If set, this is folded into the password hash.
-      if (secret = ENV['ARGON2_SECRET'])
+      if (secret = ENV.fetch('ARGON2_SECRET', nil))
         auth.argon2_secret secret
       end
 

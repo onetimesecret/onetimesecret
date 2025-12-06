@@ -50,7 +50,7 @@ module V3
             enabled: incoming_config['enabled'] || false,
             memo_max_length: incoming_config['memo_max_length'] || 50,
             default_ttl: incoming_config['default_ttl'] || 604_800,
-            recipients: OT.incoming_public_recipients # Returns hashed version
+            recipients: OT.incoming_public_recipients, # Returns hashed version
           }
 
           Onetime.secret_logger.debug "[IncomingConfig] Returning #{@config_data[:recipients].size} recipients (hashed)"
@@ -62,7 +62,7 @@ module V3
 
         def success_data
           {
-            config: config_data
+            config: config_data,
           }
         end
       end

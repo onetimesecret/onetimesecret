@@ -28,7 +28,7 @@ module Onetime
       include Onetime::Logic::OrganizationContext
 
       attr_reader :context, :sess, :cust, :params, :locale, :processed_params,
-                  :site, :features, :authentication, :domains_enabled, :strategy_result
+        :site, :features, :authentication, :domains_enabled, :strategy_result
 
       attr_accessor :domain_strategy, :display_domain
 
@@ -153,8 +153,9 @@ module Onetime
         begin
           Onetime::Mail::Mailer.deliver(:welcome, {
             email_address: cust.email,
-            secret: secret
-          })
+            secret: secret,
+          }
+          )
         rescue StandardError => ex
           errmsg = "Couldn't send the verification email. Let us know below."
           OT.le "Error sending verification email: #{ex.message}", ex.backtrace

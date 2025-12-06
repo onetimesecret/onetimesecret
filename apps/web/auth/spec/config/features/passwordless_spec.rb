@@ -19,7 +19,7 @@ RSpec.describe 'Auth::Config::Features::Passwordless' do
     let(:app) do
       create_rodauth_app(
         db: db,
-        features: [:base, :login, :logout, :email_auth]
+        features: [:base, :login, :logout, :email_auth],
       ) do
         # Configuration values from passwordless.rb
         email_auth_deadline_interval(15 * 60)        # 15 minutes
@@ -61,11 +61,11 @@ RSpec.describe 'Auth::Config::Features::Passwordless' do
 
     describe 'configuration values' do
       let(:rodauth_instance) do
-        env = {
+        env     = {
           'REQUEST_METHOD' => 'GET',
           'PATH_INFO' => '/',
           'rack.input' => StringIO.new,
-          'rack.session' => {}
+          'rack.session' => {},
         }
         request = Roda::RodaRequest.new(app.new(env), env)
         app.rodauth.new(request.scope)
@@ -97,7 +97,7 @@ RSpec.describe 'Auth::Config::Features::Passwordless' do
     let(:app) do
       create_rodauth_app(
         db: db,
-        features: [:base, :login, :logout]
+        features: [:base, :login, :logout],
       )
     end
 

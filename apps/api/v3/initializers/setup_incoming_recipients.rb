@@ -32,7 +32,7 @@ module Onetime
         raw_recipients = OT.conf.dig('features', 'incoming', 'recipients') || []
 
         # Create lookup tables
-        recipient_lookup = {}
+        recipient_lookup  = {}
         public_recipients = []
 
         raw_recipients.each do |recipient|
@@ -44,12 +44,13 @@ module Onetime
           # - Hash: { email: "...", name: "..." } (from YAML)
           if recipient.is_a?(Array)
             next if recipient.empty? || recipient[0].to_s.strip.empty?
+
             email = recipient[0].to_s.strip
-            name = recipient[1]&.strip || email.split('@').first
+            name  = recipient[1]&.strip || email.split('@').first
           else
             # Handle both symbol and string keys (config may use either)
             email = recipient[:email] || recipient['email']
-            name = recipient[:name] || recipient['name'] || email.to_s.split('@').first
+            name  = recipient[:name] || recipient['name'] || email.to_s.split('@').first
           end
 
           next if email.to_s.empty?
@@ -57,7 +58,7 @@ module Onetime
           # Generate a hash for this email
           # Use site secret as salt for consistency within process lifetime
           site_secret = OT.conf.dig('site', 'secret') || 'default-secret'
-          hash_key = Digest::SHA256.hexdigest("#{email}:#{site_secret}")
+          hash_key    = Digest::SHA256.hexdigest("#{email}:#{site_secret}")
 
           # Store for backend lookup
           recipient_lookup[hash_key] = email
@@ -65,7 +66,7 @@ module Onetime
           # Store for frontend display (without email)
           public_recipients << {
             'hash' => hash_key,
-            'name' => name
+            'name' => name,
           }
 
           OT.info "[IncomingSecrets] Registered recipient: #{name} (#{OT::Utils.obscure_email(email)}) [#{hash_key[0..7]}...]"

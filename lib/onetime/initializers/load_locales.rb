@@ -24,7 +24,7 @@ module Onetime
       @provides = [:i18n]
 
       def execute(_context)
-        i18n = OT.conf.fetch('internationalization', {})
+        i18n         = OT.conf.fetch('internationalization', {})
         i18n_enabled = i18n['enabled'] || false
 
         OT.ld '[init] Parsing through i18n locales...'
@@ -48,8 +48,8 @@ module Onetime
         # If i18n is disabled or validation failed, use english-only
         unless i18n_enabled
           supported_locales = ['en']
-          default_locale = 'en'
-          fallback_locale = nil
+          default_locale    = 'en'
+          fallback_locale   = nil
         end
 
         # Load locale definitions from filesystem
@@ -71,8 +71,8 @@ module Onetime
         # First look for the default locale in the i18n config, then
         # legacy the locales config approach of using the first one.
         supported = locales_list
-        default = i18n.fetch('default_locale', locales_list.first) || 'en'
-        fallback = i18n.fetch('fallback_locale', nil)
+        default   = i18n.fetch('default_locale', locales_list.first) || 'en'
+        fallback  = i18n.fetch('fallback_locale', nil)
 
         [supported, default, fallback]
       end
@@ -81,7 +81,7 @@ module Onetime
         # Iterate over the list of supported locales, to load their JSON
         # Supports both split locale directories (new) and monolithic files (legacy)
         confs = supported_locales.collect do |loc|
-          locale_dir = File.join(Onetime::HOME, 'src', 'locales', loc)
+          locale_dir  = File.join(Onetime::HOME, 'src', 'locales', loc)
           locale_file = File.join(Onetime::HOME, 'src', 'locales', "#{loc}.json")
 
           # Check if this locale uses the new split directory structure
@@ -118,7 +118,6 @@ module Onetime
         # Merge all files for this locale, preserving symbol keys
         # We use a custom merge that doesn't normalize keys like deep_merge does
         merged_locale = json_files.each_with_object({}) do |file_path, merged|
-          begin
             contents = File.read(file_path)
             parsed   = Familia::JsonSerializer.parse(contents, symbolize_names: true)
 
@@ -135,11 +134,10 @@ module Onetime
                 merged[top_key] = top_value
               end
             end
-          rescue Errno::ENOENT => e
-            OT.le "[init] File read error: #{file_path} - #{e.message}"
-          rescue JSON::ParserError => e
-            OT.le "[init] JSON parse error: #{file_path} - #{e.message}"
-          end
+        rescue Errno::ENOENT => ex
+            OT.le "[init] File read error: #{file_path} - #{ex.message}"
+        rescue JSON::ParserError => ex
+            OT.le "[init] JSON parse error: #{file_path} - #{ex.message}"
         end
 
         [loc, merged_locale]
@@ -150,13 +148,13 @@ module Onetime
         OT.ld "[init] Loading #{loc}: monolithic file"
         begin
           contents = File.read(locale_file)
-          conf = Familia::JsonSerializer.parse(contents, symbolize_names: true)
+          conf     = Familia::JsonSerializer.parse(contents, symbolize_names: true)
           [loc, conf]
         rescue Errno::ENOENT
           OT.le "[init] Missing locale file: #{locale_file}"
           nil
-        rescue JSON::ParserError => e
-          OT.le "[init] JSON parse error: #{locale_file} - #{e.message}"
+        rescue JSON::ParserError => ex
+          OT.le "[init] JSON parse error: #{locale_file} - #{ex.message}"
           nil
         end
       end

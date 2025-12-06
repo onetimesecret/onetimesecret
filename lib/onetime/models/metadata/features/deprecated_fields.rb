@@ -30,7 +30,7 @@ module Onetime::Metadata::Features
     end
 
     module InstanceMethods
-      def deliver_by_email(cust, locale, secret, eaddrs, template = nil, ticketno = nil)
+      def deliver_by_email(cust, _locale, secret, eaddrs, _template = nil, _ticketno = nil)
         if eaddrs.nil? || eaddrs.empty?
           secret_logger.info 'No email addresses specified for delivery', {
             metadata_id: identifier,
@@ -85,7 +85,8 @@ module Onetime::Metadata::Features
           share_domain: secret.share_domain,
           recipient: email_address,
           sender_email: cust.email,
-        }) # fallback: :async_thread is the default
+        }
+        ) # fallback: :async_thread is the default
       end
 
       # NOTE: We override the default fast writer (bang!) methods from familia

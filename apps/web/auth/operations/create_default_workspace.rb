@@ -24,7 +24,7 @@ module Auth
       # @return [Hash] Contains the created organization and team
       def call
         unless @customer
-          auth_logger.error "[create-default-workspace] Customer is nil!"
+          auth_logger.error '[create-default-workspace] Customer is nil!'
           return nil
         end
 
@@ -51,7 +51,7 @@ module Auth
         # Use Familia v2 auto-generated reverse collection method
         # This uses the participation index for O(1) lookup instead of iterating
         org_count = @customer.organization_instances.count
-        has_org = org_count > 0
+        has_org   = org_count > 0
 
         auth_logger.info "[create-default-workspace] Customer #{@customer.custid} has #{org_count} organizations"
 

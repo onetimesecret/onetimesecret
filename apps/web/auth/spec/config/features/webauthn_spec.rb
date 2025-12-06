@@ -19,7 +19,7 @@ RSpec.describe 'Auth::Config::Features::WebAuthn' do
     let(:app) do
       create_rodauth_app(
         db: db,
-        features: [:base, :login, :logout, :webauthn, :webauthn_login, :webauthn_modify_email]
+        features: [:base, :login, :logout, :webauthn, :webauthn_login, :webauthn_modify_email],
       ) do
         # Configuration values from webauthn.rb
         webauthn_rp_name 'OnetimeSecret'
@@ -69,11 +69,11 @@ RSpec.describe 'Auth::Config::Features::WebAuthn' do
 
     describe 'configuration values' do
       let(:rodauth_instance) do
-        env = {
+        env     = {
           'REQUEST_METHOD' => 'GET',
           'PATH_INFO' => '/',
           'rack.input' => StringIO.new,
-          'rack.session' => {}
+          'rack.session' => {},
         }
         request = Roda::RodaRequest.new(app.new(env), env)
         app.rodauth.new(request.scope)
@@ -113,7 +113,7 @@ RSpec.describe 'Auth::Config::Features::WebAuthn' do
     let(:app) do
       create_rodauth_app(
         db: db,
-        features: [:base, :login, :logout]
+        features: [:base, :login, :logout],
       )
     end
 

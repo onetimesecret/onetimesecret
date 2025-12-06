@@ -27,8 +27,9 @@ module Onetime
         subscriptions = Stripe::Subscription.list({
           customer: customer_id,
           status: 'active',
-          limit: 1
-        })
+          limit: 1,
+        },
+                                                 )
 
         if subscriptions.data.any?
           puts '⚠️  Customer has active subscriptions!'
@@ -36,16 +37,15 @@ module Onetime
             puts 'Cancelling all active subscriptions before deleting customer...'
             all_subscriptions = Stripe::Subscription.list({
               customer: customer_id,
-              status: 'active'
-            })
+              status: 'active',
+            },
+                                                         )
             all_subscriptions.auto_paging_each do |subscription|
-              begin
                 Stripe::Subscription.update(subscription.id, { cancel_at_period_end: false })
                 Stripe::Subscription.cancel(subscription.id)
                 puts "  Cancelled subscription #{subscription.id}"
-              rescue Stripe::StripeError => e
-                puts "  Failed to cancel subscription #{subscription.id}: #{e.message}"
-              end
+            rescue Stripe::StripeError => ex
+                puts "  Failed to cancel subscription #{subscription.id}: #{ex.message}"
             end
           else
             puts 'Cancel subscriptions first or use --yes to force deletion with cancellation'
@@ -68,9 +68,8 @@ module Onetime
         else
           puts "\nFailed to delete customer"
         end
-
-      rescue Stripe::StripeError => e
-        puts "Error deleting customer: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error deleting customer: #{ex.message}"
       end
     end
   end

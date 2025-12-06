@@ -103,7 +103,7 @@ RSpec.describe 'Auth Route Availability', type: :integration do
           login: 'test@example.com',
           'login-confirm': 'test@example.com',
           password: 'SecureP@ss123',
-          'password-confirm': 'SecureP@ss123'
+          'password-confirm': 'SecureP@ss123',
         }
         expect(last_response.content_type).to include('application/json')
       end
@@ -114,7 +114,7 @@ RSpec.describe 'Auth Route Availability', type: :integration do
           login: unique_email,
           'login-confirm': unique_email,
           password: 'SecureP@ss123!',
-          'password-confirm': 'SecureP@ss123!'
+          'password-confirm': 'SecureP@ss123!',
         }
         # Should return 200/201 (success) or 422 (validation)
         expect([200, 201, 422]).to include(last_response.status)
@@ -125,7 +125,7 @@ RSpec.describe 'Auth Route Availability', type: :integration do
           login: 'not-an-email',
           'login-confirm': 'not-an-email',
           password: 'SecureP@ss123',
-          'password-confirm': 'SecureP@ss123'
+          'password-confirm': 'SecureP@ss123',
         }
         expect(last_response.status).to eq(422)
       end

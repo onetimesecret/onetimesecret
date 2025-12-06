@@ -22,7 +22,7 @@ module Onetime
           OT.ld "[ses] Delivering to #{OT::Utils.obscure_email(email[:to])}"
 
           email_params = build_email_params(email)
-          response = ses_client.send_email(email_params)
+          response     = ses_client.send_email(email_params)
 
           log_delivery(email)
           response
@@ -37,8 +37,8 @@ module Onetime
         protected
 
         def validate_config!
-          access_key = config[:access_key_id] || ENV['AWS_ACCESS_KEY_ID']
-          secret_key = config[:secret_access_key] || ENV['AWS_SECRET_ACCESS_KEY']
+          access_key = config[:access_key_id] || ENV.fetch('AWS_ACCESS_KEY_ID', nil)
+          secret_key = config[:secret_access_key] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)
 
           if access_key.nil? || access_key.empty? || secret_key.nil? || secret_key.empty?
             raise ArgumentError, 'AWS credentials must be configured for SES'
@@ -51,32 +51,32 @@ module Onetime
           body = {
             text: {
               data: email[:text_body],
-              charset: 'UTF-8'
-            }
+              charset: 'UTF-8',
+            },
           }
 
           # Add HTML part if present
           if html_content?(email)
             body[:html] = {
               data: email[:html_body],
-              charset: 'UTF-8'
+              charset: 'UTF-8',
             }
           end
 
           params = {
             destination: {
-              to_addresses: [email[:to]]
+              to_addresses: [email[:to]],
             },
             content: {
               simple: {
                 subject: {
                   data: email[:subject],
-                  charset: 'UTF-8'
+                  charset: 'UTF-8',
                 },
-                body: body
-              }
+                body: body,
+              },
             },
-            from_email_address: email[:from]
+            from_email_address: email[:from],
           }
 
           # Add reply-to if present
@@ -92,13 +92,13 @@ module Onetime
             require 'aws-sdk-sesv2'
 
             # Configure with explicit credentials
-            region = config[:region] || ENV['AWS_REGION'] || 'us-east-1'
-            access_key = config[:access_key_id] || ENV['AWS_ACCESS_KEY_ID']
-            secret_key = config[:secret_access_key] || ENV['AWS_SECRET_ACCESS_KEY']
+            region     = config[:region] || ENV['AWS_REGION'] || 'us-east-1'
+            access_key = config[:access_key_id] || ENV.fetch('AWS_ACCESS_KEY_ID', nil)
+            secret_key = config[:secret_access_key] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)
 
             Aws::SESV2::Client.new(
               region: region,
-              credentials: Aws::Credentials.new(access_key, secret_key)
+              credentials: Aws::Credentials.new(access_key, secret_key),
             )
           end
         end

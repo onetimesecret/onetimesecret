@@ -74,12 +74,11 @@ module Onetime
       is_valid_string = options[:secret].is_a?(String) && !options[:secret].empty?
       unless is_valid_string
         site_secret = OT.conf.dig('site', 'secret')
-        if site_secret.is_a?(String) && !site_secret.empty?
-          options[:secret] = site_secret
-          OT.info "[Session] SESSION_SECRET not set, using site secret for session signing"
-        else
-          raise ArgumentError, "SESSION_SECRET is not set and no site secret available"
-        end
+        raise ArgumentError, 'SESSION_SECRET is not set and no site secret available' unless site_secret.is_a?(String) && !site_secret.empty?
+
+        options[:secret] = site_secret
+        OT.info '[Session] SESSION_SECRET not set, using site secret for session signing'
+
       end
 
       # Merge options with defaults

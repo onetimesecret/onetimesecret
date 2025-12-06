@@ -46,13 +46,11 @@ module Onetime
         # Generate name from class name
         # Billing::Initializers::StripeSetup -> :billing.stripe_setup
         def initializer_name
-          @initializer_name ||= begin
-            name.gsub('::', '.')
-              .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
-              .gsub(/([a-z\d])([A-Z])/, '\1_\2')
-              .downcase
-              .to_sym
-          end
+          @initializer_name ||= name.gsub('::', '.')
+            .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
+            .gsub(/([a-z\d])([A-Z])/, '\1_\2')
+            .downcase
+            .to_sym
         end
       end
 
@@ -85,9 +83,9 @@ module Onetime
         @status     = STATUS_COMPLETED
 
         result
-      rescue StandardError => e
+      rescue StandardError => ex
         @elapsed_ms = ((Onetime.now_in_μs - @start_time) / 1000.0).round(2)
-        @error      = e
+        @error      = ex
         @status     = STATUS_FAILED
 
         raise unless self.class.optional
@@ -206,7 +204,6 @@ module Onetime
       def application_name
         @application_class ? @application_class.name : 'core'
       end
-
     end
   end
 end

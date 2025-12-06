@@ -20,7 +20,7 @@ module AccountAPI::Logic
       def process_params
         @preference_field = params['field'].to_s
         @preference_value = params['value'].to_s == 'true'
-        @old_value = cust.send(preference_field) if valid_field?
+        @old_value        = cust.send(preference_field) if valid_field?
       end
 
       def raise_concerns

@@ -52,7 +52,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
       it 'handles empty results gracefully' do
         # Mock empty price list
         allow(Stripe::Price).to receive(:list).and_return(
-          double(data: [])
+          double(data: []),
         )
 
         output = capture_stdout do
@@ -65,18 +65,19 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
       it 'handles Stripe API errors gracefully' do
         # Mock Stripe API error
         allow(Stripe::Price).to receive(:list).and_raise(
-          Stripe::InvalidRequestError.new('Invalid request', 'param')
+          Stripe::InvalidRequestError.new('Invalid request', 'param'),
         )
 
-        expect {
+        expect do
           command.call(limit: 100)
-        }.to output(/Error fetching prices|Error/).to_stdout
+        end.to output(/Error fetching prices|Error/).to_stdout
       end
     end
   end
 
   describe Onetime::CLI::BillingPricesCreateCommand do
     subject(:command) { described_class.new }
+
     let(:product_id) { 'prod_test123' }
 
     describe '#call (create price)' do
@@ -89,7 +90,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
             amount: 900,
             currency: 'usd',
             interval: 'month',
-            interval_count: 1
+            interval_count: 1,
           )
         end
 
@@ -109,7 +110,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
           command.call(
             product_id: product_id,
             amount: 900,
-            interval: 'month'
+            interval: 'month',
           )
         end
 
@@ -123,7 +124,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         output = capture_stdout do
           command.call(
             product_id: product_id,
-            amount: 900
+            amount: 900,
           )
         end
 
@@ -138,7 +139,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
           command.call(
             product_id: product_id,
             amount: 900,
-            interval: 'month'
+            interval: 'month',
           )
         end
 
@@ -152,7 +153,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
           command.call(
             product_id: product_id,
             amount: 9000,
-            interval: 'year'
+            interval: 'year',
           )
         end
 
@@ -167,7 +168,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
           command.call(
             product_id: product_id,
             amount: 200,
-            interval: 'week'
+            interval: 'week',
           )
         end
 
@@ -182,7 +183,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
           command.call(
             product_id: product_id,
             amount: 50,
-            interval: 'day'
+            interval: 'day',
           )
         end
 
@@ -198,7 +199,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
             product_id: product_id,
             amount: 900,
             interval: 'month',
-            interval_count: 3
+            interval_count: 3,
           )
         end
 
@@ -212,7 +213,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         output = capture_stdout do
           command.call(
             product_id: product_id,
-            amount: 900
+            amount: 900,
           )
         end
 
@@ -245,7 +246,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         output = capture_stdout do
           command.call(
             product_id: product_id,
-            amount: 0
+            amount: 0,
           )
         end
 
@@ -256,7 +257,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         output = capture_stdout do
           command.call(
             product_id: product_id,
-            amount: -100
+            amount: -100,
           )
         end
 
@@ -268,7 +269,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
           command.call(
             product_id: product_id,
             amount: 900,
-            interval: 'quarterly'
+            interval: 'quarterly',
           )
         end
 
@@ -281,7 +282,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         output = capture_stdout do
           command.call(
             product_id: product_id,
-            amount: 900
+            amount: 900,
           )
         end
 
@@ -295,7 +296,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         output = capture_stdout do
           command.call(
             product_id: product_id,
-            amount: 1299
+            amount: 1299,
           )
         end
 
@@ -308,7 +309,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         output = capture_stdout do
           command.call(
             product_id: product_id,
-            amount: 900
+            amount: 900,
           )
         end
 
@@ -322,7 +323,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         allow($stdin).to receive(:gets).and_return(
           "#{product_id}\n",
           "900\n",
-          "y\n"
+          "y\n",
         )
 
         output = capture_stdout do
@@ -337,27 +338,27 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
       it 'handles product not found error' do
         # Mock product not found error
         allow(Stripe::Product).to receive(:retrieve).and_raise(
-          Stripe::InvalidRequestError.new('No such product', 'product')
+          Stripe::InvalidRequestError.new('No such product', 'product'),
         )
 
         allow($stdin).to receive(:gets).and_return("y\n")
 
-        expect {
+        expect do
           command.call(product_id: 'prod_nonexistent', amount: 1000, yes: true)
-        }.to output(/Error|No such product/).to_stdout
+        end.to output(/Error|No such product/).to_stdout
       end
 
       it 'handles price creation failure' do
         # Mock price creation error
         allow(stripe_client).to receive(:create).with(Stripe::Price, anything).and_raise(
-          Stripe::InvalidRequestError.new('Invalid currency', 'currency')
+          Stripe::InvalidRequestError.new('Invalid currency', 'currency'),
         )
 
         allow($stdin).to receive(:gets).and_return("y\n")
 
-        expect {
+        expect do
           command.call(product_id: product_id, amount: 1000, currency: 'invalid', yes: true)
-        }.to output(/Error|Invalid currency/).to_stdout
+        end.to output(/Error|Invalid currency/).to_stdout
       end
 
       it 'uses StripeClient for retry and idempotency', :unit do
@@ -366,7 +367,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         output = capture_stdout do
           command.call(
             product_id: product_id,
-            amount: 900
+            amount: 900,
           )
         end
 
@@ -378,7 +379,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
   # Helper to capture stdout
   def capture_stdout
     old_stdout = $stdout
-    $stdout = StringIO.new
+    $stdout    = StringIO.new
     yield
     $stdout.string
   ensure

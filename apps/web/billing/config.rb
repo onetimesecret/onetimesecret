@@ -44,7 +44,7 @@ module Billing
     def self.load_capabilities
       # Try billing.yaml first (new location)
       if billing_config_exists?
-        config = YAML.load_file(billing_config_path)
+        config       = YAML.load_file(billing_config_path)
         capabilities = config.dig('billing', 'capabilities')
         return capabilities if capabilities
       end
@@ -57,8 +57,8 @@ module Billing
 
       # No capabilities found
       {}
-    rescue Psych::SyntaxError => e
-      OT.le "Failed to load capabilities: #{e.message}"
+    rescue Psych::SyntaxError => ex
+      OT.le "Failed to load capabilities: #{ex.message}"
       {}
     end
 

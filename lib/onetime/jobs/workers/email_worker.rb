@@ -44,11 +44,11 @@ module Onetime
         QUEUE_OPTS = QueueConfig::QUEUES[QUEUE_NAME]
 
         from_queue QUEUE_NAME,
-                   ack: true,
-                   durable: QUEUE_OPTS[:durable],
-                   arguments: QUEUE_OPTS[:arguments] || {},
-                   threads: ENV.fetch('EMAIL_WORKER_THREADS', 4).to_i,
-                   prefetch: ENV.fetch('EMAIL_WORKER_PREFETCH', 10).to_i
+          ack: true,
+          durable: QUEUE_OPTS[:durable],
+          arguments: QUEUE_OPTS[:arguments] || {},
+          threads: ENV.fetch('EMAIL_WORKER_THREADS', 4).to_i,
+          prefetch: ENV.fetch('EMAIL_WORKER_PREFETCH', 10).to_i
 
         # Process email delivery message
         # @param msg [String] JSON-encoded message
@@ -74,8 +74,8 @@ module Onetime
 
           log_info "Email delivered: #{data[:template]}"
           ack!
-        rescue StandardError => e
-          log_error "Unexpected error delivering email", e
+        rescue StandardError => ex
+          log_error 'Unexpected error delivering email', ex
           reject! # Send to DLQ
         end
 
@@ -84,25 +84,24 @@ module Onetime
         # Deliver email via Onetime::Mail
         # Handles both templated and raw email formats
         def deliver_email(data)
-
           if data[:raw]
             deliver_raw_email(data)
           else
             deliver_templated_email(data)
           end
-        rescue Onetime::Mail::DeliveryError => e
+        rescue Onetime::Mail::DeliveryError => ex
           # Mail-specific errors - these might be transient
-          log_error "Mail delivery error: #{e.message}"
+          log_error "Mail delivery error: #{ex.message}"
           raise # Trigger retry logic
-        rescue ArgumentError => e
+        rescue ArgumentError => ex
           # Bad message format - don't retry
-          log_error "Invalid message format: #{e.message}"
+          log_error "Invalid message format: #{ex.message}"
           reject!
         end
 
         # Deliver templated email
         def deliver_templated_email(data)
-          template = data[:template]&.to_sym
+          template   = data[:template]&.to_sym
           email_data = data[:data] || {}
 
           unless template

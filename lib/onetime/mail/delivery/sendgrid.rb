@@ -26,7 +26,7 @@ module Onetime
 
           OT.ld "[sendgrid] Delivering to #{OT::Utils.obscure_email(email[:to])}"
 
-          payload = build_payload(email)
+          payload  = build_payload(email)
           response = send_request(payload)
 
           # SendGrid returns 202 Accepted for successful sends
@@ -45,7 +45,7 @@ module Onetime
         protected
 
         def validate_config!
-          api_key = config[:api_key] || ENV['SENDGRID_API_KEY']
+          api_key = config[:api_key] || ENV.fetch('SENDGRID_API_KEY', nil)
           raise ArgumentError, 'SendGrid API key must be configured' if api_key.nil? || api_key.empty?
         end
 
@@ -55,15 +55,15 @@ module Onetime
           content = [
             {
               type: 'text/plain',
-              value: email[:text_body]
-            }
+              value: email[:text_body],
+            },
           ]
 
           # Add HTML content if present
           if html_content?(email)
             content << {
               type: 'text/html',
-              value: email[:html_body]
+              value: email[:html_body],
             }
           end
 
@@ -71,11 +71,11 @@ module Onetime
             personalizations: [
               {
                 to: [{ email: email[:to] }],
-                subject: email[:subject]
-              }
+                subject: email[:subject],
+              },
             ],
             from: { email: email[:from] },
-            content: content
+            content: content,
           }
 
           # Add reply-to if present
@@ -87,20 +87,20 @@ module Onetime
         end
 
         def send_request(payload)
-          uri = URI(API_ENDPOINT)
-          http = Net::HTTP.new(uri.host, uri.port)
+          uri          = URI(API_ENDPOINT)
+          http         = Net::HTTP.new(uri.host, uri.port)
           http.use_ssl = true
 
-          request = Net::HTTP::Post.new(uri)
+          request                  = Net::HTTP::Post.new(uri)
           request['Authorization'] = "Bearer #{api_key}"
-          request['Content-Type'] = 'application/json'
-          request.body = payload.to_json
+          request['Content-Type']  = 'application/json'
+          request.body             = payload.to_json
 
           http.request(request)
         end
 
         def api_key
-          @api_key ||= config[:api_key] || ENV['SENDGRID_API_KEY']
+          @api_key ||= config[:api_key] || ENV.fetch('SENDGRID_API_KEY', nil)
         end
       end
     end

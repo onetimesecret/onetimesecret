@@ -6,7 +6,7 @@
 # Test script for SendGrid email delivery in OnetimeSecret
 # This utility verifies that SendGrid API integration is properly configured
 
-$LOAD_PATH.unshift(File.expand_path("../../lib", __FILE__))
+$LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
 
 require 'onetime'
 require 'onetime/mail/mailer/sendgrid_mailer'
@@ -18,23 +18,23 @@ Onetime.boot! :app
 Onetime::Mail::Mailer::SendGridMailer.setup
 
 # Initialize mailer with sender information
-mailer = Onetime::Mail::Mailer::SendGridMailer.new "sender@example.com", "Test Sender"
+mailer = Onetime::Mail::Mailer::SendGridMailer.new 'sender@example.com', 'Test Sender'
 
 # Send test email with sandbox mode enabled
 response = mailer.send_email(
-  "recipient@example.com",
-  "Test Email Subject",
-  "<p>This is a test html content.</p>",
-  "This is a test text content.",
+  'recipient@example.com',
+  'Test Email Subject',
+  '<p>This is a test html content.</p>',
+  'This is a test text content.',
   true, # Enable sandbox mode
 )
 
 # Check and display the results
-if response&.status_code == "200"
-  puts "Email test successful - sandbox mode working"
+if response&.status_code == '200'
+  puts 'Email test successful - sandbox mode working'
   puts "Response: #{response.inspect}"
 else
-  puts "Email test failed"
+  puts 'Email test failed'
   puts "Status: #{response&.status_code}"
   puts "Body: #{response&.body}"
 end

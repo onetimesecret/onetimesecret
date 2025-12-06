@@ -31,7 +31,7 @@ module Onetime
         public
 
         def subject
-          stamp = Time.now.utc.strftime('%b %d, %Y')
+          stamp    = Time.now.utc.strftime('%b %d, %Y')
           strategy = data[:domain_strategy] || 'default'
           "Feedback on #{stamp} via #{data[:display_domain]} (#{strategy})"
         end
@@ -60,11 +60,13 @@ module Onetime
 
         def site_ssl?
           return true unless defined?(OT) && OT.respond_to?(:conf)
+
           OT.conf.dig('site', 'ssl') != false
         end
 
         def site_host
           return 'onetimesecret.com' unless defined?(OT) && OT.respond_to?(:conf)
+
           OT.conf.dig('site', 'host') || 'onetimesecret.com'
         end
 
@@ -78,7 +80,7 @@ module Onetime
             message: message,
             display_domain: display_domain,
             domain_strategy: domain_strategy,
-            baseuri: baseuri
+            baseuri: baseuri,
           )
           TemplateContext.new(computed_data, locale).get_binding
         end

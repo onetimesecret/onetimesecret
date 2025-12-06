@@ -112,8 +112,9 @@ module Onetime
             Onetime.app_logger.info(format(
               '  %s: next run at %s',
               job.id || job.original,
-              job.next_time
-            ))
+              job.next_time,
+            ),
+                                   )
           end
         end
       end

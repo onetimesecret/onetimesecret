@@ -48,7 +48,7 @@ module Onetime
 
         def log_delivery(email, status = 'sent')
           obscured = obscure_email(email[:to])
-          message = "[mail] #{status.capitalize} via #{provider_name} to #{obscured}: #{email[:subject]}"
+          message  = "[mail] #{status.capitalize} via #{provider_name} to #{obscured}: #{email[:subject]}"
           if defined?(OT) && OT.respond_to?(:info)
             OT.info message
           else
@@ -58,7 +58,7 @@ module Onetime
 
         def log_error(email, error)
           obscured = obscure_email(email[:to])
-          message = "[mail] Delivery failed via #{provider_name} to #{obscured}: #{error.message}"
+          message  = "[mail] Delivery failed via #{provider_name} to #{obscured}: #{error.message}"
           if defined?(OT) && OT.respond_to?(:le)
             OT.le message
           else
@@ -75,11 +75,12 @@ module Onetime
             OT::Utils.obscure_email(email)
           else
             # Simple fallback obscuring
-            parts = email.to_s.split('@')
+            parts          = email.to_s.split('@')
             return email if parts.length != 2
-            local = parts[0]
-            domain = parts[1]
-            obscured_local = local.length > 2 ? "#{local[0..1]}***" : "***"
+
+            local          = parts[0]
+            domain         = parts[1]
+            obscured_local = local.length > 2 ? "#{local[0..1]}***" : '***'
             "#{obscured_local}@#{domain}"
           end
         end
@@ -92,7 +93,7 @@ module Onetime
             reply_to: email[:reply_to]&.to_s,
             subject: email[:subject].to_s,
             text_body: email[:text_body].to_s,
-            html_body: email[:html_body]&.to_s
+            html_body: email[:html_body]&.to_s,
           }
         end
 

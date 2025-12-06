@@ -40,9 +40,8 @@ module Onetime
 
         puts "\nPayment link updated successfully"
         puts "Status: #{updated.active ? 'active' : 'inactive'}"
-
-      rescue Stripe::StripeError => e
-        puts "Error updating payment link: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error updating payment link: #{ex.message}"
       end
     end
   end

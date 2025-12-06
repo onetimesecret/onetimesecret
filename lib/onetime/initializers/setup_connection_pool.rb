@@ -17,7 +17,7 @@ module Onetime
     #
     class SetupConnectionPool < Onetime::Boot::Initializer
       @depends_on = [:legacy_check]
-      @provides = [:database]
+      @provides   = [:database]
 
       def execute(_context)
         setup_connection_pool
@@ -86,7 +86,8 @@ module Onetime
       OT.log_box([
                    "✅ DATABASE: Connected #{model_count} models to Redis",
                    "   Location: #{db_info}",
-                 ], level: :debug)
+                 ], level: :debug
+      )
 
       # Optional: Single migration flag for entire DB 0
       dbkey      = Familia.join(%w[ots migration_needed db_0])
@@ -95,7 +96,7 @@ module Onetime
 
       # Set runtime state
       Onetime::Runtime.update_infrastructure(database_pool: database_pool)
-    end
+      end
     end
   end
 end

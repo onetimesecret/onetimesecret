@@ -109,8 +109,6 @@ module Billing
       upgrade_path_for(capability)
     end
 
-    private
-
     # Get tier priority for sorting (lower = higher priority/cheaper)
     #
     # @param tier [String] Tier name

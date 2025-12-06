@@ -8,24 +8,24 @@ module Onetime
     # Used by prices_validate, plans_validate, and products_validate commands
     module ValidationHelpers
       # Status indicators (consistent across all validation commands)
-      STATUS_VALID = '✓ Valid'
-      STATUS_WARNING = '⚠ Warning'
-      STATUS_ERROR = '✗ Invalid'
-      STATUS_UNUSABLE = '✗ Unusable'
+      STATUS_VALID      = '✓ Valid'
+      STATUS_WARNING    = '⚠ Warning'
+      STATUS_ERROR      = '✗ Invalid'
+      STATUS_UNUSABLE   = '✗ Unusable'
       STATUS_INCOMPLETE = '⚠ Incomplete'
-      STATUS_READY = '✓ Ready'
-      STATUS_NOT_READY = '✗ Not Ready'
+      STATUS_READY      = '✓ Ready'
+      STATUS_NOT_READY  = '✗ Not Ready'
 
       # Column widths for consistent table formatting
-      PRICE_ID_WIDTH = 31        # Full Stripe price ID (29 chars + padding)
-      PRODUCT_ID_WIDTH = 22      # Full Stripe product ID (20 chars + padding)
+      PRICE_ID_WIDTH     = 31        # Full Stripe price ID (29 chars + padding)
+      PRODUCT_ID_WIDTH   = 22      # Full Stripe product ID (20 chars + padding)
       PRODUCT_NAME_WIDTH = 25
-      PLAN_ID_WIDTH = 20
-      AMOUNT_WIDTH = 12
-      INTERVAL_WIDTH = 9
-      REGION_WIDTH = 7
+      PLAN_ID_WIDTH      = 20
+      AMOUNT_WIDTH       = 12
+      INTERVAL_WIDTH     = 9
+      REGION_WIDTH       = 7
       PRICES_COUNT_WIDTH = 16
-      STATUS_WIDTH = 15
+      STATUS_WIDTH       = 15
 
       # Determines status for a price based on errors and warnings
       #
@@ -34,7 +34,7 @@ module Onetime
       # @param warnings [Array<Hash>] Array of structured warning hashes
       # @return [String] Status indicator string
       def status_for_price(price, errors, warnings)
-        price_errors = errors.select { |e| e.is_a?(Hash) && e[:price_id] == price.id }
+        price_errors   = errors.select { |e| e.is_a?(Hash) && e[:price_id] == price.id }
         price_warnings = warnings.select { |w| w.is_a?(Hash) && w[:price_id] == price.id }
 
         return STATUS_UNUSABLE if price_errors.any? { |e| e[:type] == :archived_product }
@@ -51,7 +51,7 @@ module Onetime
       # @param warnings [Array<Hash>] Array of structured warning hashes
       # @return [String] Status indicator string
       def status_for_product(product_id, errors, warnings)
-        product_errors = errors.select { |e| e.is_a?(Hash) && e[:product_id] == product_id }
+        product_errors   = errors.select { |e| e.is_a?(Hash) && e[:product_id] == product_id }
         product_warnings = warnings.select { |w| w.is_a?(Hash) && w[:product_id] == product_id }
 
         return STATUS_NOT_READY if product_errors.any?
@@ -108,7 +108,7 @@ module Onetime
       # @param width [Integer] Line width (default: 80)
       def print_errors_section(errors, width = 80)
         structured_errors = errors.select { |e| e.is_a?(Hash) }
-        string_errors = errors.select { |e| e.is_a?(String) }
+        string_errors     = errors.select { |e| e.is_a?(String) }
 
         return if structured_errors.empty? && string_errors.empty?
 
@@ -121,11 +121,11 @@ module Onetime
           puts
           puts "    #{error[:details]}" if error[:details]
           puts
-          if error[:resolution]
-            puts "    Resolution:"
-            error[:resolution].each { |step| puts "    - #{step}" }
-            puts
-          end
+          next unless error[:resolution]
+
+          puts '    Resolution:'
+          error[:resolution].each { |step| puts "    - #{step}" }
+          puts
         end
 
         string_errors.each { |error| puts "  ✗ #{error}" }
@@ -138,7 +138,7 @@ module Onetime
       # @param width [Integer] Line width (default: 80)
       def print_warnings_section(warnings, width = 80)
         structured_warnings = warnings.select { |w| w.is_a?(Hash) }
-        string_warnings = warnings.select { |w| w.is_a?(String) }
+        string_warnings     = warnings.select { |w| w.is_a?(String) }
 
         return if structured_warnings.empty? && string_warnings.empty?
 
@@ -151,11 +151,11 @@ module Onetime
           puts
           puts "    #{warning[:details]}" if warning[:details]
           puts
-          if warning[:resolution]
-            puts "    Resolution:"
-            warning[:resolution].each { |step| puts "    - #{step}" }
-            puts
-          end
+          next unless warning[:resolution]
+
+          puts '    Resolution:'
+          warning[:resolution].each { |step| puts "    - #{step}" }
+          puts
         end
 
         string_warnings.each { |warning| puts "  • #{warning}" }
@@ -209,7 +209,7 @@ module Onetime
       # @param id_field [Symbol] Field name for ID (:id for prices, :product_id for products)
       # @return [Integer] Count of valid items
       def count_valid_items(items, errors, warnings, id_field = :id)
-        error_ids = errors.select { |e| e.is_a?(Hash) }.map { |e| e[:price_id] || e[:product_id] }.compact.uniq
+        error_ids   = errors.select { |e| e.is_a?(Hash) }.map { |e| e[:price_id] || e[:product_id] }.compact.uniq
         warning_ids = warnings.select { |w| w.is_a?(Hash) }.map { |w| w[:price_id] || w[:product_id] }.compact.uniq
 
         items.count do |item|

@@ -31,7 +31,7 @@ module Onetime
         puts
 
         # Fetch account name from Stripe API
-        stripe_key = OT.billing_config.stripe_key
+        stripe_key   = OT.billing_config.stripe_key
         account_info = fetch_account_info(stripe_key)
 
         if account_info
@@ -43,13 +43,13 @@ module Onetime
 
         # Environment Variables (first - most abstract)
         puts 'Environment Variables:'
-        display_env_status('STRIPE_KEY', ENV['STRIPE_KEY'])
-        display_env_status('STRIPE_WEBHOOK_SIGNING_SECRET', ENV['STRIPE_WEBHOOK_SIGNING_SECRET'])
+        display_env_status('STRIPE_KEY', ENV.fetch('STRIPE_KEY', nil))
+        display_env_status('STRIPE_WEBHOOK_SIGNING_SECRET', ENV.fetch('STRIPE_WEBHOOK_SIGNING_SECRET', nil))
 
         puts
         puts 'Configuration Source:'
         puts "  etc/billing.yaml (exists: #{File.exist?('etc/billing.yaml')})"
-        puts "  etc/examples/billing.example.yaml (template)"
+        puts '  etc/examples/billing.example.yaml (template)'
 
         puts
 
@@ -83,12 +83,12 @@ module Onetime
         return nil if api_key == 'nostripekey'
 
         Stripe.api_key = api_key
-        account = Stripe::Account.retrieve
+        account        = Stripe::Account.retrieve
         {
           name: account.settings.dashboard.display_name || account.business_profile&.name || 'Unknown',
-          id: account.id
+          id: account.id,
         }
-      rescue Stripe::StripeError => e
+      rescue Stripe::StripeError
         # Silently fail - connection info will still show without account name
         nil
       end
@@ -107,7 +107,7 @@ module Onetime
         end
 
         # Check for placeholder values
-        if value == 'nostripekey' || value == 'nosigningsecret'
+        if %w[nostripekey nosigningsecret].include?(value)
           puts '  Status: ✗ Using placeholder value (not configured)'
           return
         end
@@ -144,7 +144,7 @@ module Onetime
                         'Unknown'
                       end
 
-        puts "  Status: ✓ Configured"
+        puts '  Status: ✓ Configured'
         puts "  Mode: #{environment}"
         puts "  Masked: #{mask_credential(value)}"
         puts "  Length: #{value.length} characters"
@@ -162,8 +162,8 @@ module Onetime
         return '*' * value.length if value.length < 12
 
         # Show first 4 and last 4 characters
-        prefix = value[0..3]
-        suffix = value[-4..]
+        prefix        = value[0..3]
+        suffix        = value[-4..]
         masked_length = value.length - 8
 
         "#{prefix}#{'*' * masked_length}#{suffix}"

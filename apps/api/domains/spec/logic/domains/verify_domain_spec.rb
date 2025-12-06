@@ -16,30 +16,33 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
 
   let(:customer) do
     double('Customer',
-           custid: 'cust123',
-           objid: 'cust123')
+      custid: 'cust123',
+      objid: 'cust123',
+    )
   end
 
   let(:organization) do
     double('Organization',
-           objid: 'org123',
-           display_name: 'Test Org')
+      objid: 'org123',
+      display_name: 'Test Org',
+    )
   end
 
   let(:custom_domain) do
     double('CustomDomain',
-           identifier: 'domain123',
-           display_domain: 'example.com',
-           domainid: 'domain123',
-           vhost: nil,
-           'vhost=' => nil,
-           resolving: nil,
-           'resolving=' => nil,
-           updated: nil,
-           'updated=' => nil,
-           save: true,
-           verified!: true,
-           safe_dump: { display_domain: 'example.com' })
+      identifier: 'domain123',
+      display_domain: 'example.com',
+      domainid: 'domain123',
+      vhost: nil,
+      'vhost=' => nil,
+      resolving: nil,
+      'resolving=' => nil,
+      updated: nil,
+      'updated=' => nil,
+      save: true,
+      verified!: true,
+      safe_dump: { display_domain: 'example.com' },
+    )
   end
 
   let(:params) { { 'domainid' => 'domain123' } }
@@ -49,7 +52,7 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
     allow(logic).to receive(:organization).and_return(organization)
     allow(logic).to receive(:require_organization!)
     allow(Onetime::CustomDomain).to receive(:load).and_return(custom_domain)
-    allow(OT).to receive(:now).and_return(double(to_i: 1234567890))
+    allow(OT).to receive(:now).and_return(double(to_i: 1_234_567_890))
   end
 
   describe '#refresh_status' do
@@ -62,7 +65,7 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
           has_ssl: true,
           is_resolving: true,
           status: 'ACTIVE_SSL',
-          data: { 'vhost_id' => '123', 'status' => 'ACTIVE_SSL' }
+          data: { 'vhost_id' => '123', 'status' => 'ACTIVE_SSL' },
         }
       end
 
@@ -87,7 +90,7 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
       end
 
       it 'updates timestamp' do
-        expect(custom_domain).to receive(:updated=).with(1234567890)
+        expect(custom_domain).to receive(:updated=).with(1_234_567_890)
         logic.send(:refresh_status, strategy)
       end
 
@@ -108,7 +111,7 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
           ready: false,
           has_ssl: false,
           is_resolving: false,
-          data: { 'status' => 'PENDING' }
+          data: { 'status' => 'PENDING' },
         }
       end
 
@@ -133,7 +136,7 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
           ready: true,
           has_ssl: true,
           is_resolving: nil,
-          data: { 'status' => 'ACTIVE_SSL' }
+          data: { 'status' => 'ACTIVE_SSL' },
         }
       end
 
@@ -152,7 +155,7 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
         {
           ready: true,
           message: 'External management',
-          mode: 'passthrough'
+          mode: 'passthrough',
         }
       end
 
@@ -197,7 +200,7 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
         {
           validated: true,
           message: 'TXT record validated',
-          data: [{ 'match' => true }]
+          data: [{ 'match' => true }],
         }
       end
 
@@ -225,7 +228,7 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
       let(:validation_result) do
         {
           validated: false,
-          message: 'TXT record not found'
+          message: 'TXT record not found',
         }
       end
 

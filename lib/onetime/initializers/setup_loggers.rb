@@ -27,7 +27,7 @@ module Onetime
     #   Onetime::Runtime.infrastructure.cached_loggers
     #
     class SetupLoggers < Onetime::Boot::Initializer
-      @provides = [:logging].freeze
+      @provides           = [:logging].freeze
       @logger_definitions = {
         'App' => 'DEBUG_APP',
         'Auth' => 'DEBUG_AUTH',
@@ -48,8 +48,8 @@ module Onetime
       end
 
       def execute(_context)
-        @debug_boot = OT::Utils.yes?(ENV['DEBUG_BOOT'])
-        config = load_logging_config
+        @debug_boot          = OT::Utils.yes?(ENV.fetch('DEBUG_BOOT', nil))
+        config               = load_logging_config
         Onetime.logging_conf = config
 
         configure_default_level(config)
@@ -78,25 +78,25 @@ module Onetime
                                        config['default_level']&.to_sym ||
                                        :info
 
-        SemanticLogger.default_level = :debug if Onetime.debug?
+        SemanticLogger.default_level   = :debug if Onetime.debug?
         SemanticLogger.backtrace_level = ENV['BACKTRACE_LEVEL']&.to_sym || :error
       end
 
       def configure_appender(config)
         SemanticLogger.add_appender(
           io: $stdout,
-          formatter: config['formatter']&.to_sym || :color
+          formatter: config['formatter']&.to_sym || :color,
         )
       end
 
       # Create and cache logger instances with levels from config
       def create_cached_loggers(config)
         self.class.logger_definitions.each_with_object({}) do |(name, _), cache|
-          level = config.dig('loggers', name)&.to_sym || SemanticLogger.default_level
+          level        = config.dig('loggers', name)&.to_sym || SemanticLogger.default_level
           warn " initialize #{name}=#{level}" if @debug_boot
-          logger = SemanticLogger[name]
+          logger       = SemanticLogger[name]
           logger.level = level
-          cache[name] = logger
+          cache[name]  = logger
         end
       end
 
@@ -121,8 +121,8 @@ module Onetime
       # Wire up external libraries to use our cached loggers
       def configure_external_loggers(cached_loggers)
         Familia.logger = cached_loggers['Familia']
-        Otto.logger = cached_loggers['Otto']
-        Otto.debug = Onetime.debug?
+        Otto.logger    = cached_loggers['Otto']
+        Otto.debug     = Onetime.debug?
 
         configure_familia_hooks
       end
@@ -156,7 +156,7 @@ module Onetime
       end
 
       def log_effective_configuration(cached_loggers)
-        default = SemanticLogger.default_level
+        default   = SemanticLogger.default_level
         overrides = cached_loggers.filter_map do |name, logger|
           "#{name}=#{logger.level}" if logger.level != default
         end

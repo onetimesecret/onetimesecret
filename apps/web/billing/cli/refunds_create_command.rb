@@ -42,7 +42,7 @@ module Onetime
           return unless $stdin.gets.chomp.downcase == 'y'
         end
 
-        refund_params = { charge: charge }
+        refund_params          = { charge: charge }
         refund_params[:amount] = amount if amount
         refund_params[:reason] = reason if reason
 
@@ -52,9 +52,8 @@ module Onetime
         puts "  ID: #{refund.id}"
         puts "  Amount: #{format_amount(refund.amount, refund.currency)}"
         puts "  Status: #{refund.status}"
-
-      rescue Stripe::StripeError => e
-        puts "Error creating refund: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error creating refund: #{ex.message}"
       end
     end
   end

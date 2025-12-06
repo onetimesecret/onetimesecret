@@ -19,7 +19,7 @@ module Onetime
     #
     class ConfigureFamilia < Onetime::Boot::Initializer
       @depends_on = [:logging]
-      @provides = [:familia_config]
+      @provides   = [:familia_config]
 
       def execute(_context)
         uri = OT.conf.dig('redis', 'uri') || ''

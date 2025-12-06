@@ -25,10 +25,11 @@ module Auth::Config::Email
         to: email.to,
         from: email.from,
         subject: email.subject,
-        body: email.body.to_s
-      }, fallback: :sync)
+        body: email.body.to_s,
+      }, fallback: :sync
+                                                )
     end
 
-    OT.info "[email] Email delivery configured"
+    OT.info '[email] Email delivery configured'
   end
 end

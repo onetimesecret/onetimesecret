@@ -17,7 +17,7 @@ module Onetime
       @provides = [:secrets]
 
       def execute(_context)
-        global_secret = extract_global_secret
+        global_secret   = extract_global_secret
         rotated_secrets = extract_rotated_secrets
 
         Onetime::Runtime.security = Onetime::Runtime::Security.new(

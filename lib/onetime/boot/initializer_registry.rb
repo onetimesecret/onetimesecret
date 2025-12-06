@@ -158,9 +158,9 @@ module Onetime
                 results[:successful] << initializer
                 init_logger.debug "#{prefix} Completed #{initializer.name} in #{initializer.elapsed_ms}ms"
               end
-            rescue StandardError => e
+            rescue StandardError => ex
               results[:failed] << initializer
-              log_error(prefix, initializer, e)
+              log_error(prefix, initializer, ex)
               raise unless initializer.optional
             end
 
@@ -168,7 +168,7 @@ module Onetime
             log_initializer(prefix, initializer)
           end
 
-          @total_elapsed_ms = ((Onetime.now_in_μs - @boot_start_time) / 1000.0).round(2)
+          @total_elapsed_ms          = ((Onetime.now_in_μs - @boot_start_time) / 1000.0).round(2)
           results[:total_elapsed_ms] = @total_elapsed_ms
 
           results
@@ -235,14 +235,14 @@ module Onetime
         # TSort interface: iterate over dependencies of a node
         #
         # Maps capability dependencies to concrete initializers
-        def tsort_each_child(initializer, &block)
+        def tsort_each_child(initializer)
           initializer.dependencies.each do |capability|
             provider = @capability_map[capability]
             if provider.nil?
               raise ArgumentError,
-                    "Initializer '#{initializer.name}' depends on unknown capability '#{capability}'"
+                "Initializer '#{initializer.name}' depends on unknown capability '#{capability}'"
             end
-            block.call(provider)
+            yield(provider)
           end
         end
 
@@ -267,10 +267,10 @@ module Onetime
         # @return [Logger]
         def init_logger
           @init_logger ||= begin
-            logger = Logger.new($stderr)
+            logger           = Logger.new($stderr)
             # Check DEBUG_BOOT directly since SemanticLogger config hasn't run yet.
             # Fall back to WARN to match typical loggers.Boot config.
-            logger.level = ENV['DEBUG_BOOT'] ? Logger::DEBUG : Logger::WARN
+            logger.level     = ENV['DEBUG_BOOT'] ? Logger::DEBUG : Logger::WARN
             logger.formatter = proc do |_severity, _datetime, _progname, msg|
               "#{msg}\n"
             end
@@ -295,10 +295,10 @@ module Onetime
         def log_error(prefix, initializer, error)
           init_logger.error "#{prefix} #{initializer.description} FAILED"
           init_logger.error "  #{error.class}: #{error.message}"
-          if Onetime.debug?
-            error.backtrace.first(5).each do |line|
-              init_logger.error "    #{line}"
-            end
+          return unless Onetime.debug?
+
+          error.backtrace.first(5).each do |line|
+            init_logger.error "    #{line}"
           end
         end
       end

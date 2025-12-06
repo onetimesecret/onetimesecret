@@ -22,7 +22,7 @@ require_relative '../../cli/refunds_create_command'
 # - Some try to validate Stripe API behavior with stripe-mock (impossible)
 # - Should either become true unit tests (CLI only) or :integration tests (require sandbox)
 
-RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock do
+RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :stripe_mock, :unit do
   let(:stripe_client) { Billing::StripeClient.new }
 
   describe Onetime::CLI::BillingRefundsCommand do
@@ -34,24 +34,27 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
           # Create test charge first
           customer = stripe_client.create(Stripe::Customer, {
             email: 'refund-test@example.com',
-            name: 'Refund Test User'
-          })
+            name: 'Refund Test User',
+          }
+          )
 
           charge = stripe_client.create(Stripe::Charge, {
             amount: 5000,
             currency: 'usd',
             customer: customer.id,
-            source: 'tok_visa'
-          })
+            source: 'tok_visa',
+          }
+          )
 
           # Create refund
-          refund = stripe_client.create(Stripe::Refund, {
-            charge: charge.id
-          })
+          stripe_client.create(Stripe::Refund, {
+            charge: charge.id,
+          }
+          )
 
-          expect {
+          expect do
             command.call(limit: 10)
-          }.to output(/Fetching refunds from Stripe/).to_stdout
+          end.to output(/Fetching refunds from Stripe/).to_stdout
 
           # Cleanup
           stripe_client.delete(Stripe::Customer, customer.id)
@@ -71,9 +74,9 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
 
         it 'respects limit parameter' do
           # List with limit
-          expect {
+          expect do
             command.call(limit: 5)
-          }.to output(/Fetching refunds from Stripe/).to_stdout
+          end.to output(/Fetching refunds from Stripe/).to_stdout
         end
 
         it 'displays correct refund information' do
@@ -99,7 +102,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
         it 'displays appropriate message' do
           # Mock empty refund list (stripe-mock always returns data)
           allow(Stripe::Refund).to receive(:list).and_return(
-            double(data: [])
+            double(data: []),
           )
 
           output = capture_stdout do
@@ -113,22 +116,22 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
       context 'with Stripe API errors' do
         it 'handles invalid charge ID gracefully' do
           allow(Stripe::Refund).to receive(:list).and_raise(
-            Stripe::InvalidRequestError.new('Invalid charge', 'charge')
+            Stripe::InvalidRequestError.new('Invalid charge', 'charge'),
           )
 
-          expect {
+          expect do
             command.call(charge: 'invalid_id', limit: 10)
-          }.to output(/Error fetching refunds/).to_stdout
+          end.to output(/Error fetching refunds/).to_stdout
         end
 
         it 'handles network errors gracefully' do
           allow(Stripe::Refund).to receive(:list).and_raise(
-            Stripe::APIConnectionError.new('Network error')
+            Stripe::APIConnectionError.new('Network error'),
           )
 
-          expect {
+          expect do
             command.call(limit: 10)
-          }.to output(/Error fetching refunds/).to_stdout
+          end.to output(/Error fetching refunds/).to_stdout
         end
       end
 
@@ -155,15 +158,17 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
           # This test validates CLI accepts parameters, not Stripe API behavior
           # Create test charge
           customer = stripe_client.create(Stripe::Customer, {
-            email: 'refund-create-test@example.com'
-          })
+            email: 'refund-create-test@example.com',
+          }
+          )
 
           charge = stripe_client.create(Stripe::Charge, {
             amount: 5000,
             currency: 'usd',
             customer: customer.id,
-            source: 'tok_visa'
-          })
+            source: 'tok_visa',
+          }
+          )
 
           # Simulate user confirmation
           allow($stdin).to receive(:gets).and_return("y\n")
@@ -183,15 +188,17 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
 
         it 'creates partial refund' do
           customer = stripe_client.create(Stripe::Customer, {
-            email: 'partial-refund-test@example.com'
-          })
+            email: 'partial-refund-test@example.com',
+          }
+          )
 
           charge = stripe_client.create(Stripe::Charge, {
-            amount: 10000,
+            amount: 10_000,
             currency: 'usd',
             customer: customer.id,
-            source: 'tok_visa'
-          })
+            source: 'tok_visa',
+          }
+          )
 
           allow($stdin).to receive(:gets).and_return("y\n")
 
@@ -208,15 +215,17 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
 
         it 'includes reason when provided' do
           customer = stripe_client.create(Stripe::Customer, {
-            email: 'refund-reason-test@example.com'
-          })
+            email: 'refund-reason-test@example.com',
+          }
+          )
 
           charge = stripe_client.create(Stripe::Charge, {
             amount: 3000,
             currency: 'usd',
             customer: customer.id,
-            source: 'tok_visa'
-          })
+            source: 'tok_visa',
+          }
+          )
 
           allow($stdin).to receive(:gets).and_return("y\n")
 
@@ -233,15 +242,17 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
 
         it 'bypasses confirmation with --yes flag' do
           customer = stripe_client.create(Stripe::Customer, {
-            email: 'refund-yes-test@example.com'
-          })
+            email: 'refund-yes-test@example.com',
+          }
+          )
 
           charge = stripe_client.create(Stripe::Charge, {
             amount: 2000,
             currency: 'usd',
             customer: customer.id,
-            source: 'tok_visa'
-          })
+            source: 'tok_visa',
+          }
+          )
 
           # Should not prompt for confirmation
           expect($stdin).not_to receive(:gets)
@@ -258,15 +269,17 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
 
         it 'aborts when user declines confirmation' do
           customer = stripe_client.create(Stripe::Customer, {
-            email: 'refund-decline-test@example.com'
-          })
+            email: 'refund-decline-test@example.com',
+          }
+          )
 
           charge = stripe_client.create(Stripe::Charge, {
             amount: 1000,
             currency: 'usd',
             customer: customer.id,
-            source: 'tok_visa'
-          })
+            source: 'tok_visa',
+          }
+          )
 
           allow($stdin).to receive(:gets).and_return("n\n")
 
@@ -284,12 +297,12 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
       context 'with invalid charge ID' do
         it 'handles non-existent charge gracefully' do
           allow(Stripe::Charge).to receive(:retrieve).and_raise(
-            Stripe::InvalidRequestError.new('No such charge', 'charge')
+            Stripe::InvalidRequestError.new('No such charge', 'charge'),
           )
 
-          expect {
+          expect do
             command.call(charge: 'ch_nonexistent', yes: true)
-          }.to output(/Error creating refund/).to_stdout
+          end.to output(/Error creating refund/).to_stdout
         end
 
         it 'handles already refunded charge' do
@@ -300,42 +313,42 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
               id: 'ch_already_refunded',
               amount: 1000,
               currency: 'usd',
-              customer: 'cus_test'
-            )
+              customer: 'cus_test',
+            ),
           )
 
           allow(Stripe::Refund).to receive(:create).and_raise(
             Stripe::InvalidRequestError.new(
               'Charge ch_already_refunded has already been refunded',
-              'charge'
-            )
+              'charge',
+            ),
           )
 
-          expect {
+          expect do
             command.call(charge: 'ch_already_refunded', yes: true)
-          }.to output(/Error creating refund/).to_stdout
+          end.to output(/Error creating refund/).to_stdout
         end
       end
 
       context 'with Stripe API errors' do
         it 'handles network errors gracefully' do
           allow(Stripe::Charge).to receive(:retrieve).and_raise(
-            Stripe::APIConnectionError.new('Network error')
+            Stripe::APIConnectionError.new('Network error'),
           )
 
-          expect {
+          expect do
             command.call(charge: 'ch_test', yes: true)
-          }.to output(/Error creating refund/).to_stdout
+          end.to output(/Error creating refund/).to_stdout
         end
 
         it 'handles authentication errors' do
           allow(Stripe::Charge).to receive(:retrieve).and_raise(
-            Stripe::AuthenticationError.new('Invalid API key')
+            Stripe::AuthenticationError.new('Invalid API key'),
           )
 
-          expect {
+          expect do
             command.call(charge: 'ch_test', yes: true)
-          }.to output(/Error creating refund/).to_stdout
+          end.to output(/Error creating refund/).to_stdout
         end
       end
 
@@ -355,7 +368,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit, :stripe_mock
   # Helper to capture stdout
   def capture_stdout
     old_stdout = $stdout
-    $stdout = StringIO.new
+    $stdout    = StringIO.new
     yield
     $stdout.string
   ensure

@@ -83,7 +83,7 @@ apps_root = File.join(ENV['ONETIME_HOME'] || Dir.pwd, 'apps')
 if Dir.exist?(apps_root)
   cli_patterns = [
     File.join(apps_root, '*', 'cli', '**', '*_command.rb'),
-    File.join(apps_root, '*', '*', 'cli', '**', '*_command.rb')
+    File.join(apps_root, '*', '*', 'cli', '**', '*_command.rb'),
   ]
 
   cli_patterns.each do |pattern|

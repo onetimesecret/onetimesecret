@@ -510,7 +510,7 @@ module Onetime
   # for us to have our own consistent naming conventions.
   unless defined?(KEY_MAP)
     KEY_MAP = {
-      # Note: validation_type_for is NOT mapped because it's the correct setter name
+      # NOTE: validation_type_for is NOT mapped because it's the correct setter name
       # in Truemail. The getter is validation_type_by_domain (asymmetric API).
       'allowed_domains_only' => 'whitelist_validation',
       'allowed_emails' => 'whitelisted_emails',

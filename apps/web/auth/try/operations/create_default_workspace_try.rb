@@ -6,9 +6,9 @@
 #
 
 # Setup - Load the real application
-ENV['RACK_ENV'] = 'test'
+ENV['RACK_ENV']            = 'test'
 ENV['AUTHENTICATION_MODE'] = 'simple'
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..', '..', '..', '..')).freeze
+ENV['ONETIME_HOME']      ||= File.expand_path(File.join(__dir__, '..', '..', '..', '..', '..')).freeze
 
 require_relative '../../../../../try/support/test_helpers'
 
@@ -20,9 +20,9 @@ require_relative '../../operations/create_default_workspace'
 require_relative '../../../billing/controllers/billing'
 
 # Setup: Create test customer
-@customer = Onetime::Customer.create!(email: "selfheal_#{Familia.now.to_i}@example.com")
+@customer          = Onetime::Customer.create!(email: "selfheal_#{Familia.now.to_i}@example.com")
 @customer.verified = true
-@customer.role = :customer
+@customer.role     = :customer
 
 ## Can detect when customer has no organizations
 @customer.organization_instances.empty?
@@ -30,8 +30,8 @@ require_relative '../../../billing/controllers/billing'
 
 ## Can check CreateDefaultWorkspace operation directly
 result = Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
-@org = result[:organization]
-@team = result[:team]
+@org   = result[:organization]
+@team  = result[:team]
 [@org.class.name, @team.class.name]
 #=> ['Onetime::Organization', 'Onetime::Team']
 
@@ -48,10 +48,9 @@ result = Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
 #=> true
 
 ## Verifies workspace creation is idempotent (doesn't create duplicates)
-before_count = @customer.organization_instances.size
+@customer.organization_instances.size
 Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
-after_count = @customer.organization_instances.size
-before_count == after_count
+@customer.organization_instances.size
 #=> true
 
 # Teardown
@@ -60,6 +59,6 @@ begin
   @team.delete! if @team
   @org.delete! if @org
   @customer.delete! if @customer
-rescue => e
-  puts "Cleanup error (non-fatal): #{e.message}"
+rescue StandardError => ex
+  puts "Cleanup error (non-fatal): #{ex.message}"
 end

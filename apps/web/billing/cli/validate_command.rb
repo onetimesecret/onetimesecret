@@ -27,12 +27,12 @@ module Onetime
           catalog: nil,
           products: nil,
           prices: nil,
-          plans: nil
+          plans: nil,
         }
 
         # 1. Catalog validation (YAML structure)
         results[:catalog] = run_validation('Catalog Structure', strict) do
-          system("bin/ots billing catalog validate#{strict ? ' --strict' : ''}")
+          system("bin/ots billing catalog validate#{' --strict' if strict}")
         end
 
         puts
@@ -51,7 +51,7 @@ module Onetime
 
           # 3. Prices validation (Stripe prices sanity)
           results[:prices] = run_validation('Prices Configuration', strict) do
-            system("bin/ots billing prices validate#{strict ? ' --strict' : ''}")
+            system("bin/ots billing prices validate#{' --strict' if strict}")
           end
 
           puts
@@ -60,13 +60,13 @@ module Onetime
 
           # 4. Plans validation (production readiness)
           results[:plans] = run_validation('Plans Production Readiness', strict) do
-            system("bin/ots billing plans validate#{strict ? ' --strict' : ''}")
+            system("bin/ots billing plans validate#{' --strict' if strict}")
           end
         else
           puts '⚠️  Skipping Stripe API validations (no API key configured)'
           results[:products] = :skipped
-          results[:prices] = :skipped
-          results[:plans] = :skipped
+          results[:prices]   = :skipped
+          results[:plans]    = :skipped
         end
 
         # Print summary
@@ -78,13 +78,11 @@ module Onetime
 
       private
 
-      def run_validation(name, strict)
+      def run_validation(name, _strict)
         puts "Running: #{name}"
         puts
 
-        success = yield
-
-        success
+        yield
       end
 
       def print_summary(results)
@@ -107,8 +105,8 @@ module Onetime
         end
 
         puts
-        passed_count = results.values.count(true)
-        failed_count = results.values.count(false)
+        passed_count  = results.values.count(true)
+        failed_count  = results.values.count(false)
         skipped_count = results.values.count(:skipped)
 
         if failed_count.zero?

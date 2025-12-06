@@ -6,13 +6,13 @@ require 'spec_helper'
 
 RSpec.xdescribe Core::Logic::Authentication::AuthenticateSession do
   skip 'Temporarily skipped - added by #1677, extracted from an orphan branch, but never passing yet'
-  let(:session) { double('Session', short_identifier: 'def456', set_info_message: nil, replace!: nil, save: nil, :"custid=" => nil, :"authenticated=" => nil, :"default_expiration=" => nil) }
+  subject { described_class.new(session, customer, params, locale) }
+
+  let(:session) { double('Session', short_identifier: 'def456', set_info_message: nil, replace!: nil, save: nil, 'custid=': nil, 'authenticated=': nil, 'default_expiration=': nil) }
   let(:customer) { double('Customer', custid: 'test@example.com', anonymous?: false, passphrase?: true, pending?: false, role: :customer, role?: true, obscure_email: 'te***@example.com', save: nil) }
   let(:anonymous_customer) { double('Customer', anonymous?: true) }
   let(:params) { { login: 'test@example.com', password: 'password123' } }
   let(:locale) { 'en' }
-
-  subject { described_class.new(session, customer, params, locale) }
 
   before do
     allow(Onetime::Customer).to receive(:load).and_return(customer)
@@ -99,13 +99,13 @@ RSpec.xdescribe Core::Logic::Authentication::AuthenticateSession do
 
         it 'sends verification email and sets info message' do
           expect(subject).to receive(:send_verification_email).with(nil)
-          expect(session).to receive(:set_info_message).with("Verification sent to test@example.com.")
+          expect(session).to receive(:set_info_message).with('Verification sent to test@example.com.')
           subject.process
         end
 
         it 'logs pending customer login' do
-          expect(OT).to receive(:info).with("[login-pending-customer] def456 test@example.com customer (pending)")
-          expect(OT).to receive(:li).with("[ResetPasswordRequest] Resending verification email to test@example.com")
+          expect(OT).to receive(:info).with('[login-pending-customer] def456 test@example.com customer (pending)')
+          expect(OT).to receive(:li).with('[ResetPasswordRequest] Resending verification email to test@example.com')
           subject.process
         end
       end
@@ -139,8 +139,8 @@ RSpec.xdescribe Core::Logic::Authentication::AuthenticateSession do
         end
 
         it 'logs successful login' do
-          expect(OT).to receive(:info).with("[login-success] def456 te***@example.com customer (replacing sessid)")
-          expect(OT).to receive(:info).with("[login-success] def456 te***@example.com customer (new sessid)")
+          expect(OT).to receive(:info).with('[login-success] def456 te***@example.com customer (replacing sessid)')
+          expect(OT).to receive(:info).with('[login-success] def456 te***@example.com customer (new sessid)')
           subject.process
         end
 
@@ -164,7 +164,7 @@ RSpec.xdescribe Core::Logic::Authentication::AuthenticateSession do
       end
 
       it 'logs failure and raises form error' do
-        expect(OT).to receive(:ld).with("[login-failure] def456 te***@example.com customer (failed)")
+        expect(OT).to receive(:ld).with('[login-failure] def456 te***@example.com customer (failed)')
         expect(subject).to receive(:raise_form_error).with('Try again')
         subject.process
       end
@@ -203,7 +203,7 @@ RSpec.xdescribe Core::Logic::Authentication::AuthenticateSession do
 
     it 'limits password length to max_length' do
       long_password = 'a' * 200
-      result = described_class.normalize_password(long_password, 10)
+      result        = described_class.normalize_password(long_password, 10)
       expect(result.length).to eq(10)
     end
 

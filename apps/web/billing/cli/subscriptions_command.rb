@@ -23,8 +23,8 @@ module Onetime
         return unless stripe_configured?
 
         puts 'Fetching subscriptions from Stripe...'
-        params = { limit: limit }
-        params[:status] = status if status
+        params            = { limit: limit }
+        params[:status]   = status if status
         params[:customer] = customer if customer
 
         subscriptions = Stripe::Subscription.list(params)
@@ -35,7 +35,8 @@ module Onetime
         end
 
         puts format('%-22s %-22s %-12s %s',
-          'ID', 'CUSTOMER', 'STATUS', 'PERIOD END')
+          'ID', 'CUSTOMER', 'STATUS', 'PERIOD END'
+        )
         puts '-' * 70
 
         subscriptions.data.each do |subscription|
@@ -44,8 +45,8 @@ module Onetime
 
         puts "\nTotal: #{subscriptions.data.size} subscription(s)"
         puts "\nStatuses: active, past_due, canceled, incomplete, trialing, unpaid"
-      rescue Stripe::StripeError => e
-        puts "Error fetching subscriptions: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error fetching subscriptions: #{ex.message}"
       end
     end
   end

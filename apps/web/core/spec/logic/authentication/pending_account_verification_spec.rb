@@ -6,12 +6,14 @@ require 'spec_helper'
 
 RSpec.describe Core::Logic::Authentication::AuthenticateSession do
   describe 'pending account verification email behavior' do
+    subject(:logic) { described_class.new(strategy_result, params, 'en') }
+
     let(:test_email) { 'pending@example.com' }
     let(:test_password) { 'validpassword123' }
     let(:session_data) { {} }
 
     let(:rack_session) do
-      session = double('RackSession')
+      session                                                          = double('RackSession')
       allow(session).to receive(:id).and_return(double(public_id: 'sess_test123'))
       allow(session).to receive(:clear)
       allow(session).to receive(:[]) { |key| session_data[key] }
@@ -49,19 +51,18 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
     let(:params) { { 'login' => test_email, 'password' => test_password } }
 
-    subject(:logic) { described_class.new(strategy_result, params, 'en') }
-
     before do
       # Stub OT.conf for default settings
       allow(OT).to receive(:conf).and_return({
         'site' => {
           'authentication' => {
             'colonels' => [],
-            'autoverify' => nil
-          }
+            'autoverify' => nil,
+          },
         },
-        'features' => {}
-      })
+        'features' => {},
+      },
+                                            )
       allow(OT).to receive(:default_locale).and_return('en')
 
       # Stub customer lookup
@@ -73,8 +74,9 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
       # Stub i18n
       allow(logic).to receive(:i18n).and_return({
-        web: { COMMON: { verification_sent_to: 'Verification sent to' } }
-      })
+        web: { COMMON: { verification_sent_to: 'Verification sent to' } },
+      },
+                                               )
 
       # Stub set_info_message (it's a no-op in base)
       allow(logic).to receive(:set_info_message)
@@ -88,11 +90,12 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
           'site' => {
             'authentication' => {
               'colonels' => [],
-              'autoverify' => 'false'
-            }
+              'autoverify' => 'false',
+            },
           },
-          'features' => {}
-        })
+          'features' => {},
+        },
+                                              )
       end
 
       it 'sends verification email for pending account with valid credentials' do
@@ -109,11 +112,11 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
         expect(logger).to receive(:info).with(
           'Login pending customer verification',
-          hash_including(customer_id: 'cust_pending123', status: :pending)
+          hash_including(customer_id: 'cust_pending123', status: :pending),
         )
         expect(logger).to receive(:info).with(
           'Resending verification email (autoverify mode)',
-          hash_including(customer_id: 'cust_pending123')
+          hash_including(customer_id: 'cust_pending123'),
         )
 
         logic.raise_concerns
@@ -131,7 +134,6 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       end
     end
 
-
     # Claude has a lot of trouble distinguishing between `=` and `==`
     context 'when autoverify is disabled (nil)' do
       before do
@@ -139,11 +141,12 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
           'site' => {
             'authentication' => {
               'colonels' => [],
-              'autoverify' => nil
-            }
+              'autoverify' => nil,
+            },
           },
-          'features' => {}
-        })
+          'features' => {},
+        },
+                                              )
       end
 
       it 'sends verification email for pending account with valid credentials' do
@@ -160,11 +163,12 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
           'site' => {
             'authentication' => {
               'colonels' => [],
-              'autoverify' => 'true'
-            }
+              'autoverify' => 'true',
+            },
           },
-          'features' => {}
-        })
+          'features' => {},
+        },
+                                              )
       end
 
       it 'does NOT send verification email for pending account' do
@@ -180,12 +184,12 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
         expect(logger).to receive(:info).with(
           'Login pending customer verification',
-          hash_including(customer_id: 'cust_pending123', status: :pending)
+          hash_including(customer_id: 'cust_pending123', status: :pending),
         )
         # Should NOT log resending email
         expect(logger).not_to receive(:info).with(
           'Resending verification email (autoverify mode)',
-          anything
+          anything,
         )
 
         logic.raise_concerns
@@ -199,11 +203,12 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
           'site' => {
             'authentication' => {
               'colonels' => [],
-              'autoverify' => ''
-            }
+              'autoverify' => '',
+            },
           },
-          'features' => {}
-        })
+          'features' => {},
+        },
+                                              )
       end
 
       it 'does send verification email (empty string != "true")' do

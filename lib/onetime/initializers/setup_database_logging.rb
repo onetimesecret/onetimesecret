@@ -15,7 +15,7 @@ module Onetime
     #
     class SetupDatabaseLogging < Onetime::Boot::Initializer
       @depends_on = [:logging]
-      @provides = [:database_logging]
+      @provides   = [:database_logging]
 
       def execute(_context)
         if OT.env?(:production)

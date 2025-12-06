@@ -43,9 +43,9 @@ module Onetime
             customer_id: subscription.customer,
             current_status: subscription.status,
             period_end: format_timestamp(subscription.current_period_end),
-            cancel_mode: immediately ? 'IMMEDIATE' : 'At period end'
+            cancel_mode: immediately ? 'IMMEDIATE' : 'At period end',
           },
-          dry_run: dry_run
+          dry_run: dry_run,
         )
 
         # Return early if dry run
@@ -61,28 +61,28 @@ module Onetime
           stripe_client.delete(Stripe::Subscription, subscription_id)
         else
           stripe_client.update(Stripe::Subscription, subscription_id, {
-            cancel_at_period_end: true
-          })
+            cancel_at_period_end: true,
+          }
+          )
         end
 
         # Display success with details
-        details = {
+        details               = {
           subscription_id: canceled.id,
-          status: canceled.status
+          status: canceled.status,
         }
         details[:canceled_at] = format_timestamp(canceled.canceled_at) if canceled.canceled_at
         details[:will_end_at] = format_timestamp(canceled.current_period_end) if canceled.cancel_at_period_end
 
         display_success('Subscription canceled successfully', details)
-
-      rescue Stripe::StripeError => e
+      rescue Stripe::StripeError => ex
         display_error(
-          format_stripe_error('Subscription cancellation failed', e),
+          format_stripe_error('Subscription cancellation failed', ex),
           [
             'Verify subscription ID is correct',
             'Check subscription is not already canceled',
-            'Review Stripe dashboard for details'
-          ]
+            'Review Stripe dashboard for details',
+          ],
         )
       end
     end

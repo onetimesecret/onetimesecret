@@ -28,7 +28,7 @@ module Onetime
 
         if product_id.nil?
           print 'Product ID: '
-          input = $stdin.gets
+          input      = $stdin.gets
           product_id = input&.chomp
         end
 
@@ -43,7 +43,7 @@ module Onetime
 
         if amount.nil?
           print 'Amount in cents (e.g., 900 for $9.00): '
-          input = $stdin.gets
+          input  = $stdin.gets
           amount = input&.chomp&.to_i || 0
         else
           amount = amount.to_i
@@ -76,14 +76,15 @@ module Onetime
             interval: interval,
             interval_count: interval_count,
           },
-        })
+        },
+                                    )
 
         puts "\nPrice created successfully:"
         puts "  ID: #{price.id}"
         puts "  Amount: #{format_amount(price.unit_amount, price.currency)}"
         puts "  Interval: #{price.recurring.interval_count} #{price.recurring.interval}(s)"
-      rescue Stripe::StripeError => e
-        puts "Error creating price: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error creating price: #{ex.message}"
       end
     end
   end

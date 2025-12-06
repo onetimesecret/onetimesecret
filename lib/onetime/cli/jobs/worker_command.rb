@@ -50,7 +50,7 @@ module Onetime
             concurrency: concurrency,
             daemonize: daemonize,
             environment: environment,
-            log_level: log_level
+            log_level: log_level,
           )
 
           # Determine which worker classes to run
@@ -124,7 +124,9 @@ module Onetime
 
           # Get all worker classes
           worker_classes = ObjectSpace.each_object(Class).select do |klass|
-            klass < Sneakers::Worker rescue false
+              klass < Sneakers::Worker
+          rescue StandardError
+              false
           end
 
           # Filter by queue names if specified

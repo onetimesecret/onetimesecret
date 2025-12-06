@@ -305,7 +305,7 @@ RSpec.describe 'ENV-conditional feature loading' do
           'ENABLE_SECURITY_FEATURES' => 'true',
           'ENABLE_MFA' => 'true',
           'ENABLE_MAGIC_LINKS' => 'true',
-          'ENABLE_WEBAUTHN' => 'true'
+          'ENABLE_WEBAUTHN' => 'true',
         ) do
           example.run
         end
@@ -313,7 +313,7 @@ RSpec.describe 'ENV-conditional feature loading' do
 
       it 'enables all feature sets without conflicts' do
         # Build app with all features
-        features = [:base, :login, :logout]
+        features  = [:base, :login, :logout]
         features += [:lockout, :active_sessions, :login_password_requirements_base, :remember]
         features += [:two_factor_base, :otp, :recovery_codes]
         features += [:email_auth]
@@ -340,7 +340,7 @@ RSpec.describe 'ENV-conditional feature loading' do
       around do |example|
         ClimateControl.modify(
           'ENABLE_SECURITY_FEATURES' => 'false',
-          'ENABLE_MFA' => 'true'
+          'ENABLE_MFA' => 'true',
         ) do
           example.run
         end
@@ -366,7 +366,7 @@ RSpec.describe 'ENV-conditional feature loading' do
           'ENABLE_SECURITY_FEATURES' => 'false',
           'ENABLE_MFA' => 'false',
           'ENABLE_MAGIC_LINKS' => 'false',
-          'ENABLE_WEBAUTHN' => 'false'
+          'ENABLE_WEBAUTHN' => 'false',
         ) do
           example.run
         end

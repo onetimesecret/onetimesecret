@@ -12,7 +12,7 @@
 # These must be set before OT.boot! reads config files
 ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 ENV['STRIPE_KEY'] ||= 'sk_test_mock'
-ENV['RACK_ENV'] ||= 'test'
+ENV['RACK_ENV']   ||= 'test'
 
 require 'spec_helper'
 require 'openssl'
@@ -174,13 +174,13 @@ RSpec.configure do |config|
   end
 
   # Symbol tag matching for :integration (webhook controller tests use this pattern)
-  config.before(:each, integration: true) do
+  config.before(:each, :integration) do
     @sleep_delays = []
     # Flush test Redis to ensure clean slate
     Familia.dbclient.flushdb
   end
 
-  config.after(:each, integration: true) do
+  config.after(:each, :integration) do
     # Clean up test data after each test
     Familia.dbclient.flushdb
   end

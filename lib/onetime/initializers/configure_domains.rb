@@ -28,7 +28,7 @@ module Onetime
         OT.ld "[init] Setting OT::Cluster::Features #{cluster}"
 
         # Configure OT::Cluster::Features class variables
-        klass = OT::Cluster::Features
+        klass              = OT::Cluster::Features
         klass.api_key      = cluster['api_key']
         klass.cluster_ip   = cluster['cluster_ip']
         klass.cluster_name = cluster['cluster_name']

@@ -60,10 +60,10 @@ module Onetime
         unless stripe_key.start_with?('sk_test_')
           puts "\n⚠️  WARNING: Production Stripe key detected!"
           puts "   Key prefix: #{stripe_key[0..10]}..."
-          puts "   This operation requires a test key (sk_test_)"
+          puts '   This operation requires a test key (sk_test_)'
           puts "\nTo run this operation:"
-          puts "  1. Use a test API key, OR"
-          puts "  2. Add --force flag if you really mean to use production"
+          puts '  1. Use a test API key, OR'
+          puts '  2. Add --force flag if you really mean to use production'
           puts "\n❌ Operation aborted for safety"
           raise 'Production mode detected - operation requires test mode'
         end
@@ -171,10 +171,10 @@ module Onetime
       def show_progress(current, total, message = nil)
         return if total <= 5 # Don't show progress for small operations
 
-        percentage = ((current.to_f / total) * 100).round
+        percentage   = ((current.to_f / total) * 100).round
         progress_bar = '=' * (percentage / 5) # 20 chars max
-        status = "Progress: #{current}/#{total} (#{percentage}%) [#{progress_bar.ljust(20)}]"
-        status += " #{message}" if message
+        status       = "Progress: #{current}/#{total} (#{percentage}%) [#{progress_bar.ljust(20)}]"
+        status      += " #{message}" if message
 
         print "\r#{status}"
         $stdout.flush
@@ -194,7 +194,7 @@ module Onetime
       def display_table_header(headers, widths)
         format_string = widths.map { |w| "%-#{w}s" }.join(' ')
         puts format(format_string, *headers)
-        puts '-' * widths.sum + '-' * (widths.size - 1)
+        puts ('-' * widths.sum) + ('-' * (widths.size - 1))
       end
 
       # Display success message
@@ -262,7 +262,7 @@ module Onetime
 
         display_error(
           "Missing required options: #{missing.join(', ')}",
-          ["Use --help to see required options"]
+          ['Use --help to see required options'],
         )
         false
       end

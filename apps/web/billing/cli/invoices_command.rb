@@ -23,9 +23,9 @@ module Onetime
         return unless stripe_configured?
 
         puts 'Fetching invoices from Stripe...'
-        params = { limit: limit }
-        params[:status] = status if status
-        params[:customer] = customer if customer
+        params                = { limit: limit }
+        params[:status]       = status if status
+        params[:customer]     = customer if customer
         params[:subscription] = subscription if subscription
 
         invoices = Stripe::Invoice.list(params)
@@ -36,7 +36,8 @@ module Onetime
         end
 
         puts format('%-22s %-22s %-12s %-10s %s',
-          'ID', 'CUSTOMER', 'AMOUNT', 'STATUS', 'CREATED')
+          'ID', 'CUSTOMER', 'AMOUNT', 'STATUS', 'CREATED'
+        )
         puts '-' * 80
 
         invoices.data.each do |invoice|
@@ -45,8 +46,8 @@ module Onetime
 
         puts "\nTotal: #{invoices.data.size} invoice(s)"
         puts "\nStatuses: draft, open, paid, uncollectible, void"
-      rescue Stripe::StripeError => e
-        puts "Error fetching invoices: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error fetching invoices: #{ex.message}"
       end
     end
   end

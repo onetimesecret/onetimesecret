@@ -38,16 +38,16 @@ module Onetime
 
         puts "\n\nSuccessfully synced #{count} plan(s) to cache"
         puts "\nTo view cached plans:"
-        puts "  bin/ots billing plans"
-      rescue Stripe::StripeError => e
-        puts format_stripe_error('Sync failed', e)
+        puts '  bin/ots billing plans'
+      rescue Stripe::StripeError => ex
+        puts format_stripe_error('Sync failed', ex)
         puts "\nTroubleshooting:"
-        puts "  - Verify STRIPE_KEY is set correctly"
-        puts "  - Check your internet connection"
-        puts "  - Verify Stripe account has access to products"
-      rescue StandardError => e
-        puts "Error during sync: #{e.message}"
-        puts e.backtrace.first(5).join("\n") if OT.debug?
+        puts '  - Verify STRIPE_KEY is set correctly'
+        puts '  - Check your internet connection'
+        puts '  - Verify Stripe account has access to products'
+      rescue StandardError => ex
+        puts "Error during sync: #{ex.message}"
+        puts ex.backtrace.first(5).join("\n") if OT.debug?
       end
 
       private

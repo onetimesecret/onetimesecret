@@ -25,14 +25,14 @@ module Onetime
         subscription = Stripe::Subscription.retrieve(subscription_id)
 
         unless subscription.pause_collection
-          puts "Subscription is not paused"
+          puts 'Subscription is not paused'
           return
         end
 
         puts "Subscription: #{subscription.id}"
         puts "Customer: #{subscription.customer}"
         puts "Status: #{subscription.status}"
-        puts "Currently paused: Yes"
+        puts 'Currently paused: Yes'
         puts
 
         unless yes
@@ -41,15 +41,15 @@ module Onetime
         end
 
         updated = Stripe::Subscription.update(subscription_id, {
-          pause_collection: nil
-        })
+          pause_collection: nil,
+        }
+        )
 
         puts "\nSubscription resumed successfully"
         puts "Status: #{updated.status}"
-        puts "Billing will resume on next period"
-
-      rescue Stripe::StripeError => e
-        puts "Error resuming subscription: #{e.message}"
+        puts 'Billing will resume on next period'
+      rescue Stripe::StripeError => ex
+        puts "Error resuming subscription: #{ex.message}"
       end
     end
   end

@@ -25,11 +25,11 @@ module Onetime
         puts 'Validating plan production readiness...'
         puts
 
-        errors = []
+        errors   = []
         warnings = []
 
         # Fetch products and prices from Stripe
-        products = fetch_products
+        products          = fetch_products
         prices_by_product = fetch_prices_by_product
 
         if products.empty?
@@ -52,23 +52,23 @@ module Onetime
       def fetch_products
         products = Stripe::Product.list({ active: true, limit: 100 }).auto_paging_each
         products.select { |p| p.metadata['app'] == 'onetimesecret' }.to_a
-      rescue Stripe::StripeError => e
-        puts "❌ Stripe API error: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "❌ Stripe API error: #{ex.message}"
         []
       end
 
       def fetch_prices_by_product
         all_prices = Stripe::Price.list({ active: true, limit: 100 }).auto_paging_each.to_a
         all_prices.group_by(&:product)
-      rescue Stripe::StripeError => e
-        puts "❌ Stripe API error fetching prices: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "❌ Stripe API error fetching prices: #{ex.message}"
         {}
       end
 
       def validate_product_prices(product, prices_by_product, errors, warnings)
         product_id = product.id
-        plan_id = product.metadata['plan_id'] || 'unknown'
-        prices = prices_by_product[product_id] || []
+        plan_id    = product.metadata['plan_id'] || 'unknown'
+        prices     = prices_by_product[product_id] || []
 
         # Filter to recurring prices only
         recurring_prices = prices.select { |p| p.type == 'recurring' }
@@ -80,12 +80,12 @@ module Onetime
             plan_id: plan_id,
             type: :no_recurring_prices,
             message: 'No recurring prices',
-            details: "Product has 0 recurring prices and cannot be used for subscriptions.",
+            details: 'Product has 0 recurring prices and cannot be used for subscriptions.',
             resolution: [
               'Create monthly and yearly prices',
               'Or archive product if no longer offered',
-              "See: #{stripe_dashboard_url(:product, product_id)}"
-            ]
+              "See: #{stripe_dashboard_url(:product, product_id)}",
+            ],
           }
           return
         end
@@ -100,22 +100,22 @@ module Onetime
             type: :missing_interval,
             message: "Missing #{missing}ly price",
             details: "Product only has #{intervals.first}ly pricing. Annual pricing is recommended for better LTV.",
-            resolution: ["Add #{missing}ly price option"]
+            resolution: ["Add #{missing}ly price option"],
           }
         end
 
         # Check for duplicate intervals with same currency
         recurring_prices.group_by { |p| [p.recurring.interval, p.currency] }.each do |(interval, currency), group|
-          if group.size > 1
-            warnings << {
-              product_id: product_id,
-              plan_id: plan_id,
-              type: :duplicate_prices,
-              message: "Duplicate interval pricing",
-              details: "#{group.size} duplicate #{interval}ly #{currency.upcase} prices found.",
-              resolution: ['Consider archiving extras to avoid confusion']
-            }
-          end
+          next unless group.size > 1
+
+          warnings << {
+            product_id: product_id,
+            plan_id: plan_id,
+            type: :duplicate_prices,
+            message: 'Duplicate interval pricing',
+            details: "#{group.size} duplicate #{interval}ly #{currency.upcase} prices found.",
+            resolution: ['Consider archiving extras to avoid confusion'],
+          }
         end
 
         # Validate required metadata
@@ -127,7 +127,7 @@ module Onetime
 
       def validate_product_metadata(product, errors)
         required_fields = %w[app plan_id tier region]
-        missing_fields = required_fields.reject { |field| product.metadata[field] }
+        missing_fields  = required_fields.reject { |field| product.metadata[field] }
 
         if missing_fields.any?
           errors << {
@@ -138,22 +138,22 @@ module Onetime
             details: "Required metadata fields missing: #{missing_fields.join(', ')}",
             resolution: [
               "Update product metadata: bin/ots billing products update #{product.id}",
-              "See: #{stripe_dashboard_url(:product, product.id)}"
-            ]
+              "See: #{stripe_dashboard_url(:product, product.id)}",
+            ],
           }
         end
 
         # Validate app field value
-        if product.metadata['app'] && product.metadata['app'] != 'onetimesecret'
-          errors << {
-            product_id: product.id,
-            plan_id: product.metadata['plan_id'] || 'unknown',
-            type: :invalid_app_metadata,
-            message: 'Invalid app metadata',
-            details: "Expected 'onetimesecret', got '#{product.metadata['app']}'",
-            resolution: ['Update app metadata to onetimesecret']
-          }
-        end
+        return unless product.metadata['app'] && product.metadata['app'] != 'onetimesecret'
+
+        errors << {
+          product_id: product.id,
+          plan_id: product.metadata['plan_id'] || 'unknown',
+          type: :invalid_app_metadata,
+          message: 'Invalid app metadata',
+          details: "Expected 'onetimesecret', got '#{product.metadata['app']}'",
+          resolution: ['Update app metadata to onetimesecret'],
+        }
       end
 
       def validate_plan_id_uniqueness(product, errors)
@@ -167,18 +167,18 @@ module Onetime
           type: :missing_plan_id,
           message: 'Missing plan_id metadata',
           details: 'Product is missing required plan_id metadata field',
-          resolution: ["Add plan_id metadata: bin/ots billing products update #{product.id} --plan_id YOUR_PLAN_ID"]
+          resolution: ["Add plan_id metadata: bin/ots billing products update #{product.id} --plan_id YOUR_PLAN_ID"],
         }
       end
 
       def check_plan_id_duplicates(products, errors)
         # Check for duplicate plan_ids across products
-        plan_ids = products.map { |p| p.metadata['plan_id'] }.compact
+        plan_ids   = products.map { |p| p.metadata['plan_id'] }.compact
         duplicates = plan_ids.select { |id| plan_ids.count(id) > 1 }.uniq
 
         duplicates.each do |plan_id|
           matching_products = products.select { |p| p.metadata['plan_id'] == plan_id }
-          product_ids = matching_products.map(&:id).join(', ')
+          product_ids       = matching_products.map(&:id).join(', ')
           errors << {
             product_id: product_ids,
             plan_id: plan_id,
@@ -187,8 +187,8 @@ module Onetime
             details: "Multiple products share the same plan_id: #{product_ids}",
             resolution: [
               'Each product must have a unique plan_id',
-              'Update or archive duplicate products'
-            ]
+              'Update or archive duplicate products',
+            ],
           }
         end
       end
@@ -204,8 +204,8 @@ module Onetime
         end
 
         # Count items using shared helper
-        valid_count = count_valid_items(products, errors, warnings, :id)
-        error_count = errors.select { |e| e.is_a?(Hash) }.map { |e| e[:product_id] }.compact.uniq.size
+        count_valid_items(products, errors, warnings, :id)
+        error_count   = errors.select { |e| e.is_a?(Hash) }.map { |e| e[:product_id] }.compact.uniq.size
         warning_count = warnings.select { |w| w.is_a?(Hash) }.map { |w| w[:product_id] }.compact.uniq.size
 
         # Print summary section
@@ -219,25 +219,26 @@ module Onetime
         # Print table section
         print_section_header('PLANS')
         puts format('%-22s %-20s %-7s %-16s %s',
-                    'PRODUCT ID', 'PLAN ID', 'REGION', 'PRICES', 'STATUS')
-        print_separator()
+          'PRODUCT ID', 'PLAN ID', 'REGION', 'PRICES', 'STATUS'
+        )
+        print_separator
 
         products.sort_by { |p| -(p.metadata['display_order']&.to_i || 0) }.each do |product|
-          plan_id = product.metadata['plan_id'] || '(none)'
-          region = product.metadata['region'] || '(none)'
-          prices = prices_by_product[product.id] || []
+          plan_id          = product.metadata['plan_id'] || '(none)'
+          region           = product.metadata['region'] || '(none)'
+          prices           = prices_by_product[product.id] || []
           recurring_prices = prices.select { |p| p.type == 'recurring' }
 
           # Build price summary
-          intervals = recurring_prices.map { |p| p.recurring.interval }.uniq.sort
-          price_summary = if recurring_prices.empty?
+          intervals        = recurring_prices.map { |p| p.recurring.interval }.uniq.sort
+          price_summary    = if recurring_prices.empty?
                            '0 prices'
                           else
                             "#{recurring_prices.size} (#{intervals.join(', ')})"
                           end
 
           # Determine status using structured errors/warnings
-          product_errors = errors.select { |e| e.is_a?(Hash) && (e[:product_id] == product.id || e[:plan_id] == plan_id) }
+          product_errors   = errors.select { |e| e.is_a?(Hash) && (e[:product_id] == product.id || e[:plan_id] == plan_id) }
           product_warnings = warnings.select { |w| w.is_a?(Hash) && (w[:product_id] == product.id || w[:plan_id] == plan_id) }
 
           status = if recurring_prices.empty?
@@ -252,7 +253,8 @@ module Onetime
 
           # Full product ID (no truncation)
           puts format('%-22s %-20s %-7s %-16s %s',
-                      product.id, plan_id[0..18], region[0..5], price_summary, status)
+            product.id, plan_id[0..18], region[0..5], price_summary, status
+          )
         end
 
         puts

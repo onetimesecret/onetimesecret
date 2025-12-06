@@ -55,8 +55,8 @@ module Onetime
         puts 'Scanning for legacy webhook events...'
         puts ''
 
-        keys = []
-        cursor = '0'
+        keys         = []
+        cursor       = '0'
         prefix_match = format('%s:*:object', Billing::StripeWebhookEvent.prefix)
         loop do
           cursor, batch = Familia.dbclient.scan(cursor, match: prefix_match, count: 100)
@@ -65,11 +65,11 @@ module Onetime
         end
 
         migrated = 0
-        skipped = 0
+        skipped  = 0
 
         keys.each do |key|
           event_id = key.split(':')[-2]  # Extract event ID from prefix:event_id:object
-          event = Billing::StripeWebhookEvent.find_by_identifier(event_id)
+          event    = Billing::StripeWebhookEvent.find_by_identifier(event_id)
           next unless event
 
           # Skip if already has processing_status
@@ -80,15 +80,15 @@ module Onetime
 
           # Migrate: assume old events were successfully processed
           event.processing_status = 'success'
-          event.first_seen_at ||= event.processed_at || Time.now.to_i.to_s
+          event.first_seen_at   ||= event.processed_at || Time.now.to_i.to_s
           event.last_attempt_at ||= event.processed_at || Time.now.to_i.to_s
-          event.retry_count ||= '0'
+          event.retry_count     ||= '0'
           event.save
 
           migrated += 1
         end
 
-        puts "Migration complete:"
+        puts 'Migration complete:'
         puts "  Migrated: #{migrated} event(s)"
         puts "  Skipped:  #{skipped} event(s) (already migrated)"
         puts "  Total:    #{keys.size} event(s)"
@@ -124,7 +124,7 @@ module Onetime
         puts ''
 
         if event.error_message
-          puts "Error Message:"
+          puts 'Error Message:'
           puts "  #{event.error_message}"
           puts ''
         end
@@ -144,7 +144,7 @@ module Onetime
         puts ''
 
         if event.event_payload
-          puts "Payload Preview:"
+          puts 'Payload Preview:'
           preview_payload(event.event_payload)
         end
 
@@ -152,16 +152,16 @@ module Onetime
       end
 
       def list_events_by_status(target_status)
-        puts "Note: This is a simple implementation that scans Redis keys."
-        puts "For production use, consider adding a secondary index."
+        puts 'Note: This is a simple implementation that scans Redis keys.'
+        puts 'For production use, consider adding a secondary index.'
         puts ''
 
         # This is a basic implementation - in production you'd want a secondary index
         puts "Scanning for #{target_status} events..."
 
         # Scan for stripe_webhook_event keys
-        keys = []
-        cursor = '0'
+        keys         = []
+        cursor       = '0'
         prefix_match = format('%s:*:object', Billing::StripeWebhookEvent.prefix)
         loop do
           cursor, batch = Familia.dbclient.scan(cursor, match: prefix_match, count: 100)
@@ -172,7 +172,7 @@ module Onetime
         matching_events = []
         keys.each do |key|
           event_id = key.split(':')[-2]  # Extract event ID from prefix:event_id:object
-          event = Billing::StripeWebhookEvent.find_by_identifier(event_id)
+          event    = Billing::StripeWebhookEvent.find_by_identifier(event_id)
           next unless event
 
           matching_events << event if event.processing_status == target_status
@@ -194,7 +194,7 @@ module Onetime
             event.event_type.to_s[0...35],
             format_status(event.processing_status),
             event.retry_count || 0,
-            format_timestamp(event.last_attempt_at)
+            format_timestamp(event.last_attempt_at),
           )
 
           if event.error_message
@@ -210,8 +210,8 @@ module Onetime
         puts 'Scanning webhook events...'
         puts ''
 
-        keys = []
-        cursor = '0'
+        keys         = []
+        cursor       = '0'
         prefix_match = format('%s:*:object', Billing::StripeWebhookEvent.prefix)
         loop do
           cursor, batch = Familia.dbclient.scan(cursor, match: prefix_match, count: 100)
@@ -219,30 +219,30 @@ module Onetime
           break if cursor == '0'
         end
 
-        stats = Hash.new(0)
+        stats          = Hash.new(0)
         events_by_type = Hash.new(0)
 
         keys.each do |key|
           event_id = key.split(':')[-2]  # Extract event ID from prefix:event_id:object
-          event = Billing::StripeWebhookEvent.find_by_identifier(event_id)
+          event    = Billing::StripeWebhookEvent.find_by_identifier(event_id)
           next unless event
 
-          status = event.processing_status || 'unknown'
-          stats[status] += 1
+          status                                 = event.processing_status || 'unknown'
+          stats[status]                         += 1
           events_by_type[event.event_type.to_s] += 1 if event.event_type
         end
 
-        puts "=== Webhook Processing Statistics ==="
+        puts '=== Webhook Processing Statistics ==='
         puts ''
         puts "Total Events:     #{keys.size}"
         puts ''
-        puts "By Status:"
+        puts 'By Status:'
         stats.sort_by { |_k, v| -v }.each do |status, count|
           puts "  #{format_status(status).ljust(12)} #{count}"
         end
 
         puts ''
-        puts "By Event Type:"
+        puts 'By Event Type:'
         events_by_type.sort_by { |_k, v| -v }.first(10).each do |type, count|
           puts "  #{type.ljust(40)} #{count}"
         end
@@ -274,7 +274,6 @@ module Onetime
       end
 
       def preview_payload(payload)
-        begin
           data = JSON.parse(payload)
           puts "  Event ID:   #{data['id']}"
           puts "  Object:     #{data['object']}"
@@ -285,9 +284,8 @@ module Onetime
             puts "  Data Type:  #{obj['object']}"
             puts "  Data ID:    #{obj['id']}"
           end
-        rescue JSON::ParserError
-          puts "  (Invalid JSON - cannot parse)"
-        end
+      rescue JSON::ParserError
+          puts '  (Invalid JSON - cannot parse)'
       end
     end
   end

@@ -22,7 +22,7 @@ module Onetime
         return unless stripe_configured?
 
         puts 'Fetching prices from Stripe...'
-        params = { active: active_only, limit: 100, expand: ['data.product'] }
+        params           = { active: active_only, limit: 100, expand: ['data.product'] }
         params[:product] = product if product
 
         prices = Stripe::Price.list(params)
@@ -33,7 +33,8 @@ module Onetime
         end
 
         puts format('%-22s %-35s %-15s %-12s %-10s %s',
-          'ID', 'PRODUCT NAME', 'PLAN_ID', 'AMOUNT', 'INTERVAL', 'PRICE')
+          'ID', 'PRODUCT NAME', 'PLAN_ID', 'AMOUNT', 'INTERVAL', 'PRICE'
+        )
         puts '-' * 115
 
         prices.data.each do |price|

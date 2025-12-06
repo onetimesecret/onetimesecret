@@ -62,8 +62,9 @@ module AccountAPI::Logic
           # User is waiting for password reset, blocking is acceptable
           Onetime::Jobs::Publisher.enqueue_email(:password_request, {
             email_address: cust.email,
-            secret: secret
-          }, fallback: :sync)
+            secret: secret,
+          }, fallback: :sync
+          )
         rescue StandardError => ex
           errmsg = "Couldn't send the notification email. Let know below."
           auth_logger.error 'Password reset email delivery failed', {

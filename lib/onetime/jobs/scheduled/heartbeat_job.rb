@@ -30,10 +30,10 @@ module Onetime
         def self.collect_stats
           {
             secrets: Onetime::Secret.count,
-            metadata: Onetime::Metadata.count
+            metadata: Onetime::Metadata.count,
           }
-        rescue StandardError => e
-          scheduler_logger.error "[HeartbeatJob] Failed to collect stats: #{e.message}"
+        rescue StandardError => ex
+          scheduler_logger.error "[HeartbeatJob] Failed to collect stats: #{ex.message}"
           { secrets: -1, metadata: -1 }
         end
       end

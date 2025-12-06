@@ -22,7 +22,7 @@ module Onetime
         boot_application!
 
         catalog_path = Billing::Config.catalog_path
-        schema_path = File.join(File.dirname(catalog_path), 'billing-catalog.schema.json')
+        schema_path  = File.join(File.dirname(catalog_path), 'billing-catalog.schema.json')
 
         unless File.exist?(catalog_path)
           puts "❌ Error: Catalog file not found: #{catalog_path}"
@@ -44,7 +44,7 @@ module Onetime
         schema = load_schema(schema_path)
         return unless schema
 
-        errors = []
+        errors   = []
         warnings = []
 
         # Validate against JSON Schema
@@ -63,32 +63,32 @@ module Onetime
 
       def load_catalog(path)
         YAML.load_file(path)
-      rescue Psych::SyntaxError => e
-        puts "❌ YAML syntax error: #{e.message}"
+      rescue Psych::SyntaxError => ex
+        puts "❌ YAML syntax error: #{ex.message}"
         nil
-      rescue StandardError => e
-        puts "❌ Error loading catalog: #{e.message}"
+      rescue StandardError => ex
+        puts "❌ Error loading catalog: #{ex.message}"
         nil
       end
 
       def load_schema(path)
         JSON.parse(File.read(path))
-      rescue JSON::ParserError => e
-        puts "❌ JSON schema syntax error: #{e.message}"
+      rescue JSON::ParserError => ex
+        puts "❌ JSON schema syntax error: #{ex.message}"
         nil
-      rescue StandardError => e
-        puts "❌ Error loading schema: #{e.message}"
+      rescue StandardError => ex
+        puts "❌ Error loading schema: #{ex.message}"
         nil
       end
 
       def validate_with_schema(catalog, schema, errors)
-        schemer = JSONSchemer.schema(schema)
+        schemer           = JSONSchemer.schema(schema)
         validation_errors = schemer.validate(catalog).to_a
 
         validation_errors.each do |error|
           # Build human-readable error message
           location = error['data_pointer'].empty? ? 'root' : error['data_pointer']
-          message = error['error'] || error['type']
+          message  = error['error'] || error['type']
           errors << "Schema validation: #{location}: #{message}"
         end
       end
@@ -157,32 +157,32 @@ module Onetime
         puts
 
         if errors.any?
-          puts '  ' + '━' * 62
+          puts '  ' + ('━' * 62)
           puts "   ❌  VALIDATION FAILED: #{errors.size} error(s) found"
-          puts '  ' + '━' * 62
+          puts '  ' + ('━' * 62)
           puts
           errors.each { |error| puts "  ✗ #{error}" }
           puts
         elsif warnings.any? && strict
-          puts '  ' + '━' * 62
+          puts '  ' + ('━' * 62)
           puts "   ❌  VALIDATION FAILED: #{warnings.size} warning(s) in strict mode"
-          puts '  ' + '━' * 62
+          puts '  ' + ('━' * 62)
           puts
           warnings.each { |warning| puts "  • #{warning}" }
           puts
         elsif warnings.any?
-          puts '  ' + '━' * 62
+          puts '  ' + ('━' * 62)
           puts '   ✅  VALIDATION PASSED (warnings only)'
-          puts '  ' + '━' * 62
+          puts '  ' + ('━' * 62)
           puts
           puts "  ⚠️  #{warnings.size} warning(s):"
           puts
           warnings.each { |warning| puts "  • #{warning}" }
           puts
         else
-          puts '  ' + '━' * 62
+          puts '  ' + ('━' * 62)
           puts '   ✅  VALIDATION PASSED'
-          puts '  ' + '━' * 62
+          puts '  ' + ('━' * 62)
           puts
         end
 
@@ -199,8 +199,8 @@ module Onetime
         plans = catalog['plans'] || {}
 
         # Categorize by validation status
-        valid = []
-        invalid = []
+        valid         = []
+        invalid       = []
         has_free_tier = false
 
         plans.each do |plan_id, data|
@@ -216,28 +216,28 @@ module Onetime
 
         puts
         if valid.any?
-          puts "┌─ VALID (#{valid.size}) " + '─' * (67 - "VALID (#{valid.size}) ".length - 4)
+          puts "┌─ VALID (#{valid.size}) " + ('─' * (67 - "VALID (#{valid.size}) ".length - 4))
           valid.sort_by { |_id, data| -(data['display_order'] || 0) }.each do |plan_id, data|
             marker = data['tier'] == 'free' ? '*' : ' '
             puts "  #{marker} ✓ #{data['name'].ljust(20)} (#{plan_id})"
           end
           puts ' ' * 67
-          puts '└' + '─' * 67
+          puts '└' + ('─' * 67)
           puts if invalid.any?
         end
 
         if invalid.any?
-          puts "┌─ INVALID (#{invalid.size}) " + '─' * (67 - "INVALID (#{invalid.size}) ".length - 4)
+          puts "┌─ INVALID (#{invalid.size}) " + ('─' * (67 - "INVALID (#{invalid.size}) ".length - 4))
           invalid.sort_by { |_id, data| -(data['display_order'] || 0) }.each do |plan_id, data|
             puts "    ✗ #{data['name'] || plan_id} (#{plan_id})"
           end
           puts ' ' * 67
-          puts '└' + '─' * 67
+          puts '└' + ('─' * 67)
         end
 
         if has_free_tier
           puts
-          puts "  * Free tier valid in catalog, does not have a Stripe product"
+          puts '  * Free tier valid in catalog, does not have a Stripe product'
         end
       end
     end

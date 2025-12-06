@@ -51,7 +51,7 @@ module Onetime
         # @return [Object] Delivery response
         def deliver(template_name, data = {}, locale: 'en')
           template_class = template_class_for(template_name)
-          template = template_class.new(data, locale: locale)
+          template       = template_class.new(data, locale: locale)
           deliver_template(template)
         end
 
@@ -61,7 +61,7 @@ module Onetime
         def deliver_template(template)
           email = template.to_email(
             from: from_address,
-            reply_to: reply_to_address(template)
+            reply_to: reply_to_address(template),
           )
           delivery_backend.deliver(email)
         end
@@ -77,7 +77,7 @@ module Onetime
             reply_to: email[:reply_to]&.to_s,
             subject: email[:subject]&.to_s,
             text_body: email[:body]&.to_s,
-            html_body: email[:html_body]&.to_s
+            html_body: email[:html_body]&.to_s,
           }
           delivery_backend.deliver(normalized)
         end
@@ -135,7 +135,7 @@ module Onetime
 
         def create_delivery_backend
           provider = determine_provider
-          config = build_provider_config(provider)
+          config   = build_provider_config(provider)
 
           log_info "[mail] Using #{provider} delivery backend"
 
@@ -183,7 +183,7 @@ module Onetime
           # Auto-detect based on configuration
           if ENV['RACK_ENV'] == 'test'
             'logger'
-          elsif (conf['region'] || ENV['AWS_REGION']) && (conf['user'] || ENV['AWS_ACCESS_KEY_ID'])
+          elsif (conf['region'] || ENV.fetch('AWS_REGION', nil)) && (conf['user'] || ENV.fetch('AWS_ACCESS_KEY_ID', nil))
             # AWS SES uses region + AWS credentials
             'ses'
           elsif ENV['SENDGRID_API_KEY'] || conf['sendgrid_api_key']
@@ -201,22 +201,22 @@ module Onetime
           case provider
           when 'smtp'
             {
-              host: conf['host'] || ENV['SMTP_HOST'],
-              port: conf['port'] || ENV['SMTP_PORT'],
-              username: conf['user'] || ENV['SMTP_USERNAME'],
-              password: conf['pass'] || ENV['SMTP_PASSWORD'],
-              domain: conf['domain'] || ENV['SMTP_DOMAIN'],
-              tls: conf['tls']
+              host: conf['host'] || ENV.fetch('SMTP_HOST', nil),
+              port: conf['port'] || ENV.fetch('SMTP_PORT', nil),
+              username: conf['user'] || ENV.fetch('SMTP_USERNAME', nil),
+              password: conf['pass'] || ENV.fetch('SMTP_PASSWORD', nil),
+              domain: conf['domain'] || ENV.fetch('SMTP_DOMAIN', nil),
+              tls: conf['tls'],
             }
           when 'ses'
             {
-              region: conf['region'] || ENV['AWS_REGION'],
-              access_key_id: conf['user'] || ENV['AWS_ACCESS_KEY_ID'],
-              secret_access_key: conf['pass'] || ENV['AWS_SECRET_ACCESS_KEY']
+              region: conf['region'] || ENV.fetch('AWS_REGION', nil),
+              access_key_id: conf['user'] || ENV.fetch('AWS_ACCESS_KEY_ID', nil),
+              secret_access_key: conf['pass'] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil),
             }
           when 'sendgrid'
             {
-              api_key: conf['sendgrid_api_key'] || conf['pass'] || ENV['SENDGRID_API_KEY']
+              api_key: conf['sendgrid_api_key'] || conf['pass'] || ENV.fetch('SENDGRID_API_KEY', nil),
             }
           else
             {}
@@ -225,6 +225,7 @@ module Onetime
 
         def emailer_config
           return {} unless defined?(OT) && OT.respond_to?(:conf)
+
           OT.conf['emailer'] || OT.conf[:emailer] || {}
         end
 

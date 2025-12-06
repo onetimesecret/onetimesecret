@@ -6,7 +6,7 @@ require_relative '../support/billing_spec_helper'
 require 'onetime/cli'
 require_relative '../../cli/plans_command'
 
-RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit, :stripe_mock do
+RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit do
   let(:stripe_client) { Billing::StripeClient.new }
 
   describe Onetime::CLI::BillingPlansCommand do
@@ -21,7 +21,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit, :stripe_mock d
         amount: '2900',
         currency: 'usd',
         region: 'US',
-        capabilities: '["create_secrets","create_team"]'
+        capabilities: '["create_secrets","create_team"]',
       )
     end
 
@@ -33,7 +33,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit, :stripe_mock d
         amount: '99900',
         currency: 'eur',
         region: 'EU',
-        capabilities: '["create_secrets","create_team","custom_domains"]'
+        capabilities: '["create_secrets","create_team","custom_domains"]',
       )
     end
 
@@ -130,8 +130,8 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit, :stripe_mock d
         end
 
         it 'adds blank line after refresh messages' do
-          output = capture_stdout { command.call(refresh: true) }
-          lines = output.split("\n")
+          output           = capture_stdout { command.call(refresh: true) }
+          lines            = output.split("\n")
           refresh_line_idx = lines.index { |l| l.include?('Refreshed') }
           expect(lines[refresh_line_idx + 1]).to eq('')
         end
@@ -156,7 +156,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit, :stripe_mock d
           expect(output).to include('No plan entries found')
         end
 
-        it 'exits early when Stripe not configured', :integration, :stripe_sandbox_api, :code_smell do
+        it 'exits early when Stripe not configured', :code_smell, :integration, :stripe_sandbox_api do
           # This test requires actual missing Stripe config - integration test needed
           skip 'Requires testing with missing Stripe configuration'
         end
@@ -171,7 +171,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit, :stripe_mock d
             amount: '1000',
             currency: 'usd',
             region: 'US',
-            capabilities: '[]'
+            capabilities: '[]',
           )
           allow(Billing::Plan).to receive(:list_plans).and_return([long_plan])
 
@@ -200,7 +200,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit, :stripe_mock d
             amount: '0',
             currency: 'usd',
             region: 'US',
-            capabilities: '[]'
+            capabilities: '[]',
           )
           allow(Billing::Plan).to receive(:list_plans).and_return([zero_cap_plan])
 
@@ -214,7 +214,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit, :stripe_mock d
   # Helper to capture stdout
   def capture_stdout
     old_stdout = $stdout
-    $stdout = StringIO.new
+    $stdout    = StringIO.new
     yield
     $stdout.string
   ensure

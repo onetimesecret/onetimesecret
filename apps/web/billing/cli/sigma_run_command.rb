@@ -35,7 +35,7 @@ module Onetime
         puts "Query: #{query_run.sql[0..100]}..."
         puts
 
-        # Note: Actual execution and result retrieval requires the query to be run
+        # NOTE: Actual execution and result retrieval requires the query to be run
         # This is a simplified implementation
         puts "Status: #{query_run.status}"
 
@@ -48,17 +48,17 @@ module Onetime
         case format
         when 'json'
           require 'json'
-          result = {
+          result     = {
             id: query_run.id,
             sql: query_run.sql,
             status: query_run.status,
-            created: query_run.created
+            created: query_run.created,
           }
           output_str = JSON.pretty_generate(result)
         when 'csv'
           output_str = "ID,SQL,STATUS,CREATED\n#{query_run.id},\"#{query_run.sql}\",#{query_run.status},#{query_run.created}"
         else
-          output_str = "Query execution complete. Use Stripe Dashboard to view full results."
+          output_str = 'Query execution complete. Use Stripe Dashboard to view full results.'
         end
 
         if output
@@ -67,9 +67,8 @@ module Onetime
         else
           puts output_str
         end
-
-      rescue Stripe::StripeError => e
-        puts "Error executing Sigma query: #{e.message}"
+      rescue Stripe::StripeError => ex
+        puts "Error executing Sigma query: #{ex.message}"
       end
     end
   end

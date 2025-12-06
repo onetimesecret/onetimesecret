@@ -17,8 +17,9 @@ require 'apps/web/billing/controllers/base'
   'PATH_INFO' => '/billing/org/test123',
   'rack.input' => StringIO.new,
   'HTTP_ACCEPT' => 'application/json',
-  'rack.locale' => ['en']
-})
+  'rack.locale' => ['en'],
+},
+                        )
 @res = Rack::Response.new
 
 ## Create controller instance
@@ -44,7 +45,6 @@ end.new(@req, @res)
 
 ## Test JSON response helper
 @data = @controller.json_response({ test: 'data' }, status: 200)
-@data
 #=> {:test=>"data"}
 
 ## Verify status was set
@@ -53,16 +53,14 @@ end.new(@req, @res)
 
 ## Test JSON success helper
 @success = @controller.json_success('Operation successful')
-@success
 #=> {:success=>"Operation successful"}
 
 ## Test JSON error helper
 @error = @controller.json_error('Something went wrong', status: 400)
-@error
 #=> {:error=>"Something went wrong"}
 
 ## Test JSON error with field error
-@error_with_field = @controller.json_error('Invalid email', field_error: ['email', 'invalid'], status: 400)
+@error_with_field = @controller.json_error('Invalid email', field_error: %w[email invalid], status: 400)
 @error_with_field[:error]
 #=> 'Invalid email'
 
@@ -75,13 +73,14 @@ end.new(@req, @res)
 #=> true
 
 ## Create HTML request
-@html_req = Rack::Request.new({
+@html_req        = Rack::Request.new({
   'REQUEST_METHOD' => 'GET',
   'PATH_INFO' => '/billing/org/test123',
   'rack.input' => StringIO.new,
   'HTTP_ACCEPT' => 'text/html',
-  'rack.locale' => ['en']
-})
+  'rack.locale' => ['en'],
+},
+                                    )
 @html_controller = Class.new do
   include Billing::Controllers::Base
 end.new(@html_req, Rack::Response.new)

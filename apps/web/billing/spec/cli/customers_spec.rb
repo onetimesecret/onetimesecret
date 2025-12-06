@@ -10,7 +10,7 @@ require_relative '../../cli/customers_create_command'
 require_relative '../../cli/customers_show_command'
 require_relative '../../cli/customers_delete_command'
 
-RSpec.describe 'Billing Customers CLI Commands', :billing_cli, :unit, :stripe_mock do
+RSpec.describe 'Billing Customers CLI Commands', :billing_cli, :stripe_mock, :unit do
   let(:stripe_client) { Billing::StripeClient.new }
 
   describe Onetime::CLI::BillingCustomersCommand do
@@ -247,7 +247,7 @@ RSpec.describe 'Billing Customers CLI Commands', :billing_cli, :unit, :stripe_mo
   # Helper to capture stdout
   def capture_stdout
     old_stdout = $stdout
-    $stdout = StringIO.new
+    $stdout    = StringIO.new
     yield
     $stdout.string
   ensure

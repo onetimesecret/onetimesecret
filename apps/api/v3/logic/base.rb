@@ -30,6 +30,7 @@ module V3
       def self.included(base)
         base.include Onetime::Logic::OrganizationContext
       end
+
       # V3-specific serialization helper
       #
       # Converts Familia model to JSON hash with native types.
