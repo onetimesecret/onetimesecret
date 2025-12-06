@@ -143,7 +143,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     cust
   end
 
-  describe 'Simple Mode Configuration' do
+  describe 'Simple Mode Configuration', :simple_auth_mode do
     def app
       @simple_app ||= begin
         # Setup environment for simple mode
@@ -199,7 +199,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
   end
 
   # All /auth/* endpoint tests require full mode
-  describe 'Full Mode - Auth Endpoints' do
+  describe 'Full Mode - Auth Endpoints', :full_auth_mode do
     def app
       @full_app ||= begin
         # Setup environment for full mode
