@@ -22,10 +22,9 @@ require 'spec/spec_helper.rb'
 @test_org_2 = nil
 @test_domain_1 = nil
 @test_domain_2 = nil
-@orphaned_domain = nil
 
 def cleanup_test_data
-  [@test_domain_1, @test_domain_2, @orphaned_domain].compact.each do |domain|
+  [@test_domain_1, @test_domain_2].compact.each do |domain|
     domain.destroy! rescue nil
   end
   [@test_org_1, @test_org_2].compact.each do |org|
@@ -67,9 +66,7 @@ def create_test_domains
   @test_domain_2.verified = 'false'
   @test_domain_2.save
 
-  # Orphaned domain (no org_id)
-  @orphaned_domain = Onetime::CustomDomain.parse("orphaned.example.com", nil)
-  @orphaned_domain.save
+  # Note: Orphaned domains are no longer supported - org_id is required for both parse and save
 end
 
 ## Setup: Create test data
@@ -82,6 +79,10 @@ end
 cleanup_test_data
 create_test_organizations
 create_test_domains
+
+## Test CustomDomain.parse requires org_id
+Onetime::CustomDomain.parse("test.example.com", nil)
+#=!> Onetime::Problem
 
 ## Test DomainsCommand class exists
 Onetime::DomainsCommand
@@ -115,12 +116,6 @@ info = cmd.send(:get_organization_info, @test_domain_1)
 info.include?("Test Org 1")
 #=> true
 
-## Test get_organization_info for orphaned domain
-cmd = Onetime::DomainsCommand.new
-info = cmd.send(:get_organization_info, @orphaned_domain)
-info
-#=> "ORPHANED"
-
 ## Test format_domain_row
 cmd = Onetime::DomainsCommand.new
 row = cmd.send(:format_domain_row, @test_domain_1)
@@ -135,31 +130,15 @@ row.include?("yes")
 
 ## Test apply_filters with no filters
 cmd = Onetime::DomainsCommand.new
-domains = [@test_domain_1, @test_domain_2, @orphaned_domain]
+domains = [@test_domain_1, @test_domain_2]
 filtered = cmd.send(:apply_filters, domains)
 filtered.size
-#=> 3
-
-## Test apply_filters with orphaned filter
-cmd = Onetime::DomainsCommand.new
-cmd.instance_variable_set(:@option, OpenStruct.new(orphaned: true))
-domains = [@test_domain_1, @test_domain_2, @orphaned_domain]
-filtered = cmd.send(:apply_filters, domains)
-filtered.size
-#=> 1
-
-## Test apply_filters orphaned filter returns only orphaned
-cmd = Onetime::DomainsCommand.new
-cmd.instance_variable_set(:@option, OpenStruct.new(orphaned: true))
-domains = [@test_domain_1, @test_domain_2, @orphaned_domain]
-filtered = cmd.send(:apply_filters, domains)
-filtered.first.display_domain
-#=> "orphaned.example.com"
+#=> 2
 
 ## Test apply_filters with org_id filter
 cmd = Onetime::DomainsCommand.new
 cmd.instance_variable_set(:@option, OpenStruct.new(org_id: @test_org_1.org_id))
-domains = [@test_domain_1, @test_domain_2, @orphaned_domain]
+domains = [@test_domain_1, @test_domain_2]
 filtered = cmd.send(:apply_filters, domains)
 filtered.size
 #=> 1
@@ -167,7 +146,7 @@ filtered.size
 ## Test apply_filters org_id filter returns correct domain
 cmd = Onetime::DomainsCommand.new
 cmd.instance_variable_set(:@option, OpenStruct.new(org_id: @test_org_1.org_id))
-domains = [@test_domain_1, @test_domain_2, @orphaned_domain]
+domains = [@test_domain_1, @test_domain_2]
 filtered = cmd.send(:apply_filters, domains)
 filtered.first.display_domain
 #=> "testdomain1.example.com"
@@ -175,7 +154,7 @@ filtered.first.display_domain
 ## Test apply_filters with verified filter
 cmd = Onetime::DomainsCommand.new
 cmd.instance_variable_set(:@option, OpenStruct.new(verified: true))
-domains = [@test_domain_1, @test_domain_2, @orphaned_domain]
+domains = [@test_domain_1, @test_domain_2]
 filtered = cmd.send(:apply_filters, domains)
 filtered.size
 #=> 1
@@ -183,7 +162,7 @@ filtered.size
 ## Test apply_filters verified filter returns verified domain
 cmd = Onetime::DomainsCommand.new
 cmd.instance_variable_set(:@option, OpenStruct.new(verified: true))
-domains = [@test_domain_1, @test_domain_2, @orphaned_domain]
+domains = [@test_domain_1, @test_domain_2]
 filtered = cmd.send(:apply_filters, domains)
 filtered.first.verified
 #=> "true"
@@ -191,7 +170,7 @@ filtered.first.verified
 ## Test apply_filters with unverified filter
 cmd = Onetime::DomainsCommand.new
 cmd.instance_variable_set(:@option, OpenStruct.new(unverified: true))
-domains = [@test_domain_1, @test_domain_2, @orphaned_domain]
+domains = [@test_domain_1, @test_domain_2]
 filtered = cmd.send(:apply_filters, domains)
 filtered.size >= 1
 #=> true
@@ -232,18 +211,6 @@ reloaded.org_id
 ## Test transferred domain is not in old org's collection
 @test_org_2.list_domains.include?(@test_domain_2.domainid)
 #=> false
-
-## Test orphaned domain can be assigned to organization
-@orphaned_domain.org_id = @test_org_1.org_id
-@orphaned_domain.save
-@test_org_1.add_domain(@orphaned_domain.domainid)
-reloaded = Onetime::CustomDomain.load_by_display_domain("orphaned.example.com")
-reloaded.org_id
-#=> @test_org_1.org_id
-
-## Test assigned orphaned domain is in org's collection
-@test_org_1.list_domains.include?(@orphaned_domain.domainid)
-#=> true
 
 ## Test domain repair scenario: domain has org_id but not in collection
 test_domain_3 = Onetime::CustomDomain.parse("testdomain3.example.com", @test_org_2.org_id)
