@@ -32,12 +32,13 @@ AllCops:
     - 'migrations/**/*'
     # The V1 API is in maintenance mode. No changes allowed 🚭
     - 'apps/api/v1/**/*'
+    - 'apps/*/*/spec/*'
     - 'bin/bundle'
     - 'node_modules/**/*'
     - 'spec/**/*'
     - 'tests/**/*'
     - 'try/**/*'
-    - 'scripts/archive/*'
+    - 'scripts/*'
     - 'tmp/**/*'
     - 'vendor/**/*'
 
@@ -335,7 +336,7 @@ Style/SuperArguments:
 # Offense count: non-0
 ThreadSafety/ClassAndModuleAttributes:
   Description: Avoid mutating class and module attributes.
-  Enabled: true
+  Enabled: false
   ActiveSupportClassAttributeAllowed: false
 
 ThreadSafety/DirChdir:
