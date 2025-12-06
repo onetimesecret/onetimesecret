@@ -83,20 +83,19 @@ content = Familia::JsonSerializer.parse(response.body)
 [response.status, content["custid"]]
 ##=> [200, 'anon']
 
-## Can access the V2 API conceal endpoint
-# NOTE: Disabled - response format changed pending investigation (#2128)
+## V2 API conceal returns 422 with validation error when no secret provided
+# Otto error format: { error: 'FormError', message: '...' }
 response = @mock_request.post('/api/v2/secret/conceal')
 content = Familia::JsonSerializer.parse(response.body) rescue {}
-has_msg = content.slice('message').eql?({'message' => 'You did not provide anything to share'})
+has_msg = content['message'] == 'You did not provide anything to share'
 [response.status, has_msg, content.keys.sort]
-##=> [422, true, ['message', 'shrimp', 'success']]
+#=> [422, true, ['error', 'message']]
 
-## Can access the V2 API generate endpoint
-# NOTE: Disabled - response format changed pending investigation (#2128)
+## V2 API generate creates a secret and returns success with nested record data
 response = @mock_request.post('/api/v2/secret/generate')
 content = Familia::JsonSerializer.parse(response.body)
-[response.status, content["custid"]]
-##=> [200, 'anon']
+[response.status, content['success']]
+#=> [200, true]
 
 ## Behaviour when requesting a known non-existent endpoint
 response = @mock_request.post('/api/v2/humphrey/bogus')
