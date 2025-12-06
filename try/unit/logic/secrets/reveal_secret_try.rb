@@ -22,14 +22,13 @@ OT.boot! :test, false
 @cust = Onetime::Customer.create!(email: @email)
 
 # Define a lambda to create and return a new metadata instance
+# Uses Metadata.spawn_pair which properly encrypts content
 @create_metadata = lambda {
-  metadata = Onetime::Metadata.new
-  metadata.save
-  secret = Onetime::Secret.new
-  secret.value = "This is a secret message"
-  secret.save
-  metadata.secret_identifier = secret.identifier
-  metadata.save
+  metadata, _secret = Onetime::Metadata.spawn_pair(
+    @cust.custid,
+    3600,
+    "This is a secret message"
+  )
   metadata
 }
 
@@ -217,13 +216,8 @@ logic.process
 
 ## Correctly determines if secret is NOT a one-liner (see note above
 ## about why logic.secret.viewable? reports false after running process).
-metadata = Onetime::Metadata.new
-metadata.save
-secret = Onetime::Secret.new
-secret.value = "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
-secret.save
-metadata.secret_identifier = secret.identifier
-metadata.save
+multiline_content = "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
+metadata, _secret = Onetime::Metadata.spawn_pair(@cust.custid, 3600, multiline_content)
 params = {
   'identifier' => metadata.secret_identifier,
   'continue' => true
@@ -234,18 +228,8 @@ logic.process
 #=> [false, false]
 
 ## Correctly determines display lines for multi-line secrets
-metadata = Onetime::Metadata.new
-metadata.save
-secret = Onetime::Secret.new
-secret.value = "Line 1
-Line 2
-Line 3
-Line4
-Line5
-Line6"
-secret.save
-metadata.secret_identifier = secret.identifier
-metadata.save
+multiline_content = "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
+metadata, _secret = Onetime::Metadata.spawn_pair(@cust.custid, 3600, multiline_content)
 params = {
   'identifier' => metadata.secret_identifier,
   'continue' => true

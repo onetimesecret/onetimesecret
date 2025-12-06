@@ -22,14 +22,13 @@ OT.boot! :test, false
 @cust = Onetime::Customer.create!(email: @email)
 
 # Define a lambda to create and return a new metadata instance
+# Uses Metadata.spawn_pair which properly encrypts content
 @create_metadata = lambda {
-  metadata = Metadata.new
-  metadata.save
-  secret = Secret.new
-  secret.value = "This is a secret message"
-  secret.save
-  metadata.secret_identifier = secret.identifier
-  metadata.save
+  metadata, _secret = Onetime::Metadata.spawn_pair(
+    @cust.custid,
+    3600,
+    "This is a secret message"
+  )
   metadata
 }
 
@@ -45,16 +44,17 @@ class MockRequest
 end
 
 @sess = MockSession.new
+@strategy_result = MockStrategyResult.new(session: @sess, user: @cust)
 
 ## Can create a ShowMetadata logic with all arguments
 params = {}
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 [logic.sess, logic.cust, logic.params, logic.locale]
 #=> [@sess, @cust, {}, 'en']
 
 ## Correctly sets basic success_data
 params = {}
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 res = logic.success_data
 res.keys
 [:record, :details]
@@ -62,13 +62,13 @@ res.keys
 
 ## Has some essential settings
 params = {}
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 [logic.site['host'], logic.authentication['enabled'], logic.domains_enabled]
 #=> ["127.0.0.1:3000", true, false]
 
 ## Raises an exception when there's no metadata (no metadata param)
 params = {}
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 logic.process_params
 begin
   logic.raise_concerns
@@ -81,7 +81,7 @@ end
 params = {
   key: 'bogus'
 }
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 logic.process_params
 begin
   logic.raise_concerns
@@ -92,18 +92,18 @@ end
 
 ## No exceptions raised when metadata can be loaded
 params = {
-  key: @metadata.identifier
+  'identifier' => @metadata.identifier
 }
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 logic.raise_concerns
 @metadata.identifier
 #=> @metadata.identifier
 
 ## Generates correct share URI
 params = {
-  key: @metadata.identifier
+  'identifier' => @metadata.identifier
 }
-@this_logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+@this_logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 @this_logic.raise_concerns
 @this_logic.process
 @this_logic.share_url
@@ -112,9 +112,9 @@ params = {
 ## Share domain in site.host by default
 metadata = @create_metadata.call
 params = {
-  key: metadata.identifier
+  'identifier' => metadata.identifier
 }
-@this_logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+@this_logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 @this_logic.process
 "https://#{@this_logic.site['host']}"
 #=> @this_logic.share_domain
@@ -123,9 +123,9 @@ params = {
 metadata = @create_metadata.call
 metadata.share_domain! "example.com"
 params = {
-  key: metadata.identifier
+  'identifier' => metadata.identifier
 }
-@this_logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+@this_logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 @this_logic.process
 ["https://#{@this_logic.site['host']}", @this_logic.domains_enabled]
 #=> [@this_logic.share_domain, false]
@@ -134,40 +134,40 @@ params = {
 metadata = @create_metadata.call
 metadata.share_domain! "example.com"
 params = {
-  key: metadata.identifier
+  'identifier' => metadata.identifier
 }
-@this_logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+@this_logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 @this_logic.instance_variable_set(:@domains_enabled, true)
 @this_logic.process
 ["https://example.com", @this_logic.domains_enabled]
 #=> [@this_logic.share_domain, true]
 
-## Sets locale correctly
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, {}, 'es')
+## Sets locale correctly via params
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, { locale: 'es' })
 logic.locale
 #=> 'es'
 
-## Falls back to nil locale if not provided
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, {}, nil)
+## Falls back to default locale if not provided
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, {})
 logic.locale
-#=> nil
+#=> 'en'
 
 ## Correctly sets expiration stamp
 @metadata.secret_ttl = 3600 * 24 * 2
 @metadata.save
 params = {
-  key: @metadata.identifier
+  'identifier' => @metadata.identifier
 }
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 logic.process
 logic.natural_expiration
 #=> "2 days"
 
 ## Knows that the metadata has been viewed b/c process has been called several times already
 params = {
-  key: @metadata.identifier
+  'identifier' => @metadata.identifier
 }
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 logic.process
 [logic.metadata.state, logic.show_secret_link]
 #=> ["viewed", false]
@@ -175,9 +175,9 @@ logic.process
 ## Shows secret link when viewed for the first time (i.e. processed)
 metadata = @create_metadata.call
 params = {
-  key: metadata.identifier
+  'identifier' => metadata.identifier
 }
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 logic.process
 [logic.metadata.state, logic.show_secret_link]
 #=> ["viewed", true]
@@ -185,9 +185,9 @@ logic.process
 ## Doesn't show secret link when for the second time though
 metadata = @create_metadata.call
 params = {
-  key: metadata.identifier
+  'identifier' => metadata.identifier
 }
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 logic.process
 logic.process
 [logic.metadata.state, logic.show_secret_link]
@@ -197,24 +197,24 @@ logic.process
 metadata = @create_metadata.call
 metadata.received!
 params = {
-  key: metadata.identifier
+  'identifier' => metadata.identifier
 }
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 logic.process
 [logic.metadata.state, logic.show_secret_link]
 #=> ["received", false]
 
 ## Asking the logic about whether the secret value is a single line returns nil when no secret
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, {}, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, {}, 'en')
 logic.one_liner
 #=> nil
 
 ## Correctly determines if secret is a one-liner if the secret is readable
 metadata = @create_metadata.call
 params = {
-  key: metadata.identifier
+  'identifier' => metadata.identifier
 }
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 logic.process
 [logic.secret.viewable?, logic.one_liner]
 #=> [true, true]
@@ -223,52 +223,32 @@ logic.process
 metadata = @create_metadata.call
 secret = metadata.load_secret
 params = {
-  key: metadata.identifier
+  'identifier' => metadata.identifier
 }
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 secret.received!
 logic.process
 [secret.viewable?, logic.one_liner]
 #=> [false, nil]
 
 ## Correctly determines if secret is NOT a one-liner if the secret is readable
-metadata = Metadata.new
-metadata.save
-secret = Secret.new
-secret.value = "Line 1
-Line 2
-Line 3
-Line4
-Line5
-Line6"
-secret.save
-metadata.secret_identifier = secret.identifier
-metadata.save
+multiline_content = "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
+metadata, _secret = Onetime::Metadata.spawn_pair(@cust.custid, 3600, multiline_content)
 params = {
-  key: metadata.identifier
+  'identifier' => metadata.identifier
 }
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 logic.process
 [logic.secret.viewable?, logic.one_liner]
 #=> [true, false]
 
 ## Correctly determines display lines for multi-line secrets
-metadata = Metadata.new
-metadata.save
-secret = Secret.new
-secret.value = "Line 1
-Line 2
-Line 3
-Line4
-Line5
-Line6"
-secret.save
-metadata.secret_identifier = secret.identifier
-metadata.save
+multiline_content = "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
+metadata, _secret = Onetime::Metadata.spawn_pair(@cust.custid, 3600, multiline_content)
 params = {
-  key: metadata.identifier
+  'identifier' => metadata.identifier
 }
-logic = Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, params, 'en')
 logic.process
 logic.display_lines
 #=> 9
