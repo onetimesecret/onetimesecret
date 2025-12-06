@@ -113,7 +113,6 @@ RSpec.describe "Onetime boot configuration process" do
       around do |example|
         # Set RACK_ENV=test to skip billing initializer's Stripe calls
         original_rack_env = ENV['RACK_ENV']
-        ENV['RACK_ENV'] = 'test'
         example.run
         ENV['RACK_ENV'] = original_rack_env
       end
@@ -180,7 +179,6 @@ RSpec.describe "Onetime boot configuration process" do
     context 'with explicit method calls' do
       around do |example|
         original_rack_env = ENV['RACK_ENV']
-        ENV['RACK_ENV'] = 'test'
         example.run
         ENV['RACK_ENV'] = original_rack_env
       end
@@ -231,7 +229,6 @@ RSpec.describe "Onetime boot configuration process" do
 
       around do |example|
         original_rack_env = ENV['RACK_ENV']
-        ENV['RACK_ENV'] = 'test'
         example.run
         ENV['RACK_ENV'] = original_rack_env
       end

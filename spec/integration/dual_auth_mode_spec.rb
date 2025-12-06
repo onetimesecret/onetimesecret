@@ -147,7 +147,6 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     def app
       @simple_app ||= begin
         # Setup environment for simple mode
-        ENV['RACK_ENV'] = 'test'
         ENV['AUTHENTICATION_MODE'] = 'simple'
         ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 
@@ -203,7 +202,6 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     def app
       @full_app ||= begin
         # Setup environment for full mode
-        ENV['RACK_ENV'] = 'test'
         ENV['AUTHENTICATION_MODE'] = 'full'
         ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 

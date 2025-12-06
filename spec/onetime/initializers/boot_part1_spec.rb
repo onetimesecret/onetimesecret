@@ -237,7 +237,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!", :allow_redis do
     let(:loaded_config) { Onetime::Config.load(source_config_path) }
 
     before(:each) do
-      ENV['RACK_ENV'] = 'test'
       ENV['DEFAULT_TTL'] = nil
       ENV['TTL_OPTIONS'] = nil
       ENV['FRONTEND_HOST'] = nil

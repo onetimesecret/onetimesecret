@@ -24,9 +24,6 @@ if ENV['AUTH_DATABASE_URL'].to_s.strip.empty?
   raise RuntimeError, "Full mode requires AUTH_DATABASE_URL"
 end
 
-# Setup environment
-ENV['RACK_ENV'] ||= 'test'
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../../..')).freeze
 
 require 'onetime'
 require 'onetime/config'

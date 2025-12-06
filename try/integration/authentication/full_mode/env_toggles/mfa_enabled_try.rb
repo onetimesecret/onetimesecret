@@ -30,10 +30,6 @@ end
 # MUST enable MFA before boot
 ENV['ENABLE_MFA'] = 'true'
 
-# Setup
-ENV['RACK_ENV'] ||= 'test'
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../../../..')).freeze
-
 require 'onetime'
 require 'onetime/config'
 Onetime.boot! :test

@@ -29,10 +29,6 @@ end
 # We're testing the default case here
 ENV.delete('ENABLE_SECURITY_FEATURES')  # Ensure not set to 'false'
 
-# Setup
-ENV['RACK_ENV'] ||= 'test'
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../../../..')).freeze
-
 require 'onetime'
 require 'onetime/config'
 Onetime.boot! :test

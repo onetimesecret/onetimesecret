@@ -20,9 +20,6 @@ require_relative '../../../support/test_helpers'
 require_relative '../../../support/auth_mode_config'
 Object.new.extend(AuthModeConfig).skip_unless_mode :simple
 
-# Setup - Load the real application
-ENV['RACK_ENV'] ||= 'test'
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../../..')).freeze
 
 # Load the Onetime application and configuration
 require 'onetime'

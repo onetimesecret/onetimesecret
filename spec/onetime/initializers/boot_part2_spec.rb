@@ -13,7 +13,6 @@ RSpec.describe "Onetime global state after boot", :allow_redis do
 
   before(:each) do
     # Reset environment variables
-    ENV['RACK_ENV'] = 'test'
     ENV['VALKEY_URL'] = 'redis://127.0.0.1:2121/0'
     ENV['ONETIME_DEBUG'] = nil
     ENV['DEFAULT_TTL'] = nil

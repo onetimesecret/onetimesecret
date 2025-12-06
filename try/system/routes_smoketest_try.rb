@@ -8,7 +8,6 @@
 # The tryouts use Rack::MockRequest to simulate HTTP requests to the application
 # and verify that the routes exist and return appropriate status codes.
 
-ENV['RACK_ENV'] ||= 'test'
 require_relative '../support/test_helpers'
 OT.boot! :test, false
 

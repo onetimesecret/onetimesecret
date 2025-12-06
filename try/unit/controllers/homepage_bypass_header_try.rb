@@ -7,7 +7,6 @@
 # Tests the header_matches_mode? helper from HomepageModeHelpers
 # and the integration with homepage mode detection.
 
-ENV['RACK_ENV'] ||= 'test'
 require_relative '../../support/test_helpers'
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../../..')).freeze
 
