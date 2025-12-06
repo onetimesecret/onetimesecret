@@ -22,7 +22,7 @@ gem 'otto', '~> 2.0.0.pre8'
 gem 'rhales', '~> 0.5.3'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
-gem 'rodauth-tools', '~> 0.3.0'
+gem 'rodauth-tools', '~> 0.3.1'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'
