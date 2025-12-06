@@ -274,11 +274,11 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       end
 
       context 'without JSON Accept header' do
-        it 'redirects on authentication failure' do
+        it 'rejects non-JSON requests in JSON-only mode' do
           post '/auth/login', { login: 'test@example.com', password: 'password' }
 
-          # Should redirect or return 401, but never 500 (server error)
-          expect(last_response.status).to eq(302).or eq(401)
+          # Rodauth is configured with only_json? true, so non-JSON requests return 400
+          expect(last_response.status).to eq(400)
         end
       end
     end
