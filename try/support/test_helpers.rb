@@ -3,9 +3,14 @@
 # frozen_string_literal: true
 #
 # Common test helpers for Tryouts tests.
-# The ||= pattern provides fallback defaults when running tests directly.
+#
+# IMPORTANT: This file must be required BEFORE loading config.ru in integration
+# tests that use Rack::MockRequest. It sets up the test environment properly.
 
-ENV['RACK_ENV'] ||= 'test'
+# Force RACK_ENV=test to disable Rack::Lint middleware (which requires all
+# HTTP_* env vars to be strings - incompatible with Rack::MockRequest defaults).
+# Must use = not ||= because tryouts framework may set RACK_ENV=development.
+ENV['RACK_ENV'] = 'test'
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..')).freeze
 
 # Set test database URL BEFORE config loads - use port 2121 to avoid conflicts
@@ -257,6 +262,10 @@ class MockSession
 
   def short_identifier
     "mock_short_identifier"
+  end
+
+  def id
+    @id ||= Struct.new(:public_id).new("mock_session_id")
   end
 
   def ipaddress
