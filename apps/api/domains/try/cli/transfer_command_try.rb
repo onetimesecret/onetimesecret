@@ -31,29 +31,29 @@ def cleanup_test_data
 end
 
 def create_test_organizations
-  timestamp = Familia.now.to_i
-  @test_customer_1 = Onetime::Customer.create!(email: "testcust1_#{timestamp}@example.com")
-  @test_customer_2 = Onetime::Customer.create!(email: "testcust2_#{timestamp}@example.com")
+  @test_id = SecureRandom.hex(4)
+  @test_customer_1 = Onetime::Customer.create!(email: "testcust1_#{@test_id}@example.com")
+  @test_customer_2 = Onetime::Customer.create!(email: "testcust2_#{@test_id}@example.com")
 
   @test_org_1 = Onetime::Organization.create!(
-    "Test Org 1",
+    "Test Org 1 #{@test_id}",
     @test_customer_1,
-    "billing@testorg1.com"
+    "billing+transfer1+#{@test_id}@onetimesecret.com"
   )
 
   @test_org_2 = Onetime::Organization.create!(
-    "Test Org 2",
+    "Test Org 2 #{@test_id}",
     @test_customer_2,
-    "billing@testorg2.com"
+    "billing+transfer2+#{@test_id}@onetimesecret.com"
   )
 end
 
 def create_test_domains
-  @test_domain_1 = Onetime::CustomDomain.create!("testdomain1.example.com", @test_org_1.objid)
+  @test_domain_1 = Onetime::CustomDomain.create!("testdomain1-#{@test_id}.example.com", @test_org_1.objid)
   @test_domain_1.verified = 'true'
   @test_domain_1.save
 
-  @test_domain_2 = Onetime::CustomDomain.create!("testdomain2.example.com", @test_org_2.objid)
+  @test_domain_2 = Onetime::CustomDomain.create!("testdomain2-#{@test_id}.example.com", @test_org_2.objid)
   @test_domain_2.verified = 'false'
   @test_domain_2.save
 end
@@ -74,7 +74,7 @@ original_org_id = @test_domain_2.org_id
 @test_org_1.add_domain(@test_domain_2)
 @test_domain_2.org_id = @test_org_1.org_id
 @test_domain_2.save
-reloaded = Onetime::CustomDomain.load_by_display_domain("testdomain2.example.com")
+reloaded = Onetime::CustomDomain.load_by_display_domain(@test_domain_2.display_domain)
 reloaded.org_id
 #=> @test_org_1.org_id
 

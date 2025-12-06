@@ -19,8 +19,7 @@ Object.new.extend(AuthModeConfig).skip_unless_mode :full
 
 # Ensure database URL is configured for full mode
 if ENV['AUTH_DATABASE_URL'].to_s.strip.empty?
-  puts "SKIPPING: Full mode requires AUTH_DATABASE_URL (PostgreSQL or SQLite)."
-  exit 0
+  raise RuntimeError, "Full mode requires AUTH_DATABASE_URL"
 end
 
 # Setup - Load in full mode

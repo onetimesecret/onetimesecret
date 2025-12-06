@@ -41,29 +41,29 @@ def cleanup_test_data
 end
 
 def create_test_organizations
-  timestamp = Familia.now.to_i
-  @test_customer_1 = Onetime::Customer.create!(email: "testcust1_#{timestamp}@example.com")
-  @test_customer_2 = Onetime::Customer.create!(email: "testcust2_#{timestamp}@example.com")
+  @test_id = SecureRandom.hex(4)
+  @test_customer_1 = Onetime::Customer.create!(email: "testcust1_#{@test_id}@example.com")
+  @test_customer_2 = Onetime::Customer.create!(email: "testcust2_#{@test_id}@example.com")
 
   @test_org_1 = Onetime::Organization.create!(
-    "Test Org 1",
+    "Test Org 1 #{@test_id}",
     @test_customer_1,
-    "billing@testorg1.com"
+    "billing+helpers1+#{@test_id}@onetimesecret.com"
   )
 
   @test_org_2 = Onetime::Organization.create!(
-    "Test Org 2",
+    "Test Org 2 #{@test_id}",
     @test_customer_2,
-    "billing@testorg2.com"
+    "billing+helpers2+#{@test_id}@onetimesecret.com"
   )
 end
 
 def create_test_domains
-  @test_domain_1 = Onetime::CustomDomain.create!("testdomain1.example.com", @test_org_1.objid)
+  @test_domain_1 = Onetime::CustomDomain.create!("testdomain1-#{@test_id}.example.com", @test_org_1.objid)
   @test_domain_1.verified = 'true'
   @test_domain_1.save
 
-  @test_domain_2 = Onetime::CustomDomain.create!("testdomain2.example.com", @test_org_2.objid)
+  @test_domain_2 = Onetime::CustomDomain.create!("testdomain2-#{@test_id}.example.com", @test_org_2.objid)
   @test_domain_2.verified = 'false'
   @test_domain_2.save
 end
@@ -84,9 +84,9 @@ Onetime::CustomDomain.parse("test.example.com", nil)
 #=!> Onetime::Problem
 
 ## Test load_domain_by_name returns domain
-domain = @helper.load_domain_by_name("testdomain1.example.com")
+domain = @helper.load_domain_by_name(@test_domain_1.display_domain)
 domain.display_domain
-#=> "testdomain1.example.com"
+#=> @test_domain_1.display_domain
 
 ## Test load_domain_by_name with non-existent domain returns nil
 domain = @helper.load_domain_by_name("nonexistent.example.com")
@@ -105,7 +105,7 @@ info.include?("Test Org 1")
 
 ## Test format_domain_row includes domain name
 row = @helper.format_domain_row(@test_domain_1)
-row.include?("testdomain1.example.com")
+row.include?(@test_domain_1.display_domain)
 #=> true
 
 ## Test format_domain_row includes verification status
@@ -129,7 +129,7 @@ filtered.size
 domains = [@test_domain_1, @test_domain_2]
 filtered = @helper.apply_filters(domains, org_id: @test_org_1.org_id)
 filtered.first.display_domain
-#=> "testdomain1.example.com"
+#=> @test_domain_1.display_domain
 
 ## Test apply_filters with verified filter
 domains = [@test_domain_1, @test_domain_2]
