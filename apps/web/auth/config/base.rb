@@ -16,10 +16,10 @@ module Auth::Config::Base
     auth.table_guard_sequel_mode :create
     auth.table_guard_logger Onetime.get_logger('Auth')
 
-    # Configure which columns to load from accounts table
-    # IMPORTANT: Include external_id for Redis-SQL synchronization
-    # auth.external_identity_column :external_id
-    # auth.external_identity_check_columns :autocreate
+    # Configure external_id column for Redis-SQL synchronization
+    # This links Rodauth SQL accounts to Redis-based Customer records
+    auth.external_identity_column :external_id
+    auth.external_identity_check_columns :autocreate
 
     # JSON-only mode configuration
     auth.json_response_success_key :success
