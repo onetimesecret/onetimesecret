@@ -76,12 +76,15 @@ jobs:
 
       - name: Check for force full flag
         id: check-force
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           # Check commit message for [ci full] or workflow_dispatch input
+          # Note: COMMIT_MESSAGE is passed via env to prevent command injection
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.force_full }}" == "true" ]]; then
             echo "force_full=true" >> $GITHUB_OUTPUT
             echo "Force full CI triggered via workflow_dispatch"
-          elif [[ "${{ github.event.head_commit.message }}" == *"[ci full]"* ]]; then
+          elif [[ "$COMMIT_MESSAGE" == *"[ci full]"* ]]; then
             echo "force_full=true" >> $GITHUB_OUTPUT
             echo "Force full CI triggered via commit message"
           else
