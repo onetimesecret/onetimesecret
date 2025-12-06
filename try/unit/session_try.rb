@@ -8,7 +8,6 @@
 
 # Setup - Load the real application
 ENV['AUTHENTICATION_MODE'] = 'simple'  # Force simple mode before boot
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..')).freeze
 
 require 'rack'
 require 'ostruct'

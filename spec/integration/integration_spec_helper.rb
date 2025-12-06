@@ -23,9 +23,12 @@ RSpec.configure do |config|
   config.include Rack::Test::Methods, type: :request
   config.include Rack::Test::Methods, type: :integration
 
+  redis_conf = OT.conf&.fetch('redis')
+  redis_uri = redis.conf&.uri
+
   # Clean Valkey database before all integration tests in a group
   config.before(:all, type: :integration) do
-    if ENV['VALKEY_URL']&.include?(':2121')
+    if redis_uri&.include?(':2121')
       begin
         # Use the real Familia client to flush the test database
         Familia.dbclient.flushdb
@@ -37,7 +40,7 @@ RSpec.configure do |config|
 
   # Clean Valkey database before each integration test
   config.before(:each, type: :integration) do
-    if ENV['VALKEY_URL']&.include?(':2121')
+    if redis_uri&.include?(':2121')
       begin
         # Use the real Familia client to flush the test database
         Familia.dbclient.flushdb
@@ -49,7 +52,7 @@ RSpec.configure do |config|
 
   # Clean up after integration tests
   config.after(:each, type: :integration) do
-    if ENV['VALKEY_URL']&.include?(':2121')
+    if redis_uri&.include?(':2121')
       begin
         Familia.dbclient.flushdb
       rescue StandardError => e

@@ -148,7 +148,6 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       @simple_app ||= begin
         # Setup environment for simple mode
         ENV['AUTHENTICATION_MODE'] = 'simple'
-        ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 
         # IMPORTANT: Reload auth config BEFORE reset! so that
         # should_skip_loading? checks see the correct mode
@@ -203,7 +202,6 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       @full_app ||= begin
         # Setup environment for full mode
         ENV['AUTHENTICATION_MODE'] = 'full'
-        ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 
         # Reset both registries to clear state from previous test runs
         Onetime::Application::Registry.reset!

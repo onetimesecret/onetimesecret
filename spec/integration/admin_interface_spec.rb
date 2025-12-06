@@ -15,8 +15,6 @@ RSpec.describe 'Admin Interface', :full_auth_mode, type: :integration do
 
   before(:all) do
     ENV['AUTHENTICATION_MODE'] = 'full'
-    ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '../..'))
-    ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 
     # Reset both registries to clear state from previous test runs
     Onetime::Application::Registry.reset!

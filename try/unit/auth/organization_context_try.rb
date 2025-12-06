@@ -4,7 +4,6 @@
 
 # Setup - Load the real application
 ENV['AUTHENTICATION_MODE'] = 'simple'
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..', '..')).freeze
 
 require 'rack'
 require_relative '../../support/test_helpers'

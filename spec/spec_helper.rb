@@ -35,12 +35,8 @@ ENV.delete('SECRET')
 # This MUST be set before config.test.yaml is loaded via ERB, since it checks:
 #   ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:6379/0'
 #
-# IMPORTANT: Do NOT use ENV['REDIS_URL'] as fallback - it may contain production
 # values from .env file. For tests, always use port 2121 explicitly.
-# CI environments should set VALKEY_URL directly to the test database URL.
-TEST_REDIS_URL = 'redis://127.0.0.1:2121/0'
-ENV['VALKEY_URL'] = TEST_REDIS_URL
-ENV['REDIS_URL'] = TEST_REDIS_URL  # Override any production value
+
 
 require 'rspec'
 require 'yaml'

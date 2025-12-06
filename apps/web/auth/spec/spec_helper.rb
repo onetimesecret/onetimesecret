@@ -261,7 +261,6 @@ module ProductionConfigHelper
   def boot_onetime_app
     return if defined?(@@onetime_booted) && @@onetime_booted
 
-    ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
     ENV['AUTHENTICATION_MODE'] ||= 'full'
 
     # Reset registries to clear state from previous test runs
