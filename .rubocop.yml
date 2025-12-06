@@ -32,12 +32,15 @@ AllCops:
     - 'migrations/**/*'
     # The V1 API is in maintenance mode. No changes allowed 🚭
     - 'apps/api/v1/**/*'
-    - 'apps/**/**/spec/*'
+    - 'apps/**/spec/**/*'
     - 'bin/bundle'
+    - 'etc/examples/**/*'
+    - 'examples/**/*'
     - 'node_modules/**/*'
     - 'spec/**/*'
     - 'tests/**/*'
     - 'try/**/*'
+    - 'apps/**/try/**/*'
     - 'scripts/*'
     - 'tmp/**/*'
     - 'vendor/**/*'
@@ -126,6 +129,9 @@ Style/FormatString:
 Style/FormatStringToken:
   EnforcedStyle: unannotated
   Enabled: true
+  # Familia external_identifier feature requires named format strings
+  Exclude:
+    - 'lib/onetime/models/*.rb'
 
 Style/RedundantReturn:
   Enabled: true
@@ -179,6 +185,13 @@ Naming/PredicatePrefix:
   ForbiddenPrefixes: [is_, has_, have_]
   AllowedMethods: [
       has_passphrase?, # correlates with the REST API field `has_passphrase`
+      has_otp?,
+      has_recovery_codes?,
+      has_role?,
+      has_system_role?,
+      has_memo?,
+      has_fallback_secrets?,
+      is_feature_disabled?,
     ]
 
 Layout/MultilineMethodCallIndentation:
@@ -400,6 +413,21 @@ Style/StringConcatenation:
   Enabled: false
 Style/SymbolProc:
   Enabled: false
+
+# format() for table headers is clearer than hardcoded padded strings
+Style/RedundantFormat:
+  Enabled: true
+  AutoCorrect: false
+  Exclude:
+    - 'apps/**/cli/**/*.rb'
+    - 'lib/onetime/cli/**/*.rb'
+
+# RabbitMQ global connection variables are intentional application design
+Style/GlobalVars:
+  Enabled: true
+  AllowedVariables:
+    - $rmq_conn
+    - $rmq_channel_pool
 
 # warnings
 Lint/RedundantCopDisableDirective:

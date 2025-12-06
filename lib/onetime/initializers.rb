@@ -37,6 +37,6 @@ require_relative 'initializers/print_log_banner'       # depends_on: [:logging]
 # App initializers follow the same pattern as core initializers but live
 # alongside their respective Rack applications (e.g., apps/web/billing/initializers/).
 # They auto-register via the inherited hook when required.
-Dir[File.expand_path('../../apps/*/*/initializers/*.rb', __dir__)].sort.each do |file|
+Dir[File.expand_path('../../apps/*/*/initializers/*.rb', __dir__)].each do |file|
   require file
 end

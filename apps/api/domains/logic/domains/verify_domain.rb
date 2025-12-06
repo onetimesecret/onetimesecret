@@ -9,14 +9,6 @@ require_relative 'get_domain'
 module DomainsAPI::Logic
   module Domains
     class VerifyDomain < GetDomain
-      def raise_concerns
-        # NOTE: We no longer require API key to be set since we support
-        # multiple validation strategies (passthrough, caddy, etc.)
-        # The strategy itself will handle missing config gracefully.
-
-        super
-      end
-
       def process
         super
 

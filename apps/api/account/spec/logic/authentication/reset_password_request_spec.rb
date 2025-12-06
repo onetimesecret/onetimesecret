@@ -16,16 +16,14 @@ RSpec.xdescribe AccountAPI::Logic::Authentication::ResetPasswordRequest do
   let(:mail_view) { double('PasswordRequest', deliver_email: true) }
 
   before do
-    allow(Onetime::Customer).to receive(:exists?).and_return(true)
-    allow(Onetime::Customer).to receive(:load).and_return(customer)
+    allow(Onetime::Customer).to receive_messages(exists?: true, load: customer)
     allow(Onetime::Secret).to receive(:create).and_return(secret)
     allow(OT::Mail::PasswordRequest).to receive(:new).and_return(mail_view)
     allow(OT).to receive(:info)
     allow(OT).to receive(:li)
     allow(OT).to receive(:le)
     allow(OT).to receive(:ld)
-    allow(subject).to receive(:sess).and_return(session)
-    allow(subject).to receive(:valid_email?).and_return(true)
+    allow(subject).to receive_messages(sess: session, valid_email?: true)
   end
 
   describe '#process_params' do
@@ -79,8 +77,7 @@ RSpec.xdescribe AccountAPI::Logic::Authentication::ResetPasswordRequest do
   describe '#process' do
     before do
       subject.process_params
-      allow(subject).to receive(:token).and_return('test_token')
-      allow(subject).to receive(:i18n).and_return({ web: { COMMON: { verification_sent_to: 'Verification sent to' } } })
+      allow(subject).to receive_messages(token: 'test_token', i18n: { web: { COMMON: { verification_sent_to: 'Verification sent to' } } })
     end
 
     context 'when customer is pending' do

@@ -87,7 +87,7 @@ if Dir.exist?(apps_root)
   ]
 
   cli_patterns.each do |pattern|
-    Dir.glob(pattern).sort.each do |file|
+    Dir.glob(pattern).each do |file|
       require file
     end
   end

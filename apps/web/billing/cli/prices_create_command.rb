@@ -44,7 +44,7 @@ module Onetime
         if amount.nil?
           print 'Amount in cents (e.g., 900 for $9.00): '
           input  = $stdin.gets
-          amount = input&.chomp&.to_i || 0
+          amount = input&.chomp.to_i
         else
           amount = amount.to_i
         end

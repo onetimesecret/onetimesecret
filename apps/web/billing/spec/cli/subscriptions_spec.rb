@@ -221,8 +221,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           sub = mock_subscription
 
           # Mock Stripe SDK methods directly
-          allow(Stripe::Subscription).to receive(:retrieve).and_return(sub)
-          allow(Stripe::Subscription).to receive(:update).and_return(sub)
+          allow(Stripe::Subscription).to receive_messages(retrieve: sub, update: sub)
           allow($stdin).to receive(:gets).and_return("y\n")
 
           # Just verify the command accepts the request without errors
@@ -237,8 +236,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           sub = mock_subscription
 
           # Mock Stripe SDK methods directly
-          allow(Stripe::Subscription).to receive(:retrieve).and_return(sub)
-          allow(Stripe::Subscription).to receive(:delete).and_return(sub)
+          allow(Stripe::Subscription).to receive_messages(retrieve: sub, delete: sub)
           allow($stdin).to receive(:gets).and_return("y\n")
 
           # Just verify the command accepts the request without errors
@@ -264,8 +262,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
         it 'bypasses confirmation with --yes flag' do
           sub = mock_subscription
 
-          allow(Stripe::Subscription).to receive(:retrieve).and_return(sub)
-          allow(Stripe::Subscription).to receive(:update).and_return(sub)
+          allow(Stripe::Subscription).to receive_messages(retrieve: sub, update: sub)
           expect($stdin).not_to receive(:gets)
 
           # Just verify the command accepts the request without errors
@@ -328,8 +325,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           paused_sub = mock_subscription
           allow(paused_sub).to receive(:pause_collection).and_return(double(behavior: 'void'))
 
-          allow(Stripe::Subscription).to receive(:retrieve).and_return(sub)
-          allow(Stripe::Subscription).to receive(:update).and_return(paused_sub)
+          allow(Stripe::Subscription).to receive_messages(retrieve: sub, update: paused_sub)
           allow($stdin).to receive(:gets).and_return("y\n")
 
           output = capture_stdout do
@@ -346,8 +342,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           paused_sub = mock_subscription
           allow(paused_sub).to receive(:pause_collection).and_return(double(behavior: 'void'))
 
-          allow(Stripe::Subscription).to receive(:retrieve).and_return(sub)
-          allow(Stripe::Subscription).to receive(:update).and_return(paused_sub)
+          allow(Stripe::Subscription).to receive_messages(retrieve: sub, update: paused_sub)
           expect($stdin).not_to receive(:gets)
 
           output = capture_stdout do

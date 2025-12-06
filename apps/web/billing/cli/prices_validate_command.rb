@@ -279,7 +279,7 @@ module Onetime
 
         # Check pricing consistency (yearly should be ~10-12x monthly)
         if current_interval == 'month'
-          expected_yearly = price.unit_amount * 10..price.unit_amount * 12
+          expected_yearly = (price.unit_amount * 10)..(price.unit_amount * 12)
           unless expected_yearly.include?(opposite_price.unit_amount)
             warnings << {
               price_id: price.id,
@@ -358,13 +358,11 @@ module Onetime
         print_warnings_section(warnings) if warnings.any?
         print_final_status(errors, warnings, strict)
 
-        # Exit with appropriate code
-        if errors.empty? && warnings.empty?
-          exit 0
-        elsif errors.empty? && !strict
-          exit 0
-        elsif errors.any? || (warnings.any? && strict)
+        # Exit with appropriate code: fail on errors or warnings in strict mode
+        if errors.any? || (warnings.any? && strict)
           exit 1
+        else
+          exit 0
         end
       end
     end

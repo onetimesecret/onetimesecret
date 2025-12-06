@@ -23,7 +23,7 @@ module Onetime
         if verified
           filtered = filtered.select { |d| d.verified.to_s == 'true' }
         elsif unverified
-          filtered = filtered.select { |d| d.verified.to_s != 'true' }
+          filtered = filtered.reject { |d| d.verified.to_s == 'true' }
         end
 
         filtered

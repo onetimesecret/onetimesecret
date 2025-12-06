@@ -28,7 +28,7 @@ module Onetime
 
         {
           secret: secret,
-          secret_sample: "#{secret[0..3]}...#{secret[-4..-1]}",
+          secret_sample: "#{secret[0..3]}...#{secret[-4..]}",
           issuer: issuer,
           current_code: totp.now,
           previous_code: totp.at(current_time - interval),
@@ -54,7 +54,7 @@ module Onetime
 
         {
           secret: secret,
-          secret_sample: "#{secret[0..3]}...#{secret[-4..-1]}",
+          secret_sample: "#{secret[0..3]}...#{secret[-4..]}",
           code: code,
           valid: !valid_at.nil?,
           valid_at: valid_at,

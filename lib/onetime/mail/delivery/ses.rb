@@ -26,10 +26,7 @@ module Onetime
 
           log_delivery(email)
           response
-        rescue Aws::SESV2::Errors::ServiceError => ex
-          log_error(email, ex)
-          raise
-        rescue StandardError => ex
+        rescue Aws::SESV2::Errors::ServiceError, StandardError => ex
           log_error(email, ex)
           raise
         end

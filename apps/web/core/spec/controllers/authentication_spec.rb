@@ -29,9 +29,7 @@ RSpec.describe Core::Controllers::Authentication do
   end
   let(:req) do
     request = double('Request')
-    allow(request).to receive(:env).and_return(env)
-    allow(request).to receive(:ip).and_return('127.0.0.1')
-    allow(request).to receive(:locale).and_return('en')
+    allow(request).to receive_messages(env: env, ip: '127.0.0.1', locale: 'en')
     request
   end
   let(:res) do

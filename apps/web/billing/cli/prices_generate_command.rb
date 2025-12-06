@@ -100,9 +100,6 @@ module Onetime
                               elsif lookup && products_map[plan_id]
                                 # Lookup from Stripe by plan_id metadata
                                 products_map[plan_id]
-                              else
-                                # Placeholder
-                                nil
                               end
 
           if actual_product_id

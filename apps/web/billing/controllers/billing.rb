@@ -218,23 +218,25 @@ module Billing
         plans = ::Billing::Plan.list_plans
 
         # Filter out nil plans, filter by show_on_plans_page, and sort by display_order (ascending - lower values first)
-        plan_data = plans.compact
+        plan_data = plans
+          .compact
           .select { |plan| plan.show_on_plans_page.to_s == 'true' }
           .map do |plan|
-          {
-            id: plan.plan_id,
-            name: plan.name,
-            tier: plan.tier,
-            interval: plan.interval,
-            amount: plan.amount,
-            currency: plan.currency,
-            region: plan.region,
-            features: plan.features.to_a,
-            limits: plan.limits_hash,
-            capabilities: plan.capabilities.to_a,
-            display_order: plan.display_order.to_i,
-          }
-        end.sort_by { |p| p[:display_order] } # Ascending: Identity Plus (10) → Org Max (40)
+            {
+              id: plan.plan_id,
+              name: plan.name,
+              tier: plan.tier,
+              interval: plan.interval,
+              amount: plan.amount,
+              currency: plan.currency,
+              region: plan.region,
+              features: plan.features.to_a,
+              limits: plan.limits_hash,
+              capabilities: plan.capabilities.to_a,
+              display_order: plan.display_order.to_i,
+            }
+          end
+          .sort_by { |p| p[:display_order] } # Ascending: Identity Plus (10) → Org Max (40)
 
         json_response({ plans: plan_data })
       rescue StandardError => ex

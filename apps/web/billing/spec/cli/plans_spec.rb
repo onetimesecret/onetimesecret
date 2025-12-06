@@ -108,8 +108,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit d
 
       context 'with --refresh option' do
         before do
-          allow(Billing::Plan).to receive(:refresh_from_stripe).and_return(2)
-          allow(Billing::Plan).to receive(:list_plans).and_return([sample_plan, sample_plan_eu])
+          allow(Billing::Plan).to receive_messages(refresh_from_stripe: 2, list_plans: [sample_plan, sample_plan_eu])
         end
 
         it 'displays refresh progress message' do
@@ -148,8 +147,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit d
         end
 
         it 'handles missing Stripe configuration gracefully' do
-          allow(Billing::Plan).to receive(:refresh_from_stripe).and_return(0)
-          allow(Billing::Plan).to receive(:list_plans).and_return([])
+          allow(Billing::Plan).to receive_messages(refresh_from_stripe: 0, list_plans: [])
 
           output = capture_stdout { command.call(refresh: true) }
           expect(output).to include('Refreshed 0 plan entries')

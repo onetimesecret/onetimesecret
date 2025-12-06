@@ -287,47 +287,6 @@ RSpec.describe Core::Views::BaseView do
           "Expected serialized_data to include #{key}"
       end
     end
-
-    context 'with anonymous user' do
-      let(:customer) do
-        instance_double('Onetime::Customer',
-          custid: 'anon',
-          email: nil,
-          anonymous?: true,
-          planid: 'anonymous',
-          created: Familia.now.to_i,
-          safe_dump: {
-            'identifier' => 'anon',
-            'custid' => 'anon',
-            'role' => 'customer',
-            'verified' => nil,
-            'last_login' => nil,
-            'locale' => '',
-            'updated' => nil,
-            'created' => nil,
-            'stripe_customer_id' => nil,
-            'stripe_subscription_id' => nil,
-            'stripe_checkout_email' => nil,
-            'secrets_created' => '0',
-            'secrets_burned' => '0',
-            'secrets_shared' => '0',
-            'emails_sent' => '0',
-            'active' => false,
-          },
-          verified?: false,
-          active?: false,
-          role: 'anonymous',
-        )
-      end
-
-      let(:session) do
-        # V2::Session removed - now using Rack::Session hash
-        {
-          'authenticated' => false,
-          'shrimp' => 'test_token',
-        }
-      end
-    end
   end
 
   context 'with locale configuration' do
@@ -360,9 +319,8 @@ RSpec.describe Core::Views::BaseView do
           'ots.locale' => locale,
         }
 
-        request = instance_double('Rack::Request')
-        allow(request).to receive(:env).and_return(env)
-        allow(request).to receive(:nil?).and_return(false)
+        request = instance_double(Rack::Request)
+        allow(request).to receive_messages(env: env, nil?: false)
         request
       end
 
@@ -373,28 +331,28 @@ RSpec.describe Core::Views::BaseView do
     end
 
     context 'with default locale' do
-      include_examples 'locale initialization', 'en', {
+      it_behaves_like 'locale initialization', 'en', {
         locale: 'en',
         is_default: true,
       }
     end
 
     context 'with Canadian French locale' do
-      include_examples 'locale initialization', 'fr_CA', {
+      it_behaves_like 'locale initialization', 'fr_CA', {
         locale: 'fr_CA',
         is_default: true,
       }
     end
 
     context 'with French locale' do
-      include_examples 'locale initialization', 'fr_FR', {
+      it_behaves_like 'locale initialization', 'fr_FR', {
         locale: 'fr_FR',
         is_default: true,
       }
     end
 
     context 'with unsupported locale' do
-      include_examples 'locale initialization', 'es', {
+      it_behaves_like 'locale initialization', 'es', {
         locale: 'es',
         is_default: true,
       }
@@ -403,7 +361,7 @@ RSpec.describe Core::Views::BaseView do
     context 'with nil locale' do
       let(:rack_request) do
         env = { 'ots.locale' => nil }
-        instance_double('Rack::Request', env: env)
+        instance_double(Rack::Request, env: env)
       end
 
       it 'falls back to default locale' do

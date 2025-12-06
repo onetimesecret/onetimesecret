@@ -186,12 +186,11 @@ module Onetime
           puts
         end
 
-        if errors.empty? && warnings.empty?
-          exit 0
-        elsif errors.empty? && !strict
-          exit 0
-        elsif errors.any? || (warnings.any? && strict)
+        # Exit successfully if no errors, and either no warnings or not in strict mode
+        if errors.any? || (warnings.any? && strict)
           exit 1
+        else
+          exit 0
         end
       end
 

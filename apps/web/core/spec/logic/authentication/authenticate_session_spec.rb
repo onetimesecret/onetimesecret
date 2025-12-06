@@ -15,8 +15,7 @@ RSpec.xdescribe Core::Logic::Authentication::AuthenticateSession do
   let(:locale) { 'en' }
 
   before do
-    allow(Onetime::Customer).to receive(:load).and_return(customer)
-    allow(Onetime::Customer).to receive(:anonymous).and_return(anonymous_customer)
+    allow(Onetime::Customer).to receive_messages(load: customer, anonymous: anonymous_customer)
     allow(OT).to receive(:info)
     allow(OT).to receive(:li)
     allow(OT).to receive(:ld)
@@ -84,9 +83,7 @@ RSpec.xdescribe Core::Logic::Authentication::AuthenticateSession do
   describe '#process' do
     before do
       subject.process_params
-      allow(subject).to receive(:success?).and_return(true)
-      allow(subject).to receive(:cust).and_return(customer)
-      allow(subject).to receive(:sess).and_return(session)
+      allow(subject).to receive_messages(success?: true, cust: customer, sess: session)
     end
 
     context 'when authentication is successful' do
@@ -178,8 +175,7 @@ RSpec.xdescribe Core::Logic::Authentication::AuthenticateSession do
     end
 
     it 'returns true when customer is not anonymous and passphrase matches' do
-      allow(customer).to receive(:anonymous?).and_return(false)
-      allow(customer).to receive(:passphrase?).and_return(true)
+      allow(customer).to receive_messages(anonymous?: false, passphrase?: true)
       expect(subject.success?).to be true
     end
 
@@ -189,8 +185,7 @@ RSpec.xdescribe Core::Logic::Authentication::AuthenticateSession do
     end
 
     it 'returns false when passphrase does not match' do
-      allow(customer).to receive(:anonymous?).and_return(false)
-      allow(customer).to receive(:passphrase?).and_return(false)
+      allow(customer).to receive_messages(anonymous?: false, passphrase?: false)
       expect(subject.success?).to be false
     end
   end

@@ -82,8 +82,8 @@ module Auth
       # Checks if MFA is enabled for this account
       # @return [Boolean]
       def mfa_enabled?
-        @otp_key_exists       = @db[:account_otp_keys].where(id: @account_id).count > 0
-        @recovery_codes_exist = @db[:account_recovery_codes].where(id: @account_id).count > 0
+        @otp_key_exists       = @db[:account_otp_keys].where(id: @account_id).any?
+        @recovery_codes_exist = @db[:account_recovery_codes].where(id: @account_id).any?
 
         unless @otp_key_exists || @recovery_codes_exist
           OT.auth_logger.info "ℹ️  No MFA setup found for: #{@email}"

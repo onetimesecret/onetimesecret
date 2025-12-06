@@ -183,7 +183,7 @@ module Onetime
             return @site_baseuri if defined?(@site_baseuri)
 
             if defined?(OT) && OT.respond_to?(:conf)
-              site          = OT.conf.dig('site') || {}
+              site          = OT.conf['site'] || {}
               scheme        = site['ssl'] == false ? 'http://' : 'https://'
               host          = site['host'] || 'localhost'
               @site_baseuri = "#{scheme}#{host}"

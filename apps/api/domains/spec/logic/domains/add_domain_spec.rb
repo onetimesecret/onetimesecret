@@ -48,10 +48,7 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
   before do
     allow(logic).to receive(:organization).and_return(organization)
     allow(logic).to receive(:require_organization!)
-    allow(Onetime::CustomDomain).to receive(:valid?).and_return(true)
-    allow(Onetime::CustomDomain).to receive(:parse).and_return(custom_domain)
-    allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(nil)
-    allow(Onetime::CustomDomain).to receive(:create!).and_return(custom_domain)
+    allow(Onetime::CustomDomain).to receive_messages(valid?: true, parse: custom_domain, load_by_display_domain: nil, create!: custom_domain)
     allow(Onetime::Cluster::Features).to receive(:cluster_safe_dump).and_return({})
     allow(OT.conf).to receive(:dig).and_return(nil)
   end

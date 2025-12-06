@@ -11,14 +11,13 @@ RSpec.describe Onetime::Secret, allow_redis: false do
     let(:passphrase) { 'test-passphrase-123' }
 
     before do
-      allow(OT).to receive(:global_secret).and_return('global-test-secret')
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive_messages(global_secret: 'global-test-secret', conf: {
         experimental: {
           allow_nil_global_secret: false,
           rotated_secrets: [],
         },
-      },
-                                            )
+      }
+      )
     end
 
     describe '#encrypt_value' do
@@ -211,7 +210,7 @@ RSpec.describe Onetime::Secret, allow_redis: false do
         metadata, secret = create_stubbed_onetime_secret_pair(custid: custid)
 
         expect(metadata).to be_a(Onetime::Metadata)
-        expect(secret).to be_a(Onetime::Secret)
+        expect(secret).to be_a(described_class)
         expect(metadata.secret_key).to eq(secret.key)
         expect(secret.metadata_key).to eq(metadata.key)
         expect(metadata.custid).to eq(custid)

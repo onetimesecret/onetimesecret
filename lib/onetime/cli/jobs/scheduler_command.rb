@@ -30,7 +30,7 @@ module Onetime
         option :log_level, type: :string, default: 'info', aliases: ['l'],
           desc: 'Log level: trace, debug, info, warn, error'
 
-        def call(environment: 'development', daemonize: false, log_level: 'info', **)
+        def call(_environment: 'development', daemonize: false, _log_level: 'info', **)
           boot_application!
 
           if daemonize
@@ -67,7 +67,7 @@ module Onetime
           File.write(pid_path, Process.pid)
 
           # Clean up PID file on exit
-          at_exit { File.delete(pid_path) if File.exist?(pid_path) }
+          at_exit { FileUtils.rm_f(pid_path) }
         end
 
         def load_scheduled_jobs(scheduler)

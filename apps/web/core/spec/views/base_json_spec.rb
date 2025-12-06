@@ -21,14 +21,14 @@ RSpec.xdescribe Core::Views::BaseView, 'JSON Output' do
   describe 'JSON structure validation' do
     context 'for unauthenticated user' do
       let(:session) do
-        instance_double('V1::Session',
+        instance_double(V1::Session,
           authenticated?: false,
           add_shrimp: not_authenticated_json['shrimp'],
         )
       end
 
       let(:customer) do
-        instance_double('Onetime::Customer',
+        instance_double(Onetime::Customer,
           'custid' => nil,
           'email' => nil,
           'anonymous?' => true,
@@ -114,7 +114,7 @@ RSpec.xdescribe Core::Views::BaseView, 'JSON Output' do
         json_output = view[:serialized_data]
 
         # Compare key fields
-        expect(json_output['authenticated']).to eq(false)
+        expect(json_output['authenticated']).to be(false)
         expect(json_output['site_host']).to eq(not_authenticated_json['site_host'])
         expect(json_output['regions_enabled']).to eq(not_authenticated_json['regions_enabled'])
         expect(json_output['domains_enabled']).to eq(not_authenticated_json['domains_enabled'])
@@ -129,7 +129,7 @@ RSpec.xdescribe Core::Views::BaseView, 'JSON Output' do
 
     context 'for authenticated user' do
       let(:session) do
-        instance_double('V1::Session',
+        instance_double(V1::Session,
           authenticated?: true,
           add_shrimp: authenticated_json['shrimp'],
         )
@@ -138,7 +138,7 @@ RSpec.xdescribe Core::Views::BaseView, 'JSON Output' do
       let(:customer) do
         # Create mock for custom domains
         custom_domains = authenticated_json['custom_domains'].map do |domain|
-          instance_double('Onetime::CustomDomain',
+          instance_double(Onetime::CustomDomain,
             display_domain: domain,
             ready?: true,
             verified: true,
@@ -147,7 +147,7 @@ RSpec.xdescribe Core::Views::BaseView, 'JSON Output' do
         end
 
         # Create customer mock
-        instance_double('Onetime::Customer',
+        instance_double(Onetime::Customer,
           custid: authenticated_json['custid'],
           email: authenticated_json['email'],
           anonymous?: false,
@@ -238,7 +238,7 @@ RSpec.xdescribe Core::Views::BaseView, 'JSON Output' do
         json_output = JSON.parse(view[:window])
 
         # Compare key authenticated fields
-        expect(json_output['authenticated']).to eq(true)
+        expect(json_output['authenticated']).to be(true)
         expect(json_output['custid']).to eq(authenticated_json['custid'])
         expect(json_output['email']).to eq(authenticated_json['email'])
         expect(json_output['domains_enabled']).to eq(authenticated_json['domains_enabled'])

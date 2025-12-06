@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 base_path             = File.expand_path('..', __dir__)
 $LOAD_PATH.unshift File.join(base_path, 'lib')

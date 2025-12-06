@@ -87,7 +87,7 @@ module Onetime
           existing = find_existing_product(metadata['plan_id'])
 
           if existing
-            handle_existing_product(existing, name, metadata, options)
+            handle_existing_product(existing, name, metadata, options, update: update, yes: yes)
             return
           end
         end
@@ -127,7 +127,7 @@ module Onetime
       end
 
       # Handle case where product already exists
-      def handle_existing_product(existing, name, metadata, options)
+      def handle_existing_product(existing, name, metadata, options, update: false, yes: false)
         puts "\n⚠️  Product already exists with plan_id: #{metadata['plan_id']}"
         puts "  Product ID: #{existing.id}"
         puts "  Name: #{existing.name}"
@@ -140,8 +140,8 @@ module Onetime
         end
 
         # Auto-update if --update flag provided (requires --yes for non-interactive)
-        if options[:update]
-          if options[:yes]
+        if update
+          if yes
             puts "\n→ Auto-updating existing product (--update --yes)"
             update_existing_product(existing.id, name, metadata, options)
             return

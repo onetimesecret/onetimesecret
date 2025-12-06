@@ -64,7 +64,7 @@ module ColonelAPI
         def deep_copy(obj)
           case obj
           when Hash
-            obj.each_with_object({}) { |(k, v), h| h[k] = deep_copy(v) }
+            obj.transform_values { |v| deep_copy(v) }
           when Array
             obj.map { |v| deep_copy(v) }
           else

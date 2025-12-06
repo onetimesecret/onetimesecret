@@ -10,14 +10,13 @@ RSpec.describe Onetime::Secret, 'security hardening' do
   let(:secret_value) { 'Sensitive information 123' }
 
   before do
-    allow(OT).to receive(:global_secret).and_return('global-test-secret')
-    allow(OT).to receive(:conf).and_return({
+    allow(OT).to receive_messages(global_secret: 'global-test-secret', conf: {
       'experimental' => {
         'allow_nil_global_secret' => false,
         'rotated_secrets' => [],
       },
-    },
-                                          )
+    }
+    )
   end
 
   describe 'timing attack resistance', allow_redis: false do

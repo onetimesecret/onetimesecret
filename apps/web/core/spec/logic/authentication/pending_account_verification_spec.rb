@@ -23,18 +23,8 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
     let(:pending_customer) do
       customer = double('Customer')
-      allow(customer).to receive(:objid).and_return('cust_pending123')
-      allow(customer).to receive(:custid).and_return(test_email)
-      allow(customer).to receive(:email).and_return(test_email)
-      allow(customer).to receive(:extid).and_return('ur_pending123')
-      allow(customer).to receive(:verified).and_return('false')
-      allow(customer).to receive(:obscure_email).and_return('pe***@example.com')
-      allow(customer).to receive(:role).and_return(:customer)
-      allow(customer).to receive(:anonymous?).and_return(false)
-      allow(customer).to receive(:pending?).and_return(true)
       allow(customer).to receive(:passphrase?).with(test_password).and_return(true)
-      allow(customer).to receive(:argon2_hash?).and_return(true)
-      allow(customer).to receive(:passphrase).and_return('$argon2id$...')
+      allow(customer).to receive_messages(objid: 'cust_pending123', custid: test_email, email: test_email, extid: 'ur_pending123', verified: 'false', obscure_email: 'pe***@example.com', role: :customer, anonymous?: false, pending?: true, argon2_hash?: true, passphrase: '$argon2id$...')
       allow(customer).to receive(:reset_secret=)
       allow(customer).to receive(:save)
       customer
@@ -42,10 +32,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
     let(:strategy_result) do
       result = double('StrategyResult')
-      allow(result).to receive(:session).and_return(rack_session)
-      allow(result).to receive(:user).and_return(pending_customer)
-      allow(result).to receive(:metadata).and_return({ ip: '127.0.0.1' })
-      allow(result).to receive(:authenticated?).and_return(false)
+      allow(result).to receive_messages(session: rack_session, user: pending_customer, metadata: { ip: '127.0.0.1' }, authenticated?: false)
       result
     end
 
@@ -53,7 +40,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
     before do
       # Stub OT.conf for default settings
-      allow(OT).to receive(:conf).and_return({
+      allow(OT).to receive_messages(conf: {
         'site' => {
           'authentication' => {
             'colonels' => [],
@@ -61,22 +48,20 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
           },
         },
         'features' => {},
-      },
-                                            )
-      allow(OT).to receive(:default_locale).and_return('en')
+      }, default_locale: 'en'
+      )
 
       # Stub customer lookup
       allow(Onetime::Customer).to receive(:find_by_email).with(test_email).and_return(pending_customer)
       allow(Onetime::Customer).to receive(:anonymous).and_return(double('AnonymousCustomer', anonymous?: true))
 
       # Stub logging
-      allow(logic).to receive(:auth_logger).and_return(double('Logger', info: nil, warn: nil, error: nil, debug: nil))
 
       # Stub i18n
-      allow(logic).to receive(:i18n).and_return({
+      allow(logic).to receive_messages(auth_logger: double('Logger', info: nil, warn: nil, error: nil, debug: nil), i18n: {
         web: { COMMON: { verification_sent_to: 'Verification sent to' } },
-      },
-                                               )
+      }
+      )
 
       # Stub set_info_message (it's a no-op in base)
       allow(logic).to receive(:set_info_message)

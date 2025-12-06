@@ -101,7 +101,7 @@ Billing::Plan.clear_cache
 @legacy_plan.save
 
 ## Create unique test ID suffix to avoid collisions
-@test_suffix = Time.now.to_i.to_s[-6..-1]
+@test_suffix = Time.now.to_i.to_s[-6..]
 @test_suffix.class
 #=> String
 

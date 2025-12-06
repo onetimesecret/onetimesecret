@@ -273,8 +273,7 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
     before do
       allow(Onetime::DomainValidation::Strategy).to receive(:for_config)
         .and_return(strategy)
-      allow(strategy).to receive(:check_status).and_return(status_result)
-      allow(strategy).to receive(:validate_ownership).and_return(validation_result)
+      allow(strategy).to receive_messages(check_status: status_result, validate_ownership: validation_result)
       allow(logic).to receive(:success_data).and_return({})
     end
 

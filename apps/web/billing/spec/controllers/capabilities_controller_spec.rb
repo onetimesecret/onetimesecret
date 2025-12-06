@@ -220,10 +220,10 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
       expect(last_response.content_type).to include('application/json')
 
       data = JSON.parse(last_response.body)
-      expect(data['allowed']).to eq(true)
+      expect(data['allowed']).to be(true)
       expect(data['capability']).to eq('create_secrets')
       expect(data['current_plan']).to eq('identity_v1')
-      expect(data['upgrade_needed']).to eq(false)
+      expect(data['upgrade_needed']).to be(false)
     end
 
     it 'returns denied status for missing capability', :vcr do
@@ -233,10 +233,10 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
       expect(last_response.status).to eq(200)
 
       data = JSON.parse(last_response.body)
-      expect(data['allowed']).to eq(false)
+      expect(data['allowed']).to be(false)
       expect(data['capability']).to eq('api_access')
       expect(data['current_plan']).to eq('identity_v1')
-      expect(data['upgrade_needed']).to eq(true)
+      expect(data['upgrade_needed']).to be(true)
     end
 
     it 'includes upgrade information when capability is denied', :vcr do
@@ -271,7 +271,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
       expect(last_response.status).to eq(200)
 
       data = JSON.parse(last_response.body)
-      expect(data['allowed']).to eq(false)
+      expect(data['allowed']).to be(false)
     end
 
     it 'returns 403 when customer is not organization member', :vcr do

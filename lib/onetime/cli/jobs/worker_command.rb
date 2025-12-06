@@ -144,8 +144,6 @@ module Onetime
           case level_str.to_s.downcase
           when 'trace', 'debug'
             Logger::DEBUG
-          when 'info'
-            Logger::INFO
           when 'warn'
             Logger::WARN
           when 'error'
@@ -153,7 +151,7 @@ module Onetime
           when 'fatal'
             Logger::FATAL
           else
-            Logger::INFO
+            Logger::INFO # default for 'info' and unknown values
           end
         end
       end

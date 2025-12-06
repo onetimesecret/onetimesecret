@@ -180,18 +180,15 @@ module Onetime
 
           return mode if mode && !mode.empty?
 
-          # Auto-detect based on configuration
-          if ENV['RACK_ENV'] == 'test'
-            'logger'
-          elsif (conf['region'] || ENV.fetch('AWS_REGION', nil)) && (conf['user'] || ENV.fetch('AWS_ACCESS_KEY_ID', nil))
-            # AWS SES uses region + AWS credentials
-            'ses'
-          elsif ENV['SENDGRID_API_KEY'] || conf['sendgrid_api_key']
+          # Auto-detect based on configuration (test environment and fallback use logger)
+          if ENV['RACK_ENV'] != 'test' && (conf['region'] || ENV.fetch('AWS_REGION', nil)) && (conf['user'] || ENV.fetch('AWS_ACCESS_KEY_ID', nil))
+            'ses' # AWS SES uses region + AWS credentials
+          elsif ENV['RACK_ENV'] != 'test' && (ENV['SENDGRID_API_KEY'] || conf['sendgrid_api_key'])
             'sendgrid'
-          elsif conf['host'] || ENV['SMTP_HOST']
+          elsif ENV['RACK_ENV'] != 'test' && (conf['host'] || ENV.fetch('SMTP_HOST', nil))
             'smtp'
           else
-            'logger'
+            'logger' # default for test environment and fallback
           end
         end
 

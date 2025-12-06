@@ -27,7 +27,7 @@ module Auth
       private
 
       def jobs_command?
-        ARGV.any? { |arg| arg == 'jobs' }
+        ARGV.any?('jobs')
       end
 
       def execute(_context)

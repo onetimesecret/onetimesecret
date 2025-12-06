@@ -73,7 +73,7 @@ module Onetime
         print_summary(results)
 
         # Exit with failure if any validation failed
-        exit 1 if results.values.include?(false)
+        exit 1 if results.value?(false)
       end
 
       private

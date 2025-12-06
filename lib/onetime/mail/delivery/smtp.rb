@@ -93,7 +93,7 @@ module Onetime
         def handle_auth_failure(mail, settings, error)
           OT.info "[smtp] Auth failed, retrying without auth: #{error.message}"
 
-          settings_no_auth = settings.reject { |k, _| [:user_name, :password, :authentication].include?(k) }
+          settings_no_auth = settings.except(:user_name, :password, :authentication)
           mail.delivery_method :smtp, settings_no_auth
           mail.deliver!
 

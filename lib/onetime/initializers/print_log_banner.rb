@@ -154,22 +154,22 @@ module Onetime
       def build_email_section(email_config)
         return [] if email_config.nil? || email_config.empty?
 
-        _email_config = email_config.dup
+        merged_email_config = email_config.dup
 
         # fromname is deprecated as of v0.23
-        _email_config['from_name'] = email_config['fromname'] if email_config.key?('fromname')
+        merged_email_config['from_name'] = email_config['fromname'] if email_config.key?('fromname')
 
         begin
           if is_feature_disabled?(email_config)
             [%w[Status disabled]]
           else
             [
-              ['Mode', _email_config['mode']],
-              ['From', "'#{_email_config['from_name']} <#{_email_config['from']}>'"],
-              ['Host', "#{_email_config['host']}:#{_email_config['port']}"],
-              ['Region', _email_config['region']],
-              ['TLS', _email_config['tls']],
-              ['Auth', _email_config['auth']],
+              ['Mode', merged_email_config['mode']],
+              ['From', "'#{merged_email_config['from_name']} <#{merged_email_config['from']}>'"],
+              ['Host', "#{merged_email_config['host']}:#{merged_email_config['port']}"],
+              ['Region', merged_email_config['region']],
+              ['TLS', merged_email_config['tls']],
+              ['Auth', merged_email_config['auth']],
             ].reject { |row| row[1].nil? || row[1].to_s.empty? }
           end
         rescue StandardError => ex
@@ -387,7 +387,7 @@ module Onetime
             break_point = width if break_point.nil? || break_point == 0
 
             lines << remaining[0...break_point].rstrip
-            remaining = remaining[break_point..-1].lstrip
+            remaining = remaining[break_point..].lstrip
           end
         end
 
