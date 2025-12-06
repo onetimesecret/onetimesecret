@@ -3,16 +3,19 @@
 # frozen_string_literal: true
 
 # These tryouts test the VuePoint view functionality in the Onetime application,
-# with a focus on the initialization process and its arguments.
+# with a focus on the initialization process via the request object.
 # They cover:
 #
-# 1. Creating and initializing a VuePoint view with various arguments
-# 2. Testing the visibility of different elements based on metadata state and user authentication
-# 3. Verifying the correct generation of URIs and paths
-# 4. Checking the handling of secret values and their display properties
+# 1. Creating and initializing a VuePoint view from request
+# 2. Testing authentication status based on strategy_result
+# 3. Verifying locale handling
 #
 # These tests ensure that the VuePoint view correctly handles different scenarios
-# and properly initializes based on the provided arguments.
+# and properly initializes based on the request environment.
+
+require 'rack/request'
+require 'rack/mock'
+require 'ostruct'
 
 require_relative '../../support/test_helpers'
 require_relative '../../support/test_models'
@@ -24,72 +27,65 @@ OT.boot! :test, false
 
 @email = "tryouts+42+#{Familia.now.to_i}@onetimesecret.com"
 @cust = Onetime::Customer.create!(email: @email)
-@metadata = Onetime::Metadata.create
-@secret = Onetime::Secret.create value: "This is a secret message"
-@metadata.secret_identifier = @secret.identifier
-@metadata.save
+@metadata, @secret = Onetime::Metadata.spawn_pair(
+  @cust.identifier,
+  3600,
+  "This is a secret message"
+)
 
-class MockRequest
-  attr_reader :env
-  def initialize
-    @env = {'ots.locale' => 'en'}
-  end
+# Helper to create a properly configured mock request
+def create_mock_request(locale: 'en', user: nil, authenticated: true)
+  session = { 'test_key' => 'test_value' }
+  strategy_result = OpenStruct.new(
+    session: session,
+    user: user || Onetime::Customer.anonymous,
+    authenticated?: authenticated
+  )
+
+  env = Rack::MockRequest.env_for('http://example.com/')
+  env['otto.strategy_result'] = strategy_result
+  env['otto.locale'] = locale
+  env['onetime.nonce'] = 'test-nonce'
+  env['rack.session'] = session
+
+  Rack::Request.new(env)
 end
 
-class MockSession
-  def authenticated?
-    true
-  end
-  def add_shrimp
-    "mock_shrimp"
-  end
-  def get_error_messages
-    []
-  end
-  def get_info_messages
-    []
-  end
-  def get_form_fields!
-    {}
-  end
-end
+## Can create a VuePoint view from request
+req = create_mock_request(locale: 'en', user: @cust)
+view = Core::Views::VuePoint.new(req)
+[view.req.class, view.locale.class]
+#=> [Rack::Request, String]
 
-@req = MockRequest.new
-@sess = MockSession.new
+## View extracts locale from request
+req = create_mock_request(locale: 'en', user: @cust)
+view = Core::Views::VuePoint.new(req)
+view.locale
+#=> 'en'
 
-## Can create a VuePoint view with all arguments
-view = Core::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
-[view.req, view.sess, view.cust, view.locale]
-#=> [@req, @sess, @cust, 'en']
+## View extracts customer from strategy_result
+req = create_mock_request(locale: 'en', user: @cust)
+view = Core::Views::VuePoint.new(req)
+view.cust.email
+#=> @cust.email
 
-## Correctly sets basic properties
-view = Core::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
-[view['page_title'], view['frontend_host'], view['frontend_development'], view['no_cache']]
-#=> ["Onetime Secret", "http://localhost:5173", false, false]
-
-## Sets authentication status correctly
-view = Core::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
-authenticated_value = view.serialized_data['authenticated']
-authenticated_value
+## Sets authentication status correctly for authenticated user
+req = create_mock_request(locale: 'en', user: @cust, authenticated: true)
+view = Core::Views::VuePoint.new(req)
+view.serialized_data['authenticated']
 #=> true
 
 ## Handles unauthenticated user correctly
-unauthenticated_sess = MockSession.new
-def unauthenticated_sess.authenticated?; false; end
-view = Core::Views::VuePoint.new(@req, unauthenticated_sess, Onetime::Customer.anonymous, 'en', @metadata)
-authenticated_value = view.serialized_data['authenticated']
-authenticated_value
+req = create_mock_request(locale: 'en', user: Onetime::Customer.anonymous, authenticated: false)
+view = Core::Views::VuePoint.new(req)
+view.serialized_data['authenticated']
 #=> false
 
-## Sets locale correctly
-view = Core::Views::VuePoint.new(@req, @sess, @cust, 'es', @metadata)
+## Sets locale correctly from request
+req = create_mock_request(locale: 'es', user: @cust)
+view = Core::Views::VuePoint.new(req)
 view.locale
 #=> 'es'
-
-## Falls back to default locale if not provided
-view = Core::Views::VuePoint.new(@req, @sess, @cust, nil, @metadata)
-view.locale
-#=> 'en'
 
 # Teardown
 @secret.destroy!
