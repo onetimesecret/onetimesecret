@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 #
 # Common test helpers for Tryouts tests.
-# Environment variables should be set via `source spec/.env.test` before running.
 # The ||= pattern provides fallback defaults when running tests directly.
 
 ENV['RACK_ENV'] ||= 'test'

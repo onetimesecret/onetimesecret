@@ -72,8 +72,7 @@ require 'fileutils'
 # - Add to Gemfile: gem 'mock_redis', require: false
 # - See: https://rubygems.org/gems/mock_redis
 #
-# For now, tests requiring Redis should use real Valkey via spec/.env.test:
-#   source spec/.env.test  # Sets VALKEY_URL=valkey://127.0.0.1:2121/0
+# For now, tests requiring Redis should read from the spec/config.test.yaml
 #   pnpm run test:database:start  # Start Valkey on port 2121
 #   pnpm run test:rspec
 

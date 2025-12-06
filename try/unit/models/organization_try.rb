@@ -23,17 +23,19 @@ rescue Redis::CannotConnectError, Redis::ConnectionError => e
   exit 0
 end
 
-# Setup test data
-@owner = Onetime::Customer.create!(email: "org_owner#{Familia.now.to_i}@onetimesecret.com")
-@member1 = Onetime::Customer.create!(email: "org_member1#{Familia.now.to_i}@onetimesecret.com")
-@member2 = Onetime::Customer.create!(email: "org_member2#{Familia.now.to_i}@onetimesecret.com")
-@non_member = Onetime::Customer.create!(email: "org_nonmember#{Familia.now.to_i}@onetimesecret.com")
+# Setup test data with unique identifiers
+@test_suffix = "#{Familia.now.to_i}_#{rand(10000)}"
+@owner = Onetime::Customer.create!(email: "org_owner#{@test_suffix}@onetimesecret.com")
+@member1 = Onetime::Customer.create!(email: "org_member1#{@test_suffix}@onetimesecret.com")
+@member2 = Onetime::Customer.create!(email: "org_member2#{@test_suffix}@onetimesecret.com")
+@non_member = Onetime::Customer.create!(email: "org_nonmember#{@test_suffix}@onetimesecret.com")
+@billing_email = "billing#{@test_suffix}@acme.com"
 
 # Create organization using factory method
 @org = Onetime::Organization.create!(
   "Acme Corporation",
   @owner,
-  "billing@acme.com"
+  @billing_email
 )
 
 ## Can create organization with factory method
@@ -46,7 +48,7 @@ end
 
 ## Organization has contact_email set
 @org.contact_email
-#=> "billing@acme.com"
+#=> @billing_email
 
 ## Organization owner is correctly set
 @org.owner.custid
