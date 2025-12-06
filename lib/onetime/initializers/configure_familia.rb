@@ -22,6 +22,9 @@ module Onetime
       @provides   = [:familia_config]
 
       def execute(_context)
+        secret_key = OT.conf.dig('site', 'secret')
+        raise 'site.secret not set or empty' if secret_key.to_s.empty?
+
         uri = OT.conf.dig('redis', 'uri') || ''
 
         # Early validation: Check if Redis URI is properly configured
@@ -45,9 +48,6 @@ module Onetime
         # Set encryption key with version to allow for future key rotation.
         # Without this config, familia's encrypted fields will raise an error
         # when trying to set or reveal a value.
-        secret_key = ENV.fetch('SECRET', nil)
-        raise 'SECRET environment variable not set or empty' if secret_key.to_s.empty?
-
         Familia.config.encryption_keys     = {
           v1: secret_key,
         }
