@@ -58,6 +58,7 @@ module AuthModeHelpers
     def session
       {
         'secret' => 'test-secret-minimum-64-characters-for-secure-sessions-testing',
+        'key' => 'onetime.session',  # Cookie name - REQUIRED
         'expire_after' => 86400,
         'secure' => false,
         'httponly' => true,

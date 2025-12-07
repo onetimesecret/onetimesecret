@@ -1,0 +1,59 @@
+# spec/logging.test.yaml
+---
+default_level: warn
+
+# Output formatter
+# Options: color, json, default
+# - color: Human-readable with ANSI colors, timestamps, PID/thread (recommended)
+# - json: Structured JSON for production log shipping
+# - default: Plain text without colors
+formatter: default
+
+# Named logger levels
+# Each category can be configured independently. Loggers added here are
+# made available by the setup_loggers initializer.
+loggers:
+  # App: info # Default application logger
+  # Auth: info # Authentication/authorization flows
+  # Billing: info # Only used when billing.enabled=true
+  # Boot: info # During initialization
+  # Bunny: warn # RabbitMQ client (heartbeats at debug level)
+  # CLI: info # Command-line interface operations
+  # Familia: warn # Redis/Familia main database operations
+  # HTTP: warn # HTTP requests and middleware operations
+  # Otto: warn # Otto framework operations
+  # Rhales: error # Rhales template rendering (suppress unescaped HTML warnings)
+  # Secret: info # Secret lifecycle (create, view, burn)
+  # Sequel: warn # Database queries and operations (SQL logged at :trace level)
+  # Session: info # Session lifecycle (create, update, destroy)
+
+# HTTP request logging configuration
+http:
+  # Set LOG_HTTP_REQUESTS=false to disable. Useful when running a reverse proxy
+  # which already logs requests and you consolidate logs into one stream to
+  # avoid redundant information.
+  enabled: false
+  # Overrides loggers.HTTP level for requests
+  level: null
+
+  # Capture mode determines what data is logged per request
+  # Options: minimal, standard, debug
+  #   minimal:  method, path, status, duration
+  #   standard: + request_id, ip
+  #   debug:    + params, headers, session_id
+  capture: minimal
+
+  # Threshold for logging slow requests as warnings (milliseconds)
+  slow_request_ms: 500
+
+  # Paths to ignore (glob patterns)
+  ignore_paths:
+    - /api/v1/status
+    - /api/v2/status
+    - /api/v3/status
+    - /health
+    - /healthcheck
+    - /favicon.ico
+    - /_vite/*
+    - /assets/*
+    - /dist/*

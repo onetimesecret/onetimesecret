@@ -120,6 +120,10 @@ OT::Config.path = File.join(spec_root, 'config.test.yaml')
 # Use test auth config to avoid issues with local auth.yaml modifications
 Onetime::AuthConfig.path = File.join(spec_root, 'auth.test.yaml')
 
+# Disable billing in tests - set path to non-existent file so enabled? returns false
+# This prevents loading production etc/billing.yaml and calling Stripe API
+Onetime::BillingConfig.path = File.join(spec_root, 'billing.test.yaml')
+
 # Load the test configuration so OT.conf is available to tests.
 # This is a minimal config load that doesn't run the full boot process.
 # Integration tests that need full boot will call Onetime.boot! separately.

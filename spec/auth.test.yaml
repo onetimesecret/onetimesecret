@@ -14,7 +14,7 @@ session:
   redis_url: "redis://localhost:6379/0"
   expire_after: 86400  # 24 hours
   key: 'onetime.session'   # Unified cookie name
-  secure: true         # Set based on SSL configuration
+  secure: false        # Must be false for Rack::Test (uses HTTP, not HTTPS)
   httponly: true
   same_site: strict
   redis_prefix: 'session'

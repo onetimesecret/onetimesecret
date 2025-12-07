@@ -15,10 +15,13 @@
 #   end
 #
 RSpec.shared_context 'full_mode_database' do
+  include AuthAccountFactory
+
   let(:test_db) { @test_db }
 
   before(:all) do
     require 'sequel'
+    require 'auth/database'
     Sequel.extension :migration
 
     # Create in-memory SQLite database
@@ -29,7 +32,7 @@ RSpec.shared_context 'full_mode_database' do
     migrations_path = File.expand_path('../../../apps/web/auth/migrations', __dir__)
     Sequel::Migrator.run(@test_db, migrations_path)
 
-    # Reset memoized connection and stub with our test database
+    # Reset memoized connection so our stub takes effect
     Auth::Database.instance_variable_set(:@connection, nil)
   end
 

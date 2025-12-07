@@ -1,3 +1,4 @@
+# spec/config.test.yaml
 ---
 site:
   host: '127.0.0.1:3000'
@@ -14,8 +15,8 @@ site:
     ui:
       enabled: true
   secret_options:
-    default_ttl: <%= ENV['DEFAULT_TTL'] || '43200' %> # 12 hours in seconds
-    ttl_options: <%= (ENV['TTL_OPTIONS'] || '1800 43200 604800') %> # 30m, 12h, 7d
+    default_ttl: 43200 # 12 hours in seconds
+    ttl_options: '1800 43200 604800' # 30m, 12h, 7d
     passphrase:
       required: false
       minimum_length: 8
@@ -56,8 +57,8 @@ site:
 
 features:
   regions:
-    enabled: <%= ENV['REGIONS_ENABLED'] || false %>
-    current_jurisdiction: <%= ENV['JURISDICTION'] || 'EU' %>
+    enabled: false
+    current_jurisdiction: 'EU'
     jurisdictions:
       - identifier: AT
         display_name: Atat Region
@@ -75,12 +76,12 @@ features:
     enabled: false
     # The default domain used for link URLs. When not set or empty,
     # site.host is used.
-    default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
+    default: null
     # The cluster type determines how the application will support
     # multiple domains. The default is nil which means that the
     # application itself is responsible for handling multiple domains.
     cluster:
-      type: <%= ENV['CLUSTER_TYPE'] || nil %>
+      type: null
 
 redis:
   uri: 'redis://127.0.0.1:2121/0'
@@ -92,9 +93,9 @@ redis:
     secret: 0
     feedback: 0
 emailer:
-  mode: <%= ENV['EMAILER_MODE'] || 'logger' %>
-  from: <%= ENV['FROM_EMAIL'] || 'secure@onetime.dev' %>
-  from_name: <%= ENV['FROM_NAME'] || 'Jan' %>
+  mode: 'logger'
+  from: 'secure@onetime.dev'
+  from_name: 'Jan'
   # SMTP settings: hardcoded nil for test environment
   # Test config must be self-sufficient and not rely on environment variables
   # to ensure consistent behavior across CI and local development
@@ -110,8 +111,8 @@ mail:
     # Use regex for tests to avoid MX lookups which can fail for test domains
     default_validation_type: :regex
     # Required for :smtp validation
-    verifier_email: <%= ENV['VERIFIER_EMAIL'] || 'CHANGEME@example.com' %>
-    verifier_domain: <%= ENV['VERIFIER_DOMAIN'] || 'example.com' %>
+    verifier_email: 'CHANGEME@example.com'
+    verifier_domain: 'example.com'
     connection_timeout: 1
     response_timeout: 1
     connection_attempts: 1
