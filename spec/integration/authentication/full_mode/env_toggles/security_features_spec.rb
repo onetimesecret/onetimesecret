@@ -5,9 +5,6 @@ require 'spec_helper'
 
 RSpec.describe 'security_features_try', :full_auth_mode do
   before(:all) do
-    if ENV['AUTH_DATABASE_URL'].to_s.strip.empty?
-      raise RuntimeError, "Full mode requires AUTH_DATABASE_URL"
-    end
     ENV.delete('ENABLE_SECURITY_FEATURES')  # Ensure not set to 'false'
     require 'onetime'
     require 'onetime/config'

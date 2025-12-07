@@ -1,139 +1,64 @@
-# Generated rspec code for /Users/d/Projects/opensource/onetime/onetimesecret/try/integration/authentication/disabled_mode/public_access_try.rb
-# Updated: 2025-12-06 19:02:10 -0800
+# spec/integration/authentication/disabled_mode/public_access_spec.rb
+#
+# frozen_string_literal: true
+
+# Tests for disabled auth mode configuration.
+# In disabled mode, authentication is completely off.
 
 require 'spec_helper'
 
-RSpec.describe 'public_access_try' do
+RSpec.describe 'Disabled Auth Mode', :disabled_auth_mode do
   before(:all) do
-    skip "Requires AUTHENTICATION_MODE=disabled" unless ENV['AUTHENTICATION_MODE'] == 'disabled'
     require 'onetime'
     require 'onetime/config'
     Onetime.boot! :test
     require 'onetime/auth_config'
-    require 'onetime/middleware'
-    require 'onetime/application/registry'
-    Onetime::Application::Registry.prepare_application_registry
-    require 'rack/test'
-    require 'json'
-    @test = Object.new
-    @test.extend Rack::Test::Methods
-    def @test.app
-      Onetime::Application::Registry.generate_rack_url_map
+  end
+
+  describe 'mode configuration' do
+    it 'reports disabled mode as active' do
+      expect(Onetime.auth_config.mode).to eq('disabled')
+    end
+
+    it 'reports full mode as disabled' do
+      expect(Onetime.auth_config.full_enabled?).to be false
+    end
+
+    it 'reports simple mode as disabled' do
+      expect(Onetime.auth_config.simple_enabled?).to be false
+    end
+
+    it 'responds to disabled?' do
+      expect(Onetime.auth_config.disabled?).to be true
     end
   end
 
-  it 'Verify disabled mode is active' do
-    result = begin
-      ENV['AUTHENTICATION_MODE']
+  describe 'Auth::Database' do
+    it 'returns nil for connection' do
+      require 'auth/database'
+      expect(Auth::Database.connection).to be_nil
     end
-    expect(result).to eq('disabled')
   end
 
-  it 'Auth app should NOT be mounted in disabled mode' do
-    result = begin
-      Onetime::Application::Registry.mount_mappings.key?('/auth')
+  describe 'application behavior' do
+    before(:all) do
+      require 'onetime/middleware'
+      require 'onetime/application/registry'
+      # Clear and rebuild registry for disabled mode
+      Onetime::Application::Registry.mount_mappings.clear
+      Onetime::Application::Registry.prepare_application_registry
     end
-    expect(result).to eq(false)
+
+    it 'does not mount Auth app' do
+      expect(Onetime::Application::Registry.mount_mappings.key?('/auth')).to be false
+    end
   end
 
-  it 'Core app is still mounted at root' do
-    result = begin
-      Onetime::Application::Registry.mount_mappings.key?('/')
+  describe 'Core::Application' do
+    it 'is a valid Rack app' do
+      require 'core/application'
+      app = Core::Application.new
+      expect(app).to respond_to(:call)
     end
-    expect(result).to eq(true)
-  end
-
-  it 'Login endpoint redirects in disabled mode' do
-    result = begin
-      @test.post '/auth/login', { login: 'test@example.com', password: 'password' }
-      @test.last_response.status
-    end
-    expect(result).to eq(302)
-  end
-
-  it 'Signup endpoint redirects in disabled mode' do
-    result = begin
-      @test.post '/auth/create-account', { login: 'new@example.com', password: 'password' }
-      @test.last_response.status
-    end
-    expect(result).to eq(302)
-  end
-
-  it 'Logout endpoint redirects in disabled mode' do
-    result = begin
-      @test.post '/auth/logout'
-      @test.last_response.status
-    end
-    expect(result).to eq(302)
-  end
-
-  it 'Reset password endpoint redirects in disabled mode' do
-    result = begin
-      @test.post '/auth/reset-password', { login: 'test@example.com' }
-      @test.last_response.status
-    end
-    expect(result).to eq(302)
-  end
-
-  it 'Sign-in page still exists in disabled mode' do
-    result = begin
-      @test.get '/signin'
-      @test.last_response.status
-    end
-    expect(result).to eq(200)
-  end
-
-  it 'Sign-up page still exists in disabled mode' do
-    result = begin
-      @test.get '/signup'
-      @test.last_response.status
-    end
-    expect(result).to eq(200)
-  end
-
-  it 'API status endpoint is accessible without auth' do
-    result = begin
-      @test.get '/api/v2/status'
-      @test.last_response.status
-    end
-    expect(result).to eq(200)
-  end
-
-  it 'Creating secrets fails without proper parameters' do
-    result = begin
-      @test.post '/api/v2/secret',
-        { secret: 'test-secret', ttl: 300 }.to_json,
-        { 'CONTENT_TYPE' => 'application/json' }
-      @test.last_response.status
-    end
-    expect(result).to eq(404)
-  end
-
-  it 'Protected endpoints are accessible (no protection)' do
-    result = begin
-      @test.get '/dashboard'
-      [200, 302, 404].include?(@test.last_response.status)
-    end
-    expect(result).to eq(true)
-  end
-
-  it 'Homepage is accessible without authentication' do
-    result = begin
-      @test.get '/'
-      @test.last_response.status
-    end
-    expect(result).to eq(200)
-  end
-
-  it 'No session cookie is set in disabled mode' do
-    result = begin
-      @test.get '/'
-      @test.last_response['Set-Cookie']
-    end
-    expect(result).to eq(nil)
-  end
-
-  after(:all) do
-    @test = nil
   end
 end

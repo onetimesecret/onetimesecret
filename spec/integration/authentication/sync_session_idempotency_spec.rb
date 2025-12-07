@@ -5,10 +5,6 @@ require 'spec_helper'
 
 RSpec.describe 'sync_session_idempotency_try', :full_auth_mode do
   before(:all) do
-    if ENV['AUTH_DATABASE_URL'].to_s.strip.empty?
-      puts "SKIPPING: Full mode requires AUTH_DATABASE_URL."
-      exit 0
-    end
     require 'onetime'
     require 'onetime/config'
     Onetime.boot! :test

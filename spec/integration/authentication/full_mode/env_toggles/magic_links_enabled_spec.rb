@@ -5,9 +5,6 @@ require 'spec_helper'
 
 RSpec.describe 'magic_links_enabled_try', :full_auth_mode do
   before(:all) do
-    if ENV['AUTH_DATABASE_URL'].to_s.strip.empty?
-      raise RuntimeError, "Full mode requires AUTH_DATABASE_URL"
-    end
     ENV['ENABLE_MAGIC_LINKS'] = 'true'
     require 'onetime'
     require 'onetime/config'

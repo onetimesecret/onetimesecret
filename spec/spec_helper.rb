@@ -26,11 +26,6 @@
 # spec/spec_helper.rb
 # Test harness for Onetime.
 
-# Encryption key for tests comes from spec/config.test.yaml site.secret fallback.
-# Explicitly unset ENV['SECRET'] to prevent production values from .env leaking into tests.
-# See commit 04a138f98 which changed Familia to use site.secret from config.
-ENV.delete('SECRET')
-
 # Set test database URL - use port 2121 to avoid conflicts with development Redis
 # This MUST be set before config.test.yaml is loaded via ERB, since it checks:
 #   ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:6379/0'

@@ -83,11 +83,7 @@ features:
       type: <%= ENV['CLUSTER_TYPE'] || nil %>
 
 redis:
-  uri: <%=
-    ENV['VALKEY_URL'] ||
-    ENV['REDIS_URL'] ||
-    'redis://127.0.0.1:2121/0'
-    %>
+  uri: 'redis://127.0.0.1:2121/0'
   dbs:
     session: 0
     custom_domain: 0
