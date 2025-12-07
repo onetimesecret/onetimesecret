@@ -22,10 +22,10 @@ rescue Redis::CannotConnectError, Redis::ConnectionError => e
 end
 
 # Setup test data
-@owner = Onetime::Customer.create!(email: "owner#{Familia.now.to_i}@onetimesecret.com")
-@member1 = Onetime::Customer.create!(email: "member1#{Familia.now.to_i}@onetimesecret.com")
-@member2 = Onetime::Customer.create!(email: "member2#{Familia.now.to_i}@onetimesecret.com")
-@non_member = Onetime::Customer.create!(email: "nonmember#{Familia.now.to_i}@onetimesecret.com")
+@owner = Onetime::Customer.create!(email: generate_unique_test_email("team_owner"))
+@member1 = Onetime::Customer.create!(email: generate_unique_test_email("team_member1"))
+@member2 = Onetime::Customer.create!(email: generate_unique_test_email("team_member2"))
+@non_member = Onetime::Customer.create!(email: generate_unique_test_email("team_nonmember"))
 
 # Create team using factory method (Familia v2 auto-manages instances and relationships)
 @team = Onetime::Team.create!("Engineering Team", @owner)

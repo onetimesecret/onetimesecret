@@ -5,7 +5,6 @@
 #
 # frozen_string_literal: true
 
-ENV['RACK_ENV'] ||= 'test'
 require_relative '../../../support/test_helpers'
 
 OT.boot! :test

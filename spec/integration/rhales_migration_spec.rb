@@ -5,7 +5,7 @@
 require_relative 'integration_spec_helper'
 require 'nokogiri'
 
-RSpec.describe 'Rhales Migration Integration' do
+RSpec.describe 'Rhales Migration Integration', :simple_auth_mode, type: :integration do
   # Initialize OT configuration for views
   before(:all) do
     # Set minimal OT locale data

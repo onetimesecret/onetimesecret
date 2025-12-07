@@ -59,17 +59,18 @@ module Onetime::Secret::Features
         # the secret is viewable. If we don't change the state here, the secret
         # will still be viewable b/c (state?(:new) || state?(:viewed) == true).
         @state           = 'received'
-        # We clear the value and passphrase_temp immediately so that the secret
-        # payload is not recoverable from this instance of the secret; however,
-        # we shouldn't clear arbitrary fields here b/c there are valid reasons
-        # to be able to call secret.safe_dump for example. This is exactly what
-        # happens in Logic::RevealSecret.process which prepares the secret value
-        # to be included in the response and then calls this method att the end.
-        # It's at that point that `Logic::RevealSecret.success_data` is called
-        # which means if we were to clear out say -- state -- it would
-        # be null in the API's JSON response. Not a huge deal in that case, but
-        # we validate response data in the UI now and this would raise an error.
+        # We clear the value, ciphertext, and passphrase_temp immediately so that
+        # the secret payload is not recoverable from this instance of the secret;
+        # however, we shouldn't clear arbitrary fields here b/c there are valid
+        # reasons to be able to call secret.safe_dump for example. This is exactly
+        # what happens in Logic::RevealSecret.process which prepares the secret
+        # value to be included in the response and then calls this method at the
+        # end. It's at that point that `Logic::RevealSecret.success_data` is called
+        # which means if we were to clear out say -- state -- it would be null in
+        # the API's JSON response. Not a huge deal in that case, but we validate
+        # response data in the UI now and this would raise an error.
         @value           = nil
+        @ciphertext      = nil  # Clear encrypted field so can_decrypt? returns false
         @passphrase_temp = nil
         destroy!
       end

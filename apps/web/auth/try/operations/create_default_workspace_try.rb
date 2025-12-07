@@ -8,7 +8,6 @@
 # Setup - Load the real application
 ENV['RACK_ENV']            = 'test'
 ENV['AUTHENTICATION_MODE'] = 'simple'
-ENV['ONETIME_HOME']      ||= File.expand_path(File.join(__dir__, '..', '..', '..', '..', '..')).freeze
 
 require_relative '../../../../../try/support/test_helpers'
 
@@ -20,7 +19,7 @@ require_relative '../../operations/create_default_workspace'
 require_relative '../../../billing/controllers/billing'
 
 # Setup: Create test customer
-@customer          = Onetime::Customer.create!(email: "selfheal_#{Familia.now.to_i}@example.com")
+@customer          = Onetime::Customer.create!(email: generate_unique_test_email("selfheal"))
 @customer.verified = true
 @customer.role     = :customer
 
@@ -51,7 +50,7 @@ result = Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
 @customer.organization_instances.size
 Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
 @customer.organization_instances.size
-#=> true
+#=> 1
 
 # Teardown
 begin

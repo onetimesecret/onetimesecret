@@ -61,7 +61,7 @@ module Core
         Rack::Builder.new do
           # Enable Rack compliance validation in development
           # This helps catch middleware issues early
-          use Rack::Lint
+          use Rack::Lint unless ENV['RACK_ENV'] == 'test'
 
           # Retrieve development configuration settings
           config = Onetime.conf.fetch('development', {})

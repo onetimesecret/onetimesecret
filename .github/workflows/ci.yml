@@ -372,6 +372,8 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [ruby-unit]
 
+    # Note: Port 2121 is reused across integration jobs. This is safe because each
+    # GitHub-hosted runner is an isolated VM - services don't share host ports across jobs.
     services:
       redis:
         image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
@@ -436,6 +438,7 @@ jobs:
           echo "Running RSpec integration tests in simple mode..."
           mkdir -p tmp
           bundle exec rspec \
+            --tag simple_auth_mode \
             --format progress \
             --format json --out tmp/rspec_simple_results.json \
             spec/integration
@@ -450,6 +453,17 @@ jobs:
           bundle exec tryouts --agent try/integration/authentication/simple_mode
           bundle exec tryouts --agent try/integration/authentication/common
 
+          echo "Running other integration tests..."
+          bundle exec tryouts --agent try/integration/middleware
+          bundle exec tryouts --agent try/integration/boot
+          bundle exec tryouts --agent try/integration/auth
+          bundle exec tryouts --agent try/integration/web
+          bundle exec tryouts --agent try/integration/api
+          bundle exec tryouts --agent try/integration/email
+          bundle exec tryouts --agent try/integration/billing
+          bundle exec tryouts --agent try/integration/homepage_bypass_header_integration_try.rb
+          bundle exec tryouts --agent try/integration/homepage_mode_integration_try.rb
+
       - name: Generate job summary
         if: always()
         run: |
@@ -460,7 +474,8 @@ jobs:
             echo "- Failures: $(jq '.summary.failure_count' tmp/rspec_simple_results.json)" >> $GITHUB_STEP_SUMMARY
           fi
           echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
-          echo "- Simple mode + common tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Simple mode auth tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Other integration tests (middleware, boot, auth, web, api, email, billing, homepage) completed" >> $GITHUB_STEP_SUMMARY
 
   ruby-integration-full:
     name: Ruby Integration (Full Mode)
@@ -533,6 +548,7 @@ jobs:
           echo "Running RSpec integration tests in full mode..."
           mkdir -p tmp
           bundle exec rspec \
+            --tag full_auth_mode \
             --format progress \
             --format json --out tmp/rspec_full_results.json \
             spec/integration
@@ -547,6 +563,7 @@ jobs:
           echo "Running tryouts for full authentication mode..."
           bundle exec tryouts --agent try/integration/authentication/full_mode
           bundle exec tryouts --agent try/integration/authentication/common
+          bundle exec tryouts --agent try/integration/authentication/sync_session_idempotency_try.rb
 
       - name: Generate job summary
         if: always()

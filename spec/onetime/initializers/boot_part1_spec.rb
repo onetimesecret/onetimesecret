@@ -18,7 +18,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!", :allow_redis do
     # Set test database URL before any config loading
     # This must be set BEFORE config is loaded via ERB since config.test.yaml
     # uses ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:6379/0'
-    ENV['VALKEY_URL'] = 'redis://127.0.0.1:2121/0'
 
     # Mock Onetime::Config.path to use the actual test config file
     allow(Onetime::Config).to receive(:path).and_return(source_config_path)
@@ -237,7 +236,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!", :allow_redis do
     let(:loaded_config) { Onetime::Config.load(source_config_path) }
 
     before(:each) do
-      ENV['RACK_ENV'] = 'test'
       ENV['DEFAULT_TTL'] = nil
       ENV['TTL_OPTIONS'] = nil
       ENV['FRONTEND_HOST'] = nil
@@ -252,7 +250,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!", :allow_redis do
       ENV['SMTP_TLS'] = nil
       ENV['VERIFIER_EMAIL'] = nil
       ENV['VERIFIER_DOMAIN'] = nil
-      ENV['VALKEY_URL'] = 'redis://127.0.0.1:2121/0'
       OT::Utils.instance_variable_set(:@fortunes, nil) # Reset fortunes for each test
     end
 

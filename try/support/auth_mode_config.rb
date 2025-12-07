@@ -40,9 +40,7 @@ module AuthModeConfig
   def skip_unless_mode(required_mode, message = nil)
     unless auth_mode == required_mode.to_s
       msg = message || "Test requires #{required_mode} mode (current: #{auth_mode})"
-      OT.ld "SKIPPING: #{msg}"
-      # Exit cleanly to avoid test failures
-      exit 0
+      raise RuntimeError, msg
     end
   end
 
@@ -50,8 +48,7 @@ module AuthModeConfig
   def skip_if_mode(excluded_mode, message = nil)
     if auth_mode == excluded_mode.to_s
       msg = message || "Test skipped in #{excluded_mode} mode"
-      OT.ld "SKIPPING: #{msg}"
-      exit 0
+      raise RuntimeError, msg
     end
   end
 

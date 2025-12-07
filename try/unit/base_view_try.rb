@@ -10,9 +10,7 @@
 # 2. Error recovery flow: strategy_result is nil, fallback params provided
 
 # Setup - Load the real application
-ENV['RACK_ENV'] ||= 'test'
 ENV['AUTHENTICATION_MODE'] = 'simple'
-ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..')).freeze
 
 require 'rack/request'
 require 'rack/mock'

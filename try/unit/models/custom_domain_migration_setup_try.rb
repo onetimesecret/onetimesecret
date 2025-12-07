@@ -14,7 +14,7 @@ rescue Redis::CannotConnectError, Redis::ConnectionError => e
 end
 
 # Ensure clean state
-Familia.dbclient(6).flushdb if ENV['ENV'] == 'test'
+Familia.dbclient.flushdb if ENV['ENV'] == 'test'
 
 # Create test data
 @test_id = SecureRandom.hex(4)
@@ -38,4 +38,4 @@ Familia.dbclient(6).flushdb if ENV['ENV'] == 'test'
 #=> false
 
 # Teardown
-Familia.dbclient(6).flushdb if ENV['ENV'] == 'test'
+Familia.dbclient.flushdb if ENV['ENV'] == 'test'

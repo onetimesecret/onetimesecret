@@ -71,7 +71,6 @@ RSpec.describe "Onetime boot configuration process" do
     # Set test database URL before any config loading
     # This must be set BEFORE config is loaded via ERB since config.test.yaml
     # uses ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:6379/0'
-    ENV['VALKEY_URL'] = 'redis://127.0.0.1:2121/0'
 
     # Set up necessary state for testing
     @original_path = Onetime::Config.instance_variable_get(:@path)
@@ -113,7 +112,6 @@ RSpec.describe "Onetime boot configuration process" do
       around do |example|
         # Set RACK_ENV=test to skip billing initializer's Stripe calls
         original_rack_env = ENV['RACK_ENV']
-        ENV['RACK_ENV'] = 'test'
         example.run
         ENV['RACK_ENV'] = original_rack_env
       end
@@ -180,7 +178,6 @@ RSpec.describe "Onetime boot configuration process" do
     context 'with explicit method calls' do
       around do |example|
         original_rack_env = ENV['RACK_ENV']
-        ENV['RACK_ENV'] = 'test'
         example.run
         ENV['RACK_ENV'] = original_rack_env
       end
@@ -231,7 +228,6 @@ RSpec.describe "Onetime boot configuration process" do
 
       around do |example|
         original_rack_env = ENV['RACK_ENV']
-        ENV['RACK_ENV'] = 'test'
         example.run
         ENV['RACK_ENV'] = original_rack_env
       end

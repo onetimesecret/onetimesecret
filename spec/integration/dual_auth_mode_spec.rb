@@ -143,13 +143,11 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     cust
   end
 
-  describe 'Simple Mode Configuration' do
+  describe 'Simple Mode Configuration', :simple_auth_mode do
     def app
       @simple_app ||= begin
         # Setup environment for simple mode
-        ENV['RACK_ENV'] = 'test'
         ENV['AUTHENTICATION_MODE'] = 'simple'
-        ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 
         # IMPORTANT: Reload auth config BEFORE reset! so that
         # should_skip_loading? checks see the correct mode
@@ -199,13 +197,11 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
   end
 
   # All /auth/* endpoint tests require full mode
-  describe 'Full Mode - Auth Endpoints' do
+  describe 'Full Mode - Auth Endpoints', :full_auth_mode do
     def app
       @full_app ||= begin
         # Setup environment for full mode
-        ENV['RACK_ENV'] = 'test'
         ENV['AUTHENTICATION_MODE'] = 'full'
-        ENV['VALKEY_URL'] ||= 'valkey://127.0.0.1:2121/0'
 
         # Reset both registries to clear state from previous test runs
         Onetime::Application::Registry.reset!
@@ -274,11 +270,11 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
       end
 
       context 'without JSON Accept header' do
-        it 'redirects on authentication failure' do
+        it 'rejects non-JSON requests in JSON-only mode' do
           post '/auth/login', { login: 'test@example.com', password: 'password' }
 
-          # Should redirect or return 401, but never 500 (server error)
-          expect(last_response.status).to eq(302).or eq(401)
+          # Rodauth is configured with only_json? true, so non-JSON requests return 400
+          expect(last_response.status).to eq(400)
         end
       end
     end

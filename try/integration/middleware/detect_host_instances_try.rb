@@ -14,7 +14,7 @@ require 'middleware/detect_host'
 $instance_registry = []
 
 class InstanceTrackingMiddleware < Rack::DetectHost
-  def initialize(app, io: $stderr)
+  def initialize(app, logger: nil)
     super
     $instance_registry << self
   end

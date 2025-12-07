@@ -26,17 +26,16 @@
 # spec/spec_helper.rb
 # Test harness for Onetime.
 
-# Set test environment variables
-# Familia v2 requires base64-encoded encryption keys for encrypted_field feature.
-# This is a 32-byte test key, base64 encoded (AES-256 requires 32-byte keys).
-require 'base64'
-ENV['SECRET'] ||= Base64.strict_encode64('rspec-test-key-32bytes-exactly!')
+# Encryption key for tests comes from spec/config.test.yaml site.secret fallback.
+# Explicitly unset ENV['SECRET'] to prevent production values from .env leaking into tests.
+# See commit 04a138f98 which changed Familia to use site.secret from config.
+ENV.delete('SECRET')
 
 # Set test database URL - use port 2121 to avoid conflicts with development Redis
 # This MUST be set before config.test.yaml is loaded via ERB, since it checks:
 #   ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:6379/0'
-# CI sets REDIS_URL but we prefer VALKEY_URL for consistency with the code.
-ENV['VALKEY_URL'] ||= ENV['REDIS_URL'] || 'redis://127.0.0.1:2121/0'
+#
+# Values from .env file would otherwise leak into tests. For tests, always use port 2121 explicitly.
 
 require 'rspec'
 require 'yaml'
@@ -68,8 +67,7 @@ require 'fileutils'
 # - Add to Gemfile: gem 'mock_redis', require: false
 # - See: https://rubygems.org/gems/mock_redis
 #
-# For now, tests requiring Redis should use real Valkey via spec/.env.test:
-#   source spec/.env.test  # Sets VALKEY_URL=valkey://127.0.0.1:2121/0
+# For now, tests requiring Redis should read from the spec/config.test.yaml
 #   pnpm run test:database:start  # Start Valkey on port 2121
 #   pnpm run test:rspec
 

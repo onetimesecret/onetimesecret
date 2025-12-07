@@ -3,7 +3,9 @@ site:
   host: '127.0.0.1:3000'
   # Turns https/http on or off when generating links
   ssl: true
-  secret: <%= ENV['SITE_SECRET'] || 'SuP0r_53cRU7_t3st_0nly' %>
+  # Hardcoded secret for test environment - must not use ENV vars
+  # to ensure consistent behavior across CI and local development
+  secret: 'SuP0r_53cRU7_t3st_0nly'
   interface:
     # Controls whether the web user interface is available. When disabled, the
     # homepage becomes a basic, readonly page with the logo and a brief
@@ -84,7 +86,7 @@ redis:
   uri: <%=
     ENV['VALKEY_URL'] ||
     ENV['REDIS_URL'] ||
-    'redis://127.0.0.1:6379/0'
+    'redis://127.0.0.1:2121/0'
     %>
   dbs:
     session: 0
@@ -95,16 +97,17 @@ redis:
     feedback: 0
 emailer:
   mode: <%= ENV['EMAILER_MODE'] || 'logger' %>
-  from: <%= ENV['FROM_EMAIL'] || ENV['FROM_EMAIL'] || 'tests@example.com' %>
+  from: <%= ENV['FROM_EMAIL'] || 'secure@onetime.dev' %>
   from_name: <%= ENV['FROM_NAME'] || 'Jan' %>
-  host: <%= ENV['SMTP_HOST'] || 'localhost' %>
-  port: <%= ENV['SMTP_PORT'] || 587 %>
-  user: <%= ENV['SMTP_USERNAME'] || 'user' %>
-  pass: <%= ENV['SMTP_PASSWORD'] || 'pass' %>
-  auth: <%= ENV['SMTP_AUTH'] || 'login' %>
-  tls: <%= ENV['SMTP_TLS'] || true %>
-billing:
-  enabled: false
+  # SMTP settings: hardcoded nil for test environment
+  # Test config must be self-sufficient and not rely on environment variables
+  # to ensure consistent behavior across CI and local development
+  host: ~
+  port: ~
+  user: ~
+  pass: ~
+  auth: ~
+  tls: ~
 mail:
   truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp
