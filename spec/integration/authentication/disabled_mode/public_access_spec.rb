@@ -44,8 +44,8 @@ RSpec.describe 'Disabled Auth Mode', :disabled_auth_mode do
     before(:all) do
       require 'onetime/middleware'
       require 'onetime/application/registry'
-      # Clear and rebuild registry for disabled mode
-      Onetime::Application::Registry.mount_mappings.clear
+      # Reset and rebuild registry for disabled mode
+      Onetime::Application::Registry.reset!
       Onetime::Application::Registry.prepare_application_registry
     end
 

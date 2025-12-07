@@ -18,6 +18,8 @@ RSpec.describe 'Simple Auth Mode', :simple_auth_mode do
     require 'onetime/auth_config'
     require 'onetime/middleware'
     require 'onetime/application/registry'
+    # Reset registry to ensure clean state (other specs may have mounted different apps)
+    Onetime::Application::Registry.reset!
     Onetime::Application::Registry.prepare_application_registry
   end
 
