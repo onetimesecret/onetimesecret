@@ -114,6 +114,9 @@ end
 
 # Load test utilities
 Dir[File.join(spec_root, 'support', '*.rb')].each { |f| require f }
+Dir[File.join(spec_root, 'support', 'shared_contexts', '*.rb')].each { |f| require f }
+Dir[File.join(spec_root, 'support', 'shared_examples', '*.rb')].each { |f| require f }
+Dir[File.join(spec_root, 'support', 'factories', '*.rb')].each { |f| require f }
 
 # Test mode
 OT.mode         = :test
