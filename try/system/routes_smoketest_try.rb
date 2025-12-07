@@ -23,7 +23,7 @@ mapped = Onetime::Application::Registry.generate_rack_url_map
 # all data. Since we organize data types by database number, we can
 # flush a specific database to clear only that data type. In this
 # case, we're flushing db #2 which is used only for limiter keys.
-Familia.dbclient(2).flushdb
+Familia.dbclient.flushdb
 
 # Web Routes
 
@@ -70,7 +70,7 @@ response = @mock_request.get('/api/v2/authcheck')
 ## Can access the API share endpoint
 # NOTE: Disabled pending Otto v2 migration for v1 API (#2128)
 response = @mock_request.post('/api/v1/create')
-content = Familia::JsonSerializer.parse(response.body) rescue {}
+content = Familia::JsonSerializer.parse(response.body)
 has_msg = content.slice('message').eql?({'message' => 'You did not provide anything to share'})
 [response.status, has_msg, content.keys.sort]
 ##=> [404, true, ['message', 'shrimp']]
@@ -84,9 +84,11 @@ content = Familia::JsonSerializer.parse(response.body)
 
 ## V2 API conceal returns 422 with validation error when no secret provided
 # Otto error format: { error: 'FormError', message: '...' }
-response = @mock_request.post('/api/v2/secret/conceal')
-content = Familia::JsonSerializer.parse(response.body) rescue {}
+# NOTE: Accept header required for JSON error responses (Otto content negotiation)
+response = @mock_request.post('/api/v2/secret/conceal', 'HTTP_ACCEPT' => 'application/json')
+content = Familia::JsonSerializer.parse(response.body)
 has_msg = content['message'] == 'You did not provide anything to share'
+p response.body
 [response.status, has_msg, content.keys.sort]
 #=> [422, true, ['error', 'message']]
 

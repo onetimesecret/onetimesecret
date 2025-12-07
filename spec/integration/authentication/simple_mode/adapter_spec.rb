@@ -61,7 +61,7 @@ RSpec.describe 'adapter_try', :simple_auth_mode do
     expect(result).to eq(404)
   end
 
-  it 'Check that we're getting an error response' do
+  it "Check that we're getting an error response" do
     result = begin
       @test.last_response.body.length > 0
     end

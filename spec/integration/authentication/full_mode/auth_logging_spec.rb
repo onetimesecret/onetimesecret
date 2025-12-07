@@ -119,7 +119,7 @@ RSpec.describe 'auth_logging_try', :full_auth_mode do
     expect(result).to eq(true)
   end
 
-  it 'Auth::Logging defaults correlation_id to 'none' when not provided' do
+  it "Auth::Logging defaults correlation_id to 'none' when not provided" do
     result = begin
       begin
         Auth::Logging.log_auth_event(

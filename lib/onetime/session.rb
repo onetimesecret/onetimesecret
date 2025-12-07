@@ -77,7 +77,7 @@ module Onetime
         raise ArgumentError, 'SESSION_SECRET is not set and no site secret available' unless site_secret.is_a?(String) && !site_secret.empty?
 
         options[:secret] = site_secret
-        OT.info '[Session] SESSION_SECRET not set, using site secret for session signing'
+        OT.ld '[Session] SESSION_SECRET not set, using site secret for session signing'
 
       end
 

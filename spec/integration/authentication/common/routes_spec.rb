@@ -7,6 +7,11 @@ RSpec.describe 'routes_try' do
   before(:all) do
     require 'rack'
     require 'rack/mock'
+    # Clear Redis env vars to ensure test config defaults are used (port 2121)
+    ENV.delete('REDIS_URL')
+    ENV.delete('VALKEY_URL')
+    # Ensure RACK_ENV is test so boot! is idempotent
+    ENV['RACK_ENV'] = 'test'
     @app = Rack::Builder.parse_file('config.ru')
     @mock_request = Rack::MockRequest.new(@app)
   end

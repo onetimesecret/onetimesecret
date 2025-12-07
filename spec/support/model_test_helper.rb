@@ -3,6 +3,13 @@
 # frozen_string_literal: true
 
 module ModelTestHelper
+  # Generate a unique email address for tests
+  # @param prefix [String] optional prefix for the email
+  # @return [String] unique email address
+  def generate_unique_test_email(prefix = "test")
+    "#{prefix}_#{SecureRandom.hex(8)}_#{Familia.now.to_i}@example.com"
+  end
+
   # Factory method to create a fully stubbed Onetime::Secret instance
   def create_stubbed_secret(attributes = {})
     secret = Onetime::Secret.new
