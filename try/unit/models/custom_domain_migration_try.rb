@@ -28,7 +28,7 @@ end
 # Setup: Create test data for post-migration validation
 begin
   # Ensure clean state
-  Familia.dbclient(6).flushdb if ENV['ENV'] == 'test'
+  Familia.dbclient.flushdb if ENV['ENV'] == 'test'
 
   # Generate unique test ID
   @test_id = SecureRandom.hex(4)
@@ -128,7 +128,7 @@ end
 
 # Teardown: Clean up test data
 begin
-  Familia.dbclient(6).flushdb if ENV['ENV'] == 'test'
+  Familia.dbclient.flushdb if ENV['ENV'] == 'test'
 rescue Redis::CannotConnectError, Redis::ConnectionError
   # Skip cleanup if Redis unavailable
 end

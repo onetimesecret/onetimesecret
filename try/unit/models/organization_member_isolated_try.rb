@@ -12,7 +12,7 @@ rescue Redis::CannotConnectError, Redis::ConnectionError => e
 end
 
 ## Clean up
-Familia.dbclient(6).flushdb if ENV['ENV'] == 'test'
+Familia.dbclient.flushdb if ENV['ENV'] == 'test'
 
 # Create fixtures
 @timestamp = Familia.now.to_i

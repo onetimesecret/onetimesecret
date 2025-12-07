@@ -13,7 +13,7 @@ end
 
 ## Clean up any existing test data from previous runs
 # Note: Using dbclient(6) for test database
-Familia.dbclient(6).flushdb if ENV['ENV'] == 'test'
+Familia.dbclient.flushdb if ENV['ENV'] == 'test'
 
 # Use unique email to avoid conflicts
 @timestamp = Familia.now.to_i
