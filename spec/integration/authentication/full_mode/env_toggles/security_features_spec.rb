@@ -1,88 +1,87 @@
-# Generated rspec code for /Users/d/Projects/opensource/onetime/onetimesecret/try/integration/authentication/full_mode/env_toggles/security_features_try.rb
-# Updated: 2025-12-06 19:02:22 -0800
+# spec/integration/authentication/full_mode/env_toggles/security_features_spec.rb
+#
+# frozen_string_literal: true
+
+# Tests for security features toggle via ENABLE_SECURITY_FEATURES env var.
+# When enabled (default), security features like lockout and active sessions
+# are available.
 
 require 'spec_helper'
+require 'rack/test'
+require 'climate_control'
 
-RSpec.describe 'security_features_try', :full_auth_mode do
+RSpec.describe 'Security Features Toggle', :full_auth_mode do
+  include Rack::Test::Methods
+
+  def app
+    @app ||= Onetime::Application::Registry.generate_rack_url_map
+  end
+
+  def json_response
+    JSON.parse(last_response.body)
+  rescue JSON::ParserError
+    {}
+  end
+
   before(:all) do
-    ENV.delete('ENABLE_SECURITY_FEATURES')  # Ensure not set to 'false'
     require 'onetime'
     require 'onetime/config'
     Onetime.boot! :test
     require 'onetime/auth_config'
     require 'onetime/middleware'
     require 'onetime/application/registry'
+    Onetime::Application::Registry.reset!
     Onetime::Application::Registry.prepare_application_registry
-    require 'rack/test'
-    require 'json'
-    @test = Object.new
-    @test.extend Rack::Test::Methods
-    def @test.app
-      Onetime::Application::Registry.generate_rack_url_map
+    require 'auth/config'
+  end
+
+  describe 'default configuration (security enabled)' do
+    it 'has security features enabled by default' do
+      # ENV['ENABLE_SECURITY_FEATURES'] != 'false' means enabled
+      expect(ENV['ENABLE_SECURITY_FEATURES']).not_to eq('false')
     end
-    def @test.json_response
-      JSON.parse(last_response.body)
-    rescue JSON::ParserError
-      {}
+
+    it 'mounts Auth app' do
+      expect(Onetime::Application::Registry.mount_mappings).to have_key('/auth')
     end
   end
 
-  it 'Verify security features ENV pattern (default = enabled)' do
-    result = begin
-      ENV['ENABLE_SECURITY_FEATURES'] != 'false'
+  describe 'GET /auth/unlock-account (lockout feature)' do
+    before { get '/auth/unlock-account' }
+
+    it 'returns a valid HTTP status' do
+      expect([200, 400, 401, 404]).to include(last_response.status)
     end
-    expect(result).to eq(true)
+
+    it 'returns JSON or HTML content' do
+      content_type = last_response.headers['Content-Type']
+      is_json_or_html = content_type&.include?('application/json') ||
+                        content_type&.include?('text/html')
+      expect(is_json_or_html).to be true
+    end
   end
 
-  it 'Auth app is mounted' do
-    result = begin
-      Onetime::Application::Registry.mount_mappings.key?('/auth')
+  describe 'POST /auth/login with security enabled' do
+    let(:credentials) { { login: 'test@example.com', password: 'wrongpassword' }.to_json }
+    let(:json_headers) { { 'CONTENT_TYPE' => 'application/json' } }
+
+    it 'returns appropriate error status' do
+      post '/auth/login', credentials, json_headers
+      expect([400, 401, 422]).to include(last_response.status)
     end
-    expect(result).to eq(true)
   end
 
-  it 'Unlock account route exists (from lockout feature)' do
-    result = begin
-      @test.get '/auth/unlock-account'
-      [200, 400, 401, 404].include?(@test.last_response.status)
+  describe 'Auth::Config security methods' do
+    it 'has lockout feature method (max_invalid_logins)' do
+      has_method = Auth::Config.method_defined?(:max_invalid_logins) ||
+                   Auth::Config.private_method_defined?(:max_invalid_logins)
+      expect(has_method).to be true
     end
-    expect(result).to eq(true)
-  end
 
-  it 'Unlock account route response is valid (JSON or HTML redirect)' do
-    result = begin
-      @test.get '/auth/unlock-account'
-      content_type = @test.last_response.headers['Content-Type']
-      is_json = content_type&.include?('application/json')
-      is_html = content_type&.include?('text/html')
-      is_valid_status = [200, 302, 400, 401, 404].include?(@test.last_response.status)
-      (is_json || is_html) && is_valid_status
+    it 'has active_sessions feature method (session_inactivity_deadline)' do
+      has_method = Auth::Config.method_defined?(:session_inactivity_deadline) ||
+                   Auth::Config.private_method_defined?(:session_inactivity_deadline)
+      expect(has_method).to be true
     end
-    expect(result).to eq(true)
   end
-
-  it 'Login endpoint still works with security features enabled' do
-    result = begin
-      @test.post '/auth/login',
-        { login: 'test@example.com', password: 'wrongpassword' }.to_json,
-        { 'CONTENT_TYPE' => 'application/json' }
-      [400, 401, 422].include?(@test.last_response.status)
-    end
-    expect(result).to eq(true)
-  end
-
-  it 'Auth::Config has lockout feature methods' do
-    result = begin
-      Auth::Config.method_defined?(:max_invalid_logins) || Auth::Config.private_method_defined?(:max_invalid_logins)
-    end
-    expect(result).to eq(true)
-  end
-
-  it 'Auth::Config has active_sessions feature methods' do
-    result = begin
-      Auth::Config.method_defined?(:session_inactivity_deadline) || Auth::Config.private_method_defined?(:session_inactivity_deadline)
-    end
-    expect(result).to eq(true)
-  end
-
 end
