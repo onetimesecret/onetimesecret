@@ -12,16 +12,11 @@
 require_relative '../../../support/test_logic'
 require 'securerandom'
 
-begin
-  OT.boot! :test, false
+OT.boot! :test
 
-  # Load DomainsAPI logic classes
-  require 'apps/api/domains/logic/base'
-  require 'apps/api/domains/logic/domains/add_domain'
-rescue Redis::CannotConnectError, Redis::ConnectionError => e
-  puts "SKIP: Requires Redis connection (#{e.class})"
-  exit 0
-end
+# Load DomainsAPI logic classes
+require 'apps/api/domains/logic/base'
+require 'apps/api/domains/logic/domains/add_domain'
 
 # Setup test fixtures with unique identifiers
 @timestamp = Familia.now.to_i

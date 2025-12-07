@@ -13,12 +13,7 @@
 require 'rack/test'
 require_relative '../../../support/test_helpers'
 
-begin
-  OT.boot! :test, false unless OT.ready?
-rescue Redis::CannotConnectError, Redis::ConnectionError => e
-  puts "SKIP: Requires Redis connection (#{e.class})"
-  exit 0
-end
+OT.boot! :test
 
 require 'onetime/application/registry'
 Onetime::Application::Registry.prepare_application_registry

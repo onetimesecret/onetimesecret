@@ -20,12 +20,7 @@
 
 require_relative '../../support/test_models'
 
-begin
-  OT.boot! :test, false
-rescue Redis::CannotConnectError, Redis::ConnectionError => e
-  puts "SKIP: Requires Redis connection (#{e.class})"
-  exit 0
-end
+OT.boot! :test
 
 # Setup test data
 @owner = Onetime::Customer.create!(email: generate_unique_test_email("teamv2_owner"))

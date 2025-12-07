@@ -18,41 +18,32 @@
 
 require_relative '../../support/test_models'
 
-begin
-  OT.boot! :test, false
-rescue Redis::CannotConnectError, Redis::ConnectionError => e
-  puts "SKIP: Requires Redis connection (#{e.class})"
-  exit 0
-end
+OT.boot! :test
 
 # Setup: Create test data for post-migration validation
-begin
-  # Ensure clean state
-  Familia.dbclient.flushdb if ENV['ENV'] == 'test'
 
-  # Generate unique test ID
-  @test_id = SecureRandom.hex(4)
+# Ensure clean state
+Familia.dbclient.flushdb if ENV['ENV'] == 'test'
 
-  # Create customer with organization
-  @customer = Onetime::Customer.create!(email: "customer_#{@test_id}@test.com")
-  @organization = Onetime::Organization.create!("Test Org #{@test_id}", @customer, "billing_#{@test_id}@test.com")
+# Generate unique test ID
+@test_id = SecureRandom.hex(4)
 
-  # Create test domains using org_id
-  @domain1 = Onetime::CustomDomain.create!("secrets-#{@test_id}.acme.com", @organization.objid)
-  @domain2 = Onetime::CustomDomain.create!("linx-#{@test_id}.acme.com", @organization.objid)
+# Create customer with organization
+@customer = Onetime::Customer.create!(email: "customer_#{@test_id}@test.com")
+@organization = Onetime::Organization.create!("Test Org #{@test_id}", @customer, "billing_#{@test_id}@test.com")
 
-  # Create second organization with domain
-  @customer2 = Onetime::Customer.create!(email: "customer2_#{@test_id}@test.com")
-  @organization2 = Onetime::Organization.create!("Test Org 2 #{@test_id}", @customer2, "billing2_#{@test_id}@test.com")
-  @domain3 = Onetime::CustomDomain.create!("portal-#{@test_id}.example.com", @organization2.objid)
+# Create test domains using org_id
+@domain1 = Onetime::CustomDomain.create!("secrets-#{@test_id}.acme.com", @organization.objid)
+@domain2 = Onetime::CustomDomain.create!("linx-#{@test_id}.acme.com", @organization.objid)
 
-  # Track counts for validation
-  @initial_domain_count = Onetime::CustomDomain.instances.size
-  @initial_org_count = Onetime::Organization.instances.size
-rescue Redis::CannotConnectError, Redis::ConnectionError => e
-  puts "SKIP: Setup requires Redis connection (#{e.class})"
-  exit 0
-end
+# Create second organization with domain
+@customer2 = Onetime::Customer.create!(email: "customer2_#{@test_id}@test.com")
+@organization2 = Onetime::Organization.create!("Test Org 2 #{@test_id}", @customer2, "billing2_#{@test_id}@test.com")
+@domain3 = Onetime::CustomDomain.create!("portal-#{@test_id}.example.com", @organization2.objid)
+
+# Track counts for validation
+@initial_domain_count = Onetime::CustomDomain.instances.size
+@initial_org_count = Onetime::Organization.instances.size
 
 ## Validation: Instances index tracks domains
 @initial_domain_count >= 3
@@ -127,8 +118,4 @@ end
 #=:> Hash
 
 # Teardown: Clean up test data
-begin
-  Familia.dbclient.flushdb if ENV['ENV'] == 'test'
-rescue Redis::CannotConnectError, Redis::ConnectionError
-  # Skip cleanup if Redis unavailable
-end
+Familia.dbclient.flushdb if ENV['ENV'] == 'test'
