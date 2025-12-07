@@ -8,12 +8,8 @@
 
 require_relative '../support/test_models'
 
-begin
-  OT.boot! :test, false
-rescue Redis::CannotConnectError, Redis::ConnectionError => e
-  puts "SKIP: Requires Redis connection (#{e.class})"
-  exit 0
-end
+
+OT.boot! :test
 
 @owner = Onetime::Customer.create!(email: "debug_owner_#{Familia.now.to_i}@test.com")
 @org = Onetime::Organization.create!("Debug Org", @owner, "billing@debug.com")

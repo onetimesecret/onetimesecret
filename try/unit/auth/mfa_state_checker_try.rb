@@ -14,7 +14,7 @@
 require_relative '../../support/test_helpers'
 
 # Load the app with test configuration
-OT.boot! :test, false
+OT.boot! :test
 
 # Require the auth services and database
 require_relative '../../../apps/web/auth/database'
@@ -26,12 +26,6 @@ require_relative '../../../apps/web/auth/operations/mfa_state_checker'
 
 # Get database connection (requires full mode)
 @db = Auth::Database.connection
-
-# Skip tests if database is not available (simple mode)
-if @db.nil?
-  puts "Skipping MfaStateChecker tests - database not available in simple mode"
-  exit 0
-end
 
 # Setup test account
 @test_account_id = 99999

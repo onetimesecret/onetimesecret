@@ -5,12 +5,8 @@
 require_relative '../../support/test_models'
 require_relative '../../../migrations/core/custom_domains_to_orgs_data_generator'
 
-begin
-  OT.boot! :test, false
-rescue Redis::CannotConnectError, Redis::ConnectionError => e
-  puts "SKIP: Requires Redis connection (#{e.class})"
-  exit 0
-end
+
+OT.boot! :test
 
 ## Generate test data
 @stats = Onetime::Migration::CustomDomainsToOrgsDataGenerator.generate_test_data
