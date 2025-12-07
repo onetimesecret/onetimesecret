@@ -9,13 +9,16 @@
 # and verify that the routes exist and return appropriate status codes.
 
 require_relative '../support/test_helpers'
-OT.boot! :test, false
+OT.boot! :test
 
 require 'rack'
 require 'rack/mock'
 
-builder = Rack::Builder.parse_file('config.ru')
-@app = builder
+require 'onetime/middleware'
+require 'onetime/application/registry'
+Onetime::Application::Registry.prepare_application_registry
+Onetime.instance_variable_set(:@ready, true) unless Onetime.ready?
+
 mapped = Onetime::Application::Registry.generate_rack_url_map
 @mock_request = Rack::MockRequest.new(mapped)
 
