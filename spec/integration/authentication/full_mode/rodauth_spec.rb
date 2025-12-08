@@ -5,6 +5,9 @@
 # Tests for Rodauth integration in full authentication mode.
 # Verifies that Auth app is mounted, routes respond correctly,
 # and endpoints behave as expected when full auth is enabled.
+#
+# Database and application setup is handled by FullModeSuiteDatabase
+# (see spec/support/full_mode_suite_database.rb).
 
 require 'spec_helper'
 require 'rack/test'
@@ -12,24 +15,12 @@ require 'rack/test'
 RSpec.describe 'Rodauth Integration', :full_auth_mode do
   include Rack::Test::Methods
 
-  # Use the full URL map (all mounted apps)
   def app
     @app ||= Onetime::Application::Registry.generate_rack_url_map
   end
 
   def json_response
     JSON.parse(last_response.body)
-  end
-
-  before(:all) do
-    require 'onetime'
-    require 'onetime/config'
-    Onetime.boot! :test
-    require 'onetime/auth_config'
-    require 'onetime/middleware'
-    require 'onetime/application/registry'
-    Onetime::Application::Registry.reset!
-    Onetime::Application::Registry.prepare_application_registry
   end
 
   describe 'mode configuration' do

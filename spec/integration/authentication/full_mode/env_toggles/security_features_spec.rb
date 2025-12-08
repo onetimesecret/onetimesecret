@@ -10,6 +10,9 @@ require 'spec_helper'
 require 'rack/test'
 require 'climate_control'
 
+# Database and application setup is handled by FullModeSuiteDatabase
+# (see spec/support/full_mode_suite_database.rb).
+
 RSpec.describe 'Security Features Toggle', :full_auth_mode do
   include Rack::Test::Methods
 
@@ -24,14 +27,6 @@ RSpec.describe 'Security Features Toggle', :full_auth_mode do
   end
 
   before(:all) do
-    require 'onetime'
-    require 'onetime/config'
-    Onetime.boot! :test
-    require 'onetime/auth_config'
-    require 'onetime/middleware'
-    require 'onetime/application/registry'
-    Onetime::Application::Registry.reset!
-    Onetime::Application::Registry.prepare_application_registry
     require 'auth/config'
   end
 

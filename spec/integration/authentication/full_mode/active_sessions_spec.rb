@@ -6,18 +6,17 @@
 # Tests the complete HTTP flow: account creation, login, session listing,
 # and session management endpoints.
 #
-# These tests require full Rodauth integration with database support.
-# The database setup must happen BEFORE the Auth app is loaded, so we
-# do it in before(:all) rather than using the shared context.
+# Database and application setup is handled by FullModeSuiteDatabase
+# (see spec/support/full_mode_suite_database.rb). The :full_auth_mode tag
+# triggers automatic setup of an in-memory SQLite database shared across
+# all tagged specs in the suite.
 
 require 'spec_helper'
 require 'rack/test'
-require 'sequel'
-require 'bcrypt'
 
 RSpec.describe 'Active Sessions Management', :full_auth_mode do
   include Rack::Test::Methods
-  include AuthAccountFactory
+  # AuthAccountFactory and test_db are provided by :full_auth_mode tag
 
   def app
     @app ||= Onetime::Application::Registry.generate_rack_url_map
@@ -27,48 +26,11 @@ RSpec.describe 'Active Sessions Management', :full_auth_mode do
     JSON.parse(last_response.body)
   end
 
-  # Expose test_db for AuthAccountFactory methods
-  def test_db
-    @test_db
-  end
-
   # POST/PUT/DELETE requests with body need Content-Type
   let(:json_headers) { { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' } }
   # GET requests don't have bodies - only set Accept header (Content-Type causes Rack::Parser errors)
   let(:accept_json) { { 'HTTP_ACCEPT' => 'application/json' } }
   let(:test_password) { 'Test1234!@' }
-
-  before(:all) do
-    require 'sequel'
-    require 'auth/database'
-    Sequel.extension :migration
-
-    # Create in-memory SQLite database BEFORE booting
-    @test_db = Sequel.sqlite
-
-    # Run Rodauth migrations
-    migrations_path = File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations')
-    Sequel::Migrator.run(@test_db, migrations_path)
-
-    # Directly replace the connection method to return our test database
-    # This must happen BEFORE prepare_application_registry
-    # Capture in local variable for the closure
-    test_database = @test_db
-    Auth::Database.define_singleton_method(:connection) { test_database }
-
-    require 'onetime'
-    require 'onetime/config'
-    Onetime.boot! :test
-    require 'onetime/auth_config'
-    require 'onetime/middleware'
-    require 'onetime/application/registry'
-    Onetime::Application::Registry.reset!
-    Onetime::Application::Registry.prepare_application_registry
-  end
-
-  after(:all) do
-    @test_db&.disconnect
-  end
 
   # Helper to login via HTTP
   def login(email:, password: test_password)
