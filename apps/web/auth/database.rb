@@ -27,6 +27,10 @@ module Auth
     # instance, which is created on first access.
     #
     class LazyConnection < BasicObject
+      # Include Kernel methods that migrations and other code might need when
+      # running in the context of the database (via instance_exec)
+      include ::Kernel
+
       def initialize(&connector)
         @connector = connector
         @connection = nil
