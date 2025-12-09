@@ -38,7 +38,7 @@ module Auth
       end
 
       def method_missing(method, *args, &block)
-        __connection__.public_send(method, *args, &block)
+        __connection__.__send__(method, *args, &block)
       end
 
       def respond_to_missing?(method, include_private = false)
