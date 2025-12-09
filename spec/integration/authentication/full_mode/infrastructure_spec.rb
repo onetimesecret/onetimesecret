@@ -37,8 +37,8 @@ RSpec.describe 'Full Mode Test Infrastructure', :full_auth_mode do
     end
   end
 
-  describe 'full_mode_database context' do
-    include_context 'full_mode_database'
+  describe 'FullModeSuiteDatabase' do
+    # test_db is provided by FullModeSuiteDatabase for all :full_auth_mode specs
 
     it 'provides a test_db' do
       expect(test_db).to be_a(Sequel::Database)
@@ -67,8 +67,7 @@ RSpec.describe 'Full Mode Test Infrastructure', :full_auth_mode do
   end
 
   describe 'AuthAccountFactory' do
-    include_context 'full_mode_database'
-    include AuthAccountFactory
+    # test_db and AuthAccountFactory are provided by FullModeSuiteDatabase
 
     describe '#create_verified_account' do
       it 'creates an account with verified status' do
