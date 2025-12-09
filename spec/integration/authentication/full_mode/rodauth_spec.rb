@@ -10,18 +10,9 @@
 # (see spec/support/full_mode_suite_database.rb).
 
 require 'spec_helper'
-require 'rack/test'
 
 RSpec.describe 'Rodauth Integration', :full_auth_mode do
-  include Rack::Test::Methods
-
-  def app
-    @app ||= Onetime::Application::Registry.generate_rack_url_map
-  end
-
-  def json_response
-    JSON.parse(last_response.body)
-  end
+  include_context 'auth_rack_test'
 
   describe 'mode configuration' do
     it 'reports full mode as active' do
@@ -96,10 +87,7 @@ RSpec.describe 'Rodauth Integration', :full_auth_mode do
   end
 
   describe 'POST /auth/login' do
-    let(:credentials) { { login: 'test@example.com', password: 'password123' }.to_json }
-    let(:json_headers) { { 'CONTENT_TYPE' => 'application/json' } }
-
-    before { post '/auth/login', credentials, json_headers }
+    before { post_json '/auth/login', { login: 'test@example.com', password: 'password123' } }
 
     it 'returns 400, 401, or 422 for invalid credentials' do
       expect([400, 401, 422]).to include(last_response.status)
@@ -111,10 +99,7 @@ RSpec.describe 'Rodauth Integration', :full_auth_mode do
   end
 
   describe 'POST /auth/create-account' do
-    let(:account_data) { { login: 'new@example.com', password: 'password123' }.to_json }
-    let(:json_headers) { { 'CONTENT_TYPE' => 'application/json' } }
-
-    before { post '/auth/create-account', account_data, json_headers }
+    before { post_json '/auth/create-account', { login: 'new@example.com', password: 'password123' } }
 
     it 'returns 200, 201, 400, or 422 (endpoint exists)' do
       expect([200, 201, 400, 422]).to include(last_response.status)

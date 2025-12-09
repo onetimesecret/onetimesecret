@@ -3,18 +3,17 @@
 # Authentication Configuration for OneTimeSecret - TEST ENVIRONMENT
 # Controls the authentication mode and related settings
 ---
-
 # Authentication mode: 'simple' (Redis-only) or 'full' (requires SQL db)
 # Can be overridden with AUTHENTICATION_MODE environment variable
-mode: <%= ENV['AUTHENTICATION_MODE'] || 'simple' %>
+mode: full
 
 # Shared session configuration (both modes)
 session:
   secret: 'test-session-secret-do-not-use-in-production-minimum-64-characters-long'
-  redis_url: "redis://localhost:6379/0"
-  expire_after: 86400  # 24 hours
-  key: 'onetime.session'   # Unified cookie name
-  secure: false        # Must be false for Rack::Test (uses HTTP, not HTTPS)
+  redis_url: 'redis://127.0.0.1:2121/0'
+  expire_after: 86400 # 24 hours
+  key: 'onetime.session' # Unified cookie name
+  secure: false # Must be false for Rack::Test (uses HTTP, not HTTPS)
   httponly: true
   same_site: strict
   redis_prefix: 'session'
@@ -22,7 +21,7 @@ session:
 # Simple mode settings (Redis-only authentication)
 simple:
   password_hash_cost: 12
-  session_timeout: 86400  # 24 hours
+  session_timeout: 86400 # 24 hours
 
 # Full mode settings (Rodauth-based application)
 full:
@@ -49,6 +48,6 @@ full:
   security:
     password_minimum_length: 8
     max_invalid_logins: 5
-    lockout_expiration: 3600  # 1 hour
-    session_expire_after: 86400  # 24 hours
-    require_email_confirmation: false  # Set to true when email is configured
+    lockout_expiration: 3600 # 1 hour
+    session_expire_after: 86400 # 24 hours
+    require_email_confirmation: false # Set to true when email is configured

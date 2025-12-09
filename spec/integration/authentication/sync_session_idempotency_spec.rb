@@ -1,138 +1,156 @@
-# Generated rspec code for /Users/d/Projects/opensource/onetime/onetimesecret/try/integration/authentication/sync_session_idempotency_try.rb
-# Updated: 2025-12-06 19:02:33 -0800
+# spec/integration/authentication/sync_session_idempotency_spec.rb
+#
+# frozen_string_literal: true
+
+# Tests for SyncSession idempotency behavior.
+# Ensures that repeated sync calls with the same session don't create duplicate state.
 
 require 'spec_helper'
+require 'rack/mock'
 
-RSpec.describe 'sync_session_idempotency_try', :full_auth_mode do
-  before(:all) do
-    require 'onetime'
-    require 'onetime/config'
-    Onetime.boot! :test
-    require 'onetime/auth_config'
-    require 'onetime/middleware'
-    require 'onetime/application/registry'
-    Onetime::Application::Registry.prepare_application_registry
-    require 'rack'
-    require 'rack/mock'
-    @db = Auth::Database.connection
-    @account_id = nil
-    @account = nil
-    @session = {}
-    @request = nil
-    @db.transaction do
-      email = "idempotency-test-#{Familia.now.to_i}@example.com"
-      @account_id = @db[:accounts].insert(
-        email: email,
-        status_id: 2, # verified
-        created_at: Time.now,
-        updated_at: Time.now
-      )
-      @account = @db[:accounts].where(id: @account_id).first
-    end
+RSpec.describe 'SyncSession Idempotency', :full_auth_mode do
+  include_context 'auth_rack_test'
+
+  let(:test_email) { "idempotency-test-#{SecureRandom.hex(8)}@example.com" }
+  let(:account) do
+    account_id = test_db[:accounts].insert(
+      email: test_email,
+      status_id: 2, # verified
+      created_at: Time.now,
+      updated_at: Time.now
+    )
+    test_db[:accounts].where(id: account_id).first
+  end
+  let(:account_id) { account[:id] }
+  let(:session) { { 'session_id' => "test-session-#{account_id}" } }
+  let(:request) do
     env = Rack::MockRequest.env_for('/')
     env['REMOTE_ADDR'] = '192.168.1.100'
     env['HTTP_USER_AGENT'] = 'Test Agent'
-    @request = Rack::Request.new(env)
-    @session = { 'session_id' => "test-session-#{@account_id}" }
+    Rack::Request.new(env)
   end
 
-  it 'First sync should succeed and create customer' do
-    result = begin
-      @customer = Auth::Operations::SyncSession.call(
-        account: @account,
-        account_id: @account_id,
-        session: @session,
-        request: @request
+  after do
+    # Clean up test account
+    test_db[:accounts].where(id: account_id).delete if account_id
+    # Clean up Redis keys
+    pattern = "sync_session:#{account_id}:*"
+    keys = Familia.dbclient.keys(pattern)
+    Familia.dbclient.del(*keys) if keys.any?
+  end
+
+  describe 'first sync call' do
+    it 'creates customer and populates session' do
+      customer = Auth::Operations::SyncSession.call(
+        account: account,
+        account_id: account_id,
+        session: session,
+        request: request
       )
-      @customer.class.name
+
+      expect(customer).to be_a(Onetime::Customer)
+      expect(session['authenticated']).to be true
+      expect(session['account_id']).to eq(account_id)
+      expect(session['email']).to eq(test_email)
+
+      # Verify customer is linked to account via external_id
+      linked_extid = test_db[:accounts].where(id: account_id).get(:external_id)
+      expect(linked_extid).to eq(customer.extid)
+
+      # Clean up customer
+      customer.destroy! if customer&.exists?
     end
-    expect(result).to eq("Onetime::Customer")
   end
 
-  it 'Session should be populated' do
-    result = begin
-      [@session['authenticated'], @session['account_id'], @session['email']]
-    end
-    expect(result).to eq([true, @account_id, @account[:email]])
-  end
-
-  it 'Customer should be linked to account' do
-    result = begin
-      linked_extid = @db[:accounts].where(id: @account_id).get(:external_id)
-      linked_extid == @customer.extid
-    end
-    expect(result).to eq(true)
-  end
-
-  it 'Second call with same session should skip (idempotency protection)' do
-    result = begin
-      @customer2 = Auth::Operations::SyncSession.call(
-        account: @account,
-        account_id: @account_id,
-        session: @session,
-        request: @request
+  describe 'idempotency protection' do
+    it 'returns same customer on repeated calls with same session' do
+      customer1 = Auth::Operations::SyncSession.call(
+        account: account,
+        account_id: account_id,
+        session: session,
+        request: request
       )
-      @customer2.custid == @customer.custid
-    end
-    expect(result).to eq(true)
-  end
 
-  it 'Create new session with different ID' do
-    result = begin
-      @session2 = { 'session_id' => "test-session-different-#{@account_id}" }
-      @customer3 = Auth::Operations::SyncSession.call(
-        account: @account,
-        account_id: @account_id,
-        session: @session2,
-        request: @request
+      customer2 = Auth::Operations::SyncSession.call(
+        account: account,
+        account_id: account_id,
+        session: session,
+        request: request
       )
-      [@session2['authenticated'], @session2['external_id'] == @customer.extid]
+
+      expect(customer2.custid).to eq(customer1.custid)
+
+      # Clean up customer
+      customer1.destroy! if customer1&.exists?
     end
-    expect(result).to eq([true, true])
+
+    it 'allows sync with different session ID for same account' do
+      session1 = { 'session_id' => "test-session-1-#{account_id}" }
+      session2 = { 'session_id' => "test-session-2-#{account_id}" }
+
+      customer1 = Auth::Operations::SyncSession.call(
+        account: account,
+        account_id: account_id,
+        session: session1,
+        request: request
+      )
+
+      customer2 = Auth::Operations::SyncSession.call(
+        account: account,
+        account_id: account_id,
+        session: session2,
+        request: request
+      )
+
+      # Both sessions should be authenticated
+      expect(session1['authenticated']).to be true
+      expect(session2['authenticated']).to be true
+
+      # Both should reference the same customer
+      expect(session2['external_id']).to eq(customer1.extid)
+
+      # Clean up customer
+      customer1.destroy! if customer1&.exists?
+    end
+
+    it 'sets TTL on idempotency keys' do
+      Auth::Operations::SyncSession.call(
+        account: account,
+        account_id: account_id,
+        session: session,
+        request: request
+      )
+
+      all_keys = Familia.dbclient.keys("sync_session:#{account_id}:*")
+      expect(all_keys).not_to be_empty
+
+      ttls = all_keys.map { |k| Familia.dbclient.ttl(k) }
+      # TTL should be set (positive value, typically 300 seconds)
+      expect(ttls).to all(be_between(0, 310))
+    end
   end
 
-  it 'Temporarily disable Redis to test graceful degradation' do
-    result = begin
+  describe 'graceful degradation' do
+    it 'works without Redis idempotency protection' do
       original_dbclient = Familia.instance_variable_get(:@dbclient)
+
       begin
-        # Mock Redis unavailability
+        # Temporarily remove Redis client
         Familia.instance_variable_set(:@dbclient, nil)
-        @session3 = { 'session_id' => "test-session-no-redis-#{@account_id}" }
-        # Should still work without Redis (no idempotency protection)
-        @customer4 = Auth::Operations::SyncSession.call(
-          account: @account,
-          account_id: @account_id,
-          session: @session3,
-          request: @request
+
+        graceful_session = { 'session_id' => "test-session-no-redis-#{account_id}" }
+        customer = Auth::Operations::SyncSession.call(
+          account: account,
+          account_id: account_id,
+          session: graceful_session,
+          request: request
         )
-        @customer4.class.name
+
+        expect(customer).to be_a(Onetime::Customer)
       ensure
         # Restore Redis connection
         Familia.instance_variable_set(:@dbclient, original_dbclient)
       end
     end
-    expect(result).to eq("Onetime::Customer")
   end
-
-  it 'Check that idempotency keys from earlier tests have TTL set' do
-    result = begin
-      all_keys = Familia.dbclient.keys("sync_session:#{@account_id}:*")
-      ttls = all_keys.map { |k| Familia.dbclient.ttl(k) }
-      ttls.all? { |ttl| (0..310).include?(ttl) }
-    end
-    expect(result).to eq(true)
-  end
-
-  it 'Delete test account' do
-    result = begin
-      @db[:accounts].where(id: @account_id).delete if @account_id
-      @customer.destroy! if @customer&.exists?
-      pattern = "sync_session:#{@account_id}:*"
-      keys = Familia.dbclient.keys(pattern)
-      Familia.dbclient.del(*keys) if keys.any?
-      nil
-    end
-    expect(result).to eq(nil)
-  end
-
 end

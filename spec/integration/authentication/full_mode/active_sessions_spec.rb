@@ -12,40 +12,30 @@
 # all tagged specs in the suite.
 
 require 'spec_helper'
-require 'rack/test'
 
 RSpec.describe 'Active Sessions Management', :full_auth_mode do
-  include Rack::Test::Methods
+  include_context 'auth_rack_test'
   # AuthAccountFactory and test_db are provided by :full_auth_mode tag
 
-  def app
-    @app ||= Onetime::Application::Registry.generate_rack_url_map
-  end
-
-  def json_response
-    JSON.parse(last_response.body)
-  end
-
-  # POST/PUT/DELETE requests with body need Content-Type
-  let(:json_headers) { { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' } }
-  # GET requests don't have bodies - only set Accept header (Content-Type causes Rack::Parser errors)
-  let(:accept_json) { { 'HTTP_ACCEPT' => 'application/json' } }
   let(:test_password) { 'Test1234!@' }
 
-  # Helper to login via HTTP
-  def login(email:, password: test_password)
-    post '/auth/login', { login: email, password: password }.to_json, json_headers
-    last_response.status == 200
+  # Helper to login via HTTP - raises on failure for explicit test failures
+  def login!(email:, password: test_password)
+    post_json '/auth/login', { login: email, password: password }
+    unless last_response.status == 200
+      raise "Login failed for #{email}: #{last_response.status} - #{last_response.body}"
+    end
+    true
   end
 
   describe 'authentication requirements' do
     it 'GET /auth/active-sessions returns 401 without session' do
-      get '/auth/active-sessions', {}, accept_json
+      get_json '/auth/active-sessions'
       expect(last_response.status).to eq(401)
     end
 
     it 'POST /auth/remove-all-active-sessions returns 401 without session' do
-      post '/auth/remove-all-active-sessions', {}.to_json, json_headers
+      post_json '/auth/remove-all-active-sessions', {}
       expect(last_response.status).to eq(401)
     end
   end
@@ -56,12 +46,12 @@ RSpec.describe 'Active Sessions Management', :full_auth_mode do
     before do
       # Create account directly in database for faster setup
       @account = create_verified_account(db: test_db, email: test_email, password: test_password)
-      # Login via HTTP to establish session
-      login(email: test_email)
+      # Login via HTTP to establish session - raises if login fails
+      login!(email: test_email)
     end
 
     describe 'GET /auth/account' do
-      before { get '/auth/account', {}, accept_json }
+      before { get_json '/auth/account' }
 
       it 'returns 200' do
         expect(last_response.status).to eq(200)
@@ -77,7 +67,7 @@ RSpec.describe 'Active Sessions Management', :full_auth_mode do
     end
 
     describe 'GET /auth/active-sessions' do
-      before { get '/auth/active-sessions', {}, accept_json }
+      before { get_json '/auth/active-sessions' }
 
       it 'returns 200' do
         expect(last_response.status).to eq(200)
@@ -106,24 +96,24 @@ RSpec.describe 'Active Sessions Management', :full_auth_mode do
     describe 'DELETE /auth/active-sessions/:id (current session)' do
       it 'returns 400 when attempting to delete current session' do
         # Get current session ID
-        get '/auth/active-sessions', {}, accept_json
+        get_json '/auth/active-sessions'
         current_session_id = json_response['sessions'].find { |s| s['is_current'] }['id']
 
-        delete "/auth/active-sessions/#{current_session_id}", {}.to_json, json_headers
+        delete_json "/auth/active-sessions/#{current_session_id}"
         expect(last_response.status).to eq(400)
       end
 
       it 'includes error message about current session' do
-        get '/auth/active-sessions', {}, accept_json
+        get_json '/auth/active-sessions'
         current_session_id = json_response['sessions'].find { |s| s['is_current'] }['id']
 
-        delete "/auth/active-sessions/#{current_session_id}", {}.to_json, json_headers
+        delete_json "/auth/active-sessions/#{current_session_id}"
         expect(json_response['error']).to include('current session')
       end
     end
 
     describe 'POST /auth/remove-all-active-sessions' do
-      before { post '/auth/remove-all-active-sessions', {}.to_json, json_headers }
+      before { post_json '/auth/remove-all-active-sessions', {} }
 
       it 'returns 200' do
         expect(last_response.status).to eq(200)
@@ -134,25 +124,25 @@ RSpec.describe 'Active Sessions Management', :full_auth_mode do
       end
 
       it 'leaves only current session remaining' do
-        get '/auth/active-sessions', {}, accept_json
+        get_json '/auth/active-sessions'
         expect(json_response['sessions'].length).to eq(1)
       end
 
       it 'remaining session is marked as current' do
-        get '/auth/active-sessions', {}, accept_json
+        get_json '/auth/active-sessions'
         expect(json_response['sessions'].first['is_current']).to be true
       end
     end
 
     describe 'POST /auth/logout' do
       it 'returns 200' do
-        post '/auth/logout', {}.to_json, json_headers
+        post_json '/auth/logout', {}
         expect(last_response.status).to eq(200)
       end
 
       it 'invalidates session (subsequent requests return 401)' do
-        post '/auth/logout', {}.to_json, json_headers
-        get '/auth/active-sessions', {}, accept_json
+        post_json '/auth/logout', {}
+        get_json '/auth/active-sessions'
         expect(last_response.status).to eq(401)
       end
     end

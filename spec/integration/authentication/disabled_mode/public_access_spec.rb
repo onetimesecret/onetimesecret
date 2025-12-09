@@ -9,6 +9,13 @@ require 'spec_helper'
 
 RSpec.describe 'Disabled Auth Mode', :disabled_auth_mode do
   before(:all) do
+    # Clear any database stub left by full_auth_mode tests
+    # This ensures Auth::Database.connection returns nil as expected in disabled mode
+    if defined?(FullModeSuiteDatabase) && FullModeSuiteDatabase.setup_complete?
+      FullModeSuiteDatabase.teardown!
+    end
+    Auth::Database.instance_variable_set(:@connection, nil) if defined?(Auth::Database)
+
     require 'onetime'
     require 'onetime/config'
     Onetime.boot! :test

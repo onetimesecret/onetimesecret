@@ -113,6 +113,7 @@ RSpec.configure do |config|
   end
 
   # Suite-level teardown: only runs once at the very end
+  # Note: Simple/disabled mode tests explicitly clear the stub if needed
   config.after(:suite) do
     FullModeSuiteDatabase.teardown!
   end

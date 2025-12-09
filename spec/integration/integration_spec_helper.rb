@@ -23,8 +23,8 @@ RSpec.configure do |config|
   config.include Rack::Test::Methods, type: :request
   config.include Rack::Test::Methods, type: :integration
 
-  redis_conf = OT.conf&.fetch('redis')
-  redis_uri = redis.conf&.uri
+  redis_conf = OT.conf&.fetch('redis') || {}
+  redis_uri = redis_conf['uri']
 
   # Clean Valkey database before all integration tests in a group
   config.before(:all, type: :integration) do
