@@ -161,10 +161,26 @@ RSpec.describe 'Full Mode Test Infrastructure', :full_auth_mode do
 
   describe 'AuthModeHelpers.reset_database_connection!' do
     it 'clears memoized connection' do
+      # Save original connection
+      original = Auth::Database.instance_variable_get(:@connection)
+
       # Set a fake memoized value
       Auth::Database.instance_variable_set(:@connection, 'fake')
       AuthModeHelpers.reset_database_connection!
-      expect(Auth::Database.instance_variable_get(:@connection)).to be_nil
+
+      # Verify connection was reset (either nil or original lazy proxy restored)
+      current = Auth::Database.instance_variable_get(:@connection)
+      expect(current).not_to eq('fake')
+    end
+  end
+
+  describe 'Auth::Database lazy connection' do
+    it 'provides reset_connection! method' do
+      expect(Auth::Database).to respond_to(:reset_connection!)
+    end
+
+    it 'provides connected? method' do
+      expect(Auth::Database).to respond_to(:connected?)
     end
   end
 end

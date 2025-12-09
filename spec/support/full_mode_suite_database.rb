@@ -50,10 +50,12 @@ module FullModeSuiteDatabase
       # Save original connection method for restoration
       @original_connection_method = Auth::Database.method(:connection)
 
+      # Reset any existing connection before stubbing
+      Auth::Database.reset_connection! if Auth::Database.respond_to?(:reset_connection!)
+
       # Stub the connection to return our test database
       db = @database
       Auth::Database.define_singleton_method(:connection) { db }
-      Auth::Database.instance_variable_set(:@connection, nil)
 
       # Ensure application is booted (idempotent in test mode)
       require 'onetime'
@@ -81,7 +83,13 @@ module FullModeSuiteDatabase
         Auth::Database.define_singleton_method(:connection, @original_connection_method)
         @original_connection_method = nil
       end
-      Auth::Database.instance_variable_set(:@connection, nil)
+
+      # Reset the connection state
+      if Auth::Database.respond_to?(:reset_connection!)
+        Auth::Database.reset_connection!
+      else
+        Auth::Database.instance_variable_set(:@connection, nil)
+      end
 
       @setup_complete = false
     end

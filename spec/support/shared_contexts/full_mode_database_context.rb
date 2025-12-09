@@ -33,7 +33,11 @@ RSpec.shared_context 'full_mode_database' do
     Sequel::Migrator.run(@test_db, migrations_path)
 
     # Reset memoized connection so our stub takes effect
-    Auth::Database.instance_variable_set(:@connection, nil)
+    if Auth::Database.respond_to?(:reset_connection!)
+      Auth::Database.reset_connection!
+    else
+      Auth::Database.instance_variable_set(:@connection, nil)
+    end
   end
 
   before(:each) do
@@ -44,6 +48,10 @@ RSpec.shared_context 'full_mode_database' do
   after(:all) do
     # Clean up
     @test_db&.disconnect
-    Auth::Database.instance_variable_set(:@connection, nil)
+    if Auth::Database.respond_to?(:reset_connection!)
+      Auth::Database.reset_connection!
+    else
+      Auth::Database.instance_variable_set(:@connection, nil)
+    end
   end
 end

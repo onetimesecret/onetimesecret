@@ -113,7 +113,12 @@ module AuthModeHelpers
   def self.reset_database_connection!
     return unless defined?(Auth::Database)
 
-    Auth::Database.instance_variable_set(:@connection, nil)
+    # Use the new reset_connection! method if available (supports LazyConnection cleanup)
+    if Auth::Database.respond_to?(:reset_connection!)
+      Auth::Database.reset_connection!
+    else
+      Auth::Database.instance_variable_set(:@connection, nil)
+    end
   end
 end
 
