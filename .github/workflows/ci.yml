@@ -63,7 +63,7 @@ jobs:
 
   changes:
     name: Detect Changes
-    runs-on: ubuntu-24.04
+    runs-on: &runs-on ubuntu-24.04
     timeout-minutes: 2
     outputs:
       ruby: ${{ steps.compute.outputs.ruby }}
@@ -190,7 +190,7 @@ jobs:
   ruby-lint:
     name: Ruby Lint
     timeout-minutes: 5
-    runs-on: ubuntu-24.04
+    runs-on: *runs-on
     needs: [changes]
     if: needs.changes.outputs.ruby == 'true'
     steps:
@@ -221,7 +221,7 @@ jobs:
   typescript-lint:
     name: TypeScript Lint
     timeout-minutes: 5
-    runs-on: ubuntu-24.04
+    runs-on: *runs-on
     needs: [changes]
     if: needs.changes.outputs.typescript == 'true'
     steps:
@@ -240,7 +240,7 @@ jobs:
   build-assets:
     name: Build Frontend Assets
     timeout-minutes: 10
-    runs-on: ubuntu-24.04
+    runs-on: *runs-on
     needs: [changes]
     if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true'
     steps:
@@ -268,7 +268,7 @@ jobs:
   ruby-unit:
     name: Ruby Unit Tests
     timeout-minutes: 10
-    runs-on: ubuntu-24.04
+    runs-on: *runs-on
     needs: [changes, ruby-lint, build-assets]
     if: |
       always() &&
@@ -308,7 +308,7 @@ jobs:
   typescript-unit:
     name: TypeScript Unit Tests
     timeout-minutes: 15
-    runs-on: ubuntu-24.04
+    runs-on: *runs-on
     needs: [changes, typescript-lint]
     if: |
       always() &&
@@ -335,7 +335,7 @@ jobs:
   ruby-integration-simple:
     name: Ruby Integration (Simple Mode)
     timeout-minutes: 10
-    runs-on: ubuntu-24.04
+    runs-on: *runs-on
     needs: [changes, ruby-unit]
     if: &if-ruby-integration |
       always() &&
@@ -366,7 +366,7 @@ jobs:
   ruby-integration-full:
     name: Ruby Integration (Full Mode)
     timeout-minutes: 10
-    runs-on: ubuntu-24.04
+    runs-on: *runs-on
     needs: [changes, ruby-unit]
     if: *if-ruby-integration
 
@@ -393,7 +393,7 @@ jobs:
   ruby-integration-disabled:
     name: Ruby Integration (Disabled Mode)
     timeout-minutes: 10
-    runs-on: ubuntu-24.04
+    runs-on: *runs-on
     needs: [changes, ruby-unit]
     if: *if-ruby-integration
 
@@ -423,8 +423,15 @@ jobs:
   check-oci-image:
     name: Container Validation
     timeout-minutes: 10
-    runs-on: ubuntu-24.04
-    needs: [changes, ruby-integration-simple, ruby-integration-full, ruby-integration-disabled, typescript-unit]
+    runs-on: *runs-on
+    needs:
+      [
+        changes,
+        ruby-integration-simple,
+        ruby-integration-full,
+        ruby-integration-disabled,
+        typescript-unit,
+      ]
     if: |
       always() &&
       (needs.changes.outputs.docker == 'true' || needs.changes.outputs.frontend == 'true') &&
@@ -455,7 +462,7 @@ jobs:
           fi
           echo "::notice::Frontend assets verified"
 
-      - name: Build Docker image
+      - name: Build Container image
         run: docker build -t onetime-test .
 
       - name: Generate random secrets for container
