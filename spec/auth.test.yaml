@@ -10,13 +10,11 @@ mode: full
 # Shared session configuration (both modes)
 session:
   secret: 'test-session-secret-do-not-use-in-production-minimum-64-characters-long'
-  redis_url: 'redis://127.0.0.1:2121/0'
   expire_after: 86400 # 24 hours
   key: 'onetime.session' # Unified cookie name
   secure: false # Must be false for Rack::Test (uses HTTP, not HTTPS)
   httponly: true
   same_site: strict
-  redis_prefix: 'session'
 
 # Simple mode settings (Redis-only authentication)
 simple:
@@ -37,12 +35,12 @@ full:
     - close_account
     - change_password
     - reset_password
-    - remember          # "Remember me" functionality
-    - verify_account    # Email verification (optional)
-    - lockout           # Brute force protection
-    - active_sessions   # Session tracking
-    - otp               # TOTP MFA (optional)
-    - recovery_codes    # MFA backup codes (optional)
+    - remember # "Remember me" functionality
+    - verify_account # Email verification (optional)
+    - lockout # Brute force protection
+    - active_sessions # Session tracking
+    - otp # TOTP MFA (optional)
+    - recovery_codes # MFA backup codes (optional)
 
   # Security settings
   security:

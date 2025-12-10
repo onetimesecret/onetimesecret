@@ -3,7 +3,6 @@
 # Authentication Configuration for OneTimeSecret
 # Controls the authentication mode and related settings
 ---
-
 # Authentication mode: 'simple' (Redis-only) or 'full' (requires SQL db)
 # Can be overridden with AUTHENTICATION_MODE environment variable
 mode: <%= ENV['AUTHENTICATION_MODE'] || 'simple' %>
@@ -15,6 +14,7 @@ session:
   key: 'onetime.session'    # Unified cookie name
   secure: <%= ENV['SSL'] == 'true' || false %>
   same_site: strict
+  httponly: true
 
 # Simple mode settings (Redis-only authentication)
 simple:

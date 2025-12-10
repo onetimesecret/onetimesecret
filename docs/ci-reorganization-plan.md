@@ -466,7 +466,7 @@ end
 
 # Full mode only spec (advanced_auth_mode_spec.rb)
 RSpec.describe 'Full Authentication Mode', :full_auth_mode, type: :integration do
-  skip_unless_mode :full  # Double-safety: skip if mode doesn't match
+  # skip_unless_mode :full  # Double-safety: skip if mode doesn't match
   # ...
 end
 
