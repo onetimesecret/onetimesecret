@@ -127,8 +127,8 @@ importers:
         specifier: 3.2.0
         version: 3.2.0(eslint@9.35.0(jiti@2.4.2))
       '@pinia/testing':
-        specifier: 1.0.1
-        version: 1.0.1(pinia@3.0.4(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3)))
+        specifier: 1.0.3
+        version: 1.0.3(pinia@3.0.4(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3)))
       '@playwright/test':
         specifier: 1.52.0
         version: 1.52.0
@@ -944,10 +944,10 @@ packages:
   '@one-ini/wasm@0.1.1':
     resolution: {integrity: sha512-XuySG1E38YScSJoMlqovLru4KTUNSjgVTIjyh7qMX6aNN5HY5Ct5LhRJdxO79JtTzKfzV/bnWpz+zquYrISsvw==}
 
-  '@pinia/testing@1.0.1':
-    resolution: {integrity: sha512-EYnPfoFtbrgkPj4QLiCp8dHgsqmc8fLqmQtTzp760V7enEb5ZOgH5zkwitGhkF7DM+AW3H+btdzkGeD1U3KKiQ==}
+  '@pinia/testing@1.0.3':
+    resolution: {integrity: sha512-g+qR49GNdI1Z8rZxKrQC3GN+LfnGTNf5Kk8Nz5Cz6mIGva5WRS+ffPXQfzhA0nu6TveWzPNYTjGl4nJqd3Cu9Q==}
     peerDependencies:
-      pinia: '>=3.0.2'
+      pinia: '>=3.0.4'
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -4637,7 +4637,7 @@ snapshots:
 
   '@one-ini/wasm@0.1.1': {}
 
-  '@pinia/testing@1.0.1(pinia@3.0.4(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3)))':
+  '@pinia/testing@1.0.3(pinia@3.0.4(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3)))':
     dependencies:
       pinia: 3.0.4(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
 
