@@ -58,6 +58,7 @@ runs:
         AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
         AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
       run: |
+        set -e
         echo "Running Tryouts with AUTHENTICATION_MODE=${{ inputs.auth-mode }}..."
         echo "Paths: ${{ inputs.tryouts-paths }}"
         bundle exec tryouts --agent ${{ inputs.tryouts-paths }}
@@ -71,6 +72,7 @@ runs:
         AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
         AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
       run: |
+        set -e
         echo "Running RSpec with AUTHENTICATION_MODE=${{ inputs.auth-mode }}..."
         mkdir -p tmp
 
@@ -93,8 +95,8 @@ runs:
 
         if [ -f "tmp/${{ inputs.results-file }}" ]; then
           echo "### RSpec" >> $GITHUB_STEP_SUMMARY
-          echo "- Total: $(jq '.summary.example_count' tmp/${{ inputs.results-file }})" >> $GITHUB_STEP_SUMMARY
-          echo "- Failures: $(jq '.summary.failure_count' tmp/${{ inputs.results-file }})" >> $GITHUB_STEP_SUMMARY
+          echo "- Total: $(jq '.summary.example_count' "tmp/${{ inputs.results-file }}")" >> $GITHUB_STEP_SUMMARY
+          echo "- Failures: $(jq '.summary.failure_count' "tmp/${{ inputs.results-file }}")" >> $GITHUB_STEP_SUMMARY
         fi
 
         if [ -n "${{ inputs.tryouts-paths }}" ]; then
