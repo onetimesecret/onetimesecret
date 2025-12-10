@@ -1,3 +1,30 @@
+# ==============================================================================
+# Generate Test Secrets - Composite Action
+# ==============================================================================
+# Version: 1.0.0
+# Repository: onetimesecret/onetimesecret
+# Filepath: .github/actions/generate-test-secrets/action.yml
+#
+# Generates ephemeral cryptographic secrets for CI test environments.
+# All secrets are random hex strings (32 bytes / 64 chars) created via openssl.
+#
+# Exports to GITHUB_ENV:
+#   - SESSION_SECRET: For Rack session management
+#   - HMAC_SECRET: For HMAC signing operations
+#   - SECRET: General purpose application secret
+#
+# Security Notes:
+#   - Secrets are logged in plaintext (safe for ephemeral test use)
+#   - Validates all three secrets are unique
+#   - DO NOT use for production secrets
+#
+# Usage:
+#   - uses: ./.github/actions/generate-test-secrets
+#
+# Changelog:
+#   1.0.0 - Initial release with openssl-based secret generation
+# ==============================================================================
+
 name: Generate Test Secrets
 description: |
   Generate random secrets for testing and CI environments.

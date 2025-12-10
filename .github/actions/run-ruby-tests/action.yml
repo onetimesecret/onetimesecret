@@ -1,3 +1,29 @@
+# ==============================================================================
+# Run Ruby Tests - Composite Action
+# ==============================================================================
+# Version: 1.0.0
+# Repository: onetimesecret/onetimesecret
+# Filepath: .github/actions/run-ruby-tests/action.yml
+#
+# Executes Ruby test suites (RSpec and/or Tryouts) with configurable
+# authentication modes. Generates GitHub job summaries with test results.
+#
+# Usage:
+#   - uses: ./.github/actions/run-ruby-tests
+#     with:
+#       auth-mode: 'simple'
+#       rspec-paths: 'spec/unit'
+#       tryouts-paths: 'try/'
+#
+# Auth Modes:
+#   - simple: Basic authentication (default)
+#   - full: Full Rodauth with SQLite/PostgreSQL
+#   - disabled: No authentication
+#
+# Changelog:
+#   1.0.0 - Initial release with RSpec/Tryouts support and job summaries
+# ==============================================================================
+
 name: Run Ruby Tests
 description: |
   Runs Ruby tests (RSpec and/or Tryouts) with configurable auth mode and test type.

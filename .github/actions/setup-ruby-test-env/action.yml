@@ -1,3 +1,32 @@
+# ==============================================================================
+# Setup Ruby Test Environment - Composite Action
+# ==============================================================================
+# Version: 1.0.0
+# Repository: onetimesecret/onetimesecret
+# Filepath: .github/actions/setup-ruby-test-env/action.yml
+#
+# Prepares a complete Ruby test environment for CI jobs. Consolidates common
+# setup steps used across multiple Ruby test jobs.
+#
+# Setup Steps:
+#   1. Download frontend build artifacts (optional)
+#   2. Verify downloaded assets exist
+#   3. Enable memory overcommit for Redis
+#   4. Setup Ruby with bundler caching
+#   5. Install gem dependencies
+#   6. Copy default config files to etc/
+#   7. Generate ephemeral test secrets
+#
+# Usage:
+#   - uses: ./.github/actions/setup-ruby-test-env
+#     with:
+#       ruby-version: '3.4'
+#       download-artifacts: 'true'
+#
+# Changelog:
+#   1.0.0 - Initial release consolidating Ruby setup from ci.yml
+# ==============================================================================
+
 name: Setup Ruby Test Environment
 description: |
   Sets up a complete Ruby test environment for CI jobs.

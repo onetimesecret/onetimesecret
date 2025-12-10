@@ -1,3 +1,29 @@
+# ==============================================================================
+# Setup Node.js Environment - Composite Action
+# ==============================================================================
+# Version: 1.0.0
+# Repository: onetimesecret/onetimesecret
+# Filepath: .github/actions/setup-node-env/action.yml
+#
+# Prepares a Node.js environment with pnpm and caching for CI jobs.
+# Consolidates common frontend setup steps.
+#
+# Setup Steps:
+#   1. Install Node.js (default: v22)
+#   2. Install pnpm package manager
+#   3. Configure pnpm store caching
+#   4. Install dependencies with frozen lockfile (optional)
+#
+# Usage:
+#   - uses: ./.github/actions/setup-node-env
+#     with:
+#       node-version: '22'
+#       install-dependencies: 'true'
+#
+# Changelog:
+#   1.0.0 - Initial release consolidating Node setup from ci.yml
+# ==============================================================================
+
 name: Setup Node.js Environment
 description: |
   Sets up Node.js with pnpm and caching for CI jobs.
