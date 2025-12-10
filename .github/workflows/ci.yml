@@ -8,7 +8,7 @@ name: CI
 # Architecture (Phase 4):
 # - Tier 0: Path filtering to skip irrelevant jobs
 # - Tier 1: Lint jobs + build-assets (parallel, fast feedback)
-# - Tier 2: Unit tests (ruby-unit, test-typescript)
+# - Tier 2: Unit tests (ruby-unit, typescript-unit)
 # - Tier 3: Integration tests by auth mode (parallel: simple, full, disabled)
 # - Tier 4: Container validation uses pre-built assets
 #
@@ -16,7 +16,8 @@ name: CI
 # - Ruby-only changes skip TypeScript jobs
 # - TypeScript-only changes skip Ruby jobs
 # - CI changes (.github/**) run all jobs
-# - Use [ci full] in commit message to force all jobs
+# - Use [ci-all] in commit message to force all jobs
+# - Use [ci-skip] in commit message to skip CI entirely
 #
 # The workflow is triggered by push events on branches starting with "fix/" or
 # "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
@@ -39,9 +40,9 @@ on:
         description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
         required: false
         default: false
-      force_full:
+      run_all:
         type: boolean
-        description: 'Force full CI run (skip path filtering)'
+        description: 'Run all CI jobs (skip path filtering)'
         required: false
         default: false
 
@@ -69,25 +70,37 @@ jobs:
       frontend: ${{ steps.filter.outputs.frontend }}
       docker: ${{ steps.filter.outputs.docker }}
       ci: ${{ steps.filter.outputs.ci }}
-      force_full: ${{ steps.check-force.outputs.force_full }}
+      run_all: ${{ steps.check-flags.outputs.run_all }}
+      skip_ci: ${{ steps.check-flags.outputs.skip_ci }}
     steps:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
-      - name: Check for force full flag
-        id: check-force
+      - name: Check for CI flags
+        id: check-flags
         run: |
-          # Check for [ci full] in commit message or workflow_dispatch input
+          # Check for [ci-all] and [ci-skip] in commit message or workflow_dispatch input
           # NOTE: github.event.head_commit.message is null for pull_request events,
           # so we use git log to reliably get the commit message in all contexts.
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.force_full }}" == "true" ]]; then
-            echo "force_full=true" >> $GITHUB_OUTPUT
-            echo "Force full CI triggered via workflow_dispatch"
-          elif git log -1 --pretty=%B | grep -q '\[ci full\]'; then
-            echo "force_full=true" >> $GITHUB_OUTPUT
-            echo "Force full CI triggered via commit message"
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+
+          # Check for [ci-skip]
+          if echo "$COMMIT_MSG" | grep -q '\[ci-skip\]'; then
+            echo "skip_ci=true" >> $GITHUB_OUTPUT
+            echo "CI skip requested via commit message"
           else
-            echo "force_full=false" >> $GITHUB_OUTPUT
+            echo "skip_ci=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check for [ci-all]
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.run_all }}" == "true" ]]; then
+            echo "run_all=true" >> $GITHUB_OUTPUT
+            echo "Run all CI jobs triggered via workflow_dispatch"
+          elif echo "$COMMIT_MSG" | grep -q '\[ci-all\]'; then
+            echo "run_all=true" >> $GITHUB_OUTPUT
+            echo "Run all CI jobs triggered via commit message"
+          else
+            echo "run_all=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Detect file changes
@@ -155,7 +168,8 @@ jobs:
           echo "| Frontend | ${{ steps.filter.outputs.frontend }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Docker | ${{ steps.filter.outputs.docker }} |" >> $GITHUB_STEP_SUMMARY
           echo "| CI | ${{ steps.filter.outputs.ci }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Force Full | ${{ steps.check-force.outputs.force_full }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Run All | ${{ steps.check-flags.outputs.run_all }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Skip CI | ${{ steps.check-flags.outputs.skip_ci }} |" >> $GITHUB_STEP_SUMMARY
 
   # ============================================================================
   # TIER 1: LINT & BUILD JOBS (~30-45s)
@@ -169,9 +183,10 @@ jobs:
     needs: [changes]
     # NOTE: GitHub Actions supports YAML anchors/aliases but NOT merge keys (<<:)
     if: &if-ruby-changed |
-      needs.changes.outputs.ruby == 'true' ||
-      needs.changes.outputs.ci == 'true' ||
-      needs.changes.outputs.force_full == 'true'
+      needs.changes.outputs.skip_ci != 'true' &&
+      (needs.changes.outputs.ruby == 'true' ||
+       needs.changes.outputs.ci == 'true' ||
+       needs.changes.outputs.run_all == 'true')
 
     steps:
       - name: Checkout code
@@ -222,9 +237,10 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [changes]
     if: &if-typescript-changed |
-      needs.changes.outputs.typescript == 'true' ||
-      needs.changes.outputs.ci == 'true' ||
-      needs.changes.outputs.force_full == 'true'
+      needs.changes.outputs.skip_ci != 'true' &&
+      (needs.changes.outputs.typescript == 'true' ||
+       needs.changes.outputs.ci == 'true' ||
+       needs.changes.outputs.run_all == 'true')
 
     steps:
       - name: Checkout code
@@ -274,10 +290,11 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [changes]
     if: &if-frontend-changed |
-      needs.changes.outputs.frontend == 'true' ||
-      needs.changes.outputs.ruby == 'true' ||
-      needs.changes.outputs.ci == 'true' ||
-      needs.changes.outputs.force_full == 'true'
+      needs.changes.outputs.skip_ci != 'true' &&
+      (needs.changes.outputs.frontend == 'true' ||
+       needs.changes.outputs.ruby == 'true' ||
+       needs.changes.outputs.ci == 'true' ||
+       needs.changes.outputs.run_all == 'true')
 
     steps:
       - name: Checkout code
@@ -343,7 +360,8 @@ jobs:
     needs: [changes, ruby-lint, build-assets]
     if: &if-ruby-unit |
       always() &&
-      (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
+      needs.changes.outputs.skip_ci != 'true' &&
+      (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.run_all == 'true') &&
       (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
       (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped')
 
@@ -449,14 +467,15 @@ jobs:
           echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
           echo "- Unit and system tests completed" >> $GITHUB_STEP_SUMMARY
 
-  test-typescript:
-    name: TypeScript Tests
+  typescript-unit:
+    name: TypeScript Unit Tests
     timeout-minutes: 15
     runs-on: ubuntu-24.04
     needs: [changes, typescript-lint]
     if: &if-typescript-unit |
       always() &&
-      (needs.changes.outputs.typescript == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
+      needs.changes.outputs.skip_ci != 'true' &&
+      (needs.changes.outputs.typescript == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.run_all == 'true') &&
       (needs.typescript-lint.result == 'success' || needs.typescript-lint.result == 'skipped')
 
     steps:
@@ -514,7 +533,8 @@ jobs:
     needs: [changes, ruby-unit]
     if: &if-ruby-integration |
       always() &&
-      (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
+      needs.changes.outputs.skip_ci != 'true' &&
+      (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.run_all == 'true') &&
       needs.ruby-unit.result == 'success' &&
       !contains(needs.*.result, 'cancelled')
 
@@ -805,14 +825,15 @@ jobs:
     name: Container Validation
     timeout-minutes: 10
     runs-on: ubuntu-24.04
-    needs: [changes, ruby-integration-simple, ruby-integration-full, ruby-integration-disabled, test-typescript]
+    needs: [changes, ruby-integration-simple, ruby-integration-full, ruby-integration-disabled, typescript-unit]
     if: &if-container |
       always() &&
-      (needs.changes.outputs.docker == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
+      needs.changes.outputs.skip_ci != 'true' &&
+      (needs.changes.outputs.docker == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.run_all == 'true') &&
       (needs.ruby-integration-simple.result == 'success' || needs.ruby-integration-simple.result == 'skipped') &&
       (needs.ruby-integration-full.result == 'success' || needs.ruby-integration-full.result == 'skipped') &&
       (needs.ruby-integration-disabled.result == 'success' || needs.ruby-integration-disabled.result == 'skipped') &&
-      (needs.test-typescript.result == 'success' || needs.test-typescript.result == 'skipped') &&
+      (needs.typescript-unit.result == 'success' || needs.typescript-unit.result == 'skipped') &&
       !contains(needs.*.result, 'failure')
 
     services:
