@@ -125,7 +125,7 @@ module Onetime
       # @return [Boolean] true if switch was successful
       def switch_organization(org_id)
         return false unless user && org_id
-        return false unless env['rack.session']
+        return false unless strategy_result&.session || env['rack.session']
 
         org = Onetime::Organization.load(org_id)
         return false unless org && org.member?(user)
@@ -136,8 +136,9 @@ module Onetime
         cache_key = "org_context:#{user.objid}"
         session.delete(cache_key)
 
-        # Update current request's memoized value
+        # Update current request's memoized values
         @organization = org
+        @team = nil  # Clear stale team from previous organization
 
         true
       rescue StandardError => ex
@@ -151,7 +152,7 @@ module Onetime
       # @return [Boolean] true if switch was successful
       def switch_team(team_id)
         return false unless user && team_id && organization
-        return false unless env['rack.session']
+        return false unless strategy_result&.session || env['rack.session']
 
         team = Onetime::Team.load(team_id)
         return false unless team
