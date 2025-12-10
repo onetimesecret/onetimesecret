@@ -579,6 +579,25 @@ jobs:
             exit 0
           fi
 
+          # Validate expected job names exist (warns if job names change)
+          EXPECTED_JOBS=(
+            "Ruby Lint"
+            "TypeScript Lint"
+            "Build Frontend Assets"
+            "Ruby Unit Tests"
+            "TypeScript Unit Tests"
+            "Ruby Integration (Simple Mode)"
+            "Ruby Integration (Full Mode)"
+            "Ruby Integration (Disabled Mode)"
+            "Container Validation"
+          )
+          ACTUAL_JOBS=$(echo "$JOBS_JSON" | jq -r '.[].name')
+          for job in "${EXPECTED_JOBS[@]}"; do
+            if ! echo "$ACTUAL_JOBS" | grep -qF "$job"; then
+              echo "::warning::Expected job '$job' not found in workflow. Job names may have changed."
+            fi
+          done
+
           # Tier 1: Lint & Build - latest completion of all Tier 1 jobs
           # Jobs: "Ruby Lint", "TypeScript Lint", "Build Frontend Assets"
           TIER1_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
