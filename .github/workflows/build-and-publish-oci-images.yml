@@ -1,5 +1,5 @@
 # .github/workflows/build-and-publish-oci-images.yml
-
+---
 name: Build and Publish OCI Images
 
 #
@@ -11,6 +11,10 @@ name: Build and Publish OCI Images
 #
 # This ensures stable releases are tagged as 'latest' while release candidates
 # are tagged as 'next' for early testing. Branch builds get descriptive tags.
+#
+# Architecture:
+#   Uses composite action .github/actions/build-and-publish-oci-image
+#   to align with the pattern established in ci.yml
 #
 
 on:
@@ -46,24 +50,50 @@ permissions:
 
 jobs:
   build-and-publish-main:
-    uses: ./.github/workflows/.build-and-publish-oci-images-reusable.yml
-    with:
-      image-suffix: ''
-      dockerfile: 'Dockerfile'
-      image_tags: |
-        type=ref,event=branch
-        type=ref,event=tag
-        type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
-    secrets: inherit
+    name: Build Main Image
+    runs-on: ubuntu-24.04
+    if: github.repository == 'onetimesecret/onetimesecret'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Build and publish OCI image
+        uses: ./.github/actions/build-and-publish-oci-image
+        with:
+          image-suffix: ''
+          dockerfile: 'Dockerfile'
+          platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
+          push: ${{ github.event_name != 'pull_request' }}
+          image-tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   build-and-publish-lite:
+    name: Build Lite Image
+    runs-on: ubuntu-24.04
     needs: [build-and-publish-main]
-    uses: ./.github/workflows/.docker-build-publish-reusable.yml
-    with:
-      image-suffix: '-lite'
-      dockerfile: 'Dockerfile-lite'
-      image_tags: |
-        type=ref,event=branch
-        type=ref,event=tag
-        type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
-    secrets: inherit
+    if: github.repository == 'onetimesecret/onetimesecret'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Build and publish OCI image
+        uses: ./.github/actions/build-and-publish-oci-image
+        with:
+          image-suffix: '-lite'
+          dockerfile: 'Dockerfile-lite'
+          platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
+          push: ${{ github.event_name != 'pull_request' }}
+          image-tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
