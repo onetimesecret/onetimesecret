@@ -26,8 +26,11 @@ RSpec.describe 'SyncSession Idempotency', :full_auth_mode do
   end
 
   after do
-    # Clean up test account
-    test_db[:accounts].where(id: account_id).delete if account_id
+    # Clean up test account - delete from child tables first due to foreign keys
+    if account_id
+      test_db[:account_password_hashes].where(id: account_id).delete rescue nil
+      test_db[:accounts].where(id: account_id).delete rescue nil
+    end
     # Clean up Redis keys
     pattern = "sync_session:#{account_id}:*"
     keys = Familia.dbclient.keys(pattern)

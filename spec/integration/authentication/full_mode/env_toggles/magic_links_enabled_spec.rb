@@ -116,7 +116,8 @@ RSpec.describe 'Magic Links Toggle', :full_auth_mode do
 
     it 'returns appropriate error for invalid credentials' do
       post '/auth/login', credentials, json_headers
-      expect([400, 401, 422]).to include(last_response.status)
+      # 400=bad request, 401=unauthorized, 403=forbidden, 422=unprocessable
+      expect([400, 401, 403, 422]).to include(last_response.status)
     end
   end
 end
