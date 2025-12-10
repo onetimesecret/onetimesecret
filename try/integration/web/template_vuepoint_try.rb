@@ -15,7 +15,6 @@
 
 require 'rack/request'
 require 'rack/mock'
-require 'ostruct'
 
 require_relative '../../support/test_helpers'
 require_relative '../../support/test_models'
@@ -24,6 +23,9 @@ require_relative '../../support/test_logic'
 require 'core/views'
 
 OT.boot! :test, false
+
+# Data class for mocking strategy results (immutable, Ruby 3.2+)
+MockStrategyResult = Data.define(:session, :user, :authenticated?)
 
 @email = "tryouts+42+#{Familia.now.to_i}@onetimesecret.com"
 @cust = Onetime::Customer.create!(email: @email)
@@ -36,7 +38,7 @@ OT.boot! :test, false
 # Helper to create a properly configured mock request
 def create_mock_request(locale: 'en', user: nil, authenticated: true)
   session = { 'test_key' => 'test_value' }
-  strategy_result = OpenStruct.new(
+  strategy_result = MockStrategyResult.new(
     session: session,
     user: user || Onetime::Customer.anonymous,
     authenticated?: authenticated

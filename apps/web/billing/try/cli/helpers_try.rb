@@ -12,6 +12,9 @@ require_relative '../../../../../try/support/test_helpers'
 require 'onetime/cli'
 require_relative '../../cli/helpers'
 
+# Data class for mocking Stripe products (immutable, Ruby 3.2+)
+MockProduct = Data.define(:metadata)
+
 # Create a test class that includes the helpers
 @helper_class = Class.new { include Onetime::CLI::BillingHelpers }
 
@@ -125,29 +128,28 @@ elapsed >= 10
 ## Test: validate_product_metadata detects missing fields
 helper  = @helper_class.new
 # Mock a product with minimal metadata
-product = OpenStruct.new(metadata: { 'app' => 'onetimesecret' })
+product = MockProduct.new(metadata: { 'app' => 'onetimesecret' })
 errors  = helper.validate_product_metadata(product)
 errors.any? { |e| e.include?('Missing required') }
 #=> true
 
 ## Test: validate_product_metadata accepts valid app
 helper  = @helper_class.new
-product = OpenStruct.new(metadata: {
+product = MockProduct.new(metadata: {
   'app' => 'onetimesecret',
   'plan_id' => 'test_v1',
   'tier' => 'basic',
   'region' => 'global',
   'capabilities' => 'test',
   'tenancy' => 'single',
-},
-                        )
+})
 errors  = helper.validate_product_metadata(product)
 errors.none? { |e| e.include?('Invalid app metadata') }
 #=> true
 
 ## Test: validate_product_metadata rejects wrong app
 helper  = @helper_class.new
-product = OpenStruct.new(metadata: { 'app' => 'wrong_app' })
+product = MockProduct.new(metadata: { 'app' => 'wrong_app' })
 errors  = helper.validate_product_metadata(product)
 errors.any? { |e| e.include?('Invalid app metadata') }
 #=> true

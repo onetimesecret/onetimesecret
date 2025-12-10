@@ -9,12 +9,15 @@ require_relative '../../cli/plans_command'
 RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit do
   let(:stripe_client) { Billing::StripeClient.new }
 
+  # Data class for mocking plans (immutable, Ruby 3.2+)
+  MockPlan = Data.define(:plan_id, :tier, :interval, :amount, :currency, :region, :capabilities)
+
   describe Onetime::CLI::BillingPlansCommand do
     subject(:command) { described_class.new }
 
     # Sample plan data structure for mocking
     let(:sample_plan) do
-      OpenStruct.new(
+      MockPlan.new(
         plan_id: 'single_team_monthly_us',
         tier: 'single_team',
         interval: 'month',
@@ -26,7 +29,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit d
     end
 
     let(:sample_plan_eu) do
-      OpenStruct.new(
+      MockPlan.new(
         plan_id: 'multi_team_yearly_eu',
         tier: 'multi_team',
         interval: 'year',
@@ -162,7 +165,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit d
 
       context 'format validation' do
         it 'truncates long plan IDs to 20 characters' do
-          long_plan = OpenStruct.new(
+          long_plan = MockPlan.new(
             plan_id: 'a' * 30,
             tier: 'test',
             interval: 'month',
@@ -191,7 +194,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit d
         end
 
         it 'handles zero-capability plans' do
-          zero_cap_plan = OpenStruct.new(
+          zero_cap_plan = MockPlan.new(
             plan_id: 'basic_monthly_us',
             tier: 'basic',
             interval: 'month',

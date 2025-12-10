@@ -10,7 +10,6 @@
 ENV['AUTHENTICATION_MODE'] = 'simple'  # Force simple mode before boot
 
 require 'rack'
-require 'ostruct'
 
 require_relative '../support/test_helpers'
 

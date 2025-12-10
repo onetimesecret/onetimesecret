@@ -16,10 +16,11 @@ OT.boot! :test, false
 # Load the mail module
 require 'onetime/mail'
 
-require 'ostruct'
+# Data class for mocking secrets (immutable, Ruby 3.2+)
+MockWelcomeSecret = Data.define(:identifier)
 
 # Setup mock secret - responds to :identifier method like real Secret objects
-@mock_secret = OpenStruct.new(identifier: 'welcome_verify_key_456')
+@mock_secret = MockWelcomeSecret.new(identifier: 'welcome_verify_key_456')
 
 @valid_data = {
   email_address: 'newuser@example.com',

@@ -16,11 +16,12 @@ OT.boot! :test, false
 # Load the mail module
 require 'onetime/mail'
 
-require 'ostruct'
+# Data class for mocking secrets (immutable, Ruby 3.2+)
+MockIncomingSecret = Data.define(:key, :share_domain)
 
 # Setup mock secrets
-@mock_secret = OpenStruct.new(key: 'incoming_key_abc', share_domain: nil)
-@mock_secret_with_domain = OpenStruct.new(key: 'incoming_key_xyz', share_domain: 'custom.example.com')
+@mock_secret = MockIncomingSecret.new(key: 'incoming_key_abc', share_domain: nil)
+@mock_secret_with_domain = MockIncomingSecret.new(key: 'incoming_key_xyz', share_domain: 'custom.example.com')
 
 @valid_data = {
   secret: @mock_secret,
