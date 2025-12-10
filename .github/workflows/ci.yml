@@ -1,4 +1,5 @@
 # .github/workflows/ci.yml
+# Refactored to use composite actions (Phase 5)
 
 name: CI
 
