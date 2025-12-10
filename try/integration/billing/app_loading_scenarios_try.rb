@@ -59,9 +59,9 @@ test_billing_should_load(false)
 Onetime.billing_config.class.name
 #=> "Onetime::BillingConfig"
 
-## Billing config has safe enabled? method
-Onetime.billing_config.enabled?.class
-#=> TrueClass
+## Billing config has safe enabled? method (returns boolean)
+[TrueClass, FalseClass].include?(Onetime.billing_config.enabled?.class)
+#=> true
 
 ## Billing config has safe helper methods that return nil or empty
 [
