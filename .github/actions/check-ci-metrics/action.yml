@@ -3,19 +3,27 @@
 # ==============================================================================
 # Check CI Metrics - Composite Action
 # ==============================================================================
-# Version: 1.0.0
+# Version: 2.0.0
 # Repository: onetimesecret/onetimesecret
 #
-# Validates CI pipeline performance against established targets and generates
-# a summary report. Runs as the final job to capture timing from all prior jobs.
+# Validates CI pipeline performance against established tier-based targets and
+# generates a summary report. Runs as the final job to capture timing from all
+# prior jobs.
 #
-# Performance Targets (revised 2025-12, based on Phase 5 data):
-#   - First feedback (lint): <35s  (actual avg: 28s + 25% buffer)
-#   - Tests complete (no container): <210s / 3.5min  (actual avg: 173s + 20% buffer)
-#   - Full pipeline: <400s / 6.5min  (actual avg: 329s + 20% buffer)
+# Tier Structure (maps to ci.yml job tiers):
+#   - Tier 1: Lint & Build (Ruby Lint, TypeScript Lint, Build Frontend Assets)
+#   - Tier 2: Unit Tests (Ruby Unit Tests, TypeScript Unit Tests)
+#   - Tier 3: Integration Tests (Simple, Full, Disabled auth modes)
+#   - Tier 4: Container Validation
+#
+# Performance Targets (cumulative from workflow start, revised 2025-12):
+#   - Tier 1: <60s   (lint + build complete)
+#   - Tier 2: <120s  (unit tests complete)
+#   - Tier 3: <210s  (integration tests complete)
+#   - Tier 4: <400s  (container validated, full pipeline)
 #
 # Outputs:
-#   - GitHub Step Summary with timing breakdown
+#   - GitHub Step Summary with timing breakdown by tier
 #   - Warning annotations when targets exceeded
 #   - Failure on critical threshold violations (optional)
 #
@@ -36,40 +44,52 @@
 #        ((.completedAt | fromdateiso8601) - (.startedAt | fromdateiso8601)) as $dur |
 #        "\(.name): \($dur)s"'
 #
-#   4. Collect data from 3-5 runs and average per job
+#   4. Collect data from 3-5 runs and average per tier
 #
 #   5. Update targets below based on: avg + 20% buffer
 #
 # ==============================================================================
 
 name: Check CI Metrics
-description: Validate CI job timing against performance targets
+description: Validate CI job timing against tier-based performance targets
 
 inputs:
-  # Job start times (ISO 8601 format from workflow)
+  # Timing inputs (ISO 8601 format)
   workflow-start-time:
     description: 'Workflow start time (ISO 8601)'
     required: true
-  lint-complete-time:
-    description: 'Time when first lint job completed (ISO 8601)'
+  tier1-complete-time:
+    description: 'Time when Tier 1 (Lint & Build) completed (ISO 8601)'
     required: false
     default: ''
-  tests-complete-time:
-    description: 'Time when all tests completed (ISO 8601)'
+  tier2-complete-time:
+    description: 'Time when Tier 2 (Unit Tests) completed (ISO 8601)'
+    required: false
+    default: ''
+  tier3-complete-time:
+    description: 'Time when Tier 3 (Integration Tests) completed (ISO 8601)'
+    required: false
+    default: ''
+  tier4-complete-time:
+    description: 'Time when Tier 4 (Container Validation) completed (ISO 8601)'
     required: false
     default: ''
 
-  # Target thresholds (seconds) - see header for calculation method
-  target-first-feedback:
-    description: 'Target seconds for first lint feedback'
+  # Target thresholds (seconds, cumulative from workflow start)
+  target-tier1:
+    description: 'Target seconds for Tier 1 (Lint & Build)'
     required: false
-    default: '35'
-  target-tests-complete:
-    description: 'Target seconds for all tests (no container)'
+    default: '60'
+  target-tier2:
+    description: 'Target seconds for Tier 2 (Unit Tests)'
+    required: false
+    default: '120'
+  target-tier3:
+    description: 'Target seconds for Tier 3 (Integration Tests)'
     required: false
     default: '210'
-  target-full-pipeline:
-    description: 'Target seconds for full pipeline including container'
+  target-tier4:
+    description: 'Target seconds for Tier 4 (Container / Full Pipeline)'
     required: false
     default: '400'
 
@@ -84,15 +104,18 @@ inputs:
     default: '20'
 
 outputs:
-  first-feedback-seconds:
-    description: 'Seconds to first lint feedback'
-    value: ${{ steps.calculate.outputs.first_feedback }}
-  tests-complete-seconds:
-    description: 'Seconds to all tests complete'
-    value: ${{ steps.calculate.outputs.tests_complete }}
-  full-pipeline-seconds:
-    description: 'Seconds for full pipeline'
-    value: ${{ steps.calculate.outputs.full_pipeline }}
+  tier1-seconds:
+    description: 'Seconds to Tier 1 complete'
+    value: ${{ steps.calculate.outputs.tier1 }}
+  tier2-seconds:
+    description: 'Seconds to Tier 2 complete'
+    value: ${{ steps.calculate.outputs.tier2 }}
+  tier3-seconds:
+    description: 'Seconds to Tier 3 complete'
+    value: ${{ steps.calculate.outputs.tier3 }}
+  tier4-seconds:
+    description: 'Seconds to Tier 4 complete (full pipeline)'
+    value: ${{ steps.calculate.outputs.tier4 }}
   status:
     description: 'Overall status: pass, warning, or fail'
     value: ${{ steps.evaluate.outputs.status }}
@@ -111,76 +134,73 @@ runs:
             echo ""
             return
           fi
-          # Use date command (works on both Linux and macOS with GNU date)
-          if date --version >/dev/null 2>&1; then
-            # GNU date
-            date -d "$ts" +%s 2>/dev/null || echo ""
-          else
-            # BSD date (macOS) - requires different format
+          # Use uname for reliable OS detection
+          if [[ "$(uname)" == "Darwin" ]]; then
+            # BSD date (macOS)
             date -jf "%Y-%m-%dT%H:%M:%SZ" "$ts" +%s 2>/dev/null || echo ""
+          else
+            # GNU date (Linux)
+            date -d "$ts" +%s 2>/dev/null || echo ""
           fi
         }
 
         WORKFLOW_START="${{ inputs.workflow-start-time }}"
-        LINT_COMPLETE="${{ inputs.lint-complete-time }}"
-        TESTS_COMPLETE="${{ inputs.tests-complete-time }}"
-        NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-
-        echo "::debug::Workflow start: $WORKFLOW_START"
-        echo "::debug::Lint complete: $LINT_COMPLETE"
-        echo "::debug::Tests complete: $TESTS_COMPLETE"
-        echo "::debug::Now: $NOW"
-
-        START_EPOCH=$(iso_to_epoch "$WORKFLOW_START")
+        TIER1_COMPLETE="${{ inputs.tier1-complete-time }}"
+        TIER2_COMPLETE="${{ inputs.tier2-complete-time }}"
+        TIER3_COMPLETE="${{ inputs.tier3-complete-time }}"
+        TIER4_COMPLETE="${{ inputs.tier4-complete-time }}"
         NOW_EPOCH=$(date +%s)
 
-        # First feedback (lint complete)
-        if [ -n "$LINT_COMPLETE" ]; then
-          LINT_EPOCH=$(iso_to_epoch "$LINT_COMPLETE")
-          if [ -n "$LINT_EPOCH" ] && [ -n "$START_EPOCH" ]; then
-            FIRST_FEEDBACK=$((LINT_EPOCH - START_EPOCH))
-          else
-            FIRST_FEEDBACK=""
+        echo "::debug::Workflow start: $WORKFLOW_START"
+        echo "::debug::Tier 1 complete: $TIER1_COMPLETE"
+        echo "::debug::Tier 2 complete: $TIER2_COMPLETE"
+        echo "::debug::Tier 3 complete: $TIER3_COMPLETE"
+        echo "::debug::Tier 4 complete: $TIER4_COMPLETE"
+
+        START_EPOCH=$(iso_to_epoch "$WORKFLOW_START")
+
+        # Calculate duration for each tier (cumulative from workflow start)
+        calc_duration() {
+          local complete_time="$1"
+          if [ -n "$complete_time" ] && [ -n "$START_EPOCH" ]; then
+            local complete_epoch=$(iso_to_epoch "$complete_time")
+            if [ -n "$complete_epoch" ]; then
+              echo $((complete_epoch - START_EPOCH))
+              return
+            fi
           fi
-        else
-          FIRST_FEEDBACK=""
+          echo ""
+        }
+
+        TIER1_DURATION=$(calc_duration "$TIER1_COMPLETE")
+        TIER2_DURATION=$(calc_duration "$TIER2_COMPLETE")
+        TIER3_DURATION=$(calc_duration "$TIER3_COMPLETE")
+        TIER4_DURATION=$(calc_duration "$TIER4_COMPLETE")
+
+        # If Tier 4 not provided, use current time (for full pipeline)
+        if [ -z "$TIER4_DURATION" ] && [ -n "$START_EPOCH" ]; then
+          TIER4_DURATION=$((NOW_EPOCH - START_EPOCH))
         fi
 
-        # Tests complete (before container)
-        if [ -n "$TESTS_COMPLETE" ]; then
-          TESTS_EPOCH=$(iso_to_epoch "$TESTS_COMPLETE")
-          if [ -n "$TESTS_EPOCH" ] && [ -n "$START_EPOCH" ]; then
-            TESTS_DURATION=$((TESTS_EPOCH - START_EPOCH))
-          else
-            TESTS_DURATION=""
-          fi
-        else
-          TESTS_DURATION=""
-        fi
-
-        # Full pipeline (now - start)
-        if [ -n "$START_EPOCH" ]; then
-          FULL_PIPELINE=$((NOW_EPOCH - START_EPOCH))
-        else
-          FULL_PIPELINE=""
-        fi
-
-        echo "first_feedback=${FIRST_FEEDBACK:-N/A}" >> $GITHUB_OUTPUT
-        echo "tests_complete=${TESTS_DURATION:-N/A}" >> $GITHUB_OUTPUT
-        echo "full_pipeline=${FULL_PIPELINE:-N/A}" >> $GITHUB_OUTPUT
+        echo "tier1=${TIER1_DURATION:-N/A}" >> $GITHUB_OUTPUT
+        echo "tier2=${TIER2_DURATION:-N/A}" >> $GITHUB_OUTPUT
+        echo "tier3=${TIER3_DURATION:-N/A}" >> $GITHUB_OUTPUT
+        echo "tier4=${TIER4_DURATION:-N/A}" >> $GITHUB_OUTPUT
 
         # Export for next step
-        echo "FIRST_FEEDBACK=$FIRST_FEEDBACK" >> $GITHUB_ENV
-        echo "TESTS_COMPLETE=$TESTS_DURATION" >> $GITHUB_ENV
-        echo "FULL_PIPELINE=$FULL_PIPELINE" >> $GITHUB_ENV
+        echo "TIER1_DURATION=$TIER1_DURATION" >> $GITHUB_ENV
+        echo "TIER2_DURATION=$TIER2_DURATION" >> $GITHUB_ENV
+        echo "TIER3_DURATION=$TIER3_DURATION" >> $GITHUB_ENV
+        echo "TIER4_DURATION=$TIER4_DURATION" >> $GITHUB_ENV
 
     - name: Evaluate against targets
       id: evaluate
       shell: bash
       run: |
-        TARGET_FIRST="${{ inputs.target-first-feedback }}"
-        TARGET_TESTS="${{ inputs.target-tests-complete }}"
-        TARGET_FULL="${{ inputs.target-full-pipeline }}"
+        TARGET_TIER1="${{ inputs.target-tier1 }}"
+        TARGET_TIER2="${{ inputs.target-tier2 }}"
+        TARGET_TIER3="${{ inputs.target-tier3 }}"
+        TARGET_TIER4="${{ inputs.target-tier4 }}"
         BUFFER="${{ inputs.warning-buffer-percent }}"
         FAIL_ON_VIOLATION="${{ inputs.fail-on-violation }}"
 
@@ -216,9 +236,10 @@ runs:
           fi
         }
 
-        check_metric "First Feedback" "$FIRST_FEEDBACK" "$TARGET_FIRST"
-        check_metric "Tests Complete" "$TESTS_COMPLETE" "$TARGET_TESTS"
-        check_metric "Full Pipeline" "$FULL_PIPELINE" "$TARGET_FULL"
+        check_metric "Tier 1 (Lint & Build)" "$TIER1_DURATION" "$TARGET_TIER1"
+        check_metric "Tier 2 (Unit Tests)" "$TIER2_DURATION" "$TARGET_TIER2"
+        check_metric "Tier 3 (Integration)" "$TIER3_DURATION" "$TARGET_TIER3"
+        check_metric "Tier 4 (Container)" "$TIER4_DURATION" "$TARGET_TIER4"
 
         echo "status=$STATUS" >> $GITHUB_OUTPUT
 
@@ -230,9 +251,10 @@ runs:
     - name: Generate summary report
       shell: bash
       run: |
-        TARGET_FIRST="${{ inputs.target-first-feedback }}"
-        TARGET_TESTS="${{ inputs.target-tests-complete }}"
-        TARGET_FULL="${{ inputs.target-full-pipeline }}"
+        TARGET_TIER1="${{ inputs.target-tier1 }}"
+        TARGET_TIER2="${{ inputs.target-tier2 }}"
+        TARGET_TIER3="${{ inputs.target-tier3 }}"
+        TARGET_TIER4="${{ inputs.target-tier4 }}"
         STATUS="${{ steps.evaluate.outputs.status }}"
 
         format_duration() {
@@ -267,33 +289,36 @@ runs:
           fi
         }
 
-        FF_FORMATTED=$(format_duration "$FIRST_FEEDBACK")
-        TC_FORMATTED=$(format_duration "$TESTS_COMPLETE")
-        FP_FORMATTED=$(format_duration "$FULL_PIPELINE")
+        T1_FORMATTED=$(format_duration "$TIER1_DURATION")
+        T2_FORMATTED=$(format_duration "$TIER2_DURATION")
+        T3_FORMATTED=$(format_duration "$TIER3_DURATION")
+        T4_FORMATTED=$(format_duration "$TIER4_DURATION")
 
-        FF_ICON=$(status_icon "$FIRST_FEEDBACK" "$TARGET_FIRST")
-        TC_ICON=$(status_icon "$TESTS_COMPLETE" "$TARGET_TESTS")
-        FP_ICON=$(status_icon "$FULL_PIPELINE" "$TARGET_FULL")
+        T1_ICON=$(status_icon "$TIER1_DURATION" "$TARGET_TIER1")
+        T2_ICON=$(status_icon "$TIER2_DURATION" "$TARGET_TIER2")
+        T3_ICON=$(status_icon "$TIER3_DURATION" "$TARGET_TIER3")
+        T4_ICON=$(status_icon "$TIER4_DURATION" "$TARGET_TIER4")
 
         cat >> $GITHUB_STEP_SUMMARY << 'EOF'
         ## CI Performance Metrics
 
-        | Metric | Actual | Target | Status |
-        |--------|--------|--------|--------|
+        | Tier | Jobs | Actual | Target | Status |
+        |------|------|--------|--------|--------|
         EOF
 
-        echo "| First Feedback (lint) | $FF_FORMATTED | <${TARGET_FIRST}s | $FF_ICON |" >> $GITHUB_STEP_SUMMARY
-        echo "| Tests Complete | $TC_FORMATTED | <${TARGET_TESTS}s (3m) | $TC_ICON |" >> $GITHUB_STEP_SUMMARY
-        echo "| Full Pipeline | $FP_FORMATTED | <${TARGET_FULL}s (6m) | $FP_ICON |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tier 1 | Lint & Build | $T1_FORMATTED | <${TARGET_TIER1}s | $T1_ICON |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tier 2 | Unit Tests | $T2_FORMATTED | <${TARGET_TIER2}s | $T2_ICON |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tier 3 | Integration Tests | $T3_FORMATTED | <${TARGET_TIER3}s | $T3_ICON |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tier 4 | Container Validation | $T4_FORMATTED | <${TARGET_TIER4}s | $T4_ICON |" >> $GITHUB_STEP_SUMMARY
 
         echo "" >> $GITHUB_STEP_SUMMARY
 
         case "$STATUS" in
           pass)
-            echo "> **Status**: All metrics within targets :rocket:" >> $GITHUB_STEP_SUMMARY
+            echo "> **Status**: All tiers within targets :rocket:" >> $GITHUB_STEP_SUMMARY
             ;;
           warning)
-            echo "> **Status**: Some metrics near threshold :warning:" >> $GITHUB_STEP_SUMMARY
+            echo "> **Status**: Some tiers near threshold :warning:" >> $GITHUB_STEP_SUMMARY
             ;;
           fail)
             echo "> **Status**: Critical thresholds exceeded :x:" >> $GITHUB_STEP_SUMMARY
@@ -301,6 +326,18 @@ runs:
         esac
 
         cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+
+        <details>
+        <summary>Tier Details</summary>
+
+        **Tier 1 - Lint & Build**: Ruby Lint, TypeScript Lint, Build Frontend Assets
+        **Tier 2 - Unit Tests**: Ruby Unit Tests, TypeScript Unit Tests
+        **Tier 3 - Integration Tests**: Ruby Integration (Simple, Full, Disabled modes)
+        **Tier 4 - Container Validation**: Docker build and health check
+
+        Times are cumulative from workflow start.
+
+        </details>
 
         <details>
         <summary>Re-evaluation Instructions</summary>
@@ -316,7 +353,7 @@ runs:
         gh run view <RUN_ID> --json jobs --jq '.jobs[] |
           "\(.name): started=\(.startedAt) completed=\(.completedAt)"'
 
-        # 3. Collect data from 3-5 runs, calculate averages
+        # 3. Collect data from 3-5 runs, calculate averages per tier
         # 4. Update targets in check-ci-metrics/action.yml (add 20% buffer)
         ```
 
