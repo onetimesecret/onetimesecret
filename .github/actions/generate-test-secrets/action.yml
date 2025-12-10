@@ -1,9 +1,10 @@
+# .github/actions/generate-test-secrets/action.yml
+---
 # ==============================================================================
 # Generate Test Secrets - Composite Action
 # ==============================================================================
 # Version: 1.0.0
 # Repository: onetimesecret/onetimesecret
-# Filepath: .github/actions/generate-test-secrets/action.yml
 #
 # Generates ephemeral cryptographic secrets for CI test environments.
 # All secrets are random hex strings (32 bytes / 64 chars) created via openssl.

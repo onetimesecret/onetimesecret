@@ -1,9 +1,10 @@
+# .github/actions/run-ruby-tests/action.yml
+---
 # ==============================================================================
 # Run Ruby Tests - Composite Action
 # ==============================================================================
 # Version: 1.0.0
 # Repository: onetimesecret/onetimesecret
-# Filepath: .github/actions/run-ruby-tests/action.yml
 #
 # Executes Ruby test suites (RSpec and/or Tryouts) with configurable
 # authentication modes. Generates GitHub job summaries with test results.

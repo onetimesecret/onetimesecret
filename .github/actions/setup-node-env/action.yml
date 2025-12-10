@@ -1,9 +1,10 @@
+# .github/actions/setup-node-env/action.yml
+---
 # ==============================================================================
 # Setup Node.js Environment - Composite Action
 # ==============================================================================
 # Version: 1.0.0
 # Repository: onetimesecret/onetimesecret
-# Filepath: .github/actions/setup-node-env/action.yml
 #
 # Prepares a Node.js environment with pnpm and caching for CI jobs.
 # Consolidates common frontend setup steps.

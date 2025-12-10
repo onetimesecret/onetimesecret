@@ -1,9 +1,10 @@
+# .github/actions/setup-ruby-test-env/action.yml
+---
 # ==============================================================================
 # Setup Ruby Test Environment - Composite Action
 # ==============================================================================
 # Version: 1.0.0
 # Repository: onetimesecret/onetimesecret
-# Filepath: .github/actions/setup-ruby-test-env/action.yml
 #
 # Prepares a complete Ruby test environment for CI jobs. Consolidates common
 # setup steps used across multiple Ruby test jobs.
