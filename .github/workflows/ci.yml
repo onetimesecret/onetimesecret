@@ -53,6 +53,53 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# =============================================================================
+# YAML Anchors for reusable job conditions
+# NOTE: GitHub Actions supports YAML anchors and aliases but NOT merge keys (<<:)
+# =============================================================================
+x-conditions:
+  # Tier 1: Standalone conditions (no always(), no dependency checks)
+  tier1-ruby: &if-ruby-changed |
+    needs.changes.outputs.ruby == 'true' ||
+    needs.changes.outputs.ci == 'true' ||
+    needs.changes.outputs.force_full == 'true'
+  tier1-typescript: &if-typescript-changed |
+    needs.changes.outputs.typescript == 'true' ||
+    needs.changes.outputs.ci == 'true' ||
+    needs.changes.outputs.force_full == 'true'
+  tier1-frontend: &if-frontend-changed |
+    needs.changes.outputs.frontend == 'true' ||
+    needs.changes.outputs.ruby == 'true' ||
+    needs.changes.outputs.ci == 'true' ||
+    needs.changes.outputs.force_full == 'true'
+
+  # Tier 2: Unit tests (require lint jobs to pass/skip)
+  tier2-ruby-unit: &if-ruby-unit |
+    always() &&
+    (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
+    (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
+    (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped')
+  tier2-typescript: &if-typescript-unit |
+    always() &&
+    (needs.changes.outputs.typescript == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
+    (needs.typescript-lint.result == 'success' || needs.typescript-lint.result == 'skipped')
+
+  # Tier 3: Integration tests (require unit tests to pass)
+  tier3-ruby-integration: &if-ruby-integration |
+    always() &&
+    (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
+    needs.ruby-unit.result == 'success'
+
+  # Tier 4: Container validation (require all tests to pass/skip)
+  tier4-container: &if-container |
+    always() &&
+    (needs.changes.outputs.docker == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
+    (needs.ruby-integration-simple.result == 'success' || needs.ruby-integration-simple.result == 'skipped') &&
+    (needs.ruby-integration-full.result == 'success' || needs.ruby-integration-full.result == 'skipped') &&
+    (needs.ruby-integration-disabled.result == 'success' || needs.ruby-integration-disabled.result == 'skipped') &&
+    (needs.test-typescript.result == 'success' || needs.test-typescript.result == 'skipped') &&
+    !contains(needs.*.result, 'failure')
+
 jobs:
   # ============================================================================
   # TIER 0: PATH FILTERING (~5s)
@@ -76,15 +123,14 @@ jobs:
 
       - name: Check for force full flag
         id: check-force
-        env:
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
-          # Check commit message for [ci full] or workflow_dispatch input
-          # Note: COMMIT_MESSAGE is passed via env to prevent command injection
+          # Check for [ci full] in commit message or workflow_dispatch input
+          # NOTE: github.event.head_commit.message is null for pull_request events,
+          # so we use git log to reliably get the commit message in all contexts.
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.force_full }}" == "true" ]]; then
             echo "force_full=true" >> $GITHUB_OUTPUT
             echo "Force full CI triggered via workflow_dispatch"
-          elif [[ "$COMMIT_MESSAGE" == *"[ci full]"* ]]; then
+          elif git log -1 --pretty=%B | grep -q '\[ci full\]'; then
             echo "force_full=true" >> $GITHUB_OUTPUT
             echo "Force full CI triggered via commit message"
           else
@@ -162,10 +208,7 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-24.04
     needs: [changes]
-    if: |
-      needs.changes.outputs.ruby == 'true' ||
-      needs.changes.outputs.ci == 'true' ||
-      needs.changes.outputs.force_full == 'true'
+    if: *if-ruby-changed
 
     steps:
       - name: Checkout code
@@ -215,10 +258,7 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-24.04
     needs: [changes]
-    if: |
-      needs.changes.outputs.typescript == 'true' ||
-      needs.changes.outputs.ci == 'true' ||
-      needs.changes.outputs.force_full == 'true'
+    if: *if-typescript-changed
 
     steps:
       - name: Checkout code
@@ -267,11 +307,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-24.04
     needs: [changes]
-    if: |
-      needs.changes.outputs.frontend == 'true' ||
-      needs.changes.outputs.ruby == 'true' ||
-      needs.changes.outputs.ci == 'true' ||
-      needs.changes.outputs.force_full == 'true'
+    if: *if-frontend-changed
 
     steps:
       - name: Checkout code
@@ -335,11 +371,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-24.04
     needs: [changes, ruby-lint, build-assets]
-    if: |
-      always() &&
-      (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
-      (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
-      (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped')
+    if: *if-ruby-unit
 
     services:
       redis:
@@ -448,10 +480,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-24.04
     needs: [changes, typescript-lint]
-    if: |
-      always() &&
-      (needs.changes.outputs.typescript == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
-      (needs.typescript-lint.result == 'success' || needs.typescript-lint.result == 'skipped')
+    if: *if-typescript-unit
 
     steps:
       - name: Checkout code
@@ -506,10 +535,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-24.04
     needs: [changes, ruby-unit]
-    if: |
-      always() &&
-      (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
-      needs.ruby-unit.result == 'success'
+    if: *if-ruby-integration
 
     services:
       redis:
@@ -617,10 +643,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-24.04
     needs: [changes, ruby-unit]
-    if: |
-      always() &&
-      (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
-      needs.ruby-unit.result == 'success'
+    if: *if-ruby-integration
 
     services:
       redis:
@@ -711,10 +734,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-24.04
     needs: [changes, ruby-unit]
-    if: |
-      always() &&
-      (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
-      needs.ruby-unit.result == 'success'
+    if: *if-ruby-integration
 
     services:
       redis:
@@ -771,10 +791,29 @@ jobs:
       - name: Generate random secrets for testing
         uses: ./.github/actions/generate-test-secrets
 
-      # NOTE: Disabled mode auth tryouts were migrated to RSpec in PR #2128
-      # These tests now run in the 'disabled-mode-integration' job as RSpec specs:
-      # - spec/integration/authentication/disabled_mode/
-      # The old try/integration/authentication/* files were deleted.
+      - name: Run RSpec integration tests (disabled mode)
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'disabled'
+        run: |
+          echo "Running RSpec integration tests in disabled mode..."
+          mkdir -p tmp
+          bundle exec rspec \
+            --tag disabled_auth_mode \
+            --format progress \
+            --format json --out tmp/rspec_disabled_results.json \
+            spec/integration
+
+      - name: Generate job summary
+        if: always()
+        run: |
+          echo "## Disabled Mode Integration Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f tmp/rspec_disabled_results.json ]; then
+            echo "### RSpec" >> $GITHUB_STEP_SUMMARY
+            echo "- Total: $(jq '.summary.example_count' tmp/rspec_disabled_results.json)" >> $GITHUB_STEP_SUMMARY
+            echo "- Failures: $(jq '.summary.failure_count' tmp/rspec_disabled_results.json)" >> $GITHUB_STEP_SUMMARY
+          fi
 
   # ============================================================================
   # TIER 4: CONTAINER VALIDATION (~2-3 min)
@@ -786,14 +825,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-24.04
     needs: [changes, ruby-integration-simple, ruby-integration-full, ruby-integration-disabled, test-typescript]
-    if: |
-      always() &&
-      (needs.changes.outputs.docker == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
-      (needs.ruby-integration-simple.result == 'success' || needs.ruby-integration-simple.result == 'skipped') &&
-      (needs.ruby-integration-full.result == 'success' || needs.ruby-integration-full.result == 'skipped') &&
-      (needs.ruby-integration-disabled.result == 'success' || needs.ruby-integration-disabled.result == 'skipped') &&
-      (needs.test-typescript.result == 'success' || needs.test-typescript.result == 'skipped') &&
-      !contains(needs.*.result, 'failure')
+    if: *if-container
 
     services:
       redis:
