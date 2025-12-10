@@ -6,34 +6,24 @@
 
 require_relative '../../support/test_models'
 
-begin
-  OT.boot! :test, false
-rescue Redis::CannotConnectError, Redis::ConnectionError => e
-  puts "SKIP: Requires Redis connection (#{e.class})"
-  exit 0
-end
+OT.boot! :test
 
-begin
-  # Ensure clean state
-  Familia.dbclient.flushdb if ENV['ENV'] == 'test'
+# Ensure clean state
+Familia.dbclient.flushdb if ENV['ENV'] == 'test'
 
-  puts "Creating customer..."
-  @test_id = SecureRandom.hex(4)
-  @cust = Onetime::Customer.create!(email: "test_#{@test_id}@test.com")
-  puts "Customer created with custid: #{@cust.custid}"
+puts "Creating customer..."
+@test_id = SecureRandom.hex(4)
+@cust = Onetime::Customer.create!(email: "test_#{@test_id}@test.com")
+puts "Customer created with custid: #{@cust.custid}"
 
-  puts "Creating organization..."
-  @org = Onetime::Organization.create!("Test Org #{@test_id}", @cust, "billing_#{@test_id}@test.com")
-  puts "Organization created with extid: #{@org.objid}"
+puts "Creating organization..."
+@org = Onetime::Organization.create!("Test Org #{@test_id}", @cust, "billing_#{@test_id}@test.com")
+puts "Organization created with extid: #{@org.objid}"
 
-  puts "Creating custom domain..."
-  @domain_name = "test#{@test_id}.example.com"
-  @domain = Onetime::CustomDomain.create!(@domain_name, @org.objid)
-  puts "Domain created: #{@domain.display_domain}"
-rescue Redis::CannotConnectError, Redis::ConnectionError => e
-  puts "SKIP: Setup requires Redis connection (#{e.class})"
-  exit 0
-end
+puts "Creating custom domain..."
+@domain_name = "test#{@test_id}.example.com"
+@domain = Onetime::CustomDomain.create!(@domain_name, @org.objid)
+puts "Domain created: #{@domain.display_domain}"
 
 ## Customer exists
 @cust.nil?
@@ -51,9 +41,4 @@ end
 @domain.nil?
 #=> false
 
-# Teardown
-begin
-  Familia.dbclient.flushdb if ENV['ENV'] == 'test'
-rescue Redis::CannotConnectError, Redis::ConnectionError
-  # Skip cleanup if Redis unavailable
-end
+Familia.dbclient.flushdb if ENV['ENV'] == 'test'

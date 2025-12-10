@@ -13,12 +13,8 @@
 require_relative '../../support/test_logic'
 require 'apps/api/v3/logic'
 
-begin
-  OT.boot! :test, false
-rescue Redis::CannotConnectError, Redis::ConnectionError => e
-  puts "SKIP: Requires Redis connection (#{e.class})"
-  exit 0
-end
+
+OT.boot! :test
 
 @email = "tryouts+incoming+#{Familia.now.to_i}@onetimesecret.com"
 @cust = Onetime::Customer.create!(email: @email)

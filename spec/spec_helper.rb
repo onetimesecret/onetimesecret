@@ -26,11 +26,6 @@
 # spec/spec_helper.rb
 # Test harness for Onetime.
 
-# Encryption key for tests comes from spec/config.test.yaml site.secret fallback.
-# Explicitly unset ENV['SECRET'] to prevent production values from .env leaking into tests.
-# See commit 04a138f98 which changed Familia to use site.secret from config.
-ENV.delete('SECRET')
-
 # Set test database URL - use port 2121 to avoid conflicts with development Redis
 # This MUST be set before config.test.yaml is loaded via ERB, since it checks:
 #   ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:6379/0'
@@ -114,6 +109,9 @@ end
 
 # Load test utilities
 Dir[File.join(spec_root, 'support', '*.rb')].each { |f| require f }
+Dir[File.join(spec_root, 'support', 'shared_contexts', '*.rb')].each { |f| require f }
+Dir[File.join(spec_root, 'support', 'shared_examples', '*.rb')].each { |f| require f }
+Dir[File.join(spec_root, 'support', 'factories', '*.rb')].each { |f| require f }
 
 # Test mode
 OT.mode         = :test
@@ -121,6 +119,10 @@ OT::Config.path = File.join(spec_root, 'config.test.yaml')
 
 # Use test auth config to avoid issues with local auth.yaml modifications
 Onetime::AuthConfig.path = File.join(spec_root, 'auth.test.yaml')
+
+# Disable billing in tests - set path to non-existent file so enabled? returns false
+# This prevents loading production etc/billing.yaml and calling Stripe API
+Onetime::BillingConfig.path = File.join(spec_root, 'billing.test.yaml')
 
 # Load the test configuration so OT.conf is available to tests.
 # This is a minimal config load that doesn't run the full boot process.

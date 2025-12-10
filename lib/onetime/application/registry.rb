@@ -140,8 +140,8 @@ module Onetime
           apps_root = File.join(Onetime::HOME, 'apps')
           filepaths = Dir.glob(File.join(apps_root, '**/application.rb'))
 
-          # Skip auth app in simple mode - auth endpoints handled by Core Web App
-          if Onetime.auth_config.mode == 'simple'
+          # Skip auth app unless in full mode - auth endpoints handled by Core Web App
+          unless Onetime.auth_config.full_enabled?
             filepaths.reject! { |f| f.include?('web/auth/') }
           end
 
@@ -153,10 +153,10 @@ module Onetime
           Onetime.app_logger.info "[registry] Scan found #{filepaths.size} application(s)"
 
           # Log auth mode after scan but before loading
-          auth_mode_msg = if Onetime.auth_config.mode == 'simple'
-              'Simple (Core handles /auth/*)'
-          else
-            'Full (Rodauth enabled)'
+          auth_mode_msg = case Onetime.auth_config.mode
+            when 'simple' then 'Simple (Core handles /auth/*)'
+            when 'disabled' then 'Disabled (authentication off)'
+            else 'Full (Rodauth enabled)'
           end
 
           Onetime.log_box(

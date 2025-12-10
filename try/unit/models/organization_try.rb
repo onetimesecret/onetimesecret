@@ -16,12 +16,7 @@
 
 require_relative '../../support/test_models'
 
-begin
-  OT.boot! :test, false
-rescue Redis::CannotConnectError, Redis::ConnectionError => e
-  puts "SKIP: Requires Redis connection (#{e.class})"
-  exit 0
-end
+OT.boot! :test
 
 # Setup test data with unique identifiers
 @test_suffix = "#{Familia.now.to_i}_#{rand(10000)}"

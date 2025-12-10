@@ -9,7 +9,7 @@ require 'rack/test'
 RSpec.describe 'Admin Interface', :full_auth_mode, type: :integration do
   include Rack::Test::Methods
 
-  skip_unless_mode :full
+  # skip_unless_mode :full
 
   using Familia::Refinements::TimeLiterals
 
@@ -407,7 +407,8 @@ RSpec.describe 'Admin Interface', :full_auth_mode, type: :integration do
           reason: 'Test'
         }
 
-        expect(last_response.status).to eq(400)
+        # raise_form_error produces OT::FormError which maps to HTTP 422
+        expect(last_response.status).to eq(422)
       end
     end
 

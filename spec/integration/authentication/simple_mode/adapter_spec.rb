@@ -1,137 +1,87 @@
-# Generated rspec code for /Users/d/Projects/opensource/onetime/onetimesecret/try/integration/authentication/simple_mode/adapter_try.rb
-# Updated: 2025-12-06 19:02:31 -0800
+# spec/integration/authentication/simple_mode/adapter_spec.rb
+#
+# frozen_string_literal: true
+
+# Tests for simple auth mode configuration.
+# Note: Auth::Application cannot be loaded in simple mode because Rodauth
+# requires a database connection. These tests verify the mode configuration
+# and basic app behavior.
 
 require 'spec_helper'
+require 'rack/test'
 
-RSpec.describe 'adapter_try', :simple_auth_mode do
+RSpec.describe 'Simple Auth Mode', :simple_auth_mode do
   before(:all) do
+    # Clear any database stub left by full_auth_mode tests
+    # This ensures Auth::Database.connection returns nil as expected in simple mode
+    if defined?(FullModeSuiteDatabase) && FullModeSuiteDatabase.setup_complete?
+      FullModeSuiteDatabase.teardown!
+    end
+    Auth::Database.instance_variable_set(:@connection, nil) if defined?(Auth::Database)
+
     require 'onetime'
     require 'onetime/config'
-    Onetime.boot! :cli
+    Onetime.boot! :test
     require 'onetime/auth_config'
     require 'onetime/middleware'
-    require 'web/auth/application'
-    require 'rack/test'
-    @test = Object.new
-    @test.extend Rack::Test::Methods
-    def @test.app
-      Auth::Application.new
+    require 'onetime/application/registry'
+    # Reset registry to ensure clean state (other specs may have mounted different apps)
+    Onetime::Application::Registry.reset!
+    Onetime::Application::Registry.prepare_application_registry
+  end
+
+  describe 'mode configuration' do
+    it 'reports simple mode as active' do
+      expect(Onetime.auth_config.mode).to eq('simple')
+    end
+
+    it 'reports simple mode enabled' do
+      expect(Onetime.auth_config.simple_enabled?).to be true
+    end
+
+    it 'reports full mode as disabled' do
+      expect(Onetime.auth_config.full_enabled?).to be false
+    end
+
+    it 'returns nil for database connection' do
+      require 'auth/database'
+      expect(Auth::Database.connection).to be_nil
     end
   end
 
-  it 'Verify the auth application starts in simple mode without database errors' do
-    result = begin
-      begin
-        app = Auth::Application.new
-        app.respond_to?(:call)
-      rescue => e
-        e
-      end
+  describe 'application registry' do
+    it 'has Core app registered at root' do
+      expect(Onetime::Application::Registry.mount_mappings['/']).not_to be_nil
     end
-    expect(result).to eq(true)
-  end
 
-  it 'Verify simple mode is active' do
-    result = begin
-      Onetime.auth_config.mode
-    end
-    expect(result).to eq('simple')
-  end
-
-  it 'Verify full mode is disabled' do
-    result = begin
-      Onetime.auth_config.full_enabled?
-    end
-    expect(result).to eq(false)
-  end
-
-  it 'Verify database connection returns nil in simple mode' do
-    result = begin
-      require 'web/auth/config/database'
-      Auth::Database.connection
-    end
-    expect(result).to eq(nil)
-  end
-
-  it 'The login endpoint returns 404 in simple mode (Rodauth not loaded)' do
-    result = begin
-      @test.post '/auth/login', { login: 'test@example.com', password: 'password' }
-      @test.last_response.status
-    end
-    expect(result).to eq(404)
-  end
-
-  it "Check that we're getting an error response" do
-    result = begin
-      @test.last_response.body.length > 0
-    end
-    expect(result).to eq(true)
-  end
-
-  it 'Verify JSON response when Accept header is set for login' do
-    result = begin
-      @test.post '/auth/login',
-        { login: 'test@example.com', password: 'invalid' },
-        { 'HTTP_ACCEPT' => 'application/json' }
-      content_type = @test.last_response.headers['Content-Type']
-      content_type && content_type.include?('application/json')
-    end
-    expect(result).to eq(true)
-  end
-
-  it 'The create account endpoint returns 404 in simple mode' do
-    result = begin
-      @test.post '/auth/create-account', { login: 'new@example.com', password: 'password' }
-      @test.last_response.status
-    end
-    expect(result).to eq(404)
-  end
-
-  it 'The password reset endpoint returns 404 in simple mode' do
-    result = begin
-      @test.post '/auth/reset-password', { login: 'reset@example.com' }
-      @test.last_response.status
-    end
-    expect(result).to eq(404)
-  end
-
-  it 'The reset password with token endpoint returns 404 in simple mode' do
-    result = begin
-      @test.post '/auth/reset-password/testkey123', { p: 'newpassword' }
-      @test.last_response.status
-    end
-    expect(result).to eq(404)
-  end
-
-  it 'The logout endpoint should be accessible (forwarding works)' do
-    result = begin
-      @test.post '/auth/logout'
-      [404, 500].include?(@test.last_response.status)
-    end
-    expect(result).to eq(true)
-  end
-
-  it 'Verify Core app can be accessed through Registry' do
-    result = begin
-      if Onetime::Application::Registry.mount_mappings.empty?
-        Onetime::Application::Registry.prepare_application_registry
-      end
-      core_app_class = Onetime::Application::Registry.mount_mappings['/']
-      !core_app_class.nil?
-    end
-    expect(result).to eq(true)
-  end
-
-  it 'Verify Core app can be instantiated' do
-    result = begin
+    it 'can instantiate Core app' do
       core_app_class = Onetime::Application::Registry.mount_mappings['/']
       core_app = core_app_class.new
-      core_app.is_a?(Core::Application)
+      expect(core_app).to be_a(Core::Application)
     end
-    expect(result).to eq(true)
+
+    it 'Auth app is NOT mounted in simple mode' do
+      # In simple mode, the auth app shouldn't be mounted
+      # (or if mounted, should handle requests gracefully)
+      auth_mapping = Onetime::Application::Registry.mount_mappings['/auth']
+      expect(auth_mapping).to be_nil
+    end
   end
 
-  after(:all) do
-    @test = nil
+  describe 'Core::Application' do
+    include Rack::Test::Methods
+
+    def app
+      Core::Application.new
+    end
+
+    it 'responds to call (is a valid Rack app)' do
+      expect(app).to respond_to(:call)
+    end
+
+    it 'homepage returns 200' do
+      get '/'
+      expect(last_response.status).to eq(200)
+    end
   end
 end

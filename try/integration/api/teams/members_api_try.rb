@@ -11,12 +11,8 @@
 require 'rack/test'
 require_relative '../../../support/test_helpers'
 
-begin
-  OT.boot! :test, false unless OT.ready?
-rescue Redis::CannotConnectError, Redis::ConnectionError => e
-  puts "SKIP: Requires Redis connection (#{e.class})"
-  exit 0
-end
+
+OT.boot! :test
 
 require 'onetime/application/registry'
 Onetime::Application::Registry.prepare_application_registry
@@ -112,6 +108,8 @@ resp['count']
 #=> 3
 
 ## Cannot add member without authentication
+# Clear cookies to simulate a truly unauthenticated request
+@test.clear_cookies
 post "/api/teams/#{@team_id}/members",
   { email: @non_member.email }.to_json,
   { 'CONTENT_TYPE' => 'application/json' }
@@ -147,13 +145,17 @@ last_response.status >= 400
 #=> true
 
 ## Non-owner cannot add members
+# Clear cookies and use proper session format for member1
+@test.clear_cookies
 post "/api/teams/#{@team_id}/members",
   { email: @non_member.email }.to_json,
-  { 'rack.session' => { custid: @member1.custid }, 'CONTENT_TYPE' => 'application/json' }
+  { 'rack.session' => @member1_session, 'CONTENT_TYPE' => 'application/json' }
 last_response.status >= 400
 #=> true
 
 ## Members can list team members
+# Clear cookies and test with member1's session
+@test.clear_cookies
 get "/api/teams/#{@team_id}/members",
   {},
   { 'rack.session' => @member1_session }
@@ -162,6 +164,8 @@ resp = JSON.parse(last_response.body)
 #=> [200, 3]
 
 ## Non-members cannot list team members
+# Clear cookies to ensure we're testing as non-member
+@test.clear_cookies
 get "/api/teams/#{@team_id}/members",
   {},
   { 'rack.session' => @non_member_session }
@@ -169,6 +173,8 @@ last_response.status >= 400
 #=> true
 
 ## Can remove member from team
+# Clear cookies and use owner session
+@test.clear_cookies
 delete "/api/teams/#{@team_id}/members/#{@member2.custid}",
   {},
   { 'rack.session' => @owner_session }
@@ -176,6 +182,7 @@ last_response.status
 #=> 200
 
 ## Member list shrinks after removing member
+# Use same owner session (cookies set by previous request)
 get "/api/teams/#{@team_id}/members",
   {},
   { 'rack.session' => @owner_session }
@@ -190,6 +197,8 @@ member_ids.include?(@member2.custid)
 #=> false
 
 ## Cannot remove member without authentication
+# Clear cookies to simulate a truly unauthenticated request
+@test.clear_cookies
 delete "/api/teams/#{@team_id}/members/#{@member1.custid}",
   {},
   {}
@@ -244,6 +253,8 @@ resp = JSON.parse(last_response.body)
 #=> [200, @team_id]
 
 ## Regular member can remove themselves from team
+# Clear cookies and use member1's session
+@test.clear_cookies
 delete "/api/teams/#{@team_id}/members/#{@member1.custid}",
   {},
   { 'rack.session' => @member1_session }

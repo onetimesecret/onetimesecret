@@ -2,76 +2,151 @@
 #
 # frozen_string_literal: true
 
-# Helper module for conditionally skipping specs based on authentication mode.
+# Helper module for configuring authentication mode in specs via AuthConfig mocks.
 #
-# Usage in spec files - two options:
+# The mock is set up in before(:context) so it's in place BEFORE Onetime.boot! runs.
+# This ensures the entire application stack sees the mocked auth mode.
 #
-# 1. Tag-based (automatic skip via metadata):
-#   RSpec.describe 'My Test', :full_auth_mode, type: :integration do
-#     # tests here only run when AUTHENTICATION_MODE=full
-#   end
+# Usage in spec files:
 #
-# 2. Explicit helper method:
-#   RSpec.describe 'My Test', type: :integration do
-#     skip_unless_mode :full
-#     # tests here only run when AUTHENTICATION_MODE=full
+#   RSpec.describe 'My Test', :full_auth_mode do
+#     before(:all) do
+#       Onetime.boot! :test  # This will use the mocked auth_config
+#     end
+#     # ...
 #   end
 #
 module AuthModeHelpers
   VALID_MODES = %w[simple full disabled].freeze
 
-  # Returns the current auth mode
-  def self.current_mode
-    ENV['AUTHENTICATION_MODE'] || 'unset'
+  # Mock object that responds to all AuthConfig methods
+  class MockAuthConfig
+    attr_reader :mode
+    attr_accessor :mfa_enabled, :magic_links_enabled, :security_features_enabled
+
+    def initialize(mode, **options)
+      @mode = mode.to_s
+      @mfa_enabled = options.fetch(:mfa_enabled, true)
+      @magic_links_enabled = options.fetch(:magic_links_enabled, false)
+      @security_features_enabled = options.fetch(:security_features_enabled, true)
+    end
+
+    def full_enabled?
+      @mode == 'full'
+    end
+
+    def simple_enabled?
+      @mode == 'simple'
+    end
+
+    def disabled?
+      @mode == 'disabled'
+    end
+
+    def database_url
+      @mode == 'full' ? 'sqlite::memory:' : nil
+    end
+
+    def full
+      @mode == 'full' ? { 'database_url' => 'sqlite::memory:' } : {}
+    end
+
+    def simple
+      {}
+    end
+
+    def session
+      {
+        'secret' => 'test-secret-minimum-64-characters-for-secure-sessions-testing',
+        'key' => 'onetime.session',  # Cookie name - REQUIRED
+        'expire_after' => 86400,
+        'secure' => false,
+        'httponly' => true,
+        'same_site' => 'strict'
+      }
+    end
+
+    def reload!
+      self
+    end
   end
 
-  # Check if current mode matches the required mode
-  def self.mode_matches?(required_mode)
-    current_mode == required_mode.to_s
-  end
-
-  # Class method for use in describe blocks
-  def self.skip_unless_mode(required_mode, context)
-    unless mode_matches?(required_mode)
-      context.before(:all) do
-        skip "Requires AUTHENTICATION_MODE=#{required_mode} (current: #{AuthModeHelpers.current_mode})"
+  # Install mock for a given mode - replaces Onetime.auth_config at module level
+  # Returns the mock instance for further configuration if needed
+  def self.install_mock(mode, **options)
+    # Capture the REAL original method only once (not a previously installed mock)
+    unless @real_original_method
+      if Onetime.respond_to?(:auth_config) && !Onetime.method(:auth_config).owner.equal?(Onetime.singleton_class)
+        @real_original_method = Onetime.method(:auth_config)
       end
+    end
+
+    mock = MockAuthConfig.new(mode, **options)
+    @current_mock = mock
+    @current_mode = mode
+    Onetime.define_singleton_method(:auth_config) { mock }
+    mock
+  end
+
+  # Restore original auth_config method
+  def self.restore_original
+    @current_mock = nil
+    @current_mode = nil
+
+    # Only restore if we have the real original
+    return unless @real_original_method
+
+    Onetime.define_singleton_method(:auth_config, @real_original_method)
+  end
+
+  # Get current mock mode (useful for debugging)
+  def self.current_mode
+    @current_mode
+  end
+
+  # Check if a mock is currently installed
+  def self.mock_installed?
+    !@current_mock.nil?
+  end
+
+  # Reset cached database connection (call before tests that need fresh connection)
+  def self.reset_database_connection!
+    return unless defined?(Auth::Database)
+
+    # Use the new reset_connection! method if available (supports LazyConnection cleanup)
+    if Auth::Database.respond_to?(:reset_connection!)
+      Auth::Database.reset_connection!
+    else
+      Auth::Database.instance_variable_set(:@connection, nil)
     end
   end
 end
 
-# Add skip_unless_mode as a class method on RSpec example groups
 RSpec.configure do |config|
-  # Specs tagged with :full_auth_mode are skipped unless AUTHENTICATION_MODE=full
+  # Full auth mode - install mock BEFORE any setup runs
   config.before(:context, :full_auth_mode) do
-    unless AuthModeHelpers.mode_matches?(:full)
-      skip "Requires AUTHENTICATION_MODE=full (current: #{AuthModeHelpers.current_mode})"
-    end
+    AuthModeHelpers.install_mock('full')
   end
 
-  # Specs tagged with :simple_auth_mode are skipped unless AUTHENTICATION_MODE=simple
+  config.after(:context, :full_auth_mode) do
+    AuthModeHelpers.restore_original
+  end
+
+  # Simple auth mode - install mock BEFORE any setup runs
   config.before(:context, :simple_auth_mode) do
-    unless AuthModeHelpers.mode_matches?(:simple)
-      skip "Requires AUTHENTICATION_MODE=simple (current: #{AuthModeHelpers.current_mode})"
-    end
+    AuthModeHelpers.install_mock('simple')
   end
 
-  # Add skip_unless_mode as a DSL method for describe blocks
-  config.extend(Module.new do
-    def skip_unless_mode(required_mode)
-      before(:all) do
-        unless AuthModeHelpers.mode_matches?(required_mode)
-          skip "Requires AUTHENTICATION_MODE=#{required_mode} (current: #{AuthModeHelpers.current_mode})"
-        end
-      end
-    end
+  config.after(:context, :simple_auth_mode) do
+    AuthModeHelpers.restore_original
+  end
 
-    def skip_if_mode(excluded_mode)
-      before(:all) do
-        if AuthModeHelpers.mode_matches?(excluded_mode)
-          skip "Skipped when AUTHENTICATION_MODE=#{excluded_mode}"
-        end
-      end
-    end
-  end)
+  # Disabled auth mode - install mock BEFORE any setup runs
+  config.before(:context, :disabled_auth_mode) do
+    AuthModeHelpers.install_mock('disabled')
+  end
+
+  config.after(:context, :disabled_auth_mode) do
+    AuthModeHelpers.restore_original
+  end
 end

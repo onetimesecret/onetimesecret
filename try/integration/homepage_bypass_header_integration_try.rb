@@ -50,6 +50,7 @@ end
   'site' => {
     'host' => 'localhost',
     'ssl' => false,
+    'secret' => 'test-secret-for-session-signing',
     'authentication' => {
       'enabled' => true,
       'signin' => true,

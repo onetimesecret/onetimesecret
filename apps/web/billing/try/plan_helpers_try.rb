@@ -19,6 +19,16 @@ require 'lib/onetime/models/organization'
 require 'apps/web/billing/plan_helpers'
 require 'apps/web/billing/models/plan'
 
+## Setup: Enable billing for these capability tests
+# The WithCapabilities module returns STANDALONE_CAPABILITIES when billing is disabled.
+# For these tests to validate plan-specific capabilities, we need billing enabled.
+module BillingEnabledForTests
+  def billing_enabled?
+    true
+  end
+end
+Onetime::Organization.prepend(BillingEnabledForTests)
+
 ## Setup: Populate Plan cache with test data (replaces hardcoded PLAN_DEFINITIONS)
 Billing::Plan.clear_cache
 
