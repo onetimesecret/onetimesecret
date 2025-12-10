@@ -25,10 +25,11 @@ Onetime::Config.load
 # Reset mailer to ensure clean state with new config
 Onetime::Mail::Mailer.reset!
 
-require 'ostruct'
+# Data class for mocking secrets (immutable, Ruby 3.2+)
+MockPipelineSecret = Data.define(:key, :share_domain)
 
 # Setup test data
-@mock_secret = OpenStruct.new(key: 'pipeline_test_key_123', share_domain: nil)
+@mock_secret = MockPipelineSecret.new(key: 'pipeline_test_key_123', share_domain: nil)
 @recipient = 'tryouts+recipient@onetimesecret.com'
 @sender = 'tryouts+sender@onetimesecret.com'
 

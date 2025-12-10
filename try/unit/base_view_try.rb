@@ -14,7 +14,6 @@ ENV['AUTHENTICATION_MODE'] = 'simple'
 
 require 'rack/request'
 require 'rack/mock'
-require 'ostruct'
 
 require_relative '../support/test_helpers'
 
@@ -23,10 +22,13 @@ require_relative '../../apps/web/core/views'
 
 OT.boot! :test, false
 
+# Data class for mocking strategy results (immutable, Ruby 3.2+)
+MockStrategyResult = Data.define(:session, :user, :authenticated?)
+
 # Setup for normal flow tests (using instance variables to persist across test cases)
 @mock_session = { 'test_key' => 'test_value' }
 @mock_user = Onetime::Customer.anonymous
-@strategy_result = OpenStruct.new(
+@strategy_result = MockStrategyResult.new(
   session: @mock_session,
   user: @mock_user,
   authenticated?: true
