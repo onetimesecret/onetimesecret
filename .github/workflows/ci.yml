@@ -23,6 +23,11 @@ name: CI
 # - Workflow file changes (.github/**) run all jobs
 # - Use [ci-all] in commit message to force all jobs
 # - Use [ci-skip] in commit message to skip CI entirely
+#
+# Debug Logging (Repository Variables):
+# - ACTIONS_STEP_DEBUG=true    Enable purple debug output for all steps
+# - ACTIONS_RUNNER_DEBUG=true  Enable runner diagnostic logging
+# - Set in Settings → Secrets and variables → Actions → Variables
 
 on:
   push:
