@@ -69,7 +69,7 @@ jobs:
       ruby: ${{ steps.compute.outputs.ruby }}
       typescript: ${{ steps.compute.outputs.typescript }}
       frontend: ${{ steps.compute.outputs.frontend }}
-      docker: ${{ steps.compute.outputs.docker }}
+      oci: ${{ steps.compute.outputs.oci }}
       ga_workflow_files: ${{ steps.compute.outputs.ga_workflow_files }}
     steps:
       - name: Checkout code
@@ -136,7 +136,7 @@ jobs:
               - 'vite.config.ts'
               - 'tailwind.config.ts'
               - 'postcss.config.*'
-            docker:
+            oci:
               - 'Dockerfile*'
               - 'docker/**'
               - 'scripts/entrypoint.sh'
@@ -157,19 +157,19 @@ jobs:
             echo "ruby=false" >> $GITHUB_OUTPUT
             echo "typescript=false" >> $GITHUB_OUTPUT
             echo "frontend=false" >> $GITHUB_OUTPUT
-            echo "docker=false" >> $GITHUB_OUTPUT
+            echo "oci=false" >> $GITHUB_OUTPUT
             echo "ga_workflow_files=false" >> $GITHUB_OUTPUT
           elif [[ "$RUN_ALL" == "true" || "$GA_WORKFLOWS" == "true" ]]; then
             echo "ruby=true" >> $GITHUB_OUTPUT
             echo "typescript=true" >> $GITHUB_OUTPUT
             echo "frontend=true" >> $GITHUB_OUTPUT
-            echo "docker=true" >> $GITHUB_OUTPUT
+            echo "oci=true" >> $GITHUB_OUTPUT
             echo "ga_workflow_files=true" >> $GITHUB_OUTPUT
           else
             echo "ruby=${{ steps.filter.outputs.ruby }}" >> $GITHUB_OUTPUT
             echo "typescript=${{ steps.filter.outputs.typescript }}" >> $GITHUB_OUTPUT
             echo "frontend=${{ steps.filter.outputs.frontend }}" >> $GITHUB_OUTPUT
-            echo "docker=${{ steps.filter.outputs.docker }}" >> $GITHUB_OUTPUT
+            echo "oci=${{ steps.filter.outputs.oci }}" >> $GITHUB_OUTPUT
             echo "ga_workflow_files=false" >> $GITHUB_OUTPUT
           fi
 
@@ -181,7 +181,7 @@ jobs:
           echo "| Ruby | ${{ steps.compute.outputs.ruby }} |" >> $GITHUB_STEP_SUMMARY
           echo "| TypeScript | ${{ steps.compute.outputs.typescript }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Frontend | ${{ steps.compute.outputs.frontend }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Docker | ${{ steps.compute.outputs.docker }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| OCI | ${{ steps.compute.outputs.oci }} |" >> $GITHUB_STEP_SUMMARY
 
   # ============================================================================
   # TIER 1: LINT & BUILD JOBS (~30-45s)
@@ -434,7 +434,7 @@ jobs:
       ]
     if: |
       always() &&
-      (needs.changes.outputs.docker == 'true' || needs.changes.outputs.frontend == 'true') &&
+      (needs.changes.outputs.oci == 'true' || needs.changes.outputs.frontend == 'true') &&
       (needs.ruby-integration-simple.result == 'success' || needs.ruby-integration-simple.result == 'skipped') &&
       (needs.ruby-integration-full.result == 'success' || needs.ruby-integration-full.result == 'skipped') &&
       (needs.ruby-integration-disabled.result == 'success' || needs.ruby-integration-disabled.result == 'skipped') &&
