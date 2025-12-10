@@ -24,7 +24,7 @@ module Onetime
       DEFAULTS = {
         font_family: 'sans',
         corner_style: 'rounded',
-        primary_color: '#dc4a22'
+        primary_color: '#dc4a22',
       }.freeze
 
       FONTS = %w[sans serif mono].freeze
