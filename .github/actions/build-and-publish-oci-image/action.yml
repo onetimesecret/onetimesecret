@@ -74,6 +74,35 @@ outputs:
 runs:
   using: composite
   steps:
+    # Validate platforms input early to fail fast
+    - name: Validate platforms input
+      shell: bash
+      run: |
+        PLATFORMS="${{ inputs.platforms }}"
+        VALID_PLATFORMS="linux/amd64 linux/arm64"
+
+        echo "::group::Platform Validation"
+        echo "Requested platforms: $PLATFORMS"
+
+        # Check each platform in the comma-separated list
+        IFS=',' read -ra PLATFORM_ARRAY <<< "$PLATFORMS"
+        for platform in "${PLATFORM_ARRAY[@]}"; do
+          # Trim whitespace
+          platform=$(echo "$platform" | xargs)
+          if [[ ! " $VALID_PLATFORMS " =~ " $platform " ]]; then
+            echo "::error::Invalid platform '$platform'. Supported platforms: $VALID_PLATFORMS"
+            exit 1
+          fi
+        done
+
+        # Warn about multi-platform builds (some services like Fly.io only accept single-arch)
+        if [[ "${#PLATFORM_ARRAY[@]}" -gt 1 ]]; then
+          echo "::warning::Multi-platform build requested (${#PLATFORM_ARRAY[@]} platforms). Some deployment targets (e.g., Fly.io) only accept single-architecture images."
+        fi
+
+        echo "Platform validation passed: $PLATFORMS"
+        echo "::endgroup::"
+
     # Generate .commit_hash.txt in the build context
     - name: Generate commit hash
       shell: bash
