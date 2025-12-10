@@ -15,9 +15,16 @@ name: CI
 # Path Filtering:
 # - Ruby-only changes skip TypeScript jobs
 # - TypeScript-only changes skip Ruby jobs
-# - CI changes (.github/**) run all jobs
+# - Workflow file changes (.github/**) run all jobs
 # - Use [ci-all] in commit message to force all jobs
 # - Use [ci-skip] in commit message to skip CI entirely
+#
+# Job Conditions:
+# - Tier 2+ jobs use `always()` in their `if` conditions. This ensures the
+#   condition is evaluated even when dependencies are skipped. Without it,
+#   a skipped dependency would cause the job to skip without checking its
+#   own condition. With it, jobs can check `dep.result == 'skipped'` and
+#   proceed when appropriate.
 #
 # The workflow is triggered by push events on branches starting with "fix/" or
 # "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
@@ -70,7 +77,7 @@ jobs:
       typescript: ${{ steps.compute.outputs.typescript }}
       frontend: ${{ steps.compute.outputs.frontend }}
       docker: ${{ steps.compute.outputs.docker }}
-      ci_config: ${{ steps.compute.outputs.ci_config }}
+      ga_workflow_files: ${{ steps.compute.outputs.ga_workflow_files }}
     steps:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
@@ -152,7 +159,7 @@ jobs:
               - 'scripts/entrypoint.sh'
               - 'etc/**'
               - 'config.ru'
-            ci_config:
+            ga_workflow_files:
               - '.github/workflows/**'
               - '.github/actions/**'
 
@@ -162,7 +169,7 @@ jobs:
           # Apply skip_ci and run_all overrides to path filter results
           SKIP_CI="${{ steps.check-flags.outputs.skip_ci }}"
           RUN_ALL="${{ steps.check-flags.outputs.run_all }}"
-          CI_CONFIG="${{ steps.filter.outputs.ci_config }}"
+          GA_WORKFLOWS="${{ steps.filter.outputs.ga_workflow_files }}"
 
           if [[ "$SKIP_CI" == "true" ]]; then
             # User requested skip - all outputs false
@@ -170,19 +177,19 @@ jobs:
             echo "typescript=false" >> $GITHUB_OUTPUT
             echo "frontend=false" >> $GITHUB_OUTPUT
             echo "docker=false" >> $GITHUB_OUTPUT
-            echo "ci_config=false" >> $GITHUB_OUTPUT
+            echo "ga_workflow_files=false" >> $GITHUB_OUTPUT
             echo "Mode: skip_ci - all jobs will be skipped"
-          elif [[ "$RUN_ALL" == "true" || "$CI_CONFIG" == "true" ]]; then
-            # User requested all, or CI config changed - all outputs true
+          elif [[ "$RUN_ALL" == "true" || "$GA_WORKFLOWS" == "true" ]]; then
+            # User requested all, or workflow files changed - all outputs true
             echo "ruby=true" >> $GITHUB_OUTPUT
             echo "typescript=true" >> $GITHUB_OUTPUT
             echo "frontend=true" >> $GITHUB_OUTPUT
             echo "docker=true" >> $GITHUB_OUTPUT
-            echo "ci_config=true" >> $GITHUB_OUTPUT
+            echo "ga_workflow_files=true" >> $GITHUB_OUTPUT
             if [[ "$RUN_ALL" == "true" ]]; then
               echo "Mode: run_all - all jobs will run"
             else
-              echo "Mode: ci_config changed - all jobs will run"
+              echo "Mode: workflow files changed - all jobs will run"
             fi
           else
             # Normal mode - use detected values
@@ -190,7 +197,7 @@ jobs:
             echo "typescript=${{ steps.filter.outputs.typescript }}" >> $GITHUB_OUTPUT
             echo "frontend=${{ steps.filter.outputs.frontend }}" >> $GITHUB_OUTPUT
             echo "docker=${{ steps.filter.outputs.docker }}" >> $GITHUB_OUTPUT
-            echo "ci_config=false" >> $GITHUB_OUTPUT
+            echo "ga_workflow_files=false" >> $GITHUB_OUTPUT
             echo "Mode: path filtering - jobs run based on changed files"
           fi
 
@@ -206,7 +213,7 @@ jobs:
           echo "| TypeScript | ${{ steps.filter.outputs.typescript }} | ${{ steps.compute.outputs.typescript }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Frontend | ${{ steps.filter.outputs.frontend }} | ${{ steps.compute.outputs.frontend }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Docker | ${{ steps.filter.outputs.docker }} | ${{ steps.compute.outputs.docker }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| CI Config | ${{ steps.filter.outputs.ci_config }} | ${{ steps.compute.outputs.ci_config }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| GA Workflows | ${{ steps.filter.outputs.ga_workflow_files }} | ${{ steps.compute.outputs.ga_workflow_files }} |" >> $GITHUB_STEP_SUMMARY
 
   # ============================================================================
   # TIER 1: LINT & BUILD JOBS (~30-45s)
