@@ -117,7 +117,7 @@ outputs:
     description: 'Seconds to Tier 4 complete (full pipeline)'
     value: ${{ steps.calculate.outputs.tier4 }}
   status:
-    description: 'Overall status: pass, warning, or fail'
+    description: 'Overall status: pass, incomplete, warning, fail, or unknown'
     value: ${{ steps.evaluate.outputs.status }}
 
 runs:
@@ -206,6 +206,8 @@ runs:
 
         STATUS="pass"
         VIOLATIONS=""
+        METRICS_WITH_DATA=0
+        TOTAL_METRICS=4
 
         check_metric() {
           local name="$1"
@@ -216,6 +218,9 @@ runs:
             echo "::notice::$name: No data available"
             return
           fi
+
+          # We have valid data for this metric
+          METRICS_WITH_DATA=$((METRICS_WITH_DATA + 1))
 
           local warning_threshold=$((target + target * BUFFER / 100))
           local critical_threshold=$((target * 2))
@@ -240,6 +245,15 @@ runs:
         check_metric "Tier 2 (Unit Tests)" "$TIER2_DURATION" "$TARGET_TIER2"
         check_metric "Tier 3 (Integration)" "$TIER3_DURATION" "$TARGET_TIER3"
         check_metric "Tier 4 (Container)" "$TIER4_DURATION" "$TARGET_TIER4"
+
+        # If we have no data at all, status should reflect that
+        if [ "$METRICS_WITH_DATA" -eq 0 ]; then
+          echo "::warning::No timing data available for any tier"
+          STATUS="unknown"
+        elif [ "$METRICS_WITH_DATA" -lt "$TOTAL_METRICS" ] && [ "$STATUS" = "pass" ]; then
+          # Some data missing but what we have is passing
+          STATUS="incomplete"
+        fi
 
         echo "status=$STATUS" >> $GITHUB_OUTPUT
 
@@ -317,11 +331,20 @@ runs:
           pass)
             echo "> **Status**: All tiers within targets :rocket:" >> $GITHUB_STEP_SUMMARY
             ;;
+          incomplete)
+            echo "> **Status**: Partial data - available tiers within targets :white_check_mark:" >> $GITHUB_STEP_SUMMARY
+            ;;
           warning)
             echo "> **Status**: Some tiers near threshold :warning:" >> $GITHUB_STEP_SUMMARY
             ;;
           fail)
             echo "> **Status**: Critical thresholds exceeded :x:" >> $GITHUB_STEP_SUMMARY
+            ;;
+          unknown)
+            echo "> **Status**: No timing data available :grey_question:" >> $GITHUB_STEP_SUMMARY
+            ;;
+          *)
+            echo "> **Status**: $STATUS" >> $GITHUB_STEP_SUMMARY
             ;;
         esac
 

@@ -562,6 +562,13 @@ jobs:
           # gh CLI is pre-installed on GitHub-hosted runners
           # GH_TOKEN provides authentication for API calls
 
+          # Fetch workflow run start time (github.run_started_at doesn't exist in context)
+          WORKFLOW_START=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}" --jq '.run_started_at' 2>/dev/null)
+          if [ -z "$WORKFLOW_START" ]; then
+            echo "::warning::Failed to fetch workflow start time from API"
+          fi
+          echo "workflow_start=$WORKFLOW_START" >> $GITHUB_OUTPUT
+
           # Fetch job data for current workflow run
           if ! JOBS_JSON=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" --jq '.jobs' 2>/dev/null); then
             echo "::warning::Failed to fetch job data from API, metrics will show N/A"
@@ -629,7 +636,7 @@ jobs:
       - name: Check CI metrics
         uses: ./.github/actions/check-ci-metrics
         with:
-          workflow-start-time: ${{ github.run_started_at }}
+          workflow-start-time: ${{ steps.timing.outputs.workflow_start }}
           tier1-complete-time: ${{ steps.timing.outputs.tier1 }}
           tier2-complete-time: ${{ steps.timing.outputs.tier2 }}
           tier3-complete-time: ${{ steps.timing.outputs.tier3 }}
