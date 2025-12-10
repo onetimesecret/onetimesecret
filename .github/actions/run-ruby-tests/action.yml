@@ -59,11 +59,8 @@ runs:
         AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
       run: |
         echo "Running Tryouts with AUTHENTICATION_MODE=${{ inputs.auth-mode }}..."
-        for path in ${{ inputs.tryouts-paths }}; do
-          echo "::group::Tryouts: $path"
-          bundle exec tryouts --agent "$path"
-          echo "::endgroup::"
-        done
+        echo "Paths: ${{ inputs.tryouts-paths }}"
+        bundle exec tryouts --agent ${{ inputs.tryouts-paths }}
 
     - name: Run RSpec
       if: inputs.rspec-paths != ''
