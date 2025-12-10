@@ -159,6 +159,16 @@ runs:
 
         START_EPOCH=$(iso_to_epoch "$WORKFLOW_START")
 
+        # Validate workflow start time - required for all calculations
+        if [ -z "$WORKFLOW_START" ] || [ -z "$START_EPOCH" ]; then
+          echo "::notice::SKIP: Missing or unparseable workflow start time; CI metrics evaluation skipped"
+          echo "tier1=N/A" >> $GITHUB_OUTPUT
+          echo "tier2=N/A" >> $GITHUB_OUTPUT
+          echo "tier3=N/A" >> $GITHUB_OUTPUT
+          echo "tier4=N/A" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
         # Calculate duration for each tier (cumulative from workflow start)
         calc_duration() {
           local complete_time="$1"
@@ -269,6 +279,7 @@ runs:
         TARGET_TIER2="${{ inputs.target-tier2 }}"
         TARGET_TIER3="${{ inputs.target-tier3 }}"
         TARGET_TIER4="${{ inputs.target-tier4 }}"
+        BUFFER="${{ inputs.warning-buffer-percent }}"
         STATUS="${{ steps.evaluate.outputs.status }}"
 
         format_duration() {
@@ -293,7 +304,7 @@ runs:
             echo ":grey_question:"
             return
           fi
-          local warning=$((target + target * 20 / 100))
+          local warning=$((target + target * BUFFER / 100))
           if [ "$actual" -le "$target" ]; then
             echo ":white_check_mark:"
           elif [ "$actual" -le "$warning" ]; then
