@@ -449,14 +449,12 @@ jobs:
           RACK_ENV: 'test'
           AUTHENTICATION_MODE: 'simple'
         run: |
-          echo "Running tryouts for simple authentication mode..."
-          bundle exec tryouts --agent try/integration/authentication/simple_mode
-          bundle exec tryouts --agent try/integration/authentication/common
+          # NOTE: Auth integration tryouts were migrated to RSpec in PR #2128
+          # They now run as RSpec specs in spec/integration/authentication/
 
-          echo "Running other integration tests..."
+          echo "Running integration tryouts..."
           bundle exec tryouts --agent try/integration/middleware
           bundle exec tryouts --agent try/integration/boot
-          bundle exec tryouts --agent try/integration/auth
           bundle exec tryouts --agent try/integration/web
           bundle exec tryouts --agent try/integration/api
           bundle exec tryouts --agent try/integration/email
@@ -553,17 +551,9 @@ jobs:
             --format json --out tmp/rspec_full_results.json \
             spec/integration
 
-      - name: Run tryouts (full mode)
-        env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
-          RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'full'
-          AUTH_DATABASE_URL: 'sqlite::memory:'
-        run: |
-          echo "Running tryouts for full authentication mode..."
-          bundle exec tryouts --agent try/integration/authentication/full_mode
-          bundle exec tryouts --agent try/integration/authentication/common
-          bundle exec tryouts --agent try/integration/authentication/sync_session_idempotency_try.rb
+      # NOTE: Full mode auth tryouts were migrated to RSpec in PR #2128
+      # They now run as RSpec specs in spec/integration/authentication/full_mode/
+      # The old try/integration/authentication/* files were deleted.
 
       - name: Generate job summary
         if: always()
@@ -574,8 +564,6 @@ jobs:
             echo "- Total: $(jq '.summary.example_count' tmp/rspec_full_results.json)" >> $GITHUB_STEP_SUMMARY
             echo "- Failures: $(jq '.summary.failure_count' tmp/rspec_full_results.json)" >> $GITHUB_STEP_SUMMARY
           fi
-          echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
-          echo "- Full mode + common tests completed" >> $GITHUB_STEP_SUMMARY
 
   ruby-integration-disabled:
     name: Ruby Integration (Disabled Mode)
@@ -638,22 +626,10 @@ jobs:
       - name: Generate random secrets for testing
         uses: ./.github/actions/generate-test-secrets
 
-      - name: Run tryouts (disabled mode)
-        env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
-          RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'disabled'
-        run: |
-          echo "Running tryouts for disabled authentication mode..."
-          bundle exec tryouts --agent try/integration/authentication/disabled_mode
-          bundle exec tryouts --agent try/integration/authentication/common
-
-      - name: Generate job summary
-        if: always()
-        run: |
-          echo "## Disabled Mode Integration Results" >> $GITHUB_STEP_SUMMARY
-          echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
-          echo "- Disabled mode + common tests completed" >> $GITHUB_STEP_SUMMARY
+      # NOTE: Disabled mode auth tryouts were migrated to RSpec in PR #2128
+      # These tests now run in the 'disabled-mode-integration' job as RSpec specs:
+      # - spec/integration/authentication/disabled_mode/
+      # The old try/integration/authentication/* files were deleted.
 
   # ============================================================================
   # TIER 4: CONTAINER VALIDATION (~2-3 min)
