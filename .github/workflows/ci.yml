@@ -100,6 +100,9 @@ jobs:
               - 'Gemfile'
               - 'Gemfile.lock'
               - '.rubocop.yml'
+              - '.rubocop_todo.yml'
+              - '.ruby-version'
+              - '.rspec'
               - 'spec/**'
               - 'try/**'
               - 'apps/**'
@@ -119,6 +122,9 @@ jobs:
               - 'vitest.config.ts'
               - 'tailwind.config.ts'
               - 'eslint.config.ts'
+              - '.eslintrc*'
+              - '.nvmrc'
+              - '.node-version'
               - 'tests/**'
             frontend:
               - 'src/**'
@@ -127,10 +133,10 @@ jobs:
               - 'pnpm-lock.yaml'
               - 'vite.config.ts'
               - 'tailwind.config.ts'
-              - 'postcss.config.js'
+              - 'postcss.config.*'
             docker:
-              - 'Dockerfile'
-              - 'Dockerfile-lite'
+              - 'Dockerfile*'
+              - 'docker/**'
               - 'scripts/entrypoint.sh'
               - 'etc/**'
               - 'config.ru'
@@ -509,7 +515,8 @@ jobs:
     if: &if-ruby-integration |
       always() &&
       (needs.changes.outputs.ruby == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.force_full == 'true') &&
-      needs.ruby-unit.result == 'success'
+      needs.ruby-unit.result == 'success' &&
+      !contains(needs.*.result, 'cancelled')
 
     services:
       redis:
