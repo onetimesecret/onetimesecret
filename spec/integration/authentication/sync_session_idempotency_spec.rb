@@ -13,13 +13,8 @@ RSpec.describe 'SyncSession Idempotency', :full_auth_mode do
 
   let(:test_email) { "idempotency-test-#{SecureRandom.hex(8)}@example.com" }
   let(:account) do
-    account_id = test_db[:accounts].insert(
-      email: test_email,
-      status_id: 2, # verified
-      created_at: Time.now,
-      updated_at: Time.now
-    )
-    test_db[:accounts].where(id: account_id).first
+    # Use factory which correctly handles Rodauth schema (no created_at/updated_at columns)
+    create_verified_account(db: test_db, email: test_email)
   end
   let(:account_id) { account[:id] }
   let(:session) { { 'session_id' => "test-session-#{account_id}" } }
