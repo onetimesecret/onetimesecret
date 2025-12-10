@@ -740,21 +740,71 @@ jobs:
 
 ---
 
-### Phase 5: Optimization
+### Phase 5: Composite Actions ✅ COMPLETED
+
+**Goal**: Reduce duplication and improve maintainability by extracting common setup patterns into reusable composite actions.
+
+**PR**: #2146
+
+#### 5.1 Composite Actions Created
+
+Three composite actions in `.github/actions/`:
+
+1. **setup-ruby-test-env**: Ruby environment, artifacts, config, secrets
+2. **setup-node-env**: Node.js, pnpm, caching
+3. **run-ruby-tests**: Parameterized RSpec/Tryouts execution
+
+#### 5.2 Benefits
+
+- **DRY**: Common setup steps defined once, reused across jobs
+- **Maintainability**: Changes to setup logic in one place
+- **Consistency**: All jobs use identical setup procedures
+- **Readability**: Main workflow file is shorter and clearer
+
+#### 5.3 Implementation
+
+```yaml
+# Example usage in ci.yml
+- uses: ./.github/actions/setup-ruby-test-env
+  with:
+    ruby-version: '3.4'
+    download-assets: true
+
+- uses: ./.github/actions/run-ruby-tests
+  with:
+    auth-mode: simple
+    test-framework: rspec
+```
+
+#### 5.4 YAML Anchors
+
+Used inline YAML anchors to reduce repetition for common values:
+
+```yaml
+jobs:
+  ruby-unit:
+    runs-on: &runs-on ubuntu-24.04
+    timeout-minutes: &timeout 15
+```
+
+---
+
+### Phase 6: Optimization
 
 **Goal**: Fine-tune the CI pipeline based on real-world metrics to maximize efficiency.
 
-**Current State** (after Phase 4):
+**Current State** (after Phase 5):
 - Tiered architecture with parallelization
 - Path-based filtering reduces unnecessary runs
 - Build artifacts shared across jobs
+- Composite actions for reusable setup patterns
 
 **Target State**:
 - Sub-30s feedback for lint failures
 - Sub-3min for full successful run
 - Minimal billable minutes per run
 
-#### 5.1 Metrics Collection
+#### 6.1 Metrics Collection
 
 Before optimizing, establish baselines:
 
@@ -775,9 +825,9 @@ Track over 2 weeks:
 - Cache hit rate
 - Path filter effectiveness (% of runs skipped)
 
-#### 5.2 Optimization Opportunities
+#### 6.2 Optimization Opportunities
 
-**5.2.1 Reduce Job Startup Overhead**
+**6.2.1 Reduce Job Startup Overhead**
 
 Current overhead per job:
 - Checkout: ~1-2s
@@ -810,7 +860,7 @@ runs:
         done
 ```
 
-**5.2.2 Smarter Test Distribution**
+**6.2.2 Smarter Test Distribution**
 
 Analyze test timing to balance parallel jobs:
 
@@ -824,7 +874,7 @@ Rebalance jobs so each takes similar time:
 - Move slow tests to their own job
 - Combine fast tests into single job
 
-**5.2.3 Incremental Testing**
+**6.2.3 Incremental Testing**
 
 Only run tests affected by changes:
 
@@ -844,7 +894,7 @@ Only run tests affected by changes:
     fi
 ```
 
-**5.2.4 Test Result Caching**
+**6.2.4 Test Result Caching**
 
 Cache passing test results, only re-run on file changes:
 
@@ -863,7 +913,7 @@ Cache passing test results, only re-run on file changes:
     fi
 ```
 
-**5.2.5 Parallel Test Execution Within Jobs**
+**6.2.5 Parallel Test Execution Within Jobs**
 
 Use test parallelization gems:
 
@@ -878,7 +928,7 @@ bundle exec parallel_test try/ --type tryouts
 
 Note: Requires investigation into tryouts framework parallel support.
 
-#### 5.3 Self-Hosted Runner Consideration
+#### 6.3 Self-Hosted Runner Consideration
 
 **Pros**:
 - Faster job startup (no VM provisioning)
@@ -896,7 +946,7 @@ Note: Requires investigation into tryouts framework parallel support.
 - Job startup overhead > 30% of job time
 - Need specialized hardware (ARM, GPU)
 
-#### 5.4 Implementation Steps
+#### 6.4 Implementation Steps
 
 1. **Instrument and measure** (Week 1-2)
    - Add timing to all jobs
@@ -918,7 +968,7 @@ Note: Requires investigation into tryouts framework parallel support.
    - Consider self-hosted runners
    - Implement test result caching
 
-#### 5.5 Success Criteria
+#### 6.5 Success Criteria
 
 | Metric | Current | Target | Method |
 |--------|---------|--------|--------|
@@ -927,7 +977,7 @@ Note: Requires investigation into tryouts framework parallel support.
 | Cache hit rate | Unknown | >80% | Key tuning, cache warming |
 | Billable minutes/run | Unknown | -20% | Path filtering, skipping |
 
-#### 5.6 Risks and Mitigations
+#### 6.6 Risks and Mitigations
 
 | Risk | Mitigation |
 |------|------------|
