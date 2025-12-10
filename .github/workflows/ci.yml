@@ -5,12 +5,17 @@ name: CI
 # Main CI workflow that runs Ruby tests using RSpec and tryouts, plus TypeScript
 # tests using Vitest and validation steps (linting, type-checking).
 #
-# Architecture (Phase 4):
+# Architecture (Phase 5 - Composite Actions):
 # - Tier 0: Path filtering to skip irrelevant jobs
 # - Tier 1: Lint jobs + build-assets (parallel, fast feedback)
 # - Tier 2: Unit tests (ruby-unit, typescript-unit)
 # - Tier 3: Integration tests by auth mode (parallel: simple, full, disabled)
 # - Tier 4: Container validation uses pre-built assets
+#
+# Composite Actions:
+# - setup-ruby-test-env: Ruby environment, artifacts, config, secrets
+# - setup-node-env: Node.js, pnpm, caching
+# - run-ruby-tests: Parameterized RSpec/Tryouts execution
 #
 # Path Filtering:
 # - Ruby-only changes skip TypeScript jobs
@@ -18,16 +23,6 @@ name: CI
 # - Workflow file changes (.github/**) run all jobs
 # - Use [ci-all] in commit message to force all jobs
 # - Use [ci-skip] in commit message to skip CI entirely
-#
-# Job Conditions:
-# - Tier 2+ jobs use `always()` in their `if` conditions. This ensures the
-#   condition is evaluated even when dependencies are skipped. Without it,
-#   a skipped dependency would cause the job to skip without checking its
-#   own condition. With it, jobs can check `dep.result == 'skipped'` and
-#   proceed when appropriate.
-#
-# The workflow is triggered by push events on branches starting with "fix/" or
-# "rel/", pull requests on main/develop/feature/* branches, and manual dispatch.
 
 on:
   push:
@@ -44,7 +39,7 @@ on:
     inputs:
       debug_enabled:
         type: boolean
-        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        description: 'Run the build with tmate debugging enabled'
         required: false
         default: false
       run_all:
@@ -56,7 +51,6 @@ on:
 permissions:
   contents: read
 
-# Cancel in-progress runs when a new commit is pushed to the same branch
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -64,7 +58,6 @@ concurrency:
 jobs:
   # ============================================================================
   # TIER 0: PATH FILTERING (~5s)
-  # Detect what changed to skip irrelevant jobs
   # ============================================================================
 
   changes:
@@ -72,7 +65,6 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     outputs:
-      # Final computed outputs (after applying skip_ci and run_all overrides)
       ruby: ${{ steps.compute.outputs.ruby }}
       typescript: ${{ steps.compute.outputs.typescript }}
       frontend: ${{ steps.compute.outputs.frontend }}
@@ -85,26 +77,16 @@ jobs:
       - name: Check for CI flags
         id: check-flags
         run: |
-          # Check for [ci-all] and [ci-skip] in commit message or workflow_dispatch input
-          # NOTE: github.event.head_commit.message is null for pull_request events,
-          # so we use git log to reliably get the commit message in all contexts.
           COMMIT_MSG=$(git log -1 --pretty=%B)
-
-          # Check for [ci-skip]
           if echo "$COMMIT_MSG" | grep -q '\[ci-skip\]'; then
             echo "skip_ci=true" >> $GITHUB_OUTPUT
-            echo "CI skip requested via commit message"
           else
             echo "skip_ci=false" >> $GITHUB_OUTPUT
           fi
-
-          # Check for [ci-all]
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.run_all }}" == "true" ]]; then
             echo "run_all=true" >> $GITHUB_OUTPUT
-            echo "Run all CI jobs triggered via workflow_dispatch"
           elif echo "$COMMIT_MSG" | grep -q '\[ci-all\]'; then
             echo "run_all=true" >> $GITHUB_OUTPUT
-            echo "Run all CI jobs triggered via commit message"
           else
             echo "run_all=false" >> $GITHUB_OUTPUT
           fi
@@ -166,58 +148,42 @@ jobs:
       - name: Compute final outputs
         id: compute
         run: |
-          # Apply skip_ci and run_all overrides to path filter results
           SKIP_CI="${{ steps.check-flags.outputs.skip_ci }}"
           RUN_ALL="${{ steps.check-flags.outputs.run_all }}"
           GA_WORKFLOWS="${{ steps.filter.outputs.ga_workflow_files }}"
 
           if [[ "$SKIP_CI" == "true" ]]; then
-            # User requested skip - all outputs false
             echo "ruby=false" >> $GITHUB_OUTPUT
             echo "typescript=false" >> $GITHUB_OUTPUT
             echo "frontend=false" >> $GITHUB_OUTPUT
             echo "docker=false" >> $GITHUB_OUTPUT
             echo "ga_workflow_files=false" >> $GITHUB_OUTPUT
-            echo "Mode: skip_ci - all jobs will be skipped"
           elif [[ "$RUN_ALL" == "true" || "$GA_WORKFLOWS" == "true" ]]; then
-            # User requested all, or workflow files changed - all outputs true
             echo "ruby=true" >> $GITHUB_OUTPUT
             echo "typescript=true" >> $GITHUB_OUTPUT
             echo "frontend=true" >> $GITHUB_OUTPUT
             echo "docker=true" >> $GITHUB_OUTPUT
             echo "ga_workflow_files=true" >> $GITHUB_OUTPUT
-            if [[ "$RUN_ALL" == "true" ]]; then
-              echo "Mode: run_all - all jobs will run"
-            else
-              echo "Mode: workflow files changed - all jobs will run"
-            fi
           else
-            # Normal mode - use detected values
             echo "ruby=${{ steps.filter.outputs.ruby }}" >> $GITHUB_OUTPUT
             echo "typescript=${{ steps.filter.outputs.typescript }}" >> $GITHUB_OUTPUT
             echo "frontend=${{ steps.filter.outputs.frontend }}" >> $GITHUB_OUTPUT
             echo "docker=${{ steps.filter.outputs.docker }}" >> $GITHUB_OUTPUT
             echo "ga_workflow_files=false" >> $GITHUB_OUTPUT
-            echo "Mode: path filtering - jobs run based on changed files"
           fi
 
       - name: Generate job summary
         run: |
           echo "## Path Filter Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Flags:** skip_ci=${{ steps.check-flags.outputs.skip_ci }}, run_all=${{ steps.check-flags.outputs.run_all }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Category | Detected | Final |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Ruby | ${{ steps.filter.outputs.ruby }} | ${{ steps.compute.outputs.ruby }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| TypeScript | ${{ steps.filter.outputs.typescript }} | ${{ steps.compute.outputs.typescript }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend | ${{ steps.filter.outputs.frontend }} | ${{ steps.compute.outputs.frontend }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Docker | ${{ steps.filter.outputs.docker }} | ${{ steps.compute.outputs.docker }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| GA Workflows | ${{ steps.filter.outputs.ga_workflow_files }} | ${{ steps.compute.outputs.ga_workflow_files }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Category | Final |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby | ${{ steps.compute.outputs.ruby }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript | ${{ steps.compute.outputs.typescript }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | ${{ steps.compute.outputs.frontend }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker | ${{ steps.compute.outputs.docker }} |" >> $GITHUB_STEP_SUMMARY
 
   # ============================================================================
   # TIER 1: LINT & BUILD JOBS (~30-45s)
-  # Fast feedback on code style and syntax errors, plus asset compilation
   # ============================================================================
 
   ruby-lint:
@@ -225,9 +191,7 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-24.04
     needs: [changes]
-    # NOTE: GitHub Actions supports YAML anchors/aliases but NOT merge keys (<<:)
     if: needs.changes.outputs.ruby == 'true'
-
     steps:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
@@ -238,13 +202,12 @@ jobs:
           bundler-cache: true
 
       - name: Run Rubocop
-        id: rubocop
         run: |
           mkdir -p tmp
           bundle exec rubocop --config .rubocop.yml \
             --format progress \
             --format json --out tmp/rubocop_results.json \
-            --fail-level warning || echo "RUBOCOP_FAILED=true" >> $GITHUB_ENV
+            --fail-level warning
 
       - name: Upload Rubocop results
         if: always()
@@ -254,59 +217,18 @@ jobs:
           path: tmp/rubocop_results.json
           retention-days: 7
 
-      - name: Generate job summary
-        if: always()
-        run: |
-          echo "## Ruby Lint Results" >> $GITHUB_STEP_SUMMARY
-          if [ -f tmp/rubocop_results.json ]; then
-            total=$(jq '.summary.offense_count' tmp/rubocop_results.json)
-            files=$(jq '.summary.target_file_count' tmp/rubocop_results.json)
-            echo "- Total offenses: $total" >> $GITHUB_STEP_SUMMARY
-            echo "- Files inspected: $files" >> $GITHUB_STEP_SUMMARY
-            if [ "$RUBOCOP_FAILED" = "true" ]; then
-              echo "⚠️ Rubocop found issues that need attention" >> $GITHUB_STEP_SUMMARY
-              exit 1
-            else
-              echo "✅ All files pass linting" >> $GITHUB_STEP_SUMMARY
-            fi
-          fi
-
   typescript-lint:
     name: TypeScript Lint
     timeout-minutes: 5
     runs-on: ubuntu-24.04
     needs: [changes]
     if: needs.changes.outputs.typescript == 'true'
-
     steps:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
-        with:
-          version: latest
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
-        id: pnpm-cache
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
 
       - name: Run type checking
         run: pnpm type-check
@@ -314,48 +236,18 @@ jobs:
       - name: Run linting
         run: pnpm lint
 
-      - name: Generate job summary
-        if: always()
-        run: |
-          echo "## TypeScript Lint Results" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Type checking and linting completed." >> $GITHUB_STEP_SUMMARY
-
   build-assets:
     name: Build Frontend Assets
     timeout-minutes: 10
     runs-on: ubuntu-24.04
     needs: [changes]
     if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true'
-
     steps:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
-        with:
-          version: latest
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
-        id: pnpm-cache
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
 
       - name: Build assets
         run: pnpm run build
@@ -364,24 +256,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
-          path: |
-            public/web/dist/
+          path: public/web/dist/
           retention-days: 1
           if-no-files-found: error
 
-      - name: Generate job summary
-        run: |
-          echo "## Frontend Build Results" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Assets built and uploaded successfully." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Build Output" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          ls -la public/web/dist/ | head -20 >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-
   # ============================================================================
   # TIER 2: UNIT TESTS (~30-45s)
-  # Run after lint jobs pass, tests that don't depend on auth mode
   # ============================================================================
 
   ruby-unit:
@@ -396,7 +276,7 @@ jobs:
       (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped')
 
     services:
-      redis:
+      redis: &valkey-service
         image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
         options: >-
           --health-cmd "redis-cli ping"
@@ -411,91 +291,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
         with:
-          name: frontend-build
-          path: public/web/dist/
-
-      - name: Verify downloaded assets
-        run: |
-          echo "Verifying downloaded frontend assets..."
-          if [ ! -d "public/web/dist" ] || [ -z "$(ls -A public/web/dist)" ]; then
-            echo "❌ Frontend assets not found or empty!"
-            exit 1
-          fi
-          echo "✅ Frontend assets downloaded successfully"
-          ls -la public/web/dist/ | head -10
-
-      - name: Enable memory overcommit for Redis
-        run: |
-          sudo sysctl -w vm.overcommit_memory=1
-
-      - uses: ruby/setup-ruby@ab177d40ee5483edb974554986f56b33477e21d0
-        with:
-          ruby-version: '3.4'
-          bundler-cache: true
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        with:
-          detached: true
-
-      - name: Install dependencies
-        run: |
-          bundle config path vendor/bundle
-          bundle install --jobs 4 --retry 3
-
-      - name: Setup test configuration
-        run: |
-          # Copy default config files if they don't exist
-          for file in etc/defaults/*.defaults.*; do
-            if [ -f "$file" ]; then
-              target="etc/$(basename "$file" | sed 's/\.defaults//')"
-              if [ ! -f "$target" ]; then
-                cp "$file" "$target"
-                echo "Created $target from defaults"
-              fi
-            fi
-          done
-
-      - name: Generate random secrets for testing
-        uses: ./.github/actions/generate-test-secrets
-
-      - name: Run unit tryouts
-        env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
-          RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'simple'
-        run: |
-          echo "Running unit and system tryouts..."
-          bundle exec tryouts --agent try/unit try/system
-
-      - name: Run RSpec unit tests
-        env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
-          RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'simple'
-        run: |
-          echo "Running RSpec unit tests..."
-          mkdir -p tmp
-          bundle exec rspec \
-            --format progress \
-            --format json --out tmp/rspec_unit_results.json \
-            spec/onetime spec/lib spec/api spec/cli
-
-      - name: Generate job summary
-        if: always()
-        run: |
-          echo "## Ruby Unit Test Results" >> $GITHUB_STEP_SUMMARY
-          if [ -f tmp/rspec_unit_results.json ]; then
-            echo "### RSpec" >> $GITHUB_STEP_SUMMARY
-            echo "- Total: $(jq '.summary.example_count' tmp/rspec_unit_results.json)" >> $GITHUB_STEP_SUMMARY
-            echo "- Failures: $(jq '.summary.failure_count' tmp/rspec_unit_results.json)" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
-          echo "- Unit and system tests completed" >> $GITHUB_STEP_SUMMARY
+          test-type: unit
+          auth-mode: simple
+          tryouts-paths: 'try/unit try/system'
+          rspec-paths: 'spec/onetime spec/lib spec/api spec/cli'
+          results-file: 'rspec_unit_results.json'
+          debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
   typescript-unit:
     name: TypeScript Unit Tests
@@ -506,36 +313,12 @@ jobs:
       always() &&
       needs.changes.outputs.typescript == 'true' &&
       (needs.typescript-lint.result == 'success' || needs.typescript-lint.result == 'skipped')
-
     steps:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: '22'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
-        with:
-          version: latest
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
-        id: pnpm-cache
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
 
       - name: Run TypeScript tests
         run: pnpm test
@@ -544,15 +327,8 @@ jobs:
         continue-on-error: true
         run: pnpm type-check:tests
 
-      - name: Generate TypeScript test summary
-        if: always()
-        run: |
-          echo "## TypeScript Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "Unit tests completed." >> $GITHUB_STEP_SUMMARY
-
   # ============================================================================
   # TIER 3: INTEGRATION TESTS (~45-90s each, run in parallel)
-  # Auth-mode-specific tests, each with dedicated Redis service
   # ============================================================================
 
   ruby-integration-simple:
@@ -567,105 +343,24 @@ jobs:
       !contains(needs.*.result, 'cancelled')
 
     services:
-      redis:
-        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-          --memory=4g
-        ports:
-          - 2121:6379
+      redis: *valkey-service
 
     steps:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
         with:
-          name: frontend-build
-          path: public/web/dist/
-
-      - name: Verify downloaded assets
-        run: |
-          if [ ! -d "public/web/dist" ] || [ -z "$(ls -A public/web/dist)" ]; then
-            echo "❌ Frontend assets not found or empty!"
-            exit 1
-          fi
-          echo "✅ Frontend assets verified"
-
-      - name: Enable memory overcommit for Redis
-        run: sudo sysctl -w vm.overcommit_memory=1
-
-      - uses: ruby/setup-ruby@ab177d40ee5483edb974554986f56b33477e21d0
-        with:
-          ruby-version: '3.4'
-          bundler-cache: true
-
-      - name: Install dependencies
-        run: |
-          bundle config path vendor/bundle
-          bundle install --jobs 4 --retry 3
-
-      - name: Setup test configuration
-        run: |
-          for file in etc/defaults/*.defaults.*; do
-            if [ -f "$file" ]; then
-              target="etc/$(basename "$file" | sed 's/\.defaults//')"
-              [ ! -f "$target" ] && cp "$file" "$target"
-            fi
-          done
-
-      - name: Generate random secrets for testing
-        uses: ./.github/actions/generate-test-secrets
-
-      - name: Run RSpec integration tests (simple mode)
-        env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
-          RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'simple'
-        run: |
-          echo "Running RSpec integration tests in simple mode..."
-          mkdir -p tmp
-          bundle exec rspec \
-            --tag simple_auth_mode \
-            --format progress \
-            --format json --out tmp/rspec_simple_results.json \
-            spec/integration
-
-      - name: Run tryouts (simple mode)
-        env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
-          RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'simple'
-        run: |
-          # NOTE: Auth integration tryouts were migrated to RSpec in PR #2128
-          # They now run as RSpec specs in spec/integration/authentication/
-
-          echo "Running integration tryouts..."
-          bundle exec tryouts --agent try/integration/middleware
-          bundle exec tryouts --agent try/integration/boot
-          bundle exec tryouts --agent try/integration/web
-          bundle exec tryouts --agent try/integration/api
-          bundle exec tryouts --agent try/integration/email
-          bundle exec tryouts --agent try/integration/billing
-          bundle exec tryouts --agent try/integration/homepage_bypass_header_integration_try.rb
-          bundle exec tryouts --agent try/integration/homepage_mode_integration_try.rb
-
-      - name: Generate job summary
-        if: always()
-        run: |
-          echo "## Simple Mode Integration Results" >> $GITHUB_STEP_SUMMARY
-          if [ -f tmp/rspec_simple_results.json ]; then
-            echo "### RSpec" >> $GITHUB_STEP_SUMMARY
-            echo "- Total: $(jq '.summary.example_count' tmp/rspec_simple_results.json)" >> $GITHUB_STEP_SUMMARY
-            echo "- Failures: $(jq '.summary.failure_count' tmp/rspec_simple_results.json)" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
-          echo "- Simple mode auth tests completed" >> $GITHUB_STEP_SUMMARY
-          echo "- Other integration tests (middleware, boot, auth, web, api, email, billing, homepage) completed" >> $GITHUB_STEP_SUMMARY
+          test-type: integration
+          auth-mode: simple
+          rspec-tag: simple_auth_mode
+          rspec-paths: 'spec/integration'
+          tryouts-paths: 'try/integration/middleware try/integration/boot try/integration/web try/integration/api try/integration/email try/integration/billing try/integration/homepage_bypass_header_integration_try.rb try/integration/homepage_mode_integration_try.rb'
+          results-file: 'rspec_simple_results.json'
 
   ruby-integration-full:
     name: Ruby Integration (Full Mode)
@@ -675,88 +370,24 @@ jobs:
     if: *if-ruby-integration
 
     services:
-      redis:
-        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-          --memory=4g
-        ports:
-          - 2121:6379
+      redis: *valkey-service
 
     steps:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
         with:
-          name: frontend-build
-          path: public/web/dist/
-
-      - name: Verify downloaded assets
-        run: |
-          if [ ! -d "public/web/dist" ] || [ -z "$(ls -A public/web/dist)" ]; then
-            echo "❌ Frontend assets not found or empty!"
-            exit 1
-          fi
-          echo "✅ Frontend assets verified"
-
-      - name: Enable memory overcommit for Redis
-        run: sudo sysctl -w vm.overcommit_memory=1
-
-      - uses: ruby/setup-ruby@ab177d40ee5483edb974554986f56b33477e21d0
-        with:
-          ruby-version: '3.4'
-          bundler-cache: true
-
-      - name: Install dependencies
-        run: |
-          bundle config path vendor/bundle
-          bundle install --jobs 4 --retry 3
-
-      - name: Setup test configuration
-        run: |
-          for file in etc/defaults/*.defaults.*; do
-            if [ -f "$file" ]; then
-              target="etc/$(basename "$file" | sed 's/\.defaults//')"
-              [ ! -f "$target" ] && cp "$file" "$target"
-            fi
-          done
-
-      - name: Generate random secrets for testing
-        uses: ./.github/actions/generate-test-secrets
-
-      - name: Run RSpec integration tests (full mode)
-        env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
-          RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'full'
-          AUTH_DATABASE_URL: 'sqlite::memory:'
-        run: |
-          echo "Running RSpec integration tests in full mode..."
-          mkdir -p tmp
-          bundle exec rspec \
-            --tag full_auth_mode \
-            --format progress \
-            --format json --out tmp/rspec_full_results.json \
-            spec/integration
-
-      # NOTE: Full mode auth tryouts were migrated to RSpec in PR #2128
-      # They now run as RSpec specs in spec/integration/authentication/full_mode/
-      # The old try/integration/authentication/* files were deleted.
-
-      - name: Generate job summary
-        if: always()
-        run: |
-          echo "## Full Mode Integration Results" >> $GITHUB_STEP_SUMMARY
-          if [ -f tmp/rspec_full_results.json ]; then
-            echo "### RSpec" >> $GITHUB_STEP_SUMMARY
-            echo "- Total: $(jq '.summary.example_count' tmp/rspec_full_results.json)" >> $GITHUB_STEP_SUMMARY
-            echo "- Failures: $(jq '.summary.failure_count' tmp/rspec_full_results.json)" >> $GITHUB_STEP_SUMMARY
-          fi
+          test-type: integration
+          auth-mode: full
+          auth-database-url: 'sqlite::memory:'
+          rspec-tag: full_auth_mode
+          rspec-paths: 'spec/integration'
+          results-file: 'rspec_full_results.json'
 
   ruby-integration-disabled:
     name: Ruby Integration (Disabled Mode)
@@ -766,87 +397,26 @@ jobs:
     if: *if-ruby-integration
 
     services:
-      redis:
-        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-          --memory=4g
-        ports:
-          - 2121:6379
+      redis: *valkey-service
 
     steps:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
         with:
-          name: frontend-build
-          path: public/web/dist/
-
-      - name: Verify downloaded assets
-        run: |
-          if [ ! -d "public/web/dist" ] || [ -z "$(ls -A public/web/dist)" ]; then
-            echo "❌ Frontend assets not found or empty!"
-            exit 1
-          fi
-          echo "✅ Frontend assets verified"
-
-      - name: Enable memory overcommit for Redis
-        run: sudo sysctl -w vm.overcommit_memory=1
-
-      - uses: ruby/setup-ruby@ab177d40ee5483edb974554986f56b33477e21d0
-        with:
-          ruby-version: '3.4'
-          bundler-cache: true
-
-      - name: Install dependencies
-        run: |
-          bundle config path vendor/bundle
-          bundle install --jobs 4 --retry 3
-
-      - name: Setup test configuration
-        run: |
-          for file in etc/defaults/*.defaults.*; do
-            if [ -f "$file" ]; then
-              target="etc/$(basename "$file" | sed 's/\.defaults//')"
-              [ ! -f "$target" ] && cp "$file" "$target"
-            fi
-          done
-
-      - name: Generate random secrets for testing
-        uses: ./.github/actions/generate-test-secrets
-
-      - name: Run RSpec integration tests (disabled mode)
-        env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
-          RACK_ENV: 'test'
-          AUTHENTICATION_MODE: 'disabled'
-        run: |
-          echo "Running RSpec integration tests in disabled mode..."
-          mkdir -p tmp
-          bundle exec rspec \
-            --tag disabled_auth_mode \
-            --format progress \
-            --format json --out tmp/rspec_disabled_results.json \
-            spec/integration
-
-      - name: Generate job summary
-        if: always()
-        run: |
-          echo "## Disabled Mode Integration Results" >> $GITHUB_STEP_SUMMARY
-          if [ -f tmp/rspec_disabled_results.json ]; then
-            echo "### RSpec" >> $GITHUB_STEP_SUMMARY
-            echo "- Total: $(jq '.summary.example_count' tmp/rspec_disabled_results.json)" >> $GITHUB_STEP_SUMMARY
-            echo "- Failures: $(jq '.summary.failure_count' tmp/rspec_disabled_results.json)" >> $GITHUB_STEP_SUMMARY
-          fi
+          test-type: integration
+          auth-mode: disabled
+          rspec-tag: disabled_auth_mode
+          rspec-paths: 'spec/integration'
+          results-file: 'rspec_disabled_results.json'
 
   # ============================================================================
   # TIER 4: CONTAINER VALIDATION (~2-3 min)
-  # Run after all tests pass, uses pre-built assets
   # ============================================================================
 
   check-oci-image:
@@ -864,16 +434,7 @@ jobs:
       !contains(needs.*.result, 'failure')
 
     services:
-      redis:
-        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-          --memory=4g
-        ports:
-          - 2121:6379
+      redis: *valkey-service
 
     steps:
       - name: Checkout code
@@ -887,13 +448,11 @@ jobs:
 
       - name: Verify downloaded assets
         run: |
-          echo "Verifying downloaded frontend assets..."
           if [ ! -d "public/web/dist" ] || [ -z "$(ls -A public/web/dist)" ]; then
-            echo "❌ Frontend assets not found or empty!"
+            echo "::error::Frontend assets not found or empty!"
             exit 1
           fi
-          echo "✅ Frontend assets downloaded successfully"
-          ls -la public/web/dist/ | head -10
+          echo "::notice::Frontend assets verified"
 
       - name: Build Docker image
         run: docker build -t onetime-test .
@@ -903,11 +462,6 @@ jobs:
 
       - name: Start container
         run: |
-          echo "Starting container with generated secrets..."
-          echo "SESSION_SECRET length: ${#SESSION_SECRET}"
-          echo "HMAC_SECRET length: ${#HMAC_SECRET}"
-          echo "SECRET length: ${#SECRET}"
-
           docker run -d \
             --name onetime-test-container \
             -p 3000:3000 \
@@ -918,66 +472,31 @@ jobs:
             --add-host=host.docker.internal:host-gateway \
             onetime-test
 
-          echo "Container started with unique secrets"
-
-      - name: Show initial container status
-        run: |
-          echo "Container status:"
-          docker ps -a | grep onetime-test-container || true
-          echo ""
-          echo "Initial container logs:"
-          docker logs onetime-test-container 2>&1 || true
-
       - name: Wait for service to be ready
         run: |
-          echo "Waiting for service to respond on http://localhost:3000/"
-
           max_attempts=30
           attempt=0
-
           while [ $attempt -lt $max_attempts ]; do
             attempt=$((attempt + 1))
-            echo "Attempt $attempt/$max_attempts..."
-
             if curl -f -s -o /dev/null http://localhost:3000/; then
-              echo "✅ Service is ready!"
+              echo "::notice::Service is ready!"
               exit 0
             fi
-
-            # Show container status every 10 attempts
-            if [ $((attempt % 10)) -eq 0 ]; then
-              echo ""
-              echo "Container status at attempt $attempt:"
-              docker ps -a | grep onetime-test-container || true
-              echo ""
-              echo "Recent container logs:"
-              docker logs --tail 20 onetime-test-container 2>&1 || true
-              echo ""
-            fi
-
             sleep 2
           done
-
-          echo ""
-          echo "❌ Service failed to start within $((max_attempts * 2)) seconds"
-          echo ""
-          echo "Final container status:"
-          docker ps -a | grep onetime-test-container || true
-          echo ""
-          echo "Full container logs:"
-          docker logs onetime-test-container 2>&1 || true
-
+          echo "::error::Service failed to start"
+          docker logs onetime-test-container
           exit 1
 
       - name: Test homepage loads
         run: |
           response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/)
           if [ "$response" != "200" ]; then
-            echo "Homepage failed to load. HTTP status: $response"
+            echo "::error::Homepage failed to load. HTTP status: $response"
             docker logs onetime-test-container
             exit 1
           fi
-          echo "✅ Homepage loaded successfully with HTTP status: $response"
+          echo "::notice::Homepage loaded successfully"
 
       - name: Cleanup
         if: always()
