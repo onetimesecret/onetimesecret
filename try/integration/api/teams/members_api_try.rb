@@ -109,7 +109,7 @@ resp['count']
 
 ## Cannot add member without authentication
 # Clear cookies to simulate a truly unauthenticated request
-@test.rack_mock_session.cookie_jar.clear
+@test.clear_cookies
 post "/api/teams/#{@team_id}/members",
   { email: @non_member.email }.to_json,
   { 'CONTENT_TYPE' => 'application/json' }
@@ -146,7 +146,7 @@ last_response.status >= 400
 
 ## Non-owner cannot add members
 # Clear cookies and use proper session format for member1
-@test.rack_mock_session.cookie_jar.clear
+@test.clear_cookies
 post "/api/teams/#{@team_id}/members",
   { email: @non_member.email }.to_json,
   { 'rack.session' => @member1_session, 'CONTENT_TYPE' => 'application/json' }
@@ -155,7 +155,7 @@ last_response.status >= 400
 
 ## Members can list team members
 # Clear cookies and test with member1's session
-@test.rack_mock_session.cookie_jar.clear
+@test.clear_cookies
 get "/api/teams/#{@team_id}/members",
   {},
   { 'rack.session' => @member1_session }
@@ -165,7 +165,7 @@ resp = JSON.parse(last_response.body)
 
 ## Non-members cannot list team members
 # Clear cookies to ensure we're testing as non-member
-@test.rack_mock_session.cookie_jar.clear
+@test.clear_cookies
 get "/api/teams/#{@team_id}/members",
   {},
   { 'rack.session' => @non_member_session }
@@ -174,7 +174,7 @@ last_response.status >= 400
 
 ## Can remove member from team
 # Clear cookies and use owner session
-@test.rack_mock_session.cookie_jar.clear
+@test.clear_cookies
 delete "/api/teams/#{@team_id}/members/#{@member2.custid}",
   {},
   { 'rack.session' => @owner_session }
@@ -198,7 +198,7 @@ member_ids.include?(@member2.custid)
 
 ## Cannot remove member without authentication
 # Clear cookies to simulate a truly unauthenticated request
-@test.rack_mock_session.cookie_jar.clear
+@test.clear_cookies
 delete "/api/teams/#{@team_id}/members/#{@member1.custid}",
   {},
   {}
@@ -254,7 +254,7 @@ resp = JSON.parse(last_response.body)
 
 ## Regular member can remove themselves from team
 # Clear cookies and use member1's session
-@test.rack_mock_session.cookie_jar.clear
+@test.clear_cookies
 delete "/api/teams/#{@team_id}/members/#{@member1.custid}",
   {},
   { 'rack.session' => @member1_session }

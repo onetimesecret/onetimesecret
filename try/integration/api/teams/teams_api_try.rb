@@ -142,7 +142,7 @@ new_updated > original_updated
 
 ## Cannot create team without authentication
 # Clear cookies to simulate a truly unauthenticated request
-@test.rack_mock_session.cookie_jar.clear
+@test.clear_cookies
 post '/api/teams',
   { display_name: 'Unauthenticated Team' }.to_json,
   { 'CONTENT_TYPE' => 'application/json' }
@@ -181,14 +181,14 @@ last_response.status >= 400
 
 ## Cannot get team details without authentication
 # Clear cookies to simulate a truly unauthenticated request
-@test.rack_mock_session.cookie_jar.clear
+@test.clear_cookies
 get "/api/teams/#{@extid}", {}, {}
 last_response.status >= 400
 #=> true
 
 ## Cannot update team without authentication
 # Clear cookies to simulate a truly unauthenticated request
-@test.rack_mock_session.cookie_jar.clear
+@test.clear_cookies
 put "/api/teams/#{@extid}",
   { display_name: 'Hacked Name' }.to_json,
   { 'CONTENT_TYPE' => 'application/json' }
@@ -229,7 +229,7 @@ post '/api/teams',
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
 @delete_teamid = JSON.parse(last_response.body)['record']['extid']
 # Clear cookies to simulate a truly unauthenticated request
-@test.rack_mock_session.cookie_jar.clear
+@test.clear_cookies
 delete "/api/teams/#{@delete_teamid}", {}, {}
 [last_response.status >= 400, @delete_teamid != nil]
 #=> [true, true]
