@@ -120,6 +120,13 @@ RSpec.configure do |config|
     FullModeSuiteDatabase.setup!
   end
 
+  # Clean tables between describe blocks to catch leaked test data
+  # Individual tests should still clean up after themselves, but this
+  # provides a safety net without hiding which test leaked data
+  config.after(:context, :full_auth_mode) do
+    FullModeSuiteDatabase.clean_tables!
+  end
+
   # Suite-level teardown: only runs once at the very end
   # Note: Simple/disabled mode tests explicitly clear the stub if needed
   config.after(:suite) do
