@@ -515,3 +515,66 @@ jobs:
         run: |
           docker stop onetime-test-container || true
           docker rm onetime-test-container || true
+
+  # ============================================================================
+  # TIER 5: CI METRICS VALIDATION (runs last)
+  # ============================================================================
+
+  ci-metrics:
+    name: CI Metrics
+    runs-on: *runs-on
+    timeout-minutes: 2
+    needs:
+      - changes
+      - ruby-lint
+      - typescript-lint
+      - build-assets
+      - ruby-unit
+      - typescript-unit
+      - ruby-integration-simple
+      - ruby-integration-full
+      - ruby-integration-disabled
+      - check-oci-image
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Determine timing from job results
+        id: timing
+        run: |
+          # Workflow start time from the first job
+          echo "workflow_start=${{ github.event.head_commit.timestamp || github.event.pull_request.updated_at || github.run_started_at }}" >> $GITHUB_OUTPUT
+
+          # For lint complete, we need to check which lint jobs ran
+          # Use current time as approximation since we can't get exact job end times
+          echo "now=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+
+      - name: Check CI metrics
+        uses: ./.github/actions/check-ci-metrics
+        with:
+          workflow-start-time: ${{ github.run_started_at }}
+          # Note: Precise lint/test completion times require workflow telemetry
+          # For now, we measure full pipeline duration which is the critical metric
+          # Override targets here if needed (defaults in action.yml header):
+          # target-first-feedback: '35'
+          # target-tests-complete: '210'
+          # target-full-pipeline: '400'
+
+      - name: Report job outcomes
+        run: |
+          echo "## Job Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Detect Changes | ${{ needs.changes.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Lint | ${{ needs.ruby-lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript Lint | ${{ needs.typescript-lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build Assets | ${{ needs.build-assets.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Unit | ${{ needs.ruby-unit.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript Unit | ${{ needs.typescript-unit.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Simple) | ${{ needs.ruby-integration-simple.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Full) | ${{ needs.ruby-integration-full.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Disabled) | ${{ needs.ruby-integration-disabled.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Container Validation | ${{ needs.check-oci-image.result }} |" >> $GITHUB_STEP_SUMMARY

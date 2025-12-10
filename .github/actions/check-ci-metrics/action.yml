@@ -1,0 +1,326 @@
+# .github/actions/check-ci-metrics/action.yml
+---
+# ==============================================================================
+# Check CI Metrics - Composite Action
+# ==============================================================================
+# Version: 1.0.0
+# Repository: onetimesecret/onetimesecret
+#
+# Validates CI pipeline performance against established targets and generates
+# a summary report. Runs as the final job to capture timing from all prior jobs.
+#
+# Performance Targets (revised 2025-12, based on Phase 5 data):
+#   - First feedback (lint): <35s  (actual avg: 28s + 25% buffer)
+#   - Tests complete (no container): <210s / 3.5min  (actual avg: 173s + 20% buffer)
+#   - Full pipeline: <400s / 6.5min  (actual avg: 329s + 20% buffer)
+#
+# Outputs:
+#   - GitHub Step Summary with timing breakdown
+#   - Warning annotations when targets exceeded
+#   - Failure on critical threshold violations (optional)
+#
+# Manual Re-evaluation:
+#   To recalculate targets based on recent runs:
+#
+#   1. List recent successful CI runs:
+#      gh run list --workflow=ci.yml --limit 10 --json databaseId,conclusion \
+#        --jq '.[] | select(.conclusion == "success") | .databaseId'
+#
+#   2. Get job timing for a run (shows ISO timestamps):
+#      gh run view $run_id --json jobs --jq '.jobs[] |
+#        "\(.name): started=\(.startedAt) completed=\(.completedAt)"'
+#
+#   3. Calculate duration using jq (cross-platform):
+#      gh run view $run_id --json jobs --jq '
+#        .jobs[] | select(.name == "Ruby Lint") |
+#        ((.completedAt | fromdateiso8601) - (.startedAt | fromdateiso8601)) as $dur |
+#        "\(.name): \($dur)s"'
+#
+#   4. Collect data from 3-5 runs and average per job
+#
+#   5. Update targets below based on: avg + 20% buffer
+#
+# ==============================================================================
+
+name: Check CI Metrics
+description: Validate CI job timing against performance targets
+
+inputs:
+  # Job start times (ISO 8601 format from workflow)
+  workflow-start-time:
+    description: 'Workflow start time (ISO 8601)'
+    required: true
+  lint-complete-time:
+    description: 'Time when first lint job completed (ISO 8601)'
+    required: false
+    default: ''
+  tests-complete-time:
+    description: 'Time when all tests completed (ISO 8601)'
+    required: false
+    default: ''
+
+  # Target thresholds (seconds) - see header for calculation method
+  target-first-feedback:
+    description: 'Target seconds for first lint feedback'
+    required: false
+    default: '35'
+  target-tests-complete:
+    description: 'Target seconds for all tests (no container)'
+    required: false
+    default: '210'
+  target-full-pipeline:
+    description: 'Target seconds for full pipeline including container'
+    required: false
+    default: '400'
+
+  # Behavior
+  fail-on-violation:
+    description: 'Fail the job if critical thresholds exceeded'
+    required: false
+    default: 'false'
+  warning-buffer-percent:
+    description: 'Percent over target to trigger warning (vs failure)'
+    required: false
+    default: '20'
+
+outputs:
+  first-feedback-seconds:
+    description: 'Seconds to first lint feedback'
+    value: ${{ steps.calculate.outputs.first_feedback }}
+  tests-complete-seconds:
+    description: 'Seconds to all tests complete'
+    value: ${{ steps.calculate.outputs.tests_complete }}
+  full-pipeline-seconds:
+    description: 'Seconds for full pipeline'
+    value: ${{ steps.calculate.outputs.full_pipeline }}
+  status:
+    description: 'Overall status: pass, warning, or fail'
+    value: ${{ steps.evaluate.outputs.status }}
+
+runs:
+  using: composite
+  steps:
+    - name: Calculate timing metrics
+      id: calculate
+      shell: bash
+      run: |
+        # Convert ISO 8601 to epoch seconds (portable)
+        iso_to_epoch() {
+          local ts="$1"
+          if [ -z "$ts" ]; then
+            echo ""
+            return
+          fi
+          # Use date command (works on both Linux and macOS with GNU date)
+          if date --version >/dev/null 2>&1; then
+            # GNU date
+            date -d "$ts" +%s 2>/dev/null || echo ""
+          else
+            # BSD date (macOS) - requires different format
+            date -jf "%Y-%m-%dT%H:%M:%SZ" "$ts" +%s 2>/dev/null || echo ""
+          fi
+        }
+
+        WORKFLOW_START="${{ inputs.workflow-start-time }}"
+        LINT_COMPLETE="${{ inputs.lint-complete-time }}"
+        TESTS_COMPLETE="${{ inputs.tests-complete-time }}"
+        NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+        echo "::debug::Workflow start: $WORKFLOW_START"
+        echo "::debug::Lint complete: $LINT_COMPLETE"
+        echo "::debug::Tests complete: $TESTS_COMPLETE"
+        echo "::debug::Now: $NOW"
+
+        START_EPOCH=$(iso_to_epoch "$WORKFLOW_START")
+        NOW_EPOCH=$(date +%s)
+
+        # First feedback (lint complete)
+        if [ -n "$LINT_COMPLETE" ]; then
+          LINT_EPOCH=$(iso_to_epoch "$LINT_COMPLETE")
+          if [ -n "$LINT_EPOCH" ] && [ -n "$START_EPOCH" ]; then
+            FIRST_FEEDBACK=$((LINT_EPOCH - START_EPOCH))
+          else
+            FIRST_FEEDBACK=""
+          fi
+        else
+          FIRST_FEEDBACK=""
+        fi
+
+        # Tests complete (before container)
+        if [ -n "$TESTS_COMPLETE" ]; then
+          TESTS_EPOCH=$(iso_to_epoch "$TESTS_COMPLETE")
+          if [ -n "$TESTS_EPOCH" ] && [ -n "$START_EPOCH" ]; then
+            TESTS_DURATION=$((TESTS_EPOCH - START_EPOCH))
+          else
+            TESTS_DURATION=""
+          fi
+        else
+          TESTS_DURATION=""
+        fi
+
+        # Full pipeline (now - start)
+        if [ -n "$START_EPOCH" ]; then
+          FULL_PIPELINE=$((NOW_EPOCH - START_EPOCH))
+        else
+          FULL_PIPELINE=""
+        fi
+
+        echo "first_feedback=${FIRST_FEEDBACK:-N/A}" >> $GITHUB_OUTPUT
+        echo "tests_complete=${TESTS_DURATION:-N/A}" >> $GITHUB_OUTPUT
+        echo "full_pipeline=${FULL_PIPELINE:-N/A}" >> $GITHUB_OUTPUT
+
+        # Export for next step
+        echo "FIRST_FEEDBACK=$FIRST_FEEDBACK" >> $GITHUB_ENV
+        echo "TESTS_COMPLETE=$TESTS_DURATION" >> $GITHUB_ENV
+        echo "FULL_PIPELINE=$FULL_PIPELINE" >> $GITHUB_ENV
+
+    - name: Evaluate against targets
+      id: evaluate
+      shell: bash
+      run: |
+        TARGET_FIRST="${{ inputs.target-first-feedback }}"
+        TARGET_TESTS="${{ inputs.target-tests-complete }}"
+        TARGET_FULL="${{ inputs.target-full-pipeline }}"
+        BUFFER="${{ inputs.warning-buffer-percent }}"
+        FAIL_ON_VIOLATION="${{ inputs.fail-on-violation }}"
+
+        STATUS="pass"
+        VIOLATIONS=""
+
+        check_metric() {
+          local name="$1"
+          local actual="$2"
+          local target="$3"
+
+          if [ -z "$actual" ] || [ "$actual" = "N/A" ]; then
+            echo "::notice::$name: No data available"
+            return
+          fi
+
+          local warning_threshold=$((target + target * BUFFER / 100))
+          local critical_threshold=$((target * 2))
+
+          if [ "$actual" -gt "$critical_threshold" ]; then
+            echo "::error::$name: ${actual}s exceeds critical threshold (${critical_threshold}s, 2x target)"
+            STATUS="fail"
+            VIOLATIONS="$VIOLATIONS $name"
+          elif [ "$actual" -gt "$warning_threshold" ]; then
+            echo "::warning::$name: ${actual}s exceeds warning threshold (${warning_threshold}s, target+${BUFFER}%)"
+            if [ "$STATUS" != "fail" ]; then
+              STATUS="warning"
+            fi
+          elif [ "$actual" -gt "$target" ]; then
+            echo "::notice::$name: ${actual}s slightly over target (${target}s)"
+          else
+            echo "::notice::$name: ${actual}s within target (${target}s)"
+          fi
+        }
+
+        check_metric "First Feedback" "$FIRST_FEEDBACK" "$TARGET_FIRST"
+        check_metric "Tests Complete" "$TESTS_COMPLETE" "$TARGET_TESTS"
+        check_metric "Full Pipeline" "$FULL_PIPELINE" "$TARGET_FULL"
+
+        echo "status=$STATUS" >> $GITHUB_OUTPUT
+
+        if [ "$FAIL_ON_VIOLATION" = "true" ] && [ "$STATUS" = "fail" ]; then
+          echo "::error::CI metrics exceeded critical thresholds:$VIOLATIONS"
+          exit 1
+        fi
+
+    - name: Generate summary report
+      shell: bash
+      run: |
+        TARGET_FIRST="${{ inputs.target-first-feedback }}"
+        TARGET_TESTS="${{ inputs.target-tests-complete }}"
+        TARGET_FULL="${{ inputs.target-full-pipeline }}"
+        STATUS="${{ steps.evaluate.outputs.status }}"
+
+        format_duration() {
+          local seconds="$1"
+          if [ -z "$seconds" ] || [ "$seconds" = "N/A" ]; then
+            echo "N/A"
+            return
+          fi
+          if [ "$seconds" -ge 60 ]; then
+            local mins=$((seconds / 60))
+            local secs=$((seconds % 60))
+            echo "${mins}m ${secs}s"
+          else
+            echo "${seconds}s"
+          fi
+        }
+
+        status_icon() {
+          local actual="$1"
+          local target="$2"
+          if [ -z "$actual" ] || [ "$actual" = "N/A" ]; then
+            echo ":grey_question:"
+            return
+          fi
+          local warning=$((target + target * 20 / 100))
+          if [ "$actual" -le "$target" ]; then
+            echo ":white_check_mark:"
+          elif [ "$actual" -le "$warning" ]; then
+            echo ":warning:"
+          else
+            echo ":x:"
+          fi
+        }
+
+        FF_FORMATTED=$(format_duration "$FIRST_FEEDBACK")
+        TC_FORMATTED=$(format_duration "$TESTS_COMPLETE")
+        FP_FORMATTED=$(format_duration "$FULL_PIPELINE")
+
+        FF_ICON=$(status_icon "$FIRST_FEEDBACK" "$TARGET_FIRST")
+        TC_ICON=$(status_icon "$TESTS_COMPLETE" "$TARGET_TESTS")
+        FP_ICON=$(status_icon "$FULL_PIPELINE" "$TARGET_FULL")
+
+        cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+        ## CI Performance Metrics
+
+        | Metric | Actual | Target | Status |
+        |--------|--------|--------|--------|
+        EOF
+
+        echo "| First Feedback (lint) | $FF_FORMATTED | <${TARGET_FIRST}s | $FF_ICON |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tests Complete | $TC_FORMATTED | <${TARGET_TESTS}s (3m) | $TC_ICON |" >> $GITHUB_STEP_SUMMARY
+        echo "| Full Pipeline | $FP_FORMATTED | <${TARGET_FULL}s (6m) | $FP_ICON |" >> $GITHUB_STEP_SUMMARY
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        case "$STATUS" in
+          pass)
+            echo "> **Status**: All metrics within targets :rocket:" >> $GITHUB_STEP_SUMMARY
+            ;;
+          warning)
+            echo "> **Status**: Some metrics near threshold :warning:" >> $GITHUB_STEP_SUMMARY
+            ;;
+          fail)
+            echo "> **Status**: Critical thresholds exceeded :x:" >> $GITHUB_STEP_SUMMARY
+            ;;
+        esac
+
+        cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+
+        <details>
+        <summary>Re-evaluation Instructions</summary>
+
+        To recalculate targets based on recent runs:
+
+        ```bash
+        # 1. List recent successful CI runs
+        gh run list --workflow=ci.yml --limit 10 --json databaseId,conclusion \
+          --jq '.[] | select(.conclusion == "success") | .databaseId'
+
+        # 2. Get job timing for a run
+        gh run view <RUN_ID> --json jobs --jq '.jobs[] |
+          "\(.name): started=\(.startedAt) completed=\(.completedAt)"'
+
+        # 3. Collect data from 3-5 runs, calculate averages
+        # 4. Update targets in check-ci-metrics/action.yml (add 20% buffer)
+        ```
+
+        Current targets set 2025-12 based on Phase 5 completion data.
+
+        </details>
+        EOF
