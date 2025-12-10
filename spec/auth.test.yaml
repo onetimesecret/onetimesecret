@@ -4,8 +4,8 @@
 # Controls the authentication mode and related settings
 ---
 # Authentication mode: 'simple' (Redis-only) or 'full' (requires SQL db)
-# Can be overridden with AUTHENTICATION_MODE environment variable
-mode: full
+# Defaults to 'simple' unless AUTHENTICATION_MODE env var is set
+mode: <%= ENV.fetch('AUTHENTICATION_MODE', 'simple') %>
 
 # Shared session configuration (both modes)
 session:

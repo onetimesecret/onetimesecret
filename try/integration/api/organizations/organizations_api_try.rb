@@ -152,6 +152,8 @@ new_updated > original_updated
 #=> true
 
 ## Cannot create organization without authentication
+# Clear cookies to simulate a truly unauthenticated request
+@test.rack_mock_session.cookie_jar.clear
 post '/api/organizations',
   { display_name: 'Unauthenticated Org', contact_email: 'test@example.com' }.to_json,
   { 'CONTENT_TYPE' => 'application/json' }
@@ -190,11 +192,15 @@ last_response.status >= 400
 #=> true
 
 ## Cannot get organization details without authentication
+# Clear cookies to simulate a truly unauthenticated request
+@test.rack_mock_session.cookie_jar.clear
 get "/api/organizations/#{@extid}", {}, {}
 last_response.status >= 400
 #=> true
 
 ## Cannot update organization without authentication
+# Clear cookies to simulate a truly unauthenticated request
+@test.rack_mock_session.cookie_jar.clear
 put "/api/organizations/#{@extid}",
   { display_name: 'Hacked Name' }.to_json,
   { 'CONTENT_TYPE' => 'application/json' }
@@ -234,6 +240,8 @@ post '/api/organizations',
   { display_name: 'Delete Test Org', contact_email: "deletetest#{Familia.now.to_i}@example.com" }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json' }
 @delete_extid = JSON.parse(last_response.body)['record']['id']
+# Clear cookies to simulate a truly unauthenticated request
+@test.rack_mock_session.cookie_jar.clear
 delete "/api/organizations/#{@delete_extid}", {}, {}
 [last_response.status >= 400, @delete_extid != nil]
 #=> [true, true]
