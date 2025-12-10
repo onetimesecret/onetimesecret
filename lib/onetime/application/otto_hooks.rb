@@ -10,6 +10,7 @@
 # other routers (Auth/Roda) do not need these hooks.
 
 require_relative '../logger_methods'
+require_relative 'request_helpers'
 
 module Onetime
   module Application
@@ -31,6 +32,9 @@ module Onetime
       #     router
       #   end
       def configure_otto_request_hook(router)
+        # Register Onetime-specific request helpers
+        router.register_request_helpers(Onetime::Application::RequestHelpers)
+
         # Register expected errors with status codes and log levels
         router.register_error_handler(Onetime::RecordNotFound, status: 404, log_level: :info)
         router.register_error_handler(Onetime::MissingSecret, status: 404, log_level: :info)
