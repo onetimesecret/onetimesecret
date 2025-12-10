@@ -740,77 +740,119 @@ jobs:
 
 ---
 
-### Phase 5: Optimization
+### Phase 5: Composite Actions ✅ COMPLETED
 
-**Goal**: Fine-tune the CI pipeline based on real-world metrics to maximize efficiency.
+**Goal**: Reduce duplication and improve maintainability by extracting common setup patterns into reusable composite actions.
 
-**Current State** (after Phase 4):
+**PR**: #2146
+
+#### 5.1 Composite Actions Created
+
+Three composite actions in `.github/actions/`:
+
+1. **setup-ruby-test-env**: Ruby environment, artifacts, config, secrets
+2. **setup-node-env**: Node.js, pnpm, caching
+3. **run-ruby-tests**: Parameterized RSpec/Tryouts execution
+
+#### 5.2 Benefits
+
+- **DRY**: Common setup steps defined once, reused across jobs
+- **Maintainability**: Changes to setup logic in one place
+- **Consistency**: All jobs use identical setup procedures
+- **Readability**: Main workflow file is shorter and clearer
+
+#### 5.3 Implementation
+
+```yaml
+# Example usage in ci.yml
+- uses: ./.github/actions/setup-ruby-test-env
+  with:
+    ruby-version: '3.4'
+    download-assets: true
+
+- uses: ./.github/actions/run-ruby-tests
+  with:
+    auth-mode: simple
+    test-framework: rspec
+```
+
+#### 5.4 YAML Anchors
+
+Used inline YAML anchors to reduce repetition for common values:
+
+```yaml
+jobs:
+  ruby-unit:
+    runs-on: &runs-on ubuntu-24.04
+    timeout-minutes: &timeout 15
+```
+
+---
+
+### Phase 6: Optimization
+
+**Goal**: Fine-tune the CI pipeline to maximize **developer experience** through faster feedback and clearer failure messages.
+
+**Context**: As a public open-source repository, GitHub Actions minutes are **unlimited and free**. Cost optimization is irrelevant—focus is purely on developer time savings.
+
+**Current State** (after Phase 5):
 - Tiered architecture with parallelization
 - Path-based filtering reduces unnecessary runs
 - Build artifacts shared across jobs
+- Composite actions for reusable setup patterns
 
 **Target State**:
 - Sub-30s feedback for lint failures
 - Sub-3min for full successful run
-- Minimal billable minutes per run
+- Clear, actionable failure messages
 
-#### 5.1 Metrics Collection
+#### 6.1 Historical Usage Context
 
-Before optimizing, establish baselines:
+GitHub Actions billing data (public repo = $0 billed):
+
+| Month | Linux Minutes | Gross Cost | Notes |
+|-------|--------------|------------|-------|
+| Jul 2025 | 6,971 | $55.88 | Baseline |
+| Aug 2025 | 6,993 | $56.27 | Stable |
+| Sep 2025 | 9,767 | $78.68 | +39% |
+| Oct 2025 | 9,759 | $78.56 | Stable |
+| Nov 2025 | 25,036 | $202.01 | CI reorganization work |
+| Dec 2025 | 5,112 | $41.20 | Back to normal (partial) |
+
+The November spike reflects the cost of developing Phases 1-5—worth it for the improved CI structure. All amounts show $0 billed due to public repo status.
+
+#### 6.2 Optimization Priorities
+
+**Priority: HIGH - Developer Time Savings**
+
+**6.2.1 Faster First-Failure Feedback**
+
+Current: ~45s to first failure
+Target: <30s
+
+Focus areas:
+- Lint jobs run immediately (no dependencies)
+- Composite actions reduce setup boilerplate
+- Fail-fast on obvious errors (syntax, type errors)
+
+**6.2.2 Clearer Failure Messages**
+
+Add structured job summaries:
 
 ```yaml
-# Add timing instrumentation to each job
-- name: Record job timing
-  if: always()
+- name: Generate failure summary
+  if: failure()
   run: |
-    echo "## Job Timing" >> $GITHUB_STEP_SUMMARY
-    echo "- Started: ${{ job.startedAt }}" >> $GITHUB_STEP_SUMMARY
-    echo "- Completed: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
+    echo "## ❌ Test Failures" >> $GITHUB_STEP_SUMMARY
+    echo "### Quick Links" >> $GITHUB_STEP_SUMMARY
+    echo "- [View full logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+    if [ -f tmp/rspec_results.json ]; then
+      echo "### Failed Examples" >> $GITHUB_STEP_SUMMARY
+      jq -r '.examples[] | select(.status == "failed") | "- \(.full_description)"' tmp/rspec_results.json >> $GITHUB_STEP_SUMMARY
+    fi
 ```
 
-Track over 2 weeks:
-- Job startup time (checkout + setup)
-- Actual test execution time
-- Artifact upload/download time
-- Cache hit rate
-- Path filter effectiveness (% of runs skipped)
-
-#### 5.2 Optimization Opportunities
-
-**5.2.1 Reduce Job Startup Overhead**
-
-Current overhead per job:
-- Checkout: ~1-2s
-- Ruby setup: ~5-10s (with cache)
-- Node setup: ~2-3s
-- pnpm install: ~6-10s (with cache)
-- Artifact download: ~2-5s
-
-Options:
-- **Composite actions**: Bundle common setup steps
-- **Docker-based jobs**: Pre-built image with Ruby + Node
-- **Self-hosted runners**: Eliminate cold start, persistent cache
-
-```yaml
-# Composite action example: .github/actions/setup-ruby-env/action.yml
-name: Setup Ruby Environment
-runs:
-  using: composite
-  steps:
-    - uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '3.4'
-        bundler-cache: true
-    - name: Setup test config
-      shell: bash
-      run: |
-        for file in etc/defaults/*.defaults.*; do
-          target="etc/$(basename "$file" | sed 's/\.defaults//')"
-          cp --no-clobber "$file" "$target" 2>/dev/null || true
-        done
-```
-
-**5.2.2 Smarter Test Distribution**
+**6.2.3 Test Rebalancing**
 
 Analyze test timing to balance parallel jobs:
 
@@ -820,121 +862,118 @@ bundle exec rspec --format json --out timing.json
 jq '.examples | group_by(.file_path) | map({file: .[0].file_path, time: (map(.run_time) | add)}) | sort_by(.time) | reverse' timing.json
 ```
 
-Rebalance jobs so each takes similar time:
-- Move slow tests to their own job
-- Combine fast tests into single job
+Goal: Each integration job completes within 60-90s of each other.
 
-**5.2.3 Incremental Testing**
+**Priority: MEDIUM - Reliability**
 
-Only run tests affected by changes:
+**6.2.4 Flaky Test Detection**
 
-```yaml
-# Use git diff to identify changed files
-- name: Get changed Ruby files
-  id: changed
-  run: |
-    files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.rb$' || true)
-    echo "files=$files" >> $GITHUB_OUTPUT
-
-# Run tests only for changed files (RSpec)
-- name: Run affected tests
-  run: |
-    if [ -n "${{ steps.changed.outputs.files }}" ]; then
-      bundle exec rspec --only-failures || bundle exec rspec $(echo "${{ steps.changed.outputs.files }}" | xargs -I {} find spec -name "*$(basename {} .rb)*_spec.rb" 2>/dev/null | tr '\n' ' ')
-    fi
-```
-
-**5.2.4 Test Result Caching**
-
-Cache passing test results, only re-run on file changes:
-
-```yaml
-- name: Cache test results
-  uses: actions/cache@v4
-  with:
-    path: tmp/test-results
-    key: test-results-${{ hashFiles('**/*.rb', 'spec/**', 'try/**') }}
-
-- name: Skip unchanged tests
-  run: |
-    if [ -f tmp/test-results/last-success ]; then
-      echo "Tests unchanged since last success, skipping..."
-      exit 0
-    fi
-```
-
-**5.2.5 Parallel Test Execution Within Jobs**
-
-Use test parallelization gems:
+Add retry with tracking:
 
 ```ruby
-# Gemfile
-gem 'parallel_tests', group: :test
-
-# Run
-bundle exec parallel_rspec spec/
-bundle exec parallel_test try/ --type tryouts
+# spec/spec_helper.rb
+RSpec.configure do |config|
+  config.around(:each) do |example|
+    example.run
+    if example.exception
+      # Log flaky candidate if it passed on retry
+      example.run
+      if example.exception.nil?
+        File.open('tmp/flaky_tests.log', 'a') { |f| f.puts example.location }
+      end
+    end
+  end
+end
 ```
 
-Note: Requires investigation into tryouts framework parallel support.
+Track flaky tests over time; quarantine repeat offenders.
 
-#### 5.3 Self-Hosted Runner Consideration
+**Priority: LOW - Minor Gains**
 
-**Pros**:
-- Faster job startup (no VM provisioning)
-- Persistent caches (no download each run)
-- Custom hardware (more CPU/RAM)
-- No per-minute billing
+**6.2.5 Job Startup Reduction**
 
-**Cons**:
-- Maintenance burden
-- Security concerns (code runs on your infra)
-- Availability/reliability
+Current overhead per job:
+- Checkout: ~1-2s
+- Ruby setup: ~5-10s (with cache)
+- Node setup: ~2-3s
+- pnpm install: ~6-10s (with cache)
+- Artifact download: ~2-5s
 
-**Recommendation**: Start with GitHub-hosted, consider self-hosted only if:
-- CI costs exceed $X/month
-- Job startup overhead > 30% of job time
-- Need specialized hardware (ARM, GPU)
+Already optimized via composite actions. Further gains require Docker-based runners (complexity not justified).
 
-#### 5.4 Implementation Steps
+#### 6.3 Approaches NOT Recommended
 
-1. **Instrument and measure** (Week 1-2)
-   - Add timing to all jobs
-   - Collect baseline metrics
-   - Identify biggest time sinks
+**❌ 6.3.1 Incremental Testing**
 
-2. **Quick wins** (Week 3)
-   - Create composite actions for common setup
-   - Tune cache keys for better hit rate
-   - Remove unnecessary steps
+```yaml
+# DON'T DO THIS
+files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.rb$')
+```
 
-3. **Test distribution** (Week 4)
-   - Analyze test timing data
-   - Rebalance parallel jobs
-   - Consider test sharding
+Problems:
+- `github.event.before` unreliable on force pushes/rebases
+- Test file mapping heuristics miss transitive dependencies
+- Risk of missed regressions outweighs time savings
 
-4. **Advanced optimizations** (Week 5+)
-   - Evaluate incremental testing
-   - Consider self-hosted runners
-   - Implement test result caching
+**❌ 6.3.2 Test Result Caching**
 
-#### 5.5 Success Criteria
+```yaml
+# DON'T DO THIS
+key: test-results-${{ hashFiles('**/*.rb', 'spec/**', 'try/**') }}
+```
+
+Problems:
+- Doesn't account for: env vars, Ruby version, gem updates, config changes
+- Can silently skip tests when dependencies change
+- False confidence in "green" CI
+
+**❌ 6.3.3 Self-Hosted Runners**
+
+Not recommended because:
+- Zero cost benefit (public repo = free minutes)
+- Significant maintenance burden
+- Security implications for open-source repo
+- GitHub-hosted runners are reliable and fast enough
+
+**❌ 6.3.4 Parallel Tests Within Jobs (Tryouts)**
+
+The Tryouts framework does not support parallelization—tests share state via instance variables. RSpec could use `parallel_tests` gem, but added complexity isn't justified given current job durations.
+
+#### 6.4 Implementation Steps
+
+1. **Add failure summaries** (1-2 hours)
+   - Structured output for failed tests
+   - Links to relevant logs
+
+2. **Collect timing data** (1 week passive)
+   - Add timing to job summaries
+   - Identify slowest tests/jobs
+
+3. **Rebalance if needed** (2-4 hours)
+   - Move slow tests between jobs
+   - Target even job durations
+
+4. **Flaky test tracking** (2-4 hours)
+   - Add retry logic
+   - Log flaky candidates
+   - Review weekly
+
+#### 6.5 Success Criteria
 
 | Metric | Current | Target | Method |
 |--------|---------|--------|--------|
-| First feedback | ~45s | <30s | Composite actions, faster checkout |
-| Full pipeline | ~4 min | <3 min | Test rebalancing, caching |
-| Cache hit rate | Unknown | >80% | Key tuning, cache warming |
-| Billable minutes/run | Unknown | -20% | Path filtering, skipping |
+| First feedback | ~45s | <30s | Lint jobs, composite actions |
+| Full pipeline | ~4 min | <3 min | Test rebalancing |
+| Failure clarity | Logs only | Structured summary | Job summaries |
+| Flaky test rate | Unknown | <1% | Detection + quarantine |
 
-#### 5.6 Risks and Mitigations
+#### 6.6 Risks and Mitigations
 
 | Risk | Mitigation |
 |------|------------|
-| Over-optimization breaks reliability | Maintain fallback to full test run |
-| Incremental testing misses regressions | Require full run before merge |
-| Cache invalidation issues | Clear caches periodically, add cache-bust input |
-| Self-hosted runner security | Use ephemeral runners, isolated network |
+| Over-optimization breaks reliability | Keep full test suite; no clever skipping |
+| Flaky tests erode confidence | Track, quarantine, fix root causes |
+| Job summaries add noise | Keep summaries concise; failures only |
 
 ## Considerations
 
@@ -951,7 +990,6 @@ Note: Requires investigation into tryouts framework parallel support.
 - **More jobs to monitor**: 8-10 jobs vs current 3
 - **Artifact management**: Need to ensure artifacts are correctly passed
 - **Complexity**: More moving parts, more potential failure points
-- **Cost**: More parallel jobs may increase billable minutes (though faster overall)
 
 ### Risks
 

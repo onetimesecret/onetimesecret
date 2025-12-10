@@ -1,5 +1,5 @@
 # .github/workflows/openapi-generation.yml
-
+---
 name: OpenAPI Generation
 
 # Automatically generate OpenAPI specifications when schema files change.
@@ -40,9 +40,9 @@ on:
         default: true
 
 permissions:
-  contents: write       # Needed to commit generated specs
-  pull-requests: write  # Needed to comment on PRs
-  issues: write         # Needed for issue comment API
+  contents: write # Needed to commit generated specs
+  pull-requests: write # Needed to comment on PRs
+  issues: write # Needed for issue comment API
 
 jobs:
   generate-openapi:

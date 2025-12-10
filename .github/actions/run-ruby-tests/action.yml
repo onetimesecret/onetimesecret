@@ -1,0 +1,132 @@
+# .github/actions/run-ruby-tests/action.yml
+---
+# ==============================================================================
+# Run Ruby Tests - Composite Action
+# ==============================================================================
+# Version: 1.0.0
+# Repository: onetimesecret/onetimesecret
+#
+# Executes Ruby test suites (RSpec and/or Tryouts) with configurable
+# authentication modes. Generates GitHub job summaries with test results.
+#
+# Usage:
+#   - uses: ./.github/actions/run-ruby-tests
+#     with:
+#       auth-mode: 'simple'
+#       rspec-paths: 'spec/unit'
+#       tryouts-paths: 'try/'
+#
+# Auth Modes:
+#   - simple: Basic authentication (default)
+#   - full: Full Rodauth with SQLite/PostgreSQL
+#   - disabled: No authentication
+#
+# Changelog:
+#   1.0.0 - Initial release with RSpec/Tryouts support and job summaries
+# ==============================================================================
+
+name: Run Ruby Tests
+description: |
+  Runs Ruby tests (RSpec and/or Tryouts) with configurable auth mode and test type.
+  Generates job summary with test results.
+
+inputs:
+  test-type:
+    description: 'Type of tests to run: unit, integration, or both'
+    required: true
+  auth-mode:
+    description: 'Authentication mode: simple, full, or disabled'
+    required: false
+    default: 'simple'
+  redis-url:
+    description: 'Redis connection URL'
+    required: false
+    default: 'redis://127.0.0.1:2121/0'
+  auth-database-url:
+    description: 'Auth database URL (for full mode)'
+    required: false
+    default: ''
+  rspec-tag:
+    description: 'RSpec tag to filter tests (e.g., simple_auth_mode)'
+    required: false
+    default: ''
+  rspec-paths:
+    description: 'Space-separated RSpec paths to run'
+    required: false
+    default: ''
+  tryouts-paths:
+    description: 'Space-separated Tryouts paths to run'
+    required: false
+    default: ''
+  results-file:
+    description: 'Name for the RSpec JSON results file'
+    required: false
+    default: 'rspec_results.json'
+  debug-enabled:
+    description: 'Enable tmate debugging session'
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
+      if: inputs.debug-enabled == 'true'
+      with:
+        detached: true
+
+    - name: Run Tryouts
+      if: inputs.tryouts-paths != ''
+      shell: bash
+      env:
+        REDIS_URL: ${{ inputs.redis-url }}
+        RACK_ENV: 'test'
+        AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
+        AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
+      run: |
+        set -e
+        echo "Running Tryouts with AUTHENTICATION_MODE=${{ inputs.auth-mode }}..."
+        echo "Paths: ${{ inputs.tryouts-paths }}"
+        bundle exec tryouts --agent ${{ inputs.tryouts-paths }}
+
+    - name: Run RSpec
+      if: inputs.rspec-paths != ''
+      shell: bash
+      env:
+        REDIS_URL: ${{ inputs.redis-url }}
+        RACK_ENV: 'test'
+        AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
+        AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
+      run: |
+        set -e
+        echo "Running RSpec with AUTHENTICATION_MODE=${{ inputs.auth-mode }}..."
+        mkdir -p tmp
+
+        TAG_OPTION=""
+        if [ -n "${{ inputs.rspec-tag }}" ]; then
+          TAG_OPTION="--tag ${{ inputs.rspec-tag }}"
+        fi
+
+        bundle exec rspec \
+          $TAG_OPTION \
+          --format progress \
+          --format json --out "tmp/${{ inputs.results-file }}" \
+          ${{ inputs.rspec-paths }}
+
+    - name: Generate job summary
+      if: always()
+      shell: bash
+      run: |
+        echo "## Ruby Test Results (${{ inputs.auth-mode }} mode)" >> $GITHUB_STEP_SUMMARY
+
+        if [ -f "tmp/${{ inputs.results-file }}" ]; then
+          echo "### RSpec" >> $GITHUB_STEP_SUMMARY
+          echo "- Total: $(jq '.summary.example_count' "tmp/${{ inputs.results-file }}")" >> $GITHUB_STEP_SUMMARY
+          echo "- Failures: $(jq '.summary.failure_count' "tmp/${{ inputs.results-file }}")" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ -n "${{ inputs.tryouts-paths }}" ]; then
+          echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
+          echo "- Paths tested: ${{ inputs.tryouts-paths }}" >> $GITHUB_STEP_SUMMARY
+        fi

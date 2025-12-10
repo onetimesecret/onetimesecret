@@ -1,5 +1,5 @@
 # .github/workflows/harmonize-locales.yml
-#
+---
 # Two-Phase Locale Harmonization Workflow:
 # 1. Fix structural conflicts (type mismatches between base and target locales)
 # 2. Harmonize key structures with base English locale
