@@ -86,12 +86,16 @@
       </div>
     </template>
 
-    <!-- Alerts slot - uses actorRole from useSecretContext for owner checks -->
-    <template #alerts="{ record, actorRole, showSecret }">
+    <!--
+      Alerts slot - uses uiConfig from useSecretContext for creator checks.
+      The composable owns "who sees creator alerts" (role-based).
+      The component owns "which alert variant" (state-based, e.g., pre/post reveal).
+    -->
+    <template #alerts="{ record, uiConfig, showSecret }">
       <template v-if="!record.verification">
         <!-- Warning shown to creator before revealing their own secret -->
         <div
-          v-if="actorRole === 'CREATOR' && !showSecret"
+          v-if="uiConfig.showCreatorAlerts && !showSecret"
           class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4 text-amber-700
             dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
           role="alert"
@@ -111,7 +115,7 @@
 
         <!-- Notice shown to creator after viewing their own secret -->
         <div
-          v-if="actorRole === 'CREATOR' && showSecret"
+          v-if="uiConfig.showCreatorAlerts && showSecret"
           class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4 text-brand-700
             dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
           role="alert"

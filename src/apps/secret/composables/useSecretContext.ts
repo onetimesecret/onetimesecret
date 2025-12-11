@@ -10,6 +10,12 @@ export interface UIConfig {
   showBurnControl: boolean;
   showCapabilitiesUpgrade: boolean;
   headerAction: 'DASHBOARD_LINK' | 'SIGNUP_CTA';
+  /**
+   * Whether to show creator-specific alerts (warnings/notices).
+   * The composable owns "who sees creator alerts" (role-based).
+   * The component owns "which alert variant" (state-based, e.g., pre/post reveal).
+   */
+  showCreatorAlerts: boolean;
 }
 
 export interface SecretContextOptions {
@@ -58,12 +64,14 @@ export function useSecretContext(options: SecretContextOptions = {}) {
           showBurnControl: true,
           showCapabilitiesUpgrade: false,
           headerAction: 'DASHBOARD_LINK',
+          showCreatorAlerts: true,
         };
       case 'RECIPIENT_AUTH':
         return {
           showBurnControl: false,
           showCapabilitiesUpgrade: false,
           headerAction: 'DASHBOARD_LINK',
+          showCreatorAlerts: false,
         };
       case 'RECIPIENT_ANON':
       default:
@@ -71,6 +79,7 @@ export function useSecretContext(options: SecretContextOptions = {}) {
           showBurnControl: false,
           showCapabilitiesUpgrade: true,
           headerAction: 'SIGNUP_CTA',
+          showCreatorAlerts: false,
         };
     }
   });
