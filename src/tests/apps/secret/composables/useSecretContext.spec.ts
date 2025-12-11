@@ -115,13 +115,13 @@ describe('useSecretContext', () => {
       expect(uiConfig.value.showBurnControl).toBe(true);
     });
 
-    it('does not show marketing upsell for creators', () => {
+    it('does not show capabilities upgrade for creators', () => {
       const authStore = useAuthStore();
       authStore.isAuthenticated = true;
 
       const { uiConfig } = useSecretContext({ isOwner: true });
 
-      expect(uiConfig.value.showMarketingUpsell).toBe(false);
+      expect(uiConfig.value.showCapabilitiesUpgrade).toBe(false);
     });
 
     it('shows dashboard link for creators', () => {
@@ -144,13 +144,13 @@ describe('useSecretContext', () => {
       expect(uiConfig.value.showBurnControl).toBe(false);
     });
 
-    it('does not show marketing upsell for authenticated recipients', () => {
+    it('does not show capabilities upgrade for authenticated recipients', () => {
       const authStore = useAuthStore();
       authStore.isAuthenticated = true;
 
       const { uiConfig } = useSecretContext({ isOwner: false });
 
-      expect(uiConfig.value.showMarketingUpsell).toBe(false);
+      expect(uiConfig.value.showCapabilitiesUpgrade).toBe(false);
     });
 
     it('shows dashboard link for authenticated recipients', () => {
@@ -173,13 +173,13 @@ describe('useSecretContext', () => {
       expect(uiConfig.value.showBurnControl).toBe(false);
     });
 
-    it('shows marketing upsell for anonymous recipients', () => {
+    it('shows capabilities upgrade for anonymous recipients', () => {
       const authStore = useAuthStore();
       authStore.isAuthenticated = false;
 
       const { uiConfig } = useSecretContext({ isOwner: false });
 
-      expect(uiConfig.value.showMarketingUpsell).toBe(true);
+      expect(uiConfig.value.showCapabilitiesUpgrade).toBe(true);
     });
 
     it('shows signup CTA for anonymous recipients', () => {
@@ -220,12 +220,12 @@ describe('useSecretContext', () => {
 
       // Initially RECIPIENT_AUTH
       expect(actorRole.value).toBe('RECIPIENT_AUTH');
-      expect(uiConfig.value.showMarketingUpsell).toBe(false);
+      expect(uiConfig.value.showCapabilitiesUpgrade).toBe(false);
 
       // User logs out
       authStore.isAuthenticated = false;
       expect(actorRole.value).toBe('RECIPIENT_ANON');
-      expect(uiConfig.value.showMarketingUpsell).toBe(true);
+      expect(uiConfig.value.showCapabilitiesUpgrade).toBe(true);
       expect(uiConfig.value.headerAction).toBe('SIGNUP_CTA');
     });
   });

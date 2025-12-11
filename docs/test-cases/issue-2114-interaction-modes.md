@@ -92,7 +92,7 @@ Tests for `useSecretContext()` composable that determines UI configuration based
 | 5 | Log in as Account B | Different account | Dashboard loads |
 | 6 | Navigate to secret link | Copied URL | Secret confirmation page loads |
 | 7 | Observe page alerts | - | NO owner warning banner displayed |
-| 8 | Observe marketing area | - | NO marketing upsell displayed |
+| 8 | Observe marketing area | - | NO capabilities upgrade displayed |
 | 9 | Observe header | - | Dashboard link visible (not signup CTA) |
 
 **Post-conditions:**
@@ -100,7 +100,7 @@ Tests for `useSecretContext()` composable that determines UI configuration based
 
 **Notes:**
 - Tests `actorRole === 'RECIPIENT_AUTH'`
-- Maps to `uiConfig.showMarketingUpsell === false`
+- Maps to `uiConfig.showCapabilitiesUpgrade === false`
 
 ---
 
@@ -121,7 +121,7 @@ Tests for `useSecretContext()` composable that determines UI configuration based
 | 1 | Open incognito/private browser window | - | Clean session, not logged in |
 | 2 | Navigate to secret link | Secret URL | Secret confirmation page loads |
 | 3 | Observe page alerts | - | NO owner warning banner displayed |
-| 4 | Observe marketing area | - | Marketing upsell/signup prompt visible |
+| 4 | Observe marketing area | - | Capabilities upgrade/signup prompt visible |
 | 5 | Observe header | - | Signup CTA visible (not dashboard link) |
 | 6 | Click "View Secret" | - | Secret content revealed |
 | 7 | Observe burn control | - | NO burn button visible |
@@ -132,7 +132,7 @@ Tests for `useSecretContext()` composable that determines UI configuration based
 
 **Notes:**
 - Tests `actorRole === 'RECIPIENT_ANON'`
-- Maps to `uiConfig.showMarketingUpsell === true`, `uiConfig.headerAction === 'SIGNUP_CTA'`
+- Maps to `uiConfig.showCapabilitiesUpgrade === true`, `uiConfig.headerAction === 'SIGNUP_CTA'`
 
 ---
 

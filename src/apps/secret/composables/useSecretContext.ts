@@ -8,7 +8,7 @@ export type ActorRole = 'CREATOR' | 'RECIPIENT_AUTH' | 'RECIPIENT_ANON';
 
 export interface UIConfig {
   showBurnControl: boolean;
-  showMarketingUpsell: boolean;
+  showCapabilitiesUpgrade: boolean;
   headerAction: 'DASHBOARD_LINK' | 'SIGNUP_CTA';
 }
 
@@ -26,7 +26,7 @@ export interface SecretContextOptions {
  * Determines what UI elements to show based on who is viewing:
  * - CREATOR: Owner viewing their own secret (can burn, sees dashboard link)
  * - RECIPIENT_AUTH: Logged-in user viewing someone else's secret
- * - RECIPIENT_ANON: Anonymous viewer (sees marketing upsell, signup CTA)
+ * - RECIPIENT_ANON: Anonymous viewer (sees capabilities upgrade, signup CTA)
  *
  * @example
  * // In a component with access to secret details:
@@ -34,7 +34,7 @@ export interface SecretContextOptions {
  *
  * // Then use uiConfig for conditional rendering:
  * // v-if="uiConfig.showBurnControl"
- * // v-if="uiConfig.showMarketingUpsell"
+ * // v-if="uiConfig.showCapabilitiesUpgrade"
  */
 export function useSecretContext(options: SecretContextOptions = {}) {
   const identity = useProductIdentity();
@@ -56,20 +56,20 @@ export function useSecretContext(options: SecretContextOptions = {}) {
       case 'CREATOR':
         return {
           showBurnControl: true,
-          showMarketingUpsell: false,
+          showCapabilitiesUpgrade: false,
           headerAction: 'DASHBOARD_LINK',
         };
       case 'RECIPIENT_AUTH':
         return {
           showBurnControl: false,
-          showMarketingUpsell: false,
+          showCapabilitiesUpgrade: false,
           headerAction: 'DASHBOARD_LINK',
         };
       case 'RECIPIENT_ANON':
       default:
         return {
           showBurnControl: false,
-          showMarketingUpsell: true,
+          showCapabilitiesUpgrade: true,
           headerAction: 'SIGNUP_CTA',
         };
     }

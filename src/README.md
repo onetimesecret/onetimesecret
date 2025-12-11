@@ -43,8 +43,8 @@ The `useSecretContext` composable resolves who is viewing a specific secret:
 | Role | Description | UI Behavior |
 |------|-------------|-------------|
 | `CREATOR` | Owner viewing their own secret | Dashboard link, burn control |
-| `RECIPIENT_AUTH` | Logged-in user viewing another's secret | Dashboard link, no upsell |
-| `RECIPIENT_ANON` | Anonymous visitor | Signup CTA, marketing upsell |
+| `RECIPIENT_AUTH` | Logged-in user viewing another's secret | Dashboard link, no upgrade CTA |
+| `RECIPIENT_ANON` | Anonymous visitor | Signup CTA, capabilities upgrade |
 
 The asymmetry is intentional: `CREATOR` is singular because creating a secret is a singular act—auth state is handled at the customer level. Recipients have variants because the receiving experience legitimately differs based on auth state.
 

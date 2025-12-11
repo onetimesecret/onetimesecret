@@ -392,20 +392,20 @@ export function useSecretContext() {
       case 'CREATOR':
         return {
           showBurnControl: true,
-          showMarketingUpsell: false,
+          showCapabilitiesUpgrade: false,
           headerAction: 'DASHBOARD_LINK'
         };
       case 'RECIPIENT_AUTH':
         return {
           showBurnControl: false,
-          showMarketingUpsell: false, // Don't upsell existing customers
+          showCapabilitiesUpgrade: false, // Already has an account
           headerAction: 'DASHBOARD_LINK'
         };
       case 'RECIPIENT_ANON':
       default:
         return {
           showBurnControl: false,
-          showMarketingUpsell: true,
+          showCapabilitiesUpgrade: true,  // Suggest an account
           headerAction: 'SIGNUP_CTA'
         };
     }
@@ -429,7 +429,7 @@ Now, our component (in Level 1) is dumb. It asks the Matrix (Level 2) what to do
     <!-- The View doesn't ask "Is this an owner?", it asks "Do I show the burn control?" -->
     <BurnButton v-if="uiConfig.showBurnControl" />
 
-    <MarketingFooter v-if="uiConfig.showMarketingUpsell" />
+    <UpgradeFooter v-if="uiConfig.showCapabilitiesUpgrade" />
   </div>
 </template>
 

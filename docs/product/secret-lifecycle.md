@@ -49,7 +49,7 @@ export function useSecretContext() {
   // 3. What controls are allowed? (Permissions)
   const uiPermissions = computed(() => ({
     canBurn: actorRole.value === 'CREATOR',
-    showMarketing: actorRole.value === 'ANON'
+    showUpgradeCTA: actorRole.value === 'ANON'
   }));
 
   return { theme, uiPermissions };

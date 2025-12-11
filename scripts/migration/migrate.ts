@@ -260,7 +260,7 @@ export type ActorRole = 'CREATOR' | 'RECIPIENT_AUTH' | 'RECIPIENT_ANON';
 
 export interface UIConfig {
   showBurnControl: boolean;
-  showMarketingUpsell: boolean;
+  showCapabilitiesUpgrade: boolean;
   headerAction: 'DASHBOARD_LINK' | 'SIGNUP_CTA';
 }
 
@@ -288,20 +288,20 @@ export function useSecretContext() {
       case 'CREATOR':
         return {
           showBurnControl: true,
-          showMarketingUpsell: false,
+          showCapabilitiesUpgrade: false,
           headerAction: 'DASHBOARD_LINK',
         };
       case 'RECIPIENT_AUTH':
         return {
           showBurnControl: false,
-          showMarketingUpsell: false,
+          showCapabilitiesUpgrade: false,
           headerAction: 'DASHBOARD_LINK',
         };
       case 'RECIPIENT_ANON':
       default:
         return {
           showBurnControl: false,
-          showMarketingUpsell: true,
+          showCapabilitiesUpgrade: true,
           headerAction: 'SIGNUP_CTA',
         };
     }
