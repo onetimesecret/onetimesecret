@@ -78,9 +78,9 @@ export const brandSettingschema = z
       .regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color')
       .default('#dc4a22'), // Default to Onetime Secret brand colour
     colour: z.string().optional(),
-    instructions_pre_reveal: z.string().optional(),
-    instructions_reveal: z.string().optional(),
-    instructions_post_reveal: z.string().optional(),
+    instructions_pre_reveal: z.string().nullish(),
+    instructions_reveal: z.string().nullish(),
+    instructions_post_reveal: z.string().nullish(),
     description: z.string().optional(),
     button_text_light: transforms.fromString.boolean.default(false),
     allow_public_homepage: transforms.fromString.boolean.default(false),
