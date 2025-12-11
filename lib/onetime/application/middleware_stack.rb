@@ -130,7 +130,7 @@ module Onetime
 
           builder.use Rack::Parser, parsers: @parsers
           # Add session middleware early in the stack (before other middleware)
-          session_config = Onetime.auth_config.session
+          session_config = Onetime.session_config
 
           builder.use Onetime::Session, {
             secret: session_config['secret'],

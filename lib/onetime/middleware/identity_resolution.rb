@@ -159,7 +159,7 @@ module Onetime
 
         # Check session expiry
         if session['authenticated_at']
-          max_age = Onetime.auth_config.session['expire_after'] || 86_400
+          max_age = Onetime.session_config['expire_after'] || 86_400
           age     = Familia.now.to_i - session['authenticated_at'].to_i
           return no_identity if age >= max_age
         end
@@ -257,7 +257,7 @@ module Onetime
         return false unless session['external_id'] || session['account_id']
 
         # Check session age against configured expiry
-        max_age = Onetime.auth_config.session['expire_after'] || 86_400
+        max_age = Onetime.session_config['expire_after'] || 86_400
         age     = Familia.now.to_i - session['authenticated_at'].to_i
         age < max_age
       end

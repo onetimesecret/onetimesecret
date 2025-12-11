@@ -7,6 +7,7 @@
  */
 
 import { z } from 'zod/v4';
+import { nullableString } from '../shared/primitives';
 
 /**
  * Authentication settings within site configuration
@@ -26,6 +27,21 @@ const siteAuthenticationSchema = z.object({
  */
 const siteSupportSchema = z.object({
   host: z.string().nullable().optional(),
+});
+
+/**
+ * Session configuration
+ *
+ * Controls browser cookie and server-side session behavior.
+ * Moved from auth config as sessions are auth-mode agnostic.
+ */
+const sessionConfigSchema = z.object({
+  secret: nullableString,
+  expire_after: z.number().int().positive().default(86400), // 24 hours
+  key: z.string().default('onetime.session'),
+  secure: z.boolean().default(true),
+  same_site: z.enum(['strict', 'lax', 'none']).default('strict'),
+  httponly: z.boolean().default(true),
 });
 
 /**
@@ -75,7 +91,10 @@ const siteSchema = z.object({
   secret_options: siteSecretOptionsSchema.optional(),
   authentication: siteAuthenticationSchema.optional(),
   support: siteSupportSchema.optional(),
+  session: sessionConfigSchema.optional(),
 });
+
+export type SessionConfig = z.infer<typeof sessionConfigSchema>;
 
 export {
   siteSchema,
@@ -83,4 +102,5 @@ export {
   siteSecretOptionsSchema,
   passphraseSchema,
   passwordGenerationSchema,
+  sessionConfigSchema,
 };

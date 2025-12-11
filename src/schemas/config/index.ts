@@ -97,19 +97,17 @@ export type MutableConfigDetails = import('./config').MutableConfig;
 export {
   authConfigSchema,
   authModeSchema,
-  sessionConfigSchema,
   simpleModeSchema,
   fullModeSchema,
   isAuthConfig,
 } from './auth';
 
-export type {
-  AuthConfig,
-  AuthMode,
-  SessionConfig,
-  SimpleModeConfig,
-  FullModeConfig,
-} from './auth';
+export type { AuthConfig, AuthMode, SimpleModeConfig, FullModeConfig } from './auth';
+
+// NOTE: sessionConfigSchema has been moved to site config (section/site.ts)
+// Re-export from there for backwards compatibility
+export { sessionConfigSchema } from './section/site';
+export type { SessionConfig } from './section/site';
 
 // ============================================================================
 // Logging Configuration (logging.defaults.yaml)

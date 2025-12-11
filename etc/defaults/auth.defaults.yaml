@@ -7,14 +7,8 @@
 # Can be overridden with AUTHENTICATION_MODE environment variable
 mode: <%= ENV['AUTHENTICATION_MODE'] || 'simple' %>
 
-# Shared session configuration (both modes)
-session:
-  secret: <%= ENV['SESSION_SECRET'] %>
-  expire_after: 86400       # 24 hours
-  key: 'onetime.session'    # Unified cookie name
-  secure: <%= ENV['SSL'] == 'true' || false %>
-  same_site: strict
-  httponly: true
+# NOTE: Session configuration has been moved to config.yaml under site.session
+# Session handling is auth-mode agnostic (works with simple or full mode).
 
 # Simple mode settings (Redis-only authentication)
 simple:

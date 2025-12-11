@@ -19,16 +19,9 @@ import { nullableString } from './shared/primitives';
  */
 const authModeSchema = z.enum(['simple', 'full']);
 
-/**
- * Session configuration (shared between simple and full modes)
- */
-const sessionConfigSchema = z.object({
-  secret: nullableString,
-  expire_after: z.number().int().positive().default(86400), // 24 hours
-  key: z.string().default('onetime.session'),
-  secure: z.boolean().default(true),
-  same_site: z.enum(['strict', 'lax', 'none']).default('strict'),
-});
+// NOTE: Session configuration has been moved to src/schemas/config/section/site.ts
+// Session handling is auth-mode agnostic (works with simple or full mode).
+// See: sessionConfigSchema in site.ts
 
 /**
  * Simple mode settings (Redis-only authentication)
@@ -69,27 +62,20 @@ const fullModeSchema = z.object({
  * Complete authentication configuration schema
  *
  * Matches the structure from etc/defaults/auth.defaults.yaml
+ * NOTE: session has been moved to site config (site.session)
  */
 const authConfigSchema = z.object({
   mode: authModeSchema.default('simple'),
-  session: sessionConfigSchema.optional(),
   simple: simpleModeSchema.optional(),
   full: fullModeSchema.optional(),
 });
 
 export type AuthMode = z.infer<typeof authModeSchema>;
-export type SessionConfig = z.infer<typeof sessionConfigSchema>;
 export type SimpleModeConfig = z.infer<typeof simpleModeSchema>;
 export type FullModeConfig = z.infer<typeof fullModeSchema>;
 export type AuthConfig = z.infer<typeof authConfigSchema>;
 
-export {
-  authConfigSchema,
-  authModeSchema,
-  sessionConfigSchema,
-  simpleModeSchema,
-  fullModeSchema,
-};
+export { authConfigSchema, authModeSchema, simpleModeSchema, fullModeSchema };
 
 /**
  * Type guard: Check if auth config is valid

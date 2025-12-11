@@ -45,15 +45,8 @@ module Onetime
       auth_config['simple'] || {}
     end
 
-    # Session configuration
-    def session
-      session_config = auth_config['session'] || {}
-
-      # Apply environment-specific SSL setting
-      session_config['secure'] = ssl_enabled? if session_config['secure'].nil?
-
-      session_config
-    end
+    # NOTE: Session configuration has been moved to site config (site.session)
+    # Use Onetime.session_config instead of Onetime.auth_config.session
 
     # Full mode database URL
     def database_url
@@ -124,11 +117,6 @@ module Onetime
 
     def auth_config
       @config
-    end
-
-    def ssl_enabled?
-      # Check if SSL is enabled in OT configuration
-      OT.conf&.dig('site', 'ssl') || @environment == 'production'
     end
   end
 
