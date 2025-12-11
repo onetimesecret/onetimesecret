@@ -21,18 +21,19 @@ test.describe('Secret Context - Actor Roles', () => {
     page.setDefaultTimeout(10000);
   });
 
-  test('owner sees warning when viewing own secret', async ({ page, context }) => {
+  test('owner sees warning when viewing own secret', async ({ page, context, baseURL }) => {
     // This test requires:
     // 1. Create a secret as authenticated user
     // 2. View that secret as the creator
     // 3. Verify owner-specific UI elements appear
 
-    // Mock authenticated state
+    // Mock authenticated state - use baseURL from config
+    const cookieDomain = new URL(baseURL || 'http://localhost:3000').hostname;
     await context.addCookies([
       {
         name: 'sess',
         value: 'mock-session-token',
-        domain: new URL(page.url() || 'http://localhost:3000').hostname,
+        domain: cookieDomain,
         path: '/',
       },
     ]);
@@ -154,13 +155,14 @@ test.describe('Secret Context - Actor Roles', () => {
     ).toHaveLength(0);
   });
 
-  test('authenticated recipient sees appropriate UI', async ({ page, context }) => {
-    // Mock authenticated state
+  test('authenticated recipient sees appropriate UI', async ({ page, context, baseURL }) => {
+    // Mock authenticated state - use baseURL from config
+    const cookieDomain = new URL(baseURL || 'http://localhost:3000').hostname;
     await context.addCookies([
       {
         name: 'sess',
         value: 'mock-session-token',
-        domain: new URL(page.url() || 'http://localhost:3000').hostname,
+        domain: cookieDomain,
         path: '/',
       },
     ]);
