@@ -40,33 +40,27 @@ module DomainsAPI::Logic
       end
 
       def success_data
+        # Clear memoized brand_settings to get fresh data after update
+        @custom_domain.instance_variable_set(:@brand_settings, nil)
         {
           user_id: @cust.objid,
-          record: @custom_domain.safe_dump.fetch(:brand, {}),
+          record: @custom_domain.brand_settings.to_h,
           details: {},
         }
       end
 
       # Update the brand settings for the custom domain
-      # These keys are expected to match those listed in
-      # the brand setting schema.
+      # Familia v2 hashkeys auto-serialize via serialize_value, so pass raw values
       def update_brand_settings
-        current_brand = custom_domain.brand || {}
-
-        # Step 1: Remove keys that are nil in the request
+        # Update or remove brand settings - Familia handles JSON serialization automatically
         brand_settings.each do |key, value|
           if value.nil?
             OT.ld "[UpdateDomainBrand] Removing brand setting: #{key}"
-            current_brand.delete(key.to_s)
+            custom_domain.brand.remove(key.to_s)
+          else
+            OT.ld "[UpdateDomainBrand] Updating brand setting: #{key} => #{value} (#{value.class})"
+            custom_domain.brand[key.to_s] = value
           end
-        end
-
-        # Step 2: Update remaining values
-        brand_settings.each do |key, value| # rubocop:disable Style/CombinableLoops
-          next if value.nil?
-
-          OT.ld "[UpdateDomainBrand] Updating brand setting: #{key} => #{value} (#{value.class})"
-          custom_domain.brand[key.to_s] = value.to_s # everything in the database is a string
         end
 
         custom_domain.updated = Familia.now.to_i
