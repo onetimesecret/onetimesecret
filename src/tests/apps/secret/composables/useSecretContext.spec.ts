@@ -50,31 +50,31 @@ describe('useSecretContext', () => {
       expect(actorRole.value).toBe('CREATOR');
     });
 
-    it('returns AUTH_RECIPIENT when authenticated but not owner', () => {
+    it('returns RECIPIENT_AUTH when authenticated but not owner', () => {
       const authStore = useAuthStore();
       authStore.isAuthenticated = true;
 
       const { actorRole } = useSecretContext({ isOwner: false });
 
-      expect(actorRole.value).toBe('AUTH_RECIPIENT');
+      expect(actorRole.value).toBe('RECIPIENT_AUTH');
     });
 
-    it('returns ANON_RECIPIENT when not authenticated', () => {
+    it('returns RECIPIENT_ANON when not authenticated', () => {
       const authStore = useAuthStore();
       authStore.isAuthenticated = false;
 
       const { actorRole } = useSecretContext({ isOwner: false });
 
-      expect(actorRole.value).toBe('ANON_RECIPIENT');
+      expect(actorRole.value).toBe('RECIPIENT_ANON');
     });
 
-    it('defaults to ANON_RECIPIENT when no isOwner option provided', () => {
+    it('defaults to RECIPIENT_ANON when no isOwner option provided', () => {
       const authStore = useAuthStore();
       authStore.isAuthenticated = false;
 
       const { actorRole } = useSecretContext();
 
-      expect(actorRole.value).toBe('ANON_RECIPIENT');
+      expect(actorRole.value).toBe('RECIPIENT_ANON');
     });
 
     it('accepts reactive isOwner ref', () => {
@@ -84,7 +84,7 @@ describe('useSecretContext', () => {
       const isOwnerRef = ref(false);
       const { actorRole } = useSecretContext({ isOwner: isOwnerRef });
 
-      expect(actorRole.value).toBe('AUTH_RECIPIENT');
+      expect(actorRole.value).toBe('RECIPIENT_AUTH');
 
       isOwnerRef.value = true;
       expect(actorRole.value).toBe('CREATOR');
@@ -97,7 +97,7 @@ describe('useSecretContext', () => {
       const ownerRef = ref(false);
       const { actorRole } = useSecretContext({ isOwner: () => ownerRef.value });
 
-      expect(actorRole.value).toBe('AUTH_RECIPIENT');
+      expect(actorRole.value).toBe('RECIPIENT_AUTH');
 
       ownerRef.value = true;
       await nextTick();
@@ -134,7 +134,7 @@ describe('useSecretContext', () => {
     });
   });
 
-  describe('UI Config for AUTH_RECIPIENT', () => {
+  describe('UI Config for RECIPIENT_AUTH', () => {
     it('does not show burn control for authenticated recipients', () => {
       const authStore = useAuthStore();
       authStore.isAuthenticated = true;
@@ -163,7 +163,7 @@ describe('useSecretContext', () => {
     });
   });
 
-  describe('UI Config for ANON_RECIPIENT', () => {
+  describe('UI Config for RECIPIENT_ANON', () => {
     it('does not show burn control for anonymous recipients', () => {
       const authStore = useAuthStore();
       authStore.isAuthenticated = false;
@@ -200,8 +200,8 @@ describe('useSecretContext', () => {
       const isOwnerRef = ref(false);
       const { uiConfig, actorRole } = useSecretContext({ isOwner: isOwnerRef });
 
-      // Initially AUTH_RECIPIENT
-      expect(actorRole.value).toBe('AUTH_RECIPIENT');
+      // Initially RECIPIENT_AUTH
+      expect(actorRole.value).toBe('RECIPIENT_AUTH');
       expect(uiConfig.value.showBurnControl).toBe(false);
       expect(uiConfig.value.headerAction).toBe('DASHBOARD_LINK');
 
@@ -218,13 +218,13 @@ describe('useSecretContext', () => {
 
       const { uiConfig, actorRole } = useSecretContext({ isOwner: false });
 
-      // Initially AUTH_RECIPIENT
-      expect(actorRole.value).toBe('AUTH_RECIPIENT');
+      // Initially RECIPIENT_AUTH
+      expect(actorRole.value).toBe('RECIPIENT_AUTH');
       expect(uiConfig.value.showMarketingUpsell).toBe(false);
 
       // User logs out
       authStore.isAuthenticated = false;
-      expect(actorRole.value).toBe('ANON_RECIPIENT');
+      expect(actorRole.value).toBe('RECIPIENT_ANON');
       expect(uiConfig.value.showMarketingUpsell).toBe(true);
       expect(uiConfig.value.headerAction).toBe('SIGNUP_CTA');
     });

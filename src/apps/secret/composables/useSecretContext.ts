@@ -4,7 +4,7 @@ import { computed, toValue, type MaybeRefOrGetter } from 'vue';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useAuthStore } from '@/shared/stores/authStore';
 
-export type ActorRole = 'CREATOR' | 'AUTH_RECIPIENT' | 'ANON_RECIPIENT';
+export type ActorRole = 'CREATOR' | 'RECIPIENT_AUTH' | 'RECIPIENT_ANON';
 
 export interface UIConfig {
   showBurnControl: boolean;
@@ -25,8 +25,8 @@ export interface SecretContextOptions {
  *
  * Determines what UI elements to show based on who is viewing:
  * - CREATOR: Owner viewing their own secret (can burn, sees dashboard link)
- * - AUTH_RECIPIENT: Logged-in user viewing someone else's secret
- * - ANON_RECIPIENT: Anonymous viewer (sees marketing upsell, signup CTA)
+ * - RECIPIENT_AUTH: Logged-in user viewing someone else's secret
+ * - RECIPIENT_ANON: Anonymous viewer (sees marketing upsell, signup CTA)
  *
  * @example
  * // In a component with access to secret details:
@@ -47,8 +47,8 @@ export function useSecretContext(options: SecretContextOptions = {}) {
 
   const actorRole = computed<ActorRole>(() => {
     if (isOwner.value) return 'CREATOR';
-    if (isAuthenticated.value) return 'AUTH_RECIPIENT';
-    return 'ANON_RECIPIENT';
+    if (isAuthenticated.value) return 'RECIPIENT_AUTH';
+    return 'RECIPIENT_ANON';
   });
 
   const uiConfig = computed<UIConfig>(() => {
@@ -59,13 +59,13 @@ export function useSecretContext(options: SecretContextOptions = {}) {
           showMarketingUpsell: false,
           headerAction: 'DASHBOARD_LINK',
         };
-      case 'AUTH_RECIPIENT':
+      case 'RECIPIENT_AUTH':
         return {
           showBurnControl: false,
           showMarketingUpsell: false,
           headerAction: 'DASHBOARD_LINK',
         };
-      case 'ANON_RECIPIENT':
+      case 'RECIPIENT_ANON':
       default:
         return {
           showBurnControl: false,

@@ -80,7 +80,7 @@ The current architecture organizes code by **Domain Context** (canonical/branded
 ### New (Must Create)
 
 1. **`src/apps/` directory structure** — The foundational restructure
-2. **`useSecretContext()` composable** — Actor role matrix (CREATOR/AUTH_RECIPIENT/ANON_RECIPIENT)
+2. **`useSecretContext()` composable** — Actor role matrix (CREATOR/RECIPIENT_AUTH/RECIPIENT_ANON)
 3. **`useHomepageMode()` composable** — Homepage mode gating (open/internal/external)
 4. **`useSecretLifecycle()` composable** — Secret state FSM
 5. **`traffic-controller.ts`** — Auth flow orchestration

@@ -308,7 +308,7 @@ src/shared/
 
 | File | Purpose |
 |------|---------|
-| `apps/secret/composables/useSecretContext.ts` | Actor role matrix (CREATOR/AUTH_RECIPIENT/ANON_RECIPIENT) → uiConfig |
+| `apps/secret/composables/useSecretContext.ts` | Actor role matrix (CREATOR/RECIPIENT_AUTH/RECIPIENT_ANON) → uiConfig |
 | `apps/secret/composables/useHomepageMode.ts` | Homepage gating (open/internal/external) |
 | `apps/secret/composables/useSecretLifecycle.ts` | Secret FSM (idle → passphrase → ready → revealed → burned) |
 | `apps/session/logic/traffic-controller.ts` | Auth flow orchestration (where to redirect after login/logout) |

@@ -7,8 +7,8 @@ import { test, expect } from '@playwright/test';
  *
  * Tests the different user experiences when viewing secrets:
  * - CREATOR: Owner viewing their own secret (shows warning, burn control)
- * - AUTH_RECIPIENT: Authenticated user viewing someone else's secret
- * - ANON_RECIPIENT: Anonymous user viewing a secret (marketing upsell)
+ * - RECIPIENT_AUTH: Authenticated user viewing someone else's secret
+ * - RECIPIENT_ANON: Anonymous user viewing a secret (marketing upsell)
  *
  * These tests validate that:
  * 1. Owners see appropriate warnings when viewing their own secrets

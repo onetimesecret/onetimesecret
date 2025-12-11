@@ -71,7 +71,7 @@ Tests for `useSecretContext()` composable that determines UI configuration based
 
 ---
 
-### OTS-2114-SC-003: AUTH_RECIPIENT views someone else's secret
+### OTS-2114-SC-003: RECIPIENT_AUTH views someone else's secret
 
 **Priority:** High
 **Severity:** Major
@@ -99,12 +99,12 @@ Tests for `useSecretContext()` composable that determines UI configuration based
 - Account B can view/reveal the secret normally
 
 **Notes:**
-- Tests `actorRole === 'AUTH_RECIPIENT'`
+- Tests `actorRole === 'RECIPIENT_AUTH'`
 - Maps to `uiConfig.showMarketingUpsell === false`
 
 ---
 
-### OTS-2114-SC-004: ANON_RECIPIENT views secret without login
+### OTS-2114-SC-004: RECIPIENT_ANON views secret without login
 
 **Priority:** High
 **Severity:** Major
@@ -131,7 +131,7 @@ Tests for `useSecretContext()` composable that determines UI configuration based
 - Marketing messaging was displayed
 
 **Notes:**
-- Tests `actorRole === 'ANON_RECIPIENT'`
+- Tests `actorRole === 'RECIPIENT_ANON'`
 - Maps to `uiConfig.showMarketingUpsell === true`, `uiConfig.headerAction === 'SIGNUP_CTA'`
 
 ---
