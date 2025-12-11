@@ -63,7 +63,7 @@ module Onetime
     feature :expiration
     feature :relationships
     feature :object_identifier
-    feature :external_identifier, format: 'ur%<id>s'
+    feature :external_identifier, format: 'ur%<id>s' # use builtin extid_lookup index
     feature :required_fields
     feature :increment_field
     feature :counter_fields
@@ -94,8 +94,6 @@ module Onetime
 
     # Organization-scoped indexes
     unique_index :email, :email_index, within: Onetime::Organization
-    unique_index :objid, :objid_index, within: Onetime::Organization
-    unique_index :extid, :extid_index, within: Onetime::Organization
 
     # Participation - bidirectional membership tracking with reverse indexes
     # Organization: org.members gives O(1) access to all members

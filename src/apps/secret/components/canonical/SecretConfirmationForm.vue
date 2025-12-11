@@ -29,10 +29,16 @@
 
   // Determine the primary status message based on record state
   const statusMessage = computed(() => {
-    if (props.record?.verification && !props.record?.has_passphrase) {
+    // Secret has passphrase protection
+    if (props.record?.has_passphrase) {
+      return t('web.shared.requires_passphrase');
+    }
+    // Verification secret (no passphrase)
+    if (props.record?.verification) {
       return t('web.COMMON.click_to_verify');
     }
-    return t('web.shared.your_message_is_ready');
+    // Regular secret without passphrase - just needs confirmation click
+    return t('web.COMMON.click_to_continue');
   });
 
   // Handle form submission
@@ -99,11 +105,6 @@
       <div
         v-if="record?.has_passphrase"
         class="space-y-2">
-        <h2
-          :id="passphraseHeadingId"
-          class="text-lg font-light text-gray-800 dark:text-gray-200">
-          {{ t('web.shared.requires_passphrase') }}
-        </h2>
         <div>
           <label
             :for="passphraseInputId"

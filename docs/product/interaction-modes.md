@@ -382,8 +382,8 @@ export function useSecretContext() {
   // Determine the "Actor" role for this specific transaction
   const actorRole = computed(() => {
     if (isOwner.value) return 'CREATOR';
-    if (isAuthenticated.value) return 'AUTH_RECIPIENT';
-    return 'ANON_RECIPIENT';
+    if (isAuthenticated.value) return 'RECIPIENT_AUTH';
+    return 'RECIPIENT_ANON';
   });
 
   // Determine UI Behavior based on the Matrix
@@ -392,20 +392,20 @@ export function useSecretContext() {
       case 'CREATOR':
         return {
           showBurnControl: true,
-          showMarketingUpsell: false,
+          showCapabilitiesUpgrade: false,
           headerAction: 'DASHBOARD_LINK'
         };
-      case 'AUTH_RECIPIENT':
+      case 'RECIPIENT_AUTH':
         return {
           showBurnControl: false,
-          showMarketingUpsell: false, // Don't upsell existing customers
+          showCapabilitiesUpgrade: false, // Already has an account
           headerAction: 'DASHBOARD_LINK'
         };
-      case 'ANON_RECIPIENT':
+      case 'RECIPIENT_ANON':
       default:
         return {
           showBurnControl: false,
-          showMarketingUpsell: true,
+          showCapabilitiesUpgrade: true,  // Suggest an account
           headerAction: 'SIGNUP_CTA'
         };
     }
@@ -429,7 +429,7 @@ Now, our component (in Level 1) is dumb. It asks the Matrix (Level 2) what to do
     <!-- The View doesn't ask "Is this an owner?", it asks "Do I show the burn control?" -->
     <BurnButton v-if="uiConfig.showBurnControl" />
 
-    <MarketingFooter v-if="uiConfig.showMarketingUpsell" />
+    <UpgradeFooter v-if="uiConfig.showCapabilitiesUpgrade" />
   </div>
 </template>
 
@@ -703,7 +703,7 @@ An "Incoming Page" is a persistent resource that requires an owner. It needs a v
 
 ### 8. Secret State
 
-Question: The matrix handles CREATOR | AUTH_RECIPIENT | ANON_RECIPIENT, but the secret lifecycle has more states. Should useSecretContext() also ingest secret state, or should that be a separate composable (useSecretLifecycle())?
+Question: The matrix handles CREATOR | RECIPIENT_AUTH | RECIPIENT_ANON, but the secret lifecycle has more states. Should useSecretContext() also ingest secret state, or should that be a separate composable (useSecretLifecycle())?
 
 Answer: Separate them.
 

@@ -65,7 +65,7 @@ module Onetime
     feature :safe_dump_fields
     feature :relationships  # Enable Familia v2 features
     feature :object_identifier  # Auto-generates objid
-    feature :external_identifier, format: 'cd%<id>s'
+    feature :external_identifier, format: 'cd%<id>s' # use builtin extid_lookup index
 
     # NOTE: The dbkey used by older models for values is simply
     # "onetime:customdomain". We'll want to rename those at some point.
@@ -106,7 +106,6 @@ module Onetime
 
     # Global unique indexes
     unique_index :display_domain, :display_domain_index  # Domain can only exist once
-    unique_index :extid, :extid_index                    # External ID is globally unique
 
     @txt_validation_prefix = '_onetime-challenge'
 

@@ -51,19 +51,25 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
   const { wrap } = useAsyncHandler(asyncHandlerOptions);
 
   /**
-   * Creates API payload based on submission type
+   * Creates API payload based on submission type.
+   * Only includes passphrase field if user provided one - omitting the field
+   * entirely signals "no passphrase protection" to the backend.
    */
   const createPayload = (
     type: SubmitType
   ): ConcealPayload | GeneratePayload => {
-    const basePayload = {
+    const basePayload: Record<string, unknown> = {
       kind: type,
       secret: form.secret,
       ttl: form.ttl,
-      passphrase: form.passphrase,
       recipient: form.recipient,
       share_domain: form.share_domain,
     };
+
+    // Only include passphrase if user provided one
+    if (form.passphrase) {
+      basePayload.passphrase = form.passphrase;
+    }
 
     // Add password generation options for generate type
     if (type === 'generate') {

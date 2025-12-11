@@ -1,8 +1,8 @@
 // src/apps/session/routes.ts
 
 /* src/router/auth.routes.ts */
-import DefaultLayout from '@/shared/layouts/TransactionalLayout.vue';
-import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
+import TransactionalLayout from '@/shared/layouts/TransactionalLayout.vue';
+import MinimalLayout from '@/shared/layouts/MinimalLayout.vue';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { RouteRecordRaw } from 'vue-router';
 
@@ -15,7 +15,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.signin',
       requiresAuth: false,
       isAuthRoute: true,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,
@@ -50,7 +50,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       requiresAuth: false,
       isAuthRoute: true,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,
@@ -68,7 +68,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.forgot_password',
       requiresAuth: false,
       isAuthRoute: true,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,
@@ -86,7 +86,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.logout',
       requiresAuth: true,
-      layout: QuietLayout,
+      layout: MinimalLayout,
       layoutProps: {},
     },
     beforeEnter: async () => {
@@ -111,7 +111,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.verify_account',
       requiresAuth: false,
       isAuthRoute: true,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: false,
@@ -129,7 +129,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.mfa_verify',
       requiresAuth: false,
       isAuthRoute: true,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,
@@ -148,7 +148,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.email_login',
       requiresAuth: false,
       isAuthRoute: true,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,
@@ -168,7 +168,7 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.reset_password',
       requiresAuth: false,
       isAuthRoute: true,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,

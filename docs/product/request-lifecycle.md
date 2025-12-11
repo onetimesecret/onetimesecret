@@ -46,7 +46,7 @@ The component (inside the Secret App) accepts the context and **adapts** its pre
        If Canonical: Shows "The #1 way to share secrets..."
        If Custom: Adapts to show nothing, or custom logo
     -->
-    <MarketingHero v-if="uiConfig.showMarketing" />
+    <UpgradeHero v-if="uiConfig.showUpgradeCTA" />
 
     <!--
        The core form is identical for both.

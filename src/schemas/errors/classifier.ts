@@ -113,10 +113,12 @@ export const errorClassifier = {
   },
 
   classifyValidation(error: ZodError): ApplicationError {
-    // Get a more user-friendly message from the ZodError
+    // Get a developer-friendly message from the ZodError
     const formattedMessage = this.formatZodError(error);
 
-    return wrapError(formattedMessage, 'human', 'error', error);
+    // Zod validation errors are technical issues (API/schema mismatch),
+    // not user-caused errors. They should be logged for debugging.
+    return wrapError(formattedMessage, 'technical', 'error', error);
   },
 
   formatZodError(error: ZodError): string {

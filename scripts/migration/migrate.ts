@@ -256,11 +256,11 @@ import { useRoute } from 'vue-router';
 import { useProductIdentity } from '@/stores/identityStore';
 import { useAuthStore } from '@/stores/authStore';
 
-export type ActorRole = 'CREATOR' | 'AUTH_RECIPIENT' | 'ANON_RECIPIENT';
+export type ActorRole = 'CREATOR' | 'RECIPIENT_AUTH' | 'RECIPIENT_ANON';
 
 export interface UIConfig {
   showBurnControl: boolean;
-  showMarketingUpsell: boolean;
+  showCapabilitiesUpgrade: boolean;
   headerAction: 'DASHBOARD_LINK' | 'SIGNUP_CTA';
 }
 
@@ -279,8 +279,8 @@ export function useSecretContext() {
 
   const actorRole = computed<ActorRole>(() => {
     if (isOwner.value) return 'CREATOR';
-    if (isAuthenticated.value) return 'AUTH_RECIPIENT';
-    return 'ANON_RECIPIENT';
+    if (isAuthenticated.value) return 'RECIPIENT_AUTH';
+    return 'RECIPIENT_ANON';
   });
 
   const uiConfig = computed<UIConfig>(() => {
@@ -288,20 +288,20 @@ export function useSecretContext() {
       case 'CREATOR':
         return {
           showBurnControl: true,
-          showMarketingUpsell: false,
+          showCapabilitiesUpgrade: false,
           headerAction: 'DASHBOARD_LINK',
         };
-      case 'AUTH_RECIPIENT':
+      case 'RECIPIENT_AUTH':
         return {
           showBurnControl: false,
-          showMarketingUpsell: false,
+          showCapabilitiesUpgrade: false,
           headerAction: 'DASHBOARD_LINK',
         };
-      case 'ANON_RECIPIENT':
+      case 'RECIPIENT_ANON':
       default:
         return {
           showBurnControl: false,
-          showMarketingUpsell: true,
+          showCapabilitiesUpgrade: true,
           headerAction: 'SIGNUP_CTA',
         };
     }

@@ -3,7 +3,7 @@
 import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
 import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
 import ImprovedLayout from '@/shared/layouts/ManagementLayout.vue';
-import DashboardContainer from '@/apps/workspace/dashboard/DashboardContainer.vue';
+import DashboardMain from '@/apps/workspace/dashboard/DashboardMain.vue';
 import DashboardRecent from '@/apps/workspace/dashboard/DashboardRecent.vue';
 import { RouteRecordRaw } from 'vue-router';
 
@@ -12,7 +12,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/dashboard',
     name: 'Dashboard',
     components: {
-      default: DashboardContainer,
+      default: DashboardMain,
       header: ImprovedHeader,
       footer: ImprovedFooter,
     },

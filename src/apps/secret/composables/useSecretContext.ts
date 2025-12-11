@@ -1,37 +1,60 @@
 // src/apps/secret/composables/useSecretContext.ts
 
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { computed, toValue, type MaybeRefOrGetter } from 'vue';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useAuthStore } from '@/shared/stores/authStore';
-import { WindowService } from '@/services/window.service';
 
-export type ActorRole = 'CREATOR' | 'AUTH_RECIPIENT' | 'ANON_RECIPIENT';
+export type ActorRole = 'CREATOR' | 'RECIPIENT_AUTH' | 'RECIPIENT_ANON';
 
 export interface UIConfig {
   showBurnControl: boolean;
-  showMarketingUpsell: boolean;
+  showCapabilitiesUpgrade: boolean;
   headerAction: 'DASHBOARD_LINK' | 'SIGNUP_CTA';
+  /**
+   * Whether to show creator-specific alerts (warnings/notices).
+   * The composable owns "who sees creator alerts" (role-based).
+   * The component owns "which alert variant" (state-based, e.g., pre/post reveal).
+   */
+  showCreatorAlerts: boolean;
 }
 
-export function useSecretContext() {
-  const route = useRoute();
+export interface SecretContextOptions {
+  /**
+   * Whether the current user owns this secret.
+   * Pass from API response (details.is_owner) for accurate ownership detection.
+   */
+  isOwner?: MaybeRefOrGetter<boolean>;
+}
+
+/**
+ * Provides actor-based UI configuration for secret viewing.
+ *
+ * Determines what UI elements to show based on who is viewing:
+ * - CREATOR: Owner viewing their own secret (can burn, sees dashboard link)
+ * - RECIPIENT_AUTH: Logged-in user viewing someone else's secret
+ * - RECIPIENT_ANON: Anonymous viewer (sees capabilities upgrade, signup CTA)
+ *
+ * @example
+ * // In a component with access to secret details:
+ * const { uiConfig } = useSecretContext({ isOwner: () => details.is_owner });
+ *
+ * // Then use uiConfig for conditional rendering:
+ * // v-if="uiConfig.showBurnControl"
+ * // v-if="uiConfig.showCapabilitiesUpgrade"
+ */
+export function useSecretContext(options: SecretContextOptions = {}) {
   const identity = useProductIdentity();
   const auth = useAuthStore();
 
   const isAuthenticated = computed(() => auth.isAuthenticated === true);
 
-  // Determine if viewer is the creator of this specific secret
-  const isOwner = computed(() => {
-    const creatorId = route.meta?.creatorId as string | undefined;
-    const custid = WindowService.get('custid');
-    return creatorId ? custid === creatorId : false;
-  });
+  // Ownership from API response (details.is_owner) is the source of truth
+  const isOwner = computed(() => toValue(options.isOwner) ?? false);
 
   const actorRole = computed<ActorRole>(() => {
     if (isOwner.value) return 'CREATOR';
-    if (isAuthenticated.value) return 'AUTH_RECIPIENT';
-    return 'ANON_RECIPIENT';
+    if (isAuthenticated.value) return 'RECIPIENT_AUTH';
+    return 'RECIPIENT_ANON';
   });
 
   const uiConfig = computed<UIConfig>(() => {
@@ -39,28 +62,33 @@ export function useSecretContext() {
       case 'CREATOR':
         return {
           showBurnControl: true,
-          showMarketingUpsell: false,
+          showCapabilitiesUpgrade: false,
           headerAction: 'DASHBOARD_LINK',
+          showCreatorAlerts: true,
         };
-      case 'AUTH_RECIPIENT':
+      case 'RECIPIENT_AUTH':
         return {
           showBurnControl: false,
-          showMarketingUpsell: false,
+          showCapabilitiesUpgrade: false,
           headerAction: 'DASHBOARD_LINK',
+          showCreatorAlerts: false,
         };
-      case 'ANON_RECIPIENT':
+      case 'RECIPIENT_ANON':
       default:
         return {
           showBurnControl: false,
-          showMarketingUpsell: true,
+          showCapabilitiesUpgrade: true,
           headerAction: 'SIGNUP_CTA',
+          showCreatorAlerts: false,
         };
     }
   });
 
-  const theme = computed(() => identity.domainStrategy === 'custom'
+  const theme = computed(() =>
+    identity.domainStrategy === 'custom'
       ? { mode: 'branded' as const, colors: identity.brand?.primary_color }
-      : { mode: 'canonical' as const, colors: null });
+      : { mode: 'canonical' as const, colors: null }
+  );
 
   return {
     actorRole,
