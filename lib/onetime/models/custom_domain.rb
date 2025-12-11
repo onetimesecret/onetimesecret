@@ -34,7 +34,7 @@ module Onetime
   #
   # Primary Keys & Identifiers:
   #   - objid - Primary key (UUID), internal
-  #   - extid - External identifier (e.g., dm%<id>s), user-facing
+  #   - extid - External identifier (e.g., cd%<id>s), user-facing
   #
   # As a Foreign Key in other models:
   #   - domain_id (w/ underscore) - Foreign key field, stores the objid value
@@ -304,7 +304,7 @@ module Onetime
     #
     # @return [BrandSettings] Immutable brand settings instance
     def brand_settings
-      BrandSettings.from_hash(brand.hgetall)
+      @brand_settings ||= BrandSettings.from_hash(brand.hgetall)
     end
 
     def allow_public_homepage?
