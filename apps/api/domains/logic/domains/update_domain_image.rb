@@ -14,7 +14,7 @@ module DomainsAPI::Logic
       IMAGE_MIME_TYPES = %w[
         image/jpeg image/png image/gif image/svg+xml image/webp image/bmp image/tiff
       ]
-      MAX_IMAGE_BYTES  = 1 * 1024 * 1024 # 1 MB
+      MAX_IMAGE_BYTES  = 2 * 1024 * 1024 # 1 MB
     end
 
     class UpdateDomainImage < DomainsAPI::Logic::Base
@@ -34,8 +34,16 @@ module DomainsAPI::Logic
         # Strip any leading/trailing whitespace from the extid parameter and set it to an instance variable.
         @extid = params['extid'].to_s.strip
 
+        # Debug: Log what we received
+        OT.ld "[UpdateDomainImage] params keys: #{params.keys.inspect}"
+        OT.ld "[UpdateDomainImage] params['image'] class: #{params['image'].class}"
+        OT.ld "[UpdateDomainImage] params['image']: #{params['image'].inspect.slice(0, 200)}"
+
         # Retrieve the image parameter from the request.
+        # Rack 3's multipart parser returns symbol keys (:tempfile, :filename, :type)
+        # Stringify them to maintain consistent string keys at API boundaries
         @image = params['image']
+        @image = @image.transform_keys(&:to_s) if @image.is_a?(Hash)
 
         # Check if the image parameter is a hash (typical for form uploads).
         if @image.is_a?(Hash) && @image['tempfile']

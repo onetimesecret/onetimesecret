@@ -74,9 +74,8 @@ export const useBrandStore = defineStore('brand', () => {
   async function uploadLogo(domainId: string, file: File) {
     const formData = new FormData();
     formData.append('image', file);
-    const response = await $api.post(`/api/domains/${domainId}/logo`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    // Don't set Content-Type manually - Axios sets it with the correct boundary
+    const response = await $api.post(`/api/domains/${domainId}/logo`, formData);
     const validated = responseSchemas.imageProps.parse(response.data);
     logos.value[domainId] = validated.record;
     return validated.record;
