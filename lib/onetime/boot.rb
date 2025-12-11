@@ -177,6 +177,9 @@ module Onetime
       # Merge user config over defaults
       result = defaults.merge(session)
 
+      # Fallback to site.secret if session secret is not set
+      result['secret'] ||= conf&.dig('site', 'secret')
+
       # Apply SSL fallback if secure not explicitly set
       result['secure'] = ssl_enabled? if result['secure'].nil?
 
