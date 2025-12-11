@@ -11,7 +11,7 @@ Each app represents a distinct user interaction mode:
 ```
 apps/
 ├── secret/              # Transactional: creating and revealing secrets
-│   ├── conceal/         # Homepage, secret creation
+│   ├── conceal/         # Homepage, secret creation, incoming secrets
 │   ├── reveal/          # ShowSecret, ShowMetadata, Burn
 │   ├── support/         # Feedback forms
 │   ├── components/      # Secret-specific components

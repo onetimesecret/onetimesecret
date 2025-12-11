@@ -1,6 +1,5 @@
 // src/router/layout.config.ts
 
-//
 // Shared layout configuration for route definitions.
 // Centralizes layout props to reduce duplication and ensure consistency.
 
