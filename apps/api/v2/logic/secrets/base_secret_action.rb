@@ -109,7 +109,11 @@ module V2::Logic
       end
 
       def process_passphrase
-        @passphrase = payload['passphrase'].to_s
+        # Only set passphrase if the field is explicitly provided in payload.
+        # If key is missing → nil (no passphrase protection)
+        # If key is present with any value (including "") → use that value
+        # Frontend should omit the field entirely when no passphrase is desired.
+        @passphrase = payload.key?('passphrase') ? payload['passphrase'].to_s : nil
       end
 
       def process_recipient
