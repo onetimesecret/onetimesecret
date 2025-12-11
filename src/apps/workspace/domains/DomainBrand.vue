@@ -193,6 +193,7 @@
 
           <!-- Recipient Preview -->
           <BrowserPreviewFrame
+            v-if="displayDomain"
             :domain="displayDomain"
             :browser-type="browserType"
             @toggle-browser="toggleBrowser"
