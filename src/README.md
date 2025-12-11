@@ -32,6 +32,49 @@ apps/
     └── views/           # Admin pages
 ```
 
+### Actor & Role Systems
+
+The frontend uses distinct role systems at different levels:
+
+#### Transaction Roles (Secret App)
+
+The `useSecretContext` composable resolves who is viewing a specific secret:
+
+| Role | Description | UI Behavior |
+|------|-------------|-------------|
+| `CREATOR` | Owner viewing their own secret | Dashboard link, burn control |
+| `AUTH_RECIPIENT` | Logged-in user viewing another's secret | Dashboard link, no upsell |
+| `ANON_RECIPIENT` | Anonymous visitor | Signup CTA, marketing upsell |
+
+The asymmetry is intentional: `CREATOR` is singular because creating a secret is a singular act—auth state is handled at the customer level. Recipients have variants because the receiving experience legitimately differs based on auth state.
+
+#### Team/Organization Roles (Workspace App)
+
+`TeamRole` and `OrganizationRole` control permissions within groups:
+
+| Role | Description |
+|------|-------------|
+| `OWNER` | Full control, can delete team/org |
+| `ADMIN` | Management permissions, can manage members |
+| `MEMBER` | Standard access |
+
+#### Account Roles (Customer Level)
+
+`CustomerRole` defines the account type system-wide:
+
+| Role | Description |
+|------|-------------|
+| `CUSTOMER` | Regular authenticated user |
+| `COLONEL` | System administrator (grants access to `/colonel/*`) |
+| `RECIPIENT` | Recipient-only account (limited capabilities) |
+| `USER_DELETED_SELF` | Soft-deleted account |
+
+#### Colonel App Access
+
+The colonel (admin) app is gated by `CustomerRole.COLONEL`—only users with this account role can access admin routes.
+
+See `docs/product/interaction-modes.md` for the full architectural design.
+
 ### Shared Resources (`src/shared/`)
 
 Cross-app shared resources:
