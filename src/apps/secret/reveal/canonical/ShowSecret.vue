@@ -86,11 +86,12 @@
       </div>
     </template>
 
-    <!-- Alerts slot -->
-    <template #alerts="{ record, isOwner, showSecret }">
+    <!-- Alerts slot - uses actorRole from useSecretContext for owner checks -->
+    <template #alerts="{ record, actorRole, showSecret }">
       <template v-if="!record.verification">
+        <!-- Warning shown to creator before revealing their own secret -->
         <div
-          v-if="isOwner && !showSecret"
+          v-if="actorRole === 'CREATOR' && !showSecret"
           class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4 text-amber-700
             dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
           role="alert"
@@ -108,8 +109,9 @@
           {{ t('web.shared.you_created_this_secret') }}
         </div>
 
+        <!-- Notice shown to creator after viewing their own secret -->
         <div
-          v-if="isOwner && showSecret"
+          v-if="actorRole === 'CREATOR' && showSecret"
           class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4 text-brand-700
             dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
           role="alert"

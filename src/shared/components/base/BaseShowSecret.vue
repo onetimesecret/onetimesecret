@@ -9,7 +9,7 @@
    * @slot header - Page header content (logos, titles, etc)
    * @slot loading - Loading indicator while fetching secret
    * @slot error - Error display when something goes wrong
-   * @slot alerts - Warning/notification alerts for secret owners
+   * @slot alerts - Warning/notification alerts for secret owners (includes uiConfig)
    * @slot confirmation - Secret confirmation form and related content
    * @slot reveal - Secret display content when revealed
    * @slot onboarding - Additional content shown during confirmation (e.g., marketing)
@@ -19,6 +19,7 @@
 
   import SecretSkeleton from '@/shared/components/closet/SecretSkeleton.vue';
   import { useSecret } from '@/shared/composables/useSecret';
+  import { useSecretContext } from '@/apps/secret/composables/useSecretContext';
   import { onMounted } from 'vue';
   import { onBeforeRouteUpdate } from 'vue-router';
 
@@ -36,6 +37,11 @@
   const props = defineProps<Props>();
 
   const { record, details, state, load, reveal } = useSecret(props.secretIdentifier);
+
+  // Actor-based UI configuration derived from auth state and ownership
+  const { uiConfig, actorRole } = useSecretContext({
+    isOwner: () => details.value?.is_owner ?? false,
+  });
 
   const handleUserConfirmed = (passphrase: string) => {
     reveal(passphrase);
@@ -100,7 +106,9 @@
           :record="record"
           :details="details"
           :is-owner="details.is_owner"
-          :show-secret="details.show_secret"></slot>
+          :show-secret="details.show_secret"
+          :ui-config="uiConfig"
+          :actor-role="actorRole"></slot>
 
         <template v-if="!details.show_secret">
           <!-- Confirmation form slot -->
@@ -117,7 +125,8 @@
           <slot
             name="onboarding"
             :record="record"
-            :details="details"></slot>
+            :details="details"
+            :ui-config="uiConfig"></slot>
         </template>
 
         <template v-else>

@@ -1,10 +1,8 @@
 // src/apps/secret/composables/useSecretContext.ts
 
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { computed, toValue, type MaybeRefOrGetter } from 'vue';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useAuthStore } from '@/shared/stores/authStore';
-import { WindowService } from '@/services/window.service';
 
 export type ActorRole = 'CREATOR' | 'AUTH_RECIPIENT' | 'ANON_RECIPIENT';
 
@@ -14,19 +12,38 @@ export interface UIConfig {
   headerAction: 'DASHBOARD_LINK' | 'SIGNUP_CTA';
 }
 
-export function useSecretContext() {
-  const route = useRoute();
+export interface SecretContextOptions {
+  /**
+   * Whether the current user owns this secret.
+   * Pass from API response (details.is_owner) for accurate ownership detection.
+   */
+  isOwner?: MaybeRefOrGetter<boolean>;
+}
+
+/**
+ * Provides actor-based UI configuration for secret viewing.
+ *
+ * Determines what UI elements to show based on who is viewing:
+ * - CREATOR: Owner viewing their own secret (can burn, sees dashboard link)
+ * - AUTH_RECIPIENT: Logged-in user viewing someone else's secret
+ * - ANON_RECIPIENT: Anonymous viewer (sees marketing upsell, signup CTA)
+ *
+ * @example
+ * // In a component with access to secret details:
+ * const { uiConfig } = useSecretContext({ isOwner: () => details.is_owner });
+ *
+ * // Then use uiConfig for conditional rendering:
+ * // v-if="uiConfig.showBurnControl"
+ * // v-if="uiConfig.showMarketingUpsell"
+ */
+export function useSecretContext(options: SecretContextOptions = {}) {
   const identity = useProductIdentity();
   const auth = useAuthStore();
 
   const isAuthenticated = computed(() => auth.isAuthenticated === true);
 
-  // Determine if viewer is the creator of this specific secret
-  const isOwner = computed(() => {
-    const creatorId = route.meta?.creatorId as string | undefined;
-    const custid = WindowService.get('custid');
-    return creatorId ? custid === creatorId : false;
-  });
+  // Ownership from API response (details.is_owner) is the source of truth
+  const isOwner = computed(() => toValue(options.isOwner) ?? false);
 
   const actorRole = computed<ActorRole>(() => {
     if (isOwner.value) return 'CREATOR';
@@ -58,9 +75,11 @@ export function useSecretContext() {
     }
   });
 
-  const theme = computed(() => identity.domainStrategy === 'custom'
+  const theme = computed(() =>
+    identity.domainStrategy === 'custom'
       ? { mode: 'branded' as const, colors: identity.brand?.primary_color }
-      : { mode: 'canonical' as const, colors: null });
+      : { mode: 'canonical' as const, colors: null }
+  );
 
   return {
     actorRole,
