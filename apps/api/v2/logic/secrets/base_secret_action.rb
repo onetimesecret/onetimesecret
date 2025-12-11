@@ -109,10 +109,15 @@ module V2::Logic
       end
 
       def process_passphrase
-        # Only set passphrase if the field is explicitly provided in payload.
-        # If key is missing → nil (no passphrase protection)
-        # If key is present with any value (including "") → use that value
-        # Frontend should omit the field entirely when no passphrase is desired.
+        # API Contract: Key presence determines intent.
+        #   - Key missing → no passphrase protection (nil)
+        #   - Key present → use value as-is (including empty string)
+        #
+        # The backend honors exactly what the client sends without guessing intent.
+        # "If you send this key, I use its value" - predictable and explicit.
+        #
+        # UX concerns (e.g., preventing accidental empty-passphrase secrets) are
+        # the client's responsibility. The API layer remains value-neutral.
         @passphrase = payload.key?('passphrase') ? payload['passphrase'].to_s : nil
       end
 
