@@ -75,6 +75,7 @@ jobs:
       frontend: ${{ steps.compute.outputs.frontend }}
       oci: ${{ steps.compute.outputs.oci }}
       ga_workflow_files: ${{ steps.compute.outputs.ga_workflow_files }}
+      test-paths: ${{ steps.load-config.outputs.test-paths }}
     steps:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
@@ -176,6 +177,14 @@ jobs:
             echo "oci=${{ steps.filter.outputs.oci }}" >> $GITHUB_OUTPUT
             echo "ga_workflow_files=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Load test paths config
+        id: load-config
+        run: |
+          # Test paths are defined in .github/ci-test-paths.json
+          # Edit that file to add/modify test directories for each job
+          CONFIG=$(cat .github/ci-test-paths.json | jq -c '.')
+          echo "test-paths=$CONFIG" >> $GITHUB_OUTPUT
 
       - name: Generate job summary
         run: |
@@ -304,8 +313,8 @@ jobs:
         with:
           test-type: unit
           auth-mode: simple
-          tryouts-paths: 'try/unit try/system'
-          rspec-paths: 'spec/onetime spec/lib spec/api spec/cli'
+          tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-unit.tryouts-paths }}
+          rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-unit.rspec-paths }}
           results-file: 'rspec_unit_results.json'
           debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
@@ -363,8 +372,8 @@ jobs:
           test-type: integration
           auth-mode: simple
           rspec-tag: simple_auth_mode
-          rspec-paths: 'spec/integration'
-          tryouts-paths: 'try/integration/middleware try/integration/boot try/integration/web try/integration/api try/integration/email try/integration/billing try/integration/homepage_bypass_header_integration_try.rb try/integration/homepage_mode_integration_try.rb'
+          rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-simple.rspec-paths }}
+          tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-simple.tryouts-paths }}
           results-file: 'rspec_simple_results.json'
 
   ruby-integration-full:
@@ -391,7 +400,8 @@ jobs:
           auth-mode: full
           auth-database-url: 'sqlite::memory:'
           rspec-tag: full_auth_mode
-          rspec-paths: 'spec/integration'
+          rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full.rspec-paths }}
+          tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full.tryouts-paths }}
           results-file: 'rspec_full_results.json'
 
   ruby-integration-disabled:
@@ -417,7 +427,8 @@ jobs:
           test-type: integration
           auth-mode: disabled
           rspec-tag: disabled_auth_mode
-          rspec-paths: 'spec/integration'
+          rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-disabled.rspec-paths }}
+          tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-disabled.tryouts-paths }}
           results-file: 'rspec_disabled_results.json'
 
   # ============================================================================
@@ -515,3 +526,159 @@ jobs:
         run: |
           docker stop onetime-test-container || true
           docker rm onetime-test-container || true
+
+  # ============================================================================
+  # TIER 5: CI METRICS VALIDATION (runs last)
+  # ============================================================================
+
+  ci-metrics:
+    name: CI Metrics
+    runs-on: *runs-on
+    timeout-minutes: 2
+    # List ALL jobs to ensure this runs last (after all complete/skip/fail)
+    needs:
+      - changes
+      - ruby-lint
+      - typescript-lint
+      - build-assets
+      - ruby-unit
+      - typescript-unit
+      - ruby-integration-simple
+      - ruby-integration-full
+      - ruby-integration-disabled
+      - check-oci-image
+    # always() ensures this runs even if some jobs failed/skipped
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Fetch tier completion times from GitHub API
+        id: timing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # gh CLI is pre-installed on GitHub-hosted runners
+          # GH_TOKEN provides authentication for API calls
+
+          # Fetch workflow run start time (github.run_started_at doesn't exist in context)
+          WORKFLOW_START=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}" --jq '.run_started_at' 2>/dev/null)
+          if [ -z "$WORKFLOW_START" ]; then
+            echo "::warning::Failed to fetch workflow start time from API"
+          fi
+          echo "workflow_start=$WORKFLOW_START" >> $GITHUB_OUTPUT
+
+          # Fetch job data for current workflow run
+          if ! JOBS_JSON=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" --jq '.jobs' 2>/dev/null); then
+            echo "::warning::Failed to fetch job data from API, metrics will show N/A"
+            echo "tier1=" >> $GITHUB_OUTPUT
+            echo "tier2=" >> $GITHUB_OUTPUT
+            echo "tier3=" >> $GITHUB_OUTPUT
+            echo "tier4=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Validate expected job names exist (warns if job names change)
+          EXPECTED_JOBS=(
+            "Ruby Lint"
+            "TypeScript Lint"
+            "Build Frontend Assets"
+            "Ruby Unit Tests"
+            "TypeScript Unit Tests"
+            "Ruby Integration (Simple Mode)"
+            "Ruby Integration (Full Mode)"
+            "Ruby Integration (Disabled Mode)"
+            "Container Validation"
+          )
+          ACTUAL_JOBS=$(echo "$JOBS_JSON" | jq -r '.[].name')
+          for job in "${EXPECTED_JOBS[@]}"; do
+            if ! echo "$ACTUAL_JOBS" | grep -qF "$job"; then
+              echo "::warning::Expected job '$job' not found in workflow. Job names may have changed."
+            fi
+          done
+
+          # Tier 1: Lint & Build - latest completion of all Tier 1 jobs
+          # Jobs: "Ruby Lint", "TypeScript Lint", "Build Frontend Assets"
+          TIER1_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
+            [.[] | select(
+                .name == "Ruby Lint" or
+                .name == "TypeScript Lint" or
+                .name == "Build Frontend Assets"
+              )
+              | select(.completed_at != null) | .completed_at]
+            | sort | last // empty
+          ')
+
+          # Tier 2: Unit Tests - latest completion of all Tier 2 jobs
+          # Jobs: "Ruby Unit Tests", "TypeScript Unit Tests"
+          TIER2_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
+            [.[] | select(
+                .name == "Ruby Unit Tests" or
+                .name == "TypeScript Unit Tests"
+              )
+              | select(.completed_at != null) | .completed_at]
+            | sort | last // empty
+          ')
+
+          # Tier 3: Integration Tests - latest completion of all Tier 3 jobs
+          # Jobs: "Ruby Integration (Simple Mode)", "Ruby Integration (Full Mode)",
+          #       "Ruby Integration (Disabled Mode)"
+          TIER3_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
+            [.[] | select(
+                .name == "Ruby Integration (Simple Mode)" or
+                .name == "Ruby Integration (Full Mode)" or
+                .name == "Ruby Integration (Disabled Mode)"
+              )
+              | select(.completed_at != null) | .completed_at]
+            | sort | last // empty
+          ')
+
+          # Tier 4: Container Validation
+          # Jobs: "Container Validation"
+          TIER4_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
+            [.[] | select(.name == "Container Validation")
+              | select(.completed_at != null) | .completed_at]
+            | first // empty
+          ')
+
+          echo "::debug::Tier 1 complete: $TIER1_COMPLETE"
+          echo "::debug::Tier 2 complete: $TIER2_COMPLETE"
+          echo "::debug::Tier 3 complete: $TIER3_COMPLETE"
+          echo "::debug::Tier 4 complete: $TIER4_COMPLETE"
+
+          echo "tier1=$TIER1_COMPLETE" >> $GITHUB_OUTPUT
+          echo "tier2=$TIER2_COMPLETE" >> $GITHUB_OUTPUT
+          echo "tier3=$TIER3_COMPLETE" >> $GITHUB_OUTPUT
+          echo "tier4=$TIER4_COMPLETE" >> $GITHUB_OUTPUT
+
+      - name: Check CI metrics
+        uses: ./.github/actions/check-ci-metrics
+        with:
+          workflow-start-time: ${{ steps.timing.outputs.workflow_start }}
+          tier1-complete-time: ${{ steps.timing.outputs.tier1 }}
+          tier2-complete-time: ${{ steps.timing.outputs.tier2 }}
+          tier3-complete-time: ${{ steps.timing.outputs.tier3 }}
+          tier4-complete-time: ${{ steps.timing.outputs.tier4 }}
+          # Override targets here if needed (defaults in action.yml):
+          # target-tier1: '60'
+          # target-tier2: '120'
+          # target-tier3: '210'
+          # target-tier4: '400'
+
+      - name: Report job outcomes
+        run: |
+          echo "## Job Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Detect Changes | ${{ needs.changes.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Lint | ${{ needs.ruby-lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript Lint | ${{ needs.typescript-lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build Assets | ${{ needs.build-assets.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Unit | ${{ needs.ruby-unit.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript Unit | ${{ needs.typescript-unit.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Simple) | ${{ needs.ruby-integration-simple.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Full) | ${{ needs.ruby-integration-full.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Disabled) | ${{ needs.ruby-integration-disabled.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Container Validation | ${{ needs.check-oci-image.result }} |" >> $GITHUB_STEP_SUMMARY
