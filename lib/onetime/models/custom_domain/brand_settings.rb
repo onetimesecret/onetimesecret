@@ -25,9 +25,15 @@ module Onetime
         font_family: 'sans',
         corner_style: 'rounded',
         primary_color: '#dc4a22',
+        locale: 'en',
+        button_text_light: false,
+        allow_public_homepage: false,
+        allow_public_api: false,
       }.freeze
 
-      FONTS = %w[sans serif mono].freeze
+      BOOLEAN_FIELDS = %w[allow_public_homepage allow_public_api button_text_light].freeze
+
+      FONTS   = %w[sans serif mono].freeze
       CORNERS = %w[rounded square pill].freeze
     end
 
@@ -42,12 +48,13 @@ module Onetime
       :corner_style,
       :allow_public_homepage,
       :allow_public_api,
-      :locale
+      :locale,
     ) do
       include BrandSettingsConstants
 
       # Creates a BrandSettings instance from a hash, applying defaults.
       # All unspecified members default to nil except those in DEFAULTS.
+      # Coerces string "true"/"false" to booleans for boolean fields.
       #
       # @param hash [Hash, nil] Input hash with string or symbol keys
       # @return [BrandSettings] New immutable instance
@@ -55,9 +62,27 @@ module Onetime
         hash ||= {}
         normalized = hash.transform_keys(&:to_sym).slice(*members)
 
+        # Coerce boolean fields from strings to actual booleans
+        BrandSettingsConstants::BOOLEAN_FIELDS.each do |field|
+          field_sym = field.to_sym
+          next unless normalized.key?(field_sym)
+
+          normalized[field_sym] = coerce_boolean(normalized[field_sym])
+        end
+
         # Build full hash with nil defaults for all members, then apply DEFAULTS, then user values
         all_nil = members.each_with_object({}) { |m, h| h[m] = nil }
-        new(**all_nil.merge(BrandSettingsConstants::DEFAULTS).merge(normalized))
+        new(**all_nil, **BrandSettingsConstants::DEFAULTS, **normalized)
+      end
+
+      # Coerces a value to boolean
+      # @param value [Object] Value to coerce
+      # @return [Boolean, nil] Coerced boolean or nil
+      def self.coerce_boolean(value)
+        return nil if value.nil?
+        return value if value == true || value == false
+
+        value.to_s == 'true'
       end
 
       # Validates a hex color string.
@@ -103,18 +128,18 @@ module Onetime
 
       # @return [Boolean] Whether public homepage is allowed
       def allow_public_homepage?
-        allow_public_homepage.to_s == 'true'
+        allow_public_homepage == true
       end
 
       # @return [Boolean] Whether public API is allowed
       def allow_public_api?
-        allow_public_api.to_s == 'true'
+        allow_public_api == true
       end
     end
 
     # Re-export constants at BrandSettings level for convenient access
     BrandSettings::DEFAULTS = BrandSettingsConstants::DEFAULTS
-    BrandSettings::FONTS = BrandSettingsConstants::FONTS
-    BrandSettings::CORNERS = BrandSettingsConstants::CORNERS
+    BrandSettings::FONTS    = BrandSettingsConstants::FONTS
+    BrandSettings::CORNERS  = BrandSettingsConstants::CORNERS
   end
 end
