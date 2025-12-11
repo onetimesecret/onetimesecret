@@ -10,6 +10,7 @@
   import DashboardEmpty from './DashboardEmpty.vue';
   import DashboardIndex from './DashboardIndex.vue';
   import SingleTeamDashboard from './SingleTeamDashboard.vue';
+  import DashboardSkeleton from './DashboardSkeleton.vue';
 
   const { t } = useI18n();
 
@@ -57,19 +58,17 @@
       </button>
     </div>
 
+    <!-- Loading skeleton - shows placeholder while teams fetch -->
+    <DashboardSkeleton v-else-if="variant === 'loading'" />
+
     <!-- Normal dashboard variants rendered inline -->
     <Transition
       v-else
       name="dashboard-fade"
       mode="out-in">
-      <!-- Loading state shows basic dashboard to avoid flash -->
-      <DashboardBasic
-        v-if="variant === 'loading'"
-        :key="transitionKey" />
-
       <!-- No team capability: basic dashboard with upgrade prompt -->
       <DashboardBasic
-        v-else-if="variant === 'basic'"
+        v-if="variant === 'basic'"
         :key="transitionKey" />
 
       <!-- Has team capability, no teams yet: onboarding -->
