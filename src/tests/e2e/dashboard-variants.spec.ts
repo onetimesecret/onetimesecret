@@ -40,12 +40,15 @@ test.describe('Dashboard Variants', () => {
     // Wait for page to fully load
     await page.waitForLoadState('networkidle');
 
-    // Filter out known non-critical errors (if any)
+    // Filter out known non-critical errors (dev mode noise)
     const criticalErrors = consoleErrors.filter(
       (error) =>
         !error.includes('Non-Error promise rejection') &&
         !error.includes('Script error') &&
-        !error.includes('favicon')
+        !error.includes('favicon') &&
+        !error.includes('WebSocket') && // Vite HMR in dev mode
+        !error.includes('[vite]') &&
+        !error.includes('hmr')
     );
 
     expect(
@@ -85,7 +88,10 @@ test.describe('Dashboard Variants', () => {
       (error) =>
         !error.includes('Network request failed') &&
         !error.includes('Failed to fetch') &&
-        !error.includes('ERR_FAILED')
+        !error.includes('ERR_FAILED') &&
+        !error.includes('WebSocket') && // Vite HMR in dev mode
+        !error.includes('[vite]') &&
+        !error.includes('hmr')
     );
 
     expect(
@@ -209,7 +215,10 @@ test.describe('Dashboard Variants', () => {
       (error) =>
         !error.includes('500') &&
         !error.includes('Internal server error') &&
-        !error.includes('Network')
+        !error.includes('Network') &&
+        !error.includes('WebSocket') && // Vite HMR in dev mode
+        !error.includes('[vite]') &&
+        !error.includes('hmr')
     );
 
     expect(

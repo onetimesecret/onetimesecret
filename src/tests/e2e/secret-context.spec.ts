@@ -85,7 +85,7 @@ test.describe('Secret Context - Actor Roles', () => {
 
     const criticalErrors = consoleErrors.filter(
       (error) =>
-        !error.includes('Non-Error promise rejection') && !error.includes('Script error')
+        !error.includes('Non-Error promise rejection') && !error.includes('Script error') && !error.includes('WebSocket') && !error.includes('[vite]') && !error.includes('hmr')
     );
 
     expect(
@@ -145,7 +145,7 @@ test.describe('Secret Context - Actor Roles', () => {
 
     const criticalErrors = consoleErrors.filter(
       (error) =>
-        !error.includes('Non-Error promise rejection') && !error.includes('Script error')
+        !error.includes('Non-Error promise rejection') && !error.includes('Script error') && !error.includes('WebSocket') && !error.includes('[vite]') && !error.includes('hmr')
     );
 
     expect(
@@ -211,7 +211,7 @@ test.describe('Secret Context - Actor Roles', () => {
 
     const criticalErrors = consoleErrors.filter(
       (error) =>
-        !error.includes('Non-Error promise rejection') && !error.includes('Script error')
+        !error.includes('Non-Error promise rejection') && !error.includes('Script error') && !error.includes('WebSocket') && !error.includes('[vite]') && !error.includes('hmr')
     );
 
     expect(
@@ -264,7 +264,7 @@ test.describe('Secret Context - Actor Roles', () => {
 
     const criticalErrors = consoleErrors.filter(
       (error) =>
-        !error.includes('Non-Error promise rejection') && !error.includes('Script error')
+        !error.includes('Non-Error promise rejection') && !error.includes('Script error') && !error.includes('WebSocket') && !error.includes('[vite]') && !error.includes('hmr')
     );
 
     expect(
@@ -364,7 +364,7 @@ test.describe('Secret Context - Actor Roles', () => {
 
     const criticalErrors = consoleErrors.filter(
       (error) =>
-        !error.includes('Non-Error promise rejection') && !error.includes('Script error')
+        !error.includes('Non-Error promise rejection') && !error.includes('Script error') && !error.includes('WebSocket') && !error.includes('[vite]') && !error.includes('hmr')
     );
 
     expect(
