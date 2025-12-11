@@ -7,30 +7,28 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 // App-specific routes
 import colonelRoutes from '@/apps/colonel/routes';
-import incomingRoutes from '@/apps/secret/routes/incoming';
-import metadataRoutes from '@/apps/secret/routes/metadata';
-import secretRoutes from '@/apps/secret/routes/secret';
-import authRoutes from '@/apps/session/routes';
-import accountRoutes from '@/apps/workspace/routes/account';
-import billingRoutes from '@/apps/workspace/routes/billing';
-import dashboardRoutes from '@/apps/workspace/routes/dashboard';
-import teamsRoutes from '@/apps/workspace/routes/teams';
+import secretRoutes from '@/apps/secret/routes';
+import sessionRoutes from '@/apps/session/routes';
+import workspaceRoutes from '@/apps/workspace/routes';
 
 // Cross-cutting routes
 import publicRoutes from './public.routes';
 
-const routes: RouteRecordRaw[] = [
-  ...publicRoutes,
-  ...metadataRoutes,
-  ...secretRoutes,
-  ...incomingRoutes,
-  ...authRoutes,
-  ...dashboardRoutes,
-  ...accountRoutes,
-  ...billingRoutes,
-  ...teamsRoutes,
-  ...colonelRoutes,
-];
+/**
+ * Route loading order - determines precedence for route matching.
+ * More specific routes should come before catch-all patterns.
+ */
+const routeOrder = ['public', 'session', 'secret', 'workspace', 'colonel'] as const;
+
+const routeMap: Record<(typeof routeOrder)[number], RouteRecordRaw[]> = {
+  public: publicRoutes,
+  session: sessionRoutes,
+  secret: secretRoutes,
+  workspace: workspaceRoutes,
+  colonel: colonelRoutes,
+};
+
+const routes: RouteRecordRaw[] = routeOrder.flatMap((key) => routeMap[key]);
 
 /**
  * Creates and configures the Vue Router instance.
