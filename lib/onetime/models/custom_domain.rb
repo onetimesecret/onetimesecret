@@ -20,7 +20,7 @@ module Onetime
   # domain, sometimes the part that is directly after the "dot" symbol. For
   # example, mozilla.org, the .org portion is the tld.
   #
-  # `sld` = Second lev'el domain, a domain that is directly below a top-level
+  # `sld` = Second level domain, a domain that is directly below a top-level
   # domain. For example, in https://www.mozilla.org/en-US/, mozilla is the
   # second-level domain of the .org tld.
   #
@@ -34,10 +34,10 @@ module Onetime
   #
   # Primary Keys & Identifiers:
   #   - objid - Primary key (UUID), internal
-  #   - extid - External identifier (e.g., dm%<id>s), user-facing
+  #   - extid - External identifier (e.g., cd%<id>s), user-facing
   #
-  # Foreign Keys:
-  #   - domain_id (underscore) - Foreign key field, stores the objid value
+  # As a Foreign Key in other models:
+  #   - domain_id (w/ underscore) - Foreign key field, stores the objid value
   #   - All FK relationships use objid values for indexing
   #
   # API Layer:
@@ -54,8 +54,8 @@ module Onetime
     include Familia::Features::Autoloader
 
     unless defined?(MAX_SUBDOMAIN_DEPTH)
-      MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
-      MAX_TOTAL_LENGTH    = 253   # RFC 1034 section 3.1
+      MAX_SUBDOMAIN_DEPTH = 10  # e.g. a.b.c.d.e.f.g.h.i.j.example.com
+      MAX_TOTAL_LENGTH    = 253 # RFC 1034 section 3.1
     end
 
     using Familia::Refinements::TimeLiterals
@@ -65,7 +65,7 @@ module Onetime
     feature :safe_dump_fields
     feature :relationships  # Enable Familia v2 features
     feature :object_identifier  # Auto-generates objid
-    feature :external_identifier, format: 'dm%<id>s'
+    feature :external_identifier, format: 'cd%<id>s'
 
     # NOTE: The dbkey used by older models for values is simply
     # "onetime:customdomain". We'll want to rename those at some point.
@@ -299,12 +299,20 @@ module Onetime
       dbclient.exists?(dbkey)
     end
 
+    # Returns brand settings as an immutable BrandSettings Data object.
+    # Useful for pattern matching, validation, or when you need the full settings.
+    #
+    # @return [BrandSettings] Immutable brand settings instance
+    def brand_settings
+      @brand_settings ||= BrandSettings.from_hash(brand.hgetall)
+    end
+
     def allow_public_homepage?
-      brand.get('allow_public_homepage').to_s == 'true'
+      brand_settings.allow_public_homepage?
     end
 
     def allow_public_api?
-      brand.get('allow_public_api').to_s == 'true'
+      brand_settings.allow_public_api?
     end
 
     # Validates the format of TXT record host and value used for domain verification.
@@ -747,3 +755,6 @@ module Onetime
     extend ClassMethods
   end
 end
+
+# Load after class definition to avoid superclass mismatch
+require_relative 'custom_domain/brand_settings'

@@ -50,6 +50,11 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
   config.headers['X-CSRF-Token'] = csrfStore.shrimp;
   config.headers['Accept-Language'] = languageStore.getCurrentLocale;
 
+  // For FormData uploads, delete Content-Type so Axios sets it with the boundary
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
+
   return config;
 };
 

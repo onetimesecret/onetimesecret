@@ -42,10 +42,12 @@ export function useBranding(domainId?: string) {
   const logoImage = ref<ImageProps | null>(null);
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
-    notify: (message, severity) => notifications.show(message, severity),
+    notify: (message, severity) => notifications.show(message, severity, 'top'),
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => {
-      if (err.code === 404 || err.code === 422 || err.code === 403) {
+      // Only redirect to NotFound for actual "not found" or "forbidden" errors
+      // 422 is a validation error - show the message, don't navigate away
+      if (err.code === 404 || err.code === 403) {
         return router.push({ name: 'NotFound' });
       }
 
