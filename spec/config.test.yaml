@@ -7,6 +7,12 @@ site:
   # Hardcoded secret for test environment - must not use ENV vars
   # to ensure consistent behavior across CI and local development
   secret: 'SuP0r_53cRU7_t3st_0nly'
+  # Session configuration for tests
+  # secure: false is required for Rack::Test which uses HTTP (not HTTPS)
+  session:
+    secret: 'SuP0r_53cRU7_s3ss10n_0nly'
+    secure: false
+    same_site: lax
   interface:
     # Controls whether the web user interface is available. When disabled, the
     # homepage becomes a basic, readonly page with the logo and a brief
