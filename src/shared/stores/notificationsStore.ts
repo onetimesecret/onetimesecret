@@ -60,7 +60,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const message = ref('');
   const severity = ref<NotificationSeverity>(null);
   const isVisible = ref(false);
-  const position = ref<NotificationPosition>('bottom');
+  const position = ref<NotificationPosition>('top');
   const _initialized = ref(false);
 
   /**
