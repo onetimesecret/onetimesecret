@@ -85,6 +85,7 @@ export const teamSchema = withFeatureFlags(
  */
 export const teamWithRoleSchema = teamSchema.extend({
   current_user_role: teamRoleSchema,
+  is_owner: z.boolean().optional(),
   members: z.array(teamMemberInfoSchema).optional(),
 });
 
