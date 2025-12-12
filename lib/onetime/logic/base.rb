@@ -127,7 +127,7 @@ module Onetime
         warn "[set_info_message] #{caller(1..3)}"
       end
 
-      def set_error_message(_message)
+      def set_error_message(message)
         warn "[set_error_message] REMOVED #{message} via:"
         warn "[set_error_message] #{caller(1..3)}"
       end
