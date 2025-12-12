@@ -119,8 +119,9 @@ module Onetime
             # The host must end with the target (as a proper suffix with dot boundary)
             host == target || host.end_with?(".#{target}")
           rescue PublicSuffix::Error
-            # If parsing fails, fall back to suffix check with dot boundary
-            host.end_with?(".#{target}")
+            # Fail securely: if we can't properly validate domain boundaries,
+            # reject the match rather than falling back to weaker validation
+            false
           end
         end
 
