@@ -35,56 +35,78 @@ module Billing
       File.exist?(catalog_path)
     end
 
-    # Load capabilities from billing.yaml
+    # Load entitlements from billing.yaml
     #
-    # Loads capability definitions from billing configuration.
+    # Loads entitlement definitions from billing configuration.
     # Falls back to billing-plans.yaml for backward compatibility.
     #
-    # @return [Hash] Capability definitions by ID
-    def self.load_capabilities
+    # @return [Hash] Entitlement definitions by ID
+    def self.load_entitlements
       # Try billing.yaml first (new location)
       if billing_config_exists?
         config       = YAML.load_file(billing_config_path)
-        capabilities = config.dig('billing', 'capabilities')
-        return capabilities if capabilities
+        entitlements = config.dig('billing', 'entitlements')
+        return entitlements if entitlements
       end
 
       # Fall back to billing-plans.yaml (old location)
       if catalog_exists?
         catalog = YAML.load_file(catalog_path)
-        return catalog['capabilities'] if catalog['capabilities']
+        return catalog['entitlements'] if catalog['entitlements']
       end
 
-      # No capabilities found
+      # No entitlements found
       {}
     rescue Psych::SyntaxError => ex
-      OT.le "Failed to load capabilities: #{ex.message}"
+      OT.le "Failed to load entitlements: #{ex.message}"
       {}
     end
 
-    # Get capability definition by ID
+    # Get entitlement definition by ID
     #
-    # @param capability_id [String] Capability identifier
-    # @return [Hash, nil] Capability definition or nil
-    def self.get_capability(capability_id)
-      load_capabilities[capability_id.to_s]
+    # @param entitlement_id [String] Entitlement identifier
+    # @return [Hash, nil] Entitlement definition or nil
+    def self.get_entitlement(entitlement_id)
+      load_entitlements[entitlement_id.to_s]
     end
 
-    # Check if capability exists
+    # Check if entitlement exists
     #
-    # @param capability_id [String] Capability identifier
+    # @param entitlement_id [String] Entitlement identifier
     # @return [Boolean]
-    def self.capability_exists?(capability_id)
-      load_capabilities.key?(capability_id.to_s)
+    def self.entitlement_exists?(entitlement_id)
+      load_entitlements.key?(entitlement_id.to_s)
     end
 
-    # Get capabilities by category
+    # Get entitlements by category
     #
-    # @param category [String, Symbol] Capability category
-    # @return [Hash] Capabilities in category
-    def self.capabilities_by_category(category)
-      load_capabilities.select do |_id, cap|
-        cap['category'] == category.to_s
+    # @param category [String, Symbol] Entitlement category
+    # @return [Hash] Entitlements in category
+    def self.entitlements_by_category(category)
+      load_entitlements.select do |_id, ent|
+        ent['category'] == category.to_s
+      end
+    end
+
+    # Get all entitlements grouped by category
+    #
+    # Returns entitlement IDs organized by their category.
+    # Used by the entitlements API endpoint for documentation.
+    #
+    # @return [Hash<String, Array<String>>] Category => entitlement IDs
+    #
+    # @example
+    #   Billing::Config.entitlements_grouped_by_category
+    #   # => {
+    #   #   "core" => ["create_secrets", "view_metadata"],
+    #   #   "collaboration" => ["manage_teams", "manage_members"],
+    #   #   ...
+    #   # }
+    def self.entitlements_grouped_by_category
+      load_entitlements.each_with_object({}) do |(id, definition), grouped|
+        category = definition['category'] || 'uncategorized'
+        grouped[category] ||= []
+        grouped[category] << id
       end
     end
   end

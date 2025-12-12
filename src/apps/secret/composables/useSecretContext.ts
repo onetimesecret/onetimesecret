@@ -8,7 +8,7 @@ export type ActorRole = 'CREATOR' | 'RECIPIENT_AUTH' | 'RECIPIENT_ANON';
 
 export interface UIConfig {
   showBurnControl: boolean;
-  showCapabilitiesUpgrade: boolean;
+  showEntitlementsUpgrade: boolean;
   headerAction: 'DASHBOARD_LINK' | 'SIGNUP_CTA';
   /**
    * Whether to show creator-specific alerts (warnings/notices).
@@ -32,7 +32,7 @@ export interface SecretContextOptions {
  * Determines what UI elements to show based on who is viewing:
  * - CREATOR: Owner viewing their own secret (can burn, sees dashboard link)
  * - RECIPIENT_AUTH: Logged-in user viewing someone else's secret
- * - RECIPIENT_ANON: Anonymous viewer (sees capabilities upgrade, signup CTA)
+ * - RECIPIENT_ANON: Anonymous viewer (sees entitlements upgrade, signup CTA)
  *
  * @example
  * // In a component with access to secret details:
@@ -40,7 +40,7 @@ export interface SecretContextOptions {
  *
  * // Then use uiConfig for conditional rendering:
  * // v-if="uiConfig.showBurnControl"
- * // v-if="uiConfig.showCapabilitiesUpgrade"
+ * // v-if="uiConfig.showEntitlementsUpgrade"
  */
 export function useSecretContext(options: SecretContextOptions = {}) {
   const identity = useProductIdentity();
@@ -62,14 +62,14 @@ export function useSecretContext(options: SecretContextOptions = {}) {
       case 'CREATOR':
         return {
           showBurnControl: true,
-          showCapabilitiesUpgrade: false,
+          showEntitlementsUpgrade: false,
           headerAction: 'DASHBOARD_LINK',
           showCreatorAlerts: true,
         };
       case 'RECIPIENT_AUTH':
         return {
           showBurnControl: false,
-          showCapabilitiesUpgrade: false,
+          showEntitlementsUpgrade: false,
           headerAction: 'DASHBOARD_LINK',
           showCreatorAlerts: false,
         };
@@ -77,7 +77,7 @@ export function useSecretContext(options: SecretContextOptions = {}) {
       default:
         return {
           showBurnControl: false,
-          showCapabilitiesUpgrade: true,
+          showEntitlementsUpgrade: true,
           headerAction: 'SIGNUP_CTA',
           showCreatorAlerts: false,
         };

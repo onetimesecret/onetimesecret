@@ -9,7 +9,7 @@ require_relative '../../cli/products_create_command'
 require_relative '../../cli/products_show_command'
 require_relative '../../cli/products_update_command'
 
-RSpec.describe 'Billing Products CLI Commands', :billing_cli, :stripe_mock, :unit do
+RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
   let(:stripe_client) { Billing::StripeClient.new }
 
   describe Onetime::CLI::BillingProductsCommand do
@@ -156,14 +156,14 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :stripe_mock, :uni
         expect(output).to include('tenancy: multi')
       end
 
-      it 'accepts capabilities option', :unit do
+      it 'accepts entitlements option', :unit do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
-          command.call(name: 'Test Product', capabilities: 'api,teams')
+          command.call(name: 'Test Product', entitlements: 'api,teams')
         end
 
-        expect(output).to include('capabilities: api,teams')
+        expect(output).to include('entitlements: api,teams')
       end
 
       it 'accepts marketing_features option', :unit do
@@ -221,7 +221,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :stripe_mock, :uni
         expect(output).to include('plan_id:')
         expect(output).to include('tier:')
         expect(output).to include('tenancy:')
-        expect(output).to include('capabilities:')
+        expect(output).to include('entitlements:')
         expect(output).to include('limit_teams:')
         expect(output).to include('limit_members_per_team:')
       end
@@ -424,14 +424,14 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :stripe_mock, :uni
         expect(output).to include('tenancy: single')
       end
 
-      it 'updates capabilities', :unit do
+      it 'updates entitlements', :unit do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
-          command.call(product_id: product_id, capabilities: 'api,webhooks')
+          command.call(product_id: product_id, entitlements: 'api,webhooks')
         end
 
-        expect(output).to include('capabilities: api,webhooks')
+        expect(output).to include('entitlements: api,webhooks')
       end
 
       it 'preserves existing metadata not being updated', :code_smell, :integration, :stripe_sandbox_api do
@@ -453,7 +453,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :stripe_mock, :uni
         expect(output).to include('tier:')
         expect(output).to include('region:')
         expect(output).to include('tenancy:')
-        expect(output).to include('capabilities:')
+        expect(output).to include('entitlements:')
         expect(output).to include('created:')
       end
 

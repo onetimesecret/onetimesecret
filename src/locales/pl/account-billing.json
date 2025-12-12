@@ -36,7 +36,7 @@
         "manage_billing_description": "Zaktualizuj informacje płatnicze",
         "no_organizations_title": "Brak organizacji",
         "no_organizations_description": "Utwórz organizację, aby zarządzać rozliczeniami i subskrypcją",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "Tworzenie sekretów",
           "basic_sharing": "Podstawowe udostępnianie",
           "create_team": "Utwórz zespół",

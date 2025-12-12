@@ -136,20 +136,20 @@ export type {
 // ============================================================================
 export {
   BillingConfigSchema,
-  CapabilityCategorySchema,
-  CapabilityDefinitionSchema,
-  getAllCapabilityIds,
-  getCapabilitiesByCategory,
-  getCapabilityById,
-  hasCapability,
+  EntitlementCategorySchema,
+  EntitlementDefinitionSchema,
+  getAllEntitlementIds,
+  getEntitlementsByCategory,
+  getEntitlementById,
+  hasEntitlement,
   isBillingConfig,
 } from './billing';
 
 export type {
   BillingConfig,
-  CapabilityCategory,
-  CapabilityDefinition,
-  CapabilityId,
+  EntitlementCategory,
+  EntitlementDefinition,
+  EntitlementId,
 } from './billing';
 
 // ============================================================================
@@ -179,7 +179,7 @@ export {
   getStripePlans,
   isPlanCatalog,
   limitValueToNumber,
-  planHasCapability,
+  planHasEntitlement,
   shouldCreateStripeProduct,
 } from './billing-plans';
 

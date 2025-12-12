@@ -1,4 +1,4 @@
-# apps/web/billing/spec/controllers/capabilities_controller_spec.rb
+# apps/web/billing/spec/controllers/entitlements_controller_spec.rb
 #
 # frozen_string_literal: true
 
@@ -10,7 +10,7 @@ require 'stripe'
 require_relative '../../application'
 require_relative '../../plan_helpers'
 
-RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandbox_api, :vcr do
+RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandbox_api, :vcr do
   include Rack::Test::Methods
 
   # The Rack application for testing
@@ -23,7 +23,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
   let(:created_organizations) { [] }
 
   let(:customer) do
-    cust = Onetime::Customer.create!(email: "capabilities-test-#{SecureRandom.hex(4)}@example.com")
+    cust = Onetime::Customer.create!(email: "entitlements-test-#{SecureRandom.hex(4)}@example.com")
     created_customers << cust
     cust
   end
@@ -51,46 +51,46 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
     created_customers.each(&:destroy!)
   end
 
-  describe 'GET /billing/api/capabilities' do
-    it 'returns list of all available capabilities', :vcr do
-      get '/billing/api/capabilities'
+  describe 'GET /billing/api/entitlements' do
+    it 'returns list of all available entitlements', :vcr do
+      get '/billing/api/entitlements'
 
       expect(last_response.status).to eq(200)
       expect(last_response.content_type).to include('application/json')
 
       data = JSON.parse(last_response.body)
-      expect(data).to have_key('capabilities')
+      expect(data).to have_key('entitlements')
       expect(data).to have_key('plans')
 
-      # Verify capability categories structure
-      expect(data['capabilities']).to be_a(Hash)
-      expect(data['capabilities']).to have_key('core')
-      expect(data['capabilities']).to have_key('collaboration')
-      expect(data['capabilities']).to have_key('infrastructure')
+      # Verify entitlement categories structure
+      expect(data['entitlements']).to be_a(Hash)
+      expect(data['entitlements']).to have_key('core')
+      expect(data['entitlements']).to have_key('collaboration')
+      expect(data['entitlements']).to have_key('infrastructure')
 
       # Verify plans summary structure
       expect(data['plans']).to be_a(Hash)
       expect(data['plans']['free']).to have_key('name')
-      expect(data['plans']['free']).to have_key('capabilities')
+      expect(data['plans']['free']).to have_key('entitlements')
       expect(data['plans']['free']).to have_key('limits')
     end
 
-    it 'returns capabilities organized by category', :vcr do
-      get '/billing/api/capabilities'
+    it 'returns entitlements organized by category', :vcr do
+      get '/billing/api/entitlements'
 
       data         = JSON.parse(last_response.body)
-      capabilities = data['capabilities']
+      entitlements = data['entitlements']
 
-      # Verify each category contains capabilities
-      expect(capabilities['core']).to be_an(Array)
-      expect(capabilities['collaboration']).to be_an(Array)
-      expect(capabilities['infrastructure']).to be_an(Array)
-      expect(capabilities['support']).to be_an(Array)
-      expect(capabilities['advanced']).to be_an(Array)
+      # Verify each category contains entitlements
+      expect(entitlements['core']).to be_an(Array)
+      expect(entitlements['collaboration']).to be_an(Array)
+      expect(entitlements['infrastructure']).to be_an(Array)
+      expect(entitlements['support']).to be_an(Array)
+      expect(entitlements['advanced']).to be_an(Array)
     end
 
     it 'converts infinity limits to nil in plan summaries', :vcr do
-      get '/billing/api/capabilities'
+      get '/billing/api/entitlements'
 
       data  = JSON.parse(last_response.body)
       plans = data['plans']
@@ -106,29 +106,29 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
     it 'requires authentication', :vcr do
       env 'rack.session', {}
 
-      get '/billing/api/capabilities'
+      get '/billing/api/entitlements'
 
       expect(last_response.status).to eq(401)
     end
 
     it 'handles errors gracefully', :vcr do
-      # Simulate error in capability definitions
-      allow(Billing::PlanHelpers).to receive(:CAPABILITY_CATEGORIES).and_raise(StandardError)
+      # Simulate error in entitlement definitions
+      allow(Billing::Config).to receive(:entitlements_grouped_by_category).and_raise(StandardError)
 
-      get '/billing/api/capabilities'
+      get '/billing/api/entitlements'
 
       expect(last_response.status).to eq(500)
-      expect(last_response.body).to include('Failed to list capabilities')
+      expect(last_response.body).to include('Failed to list entitlements')
     end
   end
 
-  describe 'GET /billing/api/capabilities/:extid' do
-    it 'returns organization capabilities and limits', :vcr do
+  describe 'GET /billing/api/entitlements/:extid' do
+    it 'returns organization entitlements and limits', :vcr do
       # Set a plan for the organization
       organization.planid = 'identity_v1'
       organization.save
 
-      get "/billing/api/capabilities/#{organization.extid}"
+      get "/billing/api/entitlements/#{organization.extid}"
 
       expect(last_response.status).to eq(200)
       expect(last_response.content_type).to include('application/json')
@@ -136,12 +136,12 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
       data = JSON.parse(last_response.body)
       expect(data).to have_key('planid')
       expect(data).to have_key('plan_name')
-      expect(data).to have_key('capabilities')
+      expect(data).to have_key('entitlements')
       expect(data).to have_key('limits')
       expect(data).to have_key('is_legacy')
 
       expect(data['planid']).to eq('identity_v1')
-      expect(data['capabilities']).to be_an(Array)
+      expect(data['entitlements']).to be_an(Array)
       expect(data['limits']).to be_a(Hash)
       expect(data['is_legacy']).to be_in([true, false])
     end
@@ -150,7 +150,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
       organization.planid = 'identity_v1'
       organization.save
 
-      get "/billing/api/capabilities/#{organization.extid}"
+      get "/billing/api/entitlements/#{organization.extid}"
 
       data   = JSON.parse(last_response.body)
       limits = data['limits']
@@ -171,14 +171,14 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
         'external_id' => other_customer.extid,
       }
 
-      get "/billing/api/capabilities/#{organization.extid}"
+      get "/billing/api/entitlements/#{organization.extid}"
 
       expect(last_response.status).to eq(403)
       expect(last_response.body).to include('Access denied')
     end
 
     it 'returns 403 when organization does not exist', :vcr do
-      get '/billing/api/capabilities/nonexistent_org'
+      get '/billing/api/entitlements/nonexistent_org'
 
       expect(last_response.status).to eq(403)
       expect(last_response.body).to include('Organization not found')
@@ -187,7 +187,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
     it 'requires authentication', :vcr do
       env 'rack.session', {}
 
-      get "/billing/api/capabilities/#{organization.extid}"
+      get "/billing/api/entitlements/#{organization.extid}"
 
       expect(last_response.status).to eq(401)
     end
@@ -197,7 +197,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
       organization.planid = nil
       organization.save
 
-      get "/billing/api/capabilities/#{organization.extid}"
+      get "/billing/api/entitlements/#{organization.extid}"
 
       expect(last_response.status).to eq(200)
 
@@ -206,41 +206,41 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
     end
   end
 
-  describe 'GET /billing/api/capabilities/:extid/:capability' do
+  describe 'GET /billing/api/entitlements/:extid/:entitlement' do
     before do
       organization.planid = 'identity_v1'
       organization.save
     end
 
-    it 'returns allowed status for granted capability', :vcr do
-      # identity_v1 has create_secrets capability
-      get "/billing/api/capabilities/#{organization.extid}/create_secrets"
+    it 'returns allowed status for granted entitlement', :vcr do
+      # identity_v1 has create_secrets entitlement
+      get "/billing/api/entitlements/#{organization.extid}/create_secrets"
 
       expect(last_response.status).to eq(200)
       expect(last_response.content_type).to include('application/json')
 
       data = JSON.parse(last_response.body)
       expect(data['allowed']).to be(true)
-      expect(data['capability']).to eq('create_secrets')
+      expect(data['entitlement']).to eq('create_secrets')
       expect(data['current_plan']).to eq('identity_v1')
       expect(data['upgrade_needed']).to be(false)
     end
 
-    it 'returns denied status for missing capability', :vcr do
-      # identity_v1 does not have api_access capability
-      get "/billing/api/capabilities/#{organization.extid}/api_access"
+    it 'returns denied status for missing entitlement', :vcr do
+      # identity_v1 does not have api_access entitlement
+      get "/billing/api/entitlements/#{organization.extid}/api_access"
 
       expect(last_response.status).to eq(200)
 
       data = JSON.parse(last_response.body)
       expect(data['allowed']).to be(false)
-      expect(data['capability']).to eq('api_access')
+      expect(data['entitlement']).to eq('api_access')
       expect(data['current_plan']).to eq('identity_v1')
       expect(data['upgrade_needed']).to be(true)
     end
 
-    it 'includes upgrade information when capability is denied', :vcr do
-      get "/billing/api/capabilities/#{organization.extid}/api_access"
+    it 'includes upgrade information when entitlement is denied', :vcr do
+      get "/billing/api/entitlements/#{organization.extid}/api_access"
 
       data = JSON.parse(last_response.body)
 
@@ -252,21 +252,21 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
       end
     end
 
-    it 'returns 400 when capability parameter is missing', :vcr do
-      get "/billing/api/capabilities/#{organization.extid}/"
+    it 'returns 400 when entitlement parameter is missing', :vcr do
+      get "/billing/api/entitlements/#{organization.extid}/"
 
       expect(last_response.status).to eq(404) # Route not found
     end
 
-    it 'returns 400 when capability parameter is empty', :vcr do
-      get "/billing/api/capabilities/#{organization.extid}/ "
+    it 'returns 400 when entitlement parameter is empty', :vcr do
+      get "/billing/api/entitlements/#{organization.extid}/ "
 
       # Depending on route parsing, may be 400 or 404
       expect(last_response.status).to be >= 400
     end
 
-    it 'handles unknown capability names', :vcr do
-      get "/billing/api/capabilities/#{organization.extid}/nonexistent_capability"
+    it 'handles unknown entitlement names', :vcr do
+      get "/billing/api/entitlements/#{organization.extid}/nonexistent_entitlement"
 
       expect(last_response.status).to eq(200)
 
@@ -284,7 +284,7 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
         'external_id' => other_customer.extid,
       }
 
-      get "/billing/api/capabilities/#{organization.extid}/create_secrets"
+      get "/billing/api/entitlements/#{organization.extid}/create_secrets"
 
       expect(last_response.status).to eq(403)
     end
@@ -292,13 +292,13 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
     it 'requires authentication', :vcr do
       env 'rack.session', {}
 
-      get "/billing/api/capabilities/#{organization.extid}/create_secrets"
+      get "/billing/api/entitlements/#{organization.extid}/create_secrets"
 
       expect(last_response.status).to eq(401)
     end
 
     it 'builds user-friendly upgrade message', :vcr do
-      get "/billing/api/capabilities/#{organization.extid}/api_access"
+      get "/billing/api/entitlements/#{organization.extid}/api_access"
 
       data = JSON.parse(last_response.body)
 
@@ -308,18 +308,18 @@ RSpec.describe 'Billing::Controllers::Capabilities', :integration, :stripe_sandb
       end
     end
 
-    it 'verifies multiple capabilities in sequence', :vcr do
-      capabilities_to_test = %w[create_secrets create_team custom_domains api_access]
+    it 'verifies multiple entitlements in sequence', :vcr do
+      entitlements_to_test = %w[create_secrets create_team custom_domains api_access]
 
-      results = capabilities_to_test.map do |cap|
-        get "/billing/api/capabilities/#{organization.extid}/#{cap}"
+      results = entitlements_to_test.map do |ent|
+        get "/billing/api/entitlements/#{organization.extid}/#{ent}"
         JSON.parse(last_response.body)
       end
 
       # Verify each response has required fields
       results.each do |result|
         expect(result).to have_key('allowed')
-        expect(result).to have_key('capability')
+        expect(result).to have_key('entitlement')
         expect(result).to have_key('current_plan')
         expect(result).to have_key('upgrade_needed')
       end

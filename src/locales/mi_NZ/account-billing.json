@@ -36,7 +36,7 @@
         "manage_billing_description": "Whakahou mōhiohio utu",
         "no_organizations_title": "Kāore He Whakahaere",
         "no_organizations_description": "Waihangahia tētahi whakahaere hei whakahaere i tō utu me te ohaurunga",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "Waihanga Karere Huna",
           "basic_sharing": "Tuari Taketake",
           "create_team": "Waihanga Rōpū",

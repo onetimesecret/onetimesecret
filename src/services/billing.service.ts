@@ -77,7 +77,7 @@ export interface Plan {
   display_order: number;
   features: string[];
   limits: Record<string, number>;
-  capabilities: string[];
+  entitlements: string[];
 }
 
 /**

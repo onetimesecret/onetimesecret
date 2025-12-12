@@ -36,7 +36,7 @@
         "manage_billing_description": "Cập nhật thông tin thanh toán",
         "no_organizations_title": "Không có tổ chức",
         "no_organizations_description": "Tạo tổ chức để quản lý thanh toán và đăng ký của bạn",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "Tạo bí mật",
           "basic_sharing": "Chia sẻ cơ bản",
           "create_team": "Tạo nhóm",

@@ -36,7 +36,7 @@
         "manage_billing_description": "Actualizar información de pago",
         "no_organizations_title": "Sin Organizaciones",
         "no_organizations_description": "Crea una organización para gestionar tu facturación y suscripción",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "Crear Secretos",
           "basic_sharing": "Compartición Básica",
           "create_team": "Crear Equipo",

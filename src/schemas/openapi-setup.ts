@@ -28,7 +28,7 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z as zodOriginal } from 'zod';
 
-// Extend Zod with OpenAPI capabilities
+// Extend Zod with OpenAPI entitlements
 extendZodWithOpenApi(zodOriginal);
 
 // Re-export extended Zod

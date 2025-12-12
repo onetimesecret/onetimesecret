@@ -36,7 +36,7 @@
         "manage_billing_description": "تحديث معلومات الدفع",
         "no_organizations_title": "لا توجد منظمات",
         "no_organizations_description": "أنشئ منظمة لإدارة فوترتك واشتراكك",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "إنشاء أسرار",
           "basic_sharing": "المشاركة الأساسية",
           "create_team": "إنشاء فريق",

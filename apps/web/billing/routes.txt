@@ -31,10 +31,10 @@ GET    /api/org/:extid                           Billing::Controllers::BillingCo
 POST   /api/org/:extid/checkout                  Billing::Controllers::BillingController#create_checkout_session response=json auth=sessionauth
 GET    /api/org/:extid/invoices                  Billing::Controllers::BillingController#list_invoices response=json auth=sessionauth
 
-# Capability checking API endpoints (authenticated only)
-GET    /api/capabilities                         Billing::Controllers::Capabilities#list response=json auth=sessionauth
-GET    /api/capabilities/:extid                  Billing::Controllers::Capabilities#show response=json auth=sessionauth
-GET    /api/capabilities/:extid/:capability      Billing::Controllers::Capabilities#check response=json auth=sessionauth
+# Entitlement checking API endpoints (authenticated only)
+GET    /api/entitlements                         Billing::Controllers::Entitlements#list response=json auth=sessionauth
+GET    /api/entitlements/:extid                  Billing::Controllers::Entitlements#show response=json auth=sessionauth
+GET    /api/entitlements/:extid/:entitlement     Billing::Controllers::Entitlements#check response=json auth=sessionauth
 
 # Billing is a web app so it needs to support its own root paths for
 # the initial server-rendered page loads. e.g. linking directly to

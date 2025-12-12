@@ -4,11 +4,11 @@
 
 require_relative '../../../../try/support/test_helpers'
 
-# Billing Capabilities System Tests
+# Billing Entitlements System Tests
 #
-# Tests capability-based authorization system including:
-# - Organization capability checking (can?)
-# - Capability listing from plan definitions
+# Tests entitlement-based authorization system including:
+# - Organization entitlement checking (can?)
+# - Entitlement listing from plan definitions
 # - Limit checking (limit_for, at_limit?)
 # - Upgrade path recommendations
 # - Plan version support (legacy vs current)
@@ -19,9 +19,9 @@ require 'lib/onetime/models/organization'
 require 'apps/web/billing/plan_helpers'
 require 'apps/web/billing/models/plan'
 
-## Setup: Enable billing for these capability tests
-# The WithCapabilities module returns STANDALONE_CAPABILITIES when billing is disabled.
-# For these tests to validate plan-specific capabilities, we need billing enabled.
+## Setup: Enable billing for these entitlement tests
+# The WithEntitlements module returns STANDALONE_ENTITLEMENTS when billing is disabled.
+# For these tests to validate plan-specific entitlements, we need billing enabled.
 module BillingEnabledForTests
   def billing_enabled?
     true
@@ -40,9 +40,9 @@ Billing::Plan.clear_cache
   interval: 'month',
   region: 'us-east',
 )
-@free_plan.capabilities.add('create_secrets')
-@free_plan.capabilities.add('basic_sharing')
-@free_plan.capabilities.add('view_metadata')
+@free_plan.entitlements.add('create_secrets')
+@free_plan.entitlements.add('basic_sharing')
+@free_plan.entitlements.add('view_metadata')
 @free_plan.limits['secrets_per_day.max'] = '10'
 @free_plan.limits['secret_lifetime.max'] = '604800'
 @free_plan.save
@@ -55,13 +55,13 @@ Billing::Plan.clear_cache
   interval: 'month',
   region: 'us-east',
 )
-@identity_plan.capabilities.add('create_secrets')
-@identity_plan.capabilities.add('basic_sharing')
-@identity_plan.capabilities.add('view_metadata')
-@identity_plan.capabilities.add('create_team')
-@identity_plan.capabilities.add('custom_domains')
-@identity_plan.capabilities.add('priority_support')
-@identity_plan.capabilities.add('extended_lifetime')
+@identity_plan.entitlements.add('create_secrets')
+@identity_plan.entitlements.add('basic_sharing')
+@identity_plan.entitlements.add('view_metadata')
+@identity_plan.entitlements.add('create_team')
+@identity_plan.entitlements.add('custom_domains')
+@identity_plan.entitlements.add('priority_support')
+@identity_plan.entitlements.add('extended_lifetime')
 @identity_plan.limits['teams.max']            = '1'
 @identity_plan.limits['members_per_team.max'] = 'unlimited'
 @identity_plan.limits['custom_domains.max']   = 'unlimited'
@@ -76,16 +76,16 @@ Billing::Plan.clear_cache
   interval: 'month',
   region: 'us-east',
 )
-@multi_plan.capabilities.add('create_secrets')
-@multi_plan.capabilities.add('basic_sharing')
-@multi_plan.capabilities.add('view_metadata')
-@multi_plan.capabilities.add('create_teams')
-@multi_plan.capabilities.add('custom_domains')
-@multi_plan.capabilities.add('api_access')
-@multi_plan.capabilities.add('priority_support')
-@multi_plan.capabilities.add('extended_lifetime')
-@multi_plan.capabilities.add('audit_logs')
-@multi_plan.capabilities.add('advanced_analytics')
+@multi_plan.entitlements.add('create_secrets')
+@multi_plan.entitlements.add('basic_sharing')
+@multi_plan.entitlements.add('view_metadata')
+@multi_plan.entitlements.add('create_teams')
+@multi_plan.entitlements.add('custom_domains')
+@multi_plan.entitlements.add('api_access')
+@multi_plan.entitlements.add('priority_support')
+@multi_plan.entitlements.add('extended_lifetime')
+@multi_plan.entitlements.add('audit_logs')
+@multi_plan.entitlements.add('advanced_analytics')
 @multi_plan.limits['teams.max']            = 'unlimited'
 @multi_plan.limits['members_per_team.max'] = 'unlimited'
 @multi_plan.limits['custom_domains.max']   = 'unlimited'
@@ -100,11 +100,11 @@ Billing::Plan.clear_cache
   interval: 'month',
   region: 'us-east',
 )
-@legacy_plan.capabilities.add('create_secrets')
-@legacy_plan.capabilities.add('basic_sharing')
-@legacy_plan.capabilities.add('view_metadata')
-@legacy_plan.capabilities.add('create_team')
-@legacy_plan.capabilities.add('priority_support')
+@legacy_plan.entitlements.add('create_secrets')
+@legacy_plan.entitlements.add('basic_sharing')
+@legacy_plan.entitlements.add('view_metadata')
+@legacy_plan.entitlements.add('create_team')
+@legacy_plan.entitlements.add('priority_support')
 @legacy_plan.limits['teams.max']            = '1'
 @legacy_plan.limits['members_per_team.max'] = '10'
 @legacy_plan.limits['secret_lifetime.max']  = '1209600'
@@ -159,8 +159,8 @@ Billing::Plan.clear_cache
 @legacy_org.planid
 #=> 'identity_v0'
 
-## Test: Free plan capabilities
-@free_org.capabilities.sort
+## Test: Free plan entitlements
+@free_org.entitlements.sort
 #=> ["basic_sharing", "create_secrets", "view_metadata"]
 
 ## Test: Free plan can create secrets
@@ -255,33 +255,33 @@ Billing::Plan.clear_cache
 @multi_org.at_limit?('teams', 999_999)
 #=> false
 
-## Test: check_capability returns not allowed for missing capability
-@result = @free_org.check_capability('custom_domains')
+## Test: check_entitlement returns not allowed for missing entitlement
+@result = @free_org.check_entitlement('custom_domains')
 @result[:allowed]
 #=> false
 
-## Test: check_capability shows upgrade needed
+## Test: check_entitlement shows upgrade needed
 @result[:upgrade_needed]
 #=> true
 
-## Test: check_capability shows capability name
-@result[:capability]
+## Test: check_entitlement shows entitlement name
+@result[:entitlement]
 #=> "custom_domains"
 
-## Test: check_capability shows current plan
+## Test: check_entitlement shows current plan
 @result[:current_plan]
 #=> "free"
 
-## Test: check_capability includes upgrade path
+## Test: check_entitlement includes upgrade path
 @result[:upgrade_to]
 #=> "identity_v1"
 
-## Test: check_capability for allowed capability shows allowed
-@allowed_result = @identity_org.check_capability('custom_domains')
+## Test: check_entitlement for allowed entitlement shows allowed
+@allowed_result = @identity_org.check_entitlement('custom_domains')
 @allowed_result[:allowed]
 #=> true
 
-## Test: check_capability for allowed shows no upgrade needed
+## Test: check_entitlement for allowed shows no upgrade needed
 @allowed_result[:upgrade_needed]
 #=> false
 
@@ -293,8 +293,8 @@ Billing::PlanHelpers.upgrade_path_for('custom_domains', 'free')
 Billing::PlanHelpers.upgrade_path_for('audit_logs', 'identity_v1')
 #=> "multi_team_v1"
 
-## Test: Upgrade path for nonexistent capability returns nil
-Billing::PlanHelpers.upgrade_path_for('nonexistent_capability', 'free')
+## Test: Upgrade path for nonexistent entitlement returns nil
+Billing::PlanHelpers.upgrade_path_for('nonexistent_entitlement', 'free')
 #=> nil
 
 ## Test: Plan name for free
@@ -325,14 +325,14 @@ Billing::PlanHelpers.available_plans.include?('identity_v1')
 Billing::PlanHelpers.available_plans.include?('identity_v0')
 #=> false
 
-## Test: Fail-safe for nil planid returns empty capabilities
+## Test: Fail-safe for nil planid returns empty entitlements
 @no_plan_org        = Onetime::Organization.new(
   display_name: 'No Plan',
   owner_id: 'cust_test_888',
   contact_email: "noplan-#{@test_suffix}@example.com",
 )
 @no_plan_org.planid = nil
-@no_plan_org.capabilities
+@no_plan_org.entitlements
 #=> []
 
 ## Test: Fail-safe for nil planid denies create_secrets
@@ -343,14 +343,14 @@ Billing::PlanHelpers.available_plans.include?('identity_v0')
 @no_plan_org.limit_for('teams')
 #=> 0
 
-## Test: Fail-safe for empty planid returns empty capabilities
+## Test: Fail-safe for empty planid returns empty entitlements
 @empty_plan_org        = Onetime::Organization.new(
   display_name: 'Empty Plan',
   owner_id: 'cust_test_777',
   contact_email: "empty-#{@test_suffix}@example.com",
 )
 @empty_plan_org.planid = ''
-@empty_plan_org.capabilities
+@empty_plan_org.entitlements
 #=> []
 
 ## Test: New organization defaults to free plan

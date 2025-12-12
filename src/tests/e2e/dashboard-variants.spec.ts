@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 /**
  * E2E tests for dashboard variant behavior
  *
- * Tests the different dashboard states based on team capabilities and count:
+ * Tests the different dashboard states based on team entitlements and count:
  * - Loading state while fetching teams
  * - Error state when team fetch fails
  * - Empty state (0 teams)

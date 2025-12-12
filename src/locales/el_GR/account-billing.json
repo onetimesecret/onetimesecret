@@ -36,7 +36,7 @@
         "manage_billing_description": "",
         "no_organizations_title": "",
         "no_organizations_description": "",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "",
           "basic_sharing": "",
           "create_team": "",

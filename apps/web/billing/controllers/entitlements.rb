@@ -1,26 +1,27 @@
-# apps/web/billing/controllers/capabilities.rb
+# apps/web/billing/controllers/entitlements.rb
 #
 # frozen_string_literal: true
 
 require_relative 'base'
+require_relative '../config'
 
 module Billing
   module Controllers
-    class Capabilities
+    class Entitlements
       include Controllers::Base
 
-      # Get organization capabilities and limits
+      # Get organization entitlements and limits
       #
-      # Returns the organization's plan capabilities and limits for
+      # Returns the organization's plan entitlements and limits for
       # feature availability checks in the frontend.
       #
-      # GET /billing/capabilities/:extid
+      # GET /billing/entitlements/:extid
       #
       # Response:
       #   {
       #     "planid": "identity_plus_v1",
       #     "plan_name": "Identity Plus",
-      #     "capabilities": ["create_secrets", "create_team", "custom_domains"],
+      #     "entitlements": ["create_secrets", "create_team", "custom_domains"],
       #     "limits": {
       #       "teams": 1,
       #       "members_per_team": null,
@@ -29,14 +30,14 @@ module Billing
       #     "is_legacy": false
       #   }
       #
-      # @return [Hash] Capabilities and limits data
+      # @return [Hash] Entitlements and limits data
       def show
         org = load_organization(req.params['extid'])
 
         data = {
           planid: org.planid,
           plan_name: Billing::PlanHelpers.plan_name(org.planid),
-          capabilities: org.capabilities,
+          entitlements: org.entitlements,
           limits: build_limits_hash(org),
           is_legacy: Billing::PlanHelpers.legacy_plan?(org.planid),
         }
@@ -45,24 +46,24 @@ module Billing
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue StandardError => ex
-        billing_logger.error 'Failed to load capabilities', {
+        billing_logger.error 'Failed to load entitlements', {
           exception: ex,
           extid: req.params['extid'],
         }
-        json_error('Failed to load capabilities', status: 500)
+        json_error('Failed to load entitlements', status: 500)
       end
 
-      # Check specific capability for organization
+      # Check specific entitlement for organization
       #
-      # Validates whether the organization has a specific capability,
+      # Validates whether the organization has a specific entitlement,
       # returning upgrade information if not available.
       #
-      # GET /billing/check/:extid/:capability
+      # GET /billing/check/:extid/:entitlement
       #
       # Response (allowed):
       #   {
       #     "allowed": true,
-      #     "capability": "custom_domains",
+      #     "entitlement": "custom_domains",
       #     "current_plan": "identity_plus_v1",
       #     "upgrade_needed": false
       #   }
@@ -70,7 +71,7 @@ module Billing
       # Response (denied):
       #   {
       #     "allowed": false,
-      #     "capability": "api_access",
+      #     "entitlement": "api_access",
       #     "current_plan": "identity_plus_v1",
       #     "upgrade_needed": true,
       #     "upgrade_to": "multi_team_v1",
@@ -78,46 +79,46 @@ module Billing
       #     "message": "This feature requires Multi-Team. Upgrade your plan to access API."
       #   }
       #
-      # @return [Hash] Capability check result
+      # @return [Hash] Entitlement check result
       def check
         org        = load_organization(req.params['extid'])
-        capability = req.params[:capability]
+        entitlement = req.params[:entitlement]
 
-        if capability.to_s.empty?
-          return json_error('Capability parameter required', status: 400)
+        if entitlement.to_s.empty?
+          return json_error('Entitlement parameter required', status: 400)
         end
 
-        # Use organization's check_capability method
-        result = org.check_capability(capability)
+        # Use organization's check_entitlement method
+        result = org.check_entitlement(entitlement)
 
         # Enhance with upgrade messaging if needed
         if result[:upgrade_needed] && result[:upgrade_to]
           result[:upgrade_plan_name] = Billing::PlanHelpers.plan_name(result[:upgrade_to])
-          result[:message]           = build_upgrade_message(capability, result[:upgrade_to])
+          result[:message]           = build_upgrade_message(entitlement, result[:upgrade_to])
         end
 
         json_response(result)
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue StandardError => ex
-        billing_logger.error 'Failed capability check', {
+        billing_logger.error 'Failed entitlement check', {
           exception: ex,
           extid: req.params['extid'],
-          capability: req.params[:capability],
+          entitlement: req.params[:entitlement],
         }
-        json_error('Failed to check capability', status: 500)
+        json_error('Failed to check entitlement', status: 500)
       end
 
-      # List all available capabilities
+      # List all available entitlements
       #
-      # Returns a reference list of all defined capabilities with descriptions.
+      # Returns a reference list of all defined entitlements with descriptions.
       # Useful for documentation and feature discovery.
       #
-      # GET /billing/capabilities
+      # GET /billing/entitlements
       #
       # Response:
       #   {
-      #     "capabilities": {
+      #     "entitlements": {
       #       "core": ["create_secrets", "basic_sharing", "view_metadata"],
       #       "collaboration": ["create_team", "create_teams"],
       #       "infrastructure": ["custom_domains", "api_access"],
@@ -131,19 +132,19 @@ module Billing
       #     }
       #   }
       #
-      # @return [Hash] Capability reference data
+      # @return [Hash] Entitlement reference data
       def list
         data = {
-          capabilities: Billing::PlanHelpers::CAPABILITY_CATEGORIES,
+          entitlements: Billing::Config.entitlements_grouped_by_category,
           plans: build_plans_summary,
         }
 
         json_response(data)
       rescue StandardError => ex
-        billing_logger.error 'Failed to list capabilities', {
+        billing_logger.error 'Failed to list entitlements', {
           exception: ex,
         }
-        json_error('Failed to list capabilities', status: 500)
+        json_error('Failed to list entitlements', status: 500)
       end
 
       private
@@ -162,16 +163,16 @@ module Billing
         end
       end
 
-      # Build upgrade message for missing capability
+      # Build upgrade message for missing entitlement
       #
-      # @param capability [String] Required capability
+      # @param entitlement [String] Required entitlement
       # @param upgrade_plan [String] Suggested plan ID
       # @return [String] User-friendly upgrade message
-      def build_upgrade_message(capability, upgrade_plan)
+      def build_upgrade_message(entitlement, upgrade_plan)
         plan_name       = Billing::PlanHelpers.plan_name(upgrade_plan)
-        capability_name = capability.to_s.tr('_', ' ')
+        entitlement_name = entitlement.to_s.tr('_', ' ')
 
-        "This feature requires #{plan_name}. Upgrade your plan to access #{capability_name}."
+        "This feature requires #{plan_name}. Upgrade your plan to access #{entitlement_name}."
       end
 
       # Build summary of all available plans
@@ -185,7 +186,7 @@ module Billing
 
           summary[plan.plan_id] = {
             name: plan.name,
-            capabilities: plan.capabilities.to_a,
+            entitlements: plan.entitlements.to_a,
             limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? nil : v },
           }
         end

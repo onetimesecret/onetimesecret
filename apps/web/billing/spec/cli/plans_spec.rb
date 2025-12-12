@@ -6,11 +6,11 @@ require_relative '../support/billing_spec_helper'
 require 'onetime/cli'
 require_relative '../../cli/plans_command'
 
-RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit do
+RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit do
   let(:stripe_client) { Billing::StripeClient.new }
 
   # Data class for mocking plans (immutable, Ruby 3.2+)
-  MockPlan = Data.define(:plan_id, :tier, :interval, :amount, :currency, :region, :capabilities)
+  MockPlan = Data.define(:plan_id, :tier, :interval, :amount, :currency, :region, :entitlements)
 
   describe Onetime::CLI::BillingPlansCommand do
     subject(:command) { described_class.new }
@@ -24,7 +24,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit d
         amount: '2900',
         currency: 'usd',
         region: 'US',
-        capabilities: '["create_secrets","create_team"]',
+        entitlements: '["create_secrets","create_team"]',
       )
     end
 
@@ -36,7 +36,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit d
         amount: '99900',
         currency: 'eur',
         region: 'EU',
-        capabilities: '["create_secrets","create_team","custom_domains"]',
+        entitlements: '["create_secrets","create_team","custom_domains"]',
       )
     end
 
@@ -81,9 +81,9 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit d
         expect(output).to match(/Total: 2 plan entr/)
       end
 
-      it 'displays capability count' do
+      it 'displays entitlement count' do
         output = capture_stdout { command.call }
-        # Sample plan has 2 capabilities
+        # Sample plan has 2 entitlements
         expect(output).to match(/\s+2\s*$/)
       end
 
@@ -172,7 +172,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit d
             amount: '1000',
             currency: 'usd',
             region: 'US',
-            capabilities: '[]',
+            entitlements: '[]',
           )
           allow(Billing::Plan).to receive(:list_plans).and_return([long_plan])
 
@@ -193,7 +193,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit d
           expect(output).to match(/EUR 999\.00/)
         end
 
-        it 'handles zero-capability plans' do
+        it 'handles zero-entitlement plans' do
           zero_cap_plan = MockPlan.new(
             plan_id: 'basic_monthly_us',
             tier: 'basic',
@@ -201,7 +201,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit d
             amount: '0',
             currency: 'usd',
             region: 'US',
-            capabilities: '[]',
+            entitlements: '[]',
           )
           allow(Billing::Plan).to receive(:list_plans).and_return([zero_cap_plan])
 

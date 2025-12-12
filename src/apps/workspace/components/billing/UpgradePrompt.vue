@@ -10,7 +10,7 @@ const { t } = useI18n();
 
 const props = withDefaults(
   defineProps<{
-    capability: string;
+    entitlement: string;
     upgradePlan: string;
     message?: string;
     compact?: boolean;
@@ -27,14 +27,14 @@ const billingEnabled = computed(() => WindowService.get('billing_enabled') || fa
 const displayMessage = computed(() => {
   if (props.message) return props.message;
 
-  // Default messages based on capability
-  const capabilityMessages: Record<string, string> = {
+  // Default messages based on entitlement
+  const entitlementMessages: Record<string, string> = {
     create_teams: t('web.billing.upgrade.needTeams'),
     custom_domains: t('web.billing.upgrade.needCustomDomains'),
     api_access: t('web.billing.upgrade.needApiAccess'),
   };
 
-  return capabilityMessages[props.capability] || t('web.billing.upgrade.required');
+  return entitlementMessages[props.entitlement] || t('web.billing.upgrade.required');
 });
 
 const upgradeUrl = computed(() => `/account/billing/plans?upgrade_to=${props.upgradePlan}`);

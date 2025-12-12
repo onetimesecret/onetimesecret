@@ -7,7 +7,7 @@
   import CreateTeamModal from '@/apps/workspace/components/teams/CreateTeamModal.vue';
   import TeamCard from '@/apps/workspace/components/teams/TeamCard.vue';
   import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
-  import { useCapabilities } from '@/shared/composables/useCapabilities';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { useTeamStore } from '@/shared/stores/teamStore';
   import { storeToRefs } from 'pinia';
@@ -22,9 +22,9 @@
   const { teams, loading } = storeToRefs(teamStore);
   const { currentOrganization } = storeToRefs(organizationStore);
 
-  // Capability checking
-  const { can, hasReachedLimit, limit, upgradePath, CAPABILITIES } =
-    useCapabilities(currentOrganization);
+  // Entitlement checking
+  const { can, hasReachedLimit, limit, upgradePath, ENTITLEMENTS } =
+    useEntitlements(currentOrganization);
 
   const { wrap } = useAsyncHandler({
     notify: false, // Using local error state instead of notifications
@@ -36,7 +36,7 @@
 
   // Check if user can create teams
   const canCreateTeam = computed(
-    () => can(CAPABILITIES.CREATE_TEAM) || can(CAPABILITIES.CREATE_TEAMS)
+    () => can(ENTITLEMENTS.CREATE_TEAM) || can(ENTITLEMENTS.CREATE_TEAMS)
   );
 
   // Check if team limit has been reached
@@ -160,18 +160,18 @@
       <div>
         <!-- Upgrade Prompts -->
         <div class="mb-6 space-y-4">
-          <!-- No capability to create teams -->
+          <!-- No entitlement to create teams -->
           <UpgradePrompt
             v-if="!canCreateTeam"
-            :capability="CAPABILITIES.CREATE_TEAM"
-            :upgrade-plan="upgradePath(CAPABILITIES.CREATE_TEAM) || 'multi_team_v1'"
+            :entitlement="ENTITLEMENTS.CREATE_TEAM"
+            :upgrade-plan="upgradePath(ENTITLEMENTS.CREATE_TEAM) || 'multi_team_v1'"
             :message="t('web.billing.upgrade.needTeams')" />
 
           <!-- Team limit reached -->
           <UpgradePrompt
             v-else-if="teamLimitReached"
-            :capability="CAPABILITIES.CREATE_TEAMS"
-            :upgrade-plan="upgradePath(CAPABILITIES.CREATE_TEAMS) || 'multi_team_v1'"
+            :entitlement="ENTITLEMENTS.CREATE_TEAMS"
+            :upgrade-plan="upgradePath(ENTITLEMENTS.CREATE_TEAMS) || 'multi_team_v1'"
             :message="t('web.billing.limits.teams_upgrade')" />
         </div>
 

@@ -4,12 +4,12 @@
  * Unit tests for useDashboardMode composable
  *
  * This composable determines dashboard variant based on:
- * - Team management capabilities (from organization)
+ * - Team management entitlements (from organization)
  * - Number of teams (from team store)
  * - Standalone vs hosted mode (from WindowService)
  *
  * Testing strategy:
- * - Test variant logic with different team counts and capabilities
+ * - Test variant logic with different team counts and entitlements
  * - Test transition key format
  * - Test reactive updates when store state changes
  *
@@ -48,7 +48,7 @@ describe('useDashboardMode', () => {
     extid: 'org-extid-123',
     display_name: 'Test Organization',
     is_default: true,
-    capabilities: ['CREATE_TEAM'],
+    entitlements: ['CREATE_TEAM'],
     limits: {
       teams: 5,
       members_per_team: 10,
@@ -160,26 +160,26 @@ describe('useDashboardMode', () => {
   });
 
   describe('Standalone mode behavior', () => {
-    it('has team capability even with empty capabilities array', () => {
+    it('has team entitlement even with empty entitlements array', () => {
       const orgStore = useOrganizationStore();
 
       orgStore.currentOrganization = {
         ...mockOrganization,
-        capabilities: [], // Empty in standalone mode still grants access
+        entitlements: [], // Empty in standalone mode still grants access
       };
 
-      const { hasTeamCapability } = useDashboardMode();
+      const { hasTeamEntitlement } = useDashboardMode();
 
-      expect(hasTeamCapability.value).toBe(true);
+      expect(hasTeamEntitlement.value).toBe(true);
     });
 
-    it('has team capability with null organization', () => {
+    it('has team entitlement with null organization', () => {
       const orgStore = useOrganizationStore();
       orgStore.currentOrganization = null;
 
-      const { hasTeamCapability } = useDashboardMode();
+      const { hasTeamEntitlement } = useDashboardMode();
 
-      expect(hasTeamCapability.value).toBe(true);
+      expect(hasTeamEntitlement.value).toBe(true);
     });
   });
 

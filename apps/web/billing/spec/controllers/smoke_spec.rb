@@ -26,7 +26,7 @@ RSpec.describe 'Billing Controllers', :integration do
       expect(Billing::Controllers::Webhooks).not_to be_nil
       expect(Billing::Controllers::BillingController).not_to be_nil
       expect(Billing::Controllers::Plans).not_to be_nil
-      expect(Billing::Controllers::Capabilities).not_to be_nil
+      expect(Billing::Controllers::Entitlements).not_to be_nil
     end
 
     it 'configures routes correctly' do

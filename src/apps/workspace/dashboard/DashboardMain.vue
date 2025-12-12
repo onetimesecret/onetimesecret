@@ -19,7 +19,7 @@
     transitionKey,
     teamsLoading,
     fetchError,
-    hasTeamCapability,
+    hasTeamEntitlement,
     fetchTeams,
   } = useDashboardMode();
 </script>
@@ -28,7 +28,7 @@
   <div class="dashboard-container">
     <!-- Error state with retry -->
     <div
-      v-if="fetchError && hasTeamCapability"
+      v-if="fetchError && hasTeamEntitlement"
       class="container mx-auto min-w-[320px] max-w-2xl py-12 text-center">
       <div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
         <OIcon
@@ -66,22 +66,22 @@
       v-else
       name="dashboard-fade"
       mode="out-in">
-      <!-- No team capability: basic dashboard with upgrade prompt -->
+      <!-- No team entitlement: basic dashboard with upgrade prompt -->
       <DashboardBasic
         v-if="variant === 'basic'"
         :key="transitionKey" />
 
-      <!-- Has team capability, no teams yet: onboarding -->
+      <!-- Has team entitlement, no teams yet: onboarding -->
       <DashboardEmpty
         v-else-if="variant === 'empty'"
         :key="transitionKey" />
 
-      <!-- Has team capability, single team: focused view -->
+      <!-- Has team entitlement, single team: focused view -->
       <SingleTeamDashboard
         v-else-if="variant === 'single'"
         :key="transitionKey" />
 
-      <!-- Has team capability, multiple teams: full hub -->
+      <!-- Has team entitlement, multiple teams: full hub -->
       <DashboardIndex
         v-else-if="variant === 'multi'"
         :key="transitionKey" />

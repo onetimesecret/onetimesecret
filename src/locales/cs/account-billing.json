@@ -36,7 +36,7 @@
         "manage_billing_description": "Aktualizovat platební údaje",
         "no_organizations_title": "Žádné organizace",
         "no_organizations_description": "Vytvoř organizaci pro správu fakturace a předplatného",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "Vytvářet tajemství",
           "basic_sharing": "Základní sdílení",
           "create_team": "Vytvořit tým",

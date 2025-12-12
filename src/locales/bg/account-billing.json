@@ -36,7 +36,7 @@
         "manage_billing_description": "Актуализирайте информацията за плащане",
         "no_organizations_title": "Няма организации",
         "no_organizations_description": "Създайте организация за управление на вашето фактуриране и абонамент",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "Създаване на тайни",
           "basic_sharing": "Основно споделяне",
           "create_team": "Създаване на екип",

@@ -8,7 +8,7 @@ import { test, expect } from '@playwright/test';
  * Tests the different user experiences when viewing secrets:
  * - CREATOR: Owner viewing their own secret (shows warning, burn control)
  * - RECIPIENT_AUTH: Authenticated user viewing someone else's secret
- * - RECIPIENT_ANON: Anonymous user viewing a secret (capabilities upgrade)
+ * - RECIPIENT_ANON: Anonymous user viewing a secret (entitlements upgrade)
  *
  * These tests validate that:
  * 1. Owners see appropriate warnings when viewing their own secrets
@@ -130,7 +130,7 @@ test.describe('Secret Context - Actor Roles', () => {
 
     // Anonymous users should see:
     // - Signup CTA instead of dashboard link
-    // - Capabilities upgrade content
+    // - Entitlements upgrade content
     // - NO burn control
     // - NO owner warning
 
@@ -198,7 +198,7 @@ test.describe('Secret Context - Actor Roles', () => {
 
     // Authenticated recipients should see:
     // - Dashboard link (not signup CTA)
-    // - NO capabilities upgrade
+    // - NO entitlements upgrade
     // - NO burn control (not owner)
     // - NO owner warning
 

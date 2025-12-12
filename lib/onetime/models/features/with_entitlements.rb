@@ -1,29 +1,29 @@
-# lib/onetime/models/features/with_capabilities.rb
+# lib/onetime/models/features/with_entitlements.rb
 #
 # frozen_string_literal: true
 
 module Onetime
   module Models
     module Features
-      # Capability-Based Authorization Feature
+      # Entitlement-Based Authorization Feature
       #
-      # Adds capability checking to models (primarily Organization).
+      # Adds entitlement checking to models (primarily Organization).
       # Features and limits are separated:
-      # - Capabilities: Can the org do X? (boolean check)
+      # - Entitlements: Can the org do X? (boolean check)
       # - Limits: How many times can org do X? (numeric/quota check)
       #
       # Usage:
       #   org.can?('create_team')           # => true/false
-      #   org.capabilities                  # => ["create_secrets", "create_team", ...]
+      #   org.entitlements                  # => ["create_secrets", "create_team", ...]
       #   org.limit_for('teams')            # => 1 (or Float::INFINITY)
-      #   org.check_capability('api_access') # => {allowed: false, upgrade_needed: true, ...}
+      #   org.check_entitlement('api_access') # => {allowed: false, upgrade_needed: true, ...}
       #
-      module WithCapabilities
-        Familia::Base.add_feature self, :with_capabilities
+      module WithEntitlements
+        Familia::Base.add_feature self, :with_entitlements
 
-        # Full capability set for standalone mode
+        # Full entitlement set for standalone mode
         # When billing is disabled or plan cache is empty, users get full access
-        STANDALONE_CAPABILITIES = %w[
+        STANDALONE_ENTITLEMENTS = %w[
           create_secrets basic_sharing create_team create_teams
           custom_domains api_access priority_support audit_logs
         ].freeze
@@ -34,34 +34,34 @@ module Onetime
         end
 
         module InstanceMethods
-          # Check if organization has a specific capability
+          # Check if organization has a specific entitlement
           #
-          # @param capability [String, Symbol] Capability to check
-          # @return [Boolean] True if org has the capability
+          # @param entitlement [String, Symbol] Entitlement to check
+          # @return [Boolean] True if org has the entitlement
           #
           # @example
           #   org.can?('custom_domains')  # => true
           #   org.can?(:api_access)       # => false
-          def can?(capability)
-            capabilities.include?(capability.to_s)
+          def can?(entitlement)
+            entitlements.include?(entitlement.to_s)
           end
 
-          # Get all capabilities for current plan
+          # Get all entitlements for current plan
           #
-          # @return [Array<String>] List of capability strings
+          # @return [Array<String>] List of entitlement strings
           #
-          # Falls back to full standalone capabilities if:
+          # Falls back to full standalone entitlements if:
           # - billing is disabled (standalone mode)
           # - plan not found in cache
           #
           # This ensures full feature access in standalone mode.
           #
           # @example
-          #   org.capabilities  # => ["create_secrets", "create_team", "custom_domains"]
-          def capabilities
+          #   org.entitlements  # => ["create_secrets", "create_team", "custom_domains"]
+          def entitlements
             # Standalone fallback: full access when billing disabled
             unless billing_enabled?
-              return WithCapabilities::STANDALONE_CAPABILITIES.dup
+              return WithEntitlements::STANDALONE_ENTITLEMENTS.dup
             end
 
             return [] if planid.to_s.empty?
@@ -71,7 +71,7 @@ module Onetime
             # When billing enabled but no plan (SaaS free tier), fail-closed
             return [] unless plan
 
-            plan.capabilities.to_a
+            plan.entitlements.to_a
           end
 
           # Get limit for a specific resource
@@ -107,38 +107,38 @@ module Onetime
             val.to_i
           end
 
-          # Check capability with detailed response for upgrade messaging
+          # Check entitlement with detailed response for upgrade messaging
           #
-          # @param capability [String, Symbol] Capability to check
+          # @param entitlement [String, Symbol] Entitlement to check
           # @return [Hash] Result with upgrade path information
           #
           # Response includes:
-          # - allowed: boolean indicating if capability is available
-          # - capability: the requested capability
+          # - allowed: boolean indicating if entitlement is available
+          # - entitlement: the requested entitlement
           # - current_plan: organization's current plan ID
           # - upgrade_needed: boolean indicating if upgrade required
           # - upgrade_to: suggested plan ID (if upgrade needed)
           #
           # @example
-          #   org.check_capability('custom_domains')
+          #   org.check_entitlement('custom_domains')
           #   # => {
           #   #   allowed: false,
-          #   #   capability: "custom_domains",
+          #   #   entitlement: "custom_domains",
           #   #   current_plan: "free",
           #   #   upgrade_needed: true,
           #   #   upgrade_to: "identity_v1"
           #   # }
-          def check_capability(capability)
-            allowed = can?(capability)
+          def check_entitlement(entitlement)
+            allowed = can?(entitlement)
             result  = {
               allowed: allowed,
-              capability: capability.to_s,
+              entitlement: entitlement.to_s,
               current_plan: planid,
               upgrade_needed: !allowed,
             }
 
             unless allowed
-              result[:upgrade_to] = Billing::PlanHelpers.upgrade_path_for(capability, planid)
+              result[:upgrade_to] = Billing::PlanHelpers.upgrade_path_for(entitlement, planid)
             end
 
             result

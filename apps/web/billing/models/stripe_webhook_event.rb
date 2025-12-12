@@ -10,7 +10,7 @@ module Billing
   # - Processing state machine (pending → success/failed/retrying)
   # - Error tracking and retry logic
   # - Full event metadata storage for debugging
-  # - Event payload storage for replay capability
+  # - Event payload storage for replay entitlement
   #
   # ## State Machine
   #

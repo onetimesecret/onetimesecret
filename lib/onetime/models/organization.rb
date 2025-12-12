@@ -42,7 +42,7 @@ module Onetime
     feature :external_identifier, format: 'on%<id>s'
     feature :required_fields
     feature :with_organization_billing
-    feature :with_capabilities
+    feature :with_entitlements
 
     identifier_field :objid
 

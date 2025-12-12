@@ -9,7 +9,7 @@ import { BillingService, type Plan as BillingPlan } from '@/services/billing.ser
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';
 import { formatCurrency } from '@/types/billing';
-import { CAPABILITIES } from '@/types/organization';
+import { ENTITLEMENTS } from '@/types/organization';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -43,14 +43,14 @@ const yearlySavingsPercent = computed(() =>
 
 const getFeatureLabel = (feature: string): string => {
   const labels: Record<string, string> = {
-    [CAPABILITIES.CREATE_SECRETS]: 'Unlimited secrets',
-    [CAPABILITIES.BASIC_SHARING]: 'Basic sharing features',
-    [CAPABILITIES.CREATE_TEAM]: 'Single team',
-    [CAPABILITIES.CREATE_TEAMS]: 'Multiple teams',
-    [CAPABILITIES.CUSTOM_DOMAINS]: 'Custom domains',
-    [CAPABILITIES.API_ACCESS]: 'Full API access',
-    [CAPABILITIES.PRIORITY_SUPPORT]: 'Priority support',
-    [CAPABILITIES.AUDIT_LOGS]: 'Audit logs',
+    [ENTITLEMENTS.CREATE_SECRETS]: 'Unlimited secrets',
+    [ENTITLEMENTS.BASIC_SHARING]: 'Basic sharing features',
+    [ENTITLEMENTS.CREATE_TEAM]: 'Single team',
+    [ENTITLEMENTS.CREATE_TEAMS]: 'Multiple teams',
+    [ENTITLEMENTS.CUSTOM_DOMAINS]: 'Custom domains',
+    [ENTITLEMENTS.API_ACCESS]: 'Full API access',
+    [ENTITLEMENTS.PRIORITY_SUPPORT]: 'Priority support',
+    [ENTITLEMENTS.AUDIT_LOGS]: 'Audit logs',
   };
   return labels[feature] || feature;
 };
@@ -65,10 +65,10 @@ const getBasePlan = (plan: BillingPlan): BillingPlan | undefined => {
 // Get only NEW features for this plan (excluding base plan features)
 const getNewFeatures = (plan: BillingPlan): string[] => {
   const basePlan = getBasePlan(plan);
-  if (!basePlan) return plan.capabilities; // Show all for Identity Plus
+  if (!basePlan) return plan.entitlements; // Show all for Identity Plus
 
   // Filter out features that exist in base plan
-  return plan.capabilities.filter(cap => !basePlan.capabilities.includes(cap));
+  return plan.entitlements.filter(ent => !basePlan.entitlements.includes(ent));
 };
 
 const getPlanPricePerMonth = (plan: BillingPlan): number => {
@@ -331,15 +331,15 @@ onMounted(async () => {
 
               <ul class="space-y-2">
                 <li
-                  v-for="capability in getNewFeatures(plan)"
-                  :key="capability"
+                  v-for="entitlement in getNewFeatures(plan)"
+                  :key="entitlement"
                   class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
                   <OIcon
                     collection="heroicons"
                     name="check"
                     class="mt-0.5 size-5 shrink-0 text-green-500 dark:text-green-400"
                     aria-hidden="true" />
-                  <span>{{ getFeatureLabel(capability) }}</span>
+                  <span>{{ getFeatureLabel(entitlement) }}</span>
                 </li>
               </ul>
             </div>

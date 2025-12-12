@@ -32,11 +32,11 @@ module Onetime
 
         catalog = YAML.load_file(catalog_path)
 
-        # Load capabilities from billing.yaml (or fallback to billing-plans.yaml)
-        capabilities = Billing::Config.load_capabilities
-        puts "Loaded #{capabilities.size} capabilities from billing config"
+        # Load entitlements from billing.yaml (or fallback to billing-plans.yaml)
+        entitlements = Billing::Config.load_entitlements
+        puts "Loaded #{entitlements.size} entitlements from billing config"
 
-        markdown = generate_markdown(catalog, capabilities)
+        markdown = generate_markdown(catalog, entitlements)
 
         File.write(output_path, markdown)
 
@@ -51,38 +51,38 @@ module Onetime
 
       private
 
-      def generate_markdown(catalog, capabilities)
+      def generate_markdown(catalog, entitlements)
         parts = []
 
         parts << generate_header(catalog)
-        parts << generate_capabilities_section(capabilities) if capabilities&.any?
+        parts << generate_entitlements_section(entitlements) if entitlements&.any?
         parts << generate_plans_overview_table(catalog)
-        parts << generate_plan_details(catalog, capabilities)
-        parts << generate_legacy_plans(catalog, capabilities) if catalog['legacy_plans']&.any?
+        parts << generate_plan_details(catalog, entitlements)
+        parts << generate_legacy_plans(catalog, entitlements) if catalog['legacy_plans']&.any?
         parts << generate_stripe_metadata_section(catalog)
         parts << generate_validation_section
 
         parts.join("\n\n")
       end
 
-      def generate_capabilities_section(capabilities)
-        parts = ['## Capability Definitions', '']
-        parts << 'Capabilities define features/permissions available in the billing system.'
+      def generate_entitlements_section(entitlements)
+        parts = ['## Entitlement Definitions', '']
+        parts << 'Entitlements define features/permissions available in the billing system.'
         parts << 'Loaded from `etc/billing/billing.yaml`.'
         parts << ''
 
         # Group by category
-        categories = capabilities.values.map { |cap| cap['category'] }.uniq.sort
+        categories = entitlements.values.map { |ent| ent['category'] }.uniq.sort
 
         categories.each do |category|
-          caps_in_category = capabilities.select { |_id, cap| cap['category'] == category }
-          next if caps_in_category.empty?
+          ents_in_category = entitlements.select { |_id, ent| ent['category'] == category }
+          next if ents_in_category.empty?
 
           parts << "### #{category.capitalize}"
           parts << ''
 
-          caps_in_category.each do |cap_id, cap_data|
-            parts << "- **`#{cap_id}`**: #{cap_data['description']}"
+          ents_in_category.each do |ent_id, ent_data|
+            parts << "- **`#{ent_id}`**: #{ent_data['description']}"
           end
 
           parts << ''
@@ -106,7 +106,7 @@ module Onetime
 
           ## Overview
 
-          This document describes the billing plan structure and capabilities for Onetime Secret. Plan definitions are stored in Stripe product metadata and cached in Redis via `Billing::Plan`.
+          This document describes the billing plan structure and entitlements for Onetime Secret. Plan definitions are stored in Stripe product metadata and cached in Redis via `Billing::Plan`.
         MD
       end
 
@@ -135,13 +135,13 @@ module Onetime
         rows.join("\n")
       end
 
-      def generate_plan_details(catalog, capabilities)
+      def generate_plan_details(catalog, entitlements)
         plans = catalog['plans'] || {}
 
         sections = ['## Plan Details', '']
 
         plans.each do |plan_id, plan_data|
-          sections << generate_plan_section(plan_id, plan_data, capabilities)
+          sections << generate_plan_section(plan_id, plan_data, entitlements)
           sections << ''
           sections << '---'
           sections << ''
@@ -150,7 +150,7 @@ module Onetime
         sections.join("\n")
       end
 
-      def generate_plan_section(plan_id, plan_data, _capabilities)
+      def generate_plan_section(plan_id, plan_data, _entitlements)
         parts = []
 
         # Header
@@ -165,11 +165,11 @@ module Onetime
         parts << ('**Region:** ' + plan_data['region'])
         parts << ''
 
-        # Capabilities
-        if plan_data['capabilities']&.any?
-          parts << '**Capabilities:**'
-          plan_data['capabilities'].each do |cap|
-            parts << "- `#{cap}`"
+        # Entitlements
+        if plan_data['entitlements']&.any?
+          parts << '**Entitlements:**'
+          plan_data['entitlements'].each do |ent|
+            parts << "- `#{ent}`"
           end
           parts << ''
         end
@@ -230,7 +230,7 @@ module Onetime
         end
       end
 
-      def generate_legacy_plans(catalog, capabilities)
+      def generate_legacy_plans(catalog, entitlements)
         legacy = catalog['legacy_plans'] || {}
         return '' if legacy.empty?
 
@@ -254,7 +254,7 @@ module Onetime
 
         # Detail sections for legacy plans
         legacy.each do |plan_id, plan_data|
-          parts << generate_plan_section(plan_id, plan_data, capabilities)
+          parts << generate_plan_section(plan_id, plan_data, entitlements)
           parts << ''
         end
 

@@ -1,19 +1,19 @@
-// src/shared/composables/useCapabilities.ts
+// src/shared/composables/useEntitlements.ts
 
 import { WindowService } from '@/services/window.service';
 import type { Organization } from '@/types/organization';
-import { CAPABILITIES } from '@/types/organization';
+import { ENTITLEMENTS } from '@/types/organization';
 import { computed, type Ref } from 'vue';
 
 /**
- * Composable for checking organization capabilities
+ * Composable for checking organization entitlements
  *
  * @param org - Reactive reference to the organization
- * @returns Functions and computed values for capability checking
+ * @returns Functions and computed values for entitlement checking
  */
-export function useCapabilities(org: Ref<Organization | null>) {
+export function useEntitlements(org: Ref<Organization | null>) {
   /**
-   * Check if running in standalone mode (all capabilities available)
+   * Check if running in standalone mode (all entitlements available)
    * When billing is disabled, full access is granted
    */
   const isStandaloneMode = computed(() => {
@@ -22,17 +22,17 @@ export function useCapabilities(org: Ref<Organization | null>) {
   });
 
   /**
-   * Check if the organization has a specific capability
+   * Check if the organization has a specific entitlement
    *
-   * @param capability - The capability to check
-   * @returns True if the organization has the capability
+   * @param entitlement - The entitlement to check
+   * @returns True if the organization has the entitlement
    */
-  const can = (capability: string): boolean => {
-    // Standalone mode: all capabilities available
+  const can = (entitlement: string): boolean => {
+    // Standalone mode: all entitlements available
     if (isStandaloneMode.value) return true;
 
     if (!org.value) return false;
-    return org.value.capabilities?.includes(capability as any) ?? false;
+    return org.value.entitlements?.includes(entitlement as any) ?? false;
   };
 
   /**
@@ -47,25 +47,26 @@ export function useCapabilities(org: Ref<Organization | null>) {
   };
 
   /**
-   * Get the upgrade plan needed for a capability
+   * Get the upgrade plan needed for a entitlement
    *
-   * @param capability - The capability to check
+   * @param entitlement - The entitlement to check
    * @returns The plan ID needed, or null if already available
    */
-  const upgradePath = (capability: string): string | null => {
-    if (can(capability)) return null;
+  const upgradePath = (entitlement: string): string | null => {
+    if (can(entitlement)) return null;
 
-    // Map capabilities to required plans
+    // Map entitlements to required plans
     // This is a simple mapping - in production, this might come from the API
-    const capabilityToPlan: Record<string, string> = {
-      [CAPABILITIES.CREATE_TEAMS]: 'multi_team_v1',
-      [CAPABILITIES.API_ACCESS]: 'multi_team_v1',
-      [CAPABILITIES.CUSTOM_DOMAINS]: 'identity_v1',
-      [CAPABILITIES.PRIORITY_SUPPORT]: 'identity_v1',
-      [CAPABILITIES.AUDIT_LOGS]: 'multi_team_v1',
+    const entitlementToPlan: Record<string, string> = {
+      [ENTITLEMENTS.CREATE_TEAM]: 'identity_v1',
+      [ENTITLEMENTS.CREATE_TEAMS]: 'multi_team_v1',
+      [ENTITLEMENTS.API_ACCESS]: 'multi_team_v1',
+      [ENTITLEMENTS.CUSTOM_DOMAINS]: 'identity_v1',
+      [ENTITLEMENTS.PRIORITY_SUPPORT]: 'identity_v1',
+      [ENTITLEMENTS.AUDIT_LOGS]: 'multi_team_v1',
     };
 
-    return capabilityToPlan[capability] ?? 'identity_v1';
+    return entitlementToPlan[entitlement] ?? 'identity_v1';
   };
 
   /**
@@ -85,9 +86,9 @@ export function useCapabilities(org: Ref<Organization | null>) {
   };
 
   /**
-   * Computed list of all capabilities
+   * Computed list of all entitlements
    */
-  const capabilities = computed(() => org.value?.capabilities ?? []);
+  const entitlements = computed(() => org.value?.entitlements ?? []);
 
   /**
    * Computed plan ID
@@ -99,9 +100,9 @@ export function useCapabilities(org: Ref<Organization | null>) {
     limit,
     upgradePath,
     hasReachedLimit,
-    capabilities,
+    entitlements,
     planId,
     isStandaloneMode,
-    CAPABILITIES,
+    ENTITLEMENTS,
   };
 }

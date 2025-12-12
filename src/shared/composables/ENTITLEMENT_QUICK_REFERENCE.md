@@ -1,16 +1,16 @@
-# Capability-Based UI - Quick Reference
+# Entitlement-Based UI - Quick Reference
 
 ## Import and Setup
 
 ```typescript
-import { useCapabilities } from '@/composables/useCapabilities';
-import { CAPABILITIES } from '@/types/organization';
+import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { ENTITLEMENTS } from '@/types/organization';
 import UpgradePrompt from '@/shared/components/billing/UpgradePrompt.vue';
-import { useOrganizationStore } from '@/stores/organizationStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 
 const organizationStore = useOrganizationStore();
 const { currentOrganization } = storeToRefs(organizationStore);
-const { can, limit, upgradePath, hasReachedLimit, CAPABILITIES } = useCapabilities(
+const { can, limit, upgradePath, hasReachedLimit, ENTITLEMENTS } = useEntitlements(
   currentOrganization
 );
 ```
@@ -18,11 +18,11 @@ const { can, limit, upgradePath, hasReachedLimit, CAPABILITIES } = useCapabiliti
 ## Check if Feature is Available
 
 ```typescript
-// Single capability
-const canUseDomains = can(CAPABILITIES.CUSTOM_DOMAINS);
+// Single entitlement
+const canUseDomains = can(ENTITLEMENTS.CUSTOM_DOMAINS);
 
-// Multiple capabilities (OR)
-const canCreateTeam = can(CAPABILITIES.CREATE_TEAM) || can(CAPABILITIES.CREATE_TEAMS);
+// Multiple entitlements (OR)
+const canCreateTeam = can(ENTITLEMENTS.CREATE_TEAM) || can(ENTITLEMENTS.CREATE_TEAMS);
 
 // With limit check
 const teamLimit = limit('teams');
@@ -35,18 +35,18 @@ const canAddTeam = canCreateTeam && !teamsLimitReached;
 ```vue
 <template>
   <!-- Simple show/hide -->
-  <button v-if="can(CAPABILITIES.API_ACCESS)">
+  <button v-if="can(ENTITLEMENTS.API_ACCESS)">
     Manage API Keys
   </button>
 
   <!-- Show upgrade prompt if not available -->
-  <div v-if="can(CAPABILITIES.CUSTOM_DOMAINS)">
+  <div v-if="can(ENTITLEMENTS.CUSTOM_DOMAINS)">
     <!-- Feature UI -->
   </div>
   <UpgradePrompt
     v-else
-    :capability="CAPABILITIES.CUSTOM_DOMAINS"
-    :upgrade-plan="upgradePath(CAPABILITIES.CUSTOM_DOMAINS)"
+    :entitlement="ENTITLEMENTS.CUSTOM_DOMAINS"
+    :upgrade-plan="upgradePath(ENTITLEMENTS.CUSTOM_DOMAINS)"
   />
 </template>
 ```
@@ -55,18 +55,18 @@ const canAddTeam = canCreateTeam && !teamsLimitReached;
 
 ```vue
 <template>
-  <!-- Check both capability and limit -->
+  <!-- Check both entitlement and limit -->
   <div class="space-y-4">
     <UpgradePrompt
-      v-if="!can(CAPABILITIES.CREATE_TEAMS)"
-      :capability="CAPABILITIES.CREATE_TEAMS"
-      :upgrade-plan="upgradePath(CAPABILITIES.CREATE_TEAMS)"
+      v-if="!can(ENTITLEMENTS.CREATE_TEAMS)"
+      :entitlement="ENTITLEMENTS.CREATE_TEAMS"
+      :upgrade-plan="upgradePath(ENTITLEMENTS.CREATE_TEAMS)"
     />
 
     <UpgradePrompt
       v-else-if="hasReachedLimit('teams', teams.length)"
-      :capability="CAPABILITIES.CREATE_TEAMS"
-      :upgrade-plan="upgradePath(CAPABILITIES.CREATE_TEAMS)"
+      :entitlement="ENTITLEMENTS.CREATE_TEAMS"
+      :upgrade-plan="upgradePath(ENTITLEMENTS.CREATE_TEAMS)"
       :message="t('web.billing.limits.teams_upgrade')"
     />
 
@@ -79,17 +79,17 @@ const canAddTeam = canCreateTeam && !teamsLimitReached;
 </template>
 ```
 
-## Available Capabilities
+## Available Entitlements
 
 ```typescript
-CAPABILITIES.CREATE_SECRETS      // Can create secrets
-CAPABILITIES.BASIC_SHARING       // Can share secrets
-CAPABILITIES.CREATE_TEAM         // Can create one team
-CAPABILITIES.CREATE_TEAMS        // Can create multiple teams
-CAPABILITIES.CUSTOM_DOMAINS      // Can use custom domains
-CAPABILITIES.API_ACCESS          // Can use API
-CAPABILITIES.PRIORITY_SUPPORT    // Has priority support
-CAPABILITIES.AUDIT_LOGS          // Has access to audit logs
+ENTITLEMENTS.CREATE_SECRETS      // Can create secrets
+ENTITLEMENTS.BASIC_SHARING       // Can share secrets
+ENTITLEMENTS.CREATE_TEAM         // Can create one team
+ENTITLEMENTS.CREATE_TEAMS        // Can create multiple teams
+ENTITLEMENTS.CUSTOM_DOMAINS      // Can use custom domains
+ENTITLEMENTS.API_ACCESS          // Can use API
+ENTITLEMENTS.PRIORITY_SUPPORT    // Has priority support
+ENTITLEMENTS.AUDIT_LOGS          // Has access to audit logs
 ```
 
 ## Available Limits
@@ -104,42 +104,42 @@ limit('custom_domains')     // Max custom domains
 
 ```vue
 <UpgradePrompt
-  capability="create_teams"          // Required: capability being checked
-  upgrade-plan="multi_team_v1"       // Required: plan to upgrade to
-  :message="customMessage"           // Optional: custom message
-  :compact="true"                    // Optional: compact display mode
+  entitlement="create_teams"          // Required: entitlement being checked
+  upgrade-plan="multi_team_v1"        // Required: plan to upgrade to
+  :message="customMessage"            // Optional: custom message
+  :compact="true"                     // Optional: compact display mode
 />
 ```
 
-## Get Upgrade Plan for Capability
+## Get Upgrade Plan for Entitlement
 
 ```typescript
-const planNeeded = upgradePath(CAPABILITIES.API_ACCESS);
+const planNeeded = upgradePath(ENTITLEMENTS.API_ACCESS);
 // Returns: "multi_team_v1" or null if already available
 ```
 
-## Display Current Capabilities
+## Display Current Entitlements
 
 ```typescript
 import { computed } from 'vue';
 
-const { capabilities } = useCapabilities(currentOrganization);
+const { entitlements } = useEntitlements(currentOrganization);
 
-const formatCapability = (cap: string): string => {
+const formatEntitlement = (ent: string): string => {
   const labels: Record<string, string> = {
-    [CAPABILITIES.CREATE_SECRETS]: 'Create Secrets',
-    [CAPABILITIES.CUSTOM_DOMAINS]: 'Custom Domains',
+    [ENTITLEMENTS.CREATE_SECRETS]: 'Create Secrets',
+    [ENTITLEMENTS.CUSTOM_DOMAINS]: 'Custom Domains',
     // ... etc
   };
-  return labels[cap] || cap;
+  return labels[ent] || ent;
 };
 ```
 
 ```vue
 <template>
-  <div v-for="cap in capabilities" :key="cap">
+  <div v-for="ent in entitlements" :key="ent">
     <OIcon name="check-circle" class="text-green-500" />
-    {{ formatCapability(cap) }}
+    {{ formatEntitlement(ent) }}
   </div>
 </template>
 ```
@@ -148,7 +148,7 @@ const formatCapability = (cap: string): string => {
 
 ### Pattern 1: Feature with Fallback
 ```vue
-<div v-if="can(CAPABILITIES.FEATURE)">
+<div v-if="can(ENTITLEMENTS.FEATURE)">
   <!-- Full feature UI -->
 </div>
 <div v-else>
@@ -159,7 +159,7 @@ const formatCapability = (cap: string): string => {
 ### Pattern 2: Conditional Button
 ```vue
 <button
-  v-if="can(CAPABILITIES.FEATURE) && !limitReached"
+  v-if="can(ENTITLEMENTS.FEATURE) && !limitReached"
   @click="action">
   Action
 </button>
@@ -169,7 +169,7 @@ const formatCapability = (cap: string): string => {
 ```vue
 <nav>
   <button
-    v-if="can(CAPABILITIES.API_ACCESS)"
+    v-if="can(ENTITLEMENTS.API_ACCESS)"
     @click="activeTab = 'api'">
     API Settings
   </button>
@@ -179,7 +179,7 @@ const formatCapability = (cap: string): string => {
 ### Pattern 4: Empty State with Upgrade
 ```vue
 <div v-if="items.length === 0">
-  <div v-if="can(CAPABILITIES.FEATURE)">
+  <div v-if="can(ENTITLEMENTS.FEATURE)">
     <p>No items yet</p>
     <button @click="create">Create First Item</button>
   </div>
@@ -196,28 +196,28 @@ if (org.planid === 'identity_v1') { }
 // ❌ Don't hardcode plan names
 <p>Upgrade to Identity Plus</p>
 
-// ❌ Don't check limits without capability
+// ❌ Don't check limits without entitlement
 if (teams.length < 5) { }
 ```
 
 ## Do This Instead
 
 ```typescript
-// ✅ Check capabilities
-if (can(CAPABILITIES.CUSTOM_DOMAINS)) { }
+// ✅ Check entitlements
+if (can(ENTITLEMENTS.CUSTOM_DOMAINS)) { }
 
 // ✅ Use upgrade path helper
-<UpgradePrompt :upgrade-plan="upgradePath(cap)" />
+<UpgradePrompt :upgrade-plan="upgradePath(ent)" />
 
-// ✅ Check both capability and limit
-if (can(CAPABILITIES.CREATE_TEAMS) && !hasReachedLimit('teams', count)) { }
+// ✅ Check both entitlement and limit
+if (can(ENTITLEMENTS.CREATE_TEAMS) && !hasReachedLimit('teams', count)) { }
 ```
 
 ## Testing Scenarios
 
 1. **No organization** - All checks return false
-2. **No capabilities** - Show upgrade prompts everywhere
-3. **Basic capabilities** - Some features available
+2. **No entitlements** - Show upgrade prompts everywhere
+3. **Basic entitlements** - Some features available
 4. **At limit** - Show limit reached prompts
 5. **Full access** - All features available
 
@@ -225,12 +225,12 @@ if (can(CAPABILITIES.CREATE_TEAMS) && !hasReachedLimit('teams', count)) { }
 
 **Features not showing up?**
 - Check that `currentOrganization` is set
-- Check that `fetchCapabilities()` has been called
-- Check console for capability fetch errors
+- Check that `fetchEntitlements()` has been called
+- Check console for entitlement fetch errors
 
 **Wrong upgrade plan showing?**
 - Update `upgradePath()` mapping in composable
-- Check backend capability-to-plan mapping
+- Check backend entitlement-to-plan mapping
 
 **Limits not working?**
 - Verify limit values in backend response

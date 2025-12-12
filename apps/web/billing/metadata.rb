@@ -17,7 +17,7 @@ module Billing
     FIELD_TIER               = 'tier'
     FIELD_REGION             = 'region'
     FIELD_TENANCY            = 'tenancy'
-    FIELD_CAPABILITIES       = 'capabilities'
+    FIELD_ENTITLEMENTS       = 'entitlements'
     FIELD_PLAN_ID            = 'plan_id'
     FIELD_CREATED            = 'created'
     FIELD_DISPLAY_ORDER      = 'display_order'
@@ -32,7 +32,7 @@ module Billing
       FIELD_APP,
       FIELD_TIER,
       FIELD_REGION,
-      FIELD_CAPABILITIES,
+      FIELD_ENTITLEMENTS,
       FIELD_TENANCY,
       FIELD_CREATED,
     ].freeze

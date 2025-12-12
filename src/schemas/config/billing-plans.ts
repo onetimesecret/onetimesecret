@@ -29,9 +29,9 @@ import { z } from 'zod/v4';
 export const CATALOG_SCHEMA_VERSION = '1.0';
 
 /**
- * NOTE: Capability definitions have moved to billing.ts (billing.yaml)
- * Plans reference capabilities by ID string.
- * Import capability schemas from './billing' if needed.
+ * NOTE: Entitlement definitions have moved to billing.ts (billing.yaml)
+ * Plans reference entitlements by ID string.
+ * Import entitlement schemas from './billing' if needed.
  */
 
 /**
@@ -129,7 +129,7 @@ export const PlanDefinitionSchema = z.object({
   show_on_plans_page: z.boolean().describe('Visibility on public plans page'),
   description: z.string().min(1).optional().describe('Plan description for documentation'),
 
-  capabilities: z.array(z.string().min(1)).describe('Array of capability IDs'),
+  entitlements: z.array(z.string().min(1)).describe('Array of entitlement IDs'),
   limits: PlanLimitsSchema,
   prices: z.array(PlanPriceSchema).describe('Available pricing options'),
 });
@@ -189,8 +189,8 @@ export type ValidationRules = z.infer<typeof ValidationRulesSchema>;
  * Plan Catalog Root Schema
  * Complete billing plan catalog structure
  *
- * NOTE: Configuration (capabilities, stripe_api_version) moved to billing.yaml
- * Plans reference capabilities by ID string.
+ * NOTE: Configuration (entitlements, stripe_api_version) moved to billing.yaml
+ * Plans reference entitlements by ID string.
  */
 export const PlanCatalogSchema = z.object({
   schema_version: z.literal(CATALOG_SCHEMA_VERSION).describe('Catalog schema version'),
@@ -223,7 +223,7 @@ export type PlanCatalog = z.infer<typeof PlanCatalogSchema>;
 export type PlanId = keyof PlanCatalog['plans'];
 
 /**
- * Capability ID Type
+ * Entitlement ID Type
  * NOTE: Moved to billing.ts - import from './billing' if needed
  */
 
@@ -269,14 +269,14 @@ export function getPlansByTier(
 }
 
 /**
- * Helper: Check if plan has capability
+ * Helper: Check if plan has entitlement
  *
  * @param plan - Plan definition
- * @param capability - Capability ID to check
- * @returns True if plan includes capability
+ * @param entitlement - Entitlement ID to check
+ * @returns True if plan includes entitlement
  */
-export function planHasCapability(plan: PlanDefinition, capability: string): boolean {
-  return plan.capabilities.includes(capability);
+export function planHasEntitlement(plan: PlanDefinition, entitlement: string): boolean {
+  return plan.entitlements.includes(entitlement);
 }
 
 /**

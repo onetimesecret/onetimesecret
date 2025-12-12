@@ -44,6 +44,15 @@ module VCRHelper
   end
 end
 
+# Guard: Require STRIPE_API_KEY when recording new cassettes
+# Prevents flaky failures from attempting to record without credentials
+if %w[all record].include?(ENV['VCR_MODE'])
+  unless ENV['STRIPE_API_KEY'].to_s.strip != ''
+    warn 'SKIP: VCR_MODE=%s requires STRIPE_API_KEY to record cassettes' % ENV['VCR_MODE']
+    exit 0
+  end
+end
+
 VCR.configure do |config|
   # Store cassettes in spec/fixtures/vcr_cassettes/
   config.cassette_library_dir = File.join(spec_root, 'fixtures', 'vcr_cassettes')
@@ -71,10 +80,8 @@ VCR.configure do |config|
       !http_message.body.valid_encoding?
   end
 
-  # Allow connections to stripe-mock server AND real Stripe API
-  config.ignore_localhost = false
-  # Don't ignore localhost - we want to record stripe-mock requests too
-  # config.ignore_hosts 'localhost', '127.0.0.1'
+  # Allow connections to real Stripe API for VCR recording
+  config.ignore_localhost = true
 
   # Configure for different Stripe endpoints
   config.before_record do |interaction|
@@ -89,12 +96,10 @@ VCR.configure do |config|
 end
 
 # WebMock configuration
-# Allow Stripe API for VCR recording, stripe-mock for local testing
+# Allow Stripe API for VCR recording
 WebMock.disable_net_connect!(
   allow_localhost: true,
   allow: [
-    'localhost:12111',    # stripe-mock server
-    '127.0.0.1:12111',
     'api.stripe.com',     # Real Stripe API (for VCR recording)
     /\.stripe\.com\z/,    # All Stripe subdomains (anchored)
   ],

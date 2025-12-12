@@ -14,30 +14,30 @@
 
 module Billing
   module PlanHelpers
-    # Get upgrade path when capability is missing
+    # Get upgrade path when entitlement is missing
     #
-    # Finds the most affordable plan that includes the requested capability
+    # Finds the most affordable plan that includes the requested entitlement
     # by querying the cached plans and sorting by tier.
     #
-    # @param capability [String] Required capability
+    # @param entitlement [String] Required entitlement
     # @param _current_plan [String, nil] Current plan ID (unused, for compatibility)
     # @return [String, nil] Suggested plan ID or nil
     #
     # @example
     #   Billing::PlanHelpers.upgrade_path_for('custom_domains')
     #   # => "identity_plus_v1"
-    def self.upgrade_path_for(capability, _current_plan = nil)
-      # Query cached plans for those with the capability
-      plans_with_capability = ::Billing::Plan.list_plans.select do |plan|
-        plan.capabilities.member?(capability.to_s)
+    def self.upgrade_path_for(entitlement, _current_plan = nil)
+      # Query cached plans for those with the entitlement
+      plans_with_entitlement = ::Billing::Plan.list_plans.select do |plan|
+        plan.show_on_plans_page && plan.entitlements.member?(entitlement.to_s)
       end
 
-      return nil if plans_with_capability.empty?
+      return nil if plans_with_entitlement.empty?
 
       # Sort by tier order (free < single_team < multi_team)
       # Then by display_order (higher first for same tier)
       # Return first (cheapest/simplest) matching plan
-      sorted_plans = plans_with_capability.sort_by do |plan|
+      sorted_plans = plans_with_entitlement.sort_by do |plan|
         [tier_priority(plan.tier), -(plan.display_order.to_i)]
       end
 
@@ -99,14 +99,14 @@ module Billing
         .map(&:plan_id)
     end
 
-    # Get cheapest plan with capability
+    # Get cheapest plan with entitlement
     #
     # Alias for upgrade_path_for with clearer intent.
     #
-    # @param capability [String] Required capability
-    # @return [String, nil] Cheapest plan ID with capability
-    def self.cheapest_plan_with(capability)
-      upgrade_path_for(capability)
+    # @param entitlement [String] Required entitlement
+    # @return [String, nil] Cheapest plan ID with entitlement
+    def self.cheapest_plan_with(entitlement)
+      upgrade_path_for(entitlement)
     end
 
     # Get tier priority for sorting (lower = higher priority/cheaper)
