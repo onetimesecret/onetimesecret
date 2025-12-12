@@ -49,8 +49,28 @@ module DomainsAPI::Logic
 
         # Update verification status
         custom_domain.verified! result[:validated]
+
+        # Emit telemetry event for stats tracking
+        emit_verification_telemetry(result[:validated], result[:message])
       rescue StandardError => ex
         OT.le "[VerifyDomain.refresh_validation] Error: #{ex.message}"
+      end
+
+      # Emit telemetry event for domain verification
+      # @param validated [Boolean] Whether verification succeeded
+      # @param message [String, nil] Additional context
+      def emit_verification_telemetry(validated, message = nil)
+        event_type = validated ? 'domain.verified' : 'domain.verification_failed'
+        data = {
+          domain: display_domain,
+          organization_id: custom_domain.organization&.identifier,
+        }
+        data[:reason] = message if message && !validated
+
+        Onetime::Jobs::Publisher.enqueue_transient(event_type, data)
+      rescue StandardError => ex
+        # Telemetry failures should never break the main flow
+        OT.ld "[VerifyDomain] Telemetry error: #{ex.message}"
       end
 
       # Legacy methods for backward compatibility
