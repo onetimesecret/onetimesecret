@@ -8,12 +8,6 @@ require 'nokogiri'
 RSpec.describe 'Rhales Migration Integration', :simple_auth_mode, type: :integration do
   # Initialize OT configuration for views
   before(:all) do
-    # Store original config to restore later (prevents test pollution)
-    @original_conf = OT.instance_variable_get(:@conf)
-    @original_locales = OT.instance_variable_get(:@locales)
-    @original_default_locale = OT.instance_variable_get(:@default_locale)
-    @original_supported_locales = OT.instance_variable_get(:@supported_locales)
-
     # Set minimal OT locale data
     OT.instance_variable_set(:@locales, {
       'en' => {
@@ -53,16 +47,6 @@ RSpec.describe 'Rhales Migration Integration', :simple_auth_mode, type: :integra
         config.allowed_unescaped_variables = ['vite_assets_html']
       end
     end
-  end
-
-  after(:all) do
-    # Restore original config to prevent test pollution
-    # This is critical: other specs depend on boot! reloading config,
-    # but boot! returns early if OT.ready? is true in test mode
-    OT.instance_variable_set(:@conf, @original_conf) if @original_conf
-    OT.instance_variable_set(:@locales, @original_locales) if @original_locales
-    OT.instance_variable_set(:@default_locale, @original_default_locale) if @original_default_locale
-    OT.instance_variable_set(:@supported_locales, @original_supported_locales) if @original_supported_locales
   end
 
   let(:session) { { 'csrf' => 'test-csrf-token-12345' } }

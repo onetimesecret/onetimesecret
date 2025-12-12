@@ -239,20 +239,35 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
     end
 
     it 'calculates delay to send email WARNING_BUFFER_SECONDS before expiration' do
-      # metadata expires in 2 hours (7200s), so delay should be ~1 hour
+      fixed_now = Time.at(1_700_000_000) # Fixed timestamp to prevent flakiness
+      allow(Familia).to receive(:now).and_return(fixed_now)
+
+      metadata = instance_double(
+        'Onetime::Metadata',
+        identifier: 'meta123',
+        exists?: true,
+        anonymous?: false,
+        load_owner: owner_with_email,
+        secret_shortid: 'abc123',
+        secret_expiration: (fixed_now.to_i + 7200), # exactly 2 hours from fixed_now
+        share_domain: nil
+      )
+
       allow(Onetime::Metadata).to receive(:expiring_within).and_return(['meta123'])
-      allow(Onetime::Metadata).to receive(:load).with('meta123').and_return(metadata_with_owner)
+      allow(Onetime::Metadata).to receive(:load).with('meta123').and_return(metadata)
 
       expect(Onetime::Jobs::Publisher).to receive(:schedule_email) do |_template, _data, options|
-        # Delay = seconds_until_expiry - WARNING_BUFFER_SECONDS
-        # With 2 hour expiry, delay ≈ WARNING_BUFFER_SECONDS
-        expect(options[:delay_seconds]).to be_within(60).of(described_class::WARNING_BUFFER_SECONDS)
+        # Delay = seconds_until_expiry - WARNING_BUFFER_SECONDS = 7200 - 3600 = 3600
+        expect(options[:delay_seconds]).to eq(described_class::WARNING_BUFFER_SECONDS)
       end
 
       described_class.send(:process_expiring_secrets)
     end
 
     it 'uses zero delay when less than WARNING_BUFFER_SECONDS remains' do
+      fixed_now = Time.at(1_700_000_000) # Fixed timestamp to prevent flakiness
+      allow(Familia).to receive(:now).and_return(fixed_now)
+
       soon_metadata = instance_double(
         'Onetime::Metadata',
         identifier: 'soon123',
@@ -260,7 +275,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         anonymous?: false,
         load_owner: owner_with_email,
         secret_shortid: 'xyz789',
-        secret_expiration: (Familia.now.to_i + 1800), # 30 minutes from now
+        secret_expiration: (fixed_now.to_i + 1800), # 30 minutes from fixed_now
         share_domain: 'custom.example.com'
       )
 
