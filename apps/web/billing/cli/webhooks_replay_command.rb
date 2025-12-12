@@ -5,7 +5,7 @@
 require_relative 'helpers'
 require_relative 'safety_helpers'
 require_relative '../models/stripe_webhook_event'
-require_relative '../controllers/webhooks'
+require_relative '../operations/process_webhook_event'
 
 module Onetime
   module CLI
@@ -297,13 +297,9 @@ module Onetime
       # Replay a single event
       #
       # @param event [Billing::StripeWebhookEvent] Event to replay
-      # @param skip_notifications [Boolean] Skip notification side effects (reserved for future use)
+      # @param skip_notifications [Boolean] Skip notification side effects
       # @return [Symbol] :success, :failed, or :skipped
-      def replay_single_event(event, skip_notifications:) # rubocop:disable Lint/UnusedMethodArgument
-        # NOTE: skip_notifications is reserved for future use when handlers
-        # support notification suppression. Currently all handlers are idempotent
-        # and don't send notifications directly.
-
+      def replay_single_event(event, skip_notifications:)
         # Reconstruct Stripe event
         stripe_event = event.stripe_event
         unless stripe_event
@@ -315,9 +311,12 @@ module Onetime
         event.mark_processing!
 
         begin
-          # Create webhook controller instance and process
-          controller = Billing::Controllers::Webhooks.new
-          controller.send(:process_webhook_event, stripe_event)
+          # Use the operation with context for replay/skip_notifications
+          context = { replay: true, skip_notifications: skip_notifications }
+          Billing::Operations::ProcessWebhookEvent.new(
+            event: stripe_event,
+            context: context
+          ).call
 
           event.mark_success!
           puts "  OK   #{event.stripe_event_id} (#{event.event_type})"

@@ -4,6 +4,7 @@
 
 require_relative 'base'
 require_relative '../lib/webhook_validator'
+require_relative '../operations/process_webhook_event'
 require 'stripe'
 
 module Billing
@@ -108,7 +109,7 @@ module Billing
 
         # Process event with error handling and state tracking
         begin
-          process_webhook_event(event)
+          Billing::Operations::ProcessWebhookEvent.new(event: event).call
 
           # Mark as successfully processed
           event_record.mark_success!
@@ -146,192 +147,8 @@ module Billing
         end
       end
 
-      private
-
-      # Process webhook event by type
-      #
-      # Dispatches event to appropriate handler based on event type.
-      # Raises exceptions on failure so they can be caught and rolled back.
-      #
-      # @param event [Stripe::Event] Stripe webhook event
-      # @raise [StandardError] If event processing fails
-      def process_webhook_event(event)
-        case event.type
-        when 'checkout.session.completed'
-          handle_checkout_completed(event.data.object)
-        when 'customer.subscription.updated'
-          handle_subscription_updated(event.data.object)
-        when 'customer.subscription.deleted'
-          handle_subscription_deleted(event.data.object)
-        when 'product.created', 'product.updated', 'price.created', 'price.updated', 'plan.created', 'plan.updated'
-          handle_product_or_price_updated(event.data.object)
-        else
-          billing_logger.debug 'Unhandled webhook event type', {
-            event_type: event.type,
-          }
-        end
-      end
-
-      # Handle checkout.session.completed event
-      #
-      # Creates or updates organization subscription when checkout completes.
-      # This is the primary subscription activation flow.
-      #
-      # @param session [Stripe::Checkout::Session] Completed checkout session
-      def handle_checkout_completed(session)
-        billing_logger.info 'Processing checkout.session.completed', {
-          session_id: session.id,
-          customer_id: session.customer,
-        }
-
-        # Check if session has a subscription (skip one-time payments)
-        unless session.subscription
-          billing_logger.info 'Checkout session has no subscription (one-time payment)', {
-            session_id: session.id,
-            mode: session.mode,
-          }
-          return
-        end
-
-        # Expand subscription to get full details
-        subscription = Stripe::Subscription.retrieve(session.subscription)
-        metadata     = subscription.metadata
-
-        custid = metadata['custid']
-        unless custid
-          billing_logger.warn 'No custid in subscription metadata', {
-            subscription_id: subscription.id,
-          }
-          return
-        end
-
-        # Load customer
-        customer = Onetime::Customer.load(custid)
-        unless customer
-          billing_logger.error 'Customer not found', {
-            custid: custid,
-          }
-          return
-        end
-
-        # Find or create default organization
-        orgs = customer.organization_instances.to_a
-        org  = orgs.find { |o| o.is_default }
-
-        unless org
-          org            = Onetime::Organization.create!(
-            "#{customer.email}'s Workspace",
-            customer,
-            customer.email,
-          )
-          org.is_default = true
-          org.save
-        end
-
-        # Update organization with subscription details
-        org.update_from_stripe_subscription(subscription)
-
-        billing_logger.info 'Checkout completed - organization subscription activated', {
-          orgid: org.objid,
-          subscription_id: subscription.id,
-          custid: custid,
-        }
-      end
-
-      # Handle customer.subscription.updated event
-      #
-      # Updates organization subscription status when subscription changes
-      # (e.g., plan change, past_due, active, etc.)
-      #
-      # @param subscription [Stripe::Subscription] Updated subscription
-      def handle_subscription_updated(subscription)
-        billing_logger.info 'Processing customer.subscription.updated', {
-          subscription_id: subscription.id,
-          status: subscription.status,
-        }
-
-        # Find organization by subscription ID
-        org = find_organization_by_subscription(subscription.id)
-
-        unless org
-          billing_logger.warn 'Organization not found for subscription', {
-            subscription_id: subscription.id,
-          }
-          return
-        end
-
-        # Update organization with new subscription data
-        org.update_from_stripe_subscription(subscription)
-
-        billing_logger.info 'Subscription updated', {
-          orgid: org.objid,
-          subscription_id: subscription.id,
-          status: subscription.status,
-        }
-      end
-
-      # Handle customer.subscription.deleted event
-      #
-      # Marks organization subscription as canceled when subscription ends.
-      #
-      # @param subscription [Stripe::Subscription] Deleted subscription
-      def handle_subscription_deleted(subscription)
-        billing_logger.info 'Processing customer.subscription.deleted', {
-          subscription_id: subscription.id,
-        }
-
-        # Find organization by subscription ID
-        org = find_organization_by_subscription(subscription.id)
-
-        unless org
-          billing_logger.warn 'Organization not found for subscription', {
-            subscription_id: subscription.id,
-          }
-          return
-        end
-
-        # Clear billing fields
-        org.clear_billing_fields
-
-        billing_logger.info 'Subscription deleted - organization marked as canceled', {
-          orgid: org.objid,
-          subscription_id: subscription.id,
-        }
-      end
-
-      # Handle product.updated or price.updated events
-      #
-      # Refreshes plan cache when Stripe product or price data changes.
-      #
-      # @param object [Stripe::Product, Stripe::Price] Updated product or price
-      def handle_product_or_price_updated(object)
-        billing_logger.info 'Processing product/price update - refreshing plan cache', {
-          object_type: object.object,
-          object_id: object.id,
-        }
-
-        begin
-          Billing::Plan.refresh_from_stripe
-          billing_logger.info 'Plan cache refreshed successfully'
-        rescue StandardError => ex
-          billing_logger.error 'Failed to refresh plan cache', {
-            exception: ex,
-            message: ex.message,
-          }
-        end
-      end
-
-      # Find organization by Stripe subscription ID
-      #
-      # Uses unique index for O(1) lookup instead of O(n) iteration.
-      # The stripe_subscription_id unique_index is defined in WithStripeAccount feature.
-      #
-      # @param subscription_id [String] Stripe subscription ID
-      # @return [Onetime::Organization, nil] Organization or nil if not found
-      def find_organization_by_subscription(subscription_id)
-        # Use Familia auto-generated finder from unique_index for O(1) lookup
-        Onetime::Organization.find_by_stripe_subscription_id(subscription_id)
-      end
+      # Event processing logic is in Billing::Operations::ProcessWebhookEvent
+      # This keeps the controller focused on HTTP handling and state management
     end
   end
 end
