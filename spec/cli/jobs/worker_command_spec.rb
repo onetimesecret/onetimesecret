@@ -40,6 +40,10 @@ RSpec.describe Onetime::CLI::Jobs::WorkerCommand, type: :cli do
       it 'decodes complex encoded vhost' do
         expect(extract_vhost('amqp://host/ns%3Aproduction')).to eq('ns:production')
       end
+
+      it 'preserves literal + characters (not form-decoded to space)' do
+        expect(extract_vhost('amqp://host/my+vhost')).to eq('my+vhost')
+      end
     end
 
     context 'with empty or missing path' do

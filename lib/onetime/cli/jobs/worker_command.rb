@@ -165,7 +165,9 @@ module Onetime
           uri = URI.parse(url)
           path = uri.path.to_s
           # Remove leading slash, URL-decode the vhost name
-          vhost = URI.decode_www_form_component(path.sub(%r{^/}, ''))
+          # Use DEFAULT_PARSER.unescape (not decode_www_form_component) to preserve
+          # literal + characters in paths (form decoding converts + to space)
+          vhost = URI::DEFAULT_PARSER.unescape(path.sub(%r{^/}, ''))
           vhost.empty? ? '/' : vhost
         rescue URI::InvalidURIError
           '/'
