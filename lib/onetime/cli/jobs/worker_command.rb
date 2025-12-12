@@ -91,12 +91,8 @@ module Onetime
           # 3. Update Publisher to use that exchange
           # 4. Update this config to match
           #
-          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
-          vhost = ENV.fetch('RABBITMQ_VHOST') { extract_vhost_from_url(amqp_url) }
-
-          Sneakers.configure(
-            amqp: amqp_url,
-            vhost: vhost,
+          config = {
+            amqp: ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'),
             exchange: '',
             exchange_type: :direct,
             threads: concurrency,
@@ -109,7 +105,13 @@ module Onetime
             ack: true,
             heartbeat: 30,
             prefetch: concurrency,
-          )
+          }
+
+          # Override vhost only if explicitly set via env var.
+          # Otherwise, let Bunny parse it from the AMQP URL.
+          config[:vhost] = ENV['RABBITMQ_VHOST'] if ENV.key?('RABBITMQ_VHOST')
+
+          Sneakers.configure(config)
 
           # Set Kicks logger to match OT log level
           Sneakers.logger.level = logger_level(log_level)
@@ -158,20 +160,6 @@ module Onetime
           end
         end
 
-        # Extract vhost from AMQP URL path component
-        # e.g., amqps://user:pass@host:5671/myvhost -> "myvhost"
-        # Falls back to "/" if no path or empty path
-        def extract_vhost_from_url(url)
-          uri = URI.parse(url)
-          path = uri.path.to_s
-          # Remove leading slash, URL-decode the vhost name
-          # Use DEFAULT_PARSER.unescape (not decode_www_form_component) to preserve
-          # literal + characters in paths (form decoding converts + to space)
-          vhost = URI::DEFAULT_PARSER.unescape(path.sub(%r{^/}, ''))
-          vhost.empty? ? '/' : vhost
-        rescue URI::InvalidURIError
-          '/'
-        end
       end
     end
 
