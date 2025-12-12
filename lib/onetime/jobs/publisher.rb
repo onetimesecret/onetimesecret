@@ -70,6 +70,15 @@ module Onetime
         def enqueue_email_raw(email, fallback: DEFAULT_FALLBACK)
           new.enqueue_email_raw(email, fallback: fallback)
         end
+
+        # Enqueue a Stripe webhook event for async processing
+        # @param event [Stripe::Event] The validated Stripe event
+        # @param payload [String] The raw JSON payload from Stripe
+        # @return [Boolean] true if published to queue, false if jobs disabled
+        # @raise [Onetime::Problem] If RabbitMQ unavailable (no fallback for billing)
+        def enqueue_billing_event(event, payload)
+          new.enqueue_billing_event(event, payload)
+        end
       end
 
       def initialize
@@ -137,6 +146,37 @@ module Onetime
           logger.info 'Enqueued raw email', to: email[:to], message_id: message_id
           true
         end
+      end
+
+      # Enqueue a Stripe webhook event for async processing
+      #
+      # Unlike email, billing events have NO fallback - if RabbitMQ is unavailable,
+      # the webhook controller should return 500 so Stripe retries. This ensures
+      # no billing events are lost.
+      #
+      # @param event [Stripe::Event] The validated Stripe event
+      # @param payload [String] The raw JSON payload from Stripe
+      # @return [Boolean] true if published to queue
+      # @raise [Onetime::Problem] If jobs disabled or RabbitMQ unavailable
+      def enqueue_billing_event(event, payload)
+        unless jobs_enabled?
+          raise Onetime::Problem, 'Cannot enqueue billing event: jobs disabled'
+        end
+
+        message = {
+          event_id: event.id,
+          event_type: event.type,
+          payload: payload,
+          received_at: Time.now.utc.iso8601,
+        }
+
+        message_id = publish('billing.event.process', message)
+        logger.info 'Enqueued billing event',
+          event_id: event.id,
+          event_type: event.type,
+          message_id: message_id,
+          queue: 'billing.event.process'
+        true
       end
 
       # Publish generic message to a queue
