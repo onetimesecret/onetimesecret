@@ -57,9 +57,9 @@ Onetime::Middleware::DomainStrategy.canonical_domain
 @chooser.choose_strategy('xn--mnchen-3ya.de', @canonical_domain)
 #=> nil
 
-## Strips whitespace during normalization
+## Strips whitespace during normalization (now correctly parses after stripping)
 @chooser.choose_strategy('  onetimesecret.com  ', @canonical_domain)
-#=> nil
+#=> :canonical
 
 ## Detects subdomain strategy
 @chooser.choose_strategy('sub.onetimesecret.com', @canonical_domain)
