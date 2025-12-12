@@ -35,6 +35,12 @@ if _worker_count.positive?
   # NOTE: These blocks only run in cluster mode (workers > 0).
   # In development with workers=0, Puma runs in single-process mode.
   before_fork do
+    # Flush SemanticLogger before forking to prevent lost log messages.
+    # The async appender queues messages in a background thread that won't
+    # survive fork - flushing ensures all pending logs are written first.
+    # See: https://github.com/reidmorrison/semantic_logger/blob/master/docs/forking.md
+    SemanticLogger.flush if defined?(SemanticLogger)
+
     # Close connections in master before forking
     # Familia.redis.quit if defined?(Familia)
     # Sequel::DATABASES.each(&:disconnect) if defined?(Sequel)
@@ -43,6 +49,12 @@ if _worker_count.positive?
   # On Puma 6, use the 'on_worker_boot' hook here instead. Head's
   # up it is deprecated in Puma 7 and will be removed in v8.
   before_worker_boot do
+    # Re-open SemanticLogger appenders in each worker process.
+    # This creates fresh async processing threads after fork, replacing
+    # the zombie thread references inherited from the master process.
+    # Without this, log messages from workers would be lost.
+    SemanticLogger.reopen if defined?(SemanticLogger)
+
     # Reconnect in each worker (auto-reconnects for Familia)
     # DB.reconnect if defined?(DB)
   end
