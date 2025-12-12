@@ -50,9 +50,11 @@ RSpec.describe Onetime::Operations::DispatchNotification do
     allow(addr).to receive(:ip_address).and_return('93.184.216.34') # example.com public IP
 
     # Stub for webhook hostnames, let other calls (e.g., Redis) pass through
+    # Uses DomainParser.hostname_within_domain? for secure domain boundary checking
+    # to prevent matching attacker-controlled domains like 'attacker-example.com'
     allow(Addrinfo).to receive(:getaddrinfo).and_call_original
     allow(Addrinfo).to receive(:getaddrinfo)
-      .with(satisfy { |h| h.to_s.include?('example.com') }, anything, anything, anything)
+      .with(satisfy { |h| Onetime::Utils::DomainParser.hostname_within_domain?(h, 'example.com') }, anything, anything, anything)
       .and_return([addr])
   end
 
@@ -563,7 +565,7 @@ RSpec.describe Onetime::Operations::DispatchNotification do
       allow(addr).to receive(:ip_address).and_return(ip_address)
       allow(Addrinfo).to receive(:getaddrinfo).and_call_original
       allow(Addrinfo).to receive(:getaddrinfo)
-        .with(satisfy { |h| h.to_s.include?('example.com') }, anything, anything, anything)
+        .with(satisfy { |h| Onetime::Utils::DomainParser.hostname_within_domain?(h, 'example.com') }, anything, anything, anything)
         .and_return([addr])
     end
 
@@ -606,7 +608,7 @@ RSpec.describe Onetime::Operations::DispatchNotification do
     it 'handles DNS resolution failure' do
       allow(Addrinfo).to receive(:getaddrinfo).and_call_original
       allow(Addrinfo).to receive(:getaddrinfo)
-        .with(satisfy { |h| h.to_s.include?('example.com') }, anything, anything, anything)
+        .with(satisfy { |h| Onetime::Utils::DomainParser.hostname_within_domain?(h, 'example.com') }, anything, anything, anything)
         .and_raise(SocketError, 'getaddrinfo: nodename nor servname provided')
 
       results = described_class.new(data: data).call
