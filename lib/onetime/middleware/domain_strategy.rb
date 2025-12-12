@@ -224,9 +224,6 @@ module Onetime
       end
 
       # Domain parsing utilities with validation.
-      #
-      # Delegates to Onetime::Utils::DomainParser for hostname extraction and
-      # validation to maintain a single source of truth for domain parsing logic.
       module Parser
         class << self
           # Parses and validates a host string into a domain object.
@@ -235,8 +232,7 @@ module Onetime
           # @return [PublicSuffix::Domain] Parsed domain object
           # @raise [PublicSuffix::DomainInvalid] When domain is invalid or malformed
           def parse(host)
-            # Delegate hostname extraction (port stripping, normalization) to DomainParser
-            host = Onetime::Utils::DomainParser.extract_hostname(host)
+            host = host.to_s.split(':').first # remove port (e.g. localhost:3000)
             raise PublicSuffix::DomainInvalid.new('Cannot parse host') unless basically_valid?(host)
 
             PublicSuffix.parse(host, default_rule: nil, ignore_private: false) # calls normalize
@@ -246,11 +242,17 @@ module Onetime
           #
           # @param input [String] The input string to validate
           # @return [Boolean] true if input passes basic validation
-          #
-          # Delegates to Onetime::Utils::DomainParser.basically_valid? for
-          # consistent validation logic across the codebase.
           def basically_valid?(input)
-            Onetime::Utils::DomainParser.basically_valid?(input)
+            return false if input.to_s.empty?
+            return false if input.length > MAX_TOTAL_LENGTH
+
+            # Only alphanumeric, dots, and hyphens are valid in domain names
+            return false unless input.to_s.match?(/\A[a-zA-Z0-9.-]+\z/)
+
+            segments = input.to_s.split('.').reject(&:empty?)
+            return false if segments.length > MAX_SUBDOMAIN_DEPTH
+
+            true
           end
         end
       end
