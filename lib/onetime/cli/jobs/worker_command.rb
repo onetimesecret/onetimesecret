@@ -18,6 +18,7 @@
 
 require 'sneakers'
 require 'sneakers/runner'
+require_relative '../../jobs/queue_config'
 
 module Onetime
   module CLI
@@ -167,18 +168,8 @@ module Onetime
           # Otherwise, let Bunny parse it from the AMQP URL.
           config[:vhost] = ENV['RABBITMQ_VHOST'] if ENV.key?('RABBITMQ_VHOST')
 
-          # TLS configuration for amqps:// connections
-          # Managed services (Northflank, CloudAMQP) provide valid certificates
-          # that work with system CA bundle - no custom certs needed
-          if amqp_url.start_with?('amqps://')
-            config[:tls] = true
-            # verify_peer defaults to true; only disable in local dev
-            config[:verify_peer] = ENV.fetch('RABBITMQ_VERIFY_PEER', 'true') == 'true'
-
-            # Optional: Custom CA certificates (only if provider requires it)
-            ca_certs_path = ENV['RABBITMQ_CA_CERTIFICATES']
-            config[:tls_ca_certificates] = [ca_certs_path] if ca_certs_path
-          end
+          # TLS configuration for amqps:// connections (centralized in QueueConfig)
+          config.merge!(Onetime::Jobs::QueueConfig.tls_options(amqp_url))
 
           Sneakers.configure(config)
         end

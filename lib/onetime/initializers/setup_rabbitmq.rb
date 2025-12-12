@@ -4,6 +4,7 @@
 
 require 'bunny'
 require 'connection_pool'
+require_relative '../jobs/queue_config'
 
 module Onetime
   module Initializers
@@ -54,18 +55,8 @@ module Onetime
           logger: Onetime.get_logger('Bunny'),
         }
 
-        # TLS configuration for amqps:// connections
-        # Managed services (Northflank, CloudAMQP) provide valid certificates
-        # that work with system CA bundle - no custom certs needed
-        if url.start_with?('amqps://')
-          bunny_config[:tls] = true
-          # verify_peer defaults to true; only disable in local dev
-          bunny_config[:verify_peer] = ENV.fetch('RABBITMQ_VERIFY_PEER', 'true') == 'true'
-
-          # Optional: Custom CA certificates (only if provider requires it)
-          ca_certs_path = ENV['RABBITMQ_CA_CERTIFICATES']
-          bunny_config[:tls_ca_certificates] = [ca_certs_path] if ca_certs_path
-        end
+        # TLS configuration for amqps:// connections (centralized in QueueConfig)
+        bunny_config.merge!(Onetime::Jobs::QueueConfig.tls_options(url))
 
         # Create single connection per process
         $rmq_conn = Bunny.new(url, **bunny_config)
