@@ -42,6 +42,18 @@ require_relative '../../../lib/onetime/operations/dispatch_notification'
 RSpec.describe Onetime::Operations::DispatchNotification do
   let(:custid) { 'cust:test-user-456' }
 
+  # Mock Addrinfo for SSRF protection tests - returns a public IP by default
+  let(:mock_addrinfo) do
+    addr = instance_double(Addrinfo)
+    allow(addr).to receive(:ip_address).and_return('93.184.216.34') # example.com public IP
+    addr
+  end
+
+  before do
+    # Stub SSRF validation to return safe public IP by default
+    allow(Addrinfo).to receive(:getaddrinfo).and_return([mock_addrinfo])
+  end
+
   let(:base_data) do
     {
       type: 'secret.viewed',
@@ -188,6 +200,9 @@ RSpec.describe Onetime::Operations::DispatchNotification do
       before do
         allow(Net::HTTP).to receive(:new).and_return(http_instance)
         allow(http_instance).to receive(:use_ssl=)
+        allow(http_instance).to receive(:use_ssl?).and_return(true)
+        allow(http_instance).to receive(:verify_mode=)
+        allow(http_instance).to receive(:verify_hostname=)
         allow(http_instance).to receive(:open_timeout=)
         allow(http_instance).to receive(:read_timeout=)
         allow(http_instance).to receive(:request).and_return(response)
@@ -260,6 +275,9 @@ RSpec.describe Onetime::Operations::DispatchNotification do
 
         allow(Net::HTTP).to receive(:new).and_return(http_instance)
         allow(http_instance).to receive(:use_ssl=)
+        allow(http_instance).to receive(:use_ssl?).and_return(true)
+        allow(http_instance).to receive(:verify_mode=)
+        allow(http_instance).to receive(:verify_hostname=)
         allow(http_instance).to receive(:open_timeout=)
         allow(http_instance).to receive(:read_timeout=)
         allow(http_instance).to receive(:request).and_return(response)
@@ -418,6 +436,9 @@ RSpec.describe Onetime::Operations::DispatchNotification do
     before do
       allow(Net::HTTP).to receive(:new).and_return(http_instance)
       allow(http_instance).to receive(:use_ssl=)
+      allow(http_instance).to receive(:use_ssl?).and_return(true)
+      allow(http_instance).to receive(:verify_mode=)
+      allow(http_instance).to receive(:verify_hostname=)
       allow(http_instance).to receive(:open_timeout=)
       allow(http_instance).to receive(:read_timeout=)
     end
@@ -462,6 +483,8 @@ RSpec.describe Onetime::Operations::DispatchNotification do
     before do
       allow(Net::HTTP).to receive(:new).and_return(http_instance)
       allow(http_instance).to receive(:use_ssl=)
+      allow(http_instance).to receive(:verify_mode=)
+      allow(http_instance).to receive(:verify_hostname=)
       allow(http_instance).to receive(:open_timeout=)
       allow(http_instance).to receive(:read_timeout=)
       allow(http_instance).to receive(:request).and_return(response)
@@ -474,6 +497,10 @@ RSpec.describe Onetime::Operations::DispatchNotification do
           addressee: base_data[:addressee].merge(webhook_url: 'http://example.com/webhook'),
           channels: ['via_webhook']
         )
+      end
+
+      before do
+        allow(http_instance).to receive(:use_ssl?).and_return(false)
       end
 
       it 'disables SSL for http URLs' do
@@ -491,11 +518,89 @@ RSpec.describe Onetime::Operations::DispatchNotification do
         )
       end
 
+      before do
+        allow(http_instance).to receive(:use_ssl?).and_return(true)
+      end
+
       it 'enables SSL for https URLs' do
         described_class.new(data: data).call
 
         expect(http_instance).to have_received(:use_ssl=).with(true)
       end
+
+      it 'sets strict TLS verification' do
+        described_class.new(data: data).call
+
+        expect(http_instance).to have_received(:verify_mode=).with(OpenSSL::SSL::VERIFY_PEER)
+        expect(http_instance).to have_received(:verify_hostname=).with(true)
+      end
+    end
+  end
+
+  describe 'SSRF protection' do
+    let(:http_instance) { instance_double(Net::HTTP) }
+    let(:data) { base_data.merge(channels: ['via_webhook']) }
+
+    before do
+      allow(Net::HTTP).to receive(:new).and_return(http_instance)
+      allow(http_instance).to receive(:use_ssl=)
+      allow(http_instance).to receive(:use_ssl?).and_return(true)
+      allow(http_instance).to receive(:verify_mode=)
+      allow(http_instance).to receive(:verify_hostname=)
+      allow(http_instance).to receive(:open_timeout=)
+      allow(http_instance).to receive(:read_timeout=)
+    end
+
+    it 'blocks loopback addresses' do
+      loopback_addr = instance_double(Addrinfo)
+      allow(loopback_addr).to receive(:ip_address).and_return('127.0.0.1')
+      allow(Addrinfo).to receive(:getaddrinfo).and_return([loopback_addr])
+
+      results = described_class.new(data: data).call
+
+      expect(results[:via_webhook]).to eq(:error)
+    end
+
+    it 'blocks private network addresses' do
+      private_addr = instance_double(Addrinfo)
+      allow(private_addr).to receive(:ip_address).and_return('192.168.1.1')
+      allow(Addrinfo).to receive(:getaddrinfo).and_return([private_addr])
+
+      results = described_class.new(data: data).call
+
+      expect(results[:via_webhook]).to eq(:error)
+    end
+
+    it 'blocks link-local addresses' do
+      link_local_addr = instance_double(Addrinfo)
+      allow(link_local_addr).to receive(:ip_address).and_return('169.254.169.254') # AWS metadata
+      allow(Addrinfo).to receive(:getaddrinfo).and_return([link_local_addr])
+
+      results = described_class.new(data: data).call
+
+      expect(results[:via_webhook]).to eq(:error)
+    end
+
+    it 'allows public IP addresses' do
+      response = instance_double(Net::HTTPSuccess, code: '200', body: 'OK')
+      allow(http_instance).to receive(:request).and_return(response)
+      allow(response).to receive(:is_a?).with(Net::HTTPSuccess).and_return(true)
+
+      public_addr = instance_double(Addrinfo)
+      allow(public_addr).to receive(:ip_address).and_return('93.184.216.34')
+      allow(Addrinfo).to receive(:getaddrinfo).and_return([public_addr])
+
+      results = described_class.new(data: data).call
+
+      expect(results[:via_webhook]).to eq(:success)
+    end
+
+    it 'handles DNS resolution failure' do
+      allow(Addrinfo).to receive(:getaddrinfo).and_raise(SocketError, 'getaddrinfo: nodename nor servname provided')
+
+      results = described_class.new(data: data).call
+
+      expect(results[:via_webhook]).to eq(:error)
     end
   end
 
