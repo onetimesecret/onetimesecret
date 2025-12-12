@@ -44,6 +44,15 @@ module VCRHelper
   end
 end
 
+# Guard: Require STRIPE_API_KEY when recording new cassettes
+# Prevents flaky failures from attempting to record without credentials
+if %w[all record].include?(ENV['VCR_MODE'])
+  unless ENV['STRIPE_API_KEY'].to_s.strip != ''
+    warn 'SKIP: VCR_MODE=%s requires STRIPE_API_KEY to record cassettes' % ENV['VCR_MODE']
+    exit 0
+  end
+end
+
 VCR.configure do |config|
   # Store cassettes in spec/fixtures/vcr_cassettes/
   config.cassette_library_dir = File.join(spec_root, 'fixtures', 'vcr_cassettes')
