@@ -41,6 +41,13 @@ if _worker_count.positive?
     # See: https://github.com/reidmorrison/semantic_logger/blob/master/docs/forking.md
     SemanticLogger.flush if defined?(SemanticLogger)
 
+    # Close RabbitMQ connection cleanly before fork.
+    # The connection_pool gem's after_fork hook tries to close inherited channels,
+    # but post-fork the TCP socket is dead and Bunny blocks waiting for server ACK.
+    # By closing here while the socket is still alive, we avoid the timeout.
+    # See: https://github.com/onetimesecret/onetimesecret/issues/2167
+    Onetime::Initializers::SetupRabbitMQ.disconnect if defined?(Onetime::Initializers::SetupRabbitMQ)
+
     # Close connections in master before forking
     # Familia.redis.quit if defined?(Familia)
     # Sequel::DATABASES.each(&:disconnect) if defined?(Sequel)
@@ -54,6 +61,11 @@ if _worker_count.positive?
     # the zombie thread references inherited from the master process.
     # Without this, log messages from workers would be lost.
     SemanticLogger.reopen if defined?(SemanticLogger)
+
+    # Reconnect RabbitMQ in each worker process.
+    # Creates fresh TCP connection and channel pool per worker.
+    # See: https://github.com/onetimesecret/onetimesecret/issues/2167
+    Onetime::Initializers::SetupRabbitMQ.reconnect if defined?(Onetime::Initializers::SetupRabbitMQ)
 
     # Reconnect in each worker (auto-reconnects for Familia)
     # DB.reconnect if defined?(DB)

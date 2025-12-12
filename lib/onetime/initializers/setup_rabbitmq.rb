@@ -26,6 +26,47 @@ module Onetime
       @depends_on = [:logging]
       @provides   = [:rabbitmq]
 
+      class << self
+        # Disconnect RabbitMQ cleanly before Puma fork.
+        # Call from Puma's before_fork hook to prevent ConnectionPool.after_fork
+        # from timing out when trying to close channels over a dead socket.
+        #
+        # @return [void]
+        def disconnect
+          return unless defined?($rmq_conn) && $rmq_conn&.open?
+
+          Onetime.bunny_logger.info '[SetupRabbitMQ] Closing RabbitMQ connection before fork'
+
+          # Close connection while socket is still alive - clean shutdown
+          $rmq_conn.close
+          $rmq_conn = nil
+          $rmq_channel_pool = nil
+
+          Onetime.bunny_logger.debug '[SetupRabbitMQ] RabbitMQ disconnected'
+        rescue StandardError => ex
+          # Log but don't raise - fork must proceed
+          Onetime.bunny_logger.warn "[SetupRabbitMQ] Error during disconnect: #{ex.message}"
+          $rmq_conn = nil
+          $rmq_channel_pool = nil
+        end
+
+        # Reconnect RabbitMQ after Puma fork.
+        # Call from Puma's before_worker_boot hook to establish fresh connection
+        # in each worker process.
+        #
+        # @return [void]
+        def reconnect
+          return unless OT.conf.dig('jobs', 'enabled')
+
+          Onetime.bunny_logger.info "[SetupRabbitMQ] Reconnecting RabbitMQ in worker #{Process.pid}"
+          new.send(:setup_rabbitmq_connection)
+        rescue Bunny::TCPConnectionFailed, Bunny::ConnectionTimeout => ex
+          Onetime.bunny_logger.warn "[SetupRabbitMQ] Reconnect failed: #{ex.message}"
+          Onetime.bunny_logger.warn '[SetupRabbitMQ] Jobs will fall back to synchronous execution'
+          # Don't raise - allow worker to start with degraded functionality
+        end
+      end
+
       def execute(_context)
         return unless OT.conf.dig('jobs', 'enabled')
 
