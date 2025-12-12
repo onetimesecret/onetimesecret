@@ -91,9 +91,12 @@ module Onetime
           # 3. Update Publisher to use that exchange
           # 4. Update this config to match
           #
+          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+          vhost = ENV.fetch('RABBITMQ_VHOST') { extract_vhost_from_url(amqp_url) }
+
           Sneakers.configure(
-            amqp: ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'),
-            vhost: ENV.fetch('RABBITMQ_VHOST', '/'),
+            amqp: amqp_url,
+            vhost: vhost,
             exchange: '',
             exchange_type: :direct,
             threads: concurrency,
@@ -153,6 +156,19 @@ module Onetime
           else
             Logger::INFO # default for 'info' and unknown values
           end
+        end
+
+        # Extract vhost from AMQP URL path component
+        # e.g., amqps://user:pass@host:5671/myvhost -> "myvhost"
+        # Falls back to "/" if no path or empty path
+        def extract_vhost_from_url(url)
+          uri = URI.parse(url)
+          path = uri.path.to_s
+          # Remove leading slash, URL-decode the vhost name
+          vhost = URI.decode_www_form_component(path.sub(%r{^/}, ''))
+          vhost.empty? ? '/' : vhost
+        rescue URI::InvalidURIError
+          '/'
         end
       end
     end
