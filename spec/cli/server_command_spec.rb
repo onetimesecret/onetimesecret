@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'cli_spec_helper'
+require 'rackup'
 
 RSpec.describe 'Server Command', type: :cli do
   let(:rack_app) { double('RackApp') }
