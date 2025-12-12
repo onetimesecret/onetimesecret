@@ -311,8 +311,8 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
     it 'verifies multiple entitlements in sequence', :vcr do
       entitlements_to_test = %w[create_secrets create_team custom_domains api_access]
 
-      results = entitlements_to_test.map do |cap|
-        get "/billing/api/entitlements/#{organization.extid}/#{cap}"
+      results = entitlements_to_test.map do |ent|
+        get "/billing/api/entitlements/#{organization.extid}/#{ent}"
         JSON.parse(last_response.body)
       end
 

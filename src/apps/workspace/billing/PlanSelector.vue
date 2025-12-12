@@ -68,7 +68,7 @@ const getNewFeatures = (plan: BillingPlan): string[] => {
   if (!basePlan) return plan.entitlements; // Show all for Identity Plus
 
   // Filter out features that exist in base plan
-  return plan.entitlements.filter(cap => !basePlan.entitlements.includes(cap));
+  return plan.entitlements.filter(ent => !basePlan.entitlements.includes(ent));
 };
 
 const getPlanPricePerMonth = (plan: BillingPlan): number => {

@@ -276,7 +276,7 @@ module Billing
 
             # Add entitlements to set (unique values)
             plan.entitlements.clear
-            entitlements.each { |cap| plan.entitlements.add(cap) }
+            entitlements.each { |ent| plan.entitlements.add(ent) }
 
             # Add features to set
             plan.features.clear

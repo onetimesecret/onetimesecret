@@ -83,8 +83,8 @@ module Billing
     # @param category [String, Symbol] Entitlement category
     # @return [Hash] Entitlements in category
     def self.entitlements_by_category(category)
-      load_entitlements.select do |_id, cap|
-        cap['category'] == category.to_s
+      load_entitlements.select do |_id, ent|
+        ent['category'] == category.to_s
       end
     end
 

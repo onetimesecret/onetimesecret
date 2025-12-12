@@ -103,7 +103,7 @@ export function getEntitlementsByCategory(
   category: EntitlementCategory,
 ): Array<[string, EntitlementDefinition]> {
   return Object.entries(config.billing.entitlements)
-    .filter(([, cap]) => cap.category === category);
+    .filter(([, ent]) => ent.category === category);
 }
 
 /**

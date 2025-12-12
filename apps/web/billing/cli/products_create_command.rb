@@ -135,8 +135,8 @@ module Onetime
         puts "  Region: #{existing.metadata['region']}"
 
         if existing.metadata['entitlements']
-          caps = existing.metadata['entitlements'].split(',').map(&:strip)
-          puts "  Entitlements: #{caps.join(', ')}"
+          ents = existing.metadata['entitlements'].split(',').map(&:strip)
+          puts "  Entitlements: #{ents.join(', ')}"
         end
 
         # Auto-update if --update flag provided (requires --yes for non-interactive)

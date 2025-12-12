@@ -239,15 +239,15 @@ onMounted(async () => {
               </p>
               <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div
-                  v-for="cap in entitlements"
-                  :key="cap"
+                  v-for="ent in entitlements"
+                  :key="ent"
                   class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                   <OIcon
                     collection="heroicons"
                     name="check-circle"
                     class="size-5 text-green-500 dark:text-green-400"
                     aria-hidden="true" />
-                  {{ formatEntitlement(cap) }}
+                  {{ formatEntitlement(ent) }}
                 </div>
               </div>
             </div>
