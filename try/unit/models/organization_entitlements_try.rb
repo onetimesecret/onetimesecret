@@ -1,12 +1,12 @@
-# try/unit/models/organization_capabilities_try.rb
+# try/unit/models/organization_entitlements_try.rb
 #
 # frozen_string_literal: true
 
 #
-# Unit tests for Organization capabilities feature - FOCUSED TEST
+# Unit tests for Organization entitlements feature - FOCUSED TEST
 # Tests the critical SaaS free tier fix:
 # - When billing_enabled: true but plan cache is empty → return [] (fail-closed)
-# - When billing_enabled: false → return full capabilities (standalone mode)
+# - When billing_enabled: false → return full entitlements (standalone mode)
 
 require_relative '../../support/test_models'
 
@@ -14,32 +14,32 @@ OT.boot! :test
 
 # Setup test data
 @timestamp = Familia.now.to_i
-@owner = Onetime::Customer.create!(email: "cap_owner#{@timestamp}@onetimesecret.com")
+@owner = Onetime::Customer.create!(email: "ent_owner#{@timestamp}@onetimesecret.com")
 @org = Onetime::Organization.create!(
-  "Capabilities Test Org",
+  "Entitlements Test Org",
   @owner,
-  "billing#{@timestamp}@captest.com"
+  "billing#{@timestamp}@enttest.com"
 )
 
 ## Can create organization
 @org.class
 #=> Onetime::Organization
 
-## Organization includes WithCapabilities feature methods
-[@org.respond_to?(:capabilities), @org.respond_to?(:can?), @org.respond_to?(:limit_for)]
+## Organization includes WithEntitlements feature methods
+[@org.respond_to?(:entitlements), @org.respond_to?(:can?), @org.respond_to?(:limit_for)]
 #=> [true, true, true]
 
-## STANDALONE MODE TEST: billing disabled returns full capabilities
+## STANDALONE MODE TEST: billing disabled returns full entitlements
 # Override the private billing_enabled? method for this instance
 @org.define_singleton_method(:billing_enabled?) { false }
-@org.capabilities.sort
-#=> Onetime::Models::Features::WithCapabilities::STANDALONE_CAPABILITIES.sort
+@org.entitlements.sort
+#=> Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.sort
 
-## Standalone: can? returns true for standard capabilities
+## Standalone: can? returns true for standard entitlements
 @org.can?('create_secrets')
 #=> true
 
-## Standalone: can? returns true for premium capabilities
+## Standalone: can? returns true for premium entitlements
 @org.can?('custom_domains')
 #=> true
 
@@ -51,7 +51,7 @@ OT.boot! :test
 # Switch to billing enabled mode
 @org.define_singleton_method(:billing_enabled?) { true }
 @org.planid = ""
-@org.capabilities
+@org.entitlements
 #=> []
 
 ## SaaS empty planid: can? returns false
@@ -64,7 +64,7 @@ OT.boot! :test
 
 ## SAAS PLAN CACHE MISS TEST: billing enabled but plan not in cache returns empty array (CRITICAL FIX)
 @org.planid = "nonexistent_plan_#{@timestamp}"
-@org.capabilities
+@org.entitlements
 #=> []
 
 ## SaaS plan cache miss: can? returns false (fail-closed behavior)
@@ -75,7 +75,7 @@ OT.boot! :test
 @org.limit_for('teams')
 #=> 0
 
-## SaaS plan cache miss: can? returns false for all capabilities
+## SaaS plan cache miss: can? returns false for all entitlements
 [@org.can?('custom_domains'), @org.can?('api_access'), @org.can?('audit_logs')]
 #=> [false, false, false]
 
