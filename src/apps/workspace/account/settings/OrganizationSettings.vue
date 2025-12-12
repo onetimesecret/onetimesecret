@@ -56,7 +56,7 @@ const isIdentityPlus = computed(() =>
 const isMultiTeam = computed(() => can(ENTITLEMENTS.CREATE_TEAMS));
 
 // Format entitlement for display
-const formatEntitlement = (cap: string): string => {
+const formatEntitlement = (ent: string): string => {
   const labels: Record<string, string> = {
     [ENTITLEMENTS.CREATE_SECRETS]: 'Create Secrets',
     [ENTITLEMENTS.BASIC_SHARING]: 'Basic Sharing',
@@ -67,7 +67,7 @@ const formatEntitlement = (cap: string): string => {
     [ENTITLEMENTS.PRIORITY_SUPPORT]: 'Priority Support',
     [ENTITLEMENTS.AUDIT_LOGS]: 'Audit Logs',
   };
-  return labels[cap] || cap;
+  return labels[ent] || ent;
 };
 
 // Form data

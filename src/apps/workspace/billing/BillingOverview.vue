@@ -35,7 +35,7 @@ const planName = computed(() => {
 
 const planStatus = computed(() => selectedOrg.value?.planid ? 'active' : 'free');
 
-const formatEntitlement = (cap: string): string => {
+const formatEntitlement = (ent: string): string => {
   const labels: Record<string, string> = {
     [ENTITLEMENTS.CREATE_SECRETS]: t('web.billing.overview.entitlements.create_secrets'),
     [ENTITLEMENTS.BASIC_SHARING]: t('web.billing.overview.entitlements.basic_sharing'),
@@ -46,7 +46,7 @@ const formatEntitlement = (cap: string): string => {
     [ENTITLEMENTS.PRIORITY_SUPPORT]: t('web.billing.overview.entitlements.priority_support'),
     [ENTITLEMENTS.AUDIT_LOGS]: t('web.billing.overview.entitlements.audit_logs'),
   };
-  return labels[cap] || cap;
+  return labels[ent] || ent;
 };
 
 const loadOrganizationData = async (orgId: string) => {
