@@ -47,13 +47,28 @@ module Onetime
 
         Onetime.bunny_logger.info "[init] RabbitMQ: Connecting to #{sanitize_url(url)}"
 
-        # Create single connection per process
-        $rmq_conn = Bunny.new(
-          url,
+        # Build connection configuration
+        bunny_config = {
           recover_from_connection_close: true,
           network_recovery_interval: 5,
           logger: Onetime.get_logger('Bunny'),
-        )
+        }
+
+        # TLS configuration for amqps:// connections
+        # Managed services (Northflank, CloudAMQP) provide valid certificates
+        # that work with system CA bundle - no custom certs needed
+        if url.start_with?('amqps://')
+          bunny_config[:tls] = true
+          # verify_peer defaults to true; only disable in local dev
+          bunny_config[:verify_peer] = ENV.fetch('RABBITMQ_VERIFY_PEER', 'true') == 'true'
+
+          # Optional: Custom CA certificates (only if provider requires it)
+          ca_certs_path = ENV['RABBITMQ_CA_CERTIFICATES']
+          bunny_config[:tls_ca_certificates] = [ca_certs_path] if ca_certs_path
+        end
+
+        # Create single connection per process
+        $rmq_conn = Bunny.new(url, **bunny_config)
 
         $rmq_conn.start
         Onetime.bunny_logger.debug '[init] Setup RabbitMQ: connection established'

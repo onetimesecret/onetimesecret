@@ -91,8 +91,10 @@ module Onetime
           # 3. Update Publisher to use that exchange
           # 4. Update this config to match
           #
+          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+
           config = {
-            amqp: ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'),
+            amqp: amqp_url,
             exchange: '',
             exchange_type: :direct,
             threads: concurrency,
@@ -110,6 +112,19 @@ module Onetime
           # Override vhost only if explicitly set via env var.
           # Otherwise, let Bunny parse it from the AMQP URL.
           config[:vhost] = ENV['RABBITMQ_VHOST'] if ENV.key?('RABBITMQ_VHOST')
+
+          # TLS configuration for amqps:// connections
+          # Managed services (Northflank, CloudAMQP) provide valid certificates
+          # that work with system CA bundle - no custom certs needed
+          if amqp_url.start_with?('amqps://')
+            config[:tls] = true
+            # verify_peer defaults to true; only disable in local dev
+            config[:verify_peer] = ENV.fetch('RABBITMQ_VERIFY_PEER', 'true') == 'true'
+
+            # Optional: Custom CA certificates (only if provider requires it)
+            ca_certs_path = ENV['RABBITMQ_CA_CERTIFICATES']
+            config[:tls_ca_certificates] = [ca_certs_path] if ca_certs_path
+          end
 
           Sneakers.configure(config)
 
