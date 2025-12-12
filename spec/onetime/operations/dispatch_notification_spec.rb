@@ -42,16 +42,18 @@ require_relative '../../../lib/onetime/operations/dispatch_notification'
 RSpec.describe Onetime::Operations::DispatchNotification do
   let(:custid) { 'cust:test-user-456' }
 
-  # Mock Addrinfo for SSRF protection tests - returns a public IP by default
-  let(:mock_addrinfo) do
+  # Helper to stub Addrinfo for SSRF validation in webhook tests.
+  # Must be called explicitly in webhook test contexts to avoid interfering with Redis client.
+  # Uses and_call_original as fallback so Redis connections still work.
+  def stub_public_ip_resolution
     addr = instance_double(Addrinfo)
     allow(addr).to receive(:ip_address).and_return('93.184.216.34') # example.com public IP
-    addr
-  end
 
-  before do
-    # Stub SSRF validation to return safe public IP by default
-    allow(Addrinfo).to receive(:getaddrinfo).and_return([mock_addrinfo])
+    # Stub for webhook hostnames, let other calls (e.g., Redis) pass through
+    allow(Addrinfo).to receive(:getaddrinfo).and_call_original
+    allow(Addrinfo).to receive(:getaddrinfo)
+      .with(satisfy { |h| h.to_s.include?('example.com') }, anything, anything, anything)
+      .and_return([addr])
   end
 
   let(:base_data) do
@@ -198,6 +200,7 @@ RSpec.describe Onetime::Operations::DispatchNotification do
       let(:operation) { described_class.new(data: data) }
 
       before do
+        stub_public_ip_resolution
         allow(Net::HTTP).to receive(:new).and_return(http_instance)
         allow(http_instance).to receive(:use_ssl=)
         allow(http_instance).to receive(:use_ssl?).and_return(true)
@@ -270,6 +273,7 @@ RSpec.describe Onetime::Operations::DispatchNotification do
       let(:operation) { described_class.new(data: data) }
 
       before do
+        stub_public_ip_resolution
         allow(Onetime::Jobs::Publisher).to receive(:new).and_return(publisher_instance)
         allow(publisher_instance).to receive(:publish).and_return('msg-id')
 
@@ -434,6 +438,7 @@ RSpec.describe Onetime::Operations::DispatchNotification do
     let(:data) { base_data.merge(channels: ['via_webhook']) }
 
     before do
+      stub_public_ip_resolution
       allow(Net::HTTP).to receive(:new).and_return(http_instance)
       allow(http_instance).to receive(:use_ssl=)
       allow(http_instance).to receive(:use_ssl?).and_return(true)
@@ -481,6 +486,7 @@ RSpec.describe Onetime::Operations::DispatchNotification do
     let(:response) { instance_double(Net::HTTPSuccess, code: '200', body: 'OK') }
 
     before do
+      stub_public_ip_resolution
       allow(Net::HTTP).to receive(:new).and_return(http_instance)
       allow(http_instance).to receive(:use_ssl=)
       allow(http_instance).to receive(:verify_mode=)
@@ -551,10 +557,18 @@ RSpec.describe Onetime::Operations::DispatchNotification do
       allow(http_instance).to receive(:read_timeout=)
     end
 
+    # Helper to stub Addrinfo for specific IP while allowing Redis to work
+    def stub_webhook_ip(ip_address)
+      addr = instance_double(Addrinfo)
+      allow(addr).to receive(:ip_address).and_return(ip_address)
+      allow(Addrinfo).to receive(:getaddrinfo).and_call_original
+      allow(Addrinfo).to receive(:getaddrinfo)
+        .with(satisfy { |h| h.to_s.include?('example.com') }, anything, anything, anything)
+        .and_return([addr])
+    end
+
     it 'blocks loopback addresses' do
-      loopback_addr = instance_double(Addrinfo)
-      allow(loopback_addr).to receive(:ip_address).and_return('127.0.0.1')
-      allow(Addrinfo).to receive(:getaddrinfo).and_return([loopback_addr])
+      stub_webhook_ip('127.0.0.1')
 
       results = described_class.new(data: data).call
 
@@ -562,9 +576,7 @@ RSpec.describe Onetime::Operations::DispatchNotification do
     end
 
     it 'blocks private network addresses' do
-      private_addr = instance_double(Addrinfo)
-      allow(private_addr).to receive(:ip_address).and_return('192.168.1.1')
-      allow(Addrinfo).to receive(:getaddrinfo).and_return([private_addr])
+      stub_webhook_ip('192.168.1.1')
 
       results = described_class.new(data: data).call
 
@@ -572,9 +584,7 @@ RSpec.describe Onetime::Operations::DispatchNotification do
     end
 
     it 'blocks link-local addresses' do
-      link_local_addr = instance_double(Addrinfo)
-      allow(link_local_addr).to receive(:ip_address).and_return('169.254.169.254') # AWS metadata
-      allow(Addrinfo).to receive(:getaddrinfo).and_return([link_local_addr])
+      stub_webhook_ip('169.254.169.254') # AWS metadata
 
       results = described_class.new(data: data).call
 
@@ -586,9 +596,7 @@ RSpec.describe Onetime::Operations::DispatchNotification do
       allow(http_instance).to receive(:request).and_return(response)
       allow(response).to receive(:is_a?).with(Net::HTTPSuccess).and_return(true)
 
-      public_addr = instance_double(Addrinfo)
-      allow(public_addr).to receive(:ip_address).and_return('93.184.216.34')
-      allow(Addrinfo).to receive(:getaddrinfo).and_return([public_addr])
+      stub_webhook_ip('93.184.216.34')
 
       results = described_class.new(data: data).call
 
@@ -596,7 +604,10 @@ RSpec.describe Onetime::Operations::DispatchNotification do
     end
 
     it 'handles DNS resolution failure' do
-      allow(Addrinfo).to receive(:getaddrinfo).and_raise(SocketError, 'getaddrinfo: nodename nor servname provided')
+      allow(Addrinfo).to receive(:getaddrinfo).and_call_original
+      allow(Addrinfo).to receive(:getaddrinfo)
+        .with(satisfy { |h| h.to_s.include?('example.com') }, anything, anything, anything)
+        .and_raise(SocketError, 'getaddrinfo: nodename nor servname provided')
 
       results = described_class.new(data: data).call
 
