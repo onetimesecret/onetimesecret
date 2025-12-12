@@ -6,13 +6,7 @@ require 'spec_helper'
 require_relative '../../../../../../apps/api/domains/application'
 
 RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
-  # Skip these tests - they require full integration environment
-  # Tests need proper Onetime boot sequence, Redis, and model initialization
-  # TODO: Set up integration test environment or convert to unit tests with better mocking
-
-  before(:all) do
-    skip 'Requires integration environment setup'
-  end
+  let(:session) { double('Session') }
 
   let(:customer) do
     double('Customer',
@@ -28,11 +22,20 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
     )
   end
 
+  let(:strategy_result) do
+    double('StrategyResult',
+      session: session,
+      user: customer,
+      metadata: { organization: organization },
+    )
+  end
+
   let(:custom_domain) do
     double('CustomDomain',
       identifier: 'domain123',
       display_domain: 'example.com',
       domainid: 'domain123',
+      org_id: 'org123',
       vhost: nil,
       'vhost=' => nil,
       resolving: nil,
@@ -46,13 +49,17 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
   end
 
   let(:params) { { 'domainid' => 'domain123' } }
-  let(:logic) { described_class.new(customer, params) }
+  let(:logic) { described_class.new(strategy_result, params) }
 
   before do
     allow(logic).to receive(:organization).and_return(organization)
     allow(logic).to receive(:require_organization!)
+    allow(logic).to receive(:custom_domain).and_return(custom_domain)
+    allow(logic).to receive(:display_domain).and_return('example.com')
+    logic.instance_variable_set(:@custom_domain, custom_domain)
     allow(Onetime::CustomDomain).to receive(:load).and_return(custom_domain)
     allow(OT).to receive(:now).and_return(double(to_i: 1_234_567_890))
+    allow(Onetime::Jobs::Publisher).to receive(:enqueue_transient).and_return(true)
   end
 
   describe '#refresh_status' do
@@ -168,8 +175,9 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
         logic.send(:refresh_status, strategy)
       end
 
-      it 'does not save custom domain' do
-        expect(custom_domain).not_to receive(:save)
+      it 'still saves to update timestamp' do
+        # Implementation always updates timestamp and saves
+        expect(custom_domain).to receive(:save)
         logic.send(:refresh_status, strategy)
       end
     end
@@ -299,7 +307,8 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
     end
 
     it 'continues processing despite status errors' do
-      allow(logic).to receive(:refresh_status)
+      # Errors in strategy.check_status are caught inside refresh_status
+      allow(strategy).to receive(:check_status)
         .and_raise(StandardError, 'Status error')
 
       expect(OT).to receive(:le).with(/refresh_status.*Error/)
@@ -307,7 +316,8 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
     end
 
     it 'continues processing despite validation errors' do
-      allow(logic).to receive(:refresh_validation)
+      # Errors in strategy.validate_ownership are caught inside refresh_validation
+      allow(strategy).to receive(:validate_ownership)
         .and_raise(StandardError, 'Validation error')
 
       expect(OT).to receive(:le).with(/refresh_validation.*Error/)
@@ -360,6 +370,14 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
   end
 
   describe '#raise_concerns' do
+    # Use params with valid extid for raise_concerns tests
+    let(:params) { { 'extid' => 'dom_test123' } }
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:find_by_extid).and_return(custom_domain)
+      allow(custom_domain).to receive(:owner?).and_return(true)
+    end
+
     it 'does not require API key configuration' do
       # Previously required Approximated API key, now supports multiple strategies
       expect { logic.send(:raise_concerns) }.not_to raise_error
@@ -369,6 +387,86 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
       # Verify it still calls super to inherit GetDomain concerns
       expect(logic).to receive(:require_organization!)
       logic.send(:raise_concerns)
+    end
+  end
+
+  describe 'telemetry events' do
+    let(:strategy) { instance_double(Onetime::DomainValidation::ApproximatedStrategy) }
+
+    before do
+      allow(custom_domain).to receive(:org_id).and_return('org123')
+      allow(logic).to receive(:display_domain).and_return('example.com')
+      logic.instance_variable_set(:@custom_domain, custom_domain)
+    end
+
+    context 'with successful validation' do
+      let(:validation_result) { { validated: true, message: 'TXT record validated' } }
+
+      before do
+        allow(strategy).to receive(:validate_ownership).and_return(validation_result)
+      end
+
+      it 'emits domain.verified telemetry event' do
+        expect(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+          .with('domain.verified', hash_including(domain: 'example.com'))
+
+        logic.send(:refresh_validation, strategy)
+      end
+
+      it 'includes organization_id in telemetry event' do
+        expect(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+          .with('domain.verified', hash_including(organization_id: 'org123'))
+
+        logic.send(:refresh_validation, strategy)
+      end
+
+      it 'does not include reason for successful validation' do
+        expect(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+          .with('domain.verified', hash_not_including(:reason))
+
+        logic.send(:refresh_validation, strategy)
+      end
+    end
+
+    context 'with failed validation' do
+      let(:validation_result) { { validated: false, message: 'TXT record not found' } }
+
+      before do
+        allow(strategy).to receive(:validate_ownership).and_return(validation_result)
+      end
+
+      it 'emits domain.verification_failed telemetry event' do
+        expect(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+          .with('domain.verification_failed', hash_including(domain: 'example.com'))
+
+        logic.send(:refresh_validation, strategy)
+      end
+
+      it 'includes reason in telemetry event' do
+        expect(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+          .with('domain.verification_failed', hash_including(reason: 'TXT record not found'))
+
+        logic.send(:refresh_validation, strategy)
+      end
+    end
+
+    context 'when telemetry fails' do
+      let(:validation_result) { { validated: true, message: 'TXT record validated' } }
+
+      before do
+        allow(strategy).to receive(:validate_ownership).and_return(validation_result)
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+          .and_raise(StandardError, 'RabbitMQ down')
+      end
+
+      it 'does not fail the main validation flow' do
+        expect { logic.send(:refresh_validation, strategy) }.not_to raise_error
+      end
+
+      it 'still marks domain as verified' do
+        expect(custom_domain).to receive(:verified!).with(true)
+        logic.send(:refresh_validation, strategy)
+      end
     end
   end
 end

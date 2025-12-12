@@ -6,13 +6,7 @@ require 'spec_helper'
 require_relative '../../../../../../apps/api/domains/application'
 
 RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
-  # Skip these tests - they require full integration environment
-  # Tests need proper Onetime boot sequence, Redis, and model initialization
-  # TODO: Set up integration test environment or convert to unit tests with better mocking
-
-  before(:all) do
-    skip 'Requires integration environment setup'
-  end
+  let(:session) { double('Session') }
 
   let(:customer) do
     double('Customer',
@@ -25,6 +19,14 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
     double('Organization',
       objid: 'org123',
       display_name: 'Test Org',
+    )
+  end
+
+  let(:strategy_result) do
+    double('StrategyResult',
+      session: session,
+      user: customer,
+      metadata: { organization: organization },
     )
   end
 
@@ -43,20 +45,22 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
   end
 
   let(:params) { { 'domain' => 'example.com' } }
-  let(:logic) { described_class.new(customer, params) }
+  let(:logic) { described_class.new(strategy_result, params) }
 
   before do
     allow(logic).to receive(:organization).and_return(organization)
     allow(logic).to receive(:require_organization!)
     allow(Onetime::CustomDomain).to receive_messages(valid?: true, parse: custom_domain, load_by_display_domain: nil, create!: custom_domain)
     allow(Onetime::Cluster::Features).to receive(:cluster_safe_dump).and_return({})
-    allow(OT.conf).to receive(:dig).and_return(nil)
+    allow(Onetime::Jobs::Publisher).to receive(:enqueue_transient).and_return(true)
   end
 
   describe '#request_certificate' do
     let(:strategy) { instance_double(Onetime::DomainValidation::ApproximatedStrategy) }
 
     before do
+      logic.instance_variable_set(:@custom_domain, custom_domain)
+      logic.instance_variable_set(:@display_domain, 'example.com')
       allow(Onetime::DomainValidation::Strategy).to receive(:for_config)
         .and_return(strategy)
     end
@@ -180,6 +184,8 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
     let(:result) { { status: 'external' } }
 
     before do
+      # Set instance variable since we're skipping raise_concerns which normally sets it
+      logic.instance_variable_set(:@display_domain, 'example.com')
       allow(Onetime::DomainValidation::Strategy).to receive(:for_config)
         .and_return(strategy)
       allow(strategy).to receive(:request_certificate).and_return(result)
@@ -253,6 +259,41 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
     it 'includes cluster details' do
       data = logic.send(:success_data)
       expect(data[:details]).to have_key(:cluster)
+    end
+  end
+
+  describe 'telemetry events (domain.added)' do
+    let(:strategy) { instance_double(Onetime::DomainValidation::PassthroughStrategy) }
+    let(:result) { { status: 'external' } }
+
+    before do
+      # Set instance variable since we're skipping raise_concerns which normally sets it
+      logic.instance_variable_set(:@display_domain, 'example.com')
+      allow(Onetime::DomainValidation::Strategy).to receive(:for_config)
+        .and_return(strategy)
+      allow(strategy).to receive(:request_certificate).and_return(result)
+      allow(logic).to receive(:success_data).and_return({})
+    end
+
+    it 'emits domain.added telemetry event after creating domain' do
+      expect(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+        .with('domain.added', hash_including(domain: 'example.com'))
+
+      logic.send(:process)
+    end
+
+    it 'includes organization_id in telemetry event' do
+      expect(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+        .with('domain.added', hash_including(organization_id: organization.objid))
+
+      logic.send(:process)
+    end
+
+    it 'does not fail if telemetry emission fails' do
+      allow(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+        .and_raise(StandardError, 'RabbitMQ down')
+
+      expect { logic.send(:process) }.not_to raise_error
     end
   end
 end

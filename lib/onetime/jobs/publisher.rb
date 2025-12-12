@@ -70,6 +70,15 @@ module Onetime
         def enqueue_email_raw(email, fallback: DEFAULT_FALLBACK)
           new.enqueue_email_raw(email, fallback: fallback)
         end
+
+        # Enqueue a transient event (fire-and-forget telemetry)
+        # Data loss is acceptable - no fallback, no retries
+        # @param event_type [String] Event type (e.g., 'domain.verified')
+        # @param data [Hash] Event payload
+        # @return [Boolean] true if published, false if jobs disabled or error
+        def enqueue_transient(event_type, data = {})
+          new.enqueue_transient(event_type, data)
+        end
       end
 
       def initialize
@@ -139,6 +148,35 @@ module Onetime
         end
       end
 
+      # Enqueue transient event (fire-and-forget telemetry)
+      # No fallback - data loss is acceptable for telemetry
+      # @param event_type [String, Symbol] Event type (e.g., 'domain.verified')
+      # @param data [Hash] Event payload (coerced to empty hash if invalid)
+      # @return [Boolean] true if published, false if jobs disabled or error
+      def enqueue_transient(event_type, data = {})
+        return false unless jobs_enabled?
+
+        # Defensive validation - catch obvious misuse
+        if event_type.to_s.strip.empty?
+          logger.debug 'Rejected transient event: empty event_type'
+          return false
+        end
+
+        payload = {
+          event_type: event_type.to_s,
+          data: data.is_a?(Hash) ? data : {},
+          timestamp: Time.now.utc.iso8601,
+        }
+
+        publish_transient('system.transient', payload)
+        logger.debug 'Enqueued transient event', event_type: event_type
+        true
+      rescue StandardError => ex
+        # Swallow errors - transient events are best-effort
+        logger.debug 'Failed to enqueue transient event', event_type: event_type, error: ex.message
+        false
+      end
+
       # Publish generic message to a queue
       # @param queue_name [String] Queue name
       # @param payload [Hash] Message payload
@@ -163,6 +201,20 @@ module Onetime
         end
 
         message_id
+      end
+
+      # Publish transient message (non-persistent, fire-and-forget)
+      # @param queue_name [String] Queue name
+      # @param payload [Hash] Message payload
+      def publish_transient(queue_name, payload)
+        $rmq_channel_pool.with do |channel|
+          channel.default_exchange.publish(
+            payload.to_json,
+            routing_key: queue_name,
+            persistent: false, # Transient - not persisted to disk
+            headers: { 'x-schema-version' => QueueConfig::CURRENT_SCHEMA_VERSION },
+          )
+        end
       end
 
       private
