@@ -13,7 +13,7 @@ module Onetime
     # Extracted from NotificationWorker for reuse in CLI tools and testing.
     #
     # Supported channels:
-    # - in_app: Stores notification in Redis for web UI display
+    # - bell: Stores notification in Redis for bell/notification UI display
     # - email: Queues to email.message.send for delivery
     # - webhook: Makes HTTP POST callback to user-defined URL
     #
@@ -27,7 +27,7 @@ module Onetime
     #   },
     #   template: 'secret_viewed',     # Template name for rendering
     #   locale: 'en',                  # Localization
-    #   channels: ['in_app', 'email'], # Which delivery methods to use
+    #   channels: ['bell', 'email'],   # Which delivery methods to use
     #   data: { ... }                  # Template-specific variables
     # }
     #
@@ -35,7 +35,7 @@ module Onetime
       include Onetime::LoggerMethods
 
       # Supported notification channels
-      SUPPORTED_CHANNELS = %w[in_app email webhook].freeze
+      SUPPORTED_CHANNELS = %w[bell email webhook].freeze
 
       # Redis TTL for stored notifications (30 days)
       NOTIFICATION_TTL = 30 * 24 * 60 * 60
@@ -57,7 +57,7 @@ module Onetime
 
       # Executes the notification dispatch
       #
-      # @return [Hash] Results per channel { in_app: :success, email: :skipped, webhook: :error }
+      # @return [Hash] Results per channel { bell: :success, email: :skipped, webhook: :error }
       def call
         channels = resolve_channels
 
@@ -80,8 +80,8 @@ module Onetime
         valid = requested & SUPPORTED_CHANNELS
 
         if valid.empty?
-          logger.info 'No valid channels specified, defaulting to in_app'
-          ['in_app']
+          logger.info 'No valid channels specified, defaulting to bell'
+          ['bell']
         else
           valid
         end
@@ -92,8 +92,8 @@ module Onetime
       # @return [Symbol] :success, :skipped, or :error
       def dispatch_to_channel(channel)
         case channel
-        when 'in_app'
-          deliver_in_app
+        when 'bell'
+          deliver_bell
         when 'email'
           deliver_email
         when 'webhook'
@@ -106,31 +106,31 @@ module Onetime
         :error
       end
 
-      # Store notification in Redis for in-app display
+      # Store notification in Redis for bell notification display
       # @return [Symbol] :success or :skipped
-      def deliver_in_app
+      def deliver_bell
         addressee = @data[:addressee] || {}
         custid = addressee[:custid]
 
         unless custid
-          logger.debug 'No custid for in_app notification, skipping'
+          logger.debug 'No custid for bell notification, skipping'
           return :skipped
         end
 
-        notification = build_in_app_notification
+        notification = build_bell_notification
         key = "notifications:#{custid}"
 
         Familia.dbclient.lpush(key, notification.to_json)
         Familia.dbclient.ltrim(key, 0, MAX_NOTIFICATIONS - 1)
         Familia.dbclient.expire(key, NOTIFICATION_TTL)
 
-        logger.debug 'In-app notification stored', custid: custid, type: @data[:type]
+        logger.debug 'Bell notification stored', custid: custid, type: @data[:type]
         :success
       end
 
-      # Build the in-app notification structure
+      # Build the bell notification structure
       # @return [Hash] Notification hash for Redis storage
-      def build_in_app_notification
+      def build_bell_notification
         {
           id: SecureRandom.uuid,
           type: @data[:type],

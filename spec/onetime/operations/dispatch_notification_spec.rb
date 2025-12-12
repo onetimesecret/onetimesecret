@@ -5,7 +5,7 @@
 # DispatchNotification Operation Test Suite
 #
 # Tests the notification dispatch operation that delivers notifications
-# to multiple channels: in_app (Redis), email (queue), webhook (HTTP).
+# to multiple channels: bell (Redis), email (queue), webhook (HTTP).
 #
 # Test Categories:
 #
@@ -52,7 +52,7 @@ RSpec.describe Onetime::Operations::DispatchNotification do
       },
       template: 'secret_viewed',
       locale: 'en',
-      channels: ['in_app'],
+      channels: ['bell'],
       data: {
         secret_key: 'abc123',
         viewed_at: '2024-01-15T10:30:00Z'
@@ -71,13 +71,13 @@ RSpec.describe Onetime::Operations::DispatchNotification do
 
   describe '#call' do
     context 'in-app notification delivery' do
-      let(:data) { base_data.merge(channels: ['in_app']) }
+      let(:data) { base_data.merge(channels: ['bell']) }
       let(:operation) { described_class.new(data: data) }
 
       it 'stores notification in Redis list' do
         results = operation.call
 
-        expect(results[:in_app]).to eq(:success)
+        expect(results[:bell]).to eq(:success)
 
         notifications = Familia.dbclient.lrange("notifications:#{custid}", 0, -1)
         expect(notifications.length).to eq(1)
@@ -114,13 +114,13 @@ RSpec.describe Onetime::Operations::DispatchNotification do
       it 'skips when custid is missing' do
         data_without_custid = base_data.merge(
           addressee: { email: 'user@example.com' },
-          channels: ['in_app']
+          channels: ['bell']
         )
         operation = described_class.new(data: data_without_custid)
 
         results = operation.call
 
-        expect(results[:in_app]).to eq(:skipped)
+        expect(results[:bell]).to eq(:skipped)
       end
     end
 
@@ -251,7 +251,7 @@ RSpec.describe Onetime::Operations::DispatchNotification do
       let(:publisher_instance) { instance_double(Onetime::Jobs::Publisher) }
       let(:http_instance) { instance_double(Net::HTTP) }
       let(:response) { instance_double(Net::HTTPSuccess, code: '200', body: 'OK') }
-      let(:data) { base_data.merge(channels: %w[in_app email webhook]) }
+      let(:data) { base_data.merge(channels: %w[bell email webhook]) }
       let(:operation) { described_class.new(data: data) }
 
       before do
@@ -269,7 +269,7 @@ RSpec.describe Onetime::Operations::DispatchNotification do
       it 'delivers to all three channels' do
         results = operation.call
 
-        expect(results[:in_app]).to eq(:success)
+        expect(results[:bell]).to eq(:success)
         expect(results[:email]).to eq(:success)
         expect(results[:webhook]).to eq(:success)
 
@@ -290,50 +290,50 @@ RSpec.describe Onetime::Operations::DispatchNotification do
 
         results = operation.call
 
-        expect(results[:in_app]).to eq(:success)
+        expect(results[:bell]).to eq(:success)
         expect(results[:email]).to eq(:success)
         expect(results[:webhook]).to eq(:error)
       end
     end
 
     context 'channel resolution' do
-      it 'defaults to in_app when no channels specified' do
+      it 'defaults to bell when no channels specified' do
         data_without_channels = base_data.reject { |k, _| k == :channels }
         operation = described_class.new(data: data_without_channels)
 
         results = operation.call
 
-        expect(results[:in_app]).to eq(:success)
-        expect(results.keys).to eq([:in_app])
+        expect(results[:bell]).to eq(:success)
+        expect(results.keys).to eq([:bell])
       end
 
       it 'filters out invalid channels' do
-        data_with_invalid = base_data.merge(channels: %w[in_app sms carrier_pigeon])
+        data_with_invalid = base_data.merge(channels: %w[bell sms carrier_pigeon])
         operation = described_class.new(data: data_with_invalid)
 
         results = operation.call
 
-        expect(results.keys).to eq([:in_app])
+        expect(results.keys).to eq([:bell])
       end
 
-      it 'defaults to in_app when all channels are invalid' do
+      it 'defaults to bell when all channels are invalid' do
         data_all_invalid = base_data.merge(channels: %w[sms carrier_pigeon])
         operation = described_class.new(data: data_all_invalid)
 
         results = operation.call
 
-        expect(results[:in_app]).to eq(:success)
+        expect(results[:bell]).to eq(:success)
       end
     end
 
     context 'with empty addressee' do
-      let(:data) { base_data.merge(addressee: {}, channels: %w[in_app email webhook]) }
+      let(:data) { base_data.merge(addressee: {}, channels: %w[bell email webhook]) }
       let(:operation) { described_class.new(data: data) }
 
       it 'skips all channels gracefully' do
         results = operation.call
 
-        expect(results[:in_app]).to eq(:skipped)
+        expect(results[:bell]).to eq(:skipped)
         expect(results[:email]).to eq(:skipped)
         expect(results[:webhook]).to eq(:skipped)
       end
@@ -348,10 +348,10 @@ RSpec.describe Onetime::Operations::DispatchNotification do
     end
 
     it 'returns results after call' do
-      operation = described_class.new(data: base_data.merge(channels: ['in_app']))
+      operation = described_class.new(data: base_data.merge(channels: ['bell']))
       operation.call
 
-      expect(operation.results).to eq({ in_app: :success })
+      expect(operation.results).to eq({ bell: :success })
     end
   end
 
@@ -360,34 +360,34 @@ RSpec.describe Onetime::Operations::DispatchNotification do
   describe 'edge cases for data structure' do
     context 'with nil data fields' do
       it 'handles nil data hash gracefully' do
-        data_with_nil = base_data.merge(data: nil, channels: ['in_app'])
+        data_with_nil = base_data.merge(data: nil, channels: ['bell'])
         operation = described_class.new(data: data_with_nil)
 
         results = operation.call
 
-        expect(results[:in_app]).to eq(:success)
+        expect(results[:bell]).to eq(:success)
         notification = JSON.parse(Familia.dbclient.lrange("notifications:#{custid}", 0, 0).first, symbolize_names: true)
         expect(notification[:data]).to eq({})
       end
 
       it 'handles nil addressee gracefully' do
-        data_nil_addressee = base_data.merge(addressee: nil, channels: ['in_app'])
+        data_nil_addressee = base_data.merge(addressee: nil, channels: ['bell'])
         operation = described_class.new(data: data_nil_addressee)
 
         results = operation.call
 
-        expect(results[:in_app]).to eq(:skipped)
+        expect(results[:bell]).to eq(:skipped)
       end
     end
 
     context 'with empty channels array' do
-      it 'defaults to in_app when channels is empty array' do
+      it 'defaults to bell when channels is empty array' do
         data_empty_channels = base_data.merge(channels: [])
         operation = described_class.new(data: data_empty_channels)
 
         results = operation.call
 
-        expect(results[:in_app]).to eq(:success)
+        expect(results[:bell]).to eq(:success)
       end
     end
 
@@ -400,12 +400,12 @@ RSpec.describe Onetime::Operations::DispatchNotification do
       end
 
       it 'handles symbol channels' do
-        data_symbol_channels = base_data.merge(channels: [:in_app, :email])
+        data_symbol_channels = base_data.merge(channels: [:bell, :email])
         operation = described_class.new(data: data_symbol_channels)
 
         results = operation.call
 
-        expect(results[:in_app]).to eq(:success)
+        expect(results[:bell]).to eq(:success)
         expect(results[:email]).to eq(:success)
       end
     end
@@ -518,17 +518,17 @@ RSpec.describe Onetime::Operations::DispatchNotification do
   describe 'context parameter' do
     it 'accepts context without affecting delivery' do
       context = { source_message_id: 'msg-123', correlation_id: 'corr-456' }
-      operation = described_class.new(data: base_data.merge(channels: ['in_app']), context: context)
+      operation = described_class.new(data: base_data.merge(channels: ['bell']), context: context)
 
       results = operation.call
 
-      expect(results[:in_app]).to eq(:success)
+      expect(results[:bell]).to eq(:success)
     end
   end
 
   describe 'notification metadata format' do
     it 'generates valid UUID for notification id' do
-      operation = described_class.new(data: base_data.merge(channels: ['in_app']))
+      operation = described_class.new(data: base_data.merge(channels: ['bell']))
       operation.call
 
       notification = JSON.parse(Familia.dbclient.lrange("notifications:#{custid}", 0, 0).first, symbolize_names: true)
@@ -537,7 +537,7 @@ RSpec.describe Onetime::Operations::DispatchNotification do
     end
 
     it 'generates ISO8601 timestamp for created_at' do
-      operation = described_class.new(data: base_data.merge(channels: ['in_app']))
+      operation = described_class.new(data: base_data.merge(channels: ['bell']))
       operation.call
 
       notification = JSON.parse(Familia.dbclient.lrange("notifications:#{custid}", 0, 0).first, symbolize_names: true)
