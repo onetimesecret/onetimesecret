@@ -248,7 +248,7 @@ module Onetime
 
         request = Net::HTTP::Post.new(uri.request_uri)
         request['Content-Type'] = 'application/json'
-        request['User-Agent'] = 'OneTimeSecret-Webhook/1.0'
+        request['User-Agent'] = Onetime::VERSION.user_agent
         request.body = payload.to_json
 
         http.request(request)

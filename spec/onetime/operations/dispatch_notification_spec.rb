@@ -216,7 +216,7 @@ RSpec.describe Onetime::Operations::DispatchNotification do
         expect(http_instance).to have_received(:request) do |request|
           expect(request).to be_a(Net::HTTP::Post)
           expect(request['Content-Type']).to eq('application/json')
-          expect(request['User-Agent']).to eq('OneTimeSecret-Webhook/1.0')
+          expect(request['User-Agent']).to eq(Onetime::VERSION.user_agent)
 
           body = JSON.parse(request.body, symbolize_names: true)
           expect(body[:event]).to eq('secret.viewed')
