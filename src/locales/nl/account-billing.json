@@ -36,7 +36,7 @@
         "manage_billing_description": "Betalingsinfo bijwerken",
         "no_organizations_title": "Geen organisaties",
         "no_organizations_description": "Maak een organisatie aan om je facturering en abonnement te beheren",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "Berichten aanmaken",
           "basic_sharing": "Basis delen",
           "create_team": "Team aanmaken",

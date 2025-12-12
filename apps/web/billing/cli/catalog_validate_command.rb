@@ -51,7 +51,7 @@ module Onetime
         validate_with_schema(catalog, schema, errors)
 
         # Additional semantic validations
-        validate_capabilities_references(catalog, errors, warnings)
+        validate_entitlements_references(catalog, errors, warnings)
         validate_price_consistency(catalog, warnings)
 
         # Report results
@@ -93,30 +93,30 @@ module Onetime
         end
       end
 
-      def validate_capabilities_references(catalog, _errors, warnings)
-        # Load capabilities from billing.yaml
-        capabilities = Billing::Config.load_capabilities
+      def validate_entitlements_references(catalog, _errors, warnings)
+        # Load entitlements from billing.yaml
+        entitlements = Billing::Config.load_entitlements
 
-        return if capabilities.empty?
+        return if entitlements.empty?
 
-        # Validate plan capability references
+        # Validate plan entitlement references
         plans = catalog['plans'] || {}
         plans.each do |plan_id, plan_data|
-          plan_capabilities = plan_data['capabilities'] || []
-          plan_capabilities.each do |cap_id|
-            unless capabilities.key?(cap_id)
-              warnings << "Plan #{plan_id}: references unknown capability '#{cap_id}'"
+          plan_entitlements = plan_data['entitlements'] || []
+          plan_entitlements.each do |cap_id|
+            unless entitlements.key?(cap_id)
+              warnings << "Plan #{plan_id}: references unknown entitlement '#{cap_id}'"
             end
           end
         end
 
-        # Validate legacy plan capability references
+        # Validate legacy plan entitlement references
         legacy_plans = catalog['legacy_plans'] || {}
         legacy_plans.each do |plan_id, plan_data|
-          plan_capabilities = plan_data['capabilities'] || []
-          plan_capabilities.each do |cap_id|
-            unless capabilities.key?(cap_id)
-              warnings << "Legacy plan #{plan_id}: references unknown capability '#{cap_id}'"
+          plan_entitlements = plan_data['entitlements'] || []
+          plan_entitlements.each do |cap_id|
+            unless entitlements.key?(cap_id)
+              warnings << "Legacy plan #{plan_id}: references unknown entitlement '#{cap_id}'"
             end
           end
         end

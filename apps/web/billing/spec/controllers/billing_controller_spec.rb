@@ -75,7 +75,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
         expect(plan).to have_key('currency')
         expect(plan).to have_key('features')
         expect(plan).to have_key('limits')
-        expect(plan).to have_key('capabilities')
+        expect(plan).to have_key('entitlements')
       end
     end
 

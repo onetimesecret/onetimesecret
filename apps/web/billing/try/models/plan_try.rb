@@ -28,8 +28,8 @@ Billing::Plan.clear_cache.class
   currency: 'usd',
   region: 'us-east',
 )
-@plan.capabilities.add('create_secrets')
-@plan.capabilities.add('create_team')
+@plan.entitlements.add('create_secrets')
+@plan.entitlements.add('create_team')
 @plan.features.add('Feature 1')
 @plan.features.add('Feature 2')
 @plan.limits['teams.max']            = '1'
@@ -71,8 +71,8 @@ Billing::Plan.instances.size
   currency: 'usd',
   region: 'us-east',
 )
-@yearly_plan.capabilities.add('create_secrets')
-@yearly_plan.capabilities.add('create_team')
+@yearly_plan.entitlements.add('create_secrets')
+@yearly_plan.entitlements.add('create_team')
 @yearly_plan.features.add('Feature 1')
 @yearly_plan.features.add('Feature 2')
 @yearly_plan.limits['teams.max']            = '1'

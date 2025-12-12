@@ -36,7 +36,7 @@
         "manage_billing_description": "Fizetési adatok frissítése",
         "no_organizations_title": "Nincsenek szervezetek",
         "no_organizations_description": "Hozzon létre egy szervezetet számlázása és előfizetése kezeléséhez",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "Titkok létrehozása",
           "basic_sharing": "Alapszintű megosztás",
           "create_team": "Csapat létrehozása",

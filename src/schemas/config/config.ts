@@ -269,7 +269,7 @@ export const apiBillingSchema = z.object({
   stripe_key: z.string().nullable().optional(),
   webhook_signing_secret: z.string().nullable().optional(),
   stripe_api_version: z.string().nullable().optional(),
-  capabilities: z.record(z.string(), z.any()).nullable().optional(),
+  entitlements: z.record(z.string(), z.any()).nullable().optional(),
 });
 
 /**

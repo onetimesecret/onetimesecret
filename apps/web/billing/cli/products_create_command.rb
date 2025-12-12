@@ -21,7 +21,7 @@ module Onetime
       option :tier, type: :string, desc: 'Tier (e.g., single_team)'
       option :region, type: :string, desc: 'Region (e.g., EU)'
       option :tenancy, type: :string, desc: 'Tenancy (e.g., single, multi)'
-      option :capabilities, type: :string, desc: 'Capabilities (comma-separated)'
+      option :entitlements, type: :string, desc: 'Entitlements (comma-separated)'
       option :marketing_features, type: :string, desc: 'Marketing features (comma-separated)'
       option :display_order, type: :string, desc: 'Display order (higher = earlier, default: 0)'
       option :show_on_plans_page, type: :boolean, default: true,
@@ -66,7 +66,7 @@ module Onetime
             'tier' => options[:tier] || '',
             'region' => options[:region] || 'global',
             'tenancy' => options[:tenancy] || '',
-            'capabilities' => options[:capabilities] || '',
+            'entitlements' => options[:entitlements] || '',
             'created' => Time.now.utc.iso8601,
             'display_order' => options[:display_order] || '0',
             'show_on_plans_page' => options[:show_on_plans_page].to_s,
@@ -134,9 +134,9 @@ module Onetime
         puts "  Tier: #{existing.metadata['tier']}"
         puts "  Region: #{existing.metadata['region']}"
 
-        if existing.metadata['capabilities']
-          caps = existing.metadata['capabilities'].split(',').map(&:strip)
-          puts "  Capabilities: #{caps.join(', ')}"
+        if existing.metadata['entitlements']
+          caps = existing.metadata['entitlements'].split(',').map(&:strip)
+          puts "  Entitlements: #{caps.join(', ')}"
         end
 
         # Auto-update if --update flag provided (requires --yes for non-interactive)

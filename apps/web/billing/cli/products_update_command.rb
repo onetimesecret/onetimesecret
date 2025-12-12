@@ -25,7 +25,7 @@ module Onetime
       option :tier, type: :string, desc: 'Tier'
       option :region, type: :string, desc: 'Region'
       option :tenancy, type: :string, desc: 'Tenancy'
-      option :capabilities, type: :string, desc: 'Capabilities (comma-separated)'
+      option :entitlements, type: :string, desc: 'Entitlements (comma-separated)'
       option :display_order, type: :string, desc: 'Display order (lower = earlier)'
       option :show_on_plans_page, type: :boolean, desc: 'Show on plans page'
       option :limit_teams, type: :string, desc: 'Limit teams (-1 for unlimited)'
@@ -70,7 +70,7 @@ module Onetime
           updated_meta['tier']                   = options[:tier] if options[:tier]
           updated_meta['region']                 = options[:region] if options[:region]
           updated_meta['tenancy']                = options[:tenancy] if options[:tenancy]
-          updated_meta['capabilities']           = options[:capabilities] if options[:capabilities]
+          updated_meta['entitlements']           = options[:entitlements] if options[:entitlements]
           updated_meta['display_order']          = options[:display_order] if options[:display_order]
           updated_meta['show_on_plans_page']     = options[:show_on_plans_page].to_s if options.key?(:show_on_plans_page)
           updated_meta['limit_teams']            = options[:limit_teams] if options[:limit_teams]

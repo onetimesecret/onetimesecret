@@ -5,7 +5,7 @@
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
-import { useCapabilities } from '@/shared/composables/useCapabilities';
+import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
 import { WindowService } from '@/services/window.service';
@@ -15,7 +15,7 @@ import { useTeamStore } from '@/shared/stores/teamStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel } from '@/types/billing';
 import type { Organization } from '@/types/organization';
-import { CAPABILITIES } from '@/types/organization';
+import { ENTITLEMENTS } from '@/types/organization';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -39,33 +39,33 @@ const success = ref('');
 
 const billingEnabled = computed(() => WindowService.get('billing_enabled') ?? false);
 
-// Capabilities
-const { capabilities, can } = useCapabilities(organization);
+// Entitlements
+const { entitlements, can } = useEntitlements(organization);
 
 /**
  * Determine if this is a single-user Identity Plus account.
- * Identity Plus has custom domains but not multi-team capabilities.
+ * Identity Plus has custom domains but not multi-team entitlements.
  */
 const isIdentityPlus = computed(() =>
-  can(CAPABILITIES.CUSTOM_DOMAINS) && !can(CAPABILITIES.CREATE_TEAMS)
+  can(ENTITLEMENTS.CUSTOM_DOMAINS) && !can(ENTITLEMENTS.CREATE_TEAMS)
 );
 
 /**
  * Determine if this is a multi-team organization.
  */
-const isMultiTeam = computed(() => can(CAPABILITIES.CREATE_TEAMS));
+const isMultiTeam = computed(() => can(ENTITLEMENTS.CREATE_TEAMS));
 
-// Format capability for display
-const formatCapability = (cap: string): string => {
+// Format entitlement for display
+const formatEntitlement = (cap: string): string => {
   const labels: Record<string, string> = {
-    [CAPABILITIES.CREATE_SECRETS]: 'Create Secrets',
-    [CAPABILITIES.BASIC_SHARING]: 'Basic Sharing',
-    [CAPABILITIES.CREATE_TEAM]: 'Create Team',
-    [CAPABILITIES.CREATE_TEAMS]: 'Create Multiple Teams',
-    [CAPABILITIES.CUSTOM_DOMAINS]: 'Custom Domains',
-    [CAPABILITIES.API_ACCESS]: 'API Access',
-    [CAPABILITIES.PRIORITY_SUPPORT]: 'Priority Support',
-    [CAPABILITIES.AUDIT_LOGS]: 'Audit Logs',
+    [ENTITLEMENTS.CREATE_SECRETS]: 'Create Secrets',
+    [ENTITLEMENTS.BASIC_SHARING]: 'Basic Sharing',
+    [ENTITLEMENTS.CREATE_TEAM]: 'Create Team',
+    [ENTITLEMENTS.CREATE_TEAMS]: 'Create Multiple Teams',
+    [ENTITLEMENTS.CUSTOM_DOMAINS]: 'Custom Domains',
+    [ENTITLEMENTS.API_ACCESS]: 'API Access',
+    [ENTITLEMENTS.PRIORITY_SUPPORT]: 'Priority Support',
+    [ENTITLEMENTS.AUDIT_LOGS]: 'Audit Logs',
   };
   return labels[cap] || cap;
 };
@@ -530,14 +530,14 @@ watch(activeTab, async (newTab) => {
                     </div>
                   </div>
 
-                  <!-- Current Capabilities -->
-                  <div v-if="capabilities.length > 0" class="border-t border-gray-200 pt-4 dark:border-gray-700">
+                  <!-- Current Entitlements -->
+                  <div v-if="entitlements.length > 0" class="border-t border-gray-200 pt-4 dark:border-gray-700">
                     <p class="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                       Your Plan Includes:
                     </p>
                     <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <div
-                        v-for="cap in capabilities"
+                        v-for="cap in entitlements"
                         :key="cap"
                         class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                         <OIcon
@@ -545,7 +545,7 @@ watch(activeTab, async (newTab) => {
                           name="check-circle"
                           class="size-5 text-green-500 dark:text-green-400"
                           aria-hidden="true" />
-                        {{ formatCapability(cap) }}
+                        {{ formatEntitlement(cap) }}
                       </div>
                     </div>
                   </div>

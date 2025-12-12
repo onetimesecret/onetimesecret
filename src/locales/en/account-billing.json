@@ -36,7 +36,7 @@
         "manage_billing_description": "Update payment info",
         "no_organizations_title": "No Organizations",
         "no_organizations_description": "Create an organization to manage your billing and subscription",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "Create Secrets",
           "basic_sharing": "Basic Sharing",
           "create_team": "Create Team",

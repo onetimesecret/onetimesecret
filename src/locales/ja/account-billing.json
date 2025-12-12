@@ -36,7 +36,7 @@
         "manage_billing_description": "支払い情報を更新",
         "no_organizations_title": "組織がありません",
         "no_organizations_description": "請求とサブスクリプションを管理するために組織を作成してください",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "シークレットを作成",
           "basic_sharing": "基本的な共有",
           "create_team": "チームを作成",

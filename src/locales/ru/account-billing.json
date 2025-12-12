@@ -36,7 +36,7 @@
         "manage_billing_description": "Обновить платёжную информацию",
         "no_organizations_title": "Нет организаций",
         "no_organizations_description": "Создайте организацию для управления вашими счётами и подпиской",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "Создание секретов",
           "basic_sharing": "Базовый обмен",
           "create_team": "Создание команды",

@@ -86,7 +86,7 @@ module Core
     Onetime.production? do
       # Serve static frontend assets in production mode
       # While reverse proxies often handle static files in production,
-      # this provides a fallback capability for simpler deployments.
+      # this provides a fallback entitlement for simpler deployments.
       use Onetime::Middleware::StaticFiles
     end
 

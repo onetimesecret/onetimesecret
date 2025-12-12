@@ -36,7 +36,7 @@
         "manage_billing_description": "결제 정보 업데이트",
         "no_organizations_title": "조직 없음",
         "no_organizations_description": "결제 및 구독을 관리할 조직을 생성하세요",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "비밀 메시지 생성",
           "basic_sharing": "기본 공유",
           "create_team": "팀 생성",

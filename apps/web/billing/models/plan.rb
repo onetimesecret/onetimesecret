@@ -27,7 +27,7 @@ module Billing
   #     "plan_id": "identity_plus_v1",
   #     "tier": "single_team",
   #     "region": "EU",
-  #     "capabilities": "create_secrets,create_team,custom_domains",
+  #     "entitlements": "create_secrets,create_team,custom_domains",
   #     "limit_teams": "1",
   #     "limit_members_per_team": "-1"
   #   }
@@ -41,7 +41,7 @@ module Billing
   # ## Data Storage
   #
   # Uses Familia v2 native data types for performance:
-  # - `set :capabilities` - O(1) membership checks (create_secrets, custom_domains, etc.)
+  # - `set :entitlements` - O(1) membership checks (create_secrets, custom_domains, etc.)
   # - `set :features` - Marketing features (unique, unordered)
   # - `hashkey :limits` - Resource quotas with flattened keys
   # - `stringkey :stripe_data_snapshot` - Cached Stripe Product+Price JSON (12hr TTL)
@@ -91,7 +91,7 @@ module Billing
     # Cache management
     field :last_synced_at           # Timestamp of last Stripe sync
 
-    set :capabilities
+    set :entitlements
     set :features
     hashkey :limits
     stringkey :stripe_data_snapshot, default_expiration: 12.hour  # Cached Stripe Product+Price JSON for recovery
@@ -227,10 +227,10 @@ module Billing
             base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID] || "#{tier}_#{region}"
             plan_id      = "#{base_plan_id}_#{interval}ly"
 
-            # Extract capabilities from product metadata
+            # Extract entitlements from product metadata
             # Expected format: "create_secrets,create_team,custom_domains"
-            capabilities_str = product.metadata[Metadata::FIELD_CAPABILITIES] || ''
-            capabilities     = capabilities_str.split(',').map(&:strip).reject(&:empty?)
+            entitlements_str = product.metadata[Metadata::FIELD_ENTITLEMENTS] || ''
+            entitlements     = entitlements_str.split(',').map(&:strip).reject(&:empty?)
 
             # Extract limits from product metadata using Metadata helper
             limits = {}
@@ -274,9 +274,9 @@ module Billing
             plan.nickname          = price.nickname
             plan.last_synced_at    = Time.now.to_i.to_s
 
-            # Add capabilities to set (unique values)
-            plan.capabilities.clear
-            capabilities.each { |cap| plan.capabilities.add(cap) }
+            # Add entitlements to set (unique values)
+            plan.entitlements.clear
+            entitlements.each { |cap| plan.entitlements.add(cap) }
 
             # Add features to set
             plan.features.clear

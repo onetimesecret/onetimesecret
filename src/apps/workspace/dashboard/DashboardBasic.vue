@@ -1,6 +1,6 @@
 <!-- src/apps/workspace/dashboard/DashboardBasic.vue -->
 
-<!-- Basic dashboard for free tier users (no team capabilities) -->
+<!-- Basic dashboard for free tier users (no team entitlements) -->
 
 <script setup lang="ts">
   import UpgradePrompt from '@/apps/workspace/components/billing/UpgradePrompt.vue';
@@ -28,7 +28,7 @@
     <!-- Upgrade Prompt (SaaS only) -->
     <UpgradePrompt
       class="mb-8"
-      capability="create_teams"
+      entitlement="create_teams"
       upgrade-plan="team_v1" />
 
     <!-- Space divider -->

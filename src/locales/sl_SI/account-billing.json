@@ -36,7 +36,7 @@
         "manage_billing_description": "Posodobi podatke o plačilu",
         "no_organizations_title": "Ni organizacij",
         "no_organizations_description": "Ustvarite organizacijo za upravljanje plačil in naročnine",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "Ustvari skrivnosti",
           "basic_sharing": "Osnovno deljenje",
           "create_team": "Ustvari ekipo",

@@ -36,7 +36,7 @@
         "manage_billing_description": "更新付款信息",
         "no_organizations_title": "无组织",
         "no_organizations_description": "创建组织以管理您的账单和订阅",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "创建内容",
           "basic_sharing": "基本分享",
           "create_team": "创建团队",

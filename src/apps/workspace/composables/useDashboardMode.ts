@@ -4,32 +4,32 @@ import { computed, ref, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useTeamStore } from '@/shared/stores/teamStore';
-import { useCapabilities } from '@/shared/composables/useCapabilities';
-import { CAPABILITIES } from '@/types/organization';
+import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { ENTITLEMENTS } from '@/types/organization';
 
 export type DashboardVariant = 'loading' | 'basic' | 'empty' | 'single' | 'multi';
 
 /**
- * Determines which dashboard variant to display based on capabilities and team count.
+ * Determines which dashboard variant to display based on entitlements and team count.
  *
- * Capabilities GATE what features are available.
+ * Entitlements GATE what features are available.
  * Team count ADAPTS the UX to actual usage.
  *
- * | Capability     | Team Count | Variant              |
+ * | Entitlement     | Team Count | Variant              |
  * |----------------|------------|----------------------|
  * | No team cap    | any        | basic                |
  * | Has team cap   | 0          | empty                |
  * | Has team cap   | 1          | single               |
  * | Has team cap   | 2+         | multi                |
  *
- * Standalone mode always has team capability via backend fallback.
+ * Standalone mode always has team entitlement via backend fallback.
  */
 export function useDashboardMode() {
   const orgStore = useOrganizationStore();
   const teamStore = useTeamStore();
   const { currentOrganization } = storeToRefs(orgStore);
   const { teams, loading: teamsLoading } = storeToRefs(teamStore);
-  const { can, isStandaloneMode } = useCapabilities(currentOrganization);
+  const { can, isStandaloneMode } = useEntitlements(currentOrganization);
 
   // Track if initial team fetch is complete
   const teamsLoaded = ref(false);
@@ -38,13 +38,13 @@ export function useDashboardMode() {
   // Team count for experience adaptation
   const teamCount = computed(() => teams.value.length);
 
-  // Check if user has team management capabilities
-  const hasTeamCapability = computed(() => {
-    // Standalone mode: all capabilities available
+  // Check if user has team management entitlements
+  const hasTeamEntitlement = computed(() => {
+    // Standalone mode: all entitlements available
     if (isStandaloneMode.value) return true;
 
-    // Check actual capabilities
-    return can(CAPABILITIES.CREATE_TEAM) || can(CAPABILITIES.CREATE_TEAMS);
+    // Check actual entitlements
+    return can(ENTITLEMENTS.CREATE_TEAM) || can(ENTITLEMENTS.CREATE_TEAMS);
   });
 
   /**
@@ -56,12 +56,12 @@ export function useDashboardMode() {
       return 'loading';
     }
 
-    // No team capability → basic dashboard with upgrade prompt
-    if (!hasTeamCapability.value) {
+    // No team entitlement → basic dashboard with upgrade prompt
+    if (!hasTeamEntitlement.value) {
       return 'basic';
     }
 
-    // Has team capability - adapt based on team count
+    // Has team entitlement - adapt based on team count
     if (teamCount.value === 0) {
       return 'empty';
     }
@@ -100,7 +100,7 @@ export function useDashboardMode() {
     teamsLoading,
     teamsLoaded,
     fetchError,
-    hasTeamCapability,
+    hasTeamEntitlement,
     fetchTeams,
   };
 }

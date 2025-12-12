@@ -36,7 +36,7 @@
         "manage_billing_description": "Оновити платіжну інформацію",
         "no_organizations_title": "Немає організацій",
         "no_organizations_description": "Створіть організацію для керування виставленням рахунків та підпискою",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "Створювати секрети",
           "basic_sharing": "Базовий обмін",
           "create_team": "Створити команду",

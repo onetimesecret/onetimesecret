@@ -36,7 +36,7 @@
         "manage_billing_description": "Zahlungsinformationen aktualisieren",
         "no_organizations_title": "Keine Organisationen",
         "no_organizations_description": "Erstelle eine Organisation, um deine Abrechnung und dein Abonnement zu verwalten",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "Geheimnisse erstellen",
           "basic_sharing": "Grundlegendes Teilen",
           "create_team": "Team erstellen",

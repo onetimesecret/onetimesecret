@@ -199,20 +199,20 @@ export const useOrganizationStore = defineStore('organization', () => {
   }
 
   /**
-   * Fetch capabilities for an organization
-   * This method fetches the organization's billing capabilities and limits
+   * Fetch entitlements for an organization
+   * This method fetches the organization's billing entitlements and limits
    */
-  async function fetchCapabilities(orgId: string): Promise<void> {
+  async function fetchEntitlements(orgId: string): Promise<void> {
     try {
-      const response = await $api.get(`/api/billing/capabilities/${orgId}`);
+      const response = await $api.get(`/api/billing/entitlements/${orgId}`);
 
-      // Update the organization with capabilities
+      // Update the organization with entitlements
       const index = organizations.value.findIndex((o) => o.id === orgId);
       if (index !== -1) {
         organizations.value[index] = {
           ...organizations.value[index],
           planid: response.data.planid,
-          capabilities: response.data.capabilities,
+          entitlements: response.data.entitlements,
           limits: response.data.limits,
         };
       }
@@ -222,13 +222,13 @@ export const useOrganizationStore = defineStore('organization', () => {
         currentOrganization.value = {
           ...currentOrganization.value,
           planid: response.data.planid,
-          capabilities: response.data.capabilities,
+          entitlements: response.data.entitlements,
           limits: response.data.limits,
         };
       }
     } catch (err) {
-      console.error('[OrganizationStore] Error fetching capabilities:', err);
-      // Don't throw - capabilities are optional enhancements
+      console.error('[OrganizationStore] Error fetching entitlements:', err);
+      // Don't throw - entitlements are optional enhancements
     }
   }
 
@@ -264,7 +264,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     updateOrganization,
     deleteOrganization,
     setCurrentOrganization,
-    fetchCapabilities,
+    fetchEntitlements,
     abort,
     $reset,
   };

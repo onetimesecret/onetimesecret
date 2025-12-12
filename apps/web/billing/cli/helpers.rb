@@ -167,7 +167,7 @@ module Onetime
 
       def format_plan_row(plan)
         amount             = format_amount(plan.amount, plan.currency)
-        capabilities_count = plan.capabilities.size
+        entitlements_count = plan.entitlements.size
 
         format('%-20s %-18s %-10s %-10s %-12s %d',
           plan.plan_id[0..19],
@@ -175,7 +175,7 @@ module Onetime
           plan.interval[0..9],
           amount[0..9],
           plan.region[0..11],
-          capabilities_count,
+          entitlements_count,
         )
       end
 
@@ -220,8 +220,8 @@ module Onetime
         print 'Tenancy (e.g., single, multi): '
         metadata[Billing::Metadata::FIELD_TENANCY] = $stdin.gets.chomp
 
-        print 'Capabilities (comma-separated, e.g., create_secrets,create_team): '
-        metadata[Billing::Metadata::FIELD_CAPABILITIES] = $stdin.gets.chomp
+        print 'Entitlements (comma-separated, e.g., create_secrets,create_team): '
+        metadata[Billing::Metadata::FIELD_ENTITLEMENTS] = $stdin.gets.chomp
 
         print 'Display order (higher = earlier, default: 0): '
         display_order                                    = $stdin.gets.chomp

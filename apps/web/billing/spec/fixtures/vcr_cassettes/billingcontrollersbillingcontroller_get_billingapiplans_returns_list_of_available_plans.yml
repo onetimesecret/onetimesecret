@@ -181,7 +181,7 @@ http_interactions:
               "marketing_features": [],
               "metadata": {
                 "app": "onetimesecret",
-                "capabilities": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso,priority_support,sla",
+                "entitlements": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso,priority_support,sla",
                 "created": "2025-11-23T18:24:27Z",
                 "display_order": "40",
                 "limit_custom_domains": "-1",
@@ -217,7 +217,7 @@ http_interactions:
               "marketing_features": [],
               "metadata": {
                 "app": "onetimesecret",
-                "capabilities": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso",
+                "entitlements": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso",
                 "created": "2025-11-23T18:24:24Z",
                 "display_order": "30",
                 "limit_custom_domains": "-1",
@@ -253,7 +253,7 @@ http_interactions:
               "marketing_features": [],
               "metadata": {
                 "app": "onetimesecret",
-                "capabilities": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members",
+                "entitlements": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members",
                 "created": "2025-11-23T18:24:15Z",
                 "display_order": "20",
                 "limit_custom_domains": "-1",
@@ -289,7 +289,7 @@ http_interactions:
               "marketing_features": [],
               "metadata": {
                 "app": "onetimesecret",
-                "capabilities": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage",
+                "entitlements": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage",
                 "created": "2025-11-23T18:24:05Z",
                 "display_order": "10",
                 "limit_custom_domains": "-1",

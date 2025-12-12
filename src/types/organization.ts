@@ -8,9 +8,9 @@
 import { z } from 'zod';
 
 /**
- * Organization capability constants
+ * Organization entitlement constants
  */
-export const CAPABILITIES = {
+export const ENTITLEMENTS = {
   CREATE_SECRETS: 'create_secrets',
   BASIC_SHARING: 'basic_sharing',
   CREATE_TEAM: 'create_team',
@@ -21,7 +21,7 @@ export const CAPABILITIES = {
   AUDIT_LOGS: 'audit_logs',
 } as const;
 
-export type Capability = (typeof CAPABILITIES)[keyof typeof CAPABILITIES];
+export type Entitlement = (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS];
 
 /**
  * Organization limits interface
@@ -59,7 +59,7 @@ export interface Organization {
   member_count?: number;
   current_user_role?: OrganizationRole;
   planid?: string;
-  capabilities?: Capability[];
+  entitlements?: Entitlement[];
   limits?: OrganizationLimits;
 }
 
@@ -80,7 +80,7 @@ export const organizationSchema = z.object({
   member_count: z.number().int().min(0).optional(),
   current_user_role: z.enum(['owner', 'admin', 'member']).optional(),
   planid: z.string().optional(),
-  capabilities: z.array(z.string() as z.ZodType<Capability>).optional(),
+  entitlements: z.array(z.string() as z.ZodType<Entitlement>).optional(),
   limits: z
     .object({
       teams: z.number().optional(),

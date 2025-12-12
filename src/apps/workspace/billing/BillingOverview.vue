@@ -5,14 +5,14 @@
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
-import { useCapabilities } from '@/shared/composables/useCapabilities';
+import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { PaymentMethod } from '@/types/billing';
 import { getPlanLabel } from '@/types/billing';
 import type { Organization } from '@/types/organization';
-import { CAPABILITIES } from '@/types/organization';
+import { ENTITLEMENTS } from '@/types/organization';
 import { computed, onMounted, ref } from 'vue';
 
 const { t } = useI18n();
@@ -26,7 +26,7 @@ const isLoading = ref(false);
 const error = ref('');
 
 const organizations = computed(() => organizationStore.organizations);
-const { capabilities } = useCapabilities(selectedOrg);
+const { entitlements } = useEntitlements(selectedOrg);
 
 const planName = computed(() => {
   if (!selectedOrg.value?.planid) return t('web.billing.plans.free_plan');
@@ -35,16 +35,16 @@ const planName = computed(() => {
 
 const planStatus = computed(() => selectedOrg.value?.planid ? 'active' : 'free');
 
-const formatCapability = (cap: string): string => {
+const formatEntitlement = (cap: string): string => {
   const labels: Record<string, string> = {
-    [CAPABILITIES.CREATE_SECRETS]: t('web.billing.overview.capabilities.create_secrets'),
-    [CAPABILITIES.BASIC_SHARING]: t('web.billing.overview.capabilities.basic_sharing'),
-    [CAPABILITIES.CREATE_TEAM]: t('web.billing.overview.capabilities.create_team'),
-    [CAPABILITIES.CREATE_TEAMS]: t('web.billing.overview.capabilities.create_teams'),
-    [CAPABILITIES.CUSTOM_DOMAINS]: t('web.billing.overview.capabilities.custom_domains'),
-    [CAPABILITIES.API_ACCESS]: t('web.billing.overview.capabilities.api_access'),
-    [CAPABILITIES.PRIORITY_SUPPORT]: t('web.billing.overview.capabilities.priority_support'),
-    [CAPABILITIES.AUDIT_LOGS]: t('web.billing.overview.capabilities.audit_logs'),
+    [ENTITLEMENTS.CREATE_SECRETS]: t('web.billing.overview.entitlements.create_secrets'),
+    [ENTITLEMENTS.BASIC_SHARING]: t('web.billing.overview.entitlements.basic_sharing'),
+    [ENTITLEMENTS.CREATE_TEAM]: t('web.billing.overview.entitlements.create_team'),
+    [ENTITLEMENTS.CREATE_TEAMS]: t('web.billing.overview.entitlements.create_teams'),
+    [ENTITLEMENTS.CUSTOM_DOMAINS]: t('web.billing.overview.entitlements.custom_domains'),
+    [ENTITLEMENTS.API_ACCESS]: t('web.billing.overview.entitlements.api_access'),
+    [ENTITLEMENTS.PRIORITY_SUPPORT]: t('web.billing.overview.entitlements.priority_support'),
+    [ENTITLEMENTS.AUDIT_LOGS]: t('web.billing.overview.entitlements.audit_logs'),
   };
   return labels[cap] || cap;
 };
@@ -56,9 +56,9 @@ const loadOrganizationData = async (orgId: string) => {
     const org = await organizationStore.fetchOrganization(orgId);
     selectedOrg.value = org;
 
-    // Fetch capabilities if not already loaded
-    if (!org.capabilities) {
-      await organizationStore.fetchCapabilities(orgId);
+    // Fetch entitlements if not already loaded
+    if (!org.entitlements) {
+      await organizationStore.fetchEntitlements(orgId);
     }
 
     // Load billing overview data from API
@@ -233,13 +233,13 @@ onMounted(async () => {
             </div>
 
             <!-- Plan Features -->
-            <div v-if="capabilities.length > 0" class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <div v-if="entitlements.length > 0" class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
               <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                 {{ t('web.billing.overview.plan_features') }}
               </p>
               <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div
-                  v-for="cap in capabilities"
+                  v-for="cap in entitlements"
                   :key="cap"
                   class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                   <OIcon
@@ -247,7 +247,7 @@ onMounted(async () => {
                     name="check-circle"
                     class="size-5 text-green-500 dark:text-green-400"
                     aria-hidden="true" />
-                  {{ formatCapability(cap) }}
+                  {{ formatEntitlement(cap) }}
                 </div>
               </div>
             </div>

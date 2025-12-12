@@ -232,7 +232,7 @@ module Billing
               region: plan.region,
               features: plan.features.to_a,
               limits: plan.limits_hash,
-              capabilities: plan.capabilities.to_a,
+              entitlements: plan.entitlements.to_a,
               display_order: plan.display_order.to_i,
             }
           end

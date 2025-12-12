@@ -36,7 +36,7 @@
         "manage_billing_description": "עדכון מידע תשלום",
         "no_organizations_title": "אין ארגונים",
         "no_organizations_description": "צרו ארגון כדי לנהל את החיוב והמנוי שלכם",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "יצירת סודות",
           "basic_sharing": "שיתוף בסיסי",
           "create_team": "יצירת צוות",

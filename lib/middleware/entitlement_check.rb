@@ -1,24 +1,24 @@
-# lib/middleware/capability_check.rb
+# lib/middleware/entitlement_check.rb
 #
 # frozen_string_literal: true
 
 module Rack
-  # CapabilityCheck Middleware
+  # EntitlementCheck Middleware
   #
-  # Rack middleware for protecting routes with capability-based authorization.
-  # Checks if the organization (from Otto auth result) has a required capability.
+  # Rack middleware for protecting routes with entitlement-based authorization.
+  # Checks if the organization (from Otto auth result) has a required entitlement.
   #
   # ## Usage
   #
   # In a Roda application:
   #
-  #   use Rack::CapabilityCheck, capability: 'custom_domains'
-  #   use Rack::CapabilityCheck, capability: 'api_access'
+  #   use Rack::EntitlementCheck, entitlement: 'custom_domains'
+  #   use Rack::EntitlementCheck, entitlement: 'api_access'
   #
   # ## Request Flow
   #
   # 1. Extract organization from env['otto.strategy_result']
-  # 2. Check if org.can?(capability)
+  # 2. Check if org.can?(entitlement)
   # 3. If yes: pass request through
   # 4. If no: return 403 with upgrade information
   #
@@ -26,17 +26,17 @@ module Rack
   #
   #   {
   #     "error": "Feature not available",
-  #     "capability": "custom_domains",
+  #     "entitlement": "custom_domains",
   #     "current_plan": "free",
   #     "upgrade_to": "identity_v1"
   #   }
   #
-  class CapabilityCheck
+  class EntitlementCheck
     include Middleware::Logging
 
-    def initialize(app, capability:, logger: nil)
+    def initialize(app, entitlement:, logger: nil)
       @app           = app
-      @capability    = capability.to_s
+      @entitlement    = entitlement.to_s
       @custom_logger = logger
     end
 
@@ -51,29 +51,29 @@ module Rack
 
       # If no org context, deny access (auth should happen upstream)
       unless org
-        logger.warn('[CapabilityCheck] No organization in request context')
+        logger.warn('[EntitlementCheck] No organization in request context')
         return denial_response(
           error: 'Authentication required',
-          capability: @capability,
+          entitlement: @entitlement,
         )
       end
 
-      # Check if organization has capability
-      if org.can?(@capability)
-        logger.debug("[CapabilityCheck] #{org.objid} has #{@capability}")
+      # Check if organization has entitlement
+      if org.can?(@entitlement)
+        logger.debug("[EntitlementCheck] #{org.objid} has #{@entitlement}")
         @app.call(env)
       else
-        logger.info("[CapabilityCheck] #{org.objid} denied #{@capability}", {
+        logger.info("[EntitlementCheck] #{org.objid} denied #{@entitlement}", {
           current_plan: org.planid,
-          upgrade_to: Billing::PlanHelpers.upgrade_path_for(@capability, org.planid),
+          upgrade_to: Billing::PlanHelpers.upgrade_path_for(@entitlement, org.planid),
         }
         )
 
         denial_response(
           error: 'Feature not available',
-          capability: @capability,
+          entitlement: @entitlement,
           current_plan: org.planid,
-          upgrade_to: Billing::PlanHelpers.upgrade_path_for(@capability, org.planid),
+          upgrade_to: Billing::PlanHelpers.upgrade_path_for(@entitlement, org.planid),
           message: upgrade_message(org),
         )
       end
@@ -100,11 +100,11 @@ module Rack
     # @param org [Onetime::Organization] Organization
     # @return [String] Upgrade message
     def upgrade_message(org)
-      upgrade_plan = Billing::PlanHelpers.upgrade_path_for(@capability, org.planid)
+      upgrade_plan = Billing::PlanHelpers.upgrade_path_for(@entitlement, org.planid)
       plan_name    = Billing::PlanHelpers.plan_name(upgrade_plan) if upgrade_plan
 
       if plan_name
-        "This feature requires #{plan_name}. Upgrade your plan to access #{@capability.tr('_', ' ')}."
+        "This feature requires #{plan_name}. Upgrade your plan to access #{@entitlement.tr('_', ' ')}."
       else
         'This feature is not available on your current plan.'
       end
@@ -119,7 +119,7 @@ module Rack
         403,
         {
           'Content-Type' => 'application/json',
-          'X-Capability-Required' => @capability,
+          'X-Entitlement-Required' => @entitlement,
         },
         [payload.to_json],
       ]

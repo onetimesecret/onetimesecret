@@ -140,7 +140,7 @@ product = MockProduct.new(metadata: {
   'plan_id' => 'test_v1',
   'tier' => 'basic',
   'region' => 'global',
-  'capabilities' => 'test',
+  'entitlements' => 'test',
   'tenancy' => 'single',
 })
 errors  = helper.validate_product_metadata(product)

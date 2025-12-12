@@ -1,6 +1,6 @@
 <!-- src/apps/workspace/dashboard/DashboardEmpty.vue -->
 
-<!-- Onboarding dashboard for users with team capability but no teams yet -->
+<!-- Onboarding dashboard for users with team entitlement but no teams yet -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

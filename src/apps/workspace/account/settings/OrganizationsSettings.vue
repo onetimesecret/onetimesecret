@@ -5,7 +5,7 @@
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import CreateOrganizationModal from '@/apps/workspace/components/organizations/CreateOrganizationModal.vue';
-import { useCapabilities } from '@/shared/composables/useCapabilities';
+import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
 import { computed, onMounted, ref } from 'vue';
@@ -18,10 +18,10 @@ const organizationStore = useOrganizationStore();
 const isLoading = ref(false);
 const showCreateModal = ref(false);
 
-// Use the first organization to check capabilities for single-org users
+// Use the first organization to check entitlements for single-org users
 const primaryOrg = computed(() => organizationStore.organizations[0] || null);
 const primaryOrgRef = computed(() => primaryOrg.value);
-const { can, CAPABILITIES } = useCapabilities(primaryOrgRef);
+const { can, ENTITLEMENTS } = useEntitlements(primaryOrgRef);
 
 // Filter out default orgs for individual plan users (future plan-gating logic)
 const visibleOrganizations = computed(() =>
@@ -34,18 +34,18 @@ const visibleOrganizations = computed(() =>
 const hasOrganizations = computed(() => visibleOrganizations.value.length > 0);
 
 /**
- * Determine if user can create multiple organizations based on capabilities.
- * Uses capability-based framework instead of hardcoded plan checks.
+ * Determine if user can create multiple organizations based on entitlements.
+ * Uses entitlement-based framework instead of hardcoded plan checks.
  */
 const canCreateMultipleOrgs = computed(() =>
-  // Users with team creation capability can manage multiple organizations
-   can(CAPABILITIES.CREATE_TEAMS) || can(CAPABILITIES.CREATE_TEAM)
+  // Users with team creation entitlement can manage multiple organizations
+   can(ENTITLEMENTS.CREATE_TEAMS) || can(ENTITLEMENTS.CREATE_TEAM)
 );
 
 /**
- * Determine if user is on a single-user account (no team capabilities)
+ * Determine if user is on a single-user account (no team entitlements)
  */
-const isSingleUserAccount = computed(() => !can(CAPABILITIES.CREATE_TEAM) && !can(CAPABILITIES.CREATE_TEAMS));
+const isSingleUserAccount = computed(() => !can(ENTITLEMENTS.CREATE_TEAM) && !can(ENTITLEMENTS.CREATE_TEAMS));
 
 onMounted(async () => {
   isLoading.value = true;
@@ -192,7 +192,7 @@ const handleManageOrganization = (org: Organization) => {
         </div>
       </section>
 
-      <!-- Info Section - Personalized based on user capabilities -->
+      <!-- Info Section - Personalized based on user entitlements -->
       <section
         v-if="isSingleUserAccount && hasOrganizations"
         class="rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/50 dark:bg-blue-900/10">

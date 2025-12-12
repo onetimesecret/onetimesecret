@@ -36,7 +36,7 @@
         "manage_billing_description": "Actualitza la informació de pagament",
         "no_organizations_title": "No hi ha organitzacions",
         "no_organizations_description": "Crea una organització per gestionar la teva facturació i subscripció",
-        "capabilities": {
+        "entitlements": {
           "create_secrets": "Crea secrets",
           "basic_sharing": "Compartició bàsica",
           "create_team": "Crea un equip",
