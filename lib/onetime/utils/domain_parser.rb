@@ -183,17 +183,17 @@ module Onetime
           str = str.to_s.strip
           return nil if str.empty?
 
-          # Try parsing as URI if it looks like a URL
+          # If it looks like a URL, only extract via URI parsing - don't guess
           if str.include?('://')
             begin
               uri = URI.parse(str)
-              return uri.host if uri.host
+              return uri.host # Returns host or nil if no host component
             rescue URI::InvalidURIError
-              # Fall through to hostname extraction
+              return nil # Malformed URL, do not attempt to guess
             end
           end
 
-          # Treat as hostname, strip port if present
+          # Treat as plain hostname, strip port if present
           str.split(':').first
         end
 

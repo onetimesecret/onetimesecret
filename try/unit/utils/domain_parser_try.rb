@@ -70,6 +70,18 @@ Onetime::Utils::DomainParser.extract_hostname('')
 Onetime::Utils::DomainParser.extract_hostname('   ')
 #=> nil
 
+## Extract hostname returns nil for malformed URL (no host)
+Onetime::Utils::DomainParser.extract_hostname('https://')
+#=> nil
+
+## Extract hostname returns nil for URL with only credentials
+Onetime::Utils::DomainParser.extract_hostname('http://user:pass@')
+#=> nil
+
+## Extract hostname returns nil for scheme-only URL
+Onetime::Utils::DomainParser.extract_hostname('ftp://')
+#=> nil
+
 ## =================================================================
 ## hostname_matches? - Exact comparison (SECURITY CRITICAL)
 ## =================================================================
