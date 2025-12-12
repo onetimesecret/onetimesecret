@@ -106,7 +106,7 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker do
 
     # Mock operation by default
     allow(Onetime::Operations::DispatchNotification).to receive(:new).and_return(operation_instance)
-    allow(operation_instance).to receive(:call).and_return({ bell: :success })
+    allow(operation_instance).to receive(:call).and_return({ via_bell: :success })
   end
 
   after do
@@ -123,7 +123,7 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker do
         },
         template: 'secret_viewed',
         locale: 'en',
-        channels: ['bell'],
+        channels: ['via_bell'],
         data: {
           secret_key: 'abc123'
         }
@@ -198,7 +198,7 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker do
         allow(operation_instance).to receive(:call) do
           call_count += 1
           raise StandardError, 'Transient error' if call_count < 2
-          { bell: :success }
+          { via_bell: :success }
         end
 
         worker.work_with_params(message, delivery_info, metadata)
@@ -246,7 +246,7 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker do
           type: 'secret.viewed',
           addressee: { custid: custid },
           template: 'secret_viewed',
-          channels: ['bell'],
+          channels: ['via_bell'],
           data: {}
         )
       end
@@ -270,7 +270,7 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker do
         type: 'secret.viewed',
         addressee: { custid: custid },
         template: 'secret_viewed',
-        channels: ['bell'],
+        channels: ['via_bell'],
         data: {}
       )
     end
@@ -344,7 +344,7 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker do
         type: 'secret.viewed',
         addressee: { custid: custid },
         template: 'secret_viewed',
-        channels: ['bell'],
+        channels: ['via_bell'],
         data: {}
       )
     end
@@ -376,7 +376,7 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker do
         type: 'secret.viewed',
         addressee: { custid: custid, email: 'user@example.com', webhook_url: 'https://example.com/hook' },
         template: 'secret_viewed',
-        channels: %w[bell email webhook],
+        channels: %w[via_bell via_email via_webhook],
         data: {}
       )
     end
@@ -384,9 +384,9 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker do
     context 'when operation returns partial errors' do
       before do
         allow(operation_instance).to receive(:call).and_return({
-          bell: :success,
-          email: :error,
-          webhook: :skipped
+          via_bell: :success,
+          via_email: :error,
+          via_webhook: :skipped
         })
       end
 
@@ -401,9 +401,9 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker do
     context 'when operation returns all errors' do
       before do
         allow(operation_instance).to receive(:call).and_return({
-          bell: :error,
-          email: :error,
-          webhook: :error
+          via_bell: :error,
+          via_email: :error,
+          via_webhook: :error
         })
       end
 
@@ -423,7 +423,7 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker do
           type: event_type,
           addressee: { custid: custid },
           template: event_type.tr('.', '_'),
-          channels: ['bell'],
+          channels: ['via_bell'],
           data: {}
         )
 

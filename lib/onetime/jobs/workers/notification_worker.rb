@@ -22,7 +22,7 @@ require_relative '../../operations/dispatch_notification'
 #   },
 #   template: 'secret_viewed',     # Template name for rendering
 #   locale: 'en',                  # Localization
-#   channels: ['bell', 'email'],   # Which delivery methods to use
+#   channels: ['via_bell', 'via_email'], # Which delivery methods to use
 #   data: { ... }                  # Template-specific variables
 # }
 #

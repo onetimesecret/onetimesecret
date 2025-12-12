@@ -13,9 +13,9 @@ module Onetime
     # Extracted from NotificationWorker for reuse in CLI tools and testing.
     #
     # Supported channels:
-    # - bell: Stores notification in Redis for bell/notification UI display
-    # - email: Queues to email.message.send for delivery
-    # - webhook: Makes HTTP POST callback to user-defined URL
+    # - via_bell: Stores notification in Redis for bell/notification UI display
+    # - via_email: Queues to email.message.send for delivery
+    # - via_webhook: Makes HTTP POST callback to user-defined URL
     #
     # Message payload schema:
     # {
@@ -27,7 +27,7 @@ module Onetime
     #   },
     #   template: 'secret_viewed',     # Template name for rendering
     #   locale: 'en',                  # Localization
-    #   channels: ['bell', 'email'],   # Which delivery methods to use
+    #   channels: ['via_bell', 'via_email'], # Which delivery methods to use
     #   data: { ... }                  # Template-specific variables
     # }
     #
@@ -35,7 +35,7 @@ module Onetime
       include Onetime::LoggerMethods
 
       # Supported notification channels
-      SUPPORTED_CHANNELS = %w[bell email webhook].freeze
+      SUPPORTED_CHANNELS = %w[via_bell via_email via_webhook].freeze
 
       # Redis TTL for stored notifications (30 days)
       NOTIFICATION_TTL = 30 * 24 * 60 * 60
@@ -57,7 +57,7 @@ module Onetime
 
       # Executes the notification dispatch
       #
-      # @return [Hash] Results per channel { bell: :success, email: :skipped, webhook: :error }
+      # @return [Hash] Results per channel { via_bell: :success, via_email: :skipped, via_webhook: :error }
       def call
         channels = resolve_channels
 
@@ -80,8 +80,8 @@ module Onetime
         valid = requested & SUPPORTED_CHANNELS
 
         if valid.empty?
-          logger.info 'No valid channels specified, defaulting to bell'
-          ['bell']
+          logger.info 'No valid channels specified, defaulting to via_bell'
+          ['via_bell']
         else
           valid
         end
@@ -92,12 +92,12 @@ module Onetime
       # @return [Symbol] :success, :skipped, or :error
       def dispatch_to_channel(channel)
         case channel
-        when 'bell'
-          deliver_bell
-        when 'email'
-          deliver_email
-        when 'webhook'
-          deliver_webhook
+        when 'via_bell'
+          deliver_via_bell
+        when 'via_email'
+          deliver_via_email
+        when 'via_webhook'
+          deliver_via_webhook
         end
       rescue StandardError => ex
         logger.error "Failed to deliver to #{channel}",
@@ -108,7 +108,7 @@ module Onetime
 
       # Store notification in Redis for bell notification display
       # @return [Symbol] :success or :skipped
-      def deliver_bell
+      def deliver_via_bell
         addressee = @data[:addressee] || {}
         custid = addressee[:custid]
 
@@ -143,7 +143,7 @@ module Onetime
 
       # Queue email notification via email.message.send
       # @return [Symbol] :success or :skipped
-      def deliver_email
+      def deliver_via_email
         addressee = @data[:addressee] || {}
         email = addressee[:email]
 
@@ -178,7 +178,7 @@ module Onetime
 
       # Make HTTP POST callback to user's webhook URL
       # @return [Symbol] :success or :skipped
-      def deliver_webhook
+      def deliver_via_webhook
         addressee = @data[:addressee] || {}
         webhook_url = addressee[:webhook_url]
 
