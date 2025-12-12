@@ -178,15 +178,14 @@ module Rack
       #
       # This method:
       # - Takes the first host if multiple are provided (comma-separated)
-      # - Removes any port numbers (e.g., example.com:8080 → example.com)
-      # - Converts to lowercase and removes surrounding whitespace
+      # - Delegates to DomainParser for port stripping and normalization
       # - Returns nil for empty values
       def normalize_host(value_unsafe)
-        host_with_port = value_unsafe.to_s.split(',').first.to_s
-        host           = host_with_port.split(':').first.to_s.strip.downcase
-        return nil if host.empty?
+        # Handle comma-separated hosts (e.g., X-Forwarded-Host header)
+        first_host = value_unsafe.to_s.split(',').first.to_s
 
-        host
+        # Delegate core normalization to DomainParser
+        Onetime::Utils::DomainParser.extract_hostname(first_host)
       end
 
       # Determines if a string is a valid host for use in this application.
