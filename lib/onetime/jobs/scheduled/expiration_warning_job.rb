@@ -26,6 +26,12 @@ module Onetime
       #   - warnings_sent: Set for deduplication
       #
       class ExpirationWarningJob < ScheduledJob
+        # Send warning email 1 hour before secret expiration
+        WARNING_BUFFER_SECONDS = 3600
+
+        # Grace period for cleanup: remove timeline entries that expired over 1 hour ago
+        CLEANUP_GRACE_PERIOD_SECONDS = 3600
+
         class << self
           def schedule(scheduler)
             return unless enabled?
@@ -87,16 +93,16 @@ module Onetime
             end
 
             # Self-cleaning: remove entries that have already expired
-            cleanup_count = Onetime::Metadata.cleanup_expired_from_timeline(Familia.now.to_f - 3600)
+            cleanup_count = Onetime::Metadata.cleanup_expired_from_timeline(Familia.now.to_f - CLEANUP_GRACE_PERIOD_SECONDS)
 
             scheduler_logger.info "[ExpirationWarningJob] Processed: #{processed}, Skipped: #{skipped}, Cleaned: #{cleanup_count}"
           end
 
           def schedule_warning_email(metadata, owner)
-            # Calculate delay: send warning 1 hour before actual expiration
-            # (or immediately if less than 1 hour remains)
+            # Calculate delay: send warning before actual expiration
+            # (or immediately if less than the buffer time remains)
             seconds_until_expiry = metadata.secret_expiration.to_i - Familia.now.to_i
-            delay = [seconds_until_expiry - 3600, 0].max
+            delay = [seconds_until_expiry - WARNING_BUFFER_SECONDS, 0].max
 
             Onetime::Jobs::Publisher.schedule_email(
               :expiration_warning,

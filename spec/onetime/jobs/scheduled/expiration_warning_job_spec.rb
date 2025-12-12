@@ -238,21 +238,21 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       described_class.send(:process_expiring_secrets)
     end
 
-    it 'calculates delay to send email 1 hour before expiration' do
-      # metadata expires in 2 hours (7200s), so delay should be ~1 hour (3600s)
+    it 'calculates delay to send email WARNING_BUFFER_SECONDS before expiration' do
+      # metadata expires in 2 hours (7200s), so delay should be ~1 hour
       allow(Onetime::Metadata).to receive(:expiring_within).and_return(['meta123'])
       allow(Onetime::Metadata).to receive(:load).with('meta123').and_return(metadata_with_owner)
 
       expect(Onetime::Jobs::Publisher).to receive(:schedule_email) do |_template, _data, options|
-        # Delay should be approximately 1 hour (secrets_until_expiry - 3600)
-        # With 2 hour expiry, delay ≈ 3600s
-        expect(options[:delay_seconds]).to be_within(60).of(3600)
+        # Delay = seconds_until_expiry - WARNING_BUFFER_SECONDS
+        # With 2 hour expiry, delay ≈ WARNING_BUFFER_SECONDS
+        expect(options[:delay_seconds]).to be_within(60).of(described_class::WARNING_BUFFER_SECONDS)
       end
 
       described_class.send(:process_expiring_secrets)
     end
 
-    it 'uses zero delay when less than 1 hour remains' do
+    it 'uses zero delay when less than WARNING_BUFFER_SECONDS remains' do
       soon_metadata = instance_double(
         'Onetime::Metadata',
         identifier: 'soon123',
@@ -278,7 +278,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       allow(Onetime::Metadata).to receive(:expiring_within).and_return([])
 
       expect(Onetime::Metadata).to receive(:cleanup_expired_from_timeline)
-        .with(be_within(60).of(Familia.now.to_f - 3600))
+        .with(be_within(60).of(Familia.now.to_f - described_class::CLEANUP_GRACE_PERIOD_SECONDS))
         .and_return(5)
 
       described_class.send(:process_expiring_secrets)
