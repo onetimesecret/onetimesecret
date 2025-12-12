@@ -476,6 +476,19 @@ jobs:
   scheduler:
     enabled: <%= ENV['JOBS_SCHEDULER_ENABLED'] == 'true' || false %>
 
+  # Expiration warning emails
+  # Send email notifications before secrets expire to warn recipients
+  expiration_warnings:
+    # Enable/disable expiration warning emails
+    enabled: <%= ENV['JOBS_EXPIRATION_WARNINGS_ENABLED'] == 'true' || false %>
+    # How often to scan for expiring secrets (rufus-scheduler interval)
+    check_interval: <%= ENV['JOBS_EXPIRATION_CHECK_INTERVAL'] || '1h' %>
+    # Send warning N hours before secret expires
+    warning_hours: <%= ENV['JOBS_EXPIRATION_WARNING_HOURS']&.to_i || 24 %>
+    # Only warn for secrets with TTL greater than this (hours)
+    # Prevents spamming for short-lived secrets
+    min_ttl_hours: <%= ENV['JOBS_EXPIRATION_MIN_TTL_HOURS']&.to_i || 48 %>
+
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
   default_locale: <%= ENV['I18N_DEFAULT_LOCALE'] || 'en' %>
