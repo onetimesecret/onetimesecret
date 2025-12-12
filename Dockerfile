@@ -253,6 +253,7 @@ RUN set -eux && \
             cp --preserve --no-clobber "$file" "$target"; \
         fi; \
     done && \
+    cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
     chmod +x bin/entrypoint.sh bin/entrypoint-jobs.sh bin/update-version.sh
 
 EXPOSE 3000
