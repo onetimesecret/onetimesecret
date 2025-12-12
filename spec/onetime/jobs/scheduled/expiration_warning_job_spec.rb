@@ -309,7 +309,18 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
     end
 
     context 'when scheduling fails' do
-      it 'continues processing remaining secrets' do
+      it 'does not mark warning as sent on failure' do
+        allow(Onetime::Metadata).to receive(:expiring_within).and_return(['meta123'])
+        allow(Onetime::Metadata).to receive(:load).with('meta123').and_return(metadata_with_owner)
+        allow(Onetime::Jobs::Publisher).to receive(:schedule_email).and_raise(StandardError, 'Connection error')
+
+        described_class.send(:process_expiring_secrets)
+
+        # Should NOT mark as sent when scheduling fails (allows retry on next run)
+        expect(Onetime::Metadata).not_to have_received(:mark_warning_sent).with('meta123')
+      end
+
+      it 'continues processing remaining secrets after failure' do
         metadata2 = instance_double(
           'Onetime::Metadata',
           identifier: 'meta_second',
@@ -335,7 +346,9 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         # Should not raise, should continue to second secret
         expect { described_class.send(:process_expiring_secrets) }.not_to raise_error
 
-        # Second secret should still be marked
+        # First secret should NOT be marked (failed)
+        expect(Onetime::Metadata).not_to have_received(:mark_warning_sent).with('meta123')
+        # Second secret should be marked (succeeded)
         expect(Onetime::Metadata).to have_received(:mark_warning_sent).with('meta_second')
       end
     end

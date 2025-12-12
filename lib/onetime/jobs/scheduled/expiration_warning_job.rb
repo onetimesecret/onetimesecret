@@ -87,9 +87,10 @@ module Onetime
                 next
               end
 
-              schedule_warning_email(metadata, owner)
-              Onetime::Metadata.mark_warning_sent(metadata_id)
-              processed += 1
+              if schedule_warning_email(metadata, owner)
+                Onetime::Metadata.mark_warning_sent(metadata_id)
+                processed += 1
+              end
             end
 
             # Self-cleaning: remove entries that have already expired
@@ -98,6 +99,8 @@ module Onetime
             scheduler_logger.info "[ExpirationWarningJob] Processed: #{processed}, Skipped: #{skipped}, Cleaned: #{cleanup_count}"
           end
 
+          # Schedule warning email for a secret
+          # @return [Boolean] true if successfully scheduled, false on failure
           def schedule_warning_email(metadata, owner)
             # Calculate delay: send warning before actual expiration
             # (or immediately if less than the buffer time remains)
@@ -117,8 +120,10 @@ module Onetime
 
             scheduler_logger.debug "[ExpirationWarningJob] Scheduled warning for #{metadata.identifier} " \
                                    "(delay: #{delay}s, expires: #{metadata.secret_expiration})"
+            true
           rescue StandardError => ex
             scheduler_logger.error "[ExpirationWarningJob] Failed to schedule warning for #{metadata.identifier}: #{ex.message}"
+            false
           end
         end
       end
