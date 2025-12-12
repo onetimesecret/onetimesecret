@@ -1,19 +1,7 @@
-# spec/onetime/operations/dispatch_notification_reference.rb
+# spec/onetime/operations/dispatch_notification_spec.rb
 #
 # frozen_string_literal: true
 
-# REFERENCE FILE - DO NOT RUN AS SPEC
-#
-# This file demonstrates the DomainParser fix for CodeQL-flagged loose hostname
-# matching. The actual spec file lives on feature/2096-notification-worker branch.
-#
-# When merging branches, apply these changes to the real spec file:
-#   - Replace: satisfy { |h| h.to_s.include?('example.com') }
-#   - With:    satisfy { |h| Onetime::Utils::DomainParser.hostname_within_domain?(h, 'example.com') }
-#
-# See: GitHub issue #2160
-# See: Serena memory 1211-hostname-validation-utility-design
-#
 # DispatchNotification Operation Test Suite
 #
 # Tests the notification dispatch operation that delivers notifications

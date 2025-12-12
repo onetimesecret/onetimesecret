@@ -54,5 +54,12 @@ module Onetime
       end
       commit_hash
     end
+
+    # HTTP User-Agent string for outbound requests (webhooks, etc.)
+    # Format: OnetimeWorker/VERSION (Ruby/RUBY_VERSION)
+    # @return [String] User-Agent header value
+    def self.user_agent
+      "OnetimeWorker/#{self} (Ruby/#{RUBY_VERSION})"
+    end
   end
 end

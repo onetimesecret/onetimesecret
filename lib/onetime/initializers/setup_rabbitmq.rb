@@ -4,6 +4,7 @@
 
 require 'bunny'
 require 'connection_pool'
+require_relative '../jobs/queue_config'
 
 module Onetime
   module Initializers
@@ -47,13 +48,18 @@ module Onetime
 
         Onetime.bunny_logger.info "[init] RabbitMQ: Connecting to #{sanitize_url(url)}"
 
-        # Create single connection per process
-        $rmq_conn = Bunny.new(
-          url,
+        # Build connection configuration
+        bunny_config = {
           recover_from_connection_close: true,
           network_recovery_interval: 5,
           logger: Onetime.get_logger('Bunny'),
-        )
+        }
+
+        # TLS configuration for amqps:// connections (centralized in QueueConfig)
+        bunny_config.merge!(Onetime::Jobs::QueueConfig.tls_options(url))
+
+        # Create single connection per process
+        $rmq_conn = Bunny.new(url, **bunny_config)
 
         $rmq_conn.start
         Onetime.bunny_logger.debug '[init] Setup RabbitMQ: connection established'
