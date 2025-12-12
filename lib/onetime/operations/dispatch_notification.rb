@@ -224,6 +224,11 @@ module Onetime
       # @param payload [Hash] Request payload
       # @return [Net::HTTPResponse] HTTP response
       def send_webhook_request(url, payload)
+        # ALPHA: Webhook delivery needs further security review before wide use.
+        # Current mitigations: SSRF protection, TLS verification, timeouts.
+        # Missing: request signing, URL allowlisting, rate limiting, payload size limits.
+        logger.warn 'Webhook delivery is alpha functionality', url: url
+
         uri = URI.parse(url)
 
         # SSRF Protection: Resolve hostname and check for private/loopback addresses
