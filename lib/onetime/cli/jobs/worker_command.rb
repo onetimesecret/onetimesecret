@@ -91,9 +91,8 @@ module Onetime
           # 3. Update Publisher to use that exchange
           # 4. Update this config to match
           #
-          Sneakers.configure(
+          config = {
             amqp: ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'),
-            vhost: ENV.fetch('RABBITMQ_VHOST', '/'),
             exchange: '',
             exchange_type: :direct,
             threads: concurrency,
@@ -106,7 +105,13 @@ module Onetime
             ack: true,
             heartbeat: 30,
             prefetch: concurrency,
-          )
+          }
+
+          # Override vhost only if explicitly set via env var.
+          # Otherwise, let Bunny parse it from the AMQP URL.
+          config[:vhost] = ENV['RABBITMQ_VHOST'] if ENV.key?('RABBITMQ_VHOST')
+
+          Sneakers.configure(config)
 
           # Set Kicks logger to match OT log level
           Sneakers.logger.level = logger_level(log_level)
@@ -154,6 +159,7 @@ module Onetime
             Logger::INFO # default for 'info' and unknown values
           end
         end
+
       end
     end
 
