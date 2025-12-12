@@ -29,7 +29,7 @@ module Billing
     def self.upgrade_path_for(entitlement, _current_plan = nil)
       # Query cached plans for those with the entitlement
       plans_with_entitlement = ::Billing::Plan.list_plans.select do |plan|
-        plan.entitlements.member?(entitlement.to_s)
+        plan.show_on_plans_page && plan.entitlements.member?(entitlement.to_s)
       end
 
       return nil if plans_with_entitlement.empty?
