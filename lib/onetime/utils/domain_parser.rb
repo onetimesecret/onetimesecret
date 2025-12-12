@@ -29,6 +29,14 @@ module Onetime
       # Maximum allowed subdomain depth to prevent abuse
       MAX_SUBDOMAIN_DEPTH = 10
 
+      # Non-network URI schemes that should not be parsed as hostnames.
+      # These use "scheme:data" format without "://" and could be mistaken
+      # for "hostname:port" if not explicitly blocked.
+      NON_NETWORK_SCHEMES = %w[
+        data javascript mailto tel sms geo magnet bitcoin
+        callto facetime skype slack spotify steam
+      ].freeze
+
       class << self
         # Extracts and normalizes a hostname from various input formats.
         #
@@ -186,11 +194,26 @@ module Onetime
           # If it looks like a URL, only extract via URI parsing - don't guess
           if str.include?('://')
             begin
-              uri = URI.parse(str)
-              return uri.host # Returns host or nil if no host component
+              uri  = URI.parse(str)
+              host = uri.host
+
+              # For file:// URLs, treat "localhost" (any case) as local machine
+              # Ruby's URI::File is case-sensitive but RFC 8089 treats localhost specially
+              if uri.scheme&.downcase == 'file' && host&.downcase == 'localhost'
+                return nil
+              end
+
+              return host # Returns host or nil if no host component
             rescue URI::InvalidURIError
               return nil # Malformed URL, do not attempt to guess
             end
+          end
+
+          # Check for non-network URI schemes (e.g., "javascript:alert(1)")
+          # These use "scheme:data" format and should not be treated as hostname:port
+          if str.include?(':')
+            potential_scheme = str.split(':').first.downcase
+            return nil if NON_NETWORK_SCHEMES.include?(potential_scheme)
           end
 
           # Treat as plain hostname, strip port if present

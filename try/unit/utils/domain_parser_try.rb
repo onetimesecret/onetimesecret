@@ -83,6 +83,82 @@ Onetime::Utils::DomainParser.extract_hostname('ftp://')
 #=> nil
 
 ## =================================================================
+## file:// URL handling (SECURITY CRITICAL)
+## =================================================================
+## file:// URLs are used for local filesystem access and should not
+## produce hostnames that could be confused with network hosts.
+## Per RFC 8089, "localhost" in file:// URIs means local machine.
+
+## file:// with triple slash (local file) returns nil
+Onetime::Utils::DomainParser.extract_hostname('file:///path/to/file')
+#=> nil
+
+## file:// with localhost returns nil (RFC 8089: localhost = local machine)
+Onetime::Utils::DomainParser.extract_hostname('file://localhost/path')
+#=> nil
+
+## file:// with LOCALHOST (case variation) returns nil
+Onetime::Utils::DomainParser.extract_hostname('file://LOCALHOST/path/to/file')
+#=> nil
+
+## file:// with empty host returns nil
+Onetime::Utils::DomainParser.extract_hostname('file://')
+#=> nil
+
+## file:// with actual remote host extracts hostname
+Onetime::Utils::DomainParser.extract_hostname('file://fileserver.example.com/share/doc.txt')
+#=> 'fileserver.example.com'
+
+## file:// with IP-like remote host extracts it
+Onetime::Utils::DomainParser.extract_hostname('file://192.168.1.1/share')
+#=> '192.168.1.1'
+
+## file:// Windows-style UNC path returns nil (no valid host)
+Onetime::Utils::DomainParser.extract_hostname('file:///C:/Users/test')
+#=> nil
+
+## file:// with port (unusual but valid) extracts hostname
+Onetime::Utils::DomainParser.extract_hostname('file://server.local:445/share')
+#=> 'server.local'
+
+## =================================================================
+## Other URI schemes (SECURITY CRITICAL)
+## =================================================================
+## Various URI schemes that should be handled safely
+
+## data: URI returns nil (no hostname concept)
+Onetime::Utils::DomainParser.extract_hostname('data:text/html,<h1>Hello</h1>')
+#=> nil
+
+## javascript: URI returns nil
+Onetime::Utils::DomainParser.extract_hostname('javascript:alert(1)')
+#=> nil
+
+## mailto: URI returns nil (no hostname)
+Onetime::Utils::DomainParser.extract_hostname('mailto:user@example.com')
+#=> nil
+
+## tel: URI returns nil
+Onetime::Utils::DomainParser.extract_hostname('tel:+1-555-555-5555')
+#=> nil
+
+## ftp:// with hostname extracts it
+Onetime::Utils::DomainParser.extract_hostname('ftp://ftp.example.com/pub/file.txt')
+#=> 'ftp.example.com'
+
+## sftp:// with hostname extracts it
+Onetime::Utils::DomainParser.extract_hostname('sftp://secure.example.com/files')
+#=> 'secure.example.com'
+
+## ws:// WebSocket URL extracts hostname
+Onetime::Utils::DomainParser.extract_hostname('ws://socket.example.com/stream')
+#=> 'socket.example.com'
+
+## wss:// secure WebSocket URL extracts hostname
+Onetime::Utils::DomainParser.extract_hostname('wss://secure-socket.example.com:8443/stream')
+#=> 'secure-socket.example.com'
+
+## =================================================================
 ## hostname_matches? - Exact comparison (SECURITY CRITICAL)
 ## =================================================================
 
